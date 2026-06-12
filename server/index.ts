@@ -40,7 +40,7 @@ if (isProd) {
   });
 }
 
-async function bootstrap() {
+async function runMigrations() {
   if (env.DATABASE_URL && process.env.AUTO_MIGRATE !== "false") {
     try {
       const folder = path.resolve(process.cwd(), "drizzle");
@@ -50,9 +50,11 @@ async function bootstrap() {
       console.error("[MKA.P-MS] échec migrations:", (err as Error).message);
     }
   }
-  app.listen(env.PORT, "0.0.0.0", () => {
-    console.log(`[MKA.P-MS] serveur démarré sur le port ${env.PORT} (${env.NODE_ENV})`);
-  });
 }
 
-bootstrap();
+// On démarre le serveur immédiatement (healthcheck OK), puis on migre en arrière-plan.
+app.listen(env.PORT, "0.0.0.0", () => {
+  const dbHost = (env.DATABASE_URL.match(/@([^/:]+)/)?.[1]) ?? "(non configurée)";
+  console.log(`[MKA.P-MS] serveur démarré sur le port ${env.PORT} (${env.NODE_ENV}) — DB: ${dbHost}`);
+  void runMigrations();
+});
