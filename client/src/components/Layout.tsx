@@ -39,7 +39,7 @@ function Header() {
       style={{
         paddingTop: window.matchMedia("(display-mode: standalone)").matches
           || (navigator as any).standalone === true
-          ? "18px"
+          ? "22px"
           : undefined,
       }}
     >
