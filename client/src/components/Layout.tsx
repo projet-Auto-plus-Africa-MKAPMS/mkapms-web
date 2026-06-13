@@ -34,7 +34,15 @@ function Header() {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <header
+      className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur"
+      style={{
+        paddingTop: window.matchMedia("(display-mode: standalone)").matches
+          || (navigator as any).standalone === true
+          ? "12px"
+          : undefined,
+      }}
+    >
       <div className="container-page flex h-16 items-center justify-between gap-4">
         <Link to="/" className="flex flex-col">
           <span className="text-lg font-extrabold tracking-tight text-noir">
