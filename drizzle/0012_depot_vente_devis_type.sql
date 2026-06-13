@@ -1,16 +1,7 @@
 -- Migration 0012: Dépôt-Vente + devisType column
--- Ajoute le module Dépôt-Vente et la colonne devis_type sur devis_garage_requests
-
--- Enum pour les statuts du dépôt-vente
-DO $$ BEGIN
-  CREATE TYPE "depot_vente_status" AS ENUM (
-    'demande', 'expertise', 'accepte', 'photos_en_cours', 'en_ligne',
-    'negociation', 'vendu', 'paiement_client', 'termine', 'refuse', 'annule'
-  );
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
--- Table dépôt-vente
+--> statement-breakpoint
+DO $$ BEGIN CREATE TYPE "depot_vente_status" AS ENUM ('demande', 'expertise', 'accepte', 'photos_en_cours', 'en_ligne', 'negociation', 'vendu', 'paiement_client', 'termine', 'refuse', 'annule'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "depot_vente" (
   "id" serial PRIMARY KEY,
   "client_id" integer NOT NULL,
@@ -41,6 +32,5 @@ CREATE TABLE IF NOT EXISTS "depot_vente" (
   "created_at" timestamp NOT NULL DEFAULT now(),
   "updated_at" timestamp NOT NULL DEFAULT now()
 );
-
--- Colonne devis_type sur devis_garage_requests (Option A/B/C)
+--> statement-breakpoint
 ALTER TABLE "devis_garage_requests" ADD COLUMN IF NOT EXISTS "devis_type" varchar(32) DEFAULT 'main_oeuvre';
