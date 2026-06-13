@@ -1,5 +1,5 @@
 // MKA.P-MS Service Worker — cache-first for static, network-first for API
-const CACHE_NAME = "mkapms-v3";
+const CACHE_NAME = "mkapms-v4";
 const STATIC_ASSETS = ["/", "/favicon.svg"];
 
 self.addEventListener("install", (e) => {

@@ -84,3 +84,10 @@ a {
   from { transform: translateY(100%); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+
+/* PWA standalone mode — petit espace sous la barre de statut iOS */
+@media all and (display-mode: standalone) {
+  header {
+    padding-top: 8px;
+  }
+}
