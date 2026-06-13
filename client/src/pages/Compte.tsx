@@ -55,6 +55,13 @@ export default function Compte() {
         </div>
       </div>
 
+      {isPro(user.role) && (
+        <Link to="/compte/validation" className="mt-4 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <span>Validez votre compte professionnel en soumettant vos documents (KBIS, RIB, identité…).</span>
+          <span className="font-semibold underline">Compléter ma validation →</span>
+        </Link>
+      )}
+
       <div className="mt-6 flex flex-wrap gap-1 border-b border-slate-200">
         {TABS.map(([v, l]) => (
           <button

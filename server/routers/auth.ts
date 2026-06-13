@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { users } from "../schema.js";
+import { getProfile } from "@shared/profiles.js";
 import {
   signToken,
   hashPassword,
@@ -39,6 +40,10 @@ export const authRouter = router({
         name: z.string().min(1),
         phone: z.string().optional(),
         accountType: z.enum(["particulier", "professionnel"]).default("particulier"),
+        // Profil d'inscription (parcours §1-§7) : détermine rôle + documents.
+        profileType: z
+          .enum(["particulier", "pro_vente", "garage", "location", "vtc_taxi", "pieces", "livraison"])
+          .optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -50,6 +55,9 @@ export const authRouter = router({
       if (existing.length) {
         throw new TRPCError({ code: "CONFLICT", message: "Email déjà utilisé" });
       }
+      const profile = input.profileType ? getProfile(input.profileType) : undefined;
+      const accountType = profile?.accountType ?? input.accountType;
+      const role = profile?.role ?? (accountType === "professionnel" ? "pro" : "user");
       const passwordHash = await hashPassword(input.password);
       const [created] = await db
         .insert(users)
@@ -58,12 +66,12 @@ export const authRouter = router({
           passwordHash,
           name: input.name,
           phone: input.phone,
-          accountType: input.accountType,
-          role: input.accountType === "professionnel" ? "pro" : "user",
+          accountType,
+          role,
         })
         .returning();
       const token = signToken({ uid: created.id, role: created.role, email: created.email });
-      return { token, user: publicUser(created) };
+      return { token, user: publicUser(created), profileType: input.profileType ?? "particulier" };
     }),
 
   login: publicProcedure

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { PROFILE_LIST, getProfile } from "@shared/profiles";
 
 declare global {
   interface Window {
@@ -15,14 +16,19 @@ export default function Connexion() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "register">("login");
-  const [form, setForm] = useState({ email: "", password: "", name: "", phone: "", accountType: "particulier" });
+  const [form, setForm] = useState({ email: "", password: "", name: "", phone: "", profileType: "particulier" });
   const googleDiv = useRef<HTMLDivElement>(null);
 
   const loginM = trpc.auth.login.useMutation({
     onSuccess: (r) => { login(r.token, r.user as any); navigate("/compte"); },
   });
   const registerM = trpc.auth.register.useMutation({
-    onSuccess: (r) => { login(r.token, r.user as any); navigate("/compte"); },
+    onSuccess: (r) => {
+      login(r.token, r.user as any);
+      const prof = getProfile(r.profileType);
+      // Profils pro : on les envoie soumettre leurs documents (validation requise).
+      navigate(prof?.needsValidation ? "/compte/validation" : "/compte");
+    },
   });
   const googleM = trpc.auth.googleLogin.useMutation({
     onSuccess: (r) => { login(r.token, r.user as any); navigate("/compte"); },
@@ -56,10 +62,15 @@ export default function Connexion() {
           {mode === "register" && (
             <>
               <input className="input" placeholder="Nom complet" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-              <select className="input" value={form.accountType} onChange={(e) => setForm((f) => ({ ...f, accountType: e.target.value }))}>
-                <option value="particulier">Particulier</option>
-                <option value="professionnel">Professionnel / Garage</option>
-              </select>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-slate-500">Type de compte</label>
+                <select className="input" value={form.profileType} onChange={(e) => setForm((f) => ({ ...f, profileType: e.target.value }))}>
+                  {PROFILE_LIST.map((p) => (
+                    <option key={p.type} value={p.type}>{p.label}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-400">{getProfile(form.profileType)?.description}</p>
+              </div>
             </>
           )}
           <input className="input" type="email" placeholder="Email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
@@ -72,7 +83,7 @@ export default function Connexion() {
               {loginM.isPending ? "Connexion…" : "Se connecter"}
             </button>
           ) : (
-            <button className="btn-primary w-full" disabled={registerM.isPending} onClick={() => registerM.mutate({ email: form.email, password: form.password, name: form.name, phone: form.phone || undefined, accountType: form.accountType as any })}>
+            <button className="btn-primary w-full" disabled={registerM.isPending} onClick={() => registerM.mutate({ email: form.email, password: form.password, name: form.name, phone: form.phone || undefined, profileType: form.profileType as any })}>
               {registerM.isPending ? "Création…" : "Créer mon compte"}
             </button>
           )}
