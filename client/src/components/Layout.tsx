@@ -16,8 +16,10 @@ import { trpc } from "../lib/trpc";
 const NAV = [
   { to: "/acheter", label: "Acheter" },
   { to: "/louer", label: "Louer" },
+  { to: "/pieces", label: "Pièces" },
   { to: "/devis", label: "Devis Garage" },
   { to: "/garages", label: "Garages" },
+  { to: "/univers", label: "Univers" },
   { to: "/abonnements", label: "Abonnements" },
 ];
 

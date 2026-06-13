@@ -9,6 +9,19 @@ import { reservationsRouter } from "./routers/reservations.js";
 import { metaRouter } from "./routers/meta.js";
 import { adminRouter } from "./routers/admin.js";
 import { supportRouter } from "./routers/support.js";
+// Modules fédérés (Plan A→Z) — chaque univers indépendant.
+import { modulesRouter } from "./routers/modules.js";
+import { rbacRouter } from "./routers/rbac.js";
+import { piecesRouter } from "./routers/pieces.js";
+import { livraisonRouter } from "./routers/livraison.js";
+import { depannageRouter } from "./routers/depannage.js";
+import { transportRouter } from "./routers/transport.js";
+import { importafricaRouter } from "./routers/importafrica.js";
+import { walletRouter } from "./routers/wallet.js";
+import { contractsRouter } from "./routers/contracts.js";
+import { installmentsRouter } from "./routers/installments.js";
+import { marketingRouter } from "./routers/marketing.js";
+import { historiqueRouter } from "./routers/historique.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -21,6 +34,19 @@ export const appRouter = router({
   meta: metaRouter,
   admin: adminRouter,
   support: supportRouter,
+  // Univers / modules
+  modules: modulesRouter,
+  rbac: rbacRouter,
+  pieces: piecesRouter,
+  livraison: livraisonRouter,
+  depannage: depannageRouter,
+  transport: transportRouter,
+  importAfrica: importafricaRouter,
+  wallet: walletRouter,
+  contracts: contractsRouter,
+  installments: installmentsRouter,
+  marketing: marketingRouter,
+  historique: historiqueRouter,
 });
 
 export type AppRouter = typeof appRouter;

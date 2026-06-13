@@ -16,6 +16,14 @@ import Aide from "./pages/Aide";
 import Connexion from "./pages/Connexion";
 import Compte from "./pages/Compte";
 import Admin from "./pages/Admin";
+import Univers from "./pages/Univers";
+import Pieces from "./pages/Pieces";
+import Livraison from "./pages/Livraison";
+import Depannage from "./pages/Depannage";
+import VtcTaxi from "./pages/VtcTaxi";
+import ImportAfrica from "./pages/ImportAfrica";
+import Historique from "./pages/Historique";
+import Wallet from "./pages/Wallet";
 import NotFound from "./pages/NotFound";
 
 function SessionLoader() {
@@ -41,6 +49,14 @@ export default function App() {
           <Route path="/devis" element={<Devis />} />
           <Route path="/garages" element={<Garages />} />
           <Route path="/garage-plus" element={<GaragePlus />} />
+          <Route path="/univers" element={<Univers />} />
+          <Route path="/pieces" element={<Pieces />} />
+          <Route path="/livraison" element={<Livraison />} />
+          <Route path="/depannage" element={<Depannage />} />
+          <Route path="/vtc-taxi" element={<VtcTaxi />} />
+          <Route path="/import-africa" element={<ImportAfrica />} />
+          <Route path="/historique" element={<Historique />} />
+          <Route path="/wallet" element={<Wallet />} />
           <Route path="/abonnements" element={<Abonnements />} />
           <Route path="/aide" element={<Aide />} />
           <Route path="/connexion" element={<Connexion />} />

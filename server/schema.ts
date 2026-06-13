@@ -881,3 +881,19 @@ export const vehicules = pgTable("vehicules", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+// ===== MODULES FÉDÉRÉS (structure modulaire — Plan A→Z) =====
+// Chaque univers est défini dans son propre fichier (indépendant, désactivable).
+// Re-export ici pour que Drizzle (schema unique) prenne tout en compte.
+export * from "./modules/core"; // RBAC configurable, registre modules, i18n
+export * from "./modules/pieces"; // Univers Pièces Auto
+export * from "./modules/livraison"; // Univers Livraison
+export * from "./modules/depannage"; // Univers Dépannage
+export * from "./modules/transport"; // Univers VTC / TAXI
+export * from "./modules/importafrica"; // Univers Import Africa+
+export * from "./modules/wallet"; // Wallet professionnel
+export * from "./modules/contracts"; // Contrats intelligents
+export * from "./modules/installments"; // Paiement fractionné
+export * from "./modules/marketing"; // Marketing / QR codes
+export * from "./modules/history"; // Historique véhicule + suggestions/signalements
+export * from "./modules/future"; // Lavage, Karting, Formation, Financement (futurs)
