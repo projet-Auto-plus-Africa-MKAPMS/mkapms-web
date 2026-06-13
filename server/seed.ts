@@ -1,5 +1,4 @@
 // Données de démonstration minimales (idempotent).
-import { pathToFileURL } from "node:url";
 import { eq } from "drizzle-orm";
 import { db, pool } from "./db.js";
 import {
@@ -300,10 +299,10 @@ async function main() {
   console.log("[seed] terminé.");
 }
 
-// Exécution directe (npm run seed) uniquement — pas à l'import depuis le serveur.
-const isDirectRun =
-  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
-if (isDirectRun) {
+// Exécution directe (npm run seed) uniquement — JAMAIS à l'import depuis le
+// serveur. On s'appuie sur un flag d'environnement car, une fois le serveur
+// bundlé (esbuild), import.meta.url ne permet plus de distinguer ce fichier.
+if (process.env.SEED_DIRECT === "1") {
   main().catch((err) => {
     console.error("[seed] échec:", err);
     process.exit(1);
