@@ -103,7 +103,7 @@ export default function Validation() {
               return (
                 <div key={key}>
                   <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                    <Upload size={14} className="text-brand" /> {d.label}
+                    <Upload size={14} className="text-gold-dark" /> {d.label}
                     {already && <span className="badge bg-green-100 text-green-700">déjà soumis</span>}
                   </label>
                   <input

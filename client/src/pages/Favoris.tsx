@@ -21,7 +21,7 @@ export default function Favoris() {
   return (
     <div className="container-page py-8">
       <div className="mb-6 flex items-center gap-2">
-        <Heart className="text-brand" size={22} />
+        <Heart className="text-gold-dark" size={22} />
         <h1 className="text-2xl font-extrabold text-slate-900">Mes favoris</h1>
       </div>
 

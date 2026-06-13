@@ -124,7 +124,7 @@ export default function Home() {
       <section className="container-page pb-14">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-extrabold text-slate-900">Véhicules à la une</h2>
-          <Link to="/acheter" className="text-sm font-semibold text-brand">
+          <Link to="/acheter" className="text-sm font-semibold text-gold-dark">
             Voir tout →
           </Link>
         </div>
@@ -137,7 +137,7 @@ export default function Home() {
           {featured.data && featured.data.items.length === 0 && (
             <p className="col-span-full text-sm text-slate-500">
               Aucune annonce pour le moment. Soyez le premier à{" "}
-              <Link to="/vendre" className="font-semibold text-brand">déposer une annonce</Link>.
+              <Link to="/vendre" className="font-semibold text-gold-dark">déposer une annonce</Link>.
             </p>
           )}
         </div>
@@ -153,7 +153,7 @@ export default function Home() {
             { v: "24/7", l: "Support client" },
           ].map((s) => (
             <div key={s.l}>
-              <div className="text-3xl font-extrabold text-brand">{String(s.v)}</div>
+              <div className="text-3xl font-extrabold text-gold-dark">{String(s.v)}</div>
               <div className="mt-1 text-sm text-slate-500">{s.l}</div>
             </div>
           ))}

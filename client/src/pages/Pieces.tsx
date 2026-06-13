@@ -23,7 +23,7 @@ export default function Pieces() {
         {shops.data?.items.map((s) => (
           <div key={s.id} className="card p-5">
             <h3 className="font-bold text-slate-900">{s.nom}</h3>
-            <p className="mt-1 text-xs uppercase tracking-wide text-brand">{s.type}</p>
+            <p className="mt-1 text-xs uppercase tracking-wide text-gold-dark">{s.type}</p>
             {s.description && <p className="mt-2 line-clamp-2 text-sm text-slate-500">{s.description}</p>}
             <div className="mt-3 space-y-1 text-sm text-slate-500">
               {s.ville && <p className="flex items-center gap-1.5"><MapPin size={14} /> {s.ville}</p>}
@@ -45,7 +45,7 @@ export default function Pieces() {
             </div>
             <h3 className="mt-2 line-clamp-2 text-sm font-semibold text-slate-900">{p.nom}</h3>
             {p.oemRef && <p className="text-xs text-slate-400">OEM {p.oemRef}</p>}
-            <p className="mt-1 font-bold text-brand">{Number(p.prixHt).toLocaleString("fr-FR")} {p.currency} HT</p>
+            <p className="mt-1 font-bold text-gold-dark">{Number(p.prixHt).toLocaleString("fr-FR")} {p.currency} HT</p>
           </div>
         ))}
         {catalog.data && catalog.data.items.length === 0 && (

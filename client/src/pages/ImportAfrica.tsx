@@ -26,7 +26,7 @@ export default function ImportAfrica() {
           <ol className="mt-3 flex flex-wrap gap-2 text-sm">
             {STATUTS.map((s, i) => (
               <li key={s} className="flex items-center gap-2">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-brand/10 text-xs font-bold text-brand">{i + 1}</span>
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-gold-soft text-xs font-bold text-gold-dark">{i + 1}</span>
                 <span className="text-slate-600">{s}</span>
               </li>
             ))}

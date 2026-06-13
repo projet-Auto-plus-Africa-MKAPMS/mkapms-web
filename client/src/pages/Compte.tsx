@@ -94,7 +94,7 @@ export default function Compte() {
           <button
             key={v}
             onClick={() => setTab(v)}
-            className={`px-4 py-2 text-sm font-semibold ${tab === v ? "border-b-2 border-brand text-brand" : "text-slate-500"}`}
+            className={`px-4 py-2 text-sm font-semibold ${tab === v ? "border-b-2 border-gold text-noir" : "text-slate-500"}`}
           >
             {l}
           </button>
@@ -124,7 +124,7 @@ export default function Compte() {
             {favoris.data?.map((f) => (
               <Link key={f.annonce.id} to={`/vehicule/${f.annonce.id}`} className="card p-4">
                 <p className="font-semibold text-slate-800">{f.annonce.titre}</p>
-                <p className="text-sm text-brand">{formatPrice(Number(f.annonce.prix))}</p>
+                <p className="text-sm text-gold-dark">{formatPrice(Number(f.annonce.prix))}</p>
               </Link>
             ))}
             {favoris.data?.length === 0 && <p className="text-sm text-slate-500">Aucun favori.</p>}
@@ -230,7 +230,7 @@ export default function Compte() {
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{d.status}</span>
                 </div>
                 <p className="mt-1 text-slate-500">{d.description}</p>
-                {d.resolution && <p className="mt-1 text-xs text-brand">Réponse : {d.resolution}</p>}
+                {d.resolution && <p className="mt-1 text-xs text-gold-dark">Réponse : {d.resolution}</p>}
               </div>
             ))}
             {litiges.data?.length === 0 && <p className="text-sm text-slate-500">Aucun litige.</p>}
@@ -240,7 +240,7 @@ export default function Compte() {
           <div className="space-y-4">
             <div className="card p-5">
               <p className="text-sm text-slate-500">Niveau de fidélité MKA</p>
-              <p className="text-3xl font-extrabold text-brand">{TIER_LABELS[fidelite.data?.tier ?? "bronze"]}</p>
+              <p className="text-3xl font-extrabold text-gold-dark">{TIER_LABELS[fidelite.data?.tier ?? "bronze"]}</p>
               <p className="mt-1 text-2xl font-bold text-slate-900">{(fidelite.data?.points ?? 0).toLocaleString("fr-FR")} <span className="text-sm font-normal text-slate-500">points MKA</span></p>
               {fidelite.data?.nextTier && (
                 <p className="mt-2 text-xs text-slate-500">Encore <strong>{fidelite.data.pointsToNext.toLocaleString("fr-FR")}</strong> points pour passer {TIER_LABELS[fidelite.data.nextTier]}.</p>
@@ -284,7 +284,7 @@ export default function Compte() {
               <div key={d.id} className="card flex items-center justify-between p-3 text-sm">
                 <div>
                   <p className="font-semibold text-slate-800">{d.title}</p>
-                  <p className="text-xs text-slate-500">{d.category} · <a href={d.fileUrl} target="_blank" rel="noreferrer" className="text-brand underline">ouvrir</a></p>
+                  <p className="text-xs text-slate-500">{d.category} · <a href={d.fileUrl} target="_blank" rel="noreferrer" className="text-gold-dark underline">ouvrir</a></p>
                 </div>
                 <button className="text-xs text-red-500 hover:underline" onClick={() => removeDoc.mutate({ id: d.id })}>Supprimer</button>
               </div>

@@ -166,7 +166,7 @@ export default function Admin() {
           <h1 className="text-2xl font-extrabold text-slate-900">Back-office</h1>
           <p className="text-sm text-slate-500">Administration MKA.P-MS — Auto Plus Africa.</p>
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${direction ? "bg-brand/10 text-brand" : "bg-slate-100 text-slate-600"}`}>
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${direction ? "bg-gold-soft text-gold-dark" : "bg-slate-100 text-slate-600"}`}>
           {direction ? "Direction / PDG" : "Employé"}
         </span>
       </div>
@@ -174,7 +174,7 @@ export default function Admin() {
       <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-6">
         {cards.map((c) => (
           <div key={c.l} className="card p-4 text-center">
-            <div className="text-2xl font-extrabold text-brand">{c.v ?? "—"}</div>
+            <div className="text-2xl font-extrabold text-noir">{c.v ?? "—"}</div>
             <div className="text-xs text-slate-500">{c.l}</div>
           </div>
         ))}
@@ -182,7 +182,7 @@ export default function Admin() {
 
       {/* Centre de commandement PDG (Parties 13 & 16) — tout en un écran */}
       <section className="mt-8">
-        <h2 className="text-lg font-bold text-slate-800">Centre de commandement PDG <span className="text-xs font-normal text-brand">(temps réel)</span></h2>
+        <h2 className="text-lg font-bold text-slate-800">Centre de commandement PDG <span className="text-xs font-normal text-gold-dark">(temps réel)</span></h2>
         {(() => {
           const eur = (v?: number) => (dashboard.data && v != null ? `${v.toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €` : "—");
           return (
@@ -218,7 +218,7 @@ export default function Admin() {
 
       {/* Partie 22 — Centre de performance (KPI par univers) */}
       <section className="mt-10">
-        <h2 className="text-lg font-bold text-slate-800">Centre de performance <span className="text-xs font-normal text-brand">(KPI par univers)</span></h2>
+        <h2 className="text-lg font-bold text-slate-800">Centre de performance <span className="text-xs font-normal text-gold-dark">(KPI par univers)</span></h2>
         <p className="text-xs text-slate-500">Tout mesurer en un écran : vente, garage, location, pièces, livraison, Afrique.</p>
         {kpis.data && (
           <div className="mt-3 grid gap-3 md:grid-cols-3">
@@ -388,7 +388,7 @@ export default function Admin() {
         <h2 className="text-lg font-bold text-slate-800">
           Messages & support
           {ticketsListQ.data && ticketsListQ.data.filter((t) => t.status === "ouvert").length > 0 && (
-            <span className="ml-2 rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white">
+            <span className="ml-2 rounded-full bg-gold px-2 py-0.5 text-xs font-bold text-noir">
               {ticketsListQ.data.filter((t) => t.status === "ouvert").length} ouvert(s)
             </span>
           )}
@@ -408,8 +408,8 @@ export default function Admin() {
               </div>
               <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{t.message}</p>
               {t.response && (
-                <div className="mt-2 rounded-lg border-l-2 border-brand bg-brand/5 p-2">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-brand">Réponse envoyée</p>
+                <div className="mt-2 rounded-lg border-l-2 border-gold bg-gold-soft p-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-gold-dark">Réponse envoyée</p>
                   <p className="mt-0.5 whitespace-pre-wrap text-sm text-slate-700">{t.response}</p>
                 </div>
               )}
@@ -443,7 +443,7 @@ export default function Admin() {
         <>
           {/* Demandes de suppression à approuver */}
           <section className="mt-12 border-t border-slate-200 pt-8">
-            <h2 className="text-lg font-bold text-slate-800">Demandes de suppression de compte <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Demandes de suppression de compte <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <div className="mt-3 space-y-1">
               {deletionRequests.data?.filter((r) => r.status === "en_attente").map((r) => (
                 <div key={r.id} className="card flex items-center justify-between p-2 text-sm">
@@ -459,7 +459,7 @@ export default function Admin() {
           </section>
           {/* Équipe interne */}
           <section className="mt-12 border-t border-slate-200 pt-8">
-            <h2 className="text-lg font-bold text-slate-800">Équipe interne <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Équipe interne <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <form
               className="mt-3 grid gap-2 md:grid-cols-5"
               onSubmit={(e) => { e.preventDefault(); createStaff.mutate(staff); }}
@@ -488,7 +488,7 @@ export default function Admin() {
 
           {/* Codes promo */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Codes promotionnels <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Codes promotionnels <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <form
               className="mt-3 grid gap-2 md:grid-cols-4"
               onSubmit={(e) => { e.preventDefault(); createPromo.mutate({ ...promo, value: Number(promo.value) }); }}
@@ -520,7 +520,7 @@ export default function Admin() {
 
           {/* Traçabilité — radar Direction */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Traçabilité — journal des actions <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Traçabilité — journal des actions <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Toutes les actions des employés et de la Direction sont enregistrées.</p>
             <div className="mt-3 max-h-80 space-y-1 overflow-y-auto">
               {auditLog.data?.map((l) => (
@@ -535,7 +535,7 @@ export default function Admin() {
 
           {/* Centre de contrôle des modules (Partie 6 §7) */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Centre de contrôle des modules <span className="text-xs font-normal text-brand">(Super Admin)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Centre de contrôle des modules <span className="text-xs font-normal text-gold-dark">(Super Admin)</span></h2>
             <p className="text-xs text-slate-500">Activez, masquez ou mettez en maintenance chaque univers — sans casser les autres.</p>
             <div className="mt-3 overflow-x-auto">
               <table className="w-full min-w-[640px] text-sm">
@@ -583,7 +583,7 @@ export default function Admin() {
 
           {/* Partenaires (Partie 15) */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Partenaires <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Partenaires <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <form
               className="mt-3 flex flex-wrap gap-2"
               onSubmit={(e) => { e.preventDefault(); if (partner.name) createPartner.mutate({ name: partner.name, type: partner.type as "autre", country: partner.country || undefined }); }}
@@ -619,7 +619,7 @@ export default function Admin() {
 
           {/* Multi-entrepôts (Partie 10) */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Entrepôts <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Entrepôts <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <form
               className="mt-3 flex flex-wrap gap-2"
               onSubmit={(e) => { e.preventDefault(); if (warehouse.nom) createWarehouse.mutate({ nom: warehouse.nom, countryCode: warehouse.countryCode, ville: warehouse.ville || undefined, type: warehouse.type as "mixte" }); }}
@@ -647,7 +647,7 @@ export default function Admin() {
 
           {/* International — catalogue mondial des pays (Parties 14 & 19) */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">International — pays du monde <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">International — pays du monde <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Tous les pays du monde (Europe comprise). Activez progressivement les marchés en un clic (devise + règles import/douane).</p>
             <p className="mt-1 text-xs text-slate-400">{countriesList.data?.length ?? 0} pays au catalogue · {countriesList.data?.filter((c) => c.active).length ?? 0} actifs</p>
             <div className="mt-3 grid max-h-96 gap-2 overflow-y-auto md:grid-cols-3">
@@ -663,7 +663,7 @@ export default function Admin() {
 
           {/* Partie 19 §4 — Objectifs / stats par pays */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Stats par pays <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Stats par pays <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Utilisateurs et annonces par pays — suivi de l'expansion.</p>
             <div className="mt-3 overflow-x-auto">
               <table className="w-full text-sm">
@@ -684,7 +684,7 @@ export default function Admin() {
 
           {/* Partie 19 — Gouvernance : filiales, sites, franchises */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Gouvernance — filiales <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Gouvernance — filiales <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Niveau Pays. Chaque filiale gère ses équipes/véhicules sans accéder aux autres pays.</p>
             <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (subsidiary.name) createSubsidiary.mutate({ name: subsidiary.name, countryCode: subsidiary.countryCode, city: subsidiary.city || undefined }); }}>
               <input className="input max-w-xs" placeholder="Nom (MKA Guinée)" value={subsidiary.name} onChange={(e) => setSubsidiary({ ...subsidiary, name: e.target.value })} />
@@ -701,7 +701,7 @@ export default function Admin() {
           </section>
 
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Gouvernance — sites locaux <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Gouvernance — sites locaux <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Niveau Ville : agence, entrepôt, garage, karting, lavage (apparaissent sur la carte mondiale si géolocalisés).</p>
             <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (site.name) createSite.mutate({ name: site.name, type: site.type as "agence", countryCode: site.countryCode, city: site.city || undefined }); }}>
               <input className="input max-w-xs" placeholder="Nom (Agence Dakar)" value={site.name} onChange={(e) => setSite({ ...site, name: e.target.value })} />
@@ -721,7 +721,7 @@ export default function Admin() {
           </section>
 
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Franchises <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Franchises <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Garage / lavage / karting en franchise : contrat, zone, redevance, statut.</p>
             <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (franchise.name) createFranchise.mutate({ name: franchise.name, type: franchise.type as "garage", countryCode: franchise.countryCode, zone: franchise.zone || undefined }); }}>
               <input className="input max-w-xs" placeholder="Nom" value={franchise.name} onChange={(e) => setFranchise({ ...franchise, name: e.target.value })} />
@@ -747,7 +747,7 @@ export default function Admin() {
 
           {/* Partie 21 — Assurances (polices par univers) */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Assurances <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Assurances <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Polices par univers : location, transport, garage, VTC, livraison. (Contrats & archivage légal gérés par le moteur de contrats.)</p>
             <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (insurance.compagnie) createInsurance.mutate({ type: insurance.type as "location", compagnie: insurance.compagnie, numeroPolice: insurance.numeroPolice || undefined }); }}>
               <select className="input max-w-[150px]" value={insurance.type} onChange={(e) => setInsurance({ ...insurance, type: e.target.value })}>
@@ -767,7 +767,7 @@ export default function Admin() {
 
           {/* Partie 20 — Continuité & sécurité */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Continuité & sécurité <span className="text-xs font-normal text-brand">(Super Admin)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Continuité & sécurité <span className="text-xs font-normal text-gold-dark">(Super Admin)</span></h2>
             <div className="mt-3 card flex items-center justify-between p-3 text-sm">
               <div>
                 <div className="font-bold text-slate-800">Mode maintenance</div>
@@ -801,7 +801,7 @@ export default function Admin() {
 
           {/* Partie 23 — MKA.P-MS Lab */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">MKA.P-MS Lab <span className="text-xs font-normal text-brand">(Super Admin)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">MKA.P-MS Lab <span className="text-xs font-normal text-gold-dark">(Super Admin)</span></h2>
             <p className="text-xs text-slate-500">Tester de nouvelles idées (offre, page, service, paiement, IA) sans casser le système principal : brouillon → test → actif → désactivé.</p>
             <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (lab.key && lab.name) createLab.mutate({ key: lab.key, name: lab.name, category: lab.category as "autre" }); }}>
               <input className="input max-w-[180px]" placeholder="clé (ex: offre_test)" value={lab.key} onChange={(e) => setLab({ ...lab, key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_") })} />
@@ -827,7 +827,7 @@ export default function Admin() {
 
           {/* Partie 24 — Centre Achat / Approvisionnement */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Achat / Approvisionnement <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Achat / Approvisionnement <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Bons de commande fournisseurs (Auto1, Europe, Chine…), réception + contrôle qualité.</p>
             <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); createOrder.mutate({ category: order.category as "vehicule", total: Number(order.total) || 0, notes: order.notes || undefined }); }}>
               <select className="input max-w-[150px]" value={order.category} onChange={(e) => setOrder({ ...order, category: e.target.value })}>
@@ -852,7 +852,7 @@ export default function Admin() {
 
           {/* Partie 25 — Centre RH */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Centre RH <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Centre RH <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Fiches employé (contrat, poste, salaire), congés/absences, évaluations — relié à Finance+.</p>
             <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (hr.userId) upsertHr.mutate({ userId: Number(hr.userId), poste: hr.poste || undefined, contractType: hr.contractType as "cdi", salaire: Number(hr.salaire) || undefined }); }}>
               <input className="input max-w-[110px]" type="number" placeholder="ID user" value={hr.userId} onChange={(e) => setHr({ ...hr, userId: e.target.value })} />
@@ -889,7 +889,7 @@ export default function Admin() {
 
           {/* Partie 26 — Centre Qualité */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Centre Qualité <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Centre Qualité <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Notation interne A+→D (invisible au public) : garages, vendeurs, livreurs, VTC, partenaires.</p>
             <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (quality.targetId) rateQuality.mutate({ targetType: quality.targetType as "garage", targetId: Number(quality.targetId), grade: quality.grade as "B", note: quality.note || undefined }); }}>
               <select className="input max-w-[140px]" value={quality.targetType} onChange={(e) => setQuality({ ...quality, targetType: e.target.value })}>
@@ -912,7 +912,7 @@ export default function Admin() {
 
           {/* Partie 27 — Mode Investisseurs */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Mode Investisseurs <span className="text-xs font-normal text-brand">(lecture seule)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Mode Investisseurs <span className="text-xs font-normal text-gold-dark">(lecture seule)</span></h2>
             <p className="text-xs text-slate-500">Croissance, revenus, valorisation indicative — pour partenaires financiers.</p>
             {investor.data && (
               <div className="mt-3">
@@ -920,7 +920,7 @@ export default function Admin() {
                   <div className="card p-3"><div className="text-xs text-slate-500">Utilisateurs</div><div className="text-xl font-extrabold text-slate-900">{investor.data.utilisateurs}</div></div>
                   <div className="card p-3"><div className="text-xs text-slate-500">Annonces</div><div className="text-xl font-extrabold text-slate-900">{investor.data.annonces}</div></div>
                   <div className="card p-3"><div className="text-xs text-slate-500">Revenu total</div><div className="text-xl font-extrabold text-slate-900">{Math.round(investor.data.revenuTotal)} €</div></div>
-                  <div className="card p-3"><div className="text-xs text-slate-500">Valorisation indicative</div><div className="text-xl font-extrabold text-brand">{investor.data.valorisationIndicative.toLocaleString("fr-FR")} €</div></div>
+                  <div className="card p-3"><div className="text-xs text-slate-500">Valorisation indicative</div><div className="text-xl font-extrabold text-noir">{investor.data.valorisationIndicative.toLocaleString("fr-FR")} €</div></div>
                 </div>
                 <div className="mt-3 overflow-x-auto">
                   <table className="w-full text-sm">
@@ -939,7 +939,7 @@ export default function Admin() {
 
           {/* Partie 28 — Centre Médias */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Centre Médias <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Centre Médias <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Vidéos, photos, réseaux sociaux, influenceurs/ambassadeurs.</p>
             <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (media.title) addMedia.mutate({ type: media.type as "photo", title: media.title, url: media.url || undefined, channel: media.channel || undefined }); }}>
               <select className="input max-w-[120px]" value={media.type} onChange={(e) => setMedia({ ...media, type: e.target.value })}>
@@ -961,7 +961,7 @@ export default function Admin() {
 
           {/* Partie 29 — API Partenaires */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">API Partenaires <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">API Partenaires <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Clés API + portée pour brancher Auto1, historiques, assurances, paiements, transporteurs (sans refaire le système).</p>
             <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (apiForm.name) createApiKey.mutate({ name: apiForm.name, scopes: apiForm.scopes || undefined }); }}>
               <input className="input max-w-xs" placeholder="Nom (ex: Auto1)" value={apiForm.name} onChange={(e) => setApiForm({ ...apiForm, name: e.target.value })} />
@@ -988,7 +988,7 @@ export default function Admin() {
 
           {/* Karting (featuring — prioritaire) — masqué au public */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Karting <span className="rounded bg-brand/10 px-1.5 py-0.5 text-xs font-bold text-brand">FEATURING</span> <span className="text-xs font-normal text-slate-400">(masqué au public)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Karting <span className="rounded bg-gold-soft px-1.5 py-0.5 text-xs font-bold text-gold-dark">FEATURING</span> <span className="text-xs font-normal text-slate-400">(masqué au public)</span></h2>
             <p className="text-xs text-slate-500">Levier de marque MKA.P-MS : centres référencés sur la carte plateforme + flotte de karts (dont fabrication maison). Invisible aux clients tant que le module n'est pas activé.</p>
 
             <h3 className="mt-3 text-sm font-bold text-slate-700">Centres karting</h3>
@@ -1095,7 +1095,7 @@ export default function Admin() {
 
           {/* Carte plateforme (Direction) — inclut karting & lavage non visibles aux clients */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Carte plateforme <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Carte plateforme <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Tous les points référencés (sites, karting, lavage…). Les points <b>non visibles aux clients</b> sont signalés.</p>
             <div className="mt-3 space-y-1">
               {platformMapQ.data?.map((p) => (
@@ -1110,7 +1110,7 @@ export default function Admin() {
 
           {/* Certification par ID */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Certifier un véhicule « Sélection MKA.P-MS » <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <h2 className="text-lg font-bold text-slate-800">Certifier un véhicule « Sélection MKA.P-MS » <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <form
               className="mt-3 flex gap-2"
               onSubmit={(e) => { e.preventDefault(); if (certifyId) { certify.mutate({ annonceId: Number(certifyId), certified: true }); setCertifyId(""); } }}

@@ -178,7 +178,7 @@ export default function Vendre() {
           {/* Estimation intelligente du prix (Partie 5) */}
           <div className="card p-5">
             <h3 className="flex items-center gap-2 font-bold text-slate-800">
-              <TrendingUp size={18} className="text-brand" /> Estimer le juste prix
+              <TrendingUp size={18} className="text-gold-dark" /> Estimer le juste prix
             </h3>
             <p className="mt-1 text-xs text-slate-500">
               Renseignez marque, modèle, année et kilométrage, puis estimez.
@@ -191,8 +191,8 @@ export default function Vendre() {
               {estimLoading ? "Calcul…" : "Estimer le prix"}
             </button>
             {estim && (
-              <div className="mt-3 rounded-lg bg-brand/5 p-3 text-center">
-                <div className="text-lg font-extrabold text-brand">
+              <div className="mt-3 rounded-lg bg-gold-soft/30 p-3 text-center">
+                <div className="text-lg font-extrabold text-gold-dark">
                   {formatPrice(estim.low)} – {formatPrice(estim.high)}
                 </div>
                 <div className="text-xs text-slate-500">
@@ -204,7 +204,7 @@ export default function Vendre() {
                     : "Estimation indicative (peu de comparables)"}
                 </div>
                 <button
-                  className="mt-2 text-xs font-semibold text-brand"
+                  className="mt-2 text-xs font-semibold text-gold-dark"
                   onClick={() => set("prix", String(estim.mid))}
                 >
                   Utiliser ce prix

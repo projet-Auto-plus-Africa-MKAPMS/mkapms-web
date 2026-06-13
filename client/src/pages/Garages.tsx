@@ -24,7 +24,7 @@ export default function Garages() {
           <div key={g.id} className="card p-5">
             <div className="flex items-start justify-between">
               <h3 className="font-bold text-slate-900">{g.name}</h3>
-              {g.featured && <BadgeCheck className="text-brand" size={18} />}
+              {g.featured && <BadgeCheck className="text-gold-dark" size={18} />}
             </div>
             {g.description && <p className="mt-1 line-clamp-2 text-sm text-slate-500">{g.description}</p>}
             <div className="mt-3 space-y-1 text-sm text-slate-500">

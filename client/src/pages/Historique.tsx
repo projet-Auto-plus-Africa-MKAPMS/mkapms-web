@@ -11,7 +11,7 @@ export default function Historique() {
   return (
     <div className="container-page py-8">
       <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900">
-        <ShieldCheck className="text-brand" /> Historique véhicule
+        <ShieldCheck className="text-gold-dark" /> Historique véhicule
       </h1>
       <p className="mt-1 text-sm text-slate-500">
         Vérifiez kilométrage, contrôles techniques, sinistres, entretien et score de confiance MKA.P-MS.
@@ -23,7 +23,7 @@ export default function Historique() {
             <button
               key={t}
               onClick={() => setSearchType(t)}
-              className={`rounded-lg px-3 py-2 text-sm font-medium ${searchType === t ? "bg-brand text-white" : "bg-slate-100 text-slate-600"}`}
+              className={`rounded-lg px-3 py-2 text-sm font-medium ${searchType === t ? "bg-gold text-noir" : "bg-slate-100 text-slate-600"}`}
             >
               {t === "plate" ? "Immatriculation" : "VIN"}
             </button>

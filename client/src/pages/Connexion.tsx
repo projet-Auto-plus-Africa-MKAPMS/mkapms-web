@@ -101,7 +101,7 @@ export default function Connexion() {
 
         <p className="mt-6 text-center text-sm text-slate-500">
           {mode === "login" ? "Pas encore de compte ?" : "Déjà inscrit ?"}{" "}
-          <button className="font-semibold text-brand" onClick={() => setMode(mode === "login" ? "register" : "login")}>
+          <button className="font-semibold text-gold-dark" onClick={() => setMode(mode === "login" ? "register" : "login")}>
             {mode === "login" ? "Créer un compte" : "Se connecter"}
           </button>
         </p>

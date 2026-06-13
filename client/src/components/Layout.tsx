@@ -35,12 +35,12 @@ function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="container-page flex h-16 items-center justify-between gap-4">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-gold to-gold-dark text-lg font-extrabold text-noir shadow-sm ring-1 ring-gold-dark/30">
-            M
-          </span>
+        <Link to="/" className="flex flex-col">
           <span className="text-lg font-extrabold tracking-tight text-noir">
-            MKA<span className="text-gold-dark">.P-MS</span>
+            MK<span className="text-gold">A</span><span className="text-noir">.P-MS</span>
+          </span>
+          <span className="-mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            La marketplace automobile
           </span>
         </Link>
 
@@ -220,11 +220,13 @@ function Footer() {
     <footer className="mt-16 border-t border-slate-200 bg-white">
       <div className="container-page grid gap-8 py-12 md:grid-cols-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand font-extrabold text-white">
-              M
+          <div className="flex flex-col">
+            <span className="text-lg font-extrabold tracking-tight text-noir">
+              MK<span className="text-gold">A</span>.P-MS
             </span>
-            <span className="font-extrabold text-brand">MKA.P-MS</span>
+            <span className="-mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              La marketplace automobile
+            </span>
           </div>
           <p className="mt-3 text-sm text-slate-500">
             La marketplace automobile de référence. Achat, location et entretien — une seule

@@ -64,7 +64,7 @@ export default function Abonnements() {
             <button
               key={v}
               onClick={() => setTab(v)}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold ${tab === v ? "bg-brand text-white" : "text-slate-600"}`}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold ${tab === v ? "bg-gold text-noir" : "text-slate-600"}`}
             >
               {l}
             </button>
@@ -78,15 +78,15 @@ export default function Abonnements() {
         {filtered.map((p) => (
           <div
             key={p.code}
-            className={`card relative flex flex-col p-6 ${p.highlight ? "ring-2 ring-brand" : ""}`}
+            className={`card relative flex flex-col p-6 ${p.highlight ? "ring-2 ring-gold" : ""}`}
           >
             {p.highlight && (
-              <span className="badge absolute -top-3 left-1/2 -translate-x-1/2 bg-brand text-white">
+              <span className="badge absolute -top-3 left-1/2 -translate-x-1/2 bg-gold text-noir">
                 Le plus choisi
               </span>
             )}
             <h3 className="text-lg font-extrabold text-slate-900">{p.label}</h3>
-            <div className="mt-2 text-3xl font-extrabold text-brand">
+            <div className="mt-2 text-3xl font-extrabold text-noir">
               {p.priceEur == null ? (
                 <span className="text-xl">Sur demande</span>
               ) : (
@@ -101,7 +101,7 @@ export default function Abonnements() {
             <ul className="mt-5 flex-1 space-y-2 text-sm text-slate-600">
               {p.features.map((feat) => (
                 <li key={feat} className="flex gap-2">
-                  <Check size={16} className="mt-0.5 flex-shrink-0 text-brand" />
+                  <Check size={16} className="mt-0.5 flex-shrink-0 text-gold-dark" />
                   {feat}
                 </li>
               ))}
@@ -126,7 +126,7 @@ export default function Abonnements() {
             {PHOTO_PACKS.map((pack) => (
               <div key={pack.code} className="card flex flex-col items-center p-5 text-center">
                 <h3 className="font-extrabold text-slate-900">{pack.label}</h3>
-                <div className="mt-2 text-2xl font-extrabold text-brand">{formatPrice(pack.priceEur)}</div>
+                <div className="mt-2 text-2xl font-extrabold text-noir">{formatPrice(pack.priceEur)}</div>
                 <p className="mt-1 text-xs text-slate-500">+{pack.extraPhotos} photo{pack.extraPhotos > 1 ? "s" : ""}</p>
               </div>
             ))}

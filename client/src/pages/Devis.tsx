@@ -69,7 +69,7 @@ export default function Devis() {
         {STEPS.map((s, i) => (
           <span
             key={s}
-            className={`badge ${i === step ? "bg-brand text-white" : i < step ? "bg-brand/10 text-brand" : "bg-slate-100 text-slate-400"}`}
+            className={`badge ${i === step ? "bg-gold text-noir" : i < step ? "bg-gold-soft text-gold-dark" : "bg-slate-100 text-slate-400"}`}
           >
             {i + 1}. {s}
           </span>
@@ -126,7 +126,7 @@ export default function Devis() {
         )}
         {step === 6 && (
           <div className="py-8 text-center">
-            <h2 className="text-xl font-extrabold text-brand">Demande envoyée ✓</h2>
+            <h2 className="text-xl font-extrabold text-gold-dark">Demande envoyée ✓</h2>
             <p className="mt-2 text-sm text-slate-500">
               Les garages partenaires vont vous recontacter avec leurs offres.
             </p>

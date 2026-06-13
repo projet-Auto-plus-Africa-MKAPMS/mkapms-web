@@ -74,7 +74,7 @@ export default function Vehicule() {
     trust.niveau === "excellent"
       ? "text-emerald-600"
       : trust.niveau === "bon"
-        ? "text-brand"
+        ? "text-gold-dark"
         : trust.niveau === "moyen"
           ? "text-amber-600"
           : "text-slate-500";

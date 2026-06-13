@@ -57,7 +57,7 @@ export default function SupportWidget() {
           <div className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
               <div className="flex items-center gap-2">
-                <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand/10 text-brand">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-gold-soft text-gold-dark">
                   <Mail size={16} />
                 </span>
                 <div>
@@ -90,8 +90,8 @@ export default function SupportWidget() {
                       </div>
                       <p className="mt-1 whitespace-pre-wrap text-xs text-slate-600">{t.message}</p>
                       {t.response && (
-                        <div className="mt-2 rounded-lg border-l-2 border-brand bg-white p-2">
-                          <p className="text-[10px] font-bold uppercase tracking-wide text-brand">
+                        <div className="mt-2 rounded-lg border-l-2 border-gold bg-gold-soft/30 p-2">
+                          <p className="text-[10px] font-bold uppercase tracking-wide text-gold-dark">
                             Réponse MKA.P-MS
                           </p>
                           <p className="mt-0.5 whitespace-pre-wrap text-xs text-slate-700">{t.response}</p>

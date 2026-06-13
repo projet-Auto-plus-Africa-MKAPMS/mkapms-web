@@ -55,7 +55,7 @@ export default function Livraison() {
           <h2 className="font-bold text-slate-800">Estimation</h2>
           {quote.data ? (
             <div className="mt-4">
-              <p className="text-3xl font-extrabold text-brand">{quote.data.tarif.toLocaleString("fr-FR")} €</p>
+              <p className="text-3xl font-extrabold text-gold-dark">{quote.data.tarif.toLocaleString("fr-FR")} €</p>
               <p className="mt-2 flex items-center gap-2 text-sm text-slate-600">
                 <Truck size={16} /> Véhicule recommandé : <strong>{quote.data.recommendedVehicleType}</strong>
               </p>

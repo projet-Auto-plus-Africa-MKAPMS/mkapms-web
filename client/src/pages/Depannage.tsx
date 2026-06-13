@@ -11,7 +11,7 @@ export default function Depannage() {
         Assistance routière : demande de dépannage géolocalisée, devis et suivi d'intervention.
       </p>
 
-      <div className="mt-6 rounded-xl bg-brand/5 p-5">
+      <div className="mt-6 rounded-xl bg-gold-soft/30 p-5">
         <h2 className="flex items-center gap-2 font-bold text-slate-800"><Wrench size={18} /> Besoin d'un dépanneur ?</h2>
         <p className="mt-1 text-sm text-slate-600">
           Connectez-vous pour créer une demande (type de panne, localisation, photos, urgence).

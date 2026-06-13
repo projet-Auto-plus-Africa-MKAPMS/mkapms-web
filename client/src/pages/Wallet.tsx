@@ -23,7 +23,7 @@ export default function Wallet() {
   return (
     <div className="container-page py-8">
       <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900">
-        <WalletIcon className="text-brand" /> Wallet professionnel
+        <WalletIcon className="text-gold-dark" /> Wallet professionnel
       </h1>
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">

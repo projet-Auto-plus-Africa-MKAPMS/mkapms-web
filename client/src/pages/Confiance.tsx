@@ -64,7 +64,7 @@ export default function Confiance() {
   return (
     <div className="container-page py-10">
       <div className="mx-auto max-w-3xl text-center">
-        <span className="badge bg-brand/10 text-brand">Centre de confiance MKA.P-MS</span>
+        <span className="badge bg-gold-soft text-gold-dark">Centre de confiance MKA.P-MS</span>
         <h1 className="mt-3 text-3xl font-extrabold text-slate-900 sm:text-4xl">
           Acheter, vendre et louer en toute sérénité
         </h1>
@@ -76,7 +76,7 @@ export default function Confiance() {
       <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {PILIERS.map((p) => (
           <div key={p.titre} className="card p-6">
-            <p.icon className="text-brand" size={26} />
+            <p.icon className="text-gold-dark" size={26} />
             <h2 className="mt-3 font-bold text-slate-900">{p.titre}</h2>
             <p className="mt-2 text-sm text-slate-600">{p.texte}</p>
           </div>
@@ -94,14 +94,14 @@ export default function Confiance() {
               key={b}
               className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700"
             >
-              <BadgeCheck size={15} className="text-brand" /> {b}
+              <BadgeCheck size={15} className="text-gold-dark" /> {b}
             </span>
           ))}
         </div>
       </div>
 
-      <div className="mt-10 flex flex-col items-center gap-3 rounded-2xl bg-brand/5 p-8 text-center">
-        <Clock className="text-brand" size={26} />
+      <div className="mt-10 flex flex-col items-center gap-3 rounded-2xl bg-gold-soft/40 p-8 text-center">
+        <Clock className="text-gold-dark" size={26} />
         <h2 className="text-xl font-bold text-slate-900">Une question, un litige ?</h2>
         <p className="max-w-xl text-sm text-slate-600">
           Notre équipe répond rapidement et suit chaque dossier. Consultez l'aide ou contactez-nous.

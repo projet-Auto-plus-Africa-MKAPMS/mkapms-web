@@ -53,7 +53,7 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
         )}
       </div>
       <div className="p-4">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-brand">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gold-dark">
           {sellerLabel}
         </p>
         <h3 className="mt-1 truncate text-sm font-bold text-slate-900">{v.titre}</h3>
