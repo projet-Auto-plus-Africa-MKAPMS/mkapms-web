@@ -11,8 +11,12 @@ import {
   partsOrders,
   partsOrderItems,
   partsInvoices,
+  partsOrderTracking,
+  serviceTracking,
+  deliveryPricing,
   devisItems,
 } from "../schema.js";
+import { notifications } from "../modules/core.js";
 
 // ===== BOUTIQUE PIÈCES AUTO PRO — Mini-ERP =====
 export const piecesRouter = router({
@@ -383,12 +387,16 @@ export const piecesRouter = router({
       z.object({
         shopId: z.number(),
         items: z.array(z.object({ catalogId: z.number(), quantite: z.number().min(1) })).min(1),
+        modeRetrait: z.enum(["retrait", "livraison"]).default("livraison"),
+        livraisonType: z.string().optional(),
+        livraisonTarif: z.number().optional(),
         devisId: z.number().optional(),
         notes: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const ref = `MKA-PO-${String(Date.now()).slice(-6)}`;
+      const numColis = `MKA-COL-${String(Date.now()).slice(-8)}`;
       let totalHt = 0;
       let totalTtc = 0;
 
@@ -411,6 +419,10 @@ export const piecesRouter = router({
         status: "panier",
         totalHt: String(totalHt.toFixed(2)),
         totalTtc: String(totalTtc.toFixed(2)),
+        modeRetrait: input.modeRetrait,
+        livraisonType: input.livraisonType,
+        livraisonTarif: input.livraisonTarif ? String(input.livraisonTarif) : undefined,
+        numeroColis: input.modeRetrait === "livraison" ? numColis : undefined,
         devisId: input.devisId,
         notes: input.notes,
       }).returning();
@@ -433,6 +445,34 @@ export const piecesRouter = router({
         }
       }
 
+      // Add initial tracking event
+      await db.insert(partsOrderTracking).values({
+        orderId: order.id,
+        status: "panier",
+        label: "Commande créée",
+        detail: input.modeRetrait === "retrait" ? "Retrait en magasin sélectionné" : `Livraison par ${input.livraisonType ?? "standard"}`,
+      });
+
+      // Notification client
+      await db.insert(notifications).values({
+        userId: ctx.user.uid,
+        type: "commande",
+        title: `Commande ${ref} créée`,
+        body: `Votre commande de ${itemDetails.length} pièce(s) a été créée. ${input.modeRetrait === "retrait" ? "Retrait en magasin." : `Livraison par ${input.livraisonType ?? "standard"}.`}`,
+        url: `/compte`,
+      });
+
+      // Service tracking
+      await db.insert(serviceTracking).values({
+        userId: ctx.user.uid,
+        serviceType: "commande_pieces",
+        serviceId: order.id,
+        reference: ref,
+        titre: `Commande pièces ${ref}`,
+        status: "panier",
+        statusLabel: "Commande en panier",
+      });
+
       return order;
     }),
 
@@ -442,6 +482,11 @@ export const piecesRouter = router({
       const [order] = await db.update(partsOrders)
         .set({ status: "confirme", updatedAt: new Date() })
         .where(eq(partsOrders.id, input.orderId)).returning();
+
+      await db.insert(partsOrderTracking).values({ orderId: input.orderId, status: "confirme", label: "Commande confirmée", detail: "Votre commande a été confirmée par le vendeur." });
+      await db.insert(notifications).values({ userId: order.buyerId, type: "commande", title: `Commande ${order.reference} confirmée`, body: "Votre commande a été confirmée et sera préparée prochainement.", url: "/compte" });
+      await db.insert(serviceTracking).values({ userId: order.buyerId, serviceType: "commande_pieces", serviceId: order.id, reference: order.reference, titre: `Commande pièces ${order.reference}`, status: "confirme", statusLabel: "Commande confirmée" });
+
       return order;
     }),
 
@@ -449,11 +494,50 @@ export const piecesRouter = router({
     .input(z.object({
       orderId: z.number(),
       status: z.enum(["panier", "confirme", "preparation", "expedie", "livre", "termine", "annule"]),
+      numeroColis: z.string().optional(),
+      trackingUrl: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
+      const statusLabels: Record<string, string> = {
+        panier: "En panier",
+        confirme: "Confirmée",
+        preparation: "En préparation",
+        expedie: "Expédiée",
+        livre: "Livrée",
+        termine: "Terminée",
+        annule: "Annulée",
+      };
+      const upd: Record<string, unknown> = { status: input.status, updatedAt: new Date() };
+      if (input.numeroColis) upd.numeroColis = input.numeroColis;
+      if (input.trackingUrl) upd.trackingUrl = input.trackingUrl;
+      if (input.status === "livre") upd.deliveredAt = new Date();
+
       const [order] = await db.update(partsOrders)
-        .set({ status: input.status, updatedAt: new Date() })
+        .set(upd)
         .where(eq(partsOrders.id, input.orderId)).returning();
+
+      // Tracking event
+      await db.insert(partsOrderTracking).values({
+        orderId: input.orderId,
+        status: input.status,
+        label: statusLabels[input.status] ?? input.status,
+        detail: input.status === "expedie" && input.numeroColis
+          ? `Colis ${input.numeroColis} expédié. ${input.trackingUrl ? "Suivi : " + input.trackingUrl : ""}`
+          : undefined,
+      });
+
+      // Notification
+      const notifBody = input.status === "expedie"
+        ? `Votre colis ${order.numeroColis ?? ""} a été expédié ! ${order.modeRetrait === "retrait" ? "Prêt à retirer." : "En cours de livraison."}`
+        : input.status === "livre"
+          ? "Votre commande a été livrée. Merci !"
+          : input.status === "preparation"
+            ? "Votre commande est en cours de préparation."
+            : input.status === "annule"
+              ? "Votre commande a été annulée."
+              : `Statut mis à jour : ${statusLabels[input.status]}`;
+      await db.insert(notifications).values({ userId: order.buyerId, type: "commande", title: `Commande ${order.reference} — ${statusLabels[input.status]}`, body: notifBody, url: "/compte" });
+      await db.insert(serviceTracking).values({ userId: order.buyerId, serviceType: "commande_pieces", serviceId: order.id, reference: order.reference, titre: `Commande pièces ${order.reference}`, status: input.status, statusLabel: statusLabels[input.status] });
 
       // If cancelled, release reserved stock
       if (input.status === "annule") {
@@ -504,7 +588,7 @@ export const piecesRouter = router({
 
   // ── LIVRAISON AUTOMATIQUE ──
   estimateLivraison: publicProcedure
-    .input(z.object({ catalogIds: z.array(z.number()).min(1) }))
+    .input(z.object({ catalogIds: z.array(z.number()).min(1), distanceKm: z.number().default(10) }))
     .query(async ({ input }) => {
       let totalPoids = 0;
       let maxDim = 0;
@@ -516,13 +600,85 @@ export const piecesRouter = router({
           maxDim = Math.max(maxDim, ...dims);
         }
       }
-      let vehiculePropose: string;
-      if (totalPoids <= 5 && maxDim <= 40) vehiculePropose = "moto";
-      else if (totalPoids <= 15 && maxDim <= 60) vehiculePropose = "scooter";
-      else if (totalPoids <= 100 && maxDim <= 120) vehiculePropose = "utilitaire";
-      else if (totalPoids <= 500 && maxDim <= 200) vehiculePropose = "fourgon";
-      else vehiculePropose = "camion";
-      return { totalPoidsKg: totalPoids, maxDimensionCm: maxDim, vehiculePropose };
+
+      // Default pricing tiers with vehicle constraints
+      const tiers = [
+        { type: "moto", label: "Moto", poidsMax: 5, dimMax: 40, prixBase: 4.99, prixKm: 0.80 },
+        { type: "scooter", label: "Scooter", poidsMax: 15, dimMax: 60, prixBase: 6.99, prixKm: 0.70 },
+        { type: "utilitaire", label: "Utilitaire", poidsMax: 100, dimMax: 120, prixBase: 12.99, prixKm: 0.60 },
+        { type: "fourgon", label: "Fourgon", poidsMax: 500, dimMax: 200, prixBase: 24.99, prixKm: 0.50 },
+        { type: "camion", label: "Camion", poidsMax: 10000, dimMax: 500, prixBase: 49.99, prixKm: 0.40 },
+      ];
+
+      // Try to load custom pricing from DB
+      const customPricing = await db.select().from(deliveryPricing).where(eq(deliveryPricing.active, true));
+      const effectiveTiers = customPricing.length > 0
+        ? customPricing.map(cp => ({
+            type: cp.vehicleType,
+            label: cp.label,
+            poidsMax: Number(cp.poidsMaxKg),
+            dimMax: Number(cp.dimensionMaxCm),
+            prixBase: Number(cp.prixBase),
+            prixKm: Number(cp.prixParKm),
+          }))
+        : tiers;
+
+      // Filter eligible vehicles (block too small ones)
+      const eligible = effectiveTiers.filter(t => t.poidsMax >= totalPoids && t.dimMax >= maxDim);
+      const vehiculePropose = eligible.length > 0 ? eligible[0].type : "camion";
+
+      // Compute prices for all eligible modes
+      const options = eligible.map(t => ({
+        type: t.type,
+        label: t.label,
+        prix: Math.round((t.prixBase + t.prixKm * input.distanceKm) * 100) / 100,
+        eligible: true,
+      }));
+
+      // Add blocked vehicles
+      const blocked = effectiveTiers
+        .filter(t => t.poidsMax < totalPoids || t.dimMax < maxDim)
+        .map(t => ({ type: t.type, label: t.label, prix: 0, eligible: false }));
+
+      return {
+        totalPoidsKg: totalPoids,
+        maxDimensionCm: maxDim,
+        vehiculePropose,
+        options: [...options, ...blocked],
+        retraitGratuit: true,
+      };
+    }),
+
+  // ── SUIVI COMMANDE ──
+  orderTracking: protectedProcedure
+    .input(z.object({ orderId: z.number() }))
+    .query(async ({ input }) => {
+      return db.select().from(partsOrderTracking)
+        .where(eq(partsOrderTracking.orderId, input.orderId))
+        .orderBy(desc(partsOrderTracking.createdAt));
+    }),
+
+  // ── SUIVI UNIVERSEL DES SERVICES ──
+  myServiceTracking: protectedProcedure
+    .input(z.object({ serviceType: z.string().optional(), limit: z.number().default(50) }).default({}))
+    .query(async ({ ctx, input }) => {
+      const conds = [eq(serviceTracking.userId, ctx.user.uid)];
+      if (input.serviceType) conds.push(eq(serviceTracking.serviceType, input.serviceType));
+      const events = await db.select().from(serviceTracking)
+        .where(and(...conds))
+        .orderBy(desc(serviceTracking.createdAt))
+        .limit(input.limit);
+
+      // Group by service
+      const grouped: Record<string, { serviceType: string; serviceId: number; reference: string | null; titre: string; latestStatus: string; latestLabel: string; events: typeof events }> = {};
+      for (const ev of events) {
+        const key = `${ev.serviceType}-${ev.serviceId}`;
+        if (!grouped[key]) {
+          grouped[key] = { serviceType: ev.serviceType, serviceId: ev.serviceId, reference: ev.reference, titre: ev.titre, latestStatus: ev.status, latestLabel: ev.statusLabel, events: [] };
+        }
+        grouped[key].events.push(ev);
+      }
+      return Object.values(grouped);
     }),
 
   // ── FACTURATION ──

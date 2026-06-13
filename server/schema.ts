@@ -689,8 +689,16 @@ export const partsOrders = pgTable("parts_orders", {
   status: partsOrderStatusEnum("status").notNull().default("panier"),
   totalHt: numeric("total_ht", { precision: 12, scale: 2 }),
   totalTtc: numeric("total_ttc", { precision: 12, scale: 2 }),
+  // Livraison
+  modeRetrait: varchar("mode_retrait", { length: 16 }).notNull().default("livraison"),
   livraisonType: varchar("livraison_type", { length: 32 }),
   livraisonTarif: numeric("livraison_tarif", { precision: 10, scale: 2 }),
+  // Suivi colis
+  numeroColis: varchar("numero_colis", { length: 64 }),
+  trackingUrl: text("tracking_url"),
+  estimatedDelivery: timestamp("estimated_delivery"),
+  deliveredAt: timestamp("delivered_at"),
+  // Devis link
   devisId: integer("devis_id"),
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -718,6 +726,43 @@ export const partsInvoices = pgTable("parts_invoices", {
   totalTtc: numeric("total_ttc", { precision: 12, scale: 2 }),
   status: partsInvoiceStatusEnum("status").notNull().default("brouillon"),
   pdfUrl: text("pdf_url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== SUIVI DE COMMANDE (étapes détaillées) =====
+export const partsOrderTracking = pgTable("parts_order_tracking", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").notNull(),
+  status: varchar("status", { length: 32 }).notNull(),
+  label: varchar("label", { length: 255 }).notNull(),
+  detail: text("detail"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== SUIVI UNIVERSEL DES SERVICES =====
+export const serviceTracking = pgTable("service_tracking", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  serviceType: varchar("service_type", { length: 32 }).notNull(),
+  serviceId: integer("service_id").notNull(),
+  reference: varchar("reference", { length: 64 }),
+  titre: varchar("titre", { length: 255 }).notNull(),
+  status: varchar("status", { length: 32 }).notNull(),
+  statusLabel: varchar("status_label", { length: 128 }).notNull(),
+  detail: text("detail"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== TARIFS LIVRAISON =====
+export const deliveryPricing = pgTable("delivery_pricing", {
+  id: serial("id").primaryKey(),
+  vehicleType: varchar("vehicle_type", { length: 32 }).notNull(),
+  label: varchar("label", { length: 64 }).notNull(),
+  poidsMaxKg: numeric("poids_max_kg", { precision: 8, scale: 2 }).notNull(),
+  dimensionMaxCm: numeric("dimension_max_cm", { precision: 8, scale: 2 }).notNull(),
+  prixBase: numeric("prix_base", { precision: 10, scale: 2 }).notNull(),
+  prixParKm: numeric("prix_par_km", { precision: 6, scale: 2 }).notNull().default("0.50"),
+  active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

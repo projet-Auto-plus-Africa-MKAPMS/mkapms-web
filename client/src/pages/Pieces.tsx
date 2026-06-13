@@ -1,17 +1,12 @@
 import { useState } from "react";
 import {
   MapPin, Phone, Package, Search, Filter, ShoppingCart, ChevronDown, ChevronUp,
-  Car, Tag, BarChart3, Truck, FileText, AlertTriangle, CheckCircle, Store,
-  Plus, Minus, X, Warehouse,
+  Car, Tag, Truck, CheckCircle, Store, Plus, Minus, X, Warehouse,
+  Clock, MapPinned, Bell, ClipboardList,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
-
-const CATEGORIES = [
-  "Freinage", "Moteur", "Transmission", "Échappement", "Suspension",
-  "Direction", "Électricité", "Carrosserie", "Éclairage", "Climatisation",
-  "Filtration", "Distribution", "Embrayage", "Refroidissement", "Autre",
-];
+import { PARTS_CATEGORIES } from "@shared/partsCategories";
 
 const CONDITIONS = [
   { value: "neuf", label: "Neuf" },
@@ -20,12 +15,17 @@ const CONDITIONS = [
   { value: "echange_standard", label: "Échange standard" },
 ] as const;
 
+const LIVRAISON_LABELS: Record<string, string> = {
+  moto: "🏍️ Moto", scooter: "🛵 Scooter", utilitaire: "🚐 Utilitaire", fourgon: "🚛 Fourgon", camion: "🚚 Camion",
+};
+
 type CartItem = { catalogId: number; nom: string; prixHt: number; currency: string; quantite: number; shopId: number };
 
 export default function Pieces() {
   const { user } = useAuth();
   const [q, setQ] = useState("");
   const [categorie, setCategorie] = useState("");
+  const [sousCategorie, setSousCategorie] = useState("");
   const [condition, setCondition] = useState("");
   const [marqueVehicule, setMarqueVehicule] = useState("");
   const [modeleVehicule, setModeleVehicule] = useState("");
@@ -34,8 +34,11 @@ export default function Pieces() {
   const [showVehicleSearch, setShowVehicleSearch] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
-  const [tab, setTab] = useState<"catalogue" | "boutiques">("catalogue");
+  const [tab, setTab] = useState<"catalogue" | "boutiques" | "commandes" | "suivi">("catalogue");
   const [selectedPart, setSelectedPart] = useState<number | null>(null);
+  // Delivery options
+  const [modeRetrait, setModeRetrait] = useState<"retrait" | "livraison">("livraison");
+  const [selectedLivraison, setSelectedLivraison] = useState("");
 
   const shops = trpc.pieces.shops.useQuery({ limit: 50 });
   const catalog = trpc.pieces.catalog.useQuery({
@@ -51,6 +54,18 @@ export default function Pieces() {
     { id: selectedPart! },
     { enabled: selectedPart !== null },
   );
+
+  // Delivery estimate
+  const deliveryEstimate = trpc.pieces.estimateLivraison.useQuery(
+    { catalogIds: cart.map(c => c.catalogId), distanceKm: 10 },
+    { enabled: cart.length > 0 && showCart },
+  );
+
+  // My orders
+  const myOrders = trpc.pieces.myOrders.useQuery(undefined, { enabled: tab === "commandes" });
+
+  // Service tracking
+  const myTracking = trpc.pieces.myServiceTracking.useQuery({}, { enabled: tab === "suivi" });
 
   const createOrder = trpc.pieces.createOrder.useMutation();
 
@@ -73,6 +88,8 @@ export default function Pieces() {
 
   const cartTotal = cart.reduce((s, c) => s + c.prixHt * c.quantite, 0);
   const cartCount = cart.reduce((s, c) => s + c.quantite, 0);
+  const selectedLivraisonOption = deliveryEstimate.data?.options?.find(o => o.type === selectedLivraison);
+  const livraisonPrix = modeRetrait === "retrait" ? 0 : (selectedLivraisonOption?.prix ?? 0);
 
   const handleOrder = async () => {
     if (cart.length === 0) return;
@@ -81,14 +98,20 @@ export default function Pieces() {
       await createOrder.mutateAsync({
         shopId,
         items: cart.map(c => ({ catalogId: c.catalogId, quantite: c.quantite })),
+        modeRetrait,
+        livraisonType: modeRetrait === "livraison" ? selectedLivraison : undefined,
+        livraisonTarif: livraisonPrix,
       });
       setCart([]);
       setShowCart(false);
-      alert("Commande créée ! Vous pouvez suivre votre commande dans votre espace.");
-    } catch (e) {
+      setTab("commandes");
+      alert("Commande créée ! Vous pouvez suivre votre commande.");
+    } catch {
       alert("Erreur lors de la commande. Veuillez réessayer.");
     }
   };
+
+  const selectedCat = PARTS_CATEGORIES.find(c => c.label === categorie);
 
   return (
     <div className="container-page py-8">
@@ -114,22 +137,26 @@ export default function Pieces() {
       </div>
 
       {/* Tabs */}
-      <div className="mt-6 flex gap-1 rounded-lg bg-slate-100 p-1">
-        <button onClick={() => setTab("catalogue")} className={`flex-1 rounded-md px-4 py-2 text-sm font-semibold transition ${tab === "catalogue" ? "bg-gold text-noir shadow" : "text-slate-500 hover:text-slate-700"}`}>
-          <Package size={16} className="mr-1.5 inline" /> Catalogue
-        </button>
-        <button onClick={() => setTab("boutiques")} className={`flex-1 rounded-md px-4 py-2 text-sm font-semibold transition ${tab === "boutiques" ? "bg-gold text-noir shadow" : "text-slate-500 hover:text-slate-700"}`}>
-          <Store size={16} className="mr-1.5 inline" /> Boutiques
-        </button>
+      <div className="mt-6 flex gap-1 overflow-x-auto rounded-lg bg-slate-100 p-1">
+        {([
+          { key: "catalogue", icon: Package, label: "Catalogue" },
+          { key: "boutiques", icon: Store, label: "Boutiques" },
+          ...(user ? [
+            { key: "commandes", icon: ClipboardList, label: "Mes Commandes" },
+            { key: "suivi", icon: Bell, label: "Suivi" },
+          ] : []),
+        ] as const).map(t => (
+          <button key={t.key} onClick={() => setTab(t.key as typeof tab)} className={`flex shrink-0 items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold transition ${tab === t.key ? "bg-gold text-noir shadow" : "text-slate-500 hover:text-slate-700"}`}>
+            <t.icon size={16} /> {t.label}
+          </button>
+        ))}
       </div>
 
       {/* Cart overlay */}
       {showCart && (
         <div className="mt-4 rounded-xl border border-gold/30 bg-gold-soft/30 p-5">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-noir">
-              <ShoppingCart size={18} className="mr-1.5 inline text-gold-dark" /> Panier professionnel
-            </h3>
+            <h3 className="font-bold text-noir"><ShoppingCart size={18} className="mr-1.5 inline text-gold-dark" /> Panier professionnel</h3>
             <button onClick={() => setShowCart(false)} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
           </div>
           {cart.length === 0 ? (
@@ -152,18 +179,82 @@ export default function Pieces() {
                   </div>
                 ))}
               </div>
-              <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
-                <p className="font-bold text-noir">Total HT : {cartTotal.toLocaleString("fr-FR")} EUR</p>
-                <button onClick={handleOrder} disabled={createOrder.isPending} className="btn-acheter">
+
+              {/* Mode de retrait */}
+              <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
+                <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-noir"><Truck size={16} className="text-gold-dark" /> Mode de retrait</h4>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <button onClick={() => { setModeRetrait("retrait"); setSelectedLivraison(""); }} className={`rounded-lg border-2 p-3 text-left transition ${modeRetrait === "retrait" ? "border-gold bg-gold-soft/30" : "border-slate-200 hover:border-slate-300"}`}>
+                    <p className="font-semibold text-noir"><MapPinned size={16} className="mr-1.5 inline text-gold-dark" /> Retrait en magasin</p>
+                    <p className="mt-1 text-xs text-slate-500">Gratuit — récupérez votre commande sur place</p>
+                    <p className="mt-1 text-sm font-bold text-success">0,00 €</p>
+                  </button>
+                  <button onClick={() => setModeRetrait("livraison")} className={`rounded-lg border-2 p-3 text-left transition ${modeRetrait === "livraison" ? "border-gold bg-gold-soft/30" : "border-slate-200 hover:border-slate-300"}`}>
+                    <p className="font-semibold text-noir"><Truck size={16} className="mr-1.5 inline text-gold-dark" /> Livraison</p>
+                    <p className="mt-1 text-xs text-slate-500">Choisissez le véhicule adapté à votre colis</p>
+                  </button>
+                </div>
+
+                {/* Delivery vehicle options */}
+                {modeRetrait === "livraison" && deliveryEstimate.data && (
+                  <div className="mt-3">
+                    <p className="mb-2 text-xs text-slate-500">
+                      Poids total : {deliveryEstimate.data.totalPoidsKg.toFixed(1)} kg — Dimension max : {deliveryEstimate.data.maxDimensionCm.toFixed(0)} cm
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {deliveryEstimate.data.options.map(opt => (
+                        <button
+                          key={opt.type}
+                          disabled={!opt.eligible}
+                          onClick={() => opt.eligible && setSelectedLivraison(opt.type)}
+                          className={`rounded-lg border-2 p-3 text-left transition ${
+                            !opt.eligible
+                              ? "cursor-not-allowed border-slate-100 bg-slate-50 opacity-50"
+                              : selectedLivraison === opt.type
+                                ? "border-gold bg-gold-soft/30"
+                                : "border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <p className="font-semibold text-noir">{LIVRAISON_LABELS[opt.type] ?? opt.label}</p>
+                          {opt.eligible ? (
+                            <p className="mt-1 text-sm font-bold text-gold-dark">{opt.prix.toFixed(2)} €</p>
+                          ) : (
+                            <p className="mt-1 text-xs text-danger">Trop lourd / volumineux</p>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    {deliveryEstimate.data.vehiculePropose && !selectedLivraison && (
+                      <p className="mt-2 text-xs text-gold-dark">
+                        Recommandé : {LIVRAISON_LABELS[deliveryEstimate.data.vehiculePropose] ?? deliveryEstimate.data.vehiculePropose}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Total + order */}
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
+                <div>
+                  <p className="text-sm text-slate-500">Pièces HT : {cartTotal.toLocaleString("fr-FR")} €</p>
+                  {livraisonPrix > 0 && <p className="text-sm text-slate-500">Livraison : {livraisonPrix.toFixed(2)} €</p>}
+                  <p className="text-lg font-bold text-noir">Total : {(cartTotal + livraisonPrix).toLocaleString("fr-FR")} €</p>
+                </div>
+                <button
+                  onClick={handleOrder}
+                  disabled={createOrder.isPending || (modeRetrait === "livraison" && !selectedLivraison)}
+                  className="btn-acheter disabled:opacity-50"
+                >
                   {createOrder.isPending ? "Commande en cours…" : "Commander"}
                 </button>
               </div>
-              <p className="mt-2 text-xs text-slate-400">Le stock est réservé automatiquement pendant la commande.</p>
+              <p className="mt-2 text-xs text-slate-400">Le stock est réservé automatiquement. Numéro de colis et suivi fournis après confirmation.</p>
             </>
           )}
         </div>
       )}
 
+      {/* CATALOGUE TAB */}
       {tab === "catalogue" && (
         <>
           {/* Search bar */}
@@ -172,7 +263,7 @@ export default function Pieces() {
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 className="input pl-10"
-                placeholder="Rechercher par nom, référence OEM, équipementier, code-barres…"
+                placeholder="Rechercher par nom, référence OEM, code-barres, mot-clé (ex: plaquette, amortisseur, bougie)…"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
               />
@@ -181,18 +272,25 @@ export default function Pieces() {
               <Filter size={16} /> Filtres {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
             <button onClick={() => setShowVehicleSearch(!showVehicleSearch)} className="btn-outline flex items-center gap-1.5">
-              <Car size={16} /> Compatibilité véhicule
+              <Car size={16} /> Compatibilité
             </button>
           </div>
 
-          {/* Filters */}
+          {/* Filters with full categories */}
           {showFilters && (
-            <div className="mt-3 grid gap-3 rounded-lg border border-slate-200 bg-white p-4 md:grid-cols-2">
+            <div className="mt-3 grid gap-3 rounded-lg border border-slate-200 bg-white p-4 md:grid-cols-3">
               <div>
                 <label className="label">Catégorie</label>
-                <select className="input" value={categorie} onChange={e => setCategorie(e.target.value)}>
+                <select className="input" value={categorie} onChange={e => { setCategorie(e.target.value); setSousCategorie(""); }}>
+                  <option value="">Toutes catégories</option>
+                  {PARTS_CATEGORIES.map(c => <option key={c.code} value={c.label}>{c.icon} {c.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="label">Sous-catégorie</label>
+                <select className="input" value={sousCategorie} onChange={e => setSousCategorie(e.target.value)} disabled={!selectedCat}>
                   <option value="">Toutes</option>
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  {selectedCat?.subs.map(s => <option key={s.code} value={s.label}>{s.label}</option>)}
                 </select>
               </div>
               <div>
@@ -204,6 +302,19 @@ export default function Pieces() {
               </div>
             </div>
           )}
+
+          {/* Quick category chips */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            {PARTS_CATEGORIES.slice(0, 10).map(c => (
+              <button
+                key={c.code}
+                onClick={() => { setCategorie(c.label === categorie ? "" : c.label); setSousCategorie(""); }}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${categorie === c.label ? "border-gold bg-gold-soft text-gold-dark" : "border-slate-200 text-slate-500 hover:border-gold/40"}`}
+              >
+                {c.icon} {c.label}
+              </button>
+            ))}
+          </div>
 
           {/* Vehicle compatibility search */}
           {showVehicleSearch && (
@@ -225,7 +336,7 @@ export default function Pieces() {
                   <input className="input" type="number" placeholder="Ex : 2020" value={anneeVehicule} onChange={e => setAnneeVehicule(e.target.value)} />
                 </div>
               </div>
-              <p className="mt-2 text-xs text-slate-400">Le système propose automatiquement les pièces compatibles avec votre véhicule.</p>
+              <p className="mt-2 text-xs text-slate-400">Le système propose automatiquement « Compatible avec ce véhicule ».</p>
             </div>
           )}
 
@@ -264,10 +375,7 @@ export default function Pieces() {
                   </span>
                 </div>
                 {user && (
-                  <button
-                    className="btn-acheter mt-3 w-full text-sm"
-                    onClick={(e) => { e.stopPropagation(); addToCart(p); }}
-                  >
+                  <button className="btn-acheter mt-3 w-full text-sm" onClick={(e) => { e.stopPropagation(); addToCart(p); }}>
                     <ShoppingCart size={14} className="mr-1 inline" /> Ajouter au panier
                   </button>
                 )}
@@ -278,24 +386,21 @@ export default function Pieces() {
             <div className="py-16 text-center">
               <Package size={48} className="mx-auto text-slate-300" />
               <p className="mt-3 text-slate-500">Aucune pièce trouvée.</p>
-              <p className="text-sm text-slate-400">Essayez d'élargir vos critères de recherche.</p>
+              <p className="text-sm text-slate-400">Essayez un autre mot-clé ou élargissez vos filtres.</p>
             </div>
           )}
         </>
       )}
 
+      {/* BOUTIQUES TAB */}
       {tab === "boutiques" && (
         <>
-          <h2 className="mt-6 text-lg font-bold text-slate-800">
-            <Store size={20} className="mr-1.5 inline text-gold-dark" /> Boutiques partenaires
-          </h2>
+          <h2 className="mt-6 text-lg font-bold text-slate-800"><Store size={20} className="mr-1.5 inline text-gold-dark" /> Boutiques partenaires</h2>
           <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {shops.data?.items.map((s) => (
               <div key={s.id} className="card p-5 transition hover:border-gold/40 hover:shadow-md">
                 <div className="flex items-start gap-3">
-                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold-dark">
-                    <Store size={22} />
-                  </div>
+                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-gold-soft text-gold-dark"><Store size={22} /></div>
                   <div>
                     <h3 className="font-bold text-slate-900">{s.nom}</h3>
                     <p className="text-xs uppercase tracking-wide text-gold-dark">{(s.type ?? "").replace(/_/g, " ")}</p>
@@ -305,18 +410,104 @@ export default function Pieces() {
                 <div className="mt-3 space-y-1 text-sm text-slate-500">
                   {s.ville && <p className="flex items-center gap-1.5"><MapPin size={14} className="text-gold-dark" /> {s.ville}{s.codePostal ? `, ${s.codePostal}` : ""}</p>}
                   {s.telephone && <p className="flex items-center gap-1.5"><Phone size={14} className="text-gold-dark" /> {s.telephone}</p>}
-                  {s.email && <p className="flex items-center gap-1.5 text-xs">✉ {s.email}</p>}
                 </div>
-                <button className="btn-outline mt-4 w-full text-sm" onClick={() => { setTab("catalogue"); }}>
-                  Voir le catalogue →
-                </button>
+                <button className="btn-outline mt-4 w-full text-sm" onClick={() => setTab("catalogue")}>Voir le catalogue →</button>
               </div>
             ))}
             {shops.data && shops.data.items.length === 0 && (
-              <div className="col-span-full py-16 text-center">
-                <Store size={48} className="mx-auto text-slate-300" />
-                <p className="mt-3 text-slate-500">Aucune boutique pour le moment.</p>
-              </div>
+              <div className="col-span-full py-16 text-center"><Store size={48} className="mx-auto text-slate-300" /><p className="mt-3 text-slate-500">Aucune boutique pour le moment.</p></div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* MES COMMANDES TAB */}
+      {tab === "commandes" && user && (
+        <>
+          <h2 className="mt-6 text-lg font-bold text-slate-800"><ClipboardList size={20} className="mr-1.5 inline text-gold-dark" /> Mes Commandes</h2>
+          <div className="mt-4 space-y-3">
+            {myOrders.data?.map(o => {
+              const statusColors: Record<string, string> = {
+                panier: "bg-slate-100 text-slate-600",
+                confirme: "bg-info/10 text-info",
+                preparation: "bg-warning/10 text-warning",
+                expedie: "bg-gold-soft text-gold-dark",
+                livre: "bg-success/10 text-success",
+                termine: "bg-success/10 text-success",
+                annule: "bg-danger/10 text-danger",
+              };
+              const statusLabels: Record<string, string> = {
+                panier: "En panier", confirme: "Confirmée", preparation: "En préparation",
+                expedie: "Expédiée", livre: "Livrée", termine: "Terminée", annule: "Annulée",
+              };
+              return (
+                <div key={o.id} className="card p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-bold text-noir">{o.reference}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{new Date(o.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColors[o.status] ?? "bg-slate-100 text-slate-600"}`}>
+                      {statusLabels[o.status] ?? o.status}
+                    </span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                    <div><span className="text-xs text-slate-400">Total TTC</span><br /><span className="font-bold text-noir">{Number(o.totalTtc ?? 0).toLocaleString("fr-FR")} €</span></div>
+                    <div><span className="text-xs text-slate-400">Mode</span><br /><span className="font-semibold">{o.modeRetrait === "retrait" ? "🏪 Retrait" : `🚚 ${LIVRAISON_LABELS[o.livraisonType ?? ""] ?? "Livraison"}`}</span></div>
+                    {o.numeroColis && <div><span className="text-xs text-slate-400">N° Colis</span><br /><span className="font-mono text-sm font-bold text-gold-dark">{o.numeroColis}</span></div>}
+                    {o.livraisonTarif && <div><span className="text-xs text-slate-400">Frais livraison</span><br /><span className="font-semibold">{Number(o.livraisonTarif).toFixed(2)} €</span></div>}
+                  </div>
+                  {o.deliveredAt && <p className="mt-2 text-xs text-success"><CheckCircle size={12} className="mr-1 inline" /> Livré le {new Date(o.deliveredAt).toLocaleDateString("fr-FR")}</p>}
+                </div>
+              );
+            })}
+            {myOrders.data && myOrders.data.length === 0 && (
+              <div className="py-16 text-center"><ClipboardList size={48} className="mx-auto text-slate-300" /><p className="mt-3 text-slate-500">Aucune commande.</p></div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* SUIVI UNIVERSEL TAB */}
+      {tab === "suivi" && user && (
+        <>
+          <h2 className="mt-6 text-lg font-bold text-slate-800"><Bell size={20} className="mr-1.5 inline text-gold-dark" /> Suivi de vos services</h2>
+          <p className="mt-1 text-sm text-slate-500">Suivez en temps réel tous vos services : commandes pièces, garage, livraisons, devis.</p>
+          <div className="mt-4 space-y-4">
+            {myTracking.data?.map((svc, i) => {
+              const typeLabels: Record<string, string> = {
+                commande_pieces: "📦 Commande pièces",
+                garage: "🔧 Garage",
+                livraison: "🚚 Livraison",
+                devis: "📋 Devis",
+                depannage: "🚗 Dépannage",
+              };
+              return (
+                <div key={i} className="card p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-bold text-noir">{typeLabels[svc.serviceType] ?? svc.serviceType}</p>
+                      <p className="text-sm text-slate-700">{svc.titre}</p>
+                      {svc.reference && <p className="text-xs text-gold-dark">Réf. {svc.reference}</p>}
+                    </div>
+                    <span className="rounded-full bg-gold-soft px-3 py-1 text-xs font-semibold text-gold-dark">{svc.latestLabel}</span>
+                  </div>
+                  {/* Timeline */}
+                  <div className="mt-3 border-l-2 border-slate-200 pl-4">
+                    {svc.events.map((ev, j) => (
+                      <div key={j} className="relative mb-2 pb-2">
+                        <div className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-gold" />
+                        <p className="text-sm font-medium text-slate-700">{ev.statusLabel}</p>
+                        {ev.detail && <p className="text-xs text-slate-500">{ev.detail}</p>}
+                        <p className="text-[10px] text-slate-400"><Clock size={10} className="mr-0.5 inline" /> {new Date(ev.createdAt).toLocaleString("fr-FR")}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            {myTracking.data && myTracking.data.length === 0 && (
+              <div className="py-16 text-center"><Bell size={48} className="mx-auto text-slate-300" /><p className="mt-3 text-slate-500">Aucun service en cours.</p></div>
             )}
           </div>
         </>
@@ -336,13 +527,11 @@ export default function Pieces() {
                   <button onClick={() => setSelectedPart(null)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
                 </div>
 
-                {/* Price */}
                 <div className="mt-4 rounded-lg bg-gold-soft/30 p-4">
                   <p className="text-2xl font-extrabold text-gold-dark">{Number(partDetail.data.prixHt).toLocaleString("fr-FR")} € <span className="text-sm font-normal text-slate-500">HT</span></p>
                   {partDetail.data.prixTtc && <p className="text-sm text-slate-500">{Number(partDetail.data.prixTtc).toLocaleString("fr-FR")} € TTC (TVA {partDetail.data.tvaRate}%)</p>}
                 </div>
 
-                {/* References */}
                 <div className="mt-4">
                   <h3 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700"><Tag size={14} /> Références</h3>
                   <div className="grid grid-cols-2 gap-2 text-sm">
@@ -353,33 +542,15 @@ export default function Pieces() {
                   </div>
                 </div>
 
-                {/* Stock */}
                 <div className="mt-4">
                   <h3 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700"><Warehouse size={14} /> Stock</h3>
                   <div className="grid grid-cols-3 gap-2 text-center text-sm">
-                    <div className="rounded-lg bg-success/10 p-3">
-                      <p className="text-2xl font-extrabold text-success">{partDetail.data.stockDisponible}</p>
-                      <p className="text-xs text-slate-500">Disponible</p>
-                    </div>
-                    <div className="rounded-lg bg-warning/10 p-3">
-                      <p className="text-2xl font-extrabold text-warning">{partDetail.data.stockReserve}</p>
-                      <p className="text-xs text-slate-500">Réservé</p>
-                    </div>
-                    <div className="rounded-lg bg-slate-100 p-3">
-                      <p className="text-2xl font-extrabold text-slate-700">{partDetail.data.stockTotal}</p>
-                      <p className="text-xs text-slate-500">Total</p>
-                    </div>
+                    <div className="rounded-lg bg-success/10 p-3"><p className="text-2xl font-extrabold text-success">{partDetail.data.stockDisponible}</p><p className="text-xs text-slate-500">Disponible</p></div>
+                    <div className="rounded-lg bg-warning/10 p-3"><p className="text-2xl font-extrabold text-warning">{partDetail.data.stockReserve}</p><p className="text-xs text-slate-500">Réservé</p></div>
+                    <div className="rounded-lg bg-slate-100 p-3"><p className="text-2xl font-extrabold text-slate-700">{partDetail.data.stockTotal}</p><p className="text-xs text-slate-500">Total</p></div>
                   </div>
-                  {partDetail.data.stocks.length > 0 && partDetail.data.stocks[0].entrepot && (
-                    <p className="mt-2 text-xs text-slate-400">
-                      📍 {partDetail.data.stocks[0].entrepot}
-                      {partDetail.data.stocks[0].rayon ? ` → Rayon ${partDetail.data.stocks[0].rayon}` : ""}
-                      {partDetail.data.stocks[0].etagere ? ` → Étagère ${partDetail.data.stocks[0].etagere}` : ""}
-                    </p>
-                  )}
                 </div>
 
-                {/* Vehicle compatibility */}
                 {partDetail.data.compatibilites.length > 0 && (
                   <div className="mt-4">
                     <h3 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700"><Car size={14} /> Compatibilité véhicule</h3>
@@ -390,24 +561,21 @@ export default function Pieces() {
                           <span className="font-semibold">{c.marque}</span>
                           {c.modele && <span className="text-slate-600">{c.modele}</span>}
                           {c.moteur && <span className="text-xs text-slate-400">({c.moteur})</span>}
-                          {(c.anneeDebut || c.anneeFin) && (
-                            <span className="text-xs text-slate-400">{c.anneeDebut ?? "…"}–{c.anneeFin ?? "…"}</span>
-                          )}
+                          {(c.anneeDebut || c.anneeFin) && <span className="text-xs text-slate-400">{c.anneeDebut ?? "…"}–{c.anneeFin ?? "…"}</span>}
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* Dimensions */}
                 {(partDetail.data.poidsKg || partDetail.data.longueurCm) && (
                   <div className="mt-4">
                     <h3 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700"><Truck size={14} /> Dimensions & Poids</h3>
                     <div className="flex flex-wrap gap-3 text-sm text-slate-600">
-                      {partDetail.data.poidsKg && <span>⚖ {partDetail.data.poidsKg} kg</span>}
-                      {partDetail.data.longueurCm && <span>📏 {partDetail.data.longueurCm} cm</span>}
-                      {partDetail.data.largeurCm && <span>↔ {partDetail.data.largeurCm} cm</span>}
-                      {partDetail.data.hauteurCm && <span>↕ {partDetail.data.hauteurCm} cm</span>}
+                      {partDetail.data.poidsKg && <span>{partDetail.data.poidsKg} kg</span>}
+                      {partDetail.data.longueurCm && <span>{partDetail.data.longueurCm} cm L</span>}
+                      {partDetail.data.largeurCm && <span>{partDetail.data.largeurCm} cm l</span>}
+                      {partDetail.data.hauteurCm && <span>{partDetail.data.hauteurCm} cm H</span>}
                     </div>
                   </div>
                 )}
@@ -423,13 +591,7 @@ export default function Pieces() {
                   <button
                     className="btn-acheter mt-6 w-full"
                     onClick={() => {
-                      addToCart({
-                        id: partDetail.data!.id,
-                        nom: partDetail.data!.nom,
-                        prixHt: partDetail.data!.prixHt,
-                        currency: partDetail.data!.currency,
-                        shopId: partDetail.data!.shopId,
-                      });
+                      addToCart({ id: partDetail.data!.id, nom: partDetail.data!.nom, prixHt: partDetail.data!.prixHt, currency: partDetail.data!.currency, shopId: partDetail.data!.shopId });
                       setSelectedPart(null);
                       setShowCart(true);
                     }}
