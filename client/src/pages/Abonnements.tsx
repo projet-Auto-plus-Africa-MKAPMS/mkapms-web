@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc";
@@ -24,6 +24,20 @@ export default function Abonnements() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<PlanCategory>("pro_vente");
   const plans = trpc.abonnements.listPlans.useQuery();
+
+  // Chaque profil voit d'abord ses offres (Partie 6 §5).
+  useEffect(() => {
+    if (!user) return;
+    const byRole: Record<string, PlanCategory> = {
+      garage: "garage",
+      vtc_taxi: "vtc_taxi",
+      delivery: "livraison",
+      pro: "pro_vente",
+      user: "particulier",
+    };
+    const target = byRole[user.role];
+    if (target) setTab(target);
+  }, [user]);
   const checkout = trpc.abonnements.createCheckout.useMutation({
     onSuccess: (r) => {
       if (r.url) window.location.href = r.url;

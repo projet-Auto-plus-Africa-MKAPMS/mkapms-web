@@ -10,7 +10,9 @@ import { seedStructure } from "./seed.js";
 import { appRouter } from "./router.js";
 import { createContext } from "./trpc.js";
 import { handleStripeWebhook } from "./stripeWebhook.js";
+import { injectAnnonceSeo, robotsTxt, sitemapXml } from "./seo.js";
 import { env, isProd } from "./env.js";
+import { readFile } from "node:fs/promises";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -32,12 +34,23 @@ app.use(
   createExpressMiddleware({ router: appRouter, createContext }),
 );
 
+// Référencement Google (Partie 6) — disponibles en prod comme en dev.
+app.get("/robots.txt", robotsTxt);
+app.get("/sitemap.xml", sitemapXml);
+
 // Sert le frontend compilé en production
 if (isProd) {
   const clientDir = path.resolve(__dirname, "public");
-  app.use(express.static(clientDir));
-  app.get("*", (_req, res) => {
-    res.sendFile(path.join(clientDir, "index.html"));
+  const indexPath = path.join(clientDir, "index.html");
+  app.use(express.static(clientDir, { index: false }));
+  app.get("*", async (req, res) => {
+    try {
+      const baseHtml = await readFile(indexPath, "utf8");
+      const html = await injectAnnonceSeo(req, baseHtml);
+      res.type("html").send(html);
+    } catch {
+      res.sendFile(indexPath);
+    }
   });
 }
 

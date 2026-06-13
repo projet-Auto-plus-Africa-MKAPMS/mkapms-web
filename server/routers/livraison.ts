@@ -4,14 +4,44 @@ import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { deliveryProfiles, deliveryMissions, deliveryPricing, deliveryTracking } from "../schema.js";
 
-// Univers Livraison (Plan Partie 2 §7). Règle moto: 20 kg / 60x40x40 cm max.
+// Univers Livraison (Plan Partie 2 §7 + Partie 6 §4). Règle moto: 20 kg / 60x40x40 cm max.
 const MOTO_MAX_KG = 20;
 const MOTO_MAX_DIM = { l: 60, w: 40, h: 40 };
 
-function vehicleTypeForParcel(poidsKg?: number, l?: number, w?: number, h?: number): "moto" | "utilitaire" {
-  const overWeight = (poidsKg ?? 0) > MOTO_MAX_KG;
+type DeliveryVehicle = "moto" | "utilitaire" | "fourgon" | "camion";
+
+// Pièces volumineuses qui interdisent automatiquement la moto (Partie 6 §4).
+export const HEAVY_PARTS = [
+  "moteur",
+  "boite_vitesse",
+  "capot",
+  "pare_chocs",
+  "porte",
+  "jantes",
+  "pneus",
+] as const;
+
+function recommendVehicle(
+  poidsKg?: number,
+  l?: number,
+  w?: number,
+  h?: number,
+  heavyPart?: boolean,
+): { vehicle: DeliveryVehicle; motoAllowed: boolean; reason: string | null } {
+  const poids = poidsKg ?? 0;
+  const maxDim = Math.max(l ?? 0, w ?? 0, h ?? 0);
+  // Très lourd / très grand → camion ; lourd → fourgon.
+  if (poids > 500 || maxDim > 250) return { vehicle: "camion", motoAllowed: false, reason: "Colis très lourd ou très volumineux" };
+  if (poids > 150 || maxDim > 180) return { vehicle: "fourgon", motoAllowed: false, reason: "Colis volumineux" };
+  const overWeight = poids > MOTO_MAX_KG;
   const overDim = (l ?? 0) > MOTO_MAX_DIM.l || (w ?? 0) > MOTO_MAX_DIM.w || (h ?? 0) > MOTO_MAX_DIM.h;
-  return overWeight || overDim ? "utilitaire" : "moto";
+  if (heavyPart) return { vehicle: "utilitaire", motoAllowed: false, reason: "Pièce mécanique lourde (moteur, capot, jantes…)" };
+  if (overWeight || overDim) return { vehicle: "utilitaire", motoAllowed: false, reason: "Dépasse 20 kg ou 60×40×40 cm" };
+  return { vehicle: "moto", motoAllowed: true, reason: null };
+}
+
+function vehicleTypeForParcel(poidsKg?: number, l?: number, w?: number, h?: number, heavyPart?: boolean): DeliveryVehicle {
+  return recommendVehicle(poidsKg, l, w, h, heavyPart).vehicle;
 }
 
 export const livraisonRouter = router({
@@ -48,18 +78,22 @@ export const livraisonRouter = router({
         hauteurCm: z.number().optional(),
         distanceKm: z.number().default(0),
         urgent: z.boolean().default(false),
+        heavyPart: z.boolean().default(false),
         countryCode: z.string().optional(),
       }),
     )
     .query(async ({ input }) => {
-      const recommended = vehicleTypeForParcel(input.poidsKg, input.longueurCm, input.largeurCm, input.hauteurCm);
+      const rec = recommendVehicle(input.poidsKg, input.longueurCm, input.largeurCm, input.hauteurCm, input.heavyPart);
+      const recommended = rec.vehicle;
       const conds = [eq(deliveryPricing.type, recommended), eq(deliveryPricing.active, true)];
       const [pricing] = await db.select().from(deliveryPricing).where(and(...conds)).limit(1);
-      const base = pricing ? Number(pricing.baseFee) : recommended === "moto" ? 5 : 15;
-      const perKm = pricing ? Number(pricing.perKm) : recommended === "moto" ? 0.8 : 1.5;
+      const fallbackBase: Record<DeliveryVehicle, number> = { moto: 5, utilitaire: 15, fourgon: 25, camion: 45 };
+      const fallbackPerKm: Record<DeliveryVehicle, number> = { moto: 0.8, utilitaire: 1.5, fourgon: 2, camion: 2.8 };
+      const base = pricing ? Number(pricing.baseFee) : fallbackBase[recommended];
+      const perKm = pricing ? Number(pricing.perKm) : fallbackPerKm[recommended];
       const mult = input.urgent ? (pricing ? Number(pricing.urgentMultiplier) : 1.5) : 1;
       const tarif = Math.round((base + perKm * input.distanceKm) * mult * 100) / 100;
-      return { recommendedVehicleType: recommended, tarif, motoAllowed: recommended === "moto" };
+      return { recommendedVehicleType: recommended, tarif, motoAllowed: rec.motoAllowed, reason: rec.reason };
     }),
 
   createMission: protectedProcedure

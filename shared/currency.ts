@@ -19,6 +19,12 @@ export const CURRENCIES: Record<string, CurrencyDef> = {
   TND: { code: "TND", symbol: "DT", rateFromEur: 3.4, locale: "fr-TN" },
   GNF: { code: "GNF", symbol: "FG", rateFromEur: 9300, locale: "fr-FR" },
   CAD: { code: "CAD", symbol: "$", rateFromEur: 1.46, locale: "fr-CA" },
+  NGN: { code: "NGN", symbol: "₦", rateFromEur: 1750, locale: "en-NG" },
+  GHS: { code: "GHS", symbol: "₵", rateFromEur: 16, locale: "en-GH" },
+  SAR: { code: "SAR", symbol: "﷼", rateFromEur: 4.05, locale: "ar-SA" },
+  AED: { code: "AED", symbol: "د.إ", rateFromEur: 3.97, locale: "ar-AE" },
+  QAR: { code: "QAR", symbol: "ر.ق", rateFromEur: 3.93, locale: "ar-QA" },
+  CNY: { code: "CNY", symbol: "¥", rateFromEur: 7.8, locale: "zh-CN" },
 };
 
 // Pays -> devise (couverture principale Europe + Afrique francophone)
@@ -28,6 +34,7 @@ export const COUNTRY_CURRENCY: Record<string, string> = {
   SN: "XOF", CI: "XOF", ML: "XOF", BF: "XOF", BJ: "XOF", TG: "XOF", NE: "XOF",
   CM: "XAF", GA: "XAF", CG: "XAF", TD: "XAF",
   MA: "MAD", DZ: "DZD", TN: "TND", GN: "GNF", CA: "CAD",
+  NG: "NGN", GH: "GHS", SA: "SAR", AE: "AED", QA: "QAR", CN: "CNY",
 };
 
 export function currencyForCountry(country?: string | null): string {

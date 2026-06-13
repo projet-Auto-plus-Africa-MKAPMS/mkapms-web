@@ -8,8 +8,10 @@ import {
   User,
   Menu,
   X,
+  Bell,
 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
 import { CURRENCIES } from "@shared/currency";
@@ -63,6 +65,7 @@ function Header() {
           </Link>
           {user ? (
             <div className="flex items-center gap-2">
+              <NotificationsBell />
               <Link to="/compte" className="btn-outline">
                 {user.name?.split(" ")[0] || "Compte"}
               </Link>
@@ -123,6 +126,85 @@ function CurrencySelect() {
         <option key={c} value={c}>{c}</option>
       ))}
     </select>
+  );
+}
+
+function NotificationsBell() {
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const utils = trpc.useUtils();
+  const unread = trpc.notifications.unreadCount.useQuery(undefined, {
+    refetchInterval: 60_000,
+  });
+  const list = trpc.notifications.list.useQuery({ limit: 15 }, { enabled: open });
+  const markRead = trpc.notifications.markRead.useMutation();
+  const markAll = trpc.notifications.markAllRead.useMutation({
+    onSuccess: () => {
+      utils.notifications.unreadCount.invalidate();
+      utils.notifications.list.invalidate();
+    },
+  });
+  const count = unread.data ?? 0;
+
+  async function openNotif(id: number, url: string | null) {
+    await markRead.mutateAsync({ id });
+    utils.notifications.unreadCount.invalidate();
+    utils.notifications.list.invalidate();
+    setOpen(false);
+    if (url) navigate(url);
+  }
+
+  return (
+    <div className="relative">
+      <button
+        aria-label="Notifications"
+        onClick={() => setOpen((o) => !o)}
+        className="relative grid h-10 w-10 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-brand"
+      >
+        <Bell size={18} />
+        {count > 0 && (
+          <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+            {count > 9 ? "9+" : count}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-slate-200 bg-white shadow-xl">
+          <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
+            <span className="text-sm font-bold text-slate-800">Notifications</span>
+            {count > 0 && (
+              <button
+                onClick={() => markAll.mutate()}
+                className="text-xs text-brand hover:underline"
+              >
+                Tout marquer lu
+              </button>
+            )}
+          </div>
+          <div className="max-h-96 overflow-auto">
+            {list.isLoading && <p className="px-3 py-4 text-sm text-slate-500">Chargement…</p>}
+            {list.data && list.data.length === 0 && (
+              <p className="px-3 py-6 text-center text-sm text-slate-500">
+                Aucune notification.<br />
+                Enregistre une recherche pour être alerté des nouvelles annonces.
+              </p>
+            )}
+            {list.data?.map((n) => (
+              <button
+                key={n.id}
+                onClick={() => openNotif(n.id, n.url)}
+                className={`block w-full border-b border-slate-50 px-3 py-2.5 text-left hover:bg-slate-50 ${
+                  n.read ? "opacity-60" : ""
+                }`}
+              >
+                <p className="text-sm font-semibold text-slate-800">{n.title}</p>
+                {n.body && <p className="text-xs text-slate-500">{n.body}</p>}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

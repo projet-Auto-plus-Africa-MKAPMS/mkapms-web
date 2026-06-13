@@ -5,6 +5,7 @@ import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { users } from "../schema.js";
 import { getProfile } from "@shared/profiles.js";
+import { makeReference } from "../reference.js";
 import {
   signToken,
   hashPassword,
@@ -22,6 +23,7 @@ function publicUser(u: typeof users.$inferSelect) {
     phone: u.phone,
     avatarUrl: u.avatarUrl,
     role: u.role,
+    reference: u.reference,
     accountType: u.accountType,
     companyName: u.companyName,
     city: u.city,
@@ -70,6 +72,9 @@ export const authRouter = router({
           role,
         })
         .returning();
+      const reference = makeReference("U", created.id);
+      await db.update(users).set({ reference }).where(eq(users.id, created.id));
+      created.reference = reference;
       const token = signToken({ uid: created.id, role: created.role, email: created.email });
       return { token, user: publicUser(created), profileType: input.profileType ?? "particulier" };
     }),
@@ -117,6 +122,9 @@ export const authRouter = router({
             role: "user",
           })
           .returning();
+        const reference = makeReference("U", u.id);
+        await db.update(users).set({ reference }).where(eq(users.id, u.id));
+        u.reference = reference;
       } else if (!u.googleId) {
         await db
           .update(users)

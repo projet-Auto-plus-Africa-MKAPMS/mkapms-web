@@ -126,6 +126,7 @@ export const annoncePhotos = pgTable("annonce_photos", {
 
 export const annonces = pgTable("annonces", {
   id: serial("id").primaryKey(),
+  reference: varchar("reference", { length: 24 }).unique(), // réf unique annonce (ex: MKA-A-000123)
   ownerId: integer("owner_id").notNull(),
   type: annonceTypeEnum("type").notNull().default("vente"),
   status: annonceStatusEnum("status").notNull().default("publiee"),
@@ -792,6 +793,7 @@ export const userDocuments = pgTable("user_documents", {
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
+  reference: varchar("reference", { length: 24 }).unique(), // réf unique compte (ex: MKA-U-000123)
   email: varchar("email", { length: 255 }).notNull(),
   passwordHash: text("password_hash"),
   googleId: varchar("google_id", { length: 255 }),

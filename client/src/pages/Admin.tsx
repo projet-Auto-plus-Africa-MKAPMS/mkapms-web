@@ -20,6 +20,7 @@ export default function Admin() {
   const usersList = trpc.admin.usersList.useQuery({ limit: 30, offset: 0 }, { enabled });
   const deletionRequests = trpc.admin.deletionRequests.useQuery(undefined, { enabled });
   const auditLog = trpc.admin.auditLog.useQuery({ limit: 50 }, { enabled: direction });
+  const modulesList = trpc.modules.list.useQuery(undefined, { enabled: direction });
 
   const utils = trpc.useUtils();
   const moderate = trpc.admin.moderateAnnonce.useMutation({ onSuccess: () => utils.admin.annoncesPending.invalidate() });
@@ -39,6 +40,8 @@ export default function Admin() {
   const decideDeletion = trpc.admin.decideDeletion.useMutation({
     onSuccess: () => { utils.admin.deletionRequests.invalidate(); utils.admin.usersList.invalidate(); },
   });
+  const setModuleStatus = trpc.modules.setStatus.useMutation({ onSuccess: () => utils.modules.list.invalidate() });
+  const updateModule = trpc.modules.update.useMutation({ onSuccess: () => utils.modules.list.invalidate() });
 
   const [staff, setStaff] = useState({ email: "", name: "", password: "", role: "employee" as "employee" | "admin" });
   const [promo, setPromo] = useState({ code: "", type: "pourcentage" as "pourcentage" | "montant", value: 10 });
@@ -278,6 +281,54 @@ export default function Admin() {
                 </div>
               ))}
               {auditLog.data?.length === 0 && <p className="text-sm text-slate-500">Aucune action enregistrée pour l'instant.</p>}
+            </div>
+          </section>
+
+          {/* Centre de contrôle des modules (Partie 6 §7) */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Centre de contrôle des modules <span className="text-xs font-normal text-brand">(Super Admin)</span></h2>
+            <p className="text-xs text-slate-500">Activez, masquez ou mettez en maintenance chaque univers — sans casser les autres.</p>
+            <div className="mt-3 overflow-x-auto">
+              <table className="w-full min-w-[640px] text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-left text-xs text-slate-500">
+                    <th className="py-2">Module</th>
+                    <th className="py-2">État</th>
+                    <th className="py-2">Visible public</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {modulesList.data?.map((m) => (
+                    <tr key={m.code} className="border-b border-slate-50">
+                      <td className="py-2">
+                        <p className="font-semibold text-slate-800">{m.nom}</p>
+                        <p className="text-xs text-slate-400">{m.code}</p>
+                      </td>
+                      <td className="py-2">
+                        <select
+                          className="input !py-1 !text-xs"
+                          value={m.status}
+                          onChange={(e) => setModuleStatus.mutate({ code: m.code, status: e.target.value as "active" | "masque" | "maintenance" | "desactive" })}
+                        >
+                          <option value="active">Actif</option>
+                          <option value="masque">Masqué</option>
+                          <option value="maintenance">Maintenance</option>
+                          <option value="desactive">Désactivé</option>
+                        </select>
+                      </td>
+                      <td className="py-2">
+                        <button
+                          className="btn-outline !py-1 !text-xs"
+                          onClick={() => updateModule.mutate({ code: m.code, visiblePublic: !m.visiblePublic })}
+                        >
+                          {m.visiblePublic ? "Oui" : "Non"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {modulesList.data?.length === 0 && <p className="text-sm text-slate-500">Aucun module.</p>}
             </div>
           </section>
 

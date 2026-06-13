@@ -191,6 +191,9 @@ export default function Vehicule() {
             </p>
             <h1 className="mt-1 text-xl font-extrabold text-slate-900">{v.titre}</h1>
             <p className="text-sm text-slate-500">{v.version || `${v.marque} ${v.modele}`}</p>
+            {v.reference && (
+              <p className="mt-1 text-xs font-medium text-slate-400">Réf. annonce : {v.reference}</p>
+            )}
             <div className="mt-3 text-3xl font-extrabold text-slate-900">
               {isLocation && v.prixJour
                 ? `${formatPrice(Number(v.prixJour))} /jour`
@@ -345,10 +348,85 @@ export default function Vehicule() {
             </ul>
           </div>
 
+          {/* Avis clients (Partie 6) */}
+          {v.vendeur && (
+            <AvisSection targetUserId={v.vendeur.id} canReview={!!user && user.id !== v.vendeur.id} />
+          )}
+
           <Link to="/acheter" className="block text-center text-sm font-semibold text-brand">
             ← Retour aux annonces
           </Link>
         </aside>
+      </div>
+    </div>
+  );
+}
+
+function AvisSection({ targetUserId, canReview }: { targetUserId: number; canReview: boolean }) {
+  const utils = trpc.useUtils();
+  const list = trpc.reviews.listForUser.useQuery({ targetUserId });
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const create = trpc.reviews.create.useMutation({
+    onSuccess: () => {
+      setComment("");
+      utils.reviews.listForUser.invalidate({ targetUserId });
+      utils.annonces.get.invalidate();
+    },
+  });
+
+  return (
+    <div className="card p-5">
+      <h3 className="font-bold text-slate-800">Avis clients</h3>
+      {canReview && (
+        <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
+          <p className="text-xs font-semibold text-slate-600">Laisser un avis</p>
+          <div className="mt-1 flex gap-1">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button key={n} type="button" onClick={() => setRating(n)} aria-label={`${n} étoiles`}>
+                <Star
+                  size={20}
+                  className={n <= rating ? "fill-amber-400 text-amber-400" : "text-slate-300"}
+                />
+              </button>
+            ))}
+          </div>
+          <textarea
+            className="input mt-2 text-sm"
+            rows={2}
+            placeholder="Votre commentaire (optionnel)"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+          <button
+            className="btn-primary mt-2 w-full text-sm"
+            disabled={create.isPending}
+            onClick={() => create.mutate({ targetUserId, rating, comment: comment || undefined })}
+          >
+            {create.isPending ? "Envoi…" : "Publier mon avis"}
+          </button>
+          {create.isSuccess && <p className="mt-1 text-xs text-emerald-600">Merci, votre avis est publié.</p>}
+        </div>
+      )}
+      <div className="mt-3 space-y-3">
+        {list.data?.map((r) => (
+          <div key={r.id} className="border-b border-slate-50 pb-2 last:border-0">
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <Star
+                  key={n}
+                  size={13}
+                  className={n <= r.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}
+                />
+              ))}
+              <span className="ml-1 text-xs font-medium text-slate-500">{r.authorName ?? "Client"}</span>
+            </div>
+            {r.comment && <p className="mt-1 text-sm text-slate-600">{r.comment}</p>}
+          </div>
+        ))}
+        {list.data && list.data.length === 0 && (
+          <p className="text-sm text-slate-500">Aucun avis pour le moment.</p>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 // Données de démonstration minimales (idempotent).
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db, pool } from "./db.js";
 import {
   users,
@@ -130,11 +130,24 @@ const DOCUMENT_TYPES_SEED: Array<{ code: string; label: string; appliesTo: strin
   { code: "rib", label: "RIB", appliesTo: "professionnel", required: true },
 ];
 
+// Devises mondiales (Partie 6 — « money mondial »). Affichage auto selon le pays.
 const CURRENCIES_SEED = [
   { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "USD", symbol: "$", name: "Dollar américain" },
+  { code: "GBP", symbol: "£", name: "Livre sterling" },
   { code: "GNF", symbol: "FG", name: "Franc guinéen" },
   { code: "XOF", symbol: "CFA", name: "Franc CFA (UEMOA)" },
-  { code: "USD", symbol: "$", name: "Dollar américain" },
+  { code: "XAF", symbol: "FCFA", name: "Franc CFA (CEMAC)" },
+  { code: "MAD", symbol: "DH", name: "Dirham marocain" },
+  { code: "DZD", symbol: "DA", name: "Dinar algérien" },
+  { code: "TND", symbol: "DT", name: "Dinar tunisien" },
+  { code: "NGN", symbol: "₦", name: "Naira nigérian" },
+  { code: "GHS", symbol: "₵", name: "Cedi ghanéen" },
+  { code: "SAR", symbol: "﷼", name: "Riyal saoudien" },
+  { code: "AED", symbol: "د.إ", name: "Dirham émiratien" },
+  { code: "QAR", symbol: "ر.ق", name: "Riyal qatari" },
+  { code: "CAD", symbol: "$CA", name: "Dollar canadien" },
+  { code: "CNY", symbol: "¥", name: "Yuan chinois" },
 ];
 
 export async function seedStructure() {
@@ -153,8 +166,13 @@ export async function seedStructure() {
   for (const c of CURRENCIES_SEED) {
     await db.insert(currencies).values(c).onConflictDoNothing({ target: currencies.code });
   }
-  await db.insert(languages).values({ code: "fr", name: "Français" }).onConflictDoNothing({ target: languages.code });
-  await db.insert(languages).values({ code: "en", name: "English" }).onConflictDoNothing({ target: languages.code });
+  for (const l of [
+    { code: "fr", name: "Français" },
+    { code: "en", name: "English" },
+    { code: "ar", name: "العربية" },
+  ]) {
+    await db.insert(languages).values(l).onConflictDoNothing({ target: languages.code });
+  }
 
   // Permissions + affectations aux rôles (RBAC réellement peuplé).
   for (const p of PERMISSIONS_SEED) {
@@ -207,7 +225,14 @@ export async function seedStructure() {
     await grant(adminId, perm.id, opsAllowed);
     await grant(empId, perm.id, opsAllowed);
   }
-  console.log("[seed] structure (modules, rôles, permissions, devises, langues) initialisée");
+  // Backfill des références uniques (Partie 6) — idempotent (ne touche que NULL).
+  await db.execute(
+    sql`UPDATE annonces SET reference = 'MKA-A-' || lpad(id::text, 6, '0') WHERE reference IS NULL`,
+  );
+  await db.execute(
+    sql`UPDATE users SET reference = 'MKA-U-' || lpad(id::text, 6, '0') WHERE reference IS NULL`,
+  );
+  console.log("[seed] structure (modules, rôles, permissions, devises, langues, références) initialisée");
 }
 
 async function main() {

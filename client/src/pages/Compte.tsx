@@ -6,7 +6,7 @@ import { useCurrency } from "../lib/currency";
 import { isAdmin, isPro, ROLE_LABELS } from "@shared/roles";
 import type { UserRole } from "@shared/roles";
 
-type Tab = "annonces" | "favoris" | "reservations" | "devis" | "abonnements" | "profil";
+type Tab = "annonces" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "profil";
 
 export default function Compte() {
   const { format: formatPrice } = useCurrency();
@@ -19,6 +19,10 @@ export default function Compte() {
   const reservations = trpc.reservations.mine.useQuery(undefined, { enabled: !!user && tab === "reservations" });
   const devis = trpc.devis.mine.useQuery(undefined, { enabled: !!user && tab === "devis" });
   const abos = trpc.abonnements.mine.useQuery(undefined, { enabled: !!user && tab === "abonnements" });
+  const recherches = trpc.searches.list.useQuery(undefined, { enabled: !!user && tab === "recherches" });
+  const utils = trpc.useUtils();
+  const setAlert = trpc.searches.setAlert.useMutation({ onSuccess: () => utils.searches.list.invalidate() });
+  const removeSearch = trpc.searches.remove.useMutation({ onSuccess: () => utils.searches.list.invalidate() });
 
   if (!user) {
     return (
@@ -32,6 +36,7 @@ export default function Compte() {
   const TABS: [Tab, string][] = [
     ["annonces", "Mes annonces"],
     ["favoris", "Favoris"],
+    ["recherches", "Mes alertes"],
     ["reservations", "Réservations"],
     ["devis", "Mes devis"],
     ["abonnements", "Abonnements"],
@@ -47,6 +52,11 @@ export default function Compte() {
             {ROLE_LABELS[(user.role as UserRole)] || user.role}
             {user.email ? ` · ${user.email}` : ""}
           </p>
+          {(user as { reference?: string | null }).reference && (
+            <p className="text-xs font-medium text-slate-400">
+              Réf. compte : {(user as { reference?: string | null }).reference}
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           {isPro(user.role) && <Link to="/garage-plus" className="btn-outline">Espace Garage+</Link>}
@@ -82,7 +92,10 @@ export default function Compte() {
               <div key={a.id} className="card flex items-center justify-between p-4">
                 <div>
                   <Link to={`/vehicule/${a.id}`} className="font-semibold text-slate-800">{a.titre}</Link>
-                  <p className="text-xs text-slate-400">{a.status} · {formatPrice(Number(a.prix))}</p>
+                  <p className="text-xs text-slate-400">
+                    {(a as { reference?: string | null }).reference ? `${(a as { reference?: string | null }).reference} · ` : ""}
+                    {a.status} · {formatPrice(Number(a.prix))}
+                  </p>
                 </div>
               </div>
             ))}
@@ -98,6 +111,43 @@ export default function Compte() {
               </Link>
             ))}
             {favoris.data?.length === 0 && <p className="text-sm text-slate-500">Aucun favori.</p>}
+          </div>
+        )}
+        {tab === "recherches" && (
+          <div className="space-y-3">
+            <p className="text-sm text-slate-500">
+              Vos recherches enregistrées. Activez l'alerte pour être notifié dès qu'une
+              nouvelle annonce correspond.
+            </p>
+            {recherches.data?.map((s) => (
+              <div key={s.id} className="card flex items-center justify-between gap-3 p-4">
+                <div>
+                  <p className="font-semibold text-slate-800">{s.label}</p>
+                  <p className="text-xs text-slate-400">
+                    {s.univers} · {s.alertEnabled ? "Alerte active" : "Alerte en pause"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="btn-outline text-xs"
+                    onClick={() => setAlert.mutate({ id: s.id, alertEnabled: !s.alertEnabled })}
+                  >
+                    {s.alertEnabled ? "Mettre en pause" : "Réactiver"}
+                  </button>
+                  <button
+                    className="text-xs text-red-500 hover:underline"
+                    onClick={() => removeSearch.mutate({ id: s.id })}
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            ))}
+            {recherches.data?.length === 0 && (
+              <p className="text-sm text-slate-500">
+                Aucune recherche enregistrée. Depuis « Acheter », cliquez sur « Enregistrer la recherche ».
+              </p>
+            )}
           </div>
         )}
         {tab === "reservations" && (

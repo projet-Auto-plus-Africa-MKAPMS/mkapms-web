@@ -138,3 +138,30 @@ export const accountDeletionRequests = pgTable("account_deletion_requests", {
   decidedAt: timestamp("decided_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// --- Recherches sauvegardées + alertes (Partie 6, demande utilisateur) ---
+// L'utilisateur enregistre un filtre de recherche ; dès qu'une nouvelle annonce
+// correspond, une notification est créée (alerte). Relié au compte (base unique).
+export const savedSearches = pgTable("saved_searches", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  label: varchar("label", { length: 128 }).notNull(),
+  univers: varchar("univers", { length: 32 }).notNull().default("vente"), // vente|location...
+  filters: jsonb("filters").notNull(), // { q, marque, modele, categorie, famille, prixMax, ville, ... }
+  alertEnabled: boolean("alert_enabled").notNull().default(true),
+  lastNotifiedAt: timestamp("last_notified_at"),
+  lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// --- Notifications utilisateur (transverse, base unique) ---
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: varchar("type", { length: 48 }).notNull(), // saved_search|reservation|message|validation|systeme
+  title: varchar("title", { length: 160 }).notNull(),
+  body: text("body"),
+  url: varchar("url", { length: 255 }), // lien profond (ex: /vehicule/123)
+  read: boolean("read").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

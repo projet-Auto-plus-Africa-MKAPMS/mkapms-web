@@ -216,12 +216,14 @@ export const GARAGE_PLANS: Plan[] = [
   { code: "garage_max", label: "Garage Max", audience: "pro", category: "garage", priceEur: null, recurring: true, features: ["Tout Elite", "Multi-établissements", "Support dédié"], quotas: q(null) },
 ];
 
-// Location Pro — paliers (grille VERROUILLÉE, Partie A §1). Commission 3 % (grandes flottes 2–2,5 %).
+// Location Pro — grille Partie 6 (5 paliers, HT). Commission 3 % (grandes flottes 2–2,5 %).
+// La location particulier est prévue mais désactivée au lancement (module masqué).
 export const LOCATION_PLANS: Plan[] = [
-  { code: "loc_start", label: "Location Start", audience: "pro", category: "location", priceEur: 49.99, recurring: true, features: ["Jusqu'à 5 véhicules", "Contrats automatiques", "État des lieux", "Tarifs jour/sem/mois"], quotas: q(5) },
-  { code: "loc_premium", label: "Location Premium", audience: "pro", category: "location", priceEur: 99.99, recurring: true, highlight: true, features: ["Jusqu'à 20 véhicules", "Tout Start", "Caution & options"], quotas: q(20) },
-  { code: "loc_elite", label: "Location Elite", audience: "pro", category: "location", priceEur: 159.99, recurring: true, features: ["Jusqu'à 50 véhicules", "Tout Premium", "Priorité annuaire"], quotas: q(50) },
-  { code: "loc_max", label: "Location Max", audience: "pro", category: "location", priceEur: 199.99, recurring: true, commissionPct: 3, features: ["Jusqu'à 120 véhicules", "Tout Elite", "Multi-agences", "Commission réduite (grandes flottes)"], quotas: q(120) },
+  { code: "loc_start", label: "Location Start", audience: "pro", category: "location", priceEur: 29.99, recurring: true, features: ["10 véhicules actifs", "20 photos", "Calendrier de disponibilité", "Messagerie", "Badge LOCATION PRO"], quotas: { maxAnnonces: 10, maxPhotos: 20, maxVideos: 0 } },
+  { code: "loc_premium", label: "Location Premium", audience: "pro", category: "location", priceEur: 69.99, recurring: true, highlight: true, features: ["30 véhicules actifs", "30 photos", "2 vidéos", "Priorité recherche", "Statistiques"], quotas: { maxAnnonces: 30, maxPhotos: 30, maxVideos: 2 } },
+  { code: "loc_elite", label: "Location Elite", audience: "pro", category: "location", priceEur: 99.99, recurring: true, features: ["50 véhicules actifs", "40 photos", "3 vidéos", "Gestion d'équipe"], quotas: { maxAnnonces: 50, maxPhotos: 40, maxVideos: 3 } },
+  { code: "loc_max", label: "Location Max", audience: "pro", category: "location", priceEur: 159.99, recurring: true, features: ["120 véhicules actifs", "56 photos", "5 vidéos", "Multi-utilisateurs"], quotas: { maxAnnonces: 120, maxPhotos: 56, maxVideos: 5 } },
+  { code: "loc_ultimate", label: "Location Ultimate", audience: "pro", category: "location", priceEur: 199.99, recurring: true, commissionPct: 3, features: ["250 véhicules actifs", "Photos illimitées", "8 vidéos", "Multi-agences", "Commission réduite (grandes flottes)"], quotas: { maxAnnonces: 250, maxPhotos: null, maxVideos: 8 } },
 ];
 
 // VTC / TAXI — paliers (grille VERROUILLÉE, Partie A §1). Commission 3 %.

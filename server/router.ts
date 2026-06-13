@@ -24,6 +24,8 @@ import { marketingRouter } from "./routers/marketing.js";
 import { historiqueRouter } from "./routers/historique.js";
 import { kycRouter } from "./routers/kyc.js";
 import { currencyRouter } from "./routers/currency.js";
+import { notificationsRouter, searchesRouter } from "./routers/notifications.js";
+import { reviewsRouter } from "./routers/reviews.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -51,6 +53,9 @@ export const appRouter = router({
   historique: historiqueRouter,
   kyc: kycRouter,
   currency: currencyRouter,
+  notifications: notificationsRouter,
+  searches: searchesRouter,
+  reviews: reviewsRouter,
 });
 
 export type AppRouter = typeof appRouter;

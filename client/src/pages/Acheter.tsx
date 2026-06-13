@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { BellPlus } from "lucide-react";
 import { trpc } from "../lib/trpc";
+import { useAuth } from "../lib/auth";
 import VehicleCard from "../components/VehicleCard";
 
 const VENDEURS = [
@@ -39,8 +41,25 @@ export default function Acheter() {
   );
 
   const list = trpc.annonces.list.useQuery(input);
+  const { user } = useAuth();
+  const [saved, setSaved] = useState(false);
+  const saveSearch = trpc.searches.create.useMutation({ onSuccess: () => setSaved(true) });
+
+  function enregistrerRecherche() {
+    const filters = {
+      q: q || undefined,
+      vendeurType: vendeurType || undefined,
+      categorie: categorie || undefined,
+      ville,
+      prixMax,
+    };
+    const label =
+      [q, categorie, vendeurType].filter(Boolean).join(" · ") || "Toutes les annonces";
+    saveSearch.mutate({ label, univers: "vente", filters, alertEnabled: true });
+  }
 
   function reset() {
+    setSaved(false);
     setQ("");
     setVendeur("");
     setCategorie("");
@@ -78,6 +97,35 @@ export default function Acheter() {
           <button className="btn-outline mt-5 w-full" onClick={reset}>
             Réinitialiser
           </button>
+
+          {/* Recherche sauvegardée + alerte (Partie 6) */}
+          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-amber-800">
+              <BellPlus size={14} /> Alerte nouvelle annonce
+            </p>
+            <p className="mt-1 text-xs text-amber-700">
+              Soyez prévenu dès qu'un véhicule correspond à cette recherche.
+            </p>
+            {user ? (
+              saved ? (
+                <p className="mt-2 text-xs font-semibold text-emerald-700">
+                  Recherche enregistrée — vous serez alerté.
+                </p>
+              ) : (
+                <button
+                  className="btn-primary mt-2 w-full text-sm"
+                  onClick={enregistrerRecherche}
+                  disabled={saveSearch.isPending}
+                >
+                  {saveSearch.isPending ? "Enregistrement…" : "Enregistrer la recherche"}
+                </button>
+              )
+            ) : (
+              <Link to="/connexion" className="btn-outline mt-2 block w-full text-center text-sm">
+                Connectez-vous pour activer l'alerte
+              </Link>
+            )}
+          </div>
         </aside>
 
         {/* Résultats */}
