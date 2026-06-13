@@ -328,6 +328,8 @@ export const devisItems = pgTable("devis_items", {
   quantite: numeric("quantite", { precision: 10, scale: 2 }).notNull().default("1"),
   prixUnitaireHt: numeric("prix_unitaire_ht", { precision: 12, scale: 2 }).notNull(),
   ordre: integer("ordre").notNull().default(0),
+  type: varchar("type", { length: 16 }).notNull().default("main_oeuvre"),
+  catalogId: integer("catalog_id"),
 });
 
 export const factures = pgTable("factures", {
@@ -574,6 +576,149 @@ export const pieces = pgTable("pieces", {
   emplacement: varchar("emplacement", { length: 128 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ===== BOUTIQUE PIÈCES AUTO PROFESSIONNELLE (Mini-ERP) =====
+
+export const partsShopTypeEnum = pgEnum("parts_shop_type", [
+  "magasin_pieces", "casse_auto", "grossiste", "distributeur", "centre_auto", "garage_vendeur",
+]);
+export const partsConditionEnum = pgEnum("parts_condition", [
+  "neuf", "occasion", "reconditionne", "echange_standard",
+]);
+export const partsOrderStatusEnum = pgEnum("parts_order_status", [
+  "panier", "confirme", "preparation", "expedie", "livre", "termine", "annule",
+]);
+export const partsInvoiceTypeEnum = pgEnum("parts_invoice_type", [
+  "devis", "bon_commande", "facture", "avoir", "recu",
+]);
+export const partsInvoiceStatusEnum = pgEnum("parts_invoice_status", [
+  "brouillon", "emis", "paye", "annule",
+]);
+
+export const partsShops = pgTable("parts_shops", {
+  id: serial("id").primaryKey(),
+  ownerId: integer("owner_id").notNull(),
+  nom: varchar("nom", { length: 255 }).notNull(),
+  type: partsShopTypeEnum("type").notNull().default("magasin_pieces"),
+  description: text("description"),
+  adresse: text("adresse"),
+  ville: varchar("ville", { length: 128 }),
+  codePostal: varchar("code_postal", { length: 16 }),
+  countryCode: varchar("country_code", { length: 4 }).default("FR"),
+  telephone: varchar("telephone", { length: 32 }),
+  email: varchar("email", { length: 255 }),
+  siret: varchar("siret", { length: 32 }),
+  logoUrl: text("logo_url"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const partsSites = pgTable("parts_sites", {
+  id: serial("id").primaryKey(),
+  shopId: integer("shop_id").notNull(),
+  nom: varchar("nom", { length: 255 }).notNull(),
+  type: varchar("type", { length: 32 }).notNull().default("entrepot"),
+  adresse: text("adresse"),
+  ville: varchar("ville", { length: 128 }),
+  codePostal: varchar("code_postal", { length: 16 }),
+  countryCode: varchar("country_code", { length: 4 }).default("FR"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const partsCatalog = pgTable("parts_catalog", {
+  id: serial("id").primaryKey(),
+  shopId: integer("shop_id").notNull(),
+  nom: varchar("nom", { length: 255 }).notNull(),
+  description: text("description"),
+  referenceInterne: varchar("reference_interne", { length: 64 }).notNull(),
+  referenceOem: varchar("reference_oem", { length: 64 }),
+  referenceEquipementier: varchar("reference_equipementier", { length: 64 }),
+  codeBarre: varchar("code_barre", { length: 64 }),
+  categorie: varchar("categorie", { length: 128 }),
+  sousCategorie: varchar("sous_categorie", { length: 128 }),
+  marquePiece: varchar("marque_piece", { length: 128 }),
+  etat: varchar("etat", { length: 16 }),
+  condition: partsConditionEnum("condition").notNull().default("neuf"),
+  fournisseurId: integer("fournisseur_id"),
+  prixHt: numeric("prix_ht", { precision: 12, scale: 2 }).notNull(),
+  prixTtc: numeric("prix_ttc", { precision: 12, scale: 2 }),
+  tvaRate: numeric("tva_rate", { precision: 5, scale: 2 }).notNull().default("20"),
+  currency: varchar("currency", { length: 4 }).notNull().default("EUR"),
+  poidsKg: numeric("poids_kg", { precision: 8, scale: 3 }),
+  longueurCm: numeric("longueur_cm", { precision: 8, scale: 2 }),
+  largeurCm: numeric("largeur_cm", { precision: 8, scale: 2 }),
+  hauteurCm: numeric("hauteur_cm", { precision: 8, scale: 2 }),
+  photoUrl: text("photo_url"),
+  photos: text("photos"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const partsCompatibility = pgTable("parts_compatibility", {
+  id: serial("id").primaryKey(),
+  catalogId: integer("catalog_id").notNull(),
+  marque: varchar("marque", { length: 64 }).notNull(),
+  modele: varchar("modele", { length: 128 }),
+  moteur: varchar("moteur", { length: 64 }),
+  anneeDebut: integer("annee_debut"),
+  anneeFin: integer("annee_fin"),
+});
+
+export const partsStock = pgTable("parts_stock", {
+  id: serial("id").primaryKey(),
+  catalogId: integer("catalog_id").notNull(),
+  siteId: integer("site_id"),
+  quantite: integer("quantite").notNull().default(0),
+  quantiteReservee: integer("quantite_reservee").notNull().default(0),
+  seuilMin: integer("seuil_min").notNull().default(2),
+  entrepot: varchar("entrepot", { length: 128 }),
+  rayon: varchar("rayon", { length: 64 }),
+  etagere: varchar("etagere", { length: 64 }),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const partsOrders = pgTable("parts_orders", {
+  id: serial("id").primaryKey(),
+  reference: varchar("reference", { length: 32 }),
+  shopId: integer("shop_id").notNull(),
+  buyerId: integer("buyer_id").notNull(),
+  status: partsOrderStatusEnum("status").notNull().default("panier"),
+  totalHt: numeric("total_ht", { precision: 12, scale: 2 }),
+  totalTtc: numeric("total_ttc", { precision: 12, scale: 2 }),
+  livraisonType: varchar("livraison_type", { length: 32 }),
+  livraisonTarif: numeric("livraison_tarif", { precision: 10, scale: 2 }),
+  devisId: integer("devis_id"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const partsOrderItems = pgTable("parts_order_items", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").notNull(),
+  catalogId: integer("catalog_id").notNull(),
+  quantite: integer("quantite").notNull(),
+  prixUnitaireHt: numeric("prix_unitaire_ht", { precision: 12, scale: 2 }).notNull(),
+  totalHt: numeric("total_ht", { precision: 12, scale: 2 }),
+});
+
+export const partsInvoices = pgTable("parts_invoices", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id"),
+  shopId: integer("shop_id").notNull(),
+  buyerId: integer("buyer_id"),
+  type: partsInvoiceTypeEnum("type").notNull(),
+  reference: varchar("reference", { length: 32 }),
+  totalHt: numeric("total_ht", { precision: 12, scale: 2 }),
+  totalTva: numeric("total_tva", { precision: 12, scale: 2 }),
+  totalTtc: numeric("total_ttc", { precision: 12, scale: 2 }),
+  status: partsInvoiceStatusEnum("status").notNull().default("brouillon"),
+  pdfUrl: text("pdf_url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const plateLookups = pgTable("plate_lookups", {

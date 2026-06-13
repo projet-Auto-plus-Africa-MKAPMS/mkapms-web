@@ -242,6 +242,8 @@ export default function Admin() {
             <div className="card p-3">
               <div className="text-sm font-bold text-slate-800">Pièces Auto</div>
               <div className="mt-1 text-xs text-slate-600">Commandes : <b>{kpis.data.pieces.commandes}</b></div>
+              <div className="text-xs text-slate-600">Boutiques : <b>{kpis.data.pieces.boutiques}</b></div>
+              <div className="text-xs text-slate-600">Produits : <b>{kpis.data.pieces.produits}</b></div>
             </div>
             <div className="card p-3">
               <div className="text-sm font-bold text-slate-800">Livraison</div>

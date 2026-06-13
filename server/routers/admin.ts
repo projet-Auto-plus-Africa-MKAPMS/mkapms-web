@@ -21,6 +21,9 @@ import {
   disputes,
   importRequests,
   partsOrders,
+  partsCatalog,
+  partsShops,
+  partsStock,
   deliveryMissions,
 } from "../schema.js";
 import { sql as dsql } from "drizzle-orm";
@@ -129,6 +132,8 @@ export const adminRouter = router({
 
     // Pièces
     const [partsTotal] = await db.select({ c: dsql<number>`count(*)::int` }).from(partsOrders);
+    const [partsShopsTotal] = await db.select({ c: dsql<number>`count(*)::int` }).from(partsShops);
+    const [partsProductsTotal] = await db.select({ c: dsql<number>`count(*)::int` }).from(partsCatalog);
 
     // Livraison
     const [missionsTotal] = await db.select({ c: dsql<number>`count(*)::int` }).from(deliveryMissions);
@@ -156,7 +161,7 @@ export const adminRouter = router({
         tauxAcceptation: pct(num(devisAccept?.c), num(devisTotal?.c)),
       },
       location: { reservations: num(bookingsTotal?.c) },
-      pieces: { commandes: num(partsTotal?.c) },
+      pieces: { commandes: num(partsTotal?.c), boutiques: num(partsShopsTotal?.c), produits: num(partsProductsTotal?.c) },
       livraison: { missions: num(missionsTotal?.c) },
       afrique: { importations: num(importsTotal?.c), paysActifs: importsByCountry },
     };
