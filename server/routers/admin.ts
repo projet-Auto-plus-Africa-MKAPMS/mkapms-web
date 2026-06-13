@@ -3,6 +3,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import { router, adminProcedure, directionProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { hashPassword } from "../auth.js";
+import { logAction } from "../audit.js";
 import {
   users,
   annonces,
@@ -15,6 +16,8 @@ import {
   kycProfiles,
   kycDocuments,
   promoCodes,
+  accountDeletionRequests,
+  auditLogs,
 } from "../schema.js";
 
 // Back-office (§10)
@@ -58,11 +61,12 @@ export const adminRouter = router({
 
   moderateAnnonce: adminProcedure
     .input(z.object({ id: z.number(), action: z.enum(["publiee", "refusee", "archivee"]) }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       await db
         .update(annonces)
         .set({ status: input.action, updatedAt: new Date() })
         .where(eq(annonces.id, input.id));
+      await logAction(ctx.user.uid, `annonce.${input.action}`, "annonce", input.id);
       return { ok: true };
     }),
 
@@ -77,11 +81,12 @@ export const adminRouter = router({
 
   validateGarage: adminProcedure
     .input(z.object({ id: z.number(), action: z.enum(["valide", "refuse", "suspendu"]) }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       await db
         .update(garagesPublics)
         .set({ status: input.action, updatedAt: new Date() })
         .where(eq(garagesPublics.id, input.id));
+      await logAction(ctx.user.uid, `garage.${input.action}`, "garage", input.id);
       return { ok: true };
     }),
 
@@ -129,6 +134,7 @@ export const adminRouter = router({
           updatedAt: new Date(),
         })
         .where(eq(kycProfiles.id, input.profileId));
+      await logAction(ctx.user.uid, `kyc.${input.action}`, "kyc_profile", input.profileId);
       return { ok: true };
     }),
 
@@ -199,7 +205,7 @@ export const adminRouter = router({
         staffPosition: z.enum(["directeur", "adjoint", "gerant", "chef_equipe", "agent"]).optional(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const existing = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
       if (existing.length) {
         throw new Error("Un compte existe déjà avec cet email");
@@ -216,6 +222,7 @@ export const adminRouter = router({
           emailVerified: true,
         })
         .returning({ id: users.id, email: users.email });
+      await logAction(ctx.user.uid, "staff.create", "user", u.id, { email: u.email, role: input.role });
       return u;
     }),
 
@@ -227,7 +234,84 @@ export const adminRouter = router({
         throw new Error("Impossible de supprimer son propre compte");
       }
       await db.delete(users).where(eq(users.id, input.userId));
+      await logAction(ctx.user.uid, "account.delete", "user", input.userId);
       return { ok: true };
+    }),
+
+  // --- Workflow suppression : un EMPLOYÉ demande, la DIRECTION approuve (§3.3) ---
+  requestUserDeletion: adminProcedure
+    .input(z.object({ userId: z.number(), reason: z.string().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const [r] = await db
+        .insert(accountDeletionRequests)
+        .values({ targetUserId: input.userId, requestedBy: ctx.user.uid, reason: input.reason ?? null })
+        .returning();
+      await logAction(ctx.user.uid, "account.delete_request", "user", input.userId, { requestId: r.id });
+      return r;
+    }),
+
+  deletionRequests: adminProcedure.query(async () => {
+    return db
+      .select({
+        id: accountDeletionRequests.id,
+        targetUserId: accountDeletionRequests.targetUserId,
+        requestedBy: accountDeletionRequests.requestedBy,
+        reason: accountDeletionRequests.reason,
+        status: accountDeletionRequests.status,
+        createdAt: accountDeletionRequests.createdAt,
+        targetEmail: users.email,
+        targetName: users.name,
+      })
+      .from(accountDeletionRequests)
+      .leftJoin(users, eq(users.id, accountDeletionRequests.targetUserId))
+      .orderBy(desc(accountDeletionRequests.createdAt));
+  }),
+
+  decideDeletion: directionProcedure
+    .input(z.object({ requestId: z.number(), approve: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const [req] = await db
+        .select()
+        .from(accountDeletionRequests)
+        .where(eq(accountDeletionRequests.id, input.requestId))
+        .limit(1);
+      if (!req || req.status !== "en_attente") {
+        throw new Error("Demande introuvable ou déjà traitée");
+      }
+      if (input.approve) {
+        if (req.targetUserId !== ctx.user.uid) {
+          await db.delete(users).where(eq(users.id, req.targetUserId));
+        }
+        await logAction(ctx.user.uid, "account.delete_approved", "user", req.targetUserId, { requestId: req.id });
+      } else {
+        await logAction(ctx.user.uid, "account.delete_rejected", "user", req.targetUserId, { requestId: req.id });
+      }
+      await db
+        .update(accountDeletionRequests)
+        .set({ status: input.approve ? "approuvee" : "refusee", decidedBy: ctx.user.uid, decidedAt: new Date() })
+        .where(eq(accountDeletionRequests.id, input.requestId));
+      return { ok: true };
+    }),
+
+  // --- Traçabilité (« radar » Direction) : journal des actions admin (§11) ---
+  auditLog: directionProcedure
+    .input(z.object({ limit: z.number().default(100) }))
+    .query(async ({ input }) => {
+      return db
+        .select({
+          id: auditLogs.id,
+          actorId: auditLogs.actorId,
+          action: auditLogs.action,
+          entityType: auditLogs.entityType,
+          entityId: auditLogs.entityId,
+          metadata: auditLogs.metadata,
+          createdAt: auditLogs.createdAt,
+          actorEmail: users.email,
+        })
+        .from(auditLogs)
+        .leftJoin(users, eq(users.id, auditLogs.actorId))
+        .orderBy(desc(auditLogs.createdAt))
+        .limit(input.limit);
     }),
 
   // Certification véhicule « Sélection MKA.P-MS » — réservé Direction (§3.1)
@@ -243,6 +327,7 @@ export const adminRouter = router({
           updatedAt: new Date(),
         })
         .where(eq(annonces.id, input.annonceId));
+      await logAction(ctx.user.uid, input.certified ? "annonce.certify" : "annonce.uncertify", "annonce", input.annonceId);
       return { ok: true };
     }),
 
@@ -267,23 +352,26 @@ export const adminRouter = router({
         .insert(promoCodes)
         .values({ ...input, code: input.code.toUpperCase(), createdBy: ctx.user.uid })
         .returning();
+      await logAction(ctx.user.uid, "promo.create", "promo_code", p.id, { code: p.code });
       return p;
     }),
 
   updatePromo: directionProcedure
     .input(z.object({ id: z.number(), active: z.boolean() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       await db
         .update(promoCodes)
         .set({ active: input.active, updatedAt: new Date() })
         .where(eq(promoCodes.id, input.id));
+      await logAction(ctx.user.uid, "promo.update", "promo_code", input.id, { active: input.active });
       return { ok: true };
     }),
 
   deletePromo: directionProcedure
     .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       await db.delete(promoCodes).where(eq(promoCodes.id, input.id));
+      await logAction(ctx.user.uid, "promo.delete", "promo_code", input.id);
       return { ok: true };
     }),
 
@@ -296,11 +384,12 @@ export const adminRouter = router({
         staffPosition: z.enum(["pdg", "directeur", "adjoint", "gerant", "chef_equipe", "agent"]).optional(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       await db
         .update(users)
         .set({ role: input.role, staffPosition: input.staffPosition ?? null, updatedAt: new Date() })
         .where(eq(users.id, input.userId));
+      await logAction(ctx.user.uid, "account.set_role", "user", input.userId, { role: input.role });
       return { ok: true };
     }),
 });

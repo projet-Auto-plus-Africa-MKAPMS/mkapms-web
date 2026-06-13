@@ -64,8 +64,10 @@ const ROLES_SEED: Array<{ name: string; label: string; level: number }> = [
 const PERMISSIONS_SEED: Array<{ key: string; module: string; description: string }> = [
   { key: "stats.view", module: "backoffice", description: "Voir les statistiques et le reporting" },
   { key: "accounts.view", module: "comptes", description: "Consulter les comptes utilisateurs" },
+  { key: "accounts.edit", module: "comptes", description: "Modifier les comptes clients" },
   { key: "accounts.create", module: "comptes", description: "Créer des comptes internes (Direction)" },
-  { key: "accounts.delete", module: "comptes", description: "Supprimer des comptes (Direction)" },
+  { key: "accounts.delete", module: "comptes", description: "Supprimer un compte directement (Direction)" },
+  { key: "accounts.delete_request", module: "comptes", description: "Demander la suppression d'un compte (Employé, soumis à approbation)" },
   { key: "accounts.set_role", module: "comptes", description: "Attribuer un rôle / poste (Direction)" },
   { key: "staff.manage", module: "comptes", description: "Gérer l'organigramme et les employés (Direction)" },
   { key: "inscriptions.validate", module: "validation", description: "Valider les inscriptions particuliers/pros" },
@@ -77,8 +79,10 @@ const PERMISSIONS_SEED: Array<{ key: string; module: string; description: string
   { key: "payments.manage", module: "finance", description: "Gérer / rembourser les paiements (Direction)" },
   { key: "reservations.view", module: "finance", description: "Suivre les réservations et locations" },
   { key: "subscriptions.view", module: "finance", description: "Consulter les abonnements" },
-  { key: "products.manage", module: "catalogue", description: "Créer / modifier produits et offres (Direction)" },
+  { key: "products.manage", module: "catalogue", description: "Créer / modifier produits et offres" },
   { key: "promos.manage", module: "catalogue", description: "Gérer les codes promotionnels (Direction)" },
+  { key: "finances.global", module: "finance", description: "Vue globale des finances temps réel (Direction — radar)" },
+  { key: "audit.view", module: "structure", description: "Consulter le journal des actions (Direction)" },
   { key: "marketing.manage", module: "marketing", description: "Gérer QR codes, bannières, campagnes (Direction)" },
   { key: "modules.manage", module: "structure", description: "Activer / désactiver les univers (Direction)" },
   { key: "rbac.manage", module: "structure", description: "Gérer rôles et permissions (Direction)" },
@@ -90,6 +94,8 @@ const PERMISSIONS_SEED: Array<{ key: string; module: string; description: string
 const EMPLOYEE_PERMISSIONS = new Set<string>([
   "stats.view",
   "accounts.view",
+  "accounts.edit",
+  "accounts.delete_request",
   "inscriptions.validate",
   "kyc.verify",
   "garages.validate",
@@ -97,6 +103,7 @@ const EMPLOYEE_PERMISSIONS = new Set<string>([
   "payments.view",
   "reservations.view",
   "subscriptions.view",
+  "products.manage",
   "support.handle",
 ]);
 
@@ -148,10 +155,20 @@ async function seedStructure() {
   const adminId = roleByName.get("admin");
   const empId = roleByName.get("employee");
   const existingRP = await db.select().from(rolePermissions);
-  const hasRP = new Set(existingRP.map((rp) => `${rp.roleId}:${rp.permissionId}`));
+  const rpByKey = new Map(existingRP.map((rp) => [`${rp.roleId}:${rp.permissionId}`, rp]));
   async function grant(roleId: number | undefined, permId: number, allowed: boolean) {
     if (!roleId) return;
-    if (hasRP.has(`${roleId}:${permId}`)) return;
+    const existing = rpByKey.get(`${roleId}:${permId}`);
+    if (existing) {
+      // Idempotent : on resynchronise le flag si la grille a évolué.
+      if (existing.allowed !== allowed) {
+        await db
+          .update(rolePermissions)
+          .set({ allowed })
+          .where(eq(rolePermissions.id, existing.id));
+      }
+      return;
+    }
     await db.insert(rolePermissions).values({ roleId, permissionId: permId, allowed });
   }
   for (const perm of allPerms) {

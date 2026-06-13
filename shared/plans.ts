@@ -3,6 +3,18 @@
 
 export type PlanAudience = "particulier" | "pro" | "franchise";
 
+// Catégorie = profil métier. Règle centrale (parcours §12) :
+// chaque profil ne voit QUE les offres de sa catégorie.
+export type PlanCategory =
+  | "particulier"
+  | "pro_vente"
+  | "garage"
+  | "location"
+  | "vtc_taxi"
+  | "pieces"
+  | "livraison"
+  | "franchise";
+
 export interface PlanQuotas {
   maxAnnonces: number | null; // null = illimité
   maxPhotos: number | null;
@@ -13,7 +25,8 @@ export interface Plan {
   code: string;
   label: string;
   audience: PlanAudience;
-  priceEur: number; // prix mensuel (pro/franchise) ou prix unitaire (boost particulier)
+  category: PlanCategory;
+  priceEur: number | null; // null = « sur demande » (grille non communiquée)
   recurring: boolean;
   durationDays?: number; // pour les boosts à l'unité
   highlight?: boolean; // "le plus choisi"
@@ -27,6 +40,7 @@ export const PARTICULIER_PLANS: Plan[] = [
     code: "boost_7j",
     label: "Boost 7 jours",
     audience: "particulier",
+    category: "particulier",
     priceEur: 6.9,
     recurring: false,
     durationDays: 7,
@@ -41,6 +55,7 @@ export const PARTICULIER_PLANS: Plan[] = [
     code: "boost_30j",
     label: "Boost 30 jours",
     audience: "particulier",
+    category: "particulier",
     priceEur: 14.9,
     recurring: false,
     durationDays: 30,
@@ -57,6 +72,7 @@ export const PARTICULIER_PLANS: Plan[] = [
     code: "premium_30j",
     label: "Premium 30 jours",
     audience: "particulier",
+    category: "particulier",
     priceEur: 24.9,
     recurring: false,
     durationDays: 30,
@@ -78,6 +94,7 @@ export const PRO_PLANS: Plan[] = [
     code: "pro_starter",
     label: "Pro Starter",
     audience: "pro",
+    category: "pro_vente",
     priceEur: 49,
     recurring: true,
     features: [
@@ -93,6 +110,7 @@ export const PRO_PLANS: Plan[] = [
     code: "pro_business",
     label: "Pro Business",
     audience: "pro",
+    category: "pro_vente",
     priceEur: 89,
     recurring: true,
     highlight: true,
@@ -110,6 +128,7 @@ export const PRO_PLANS: Plan[] = [
     code: "pro_premium",
     label: "Pro Premium",
     audience: "pro",
+    category: "pro_vente",
     priceEur: 149,
     recurring: true,
     features: [
@@ -129,6 +148,7 @@ export const FRANCHISE_PLAN: Plan = {
   code: "franchise",
   label: "Franchise MKA.P-MS",
   audience: "franchise",
+  category: "franchise",
   priceEur: 199,
   recurring: true,
   features: [
@@ -142,11 +162,79 @@ export const FRANCHISE_PLAN: Plan = {
   quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
 };
 
+const q = (maxAnnonces: number | null): PlanQuotas => ({ maxAnnonces, maxPhotos: null, maxVideos: null });
+
+// Garage+ Pro — paliers (parcours §3). Grille tarifaire à confirmer par la Direction.
+export const GARAGE_PLANS: Plan[] = [
+  { code: "garage_start", label: "Garage Start", audience: "pro", category: "garage", priceEur: null, recurring: true, features: ["Fiche garage", "Devis & RDV", "Agenda"], quotas: q(null) },
+  { code: "garage_premium", label: "Garage Premium", audience: "pro", category: "garage", priceEur: null, recurring: true, highlight: true, features: ["Tout Start", "Stock & atelier", "Employés"], quotas: q(null) },
+  { code: "garage_elite", label: "Garage Elite", audience: "pro", category: "garage", priceEur: null, recurring: true, features: ["Tout Premium", "Facturation", "Priorité annuaire"], quotas: q(null) },
+  { code: "garage_max", label: "Garage Max", audience: "pro", category: "garage", priceEur: null, recurring: true, features: ["Tout Elite", "Multi-établissements", "Support dédié"], quotas: q(null) },
+];
+
+// Location Pro — paliers (parcours §4). Grille à confirmer.
+export const LOCATION_PLANS: Plan[] = [
+  { code: "location_start", label: "Location Start", audience: "pro", category: "location", priceEur: null, recurring: true, features: ["Mise en location", "Contrats automatiques", "État des lieux"], quotas: q(null) },
+  { code: "location_premium", label: "Location Premium", audience: "pro", category: "location", priceEur: null, recurring: true, highlight: true, features: ["Tout Start", "Flotte étendue", "Tarifs jour/sem/mois"], quotas: q(null) },
+  { code: "location_elite", label: "Location Elite", audience: "pro", category: "location", priceEur: null, recurring: true, features: ["Tout Premium", "Caution & options", "Priorité"], quotas: q(null) },
+  { code: "location_max", label: "Location Max", audience: "pro", category: "location", priceEur: null, recurring: true, features: ["Tout Elite", "Multi-agences"], quotas: q(null) },
+  { code: "location_ultimate", label: "Location Ultimate", audience: "pro", category: "location", priceEur: null, recurring: true, features: ["Tout Max", "Flotte illimitée", "Support dédié"], quotas: q(null) },
+];
+
+// VTC / TAXI — paliers (parcours §5). Grille à confirmer.
+export const VTC_TAXI_PLANS: Plan[] = [
+  { code: "vtc_start", label: "VTC/TAXI Start", audience: "pro", category: "vtc_taxi", priceEur: null, recurring: true, features: ["Gestion chauffeurs", "Gestion véhicules"], quotas: q(null) },
+  { code: "vtc_premium", label: "VTC/TAXI Premium", audience: "pro", category: "vtc_taxi", priceEur: null, recurring: true, highlight: true, features: ["Tout Start", "Flotte étendue", "Réservations"], quotas: q(null) },
+  { code: "vtc_elite", label: "VTC/TAXI Elite", audience: "pro", category: "vtc_taxi", priceEur: null, recurring: true, features: ["Tout Premium", "Priorité"], quotas: q(null) },
+  { code: "vtc_max", label: "VTC/TAXI Max", audience: "pro", category: "vtc_taxi", priceEur: null, recurring: true, features: ["Tout Elite", "Multi-sociétés"], quotas: q(null) },
+];
+
+// Pièces Auto — Boutique + Gestion Stock (parcours §6, prix communiqués).
+export const PIECES_PLANS: Plan[] = [
+  { code: "pieces_boutique", label: "Boutique seule", audience: "pro", category: "pieces", priceEur: 14.9, recurring: true, features: ["Boutique en ligne", "Logo, horaires, GPS", "WhatsApp & avis"], quotas: q(null) },
+  { code: "pieces_stock_start", label: "Boutique + Stock Start", audience: "pro", category: "pieces", priceEur: 29.9, recurring: true, features: ["Boutique", "Gestion stock", "Références OEM"], quotas: q(null) },
+  { code: "pieces_stock_premium", label: "Boutique + Stock Premium", audience: "pro", category: "pieces", priceEur: 49.9, recurring: true, highlight: true, features: ["Tout Start", "Compatibilités", "Factures"], quotas: q(null) },
+  { code: "pieces_stock_elite", label: "Boutique + Stock Elite", audience: "pro", category: "pieces", priceEur: 79.9, recurring: true, features: ["Tout Premium", "Commission optimisée"], quotas: q(null) },
+  { code: "pieces_stock_max", label: "Boutique + Stock Max", audience: "pro", category: "pieces", priceEur: 119.9, recurring: true, features: ["Tout Elite", "Volume illimité"], quotas: q(null) },
+];
+
+// Livraison — Moto/Scooter & Utilitaire (parcours §7, prix communiqués).
+export const LIVRAISON_PLANS: Plan[] = [
+  { code: "livraison_moto_start", label: "Livraison Moto Start", audience: "pro", category: "livraison", priceEur: 14.99, recurring: true, features: ["Missions moto/scooter", "Itinéraire"], quotas: q(null) },
+  { code: "livraison_moto_premium", label: "Livraison Moto Premium", audience: "pro", category: "livraison", priceEur: 19.99, recurring: true, highlight: true, features: ["Tout Start", "Priorité missions"], quotas: q(null) },
+  { code: "livraison_moto_elite", label: "Livraison Moto Elite", audience: "pro", category: "livraison", priceEur: 39.99, recurring: true, features: ["Tout Premium", "Zone étendue"], quotas: q(null) },
+  { code: "livraison_util_start", label: "Livraison Utilitaire Start", audience: "pro", category: "livraison", priceEur: 49.99, recurring: true, features: ["Missions utilitaire", "Poids & dimensions"], quotas: q(null) },
+  { code: "livraison_util_premium", label: "Livraison Utilitaire Premium", audience: "pro", category: "livraison", priceEur: 99.99, recurring: true, features: ["Tout Start", "Volume étendu"], quotas: q(null) },
+  { code: "livraison_util_elite", label: "Livraison Utilitaire Elite", audience: "pro", category: "livraison", priceEur: 159.99, recurring: true, features: ["Tout Premium", "Priorité"], quotas: q(null) },
+  { code: "livraison_util_max", label: "Livraison Utilitaire Max", audience: "pro", category: "livraison", priceEur: 199.99, recurring: true, features: ["Tout Elite", "Flotte illimitée"], quotas: q(null) },
+];
+
 export const ALL_PLANS: Plan[] = [
   ...PARTICULIER_PLANS,
   ...PRO_PLANS,
+  ...GARAGE_PLANS,
+  ...LOCATION_PLANS,
+  ...VTC_TAXI_PLANS,
+  ...PIECES_PLANS,
+  ...LIVRAISON_PLANS,
   FRANCHISE_PLAN,
 ];
+
+// Libellés des catégories (profils) pour l'affichage groupé.
+export const PLAN_CATEGORY_LABELS: Record<PlanCategory, string> = {
+  particulier: "Particulier — Boost à l'unité",
+  pro_vente: "Professionnel Vente",
+  garage: "Garage+ Pro",
+  location: "Société de location",
+  vtc_taxi: "VTC / TAXI",
+  pieces: "Boutique Pièces Auto",
+  livraison: "Livraison",
+  franchise: "Franchise MKA.P-MS",
+};
+
+export function getPlansByCategory(category: PlanCategory): Plan[] {
+  return ALL_PLANS.filter((p) => p.category === category);
+}
 
 export function getPlan(code: string): Plan | undefined {
   return ALL_PLANS.find((p) => p.code === code);

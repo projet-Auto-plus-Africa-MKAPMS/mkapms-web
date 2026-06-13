@@ -17,6 +17,9 @@ export default function Admin() {
   const reservations = trpc.admin.reservationsList.useQuery({ limit: 20 }, { enabled });
   const staffList = trpc.admin.staffList.useQuery(undefined, { enabled: direction });
   const promoList = trpc.admin.promoList.useQuery(undefined, { enabled });
+  const usersList = trpc.admin.usersList.useQuery({ limit: 30, offset: 0 }, { enabled });
+  const deletionRequests = trpc.admin.deletionRequests.useQuery(undefined, { enabled });
+  const auditLog = trpc.admin.auditLog.useQuery({ limit: 50 }, { enabled: direction });
 
   const utils = trpc.useUtils();
   const moderate = trpc.admin.moderateAnnonce.useMutation({ onSuccess: () => utils.admin.annoncesPending.invalidate() });
@@ -32,6 +35,10 @@ export default function Admin() {
   const updatePromo = trpc.admin.updatePromo.useMutation({ onSuccess: () => utils.admin.promoList.invalidate() });
   const deletePromo = trpc.admin.deletePromo.useMutation({ onSuccess: () => utils.admin.promoList.invalidate() });
   const certify = trpc.admin.certifyVehicle.useMutation({ onSuccess: () => utils.admin.annoncesPending.invalidate() });
+  const requestDeletion = trpc.admin.requestUserDeletion.useMutation({ onSuccess: () => utils.admin.deletionRequests.invalidate() });
+  const decideDeletion = trpc.admin.decideDeletion.useMutation({
+    onSuccess: () => { utils.admin.deletionRequests.invalidate(); utils.admin.usersList.invalidate(); },
+  });
 
   const [staff, setStaff] = useState({ email: "", name: "", password: "", role: "employee" as "employee" | "admin" });
   const [promo, setPromo] = useState({ code: "", type: "pourcentage" as "pourcentage" | "montant", value: 10 });
@@ -132,6 +139,24 @@ export default function Admin() {
         </div>
       </section>
 
+      {/* Comptes clients — Employé demande la suppression, Direction supprime directement */}
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Comptes</h2>
+        <div className="mt-3 space-y-1">
+          {usersList.data?.map((u) => (
+            <div key={u.id} className="card flex items-center justify-between p-2 text-sm">
+              <span className="text-slate-700">{u.name} — {u.email} <span className="text-xs text-slate-400">({u.role})</span></span>
+              {u.role !== "super_admin" && (direction ? (
+                <button className="btn-outline !py-1 !text-xs" onClick={() => { if (confirm(`Supprimer ${u.email} ?`)) deleteUser.mutate({ userId: u.id }); }}>Supprimer</button>
+              ) : (
+                <button className="btn-outline !py-1 !text-xs" onClick={() => requestDeletion.mutate({ userId: u.id })}>Demander suppression</button>
+              ))}
+            </div>
+          ))}
+        </div>
+        {!direction && requestDeletion.isSuccess && <p className="mt-2 text-sm text-green-600">Demande envoyée à la Direction pour approbation.</p>}
+      </section>
+
       {/* Paiements & réservations */}
       <div className="mt-10 grid gap-8 md:grid-cols-2">
         <section>
@@ -164,6 +189,22 @@ export default function Admin() {
       {/* ===== Zone Direction (PDG) ===== */}
       {direction && (
         <>
+          {/* Demandes de suppression à approuver */}
+          <section className="mt-12 border-t border-slate-200 pt-8">
+            <h2 className="text-lg font-bold text-slate-800">Demandes de suppression de compte <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <div className="mt-3 space-y-1">
+              {deletionRequests.data?.filter((r) => r.status === "en_attente").map((r) => (
+                <div key={r.id} className="card flex items-center justify-between p-2 text-sm">
+                  <span className="text-slate-700">{r.targetName ?? r.targetEmail} <span className="text-xs text-slate-400">demandé par #{r.requestedBy}</span></span>
+                  <div className="flex gap-2">
+                    <button className="btn-primary !py-1 !text-xs" onClick={() => decideDeletion.mutate({ requestId: r.id, approve: true })}>Approuver</button>
+                    <button className="btn-outline !py-1 !text-xs" onClick={() => decideDeletion.mutate({ requestId: r.id, approve: false })}>Refuser</button>
+                  </div>
+                </div>
+              ))}
+              {deletionRequests.data?.filter((r) => r.status === "en_attente").length === 0 && <p className="text-sm text-slate-500">Aucune demande en attente.</p>}
+            </div>
+          </section>
           {/* Équipe interne */}
           <section className="mt-12 border-t border-slate-200 pt-8">
             <h2 className="text-lg font-bold text-slate-800">Équipe interne <span className="text-xs font-normal text-brand">(Direction)</span></h2>
@@ -222,6 +263,21 @@ export default function Admin() {
                 </div>
               ))}
               {promoList.data?.length === 0 && <p className="text-sm text-slate-500">Aucun code promo.</p>}
+            </div>
+          </section>
+
+          {/* Traçabilité — radar Direction */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Traçabilité — journal des actions <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Toutes les actions des employés et de la Direction sont enregistrées.</p>
+            <div className="mt-3 max-h-80 space-y-1 overflow-y-auto">
+              {auditLog.data?.map((l) => (
+                <div key={l.id} className="card flex items-center justify-between p-2 text-xs">
+                  <span className="font-mono text-slate-700">{l.action}{l.entityType ? ` · ${l.entityType}#${l.entityId ?? ""}` : ""}</span>
+                  <span className="text-slate-400">{l.actorEmail ?? `#${l.actorId}`} · {new Date(l.createdAt).toLocaleString("fr-FR")}</span>
+                </div>
+              ))}
+              {auditLog.data?.length === 0 && <p className="text-sm text-slate-500">Aucune action enregistrée pour l'instant.</p>}
             </div>
           </section>
 

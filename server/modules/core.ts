@@ -124,3 +124,17 @@ export const documentVerifications = pgTable("document_verifications", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+// --- Demandes de suppression de compte (workflow d'approbation Direction) ---
+// Un Employé ne peut PAS supprimer un compte directement : il dépose une demande,
+// la Direction (PDG) approuve ou refuse. §3 + parcours §10.
+export const accountDeletionRequests = pgTable("account_deletion_requests", {
+  id: serial("id").primaryKey(),
+  targetUserId: integer("target_user_id").notNull(),
+  requestedBy: integer("requested_by").notNull(),
+  reason: text("reason"),
+  status: varchar("status", { length: 24 }).notNull().default("en_attente"), // en_attente|approuvee|refusee
+  decidedBy: integer("decided_by"),
+  decidedAt: timestamp("decided_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

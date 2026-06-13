@@ -27,6 +27,10 @@ export const abonnementsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const plan = getPlan(input.planCode);
       if (!plan) throw new TRPCError({ code: "BAD_REQUEST", message: "Plan inconnu" });
+      if (plan.priceEur == null) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Offre sur demande : contactez la Direction" });
+      }
+      const price = plan.priceEur;
       const stripe = getStripe();
 
       // Enregistre un paiement "pending" (référence locale)
@@ -35,7 +39,7 @@ export const abonnementsRouter = router({
         .values({
           userId: ctx.user.uid,
           type: plan.audience === "particulier" ? "vehicle_boost" : "pro_subscription",
-          amount: String(plan.priceEur),
+          amount: String(price),
           currency: "EUR",
           status: "pending",
           metadata: { planCode: plan.code, annonceId: input.annonceId } as any,
@@ -61,7 +65,7 @@ export const abonnementsRouter = router({
             price_data: {
               currency: "eur",
               product_data: { name: `MKA.P-MS — ${plan.label}` },
-              unit_amount: Math.round(plan.priceEur * 100),
+              unit_amount: Math.round(price * 100),
               ...(plan.recurring ? { recurring: { interval: "month" } } : {}),
             },
             quantity: 1,
