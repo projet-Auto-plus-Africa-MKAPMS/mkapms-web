@@ -96,7 +96,10 @@ export async function injectAnnonceSeo(req: Request, html: string): Promise<stri
   try {
     const head = await annonceSeoHead(Number(m[1]), baseUrlFrom(req));
     if (!head) return html;
-    return html.replace("<!--SEO-->", head);
+    // Retire le <title> par défaut pour éviter un doublon (le head SEO en fournit un).
+    return html
+      .replace(/<title>[\s\S]*?<\/title>/, "")
+      .replace("<!--SEO-->", head);
   } catch {
     return html;
   }
