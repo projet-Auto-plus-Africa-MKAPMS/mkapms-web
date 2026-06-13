@@ -9,6 +9,9 @@ import {
   Clock,
   BadgeCheck,
   TrendingUp,
+  Flag,
+  History,
+  ChevronRight,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -16,19 +19,17 @@ import { useCurrency } from "../lib/currency";
 import { ACOMPTE_PALIERS } from "@shared/plans";
 import { computeTrustScore, TRUST_LEVEL_LABEL } from "@shared/trust";
 
-const TABS = ["Description", "Points forts", "Équipements", "Imperfections"] as const;
-
 export default function Vehicule() {
   const { format: formatPrice } = useCurrency();
   const { id } = useParams();
   const annonceId = Number(id);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Description");
   const [photoIdx, setPhotoIdx] = useState(0);
   const [acompte, setAcompte] = useState<number>(ACOMPTE_PALIERS[1]);
 
   const q = trpc.annonces.get.useQuery({ id: annonceId }, { enabled: !!annonceId });
+  const legal = trpc.meta.legal.useQuery();
   const estimateQuery = trpc.annonces.estimate.useQuery(
     {
       marque: q.data?.marque ?? "",
@@ -80,6 +81,11 @@ export default function Vehicule() {
   const whatsapp = `https://wa.me/${(v.contactTelephone || "").replace(/\D/g, "")}?text=${encodeURIComponent(
     `Bonjour, je suis intéressé par l'annonce "${v.titre}" (réf #${v.id}) sur MKA.P-MS.`,
   )}`;
+  const reportHref = `mailto:${legal.data?.email ?? "mka.garageauto@gmail.com"}?subject=${encodeURIComponent(
+    `Signalement annonce ${v.reference || `#${v.id}`} — ${v.titre}`,
+  )}&body=${encodeURIComponent(
+    `Bonjour,\n\nJe souhaite signaler l'annonce "${v.titre}" (réf ${v.reference || `#${v.id}`}) pour la raison suivante :\n\n`,
+  )}`;
 
   function requireLogin(action: () => void) {
     if (!user) return navigate("/connexion");
@@ -101,11 +107,28 @@ export default function Vehicule() {
     ["État", v.etat],
   ];
 
+  const primaryAction = () =>
+    requireLogin(() => {
+      if (isLocation) {
+        navigate("/compte/messages");
+      } else {
+        document.getElementById("reserver")?.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+  const messageAction = () => requireLogin(() => navigate("/compte/messages"));
+
   return (
-    <div className="container-page py-8">
-      <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
-        {/* Galerie + contenu */}
-        <div>
+    <div className="container-page py-6 pb-44 md:pb-10">
+      {/* Fil d'ariane */}
+      <div className="mb-4 flex items-center gap-1 text-xs text-slate-400">
+        <Link to="/acheter" className="hover:text-noir">Annonces</Link>
+        <ChevronRight size={13} />
+        <span className="text-slate-500">{v.marque} {v.modele}</span>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
+        {/* ===== 1. PHOTOS ===== */}
+        <section className="min-w-0 lg:col-start-1 lg:row-start-1">
           <div className="card overflow-hidden">
             <div className="relative aspect-[16/10] bg-slate-100">
               {photos.length ? (
@@ -114,7 +137,7 @@ export default function Vehicule() {
                 <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
               )}
               {photos.length > 1 && (
-                <span className="badge absolute bottom-3 right-3 bg-black/60 text-white">
+                <span className="badge absolute bottom-3 right-3 bg-noir/70 text-white">
                   {photoIdx + 1} / {photos.length}
                 </span>
               )}
@@ -125,8 +148,8 @@ export default function Vehicule() {
                   <button
                     key={i}
                     onClick={() => setPhotoIdx(i)}
-                    className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg ${
-                      i === photoIdx ? "ring-2 ring-brand" : ""
+                    className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg ring-offset-1 ${
+                      i === photoIdx ? "ring-2 ring-gold" : "ring-1 ring-slate-200"
                     }`}
                   >
                     <img src={p} alt="" className="h-full w-full object-cover" />
@@ -135,66 +158,22 @@ export default function Vehicule() {
               </div>
             )}
           </div>
+        </section>
 
-          {/* Onglets */}
-          <div className="card mt-6 p-5">
-            <div className="flex flex-wrap gap-1 border-b border-slate-200">
-              {TABS.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={`px-4 py-2 text-sm font-semibold ${
-                    tab === t ? "border-b-2 border-brand text-brand" : "text-slate-500"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-            <div className="prose prose-sm mt-4 max-w-none text-slate-600">
-              {tab === "Description" && <p>{v.description || "Aucune description fournie."}</p>}
-              {tab !== "Description" && (
-                <p className="text-slate-400">Information non renseignée par le vendeur.</p>
-              )}
-            </div>
-          </div>
-
-          {/* Détails techniques */}
-          <div className="card mt-6 p-5">
-            <h2 className="mb-4 font-bold text-slate-800">Détails du véhicule</h2>
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-3 md:grid-cols-3">
-              {details
-                .filter(([, val]) => val != null && val !== "")
-                .map(([k, val]) => (
-                  <div key={k}>
-                    <dt className="text-xs text-slate-400">{k}</dt>
-                    <dd className="text-sm font-medium text-slate-800">{String(val)}</dd>
-                  </div>
-                ))}
-            </dl>
-            {(v.ville || v.codePostal) && (
-              <div className="mt-5 border-t border-slate-100 pt-4">
-                <dt className="text-xs text-slate-400">Localisation</dt>
-                <dd className="text-sm font-medium text-slate-800">
-                  {[v.ville, v.codePostal].filter(Boolean).join(" ")}
-                </dd>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Colonne action */}
-        <aside className="space-y-6 lg:sticky lg:top-20 lg:self-start">
+        {/* ===== 2. PRIX + 3. BOUTONS (bloc d'action — à droite sur desktop, sous les photos sur mobile) ===== */}
+        <aside className="space-y-5 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-20">
           <div className="card p-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gold-dark">
               {v.vendeurType === "professionnel" ? "MKA.P-MS Garage" : "Particulier"}
             </p>
-            <h1 className="mt-1 text-xl font-extrabold text-slate-900">{v.titre}</h1>
+            <h1 className="mt-1 text-xl font-extrabold text-noir">{v.titre}</h1>
             <p className="text-sm text-slate-500">{v.version || `${v.marque} ${v.modele}`}</p>
             {v.reference && (
               <p className="mt-1 text-xs font-medium text-slate-400">Réf. annonce : {v.reference}</p>
             )}
-            <div className="mt-3 text-3xl font-extrabold text-slate-900">
+
+            {/* PRIX */}
+            <div className="mt-3 text-3xl font-extrabold text-noir">
               {isLocation && v.prixJour
                 ? `${formatPrice(Number(v.prixJour))} /jour`
                 : formatPrice(Number(v.prix))}
@@ -212,10 +191,10 @@ export default function Vehicule() {
               const prixNum = Number(v.prix);
               const label =
                 prixNum <= est.mid * 0.97
-                  ? { t: "Bon prix", c: "bg-emerald-50 text-emerald-700" }
+                  ? { t: "Bon prix", c: "bg-success/10 text-success-dark" }
                   : prixNum <= est.high
-                    ? { t: "Prix du marché", c: "bg-brand/10 text-brand" }
-                    : { t: "Au-dessus du marché", c: "bg-amber-50 text-amber-700" };
+                    ? { t: "Prix du marché", c: "bg-gold-soft text-gold-dark" }
+                    : { t: "Au-dessus du marché", c: "bg-warning/10 text-amber-700" };
               return (
                 <div className={`mt-3 rounded-lg px-3 py-2 text-xs font-semibold ${label.c}`}>
                   <span className="inline-flex items-center gap-1">
@@ -229,34 +208,51 @@ export default function Vehicule() {
               );
             })()}
 
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <button
-                className="btn-primary"
-                onClick={() =>
-                  requireLogin(() => {
-                    if (isLocation) {
-                      navigate("/compte/messages");
-                    } else {
-                      document.getElementById("reserver")?.scrollIntoView({ behavior: "smooth" });
-                    }
-                  })
-                }
-              >
-                {isLocation ? "Louer" : "Acheter"}
+            {/* BOUTONS d'action standardisés */}
+            <div className="mt-5 space-y-2">
+              <button className="btn-acheter w-full" onClick={primaryAction}>
+                {isLocation ? "Louer ce véhicule" : "Acheter ce véhicule"}
               </button>
-              <button
-                className="btn-outline"
-                onClick={() => requireLogin(() => toggleFav.mutate({ annonceId: v.id }))}
-              >
-                <Heart size={16} /> Favori
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button className="btn-message" onClick={messageAction}>
+                  <MessageSquare size={16} /> Message
+                </button>
+                {v.contactTelephone ? (
+                  <a href={`tel:${v.contactTelephone}`} className="btn-appeler">
+                    <Phone size={16} /> Appeler
+                  </a>
+                ) : (
+                  <button className="btn-outline" onClick={messageAction}>
+                    <Phone size={16} /> Appeler
+                  </button>
+                )}
+              </div>
+              {v.contactTelephone && (
+                <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-whatsapp w-full">
+                  WhatsApp
+                </a>
+              )}
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-noir"
+                  onClick={() => requireLogin(() => toggleFav.mutate({ annonceId: v.id }))}
+                >
+                  <Heart size={16} /> Ajouter aux favoris
+                </button>
+                <a
+                  href={reportHref}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-danger"
+                >
+                  <Flag size={13} /> Signaler
+                </a>
+              </div>
             </div>
           </div>
 
-          {/* Réserver avec acompte */}
+          {/* Réserver avec acompte (vente) */}
           {!isLocation && (
             <div id="reserver" className="card p-5">
-              <h3 className="font-bold text-slate-800">Réserver avec acompte</h3>
+              <h3 className="font-bold text-noir">Réserver avec acompte</h3>
               <p className="mt-1 text-sm text-slate-500">
                 Bloquez ce véhicule 24 h, le temps de finaliser.
               </p>
@@ -265,8 +261,10 @@ export default function Vehicule() {
                   <button
                     key={p}
                     onClick={() => setAcompte(p)}
-                    className={`rounded-lg border px-2 py-2 text-sm font-semibold ${
-                      acompte === p ? "border-brand bg-brand/5 text-brand" : "border-slate-300 text-slate-600"
+                    className={`rounded-lg border px-2 py-2 text-sm font-semibold transition ${
+                      acompte === p
+                        ? "border-gold bg-gold-soft text-gold-dark"
+                        : "border-slate-300 text-slate-600 hover:border-slate-400"
                     }`}
                   >
                     {p} €
@@ -274,7 +272,7 @@ export default function Vehicule() {
                 ))}
               </div>
               <button
-                className="btn-gold mt-4 w-full"
+                className="btn-reserver mt-4 w-full"
                 disabled={reserve.isPending}
                 onClick={() => requireLogin(() => reserve.mutate({ annonceId: v.id, acompte }))}
               >
@@ -286,77 +284,151 @@ export default function Vehicule() {
           {/* Indice de Confiance MKA.P-MS (Partie 5 §4) */}
           <div className="card p-5">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-800">Indice de Confiance</h3>
+              <h3 className="font-bold text-noir">Indice de Confiance</h3>
               <span className={`text-2xl font-extrabold ${trustColor}`}>{trust.score}<span className="text-sm text-slate-400">/100</span></span>
             </div>
             <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
               <div
-                className={`h-full rounded-full ${trust.niveau === "excellent" ? "bg-emerald-500" : trust.niveau === "bon" ? "bg-brand" : trust.niveau === "moyen" ? "bg-amber-500" : "bg-slate-400"}`}
+                className={`h-full rounded-full ${trust.niveau === "excellent" ? "bg-success" : trust.niveau === "bon" ? "bg-gold" : trust.niveau === "moyen" ? "bg-warning" : "bg-slate-400"}`}
                 style={{ width: `${trust.score}%` }}
               />
             </div>
             <p className={`mt-2 text-xs font-semibold ${trustColor}`}>{TRUST_LEVEL_LABEL[trust.niveau]}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {trust.badges.map((b) => (
-                <span key={b.code} className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
-                  <BadgeCheck size={13} className="text-brand" /> {b.label}
+                <span key={b.code} className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-xs font-medium text-slate-600">
+                  <BadgeCheck size={13} className="text-gold-dark" /> {b.label}
                 </span>
               ))}
             </div>
-            <Link to="/confiance" className="mt-3 inline-block text-xs font-semibold text-brand">
+            <Link to="/confiance" className="mt-3 inline-block text-xs font-semibold text-gold-dark">
               Comment ça marche ? →
             </Link>
           </div>
+        </aside>
 
-          {/* Contact vendeur */}
+        {/* ===== 4 → 8 : Infos, Description, Historique, Vendeur, Avis ===== */}
+        <section className="min-w-0 space-y-6 lg:col-start-1 lg:row-start-2">
+          {/* 4. INFOS VÉHICULE */}
           <div className="card p-5">
-            <h3 className="font-bold text-slate-800">Contacter le vendeur</h3>
-            {v.vendeur && (
-              <div className="mt-2 flex items-center gap-2 text-sm">
-                <Star size={15} className="fill-amber-400 text-amber-400" />
-                <span className="font-medium text-slate-700">
-                  {Number(v.vendeur.rating || 0).toFixed(1)}
-                </span>
-                <span className="text-slate-400">({v.vendeur.reviewCount || 0} avis)</span>
+            <h2 className="mb-4 font-bold text-noir">Caractéristiques</h2>
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-3 md:grid-cols-3">
+              {details
+                .filter(([, val]) => val != null && val !== "")
+                .map(([k, val]) => (
+                  <div key={k}>
+                    <dt className="text-xs text-slate-400">{k}</dt>
+                    <dd className="text-sm font-medium text-ink">{String(val)}</dd>
+                  </div>
+                ))}
+            </dl>
+            {(v.ville || v.codePostal) && (
+              <div className="mt-5 border-t border-slate-100 pt-4">
+                <dt className="text-xs text-slate-400">Localisation</dt>
+                <dd className="text-sm font-medium text-ink">
+                  {[v.ville, v.codePostal].filter(Boolean).join(" ")}
+                </dd>
               </div>
             )}
-            <div className="mt-3 grid gap-2">
-              <button
-                className="btn-outline"
-                onClick={() => requireLogin(() => navigate("/compte/messages"))}
-              >
-                <MessageSquare size={16} /> Message
+          </div>
+
+          {/* 5. DESCRIPTION */}
+          <div className="card p-5">
+            <h2 className="mb-3 font-bold text-noir">Description</h2>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
+              {v.description || "Aucune description fournie par le vendeur."}
+            </p>
+          </div>
+
+          {/* 6. HISTORIQUE */}
+          <div className="card p-5">
+            <h2 className="mb-3 flex items-center gap-2 font-bold text-noir">
+              <History size={18} className="text-gold-dark" /> Historique du véhicule
+            </h2>
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-3 md:grid-cols-3">
+              {v.annee != null && (
+                <div>
+                  <dt className="text-xs text-slate-400">1re mise en circulation</dt>
+                  <dd className="text-sm font-medium text-ink">{v.annee}</dd>
+                </div>
+              )}
+              {v.kilometrage != null && (
+                <div>
+                  <dt className="text-xs text-slate-400">Kilométrage</dt>
+                  <dd className="text-sm font-medium text-ink">{v.kilometrage.toLocaleString("fr-FR")} km</dd>
+                </div>
+              )}
+              {v.etat && (
+                <div>
+                  <dt className="text-xs text-slate-400">État</dt>
+                  <dd className="text-sm font-medium text-ink">{String(v.etat)}</dd>
+                </div>
+              )}
+            </dl>
+            <Link
+              to="/historique"
+              className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-gold-dark"
+            >
+              Vérifier l'historique complet (CarVertical / QR) <ChevronRight size={15} />
+            </Link>
+          </div>
+
+          {/* 7. VENDEUR */}
+          <div className="card p-5">
+            <h3 className="font-bold text-noir">Vendeur</h3>
+            <div className="mt-2 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-ink">
+                  {v.vendeurType === "professionnel" ? "MKA.P-MS Garage" : v.contactNom || "Particulier"}
+                </p>
+                {v.vendeur && (
+                  <div className="mt-1 flex items-center gap-1.5 text-sm">
+                    <Star size={15} className="fill-gold text-gold" />
+                    <span className="font-medium text-slate-700">{Number(v.vendeur.rating || 0).toFixed(1)}</span>
+                    <span className="text-slate-400">({v.vendeur.reviewCount || 0} avis)</span>
+                  </div>
+                )}
+              </div>
+              <button className="btn-message" onClick={messageAction}>
+                <MessageSquare size={16} /> Contacter
               </button>
-              {v.contactTelephone && (
-                <a href={`tel:${v.contactTelephone}`} className="btn-outline">
-                  <Phone size={16} /> Appeler
-                </a>
-              )}
-              {v.contactTelephone && (
-                <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-outline">
-                  WhatsApp
-                </a>
-              )}
             </div>
             <ul className="mt-4 space-y-2 text-xs text-slate-500">
               <li className="flex items-center gap-2">
-                <ShieldCheck size={14} className="text-brand" /> Paiement sécurisé Stripe
+                <ShieldCheck size={14} className="text-gold-dark" /> Paiement sécurisé Stripe
               </li>
               <li className="flex items-center gap-2">
-                <Clock size={14} className="text-brand" /> Réponse rapide
+                <Clock size={14} className="text-gold-dark" /> Réponse rapide
               </li>
             </ul>
           </div>
 
-          {/* Avis clients (Partie 6) */}
+          {/* 8. AVIS */}
           {v.vendeur && (
             <AvisSection targetUserId={v.vendeur.id} canReview={!!user && user.id !== v.vendeur.id} />
           )}
 
-          <Link to="/acheter" className="block text-center text-sm font-semibold text-brand">
+          <Link to="/acheter" className="block text-center text-sm font-semibold text-gold-dark">
             ← Retour aux annonces
           </Link>
-        </aside>
+        </section>
+      </div>
+
+      {/* Barre d'actions fixe (mobile) — toujours visible, au-dessus de la navigation */}
+      <div className="fixed inset-x-0 bottom-14 z-30 border-t border-slate-200 bg-white/95 p-2 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] backdrop-blur md:hidden">
+        <div className={`container-page grid gap-2 ${v.contactTelephone ? "grid-cols-3" : "grid-cols-2"}`}>
+          <button className="btn-message" onClick={messageAction}>
+            <MessageSquare size={16} /> Message
+          </button>
+          {v.contactTelephone && (
+            <a href={`tel:${v.contactTelephone}`} className="btn-appeler">
+              <Phone size={16} /> Appeler
+            </a>
+          )}
+          <button className="btn-acheter" onClick={primaryAction}>
+            {isLocation ? "Louer" : "Acheter"}
+          </button>
+        </div>
       </div>
     </div>
   );

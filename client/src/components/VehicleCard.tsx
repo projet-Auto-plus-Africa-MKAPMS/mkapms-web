@@ -45,11 +45,11 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
           className="h-full w-full object-cover transition group-hover:scale-105"
           loading="lazy"
         />
-        <span className="badge absolute left-3 top-3 bg-brand text-white">
+        <span className="badge absolute left-3 top-3 bg-noir/80 text-white">
           {isLocation ? "À louer" : "À vendre"}
         </span>
         {v.boosted && (
-          <span className="badge absolute right-3 top-3 bg-brand-gold text-slate-900">Premium</span>
+          <span className="badge absolute right-3 top-3 bg-gold text-noir">Premium</span>
         )}
       </div>
       <div className="p-4">

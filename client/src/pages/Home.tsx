@@ -46,17 +46,22 @@ export default function Home() {
 
   return (
     <div>
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-brand-dark via-brand to-brand-light text-white">
-        <div className="container-page py-16 md:py-24">
-          <h1 className="max-w-3xl text-3xl font-extrabold leading-tight md:text-5xl">
-            Plus de 50 000 véhicules vérifiés.
+      {/* Hero — premium clair (fond blanc, accent or) */}
+      <section className="relative overflow-hidden border-b border-slate-100 bg-white">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-gold-soft via-gold to-gold-soft" />
+        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gold-soft/40 blur-3xl" />
+        <div className="container-page relative py-14 md:py-20">
+          <span className="badge-premium mb-4 inline-flex items-center gap-1">
+            ★ Plateforme automobile premium
+          </span>
+          <h1 className="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-noir md:text-5xl">
+            Plus de 50 000 véhicules <span className="text-gold-dark">vérifiés.</span>
           </h1>
-          <p className="mt-4 max-w-2xl text-lg text-white/90">
+          <p className="mt-4 max-w-2xl text-lg text-slate-600">
             Achat, location et entretien — une seule plateforme, pensée pour votre confiance.
           </p>
 
-          <div className="mt-8 grid gap-3 rounded-2xl bg-white p-3 shadow-lg md:grid-cols-[1fr_auto_auto_auto]">
+          <div className="mt-8 grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-lg md:grid-cols-[1fr_auto_auto_auto]">
             <input
               className="input"
               placeholder="Marque, modèle, version…"
@@ -83,12 +88,12 @@ export default function Home() {
             </button>
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-4 text-sm">
+          <div className="mt-6 flex flex-wrap gap-3 text-sm">
             {ENGAGEMENTS.map((e) => {
               const Icon = e.icon;
               return (
-                <span key={e.t} className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5">
-                  <Icon size={16} /> {e.t}
+                <span key={e.t} className="inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1.5 font-medium text-ink">
+                  <Icon size={16} className="text-gold-dark" /> {e.t}
                 </span>
               );
             })}
@@ -104,7 +109,7 @@ export default function Home() {
             const Icon = u.icon;
             return (
               <Link key={u.to} to={u.to} className="card p-5 transition hover:shadow-md">
-                <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand/10 text-brand">
+                <div className="grid h-11 w-11 place-items-center rounded-xl bg-gold-soft text-gold-dark">
                   <Icon size={22} />
                 </div>
                 <h3 className="mt-4 font-bold text-slate-900">{u.title}</h3>

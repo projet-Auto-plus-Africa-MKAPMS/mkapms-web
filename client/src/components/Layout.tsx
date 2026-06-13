@@ -36,11 +36,11 @@ function Header() {
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="container-page flex h-16 items-center justify-between gap-4">
         <Link to="/" className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-lg font-extrabold text-white">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-gold to-gold-dark text-lg font-extrabold text-noir shadow-sm ring-1 ring-gold-dark/30">
             M
           </span>
-          <span className="text-lg font-extrabold tracking-tight text-brand">
-            MKA.P-MS
+          <span className="text-lg font-extrabold tracking-tight text-noir">
+            MKA<span className="text-gold-dark">.P-MS</span>
           </span>
         </Link>
 
