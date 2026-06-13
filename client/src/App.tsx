@@ -13,6 +13,7 @@ import Garages from "./pages/Garages";
 import GaragePlus from "./pages/GaragePlus";
 import Abonnements from "./pages/Abonnements";
 import Aide from "./pages/Aide";
+import Confiance from "./pages/Confiance";
 import Connexion from "./pages/Connexion";
 import Compte from "./pages/Compte";
 import Validation from "./pages/Validation";
@@ -66,6 +67,7 @@ export default function App() {
           <Route path="/wallet" element={<U name="Wallet"><Wallet /></U>} />
           <Route path="/abonnements" element={<U name="Abonnements"><Abonnements /></U>} />
           <Route path="/aide" element={<Aide />} />
+          <Route path="/confiance" element={<Confiance />} />
           <Route path="/connexion" element={<Connexion />} />
           <Route path="/compte/validation" element={<U name="Validation"><Validation /></U>} />
           <Route path="/compte/*" element={<U name="Mon compte"><Compte /></U>} />

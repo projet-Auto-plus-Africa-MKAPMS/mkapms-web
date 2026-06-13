@@ -134,6 +134,91 @@ export const annoncesRouter = router({
       };
     }),
 
+  // Estimation intelligente du prix (Partie 5 §4) — basée sur les annonces
+  // comparables réellement présentes sur la plateforme (data-driven), avec repli
+  // heuristique transparent si l'échantillon est insuffisant. Barèmes affinables.
+  estimate: publicProcedure
+    .input(
+      z.object({
+        marque: z.string().min(1),
+        modele: z.string().min(1),
+        annee: z.number().optional(),
+        kilometrage: z.number().optional(),
+        carburant: z.string().optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const conds = [
+        eq(annonces.status, "publiee"),
+        eq(annonces.type, "vente"),
+        ilike(annonces.marque, input.marque),
+        ilike(annonces.modele, input.modele),
+      ];
+      if (input.annee) {
+        conds.push(gte(annonces.annee, input.annee - 3));
+        conds.push(lte(annonces.annee, input.annee + 3));
+      }
+      const rows = await db
+        .select({ prix: annonces.prix, km: annonces.kilometrage, annee: annonces.annee })
+        .from(annonces)
+        .where(and(...conds));
+
+      const sample = rows
+        .map((r) => ({ prix: Number(r.prix), km: r.km, annee: r.annee }))
+        .filter((r) => Number.isFinite(r.prix) && r.prix > 500);
+
+      const percentile = (arr: number[], p: number) => {
+        if (!arr.length) return 0;
+        const s = [...arr].sort((a, b) => a - b);
+        const idx = Math.min(s.length - 1, Math.max(0, Math.round((p / 100) * (s.length - 1))));
+        return s[idx];
+      };
+
+      if (sample.length >= 4) {
+        const prices = sample.map((s) => s.prix);
+        let mid = percentile(prices, 50);
+        let low = percentile(prices, 25);
+        let high = percentile(prices, 75);
+
+        // Ajustement kilométrage : si le véhicule a plus/moins de km que la
+        // médiane, on nudge la fourchette de ±20 % maximum.
+        const kms = sample.map((s) => s.km).filter((k): k is number => k != null && k > 0);
+        if (input.kilometrage != null && kms.length >= 3) {
+          const medianKm = percentile(kms, 50);
+          if (medianKm > 0) {
+            const factorRaw = 1 + (medianKm - input.kilometrage) / (medianKm * 4);
+            const factor = Math.min(1.2, Math.max(0.8, factorRaw));
+            mid = Math.round(mid * factor);
+            low = Math.round(low * factor);
+            high = Math.round(high * factor);
+          }
+        }
+        return {
+          method: "comparables" as const,
+          sampleSize: sample.length,
+          low: Math.round(low),
+          mid: Math.round(mid),
+          high: Math.round(high),
+        };
+      }
+
+      // Repli heuristique (socle, barèmes à affiner) : base générique avec
+      // décote par âge (12 %/an) et pénalité kilométrique légère.
+      const year = new Date().getFullYear();
+      const age = input.annee ? Math.max(0, year - input.annee) : 6;
+      const base = 26000;
+      let mid = base * Math.pow(0.88, age);
+      if (input.kilometrage != null) mid -= Math.min(mid * 0.4, input.kilometrage * 0.04);
+      mid = Math.max(1200, Math.round(mid));
+      return {
+        method: "heuristique" as const,
+        sampleSize: sample.length,
+        low: Math.round(mid * 0.85),
+        mid,
+        high: Math.round(mid * 1.15),
+      };
+    }),
+
   incrementView: publicProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {

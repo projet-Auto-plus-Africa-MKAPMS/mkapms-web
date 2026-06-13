@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { TrendingUp } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { useCurrency } from "../lib/currency";
 
 export default function Vendre() {
   const { user } = useAuth();
@@ -24,9 +26,31 @@ export default function Vendre() {
     description: "",
   });
   const [photos, setPhotos] = useState<string[]>([]);
+  const { format: formatPrice } = useCurrency();
+  const utils = trpc.useUtils();
+  const [estim, setEstim] = useState<
+    { low: number; mid: number; high: number; method: string; sampleSize: number } | null
+  >(null);
+  const [estimLoading, setEstimLoading] = useState(false);
   const create = trpc.annonces.create.useMutation({
     onSuccess: (a) => navigate(`/vehicule/${a.id}`),
   });
+
+  async function estimerPrix() {
+    if (!form.marque || !form.modele) return;
+    setEstimLoading(true);
+    try {
+      const r = await utils.annonces.estimate.fetch({
+        marque: form.marque,
+        modele: form.modele,
+        annee: form.annee ? Number(form.annee) : undefined,
+        kilometrage: form.kilometrage ? Number(form.kilometrage) : undefined,
+      });
+      setEstim(r);
+    } finally {
+      setEstimLoading(false);
+    }
+  }
 
   if (!user) {
     return (
@@ -150,6 +174,43 @@ export default function Vendre() {
                 </div>
               ))}
             </div>
+          </div>
+          {/* Estimation intelligente du prix (Partie 5) */}
+          <div className="card p-5">
+            <h3 className="flex items-center gap-2 font-bold text-slate-800">
+              <TrendingUp size={18} className="text-brand" /> Estimer le juste prix
+            </h3>
+            <p className="mt-1 text-xs text-slate-500">
+              Renseignez marque, modèle, année et kilométrage, puis estimez.
+            </p>
+            <button
+              className="btn-outline mt-3 w-full"
+              disabled={!form.marque || !form.modele || estimLoading}
+              onClick={estimerPrix}
+            >
+              {estimLoading ? "Calcul…" : "Estimer le prix"}
+            </button>
+            {estim && (
+              <div className="mt-3 rounded-lg bg-brand/5 p-3 text-center">
+                <div className="text-lg font-extrabold text-brand">
+                  {formatPrice(estim.low)} – {formatPrice(estim.high)}
+                </div>
+                <div className="text-xs text-slate-500">
+                  Prix conseillé ~ {formatPrice(estim.mid)}
+                </div>
+                <div className="mt-1 text-[11px] text-slate-400">
+                  {estim.method === "comparables"
+                    ? `Basé sur ${estim.sampleSize} véhicules similaires`
+                    : "Estimation indicative (peu de comparables)"}
+                </div>
+                <button
+                  className="mt-2 text-xs font-semibold text-brand"
+                  onClick={() => set("prix", String(estim.mid))}
+                >
+                  Utiliser ce prix
+                </button>
+              </div>
+            )}
           </div>
           <button className="btn-primary w-full" disabled={create.isPending} onClick={submit}>
             {create.isPending ? "Publication…" : "Publier l'annonce"}

@@ -7,11 +7,14 @@ import {
   Star,
   ShieldCheck,
   Clock,
+  BadgeCheck,
+  TrendingUp,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
 import { ACOMPTE_PALIERS } from "@shared/plans";
+import { computeTrustScore, TRUST_LEVEL_LABEL } from "@shared/trust";
 
 const TABS = ["Description", "Points forts", "Équipements", "Imperfections"] as const;
 
@@ -26,6 +29,15 @@ export default function Vehicule() {
   const [acompte, setAcompte] = useState<number>(ACOMPTE_PALIERS[1]);
 
   const q = trpc.annonces.get.useQuery({ id: annonceId }, { enabled: !!annonceId });
+  const estimateQuery = trpc.annonces.estimate.useQuery(
+    {
+      marque: q.data?.marque ?? "",
+      modele: q.data?.modele ?? "",
+      annee: q.data?.annee ?? undefined,
+      kilometrage: q.data?.kilometrage ?? undefined,
+    },
+    { enabled: !!q.data && q.data.type === "vente" && !!q.data.marque && !!q.data.modele },
+  );
   const incView = trpc.annonces.incrementView.useMutation();
   const toggleFav = trpc.favoris.toggle.useMutation();
   const reserve = trpc.reservations.create.useMutation({
@@ -46,6 +58,25 @@ export default function Vehicule() {
   const v = q.data;
   const photos = v.photos.length ? v.photos.map((p) => p.url) : [];
   const isLocation = v.type === "location";
+
+  // Indice de Confiance MKA.P-MS (Partie 5) — calcul transparent.
+  const trust = computeTrustScore({
+    vendeurProfessionnel: v.vendeurType === "professionnel" || v.vendeurType === "concession",
+    rating: v.vendeur ? Number(v.vendeur.rating || 0) : 0,
+    reviewCount: v.vendeur?.reviewCount ?? 0,
+    photosCount: v.photos.length,
+    hasDescription: !!v.description && v.description.length > 20,
+    hasLocalisation: !!(v.ville || v.codePostal),
+    hasContact: !!v.contactTelephone,
+  });
+  const trustColor =
+    trust.niveau === "excellent"
+      ? "text-emerald-600"
+      : trust.niveau === "bon"
+        ? "text-brand"
+        : trust.niveau === "moyen"
+          ? "text-amber-600"
+          : "text-slate-500";
   const whatsapp = `https://wa.me/${(v.contactTelephone || "").replace(/\D/g, "")}?text=${encodeURIComponent(
     `Bonjour, je suis intéressé par l'annonce "${v.titre}" (réf #${v.id}) sur MKA.P-MS.`,
   )}`;
@@ -172,10 +203,41 @@ export default function Vehicule() {
               </div>
             )}
 
+            {/* Positionnement prix vs estimation marché (Partie 5) */}
+            {!isLocation && estimateQuery.data && Number(v.prix) > 0 && (() => {
+              const est = estimateQuery.data;
+              const prixNum = Number(v.prix);
+              const label =
+                prixNum <= est.mid * 0.97
+                  ? { t: "Bon prix", c: "bg-emerald-50 text-emerald-700" }
+                  : prixNum <= est.high
+                    ? { t: "Prix du marché", c: "bg-brand/10 text-brand" }
+                    : { t: "Au-dessus du marché", c: "bg-amber-50 text-amber-700" };
+              return (
+                <div className={`mt-3 rounded-lg px-3 py-2 text-xs font-semibold ${label.c}`}>
+                  <span className="inline-flex items-center gap-1">
+                    <TrendingUp size={14} /> {label.t}
+                  </span>
+                  <span className="ml-1 font-normal opacity-80">
+                    · estimation {formatPrice(est.low)} – {formatPrice(est.high)}
+                    {est.method === "comparables" ? ` (${est.sampleSize} similaires)` : ""}
+                  </span>
+                </div>
+              );
+            })()}
+
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button
                 className="btn-primary"
-                onClick={() => requireLogin(() => alert("Parcours d'achat sécurisé à finaliser."))}
+                onClick={() =>
+                  requireLogin(() => {
+                    if (isLocation) {
+                      navigate("/compte/messages");
+                    } else {
+                      document.getElementById("reserver")?.scrollIntoView({ behavior: "smooth" });
+                    }
+                  })
+                }
               >
                 {isLocation ? "Louer" : "Acheter"}
               </button>
@@ -190,7 +252,7 @@ export default function Vehicule() {
 
           {/* Réserver avec acompte */}
           {!isLocation && (
-            <div className="card p-5">
+            <div id="reserver" className="card p-5">
               <h3 className="font-bold text-slate-800">Réserver avec acompte</h3>
               <p className="mt-1 text-sm text-slate-500">
                 Bloquez ce véhicule 24 h, le temps de finaliser.
@@ -217,6 +279,31 @@ export default function Vehicule() {
               </button>
             </div>
           )}
+
+          {/* Indice de Confiance MKA.P-MS (Partie 5 §4) */}
+          <div className="card p-5">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-800">Indice de Confiance</h3>
+              <span className={`text-2xl font-extrabold ${trustColor}`}>{trust.score}<span className="text-sm text-slate-400">/100</span></span>
+            </div>
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+              <div
+                className={`h-full rounded-full ${trust.niveau === "excellent" ? "bg-emerald-500" : trust.niveau === "bon" ? "bg-brand" : trust.niveau === "moyen" ? "bg-amber-500" : "bg-slate-400"}`}
+                style={{ width: `${trust.score}%` }}
+              />
+            </div>
+            <p className={`mt-2 text-xs font-semibold ${trustColor}`}>{TRUST_LEVEL_LABEL[trust.niveau]}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {trust.badges.map((b) => (
+                <span key={b.code} className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
+                  <BadgeCheck size={13} className="text-brand" /> {b.label}
+                </span>
+              ))}
+            </div>
+            <Link to="/confiance" className="mt-3 inline-block text-xs font-semibold text-brand">
+              Comment ça marche ? →
+            </Link>
+          </div>
 
           {/* Contact vendeur */}
           <div className="card p-5">

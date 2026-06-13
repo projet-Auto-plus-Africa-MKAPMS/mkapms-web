@@ -157,6 +157,7 @@ function Footer() {
           <h4 className="mb-3 text-sm font-bold text-slate-800">Aide & légal</h4>
           <ul className="space-y-2 text-sm text-slate-500">
             <li><Link to="/aide">Centre d'aide / FAQ</Link></li>
+            <li><Link to="/confiance">Centre de confiance</Link></li>
             <li><Link to="/aide#cgv">CGV / CGU</Link></li>
             <li><Link to="/aide#rgpd">Confidentialité (RGPD)</Link></li>
             <li><Link to="/aide#mentions">Mentions légales</Link></li>
