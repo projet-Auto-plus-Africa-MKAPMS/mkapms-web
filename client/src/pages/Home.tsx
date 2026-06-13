@@ -1,33 +1,44 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Search,
-  ShieldCheck,
-  CreditCard,
-  Wrench,
-  RotateCcw,
-  Car,
-  KeyRound,
-  FileText,
-  Building2,
-  TrendingUp,
-  History,
-  Truck,
-  Star,
-  ArrowRight,
-  Bell,
-  ChevronDown,
-  ChevronUp,
-  UserPlus,
-  LogIn,
-  FileCheck,
-  AlertTriangle,
-  Users,
-  Gauge,
+  Search, Plus, FileText, Wrench, Car, KeyRound, Truck, Star,
+  ArrowRight, ShieldCheck, Users, Gauge, Heart, ChevronRight,
+  CheckCircle, Clock, Package, Phone, Mail, MapPin,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import VehicleCard from "../components/VehicleCard";
+
+/* ── catégories ── */
+const CATEGORIES = [
+  { label: "Citadines", count: "+2 350", to: "/acheter?categorie=citadine" },
+  { label: "Berlines", count: "+4 152", to: "/acheter?categorie=berline" },
+  { label: "SUV & 4x4", count: "+3 782", to: "/acheter?categorie=suv" },
+  { label: "Utilitaires", count: "+1 256", to: "/acheter?categorie=utilitaire" },
+  { label: "Coupés", count: "+1 842", to: "/acheter?categorie=coupe" },
+  { label: "Motos", count: "+2 620", to: "/acheter?famille=moto" },
+  { label: "Scooters", count: "+1 125", to: "/acheter?famille=moto&categorie=scooter" },
+];
+
+/* ── partenaires ── */
+const PARTENAIRES = [
+  { title: "Top Garages", desc: "Des garages certifiés proches de chez vous.", cta: "Voir les garages", to: "/garages", color: "bg-[#D4AF37]" },
+  { title: "Experts en pièces", desc: "Trouvez vos pièces auto, au meilleur prix.", cta: "Voir les pièces", to: "/pieces", color: "bg-[#D4AF37]" },
+  { title: "VTC & Taxis", desc: "Réservez votre chauffeur en toute sérénité.", cta: "Réserver", to: "/vtc-taxi", color: "bg-[#D4AF37]" },
+  { title: "Dépanneurs", desc: "Une assistance rapide 24h/24 et 7j/7.", cta: "Demander", to: "/depannage", color: "bg-[#D4AF37]" },
+];
+
+/* ── activités pro ── */
+const PRO_ACTIVITIES = [
+  { label: "Vente Pro", to: "/espace-pro" },
+  { label: "Garage Pro", to: "/garage-plus" },
+  { label: "Location Pro", to: "/espace-pro" },
+  { label: "VTC / Taxi", to: "/vtc-taxi" },
+  { label: "Livraison Pro", to: "/livraison" },
+  { label: "Pièces Auto", to: "/pieces" },
+  { label: "Dépannage Pro", to: "/depannage" },
+  { label: "Comptabilité Pro", to: "/comptabilite" },
+];
 
 export default function Home() {
   const { user } = useAuth();
@@ -35,335 +46,367 @@ export default function Home() {
   const stats = trpc.meta.homeStats.useQuery();
   const featured = trpc.annonces.list.useQuery({ type: "vente", limit: 8 });
 
-  // Estimation
-  const [estimOpen, setEstimOpen] = useState(false);
-  const [estimMode, setEstimMode] = useState<"plaque" | "vin">("plaque");
+  /* recherche */
+  const [searchTab, setSearchTab] = useState<"toutes" | "voitures" | "motos" | "utilitaires">("toutes");
+  const [sMarque, setSMarque] = useState("");
+  const [sModele, setSModele] = useState("");
+  const [sLoc, setSLoc] = useState("");
+  const [sPrix, setSPrix] = useState("");
+
+  /* estimation */
   const [estimPlaque, setEstimPlaque] = useState("");
-  const [estimVin, setEstimVin] = useState("");
-  const [estimDetails, setEstimDetails] = useState({ marque: "", modele: "", annee: "", km: "", carburant: "", boite: "", version: "", couleur: "" });
   const [estimResult, setEstimResult] = useState(false);
 
-  // Recherche voitures
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchForm, setSearchForm] = useState({
-    marque: "", modele: "", prixMin: "", prixMax: "", kmMax: "", anneeMin: "", anneeMax: "",
-    carburant: "", boite: "", categorie: "", ville: "", rayon: "",
-  });
-
-  // Historique
-  const [histOpen, setHistOpen] = useState(false);
-  const [histMode, setHistMode] = useState<"plaque" | "vin">("plaque");
+  /* historique */
   const [histPlaque, setHistPlaque] = useState("");
-  const [histVin, setHistVin] = useState("");
   const [histResult, setHistResult] = useState(false);
 
-  // Créer compte
-  const [compteOpen, setCompteOpen] = useState(false);
+  /* newsletter */
+  const [newsEmail, setNewsEmail] = useState("");
 
-  function handleEstimSearch() {
-    setEstimResult(true);
-    setEstimDetails({ marque: "Peugeot", modele: "208", annee: "2019", km: "45 000", carburant: "Essence", boite: "Manuelle", version: "1.2 PureTech 82 Active", couleur: "Gris" });
-  }
-
-  function handleSearchVoitures() {
-    const params = new URLSearchParams();
-    if (searchForm.marque) params.set("q", searchForm.marque + " " + searchForm.modele);
-    if (searchForm.prixMax) params.set("prixMax", searchForm.prixMax);
-    if (searchForm.ville) params.set("ville", searchForm.ville);
-    navigate(`/acheter?${params.toString()}`);
+  function doSearch() {
+    const p = new URLSearchParams();
+    if (sMarque) p.set("q", sMarque + (sModele ? " " + sModele : ""));
+    if (sPrix) p.set("prixMax", sPrix);
+    if (sLoc) p.set("ville", sLoc);
+    if (searchTab === "motos") p.set("famille", "moto");
+    if (searchTab === "utilitaires") p.set("categorie", "utilitaire");
+    navigate(`/acheter?${p.toString()}`);
   }
 
   return (
-    <div>
-      {/* ═══ HERO — FOND NOIR ═══ */}
+    <div className="bg-white">
+
+      {/* ═══════════════════════════════════════════════════════════
+          1. HERO — FOND NOIR
+         ═══════════════════════════════════════════════════════════ */}
       <section className="relative overflow-hidden bg-[#111]">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#D4AF37]/10 via-transparent to-transparent" />
-        <div className="container-page relative py-14 md:py-20">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-4 py-1.5">
-            <Star size={14} className="text-[#D4AF37]" />
-            <span className="text-sm font-semibold text-[#D4AF37]">Bienvenue sur MKA.P-MS</span>
+        <div className="pointer-events-none absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImciIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEiIGZpbGw9InJnYmEoMjEyLDE3NSw1NSwwLjA1KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSJ1cmwoI2cpIi8+PC9zdmc+')] opacity-40" />
+
+        <div className="container-page relative grid gap-8 py-12 md:py-16 lg:grid-cols-[1fr_340px]">
+          {/* Gauche */}
+          <div>
+            <h1 className="text-3xl font-black uppercase leading-tight text-white md:text-5xl">
+              La plateforme auto<br />
+              <span className="text-[#D4AF37]">qui simplifie tout</span>
+            </h1>
+            <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/60">
+              Achat, vente, location, entretien, livraison et bien plus encore. Tout l'univers automobile réuni au même endroit.
+            </p>
+
+            {/* 4 actions rapides */}
+            <div className="mt-8 grid grid-cols-4 gap-3 sm:max-w-md">
+              {[
+                { icon: Plus, label: "Déposer une annonce", to: "/vendre" },
+                { icon: Search, label: "Rechercher un véhicule", to: "/acheter" },
+                { icon: FileText, label: "Obtenir un devis", to: "/devis" },
+                { icon: Wrench, label: "Trouver un garage", to: "/garages" },
+              ].map((a) => {
+                const Icon = a.icon;
+                return (
+                  <Link key={a.to} to={a.to} className="group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-3 text-center transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#D4AF37]/20 transition group-hover:bg-[#D4AF37]">
+                      <Icon size={18} className="text-[#D4AF37] group-hover:text-white" />
+                    </div>
+                    <span className="text-[10px] font-medium leading-tight text-white/70 sm:text-xs">{a.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Note */}
+            <div className="mt-6 flex items-center gap-2">
+              <div className="flex items-center gap-1 rounded-full bg-[#D4AF37] px-3 py-1">
+                <Star size={14} className="text-white" fill="white" />
+                <span className="text-sm font-bold text-white">4,8/5</span>
+              </div>
+              <span className="text-xs text-white/50">+50 000 utilisateurs nous font confiance</span>
+            </div>
           </div>
-          <h1 className="max-w-3xl text-3xl font-extrabold leading-tight text-white md:text-5xl">
-            La marketplace automobile <span className="text-[#D4AF37]">de référence.</span>
-          </h1>
-          <p className="mt-4 max-w-2xl text-base text-white/60">
-            Achat, vente, location, réparation, pièces, livraison — tout l'automobile dans une seule plateforme.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            {[
-              { icon: ShieldCheck, t: "Véhicules vérifiés" },
-              { icon: CreditCard, t: "Paiement sécurisé" },
-              { icon: Wrench, t: "Garages certifiés" },
-              { icon: RotateCcw, t: "Satisfait ou remboursé" },
-            ].map((e) => {
-              const Icon = e.icon;
-              return (
-                <span key={e.t} className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs font-medium text-white/70">
-                  <Icon size={14} className="text-[#D4AF37]" /> {e.t}
-                </span>
-              );
-            })}
+
+          {/* Droite — Ouvrir un compte */}
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+            <h3 className="text-lg font-bold text-white">Ouvrir un compte</h3>
+            <div className="mt-4 space-y-3">
+              <Link to="/connexion" className="group flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-[#D4AF37]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#D4AF37]/20">
+                  <Car size={18} className="text-[#D4AF37]" />
+                </div>
+                <div>
+                  <p className="font-bold text-white">Particulier</p>
+                  <p className="mt-0.5 text-xs text-white/50">Achetez, vendez et profitez de tous nos services.</p>
+                </div>
+                <ChevronRight size={16} className="mt-1 shrink-0 text-white/30" />
+              </Link>
+              <Link to="/connexion" className="group flex items-start gap-3 rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-4 transition hover:border-[#D4AF37]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#D4AF37]">
+                  <Wrench size={18} className="text-white" />
+                </div>
+                <div>
+                  <p className="font-bold text-[#D4AF37]">Professionnel</p>
+                  <p className="mt-0.5 text-xs text-white/50">Gérez votre activité et développez votre business avec MKA.</p>
+                </div>
+                <ChevronRight size={16} className="mt-1 shrink-0 text-[#D4AF37]/50" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ═══ ESTIMATION DE VOITURE ═══ */}
-      <section className="bg-[#FAFAFA] py-6">
-        <div className="container-page">
-          <button
-            onClick={() => { setEstimOpen(!estimOpen); if (searchOpen) setSearchOpen(false); }}
-            className="flex w-full items-center justify-between rounded-2xl border border-[#E5E7EB] bg-white px-6 py-4 shadow-sm transition hover:border-[#D4AF37]"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#D4AF37]/10">
-                <TrendingUp size={20} className="text-[#D4AF37]" />
+      {/* ═══════════════════════════════════════════════════════════
+          2. RECHERCHE + ESTIMATION — CÔTE À CÔTE
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-[#F8F9FA] py-10">
+        <div className="container-page grid gap-6 lg:grid-cols-2">
+          {/* Recherche */}
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-bold text-[#111]">Rechercher un véhicule</h3>
+            <div className="mt-3 flex gap-2">
+              {(["toutes", "voitures", "motos", "utilitaires"] as const).map((t) => (
+                <button key={t} onClick={() => setSearchTab(t)}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold capitalize transition ${searchTab === t ? "bg-[#111] text-white" : "bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]"}`}
+                >{t}</button>
+              ))}
+            </div>
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Marque</label>
+                <select className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" value={sMarque} onChange={(e) => setSMarque(e.target.value)}>
+                  <option value="">Toutes les marques</option>
+                  {["Peugeot","Renault","Citroën","BMW","Mercedes","Audi","Volkswagen","Toyota","Ford","Opel","Fiat","Hyundai","Kia","Nissan","Dacia"].map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
               </div>
-              <div className="text-left">
-                <h2 className="text-base font-bold text-[#111]">Estimation de voiture</h2>
-                <p className="text-xs text-[#6B7280]">Estimez la valeur de votre véhicule gratuitement</p>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Modèle</label>
+                <select className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" value={sModele} onChange={(e) => setSModele(e.target.value)}>
+                  <option value="">Tous les modèles</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Localisation</label>
+                <select className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" value={sLoc} onChange={(e) => setSLoc(e.target.value)}>
+                  <option value="">Toute la France</option>
+                  <option value="Paris">Paris</option>
+                  <option value="Lyon">Lyon</option>
+                  <option value="Marseille">Marseille</option>
+                  <option value="Toulouse">Toulouse</option>
+                  <option value="Bordeaux">Bordeaux</option>
+                  <option value="Nice">Nice</option>
+                  <option value="Lille">Lille</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Prix maximum</label>
+                <select className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" value={sPrix} onChange={(e) => setSPrix(e.target.value)}>
+                  <option value="">Prix maximum</option>
+                  <option value="5000">5 000 €</option>
+                  <option value="10000">10 000 €</option>
+                  <option value="15000">15 000 €</option>
+                  <option value="20000">20 000 €</option>
+                  <option value="30000">30 000 €</option>
+                  <option value="50000">50 000 €</option>
+                </select>
+              </div>
+              <button onClick={doSearch} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white hover:bg-[#C5A028]">
+                Rechercher <Search size={16} />
+              </button>
+            </div>
+          </div>
+
+          {/* Estimation */}
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-bold text-[#111]">Estimer la valeur de votre véhicule</h3>
+            <p className="mt-1 text-xs text-[#6B7280]">Obtenez une estimation gratuite en quelques secondes</p>
+            <div className="mt-4">
+              <div className="flex items-center gap-2 rounded-xl border border-[#D1D5DB] bg-[#F9FAFB] px-3">
+                <span className="flex h-8 w-8 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white">F</span>
+                <input
+                  className="flex-1 bg-transparent py-3 text-sm outline-none"
+                  placeholder="Entrez votre immatriculation"
+                  value={estimPlaque}
+                  onChange={(e) => setEstimPlaque(e.target.value.toUpperCase())}
+                />
               </div>
             </div>
-            {estimOpen ? <ChevronUp size={20} className="text-[#6B7280]" /> : <ChevronDown size={20} className="text-[#6B7280]" />}
-          </button>
 
-          {estimOpen && (
-            <div className="mt-3 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
-              {/* Plaque / VIN / Rechercher — 3 colonnes en ligne */}
-              <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-[#6B7280]">PLAQUE D'IMMATRICULATION</label>
-                  <input
-                    className={`w-full rounded-xl border px-4 py-3 text-sm font-medium uppercase outline-none transition ${estimMode === "plaque" ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-[#D1D5DB]"}`}
-                    placeholder="AA-123-BB"
-                    value={estimPlaque}
-                    onFocus={() => setEstimMode("plaque")}
-                    onChange={(e) => { setEstimPlaque(e.target.value.toUpperCase()); setEstimMode("plaque"); }}
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-[#6B7280]">NUMÉRO VIN</label>
-                  <input
-                    className={`w-full rounded-xl border px-4 py-3 text-sm font-medium uppercase outline-none transition ${estimMode === "vin" ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-[#D1D5DB]"}`}
-                    placeholder="VF3XXXXXXXXX00000"
-                    value={estimVin}
-                    onFocus={() => setEstimMode("vin")}
-                    onChange={(e) => { setEstimVin(e.target.value.toUpperCase()); setEstimMode("vin"); }}
-                  />
-                </div>
-                <div className="flex items-end">
-                  <button
-                    onClick={handleEstimSearch}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-white hover:bg-[#C5A028] md:w-auto"
-                  >
-                    <Search size={16} /> Rechercher
-                  </button>
-                </div>
+            {/* Résultat estimation */}
+            <div className="mt-6 flex flex-col items-center">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                <Car size={36} className="text-[#D4AF37]" />
               </div>
-
-              {/* Champs détaillés qui se remplissent */}
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Marque</label>
-                  <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2 text-sm text-[#111]" value={estimDetails.marque} onChange={(e) => setEstimDetails((d) => ({ ...d, marque: e.target.value }))} placeholder="—" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Modèle</label>
-                  <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2 text-sm text-[#111]" value={estimDetails.modele} onChange={(e) => setEstimDetails((d) => ({ ...d, modele: e.target.value }))} placeholder="—" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Version</label>
-                  <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2 text-sm text-[#111]" value={estimDetails.version} onChange={(e) => setEstimDetails((d) => ({ ...d, version: e.target.value }))} placeholder="—" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Année</label>
-                  <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2 text-sm text-[#111]" value={estimDetails.annee} onChange={(e) => setEstimDetails((d) => ({ ...d, annee: e.target.value }))} placeholder="—" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Kilométrage</label>
-                  <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2 text-sm text-[#111]" value={estimDetails.km} onChange={(e) => setEstimDetails((d) => ({ ...d, km: e.target.value }))} placeholder="—" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Énergie</label>
-                  <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2 text-sm text-[#111]" value={estimDetails.carburant} onChange={(e) => setEstimDetails((d) => ({ ...d, carburant: e.target.value }))} placeholder="—" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Boîte</label>
-                  <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2 text-sm text-[#111]" value={estimDetails.boite} onChange={(e) => setEstimDetails((d) => ({ ...d, boite: e.target.value }))} placeholder="—" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Couleur</label>
-                  <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2 text-sm text-[#111]" value={estimDetails.couleur} onChange={(e) => setEstimDetails((d) => ({ ...d, couleur: e.target.value }))} placeholder="—" />
-                </div>
-              </div>
-
-              {estimResult && (
-                <div className="mt-4 rounded-xl bg-[#111] p-5">
-                  <p className="text-sm text-white/60">Estimation basée sur le marché</p>
-                  <div className="mt-2 grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <p className="text-xs text-white/40">Prix bas</p>
-                      <p className="text-lg font-bold text-white">8 500 €</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-[#D4AF37]">Prix recommandé</p>
-                      <p className="text-2xl font-extrabold text-[#D4AF37]">10 200 €</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-white/40">Prix haut</p>
-                      <p className="text-lg font-bold text-white">12 000 €</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => navigate("/vendre")}
-                    className="mt-4 w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white hover:bg-[#C5A028]"
-                  >
-                    Déposer mon annonce au meilleur prix
-                  </button>
-                </div>
-              )}
+              <p className="mt-3 text-sm font-medium text-[#6B7280]">Estimation</p>
+              <p className="text-3xl font-extrabold text-[#111]">
+                {estimResult ? "12 450 €" : "— €"}
+              </p>
+              <p className="text-xs text-[#9CA3AF]">Prix moyen du marché</p>
             </div>
-          )}
+
+            <button
+              onClick={() => setEstimResult(true)}
+              className="mt-4 w-full rounded-xl border-2 border-[#D4AF37] py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
+            >
+              Estimer maintenant
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* ═══ RECHERCHE DE VOITURES ═══ */}
-      <section className="bg-[#FAFAFA] pb-6">
-        <div className="container-page">
-          <button
-            onClick={() => { setSearchOpen(!searchOpen); if (estimOpen) setEstimOpen(false); }}
-            className="flex w-full items-center justify-between rounded-2xl border border-[#E5E7EB] bg-white px-6 py-4 shadow-sm transition hover:border-[#D4AF37]"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#111]">
-                <Search size={20} className="text-[#D4AF37]" />
-              </div>
-              <div className="text-left">
-                <h2 className="text-base font-bold text-[#111]">Recherche de voitures</h2>
-                <p className="text-xs text-[#6B7280]">Trouvez le véhicule idéal avec nos filtres avancés</p>
-              </div>
-            </div>
-            {searchOpen ? <ChevronUp size={20} className="text-[#6B7280]" /> : <ChevronDown size={20} className="text-[#6B7280]" />}
-          </button>
-
-          {searchOpen && (
-            <div className="mt-3 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Marque</label>
-                  <input className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" placeholder="Ex: Peugeot" value={searchForm.marque} onChange={(e) => setSearchForm((f) => ({ ...f, marque: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Modèle</label>
-                  <input className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" placeholder="Ex: 208" value={searchForm.modele} onChange={(e) => setSearchForm((f) => ({ ...f, modele: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Prix min (€)</label>
-                  <input className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" placeholder="0" type="number" value={searchForm.prixMin} onChange={(e) => setSearchForm((f) => ({ ...f, prixMin: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Prix max (€)</label>
-                  <input className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" placeholder="50 000" type="number" value={searchForm.prixMax} onChange={(e) => setSearchForm((f) => ({ ...f, prixMax: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Kilométrage max</label>
-                  <input className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" placeholder="150 000" type="number" value={searchForm.kmMax} onChange={(e) => setSearchForm((f) => ({ ...f, kmMax: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Année min</label>
-                  <input className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" placeholder="2015" type="number" value={searchForm.anneeMin} onChange={(e) => setSearchForm((f) => ({ ...f, anneeMin: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Énergie</label>
-                  <select className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" value={searchForm.carburant} onChange={(e) => setSearchForm((f) => ({ ...f, carburant: e.target.value }))}>
-                    <option value="">Toutes</option>
-                    <option value="essence">Essence</option>
-                    <option value="diesel">Diesel</option>
-                    <option value="electrique">Électrique</option>
-                    <option value="hybride">Hybride</option>
-                    <option value="gpl">GPL</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Boîte</label>
-                  <select className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" value={searchForm.boite} onChange={(e) => setSearchForm((f) => ({ ...f, boite: e.target.value }))}>
-                    <option value="">Toutes</option>
-                    <option value="manuelle">Manuelle</option>
-                    <option value="automatique">Automatique</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Catégorie</label>
-                  <select className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" value={searchForm.categorie} onChange={(e) => setSearchForm((f) => ({ ...f, categorie: e.target.value }))}>
-                    <option value="">Toutes</option>
-                    <option value="citadine">Citadine</option>
-                    <option value="berline">Berline</option>
-                    <option value="suv">SUV</option>
-                    <option value="break">Break</option>
-                    <option value="coupe">Coupé</option>
-                    <option value="cabriolet">Cabriolet</option>
-                    <option value="monospace">Monospace</option>
-                    <option value="utilitaire">Utilitaire</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Localisation</label>
-                  <input className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" placeholder="Ville ou code postal" value={searchForm.ville} onChange={(e) => setSearchForm((f) => ({ ...f, ville: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Rayon (km)</label>
-                  <select className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" value={searchForm.rayon} onChange={(e) => setSearchForm((f) => ({ ...f, rayon: e.target.value }))}>
-                    <option value="">Tous</option>
-                    <option value="10">10 km</option>
-                    <option value="25">25 km</option>
-                    <option value="50">50 km</option>
-                    <option value="100">100 km</option>
-                    <option value="200">200 km</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                <button onClick={handleSearchVoitures} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-white hover:bg-[#C5A028]">
-                  <Search size={16} /> Rechercher
-                </button>
-                <button
-                  onClick={() => {
-                    if (!user) { navigate("/connexion"); return; }
-                    alert("Alerte activée ! Vous serez notifié dès qu'un véhicule correspond à vos critères.");
-                  }}
-                  className="flex items-center justify-center gap-2 rounded-xl border-2 border-[#111] px-6 py-3 text-sm font-bold text-[#111] hover:bg-[#111] hover:text-white"
-                >
-                  <Bell size={16} /> Activer l'alerte
-                </button>
-              </div>
-              {!user && (
-                <p className="mt-2 text-center text-xs text-[#9CA3AF]">
-                  Connectez-vous pour activer les alertes et recevoir les notifications.
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ═══ VÉHICULES À LA UNE ═══ */}
+      {/* ═══════════════════════════════════════════════════════════
+          3. CATÉGORIES POPULAIRES
+         ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-10">
         <div className="container-page">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-extrabold text-[#111]">Véhicules à la une</h2>
-            <Link to="/acheter" className="flex items-center gap-1 text-sm font-semibold text-[#D4AF37] hover:underline">
-              Voir tout <ArrowRight size={14} />
-            </Link>
+            <h2 className="text-xl font-bold text-[#111]">Catégories de véhicules populaires</h2>
+            <Link to="/acheter" className="flex items-center gap-1 text-sm font-semibold text-[#D4AF37] hover:underline">Voir toutes <ArrowRight size={14} /></Link>
+          </div>
+          <div className="mt-6 grid grid-cols-4 gap-3 sm:grid-cols-7">
+            {CATEGORIES.map((c) => (
+              <Link key={c.label} to={c.to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F3F4F6] transition group-hover:bg-[#D4AF37]/10">
+                  <Car size={22} className="text-[#6B7280] group-hover:text-[#D4AF37]" />
+                </div>
+                <span className="text-xs font-bold text-[#111]">{c.label}</span>
+                <span className="text-[10px] text-[#9CA3AF]">{c.count} annonces</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          4. HISTORIQUE VÉHICULE — FOND SOMBRE
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden bg-[#1A1A2E] py-10">
+        <div className="container-page relative">
+          <div className="lg:max-w-lg">
+            <div className="flex items-center gap-2">
+              <CheckCircle size={18} className="text-[#D4AF37]" />
+              <h2 className="text-xl font-bold text-white">Vérifier l'historique d'un véhicule</h2>
+            </div>
+            <p className="mt-2 text-sm text-white/60">
+              Évitez les mauvaises surprises, vérifiez l'historique complet d'un véhicule avant d'acheter.
+            </p>
+
+            {/* Barre plaque */}
+            <div className="mt-5 flex items-center gap-2">
+              <div className="flex flex-1 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3">
+                <span className="flex h-7 w-7 items-center justify-center rounded bg-blue-600 text-[10px] font-bold text-white">F</span>
+                <input
+                  className="flex-1 bg-transparent py-2.5 text-sm text-white placeholder-white/40 outline-none"
+                  placeholder="Entrez le n° de plaque (ex: AB-123-CD)"
+                  value={histPlaque}
+                  onChange={(e) => setHistPlaque(e.target.value.toUpperCase())}
+                />
+              </div>
+              <button onClick={() => setHistResult(true)} className="rounded-xl bg-[#D4AF37] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#C5A028]">
+                Vérifier
+              </button>
+            </div>
+
+            {/* Tags infos */}
+            <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
+              {["Accidents", "Vol", "Kilométrage", "Gage", "Entretien", "Importation", "Propriétaires", "Et plus encore…"].map((t) => (
+                <div key={t} className="flex items-center gap-2">
+                  <CheckCircle size={14} className="shrink-0 text-green-400" />
+                  <span className="text-xs text-white/70">{t}</span>
+                </div>
+              ))}
+            </div>
+
+            {histResult && (
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-xs text-white/40">Propriétaires</p><p className="text-xl font-bold text-white">2</p></div>
+                <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-xs text-white/40">Accidents</p><p className="text-xl font-bold text-green-400">0</p></div>
+                <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-xs text-white/40">Dernier CT</p><p className="text-xl font-bold text-white">03/25</p></div>
+                <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-xs text-white/40">Km vérifié</p><p className="text-xl font-bold text-white">45 200</p></div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          5. SERVICES PRINCIPAUX
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-white py-10">
+        <div className="container-page">
+          <h2 className="text-center text-xl font-bold text-[#111]">Nos services principaux</h2>
+          <p className="mt-1 text-center text-sm text-[#6B7280]">Tout ce dont vous avez besoin, au même endroit</p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { title: "Achat / Vente", desc: "Trouvez ou vendez votre véhicule facilement.", cta: "Voir les annonces", to: "/acheter", color: "from-blue-600 to-blue-800" },
+              { title: "Location", desc: "Voitures, utilitaires, motos… Louez en toute confiance.", cta: "Voir les offres", to: "/louer", color: "from-emerald-600 to-emerald-800" },
+              { title: "Devis", desc: "Recevez plusieurs devis et comparez facilement.", cta: "Demander un devis", to: "/devis", color: "from-orange-500 to-orange-700" },
+              { title: "Livraison & Pièces", desc: "Faites livrer vos pièces ou vos véhicules rapidement.", cta: "Découvrir", to: "/pieces", color: "from-[#D4AF37] to-[#B8960E]" },
+            ].map((s) => (
+              <Link key={s.to} to={s.to} className="group overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm transition hover:shadow-lg">
+                <div className={`h-36 bg-gradient-to-br ${s.color} flex items-center justify-center`}>
+                  <Car size={48} className="text-white/30" />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-bold text-[#111]">{s.title}</h3>
+                  <p className="mt-1 text-xs text-[#6B7280]">{s.desc}</p>
+                  <span className="mt-3 inline-block rounded-lg bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white">{s.cta}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          6. ANNONCES PREMIUM + ESPACE PUB
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-[#F8F9FA] py-10">
+        <div className="container-page">
+          <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+            <div>
+              <div className="flex items-center justify-between">
+                <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
+                  <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" /> Annonces mises en avant <span className="text-[#D4AF37]">(Premium)</span>
+                </h2>
+                <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes</Link>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                {featured.isLoading
+                  ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />)
+                  : featured.data?.items.slice(0, 4).map((v) => <VehicleCard key={v.id} v={v as any} />)}
+              </div>
+            </div>
+
+            {/* Espace publicitaire */}
+            <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 text-center shadow-sm">
+              <h3 className="text-lg font-bold text-[#111]">Espace publicitaire</h3>
+              <p className="mt-2 text-sm text-[#6B7280]">Boostez votre visibilité avec nos offres publicitaires</p>
+              <div className="mt-4 flex h-32 items-center justify-center rounded-xl bg-gradient-to-br from-[#D4AF37]/10 to-[#D4AF37]/5">
+                <Package size={48} className="text-[#D4AF37]/40" />
+              </div>
+              <Link to="/abonnements" className="mt-4 inline-block rounded-lg border-2 border-red-500 px-6 py-2 text-sm font-bold text-red-500 hover:bg-red-500 hover:text-white">
+                En savoir plus
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          7. ANNONCES CLASSIQUES
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-[#F8F9FA] pb-10">
+        <div className="container-page">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
+              <Star size={18} className="text-[#6B7280]" /> Toutes les annonces <span className="text-[#6B7280]">(Classiques)</span>
+            </h2>
+            <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes</Link>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
             {featured.isLoading
-              ? Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
-                ))
-              : featured.data?.items.map((v) => <VehicleCard key={v.id} v={v as any} />)}
+              ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />)
+              : featured.data?.items.slice(0, 4).map((v) => <VehicleCard key={v.id} v={v as any} />)}
             {featured.data && featured.data.items.length === 0 && (
-              <p className="col-span-full text-sm text-[#6B7280]">
-                Aucune annonce pour le moment.{" "}
+              <p className="col-span-full text-sm text-[#6B7280]">Aucune annonce.{" "}
                 <Link to="/vendre" className="font-semibold text-[#D4AF37]">Déposer une annonce</Link>.
               </p>
             )}
@@ -371,206 +414,199 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ UNIVERS ═══ */}
-      <section className="bg-[#FAFAFA] py-10">
+      {/* ═══════════════════════════════════════════════════════════
+          8. POURQUOI CHOISIR MKA.P-MS
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-white py-10">
         <div className="container-page">
-          <h2 className="text-center text-xl font-extrabold text-[#111]">Un écosystème complet</h2>
-          <div className="mt-6 grid gap-3 grid-cols-2 lg:grid-cols-3">
+          <h2 className="text-center text-xl font-bold text-[#111]">Pourquoi choisir MKA-P-MS ?</h2>
+          <div className="mx-auto mt-6 grid max-w-2xl gap-4">
             {[
-              { to: "/acheter", icon: Car, title: "Acheter / Vendre", desc: "Voitures et motos" },
-              { to: "/louer", icon: KeyRound, title: "Location", desc: "VTC, utilitaire" },
-              { to: "/devis", icon: FileText, title: "Devis Garage", desc: "Garages certifiés" },
-              { to: "/garage-plus", icon: Building2, title: "Garage+ Pro", desc: "Gestion atelier" },
-              { to: "/pieces", icon: Wrench, title: "Pièces Auto", desc: "80+ catégories" },
-              { to: "/livraison", icon: Truck, title: "Livraison", desc: "Moto, camion" },
-            ].map((u) => {
-              const Icon = u.icon;
+              { icon: ShieldCheck, title: "Sécurisé", desc: "Vos transactions sont protégées à 100%." },
+              { icon: Users, title: "Fiable", desc: "Des milliers d'utilisateurs nous font confiance." },
+              { icon: Gauge, title: "Rapide", desc: "Trouvez ce que vous cherchez en quelques clics." },
+              { icon: CheckCircle, title: "Complet", desc: "Tous les services auto réunis au même endroit." },
+              { icon: Heart, title: "Accompagnement", desc: "Une équipe à votre écoute à chaque étape." },
+            ].map((r) => {
+              const Icon = r.icon;
               return (
-                <Link key={u.to} to={u.to} className="group flex items-center gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4 transition hover:border-[#D4AF37] hover:shadow-sm">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#111] text-[#D4AF37] transition group-hover:bg-[#D4AF37] group-hover:text-white">
-                    <Icon size={18} />
+                <div key={r.title} className="flex items-start gap-4 rounded-xl border border-[#E5E7EB] bg-white p-4 transition hover:shadow-sm">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#D4AF37]/10">
+                    <Icon size={20} className="text-[#D4AF37]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#111]">{u.title}</h3>
-                    <p className="text-xs text-[#6B7280]">{u.desc}</p>
+                    <h3 className="font-bold text-[#111]">{r.title}</h3>
+                    <p className="mt-0.5 text-sm text-[#6B7280]">{r.desc}</p>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* ═══ HISTORIQUE VÉHICULE ═══ */}
-      <section className="bg-[#111] py-10">
-        <div className="container-page">
-          <button
-            onClick={() => setHistOpen(!histOpen)}
-            className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-6 py-4 transition hover:border-[#D4AF37]/50"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#D4AF37]/20">
-                <History size={20} className="text-[#D4AF37]" />
-              </div>
-              <div className="text-left">
-                <h2 className="text-base font-bold text-white">Historique de véhicule</h2>
-                <p className="text-xs text-white/50">Vérifiez l'historique complet avant d'acheter</p>
-              </div>
-            </div>
-            {histOpen ? <ChevronUp size={20} className="text-white/50" /> : <ChevronDown size={20} className="text-white/50" />}
-          </button>
-
-          {histOpen && (
-            <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-6">
-              {/* Infos récupérables */}
-              <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {[
-                  { icon: FileCheck, t: "Contrôles techniques" },
-                  { icon: AlertTriangle, t: "Accidents déclarés" },
-                  { icon: Users, t: "Nombre de propriétaires" },
-                  { icon: Gauge, t: "Kilométrage réel" },
-                ].map((info) => {
-                  const Icon = info.icon;
-                  return (
-                    <div key={info.t} className="flex flex-col items-center gap-2 rounded-xl bg-white/5 p-3 text-center">
-                      <Icon size={20} className="text-[#D4AF37]" />
-                      <span className="text-xs font-medium text-white/70">{info.t}</span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Plaque / VIN / Rechercher */}
-              <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-white/50">PLAQUE D'IMMATRICULATION</label>
-                  <input
-                    className={`w-full rounded-xl border bg-white/10 px-4 py-3 text-sm font-medium uppercase text-white outline-none transition ${histMode === "plaque" ? "border-[#D4AF37]" : "border-white/10"}`}
-                    placeholder="AA-123-BB"
-                    value={histPlaque}
-                    onFocus={() => setHistMode("plaque")}
-                    onChange={(e) => { setHistPlaque(e.target.value.toUpperCase()); setHistMode("plaque"); }}
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-white/50">NUMÉRO VIN</label>
-                  <input
-                    className={`w-full rounded-xl border bg-white/10 px-4 py-3 text-sm font-medium uppercase text-white outline-none transition ${histMode === "vin" ? "border-[#D4AF37]" : "border-white/10"}`}
-                    placeholder="VF3XXXXXXXXX00000"
-                    value={histVin}
-                    onFocus={() => setHistMode("vin")}
-                    onChange={(e) => { setHistVin(e.target.value.toUpperCase()); setHistMode("vin"); }}
-                  />
-                </div>
-                <div className="flex items-end">
-                  <button
-                    onClick={() => setHistResult(true)}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-white hover:bg-[#C5A028] md:w-auto"
-                  >
-                    <Search size={16} /> Rechercher
-                  </button>
-                </div>
-              </div>
-
-              {histResult && (
-                <div className="mt-4 rounded-xl bg-white/5 p-5">
-                  <p className="mb-3 text-sm font-bold text-[#D4AF37]">Résultat — Historique véhicule</p>
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="rounded-lg bg-white/5 p-3"><p className="text-xs text-white/40">Propriétaires</p><p className="text-lg font-bold text-white">2</p></div>
-                    <div className="rounded-lg bg-white/5 p-3"><p className="text-xs text-white/40">Accidents</p><p className="text-lg font-bold text-green-400">0</p></div>
-                    <div className="rounded-lg bg-white/5 p-3"><p className="text-xs text-white/40">Dernier CT</p><p className="text-lg font-bold text-white">03/2025</p></div>
-                    <div className="rounded-lg bg-white/5 p-3"><p className="text-xs text-white/40">Km vérifié</p><p className="text-lg font-bold text-white">45 200</p></div>
-                  </div>
-                  <Link to="/historique" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#D4AF37] hover:underline">
-                    Voir le rapport complet <ArrowRight size={14} />
-                  </Link>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ═══ CHIFFRES CLÉS ═══ */}
-      <section className="bg-[#111] py-10 border-t border-white/5">
-        <div className="container-page grid grid-cols-2 gap-6 text-center md:grid-cols-4">
+      {/* ═══════════════════════════════════════════════════════════
+          9. STATISTIQUES — BANDE OR
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-[#D4AF37] py-6">
+        <div className="container-page grid grid-cols-3 gap-4 text-center md:grid-cols-6">
           {[
-            { v: stats.data?.vehicules ?? "—", l: "Véhicules" },
-            { v: stats.data?.garages ?? "—", l: "Garages partenaires" },
-            { v: "200+", l: "Pays couverts" },
-            { v: "24/7", l: "Support client" },
+            { v: "+100 000", l: "Utilisateurs" },
+            { v: "+30 000", l: "Véhicules disponibles" },
+            { v: "+5 000", l: "Professionnels" },
+            { v: "4,8/5", l: "Avis clients" },
+            { v: "100%", l: "Paiements sécurisés" },
+            { v: "Support 7/7", l: "À votre écoute" },
           ].map((s) => (
             <div key={s.l}>
-              <div className="text-3xl font-extrabold text-[#D4AF37]">{String(s.v)}</div>
-              <div className="mt-1 text-xs font-medium text-white/50">{s.l}</div>
+              <div className="text-xl font-extrabold text-white md:text-2xl">{s.v}</div>
+              <div className="mt-0.5 text-xs font-medium text-white/80">{s.l}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ═══ CTA — CRÉER UN COMPTE / SE CONNECTER ═══ */}
-      <section className="bg-white py-12">
+      {/* ═══════════════════════════════════════════════════════════
+          10. PARTENAIRES
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-white py-10">
         <div className="container-page">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-extrabold text-[#111]">Rejoignez MKA.P-MS</h2>
-            <p className="mt-2 text-[#6B7280]">
-              Inscription gratuite. Déposez votre annonce, recherchez un véhicule, gérez votre activité pro.
-            </p>
-          </div>
-
-          {/* Créer un compte — bouton qui s'ouvre */}
-          <div className="mx-auto mt-8 max-w-lg">
-            <button
-              onClick={() => setCompteOpen(!compteOpen)}
-              className="flex w-full items-center justify-between rounded-2xl border-2 border-[#111] px-6 py-4 transition hover:bg-[#111] hover:text-white group"
-            >
-              <div className="flex items-center gap-3">
-                <UserPlus size={20} className="text-[#D4AF37]" />
-                <span className="font-bold text-[#111] group-hover:text-white">Créer un compte</span>
-              </div>
-              {compteOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
-
-            {compteOpen && (
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <Link
-                  to="/connexion"
-                  className="flex flex-col items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-6 text-center transition hover:border-[#D4AF37] hover:shadow-md"
-                >
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4AF37]/10">
-                    <Car size={28} className="text-[#D4AF37]" />
-                  </div>
-                  <h3 className="font-bold text-[#111]">Particulier</h3>
-                  <p className="text-xs text-[#6B7280]">Achetez, vendez, louez. Inscription gratuite.</p>
-                </Link>
-                <Link
-                  to="/connexion"
-                  className="flex flex-col items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-6 text-center transition hover:border-[#D4AF37] hover:shadow-md"
-                >
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#111]">
-                    <Building2 size={28} className="text-[#D4AF37]" />
-                  </div>
-                  <h3 className="font-bold text-[#111]">Professionnel</h3>
-                  <p className="text-xs text-[#6B7280]">Garage, vente, location, VTC, pièces, carte grise.</p>
-                </Link>
-              </div>
-            )}
-
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-              <Link to="/connexion" className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white hover:bg-[#C5A028]">
-                <LogIn size={16} /> Se connecter
+          <h2 className="text-center text-xl font-bold text-[#111]">Nos professionnels partenaires</h2>
+          <Link to="/garages" className="mt-1 block text-center text-sm text-[#6B7280] hover:text-[#D4AF37]">Voir tous nos partenaires →</Link>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {PARTENAIRES.map((p) => (
+              <Link key={p.title} to={p.to} className="rounded-2xl border border-[#E5E7EB] bg-white p-5 transition hover:shadow-md">
+                <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[#F3F4F6]">
+                  <Wrench size={28} className="text-[#D4AF37]" />
+                </div>
+                <h3 className="mt-3 font-bold text-[#111]">{p.title}</h3>
+                <p className="mt-1 text-xs text-[#6B7280]">{p.desc}</p>
+                <span className="mt-3 inline-block rounded-lg bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white">{p.cta}</span>
               </Link>
-              <Link to="/vendre" className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-[#D4AF37] py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white">
-                Déposer une annonce
-              </Link>
-            </div>
-
-            <Link to="/mission" className="mt-4 block text-center text-sm font-medium text-[#6B7280] hover:text-[#D4AF37]">
-              Découvrir notre mission →
-            </Link>
+            ))}
           </div>
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          11. ESPACE PRO — BANDE NOIRE
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-[#111] py-10">
+        <div className="container-page">
+          <div className="flex flex-col items-center gap-4 text-center lg:flex-row lg:justify-between lg:text-left">
+            <div>
+              <h2 className="text-xl font-bold text-white">Espace Pro : développez votre activité</h2>
+              <p className="mt-1 text-sm text-white/50">Accédez à tous nos outils et services dédiés aux professionnels.</p>
+            </div>
+            <Link to="/espace-pro" className="shrink-0 rounded-xl border-2 border-[#D4AF37] px-6 py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white">
+              Découvrir l'espace Pro
+            </Link>
+          </div>
+          <div className="mt-8 grid grid-cols-4 gap-3 sm:grid-cols-8">
+            {PRO_ACTIVITIES.map((a) => (
+              <Link key={a.label} to={a.to} className="group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-3 text-center transition hover:border-[#D4AF37]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 transition group-hover:bg-[#D4AF37]/20">
+                  <Wrench size={18} className="text-[#D4AF37]" />
+                </div>
+                <span className="text-[10px] font-medium text-white/60 sm:text-xs">{a.label}</span>
+              </Link>
+            ))}
+          </div>
+          <p className="mt-4 text-center text-xs text-white/40">Gérez votre activité, vos véhicules, vos équipes et vos documents.</p>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          12. NEWSLETTER + RÉSEAUX SOCIAUX
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-[#F8F9FA] py-10">
+        <div className="container-page">
+          <h2 className="text-lg font-bold text-[#111]">Restez informé</h2>
+          <p className="mt-1 text-sm text-[#6B7280]">Recevez nos meilleures offres et nouveautés</p>
+          <div className="mt-4 flex max-w-md gap-2">
+            <input
+              className="flex-1 rounded-xl border border-[#D1D5DB] px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]"
+              placeholder="Votre adresse email"
+              type="email"
+              value={newsEmail}
+              onChange={(e) => setNewsEmail(e.target.value)}
+            />
+            <button className="rounded-xl bg-[#111] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#222]">
+              S'abonner
+            </button>
+          </div>
+          <div className="mt-4 flex gap-3">
+            {["Facebook", "Instagram", "YouTube", "TikTok"].map((s) => (
+              <a key={s} href="#" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#111] text-xs font-bold text-white transition hover:bg-[#D4AF37]">
+                {s[0]}
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          13. FOOTER COMPLET
+         ═══════════════════════════════════════════════════════════ */}
+      <footer className="bg-[#111] py-10 text-white/60">
+        <div className="container-page">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
+            <div>
+              <h3 className="text-lg font-extrabold text-white">MK<span className="text-[#D4AF37]">A</span>.P-MS</h3>
+              <p className="mt-2 text-xs leading-relaxed">La plateforme auto qui simplifie toutes vos démarches.</p>
+            </div>
+            <div>
+              <h4 className="mb-3 text-sm font-bold text-white">Nos services</h4>
+              <div className="space-y-2 text-xs">
+                <Link to="/acheter" className="block hover:text-[#D4AF37]">Achat / Vente</Link>
+                <Link to="/louer" className="block hover:text-[#D4AF37]">Location</Link>
+                <Link to="/devis" className="block hover:text-[#D4AF37]">Devis</Link>
+                <Link to="/livraison" className="block hover:text-[#D4AF37]">Livraison</Link>
+                <Link to="/garages" className="block hover:text-[#D4AF37]">Garage</Link>
+                <Link to="/pieces" className="block hover:text-[#D4AF37]">Pièces Auto</Link>
+                <Link to="/depannage" className="block hover:text-[#D4AF37]">Dépannage</Link>
+              </div>
+            </div>
+            <div>
+              <h4 className="mb-3 text-sm font-bold text-white">Informations</h4>
+              <div className="space-y-2 text-xs">
+                <Link to="/mission" className="block hover:text-[#D4AF37]">À propos</Link>
+                <Link to="/aide#cgv" className="block hover:text-[#D4AF37]">CGU</Link>
+                <Link to="/aide#rgpd" className="block hover:text-[#D4AF37]">Confidentialité</Link>
+                <Link to="/aide" className="block hover:text-[#D4AF37]">Aide & FAQ</Link>
+                <Link to="/aide" className="block hover:text-[#D4AF37]">Contact</Link>
+              </div>
+            </div>
+            <div>
+              <h4 className="mb-3 text-sm font-bold text-white">Espace Pro</h4>
+              <div className="space-y-2 text-xs">
+                <Link to="/espace-pro" className="block hover:text-[#D4AF37]">Devenir partenaire</Link>
+                <Link to="/espace-pro" className="block hover:text-[#D4AF37]">Gestion de flotte</Link>
+                <Link to="/espace-pro" className="block hover:text-[#D4AF37]">Solutions pro</Link>
+                <Link to="/abonnements" className="block hover:text-[#D4AF37]">Abonnements</Link>
+              </div>
+            </div>
+            <div>
+              <h4 className="mb-3 text-sm font-bold text-white">Nous contacter</h4>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center gap-2"><Phone size={12} /> 01 23 45 67 89</div>
+                <div className="flex items-center gap-2"><Mail size={12} /> contact@mkapms.com</div>
+                <div className="flex items-center gap-2"><Clock size={12} /> Lun - Dim : 8h - 20h</div>
+                <div className="flex items-center gap-2"><MapPin size={12} /> Support 7/7</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 sm:flex-row">
+            <p className="text-xs">© 2024 MKA.P-MS - Tous droits réservés</p>
+            <div className="flex gap-3">
+              <span className="rounded bg-blue-800 px-3 py-1 text-xs font-bold text-white">VISA</span>
+              <span className="rounded bg-red-600 px-3 py-1 text-xs font-bold text-white">MasterCard</span>
+              <span className="rounded bg-blue-600 px-3 py-1 text-xs font-bold text-white">PayPal</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
