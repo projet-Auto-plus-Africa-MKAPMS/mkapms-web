@@ -40,6 +40,15 @@ import {
   campaigns,
   partnerApiKeys,
   payments,
+  lavageStations,
+  lavageBookings,
+  kartingCenters,
+  kartingEvents,
+  kartingRegistrations,
+  kartingFleet,
+  formations,
+  formationEnrollments,
+  modules,
 } from "../schema.js";
 import { logAction, clientMeta } from "../audit.js";
 import { makeReference } from "../reference.js";
@@ -1075,4 +1084,218 @@ export const partnerApiRouter = router({
       await logAction(ctx.user.uid, "api.key.status", "api_key", input.id, { active: input.active }, clientMeta(ctx.req));
       return { ok: true };
     }),
+});
+
+// ===================== LAVAGE AUTO (Partie 15) — complet, masqué au public =====================
+// Référencé sur la carte de la plateforme (côté Direction), pas visible aux clients pour le moment.
+export const lavageRouter = router({
+  listStations: adminProcedure.query(async () => {
+    return db.select().from(lavageStations).orderBy(desc(lavageStations.createdAt));
+  }),
+  createStation: directionProcedure
+    .input(
+      z.object({
+        nom: z.string().min(2).max(160),
+        type: z.string().max(64).optional(),
+        adresse: z.string().max(500).optional(),
+        countryCode: z.string().min(2).max(4).optional(),
+        lat: z.number().optional(),
+        lng: z.number().optional(),
+        partenaire: z.boolean().default(false),
+        active: z.boolean().default(false),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [s] = await db.insert(lavageStations).values({
+        nom: input.nom,
+        type: input.type ?? null,
+        adresse: input.adresse ?? null,
+        countryCode: input.countryCode?.toUpperCase() ?? null,
+        lat: input.lat != null ? String(input.lat) : null,
+        lng: input.lng != null ? String(input.lng) : null,
+        partenaire: input.partenaire,
+        active: input.active,
+      }).returning();
+      await logAction(ctx.user.uid, "lavage.station.create", "lavage_station", s.id, { nom: input.nom }, clientMeta(ctx.req));
+      return s;
+    }),
+  setStationActive: directionProcedure
+    .input(z.object({ id: z.number(), active: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(lavageStations).set({ active: input.active }).where(eq(lavageStations.id, input.id));
+      await logAction(ctx.user.uid, "lavage.station.status", "lavage_station", input.id, { active: input.active }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+  bookings: adminProcedure.query(async () => {
+    return db.select().from(lavageBookings).orderBy(desc(lavageBookings.createdAt)).limit(100);
+  }),
+});
+
+// ===================== KARTING (Partie 16) — complet, masqué au public =====================
+export const kartingRouter = router({
+  listCenters: adminProcedure.query(async () => {
+    return db.select().from(kartingCenters).orderBy(desc(kartingCenters.createdAt));
+  }),
+  createCenter: directionProcedure
+    .input(
+      z.object({
+        nom: z.string().min(2).max(160),
+        countryCode: z.string().min(2).max(4).optional(),
+        ville: z.string().max(96).optional(),
+        adresse: z.string().max(500).optional(),
+        lat: z.number().optional(),
+        lng: z.number().optional(),
+        partenaire: z.boolean().default(false),
+        active: z.boolean().default(false),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [c] = await db.insert(kartingCenters).values({
+        nom: input.nom,
+        countryCode: input.countryCode?.toUpperCase() ?? null,
+        ville: input.ville ?? null,
+        adresse: input.adresse ?? null,
+        lat: input.lat != null ? String(input.lat) : null,
+        lng: input.lng != null ? String(input.lng) : null,
+        partenaire: input.partenaire,
+        active: input.active,
+      }).returning();
+      await logAction(ctx.user.uid, "karting.center.create", "karting_center", c.id, { nom: input.nom }, clientMeta(ctx.req));
+      return c;
+    }),
+  setCenterActive: directionProcedure
+    .input(z.object({ id: z.number(), active: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(kartingCenters).set({ active: input.active }).where(eq(kartingCenters.id, input.id));
+      await logAction(ctx.user.uid, "karting.center.status", "karting_center", input.id, { active: input.active }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+  listEvents: adminProcedure.query(async () => {
+    return db.select().from(kartingEvents).orderBy(desc(kartingEvents.createdAt)).limit(100);
+  }),
+  createEvent: directionProcedure
+    .input(z.object({ centerId: z.number().optional(), titre: z.string().min(2).max(160), type: z.string().max(64).optional(), dateEvent: z.string().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const [e] = await db.insert(kartingEvents).values({ centerId: input.centerId ?? null, titre: input.titre, type: input.type ?? null, dateEvent: input.dateEvent ?? null }).returning();
+      await logAction(ctx.user.uid, "karting.event.create", "karting_event", e.id, { titre: input.titre }, clientMeta(ctx.req));
+      return e;
+    }),
+  registrations: adminProcedure.query(async () => {
+    return db.select().from(kartingRegistrations).orderBy(desc(kartingRegistrations.createdAt)).limit(100);
+  }),
+  // --- Featuring : flotte de karts MKA.P-MS (vitrine marque + fabrication maison) ---
+  listFleet: adminProcedure.query(async () => {
+    return db.select().from(kartingFleet).orderBy(desc(kartingFleet.createdAt));
+  }),
+  addKart: directionProcedure
+    .input(
+      z.object({
+        centerId: z.number().optional(),
+        modele: z.string().min(1).max(160),
+        marque: z.string().max(96).default("MKA.P-MS"),
+        fabricationMaison: z.boolean().default(true),
+        numeroSerie: z.string().max(64).optional(),
+        puissance: z.string().max(48).optional(),
+        statut: z.enum(["operationnel", "maintenance", "vitrine", "prototype"]).default("operationnel"),
+        photoUrl: z.string().url().optional(),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [k] = await db.insert(kartingFleet).values({
+        centerId: input.centerId ?? null,
+        modele: input.modele,
+        marque: input.marque,
+        fabricationMaison: input.fabricationMaison,
+        numeroSerie: input.numeroSerie ?? null,
+        puissance: input.puissance ?? null,
+        statut: input.statut,
+        photoUrl: input.photoUrl ?? null,
+        notes: input.notes ?? null,
+      }).returning();
+      await logAction(ctx.user.uid, "karting.kart.add", "karting_kart", k.id, { modele: input.modele, maison: input.fabricationMaison }, clientMeta(ctx.req));
+      return k;
+    }),
+  setKartStatus: directionProcedure
+    .input(z.object({ id: z.number(), statut: z.enum(["operationnel", "maintenance", "vitrine", "prototype"]) }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(kartingFleet).set({ statut: input.statut }).where(eq(kartingFleet.id, input.id));
+      await logAction(ctx.user.uid, "karting.kart.status", "karting_kart", input.id, { statut: input.statut }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+});
+
+// ===================== FORMATION (Partie 17) — complet, masqué au public =====================
+export const formationRouter = router({
+  list: adminProcedure.query(async () => {
+    return db.select().from(formations).orderBy(desc(formations.createdAt));
+  }),
+  create: directionProcedure
+    .input(
+      z.object({
+        titre: z.string().min(2).max(160),
+        categorie: z.string().max(64).optional(),
+        description: z.string().max(2000).optional(),
+        videoUrl: z.string().url().optional(),
+        certifiante: z.boolean().default(false),
+        active: z.boolean().default(false),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [f] = await db.insert(formations).values({
+        titre: input.titre,
+        categorie: input.categorie ?? null,
+        description: input.description ?? null,
+        videoUrl: input.videoUrl ?? null,
+        certifiante: input.certifiante,
+        active: input.active,
+      }).returning();
+      await logAction(ctx.user.uid, "formation.create", "formation", f.id, { titre: input.titre }, clientMeta(ctx.req));
+      return f;
+    }),
+  setActive: directionProcedure
+    .input(z.object({ id: z.number(), active: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(formations).set({ active: input.active }).where(eq(formations.id, input.id));
+      await logAction(ctx.user.uid, "formation.status", "formation", input.id, { active: input.active }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+  enrollments: adminProcedure.query(async () => {
+    return db.select().from(formationEnrollments).orderBy(desc(formationEnrollments.createdAt)).limit(100);
+  }),
+});
+
+// ===================== CARTE PLATEFORME (Direction) =====================
+// Vue complète pour la Direction : sites + lavage + karting référencés sur la carte,
+// même si ces univers sont masqués au public. Le client ne voit PAS cette carte.
+export const platformMapRouter = router({
+  // Carte complète (Direction) — inclut karting & lavage, non visibles aux clients.
+  full: adminProcedure.query(async () => {
+    const pts: Array<{ category: string; id: number; name: string; countryCode: string | null; city: string | null; lat: number; lng: number; publicVisible: boolean }> = [];
+    const geoSites = await db.select().from(sites).where(eq(sites.active, true));
+    for (const s of geoSites) if (s.lat != null && s.lng != null) pts.push({ category: s.type, id: s.id, name: s.name, countryCode: s.countryCode, city: s.city, lat: Number(s.lat), lng: Number(s.lng), publicVisible: true });
+    const lav = await db.select().from(lavageStations).where(eq(lavageStations.active, true));
+    for (const l of lav) if (l.lat != null && l.lng != null) pts.push({ category: "lavage", id: l.id, name: l.nom, countryCode: l.countryCode, city: null, lat: Number(l.lat), lng: Number(l.lng), publicVisible: false });
+    const kar = await db.select().from(kartingCenters).where(eq(kartingCenters.active, true));
+    for (const k of kar) if (k.lat != null && k.lng != null) pts.push({ category: "karting", id: k.id, name: k.nom, countryCode: k.countryCode, city: k.ville, lat: Number(k.lat), lng: Number(k.lng), publicVisible: false });
+    return pts;
+  }),
+  // Carte publique (clients) — exclut les univers masqués (karting/lavage tant qu'ils ne sont pas activés publiquement).
+  publicMap: publicProcedure.query(async () => {
+    const pts: Array<{ category: string; id: number; name: string; countryCode: string | null; city: string | null; lat: number; lng: number }> = [];
+    const geoSites = await db.select().from(sites).where(eq(sites.active, true));
+    for (const s of geoSites) if (s.lat != null && s.lng != null) pts.push({ category: s.type, id: s.id, name: s.name, countryCode: s.countryCode, city: s.city, lat: Number(s.lat), lng: Number(s.lng) });
+    // Karting/Lavage uniquement si leur module est explicitement actif + visible public.
+    const mods = await db.select().from(modules);
+    const isPublic = (code: string) => mods.some((m) => m.code === code && m.status === "active" && m.visiblePublic);
+    if (isPublic("lavage")) {
+      const lav = await db.select().from(lavageStations).where(eq(lavageStations.active, true));
+      for (const l of lav) if (l.lat != null && l.lng != null) pts.push({ category: "lavage", id: l.id, name: l.nom, countryCode: l.countryCode, city: null, lat: Number(l.lat), lng: Number(l.lng) });
+    }
+    if (isPublic("karting")) {
+      const kar = await db.select().from(kartingCenters).where(eq(kartingCenters.active, true));
+      for (const k of kar) if (k.lat != null && k.lng != null) pts.push({ category: "karting", id: k.id, name: k.nom, countryCode: k.countryCode, city: k.ville, lat: Number(k.lat), lng: Number(k.lng) });
+    }
+    return pts;
+  }),
 });

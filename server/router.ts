@@ -26,7 +26,7 @@ import { kycRouter } from "./routers/kyc.js";
 import { currencyRouter } from "./routers/currency.js";
 import { notificationsRouter, searchesRouter } from "./routers/notifications.js";
 import { reviewsRouter } from "./routers/reviews.js";
-import { disputesRouter, partnersRouter, warehousesRouter, countriesRouter, loyaltyRouter, documentsRouter, dossiersRouter, governanceRouter, platformRouter, insuranceRouter, labRouter, procurementRouter, hrRouter, qualityRouter, investorRouter, mediaRouter, partnerApiRouter } from "./routers/operations.js";
+import { disputesRouter, partnersRouter, warehousesRouter, countriesRouter, loyaltyRouter, documentsRouter, dossiersRouter, governanceRouter, platformRouter, insuranceRouter, labRouter, procurementRouter, hrRouter, qualityRouter, investorRouter, mediaRouter, partnerApiRouter, lavageRouter, kartingRouter, formationRouter, platformMapRouter } from "./routers/operations.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -79,6 +79,11 @@ export const appRouter = router({
   investor: investorRouter,
   media: mediaRouter,
   partnerApi: partnerApiRouter,
+  // Univers Lavage / Karting / Formation (complets, masqués au public) + carte plateforme
+  lavage: lavageRouter,
+  karting: kartingRouter,
+  formation: formationRouter,
+  platformMap: platformMapRouter,
 });
 
 export type AppRouter = typeof appRouter;

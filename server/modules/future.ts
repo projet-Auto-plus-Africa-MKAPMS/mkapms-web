@@ -46,6 +46,9 @@ export const kartingCenters = pgTable("karting_centers", {
   countryCode: varchar("country_code", { length: 4 }),
   ville: varchar("ville", { length: 96 }),
   adresse: text("adresse"),
+  lat: numeric("lat", { precision: 10, scale: 6 }),
+  lng: numeric("lng", { precision: 10, scale: 6 }),
+  partenaire: boolean("partenaire").notNull().default(false),
   active: boolean("active").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -64,6 +67,22 @@ export const kartingRegistrations = pgTable("karting_registrations", {
   id: serial("id").primaryKey(),
   eventId: integer("event_id").notNull(),
   userId: integer("user_id").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Flotte de karts — vitrine de marque MKA.P-MS + véhicules fabriqués maison (featuring).
+export const kartingFleet = pgTable("karting_fleet", {
+  id: serial("id").primaryKey(),
+  centerId: integer("center_id"),
+  modele: varchar("modele", { length: 160 }).notNull(),
+  marque: varchar("marque", { length: 96 }).notNull().default("MKA.P-MS"),
+  fabricationMaison: boolean("fabrication_maison").notNull().default(true), // kart fabriqué par MKA.P-MS
+  numeroSerie: varchar("numero_serie", { length: 64 }),
+  puissance: varchar("puissance", { length: 48 }), // ex: "9 CV", "électrique 20 kW"
+  statut: varchar("statut", { length: 32 }).notNull().default("operationnel"), // operationnel, maintenance, vitrine, prototype
+  photoUrl: text("photo_url"),
+  notes: text("notes"),
+  active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

@@ -71,6 +71,13 @@
       "when": 1781322132336,
       "tag": "0009_lyrical_skin",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1781323966099,
+      "tag": "0010_fancy_umar",
+      "breakpoints": true
     }
   ]
 }

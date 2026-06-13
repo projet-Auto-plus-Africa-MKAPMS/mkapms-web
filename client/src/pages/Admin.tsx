@@ -73,6 +73,13 @@ export default function Admin() {
   const investor = trpc.investor.overview.useQuery(undefined, { enabled });
   const mediaList = trpc.media.list.useQuery(undefined, { enabled });
   const apiKeys = trpc.partnerApi.list.useQuery(undefined, { enabled });
+  // Lavage / Karting / Formation (masqués au public) + carte plateforme
+  const lavageStationsQ = trpc.lavage.listStations.useQuery(undefined, { enabled });
+  const kartingCentersQ = trpc.karting.listCenters.useQuery(undefined, { enabled });
+  const kartingFleetQ = trpc.karting.listFleet.useQuery(undefined, { enabled });
+  const kartingEventsQ = trpc.karting.listEvents.useQuery(undefined, { enabled });
+  const formationsQ = trpc.formation.list.useQuery(undefined, { enabled });
+  const platformMapQ = trpc.platformMap.full.useQuery(undefined, { enabled });
 
   const setCountryActive = trpc.countries.setActive.useMutation({ onSuccess: () => { utils.countries.listAll.invalidate(); utils.countries.stats.invalidate(); } });
   const createSubsidiary = trpc.governance.createSubsidiary.useMutation({ onSuccess: () => { utils.governance.listSubsidiaries.invalidate(); setSubsidiary({ name: "", countryCode: "FR", city: "" }); } });
@@ -95,6 +102,16 @@ export default function Admin() {
   const removeMedia = trpc.media.remove.useMutation({ onSuccess: () => utils.media.list.invalidate() });
   const createApiKey = trpc.partnerApi.create.useMutation({ onSuccess: (d) => { utils.partnerApi.list.invalidate(); setNewApiKey(d.apiKey); setApiForm({ name: "", scopes: "" }); } });
   const setApiKeyActive = trpc.partnerApi.setActive.useMutation({ onSuccess: () => utils.partnerApi.list.invalidate() });
+  // Lavage / Karting / Formation
+  const createLavage = trpc.lavage.createStation.useMutation({ onSuccess: () => { utils.lavage.listStations.invalidate(); utils.platformMap.full.invalidate(); setLavage({ nom: "", countryCode: "FR", lat: "", lng: "", active: true }); } });
+  const setLavageActive = trpc.lavage.setStationActive.useMutation({ onSuccess: () => { utils.lavage.listStations.invalidate(); utils.platformMap.full.invalidate(); } });
+  const createKartingCenter = trpc.karting.createCenter.useMutation({ onSuccess: () => { utils.karting.listCenters.invalidate(); utils.platformMap.full.invalidate(); setKartingCenter({ nom: "", countryCode: "FR", ville: "", lat: "", lng: "", active: true }); } });
+  const setKartingActive = trpc.karting.setCenterActive.useMutation({ onSuccess: () => { utils.karting.listCenters.invalidate(); utils.platformMap.full.invalidate(); } });
+  const addKart = trpc.karting.addKart.useMutation({ onSuccess: () => { utils.karting.listFleet.invalidate(); setKart({ modele: "", marque: "MKA.P-MS", fabricationMaison: true, puissance: "", statut: "operationnel" }); } });
+  const setKartStatus = trpc.karting.setKartStatus.useMutation({ onSuccess: () => utils.karting.listFleet.invalidate() });
+  const createKartingEvent = trpc.karting.createEvent.useMutation({ onSuccess: () => { utils.karting.listEvents.invalidate(); setKartingEvent({ titre: "", type: "evenement", dateEvent: "" }); } });
+  const createFormation = trpc.formation.create.useMutation({ onSuccess: () => { utils.formation.list.invalidate(); setFormation({ titre: "", categorie: "garage", certifiante: false, active: false }); } });
+  const setFormationActive = trpc.formation.setActive.useMutation({ onSuccess: () => utils.formation.list.invalidate() });
 
   const [staff, setStaff] = useState({ email: "", name: "", password: "", role: "employee" as "employee" | "admin" });
   const [promo, setPromo] = useState({ code: "", type: "pourcentage" as "pourcentage" | "montant", value: 10 });
@@ -113,6 +130,11 @@ export default function Admin() {
   const [media, setMedia] = useState({ type: "photo", title: "", url: "", channel: "" });
   const [apiForm, setApiForm] = useState({ name: "", scopes: "" });
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
+  const [lavage, setLavage] = useState({ nom: "", countryCode: "FR", lat: "", lng: "", active: true });
+  const [kartingCenter, setKartingCenter] = useState({ nom: "", countryCode: "FR", ville: "", lat: "", lng: "", active: true });
+  const [kart, setKart] = useState({ modele: "", marque: "MKA.P-MS", fabricationMaison: true, puissance: "", statut: "operationnel" });
+  const [kartingEvent, setKartingEvent] = useState({ titre: "", type: "evenement", dateEvent: "" });
+  const [formation, setFormation] = useState({ titre: "", categorie: "garage", certifiante: false, active: false });
 
   if (!enabled) {
     return (
@@ -901,6 +923,128 @@ export default function Admin() {
                 </div>
               ))}
               {apiKeys.data?.length === 0 && <p className="text-sm text-slate-500">Aucune clé.</p>}
+            </div>
+          </section>
+
+          {/* Karting (featuring — prioritaire) — masqué au public */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Karting <span className="rounded bg-brand/10 px-1.5 py-0.5 text-xs font-bold text-brand">FEATURING</span> <span className="text-xs font-normal text-slate-400">(masqué au public)</span></h2>
+            <p className="text-xs text-slate-500">Levier de marque MKA.P-MS : centres référencés sur la carte plateforme + flotte de karts (dont fabrication maison). Invisible aux clients tant que le module n'est pas activé.</p>
+
+            <h3 className="mt-3 text-sm font-bold text-slate-700">Centres karting</h3>
+            <form className="mt-2 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (kartingCenter.nom) createKartingCenter.mutate({ nom: kartingCenter.nom, countryCode: kartingCenter.countryCode, ville: kartingCenter.ville || undefined, lat: kartingCenter.lat ? Number(kartingCenter.lat) : undefined, lng: kartingCenter.lng ? Number(kartingCenter.lng) : undefined, active: kartingCenter.active }); }}>
+              <input className="input max-w-xs" placeholder="Nom (Karting MKA Conakry)" value={kartingCenter.nom} onChange={(e) => setKartingCenter({ ...kartingCenter, nom: e.target.value })} />
+              <input className="input max-w-[100px]" placeholder="Pays" value={kartingCenter.countryCode} onChange={(e) => setKartingCenter({ ...kartingCenter, countryCode: e.target.value })} />
+              <input className="input max-w-[140px]" placeholder="Ville" value={kartingCenter.ville} onChange={(e) => setKartingCenter({ ...kartingCenter, ville: e.target.value })} />
+              <input className="input max-w-[110px]" placeholder="Lat" value={kartingCenter.lat} onChange={(e) => setKartingCenter({ ...kartingCenter, lat: e.target.value })} />
+              <input className="input max-w-[110px]" placeholder="Lng" value={kartingCenter.lng} onChange={(e) => setKartingCenter({ ...kartingCenter, lng: e.target.value })} />
+              <button className="btn-primary !text-sm">Ajouter centre</button>
+            </form>
+            <div className="mt-2 space-y-1">
+              {kartingCentersQ.data?.map((c) => (
+                <div key={c.id} className="card flex items-center justify-between p-2 text-sm">
+                  <span className="text-slate-700">{c.nom} <span className="text-xs text-slate-400">({c.countryCode ?? "—"}{c.ville ? ` · ${c.ville}` : ""}{c.lat != null && c.lng != null ? " · géolocalisé" : " · sans GPS"})</span></span>
+                  <button className={`btn-outline !py-1 !text-xs ${c.active ? "!border-green-500 !text-green-600" : ""}`} onClick={() => setKartingActive.mutate({ id: c.id, active: !c.active })}>{c.active ? "Actif" : "Inactif"}</button>
+                </div>
+              ))}
+              {kartingCentersQ.data?.length === 0 && <p className="text-sm text-slate-500">Aucun centre.</p>}
+            </div>
+
+            <h3 className="mt-4 text-sm font-bold text-slate-700">Flotte de karts MKA.P-MS (vitrine marque + fabrication maison)</h3>
+            <form className="mt-2 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (kart.modele) addKart.mutate({ modele: kart.modele, marque: kart.marque || "MKA.P-MS", fabricationMaison: kart.fabricationMaison, puissance: kart.puissance || undefined, statut: kart.statut as "operationnel" }); }}>
+              <input className="input max-w-xs" placeholder="Modèle (MKA-Kart X1)" value={kart.modele} onChange={(e) => setKart({ ...kart, modele: e.target.value })} />
+              <input className="input max-w-[140px]" placeholder="Marque" value={kart.marque} onChange={(e) => setKart({ ...kart, marque: e.target.value })} />
+              <input className="input max-w-[150px]" placeholder="Puissance (9 CV…)" value={kart.puissance} onChange={(e) => setKart({ ...kart, puissance: e.target.value })} />
+              <select className="input max-w-[150px]" value={kart.statut} onChange={(e) => setKart({ ...kart, statut: e.target.value })}>
+                <option value="operationnel">Opérationnel</option><option value="maintenance">Maintenance</option><option value="vitrine">Vitrine</option><option value="prototype">Prototype</option>
+              </select>
+              <label className="flex items-center gap-1 text-xs text-slate-600"><input type="checkbox" checked={kart.fabricationMaison} onChange={(e) => setKart({ ...kart, fabricationMaison: e.target.checked })} /> Fabrication maison</label>
+              <button className="btn-primary !text-sm">Ajouter kart</button>
+            </form>
+            <div className="mt-2 space-y-1">
+              {kartingFleetQ.data?.map((k) => (
+                <div key={k.id} className="card flex items-center justify-between p-2 text-sm">
+                  <span className="text-slate-700">{k.modele} <span className="text-xs text-slate-400">({k.marque}{k.puissance ? ` · ${k.puissance}` : ""}{k.fabricationMaison ? " · 🏭 maison" : ""})</span></span>
+                  <select className="input !py-1 !text-xs max-w-[140px]" value={k.statut} onChange={(e) => setKartStatus.mutate({ id: k.id, statut: e.target.value as "operationnel" })}>
+                    <option value="operationnel">Opérationnel</option><option value="maintenance">Maintenance</option><option value="vitrine">Vitrine</option><option value="prototype">Prototype</option>
+                  </select>
+                </div>
+              ))}
+              {kartingFleetQ.data?.length === 0 && <p className="text-sm text-slate-500">Aucun kart enregistré.</p>}
+            </div>
+
+            <h3 className="mt-4 text-sm font-bold text-slate-700">Événements / compétitions</h3>
+            <form className="mt-2 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (kartingEvent.titre) createKartingEvent.mutate({ titre: kartingEvent.titre, type: kartingEvent.type || undefined, dateEvent: kartingEvent.dateEvent || undefined }); }}>
+              <input className="input max-w-xs" placeholder="Titre (Grand Prix MKA)" value={kartingEvent.titre} onChange={(e) => setKartingEvent({ ...kartingEvent, titre: e.target.value })} />
+              <select className="input max-w-[150px]" value={kartingEvent.type} onChange={(e) => setKartingEvent({ ...kartingEvent, type: e.target.value })}>
+                <option value="evenement">Événement</option><option value="competition">Compétition</option>
+              </select>
+              <input className="input max-w-[150px]" type="date" value={kartingEvent.dateEvent} onChange={(e) => setKartingEvent({ ...kartingEvent, dateEvent: e.target.value })} />
+              <button className="btn-outline !text-sm">Ajouter</button>
+            </form>
+            <div className="mt-2 space-y-1">
+              {kartingEventsQ.data?.map((ev) => (
+                <div key={ev.id} className="card p-2 text-xs text-slate-700">{ev.titre} <span className="text-slate-400">({ev.type ?? "—"}{ev.dateEvent ? ` · ${ev.dateEvent}` : ""})</span></div>
+              ))}
+              {kartingEventsQ.data?.length === 0 && <p className="text-sm text-slate-500">Aucun événement.</p>}
+            </div>
+          </section>
+
+          {/* Lavage Auto — masqué au public */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Lavage Auto <span className="text-xs font-normal text-slate-400">(masqué au public)</span></h2>
+            <p className="text-xs text-slate-500">Stations (propres ou partenaires) référencées sur la carte plateforme. Invisible aux clients pour le moment.</p>
+            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (lavage.nom) createLavage.mutate({ nom: lavage.nom, countryCode: lavage.countryCode, lat: lavage.lat ? Number(lavage.lat) : undefined, lng: lavage.lng ? Number(lavage.lng) : undefined, active: lavage.active }); }}>
+              <input className="input max-w-xs" placeholder="Nom (Lavage MKA Dakar)" value={lavage.nom} onChange={(e) => setLavage({ ...lavage, nom: e.target.value })} />
+              <input className="input max-w-[100px]" placeholder="Pays" value={lavage.countryCode} onChange={(e) => setLavage({ ...lavage, countryCode: e.target.value })} />
+              <input className="input max-w-[110px]" placeholder="Lat" value={lavage.lat} onChange={(e) => setLavage({ ...lavage, lat: e.target.value })} />
+              <input className="input max-w-[110px]" placeholder="Lng" value={lavage.lng} onChange={(e) => setLavage({ ...lavage, lng: e.target.value })} />
+              <button className="btn-primary !text-sm">Ajouter station</button>
+            </form>
+            <div className="mt-3 space-y-1">
+              {lavageStationsQ.data?.map((s) => (
+                <div key={s.id} className="card flex items-center justify-between p-2 text-sm">
+                  <span className="text-slate-700">{s.nom} <span className="text-xs text-slate-400">({s.countryCode ?? "—"}{s.lat != null && s.lng != null ? " · géolocalisé" : " · sans GPS"})</span></span>
+                  <button className={`btn-outline !py-1 !text-xs ${s.active ? "!border-green-500 !text-green-600" : ""}`} onClick={() => setLavageActive.mutate({ id: s.id, active: !s.active })}>{s.active ? "Active" : "Inactive"}</button>
+                </div>
+              ))}
+              {lavageStationsQ.data?.length === 0 && <p className="text-sm text-slate-500">Aucune station.</p>}
+            </div>
+          </section>
+
+          {/* Formation — masqué au public */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Formation <span className="text-xs font-normal text-slate-400">(masqué au public)</span></h2>
+            <p className="text-xs text-slate-500">Catalogue de formations (vidéos, certifiantes) pour garages, vendeurs, transporteurs.</p>
+            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (formation.titre) createFormation.mutate({ titre: formation.titre, categorie: formation.categorie || undefined, certifiante: formation.certifiante, active: formation.active }); }}>
+              <input className="input max-w-xs" placeholder="Titre" value={formation.titre} onChange={(e) => setFormation({ ...formation, titre: e.target.value })} />
+              <input className="input max-w-[150px]" placeholder="Catégorie" value={formation.categorie} onChange={(e) => setFormation({ ...formation, categorie: e.target.value })} />
+              <label className="flex items-center gap-1 text-xs text-slate-600"><input type="checkbox" checked={formation.certifiante} onChange={(e) => setFormation({ ...formation, certifiante: e.target.checked })} /> Certifiante</label>
+              <button className="btn-primary !text-sm">Ajouter</button>
+            </form>
+            <div className="mt-3 space-y-1">
+              {formationsQ.data?.map((f) => (
+                <div key={f.id} className="card flex items-center justify-between p-2 text-sm">
+                  <span className="text-slate-700">{f.titre} <span className="text-xs text-slate-400">({f.categorie ?? "—"}{f.certifiante ? " · certifiante" : ""})</span></span>
+                  <button className={`btn-outline !py-1 !text-xs ${f.active ? "!border-green-500 !text-green-600" : ""}`} onClick={() => setFormationActive.mutate({ id: f.id, active: !f.active })}>{f.active ? "Active" : "Inactive"}</button>
+                </div>
+              ))}
+              {formationsQ.data?.length === 0 && <p className="text-sm text-slate-500">Aucune formation.</p>}
+            </div>
+          </section>
+
+          {/* Carte plateforme (Direction) — inclut karting & lavage non visibles aux clients */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Carte plateforme <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Tous les points référencés (sites, karting, lavage…). Les points <b>non visibles aux clients</b> sont signalés.</p>
+            <div className="mt-3 space-y-1">
+              {platformMapQ.data?.map((p) => (
+                <div key={`${p.category}-${p.id}`} className="card flex items-center justify-between p-2 text-sm">
+                  <span className="text-slate-700"><span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-bold text-slate-600">{p.category}</span> {p.name} <span className="text-xs text-slate-400">({p.countryCode ?? "—"}{p.city ? ` · ${p.city}` : ""} · {p.lat.toFixed(3)}, {p.lng.toFixed(3)})</span></span>
+                  {!p.publicVisible && <span className="text-xs font-semibold text-amber-600">non visible client</span>}
+                </div>
+              ))}
+              {platformMapQ.data?.length === 0 && <p className="text-sm text-slate-500">Aucun point géolocalisé. Ajoutez des coordonnées (lat/lng) aux centres karting, stations lavage ou sites.</p>}
             </div>
           </section>
 
