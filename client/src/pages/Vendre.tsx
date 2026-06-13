@@ -4,6 +4,7 @@ import { TrendingUp } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
+import FileUpload from "../components/FileUpload";
 
 export default function Vendre() {
   const { user } = useAuth();
@@ -74,14 +75,8 @@ export default function Vendre() {
     setForm((f) => ({ ...f, [k]: val }));
   }
 
-  function onFiles(files: FileList | null) {
-    if (!files) return;
-    const arr = Array.from(files).slice(0, maxPhotos - photos.length);
-    arr.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => setPhotos((p) => [...p, reader.result as string].slice(0, maxPhotos));
-      reader.readAsDataURL(file);
-    });
+  function onFilesUploaded(files: { url: string; originalName: string }[]) {
+    setPhotos((prev) => [...prev, ...files.map((f) => f.url)].slice(0, maxPhotos));
   }
 
   function submit() {
@@ -161,8 +156,14 @@ export default function Vendre() {
 
         <div className="space-y-6">
           <div className="card p-5">
-            <h3 className="font-bold text-slate-800">Photos ({photos.length}/{maxPhotos})</h3>
-            <input type="file" accept="image/*" multiple className="mt-3 text-sm" onChange={(e) => onFiles(e.target.files)} />
+            <h3 className="mb-3 font-bold text-slate-800">Photos ({photos.length}/{maxPhotos})</h3>
+            <FileUpload
+              label={`Ajouter des photos (max ${maxPhotos})`}
+              accept="image/*"
+              multiple
+              maxFiles={maxPhotos - photos.length}
+              onUploaded={onFilesUploaded}
+            />
             <div className="mt-3 grid grid-cols-3 gap-2">
               {photos.map((p, i) => (
                 <div key={i} className="relative">

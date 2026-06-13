@@ -5,10 +5,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
+import multer from "multer";
+import { randomUUID } from "node:crypto";
+import { mkdirSync } from "node:fs";
 import { db } from "./db.js";
 import { seedStructure } from "./seed.js";
 import { appRouter } from "./router.js";
 import { createContext } from "./trpc.js";
+import { verifyToken } from "./auth.js";
 import { handleStripeWebhook } from "./stripeWebhook.js";
 import { injectAnnonceSeo, robotsTxt, sitemapXml } from "./seo.js";
 import { env, isProd } from "./env.js";
@@ -24,6 +28,47 @@ app.use(cookieParser());
 app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
 
 app.use(express.json({ limit: "5mb" }));
+
+// ─── UPLOAD FICHIERS (photos, PDF, documents) ───────────────
+const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
+mkdirSync(UPLOADS_DIR, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname) || ".bin";
+    cb(null, `${Date.now()}-${randomUUID().slice(0, 8)}${ext}`);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB max
+  fileFilter: (_req, file, cb) => {
+    const allowed = /\.(jpg|jpeg|png|gif|webp|heic|pdf|doc|docx|xls|xlsx)$/i;
+    if (allowed.test(path.extname(file.originalname))) cb(null, true);
+    else cb(new Error("Type de fichier non autorisé"));
+  },
+});
+
+// Servir les fichiers uploadés
+app.use("/uploads", express.static(UPLOADS_DIR));
+
+// Endpoint upload (authentifié, multi-fichiers)
+app.post("/api/upload", upload.array("files", 20), (req, res) => {
+  const token = req.headers.authorization?.replace("Bearer ", "") || req.cookies?.token;
+  if (!token || !verifyToken(token)) {
+    return res.status(401).json({ error: "Connexion requise" });
+  }
+  const files = req.files as Express.Multer.File[];
+  if (!files?.length) return res.status(400).json({ error: "Aucun fichier" });
+  const urls = files.map((f) => ({
+    url: `/uploads/${f.filename}`,
+    originalName: f.originalname,
+    size: f.size,
+    mimeType: f.mimetype,
+  }));
+  return res.json({ files: urls });
+});
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", service: "mkapms-web", env: env.NODE_ENV });
