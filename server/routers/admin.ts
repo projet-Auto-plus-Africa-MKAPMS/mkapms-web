@@ -19,6 +19,9 @@ import {
   accountDeletionRequests,
   auditLogs,
   disputes,
+  importRequests,
+  partsOrders,
+  deliveryMissions,
 } from "../schema.js";
 import { sql as dsql } from "drizzle-orm";
 
@@ -103,6 +106,59 @@ export const adminRouter = router({
       litigesOuverts: num(openDisputes?.c),
       kycEnAttente: num(kycWaiting?.c),
       annoncesEnAttente: num(annoncesWaiting?.c),
+    };
+  }),
+
+  // Partie 22 — Centre de performance : KPI par univers, en un écran.
+  kpis: adminProcedure.query(async () => {
+    const num = (v: unknown) => Number(v ?? 0);
+    const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 1000) / 10 : 0);
+
+    // Vente
+    const [annTotal] = await db.select({ c: dsql<number>`count(*)::int` }).from(annonces);
+    const [annSold] = await db.select({ c: dsql<number>`count(*)::int` }).from(annonces).where(eq(annonces.status, "vendue"));
+    const [annAvg] = await db.select({ v: dsql<number>`coalesce(avg(${annonces.prix}),0)` }).from(annonces).where(dsql`${annonces.prix} > 0`);
+    const [delaiVente] = await db.select({ v: dsql<number>`coalesce(avg(extract(epoch from (${annonces.updatedAt} - ${annonces.createdAt}))/86400),0)` }).from(annonces).where(eq(annonces.status, "vendue"));
+
+    // Garage / Devis
+    const [devisTotal] = await db.select({ c: dsql<number>`count(*)::int` }).from(devisGarageRequests);
+    const [devisAccept] = await db.select({ c: dsql<number>`count(*)::int` }).from(devisGarageRequests).where(dsql`${devisGarageRequests.status} in ('accepte','accepted','valide')`);
+
+    // Location
+    const [bookingsTotal] = await db.select({ c: dsql<number>`count(*)::int` }).from(bookings);
+
+    // Pièces
+    const [partsTotal] = await db.select({ c: dsql<number>`count(*)::int` }).from(partsOrders);
+
+    // Livraison
+    const [missionsTotal] = await db.select({ c: dsql<number>`count(*)::int` }).from(deliveryMissions);
+
+    // Afrique / Import
+    const [importsTotal] = await db.select({ c: dsql<number>`count(*)::int` }).from(importRequests);
+    const importsByCountry = await db
+      .select({ pays: dsql<string>`coalesce(${importRequests.paysDestination}, 'NA')`, c: dsql<number>`count(*)::int` })
+      .from(importRequests)
+      .groupBy(dsql`coalesce(${importRequests.paysDestination}, 'NA')`)
+      .orderBy(dsql`count(*) desc`)
+      .limit(5);
+
+    return {
+      vente: {
+        vendus: num(annSold?.c),
+        total: num(annTotal?.c),
+        tauxConversion: pct(num(annSold?.c), num(annTotal?.c)),
+        panierMoyen: Math.round(num(annAvg?.v)),
+        delaiMoyenJours: Math.round(num(delaiVente?.v)),
+      },
+      garage: {
+        devisCrees: num(devisTotal?.c),
+        devisAcceptes: num(devisAccept?.c),
+        tauxAcceptation: pct(num(devisAccept?.c), num(devisTotal?.c)),
+      },
+      location: { reservations: num(bookingsTotal?.c) },
+      pieces: { commandes: num(partsTotal?.c) },
+      livraison: { missions: num(missionsTotal?.c) },
+      afrique: { importations: num(importsTotal?.c), paysActifs: importsByCountry },
     };
   }),
 

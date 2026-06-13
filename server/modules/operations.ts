@@ -133,6 +133,164 @@ export const loyaltyTransactions = pgTable("loyalty_transactions", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ===== PARTIE 19 — GOUVERNANCE : FILIALES, SITES, FRANCHISES =====
+// Hiérarchie : Global → Pays → Villes → Sites locaux. Une seule base, cloisonnée par pays.
+export const subsidiaries = pgTable("subsidiaries", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 160 }).notNull(),
+  countryCode: varchar("country_code", { length: 4 }).notNull(),
+  city: varchar("city", { length: 96 }),
+  managerId: integer("manager_id"), // responsable (user)
+  budget: numeric("budget", { precision: 14, scale: 2 }),
+  currency: varchar("currency", { length: 4 }).notNull().default("EUR"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const siteTypeEnum = pgEnum("site_type", [
+  "agence",
+  "entrepot",
+  "garage",
+  "karting",
+  "lavage",
+  "autre",
+]);
+
+export const sites = pgTable("sites", {
+  id: serial("id").primaryKey(),
+  subsidiaryId: integer("subsidiary_id"),
+  type: siteTypeEnum("type").notNull().default("agence"),
+  name: varchar("name", { length: 160 }).notNull(),
+  countryCode: varchar("country_code", { length: 4 }).notNull(),
+  city: varchar("city", { length: 96 }),
+  address: text("address"),
+  lat: numeric("lat", { precision: 9, scale: 6 }),
+  lng: numeric("lng", { precision: 9, scale: 6 }),
+  managerId: integer("manager_id"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const franchiseTypeEnum = pgEnum("franchise_type", [
+  "garage",
+  "lavage",
+  "karting",
+  "agence",
+  "autre",
+]);
+export const franchiseStatusEnum = pgEnum("franchise_status", [
+  "prospect",
+  "active",
+  "suspendue",
+  "resiliee",
+]);
+
+export const franchises = pgTable("franchises", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 160 }).notNull(),
+  type: franchiseTypeEnum("type").notNull().default("garage"),
+  countryCode: varchar("country_code", { length: 4 }).notNull(),
+  zone: varchar("zone", { length: 160 }), // ville / région exclusive
+  ownerId: integer("owner_id"), // franchisé (user)
+  redevance: numeric("redevance", { precision: 12, scale: 2 }), // redevance mensuelle
+  currency: varchar("currency", { length: 4 }).notNull().default("EUR"),
+  contractStart: timestamp("contract_start"),
+  contractEnd: timestamp("contract_end"),
+  status: franchiseStatusEnum("status").notNull().default("prospect"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== PARTIE 20 — PLAN DE CONTINUITÉ ET SÉCURITÉ =====
+export const platformSettings = pgTable("platform_settings", {
+  key: varchar("key", { length: 64 }).primaryKey(),
+  value: text("value"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const monitoringSeverityEnum = pgEnum("monitoring_severity", [
+  "info",
+  "warning",
+  "error",
+  "critical",
+]);
+
+export const monitoringEvents = pgTable("monitoring_events", {
+  id: serial("id").primaryKey(),
+  source: varchar("source", { length: 48 }).notNull(), // api, paiement, serveur, base, autre
+  severity: monitoringSeverityEnum("severity").notNull().default("info"),
+  message: text("message").notNull(),
+  meta: text("meta"),
+  resolved: boolean("resolved").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const backupStatusEnum = pgEnum("backup_status", ["success", "failed", "running"]);
+
+export const backupLogs = pgTable("backup_logs", {
+  id: serial("id").primaryKey(),
+  type: varchar("type", { length: 32 }).notNull().default("database"), // database, documents
+  status: backupStatusEnum("status").notNull().default("success"),
+  location: text("location"),
+  sizeBytes: integer("size_bytes"),
+  note: text("note"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== PARTIE 21 — CONFORMITÉ : POLICES D'ASSURANCE (par univers) =====
+export const insuranceTypeEnum = pgEnum("insurance_type", [
+  "location",
+  "transport",
+  "garage",
+  "vtc",
+  "livraison",
+  "autre",
+]);
+export const insuranceStatusEnum = pgEnum("insurance_status", [
+  "active",
+  "expiree",
+  "suspendue",
+]);
+
+export const insurancePolicies = pgTable("insurance_policies", {
+  id: serial("id").primaryKey(),
+  type: insuranceTypeEnum("type").notNull().default("autre"),
+  compagnie: varchar("compagnie", { length: 160 }).notNull(),
+  numeroPolice: varchar("numero_police", { length: 96 }),
+  refType: varchar("ref_type", { length: 32 }), // univers/entité couverte
+  refId: integer("ref_id"),
+  countryCode: varchar("country_code", { length: 4 }),
+  primeMensuelle: numeric("prime_mensuelle", { precision: 12, scale: 2 }),
+  currency: varchar("currency", { length: 4 }).notNull().default("EUR"),
+  dateDebut: timestamp("date_debut"),
+  dateFin: timestamp("date_fin"),
+  documentUrl: text("document_url"),
+  status: insuranceStatusEnum("status").notNull().default("active"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== PARTIE 23 — MKA.P-MS LAB (expériences / feature flags) =====
+export const experimentStatusEnum = pgEnum("experiment_status", [
+  "brouillon",
+  "test",
+  "actif",
+  "desactive",
+]);
+
+export const labExperiments = pgTable("lab_experiments", {
+  id: serial("id").primaryKey(),
+  key: varchar("key", { length: 64 }).notNull().unique(),
+  name: varchar("name", { length: 160 }).notNull(),
+  category: varchar("category", { length: 48 }), // offre, page, service, paiement, ia, autre
+  description: text("description"),
+  status: experimentStatusEnum("status").notNull().default("brouillon"),
+  config: text("config"), // JSON libre
+  createdBy: integer("created_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // ===== PREMIUM 2 — DOSSIER VÉHICULE INTELLIGENT (carnet de santé) =====
 export const dossierEventTypeEnum = pgEnum("dossier_event_type", [
   "achat",

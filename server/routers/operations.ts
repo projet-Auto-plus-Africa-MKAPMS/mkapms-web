@@ -19,6 +19,15 @@ import {
   userDocuments,
   vehicleDossiers,
   vehicleDossierEvents,
+  subsidiaries,
+  sites,
+  franchises,
+  platformSettings,
+  monitoringEvents,
+  backupLogs,
+  annonces,
+  insurancePolicies,
+  labExperiments,
 } from "../schema.js";
 import { logAction, clientMeta } from "../audit.js";
 import { makeReference } from "../reference.js";
@@ -385,7 +394,225 @@ export const countriesRouter = router({
       await logAction(ctx.user.uid, "country.upsert", "country", null, { code }, clientMeta(ctx.req));
       return { ok: true };
     }),
+
+  // Active / désactive un pays en un clic (Partie 19 — expansion).
+  setActive: directionProcedure
+    .input(z.object({ code: z.string().min(2).max(4), active: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const code = input.code.toUpperCase();
+      await db.update(countryConfigs).set({ active: input.active }).where(eq(countryConfigs.code, code));
+      await logAction(ctx.user.uid, "country.setActive", "country", null, { code, active: input.active }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+
+  // Partie 19 §4 — objectifs / stats par pays (utilisateurs, annonces, abonnements).
+  stats: adminProcedure.query(async () => {
+    const usersByCountry = await db
+      .select({ code: sql<string>`coalesce(${users.country}, 'NA')`, c: sql<number>`count(*)::int` })
+      .from(users)
+      .groupBy(sql`coalesce(${users.country}, 'NA')`);
+    const annoncesByCountry = await db
+      .select({ code: sql<string>`coalesce(${annonces.pays}, 'NA')`, c: sql<number>`count(*)::int` })
+      .from(annonces)
+      .groupBy(sql`coalesce(${annonces.pays}, 'NA')`);
+    const countries = await db.select().from(countryConfigs).orderBy(countryConfigs.name);
+    const uMap = new Map(usersByCountry.map((r) => [r.code, r.c]));
+    const aMap = new Map(annoncesByCountry.map((r) => [r.code, r.c]));
+    return countries.map((c) => ({
+      code: c.code,
+      name: c.name,
+      active: c.active,
+      currency: c.currency,
+      users: uMap.get(c.code) ?? 0,
+      annonces: aMap.get(c.code) ?? 0,
+    }));
+  }),
 });
+
+// ===================== PARTIE 19 — GOUVERNANCE (filiales, sites, franchises) =====================
+export const governanceRouter = router({
+  // ---- Filiales ----
+  listSubsidiaries: adminProcedure.query(async () => {
+    return db.select().from(subsidiaries).orderBy(desc(subsidiaries.createdAt));
+  }),
+  createSubsidiary: directionProcedure
+    .input(
+      z.object({
+        name: z.string().min(2).max(160),
+        countryCode: z.string().min(2).max(4),
+        city: z.string().max(96).optional(),
+        managerId: z.number().optional(),
+        budget: z.number().optional(),
+        currency: z.string().min(3).max(4).default("EUR"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [s] = await db.insert(subsidiaries).values({
+        name: input.name,
+        countryCode: input.countryCode.toUpperCase(),
+        city: input.city ?? null,
+        managerId: input.managerId ?? null,
+        budget: input.budget != null ? String(input.budget) : null,
+        currency: input.currency,
+      }).returning();
+      await logAction(ctx.user.uid, "subsidiary.create", "subsidiary", s.id, { name: input.name }, clientMeta(ctx.req));
+      return s;
+    }),
+  setSubsidiaryActive: directionProcedure
+    .input(z.object({ id: z.number(), active: z.boolean() }))
+    .mutation(async ({ input }) => {
+      await db.update(subsidiaries).set({ active: input.active }).where(eq(subsidiaries.id, input.id));
+      return { ok: true };
+    }),
+
+  // ---- Sites locaux ----
+  listSites: adminProcedure.query(async () => {
+    return db.select().from(sites).orderBy(desc(sites.createdAt));
+  }),
+  createSite: directionProcedure
+    .input(
+      z.object({
+        subsidiaryId: z.number().optional(),
+        type: z.enum(["agence", "entrepot", "garage", "karting", "lavage", "autre"]).default("agence"),
+        name: z.string().min(2).max(160),
+        countryCode: z.string().min(2).max(4),
+        city: z.string().max(96).optional(),
+        address: z.string().max(500).optional(),
+        lat: z.number().optional(),
+        lng: z.number().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [s] = await db.insert(sites).values({
+        subsidiaryId: input.subsidiaryId ?? null,
+        type: input.type,
+        name: input.name,
+        countryCode: input.countryCode.toUpperCase(),
+        city: input.city ?? null,
+        address: input.address ?? null,
+        lat: input.lat != null ? String(input.lat) : null,
+        lng: input.lng != null ? String(input.lng) : null,
+      }).returning();
+      await logAction(ctx.user.uid, "site.create", "site", s.id, { name: input.name, type: input.type }, clientMeta(ctx.req));
+      return s;
+    }),
+
+  // ---- Franchises ----
+  listFranchises: adminProcedure.query(async () => {
+    return db.select().from(franchises).orderBy(desc(franchises.createdAt));
+  }),
+  createFranchise: directionProcedure
+    .input(
+      z.object({
+        name: z.string().min(2).max(160),
+        type: z.enum(["garage", "lavage", "karting", "agence", "autre"]).default("garage"),
+        countryCode: z.string().min(2).max(4),
+        zone: z.string().max(160).optional(),
+        ownerId: z.number().optional(),
+        redevance: z.number().optional(),
+        currency: z.string().min(3).max(4).default("EUR"),
+        contractStart: z.string().optional(),
+        contractEnd: z.string().optional(),
+        status: z.enum(["prospect", "active", "suspendue", "resiliee"]).default("prospect"),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [f] = await db.insert(franchises).values({
+        name: input.name,
+        type: input.type,
+        countryCode: input.countryCode.toUpperCase(),
+        zone: input.zone ?? null,
+        ownerId: input.ownerId ?? null,
+        redevance: input.redevance != null ? String(input.redevance) : null,
+        currency: input.currency,
+        contractStart: input.contractStart ? new Date(input.contractStart) : null,
+        contractEnd: input.contractEnd ? new Date(input.contractEnd) : null,
+        status: input.status,
+        notes: input.notes ?? null,
+      }).returning();
+      await logAction(ctx.user.uid, "franchise.create", "franchise", f.id, { name: input.name }, clientMeta(ctx.req));
+      return f;
+    }),
+  setFranchiseStatus: directionProcedure
+    .input(z.object({ id: z.number(), status: z.enum(["prospect", "active", "suspendue", "resiliee"]) }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(franchises).set({ status: input.status }).where(eq(franchises.id, input.id));
+      await logAction(ctx.user.uid, "franchise.status", "franchise", input.id, { status: input.status }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+
+  // Partie 19 §5 — données pour la carte mondiale (sites géolocalisés).
+  mapData: publicProcedure.query(async () => {
+    const activeSites = await db.select().from(sites).where(eq(sites.active, true));
+    return activeSites
+      .filter((s) => s.lat != null && s.lng != null)
+      .map((s) => ({ id: s.id, type: s.type, name: s.name, city: s.city, countryCode: s.countryCode, lat: Number(s.lat), lng: Number(s.lng) }));
+  }),
+});
+
+// ===================== PARTIE 20 — CONTINUITÉ & SÉCURITÉ =====================
+export const MAINTENANCE_KEY = "maintenance_mode";
+
+export const platformRouter = router({
+  // État public : la plateforme est-elle en maintenance ?
+  status: publicProcedure.query(async () => {
+    const [m] = await db.select().from(platformSettings).where(eq(platformSettings.key, MAINTENANCE_KEY)).limit(1);
+    return { maintenance: m?.value === "on", updatedAt: m?.updatedAt ?? null };
+  }),
+
+  setMaintenance: directionProcedure
+    .input(z.object({ on: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await db
+        .insert(platformSettings)
+        .values({ key: MAINTENANCE_KEY, value: input.on ? "on" : "off" })
+        .onConflictDoUpdate({ target: platformSettings.key, set: { value: input.on ? "on" : "off", updatedAt: new Date() } });
+      await logAction(ctx.user.uid, "platform.maintenance", "platform", null, { on: input.on }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+
+  // Surveillance : derniers événements (erreurs, paiements, API, serveurs).
+  monitoring: adminProcedure.query(async () => {
+    const events = await db.select().from(monitoringEvents).orderBy(desc(monitoringEvents.createdAt)).limit(50);
+    const [crit] = await db.select({ c: sql<number>`count(*)::int` }).from(monitoringEvents).where(sql`${monitoringEvents.severity} in ('error','critical') and ${monitoringEvents.resolved} = false`);
+    return { events, criticalOpen: Number(crit?.c ?? 0) };
+  }),
+
+  resolveEvent: directionProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      await db.update(monitoringEvents).set({ resolved: true }).where(eq(monitoringEvents.id, input.id));
+      return { ok: true };
+    }),
+
+  // Historique des sauvegardes (Railway gère le backup managé Postgres).
+  backups: adminProcedure.query(async () => {
+    return db.select().from(backupLogs).orderBy(desc(backupLogs.createdAt)).limit(30);
+  }),
+
+  // Enregistre une sauvegarde (déclenchée par un job/cron ou manuellement).
+  logBackup: directionProcedure
+    .input(z.object({ type: z.string().max(32).default("database"), status: z.enum(["success", "failed", "running"]).default("success"), location: z.string().max(500).optional(), note: z.string().max(500).optional() }))
+    .mutation(async ({ input }) => {
+      const [b] = await db.insert(backupLogs).values({ type: input.type, status: input.status, location: input.location ?? null, note: input.note ?? null }).returning();
+      return b;
+    }),
+});
+
+// Helper : journalise un événement de surveillance (best-effort).
+export async function logMonitoring(
+  source: string,
+  severity: "info" | "warning" | "error" | "critical",
+  message: string,
+  meta?: string,
+): Promise<void> {
+  try {
+    await db.insert(monitoringEvents).values({ source, severity, message, meta: meta ?? null });
+  } catch (err) {
+    console.error("[monitoring] log échec:", (err as Error).message);
+  }
+}
 
 // ===================== PARTIE 18 — FIDÉLITÉ (router) =====================
 export const loyaltyRouter = router({
@@ -517,6 +744,92 @@ export const dossiersRouter = router({
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
       await db.delete(vehicleDossiers).where(sql`${vehicleDossiers.id} = ${input.id} and ${vehicleDossiers.userId} = ${ctx.user.uid}`);
+      return { ok: true };
+    }),
+});
+
+// ===================== PARTIE 21 — ASSURANCES (polices par univers) =====================
+export const insuranceRouter = router({
+  list: adminProcedure.query(async () => {
+    return db.select().from(insurancePolicies).orderBy(desc(insurancePolicies.createdAt));
+  }),
+  create: directionProcedure
+    .input(
+      z.object({
+        type: z.enum(["location", "transport", "garage", "vtc", "livraison", "autre"]).default("autre"),
+        compagnie: z.string().min(2).max(160),
+        numeroPolice: z.string().max(96).optional(),
+        countryCode: z.string().max(4).optional(),
+        primeMensuelle: z.number().optional(),
+        currency: z.string().min(3).max(4).default("EUR"),
+        dateDebut: z.string().optional(),
+        dateFin: z.string().optional(),
+        documentUrl: z.string().url().optional(),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [p] = await db.insert(insurancePolicies).values({
+        type: input.type,
+        compagnie: input.compagnie,
+        numeroPolice: input.numeroPolice ?? null,
+        countryCode: input.countryCode ? input.countryCode.toUpperCase() : null,
+        primeMensuelle: input.primeMensuelle != null ? String(input.primeMensuelle) : null,
+        currency: input.currency,
+        dateDebut: input.dateDebut ? new Date(input.dateDebut) : null,
+        dateFin: input.dateFin ? new Date(input.dateFin) : null,
+        documentUrl: input.documentUrl ?? null,
+        notes: input.notes ?? null,
+      }).returning();
+      await logAction(ctx.user.uid, "insurance.create", "insurance", p.id, { type: input.type }, clientMeta(ctx.req));
+      return p;
+    }),
+  setStatus: directionProcedure
+    .input(z.object({ id: z.number(), status: z.enum(["active", "expiree", "suspendue"]) }))
+    .mutation(async ({ input }) => {
+      await db.update(insurancePolicies).set({ status: input.status }).where(eq(insurancePolicies.id, input.id));
+      return { ok: true };
+    }),
+});
+
+// ===================== PARTIE 23 — MKA.P-MS LAB (feature flags / expériences) =====================
+export const labRouter = router({
+  // Lecture publique des expériences ACTIVES (pour piloter le front sans casser le coeur).
+  activeFlags: publicProcedure.query(async () => {
+    const rows = await db.select().from(labExperiments).where(eq(labExperiments.status, "actif"));
+    return rows.map((r) => ({ key: r.key, name: r.name, config: r.config }));
+  }),
+  list: adminProcedure.query(async () => {
+    return db.select().from(labExperiments).orderBy(desc(labExperiments.createdAt));
+  }),
+  create: directionProcedure
+    .input(
+      z.object({
+        key: z.string().min(2).max(64).regex(/^[a-z0-9_]+$/, "min., chiffres, _ uniquement"),
+        name: z.string().min(2).max(160),
+        category: z.enum(["offre", "page", "service", "paiement", "ia", "autre"]).default("autre"),
+        description: z.string().max(2000).optional(),
+        config: z.string().max(4000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [e] = await db.insert(labExperiments).values({
+        key: input.key,
+        name: input.name,
+        category: input.category,
+        description: input.description ?? null,
+        config: input.config ?? null,
+        createdBy: ctx.user.uid,
+      }).returning();
+      await logAction(ctx.user.uid, "lab.create", "experiment", e.id, { key: input.key }, clientMeta(ctx.req));
+      return e;
+    }),
+  // Le Super Admin peut activer / tester / désactiver sans toucher au système principal.
+  setStatus: directionProcedure
+    .input(z.object({ id: z.number(), status: z.enum(["brouillon", "test", "actif", "desactive"]) }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(labExperiments).set({ status: input.status, updatedAt: new Date() }).where(eq(labExperiments.id, input.id));
+      await logAction(ctx.user.uid, "lab.status", "experiment", input.id, { status: input.status }, clientMeta(ctx.req));
       return { ok: true };
     }),
 });

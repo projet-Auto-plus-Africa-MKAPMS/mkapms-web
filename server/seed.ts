@@ -16,6 +16,7 @@ import {
   countryConfigs,
 } from "./schema.js";
 import { hashPassword } from "./auth.js";
+import { WORLD_COUNTRIES, WORLD_CURRENCIES, LAUNCH_ACTIVE_COUNTRIES } from "./data/world.js";
 
 // Registre des univers (fédération) — chaque module activable/désactivable.
 const MODULES_SEED: Array<{ code: string; nom: string; description: string; status: "active" | "masque"; ordre: number; visiblePublic: boolean }> = [
@@ -43,6 +44,8 @@ const MODULES_SEED: Array<{ code: string; nom: string; description: string; stat
   { code: "fournisseurs", nom: "Fournisseurs mondiaux", description: "Base partenaires import/export (interne).", status: "masque", ordre: 21, visiblePublic: false },
   { code: "carte_mondiale", nom: "Carte mondiale", description: "Tous les services par pays/ville sur une carte (à venir).", status: "masque", ordre: 22, visiblePublic: true },
   { code: "qualite", nom: "Qualité / Amélioration", description: "Espace privé : bugs, idées, signalements (analyse Direction).", status: "masque", ordre: 23, visiblePublic: false },
+  // Partie 23 — MKA.P-MS Lab : tester de nouvelles idées sans toucher au coeur.
+  { code: "lab", nom: "MKA.P-MS Lab", description: "Laboratoire d'expériences (feature flags) : activer/tester/désactiver (Super Admin).", status: "masque", ordre: 24, visiblePublic: false },
 ];
 
 const ROLES_SEED: Array<{ name: string; label: string; level: number }> = [
@@ -151,26 +154,6 @@ const CURRENCIES_SEED = [
   { code: "CNY", symbol: "¥", name: "Yuan chinois" },
 ];
 
-// Partie 14 — pays prioritaires du plan Afrique (+ marchés clés). Activables par le PDG.
-const COUNTRIES_SEED: Array<{ code: string; name: string; currency: string; active: boolean }> = [
-  { code: "FR", name: "France", currency: "EUR", active: true },
-  { code: "GN", name: "Guinée", currency: "GNF", active: true },
-  { code: "SN", name: "Sénégal", currency: "XOF", active: true },
-  { code: "CI", name: "Côte d'Ivoire", currency: "XOF", active: true },
-  { code: "ML", name: "Mali", currency: "XOF", active: false },
-  { code: "BF", name: "Burkina Faso", currency: "XOF", active: false },
-  { code: "BJ", name: "Bénin", currency: "XOF", active: false },
-  { code: "TG", name: "Togo", currency: "XOF", active: false },
-  { code: "CM", name: "Cameroun", currency: "XAF", active: false },
-  { code: "MA", name: "Maroc", currency: "MAD", active: false },
-  { code: "DZ", name: "Algérie", currency: "DZD", active: false },
-  { code: "TN", name: "Tunisie", currency: "TND", active: false },
-  { code: "NG", name: "Nigéria", currency: "NGN", active: false },
-  { code: "GH", name: "Ghana", currency: "GHS", active: false },
-  { code: "SA", name: "Arabie Saoudite", currency: "SAR", active: false },
-  { code: "AE", name: "Émirats arabes unis", currency: "AED", active: false },
-];
-
 export async function seedStructure() {
   for (const m of MODULES_SEED) {
     await db
@@ -184,7 +167,8 @@ export async function seedStructure() {
       .values({ name: r.name, label: r.label, level: r.level, isSystem: true })
       .onConflictDoNothing({ target: roles.name });
   }
-  for (const c of CURRENCIES_SEED) {
+  // Devises mondiales (legacy + catalogue mondial complet).
+  for (const c of [...CURRENCIES_SEED, ...WORLD_CURRENCIES]) {
     await db.insert(currencies).values(c).onConflictDoNothing({ target: currencies.code });
   }
   for (const l of [
@@ -253,11 +237,15 @@ export async function seedStructure() {
   await db.execute(
     sql`UPDATE users SET reference = 'MKA-U-' || lpad(id::text, 6, '0') WHERE reference IS NULL`,
   );
-  // Partie 14 — Plan Afrique : pays prioritaires (config import/douane/devise).
-  for (const c of COUNTRIES_SEED) {
-    await db.insert(countryConfigs).values(c).onConflictDoNothing({ target: countryConfigs.code });
+  // Parties 14 & 19 — Catalogue mondial : TOUS les pays (Europe comprise).
+  // FR/GN/SN/CI actifs au lancement, les autres activables par le PDG.
+  for (const c of WORLD_COUNTRIES) {
+    await db
+      .insert(countryConfigs)
+      .values({ code: c.code, name: c.name, currency: c.currency, active: LAUNCH_ACTIVE_COUNTRIES.includes(c.code) })
+      .onConflictDoNothing({ target: countryConfigs.code });
   }
-  console.log("[seed] structure (modules, rôles, permissions, devises, langues, références, pays) initialisée");
+  console.log(`[seed] structure initialisée (${WORLD_COUNTRIES.length} pays, ${CURRENCIES_SEED.length + WORLD_CURRENCIES.length} devises)`);
 }
 
 async function main() {

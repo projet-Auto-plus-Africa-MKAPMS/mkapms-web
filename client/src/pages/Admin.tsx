@@ -54,11 +54,39 @@ export default function Admin() {
   const createWarehouse = trpc.warehouses.create.useMutation({ onSuccess: () => { utils.warehouses.list.invalidate(); setWarehouse({ nom: "", countryCode: "FR", ville: "", type: "mixte" }); } });
   const upsertCountry = trpc.countries.upsert.useMutation({ onSuccess: () => utils.countries.listAll.invalidate() });
 
+  // Parties 19-23
+  const kpis = trpc.admin.kpis.useQuery(undefined, { enabled });
+  const countryStats = trpc.countries.stats.useQuery(undefined, { enabled });
+  const subsidiariesList = trpc.governance.listSubsidiaries.useQuery(undefined, { enabled: direction });
+  const sitesList = trpc.governance.listSites.useQuery(undefined, { enabled: direction });
+  const franchisesList = trpc.governance.listFranchises.useQuery(undefined, { enabled: direction });
+  const platformStatus = trpc.platform.status.useQuery(undefined, { enabled });
+  const monitoring = trpc.platform.monitoring.useQuery(undefined, { enabled });
+  const backups = trpc.platform.backups.useQuery(undefined, { enabled });
+  const insuranceList = trpc.insurance.list.useQuery(undefined, { enabled });
+  const labList = trpc.lab.list.useQuery(undefined, { enabled });
+
+  const setCountryActive = trpc.countries.setActive.useMutation({ onSuccess: () => { utils.countries.listAll.invalidate(); utils.countries.stats.invalidate(); } });
+  const createSubsidiary = trpc.governance.createSubsidiary.useMutation({ onSuccess: () => { utils.governance.listSubsidiaries.invalidate(); setSubsidiary({ name: "", countryCode: "FR", city: "" }); } });
+  const createSite = trpc.governance.createSite.useMutation({ onSuccess: () => { utils.governance.listSites.invalidate(); setSite({ name: "", type: "agence", countryCode: "FR", city: "" }); } });
+  const createFranchise = trpc.governance.createFranchise.useMutation({ onSuccess: () => { utils.governance.listFranchises.invalidate(); setFranchise({ name: "", type: "garage", countryCode: "FR", zone: "" }); } });
+  const setFranchiseStatus = trpc.governance.setFranchiseStatus.useMutation({ onSuccess: () => utils.governance.listFranchises.invalidate() });
+  const setMaintenance = trpc.platform.setMaintenance.useMutation({ onSuccess: () => utils.platform.status.invalidate() });
+  const resolveEvent = trpc.platform.resolveEvent.useMutation({ onSuccess: () => utils.platform.monitoring.invalidate() });
+  const createInsurance = trpc.insurance.create.useMutation({ onSuccess: () => { utils.insurance.list.invalidate(); setInsurance({ type: "location", compagnie: "", numeroPolice: "" }); } });
+  const createLab = trpc.lab.create.useMutation({ onSuccess: () => { utils.lab.list.invalidate(); setLab({ key: "", name: "", category: "autre" }); } });
+  const setLabStatus = trpc.lab.setStatus.useMutation({ onSuccess: () => utils.lab.list.invalidate() });
+
   const [staff, setStaff] = useState({ email: "", name: "", password: "", role: "employee" as "employee" | "admin" });
   const [promo, setPromo] = useState({ code: "", type: "pourcentage" as "pourcentage" | "montant", value: 10 });
   const [certifyId, setCertifyId] = useState("");
   const [partner, setPartner] = useState({ name: "", type: "autre", country: "" });
   const [warehouse, setWarehouse] = useState({ nom: "", countryCode: "FR", ville: "", type: "mixte" });
+  const [subsidiary, setSubsidiary] = useState({ name: "", countryCode: "FR", city: "" });
+  const [site, setSite] = useState({ name: "", type: "agence", countryCode: "FR", city: "" });
+  const [franchise, setFranchise] = useState({ name: "", type: "garage", countryCode: "FR", zone: "" });
+  const [insurance, setInsurance] = useState({ type: "location", compagnie: "", numeroPolice: "" });
+  const [lab, setLab] = useState({ key: "", name: "", category: "autre" });
 
   if (!enabled) {
     return (
@@ -133,6 +161,46 @@ export default function Admin() {
         </div>
           );
         })()}
+      </section>
+
+      {/* Partie 22 — Centre de performance (KPI par univers) */}
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Centre de performance <span className="text-xs font-normal text-brand">(KPI par univers)</span></h2>
+        <p className="text-xs text-slate-500">Tout mesurer en un écran : vente, garage, location, pièces, livraison, Afrique.</p>
+        {kpis.data && (
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            <div className="card p-3">
+              <div className="text-sm font-bold text-slate-800">Vente</div>
+              <div className="mt-1 text-xs text-slate-600">Vendus : <b>{kpis.data.vente.vendus}</b> / {kpis.data.vente.total}</div>
+              <div className="text-xs text-slate-600">Conversion : <b>{kpis.data.vente.tauxConversion}%</b></div>
+              <div className="text-xs text-slate-600">Panier moyen : <b>{kpis.data.vente.panierMoyen} €</b></div>
+              <div className="text-xs text-slate-600">Délai moyen : <b>{kpis.data.vente.delaiMoyenJours} j</b></div>
+            </div>
+            <div className="card p-3">
+              <div className="text-sm font-bold text-slate-800">Garage</div>
+              <div className="mt-1 text-xs text-slate-600">Devis créés : <b>{kpis.data.garage.devisCrees}</b></div>
+              <div className="text-xs text-slate-600">Acceptés : <b>{kpis.data.garage.devisAcceptes}</b></div>
+              <div className="text-xs text-slate-600">Taux acceptation : <b>{kpis.data.garage.tauxAcceptation}%</b></div>
+            </div>
+            <div className="card p-3">
+              <div className="text-sm font-bold text-slate-800">Location</div>
+              <div className="mt-1 text-xs text-slate-600">Réservations : <b>{kpis.data.location.reservations}</b></div>
+            </div>
+            <div className="card p-3">
+              <div className="text-sm font-bold text-slate-800">Pièces Auto</div>
+              <div className="mt-1 text-xs text-slate-600">Commandes : <b>{kpis.data.pieces.commandes}</b></div>
+            </div>
+            <div className="card p-3">
+              <div className="text-sm font-bold text-slate-800">Livraison</div>
+              <div className="mt-1 text-xs text-slate-600">Missions : <b>{kpis.data.livraison.missions}</b></div>
+            </div>
+            <div className="card p-3">
+              <div className="text-sm font-bold text-slate-800">Import Africa+</div>
+              <div className="mt-1 text-xs text-slate-600">Importations : <b>{kpis.data.afrique.importations}</b></div>
+              <div className="text-xs text-slate-600">Top pays : {kpis.data.afrique.paysActifs.map((p) => `${p.pays} (${p.c})`).join(", ") || "—"}</div>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Centre de litiges (Partie 8) */}
@@ -469,18 +537,183 @@ export default function Admin() {
             </div>
           </section>
 
-          {/* Plan Afrique — pays (Partie 14) */}
+          {/* International — catalogue mondial des pays (Parties 14 & 19) */}
           <section className="mt-10">
-            <h2 className="text-lg font-bold text-slate-800">Plan Afrique — pays <span className="text-xs font-normal text-brand">(Direction)</span></h2>
-            <p className="text-xs text-slate-500">Activez les pays (devise + règles import/douane) pour ouvrir progressivement les marchés.</p>
-            <div className="mt-3 grid gap-2 md:grid-cols-2">
+            <h2 className="text-lg font-bold text-slate-800">International — pays du monde <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Tous les pays du monde (Europe comprise). Activez progressivement les marchés en un clic (devise + règles import/douane).</p>
+            <p className="mt-1 text-xs text-slate-400">{countriesList.data?.length ?? 0} pays au catalogue · {countriesList.data?.filter((c) => c.active).length ?? 0} actifs</p>
+            <div className="mt-3 grid max-h-96 gap-2 overflow-y-auto md:grid-cols-3">
               {countriesList.data?.map((c) => (
                 <div key={c.id} className="card flex items-center justify-between p-2 text-sm">
                   <span className="text-slate-700">{c.name} <span className="text-xs text-slate-400">({c.code} · {c.currency})</span></span>
-                  <button className={`btn-outline !py-1 !text-xs ${c.active ? "!border-green-500 !text-green-600" : ""}`} onClick={() => upsertCountry.mutate({ code: c.code, name: c.name, currency: c.currency, active: !c.active })}>{c.active ? "Actif" : "Inactif"}</button>
+                  <button className={`btn-outline !py-1 !text-xs ${c.active ? "!border-green-500 !text-green-600" : ""}`} onClick={() => setCountryActive.mutate({ code: c.code, active: !c.active })}>{c.active ? "Actif" : "Inactif"}</button>
                 </div>
               ))}
               {countriesList.data?.length === 0 && <p className="text-sm text-slate-500">Aucun pays configuré.</p>}
+            </div>
+          </section>
+
+          {/* Partie 19 §4 — Objectifs / stats par pays */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Stats par pays <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Utilisateurs et annonces par pays — suivi de l'expansion.</p>
+            <div className="mt-3 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead><tr className="text-left text-xs text-slate-500"><th className="py-1">Pays</th><th>Statut</th><th>Utilisateurs</th><th>Annonces</th></tr></thead>
+                <tbody>
+                  {countryStats.data?.filter((c) => c.active || c.users > 0 || c.annonces > 0).map((c) => (
+                    <tr key={c.code} className="border-t border-slate-100">
+                      <td className="py-1 text-slate-700">{c.name} <span className="text-xs text-slate-400">({c.code})</span></td>
+                      <td className={c.active ? "text-green-600" : "text-slate-400"}>{c.active ? "Actif" : "Inactif"}</td>
+                      <td className="font-semibold">{c.users}</td>
+                      <td className="font-semibold">{c.annonces}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* Partie 19 — Gouvernance : filiales, sites, franchises */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Gouvernance — filiales <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Niveau Pays. Chaque filiale gère ses équipes/véhicules sans accéder aux autres pays.</p>
+            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (subsidiary.name) createSubsidiary.mutate({ name: subsidiary.name, countryCode: subsidiary.countryCode, city: subsidiary.city || undefined }); }}>
+              <input className="input max-w-xs" placeholder="Nom (MKA Guinée)" value={subsidiary.name} onChange={(e) => setSubsidiary({ ...subsidiary, name: e.target.value })} />
+              <input className="input max-w-[120px]" placeholder="Pays (GN)" value={subsidiary.countryCode} onChange={(e) => setSubsidiary({ ...subsidiary, countryCode: e.target.value })} />
+              <input className="input max-w-[160px]" placeholder="Ville" value={subsidiary.city} onChange={(e) => setSubsidiary({ ...subsidiary, city: e.target.value })} />
+              <button className="btn-primary !text-sm">Ajouter</button>
+            </form>
+            <div className="mt-3 space-y-1">
+              {subsidiariesList.data?.map((s) => (
+                <div key={s.id} className="card flex items-center justify-between p-2 text-sm"><span className="text-slate-700">{s.name} <span className="text-xs text-slate-400">({s.countryCode}{s.city ? ` · ${s.city}` : ""})</span></span><span className={`text-xs ${s.active ? "text-green-600" : "text-slate-400"}`}>{s.active ? "Active" : "Inactive"}</span></div>
+              ))}
+              {subsidiariesList.data?.length === 0 && <p className="text-sm text-slate-500">Aucune filiale.</p>}
+            </div>
+          </section>
+
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Gouvernance — sites locaux <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Niveau Ville : agence, entrepôt, garage, karting, lavage (apparaissent sur la carte mondiale si géolocalisés).</p>
+            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (site.name) createSite.mutate({ name: site.name, type: site.type as "agence", countryCode: site.countryCode, city: site.city || undefined }); }}>
+              <input className="input max-w-xs" placeholder="Nom (Agence Dakar)" value={site.name} onChange={(e) => setSite({ ...site, name: e.target.value })} />
+              <select className="input max-w-[150px]" value={site.type} onChange={(e) => setSite({ ...site, type: e.target.value })}>
+                <option value="agence">Agence</option><option value="entrepot">Entrepôt</option><option value="garage">Garage</option><option value="karting">Karting</option><option value="lavage">Lavage</option><option value="autre">Autre</option>
+              </select>
+              <input className="input max-w-[120px]" placeholder="Pays (SN)" value={site.countryCode} onChange={(e) => setSite({ ...site, countryCode: e.target.value })} />
+              <input className="input max-w-[160px]" placeholder="Ville" value={site.city} onChange={(e) => setSite({ ...site, city: e.target.value })} />
+              <button className="btn-primary !text-sm">Ajouter</button>
+            </form>
+            <div className="mt-3 space-y-1">
+              {sitesList.data?.map((s) => (
+                <div key={s.id} className="card flex items-center justify-between p-2 text-sm"><span className="text-slate-700">{s.name} <span className="text-xs text-slate-400">({s.type} · {s.countryCode}{s.city ? ` · ${s.city}` : ""})</span></span></div>
+              ))}
+              {sitesList.data?.length === 0 && <p className="text-sm text-slate-500">Aucun site.</p>}
+            </div>
+          </section>
+
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Franchises <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Garage / lavage / karting en franchise : contrat, zone, redevance, statut.</p>
+            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (franchise.name) createFranchise.mutate({ name: franchise.name, type: franchise.type as "garage", countryCode: franchise.countryCode, zone: franchise.zone || undefined }); }}>
+              <input className="input max-w-xs" placeholder="Nom" value={franchise.name} onChange={(e) => setFranchise({ ...franchise, name: e.target.value })} />
+              <select className="input max-w-[150px]" value={franchise.type} onChange={(e) => setFranchise({ ...franchise, type: e.target.value })}>
+                <option value="garage">Garage</option><option value="lavage">Lavage</option><option value="karting">Karting</option><option value="agence">Agence</option><option value="autre">Autre</option>
+              </select>
+              <input className="input max-w-[120px]" placeholder="Pays (CI)" value={franchise.countryCode} onChange={(e) => setFranchise({ ...franchise, countryCode: e.target.value })} />
+              <input className="input max-w-[160px]" placeholder="Zone (Abidjan)" value={franchise.zone} onChange={(e) => setFranchise({ ...franchise, zone: e.target.value })} />
+              <button className="btn-primary !text-sm">Ajouter</button>
+            </form>
+            <div className="mt-3 space-y-1">
+              {franchisesList.data?.map((f) => (
+                <div key={f.id} className="card flex items-center justify-between p-2 text-sm">
+                  <span className="text-slate-700">{f.name} <span className="text-xs text-slate-400">({f.type} · {f.countryCode}{f.zone ? ` · ${f.zone}` : ""})</span></span>
+                  <select className="input !py-1 !text-xs max-w-[140px]" value={f.status} onChange={(e) => setFranchiseStatus.mutate({ id: f.id, status: e.target.value as "active" })}>
+                    <option value="prospect">Prospect</option><option value="active">Active</option><option value="suspendue">Suspendue</option><option value="resiliee">Résiliée</option>
+                  </select>
+                </div>
+              ))}
+              {franchisesList.data?.length === 0 && <p className="text-sm text-slate-500">Aucune franchise.</p>}
+            </div>
+          </section>
+
+          {/* Partie 21 — Assurances (polices par univers) */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Assurances <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Polices par univers : location, transport, garage, VTC, livraison. (Contrats & archivage légal gérés par le moteur de contrats.)</p>
+            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (insurance.compagnie) createInsurance.mutate({ type: insurance.type as "location", compagnie: insurance.compagnie, numeroPolice: insurance.numeroPolice || undefined }); }}>
+              <select className="input max-w-[150px]" value={insurance.type} onChange={(e) => setInsurance({ ...insurance, type: e.target.value })}>
+                <option value="location">Location</option><option value="transport">Transport</option><option value="garage">Garage</option><option value="vtc">VTC</option><option value="livraison">Livraison</option><option value="autre">Autre</option>
+              </select>
+              <input className="input max-w-xs" placeholder="Compagnie" value={insurance.compagnie} onChange={(e) => setInsurance({ ...insurance, compagnie: e.target.value })} />
+              <input className="input max-w-[160px]" placeholder="N° police" value={insurance.numeroPolice} onChange={(e) => setInsurance({ ...insurance, numeroPolice: e.target.value })} />
+              <button className="btn-primary !text-sm">Ajouter</button>
+            </form>
+            <div className="mt-3 space-y-1">
+              {insuranceList.data?.map((p) => (
+                <div key={p.id} className="card flex items-center justify-between p-2 text-sm"><span className="text-slate-700">{p.compagnie} <span className="text-xs text-slate-400">({p.type}{p.numeroPolice ? ` · ${p.numeroPolice}` : ""})</span></span><span className={`text-xs ${p.status === "active" ? "text-green-600" : "text-slate-400"}`}>{p.status}</span></div>
+              ))}
+              {insuranceList.data?.length === 0 && <p className="text-sm text-slate-500">Aucune police.</p>}
+            </div>
+          </section>
+
+          {/* Partie 20 — Continuité & sécurité */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Continuité & sécurité <span className="text-xs font-normal text-brand">(Super Admin)</span></h2>
+            <div className="mt-3 card flex items-center justify-between p-3 text-sm">
+              <div>
+                <div className="font-bold text-slate-800">Mode maintenance</div>
+                <div className="text-xs text-slate-500">{platformStatus.data?.maintenance ? "Plateforme EN MAINTENANCE" : "Plateforme en service normal"}</div>
+              </div>
+              <button className={`btn-outline !text-sm ${platformStatus.data?.maintenance ? "!border-amber-500 !text-amber-600" : ""}`} onClick={() => setMaintenance.mutate({ on: !platformStatus.data?.maintenance })}>{platformStatus.data?.maintenance ? "Désactiver" : "Activer"}</button>
+            </div>
+            <div className="mt-4">
+              <div className="text-sm font-bold text-slate-800">Surveillance {monitoring.data && monitoring.data.criticalOpen > 0 && <span className="text-xs font-normal text-red-600">({monitoring.data.criticalOpen} critique(s))</span>}</div>
+              <div className="mt-2 space-y-1">
+                {monitoring.data?.events.slice(0, 8).map((ev) => (
+                  <div key={ev.id} className="card flex items-center justify-between p-2 text-xs">
+                    <span className="text-slate-700"><b className={ev.severity === "critical" || ev.severity === "error" ? "text-red-600" : "text-slate-500"}>[{ev.severity}]</b> {ev.source} — {ev.message}</span>
+                    {!ev.resolved && <button className="btn-outline !py-0.5 !text-xs" onClick={() => resolveEvent.mutate({ id: ev.id })}>Résolu</button>}
+                  </div>
+                ))}
+                {monitoring.data?.events.length === 0 && <p className="text-sm text-slate-500">Aucun événement enregistré.</p>}
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-sm font-bold text-slate-800">Historique des sauvegardes</div>
+              <p className="text-xs text-slate-500">Les sauvegardes managées PostgreSQL sont assurées par Railway. Journal applicatif :</p>
+              <div className="mt-2 space-y-1">
+                {backups.data?.slice(0, 6).map((b) => (
+                  <div key={b.id} className="card flex items-center justify-between p-2 text-xs"><span className="text-slate-700">{b.type} · {new Date(b.createdAt).toLocaleString("fr-FR")}</span><span className={b.status === "success" ? "text-green-600" : "text-red-600"}>{b.status}</span></div>
+                ))}
+                {backups.data?.length === 0 && <p className="text-sm text-slate-500">Aucune sauvegarde journalisée.</p>}
+              </div>
+            </div>
+          </section>
+
+          {/* Partie 23 — MKA.P-MS Lab */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">MKA.P-MS Lab <span className="text-xs font-normal text-brand">(Super Admin)</span></h2>
+            <p className="text-xs text-slate-500">Tester de nouvelles idées (offre, page, service, paiement, IA) sans casser le système principal : brouillon → test → actif → désactivé.</p>
+            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (lab.key && lab.name) createLab.mutate({ key: lab.key, name: lab.name, category: lab.category as "autre" }); }}>
+              <input className="input max-w-[180px]" placeholder="clé (ex: offre_test)" value={lab.key} onChange={(e) => setLab({ ...lab, key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_") })} />
+              <input className="input max-w-xs" placeholder="Nom de l'expérience" value={lab.name} onChange={(e) => setLab({ ...lab, name: e.target.value })} />
+              <select className="input max-w-[140px]" value={lab.category} onChange={(e) => setLab({ ...lab, category: e.target.value })}>
+                <option value="offre">Offre</option><option value="page">Page</option><option value="service">Service</option><option value="paiement">Paiement</option><option value="ia">IA</option><option value="autre">Autre</option>
+              </select>
+              <button className="btn-primary !text-sm">Créer</button>
+            </form>
+            {createLab.error && <p className="mt-2 text-xs text-red-600">{createLab.error.message}</p>}
+            <div className="mt-3 space-y-1">
+              {labList.data?.map((x) => (
+                <div key={x.id} className="card flex items-center justify-between p-2 text-sm">
+                  <span className="text-slate-700">{x.name} <span className="text-xs text-slate-400">({x.key}{x.category ? ` · ${x.category}` : ""})</span></span>
+                  <select className="input !py-1 !text-xs max-w-[130px]" value={x.status} onChange={(e) => setLabStatus.mutate({ id: x.id, status: e.target.value as "actif" })}>
+                    <option value="brouillon">Brouillon</option><option value="test">Test</option><option value="actif">Actif</option><option value="desactive">Désactivé</option>
+                  </select>
+                </div>
+              ))}
+              {labList.data?.length === 0 && <p className="text-sm text-slate-500">Aucune expérience.</p>}
             </div>
           </section>
 
