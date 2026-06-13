@@ -6,6 +6,7 @@ import { db } from "../db.js";
 import { users } from "../schema.js";
 import { getProfile } from "@shared/profiles.js";
 import { makeReference } from "../reference.js";
+import { logAction, clientMeta } from "../audit.js";
 import {
   signToken,
   hashPassword,
@@ -81,22 +82,30 @@ export const authRouter = router({
 
   login: publicProcedure
     .input(z.object({ email: z.string().email(), password: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const [u] = await db
         .select()
         .from(users)
         .where(eq(users.email, input.email.toLowerCase()))
         .limit(1);
       if (!u || !u.passwordHash) {
+        await logAction(u?.id ?? null, "auth.login_failed", "user", u?.id ?? null, { email: input.email }, clientMeta(ctx.req));
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Identifiants invalides" });
       }
       const ok = await comparePassword(input.password, u.passwordHash);
       if (!ok) {
+        await logAction(u.id, "auth.login_failed", "user", u.id, undefined, clientMeta(ctx.req));
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Identifiants invalides" });
       }
       const token = signToken({ uid: u.id, role: u.role, email: u.email });
+      await logAction(u.id, "auth.login", "user", u.id, undefined, clientMeta(ctx.req));
       return { token, user: publicUser(u) };
     }),
+
+  logout: protectedProcedure.mutation(async ({ ctx }) => {
+    await logAction(ctx.user.uid, "auth.logout", "user", ctx.user.uid, undefined, clientMeta(ctx.req));
+    return { ok: true };
+  }),
 
   googleLogin: publicProcedure
     .input(z.object({ idToken: z.string() }))

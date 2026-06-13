@@ -26,12 +26,17 @@ export const importStatusEnum = pgEnum("import_status", [
 ]);
 export const importTransportOptionEnum = pgEnum("import_transport_option", ["transporteur_personnel", "transport_mkapms"]);
 
+// Partie 10 — multi-entrepôts (France, Guinée, Sénégal, Côte d'Ivoire…).
+export const warehouseTypeEnum = pgEnum("warehouse_type", ["vehicules", "pieces", "mixte"]);
+
 export const warehouses = pgTable("warehouses", {
   id: serial("id").primaryKey(),
   nom: varchar("nom", { length: 160 }).notNull(),
   countryCode: varchar("country_code", { length: 4 }).notNull(),
   ville: varchar("ville", { length: 96 }),
   adresse: text("adresse"),
+  responsable: varchar("responsable", { length: 160 }),
+  type: warehouseTypeEnum("type").notNull().default("mixte"),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

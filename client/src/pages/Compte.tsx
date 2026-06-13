@@ -6,7 +6,7 @@ import { useCurrency } from "../lib/currency";
 import { isAdmin, isPro, ROLE_LABELS } from "@shared/roles";
 import type { UserRole } from "@shared/roles";
 
-type Tab = "annonces" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "profil";
+type Tab = "annonces" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "profil";
 
 export default function Compte() {
   const { format: formatPrice } = useCurrency();
@@ -20,9 +20,12 @@ export default function Compte() {
   const devis = trpc.devis.mine.useQuery(undefined, { enabled: !!user && tab === "devis" });
   const abos = trpc.abonnements.mine.useQuery(undefined, { enabled: !!user && tab === "abonnements" });
   const recherches = trpc.searches.list.useQuery(undefined, { enabled: !!user && tab === "recherches" });
+  const litiges = trpc.disputes.mine.useQuery(undefined, { enabled: !!user && tab === "litiges" });
   const utils = trpc.useUtils();
   const setAlert = trpc.searches.setAlert.useMutation({ onSuccess: () => utils.searches.list.invalidate() });
   const removeSearch = trpc.searches.remove.useMutation({ onSuccess: () => utils.searches.list.invalidate() });
+  const openDispute = trpc.disputes.open.useMutation({ onSuccess: () => { utils.disputes.mine.invalidate(); setLitige({ univers: "vente", category: "", description: "" }); } });
+  const [litige, setLitige] = useState({ univers: "vente", category: "", description: "" });
 
   if (!user) {
     return (
@@ -40,6 +43,7 @@ export default function Compte() {
     ["reservations", "Réservations"],
     ["devis", "Mes devis"],
     ["abonnements", "Abonnements"],
+    ["litiges", "Mes litiges"],
     ["profil", "Profil"],
   ];
 
@@ -182,6 +186,41 @@ export default function Compte() {
               </div>
             ))}
             {abos.data?.length === 0 && <p className="text-sm text-slate-500">Aucun abonnement actif.</p>}
+          </div>
+        )}
+        {tab === "litiges" && (
+          <div className="space-y-4">
+            <form
+              className="card space-y-2 p-4"
+              onSubmit={(e) => { e.preventDefault(); if (litige.category && litige.description) openDispute.mutate({ univers: litige.univers as "vente", category: litige.category, description: litige.description }); }}
+            >
+              <p className="font-semibold text-slate-800">Ouvrir un litige</p>
+              <div className="flex flex-wrap gap-2">
+                <select className="input max-w-[180px]" value={litige.univers} onChange={(e) => setLitige({ ...litige, univers: e.target.value })}>
+                  <option value="vente">Vente</option>
+                  <option value="location">Location</option>
+                  <option value="livraison">Livraison</option>
+                  <option value="pieces">Pièces Auto</option>
+                  <option value="garage">Garage</option>
+                  <option value="autre">Autre</option>
+                </select>
+                <input className="input max-w-xs" placeholder="Motif (ex. véhicule non conforme)" value={litige.category} onChange={(e) => setLitige({ ...litige, category: e.target.value })} />
+              </div>
+              <textarea className="input" rows={3} placeholder="Décrivez le problème…" value={litige.description} onChange={(e) => setLitige({ ...litige, description: e.target.value })} />
+              <button className="btn-primary !text-sm">Envoyer le litige</button>
+              {openDispute.isSuccess && <p className="text-sm text-green-600">Litige ouvert. Notre équipe va l'analyser.</p>}
+            </form>
+            {litiges.data?.map((d) => (
+              <div key={d.id} className="card p-4 text-sm">
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-slate-800">{d.reference ?? `#${d.id}`} · {d.univers} · {d.category}</p>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{d.status}</span>
+                </div>
+                <p className="mt-1 text-slate-500">{d.description}</p>
+                {d.resolution && <p className="mt-1 text-xs text-brand">Réponse : {d.resolution}</p>}
+              </div>
+            ))}
+            {litiges.data?.length === 0 && <p className="text-sm text-slate-500">Aucun litige.</p>}
           </div>
         )}
         {tab === "profil" && <ProfilForm />}

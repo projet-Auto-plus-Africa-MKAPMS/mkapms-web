@@ -43,6 +43,13 @@
       "when": 1781318887664,
       "tag": "0005_partie6_refs_searches_notifs",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781319846186,
+      "tag": "0006_partie7_15_ops",
+      "breakpoints": true
     }
   ]
 }

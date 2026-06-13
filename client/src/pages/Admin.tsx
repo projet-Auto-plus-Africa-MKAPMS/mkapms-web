@@ -10,6 +10,11 @@ export default function Admin() {
   const direction = !!user && isDirection(user.role);
 
   const stats = trpc.admin.stats.useQuery(undefined, { enabled });
+  const dashboard = trpc.admin.dashboard.useQuery(undefined, { enabled });
+  const disputesList = trpc.disputes.listAll.useQuery(undefined, { enabled });
+  const partnersList = trpc.partners.list.useQuery(undefined, { enabled: direction });
+  const warehousesList = trpc.warehouses.list.useQuery(undefined, { enabled: direction });
+  const countriesList = trpc.countries.listAll.useQuery(undefined, { enabled: direction });
   const annoncesPending = trpc.admin.annoncesPending.useQuery(undefined, { enabled });
   const garagesPending = trpc.admin.garagesPending.useQuery(undefined, { enabled });
   const kycPending = trpc.admin.kycPending.useQuery(undefined, { enabled });
@@ -42,10 +47,18 @@ export default function Admin() {
   });
   const setModuleStatus = trpc.modules.setStatus.useMutation({ onSuccess: () => utils.modules.list.invalidate() });
   const updateModule = trpc.modules.update.useMutation({ onSuccess: () => utils.modules.list.invalidate() });
+  const decideDispute = trpc.disputes.decide.useMutation({ onSuccess: () => { utils.disputes.listAll.invalidate(); utils.admin.dashboard.invalidate(); } });
+  const createPartner = trpc.partners.create.useMutation({ onSuccess: () => { utils.partners.list.invalidate(); setPartner({ name: "", type: "autre", country: "" }); } });
+  const setPartnerActive = trpc.partners.setActive.useMutation({ onSuccess: () => utils.partners.list.invalidate() });
+  const deletePartner = trpc.partners.remove.useMutation({ onSuccess: () => utils.partners.list.invalidate() });
+  const createWarehouse = trpc.warehouses.create.useMutation({ onSuccess: () => { utils.warehouses.list.invalidate(); setWarehouse({ nom: "", countryCode: "FR", ville: "", type: "mixte" }); } });
+  const upsertCountry = trpc.countries.upsert.useMutation({ onSuccess: () => utils.countries.listAll.invalidate() });
 
   const [staff, setStaff] = useState({ email: "", name: "", password: "", role: "employee" as "employee" | "admin" });
   const [promo, setPromo] = useState({ code: "", type: "pourcentage" as "pourcentage" | "montant", value: 10 });
   const [certifyId, setCertifyId] = useState("");
+  const [partner, setPartner] = useState({ name: "", type: "autre", country: "" });
+  const [warehouse, setWarehouse] = useState({ nom: "", countryCode: "FR", ville: "", type: "mixte" });
 
   if (!enabled) {
     return (
@@ -85,6 +98,54 @@ export default function Admin() {
           </div>
         ))}
       </div>
+
+      {/* Tableau de bord PDG (Partie 13) — tout en un écran */}
+      <section className="mt-8">
+        <h2 className="text-lg font-bold text-slate-800">Tableau de bord <span className="text-xs font-normal text-brand">(temps réel)</span></h2>
+        <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-5">
+          {[
+            { l: "CA du jour", v: dashboard.data ? `${(dashboard.data.caJour / 100).toLocaleString("fr-FR")} €` : "—" },
+            { l: "CA du mois", v: dashboard.data ? `${(dashboard.data.caMois / 100).toLocaleString("fr-FR")} €` : "—" },
+            { l: "Abonnements actifs", v: dashboard.data?.abonnementsActifs },
+            { l: "Nouveaux comptes (mois)", v: dashboard.data?.nouveauxComptes },
+            { l: "Véhicules vendus", v: dashboard.data?.vehiculesVendus },
+            { l: "Réservations", v: dashboard.data?.reservations },
+            { l: "Paiements en attente", v: dashboard.data?.paiementsEnAttente },
+            { l: "Litiges ouverts", v: dashboard.data?.litigesOuverts, alert: !!dashboard.data?.litigesOuverts },
+            { l: "KYC à vérifier", v: dashboard.data?.kycEnAttente, alert: !!dashboard.data?.kycEnAttente },
+            { l: "Annonces à valider", v: dashboard.data?.annoncesEnAttente, alert: !!dashboard.data?.annoncesEnAttente },
+          ].map((c) => (
+            <div key={c.l} className={`card p-4 text-center ${c.alert ? "ring-1 ring-amber-300" : ""}`}>
+              <div className={`text-xl font-extrabold ${c.alert ? "text-amber-600" : "text-slate-900"}`}>{c.v ?? "—"}</div>
+              <div className="text-xs text-slate-500">{c.l}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Centre de litiges (Partie 8) */}
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Centre de litiges</h2>
+        <p className="text-xs text-slate-500">Ouverture → preuves → analyse → décision (remboursement ou clôture).</p>
+        <div className="mt-3 space-y-2">
+          {disputesList.data?.map((d) => (
+            <div key={d.id} className="card p-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-slate-800">{d.reference ?? `#${d.id}`} · {d.univers} · {d.category}</span>
+                <span className={`rounded-full px-2 py-0.5 text-xs ${d.status === "ouvert" || d.status === "en_analyse" ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600"}`}>{d.status}</span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">{d.openerEmail} — {d.description}</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button className="btn-outline !py-1 !text-xs" onClick={() => decideDispute.mutate({ id: d.id, status: "en_analyse" })}>En analyse</button>
+                <button className="btn-outline !py-1 !text-xs" onClick={() => decideDispute.mutate({ id: d.id, status: "resolu", resolution: "Résolu" })}>Résolu</button>
+                <button className="btn-outline !py-1 !text-xs" onClick={() => { const m = prompt("Montant remboursé (€) :", "0"); if (m != null) decideDispute.mutate({ id: d.id, status: "rembourse", amountRefunded: Number(m), resolution: "Remboursement" }); }}>Rembourser</button>
+                <button className="btn-outline !py-1 !text-xs" onClick={() => decideDispute.mutate({ id: d.id, status: "clos" })}>Clore</button>
+              </div>
+            </div>
+          ))}
+          {disputesList.data?.length === 0 && <p className="text-sm text-slate-500">Aucun litige.</p>}
+        </div>
+      </section>
 
       {/* Annonces à valider */}
       <section className="mt-10">
@@ -277,7 +338,7 @@ export default function Admin() {
               {auditLog.data?.map((l) => (
                 <div key={l.id} className="card flex items-center justify-between p-2 text-xs">
                   <span className="font-mono text-slate-700">{l.action}{l.entityType ? ` · ${l.entityType}#${l.entityId ?? ""}` : ""}</span>
-                  <span className="text-slate-400">{l.actorEmail ?? `#${l.actorId}`} · {new Date(l.createdAt).toLocaleString("fr-FR")}</span>
+                  <span className="text-slate-400">{l.actorEmail ?? `#${l.actorId}`}{l.ipAddress ? ` · ${l.ipAddress}` : ""} · {new Date(l.createdAt).toLocaleString("fr-FR")}</span>
                 </div>
               ))}
               {auditLog.data?.length === 0 && <p className="text-sm text-slate-500">Aucune action enregistrée pour l'instant.</p>}
@@ -329,6 +390,85 @@ export default function Admin() {
                 </tbody>
               </table>
               {modulesList.data?.length === 0 && <p className="text-sm text-slate-500">Aucun module.</p>}
+            </div>
+          </section>
+
+          {/* Partenaires (Partie 15) */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Partenaires <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <form
+              className="mt-3 flex flex-wrap gap-2"
+              onSubmit={(e) => { e.preventDefault(); if (partner.name) createPartner.mutate({ name: partner.name, type: partner.type as "autre", country: partner.country || undefined }); }}
+            >
+              <input className="input max-w-xs" placeholder="Nom du partenaire" value={partner.name} onChange={(e) => setPartner({ ...partner, name: e.target.value })} />
+              <select className="input max-w-[200px]" value={partner.type} onChange={(e) => setPartner({ ...partner, type: e.target.value })}>
+                <option value="fournisseur_vehicules">Fournisseur véhicules</option>
+                <option value="fournisseur_pieces">Fournisseur pièces</option>
+                <option value="transporteur">Transporteur</option>
+                <option value="garage">Garage partenaire</option>
+                <option value="vtc">Société VTC</option>
+                <option value="depanneur">Dépanneur</option>
+                <option value="lavage">Lavage auto</option>
+                <option value="karting">Karting</option>
+                <option value="autre">Autre</option>
+              </select>
+              <input className="input max-w-[120px]" placeholder="Pays (FR)" value={partner.country} onChange={(e) => setPartner({ ...partner, country: e.target.value })} />
+              <button className="btn-primary !text-sm">Ajouter</button>
+            </form>
+            <div className="mt-3 space-y-1">
+              {partnersList.data?.map((p) => (
+                <div key={p.id} className="card flex items-center justify-between p-2 text-sm">
+                  <span className="text-slate-700">{p.name} <span className="text-xs text-slate-400">({p.type}{p.country ? ` · ${p.country}` : ""})</span></span>
+                  <div className="flex gap-2">
+                    <button className="btn-outline !py-1 !text-xs" onClick={() => setPartnerActive.mutate({ id: p.id, active: !p.active })}>{p.active ? "Actif" : "Inactif"}</button>
+                    <button className="btn-outline !py-1 !text-xs" onClick={() => { if (confirm(`Supprimer ${p.name} ?`)) deletePartner.mutate({ id: p.id }); }}>Supprimer</button>
+                  </div>
+                </div>
+              ))}
+              {partnersList.data?.length === 0 && <p className="text-sm text-slate-500">Aucun partenaire.</p>}
+            </div>
+          </section>
+
+          {/* Multi-entrepôts (Partie 10) */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Entrepôts <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <form
+              className="mt-3 flex flex-wrap gap-2"
+              onSubmit={(e) => { e.preventDefault(); if (warehouse.nom) createWarehouse.mutate({ nom: warehouse.nom, countryCode: warehouse.countryCode, ville: warehouse.ville || undefined, type: warehouse.type as "mixte" }); }}
+            >
+              <input className="input max-w-xs" placeholder="Nom (Entrepôt Conakry)" value={warehouse.nom} onChange={(e) => setWarehouse({ ...warehouse, nom: e.target.value })} />
+              <input className="input max-w-[120px]" placeholder="Pays (GN)" value={warehouse.countryCode} onChange={(e) => setWarehouse({ ...warehouse, countryCode: e.target.value })} />
+              <input className="input max-w-[160px]" placeholder="Ville" value={warehouse.ville} onChange={(e) => setWarehouse({ ...warehouse, ville: e.target.value })} />
+              <select className="input max-w-[160px]" value={warehouse.type} onChange={(e) => setWarehouse({ ...warehouse, type: e.target.value })}>
+                <option value="mixte">Mixte</option>
+                <option value="vehicules">Véhicules</option>
+                <option value="pieces">Pièces</option>
+              </select>
+              <button className="btn-primary !text-sm">Ajouter</button>
+            </form>
+            <div className="mt-3 space-y-1">
+              {warehousesList.data?.map((w) => (
+                <div key={w.id} className="card flex items-center justify-between p-2 text-sm">
+                  <span className="text-slate-700">{w.nom} <span className="text-xs text-slate-400">({w.countryCode}{w.ville ? ` · ${w.ville}` : ""} · {w.type})</span></span>
+                  <span className={`text-xs ${w.active ? "text-green-600" : "text-slate-400"}`}>{w.active ? "Actif" : "Inactif"}</span>
+                </div>
+              ))}
+              {warehousesList.data?.length === 0 && <p className="text-sm text-slate-500">Aucun entrepôt.</p>}
+            </div>
+          </section>
+
+          {/* Plan Afrique — pays (Partie 14) */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Plan Afrique — pays <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Activez les pays (devise + règles import/douane) pour ouvrir progressivement les marchés.</p>
+            <div className="mt-3 grid gap-2 md:grid-cols-2">
+              {countriesList.data?.map((c) => (
+                <div key={c.id} className="card flex items-center justify-between p-2 text-sm">
+                  <span className="text-slate-700">{c.name} <span className="text-xs text-slate-400">({c.code} · {c.currency})</span></span>
+                  <button className={`btn-outline !py-1 !text-xs ${c.active ? "!border-green-500 !text-green-600" : ""}`} onClick={() => upsertCountry.mutate({ code: c.code, name: c.name, currency: c.currency, active: !c.active })}>{c.active ? "Actif" : "Inactif"}</button>
+                </div>
+              ))}
+              {countriesList.data?.length === 0 && <p className="text-sm text-slate-500">Aucun pays configuré.</p>}
             </div>
           </section>
 

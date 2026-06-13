@@ -13,6 +13,7 @@ import {
   documentTypes,
   currencies,
   languages,
+  countryConfigs,
 } from "./schema.js";
 import { hashPassword } from "./auth.js";
 
@@ -150,6 +151,26 @@ const CURRENCIES_SEED = [
   { code: "CNY", symbol: "¥", name: "Yuan chinois" },
 ];
 
+// Partie 14 — pays prioritaires du plan Afrique (+ marchés clés). Activables par le PDG.
+const COUNTRIES_SEED: Array<{ code: string; name: string; currency: string; active: boolean }> = [
+  { code: "FR", name: "France", currency: "EUR", active: true },
+  { code: "GN", name: "Guinée", currency: "GNF", active: true },
+  { code: "SN", name: "Sénégal", currency: "XOF", active: true },
+  { code: "CI", name: "Côte d'Ivoire", currency: "XOF", active: true },
+  { code: "ML", name: "Mali", currency: "XOF", active: false },
+  { code: "BF", name: "Burkina Faso", currency: "XOF", active: false },
+  { code: "BJ", name: "Bénin", currency: "XOF", active: false },
+  { code: "TG", name: "Togo", currency: "XOF", active: false },
+  { code: "CM", name: "Cameroun", currency: "XAF", active: false },
+  { code: "MA", name: "Maroc", currency: "MAD", active: false },
+  { code: "DZ", name: "Algérie", currency: "DZD", active: false },
+  { code: "TN", name: "Tunisie", currency: "TND", active: false },
+  { code: "NG", name: "Nigéria", currency: "NGN", active: false },
+  { code: "GH", name: "Ghana", currency: "GHS", active: false },
+  { code: "SA", name: "Arabie Saoudite", currency: "SAR", active: false },
+  { code: "AE", name: "Émirats arabes unis", currency: "AED", active: false },
+];
+
 export async function seedStructure() {
   for (const m of MODULES_SEED) {
     await db
@@ -232,7 +253,11 @@ export async function seedStructure() {
   await db.execute(
     sql`UPDATE users SET reference = 'MKA-U-' || lpad(id::text, 6, '0') WHERE reference IS NULL`,
   );
-  console.log("[seed] structure (modules, rôles, permissions, devises, langues, références) initialisée");
+  // Partie 14 — Plan Afrique : pays prioritaires (config import/douane/devise).
+  for (const c of COUNTRIES_SEED) {
+    await db.insert(countryConfigs).values(c).onConflictDoNothing({ target: countryConfigs.code });
+  }
+  console.log("[seed] structure (modules, rôles, permissions, devises, langues, références, pays) initialisée");
 }
 
 async function main() {

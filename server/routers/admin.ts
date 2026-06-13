@@ -18,7 +18,9 @@ import {
   promoCodes,
   accountDeletionRequests,
   auditLogs,
+  disputes,
 } from "../schema.js";
+import { sql as dsql } from "drizzle-orm";
 
 // Back-office (§10)
 export const adminRouter = router({
@@ -32,6 +34,46 @@ export const adminRouter = router({
     return {
       users: u.c, annonces: a.c, garages: g.c,
       subscriptions: s.c, payments: p.c, devis: d.c,
+    };
+  }),
+
+  // Partie 13 — Tableau de bord PDG : tout en un écran, sans ouvrir 50 menus.
+  dashboard: adminProcedure.query(async () => {
+    const startDay = new Date(); startDay.setHours(0, 0, 0, 0);
+    const startMonth = new Date(); startMonth.setDate(1); startMonth.setHours(0, 0, 0, 0);
+    const num = (v: unknown) => Number(v ?? 0);
+
+    const [caDay] = await db.select({ v: dsql<number>`coalesce(sum(${payments.amount}),0)` })
+      .from(payments).where(dsql`${payments.status} = 'paid' and ${payments.createdAt} >= ${startDay}`);
+    const [caMonth] = await db.select({ v: dsql<number>`coalesce(sum(${payments.amount}),0)` })
+      .from(payments).where(dsql`${payments.status} = 'paid' and ${payments.createdAt} >= ${startMonth}`);
+    const [pPending] = await db.select({ c: dsql<number>`count(*)::int` })
+      .from(payments).where(eq(payments.status, "pending"));
+    const [subsActive] = await db.select({ c: dsql<number>`count(*)::int` })
+      .from(subscriptions).where(dsql`${subscriptions.status} = 'active'`);
+    const [newAccounts] = await db.select({ c: dsql<number>`count(*)::int` })
+      .from(users).where(dsql`${users.createdAt} >= ${startMonth}`);
+    const [sold] = await db.select({ c: dsql<number>`count(*)::int` })
+      .from(annonces).where(eq(annonces.status, "vendue"));
+    const [reservations] = await db.select({ c: dsql<number>`count(*)::int` }).from(bookings);
+    const [openDisputes] = await db.select({ c: dsql<number>`count(*)::int` })
+      .from(disputes).where(dsql`${disputes.status} in ('ouvert','en_analyse')`);
+    const [kycWaiting] = await db.select({ c: dsql<number>`count(*)::int` })
+      .from(kycProfiles).where(dsql`${kycProfiles.status} in ('en_cours','en_validation')`);
+    const [annoncesWaiting] = await db.select({ c: dsql<number>`count(*)::int` })
+      .from(annonces).where(eq(annonces.status, "en_validation"));
+
+    return {
+      caJour: num(caDay?.v),
+      caMois: num(caMonth?.v),
+      paiementsEnAttente: num(pPending?.c),
+      abonnementsActifs: num(subsActive?.c),
+      nouveauxComptes: num(newAccounts?.c),
+      vehiculesVendus: num(sold?.c),
+      reservations: num(reservations?.c),
+      litigesOuverts: num(openDisputes?.c),
+      kycEnAttente: num(kycWaiting?.c),
+      annoncesEnAttente: num(annoncesWaiting?.c),
     };
   }),
 
@@ -305,6 +347,8 @@ export const adminRouter = router({
           entityType: auditLogs.entityType,
           entityId: auditLogs.entityId,
           metadata: auditLogs.metadata,
+          ipAddress: auditLogs.ipAddress,
+          userAgent: auditLogs.userAgent,
           createdAt: auditLogs.createdAt,
           actorEmail: users.email,
         })

@@ -58,6 +58,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(u);
       },
       logout: () => {
+        // Partie 7 — journalise la déconnexion (best-effort, ne bloque pas).
+        const t = getToken();
+        if (t) {
+          fetch("/api/trpc/auth.logout", {
+            method: "POST",
+            headers: { "content-type": "application/json", authorization: `Bearer ${t}` },
+            body: JSON.stringify({}),
+          }).catch(() => {});
+        }
         setToken(null);
         setTok(null);
         setUser(null);

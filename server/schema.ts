@@ -33,6 +33,8 @@ export const annonceOptionTypeEnum = pgEnum("annonce_option_type", ["annonce_urg
 export const annonceStatusEnum = pgEnum("annonce_status", ["brouillon", "en_validation", "publiee", "vendue", "louee", "expiree", "refusee", "archivee"]);
 export const annonceTypeEnum = pgEnum("annonce_type", ["vente", "location"]);
 export const annonceVendeurTypeEnum = pgEnum("annonce_vendeur_type", ["particulier", "professionnel", "concession"]);
+// Partie 11 — flotte : propriété du véhicule (plateforme / partenaire / client).
+export const annonceOwnershipEnum = pgEnum("annonce_ownership", ["client", "plateforme", "partenaire"]);
 export const availabilityEnum = pgEnum("availability", ["available", "soon", "sold"]);
 export const bookingStatusEnum = pgEnum("booking_status", ["pending", "accepted", "rejected", "cancelled", "completed"]);
 export const bookingTypeEnum = pgEnum("booking_type", ["test_drive", "rental", "purchase_visit"]);
@@ -184,6 +186,8 @@ export const annonces = pgTable("annonces", {
   selectionMka: boolean("selection_mka").notNull().default(false),
   selectionMkaBy: integer("selection_mka_by"),
   selectionMkaAt: timestamp("selection_mka_at"),
+  // Partie 11 — flotte MKA.P-MS.
+  ownership: annonceOwnershipEnum("ownership").notNull().default("client"),
 });
 
 export const auditLogs = pgTable("audit_logs", {
@@ -193,6 +197,9 @@ export const auditLogs = pgTable("audit_logs", {
   entityType: varchar("entity_type", { length: 64 }),
   entityId: bigint("entity_id", { mode: "number" }),
   metadata: jsonb("metadata"),
+  // Partie 7 — traçabilité : appareil + adresse IP de l'auteur.
+  ipAddress: varchar("ip_address", { length: 64 }),
+  userAgent: varchar("user_agent", { length: 255 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -902,4 +909,5 @@ export * from "./modules/contracts"; // Contrats intelligents
 export * from "./modules/installments"; // Paiement fractionné
 export * from "./modules/marketing"; // Marketing / QR codes
 export * from "./modules/history"; // Historique véhicule + suggestions/signalements
+export * from "./modules/operations"; // Litiges, partenaires, entrepôts, pays (Parties 7-15)
 export * from "./modules/future"; // Lavage, Karting, Formation, Financement (futurs)

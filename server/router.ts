@@ -26,6 +26,7 @@ import { kycRouter } from "./routers/kyc.js";
 import { currencyRouter } from "./routers/currency.js";
 import { notificationsRouter, searchesRouter } from "./routers/notifications.js";
 import { reviewsRouter } from "./routers/reviews.js";
+import { disputesRouter, partnersRouter, warehousesRouter, countriesRouter } from "./routers/operations.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -56,6 +57,11 @@ export const appRouter = router({
   notifications: notificationsRouter,
   searches: searchesRouter,
   reviews: reviewsRouter,
+  // Parties 7-15 (litiges, partenaires, entrepôts, pays)
+  disputes: disputesRouter,
+  partners: partnersRouter,
+  warehouses: warehousesRouter,
+  countries: countriesRouter,
 });
 
 export type AppRouter = typeof appRouter;
