@@ -73,6 +73,8 @@ export default function Admin() {
   const investor = trpc.investor.overview.useQuery(undefined, { enabled });
   const mediaList = trpc.media.list.useQuery(undefined, { enabled });
   const apiKeys = trpc.partnerApi.list.useQuery(undefined, { enabled });
+  // Messagerie support / contact plateforme
+  const ticketsListQ = trpc.admin.ticketsList.useQuery(undefined, { enabled });
   // Lavage / Karting / Formation (masqués au public) + carte plateforme
   const lavageStationsQ = trpc.lavage.listStations.useQuery(undefined, { enabled });
   const kartingCentersQ = trpc.karting.listCenters.useQuery(undefined, { enabled });
@@ -112,6 +114,8 @@ export default function Admin() {
   const createKartingEvent = trpc.karting.createEvent.useMutation({ onSuccess: () => { utils.karting.listEvents.invalidate(); setKartingEvent({ titre: "", type: "evenement", dateEvent: "" }); } });
   const createFormation = trpc.formation.create.useMutation({ onSuccess: () => { utils.formation.list.invalidate(); setFormation({ titre: "", categorie: "garage", certifiante: false, active: false }); } });
   const setFormationActive = trpc.formation.setActive.useMutation({ onSuccess: () => utils.formation.list.invalidate() });
+  const respondTicket = trpc.support.respond.useMutation({ onSuccess: () => { utils.admin.ticketsList.invalidate(); setTicketReply({}); } });
+  const setTicketStatus = trpc.support.setStatus.useMutation({ onSuccess: () => utils.admin.ticketsList.invalidate() });
 
   const [staff, setStaff] = useState({ email: "", name: "", password: "", role: "employee" as "employee" | "admin" });
   const [promo, setPromo] = useState({ code: "", type: "pourcentage" as "pourcentage" | "montant", value: 10 });
@@ -135,6 +139,7 @@ export default function Admin() {
   const [kart, setKart] = useState({ modele: "", marque: "MKA.P-MS", fabricationMaison: true, puissance: "", statut: "operationnel" });
   const [kartingEvent, setKartingEvent] = useState({ titre: "", type: "evenement", dateEvent: "" });
   const [formation, setFormation] = useState({ titre: "", categorie: "garage", certifiante: false, active: false });
+  const [ticketReply, setTicketReply] = useState<Record<number, string>>({});
 
   if (!enabled) {
     return (
@@ -377,6 +382,61 @@ export default function Admin() {
           </div>
         </section>
       </div>
+
+      {/* Messagerie support — contact direct de la plateforme par les clients */}
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">
+          Messages & support
+          {ticketsListQ.data && ticketsListQ.data.filter((t) => t.status === "ouvert").length > 0 && (
+            <span className="ml-2 rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white">
+              {ticketsListQ.data.filter((t) => t.status === "ouvert").length} ouvert(s)
+            </span>
+          )}
+        </h2>
+        <p className="text-xs text-slate-500">Messages envoyés par les clients via le bouton « Contacter MKA.P-MS ». Répondez ici — le client est notifié.</p>
+        <div className="mt-3 space-y-2">
+          {ticketsListQ.data?.map((t) => (
+            <div key={t.id} className="card p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <span className="font-semibold text-slate-800">{t.sujet}</span>
+                  <span className="ml-2 text-xs text-slate-400">{t.contactNom} · {t.contactEmail}</span>
+                </div>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${t.status === "ouvert" ? "bg-amber-100 text-amber-700" : t.status === "resolu" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
+                  {t.status}
+                </span>
+              </div>
+              <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{t.message}</p>
+              {t.response && (
+                <div className="mt-2 rounded-lg border-l-2 border-brand bg-brand/5 p-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-brand">Réponse envoyée</p>
+                  <p className="mt-0.5 whitespace-pre-wrap text-sm text-slate-700">{t.response}</p>
+                </div>
+              )}
+              <form
+                className="mt-2 flex flex-col gap-2 sm:flex-row"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const txt = ticketReply[t.id]?.trim();
+                  if (txt) respondTicket.mutate({ id: t.id, response: txt, status: "resolu" });
+                }}
+              >
+                <input
+                  className="input flex-1"
+                  placeholder={t.response ? "Ajouter une réponse…" : "Votre réponse au client…"}
+                  value={ticketReply[t.id] ?? ""}
+                  onChange={(e) => setTicketReply((s) => ({ ...s, [t.id]: e.target.value }))}
+                />
+                <button className="btn-primary !text-sm" disabled={respondTicket.isPending}>Répondre</button>
+                {t.status !== "ferme" && (
+                  <button type="button" className="btn-outline !text-sm" onClick={() => setTicketStatus.mutate({ id: t.id, status: "ferme" })}>Clôturer</button>
+                )}
+              </form>
+            </div>
+          ))}
+          {ticketsListQ.data?.length === 0 && <p className="text-sm text-slate-500">Aucun message pour le moment.</p>}
+        </div>
+      </section>
 
       {/* ===== Zone Direction (PDG) ===== */}
       {direction && (

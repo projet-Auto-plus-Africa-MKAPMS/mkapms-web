@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import {
   Home,
   Search,
+  Heart,
   PlusCircle,
   MessageSquare,
   User,
@@ -10,6 +11,7 @@ import {
   X,
   Bell,
 } from "lucide-react";
+import SupportWidget from "./SupportWidget";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
@@ -60,6 +62,7 @@ function Header() {
 
         <div className="hidden items-center gap-2 md:flex">
           <CurrencySelect />
+          <SupportWidget />
           <Link to="/vendre" className="btn-gold">
             Déposer une annonce
           </Link>
@@ -80,9 +83,12 @@ function Header() {
           )}
         </div>
 
-        <button className="md:hidden" onClick={() => setOpen((o) => !o)}>
-          {open ? <X /> : <Menu />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <SupportWidget />
+          <button aria-label="Menu" onClick={() => setOpen((o) => !o)}>
+            {open ? <X /> : <Menu />}
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -267,12 +273,13 @@ function BottomNav() {
   const items = [
     { to: "/", label: "Accueil", icon: Home },
     { to: "/acheter", label: "Rechercher", icon: Search },
+    { to: "/favoris", label: "Favoris", icon: Heart },
     { to: "/vendre", label: "Publier", icon: PlusCircle },
     { to: "/compte/messages", label: "Messages", icon: MessageSquare },
     { to: "/compte", label: "Compte", icon: User },
   ];
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-5 border-t border-slate-200 bg-white md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 border-t border-slate-200 bg-white md:hidden">
       {items.map((it) => {
         const Icon = it.icon;
         const active = loc.pathname === it.to;

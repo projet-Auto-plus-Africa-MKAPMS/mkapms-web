@@ -16,6 +16,7 @@ import Aide from "./pages/Aide";
 import Confiance from "./pages/Confiance";
 import Connexion from "./pages/Connexion";
 import Compte from "./pages/Compte";
+import Favoris from "./pages/Favoris";
 import Validation from "./pages/Validation";
 import Admin from "./pages/Admin";
 import Univers from "./pages/Univers";
@@ -69,6 +70,7 @@ export default function App() {
           <Route path="/aide" element={<Aide />} />
           <Route path="/confiance" element={<Confiance />} />
           <Route path="/connexion" element={<Connexion />} />
+          <Route path="/favoris" element={<U name="Favoris"><Favoris /></U>} />
           <Route path="/compte/validation" element={<U name="Validation"><Validation /></U>} />
           <Route path="/compte/*" element={<U name="Mon compte"><Compte /></U>} />
           <Route path="/admin/*" element={<U name="Back-office"><Admin /></U>} />
