@@ -92,6 +92,13 @@
       "when": 1781340000000,
       "tag": "0012_depot_vente_devis_type",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1781350000000,
+      "tag": "0013_vo_comptabilite",
+      "breakpoints": true
     }
   ]
 }

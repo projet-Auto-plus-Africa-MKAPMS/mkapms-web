@@ -28,6 +28,8 @@ import { notificationsRouter, searchesRouter } from "./routers/notifications.js"
 import { reviewsRouter } from "./routers/reviews.js";
 import { disputesRouter, partnersRouter, warehousesRouter, countriesRouter, loyaltyRouter, documentsRouter, dossiersRouter, governanceRouter, platformRouter, insuranceRouter, labRouter, procurementRouter, hrRouter, qualityRouter, investorRouter, mediaRouter, partnerApiRouter, lavageRouter, kartingRouter, formationRouter, platformMapRouter } from "./routers/operations.js";
 import { depotVenteRouter } from "./routers/depotvente.js";
+import { voRouter } from "./routers/vo.js";
+import { comptabiliteRouter, cabinetsRouter } from "./routers/comptabilite.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -86,6 +88,9 @@ export const appRouter = router({
   formation: formationRouter,
   platformMap: platformMapRouter,
   depotVente: depotVenteRouter,
+  vo: voRouter,
+  comptabilite: comptabiliteRouter,
+  cabinets: cabinetsRouter,
 });
 
 export type AppRouter = typeof appRouter;

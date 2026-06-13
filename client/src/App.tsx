@@ -41,6 +41,8 @@ const Historique = lazy(() => import("./pages/Historique"));
 const Wallet = lazy(() => import("./pages/Wallet"));
 const CarteMondiale = lazy(() => import("./pages/CarteMondiale"));
 const DepotVente = lazy(() => import("./pages/DepotVente"));
+const VOInterne = lazy(() => import("./pages/VOInterne"));
+const Comptabilite = lazy(() => import("./pages/Comptabilite"));
 
 // Chaque univers est isolé : un crash dans l'un n'affecte pas les autres.
 function U({ name, children }: { name: string; children: React.ReactNode }) {
@@ -90,6 +92,8 @@ export default function App() {
             <Route path="/wallet" element={<U name="Wallet"><Wallet /></U>} />
             <Route path="/carte" element={<U name="Carte mondiale"><CarteMondiale /></U>} />
             <Route path="/depot-vente" element={<U name="Dépôt-Vente"><DepotVente /></U>} />
+            <Route path="/vo" element={<U name="VO Interne"><VOInterne /></U>} />
+            <Route path="/comptabilite" element={<U name="Comptabilité"><Comptabilite /></U>} />
             <Route path="/abonnements" element={<U name="Abonnements"><Abonnements /></U>} />
             <Route path="/aide" element={<Aide />} />
             <Route path="/confiance" element={<Confiance />} />

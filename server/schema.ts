@@ -1103,3 +1103,5 @@ export * from "./modules/history"; // Historique véhicule + suggestions/signale
 export * from "./modules/operations"; // Litiges, partenaires, entrepôts, pays (Parties 7-15)
 export * from "./modules/future"; // Lavage, Karting, Formation, Financement (futurs)
 export * from "./modules/depotvente"; // Dépôt-Vente MKA.P-MS
+export * from "./modules/vo"; // VO Interne MKA.P-MS (cycle complet véhicule d'occasion)
+export * from "./modules/comptabilite"; // Comptabilité interne + Cabinets comptables externes
