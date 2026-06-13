@@ -88,6 +88,48 @@ export const formationEnrollments = pgTable("formation_enrollments", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// --- Contrôle technique (Partie 4/4 §6 — référencement des centres) ---
+export const controleTechniqueCenters = pgTable("controle_technique_centers", {
+  id: serial("id").primaryKey(),
+  nom: varchar("nom", { length: 160 }).notNull(),
+  countryCode: varchar("country_code", { length: 4 }),
+  ville: varchar("ville", { length: 96 }),
+  adresse: text("adresse"),
+  horaires: text("horaires"),
+  telephone: varchar("telephone", { length: 32 }),
+  rating: numeric("rating", { precision: 3, scale: 2 }).default("0"),
+  active: boolean("active").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const controleTechniqueRdv = pgTable("controle_technique_rdv", {
+  id: serial("id").primaryKey(),
+  centerId: integer("center_id").notNull(),
+  userId: integer("user_id").notNull(),
+  vehiculeId: integer("vehicule_id"),
+  dateRdv: timestamp("date_rdv"),
+  prix: numeric("prix", { precision: 12, scale: 2 }),
+  status: varchar("status", { length: 32 }).notNull().default("demande"),
+  resultat: varchar("resultat", { length: 32 }), // favorable, defavorable, contre_visite
+  prochainControle: date("prochain_controle"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// --- Fournisseurs mondiaux (Partie 4/4 §11 — base partenaires import/export) ---
+export const suppliers = pgTable("suppliers", {
+  id: serial("id").primaryKey(),
+  nom: varchar("nom", { length: 200 }).notNull(),
+  type: varchar("type", { length: 64 }), // auto1, europe, chine_asie, transporteur, garage, entrepot
+  countryCode: varchar("country_code", { length: 4 }),
+  services: text("services"),
+  contactEmail: varchar("contact_email", { length: 160 }),
+  contactTelephone: varchar("contact_telephone", { length: 32 }),
+  notationInterne: numeric("notation_interne", { precision: 3, scale: 2 }).default("0"),
+  active: boolean("active").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // --- Financement automobile (conforme, invisible au lancement) ---
 export const financementRequests = pgTable("financement_requests", {
   id: serial("id").primaryKey(),

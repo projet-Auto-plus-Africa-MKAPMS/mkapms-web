@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
-import { PLAN_CATEGORY_LABELS, type PlanCategory } from "@shared/plans";
+import { PLAN_CATEGORY_LABELS, PHOTO_PACKS, FREE_PHOTOS, type PlanCategory } from "@shared/plans";
 
 // Règle centrale (parcours §12) : chaque profil ne voit QUE ses offres.
 const TABS: [PlanCategory, string][] = [
@@ -102,6 +102,23 @@ export default function Abonnements() {
           </div>
         ))}
       </div>
+      {tab === "particulier" && (
+        <div className="mt-12">
+          <h2 className="text-center text-lg font-bold text-slate-700">Photos supplémentaires (à l'unité)</h2>
+          <p className="mt-1 text-center text-sm text-slate-500">
+            {FREE_PHOTOS} photos gratuites incluses par annonce. Au-delà, c'est facturé — jamais bloqué.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {PHOTO_PACKS.map((pack) => (
+              <div key={pack.code} className="card flex flex-col items-center p-5 text-center">
+                <h3 className="font-extrabold text-slate-900">{pack.label}</h3>
+                <div className="mt-2 text-2xl font-extrabold text-brand">{formatPrice(pack.priceEur)}</div>
+                <p className="mt-1 text-xs text-slate-500">+{pack.extraPhotos} photo{pack.extraPhotos > 1 ? "s" : ""}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {checkout.error && (
         <p className="mt-6 text-center text-sm text-red-600">{checkout.error.message}</p>
       )}

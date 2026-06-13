@@ -3,7 +3,31 @@ import { and, desc, eq, gte, ilike, lte, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { annonces, annoncePhotos, users } from "../schema.js";
+import { annonces, annoncePhotos, users, subscriptions } from "../schema.js";
+import { getPlan } from "@shared/plans.js";
+import { logAction } from "../audit.js";
+
+// Quota d'annonces du pro selon son abonnement actif. Renvoie l'état SANS bloquer
+// (règle Partie A §2 : on facture les dépassements, on ne bloque jamais).
+async function quotaInfo(userId: number) {
+  const actives = await db
+    .select({ id: annonces.id })
+    .from(annonces)
+    .where(and(eq(annonces.ownerId, userId), eq(annonces.status, "publiee")));
+  const used = actives.length;
+  const [sub] = await db
+    .select()
+    .from(subscriptions)
+    .where(and(eq(subscriptions.userId, userId), eq(subscriptions.status, "active")))
+    .orderBy(desc(subscriptions.createdAt))
+    .limit(1);
+  const plan = sub ? getPlan(sub.planCode) : undefined;
+  const limit = plan?.quotas.maxAnnonces ?? null; // null = illimité
+  const overageEur = plan?.overageEur ?? 0;
+  const over = limit != null && used >= limit;
+  const approaching = limit != null && !over && used >= Math.max(1, limit - 2);
+  return { used, limit, overageEur, over, approaching, planCode: sub?.planCode ?? null };
+}
 
 const categorieEnum = z.enum([
   "citadine", "berline", "break", "suv", "coupe", "cabriolet", "monospace",
@@ -129,6 +153,9 @@ export const annoncesRouter = router({
       .orderBy(desc(annonces.createdAt));
   }),
 
+  // État du quota d'annonces (alerte préventive côté client, jamais de blocage)
+  quotaStatus: protectedProcedure.query(async ({ ctx }) => quotaInfo(ctx.user.uid)),
+
   // Dépôt d'annonce (Vendre)
   create: protectedProcedure
     .input(
@@ -198,14 +225,28 @@ export const annoncesRouter = router({
 
       if (photos.length) {
         await db.insert(annoncePhotos).values(
-          photos.slice(0, 10).map((url, i) => ({
+          photos.slice(0, 30).map((url, i) => ({
             annonceId: created.id,
             url,
             ordre: i,
           })),
         );
       }
-      return created;
+
+      // Règle Partie A §2 : pas de blocage. Si le quota est dépassé, on TRACE le
+      // dépassement facturé (radar PDG + comptabilité) au lieu de refuser l'annonce.
+      const quota = await quotaInfo(ctx.user.uid);
+      let overageBilled = 0;
+      if (quota.over && quota.overageEur > 0) {
+        overageBilled = quota.overageEur;
+        await logAction(ctx.user.uid, "annonce.overage", "annonce", created.id, {
+          planCode: quota.planCode,
+          used: quota.used,
+          limit: quota.limit,
+          overageEur: quota.overageEur,
+        });
+      }
+      return { ...created, overageBilled, quota };
     }),
 
   remove: protectedProcedure

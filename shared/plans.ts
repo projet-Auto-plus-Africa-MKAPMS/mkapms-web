@@ -32,7 +32,26 @@ export interface Plan {
   highlight?: boolean; // "le plus choisi"
   features: string[];
   quotas: PlanQuotas;
+  // Partie A §2 : « jamais de blocage sauf KYC ». Au-delà du quota, on facture au lieu de bloquer.
+  overageEur?: number; // coût unitaire d'une annonce supplémentaire (pro)
+  commissionPct?: number; // commission plateforme sur les transactions
 }
+
+// Options photos à l'unité pour le Particulier (Partie A §1).
+// 4 photos gratuites incluses ; au-delà, c'est facturé (jamais bloqué).
+export interface PhotoPack {
+  code: string;
+  label: string;
+  priceEur: number;
+  extraPhotos: number; // nombre de photos supplémentaires
+}
+export const FREE_PHOTOS = 4;
+export const PHOTO_PACKS: PhotoPack[] = [
+  { code: "photo_unit", label: "+1 photo", priceEur: 1.5, extraPhotos: 1 },
+  { code: "photo_pack5", label: "Pack 5 photos", priceEur: 5.9, extraPhotos: 5 },
+  { code: "photo_pack8", label: "Pack 8 photos", priceEur: 7.9, extraPhotos: 8 },
+  { code: "photo_pack18", label: "Pack 18 photos", priceEur: 16.9, extraPhotos: 18 },
+];
 
 // §8.1 — Offres particuliers (Boost à l'unité)
 export const PARTICULIER_PLANS: Plan[] = [
@@ -88,32 +107,38 @@ export const PARTICULIER_PLANS: Plan[] = [
   },
 ];
 
-// §8.2 — Offres professionnelles (abonnement mensuel)
+// §8.2 — Offres professionnelles Vente (abonnement mensuel, sans engagement).
+// ⚠ Grille publique 49/89/149 conservée provisoirement : la grille VERROUILLÉE
+// Vente Pro (Partie A §1) était une IMAGE non transcrite → en attente des montants exacts.
+// Les dépassements d'annonces sont FACTURÉS (jamais bloqués) : voir overageEur.
 export const PRO_PLANS: Plan[] = [
   {
-    code: "pro_starter",
-    label: "Pro Starter",
+    code: "pro_start",
+    label: "Pro Start",
     audience: "pro",
     category: "pro_vente",
     priceEur: 49,
     recurring: true,
+    overageEur: 12,
     features: [
       "20 annonces actives",
       "Badge « PRO »",
       "Statistiques mensuelles",
       "Page vitrine garage",
       "Support email sous 48 h",
+      "Dépassement facturé +12 €/annonce (jamais bloqué)",
     ],
     quotas: { maxAnnonces: 20, maxPhotos: 15, maxVideos: 1 },
   },
   {
-    code: "pro_business",
-    label: "Pro Business",
+    code: "pro_premium",
+    label: "Pro Premium",
     audience: "pro",
     category: "pro_vente",
     priceEur: 89,
     recurring: true,
     highlight: true,
+    overageEur: 15,
     features: [
       "50 annonces actives",
       "Mise en avant auto des nouvelles annonces (24 h)",
@@ -121,23 +146,42 @@ export const PRO_PLANS: Plan[] = [
       "Multi-utilisateurs (3 comptes)",
       "Export comptable mensuel",
       "Support téléphone + email prioritaire",
+      "Dépassement facturé +15 €/annonce",
     ],
     quotas: { maxAnnonces: 50, maxPhotos: 20, maxVideos: 3 },
   },
   {
-    code: "pro_premium",
-    label: "Pro Premium",
+    code: "pro_elite",
+    label: "Pro Elite",
     audience: "pro",
     category: "pro_vente",
     priceEur: 149,
     recurring: true,
+    overageEur: 18,
     features: [
-      "Annonces illimitées",
+      "120 annonces actives",
       "Top placement permanent (badge or)",
       "Multi-utilisateurs illimités",
       "Accès API (synchro stock)",
       "Account manager dédié",
       "Reporting hebdo + mise en avant homepage",
+      "Dépassement facturé +18 €/annonce",
+    ],
+    quotas: { maxAnnonces: 120, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "pro_max",
+    label: "Pro Max",
+    audience: "pro",
+    category: "pro_vente",
+    priceEur: 199,
+    recurring: true,
+    overageEur: 22,
+    features: [
+      "Annonces illimitées",
+      "Tout Elite",
+      "Priorité maximale",
+      "Dépassement facturé +22 €/annonce",
     ],
     quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
   },
@@ -172,30 +216,29 @@ export const GARAGE_PLANS: Plan[] = [
   { code: "garage_max", label: "Garage Max", audience: "pro", category: "garage", priceEur: null, recurring: true, features: ["Tout Elite", "Multi-établissements", "Support dédié"], quotas: q(null) },
 ];
 
-// Location Pro — paliers (parcours §4). Grille à confirmer.
+// Location Pro — paliers (grille VERROUILLÉE, Partie A §1). Commission 3 % (grandes flottes 2–2,5 %).
 export const LOCATION_PLANS: Plan[] = [
-  { code: "location_start", label: "Location Start", audience: "pro", category: "location", priceEur: null, recurring: true, features: ["Mise en location", "Contrats automatiques", "État des lieux"], quotas: q(null) },
-  { code: "location_premium", label: "Location Premium", audience: "pro", category: "location", priceEur: null, recurring: true, highlight: true, features: ["Tout Start", "Flotte étendue", "Tarifs jour/sem/mois"], quotas: q(null) },
-  { code: "location_elite", label: "Location Elite", audience: "pro", category: "location", priceEur: null, recurring: true, features: ["Tout Premium", "Caution & options", "Priorité"], quotas: q(null) },
-  { code: "location_max", label: "Location Max", audience: "pro", category: "location", priceEur: null, recurring: true, features: ["Tout Elite", "Multi-agences"], quotas: q(null) },
-  { code: "location_ultimate", label: "Location Ultimate", audience: "pro", category: "location", priceEur: null, recurring: true, features: ["Tout Max", "Flotte illimitée", "Support dédié"], quotas: q(null) },
+  { code: "loc_start", label: "Location Start", audience: "pro", category: "location", priceEur: 49.99, recurring: true, features: ["Jusqu'à 5 véhicules", "Contrats automatiques", "État des lieux", "Tarifs jour/sem/mois"], quotas: q(5) },
+  { code: "loc_premium", label: "Location Premium", audience: "pro", category: "location", priceEur: 99.99, recurring: true, highlight: true, features: ["Jusqu'à 20 véhicules", "Tout Start", "Caution & options"], quotas: q(20) },
+  { code: "loc_elite", label: "Location Elite", audience: "pro", category: "location", priceEur: 159.99, recurring: true, features: ["Jusqu'à 50 véhicules", "Tout Premium", "Priorité annuaire"], quotas: q(50) },
+  { code: "loc_max", label: "Location Max", audience: "pro", category: "location", priceEur: 199.99, recurring: true, commissionPct: 3, features: ["Jusqu'à 120 véhicules", "Tout Elite", "Multi-agences", "Commission réduite (grandes flottes)"], quotas: q(120) },
 ];
 
-// VTC / TAXI — paliers (parcours §5). Grille à confirmer.
+// VTC / TAXI — paliers (grille VERROUILLÉE, Partie A §1). Commission 3 %.
 export const VTC_TAXI_PLANS: Plan[] = [
-  { code: "vtc_start", label: "VTC/TAXI Start", audience: "pro", category: "vtc_taxi", priceEur: null, recurring: true, features: ["Gestion chauffeurs", "Gestion véhicules"], quotas: q(null) },
-  { code: "vtc_premium", label: "VTC/TAXI Premium", audience: "pro", category: "vtc_taxi", priceEur: null, recurring: true, highlight: true, features: ["Tout Start", "Flotte étendue", "Réservations"], quotas: q(null) },
-  { code: "vtc_elite", label: "VTC/TAXI Elite", audience: "pro", category: "vtc_taxi", priceEur: null, recurring: true, features: ["Tout Premium", "Priorité"], quotas: q(null) },
-  { code: "vtc_max", label: "VTC/TAXI Max", audience: "pro", category: "vtc_taxi", priceEur: null, recurring: true, features: ["Tout Elite", "Multi-sociétés"], quotas: q(null) },
+  { code: "vtc_start", label: "VTC/TAXI Start", audience: "pro", category: "vtc_taxi", priceEur: 49.99, recurring: true, features: ["Jusqu'à 5 véhicules", "Gestion chauffeurs", "Réservations"], quotas: q(5) },
+  { code: "vtc_premium", label: "VTC/TAXI Premium", audience: "pro", category: "vtc_taxi", priceEur: 99.99, recurring: true, highlight: true, features: ["Jusqu'à 20 véhicules", "Tout Start", "Flotte étendue"], quotas: q(20) },
+  { code: "vtc_elite", label: "VTC/TAXI Elite", audience: "pro", category: "vtc_taxi", priceEur: 159.99, recurring: true, features: ["Jusqu'à 50 véhicules", "Tout Premium", "Priorité"], quotas: q(50) },
+  { code: "vtc_max", label: "VTC/TAXI Max", audience: "pro", category: "vtc_taxi", priceEur: 199.99, recurring: true, commissionPct: 3, features: ["Jusqu'à 120 véhicules", "Tout Elite", "Multi-sociétés"], quotas: q(120) },
 ];
 
 // Pièces Auto — Boutique + Gestion Stock (parcours §6, prix communiqués).
 export const PIECES_PLANS: Plan[] = [
-  { code: "pieces_boutique", label: "Boutique seule", audience: "pro", category: "pieces", priceEur: 14.9, recurring: true, features: ["Boutique en ligne", "Logo, horaires, GPS", "WhatsApp & avis"], quotas: q(null) },
-  { code: "pieces_stock_start", label: "Boutique + Stock Start", audience: "pro", category: "pieces", priceEur: 29.9, recurring: true, features: ["Boutique", "Gestion stock", "Références OEM"], quotas: q(null) },
-  { code: "pieces_stock_premium", label: "Boutique + Stock Premium", audience: "pro", category: "pieces", priceEur: 49.9, recurring: true, highlight: true, features: ["Tout Start", "Compatibilités", "Factures"], quotas: q(null) },
-  { code: "pieces_stock_elite", label: "Boutique + Stock Elite", audience: "pro", category: "pieces", priceEur: 79.9, recurring: true, features: ["Tout Premium", "Commission optimisée"], quotas: q(null) },
-  { code: "pieces_stock_max", label: "Boutique + Stock Max", audience: "pro", category: "pieces", priceEur: 119.9, recurring: true, features: ["Tout Elite", "Volume illimité"], quotas: q(null) },
+  { code: "pieces_boutique", label: "Boutique seule", audience: "pro", category: "pieces", priceEur: 14.9, recurring: true, commissionPct: 5, features: ["Boutique en ligne", "Logo, horaires, GPS", "WhatsApp & avis", "Commission 5 %"], quotas: q(null) },
+  { code: "pieces_stock_start", label: "Boutique + Stock Start", audience: "pro", category: "pieces", priceEur: 29.9, recurring: true, commissionPct: 3, features: ["Boutique", "Gestion stock", "Références OEM", "Commission 3 %"], quotas: q(null) },
+  { code: "pieces_stock_premium", label: "Boutique + Stock Premium", audience: "pro", category: "pieces", priceEur: 49.9, recurring: true, highlight: true, commissionPct: 3, features: ["Tout Start", "Compatibilités", "Factures", "Commission 3 %"], quotas: q(null) },
+  { code: "pieces_stock_elite", label: "Boutique + Stock Elite", audience: "pro", category: "pieces", priceEur: 79.9, recurring: true, commissionPct: 1.5, features: ["Tout Premium", "Commission optimisée 1,5 %"], quotas: q(null) },
+  { code: "pieces_stock_max", label: "Boutique + Stock Max", audience: "pro", category: "pieces", priceEur: 119.9, recurring: true, commissionPct: 1.5, features: ["Tout Elite", "Volume illimité", "Commission 1,5 %"], quotas: q(null) },
 ];
 
 // Livraison — Moto/Scooter & Utilitaire (parcours §7, prix communiqués).

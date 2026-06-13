@@ -1,4 +1,5 @@
 // Données de démonstration minimales (idempotent).
+import { pathToFileURL } from "node:url";
 import { eq } from "drizzle-orm";
 import { db, pool } from "./db.js";
 import {
@@ -37,14 +38,21 @@ const MODULES_SEED: Array<{ code: string; nom: string; description: string; stat
   { code: "karting", nom: "Karting", description: "Centres & événements karting (à venir).", status: "masque", ordre: 17, visiblePublic: true },
   { code: "formation", nom: "Formation", description: "Formations internes & partenaires (à venir).", status: "masque", ordre: 18, visiblePublic: true },
   { code: "financement", nom: "Financement", description: "Financement conforme (à venir).", status: "masque", ordre: 19, visiblePublic: false },
+  // Partie 4/4 — modules prévus dans la structure, masqués au lancement.
+  { code: "controle_technique", nom: "Contrôle technique", description: "Réseau de centres CT + prise de RDV (à venir).", status: "masque", ordre: 20, visiblePublic: true },
+  { code: "fournisseurs", nom: "Fournisseurs mondiaux", description: "Base partenaires import/export (interne).", status: "masque", ordre: 21, visiblePublic: false },
+  { code: "carte_mondiale", nom: "Carte mondiale", description: "Tous les services par pays/ville sur une carte (à venir).", status: "masque", ordre: 22, visiblePublic: true },
+  { code: "qualite", nom: "Qualité / Amélioration", description: "Espace privé : bugs, idées, signalements (analyse Direction).", status: "masque", ordre: 23, visiblePublic: false },
 ];
 
 const ROLES_SEED: Array<{ name: string; label: string; level: number }> = [
-  { name: "super_admin", label: "Super Admin (PDG)", level: 100 },
+  // Hiérarchie d'entreprise à 6 niveaux (Partie A §4).
+  { name: "super_admin", label: "PDG (Super-Admin)", level: 100 },
   { name: "admin", label: "Administration", level: 80 },
-  { name: "employee", label: "Employé", level: 35 },
   { name: "directeur", label: "Directeur", level: 70 },
-  { name: "manager", label: "Manager", level: 60 },
+  { name: "adjoint", label: "Adjoint de direction", level: 65 },
+  { name: "manager", label: "Gérant", level: 60 },
+  { name: "employee", label: "Employé", level: 35 },
   { name: "chef_equipe", label: "Chef d'équipe", level: 50 },
   { name: "comptabilite", label: "Comptabilité", level: 45 },
   { name: "support", label: "Support", level: 40 },
@@ -91,6 +99,14 @@ const PERMISSIONS_SEED: Array<{ key: string; module: string; description: string
 
 // Sous-ensemble opérationnel accordé aux EMPLOYÉS (Administration normale).
 // La Direction (super_admin) reçoit TOUTES les permissions.
+// Réservé au PDG uniquement (Partie A §4) : fermer la plateforme, supprimer des
+// comptes, gérer le code/structure. Personne d'autre, pas même le Directeur.
+const PDG_ONLY = new Set<string>([
+  "accounts.delete",
+  "modules.manage",
+  "rbac.manage",
+]);
+
 const EMPLOYEE_PERMISSIONS = new Set<string>([
   "stats.view",
   "accounts.view",
@@ -122,7 +138,7 @@ const CURRENCIES_SEED = [
   { code: "USD", symbol: "$", name: "Dollar américain" },
 ];
 
-async function seedStructure() {
+export async function seedStructure() {
   for (const m of MODULES_SEED) {
     await db
       .insert(modules)
@@ -154,6 +170,9 @@ async function seedStructure() {
   const sa = roleByName.get("super_admin");
   const adminId = roleByName.get("admin");
   const empId = roleByName.get("employee");
+  const directeurId = roleByName.get("directeur");
+  const adjointId = roleByName.get("adjoint");
+  const managerId = roleByName.get("manager");
   const existingRP = await db.select().from(rolePermissions);
   const rpByKey = new Map(existingRP.map((rp) => [`${rp.roleId}:${rp.permissionId}`, rp]));
   async function grant(roleId: number | undefined, permId: number, allowed: boolean) {
@@ -172,7 +191,19 @@ async function seedStructure() {
     await db.insert(rolePermissions).values({ roleId, permissionId: permId, allowed });
   }
   for (const perm of allPerms) {
-    await grant(sa, perm.id, true); // Direction : tout
+    await grant(sa, perm.id, true); // PDG : pouvoir total
+    // Directeur : tout sauf les pouvoirs réservés au PDG.
+    await grant(directeurId, perm.id, !PDG_ONLY.has(perm.key));
+    // Adjoint : comme le Directeur, mais ne gère pas l'organigramme ni les promos.
+    await grant(
+      adjointId,
+      perm.id,
+      !PDG_ONLY.has(perm.key) && perm.key !== "staff.manage" && perm.key !== "promos.manage",
+    );
+    // Gérant : opérations + gestion de son équipe (filtrée).
+    const managerAllowed = EMPLOYEE_PERMISSIONS.has(perm.key) || perm.key === "staff.manage";
+    await grant(managerId, perm.id, managerAllowed);
+    // Administration / Employé : opérations courantes.
     const opsAllowed = EMPLOYEE_PERMISSIONS.has(perm.key);
     await grant(adminId, perm.id, opsAllowed);
     await grant(empId, perm.id, opsAllowed);
@@ -269,7 +300,12 @@ async function main() {
   console.log("[seed] terminé.");
 }
 
-main().catch((err) => {
-  console.error("[seed] échec:", err);
-  process.exit(1);
-});
+// Exécution directe (npm run seed) uniquement — pas à l'import depuis le serveur.
+const isDirectRun =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isDirectRun) {
+  main().catch((err) => {
+    console.error("[seed] échec:", err);
+    process.exit(1);
+  });
+}

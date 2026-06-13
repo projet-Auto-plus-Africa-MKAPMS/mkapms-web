@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { db } from "./db.js";
+import { seedStructure } from "./seed.js";
 import { appRouter } from "./router.js";
 import { createContext } from "./trpc.js";
 import { handleStripeWebhook } from "./stripeWebhook.js";
@@ -48,6 +49,15 @@ async function bootstrap() {
       console.log("[MKA.P-MS] migrations appliquées");
     } catch (err) {
       console.error("[MKA.P-MS] échec migrations:", (err as Error).message);
+    }
+    // Synchronise la structure (modules, rôles, permissions, devises) à chaque
+    // démarrage — 100 % idempotent. Garantit que le RBAC suit le code déployé.
+    if (process.env.AUTO_SEED !== "false") {
+      try {
+        await seedStructure();
+      } catch (err) {
+        console.error("[MKA.P-MS] échec seed structure:", (err as Error).message);
+      }
     }
   }
   app.listen(env.PORT, "0.0.0.0", () => {

@@ -23,6 +23,7 @@ import { installmentsRouter } from "./routers/installments.js";
 import { marketingRouter } from "./routers/marketing.js";
 import { historiqueRouter } from "./routers/historique.js";
 import { kycRouter } from "./routers/kyc.js";
+import { currencyRouter } from "./routers/currency.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -49,6 +50,7 @@ export const appRouter = router({
   marketing: marketingRouter,
   historique: historiqueRouter,
   kyc: kycRouter,
+  currency: currencyRouter,
 });
 
 export type AppRouter = typeof appRouter;

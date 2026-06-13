@@ -3,7 +3,7 @@ import { desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { subscriptions, payments } from "../schema.js";
+import { subscriptions, payments, kycProfiles } from "../schema.js";
 import { ALL_PLANS, getPlan } from "@shared/plans.js";
 import { getStripe } from "../lib/stripe.js";
 import { env } from "../env.js";
@@ -29,6 +29,23 @@ export const abonnementsRouter = router({
       if (!plan) throw new TRPCError({ code: "BAD_REQUEST", message: "Plan inconnu" });
       if (plan.priceEur == null) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Offre sur demande : contactez la Direction" });
+      }
+      // Règle Partie A §2 : SEUL blocage conservé = KYC manquant pour un compte pro.
+      // Aucun autre blocage (les dépassements de quota sont facturés, jamais bloqués).
+      if (plan.audience === "pro" || plan.audience === "franchise") {
+        const [kyc] = await db
+          .select()
+          .from(kycProfiles)
+          .where(eq(kycProfiles.userId, ctx.user.uid))
+          .orderBy(desc(kycProfiles.createdAt))
+          .limit(1);
+        if (!kyc || kyc.status !== "valide") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message:
+              "Documents non validés : finalisez votre vérification (KYC) avant de souscrire un abonnement professionnel.",
+          });
+        }
       }
       const price = plan.priceEur;
       const stripe = getStripe();
