@@ -46,6 +46,13 @@ const MODULES_SEED: Array<{ code: string; nom: string; description: string; stat
   { code: "qualite", nom: "Qualité / Amélioration", description: "Espace privé : bugs, idées, signalements (analyse Direction).", status: "masque", ordre: 23, visiblePublic: false },
   // Partie 23 — MKA.P-MS Lab : tester de nouvelles idées sans toucher au coeur.
   { code: "lab", nom: "MKA.P-MS Lab", description: "Laboratoire d'expériences (feature flags) : activer/tester/désactiver (Super Admin).", status: "masque", ordre: 24, visiblePublic: false },
+  // Parties 24-29 — modules internes back-office (bonus stratégiques).
+  { code: "achat", nom: "Achat / Approvisionnement", description: "Bons de commande, réceptions, contrôle qualité fournisseurs (interne).", status: "masque", ordre: 25, visiblePublic: false },
+  { code: "rh", nom: "Centre RH", description: "Contrats employés, congés, évaluations, primes (interne, relié Finance+).", status: "masque", ordre: 26, visiblePublic: false },
+  { code: "centre_qualite", nom: "Centre Qualité", description: "Notation interne A+→D des garages/vendeurs/livreurs/VTC/partenaires (invisible public).", status: "masque", ordre: 27, visiblePublic: false },
+  { code: "investisseurs", nom: "Mode Investisseurs", description: "Tableau de bord croissance / revenus / valorisation (lecture seule).", status: "masque", ordre: 28, visiblePublic: false },
+  { code: "medias", nom: "Centre Médias", description: "Vidéos, photos, réseaux sociaux, campagnes, influenceurs/ambassadeurs (interne).", status: "masque", ordre: 29, visiblePublic: false },
+  { code: "api_partenaires", nom: "API Partenaires", description: "Clés API + portée pour brancher Auto1, historiques, assurances, paiements, transporteurs.", status: "masque", ordre: 30, visiblePublic: false },
 ];
 
 const ROLES_SEED: Array<{ name: string; label: string; level: number }> = [

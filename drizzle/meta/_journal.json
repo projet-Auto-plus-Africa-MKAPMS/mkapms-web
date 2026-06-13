@@ -64,6 +64,13 @@
       "when": 1781321692907,
       "tag": "0008_bent_bulldozer",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1781322132336,
+      "tag": "0009_lyrical_skin",
+      "breakpoints": true
     }
   ]
 }

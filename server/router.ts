@@ -26,7 +26,7 @@ import { kycRouter } from "./routers/kyc.js";
 import { currencyRouter } from "./routers/currency.js";
 import { notificationsRouter, searchesRouter } from "./routers/notifications.js";
 import { reviewsRouter } from "./routers/reviews.js";
-import { disputesRouter, partnersRouter, warehousesRouter, countriesRouter, loyaltyRouter, documentsRouter, dossiersRouter, governanceRouter, platformRouter, insuranceRouter, labRouter } from "./routers/operations.js";
+import { disputesRouter, partnersRouter, warehousesRouter, countriesRouter, loyaltyRouter, documentsRouter, dossiersRouter, governanceRouter, platformRouter, insuranceRouter, labRouter, procurementRouter, hrRouter, qualityRouter, investorRouter, mediaRouter, partnerApiRouter } from "./routers/operations.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -72,6 +72,13 @@ export const appRouter = router({
   // Parties 21 & 23 (assurances, MKA.P-MS Lab)
   insurance: insuranceRouter,
   lab: labRouter,
+  // Parties 24-29 (achat, RH, qualité, investisseurs, médias, API partenaires)
+  procurement: procurementRouter,
+  hr: hrRouter,
+  quality: qualityRouter,
+  investor: investorRouter,
+  media: mediaRouter,
+  partnerApi: partnerApiRouter,
 });
 
 export type AppRouter = typeof appRouter;

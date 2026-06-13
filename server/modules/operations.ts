@@ -237,6 +237,141 @@ export const backupLogs = pgTable("backup_logs", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ===== PARTIE 24 — CENTRE ACHAT / APPROVISIONNEMENT =====
+export const purchaseOrderStatusEnum = pgEnum("purchase_order_status", [
+  "brouillon",
+  "envoye",
+  "confirme",
+  "recu_partiel",
+  "recu",
+  "annule",
+]);
+
+export const purchaseOrders = pgTable("purchase_orders", {
+  id: serial("id").primaryKey(),
+  reference: varchar("reference", { length: 24 }),
+  supplierId: integer("supplier_id"),
+  category: varchar("category", { length: 32 }).notNull().default("vehicule"), // vehicule, piece, materiel, autre
+  status: purchaseOrderStatusEnum("status").notNull().default("brouillon"),
+  total: numeric("total", { precision: 14, scale: 2 }).notNull().default("0"),
+  currency: varchar("currency", { length: 4 }).notNull().default("EUR"),
+  notes: text("notes"),
+  createdBy: integer("created_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const purchaseOrderItems = pgTable("purchase_order_items", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").notNull(),
+  designation: varchar("designation", { length: 200 }).notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  unitPrice: numeric("unit_price", { precision: 12, scale: 2 }).notNull().default("0"),
+});
+
+export const goodsReceiptStatusEnum = pgEnum("goods_receipt_status", [
+  "en_attente",
+  "conforme",
+  "non_conforme",
+  "partiel",
+]);
+
+export const goodsReceipts = pgTable("goods_receipts", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").notNull(),
+  status: goodsReceiptStatusEnum("status").notNull().default("en_attente"),
+  qualityNote: text("quality_note"), // contrôle qualité réception
+  receivedBy: integer("received_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== PARTIE 25 — CENTRE RH =====
+export const hrContractTypeEnum = pgEnum("hr_contract_type", ["cdi", "cdd", "stage", "freelance", "autre"]);
+
+export const hrRecords = pgTable("hr_records", {
+  userId: integer("user_id").primaryKey(), // employé = user interne
+  poste: varchar("poste", { length: 128 }),
+  contractType: hrContractTypeEnum("contract_type").notNull().default("cdi"),
+  salaire: numeric("salaire", { precision: 12, scale: 2 }),
+  currency: varchar("currency", { length: 4 }).notNull().default("EUR"),
+  dateEmbauche: timestamp("date_embauche"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const hrLeaveTypeEnum = pgEnum("hr_leave_type", ["conge", "absence", "maladie", "formation"]);
+export const hrLeaveStatusEnum = pgEnum("hr_leave_status", ["demande", "approuve", "refuse"]);
+
+export const hrLeaves = pgTable("hr_leaves", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: hrLeaveTypeEnum("type").notNull().default("conge"),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  status: hrLeaveStatusEnum("status").notNull().default("demande"),
+  reason: text("reason"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const hrEvaluations = pgTable("hr_evaluations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  score: integer("score"), // /100
+  objectifs: text("objectifs"),
+  commentaire: text("commentaire"),
+  prime: numeric("prime", { precision: 12, scale: 2 }),
+  evaluatedBy: integer("evaluated_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== PARTIE 26 — CENTRE QUALITÉ (notation interne, invisible au public) =====
+export const qualityGradeEnum = pgEnum("quality_grade", ["A+", "A", "B", "C", "D"]);
+export const qualityTargetEnum = pgEnum("quality_target", [
+  "garage",
+  "vendeur",
+  "livreur",
+  "vtc",
+  "partenaire",
+]);
+
+export const qualityRatings = pgTable("quality_ratings", {
+  id: serial("id").primaryKey(),
+  targetType: qualityTargetEnum("target_type").notNull(),
+  targetId: integer("target_id").notNull(),
+  grade: qualityGradeEnum("grade").notNull().default("B"),
+  note: text("note"),
+  ratedBy: integer("rated_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ===== PARTIE 28 — CENTRE MÉDIAS =====
+export const mediaTypeEnum = pgEnum("media_type", ["video", "photo", "social", "campagne", "autre"]);
+
+export const mediaAssets = pgTable("media_assets", {
+  id: serial("id").primaryKey(),
+  type: mediaTypeEnum("type").notNull().default("photo"),
+  title: varchar("title", { length: 200 }).notNull(),
+  url: text("url"),
+  campaignId: integer("campaign_id"),
+  channel: varchar("channel", { length: 64 }), // instagram, tiktok, youtube, influenceur...
+  notes: text("notes"),
+  createdBy: integer("created_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== PARTIE 29 — API PARTENAIRES (clés + portée) =====
+export const partnerApiKeys = pgTable("partner_api_keys", {
+  id: serial("id").primaryKey(),
+  partnerId: integer("partner_id"),
+  name: varchar("name", { length: 160 }).notNull(),
+  keyPrefix: varchar("key_prefix", { length: 16 }).notNull(),
+  keyHash: text("key_hash").notNull(),
+  scopes: varchar("scopes", { length: 255 }), // ex: "vehicules,historique,paiements"
+  active: boolean("active").notNull().default(true),
+  lastUsedAt: timestamp("last_used_at"),
+  createdBy: integer("created_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // ===== PARTIE 21 — CONFORMITÉ : POLICES D'ASSURANCE (par univers) =====
 export const insuranceTypeEnum = pgEnum("insurance_type", [
   "location",

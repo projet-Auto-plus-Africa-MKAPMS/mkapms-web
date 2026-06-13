@@ -65,6 +65,14 @@ export default function Admin() {
   const backups = trpc.platform.backups.useQuery(undefined, { enabled });
   const insuranceList = trpc.insurance.list.useQuery(undefined, { enabled });
   const labList = trpc.lab.list.useQuery(undefined, { enabled });
+  // Parties 24-29
+  const procOrders = trpc.procurement.listOrders.useQuery(undefined, { enabled });
+  const hrRecords = trpc.hr.records.useQuery(undefined, { enabled });
+  const hrLeaves = trpc.hr.leaves.useQuery(undefined, { enabled });
+  const qualityList = trpc.quality.list.useQuery(undefined, { enabled });
+  const investor = trpc.investor.overview.useQuery(undefined, { enabled });
+  const mediaList = trpc.media.list.useQuery(undefined, { enabled });
+  const apiKeys = trpc.partnerApi.list.useQuery(undefined, { enabled });
 
   const setCountryActive = trpc.countries.setActive.useMutation({ onSuccess: () => { utils.countries.listAll.invalidate(); utils.countries.stats.invalidate(); } });
   const createSubsidiary = trpc.governance.createSubsidiary.useMutation({ onSuccess: () => { utils.governance.listSubsidiaries.invalidate(); setSubsidiary({ name: "", countryCode: "FR", city: "" }); } });
@@ -76,6 +84,17 @@ export default function Admin() {
   const createInsurance = trpc.insurance.create.useMutation({ onSuccess: () => { utils.insurance.list.invalidate(); setInsurance({ type: "location", compagnie: "", numeroPolice: "" }); } });
   const createLab = trpc.lab.create.useMutation({ onSuccess: () => { utils.lab.list.invalidate(); setLab({ key: "", name: "", category: "autre" }); } });
   const setLabStatus = trpc.lab.setStatus.useMutation({ onSuccess: () => utils.lab.list.invalidate() });
+  // Parties 24-29
+  const createOrder = trpc.procurement.createOrder.useMutation({ onSuccess: () => { utils.procurement.listOrders.invalidate(); setOrder({ category: "vehicule", total: 0, notes: "" }); } });
+  const setOrderStatus = trpc.procurement.setOrderStatus.useMutation({ onSuccess: () => utils.procurement.listOrders.invalidate() });
+  const createLeave = trpc.hr.createLeave.useMutation({ onSuccess: () => { utils.hr.leaves.invalidate(); setLeave({ userId: "", type: "conge", reason: "" }); } });
+  const decideLeave = trpc.hr.decideLeave.useMutation({ onSuccess: () => utils.hr.leaves.invalidate() });
+  const upsertHr = trpc.hr.upsertRecord.useMutation({ onSuccess: () => { utils.hr.records.invalidate(); setHr({ userId: "", poste: "", contractType: "cdi", salaire: 0 }); } });
+  const rateQuality = trpc.quality.rate.useMutation({ onSuccess: () => { utils.quality.list.invalidate(); setQuality({ targetType: "garage", targetId: "", grade: "B", note: "" }); } });
+  const addMedia = trpc.media.add.useMutation({ onSuccess: () => { utils.media.list.invalidate(); setMedia({ type: "photo", title: "", url: "", channel: "" }); } });
+  const removeMedia = trpc.media.remove.useMutation({ onSuccess: () => utils.media.list.invalidate() });
+  const createApiKey = trpc.partnerApi.create.useMutation({ onSuccess: (d) => { utils.partnerApi.list.invalidate(); setNewApiKey(d.apiKey); setApiForm({ name: "", scopes: "" }); } });
+  const setApiKeyActive = trpc.partnerApi.setActive.useMutation({ onSuccess: () => utils.partnerApi.list.invalidate() });
 
   const [staff, setStaff] = useState({ email: "", name: "", password: "", role: "employee" as "employee" | "admin" });
   const [promo, setPromo] = useState({ code: "", type: "pourcentage" as "pourcentage" | "montant", value: 10 });
@@ -87,6 +106,13 @@ export default function Admin() {
   const [franchise, setFranchise] = useState({ name: "", type: "garage", countryCode: "FR", zone: "" });
   const [insurance, setInsurance] = useState({ type: "location", compagnie: "", numeroPolice: "" });
   const [lab, setLab] = useState({ key: "", name: "", category: "autre" });
+  const [order, setOrder] = useState({ category: "vehicule", total: 0, notes: "" });
+  const [leave, setLeave] = useState({ userId: "", type: "conge", reason: "" });
+  const [hr, setHr] = useState({ userId: "", poste: "", contractType: "cdi", salaire: 0 });
+  const [quality, setQuality] = useState({ targetType: "garage", targetId: "", grade: "B", note: "" });
+  const [media, setMedia] = useState({ type: "photo", title: "", url: "", channel: "" });
+  const [apiForm, setApiForm] = useState({ name: "", scopes: "" });
+  const [newApiKey, setNewApiKey] = useState<string | null>(null);
 
   if (!enabled) {
     return (
@@ -714,6 +740,167 @@ export default function Admin() {
                 </div>
               ))}
               {labList.data?.length === 0 && <p className="text-sm text-slate-500">Aucune expérience.</p>}
+            </div>
+          </section>
+
+          {/* Partie 24 — Centre Achat / Approvisionnement */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Achat / Approvisionnement <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Bons de commande fournisseurs (Auto1, Europe, Chine…), réception + contrôle qualité.</p>
+            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); createOrder.mutate({ category: order.category as "vehicule", total: Number(order.total) || 0, notes: order.notes || undefined }); }}>
+              <select className="input max-w-[150px]" value={order.category} onChange={(e) => setOrder({ ...order, category: e.target.value })}>
+                <option value="vehicule">Véhicules</option><option value="piece">Pièces</option><option value="materiel">Matériel</option><option value="autre">Autre</option>
+              </select>
+              <input className="input max-w-[140px]" type="number" placeholder="Total" value={order.total || ""} onChange={(e) => setOrder({ ...order, total: Number(e.target.value) })} />
+              <input className="input max-w-xs" placeholder="Notes / fournisseur" value={order.notes} onChange={(e) => setOrder({ ...order, notes: e.target.value })} />
+              <button className="btn-primary !text-sm">Créer le bon</button>
+            </form>
+            <div className="mt-3 space-y-1">
+              {procOrders.data?.map((o) => (
+                <div key={o.id} className="card flex items-center justify-between p-2 text-sm">
+                  <span className="text-slate-700">{o.reference ?? `#${o.id}`} <span className="text-xs text-slate-400">({o.category} · {o.total} {o.currency})</span></span>
+                  <select className="input !py-1 !text-xs max-w-[150px]" value={o.status} onChange={(e) => setOrderStatus.mutate({ id: o.id, status: e.target.value as "envoye" })}>
+                    <option value="brouillon">Brouillon</option><option value="envoye">Envoyé</option><option value="confirme">Confirmé</option><option value="recu_partiel">Reçu partiel</option><option value="recu">Reçu</option><option value="annule">Annulé</option>
+                  </select>
+                </div>
+              ))}
+              {procOrders.data?.length === 0 && <p className="text-sm text-slate-500">Aucun bon de commande.</p>}
+            </div>
+          </section>
+
+          {/* Partie 25 — Centre RH */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Centre RH <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Fiches employé (contrat, poste, salaire), congés/absences, évaluations — relié à Finance+.</p>
+            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (hr.userId) upsertHr.mutate({ userId: Number(hr.userId), poste: hr.poste || undefined, contractType: hr.contractType as "cdi", salaire: Number(hr.salaire) || undefined }); }}>
+              <input className="input max-w-[110px]" type="number" placeholder="ID user" value={hr.userId} onChange={(e) => setHr({ ...hr, userId: e.target.value })} />
+              <input className="input max-w-[160px]" placeholder="Poste" value={hr.poste} onChange={(e) => setHr({ ...hr, poste: e.target.value })} />
+              <select className="input max-w-[120px]" value={hr.contractType} onChange={(e) => setHr({ ...hr, contractType: e.target.value })}>
+                <option value="cdi">CDI</option><option value="cdd">CDD</option><option value="stage">Stage</option><option value="freelance">Freelance</option><option value="autre">Autre</option>
+              </select>
+              <input className="input max-w-[120px]" type="number" placeholder="Salaire" value={hr.salaire || ""} onChange={(e) => setHr({ ...hr, salaire: Number(e.target.value) })} />
+              <button className="btn-primary !text-sm">Enregistrer fiche</button>
+            </form>
+            <div className="mt-2 space-y-1">
+              {hrRecords.data?.map((r) => (
+                <div key={r.userId} className="card p-2 text-xs text-slate-700">User #{r.userId} — {r.poste ?? "—"} · {r.contractType}{r.salaire ? ` · ${r.salaire} ${r.currency}` : ""}</div>
+              ))}
+            </div>
+            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (leave.userId) createLeave.mutate({ userId: Number(leave.userId), type: leave.type as "conge", reason: leave.reason || undefined }); }}>
+              <input className="input max-w-[110px]" type="number" placeholder="ID user" value={leave.userId} onChange={(e) => setLeave({ ...leave, userId: e.target.value })} />
+              <select className="input max-w-[140px]" value={leave.type} onChange={(e) => setLeave({ ...leave, type: e.target.value })}>
+                <option value="conge">Congé</option><option value="absence">Absence</option><option value="maladie">Maladie</option><option value="formation">Formation</option>
+              </select>
+              <input className="input max-w-xs" placeholder="Motif" value={leave.reason} onChange={(e) => setLeave({ ...leave, reason: e.target.value })} />
+              <button className="btn-outline !text-sm">Demander congé/absence</button>
+            </form>
+            <div className="mt-2 space-y-1">
+              {hrLeaves.data?.map((l) => (
+                <div key={l.id} className="card flex items-center justify-between p-2 text-xs">
+                  <span className="text-slate-700">User #{l.userId} · {l.type} <span className={l.status === "approuve" ? "text-green-600" : l.status === "refuse" ? "text-red-600" : "text-slate-400"}>({l.status})</span></span>
+                  {l.status === "demande" && <span className="flex gap-1"><button className="btn-outline !py-0.5 !text-xs !border-green-500 !text-green-600" onClick={() => decideLeave.mutate({ id: l.id, status: "approuve" })}>Approuver</button><button className="btn-outline !py-0.5 !text-xs !border-red-400 !text-red-500" onClick={() => decideLeave.mutate({ id: l.id, status: "refuse" })}>Refuser</button></span>}
+                </div>
+              ))}
+              {hrLeaves.data?.length === 0 && <p className="text-sm text-slate-500">Aucune demande.</p>}
+            </div>
+          </section>
+
+          {/* Partie 26 — Centre Qualité */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Centre Qualité <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Notation interne A+→D (invisible au public) : garages, vendeurs, livreurs, VTC, partenaires.</p>
+            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (quality.targetId) rateQuality.mutate({ targetType: quality.targetType as "garage", targetId: Number(quality.targetId), grade: quality.grade as "B", note: quality.note || undefined }); }}>
+              <select className="input max-w-[140px]" value={quality.targetType} onChange={(e) => setQuality({ ...quality, targetType: e.target.value })}>
+                <option value="garage">Garage</option><option value="vendeur">Vendeur</option><option value="livreur">Livreur</option><option value="vtc">VTC</option><option value="partenaire">Partenaire</option>
+              </select>
+              <input className="input max-w-[110px]" type="number" placeholder="ID cible" value={quality.targetId} onChange={(e) => setQuality({ ...quality, targetId: e.target.value })} />
+              <select className="input max-w-[90px]" value={quality.grade} onChange={(e) => setQuality({ ...quality, grade: e.target.value })}>
+                <option value="A+">A+</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+              </select>
+              <input className="input max-w-xs" placeholder="Note interne" value={quality.note} onChange={(e) => setQuality({ ...quality, note: e.target.value })} />
+              <button className="btn-primary !text-sm">Noter</button>
+            </form>
+            <div className="mt-2 space-y-1">
+              {qualityList.data?.map((q) => (
+                <div key={q.id} className="card flex items-center justify-between p-2 text-sm"><span className="text-slate-700">{q.targetType} #{q.targetId}{q.note ? ` — ${q.note}` : ""}</span><span className={`font-bold ${q.grade.startsWith("A") ? "text-green-600" : q.grade === "B" ? "text-amber-600" : "text-red-600"}`}>{q.grade}</span></div>
+              ))}
+              {qualityList.data?.length === 0 && <p className="text-sm text-slate-500">Aucune notation.</p>}
+            </div>
+          </section>
+
+          {/* Partie 27 — Mode Investisseurs */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Mode Investisseurs <span className="text-xs font-normal text-brand">(lecture seule)</span></h2>
+            <p className="text-xs text-slate-500">Croissance, revenus, valorisation indicative — pour partenaires financiers.</p>
+            {investor.data && (
+              <div className="mt-3">
+                <div className="grid gap-3 md:grid-cols-4">
+                  <div className="card p-3"><div className="text-xs text-slate-500">Utilisateurs</div><div className="text-xl font-extrabold text-slate-900">{investor.data.utilisateurs}</div></div>
+                  <div className="card p-3"><div className="text-xs text-slate-500">Annonces</div><div className="text-xl font-extrabold text-slate-900">{investor.data.annonces}</div></div>
+                  <div className="card p-3"><div className="text-xs text-slate-500">Revenu total</div><div className="text-xl font-extrabold text-slate-900">{Math.round(investor.data.revenuTotal)} €</div></div>
+                  <div className="card p-3"><div className="text-xs text-slate-500">Valorisation indicative</div><div className="text-xl font-extrabold text-brand">{investor.data.valorisationIndicative.toLocaleString("fr-FR")} €</div></div>
+                </div>
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead><tr className="text-left text-xs text-slate-500"><th className="py-1">Mois</th><th>Revenu</th><th>Nouveaux comptes</th></tr></thead>
+                    <tbody>
+                      {investor.data.croissance.map((m) => (
+                        <tr key={m.mois} className="border-t border-slate-100"><td className="py-1 text-slate-700">{m.mois}</td><td className="font-semibold">{Math.round(m.revenu)} €</td><td className="font-semibold">{m.nouveauxComptes}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-400">Valorisation purement indicative (revenu annualisé × 4) — à affiner avec des données réelles.</p>
+              </div>
+            )}
+          </section>
+
+          {/* Partie 28 — Centre Médias */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Centre Médias <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Vidéos, photos, réseaux sociaux, influenceurs/ambassadeurs.</p>
+            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (media.title) addMedia.mutate({ type: media.type as "photo", title: media.title, url: media.url || undefined, channel: media.channel || undefined }); }}>
+              <select className="input max-w-[120px]" value={media.type} onChange={(e) => setMedia({ ...media, type: e.target.value })}>
+                <option value="photo">Photo</option><option value="video">Vidéo</option><option value="social">Réseau social</option><option value="campagne">Campagne</option><option value="autre">Autre</option>
+              </select>
+              <input className="input max-w-xs" placeholder="Titre" value={media.title} onChange={(e) => setMedia({ ...media, title: e.target.value })} />
+              <input className="input max-w-[200px]" placeholder="URL (https://…)" value={media.url} onChange={(e) => setMedia({ ...media, url: e.target.value })} />
+              <input className="input max-w-[150px]" placeholder="Canal (instagram…)" value={media.channel} onChange={(e) => setMedia({ ...media, channel: e.target.value })} />
+              <button className="btn-primary !text-sm">Ajouter</button>
+            </form>
+            {addMedia.error && <p className="mt-2 text-xs text-red-600">{addMedia.error.message}</p>}
+            <div className="mt-2 space-y-1">
+              {mediaList.data?.map((m) => (
+                <div key={m.id} className="card flex items-center justify-between p-2 text-sm"><span className="text-slate-700">{m.title} <span className="text-xs text-slate-400">({m.type}{m.channel ? ` · ${m.channel}` : ""})</span></span><button className="btn-outline !py-0.5 !text-xs !border-red-400 !text-red-500" onClick={() => removeMedia.mutate({ id: m.id })}>Suppr.</button></div>
+              ))}
+              {mediaList.data?.length === 0 && <p className="text-sm text-slate-500">Aucun média.</p>}
+            </div>
+          </section>
+
+          {/* Partie 29 — API Partenaires */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">API Partenaires <span className="text-xs font-normal text-brand">(Direction)</span></h2>
+            <p className="text-xs text-slate-500">Clés API + portée pour brancher Auto1, historiques, assurances, paiements, transporteurs (sans refaire le système).</p>
+            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (apiForm.name) createApiKey.mutate({ name: apiForm.name, scopes: apiForm.scopes || undefined }); }}>
+              <input className="input max-w-xs" placeholder="Nom (ex: Auto1)" value={apiForm.name} onChange={(e) => setApiForm({ ...apiForm, name: e.target.value })} />
+              <input className="input max-w-[260px]" placeholder="Portée (vehicules,historique,paiements)" value={apiForm.scopes} onChange={(e) => setApiForm({ ...apiForm, scopes: e.target.value })} />
+              <button className="btn-primary !text-sm">Générer une clé</button>
+            </form>
+            {newApiKey && (
+              <div className="mt-2 card border-amber-300 bg-amber-50 p-2 text-xs">
+                <b>Clé générée (copiez-la maintenant, elle ne sera plus affichée) :</b>
+                <div className="mt-1 break-all font-mono text-slate-800">{newApiKey}</div>
+                <button className="btn-outline mt-1 !py-0.5 !text-xs" onClick={() => setNewApiKey(null)}>J'ai copié</button>
+              </div>
+            )}
+            <div className="mt-2 space-y-1">
+              {apiKeys.data?.map((k) => (
+                <div key={k.id} className="card flex items-center justify-between p-2 text-sm">
+                  <span className="text-slate-700">{k.name} <span className="text-xs text-slate-400 font-mono">({k.keyPrefix}…{k.scopes ? ` · ${k.scopes}` : ""})</span></span>
+                  <button className={`btn-outline !py-1 !text-xs ${k.active ? "!border-green-500 !text-green-600" : "!border-slate-300"}`} onClick={() => setApiKeyActive.mutate({ id: k.id, active: !k.active })}>{k.active ? "Active" : "Inactive"}</button>
+                </div>
+              ))}
+              {apiKeys.data?.length === 0 && <p className="text-sm text-slate-500">Aucune clé.</p>}
             </div>
           </section>
 

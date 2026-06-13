@@ -28,9 +28,22 @@ import {
   annonces,
   insurancePolicies,
   labExperiments,
+  purchaseOrders,
+  purchaseOrderItems,
+  goodsReceipts,
+  suppliers,
+  hrRecords,
+  hrLeaves,
+  hrEvaluations,
+  qualityRatings,
+  mediaAssets,
+  campaigns,
+  partnerApiKeys,
+  payments,
 } from "../schema.js";
 import { logAction, clientMeta } from "../audit.js";
 import { makeReference } from "../reference.js";
+import { randomBytes, createHash } from "node:crypto";
 
 // ===================== PARTIE 18 — FIDÉLITÉ (Points MKA) =====================
 // Paliers : seuil de points pour chaque niveau.
@@ -830,6 +843,236 @@ export const labRouter = router({
     .mutation(async ({ ctx, input }) => {
       await db.update(labExperiments).set({ status: input.status, updatedAt: new Date() }).where(eq(labExperiments.id, input.id));
       await logAction(ctx.user.uid, "lab.status", "experiment", input.id, { status: input.status }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+});
+
+// ===================== PARTIE 24 — ACHAT / APPROVISIONNEMENT =====================
+export const procurementRouter = router({
+  listSuppliers: adminProcedure.query(async () => {
+    return db.select().from(suppliers).orderBy(desc(suppliers.createdAt));
+  }),
+  listOrders: adminProcedure.query(async () => {
+    return db.select().from(purchaseOrders).orderBy(desc(purchaseOrders.createdAt));
+  }),
+  createOrder: directionProcedure
+    .input(
+      z.object({
+        supplierId: z.number().optional(),
+        category: z.enum(["vehicule", "piece", "materiel", "autre"]).default("vehicule"),
+        total: z.number().default(0),
+        currency: z.string().min(3).max(4).default("EUR"),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [o] = await db.insert(purchaseOrders).values({
+        supplierId: input.supplierId ?? null,
+        category: input.category,
+        total: String(input.total),
+        currency: input.currency,
+        notes: input.notes ?? null,
+        createdBy: ctx.user.uid,
+      }).returning();
+      const reference = makeReference("PO", o.id);
+      await db.update(purchaseOrders).set({ reference }).where(eq(purchaseOrders.id, o.id));
+      await logAction(ctx.user.uid, "purchase.create", "purchase_order", o.id, { category: input.category }, clientMeta(ctx.req));
+      return { ...o, reference };
+    }),
+  setOrderStatus: directionProcedure
+    .input(z.object({ id: z.number(), status: z.enum(["brouillon", "envoye", "confirme", "recu_partiel", "recu", "annule"]) }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(purchaseOrders).set({ status: input.status }).where(eq(purchaseOrders.id, input.id));
+      await logAction(ctx.user.uid, "purchase.status", "purchase_order", input.id, { status: input.status }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+  // Réception + contrôle qualité.
+  receive: directionProcedure
+    .input(z.object({ orderId: z.number(), status: z.enum(["en_attente", "conforme", "non_conforme", "partiel"]).default("conforme"), qualityNote: z.string().max(2000).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const [r] = await db.insert(goodsReceipts).values({ orderId: input.orderId, status: input.status, qualityNote: input.qualityNote ?? null, receivedBy: ctx.user.uid }).returning();
+      if (input.status === "conforme") await db.update(purchaseOrders).set({ status: "recu" }).where(eq(purchaseOrders.id, input.orderId));
+      await logAction(ctx.user.uid, "purchase.receive", "purchase_order", input.orderId, { status: input.status }, clientMeta(ctx.req));
+      return r;
+    }),
+  receipts: adminProcedure.query(async () => {
+    return db.select().from(goodsReceipts).orderBy(desc(goodsReceipts.createdAt)).limit(50);
+  }),
+});
+
+// ===================== PARTIE 25 — RH =====================
+export const hrRouter = router({
+  records: adminProcedure.query(async () => {
+    return db.select().from(hrRecords);
+  }),
+  upsertRecord: directionProcedure
+    .input(
+      z.object({
+        userId: z.number(),
+        poste: z.string().max(128).optional(),
+        contractType: z.enum(["cdi", "cdd", "stage", "freelance", "autre"]).default("cdi"),
+        salaire: z.number().optional(),
+        currency: z.string().min(3).max(4).default("EUR"),
+        dateEmbauche: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await db
+        .insert(hrRecords)
+        .values({
+          userId: input.userId,
+          poste: input.poste ?? null,
+          contractType: input.contractType,
+          salaire: input.salaire != null ? String(input.salaire) : null,
+          currency: input.currency,
+          dateEmbauche: input.dateEmbauche ? new Date(input.dateEmbauche) : null,
+        })
+        .onConflictDoUpdate({
+          target: hrRecords.userId,
+          set: {
+            poste: input.poste ?? null,
+            contractType: input.contractType,
+            salaire: input.salaire != null ? String(input.salaire) : null,
+            currency: input.currency,
+            dateEmbauche: input.dateEmbauche ? new Date(input.dateEmbauche) : null,
+            updatedAt: new Date(),
+          },
+        });
+      await logAction(ctx.user.uid, "hr.record", "user", input.userId, { poste: input.poste }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+  leaves: adminProcedure.query(async () => {
+    return db.select().from(hrLeaves).orderBy(desc(hrLeaves.createdAt)).limit(100);
+  }),
+  createLeave: directionProcedure
+    .input(z.object({ userId: z.number(), type: z.enum(["conge", "absence", "maladie", "formation"]).default("conge"), startDate: z.string().optional(), endDate: z.string().optional(), reason: z.string().max(1000).optional() }))
+    .mutation(async ({ input }) => {
+      const [l] = await db.insert(hrLeaves).values({ userId: input.userId, type: input.type, startDate: input.startDate ? new Date(input.startDate) : null, endDate: input.endDate ? new Date(input.endDate) : null, reason: input.reason ?? null }).returning();
+      return l;
+    }),
+  decideLeave: directionProcedure
+    .input(z.object({ id: z.number(), status: z.enum(["demande", "approuve", "refuse"]) }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(hrLeaves).set({ status: input.status }).where(eq(hrLeaves.id, input.id));
+      await logAction(ctx.user.uid, "hr.leave", "leave", input.id, { status: input.status }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+  evaluations: adminProcedure.query(async () => {
+    return db.select().from(hrEvaluations).orderBy(desc(hrEvaluations.createdAt)).limit(100);
+  }),
+  createEvaluation: directionProcedure
+    .input(z.object({ userId: z.number(), score: z.number().min(0).max(100).optional(), objectifs: z.string().max(2000).optional(), commentaire: z.string().max(2000).optional(), prime: z.number().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const [e] = await db.insert(hrEvaluations).values({ userId: input.userId, score: input.score ?? null, objectifs: input.objectifs ?? null, commentaire: input.commentaire ?? null, prime: input.prime != null ? String(input.prime) : null, evaluatedBy: ctx.user.uid }).returning();
+      return e;
+    }),
+});
+
+// ===================== PARTIE 26 — QUALITÉ (notation interne) =====================
+export const qualityRouter = router({
+  list: adminProcedure.query(async () => {
+    return db.select().from(qualityRatings).orderBy(desc(qualityRatings.updatedAt));
+  }),
+  rate: directionProcedure
+    .input(
+      z.object({
+        targetType: z.enum(["garage", "vendeur", "livreur", "vtc", "partenaire"]),
+        targetId: z.number(),
+        grade: z.enum(["A+", "A", "B", "C", "D"]).default("B"),
+        note: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [r] = await db.insert(qualityRatings).values({ targetType: input.targetType, targetId: input.targetId, grade: input.grade, note: input.note ?? null, ratedBy: ctx.user.uid }).returning();
+      await logAction(ctx.user.uid, "quality.rate", input.targetType, input.targetId, { grade: input.grade }, clientMeta(ctx.req));
+      return r;
+    }),
+});
+
+// ===================== PARTIE 27 — MODE INVESTISSEURS (lecture seule) =====================
+export const investorRouter = router({
+  overview: adminProcedure.query(async () => {
+    const num = (v: unknown) => Number(v ?? 0);
+    const [usersTotal] = await db.select({ c: sql<number>`count(*)::int` }).from(users);
+    const [annoncesTotal] = await db.select({ c: sql<number>`count(*)::int` }).from(annonces);
+    const [revenueTotal] = await db.select({ v: sql<number>`coalesce(sum(${payments.amount}),0)` }).from(payments).where(sql`${payments.status} = 'paid'`);
+    // Croissance des revenus sur 6 mois.
+    const monthly: Array<{ mois: string; revenu: number; nouveauxComptes: number }> = [];
+    for (let i = 5; i >= 0; i--) {
+      const start = new Date(); start.setMonth(start.getMonth() - i, 1); start.setHours(0, 0, 0, 0);
+      const end = new Date(start); end.setMonth(end.getMonth() + 1);
+      const [rev] = await db.select({ v: sql<number>`coalesce(sum(${payments.amount}),0)` }).from(payments).where(sql`${payments.status} = 'paid' and ${payments.createdAt} >= ${start} and ${payments.createdAt} < ${end}`);
+      const [acc] = await db.select({ c: sql<number>`count(*)::int` }).from(users).where(sql`${users.createdAt} >= ${start} and ${users.createdAt} < ${end}`);
+      monthly.push({ mois: start.toISOString().slice(0, 7), revenu: num(rev?.v), nouveauxComptes: num(acc?.c) });
+    }
+    // Valorisation indicative : multiple x4 du revenu annualisé (purement informatif).
+    const annualized = monthly.reduce((s, m) => s + m.revenu, 0) * 2;
+    return {
+      utilisateurs: num(usersTotal?.c),
+      annonces: num(annoncesTotal?.c),
+      revenuTotal: num(revenueTotal?.v),
+      croissance: monthly,
+      valorisationIndicative: Math.round(annualized * 4),
+    };
+  }),
+});
+
+// ===================== PARTIE 28 — CENTRE MÉDIAS =====================
+export const mediaRouter = router({
+  list: adminProcedure.query(async () => {
+    return db.select().from(mediaAssets).orderBy(desc(mediaAssets.createdAt));
+  }),
+  campaigns: adminProcedure.query(async () => {
+    return db.select().from(campaigns).orderBy(desc(campaigns.createdAt));
+  }),
+  add: directionProcedure
+    .input(
+      z.object({
+        type: z.enum(["video", "photo", "social", "campagne", "autre"]).default("photo"),
+        title: z.string().min(1).max(200),
+        url: z.string().url().optional(),
+        channel: z.string().max(64).optional(),
+        campaignId: z.number().optional(),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [m] = await db.insert(mediaAssets).values({ type: input.type, title: input.title, url: input.url ?? null, channel: input.channel ?? null, campaignId: input.campaignId ?? null, notes: input.notes ?? null, createdBy: ctx.user.uid }).returning();
+      await logAction(ctx.user.uid, "media.add", "media", m.id, { type: input.type }, clientMeta(ctx.req));
+      return m;
+    }),
+  remove: directionProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      await db.delete(mediaAssets).where(eq(mediaAssets.id, input.id));
+      return { ok: true };
+    }),
+});
+
+// ===================== PARTIE 29 — API PARTENAIRES (clés + portée) =====================
+export const partnerApiRouter = router({
+  list: adminProcedure.query(async () => {
+    const rows = await db.select().from(partnerApiKeys).orderBy(desc(partnerApiKeys.createdAt));
+    // Ne jamais renvoyer le hash.
+    return rows.map(({ keyHash: _hash, ...rest }) => rest);
+  }),
+  // Génère une clé : la valeur en clair n'est montrée qu'une seule fois.
+  create: directionProcedure
+    .input(z.object({ name: z.string().min(2).max(160), partnerId: z.number().optional(), scopes: z.string().max(255).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const raw = randomBytes(24).toString("hex");
+      const prefix = `mka_${raw.slice(0, 6)}`;
+      const fullKey = `${prefix}.${raw}`;
+      const keyHash = createHash("sha256").update(fullKey).digest("hex");
+      const [k] = await db.insert(partnerApiKeys).values({ name: input.name, partnerId: input.partnerId ?? null, scopes: input.scopes ?? null, keyPrefix: prefix, keyHash, createdBy: ctx.user.uid }).returning();
+      await logAction(ctx.user.uid, "api.key.create", "api_key", k.id, { name: input.name }, clientMeta(ctx.req));
+      return { id: k.id, name: k.name, keyPrefix: k.keyPrefix, apiKey: fullKey, scopes: k.scopes };
+    }),
+  setActive: directionProcedure
+    .input(z.object({ id: z.number(), active: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(partnerApiKeys).set({ active: input.active }).where(eq(partnerApiKeys.id, input.id));
+      await logAction(ctx.user.uid, "api.key.status", "api_key", input.id, { active: input.active }, clientMeta(ctx.req));
       return { ok: true };
     }),
 });
