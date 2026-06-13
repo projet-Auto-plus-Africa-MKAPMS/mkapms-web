@@ -253,17 +253,19 @@ function EspaceAgence() {
         </div>
         {/* Abonnements */}
         <h3 className="text-xl font-bold text-[#111]">Abonnements agences</h3>
+        <p className="mb-4 text-sm text-[#6B7280]">Sans engagement. Résiliable à tout moment. Le mois commencé reste dû.</p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { nom: "START", prix: "29,99", dossiers: 20, features: ["Tableau de bord", "Messagerie", "Notifications"] },
-            { nom: "PREMIUM", prix: "59,99", dossiers: 75, features: ["Gestion équipe", "Statistiques", "Documents clients"] },
-            { nom: "ELITE", prix: "99,99", dossiers: 200, features: ["Multi-utilisateurs", "Priorité dossiers", "Rapports avancés"] },
-            { nom: "MAX", prix: "149,99", dossiers: 500, features: ["Multi-agences", "Gestion complète", "Support prioritaire"] },
+            { nom: "START", prix: "29,99", cible: "Auto-entrepreneur, petite agence, démarrage activité", dossiers: 25, utilisateurs: "1 utilisateur", features: ["Messagerie", "Suivi dossiers", "Notifications", "Téléchargement documents", "Tableau de bord"] },
+            { nom: "PREMIUM", prix: "59,99", cible: "Agence établie", dossiers: 100, utilisateurs: "3 utilisateurs", features: ["Gestion équipe", "Historique complet", "Statistiques", "Exports PDF", "Assignation dossiers", "Relances automatiques", "Rapports mensuels"] },
+            { nom: "ELITE", prix: "99,99", cible: "Grosse agence", dossiers: 300, utilisateurs: "10 utilisateurs", features: ["Multi-opérateurs", "Rapports avancés", "Suivi productivité", "Gestion responsables", "Contrôle qualité", "KPI équipe", "Priorisation dossiers"] },
+            { nom: "MAX", prix: "149,99", cible: "Réseau d'agences, franchise", dossiers: 9999, utilisateurs: "Illimité", features: ["Multi-agences", "Multi-sites", "Statistiques globales", "Superviseurs", "Tableaux de bord direction", "Contrôle centralisé"] },
           ].map((p) => (
             <div key={p.nom} className="rounded-xl border border-[#E5E7EB] bg-white p-5">
-              <div className="mb-2 text-lg font-bold text-[#D4AF37]">{p.nom}</div>
+              <div className="mb-1 text-lg font-bold text-[#D4AF37]">{p.nom}</div>
               <div className="mb-1 text-2xl font-bold text-[#111]">{p.prix} € <span className="text-sm font-normal text-[#6B7280]">HT/mois</span></div>
-              <div className="mb-3 text-sm text-[#6B7280]">{p.dossiers} dossiers/mois</div>
+              <div className="mb-1 text-sm font-medium text-[#374151]">{p.dossiers === 9999 ? "Dossiers illimités" : `${p.dossiers} dossiers actifs`} · {p.utilisateurs}</div>
+              <div className="mb-3 text-xs text-[#9CA3AF]">{p.cible}</div>
               <ul className="space-y-1 text-sm text-[#374151]">
                 {p.features.map((f) => <li key={f}>• {f}</li>)}
               </ul>
@@ -271,13 +273,14 @@ function EspaceAgence() {
           ))}
         </div>
         {/* Packs crédits */}
-        <h3 className="mt-4 text-xl font-bold text-[#111]">Packs crédits</h3>
+        <h3 className="mt-6 text-xl font-bold text-[#111]">Packs dossiers supplémentaires</h3>
+        <p className="mb-4 text-sm text-[#6B7280]">Achetez des crédits supplémentaires en complément de votre abonnement.</p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { nom: "Pack 5", dossiers: 5, prix: "39,99" },
-            { nom: "Pack 12", dossiers: 12, prix: "79,99" },
-            { nom: "Pack 29", dossiers: 29, prix: "149,99" },
-            { nom: "Pack 100", dossiers: 100, prix: "399,99" },
+            { nom: "Pack 10", dossiers: 10, prix: "49,99" },
+            { nom: "Pack 25", dossiers: 25, prix: "99,99" },
+            { nom: "Pack 50", dossiers: 50, prix: "179,99" },
+            { nom: "Pack 100", dossiers: 100, prix: "299,99" },
           ].map((p) => (
             <div key={p.nom} className="rounded-xl border border-[#E5E7EB] bg-white p-5 text-center">
               <div className="mb-1 font-bold text-[#111]">{p.nom}</div>
@@ -285,6 +288,11 @@ function EspaceAgence() {
               <div className="text-sm text-[#6B7280]">{p.dossiers} dossiers</div>
             </div>
           ))}
+        </div>
+        {/* Avantage */}
+        <div className="mt-6 rounded-xl bg-[#F0F7EC] p-5">
+          <h3 className="mb-2 font-bold text-[#166534]">Avantage MKA.P-MS</h3>
+          <p className="text-sm text-[#166534]">Contrairement aux plateformes classiques : suivi en temps réel, documents centralisés, notifications automatiques, liaison comptabilité, liaison VO, liaison vente, liaison clients. Tout reste dans MKA.P-MS.</p>
         </div>
       </div>
     );

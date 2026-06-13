@@ -14,6 +14,8 @@ import {
   currencies,
   languages,
   countryConfigs,
+  cgAbonnements,
+  cgPacks,
 } from "./schema.js";
 import { hashPassword } from "./auth.js";
 import { WORLD_COUNTRIES, WORLD_CURRENCIES, LAUNCH_ACTIVE_COUNTRIES } from "./data/world.js";
@@ -252,7 +254,27 @@ export async function seedStructure() {
       .values({ code: c.code, name: c.name, currency: c.currency, active: LAUNCH_ACTIVE_COUNTRIES.includes(c.code) })
       .onConflictDoNothing({ target: countryConfigs.code });
   }
-  console.log(`[seed] structure initialisée (${WORLD_COUNTRIES.length} pays, ${CURRENCIES_SEED.length + WORLD_CURRENCIES.length} devises)`);
+  // Abonnements Carte Grise / SIV
+  const CG_ABONNEMENTS = [
+    { code: "cg_start", nom: "START — Carte Grise", prixHT: "29.99", prixTTC: "35.99", dossiersMois: 25, features: { utilisateurs: 1, messagerie: true, suiviDossiers: true, notifications: true, tableauBord: true, telechargerDocs: true } },
+    { code: "cg_premium", nom: "PREMIUM — Carte Grise", prixHT: "59.99", prixTTC: "71.99", dossiersMois: 100, features: { utilisateurs: 3, gestionEquipe: true, historique: true, statistiques: true, exportsPDF: true, assignation: true, relancesAuto: true, rapportsMensuels: true } },
+    { code: "cg_elite", nom: "ELITE — Carte Grise", prixHT: "99.99", prixTTC: "119.99", dossiersMois: 300, features: { utilisateurs: 10, multiOperateurs: true, rapportsAvances: true, suiviProductivite: true, gestionResponsables: true, controleQualite: true, kpiEquipe: true, priorisationDossiers: true } },
+    { code: "cg_max", nom: "MAX — Carte Grise", prixHT: "149.99", prixTTC: "179.99", dossiersMois: 9999, features: { utilisateurs: -1, multiAgences: true, multiSites: true, statsGlobales: true, superviseurs: true, tableauxBordDirection: true, controleCentralise: true } },
+  ];
+  for (const a of CG_ABONNEMENTS) {
+    await db.insert(cgAbonnements).values(a).onConflictDoNothing();
+  }
+  // Packs crédits Carte Grise
+  const CG_PACKS = [
+    { nom: "Pack 10 dossiers", nbDossiers: 10, prixHT: "49.99", prixTTC: "59.99" },
+    { nom: "Pack 25 dossiers", nbDossiers: 25, prixHT: "99.99", prixTTC: "119.99" },
+    { nom: "Pack 50 dossiers", nbDossiers: 50, prixHT: "179.99", prixTTC: "215.99" },
+    { nom: "Pack 100 dossiers", nbDossiers: 100, prixHT: "299.99", prixTTC: "359.99" },
+  ];
+  for (const p of CG_PACKS) {
+    await db.insert(cgPacks).values(p).onConflictDoNothing();
+  }
+  console.log(`[seed] structure initialisée (${WORLD_COUNTRIES.length} pays, ${CURRENCIES_SEED.length + WORLD_CURRENCIES.length} devises, abonnements CG + packs)`);
 }
 
 async function main() {
