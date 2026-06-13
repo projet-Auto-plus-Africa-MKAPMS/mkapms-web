@@ -10,12 +10,13 @@ import {
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
-import { formatPrice } from "@shared/currency";
+import { useCurrency } from "../lib/currency";
 import { ACOMPTE_PALIERS } from "@shared/plans";
 
 const TABS = ["Description", "Points forts", "Équipements", "Imperfections"] as const;
 
 export default function Vehicule() {
+  const { format: formatPrice } = useCurrency();
   const { id } = useParams();
   const annonceId = Number(id);
   const navigate = useNavigate();

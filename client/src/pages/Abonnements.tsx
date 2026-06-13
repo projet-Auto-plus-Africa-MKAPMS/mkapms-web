@@ -3,7 +3,7 @@ import { Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
-import { formatPrice } from "@shared/currency";
+import { useCurrency } from "../lib/currency";
 import { PLAN_CATEGORY_LABELS, type PlanCategory } from "@shared/plans";
 
 // Règle centrale (parcours §12) : chaque profil ne voit QUE ses offres.
@@ -20,6 +20,7 @@ const TABS: [PlanCategory, string][] = [
 
 export default function Abonnements() {
   const { user } = useAuth();
+  const { format: formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [tab, setTab] = useState<PlanCategory>("pro_vente");
   const plans = trpc.abonnements.listPlans.useQuery();

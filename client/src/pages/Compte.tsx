@@ -2,13 +2,14 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
-import { formatPrice } from "@shared/currency";
+import { useCurrency } from "../lib/currency";
 import { isAdmin, isPro, ROLE_LABELS } from "@shared/roles";
 import type { UserRole } from "@shared/roles";
 
 type Tab = "annonces" | "favoris" | "reservations" | "devis" | "abonnements" | "profil";
 
 export default function Compte() {
+  const { format: formatPrice } = useCurrency();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("annonces");

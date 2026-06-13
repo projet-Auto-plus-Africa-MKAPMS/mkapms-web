@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { MapPin, Gauge, Calendar, Fuel } from "lucide-react";
-import { formatPrice } from "@shared/currency";
+import { useCurrency } from "../lib/currency";
 
 export interface VehicleCardData {
   id: number;
@@ -28,6 +28,7 @@ const PLACEHOLDER =
   );
 
 export default function VehicleCard({ v }: { v: VehicleCardData }) {
+  const { format: formatPrice } = useCurrency();
   const isLocation = v.type === "location";
   const sellerLabel =
     v.vendeurType === "professionnel"

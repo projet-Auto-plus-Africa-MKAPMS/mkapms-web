@@ -19,6 +19,8 @@ export interface SessionUser {
   accountType: string;
   avatarUrl?: string | null;
   companyName?: string | null;
+  country?: string | null;
+  currency?: string | null;
 }
 
 interface AuthCtx {

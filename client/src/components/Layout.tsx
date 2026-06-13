@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../lib/auth";
+import { useCurrency } from "../lib/currency";
+import { CURRENCIES } from "@shared/currency";
 import { trpc } from "../lib/trpc";
 
 const NAV = [
@@ -55,6 +57,7 @@ function Header() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
+          <CurrencySelect />
           <Link to="/vendre" className="btn-gold">
             Déposer une annonce
           </Link>
@@ -104,6 +107,22 @@ function Header() {
         </div>
       )}
     </header>
+  );
+}
+
+function CurrencySelect() {
+  const { currency, setCurrency } = useCurrency();
+  return (
+    <select
+      aria-label="Devise"
+      value={currency}
+      onChange={(e) => setCurrency(e.target.value)}
+      className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-medium text-slate-600"
+    >
+      {Object.keys(CURRENCIES).map((c) => (
+        <option key={c} value={c}>{c}</option>
+      ))}
+    </select>
   );
 }
 

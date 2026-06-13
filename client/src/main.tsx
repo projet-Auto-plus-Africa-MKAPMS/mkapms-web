@@ -6,6 +6,7 @@ import { httpBatchLink } from "@trpc/client";
 import superjson from "superjson";
 import { trpc } from "./lib/trpc";
 import { getToken, AuthProvider } from "./lib/auth";
+import { CurrencyProvider } from "./lib/currency";
 import App from "./App";
 import "./index.css";
 
@@ -31,9 +32,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <CurrencyProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </CurrencyProvider>
         </AuthProvider>
       </QueryClientProvider>
     </trpc.Provider>
