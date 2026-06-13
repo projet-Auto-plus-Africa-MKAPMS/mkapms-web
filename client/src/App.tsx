@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 import Layout from "./components/Layout";
 import { useAuth } from "./lib/auth";
@@ -6,6 +6,14 @@ import { trpc } from "./lib/trpc";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import UniversBoundary from "./components/UniversBoundary";
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 // Lazy-loaded pages (code-splitting)
 const Acheter = lazy(() => import("./pages/Acheter"));
@@ -31,6 +39,8 @@ const VtcTaxi = lazy(() => import("./pages/VtcTaxi"));
 const ImportAfrica = lazy(() => import("./pages/ImportAfrica"));
 const Historique = lazy(() => import("./pages/Historique"));
 const Wallet = lazy(() => import("./pages/Wallet"));
+const CarteMondiale = lazy(() => import("./pages/CarteMondiale"));
+const DepotVente = lazy(() => import("./pages/DepotVente"));
 
 // Chaque univers est isolé : un crash dans l'un n'affecte pas les autres.
 function U({ name, children }: { name: string; children: React.ReactNode }) {
@@ -57,6 +67,7 @@ function SessionLoader() {
 export default function App() {
   return (
     <>
+      <ScrollToTop />
       <SessionLoader />
       <Layout>
         <Suspense fallback={<PageLoader />}>
@@ -77,6 +88,8 @@ export default function App() {
             <Route path="/import-africa" element={<U name="Import Africa+"><ImportAfrica /></U>} />
             <Route path="/historique" element={<U name="Historique"><Historique /></U>} />
             <Route path="/wallet" element={<U name="Wallet"><Wallet /></U>} />
+            <Route path="/carte" element={<U name="Carte mondiale"><CarteMondiale /></U>} />
+            <Route path="/depot-vente" element={<U name="Dépôt-Vente"><DepotVente /></U>} />
             <Route path="/abonnements" element={<U name="Abonnements"><Abonnements /></U>} />
             <Route path="/aide" element={<Aide />} />
             <Route path="/confiance" element={<Confiance />} />

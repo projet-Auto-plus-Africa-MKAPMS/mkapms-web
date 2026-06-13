@@ -316,6 +316,7 @@ export const devisGarageRequests = pgTable("devis_garage_requests", {
   codePostal: varchar("code_postal", { length: 16 }),
   pays: varchar("pays", { length: 4 }).default("FR"),
   photos: text("photos"),
+  devisType: varchar("devis_type", { length: 32 }).default("main_oeuvre"),
   status: devisGarageStatusEnum("status").notNull().default("nouveau"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -1101,3 +1102,4 @@ export * from "./modules/marketing"; // Marketing / QR codes
 export * from "./modules/history"; // Historique véhicule + suggestions/signalements
 export * from "./modules/operations"; // Litiges, partenaires, entrepôts, pays (Parties 7-15)
 export * from "./modules/future"; // Lavage, Karting, Formation, Financement (futurs)
+export * from "./modules/depotvente"; // Dépôt-Vente MKA.P-MS

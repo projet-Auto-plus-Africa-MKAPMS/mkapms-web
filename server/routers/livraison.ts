@@ -2,7 +2,8 @@ import { z } from "zod";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { deliveryProfiles, deliveryMissions, deliveryPricing, deliveryTracking } from "../schema.js";
+import { deliveryProfiles, deliveryMissions, deliveryPricing, deliveryTracking, serviceTracking } from "../schema.js";
+import { notifications } from "../modules/core.js";
 
 // Univers Livraison (Plan Partie 2 §7 + Partie 6 §4). Règle moto: 20 kg / 60x40x40 cm max.
 const MOTO_MAX_KG = 20;
@@ -85,13 +86,13 @@ export const livraisonRouter = router({
     .query(async ({ input }) => {
       const rec = recommendVehicle(input.poidsKg, input.longueurCm, input.largeurCm, input.hauteurCm, input.heavyPart);
       const recommended = rec.vehicle;
-      const conds = [eq(deliveryPricing.type, recommended), eq(deliveryPricing.active, true)];
+      const conds = [eq(deliveryPricing.vehicleType, recommended), eq(deliveryPricing.active, true)];
       const [pricing] = await db.select().from(deliveryPricing).where(and(...conds)).limit(1);
       const fallbackBase: Record<DeliveryVehicle, number> = { moto: 5, utilitaire: 15, fourgon: 25, camion: 45 };
       const fallbackPerKm: Record<DeliveryVehicle, number> = { moto: 0.8, utilitaire: 1.5, fourgon: 2, camion: 2.8 };
-      const base = pricing ? Number(pricing.baseFee) : fallbackBase[recommended];
-      const perKm = pricing ? Number(pricing.perKm) : fallbackPerKm[recommended];
-      const mult = input.urgent ? (pricing ? Number(pricing.urgentMultiplier) : 1.5) : 1;
+      const base = pricing ? Number(pricing.prixBase) : fallbackBase[recommended];
+      const perKm = pricing ? Number(pricing.prixParKm) : fallbackPerKm[recommended];
+      const mult = input.urgent ? 1.5 : 1;
       const tarif = Math.round((base + perKm * input.distanceKm) * mult * 100) / 100;
       return { recommendedVehicleType: recommended, tarif, motoAllowed: rec.motoAllowed, reason: rec.reason };
     }),
@@ -126,6 +127,15 @@ export const livraisonRouter = router({
         vehicleTypeRequis: vt,
         status: "creee",
       }).returning();
+      await db.insert(serviceTracking).values({
+        userId: ctx.user.uid,
+        serviceType: "livraison",
+        serviceId: m.id,
+        reference: `LIV-${m.id}`,
+        titre: `Livraison LIV-${m.id}`,
+        status: "creee",
+        statusLabel: "Mission créée",
+      });
       return m;
     }),
 
@@ -136,4 +146,49 @@ export const livraisonRouter = router({
   track: publicProcedure.input(z.object({ missionId: z.number() })).query(async ({ input }) => {
     return db.select().from(deliveryTracking).where(eq(deliveryTracking.missionId, input.missionId)).orderBy(desc(deliveryTracking.createdAt));
   }),
+
+  updateMissionStatus: protectedProcedure
+    .input(z.object({
+      missionId: z.number(),
+      status: z.enum(["creee", "en_recherche", "acceptee", "refusee", "en_cours", "livree", "annulee", "litige"]),
+      detail: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const [mission] = await db.select().from(deliveryMissions).where(eq(deliveryMissions.id, input.missionId)).limit(1);
+      if (!mission) throw new Error("Mission introuvable");
+      await db.update(deliveryMissions).set({ status: input.status }).where(eq(deliveryMissions.id, input.missionId));
+      await db.insert(deliveryTracking).values({
+        missionId: input.missionId,
+        status: input.status,
+        note: input.detail ?? null,
+      });
+      const statusLabels: Record<string, string> = {
+        creee: "Mission créée",
+        en_recherche: "Recherche de livreur",
+        acceptee: "Livreur assigné",
+        refusee: "Refusée",
+        en_cours: "En cours de livraison",
+        livree: "Livré",
+        annulee: "Annulée",
+        litige: "Litige ouvert",
+      };
+      await db.insert(serviceTracking).values({
+        userId: mission.clientId,
+        serviceType: "livraison",
+        serviceId: mission.id,
+        reference: `LIV-${mission.id}`,
+        titre: `Livraison LIV-${mission.id}`,
+        status: input.status,
+        statusLabel: statusLabels[input.status] ?? input.status,
+        detail: input.detail,
+      });
+      await db.insert(notifications).values({
+        userId: mission.clientId,
+        type: "livraison",
+        title: `Livraison LIV-${mission.id} — ${statusLabels[input.status]}`,
+        body: input.detail ?? `Votre livraison est maintenant : ${statusLabels[input.status]}`,
+        url: "/compte",
+      });
+      return { ok: true };
+    }),
 });

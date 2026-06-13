@@ -27,6 +27,7 @@ import { currencyRouter } from "./routers/currency.js";
 import { notificationsRouter, searchesRouter } from "./routers/notifications.js";
 import { reviewsRouter } from "./routers/reviews.js";
 import { disputesRouter, partnersRouter, warehousesRouter, countriesRouter, loyaltyRouter, documentsRouter, dossiersRouter, governanceRouter, platformRouter, insuranceRouter, labRouter, procurementRouter, hrRouter, qualityRouter, investorRouter, mediaRouter, partnerApiRouter, lavageRouter, kartingRouter, formationRouter, platformMapRouter } from "./routers/operations.js";
+import { depotVenteRouter } from "./routers/depotvente.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -84,6 +85,7 @@ export const appRouter = router({
   karting: kartingRouter,
   formation: formationRouter,
   platformMap: platformMapRouter,
+  depotVente: depotVenteRouter,
 });
 
 export type AppRouter = typeof appRouter;
