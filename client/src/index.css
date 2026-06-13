@@ -85,9 +85,9 @@ a {
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* PWA standalone mode — petit espace sous la barre de statut iOS */
+/* PWA standalone mode — espace sous la barre de statut iOS */
 @media all and (display-mode: standalone) {
   header {
-    padding-top: 8px;
+    padding-top: 12px;
   }
 }

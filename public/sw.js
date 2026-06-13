@@ -1,11 +1,7 @@
-// MKA.P-MS Service Worker — cache-first for static, network-first for API
-const CACHE_NAME = "mkapms-v4";
-const STATIC_ASSETS = ["/", "/favicon.svg"];
+// MKA.P-MS Service Worker — network-first (always fresh, cache fallback offline)
+const CACHE_NAME = "mkapms-v5";
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
-  );
   self.skipWaiting();
 });
 
@@ -19,16 +15,17 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
-  const url = new URL(e.request.url);
-  // API calls: network first
-  if (url.pathname.startsWith("/api/")) {
-    e.respondWith(
-      fetch(e.request).catch(() => caches.match(e.request))
-    );
-    return;
-  }
-  // Static assets: cache first, fallback to network
+  // Network first — toujours charger la dernière version
   e.respondWith(
-    caches.match(e.request).then((cached) => cached || fetch(e.request))
+    fetch(e.request)
+      .then((response) => {
+        // Met en cache pour utilisation offline
+        if (response.ok && e.request.method === "GET") {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
