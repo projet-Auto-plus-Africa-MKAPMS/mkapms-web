@@ -1106,3 +1106,4 @@ export * from "./modules/depotvente"; // Dépôt-Vente MKA.P-MS
 export * from "./modules/vo"; // VO Interne MKA.P-MS (cycle complet véhicule d'occasion)
 export * from "./modules/comptabilite"; // Comptabilité interne + Cabinets comptables externes
 export * from "./modules/cartegrise"; // Démarches Carte Grise / SIV
+export * from "./modules/pro"; // Amélioration Pro (VTC, Location, GPS, Documents, Livraison pièces)

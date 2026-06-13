@@ -46,6 +46,7 @@ const VOInterne = lazy(() => import("./pages/VOInterne"));
 const Comptabilite = lazy(() => import("./pages/Comptabilite"));
 const CarteGrise = lazy(() => import("./pages/CarteGrise"));
 const Mission = lazy(() => import("./pages/Mission"));
+const EspacePro = lazy(() => import("./pages/EspacePro"));
 
 // Chaque univers est isolé : un crash dans l'un n'affecte pas les autres.
 function U({ name, children }: { name: string; children: React.ReactNode }) {
@@ -103,6 +104,7 @@ export default function App() {
             <Route path="/aide" element={<Aide />} />
             <Route path="/confiance" element={<Confiance />} />
             <Route path="/mission" element={<Mission />} />
+            <Route path="/espace-pro" element={<U name="Espace Pro"><EspacePro /></U>} />
             <Route path="/connexion" element={<Connexion />} />
             <Route path="/favoris" element={<U name="Favoris"><Favoris /></U>} />
             <Route path="/compte/validation" element={<U name="Validation"><Validation /></U>} />

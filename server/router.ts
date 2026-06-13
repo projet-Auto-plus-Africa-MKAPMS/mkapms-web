@@ -31,6 +31,7 @@ import { depotVenteRouter } from "./routers/depotvente.js";
 import { voRouter } from "./routers/vo.js";
 import { comptabiliteRouter, cabinetsRouter } from "./routers/comptabilite.js";
 import { carteGriseRouter } from "./routers/cartegrise.js";
+import { proRouter } from "./routers/pro.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -93,6 +94,7 @@ export const appRouter = router({
   comptabilite: comptabiliteRouter,
   cabinets: cabinetsRouter,
   carteGrise: carteGriseRouter,
+  pro: proRouter,
 });
 
 export type AppRouter = typeof appRouter;

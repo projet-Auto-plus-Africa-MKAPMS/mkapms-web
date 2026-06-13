@@ -16,6 +16,8 @@ import {
   countryConfigs,
   cgAbonnements,
   cgPacks,
+  livraisonPiecesInterdites,
+  livraisonPiecesRules,
 } from "./schema.js";
 import { hashPassword } from "./auth.js";
 import { WORLD_COUNTRIES, WORLD_CURRENCIES, LAUNCH_ACTIVE_COUNTRIES } from "./data/world.js";
@@ -280,7 +282,40 @@ export async function seedStructure() {
   for (const p of CG_PACKS) {
     await db.insert(cgPacks).values(p).onConflictDoNothing();
   }
-  console.log(`[seed] structure initialisée (${WORLD_COUNTRIES.length} pays, ${CURRENCIES_SEED.length + WORLD_CURRENCIES.length} devises, abonnements CG + packs)`);
+  // Pièces interdites livraison moto/scooter
+  const PIECES_INTERDITES_MOTO = [
+    { motCle: "moteur", motif: "Trop lourd et volumineux pour moto/scooter" },
+    { motCle: "boite_vitesse", motif: "Trop lourd pour moto/scooter" },
+    { motCle: "capot", motif: "Dimensions incompatibles moto/scooter" },
+    { motCle: "pare_chocs", motif: "Dimensions incompatibles moto/scooter" },
+    { motCle: "porte", motif: "Dimensions incompatibles moto/scooter" },
+    { motCle: "aile", motif: "Trop volumineux pour moto/scooter" },
+    { motCle: "siege", motif: "Trop volumineux pour moto/scooter" },
+    { motCle: "pneu", motif: "Trop volumineux (> 60cm) pour moto/scooter" },
+    { motCle: "jante", motif: "Trop lourd (> 20 kg) pour moto/scooter" },
+    { motCle: "radiateur", motif: "Trop volumineux pour moto/scooter" },
+    { motCle: "tableau_bord", motif: "Dimensions incompatibles moto/scooter" },
+    { motCle: "reservoir_carburant", motif: "Dangereux et volumineux" },
+  ];
+  for (const p of PIECES_INTERDITES_MOTO) {
+    await db.insert(livraisonPiecesInterdites).values(p).onConflictDoNothing();
+  }
+
+  // Règles livraison moto/scooter (limites)
+  const LIVRAISON_RULES = [
+    { categoriePiece: "capteur", poidsMaxKg: "20", longueurMaxCm: 60, largeurMaxCm: 40, hauteurMaxCm: 40, compatibleMoto: true },
+    { categoriePiece: "calculateur", poidsMaxKg: "5", longueurMaxCm: 40, largeurMaxCm: 30, hauteurMaxCm: 20, compatibleMoto: true },
+    { categoriePiece: "alternateur", poidsMaxKg: "15", longueurMaxCm: 40, largeurMaxCm: 30, hauteurMaxCm: 30, compatibleMoto: true },
+    { categoriePiece: "demarreur", poidsMaxKg: "10", longueurMaxCm: 40, largeurMaxCm: 25, hauteurMaxCm: 25, compatibleMoto: true },
+    { categoriePiece: "filtre", poidsMaxKg: "3", longueurMaxCm: 40, largeurMaxCm: 30, hauteurMaxCm: 20, compatibleMoto: true },
+    { categoriePiece: "petit_colis", poidsMaxKg: "20", longueurMaxCm: 60, largeurMaxCm: 40, hauteurMaxCm: 40, compatibleMoto: true },
+    { categoriePiece: "document", poidsMaxKg: "2", longueurMaxCm: 35, largeurMaxCm: 25, hauteurMaxCm: 5, compatibleMoto: true },
+  ];
+  for (const r of LIVRAISON_RULES) {
+    await db.insert(livraisonPiecesRules).values(r).onConflictDoNothing();
+  }
+
+  console.log(`[seed] structure initialisée (${WORLD_COUNTRIES.length} pays, ${CURRENCIES_SEED.length + WORLD_CURRENCIES.length} devises, abonnements CG + packs, pièces interdites moto)`);
 }
 
 async function main() {
