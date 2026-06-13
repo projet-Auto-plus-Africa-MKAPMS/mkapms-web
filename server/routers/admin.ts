@@ -358,15 +358,28 @@ export const adminRouter = router({
       return u;
     }),
 
-  // Suppression d'un compte — réservé Direction (§3.1 / §3.3)
+  // Suppression d'un compte — PDG : tout. Directeur : particuliers uniquement.
   deleteUser: directionProcedure
     .input(z.object({ userId: z.number() }))
     .mutation(async ({ ctx, input }) => {
       if (input.userId === ctx.user.uid) {
         throw new Error("Impossible de supprimer son propre compte");
       }
+      // Vérifier le compte cible
+      const [target] = await db.select({ role: users.role, accountType: users.accountType, staffPosition: users.staffPosition }).from(users).where(eq(users.id, input.userId)).limit(1);
+      if (!target) throw new Error("Compte introuvable");
+
+      // Le Directeur (admin) ne peut pas supprimer : PDG, comptes pro, autres admins
+      if (ctx.user.role !== "super_admin") {
+        if (target.role === "super_admin") throw new Error("Seul le PDG peut supprimer le compte PDG");
+        if (target.role === "admin") throw new Error("Seul le PDG peut supprimer un compte administrateur");
+        if (target.accountType === "professionnel" || target.role === "pro" || target.role === "garage" || target.role === "society") {
+          throw new Error("Seul le PDG peut supprimer un compte professionnel");
+        }
+      }
+
       await db.delete(users).where(eq(users.id, input.userId));
-      await logAction(ctx.user.uid, "account.delete", "user", input.userId);
+      await logAction(ctx.user.uid, "account.delete", "user", input.userId, { targetRole: target.role });
       return { ok: true };
     }),
 

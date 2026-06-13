@@ -77,3 +77,8 @@ a {
     @apply badge bg-gold-soft text-gold-dark;
   }
 }
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

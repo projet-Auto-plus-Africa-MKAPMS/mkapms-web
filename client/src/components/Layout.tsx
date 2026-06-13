@@ -15,6 +15,7 @@ import SupportWidget from "./SupportWidget";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
+import { isAdmin } from "@shared/roles";
 import { useCurrency } from "../lib/currency";
 import { CURRENCIES } from "@shared/currency";
 import { trpc } from "../lib/trpc";
@@ -69,6 +70,11 @@ function Header() {
           {user ? (
             <div className="flex items-center gap-2">
               <NotificationsBell />
+              {isAdmin(user.role) && (
+                <Link to="/admin" className="rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#222]">
+                  Admin
+                </Link>
+              )}
               <Link to="/compte" className="btn-outline">
                 {user.name?.split(" ")[0] || "Compte"}
               </Link>
@@ -241,6 +247,7 @@ function Footer() {
             <li><Link to="/devis">Devis Garage</Link></li>
             <li><Link to="/garages">Réseau de garages</Link></li>
             <li><Link to="/abonnements">Abonnements</Link></li>
+            <li><Link to="/mission">Notre Mission</Link></li>
           </ul>
         </div>
         <div>

@@ -107,6 +107,7 @@ const PERMISSIONS_SEED: Array<{ key: string; module: string; description: string
   { key: "modules.manage", module: "structure", description: "Activer / désactiver les univers (Direction)" },
   { key: "rbac.manage", module: "structure", description: "Gérer rôles et permissions (Direction)" },
   { key: "support.handle", module: "support", description: "Traiter les demandes et tickets clients" },
+  { key: "accounts.delete_particulier", module: "users", description: "Supprimer des comptes particuliers (Directeur)" },
 ];
 
 // Sous-ensemble opérationnel accordé aux EMPLOYÉS (Administration normale).
@@ -117,6 +118,11 @@ const PDG_ONLY = new Set<string>([
   "accounts.delete",
   "modules.manage",
   "rbac.manage",
+]);
+
+// Le Directeur peut supprimer des comptes particuliers mais pas des pros.
+const DIRECTEUR_EXTRA = new Set<string>([
+  "accounts.delete_particulier",
 ]);
 
 const EMPLOYEE_PERMISSIONS = new Set<string>([
@@ -223,8 +229,8 @@ export async function seedStructure() {
   }
   for (const perm of allPerms) {
     await grant(sa, perm.id, true); // PDG : pouvoir total
-    // Directeur : tout sauf les pouvoirs réservés au PDG.
-    await grant(directeurId, perm.id, !PDG_ONLY.has(perm.key));
+    // Directeur : tout sauf les pouvoirs réservés au PDG + accès delete_particulier.
+    await grant(directeurId, perm.id, !PDG_ONLY.has(perm.key) || DIRECTEUR_EXTRA.has(perm.key));
     // Adjoint : comme le Directeur, mais ne gère pas l'organigramme ni les promos.
     await grant(
       adjointId,
@@ -301,6 +307,22 @@ async function main() {
     console.log("[seed] compte direction créé:", adminEmail);
   } else {
     adminId = existing[0].id;
+  }
+
+  // Compte Directeur (Admin Employé)
+  const directeurEmail = "directeur@mkapms.com";
+  const existDir = await db.select().from(users).where(eq(users.email, directeurEmail)).limit(1);
+  if (!existDir.length) {
+    await db.insert(users).values({
+      email: directeurEmail,
+      name: "Directeur MKA.P-MS",
+      passwordHash: await hashPassword("DirecteurMKA2025!"),
+      role: "admin",
+      accountType: "professionnel",
+      staffPosition: "directeur",
+      emailVerified: true,
+    });
+    console.log("[seed] compte directeur créé:", directeurEmail);
   }
 
   const count = await db.select().from(annonces).limit(1);

@@ -6,6 +6,7 @@ import { trpc } from "./lib/trpc";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import UniversBoundary from "./components/UniversBoundary";
+import InstallPrompt from "./components/InstallPrompt";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -73,6 +74,7 @@ export default function App() {
     <>
       <ScrollToTop />
       <SessionLoader />
+      <InstallPrompt />
       <Layout>
         <Suspense fallback={<PageLoader />}>
           <Routes>

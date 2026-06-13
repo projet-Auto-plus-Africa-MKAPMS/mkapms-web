@@ -38,8 +38,10 @@ export const STAFF_LABELS: Record<StaffPosition, string> = {
 
 // Rôles disposant de l'accès au back-office
 export const ADMIN_ROLES: UserRole[] = ["admin", "super_admin", "employee"];
-// Rôles « direction » (tous droits, dont création de produits)
-export const DIRECTION_ROLES: UserRole[] = ["super_admin"];
+// Rôles « direction » (accès complet au back-office, dont création de produits)
+// Le Directeur (admin + staffPosition directeur) a accès mais avec des limites
+// côté serveur (ne peut pas supprimer comptes pro ni PDG).
+export const DIRECTION_ROLES: UserRole[] = ["super_admin", "admin"];
 // Rôles professionnels (espace Garage+)
 export const PRO_ROLES: UserRole[] = ["pro", "garage", "society"];
 
