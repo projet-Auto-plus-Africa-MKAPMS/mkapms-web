@@ -179,6 +179,10 @@ export const annonces = pgTable("annonces", {
   miseAvantAccueil: boolean("mise_avant_accueil").notNull().default(false),
   miseAvantAccueilUntil: timestamp("mise_avant_accueil_until"),
   photosQuota: integer("photos_quota").notNull().default(4),
+  // Label qualité « Sélection MKA.P-MS » — certifié par la Direction (PDG).
+  selectionMka: boolean("selection_mka").notNull().default(false),
+  selectionMkaBy: integer("selection_mka_by"),
+  selectionMkaAt: timestamp("selection_mka_at"),
 });
 
 export const auditLogs = pgTable("audit_logs", {

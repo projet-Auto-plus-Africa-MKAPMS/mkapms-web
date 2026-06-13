@@ -8,6 +8,9 @@ import {
   garagesPublics,
   modules,
   roles,
+  permissions,
+  rolePermissions,
+  documentTypes,
   currencies,
   languages,
 } from "./schema.js";
@@ -39,6 +42,7 @@ const MODULES_SEED: Array<{ code: string; nom: string; description: string; stat
 const ROLES_SEED: Array<{ name: string; label: string; level: number }> = [
   { name: "super_admin", label: "Super Admin (PDG)", level: 100 },
   { name: "admin", label: "Administration", level: 80 },
+  { name: "employee", label: "Employé", level: 35 },
   { name: "directeur", label: "Directeur", level: 70 },
   { name: "manager", label: "Manager", level: 60 },
   { name: "chef_equipe", label: "Chef d'équipe", level: 50 },
@@ -53,6 +57,55 @@ const ROLES_SEED: Array<{ name: string; label: string; level: number }> = [
   { name: "vtc_taxi", label: "VTC / TAXI", level: 20 },
   { name: "delivery", label: "Livreur", level: 20 },
   { name: "user", label: "Particulier", level: 10 },
+];
+
+// Catalogue de permissions (clé, module, description). Tout est en base : la
+// Direction peut tout réattribuer sans toucher au code (§3 + §15).
+const PERMISSIONS_SEED: Array<{ key: string; module: string; description: string }> = [
+  { key: "stats.view", module: "backoffice", description: "Voir les statistiques et le reporting" },
+  { key: "accounts.view", module: "comptes", description: "Consulter les comptes utilisateurs" },
+  { key: "accounts.create", module: "comptes", description: "Créer des comptes internes (Direction)" },
+  { key: "accounts.delete", module: "comptes", description: "Supprimer des comptes (Direction)" },
+  { key: "accounts.set_role", module: "comptes", description: "Attribuer un rôle / poste (Direction)" },
+  { key: "staff.manage", module: "comptes", description: "Gérer l'organigramme et les employés (Direction)" },
+  { key: "inscriptions.validate", module: "validation", description: "Valider les inscriptions particuliers/pros" },
+  { key: "kyc.verify", module: "validation", description: "Vérifier les documents (SIRET, KBIS, RIB, identité)" },
+  { key: "garages.validate", module: "validation", description: "Valider / suspendre les garages" },
+  { key: "annonces.moderate", module: "moderation", description: "Modérer (publier / refuser) les annonces" },
+  { key: "annonces.certify", module: "moderation", description: "Certifier un véhicule « Sélection MKA.P-MS » (Direction)" },
+  { key: "payments.view", module: "finance", description: "Consulter et suivre les paiements" },
+  { key: "payments.manage", module: "finance", description: "Gérer / rembourser les paiements (Direction)" },
+  { key: "reservations.view", module: "finance", description: "Suivre les réservations et locations" },
+  { key: "subscriptions.view", module: "finance", description: "Consulter les abonnements" },
+  { key: "products.manage", module: "catalogue", description: "Créer / modifier produits et offres (Direction)" },
+  { key: "promos.manage", module: "catalogue", description: "Gérer les codes promotionnels (Direction)" },
+  { key: "marketing.manage", module: "marketing", description: "Gérer QR codes, bannières, campagnes (Direction)" },
+  { key: "modules.manage", module: "structure", description: "Activer / désactiver les univers (Direction)" },
+  { key: "rbac.manage", module: "structure", description: "Gérer rôles et permissions (Direction)" },
+  { key: "support.handle", module: "support", description: "Traiter les demandes et tickets clients" },
+];
+
+// Sous-ensemble opérationnel accordé aux EMPLOYÉS (Administration normale).
+// La Direction (super_admin) reçoit TOUTES les permissions.
+const EMPLOYEE_PERMISSIONS = new Set<string>([
+  "stats.view",
+  "accounts.view",
+  "inscriptions.validate",
+  "kyc.verify",
+  "garages.validate",
+  "annonces.moderate",
+  "payments.view",
+  "reservations.view",
+  "subscriptions.view",
+  "support.handle",
+]);
+
+const DOCUMENT_TYPES_SEED: Array<{ code: string; label: string; appliesTo: string; required: boolean }> = [
+  { code: "piece_identite", label: "Pièce d'identité", appliesTo: "tous", required: true },
+  { code: "justificatif_domicile", label: "Justificatif de domicile", appliesTo: "particulier", required: false },
+  { code: "siret", label: "Numéro SIRET", appliesTo: "professionnel", required: true },
+  { code: "kbis", label: "Extrait KBIS", appliesTo: "professionnel", required: true },
+  { code: "rib", label: "RIB", appliesTo: "professionnel", required: true },
 ];
 
 const CURRENCIES_SEED = [
@@ -80,7 +133,34 @@ async function seedStructure() {
   }
   await db.insert(languages).values({ code: "fr", name: "Français" }).onConflictDoNothing({ target: languages.code });
   await db.insert(languages).values({ code: "en", name: "English" }).onConflictDoNothing({ target: languages.code });
-  console.log("[seed] structure (modules, rôles, devises, langues) initialisée");
+
+  // Permissions + affectations aux rôles (RBAC réellement peuplé).
+  for (const p of PERMISSIONS_SEED) {
+    await db.insert(permissions).values(p).onConflictDoNothing({ target: permissions.key });
+  }
+  for (const d of DOCUMENT_TYPES_SEED) {
+    await db.insert(documentTypes).values(d).onConflictDoNothing({ target: documentTypes.code });
+  }
+  const allRoles = await db.select().from(roles);
+  const allPerms = await db.select().from(permissions);
+  const roleByName = new Map(allRoles.map((r) => [r.name, r.id]));
+  const sa = roleByName.get("super_admin");
+  const adminId = roleByName.get("admin");
+  const empId = roleByName.get("employee");
+  const existingRP = await db.select().from(rolePermissions);
+  const hasRP = new Set(existingRP.map((rp) => `${rp.roleId}:${rp.permissionId}`));
+  async function grant(roleId: number | undefined, permId: number, allowed: boolean) {
+    if (!roleId) return;
+    if (hasRP.has(`${roleId}:${permId}`)) return;
+    await db.insert(rolePermissions).values({ roleId, permissionId: permId, allowed });
+  }
+  for (const perm of allPerms) {
+    await grant(sa, perm.id, true); // Direction : tout
+    const opsAllowed = EMPLOYEE_PERMISSIONS.has(perm.key);
+    await grant(adminId, perm.id, opsAllowed);
+    await grant(empId, perm.id, opsAllowed);
+  }
+  console.log("[seed] structure (modules, rôles, permissions, devises, langues) initialisée");
 }
 
 async function main() {
