@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Mail, X, Send } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -51,7 +52,7 @@ export default function SupportWidget() {
         <Mail size={18} />
       </button>
 
-      {open && (
+      {open && createPortal(
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
           <div className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
@@ -154,7 +155,8 @@ export default function SupportWidget() {
               </form>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
