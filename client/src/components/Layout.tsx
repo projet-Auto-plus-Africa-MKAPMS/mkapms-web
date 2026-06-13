@@ -34,7 +34,7 @@ function Header() {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       <div className="container-page flex h-16 items-center justify-between gap-4">
         <Link to="/" className="flex flex-col">
           <span className="text-lg font-extrabold tracking-tight text-noir">
@@ -288,7 +288,7 @@ function BottomNav() {
     { to: "/compte", label: "Compte", icon: User },
   ];
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 border-t border-slate-200 bg-white md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 border-t border-slate-200 bg-white md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       {items.map((it) => {
         const Icon = it.icon;
         const active = loc.pathname === it.to;
