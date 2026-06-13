@@ -6,7 +6,9 @@ import { useCurrency } from "../lib/currency";
 import { isAdmin, isPro, ROLE_LABELS } from "@shared/roles";
 import type { UserRole } from "@shared/roles";
 
-type Tab = "annonces" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "profil";
+type Tab = "annonces" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "profil";
+
+const TIER_LABELS: Record<string, string> = { bronze: "Bronze", silver: "Silver", gold: "Gold", platinum: "Platinum", elite: "Elite" };
 
 export default function Compte() {
   const { format: formatPrice } = useCurrency();
@@ -26,6 +28,14 @@ export default function Compte() {
   const removeSearch = trpc.searches.remove.useMutation({ onSuccess: () => utils.searches.list.invalidate() });
   const openDispute = trpc.disputes.open.useMutation({ onSuccess: () => { utils.disputes.mine.invalidate(); setLitige({ univers: "vente", category: "", description: "" }); } });
   const [litige, setLitige] = useState({ univers: "vente", category: "", description: "" });
+  const fidelite = trpc.loyalty.me.useQuery(undefined, { enabled: !!user && tab === "fidelite" });
+  const coffre = trpc.documents.list.useQuery(undefined, { enabled: !!user && tab === "coffre" });
+  const dossiers = trpc.dossiers.list.useQuery(undefined, { enabled: !!user && tab === "vehicules" });
+  const addDoc = trpc.documents.add.useMutation({ onSuccess: () => { utils.documents.list.invalidate(); setDoc({ category: "carte_grise", title: "", fileUrl: "" }); } });
+  const removeDoc = trpc.documents.remove.useMutation({ onSuccess: () => utils.documents.list.invalidate() });
+  const createDossier = trpc.dossiers.create.useMutation({ onSuccess: () => { utils.dossiers.list.invalidate(); setDossier({ marque: "", modele: "", immatriculation: "" }); } });
+  const [doc, setDoc] = useState({ category: "carte_grise", title: "", fileUrl: "" });
+  const [dossier, setDossier] = useState({ marque: "", modele: "", immatriculation: "" });
 
   if (!user) {
     return (
@@ -44,6 +54,9 @@ export default function Compte() {
     ["devis", "Mes devis"],
     ["abonnements", "Abonnements"],
     ["litiges", "Mes litiges"],
+    ["fidelite", "Fidélité"],
+    ["coffre", "Coffre-fort"],
+    ["vehicules", "Mes véhicules"],
     ["profil", "Profil"],
   ];
 
@@ -221,6 +234,87 @@ export default function Compte() {
               </div>
             ))}
             {litiges.data?.length === 0 && <p className="text-sm text-slate-500">Aucun litige.</p>}
+          </div>
+        )}
+        {tab === "fidelite" && (
+          <div className="space-y-4">
+            <div className="card p-5">
+              <p className="text-sm text-slate-500">Niveau de fidélité MKA</p>
+              <p className="text-3xl font-extrabold text-brand">{TIER_LABELS[fidelite.data?.tier ?? "bronze"]}</p>
+              <p className="mt-1 text-2xl font-bold text-slate-900">{(fidelite.data?.points ?? 0).toLocaleString("fr-FR")} <span className="text-sm font-normal text-slate-500">points MKA</span></p>
+              {fidelite.data?.nextTier && (
+                <p className="mt-2 text-xs text-slate-500">Encore <strong>{fidelite.data.pointsToNext.toLocaleString("fr-FR")}</strong> points pour passer {TIER_LABELS[fidelite.data.nextTier]}.</p>
+              )}
+              <p className="mt-3 text-xs text-slate-400">Gagnez des points sur vos achats, ventes, locations, pièces, livraisons et entretiens. À utiliser en réduction d'abonnement, boost d'annonce ou historique véhicule.</p>
+            </div>
+            <div className="space-y-2">
+              {fidelite.data?.transactions.map((t) => (
+                <div key={t.id} className="card flex items-center justify-between p-3 text-sm">
+                  <span className="text-slate-600">{t.reason}</span>
+                  <span className={t.points >= 0 ? "font-semibold text-green-600" : "font-semibold text-red-500"}>{t.points >= 0 ? "+" : ""}{t.points}</span>
+                </div>
+              ))}
+              {fidelite.data?.transactions.length === 0 && <p className="text-sm text-slate-500">Aucun point pour le moment.</p>}
+            </div>
+          </div>
+        )}
+        {tab === "coffre" && (
+          <div className="space-y-4">
+            <form
+              className="card space-y-2 p-4"
+              onSubmit={(e) => { e.preventDefault(); if (doc.title && doc.fileUrl) addDoc.mutate(doc as { category: "carte_grise"; title: string; fileUrl: string }); }}
+            >
+              <p className="font-semibold text-slate-800">Ajouter un document</p>
+              <p className="text-xs text-slate-500">Cartes grises, factures, contrôles techniques, contrats, assurances — stockés dans votre espace sécurisé.</p>
+              <div className="flex flex-wrap gap-2">
+                <select className="input max-w-[180px]" value={doc.category} onChange={(e) => setDoc({ ...doc, category: e.target.value })}>
+                  <option value="carte_grise">Carte grise</option>
+                  <option value="facture">Facture</option>
+                  <option value="controle_technique">Contrôle technique</option>
+                  <option value="contrat">Contrat</option>
+                  <option value="assurance">Assurance</option>
+                  <option value="autre">Autre</option>
+                </select>
+                <input className="input max-w-xs" placeholder="Titre" value={doc.title} onChange={(e) => setDoc({ ...doc, title: e.target.value })} />
+              </div>
+              <input className="input" placeholder="Lien du fichier (https://…)" value={doc.fileUrl} onChange={(e) => setDoc({ ...doc, fileUrl: e.target.value })} />
+              <button className="btn-primary !text-sm">Enregistrer</button>
+            </form>
+            {coffre.data?.map((d) => (
+              <div key={d.id} className="card flex items-center justify-between p-3 text-sm">
+                <div>
+                  <p className="font-semibold text-slate-800">{d.title}</p>
+                  <p className="text-xs text-slate-500">{d.category} · <a href={d.fileUrl} target="_blank" rel="noreferrer" className="text-brand underline">ouvrir</a></p>
+                </div>
+                <button className="text-xs text-red-500 hover:underline" onClick={() => removeDoc.mutate({ id: d.id })}>Supprimer</button>
+              </div>
+            ))}
+            {coffre.data?.length === 0 && <p className="text-sm text-slate-500">Coffre-fort vide.</p>}
+          </div>
+        )}
+        {tab === "vehicules" && (
+          <div className="space-y-4">
+            <form
+              className="card flex flex-wrap items-end gap-2 p-4"
+              onSubmit={(e) => { e.preventDefault(); if (dossier.marque || dossier.immatriculation) createDossier.mutate(dossier); }}
+            >
+              <div className="flex-1">
+                <p className="font-semibold text-slate-800">Ajouter un véhicule à mon carnet</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <input className="input max-w-[140px]" placeholder="Marque" value={dossier.marque} onChange={(e) => setDossier({ ...dossier, marque: e.target.value })} />
+                  <input className="input max-w-[140px]" placeholder="Modèle" value={dossier.modele} onChange={(e) => setDossier({ ...dossier, modele: e.target.value })} />
+                  <input className="input max-w-[140px]" placeholder="Immatriculation" value={dossier.immatriculation} onChange={(e) => setDossier({ ...dossier, immatriculation: e.target.value })} />
+                </div>
+              </div>
+              <button className="btn-primary !text-sm">Créer le dossier</button>
+            </form>
+            {dossiers.data?.map((d) => (
+              <div key={d.id} className="card p-3 text-sm">
+                <p className="font-semibold text-slate-800">{[d.marque, d.modele].filter(Boolean).join(" ") || "Véhicule"} {d.immatriculation ? `· ${d.immatriculation}` : ""}</p>
+                <p className="text-xs text-slate-500">Carnet de santé numérique : achat, entretien, réparations, contrôle technique, photos, ventes.</p>
+              </div>
+            ))}
+            {dossiers.data?.length === 0 && <p className="text-sm text-slate-500">Aucun véhicule dans votre carnet.</p>}
           </div>
         )}
         {tab === "profil" && <ProfilForm />}

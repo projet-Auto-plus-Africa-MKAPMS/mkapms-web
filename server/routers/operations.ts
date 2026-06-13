@@ -1,7 +1,8 @@
-// Routers transverses Parties 7-15 : litiges, partenaires, entrepôts, pays.
+// Routers transverses Parties 7-18 : litiges, partenaires, entrepôts, pays,
+// fidélité, coffre-fort numérique, dossier véhicule.
 // Base unique : tout est relié aux mêmes users / logs / paiements.
 import { z } from "zod";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { router, publicProcedure, protectedProcedure, adminProcedure, directionProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import {
@@ -13,9 +14,62 @@ import {
   countryConfigs,
   users,
   notifications,
+  loyaltyAccounts,
+  loyaltyTransactions,
+  userDocuments,
+  vehicleDossiers,
+  vehicleDossierEvents,
 } from "../schema.js";
 import { logAction, clientMeta } from "../audit.js";
 import { makeReference } from "../reference.js";
+
+// ===================== PARTIE 18 — FIDÉLITÉ (Points MKA) =====================
+// Paliers : seuil de points pour chaque niveau.
+export const LOYALTY_TIERS = [
+  { tier: "bronze" as const, min: 0 },
+  { tier: "silver" as const, min: 500 },
+  { tier: "gold" as const, min: 2000 },
+  { tier: "platinum" as const, min: 5000 },
+  { tier: "elite" as const, min: 15000 },
+];
+
+export function tierForPoints(points: number): "bronze" | "silver" | "gold" | "platinum" | "elite" {
+  let current: "bronze" | "silver" | "gold" | "platinum" | "elite" = "bronze";
+  for (const t of LOYALTY_TIERS) if (points >= t.min) current = t.tier;
+  return current;
+}
+
+// Attribue des points (best-effort, ne bloque jamais l'action métier).
+export async function awardPoints(
+  userId: number,
+  points: number,
+  reason: string,
+  refType?: string,
+  refId?: number,
+): Promise<void> {
+  if (!userId || !points) return;
+  try {
+    await db.insert(loyaltyTransactions).values({ userId, points, reason, refType: refType ?? null, refId: refId ?? null });
+    await db
+      .insert(loyaltyAccounts)
+      .values({ userId, points, tier: tierForPoints(points) })
+      .onConflictDoUpdate({
+        target: loyaltyAccounts.userId,
+        set: {
+          points: sql`${loyaltyAccounts.points} + ${points}`,
+          updatedAt: new Date(),
+        },
+      });
+    // Resynchronise le palier après cumul.
+    const [acc] = await db.select().from(loyaltyAccounts).where(eq(loyaltyAccounts.userId, userId)).limit(1);
+    if (acc) {
+      const t = tierForPoints(acc.points);
+      if (t !== acc.tier) await db.update(loyaltyAccounts).set({ tier: t }).where(eq(loyaltyAccounts.userId, userId));
+    }
+  } catch (err) {
+    console.error("[loyalty] award échec:", (err as Error).message);
+  }
+}
 
 // ===================== PARTIE 8 — CENTRE DE LITIGES =====================
 export const disputesRouter = router({
@@ -329,6 +383,140 @@ export const countriesRouter = router({
         });
       }
       await logAction(ctx.user.uid, "country.upsert", "country", null, { code }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+});
+
+// ===================== PARTIE 18 — FIDÉLITÉ (router) =====================
+export const loyaltyRouter = router({
+  me: protectedProcedure.query(async ({ ctx }) => {
+    const [acc] = await db.select().from(loyaltyAccounts).where(eq(loyaltyAccounts.userId, ctx.user.uid)).limit(1);
+    const points = acc?.points ?? 0;
+    const tier = acc?.tier ?? "bronze";
+    const tx = await db
+      .select()
+      .from(loyaltyTransactions)
+      .where(eq(loyaltyTransactions.userId, ctx.user.uid))
+      .orderBy(desc(loyaltyTransactions.createdAt))
+      .limit(20);
+    // Points manquants pour le palier suivant.
+    const next = LOYALTY_TIERS.find((t) => t.min > points);
+    return { points, tier, nextTier: next?.tier ?? null, pointsToNext: next ? next.min - points : 0, transactions: tx };
+  }),
+
+  // Attribution manuelle (Direction) — bonus, geste commercial…
+  award: directionProcedure
+    .input(z.object({ userId: z.number(), points: z.number(), reason: z.string().min(2).max(128) }))
+    .mutation(async ({ ctx, input }) => {
+      await awardPoints(input.userId, input.points, input.reason, "manuel", ctx.user.uid);
+      await logAction(ctx.user.uid, "loyalty.award", "user", input.userId, { points: input.points }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+});
+
+// ===================== PREMIUM 1 — COFFRE-FORT NUMÉRIQUE =====================
+export const documentsRouter = router({
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return db
+      .select()
+      .from(userDocuments)
+      .where(eq(userDocuments.userId, ctx.user.uid))
+      .orderBy(desc(userDocuments.createdAt));
+  }),
+
+  add: protectedProcedure
+    .input(
+      z.object({
+        category: z.enum(["carte_grise", "facture", "controle_technique", "contrat", "assurance", "autre"]).default("autre"),
+        title: z.string().min(1).max(255),
+        fileUrl: z.string().url(),
+        fileName: z.string().max(255).optional(),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [d] = await db.insert(userDocuments).values({
+        userId: ctx.user.uid,
+        category: input.category,
+        title: input.title,
+        fileUrl: input.fileUrl,
+        fileName: input.fileName ?? null,
+        notes: input.notes ?? null,
+      }).returning();
+      return d;
+    }),
+
+  remove: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.delete(userDocuments).where(sql`${userDocuments.id} = ${input.id} and ${userDocuments.userId} = ${ctx.user.uid}`);
+      return { ok: true };
+    }),
+});
+
+// ===================== PREMIUM 2 — DOSSIER VÉHICULE INTELLIGENT =====================
+export const dossiersRouter = router({
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return db.select().from(vehicleDossiers).where(eq(vehicleDossiers.userId, ctx.user.uid)).orderBy(desc(vehicleDossiers.createdAt));
+  }),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        marque: z.string().max(96).optional(),
+        modele: z.string().max(96).optional(),
+        immatriculation: z.string().max(32).optional(),
+        vin: z.string().max(32).optional(),
+        annee: z.number().optional(),
+        kilometrage: z.number().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [d] = await db.insert(vehicleDossiers).values({ userId: ctx.user.uid, ...input }).returning();
+      return d;
+    }),
+
+  events: protectedProcedure
+    .input(z.object({ dossierId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const [d] = await db.select().from(vehicleDossiers).where(eq(vehicleDossiers.id, input.dossierId)).limit(1);
+      if (!d || d.userId !== ctx.user.uid) return [];
+      return db
+        .select()
+        .from(vehicleDossierEvents)
+        .where(eq(vehicleDossierEvents.dossierId, input.dossierId))
+        .orderBy(desc(vehicleDossierEvents.createdAt));
+    }),
+
+  addEvent: protectedProcedure
+    .input(
+      z.object({
+        dossierId: z.number(),
+        type: z.enum(["achat", "entretien", "reparation", "controle_technique", "sinistre", "photo", "vente", "autre"]).default("autre"),
+        title: z.string().min(1).max(160),
+        description: z.string().max(2000).optional(),
+        amount: z.number().optional(),
+        eventDate: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [d] = await db.select().from(vehicleDossiers).where(eq(vehicleDossiers.id, input.dossierId)).limit(1);
+      if (!d || d.userId !== ctx.user.uid) throw new Error("Dossier introuvable");
+      await db.insert(vehicleDossierEvents).values({
+        dossierId: input.dossierId,
+        type: input.type,
+        title: input.title,
+        description: input.description ?? null,
+        amount: input.amount != null ? String(input.amount) : null,
+        eventDate: input.eventDate ? new Date(input.eventDate) : null,
+      });
+      return { ok: true };
+    }),
+
+  remove: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.delete(vehicleDossiers).where(sql`${vehicleDossiers.id} = ${input.id} and ${vehicleDossiers.userId} = ${ctx.user.uid}`);
       return { ok: true };
     }),
 });

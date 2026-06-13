@@ -99,18 +99,28 @@ export default function Admin() {
         ))}
       </div>
 
-      {/* Tableau de bord PDG (Partie 13) — tout en un écran */}
+      {/* Centre de commandement PDG (Parties 13 & 16) — tout en un écran */}
       <section className="mt-8">
-        <h2 className="text-lg font-bold text-slate-800">Tableau de bord <span className="text-xs font-normal text-brand">(temps réel)</span></h2>
+        <h2 className="text-lg font-bold text-slate-800">Centre de commandement PDG <span className="text-xs font-normal text-brand">(temps réel)</span></h2>
+        {(() => {
+          const eur = (v?: number) => (dashboard.data && v != null ? `${v.toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €` : "—");
+          return (
         <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-5">
           {[
-            { l: "CA du jour", v: dashboard.data ? `${(dashboard.data.caJour / 100).toLocaleString("fr-FR")} €` : "—" },
-            { l: "CA du mois", v: dashboard.data ? `${(dashboard.data.caMois / 100).toLocaleString("fr-FR")} €` : "—" },
+            { l: "CA du jour", v: eur(dashboard.data?.caJour) },
+            { l: "CA semaine", v: eur(dashboard.data?.caSemaine) },
+            { l: "CA du mois", v: eur(dashboard.data?.caMois) },
+            { l: "CA de l'année", v: eur(dashboard.data?.caAnnee) },
+            { l: "Bénéfice estimé (mois)", v: eur(dashboard.data?.beneficeEstime) },
+            { l: "Commissions (mois)", v: eur(dashboard.data?.commissionsMois) },
+            { l: "Remboursements (mois)", v: eur(dashboard.data?.remboursementsMois) },
             { l: "Abonnements actifs", v: dashboard.data?.abonnementsActifs },
             { l: "Nouveaux comptes (mois)", v: dashboard.data?.nouveauxComptes },
+            { l: "dont particuliers / pros", v: dashboard.data ? `${dashboard.data.nouveauxParticuliers} / ${dashboard.data.nouveauxPros}` : "—" },
             { l: "Véhicules vendus", v: dashboard.data?.vehiculesVendus },
             { l: "Réservations", v: dashboard.data?.reservations },
             { l: "Paiements en attente", v: dashboard.data?.paiementsEnAttente },
+            { l: "Paiements échoués", v: dashboard.data?.paiementsEchoues, alert: !!dashboard.data?.paiementsEchoues },
             { l: "Litiges ouverts", v: dashboard.data?.litigesOuverts, alert: !!dashboard.data?.litigesOuverts },
             { l: "KYC à vérifier", v: dashboard.data?.kycEnAttente, alert: !!dashboard.data?.kycEnAttente },
             { l: "Annonces à valider", v: dashboard.data?.annoncesEnAttente, alert: !!dashboard.data?.annoncesEnAttente },
@@ -121,6 +131,8 @@ export default function Admin() {
             </div>
           ))}
         </div>
+          );
+        })()}
       </section>
 
       {/* Centre de litiges (Partie 8) */}

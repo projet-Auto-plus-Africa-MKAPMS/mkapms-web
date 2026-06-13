@@ -102,5 +102,7 @@ export const customsSteps = pgTable("customs_steps", {
   status: importStatusEnum("status").notNull(),
   note: text("note"),
   lieu: varchar("lieu", { length: 160 }),
+  // Partie 17 — photos obligatoires (départ, chargement, arrivée, remise client).
+  photoUrl: text("photo_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

@@ -37,22 +37,46 @@ export const adminRouter = router({
     };
   }),
 
-  // Partie 13 — Tableau de bord PDG : tout en un écran, sans ouvrir 50 menus.
+  // Parties 13 & 16 — Centre de commandement PDG : tout en un écran.
   dashboard: adminProcedure.query(async () => {
     const startDay = new Date(); startDay.setHours(0, 0, 0, 0);
+    const startWeek = new Date(); startWeek.setDate(startWeek.getDate() - 7);
     const startMonth = new Date(); startMonth.setDate(1); startMonth.setHours(0, 0, 0, 0);
+    const startYear = new Date(); startYear.setMonth(0, 1); startYear.setHours(0, 0, 0, 0);
     const num = (v: unknown) => Number(v ?? 0);
 
-    const [caDay] = await db.select({ v: dsql<number>`coalesce(sum(${payments.amount}),0)` })
-      .from(payments).where(dsql`${payments.status} = 'paid' and ${payments.createdAt} >= ${startDay}`);
-    const [caMonth] = await db.select({ v: dsql<number>`coalesce(sum(${payments.amount}),0)` })
-      .from(payments).where(dsql`${payments.status} = 'paid' and ${payments.createdAt} >= ${startMonth}`);
+    const sumPaid = async (from: Date) => {
+      const [r] = await db.select({ v: dsql<number>`coalesce(sum(${payments.amount}),0)` })
+        .from(payments).where(dsql`${payments.status} = 'paid' and ${payments.createdAt} >= ${from}`);
+      return num(r?.v);
+    };
+    const countUsersSince = async (from: Date, type: string) => {
+      const [r] = await db.select({ c: dsql<number>`count(*)::int` })
+        .from(users).where(dsql`${users.createdAt} >= ${from} and ${users.accountType} = ${type}`);
+      return num(r?.c);
+    };
+
+    const caJour = await sumPaid(startDay);
+    const caSemaine = await sumPaid(startWeek);
+    const caMois = await sumPaid(startMonth);
+    const caAnnee = await sumPaid(startYear);
+
+    // Commissions estimées (abonnements ≈ revenu plateforme) + remboursements.
+    const [commission] = await db.select({ v: dsql<number>`coalesce(sum(${payments.amount}),0)` })
+      .from(payments).where(dsql`${payments.status} = 'paid' and ${payments.type} = 'pro_subscription' and ${payments.createdAt} >= ${startMonth}`);
+    const [refunded] = await db.select({ v: dsql<number>`coalesce(sum(${payments.amount}),0)` })
+      .from(payments).where(dsql`${payments.status} = 'refunded' and ${payments.createdAt} >= ${startMonth}`);
+
     const [pPending] = await db.select({ c: dsql<number>`count(*)::int` })
       .from(payments).where(eq(payments.status, "pending"));
+    const [pFailed] = await db.select({ c: dsql<number>`count(*)::int` })
+      .from(payments).where(eq(payments.status, "failed"));
     const [subsActive] = await db.select({ c: dsql<number>`count(*)::int` })
       .from(subscriptions).where(dsql`${subscriptions.status} = 'active'`);
     const [newAccounts] = await db.select({ c: dsql<number>`count(*)::int` })
       .from(users).where(dsql`${users.createdAt} >= ${startMonth}`);
+    const newParticuliers = await countUsersSince(startMonth, "particulier");
+    const newPros = await countUsersSince(startMonth, "professionnel");
     const [sold] = await db.select({ c: dsql<number>`count(*)::int` })
       .from(annonces).where(eq(annonces.status, "vendue"));
     const [reservations] = await db.select({ c: dsql<number>`count(*)::int` }).from(bookings);
@@ -64,11 +88,16 @@ export const adminRouter = router({
       .from(annonces).where(eq(annonces.status, "en_validation"));
 
     return {
-      caJour: num(caDay?.v),
-      caMois: num(caMonth?.v),
+      caJour, caSemaine, caMois, caAnnee,
+      commissionsMois: num(commission?.v),
+      remboursementsMois: num(refunded?.v),
+      beneficeEstime: caMois - num(refunded?.v),
       paiementsEnAttente: num(pPending?.c),
+      paiementsEchoues: num(pFailed?.c),
       abonnementsActifs: num(subsActive?.c),
       nouveauxComptes: num(newAccounts?.c),
+      nouveauxParticuliers: newParticuliers,
+      nouveauxPros: newPros,
       vehiculesVendus: num(sold?.c),
       reservations: num(reservations?.c),
       litigesOuverts: num(openDisputes?.c),

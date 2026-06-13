@@ -1,4 +1,5 @@
-// Univers transverses (Parties 7-15) — litiges, partenaires, entrepôts, pays.
+// Univers transverses (Parties 7-18) — litiges, partenaires, entrepôts, pays,
+// fidélité, coffre-fort, dossier véhicule.
 // Base unique : ces tables restent reliées aux mêmes users / logs / paiements.
 import {
   integer,
@@ -109,5 +110,60 @@ export const countryConfigs = pgTable("country_configs", {
   customsRules: text("customs_rules"),
   taxes: text("taxes"),
   active: boolean("active").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== PARTIE 18 — PROGRAMME FIDÉLITÉ (Points MKA) =====
+export const loyaltyTierEnum = pgEnum("loyalty_tier", ["bronze", "silver", "gold", "platinum", "elite"]);
+
+export const loyaltyAccounts = pgTable("loyalty_accounts", {
+  userId: integer("user_id").primaryKey(),
+  points: integer("points").notNull().default(0),
+  tier: loyaltyTierEnum("tier").notNull().default("bronze"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const loyaltyTransactions = pgTable("loyalty_transactions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  points: integer("points").notNull(), // signé (+ gain, - dépense)
+  reason: varchar("reason", { length: 128 }).notNull(),
+  refType: varchar("ref_type", { length: 32 }),
+  refId: integer("ref_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== PREMIUM 2 — DOSSIER VÉHICULE INTELLIGENT (carnet de santé) =====
+export const dossierEventTypeEnum = pgEnum("dossier_event_type", [
+  "achat",
+  "entretien",
+  "reparation",
+  "controle_technique",
+  "sinistre",
+  "photo",
+  "vente",
+  "autre",
+]);
+
+export const vehicleDossiers = pgTable("vehicle_dossiers", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  marque: varchar("marque", { length: 96 }),
+  modele: varchar("modele", { length: 96 }),
+  immatriculation: varchar("immatriculation", { length: 32 }),
+  vin: varchar("vin", { length: 32 }),
+  annee: integer("annee"),
+  kilometrage: integer("kilometrage"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const vehicleDossierEvents = pgTable("vehicle_dossier_events", {
+  id: serial("id").primaryKey(),
+  dossierId: integer("dossier_id").notNull(),
+  type: dossierEventTypeEnum("type").notNull().default("autre"),
+  title: varchar("title", { length: 160 }).notNull(),
+  description: text("description"),
+  amount: numeric("amount", { precision: 12, scale: 2 }),
+  eventDate: timestamp("event_date"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
