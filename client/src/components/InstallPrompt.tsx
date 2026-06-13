@@ -9,19 +9,45 @@ export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [show, setShow] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem("mkapms_install_dismissed")) return;
+    // Déjà installé en mode standalone ?
+    const standalone = window.matchMedia("(display-mode: standalone)").matches
+      || (navigator as any).standalone === true;
+    setIsStandalone(standalone);
+    if (standalone) return;
+
+    // Déjà refusé ?
+    const dismissedAt = localStorage.getItem("mkapms_install_dismissed");
+    if (dismissedAt) {
+      // Re-montrer après 7 jours
+      const days = (Date.now() - Number(dismissedAt)) / (1000 * 60 * 60 * 24);
+      if (days < 7) return;
+    }
+
+    // Détecte iOS (pas de beforeinstallprompt sur Safari)
+    const ua = navigator.userAgent;
+    const ios = /iPad|iPhone|iPod/.test(ua) || (ua.includes("Mac") && "ontouchend" in document);
+    setIsIOS(ios);
+
+    if (ios) {
+      // Sur iOS, montrer directement le guide
+      setTimeout(() => setShow(true), 2000);
+      return;
+    }
+
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShow(true);
+      setTimeout(() => setShow(true), 1500);
     };
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  if (!show || dismissed) return null;
+  if (!show || dismissed || isStandalone) return null;
 
   const install = async () => {
     if (!deferredPrompt) return;
@@ -33,28 +59,51 @@ export default function InstallPrompt() {
 
   const dismiss = () => {
     setDismissed(true);
-    localStorage.setItem("mkapms_install_dismissed", "1");
+    localStorage.setItem("mkapms_install_dismissed", String(Date.now()));
   };
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-[9999] mx-auto max-w-md animate-[slideUp_0.3s_ease] rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-xl sm:left-auto sm:right-6">
-      <div className="flex items-start gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#111]">
-          <span className="text-lg font-bold text-[#D4AF37]">M</span>
-        </div>
-        <div className="flex-1">
-          <h3 className="text-sm font-bold text-[#111]">Installer MKA.P-MS</h3>
-          <p className="mt-0.5 text-xs text-[#6B7280]">Ajoutez l'application sur votre écran d'accueil pour un accès rapide.</p>
-          <div className="mt-3 flex gap-2">
-            <button onClick={install} className="rounded-lg bg-[#D4AF37] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#C5A028]">
-              Installer
-            </button>
-            <button onClick={dismiss} className="rounded-lg px-4 py-1.5 text-xs font-medium text-[#6B7280] hover:bg-[#F3F4F6]">
-              Plus tard
+    <>
+      {/* ═══ Bannière haut de page — pleine largeur ═══ */}
+      <div className="fixed inset-x-0 top-0 z-[10000] bg-[#111] shadow-lg">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#D4AF37]">
+              <span className="text-lg font-extrabold text-white">M</span>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white">
+                Téléchargez l'application MKA.P-MS
+              </p>
+              <p className="text-[11px] text-white/50">
+                {isIOS
+                  ? "Appuyez sur Partager puis « Sur l'écran d'accueil »"
+                  : "Accès rapide depuis votre écran d'accueil — gratuit"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {!isIOS && deferredPrompt && (
+              <button
+                onClick={install}
+                className="rounded-lg bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#C5A028]"
+              >
+                Installer
+              </button>
+            )}
+            <button
+              onClick={dismiss}
+              className="rounded-lg px-3 py-2 text-xs font-medium text-white/50 transition hover:text-white"
+              aria-label="Fermer"
+            >
+              ✕
             </button>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Spacer pour ne pas cacher le contenu sous la bannière */}
+      <div className="h-14" />
+    </>
   );
 }
