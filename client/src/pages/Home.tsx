@@ -75,7 +75,7 @@ export default function Home() {
   }
 
   return (
-    <div className="bg-white">
+    <div className="overflow-x-hidden bg-white">
 
       {/* ═══════════════════════════════════════════════════════════
           1. HERO — FOND NOIR
@@ -86,7 +86,7 @@ export default function Home() {
         <div className="container-page relative grid gap-8 py-12 md:py-16 lg:grid-cols-[1fr_340px]">
           {/* Gauche */}
           <div>
-            <h1 className="text-3xl font-black uppercase leading-tight text-white md:text-5xl">
+            <h1 className="text-2xl font-black uppercase leading-tight text-white sm:text-3xl md:text-5xl">
               La plateforme auto<br />
               <span className="text-[#D4AF37]">qui simplifie tout</span>
             </h1>
@@ -95,7 +95,7 @@ export default function Home() {
             </p>
 
             {/* 4 actions rapides */}
-            <div className="mt-8 grid grid-cols-4 gap-3 sm:max-w-md">
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:max-w-md">
               {[
                 { icon: Plus, label: "Déposer une annonce", to: "/vendre" },
                 { icon: Search, label: "Rechercher un véhicule", to: "/acheter" },
@@ -161,7 +161,7 @@ export default function Home() {
           {/* Recherche */}
           <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
             <h3 className="text-lg font-bold text-[#111]">Rechercher un véhicule</h3>
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               {(["toutes", "voitures", "motos", "utilitaires"] as const).map((t) => (
                 <button key={t} onClick={() => setSearchTab(t)}
                   className={`rounded-full px-3 py-1 text-xs font-semibold capitalize transition ${searchTab === t ? "bg-[#111] text-white" : "bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]"}`}
@@ -256,11 +256,11 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-10">
         <div className="container-page">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-[#111]">Catégories de véhicules populaires</h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-bold text-[#111] sm:text-xl">Catégories populaires</h2>
             <Link to="/acheter" className="flex items-center gap-1 text-sm font-semibold text-[#D4AF37] hover:underline">Voir toutes <ArrowRight size={14} /></Link>
           </div>
-          <div className="mt-6 grid grid-cols-4 gap-3 sm:grid-cols-7">
+          <div className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-7">
             {CATEGORIES.map((c) => (
               <Link key={c.label} to={c.to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F3F4F6] transition group-hover:bg-[#D4AF37]/10">
@@ -305,7 +305,7 @@ export default function Home() {
             </div>
 
             {/* Tags infos */}
-            <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
+            <div className="mt-5 grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 md:grid-cols-4">
               {["Accidents", "Vol", "Kilométrage", "Gage", "Entretien", "Importation", "Propriétaires", "Et plus encore…"].map((t) => (
                 <div key={t} className="flex items-center gap-2">
                   <CheckCircle size={14} className="shrink-0 text-green-400" />
@@ -368,7 +368,7 @@ export default function Home() {
                 </h2>
                 <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes</Link>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
                 {featured.isLoading
                   ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />)
                   : featured.data?.items.slice(0, 4).map((v) => <VehicleCard key={v.id} v={v as any} />)}
@@ -401,7 +401,7 @@ export default function Home() {
             </h2>
             <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes</Link>
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
             {featured.isLoading
               ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />)
               : featured.data?.items.slice(0, 4).map((v) => <VehicleCard key={v.id} v={v as any} />)}
@@ -449,7 +449,7 @@ export default function Home() {
           9. STATISTIQUES — BANDE OR
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-[#D4AF37] py-6">
-        <div className="container-page grid grid-cols-3 gap-4 text-center md:grid-cols-6">
+        <div className="container-page grid grid-cols-2 gap-4 text-center sm:grid-cols-3 md:grid-cols-6">
           {[
             { v: "+100 000", l: "Utilisateurs" },
             { v: "+30 000", l: "Véhicules disponibles" },
@@ -502,7 +502,7 @@ export default function Home() {
               Découvrir l'espace Pro
             </Link>
           </div>
-          <div className="mt-8 grid grid-cols-4 gap-3 sm:grid-cols-8">
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-8">
             {PRO_ACTIVITIES.map((a) => (
               <Link key={a.label} to={a.to} className="group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-3 text-center transition hover:border-[#D4AF37]">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 transition group-hover:bg-[#D4AF37]/20">
@@ -550,7 +550,7 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       <footer className="bg-[#111] py-10 text-white/60">
         <div className="container-page">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-8 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
             <div>
               <h3 className="text-lg font-extrabold text-white">MK<span className="text-[#D4AF37]">A</span>.P-MS</h3>
               <p className="mt-2 text-xs leading-relaxed">La plateforme auto qui simplifie toutes vos démarches.</p>
