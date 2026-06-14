@@ -882,16 +882,23 @@ const FOOTER_SECTIONS = [
 ];
 
 const AJOUTS = [
-  "Deux sessions d'annonces (Premium & Classiques)",
-  "Espace Pro complet et visible",
-  "Historique véhicule mis en avant",
-  "Catégories + services + partenaires",
-  "Publicité intégrée",
-  "Statistiques & preuves sociales",
-  "Parcours utilisateur fluide et logique",
-  "Paiement sécurisé",
-  "Support réactif 7/7",
-  "Mises à jour régulières",
+  { label: "Deux sessions d'annonces (Premium & Classiques)", details: "Les annonces Premium sont mises en avant dans un carrousel dédié en haut de page, tandis que les annonces classiques apparaissent dans la grille en dessous. Plus l'abonnement est élevé, plus la visibilité est importante." },
+  { label: "Espace Pro complet et visible", details: "Un tableau de bord dédié pour les professionnels : gestion des annonces, statistiques de vues, messagerie clients, réservations, acomptes, suivi des ventes et gestion d'équipe selon l'abonnement." },
+  { label: "Historique véhicule mis en avant", details: "Chaque véhicule peut avoir un historique complet visible : contrôle technique, kilométrage certifié, entretiens passés, sinistres éventuels. Ça donne confiance aux acheteurs." },
+  { label: "Catégories + services + partenaires", details: "Organisation par catégories (voitures, motos, utilitaires, scooters), services intégrés (devis, livraison, carte grise) et réseau de partenaires garages certifiés MKA.P-MS." },
+  { label: "Publicité intégrée", details: "Les professionnels avec un abonnement Premium ou supérieur bénéficient d'espaces publicitaires dédiés sur la plateforme pour maximiser leur visibilité." },
+  { label: "Statistiques & preuves sociales", details: "Nombre de vues, nombre de contacts, avis clients, notes garages, badges de confiance — tout est affiché pour créer la confiance et aider à la décision." },
+  { label: "Parcours utilisateur fluide et logique", details: "Chaque action est guidée étape par étape : déposer une annonce en 6 étapes, faire un devis en 8 étapes, s'inscrire en tant que pro VO en 5 étapes. Tout est pensé pour la rapidité." },
+  { label: "Paiement sécurisé", details: "Intégration Stripe complète avec 3D Secure, wallet interne sécurisé, virements automatiques, facturation automatique et protection acheteur/vendeur." },
+  { label: "Support réactif 7/7", details: "Équipe de support disponible 7 jours sur 7 par téléphone, email et chat intégré. Les professionnels avec abonnement Elite+ ont un support prioritaire." },
+  { label: "Mises à jour régulières", details: "La plateforme évolue en permanence avec de nouvelles fonctionnalités, améliorations UX et corrections. Les retours utilisateurs sont pris en compte rapidement." },
+];
+
+const SOCIAL_LINKS = [
+  { label: "f", name: "Facebook", url: "https://facebook.com/mkapms", color: "hover:bg-[#1877F2]" },
+  { label: "i", name: "Instagram", url: "https://instagram.com/mkapms", color: "hover:bg-[#E4405F]" },
+  { label: "Y", name: "YouTube", url: "https://youtube.com/@mkapms", color: "hover:bg-[#FF0000]" },
+  { label: "t", name: "TikTok", url: "https://tiktok.com/@mkapms", color: "hover:bg-[#000000]" },
 ];
 
 function FooterAccordion({ title, children }: { title: string; children: React.ReactNode }) {
@@ -903,6 +910,30 @@ function FooterAccordion({ title, children }: { title: string; children: React.R
         <ChevronDown size={16} className={`text-slate-400 transition ${open ? "rotate-180" : ""}`} />
       </button>
       {open && <div className="pb-3">{children}</div>}
+    </div>
+  );
+}
+
+function AjoutItem({ label, details }: { label: string; details: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`rounded-lg transition ${open ? "bg-gradient-to-r from-[#D4AF37]/5 to-[#D4AF37]/10 border border-[#D4AF37]/20" : ""}`}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center gap-2 px-2 py-2 text-left"
+      >
+        <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${open ? "bg-[#D4AF37]" : "bg-[#D4AF37]/20"}`}>
+          <CheckCircle size={10} className={open ? "text-white" : "text-[#D4AF37]"} />
+        </div>
+        <span className={`flex-1 text-xs ${open ? "font-bold text-[#111]" : "text-slate-600"}`}>{label}</span>
+        <ChevronDown size={12} className={`shrink-0 text-[#D4AF37] transition ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="px-9 pb-3">
+          <p className="text-[11px] leading-relaxed text-[#6B7280]">{details}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -944,8 +975,8 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
               <button className="rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-bold text-white hover:bg-[#C5A028]">S'abonner</button>
             </div>
             <div className="mt-3 flex gap-3">
-              {["f", "i", "Y", "t"].map((s, i) => (
-                <a key={i} href="#" className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition hover:bg-[#D4AF37] hover:text-white hover:border-[#D4AF37]">{s}</a>
+              {SOCIAL_LINKS.map((s) => (
+                <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" title={s.name} className={`flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition ${s.color} hover:text-white hover:border-transparent`}>{s.label}</a>
               ))}
             </div>
           </div>
@@ -991,11 +1022,9 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
             <h4 className="flex items-center gap-2 text-sm font-bold text-[#111]">
               <Star size={16} className="text-[#D4AF37]" /> Autres Ajouts Intégrés
             </h4>
-            <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-1.5 lg:grid-cols-5">
+            <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1 lg:grid-cols-5">
               {AJOUTS.map((a) => (
-                <div key={a} className="flex items-center gap-2 text-xs text-slate-600">
-                  <CheckCircle size={12} className="shrink-0 text-orange-500" />{a}
-                </div>
+                <AjoutItem key={a.label} label={a.label} details={a.details} />
               ))}
             </div>
             <div className="mt-6 grid grid-cols-2 gap-4 lg:max-w-2xl lg:mx-auto">
@@ -1086,22 +1115,21 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
             <button className="rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-bold text-white hover:bg-[#C5A028]">S'abonner</button>
           </div>
           <div className="mt-3 flex gap-3">
-            {["f", "i", "Y", "t"].map((s, i) => (
-              <a key={i} href="#" className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition hover:bg-[#D4AF37] hover:text-white">{s}</a>
+            {SOCIAL_LINKS.map((s) => (
+              <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" title={s.name} className={`flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition ${s.color} hover:text-white hover:border-transparent`}>{s.label}</a>
             ))}
           </div>
+          <p className="mt-2 text-[9px] text-slate-400">Suivez-nous sur les réseaux sociaux</p>
         </div>
 
-        {/* Autres Ajouts */}
+        {/* Autres Ajouts — cliquables avec détails */}
         <div className="container-page border-t border-slate-200 py-6">
           <h4 className="flex items-center gap-2 text-sm font-bold text-[#111]">
             <Star size={14} className="text-[#D4AF37]" /> Autres Ajouts Intégrés
           </h4>
-          <div className="mt-3 space-y-1.5">
+          <div className="mt-3 space-y-1">
             {AJOUTS.map((a) => (
-              <div key={a} className="flex items-center gap-2 text-xs text-slate-600">
-                <CheckCircle size={12} className="shrink-0 text-orange-500" />{a}
-              </div>
+              <AjoutItem key={a.label} label={a.label} details={a.details} />
             ))}
           </div>
         </div>
