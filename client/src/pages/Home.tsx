@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Search, Plus, FileText, Wrench, Car, KeyRound, Truck, Star,
-  ArrowRight, ShieldCheck, Users, Gauge, Heart, ChevronRight, ChevronDown,
+  Search, Plus, PlusCircle, FileText, Wrench, Car, KeyRound, Truck, Star,
+  ArrowRight, ShieldCheck, Users, User, Gauge, Heart, ChevronRight, ChevronDown,
   CheckCircle, Clock, Package, Phone, Mail, MapPin, Globe,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
@@ -136,29 +136,22 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Droite — Ouvrir un compte */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-            <h3 className="text-lg font-bold text-white">Ouvrir un compte</h3>
-            <div className="mt-4 space-y-3">
-              <Link to="/connexion" className="group flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-[#D4AF37]">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#D4AF37]/20">
-                  <Car size={18} className="text-[#D4AF37]" />
+          {/* Droite — Se connecter / Créer un compte */}
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-md">
+            <div className="grid grid-cols-2 gap-3">
+              <Link to="/connexion" className="flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] p-5 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                  <User size={22} className="text-[#D4AF37]" />
                 </div>
-                <div>
-                  <p className="font-bold text-white">Particulier</p>
-                  <p className="mt-0.5 text-xs text-white/50">Achetez, vendez et profitez de tous nos services.</p>
-                </div>
-                <ChevronRight size={16} className="mt-1 shrink-0 text-white/30" />
+                <p className="text-sm font-bold text-[#111]">Se connecter</p>
+                <p className="text-[10px] text-[#6B7280]">Accédez à votre espace</p>
               </Link>
-              <Link to="/connexion" className="group flex items-start gap-3 rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-4 transition hover:border-[#D4AF37]">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#D4AF37]">
-                  <Wrench size={18} className="text-white" />
+              <Link to="/connexion?tab=register" className="flex flex-col items-center gap-2 rounded-xl border border-[#D4AF37] bg-[#D4AF37]/5 p-5 text-center transition hover:bg-[#D4AF37]/10 hover:shadow-md">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]">
+                  <PlusCircle size={22} className="text-white" />
                 </div>
-                <div>
-                  <p className="font-bold text-[#D4AF37]">Professionnel</p>
-                  <p className="mt-0.5 text-xs text-white/50">Gérez votre activité et développez votre business avec MKA.</p>
-                </div>
-                <ChevronRight size={16} className="mt-1 shrink-0 text-[#D4AF37]/50" />
+                <p className="text-sm font-bold text-[#D4AF37]">Créer un compte</p>
+                <p className="text-[10px] text-[#6B7280]">Particulier ou Professionnel</p>
               </Link>
             </div>
           </div>
