@@ -500,53 +500,53 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-10">
         <div className="container-page">
-          <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
-            <div>
-              <div className="flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
-                  <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" /> Annonces mises en avant <span className="text-[#D4AF37]">(Premium)</span>
-                </h2>
-                <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes</Link>
-              </div>
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
-                {featured.isLoading
-                  ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />)
-                  : featured.data?.items.slice(0, 4).map((v) => <VehicleCard key={v.id} v={v as any} />)}
-              </div>
-            </div>
-
-            {/* Espace publicitaire */}
-            <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 text-center shadow-sm">
-              <h3 className="text-lg font-bold text-[#111]">Espace publicitaire</h3>
-              <p className="mt-2 text-sm text-[#6B7280]">Boostez votre visibilité avec nos offres publicitaires</p>
-              <div className="mt-4 flex h-32 items-center justify-center rounded-xl bg-gradient-to-br from-[#D4AF37]/10 to-[#D4AF37]/5">
-                <Package size={48} className="text-[#D4AF37]/40" />
-              </div>
-              <Link to="/abonnements" className="mt-4 inline-block rounded-lg border-2 border-red-500 px-6 py-2 text-sm font-bold text-red-500 hover:bg-red-500 hover:text-white">
-                En savoir plus
-              </Link>
-            </div>
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
+              <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" /> Annonces Premium
+            </h2>
+            <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes →</Link>
+          </div>
+          <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+            {featured.isLoading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="w-[220px] shrink-0 snap-start">
+                    <div className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
+                  </div>
+                ))
+              : featured.data?.items.slice(0, 10).map((v) => (
+                  <div key={v.id} className="w-[220px] shrink-0 snap-start">
+                    <VehicleCard v={v as any} />
+                  </div>
+                ))}
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          7. ANNONCES CLASSIQUES
+          7. ANNONCES CLASSIQUES — carrousel horizontal
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white pb-10">
         <div className="container-page">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
-              <Star size={18} className="text-[#6B7280]" /> Toutes les annonces <span className="text-[#6B7280]">(Classiques)</span>
+              Toutes les annonces
             </h2>
-            <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes</Link>
+            <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes →</Link>
           </div>
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
+          <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
             {featured.isLoading
-              ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />)
-              : featured.data?.items.slice(0, 4).map((v) => <VehicleCard key={v.id} v={v as any} />)}
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="w-[220px] shrink-0 snap-start">
+                    <div className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
+                  </div>
+                ))
+              : featured.data?.items.map((v) => (
+                  <div key={v.id} className="w-[220px] shrink-0 snap-start">
+                    <VehicleCard v={v as any} />
+                  </div>
+                ))}
             {featured.data && featured.data.items.length === 0 && (
-              <p className="col-span-full text-sm text-[#6B7280]">Aucune annonce.{" "}
+              <p className="text-sm text-[#6B7280]">Aucune annonce.{" "}
                 <Link to="/vendre" className="font-semibold text-[#D4AF37]">Déposer une annonce</Link>.
               </p>
             )}
