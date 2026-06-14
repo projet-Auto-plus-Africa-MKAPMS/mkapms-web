@@ -229,8 +229,70 @@ function NotificationsBell() {
 }
 
 function Footer() {
-  // Réservé — le contenu sera ajouté plus tard
-  return null;
+  const location = useLocation();
+  const { data: legal } = trpc.meta.legal.useQuery();
+
+  // Pas de footer Layout sur la page d'accueil (elle a son propre footer)
+  if (location.pathname === "/") return null;
+
+  return (
+    <footer className="mt-16 border-t border-slate-200 bg-white">
+      <div className="container-page py-10 md:py-12">
+        {/* Logo + description */}
+        <div className="mb-6">
+          <div className="flex flex-col">
+            <span className="text-lg font-extrabold tracking-tight text-noir">
+              MK<span className="text-gold">A</span>.P-MS
+            </span>
+            <span className="-mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              La marketplace automobile
+            </span>
+          </div>
+          <p className="mt-3 max-w-md text-sm text-slate-500">
+            La marketplace automobile de référence. Achat, location et entretien — une seule
+            plateforme, pensée pour votre confiance.
+          </p>
+        </div>
+
+        {/* Plateforme + Aide & légal côte à côte */}
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+          <div>
+            <h4 className="mb-3 text-sm font-bold text-slate-800">Plateforme</h4>
+            <ul className="space-y-2 text-sm text-slate-500">
+              <li><Link to="/acheter">Acheter</Link></li>
+              <li><Link to="/louer">Louer</Link></li>
+              <li><Link to="/devis">Devis Garage</Link></li>
+              <li><Link to="/garages">Réseau de garages</Link></li>
+              <li><Link to="/abonnements">Abonnements</Link></li>
+              <li><Link to="/mission">Notre Mission</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="mb-3 text-sm font-bold text-slate-800">Aide & légal</h4>
+            <ul className="space-y-2 text-sm text-slate-500">
+              <li><Link to="/aide">Centre d'aide / FAQ</Link></li>
+              <li><Link to="/confiance">Centre de confiance</Link></li>
+              <li><Link to="/aide#cgv">CGV / CGU</Link></li>
+              <li><Link to="/aide#rgpd">Confidentialité (RGPD)</Link></li>
+              <li><Link to="/aide#mentions">Mentions légales</Link></li>
+            </ul>
+          </div>
+          <div className="col-span-2 mt-2 md:col-span-2 md:mt-0">
+            <h4 className="mb-3 text-sm font-bold text-slate-800">Contact</h4>
+            <ul className="space-y-2 text-sm text-slate-500">
+              <li>{legal?.telephone}</li>
+              <li>{legal?.email}</li>
+              <li>{legal?.siege}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-slate-100 py-4 text-center text-xs text-slate-400">
+        © {new Date().getFullYear()} {legal?.raisonSociale} — {legal?.forme}, capital{" "}
+        {legal?.capital}. SIREN {legal?.siren} · TVA {legal?.tva}.
+      </div>
+    </footer>
+  );
 }
 
 function BottomNav() {
