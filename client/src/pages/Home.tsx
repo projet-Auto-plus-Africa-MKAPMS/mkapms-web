@@ -4,6 +4,7 @@ import {
   Search, Plus, PlusCircle, FileText, Wrench, Car, KeyRound, Truck, Star,
   ArrowRight, ShieldCheck, Users, User, Gauge, Heart, ChevronRight, ChevronDown,
   CheckCircle, Check, Clock, Package, Phone, Mail, MapPin, Globe, Headphones, Tag,
+  AlertTriangle,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
