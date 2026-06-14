@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Search, Plus, PlusCircle, FileText, Wrench, Car, KeyRound, Truck, Star,
   ArrowRight, ShieldCheck, Users, User, Gauge, Heart, ChevronRight, ChevronDown,
-  CheckCircle, Clock, Package, Phone, Mail, MapPin, Globe, Headphones, Tag,
+  CheckCircle, Check, Clock, Package, Phone, Mail, MapPin, Globe, Headphones, Tag,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -72,6 +72,7 @@ export default function Home() {
   /* historique */
   const [histPlaque, setHistPlaque] = useState("");
   const [histResult, setHistResult] = useState(false);
+  const [openBadge, setOpenBadge] = useState<string | null>(null);
 
   /* newsletter */
   const [newsEmail, setNewsEmail] = useState("");
@@ -154,19 +155,66 @@ export default function Home() {
         <div className="container-page">
           <div className="mx-auto grid max-w-2xl grid-cols-2 gap-4 sm:grid-cols-4">
             {[
-              { icon: ShieldCheck, title: "FIABILITÉ\nGARANTIE", desc: "Transactions\n100% sécurisées" },
-              { icon: FileText, title: "TRANSPARENCE\nTOTALE", desc: "Historique vérifié\net certifié" },
-              { icon: Globe, title: "RÉSEAU\nMONDIAL", desc: "Livraison Europe\net Afrique" },
-              { icon: Headphones, title: "ACCOMPAGNEMENT\nPREMIUM", desc: "Support disponible\n7j/7" },
+              { icon: ShieldCheck, title: "FIABILITÉ\nGARANTIE", desc: "Transactions\n100% sécurisées", details: [
+                "Paiement sécurisé via Stripe (3D Secure)",
+                "Vérification d'identité obligatoire (KYC)",
+                "Protection acheteur : remboursement si non conforme",
+                "Protection vendeur : paiement garanti après livraison",
+                "Transactions chiffrées SSL 256 bits",
+                "Wallet sécurisé avec double authentification",
+              ]},
+              { icon: FileText, title: "TRANSPARENCE\nTOTALE", desc: "Historique vérifié\net certifié", details: [
+                "Historique complet du véhicule vérifié",
+                "Contrôle technique certifié",
+                "Kilométrage réel garanti",
+                "Rapport d'inspection détaillé",
+                "Photos haute résolution obligatoires",
+                "Aucun frais caché — tout est affiché",
+              ]},
+              { icon: Globe, title: "RÉSEAU\nMONDIAL", desc: "Livraison Europe\net Afrique", details: [
+                "Livraison dans toute la France métropolitaine",
+                "Export vers l'Afrique (Sénégal, Côte d'Ivoire, Mali…)",
+                "Réseau de garages partenaires certifiés",
+                "Partenaires logistiques professionnels",
+                "Suivi de livraison en temps réel",
+                "Assurance transport incluse",
+              ]},
+              { icon: Headphones, title: "ACCOMPAGNEMENT\nPREMIUM", desc: "Support disponible\n7j/7", details: [
+                "Support client disponible 7j/7",
+                "Assistance téléphonique et par chat",
+                "Accompagnement personnalisé pour les pros",
+                "Aide à la création d'annonces",
+                "Conseils pour l'estimation de votre véhicule",
+                "Équipe dédiée pour les professionnels",
+              ]},
             ].map((b) => {
               const Icon = b.icon;
+              const isOpen = openBadge === b.title;
               return (
                 <div key={b.title} className="flex flex-col items-center gap-1 text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5">
-                    <Icon size={20} className="text-[#D4AF37]" />
-                  </div>
-                  <h3 className="mt-1 whitespace-pre-line text-[9px] font-extrabold uppercase tracking-wide text-[#111]">{b.title}</h3>
-                  <p className="whitespace-pre-line text-[9px] text-[#6B7280]">{b.desc}</p>
+                  <button
+                    type="button"
+                    onClick={() => setOpenBadge(isOpen ? null : b.title)}
+                    className={`flex flex-col items-center gap-1 rounded-xl p-2 transition ${isOpen ? "bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]" : "hover:bg-[#F8F9FA]"}`}
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5">
+                      <Icon size={20} className="text-[#D4AF37]" />
+                    </div>
+                    <h3 className="mt-1 whitespace-pre-line text-[9px] font-extrabold uppercase tracking-wide text-[#111]">{b.title}</h3>
+                    <p className="whitespace-pre-line text-[9px] text-[#6B7280]">{b.desc}</p>
+                  </button>
+                  {isOpen && (
+                    <div className="mt-2 w-full rounded-lg border border-[#D4AF37]/20 bg-[#FEFCE8] p-3 text-left">
+                      <ul className="space-y-1.5">
+                        {b.details.map((d) => (
+                          <li key={d} className="flex items-start gap-1.5 text-[10px] text-[#111]">
+                            <Check size={10} className="mt-0.5 shrink-0 text-[#D4AF37]" />
+                            {d}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               );
             })}
