@@ -48,6 +48,9 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
         <span className="badge absolute left-3 top-3 bg-noir/80 text-white">
           {isLocation ? "À louer" : "À vendre"}
         </span>
+        {v.vendeurType === "professionnel" && (
+          <span className="badge absolute left-3 top-10 bg-[#D4AF37] text-white text-[9px] font-bold px-2 py-0.5">PRO</span>
+        )}
         {v.boosted && (
           <span className="badge absolute right-3 top-3 bg-gold text-noir">Premium</span>
         )}

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { BellPlus } from "lucide-react";
+import { BellPlus, Star, MapPin } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import VehicleCard from "../components/VehicleCard";
@@ -19,11 +19,26 @@ const TYPES = [
   { value: "scooter", label: "Scooter" },
 ];
 
+const ZONES = [
+  { value: "", label: "Toute la France" },
+  { value: "75", label: "75 — Paris" },
+  { value: "13", label: "13 — Bouches-du-Rhône" },
+  { value: "69", label: "69 — Rhône (Lyon)" },
+  { value: "31", label: "31 — Haute-Garonne (Toulouse)" },
+  { value: "33", label: "33 — Gironde (Bordeaux)" },
+  { value: "06", label: "06 — Alpes-Maritimes (Nice)" },
+  { value: "59", label: "59 — Nord (Lille)" },
+  { value: "67", label: "67 — Bas-Rhin (Strasbourg)" },
+  { value: "44", label: "44 — Loire-Atlantique (Nantes)" },
+  { value: "34", label: "34 — Hérault (Montpellier)" },
+];
+
 export default function Acheter() {
   const [params, setParams] = useSearchParams();
   const [q, setQ] = useState(params.get("q") || "");
   const [vendeurType, setVendeur] = useState(params.get("vendeurType") || "");
   const [categorie, setCategorie] = useState(params.get("categorie") || "");
+  const [zone, setZone] = useState(params.get("zone") || "");
   const ville = params.get("ville") || undefined;
   const prixMax = params.get("prixMax") ? Number(params.get("prixMax")) : undefined;
 
@@ -33,11 +48,11 @@ export default function Acheter() {
       q: q || undefined,
       vendeurType: (vendeurType || undefined) as any,
       categorie: (categorie || undefined) as any,
-      ville,
+      ville: ville || (zone ? zone : undefined),
       prixMax,
       limit: 48,
     }),
-    [q, vendeurType, categorie, ville, prixMax],
+    [q, vendeurType, categorie, ville, prixMax, zone],
   );
 
   const list = trpc.annonces.list.useQuery(input);
@@ -63,8 +78,14 @@ export default function Acheter() {
     setQ("");
     setVendeur("");
     setCategorie("");
+    setZone("");
     setParams({});
   }
+
+  // Séparer annonces premium et classiques
+  const allItems = list.data?.items || [];
+  const premiumItems = allItems.filter((v: any) => v.boosted || v.vendeurType === "professionnel");
+  const classicItems = allItems.filter((v: any) => !v.boosted && v.vendeurType !== "professionnel");
 
   return (
     <div className="container-page py-8">
@@ -72,6 +93,22 @@ export default function Acheter() {
       <p className="mt-1 text-sm text-slate-500">
         {list.data ? `${list.data.total} véhicule(s) trouvé(s)` : "Recherche…"}
       </p>
+
+      {/* ── Carrousel MKA.P-MS (nos véhicules) ── */}
+      {premiumItems.length > 0 && (
+        <div className="mt-6">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-[#111]">
+            <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" /> Véhicules Premium
+          </h2>
+          <div className="mt-3 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+            {premiumItems.map((v: any) => (
+              <div key={v.id} className="w-[220px] shrink-0 snap-start">
+                <VehicleCard v={v as any} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 grid gap-6 md:grid-cols-[260px_1fr]">
         {/* Filtres */}
@@ -94,11 +131,20 @@ export default function Acheter() {
             ))}
           </select>
 
+          <label className="label mt-4 flex items-center gap-1">
+            <MapPin size={14} className="text-[#D4AF37]" /> Localisation / Zone
+          </label>
+          <select className="input" value={zone} onChange={(e) => setZone(e.target.value)}>
+            {ZONES.map((z) => (
+              <option key={z.value} value={z.value}>{z.label}</option>
+            ))}
+          </select>
+
           <button className="btn-outline mt-5 w-full" onClick={reset}>
             Réinitialiser
           </button>
 
-          {/* Recherche sauvegardée + alerte (Partie 6) */}
+          {/* Recherche sauvegardée + alerte */}
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
             <p className="flex items-center gap-1.5 text-xs font-semibold text-amber-800">
               <BellPlus size={14} /> Alerte nouvelle annonce
@@ -129,17 +175,22 @@ export default function Acheter() {
         </aside>
 
         {/* Résultats */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-          {list.isLoading
-            ? Array.from({ length: 9 }).map((_, i) => (
-                <div key={i} className="card aspect-[4/5] animate-pulse bg-slate-100" />
-              ))
-            : list.data?.items.map((v) => <VehicleCard key={v.id} v={v as any} />)}
-          {list.data && list.data.items.length === 0 && (
-            <p className="col-span-full py-12 text-center text-slate-500">
-              Aucun véhicule ne correspond à votre recherche.
-            </p>
-          )}
+        <div>
+          {/* Toutes les annonces en grille 2 colonnes mobile */}
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            {list.isLoading
+              ? Array.from({ length: 9 }).map((_, i) => (
+                  <div key={i} className="card aspect-[4/5] animate-pulse bg-slate-100" />
+                ))
+              : (classicItems.length > 0 ? classicItems : allItems).map((v: any) => (
+                  <VehicleCard key={v.id} v={v as any} />
+                ))}
+            {list.data && list.data.items.length === 0 && (
+              <p className="col-span-full py-12 text-center text-slate-500">
+                Aucun véhicule ne correspond à votre recherche.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
