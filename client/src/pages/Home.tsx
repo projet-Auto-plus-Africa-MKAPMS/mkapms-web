@@ -791,6 +791,7 @@ export default function Home() {
               { icon: FileText, title: "Devis & Garages", desc: "Devis rapide + réseau de garages.", cta: "Demander un devis", to: "/garages" },
               { icon: Wrench, title: "Dépannage", desc: "Assistance routière 24h/24, 7j/7.", cta: "Demander", to: "/depannage", accent: true },
               { icon: Truck, title: "Livraison & Pièces", desc: "Pièces et livraison rapide.", cta: "Découvrir", to: "/pieces" },
+              { icon: Star, title: "Finance+", desc: "LOA & paiement fractionné.", cta: "Simuler", to: "/finance", gold: true },
             ];
             return (
               <div className="mx-auto mt-6 grid max-w-3xl grid-cols-2 gap-3 md:grid-cols-3">
@@ -811,6 +812,41 @@ export default function Home() {
               </div>
             );
           })()}
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION FINANCE+
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="border-y border-[#D4AF37]/20 bg-[#FFFDF5] py-8">
+        <div className="container-page">
+          <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between">
+            <div className="max-w-sm">
+              <div className="flex items-center gap-2">
+                <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" />
+                <h2 className="text-base font-extrabold text-[#111]">Finance+ MKA.P-MS</h2>
+              </div>
+              <p className="mt-2 text-xs text-[#6B7280]">LOA, paiement fractionné — des solutions pour financer votre véhicule directement sur la plateforme.</p>
+              <div className="mt-3 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Location avec Option d'Achat</div>
+                <div className="flex items-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Paiement fractionné jusqu'à 10x</div>
+                <div className="flex items-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Simulation instantanée</div>
+                <div className="flex items-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Tout reste dans MKA.P-MS</div>
+              </div>
+              <Link to="/finance" className="mt-4 inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-5 py-2 text-xs font-bold text-white hover:bg-[#C5A028]">
+                Découvrir Finance+ <ArrowRight size={12} />
+              </Link>
+            </div>
+            <div className="rounded-xl border border-[#D4AF37]/30 bg-white p-5 text-center shadow-sm">
+              <p className="text-[9px] font-semibold text-[#D4AF37]">EXEMPLE LOA</p>
+              <p className="mt-1 text-2xl font-extrabold text-[#111]">À partir de</p>
+              <p className="text-3xl font-extrabold text-[#D4AF37]">199 €<span className="text-sm text-slate-400">/mois</span></p>
+              <p className="mt-1 text-[9px] text-slate-500">sur 48 mois • Option d'achat disponible</p>
+              <Link to="/finance" className="mt-3 block rounded-lg border border-[#D4AF37] py-1.5 text-[10px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">
+                Simuler ma LOA
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1034,6 +1070,7 @@ const FOOTER_SECTIONS = [
       { label: "Garage", to: "/garages" },
       { label: "Pièces Auto", to: "/pieces" },
       { label: "Dépannage", to: "/depannage" },
+      { label: "Finance+", to: "/finance" },
     ],
   },
   {

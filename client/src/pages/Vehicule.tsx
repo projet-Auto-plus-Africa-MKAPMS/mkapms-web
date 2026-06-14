@@ -305,6 +305,25 @@ export default function Vehicule() {
               Comment ça marche ? →
             </Link>
           </div>
+
+          {/* Finance+ MKA.P-MS */}
+          {!isLocation && (
+            <div className="card border-[#D4AF37]/20 p-5">
+              <h3 className="flex items-center gap-2 font-bold text-noir">
+                <Star size={16} className="text-[#D4AF37]" fill="#D4AF37" /> Finance+
+              </h3>
+              <div className="mt-3 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs text-slate-600"><ShieldCheck size={12} className="text-[#D4AF37]" /> Disponible en LOA</div>
+                <div className="flex items-center gap-1.5 text-xs text-slate-600"><ShieldCheck size={12} className="text-[#D4AF37]" /> Disponible en paiement fractionné</div>
+                <div className="flex items-center gap-1.5 text-xs text-slate-600"><ShieldCheck size={12} className="text-[#D4AF37]" /> Simulation immédiate</div>
+                <div className="flex items-center gap-1.5 text-xs text-slate-600"><ShieldCheck size={12} className="text-[#D4AF37]" /> Réponse rapide</div>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Link to="/finance" className="flex items-center justify-center gap-1 rounded-lg bg-[#D4AF37] py-2 text-[10px] font-bold text-white hover:bg-[#C5A028]">Simuler</Link>
+                <Link to="/finance" className="flex items-center justify-center gap-1 rounded-lg border border-[#D4AF37] py-2 text-[10px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">Conditions</Link>
+              </div>
+            </div>
+          )}
         </aside>
 
         {/* ===== 4 → 8 : Infos, Description, Historique, Vendeur, Avis ===== */}
