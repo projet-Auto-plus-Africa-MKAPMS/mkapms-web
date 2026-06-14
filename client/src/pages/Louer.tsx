@@ -41,9 +41,11 @@ export default function Louer() {
   );
   const list = trpc.annonces.list.useQuery(input);
 
+  // Ordre: MKA.P-MS > VTC/Taxi Pro > Premium > Particuliers
   const allItems = list.data?.items || [];
-  const vtcItems = allItems.filter((v: any) => v.vendeurType === "professionnel" || v.boosted);
-  const classicItems = allItems.filter((v: any) => v.vendeurType !== "professionnel" && !v.boosted);
+  const mkapmsItems = allItems.filter((v: any) => v.vendeurType === "concession");
+  const vtcItems = allItems.filter((v: any) => (v.vendeurType === "professionnel" || v.boosted) && v.vendeurType !== "concession");
+  const particulierItems = allItems.filter((v: any) => v.vendeurType !== "professionnel" && !v.boosted && v.vendeurType !== "concession");
 
   return (
     <div className="container-page py-8">
@@ -91,7 +93,24 @@ export default function Louer() {
         ))}
       </div>
 
-      {/* ── Carrousel VTC & Taxis en dessous ── */}
+      {/* ── 1. Nos véhicules MKA.P-MS (toujours en premier) ── */}
+      {mkapmsItems.length > 0 && (
+        <div className="mt-8">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-[#111]">
+            <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" /> Location MKA.P-MS
+          </h2>
+          <p className="text-xs text-[#6B7280]">Nos véhicules en location — qualité garantie</p>
+          <div className="mt-3 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+            {mkapmsItems.map((v: any) => (
+              <div key={v.id} className="w-[220px] shrink-0 snap-start">
+                <VehicleCard v={v as any} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 2. Carrousel VTC & Taxis en dessous ── */}
       {vtcItems.length > 0 && (
         <div className="mt-8">
           <h2 className="flex items-center gap-2 text-lg font-bold text-[#111]">
@@ -108,17 +127,17 @@ export default function Louer() {
         </div>
       )}
 
-      {/* ── Annonces classiques en grille ── */}
+      {/* ── 3. Annonces Particuliers en grille ── */}
       <div className="mt-8">
         <h2 className="text-lg font-bold text-[#111]">
-          {segment ? SEGMENTS.find((s) => s.value === segment)?.label : "Tous les véhicules en location"}
+          {segment ? SEGMENTS.find((s) => s.value === segment)?.label : "Véhicules en location — Particuliers"}
         </h2>
         <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
           {list.isLoading
             ? Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="card aspect-[4/5] animate-pulse bg-slate-100" />
               ))
-            : (classicItems.length > 0 ? classicItems : allItems).map((v: any) => (
+            : (particulierItems.length > 0 ? particulierItems : allItems).map((v: any) => (
                 <VehicleCard key={v.id} v={v as any} />
               ))}
           {list.data && list.data.items.length === 0 && (

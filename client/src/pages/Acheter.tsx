@@ -82,10 +82,12 @@ export default function Acheter() {
     setParams({});
   }
 
-  // Séparer annonces premium et classiques
+  // Séparer annonces par niveau : MKA.P-MS > Premium > Pro > Particulier
   const allItems = list.data?.items || [];
-  const premiumItems = allItems.filter((v: any) => v.boosted || v.vendeurType === "professionnel");
-  const classicItems = allItems.filter((v: any) => !v.boosted && v.vendeurType !== "professionnel");
+  const mkapmsItems = allItems.filter((v: any) => v.vendeurType === "concession");
+  const premiumItems = allItems.filter((v: any) => v.boosted && v.vendeurType !== "concession");
+  const proItems = allItems.filter((v: any) => v.vendeurType === "professionnel" && !v.boosted && v.vendeurType !== "concession");
+  const particulierItems = allItems.filter((v: any) => v.vendeurType === "particulier" || (!v.vendeurType && !v.boosted && v.vendeurType !== "concession"));
 
   return (
     <div className="container-page py-8">
@@ -94,14 +96,45 @@ export default function Acheter() {
         {list.data ? `${list.data.total} véhicule(s) trouvé(s)` : "Recherche…"}
       </p>
 
-      {/* ── Carrousel MKA.P-MS (nos véhicules) ── */}
+      {/* ── 1. Nos véhicules MKA.P-MS (toujours en premier) ── */}
+      {mkapmsItems.length > 0 && (
+        <div className="mt-6">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-[#111]">
+            <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" /> Nos véhicules MKA.P-MS
+          </h2>
+          <p className="text-xs text-[#6B7280]">Sélection officielle MKA.P-MS — qualité garantie</p>
+          <div className="mt-3 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+            {mkapmsItems.map((v: any) => (
+              <div key={v.id} className="w-[220px] shrink-0 snap-start">
+                <VehicleCard v={v as any} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 2. Véhicules Premium (abonnés premium) ── */}
       {premiumItems.length > 0 && (
         <div className="mt-6">
           <h2 className="flex items-center gap-2 text-lg font-bold text-[#111]">
-            <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" /> Véhicules Premium
+            <Star size={16} className="text-[#D4AF37]" /> Annonces Premium
           </h2>
           <div className="mt-3 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
             {premiumItems.map((v: any) => (
+              <div key={v.id} className="w-[220px] shrink-0 snap-start">
+                <VehicleCard v={v as any} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 3. Véhicules Professionnels ── */}
+      {proItems.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-lg font-bold text-[#111]">Annonces Professionnels</h2>
+          <div className="mt-3 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+            {proItems.map((v: any) => (
               <div key={v.id} className="w-[220px] shrink-0 snap-start">
                 <VehicleCard v={v as any} />
               </div>
@@ -176,13 +209,14 @@ export default function Acheter() {
 
         {/* Résultats */}
         <div>
-          {/* Toutes les annonces en grille 2 colonnes mobile */}
+          {/* 4. Annonces Particuliers — en dernier */}
+          <h2 className="text-lg font-bold text-[#111] mb-3">Annonces Particuliers</h2>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
             {list.isLoading
               ? Array.from({ length: 9 }).map((_, i) => (
                   <div key={i} className="card aspect-[4/5] animate-pulse bg-slate-100" />
                 ))
-              : (classicItems.length > 0 ? classicItems : allItems).map((v: any) => (
+              : (particulierItems.length > 0 ? particulierItems : allItems).map((v: any) => (
                   <VehicleCard key={v.id} v={v as any} />
                 ))}
             {list.data && list.data.items.length === 0 && (
