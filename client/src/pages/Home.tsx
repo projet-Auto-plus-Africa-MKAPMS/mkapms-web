@@ -483,26 +483,46 @@ export default function Home() {
         <div className="container-page">
           <h2 className="text-center text-xl font-bold text-[#111]">Nos services principaux</h2>
           <p className="mt-1 text-center text-sm text-[#6B7280]">Tout ce dont vous avez besoin, au même endroit</p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {[
-              { title: "Achat / Vente", desc: "Trouvez ou vendez votre véhicule facilement.", cta: "Voir les annonces", to: "/acheter", color: "from-blue-600 to-blue-800" },
-              { title: "Location", desc: "Voitures, utilitaires, motos… Louez en toute confiance.", cta: "Voir les offres", to: "/louer", color: "from-emerald-600 to-emerald-800" },
-              { title: "VO Interne", desc: "Gestion complète des véhicules d'occasion : achat, réparation, revente.", cta: "Accéder au VO", to: "/vo", color: "from-violet-600 to-violet-800" },
-              { title: "Devis", desc: "Recevez plusieurs devis et comparez facilement.", cta: "Demander un devis", to: "/devis", color: "from-orange-500 to-orange-700" },
-              { title: "Livraison & Pièces", desc: "Faites livrer vos pièces ou vos véhicules rapidement.", cta: "Découvrir", to: "/pieces", color: "from-[#D4AF37] to-[#B8960E]" },
-            ].map((s) => (
-              <Link key={s.to} to={s.to} className="group overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm transition hover:shadow-lg">
-                <div className={`h-36 bg-gradient-to-br ${s.color} flex items-center justify-center`}>
-                  <Car size={48} className="text-white/30" />
+          {(() => {
+            const services = [
+              { icon: Car, title: "Achat / Vente", desc: "Trouvez ou vendez votre véhicule.", cta: "Voir les annonces", to: "/acheter" },
+              { icon: KeyRound, title: "Location", desc: "Louez en toute confiance.", cta: "Voir les offres", to: "/louer" },
+              { icon: Gauge, title: "VO Interne", desc: "Gestion complète véhicules d'occasion.", cta: "Accéder au VO", to: "/vo" },
+              { icon: FileText, title: "Devis", desc: "Comparez plusieurs devis.", cta: "Demander un devis", to: "/devis" },
+              { icon: Truck, title: "Livraison & Pièces", desc: "Pièces et livraison rapide.", cta: "Découvrir", to: "/pieces" },
+            ];
+            const first4 = services.slice(0, 4);
+            const last = services[4];
+            return (
+              <>
+                <div className="mx-auto mt-6 grid max-w-3xl grid-cols-2 gap-3 md:grid-cols-4">
+                  {first4.map((s) => {
+                    const Icon = s.icon;
+                    return (
+                      <Link key={s.to} to={s.to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#D4AF37]/10 transition group-hover:bg-[#D4AF37]/20">
+                          <Icon size={26} className="text-[#D4AF37]" />
+                        </div>
+                        <h3 className="text-xs font-bold text-[#111]">{s.title}</h3>
+                        <p className="text-[10px] text-[#6B7280] leading-tight">{s.desc}</p>
+                        <span className="mt-1 rounded-lg bg-[#D4AF37] px-3 py-1.5 text-[10px] font-bold text-white">{s.cta}</span>
+                      </Link>
+                    );
+                  })}
                 </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-[#111]">{s.title}</h3>
-                  <p className="mt-1 text-xs text-[#6B7280]">{s.desc}</p>
-                  <span className="mt-3 inline-block rounded-lg bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white">{s.cta}</span>
+                <div className="mx-auto mt-3 flex max-w-3xl justify-center">
+                  <Link to={last.to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md w-[calc(50%-6px)] md:w-[calc(25%-9px)]">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#D4AF37]/10 transition group-hover:bg-[#D4AF37]/20">
+                      <last.icon size={26} className="text-[#D4AF37]" />
+                    </div>
+                    <h3 className="text-xs font-bold text-[#111]">{last.title}</h3>
+                    <p className="text-[10px] text-[#6B7280] leading-tight">{last.desc}</p>
+                    <span className="mt-1 rounded-lg bg-[#D4AF37] px-3 py-1.5 text-[10px] font-bold text-white">{last.cta}</span>
+                  </Link>
                 </div>
-              </Link>
-            ))}
-          </div>
+              </>
+            );
+          })()}
         </div>
       </section>
 
