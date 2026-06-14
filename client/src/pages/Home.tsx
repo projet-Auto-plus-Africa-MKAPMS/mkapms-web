@@ -499,53 +499,91 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          4. HISTORIQUE VÉHICULE — FOND SOMBRE
+          4. HISTORIQUE VÉHICULE
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-[#1A1A2E] py-10">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#2D2D3A] to-[#1A1A2E] py-10">
         <div className="container-page relative">
-          <div className="lg:max-w-lg">
-            <div className="flex items-center gap-2">
-              <CheckCircle size={18} className="text-[#D4AF37]" />
-              <h2 className="text-xl font-bold text-white">Vérifier l'historique d'un véhicule</h2>
-            </div>
-            <p className="mt-2 text-sm text-white/60">
-              Évitez les mauvaises surprises, vérifiez l'historique complet d'un véhicule avant d'acheter.
-            </p>
+          {/* Top bar badges */}
+          <div className="flex flex-wrap justify-center gap-4 text-[9px] text-white/60">
+            <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Données officielles</span>
+            <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Paiement 100% sécurisé</span>
+            <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Rapport instantané</span>
+          </div>
 
-            {/* Barre plaque */}
-            <div className="mt-5 flex items-center gap-2">
-              <div className="flex flex-1 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded bg-blue-600 text-[10px] font-bold text-white">F</span>
+          {/* Title + Stats + Score */}
+          <div className="mt-4 flex flex-col items-center text-center lg:flex-row lg:justify-between lg:text-left">
+            <div>
+              <h2 className="text-xl font-extrabold uppercase text-white sm:text-2xl">Vérifiez l'historique<br /><span className="text-[#D4AF37]">d'un véhicule</span></h2>
+              <p className="mt-2 text-sm text-white/60">Évitez les mauvaises surprises et achetez en toute confiance.</p>
+              <div className="mt-3 flex flex-wrap justify-center gap-4 text-[10px] text-white/50 lg:justify-start">
+                <span className="flex items-center gap-1"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> + 537 842 rapports</span>
+                <span className="flex items-center gap-1"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> 4,8/5 (12 684 avis)</span>
+                <span>Garantie satisfait ou remboursé</span>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-col items-center lg:mt-0">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-green-400 bg-[#111]">
+                <span className="text-lg font-extrabold text-white">92</span>
+              </div>
+              <p className="mt-1 text-[9px] text-white/40">/100</p>
+              <p className="text-[10px] font-bold text-green-400">Excellent</p>
+            </div>
+          </div>
+
+          {/* Search tabs + input */}
+          <div className="mx-auto mt-5 max-w-xl">
+            <div className="flex gap-1">
+              {(["plate", "vin"] as const).map((t) => (
+                <button key={t} onClick={() => {}}
+                  className={`rounded-t-lg px-4 py-1.5 text-xs font-bold ${t === "plate" ? "bg-[#D4AF37] text-white" : "bg-white/10 text-white/60"}`}>
+                  {t === "plate" ? "Par plaque" : "Par VIN"}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 rounded-b-xl rounded-tr-xl border border-white/10 bg-white/5 p-2">
+              <div className="flex flex-1 items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white">F</span>
                 <input
-                  className="flex-1 bg-transparent py-2.5 text-sm text-white placeholder-white/40 outline-none"
+                  className="flex-1 bg-transparent py-2 text-sm text-white placeholder-white/30 outline-none"
                   placeholder="Entrez le n° de plaque (ex: AB-123-CD)"
                   value={histPlaque}
                   onChange={(e) => setHistPlaque(e.target.value.toUpperCase())}
                 />
               </div>
-              <button onClick={() => setHistResult(true)} className="rounded-xl bg-[#D4AF37] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#C5A028]">
-                Vérifier
+              <button onClick={() => setHistResult(true)} className="flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#C5A028]">
+                Vérifier <ArrowRight size={12} />
               </button>
             </div>
-
-            {/* Tags infos */}
-            <div className="mt-5 grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 md:grid-cols-4">
-              {["Accidents", "Vol", "Kilométrage", "Gage", "Entretien", "Importation", "Propriétaires", "Et plus encore…"].map((t) => (
-                <div key={t} className="flex items-center gap-2">
-                  <CheckCircle size={14} className="shrink-0 text-green-400" />
-                  <span className="text-xs text-white/70">{t}</span>
-                </div>
-              ))}
+            <div className="mt-2 flex flex-wrap justify-center gap-3 text-[9px] text-white/40">
+              <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-400" /> Rapport instantané</span>
+              <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-400" /> Paiement 100% sécurisé</span>
+              <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-400" /> Données officielles</span>
             </div>
+          </div>
 
-            {histResult && (
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-xs text-white/40">Propriétaires</p><p className="text-xl font-bold text-white">2</p></div>
-                <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-xs text-white/40">Accidents</p><p className="text-xl font-bold text-green-400">0</p></div>
-                <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-xs text-white/40">Dernier CT</p><p className="text-xl font-bold text-white">03/25</p></div>
-                <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-xs text-white/40">Km vérifié</p><p className="text-xl font-bold text-white">45 200</p></div>
+          {/* Tags infos — 2 colonnes sur mobile */}
+          <div className="mx-auto mt-5 grid max-w-md grid-cols-2 gap-x-6 gap-y-1.5 sm:grid-cols-4">
+            {["Accidents", "Vol", "Kilométrage", "Gage", "Entretien", "Importation", "Propriétaires", "Et plus encore…"].map((t) => (
+              <div key={t} className="flex items-center gap-1.5">
+                <CheckCircle size={12} className="shrink-0 text-green-400" />
+                <span className="text-xs font-medium text-white/70">{t}</span>
               </div>
-            )}
+            ))}
+          </div>
+
+          {/* Result preview */}
+          {histResult && (
+            <div className="mx-auto mt-5 grid max-w-lg grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-[9px] text-white/40">Propriétaires</p><p className="text-lg font-bold text-white">2</p></div>
+              <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-[9px] text-white/40">Accidents</p><p className="text-lg font-bold text-green-400">0</p></div>
+              <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-[9px] text-white/40">Dernier CT</p><p className="text-lg font-bold text-white">03/25</p></div>
+              <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-[9px] text-white/40">Km vérifié</p><p className="text-lg font-bold text-white">45 200</p></div>
+            </div>
+          )}
+
+          {/* Dessin voiture en bas */}
+          <div className="mt-6 flex justify-center opacity-10">
+            <Car size={120} className="text-white" />
           </div>
         </div>
       </section>
