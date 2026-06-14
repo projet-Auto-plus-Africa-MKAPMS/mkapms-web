@@ -250,25 +250,89 @@ export const annoncesRouter = router({
       }
 
       // Estimation intelligente basée sur marque, modèle, année, km, état, carburant, boîte
+      // Prix neufs moyens par marque (base de calcul, le système applique la décote ensuite)
       const brandBases: Record<string, number> = {
-        "renault": 22000, "peugeot": 23000, "citroën": 21000, "citroen": 21000,
-        "volkswagen": 28000, "bmw": 38000, "mercedes": 40000, "audi": 36000,
-        "toyota": 26000, "nissan": 24000, "ford": 24000, "opel": 20000,
-        "fiat": 18000, "hyundai": 24000, "kia": 25000, "dacia": 16000,
-        "skoda": 23000, "seat": 22000, "volvo": 34000, "mazda": 26000,
-        "honda": 25000, "suzuki": 20000, "mitsubishi": 26000, "jeep": 35000,
-        "land rover": 50000, "porsche": 75000, "tesla": 45000, "mini": 28000,
-        "alfa romeo": 30000, "ds": 32000, "jaguar": 42000, "lexus": 45000,
+        "renault": 24000, "peugeot": 26000, "citroën": 23000, "citroen": 23000,
+        "volkswagen": 30000, "bmw": 42000, "mercedes": 45000, "audi": 40000,
+        "toyota": 28000, "nissan": 26000, "ford": 26000, "opel": 22000,
+        "fiat": 19000, "hyundai": 26000, "kia": 27000, "dacia": 16000,
+        "skoda": 25000, "seat": 24000, "volvo": 38000, "mazda": 28000,
+        "honda": 27000, "suzuki": 21000, "mitsubishi": 28000, "jeep": 38000,
+        "land rover": 55000, "porsche": 85000, "tesla": 48000, "mini": 30000,
+        "alfa romeo": 32000, "ds": 35000, "jaguar": 48000, "lexus": 50000,
+        "cupra": 34000, "mg": 22000, "smart": 18000,
       };
+
+      // Ajustement modèle — prix neuf moyen spécifique au modèle pour plus de précision
+      const modelBases: Record<string, Record<string, number>> = {
+        "renault": { "clio": 18000, "megane": 28000, "captur": 24000, "arkana": 30000, "twingo": 14000, "scenic": 32000, "kadjar": 28000, "austral": 34000, "zoe": 26000, "kangoo": 22000, "trafic": 35000, "master": 40000, "espace": 42000 },
+        "peugeot": { "208": 20000, "308": 28000, "2008": 26000, "3008": 34000, "5008": 38000, "508": 40000, "108": 14000, "partner": 25000, "expert": 35000, "rifter": 26000, "e-208": 28000 },
+        "citroen": { "c3": 17000, "c4": 26000, "c5": 38000, "c3 aircross": 22000, "c5 aircross": 32000, "berlingo": 24000, "jumpy": 33000, "ami": 8000 },
+        "citroën": { "c3": 17000, "c4": 26000, "c5": 38000, "c3 aircross": 22000, "c5 aircross": 32000, "berlingo": 24000, "jumpy": 33000 },
+        "volkswagen": { "polo": 22000, "golf": 32000, "tiguan": 38000, "t-roc": 30000, "passat": 40000, "touran": 35000, "t-cross": 24000, "id.3": 38000, "id.4": 42000, "arteon": 48000, "up!": 14000, "caddy": 28000, "transporter": 42000 },
+        "bmw": { "serie 1": 32000, "serie 2": 36000, "serie 3": 44000, "serie 4": 48000, "serie 5": 56000, "x1": 38000, "x2": 40000, "x3": 50000, "x5": 68000, "x6": 75000, "i3": 35000, "i4": 52000, "ix": 72000 },
+        "mercedes": { "classe a": 34000, "classe b": 36000, "classe c": 48000, "classe e": 58000, "classe s": 110000, "gla": 38000, "glb": 40000, "glc": 52000, "gle": 68000, "gls": 90000, "cla": 38000, "eqa": 48000, "eqb": 50000, "vito": 38000, "sprinter": 42000 },
+        "audi": { "a1": 28000, "a3": 34000, "a4": 42000, "a5": 48000, "a6": 56000, "q2": 30000, "q3": 36000, "q5": 48000, "q7": 68000, "q8": 75000, "e-tron": 55000, "tt": 45000 },
+        "toyota": { "yaris": 18000, "corolla": 26000, "c-hr": 30000, "rav4": 36000, "yaris cross": 24000, "camry": 38000, "land cruiser": 55000, "aygo": 14000, "hilux": 40000, "proace": 35000 },
+        "dacia": { "sandero": 12000, "duster": 18000, "jogger": 16000, "spring": 15000, "logan": 11000 },
+        "ford": { "fiesta": 18000, "focus": 28000, "puma": 26000, "kuga": 34000, "mustang": 50000, "ranger": 42000, "transit": 38000, "ecosport": 22000, "explorer": 55000 },
+        "tesla": { "model 3": 42000, "model y": 46000, "model s": 90000, "model x": 100000 },
+        "porsche": { "911": 120000, "cayenne": 85000, "macan": 60000, "panamera": 95000, "taycan": 90000, "boxster": 65000, "cayman": 62000 },
+        "fiat": { "500": 16000, "panda": 14000, "tipo": 20000, "500x": 24000, "ducato": 35000, "doblo": 22000 },
+        "hyundai": { "i10": 14000, "i20": 18000, "i30": 26000, "tucson": 34000, "kona": 28000, "ioniq": 35000, "ioniq 5": 42000, "santa fe": 42000, "bayon": 20000 },
+        "kia": { "picanto": 14000, "rio": 18000, "ceed": 26000, "sportage": 34000, "niro": 32000, "ev6": 45000, "stonic": 22000, "sorento": 44000, "xceed": 28000 },
+        "nissan": { "micra": 16000, "juke": 24000, "qashqai": 32000, "x-trail": 38000, "leaf": 30000, "navara": 38000, "ariya": 42000 },
+        "opel": { "corsa": 18000, "astra": 26000, "mokka": 26000, "crossland": 24000, "grandland": 34000, "combo": 24000, "vivaro": 34000 },
+        "volvo": { "xc40": 36000, "xc60": 50000, "xc90": 68000, "s60": 42000, "v60": 44000, "v90": 55000, "c40": 42000, "ex30": 35000 },
+        "land rover": { "evoque": 42000, "discovery": 55000, "defender": 60000, "range rover": 110000, "velar": 58000, "discovery sport": 40000 },
+        "jaguar": { "e-pace": 38000, "f-pace": 55000, "xe": 40000, "xf": 50000, "f-type": 75000, "i-pace": 65000 },
+        "mini": { "cooper": 26000, "countryman": 32000, "clubman": 30000, "one": 22000, "john cooper works": 38000 },
+        "skoda": { "fabia": 18000, "octavia": 28000, "karoq": 30000, "kodiaq": 38000, "superb": 38000, "scala": 22000, "enyaq": 40000, "kamiq": 24000 },
+        "seat": { "ibiza": 18000, "leon": 26000, "arona": 22000, "ateca": 30000, "tarraco": 38000 },
+        "mazda": { "2": 18000, "3": 26000, "cx-3": 24000, "cx-30": 28000, "cx-5": 34000, "cx-60": 44000, "mx-5": 32000 },
+        "honda": { "jazz": 22000, "civic": 30000, "hr-v": 28000, "cr-v": 38000, "e": 36000, "zr-v": 38000 },
+        "suzuki": { "swift": 16000, "vitara": 24000, "s-cross": 26000, "ignis": 16000, "jimny": 22000 },
+        "jeep": { "renegade": 28000, "compass": 34000, "wrangler": 55000, "grand cherokee": 65000, "avenger": 30000 },
+        "ds": { "ds3": 28000, "ds4": 36000, "ds7": 48000, "ds9": 55000 },
+        "alfa romeo": { "giulia": 40000, "stelvio": 48000, "tonale": 38000, "giulietta": 28000 },
+        "lexus": { "ux": 36000, "nx": 48000, "rx": 62000, "es": 50000, "is": 42000, "lc": 95000, "ls": 110000, "rz": 55000 },
+      };
+
       const year = new Date().getFullYear();
       const age = input.annee ? Math.max(0, year - input.annee) : 6;
       const brandKey = input.marque.toLowerCase().trim();
-      const base = brandBases[brandKey] || 26000;
+      const modelKey = input.modele.toLowerCase().trim();
 
-      // Décote : 12% par an pour les marques standard, 10% pour premium
-      const isPremium = ["bmw", "mercedes", "audi", "porsche", "tesla", "jaguar", "land rover", "lexus", "volvo"].includes(brandKey);
-      const decoteAnnuelle = isPremium ? 0.90 : 0.88;
-      let mid = base * Math.pow(decoteAnnuelle, age);
+      // Chercher d'abord le prix par modèle, sinon par marque
+      const modelMap = modelBases[brandKey];
+      let base: number;
+      if (modelMap) {
+        // Chercher correspondance exacte ou partielle
+        const exactMatch = modelMap[modelKey];
+        if (exactMatch) {
+          base = exactMatch;
+        } else {
+          // Correspondance partielle (ex: "clio iv" → "clio")
+          const partialKey = Object.keys(modelMap).find((k) => modelKey.includes(k) || k.includes(modelKey));
+          base = partialKey ? modelMap[partialKey] : (brandBases[brandKey] || 26000);
+        }
+      } else {
+        base = brandBases[brandKey] || 26000;
+      }
+
+      // Décote réaliste : 1ère année -25%, puis -12%/an standard, -10%/an premium
+      const isPremium = ["bmw", "mercedes", "audi", "porsche", "tesla", "jaguar", "land rover", "lexus", "volvo", "ds", "alfa romeo"].includes(brandKey);
+      let mid: number;
+      if (age === 0) {
+        mid = base;
+      } else if (age === 1) {
+        // 1ère année : grosse décote (-20% standard, -15% premium)
+        mid = base * (isPremium ? 0.85 : 0.80);
+      } else {
+        const firstYearFactor = isPremium ? 0.85 : 0.80;
+        const annualFactor = isPremium ? 0.92 : 0.90;
+        mid = base * firstYearFactor * Math.pow(annualFactor, age - 1);
+      }
 
       // Ajustement carburant : diesel décote plus vite depuis 2020, électrique garde mieux
       if (input.carburant) {
@@ -281,16 +345,21 @@ export const annoncesRouter = router({
       // Ajustement boîte : automatique vaut plus
       if (input.boite === "automatique") mid *= 1.06;
 
-      // Pénalité kilométrique
+      // Pénalité kilométrique — proportionnelle au prix du véhicule
       if (input.kilometrage != null && input.kilometrage > 0) {
-        const kmNormal = Math.max(1, age) * 12000;
+        const kmNormal = Math.max(1, age) * 15000; // 15 000 km/an en moyenne en France
         const excessKm = Math.max(0, input.kilometrage - kmNormal);
-        mid -= excessKm * 0.035;
-        // Bonus si faible km
-        if (input.kilometrage < kmNormal * 0.6) mid *= 1.07;
-        // Grosse pénalité > 200 000 km
-        if (input.kilometrage > 200000) mid *= 0.75;
+        // Pénalité proportionnelle : ~0.5% du prix par tranche de 5 000 km excédentaires
+        const kmPenalty = (excessKm / 5000) * mid * 0.005;
+        mid -= kmPenalty;
+        // Bonus si faible km (véhicule peu roulé)
+        if (input.kilometrage < kmNormal * 0.5) mid *= 1.10;
+        else if (input.kilometrage < kmNormal * 0.7) mid *= 1.05;
+        // Grosse pénalité haute kilométrage
+        if (input.kilometrage > 250000) mid *= 0.65;
+        else if (input.kilometrage > 200000) mid *= 0.75;
         else if (input.kilometrage > 150000) mid *= 0.85;
+        else if (input.kilometrage > 100000) mid *= 0.92;
       }
 
       // Ajustement état général
@@ -306,12 +375,13 @@ export const annoncesRouter = router({
       }
 
       mid = Math.max(500, Math.round(mid));
+      // Fourchette ±15% pour refléter la réalité du marché occasion
       return {
         method: "estimation_marche" as const,
         sampleSize: sample.length,
-        low: Math.round(mid * 0.90),
+        low: Math.round(mid * 0.85),
         mid,
-        high: Math.round(mid * 1.10),
+        high: Math.round(mid * 1.15),
       };
     }),
 

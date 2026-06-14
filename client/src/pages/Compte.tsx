@@ -308,6 +308,7 @@ export default function Compte() {
                 onUploaded={(files) => {
                   if (files.length > 0) setDoc({ ...doc, fileUrl: files[0].url });
                 }}
+                iaAnalysis
               />
               {doc.fileUrl && <p className="text-xs text-green-600">Fichier ajouté</p>}
               <button className="btn-primary !text-sm">Enregistrer</button>

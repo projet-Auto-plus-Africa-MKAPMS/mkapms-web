@@ -395,21 +395,29 @@ export default function Vendre() {
               {estimLoading ? "Calcul en cours..." : "Obtenir mon estimation gratuite"}
             </button>
 
-            {/* Résultat estimation */}
+            {/* Résultat estimation — Analyse IA MKA.P-MS */}
             {estim && (
               <div className="mt-5 rounded-xl border-2 border-[#D4AF37] bg-[#FFFBEB] p-6 text-center">
-                <p className="text-sm font-medium text-[#92400E]">Estimation de votre véhicule</p>
+                <div className="flex items-center justify-center gap-1.5">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#D4AF37]"><span className="text-[8px] font-bold text-white">IA</span></div>
+                  <p className="text-sm font-bold text-[#92400E]">Estimation IA MKA.P-MS</p>
+                </div>
                 <p className="mt-2 text-3xl font-extrabold text-[#D4AF37]">
                   {formatPrice(estim.low)} – {formatPrice(estim.high)}
                 </p>
                 <p className="mt-2 text-base text-[#111]">
                   Prix conseillé : <strong>{formatPrice(estim.mid)}</strong>
                 </p>
-                <p className="mt-1 text-xs text-[#9CA3AF]">
+                <p className="mt-1 text-xs text-[#6B7280]">
                   {estim.method === "comparables"
-                    ? `Basé sur ${estim.sampleSize} véhicules similaires sur la plateforme`
-                    : "Estimation basée sur la cote du marché français (marque, année, km)"}
+                    ? `Basée sur ${estim.sampleSize} véhicules similaires en vente`
+                    : "Analyse IA basée sur la cote du marché français, ajustée selon marque, modèle, année, km, état et carburant"}
                 </p>
+                <div className="mt-2 flex items-center justify-center gap-3 text-[9px] text-green-700">
+                  <span>✓ Analyse IA</span>
+                  <span>✓ Données marché</span>
+                  <span>✓ Mise à jour en temps réel</span>
+                </div>
                 <button
                   type="button"
                   className="mt-4 rounded-lg bg-[#D4AF37] px-6 py-2 text-sm font-bold text-white hover:bg-[#C5A028]"
@@ -510,6 +518,7 @@ export default function Vendre() {
               multiple
               maxFiles={maxPhotos - photos.length}
               onUploaded={onFilesUploaded}
+              iaAnalysis
             />
             {photos.length > 0 && (
               <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">

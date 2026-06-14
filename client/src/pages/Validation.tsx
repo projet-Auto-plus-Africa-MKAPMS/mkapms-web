@@ -116,6 +116,7 @@ export default function Validation() {
                       onUploaded={(files) => {
                         if (files.length > 0) setDoc(key, files[0].url);
                       }}
+                      iaAnalysis
                     />
                     {docs[key] && (
                       <p className="mt-1 text-xs text-green-600">Fichier ajouté</p>

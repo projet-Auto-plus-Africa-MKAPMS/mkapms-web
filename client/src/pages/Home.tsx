@@ -420,15 +420,27 @@ export default function Home() {
               {estimLoading ? "Calcul..." : "Obtenir mon estimation gratuite"}
             </button>
 
-            {/* Résultat */}
+            {/* Résultat — Analyse IA MKA.P-MS */}
             {estimResult && (
               <div className="mt-4 rounded-xl border-2 border-[#D4AF37] bg-[#FFFBEB] p-4 text-center">
-                <p className="text-xs text-[#92400E]">Estimation de votre véhicule</p>
-                <p className="mt-1 text-2xl font-extrabold text-[#D4AF37]">
+                <div className="flex items-center justify-center gap-1.5">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#D4AF37]"><span className="text-[8px] font-bold text-white">IA</span></div>
+                  <p className="text-xs font-bold text-[#92400E]">Estimation IA MKA.P-MS</p>
+                </div>
+                <p className="mt-2 text-2xl font-extrabold text-[#D4AF37]">
                   {estimResult.low.toLocaleString()} € – {estimResult.high.toLocaleString()} €
                 </p>
                 <p className="mt-1 text-sm text-[#111]">Prix conseillé : <strong>{estimResult.mid.toLocaleString()} €</strong></p>
-                <p className="mt-1 text-xs text-[#9CA3AF]">Estimation basée sur la cote du marché français</p>
+                <p className="mt-1 text-[10px] text-[#6B7280]">
+                  {estimResult.method === "comparables"
+                    ? `Basée sur ${estimResult.sampleSize} véhicules similaires en vente`
+                    : "Analyse IA basée sur la cote du marché français, ajustée selon marque, modèle, année, km, état et carburant"}
+                </p>
+                <div className="mt-2 flex items-center justify-center gap-3 text-[9px] text-green-700">
+                  <span>✓ Analyse IA</span>
+                  <span>✓ Données marché</span>
+                  <span>✓ Mise à jour en temps réel</span>
+                </div>
                 <Link to="/vendre" className="mt-3 inline-block rounded-lg bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#C5A028]">
                   Déposer une annonce →
                 </Link>

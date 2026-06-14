@@ -394,7 +394,7 @@ function VODetail({ id, onBack }: { id: number; onBack: () => void }) {
             </div>
             <div className="mt-4">
               <p className="mb-2 text-sm font-semibold text-[#374151]">Documents achat :</p>
-              <FileUpload label="Facture, bon de commande, carte grise, CT, expertise..." accept="image/*,.pdf" multiple onUploaded={uploadDoc("facture_achat", "achat")} />
+              <FileUpload label="Facture, bon de commande, carte grise, CT, expertise..." accept="image/*,.pdf" multiple onUploaded={uploadDoc("facture_achat", "achat")} iaAnalysis />
               <DocList docs={data.documents.filter((d) => ["facture_achat", "bon_commande", "carte_grise", "controle_technique"].includes(d.category))} />
             </div>
             {v.status === "achat_enregistre" && (
@@ -423,7 +423,7 @@ function VODetail({ id, onBack }: { id: number; onBack: () => void }) {
             <div className="mt-4 rounded-lg bg-[#FFFBEB] p-4 text-sm text-[#92400E]">
               Les pièces nécessaires sont listées dans le diagnostic. Le devis est validé par le Directeur ou Super Admin avant les réparations.
             </div>
-            <FileUpload label="Ajouter un devis interne" accept="image/*,.pdf" multiple onUploaded={uploadDoc("devis_interne", "devis")} />
+            <FileUpload label="Ajouter un devis interne" accept="image/*,.pdf" multiple onUploaded={uploadDoc("devis_interne", "devis")} iaAnalysis />
             <DocList docs={data.documents.filter((d) => d.category === "devis_interne")} />
             {["diagnostic_en_cours", "diagnostic_termine", "devis_interne"].includes(v.status) && (
               <button type="button" onClick={() => advanceStatus("en_reparation", "Devis validé, début des réparations")} className="btn-gold mt-4">
@@ -478,7 +478,7 @@ function VODetail({ id, onBack }: { id: number; onBack: () => void }) {
                 </div>
               ))}
             </div>
-            <FileUpload label="Ajouter le rapport d'historique" accept="image/*,.pdf" multiple onUploaded={uploadDoc("rapport_diagnostic", "historique")} />
+            <FileUpload label="Ajouter le rapport d'historique" accept="image/*,.pdf" multiple onUploaded={uploadDoc("rapport_diagnostic", "historique")} iaAnalysis />
             <DocList docs={data.documents.filter((d) => d.etape === "historique")} />
           </SectionCard>
         )}
@@ -526,7 +526,7 @@ function VODetail({ id, onBack }: { id: number; onBack: () => void }) {
         {activeTab === "dossier_admin" && (
           <SectionCard title="Étape 13 — Dossier administratif" icon="📁">
             <p className="mb-4 text-sm text-[#6B7280]">Documents de vente : certificat de cession, facture, carte grise, contrôle technique.</p>
-            <FileUpload label="Ajouter des documents administratifs" accept="image/*,.pdf" multiple onUploaded={uploadDoc("certificat_cession", "dossier_admin")} />
+            <FileUpload label="Ajouter des documents administratifs" accept="image/*,.pdf" multiple onUploaded={uploadDoc("certificat_cession", "dossier_admin")} iaAnalysis />
             <DocList docs={data.documents.filter((d) => ["certificat_cession", "facture_vente", "contrat_vente", "piece_identite_acheteur"].includes(d.category))} />
             <div className="mt-4 rounded-lg bg-[#F0FDF4] p-3 text-sm text-[#166534]">
               Transmission automatique : Comptabilité, Carte grise, Client
@@ -550,7 +550,7 @@ function VODetail({ id, onBack }: { id: number; onBack: () => void }) {
                 </div>
               ))}
             </div>
-            <FileUpload label="Documents livraison" accept="image/*,.pdf" multiple onUploaded={uploadDoc("bon_livraison", "livraison")} />
+            <FileUpload label="Documents livraison" accept="image/*,.pdf" multiple onUploaded={uploadDoc("bon_livraison", "livraison")} iaAnalysis />
             <DocList docs={data.documents.filter((d) => ["bon_livraison", "bon_enlevement"].includes(d.category))} />
           </SectionCard>
         )}
@@ -579,7 +579,7 @@ function VODetail({ id, onBack }: { id: number; onBack: () => void }) {
 
         {activeTab === "documents" && (
           <SectionCard title="Tous les documents" icon="📎">
-            <FileUpload label="Ajouter un document" accept="image/*,.pdf,.doc,.docx" multiple onUploaded={uploadDoc("autre", "general")} />
+            <FileUpload label="Ajouter un document" accept="image/*,.pdf,.doc,.docx" multiple onUploaded={uploadDoc("autre", "general")} iaAnalysis />
             <DocList docs={data.documents} />
           </SectionCard>
         )}
@@ -701,7 +701,7 @@ function TabTransport({ v, id, updateTransport, advanceStatus, uploadDoc, docs }
       </button>
       <div className="mt-4">
         <p className="mb-2 text-sm font-semibold text-[#374151]">Photos départ / arrivée :</p>
-        <FileUpload label="Photos transport" accept="image/*" multiple onUploaded={uploadDoc("photo_achat", "transport")} />
+        <FileUpload label="Photos transport" accept="image/*" multiple onUploaded={uploadDoc("photo_achat", "transport")} iaAnalysis />
         <DocList docs={docs.filter((d: any) => d.etape === "transport")} />
       </div>
       {v.status === "en_cours_transport" && (
@@ -765,7 +765,7 @@ function TabReception({ v, id, updateReception, advanceStatus, uploadDoc, docs }
       </button>
       <div className="mt-4">
         <p className="mb-2 text-sm font-semibold text-[#374151]">Photos obligatoires : Avant, Arrière, Côtés, Intérieur, Compteur</p>
-        <FileUpload label="Photos réception" accept="image/*" multiple onUploaded={uploadDoc("photo_achat", "reception")} />
+        <FileUpload label="Photos réception" accept="image/*" multiple onUploaded={uploadDoc("photo_achat", "reception")} iaAnalysis />
         <DocList docs={docs.filter((d: any) => d.etape === "reception")} />
       </div>
       {v.status === "vehicule_recu" && (
@@ -837,7 +837,7 @@ function TabDiagnostic({ id, diagnostics, addDiagnostic, advanceStatus, v, uploa
         Ajouter un point de diagnostic
       </button>
       <div className="mt-4">
-        <FileUpload label="Photos / rapport diagnostic" accept="image/*,.pdf" multiple onUploaded={uploadDoc("rapport_diagnostic", "diagnostic")} />
+        <FileUpload label="Photos / rapport diagnostic" accept="image/*,.pdf" multiple onUploaded={uploadDoc("rapport_diagnostic", "diagnostic")} iaAnalysis />
         <DocList docs={docs.filter((d: any) => d.etape === "diagnostic")} />
       </div>
       {["diagnostic_en_cours", "diagnostic_termine"].includes(v.status) && (
@@ -890,7 +890,7 @@ function TabReparation({ id, reparations, addReparation, advanceStatus, v, uploa
       </button>
       <div className="mt-4">
         <p className="mb-2 text-sm font-semibold text-[#374151]">Photos avant/après réparation :</p>
-        <FileUpload label="Photos réparation" accept="image/*" multiple onUploaded={uploadDoc("photo_avant_reparation", "reparation")} />
+        <FileUpload label="Photos réparation" accept="image/*" multiple onUploaded={uploadDoc("photo_avant_reparation", "reparation")} iaAnalysis />
         <DocList docs={docs.filter((d: any) => d.etape === "reparation")} />
       </div>
       {["en_reparation", "reparation_terminee"].includes(v.status) && (
@@ -953,7 +953,7 @@ function TabLavage({ id, lavages, addLavage, advanceStatus, v, uploadDoc, docs }
         Enregistrer le lavage
       </button>
       <div className="mt-4">
-        <FileUpload label="Photos avant/après lavage" accept="image/*" multiple onUploaded={uploadDoc("photo_avant_lavage", "lavage")} />
+        <FileUpload label="Photos avant/après lavage" accept="image/*" multiple onUploaded={uploadDoc("photo_avant_lavage", "lavage")} iaAnalysis />
         <DocList docs={docs.filter((d: any) => d.etape === "lavage")} />
       </div>
       {v.status === "preparation_esthetique" && (
