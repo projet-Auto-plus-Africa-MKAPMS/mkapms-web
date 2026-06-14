@@ -300,40 +300,50 @@ export default function Historique() {
               </div>
             </div>
 
-            {/* Info : données non disponibles */}
+            {/* Info */}
             <p className="mt-4 text-[9px] text-slate-400 italic">Si une donnée n'est pas disponible, elle est affichée "Donnée non disponible" et non laissée vide.</p>
+            <p className="mt-1 text-[9px] text-slate-400 italic">Le PDF inclut le logo MKA.P-MS en en-tête pour un rendu professionnel premium.</p>
           </div>
 
-          {/* Actions */}
-          <div className="mt-4 grid gap-3 grid-cols-2 md:grid-cols-4">
-            <button className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-4 text-center hover:border-[#D4AF37] transition">
+          {/* Actions — tout dans la plateforme */}
+          <div className="mt-4 grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+            <button className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 text-center hover:border-[#D4AF37] transition">
               <Eye size={18} className="text-[#D4AF37]" />
               <span className="text-[10px] font-bold text-[#111]">Voir le rapport</span>
             </button>
-            <button className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-4 text-center hover:border-[#D4AF37] transition">
+            <button className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 text-center hover:border-[#D4AF37] transition">
               <Download size={18} className="text-[#D4AF37]" />
               <span className="text-[10px] font-bold text-[#111]">Télécharger PDF</span>
             </button>
-            <button className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-4 text-center hover:border-[#D4AF37] transition">
-              <MessageSquare size={18} className="text-[#D4AF37]" />
-              <span className="text-[10px] font-bold text-[#111]">Messagerie</span>
+            <button onClick={() => window.print()} className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 text-center hover:border-[#D4AF37] transition">
+              <FileText size={18} className="text-[#D4AF37]" />
+              <span className="text-[10px] font-bold text-[#111]">Imprimer</span>
             </button>
-            <button className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-4 text-center hover:border-[#D4AF37] transition">
+            <button className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 text-center hover:border-[#D4AF37] transition">
+              <ArrowRight size={18} className="text-[#D4AF37]" />
+              <span className="text-[10px] font-bold text-[#111]">Partager</span>
+            </button>
+            <button className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 text-center hover:border-[#D4AF37] transition">
+              <MessageSquare size={18} className="text-[#D4AF37]" />
+              <span className="text-[10px] font-bold text-[#111]">Notifications</span>
+            </button>
+            <button className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 text-center hover:border-[#D4AF37] transition">
               <FolderOpen size={18} className="text-[#D4AF37]" />
               <span className="text-[10px] font-bold text-[#111]">Centre documents</span>
             </button>
           </div>
 
-          {/* Rapport disponible dans */}
+          {/* Rapport disponible dans — TOUT dans la plateforme */}
           <div className="mt-4 rounded-xl bg-blue-50 border border-blue-200 p-4">
-            <h4 className="text-xs font-bold text-blue-800">Votre rapport est disponible dans :</h4>
+            <h4 className="text-xs font-bold text-blue-800">Votre rapport est disponible dans la plateforme :</h4>
             <div className="mt-2 space-y-1 text-[10px] text-blue-700">
               <p className="flex items-center gap-1"><CheckCircle size={10} className="text-blue-500" /> Espace utilisateur → Mes rapports historiques</p>
-              <p className="flex items-center gap-1"><CheckCircle size={10} className="text-blue-500" /> Messagerie interne MKA.P-MS (conversation créée)</p>
+              <p className="flex items-center gap-1"><CheckCircle size={10} className="text-blue-500" /> Notifications MKA.P-MS (notification envoyée dans la plateforme)</p>
               <p className="flex items-center gap-1"><CheckCircle size={10} className="text-blue-500" /> Centre documents → Véhicules → Historiques</p>
+              <p className="flex items-center gap-1"><CheckCircle size={10} className="text-blue-500" /> Rapport disponible en texte et en PDF</p>
               <p className="flex items-center gap-1"><CheckCircle size={10} className="text-blue-500" /> Facture et reçu dans votre espace</p>
             </div>
-            <p className="mt-2 text-[9px] text-blue-500 italic">Un email de notification a été envoyé : "Votre rapport est disponible dans votre espace MKA.P-MS."</p>
+            <p className="mt-2 text-[9px] text-blue-600 font-semibold">Tout se passe directement dans MKA.P-MS. Aucun envoi par email.</p>
           </div>
 
           {/* Confidentialité */}
@@ -663,15 +673,38 @@ export default function Historique() {
   /* ═══ STEP 0 — PAGE D'ATTERRISSAGE (LANDING) ═══ */
   return (
     <div>
-      {/* ═══ 1. HERO ═══ */}
+      {/* ═══ 1. BANDEAU SUPÉRIEUR (HEADER) — Logo + avantages + Mon compte ═══ */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#1A1A2E] via-[#16213E] to-[#0F3460]">
         <div className="border-b border-white/10">
-          <div className="container-page flex items-center justify-between py-2">
-            <div className="flex flex-wrap items-center gap-4 text-[9px] text-white/60">
-              <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Données officielles — Sources sécurisées</span>
-              <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Paiement 100% sécurisé — Stripe & protocole SSL</span>
-              <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Rapport instantané — Disponible en quelques secondes</span>
+          <div className="container-page flex items-center justify-between py-3">
+            {/* Logo MKA.P-MS */}
+            <Link to="/" className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white">
+                <span className="text-sm font-extrabold text-[#111]">M</span>
+              </div>
+              <div>
+                <h2 className="text-sm font-extrabold text-white">MKA<span className="text-[#D4AF37]">.P</span>-MS</h2>
+                <p className="text-[7px] font-semibold uppercase tracking-widest text-white/40">La Marketplace Automobile</p>
+              </div>
+            </Link>
+
+            {/* 3 avantages clés */}
+            <div className="hidden items-center gap-4 md:flex">
+              <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[9px] text-white/70">
+                <CheckCircle size={10} className="text-green-400" /> <strong className="text-white">Données officielles</strong> — Sources sécurisées
+              </span>
+              <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[9px] text-white/70">
+                <CheckCircle size={10} className="text-green-400" /> <strong className="text-white">Paiement 100% sécurisé</strong> — Stripe & protocole SSL
+              </span>
+              <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[9px] text-white/70">
+                <CheckCircle size={10} className="text-green-400" /> <strong className="text-white">Rapport instantané</strong> — Disponible en quelques secondes
+              </span>
             </div>
+
+            {/* Mon compte */}
+            <Link to="/compte" className="flex items-center gap-1.5 rounded-full border border-white/20 px-3 py-1.5 text-[10px] font-semibold text-white hover:bg-white/10 transition">
+              <Users size={12} /> Mon compte
+            </Link>
           </div>
         </div>
 
