@@ -13,6 +13,7 @@ export type PlanCategory =
   | "vtc_taxi"
   | "pieces"
   | "livraison"
+  | "vo"
   | "franchise";
 
 export interface PlanQuotas {
@@ -322,6 +323,109 @@ export const LIVRAISON_PLANS: Plan[] = [
   { code: "livraison_util_max", label: "Livraison Utilitaire Max", audience: "pro", category: "livraison", priceEur: 199.99, recurring: true, features: ["Tout Elite", "Flotte illimitée"], quotas: q(null) },
 ];
 
+// §8.VO — Abonnements VO (Véhicules d'Occasion)
+export const VO_PLANS: Plan[] = [
+  {
+    code: "vo_start", label: "VO Start", audience: "pro", category: "vo",
+    priceEur: 29, recurring: true,
+    features: [
+      "Jusqu'à 10 véhicules",
+      "Annonces illimitées",
+      "Photos illimitées",
+      "Messagerie clients",
+      "Favoris",
+      "Tableau de bord simple",
+      "Statistiques de base",
+    ],
+    quotas: q(10),
+  },
+  {
+    code: "vo_premium", label: "VO Premium", audience: "pro", category: "vo",
+    priceEur: 59, recurring: true, highlight: true,
+    features: [
+      "Jusqu'à 50 véhicules",
+      "Tout Start inclus",
+      "Gestion stock VO",
+      "Réservations",
+      "Acomptes",
+      "Historique des ventes",
+      "Dossier véhicule complet",
+      "Boost annonces",
+      "Priorité recherche",
+    ],
+    quotas: q(50),
+  },
+  {
+    code: "vo_elite", label: "VO Elite", audience: "pro", category: "vo",
+    priceEur: 99, recurring: true,
+    features: [
+      "Jusqu'à 150 véhicules",
+      "Tout Premium inclus",
+      "Gestion employés",
+      "Gestion parc automobile",
+      "Multi-utilisateurs",
+      "Rapports avancés",
+      "Signature électronique",
+      "Gestion documents",
+    ],
+    quotas: q(150),
+  },
+  {
+    code: "vo_business", label: "VO Business", audience: "pro", category: "vo",
+    priceEur: 199, recurring: true,
+    features: [
+      "Véhicules illimités",
+      "Tout Elite inclus",
+      "Multi-sites",
+      "Multi-agences",
+      "Comptabilité avancée",
+      "API partenaires",
+      "Reporting complet",
+      "Support prioritaire 7j/7",
+    ],
+    quotas: q(null),
+  },
+];
+
+// Modules optionnels VO
+export const VO_MODULES: Plan[] = [
+  {
+    code: "vo_mod_encheres", label: "Module Enchères Pro", audience: "pro", category: "vo",
+    priceEur: 19, recurring: true,
+    features: [
+      "Accès aux enchères MKA.P-MS",
+      "Participation aux enchères",
+      "Notifications nouvelles enchères",
+      "Historique enchères",
+      "Dépôt d'offres",
+      "Réservé aux comptes validés",
+    ],
+    quotas: q(null),
+  },
+  {
+    code: "vo_mod_historique", label: "Module Historique Véhicule", audience: "pro", category: "vo",
+    priceEur: 9, recurring: true,
+    features: [
+      "Rapports kilométrage",
+      "Historique entretien",
+      "Contrôles techniques",
+      "Sinistres",
+    ],
+    quotas: q(null),
+  },
+  {
+    code: "vo_mod_cg", label: "Module Carte Grise", audience: "pro", category: "vo",
+    priceEur: 19, recurring: true,
+    features: [
+      "Dossiers administratifs",
+      "Suivi ANTS",
+      "Signature documents",
+      "Archivage automatique",
+    ],
+    quotas: q(null),
+  },
+];
+
 export const ALL_PLANS: Plan[] = [
   ...PARTICULIER_PLANS,
   ...PRO_PLANS,
@@ -330,6 +434,8 @@ export const ALL_PLANS: Plan[] = [
   ...VTC_TAXI_PLANS,
   ...PIECES_PLANS,
   ...LIVRAISON_PLANS,
+  ...VO_PLANS,
+  ...VO_MODULES,
   FRANCHISE_PLAN,
 ];
 
@@ -342,6 +448,7 @@ export const PLAN_CATEGORY_LABELS: Record<PlanCategory, string> = {
   vtc_taxi: "VTC / TAXI",
   pieces: "Boutique Pièces Auto",
   livraison: "Livraison",
+  vo: "VO — Véhicules d'Occasion",
   franchise: "Franchise MKA.P-MS",
 };
 

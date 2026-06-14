@@ -4,12 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
-import { PLAN_CATEGORY_LABELS, PHOTO_PACKS, FREE_PHOTOS, type PlanCategory } from "@shared/plans";
+import { PLAN_CATEGORY_LABELS, PHOTO_PACKS, FREE_PHOTOS, VO_MODULES, type PlanCategory } from "@shared/plans";
 
 // Règle centrale (parcours §12) : chaque profil ne voit QUE ses offres.
 const TABS: [PlanCategory, string][] = [
   ["particulier", "Particuliers"],
   ["pro_vente", "Pro Vente"],
+  ["vo", "VO"],
   ["garage", "Garage+"],
   ["location", "Location"],
   ["vtc_taxi", "VTC / TAXI"],
@@ -128,6 +129,36 @@ export default function Abonnements() {
                 <h3 className="font-extrabold text-slate-900">{pack.label}</h3>
                 <div className="mt-2 text-2xl font-extrabold text-noir">{formatPrice(pack.priceEur)}</div>
                 <p className="mt-1 text-xs text-slate-500">+{pack.extraPhotos} photo{pack.extraPhotos > 1 ? "s" : ""}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {tab === "vo" && (
+        <div className="mt-12">
+          <h2 className="text-center text-lg font-bold text-slate-700">Options activables</h2>
+          <p className="mt-1 text-center text-sm text-slate-500">
+            Modules complémentaires pour enrichir votre abonnement VO.
+          </p>
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {VO_MODULES.map((mod) => (
+              <div key={mod.code} className="card flex flex-col p-6">
+                <h3 className="text-lg font-extrabold text-slate-900">{mod.label}</h3>
+                <div className="mt-2 text-2xl font-extrabold text-noir">
+                  {formatPrice(mod.priceEur!)}
+                  <span className="text-sm font-medium text-slate-400"> /mois</span>
+                </div>
+                <ul className="mt-4 flex-1 space-y-2 text-sm text-slate-600">
+                  {mod.features.map((feat) => (
+                    <li key={feat} className="flex gap-2">
+                      <Check size={16} className="mt-0.5 flex-shrink-0 text-gold-dark" />
+                      {feat}
+                    </li>
+                  ))}
+                </ul>
+                <button className="btn-outline mt-4" onClick={() => subscribe(mod.code)}>
+                  Activer ce module
+                </button>
               </div>
             ))}
           </div>
