@@ -96,9 +96,63 @@ export default function Acheter() {
         {list.data ? `${list.data.total} véhicule(s) trouvé(s)` : "Recherche…"}
       </p>
 
+      {/* ── RECHERCHE + FILTRES EN PREMIER ── */}
+      <div className="mt-6 card p-4">
+        <h2 className="font-bold text-[#111] mb-3">Rechercher un véhicule</h2>
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+          <div>
+            <label className="label">Recherche</label>
+            <input className="input text-sm" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Marque, modèle…" />
+          </div>
+          <div>
+            <label className="label">Catégorie de vendeur</label>
+            <select className="input text-sm" value={vendeurType} onChange={(e) => setVendeur(e.target.value)}>
+              {VENDEURS.map((v) => (
+                <option key={v.value} value={v.value}>{v.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">Type de véhicule</label>
+            <select className="input text-sm" value={categorie} onChange={(e) => setCategorie(e.target.value)}>
+              {TYPES.map((v) => (
+                <option key={v.value} value={v.value}>{v.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label flex items-center gap-1">
+              <MapPin size={14} className="text-[#D4AF37]" /> Zone
+            </label>
+            <select className="input text-sm" value={zone} onChange={(e) => setZone(e.target.value)}>
+              {ZONES.map((z) => (
+                <option key={z.value} value={z.value}>{z.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center gap-3">
+          <button className="btn-outline text-sm" onClick={reset}>Réinitialiser</button>
+          {/* Alerte */}
+          {user ? (
+            saved ? (
+              <span className="text-xs font-semibold text-emerald-700">Alerte activée</span>
+            ) : (
+              <button className="text-xs font-semibold text-[#D4AF37] hover:underline flex items-center gap-1" onClick={enregistrerRecherche} disabled={saveSearch.isPending}>
+                <BellPlus size={12} /> {saveSearch.isPending ? "..." : "Créer une alerte"}
+              </button>
+            )
+          ) : (
+            <Link to="/connexion" className="text-xs text-[#D4AF37] hover:underline flex items-center gap-1">
+              <BellPlus size={12} /> Alerte annonce
+            </Link>
+          )}
+        </div>
+      </div>
+
       {/* ── 1. Nos véhicules MKA.P-MS (toujours en premier) ── */}
       {mkapmsItems.length > 0 && (
-        <div className="mt-6">
+        <div className="mt-8">
           <h2 className="flex items-center gap-2 text-lg font-bold text-[#111]">
             <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" /> Nos véhicules MKA.P-MS
           </h2>
@@ -143,88 +197,22 @@ export default function Acheter() {
         </div>
       )}
 
-      <div className="mt-6 grid gap-6 md:grid-cols-[260px_1fr]">
-        {/* Filtres */}
-        <aside className="card h-fit p-4">
-          <h2 className="mb-3 font-bold text-slate-800">Filtres</h2>
-          <label className="label">Recherche</label>
-          <input className="input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Marque, modèle…" />
-
-          <label className="label mt-4">Catégorie de vendeur</label>
-          <select className="input" value={vendeurType} onChange={(e) => setVendeur(e.target.value)}>
-            {VENDEURS.map((v) => (
-              <option key={v.value} value={v.value}>{v.label}</option>
-            ))}
-          </select>
-
-          <label className="label mt-4">Type de véhicule</label>
-          <select className="input" value={categorie} onChange={(e) => setCategorie(e.target.value)}>
-            {TYPES.map((v) => (
-              <option key={v.value} value={v.value}>{v.label}</option>
-            ))}
-          </select>
-
-          <label className="label mt-4 flex items-center gap-1">
-            <MapPin size={14} className="text-[#D4AF37]" /> Localisation / Zone
-          </label>
-          <select className="input" value={zone} onChange={(e) => setZone(e.target.value)}>
-            {ZONES.map((z) => (
-              <option key={z.value} value={z.value}>{z.label}</option>
-            ))}
-          </select>
-
-          <button className="btn-outline mt-5 w-full" onClick={reset}>
-            Réinitialiser
-          </button>
-
-          {/* Recherche sauvegardée + alerte */}
-          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
-            <p className="flex items-center gap-1.5 text-xs font-semibold text-amber-800">
-              <BellPlus size={14} /> Alerte nouvelle annonce
+      {/* ── 4. Annonces Particuliers — en dernier ── */}
+      <div className="mt-8">
+        <h2 className="text-lg font-bold text-[#111] mb-3">Annonces Particuliers</h2>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {list.isLoading
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="card aspect-[4/5] animate-pulse bg-slate-100" />
+              ))
+            : (particulierItems.length > 0 ? particulierItems : allItems).map((v: any) => (
+                <VehicleCard key={v.id} v={v as any} />
+              ))}
+          {list.data && list.data.items.length === 0 && (
+            <p className="col-span-full py-12 text-center text-slate-500">
+              Aucun véhicule ne correspond à votre recherche.
             </p>
-            <p className="mt-1 text-xs text-amber-700">
-              Soyez prévenu dès qu'un véhicule correspond à cette recherche.
-            </p>
-            {user ? (
-              saved ? (
-                <p className="mt-2 text-xs font-semibold text-emerald-700">
-                  Recherche enregistrée — vous serez alerté.
-                </p>
-              ) : (
-                <button
-                  className="btn-primary mt-2 w-full text-sm"
-                  onClick={enregistrerRecherche}
-                  disabled={saveSearch.isPending}
-                >
-                  {saveSearch.isPending ? "Enregistrement…" : "Enregistrer la recherche"}
-                </button>
-              )
-            ) : (
-              <Link to="/connexion" className="btn-outline mt-2 block w-full text-center text-sm">
-                Connectez-vous pour activer l'alerte
-              </Link>
-            )}
-          </div>
-        </aside>
-
-        {/* Résultats */}
-        <div>
-          {/* 4. Annonces Particuliers — en dernier */}
-          <h2 className="text-lg font-bold text-[#111] mb-3">Annonces Particuliers</h2>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-            {list.isLoading
-              ? Array.from({ length: 9 }).map((_, i) => (
-                  <div key={i} className="card aspect-[4/5] animate-pulse bg-slate-100" />
-                ))
-              : (particulierItems.length > 0 ? particulierItems : allItems).map((v: any) => (
-                  <VehicleCard key={v.id} v={v as any} />
-                ))}
-            {list.data && list.data.items.length === 0 && (
-              <p className="col-span-full py-12 text-center text-slate-500">
-                Aucun véhicule ne correspond à votre recherche.
-              </p>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </div>
