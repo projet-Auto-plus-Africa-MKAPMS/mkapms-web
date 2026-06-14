@@ -1,206 +1,250 @@
 import { useState } from "react";
 import {
   ShieldCheck, CheckCircle, Star, ArrowRight, ChevronDown,
-  Car, AlertTriangle, Search, FileText, Award,
+  Car, AlertTriangle, Search, FileText, Award, Lock, Clock, Headphones,
+  Globe, Zap, Eye, Users, Wrench, BarChart3,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 
 const RAPPORTS = [
   {
     id: "express",
+    icon: Zap,
+    iconColor: "text-orange-500",
     label: "RAPPORT EXPRESS",
     desc: "Les informations essentielles pour un premier contrôle.",
-    prix: 4.99,
+    prix: "4,99",
     features: ["Accidents", "Vol", "Kilométrage", "Gage", "Importation", "Et plus encore…"],
+    btnClass: "border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white",
   },
   {
     id: "complet",
+    icon: ShieldCheck,
+    iconColor: "text-green-500",
     label: "RAPPORT COMPLET",
     desc: "L'historique détaillé pour acheter en toute sérénité.",
-    prix: 7.99,
+    prix: "7,99",
     popular: true,
     features: ["Tout le rapport Express", "Entretien et réparations", "Nombre de propriétaires", "Contrôles techniques", "Détails sur l'importation", "Et plus encore…"],
+    btnClass: "bg-green-600 text-white hover:bg-green-700",
   },
   {
     id: "premium",
+    icon: Award,
+    iconColor: "text-purple-500",
     label: "RAPPORT PREMIUM",
     desc: "Le rapport ultra-détaillé avec analyse avancée IA.",
-    prix: 12.99,
+    prix: "12,99",
     features: ["Tout le rapport Complet", "Analyse IA des risques", "Estimation valeur marché", "Historique photos (si disponible)", "Documents administratifs", "Et plus encore…"],
+    btnClass: "border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white",
   },
 ];
 
 const CONTENU_RAPPORT = [
   { icon: AlertTriangle, label: "Accidents" },
-  { icon: ShieldCheck, label: "Vol" },
-  { icon: Car, label: "Kilométrage" },
+  { icon: Lock, label: "Vol" },
+  { icon: BarChart3, label: "Kilométrage" },
   { icon: FileText, label: "Gage" },
-  { icon: Search, label: "Entretien" },
-  { icon: Car, label: "Importation" },
-  { icon: Star, label: "Propriétaires" },
-  { icon: Award, label: "Et plus encore" },
+  { icon: Wrench, label: "Entretien" },
+  { icon: Globe, label: "Importation" },
+  { icon: Users, label: "Propriétaires" },
+  { icon: Eye, label: "Et plus encore" },
 ];
 
-const BADGES_BOTTOM = [
-  { label: "Sources officielles", desc: "Données provenant d'organismes officiels et partenaires agréés" },
-  { label: "100% sécurisé", desc: "Vos données sont protégées et confidentielles" },
-  { label: "Rapport instantané", desc: "Disponible immédiatement après paiement" },
-  { label: "Disponible 24h/24", desc: "Service accessible à tout moment, où que vous soyez" },
-  { label: "Support expert", desc: "Une équipe à votre écoute 7j/7" },
+const PIEGES = [
+  { icon: AlertTriangle, label: "Véhicule volé", color: "text-red-600" },
+  { icon: AlertTriangle, label: "Compteur trafiqué", color: "text-orange-600" },
+  { icon: AlertTriangle, label: "Véhicule accidenté", color: "text-red-600" },
+  { icon: AlertTriangle, label: "Véhicule gagé", color: "text-orange-600" },
+  { icon: AlertTriangle, label: "Importation à risque", color: "text-red-600" },
 ];
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="border-b border-slate-200">
-      <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center justify-between py-4 text-left">
-        <h3 className="text-sm font-bold text-[#111]">{title}</h3>
-        <ChevronDown size={16} className={`text-[#D4AF37] transition ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && <div className="pb-4">{children}</div>}
-    </div>
-  );
-}
 
 export default function Historique() {
-  const [searchType, setSearchType] = useState<"plate" | "vin" | "foreign">("plate");
-  const [value, setValue] = useState("");
+  const [plaque, setPlaque] = useState("");
+  const [vin, setVin] = useState("");
   const [done, setDone] = useState(false);
-  const [selectedRapport, setSelectedRapport] = useState<string | null>(null);
   const req = trpc.historique.requestReport.useMutation({ onSuccess: () => setDone(true) });
 
   return (
     <div>
-      {/* ═══ HERO — fond sombre adapté ═══ */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#2D2D3A] to-[#1A1A2E] py-10">
-        <div className="container-page relative">
-          {/* Top badges */}
-          <div className="flex flex-wrap justify-center gap-4 text-[9px] text-white/60">
-            <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Données officielles</span>
-            <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Paiement 100% sécurisé</span>
-            <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Rapport instantané</span>
+      {/* ═══════════════════════════════════════════════════════════
+          1. HERO — Fond sombre + voiture arrière-plan
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#1A1A2E] via-[#16213E] to-[#0F3460]">
+        {/* Top bar */}
+        <div className="border-b border-white/10">
+          <div className="container-page flex items-center justify-between py-2">
+            <div className="flex flex-wrap items-center gap-4 text-[9px] text-white/60">
+              <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Données officielles — Sources sécurisées</span>
+              <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Paiement 100% sécurisé — Stripe & protocole SSL</span>
+              <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Rapport instantané — Disponible en quelques secondes</span>
+            </div>
           </div>
+        </div>
 
-          {/* Title + Score */}
-          <div className="mt-5 flex flex-col items-center text-center lg:flex-row lg:justify-between lg:text-left">
-            <div>
-              <h1 className="text-2xl font-extrabold uppercase text-white sm:text-3xl">
-                Vérifiez l'historique<br /><span className="text-[#D4AF37]">d'un véhicule</span>
+        {/* Main hero */}
+        <div className="container-page py-8 lg:py-12">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            {/* Left content */}
+            <div className="max-w-lg">
+              <h1 className="text-2xl font-extrabold uppercase leading-tight text-white sm:text-3xl lg:text-4xl">
+                Vérifiez l'historique<br /><span className="italic text-[#D4AF37]">d'un véhicule</span>
               </h1>
-              <p className="mt-2 text-sm text-white/60">Évitez les mauvaises surprises et achetez en toute confiance.</p>
-              <div className="mt-3 flex flex-wrap justify-center gap-4 text-[10px] text-white/50 lg:justify-start">
-                <span className="flex items-center gap-1"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> + 537 842 rapports ce mois-ci</span>
-                <span className="flex items-center gap-1"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> 4,8/5 basé sur 12 684 avis</span>
-                <span>Garantie satisfait ou remboursé sous 14 jours</span>
+              <p className="mt-3 text-sm text-white/60">Évitez les mauvaises surprises et achetez en toute confiance.</p>
+              {/* Stats pills */}
+              <div className="mt-4 flex flex-wrap gap-3">
+                <div className="rounded-lg bg-white/10 px-3 py-2">
+                  <div className="flex items-center gap-1.5">
+                    <Star size={12} className="text-[#D4AF37]" fill="#D4AF37" />
+                    <span className="text-sm font-bold text-white">+ 537 842</span>
+                  </div>
+                  <p className="text-[8px] text-white/40">rapports générés ce mois-ci</p>
+                </div>
+                <div className="rounded-lg bg-white/10 px-3 py-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-white">4,8/5</span>
+                  </div>
+                  <p className="text-[8px] text-white/40">basé sur 12 684 avis ★★★★★</p>
+                </div>
+                <div className="rounded-lg bg-white/10 px-3 py-2">
+                  <p className="text-[10px] font-semibold text-white/70">Garantie satisfait</p>
+                  <p className="text-[8px] text-white/40">ou remboursé sous 14 jours</p>
+                </div>
               </div>
             </div>
-            <div className="mt-4 flex flex-col items-center lg:mt-0">
-              <div className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-center">
-                <p className="text-[9px] text-white/40">Score de confiance</p>
-                <div className="mt-1 flex h-14 w-14 mx-auto items-center justify-center rounded-full border-2 border-green-400">
-                  <span className="text-lg font-extrabold text-white">92</span>
+
+            {/* Right — Score de confiance */}
+            <div className="rounded-xl border border-white/10 bg-white/5 px-6 py-4 text-center backdrop-blur">
+              <p className="text-[9px] font-semibold text-white/50">Score de confiance</p>
+              <div className="mx-auto mt-2 flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-green-400">
+                <div className="text-center">
+                  <span className="text-2xl font-extrabold text-white">92</span>
+                  <p className="text-[8px] text-white/40">/100</p>
                 </div>
-                <p className="mt-1 text-[9px] text-white/40">/100</p>
-                <p className="text-xs font-bold text-green-400">Excellent</p>
-                <p className="text-[8px] text-white/30">Ce véhicule présente un faible risque</p>
               </div>
+              <p className="mt-2 text-sm font-bold text-green-400">Excellent</p>
+              <p className="mt-0.5 text-[9px] text-white/40">Ce véhicule présente<br />un faible risque</p>
             </div>
           </div>
+        </div>
 
-          {/* Search tabs */}
-          <div className="mx-auto mt-6 max-w-xl">
+        {/* Search bar section */}
+        <div className="border-t border-white/10 bg-white/5">
+          <div className="container-page py-4">
+            {/* Tabs */}
             <div className="flex gap-1">
-              {([
-                { id: "plate", label: "Par plaque" },
-                { id: "vin", label: "Par VIN" },
-                { id: "foreign", label: "Immatriculation étrangère" },
-              ] as const).map((t) => (
-                <button key={t.id} onClick={() => setSearchType(t.id as any)}
-                  className={`rounded-t-lg px-4 py-1.5 text-[10px] font-bold transition ${searchType === t.id ? "bg-[#D4AF37] text-white" : "bg-white/10 text-white/60 hover:bg-white/15"}`}>
-                  {t.label}
-                </button>
-              ))}
+              <span className="rounded-full bg-[#D4AF37] px-4 py-1.5 text-[10px] font-bold text-white">Par plaque</span>
+              <span className="rounded-full bg-white/10 px-4 py-1.5 text-[10px] font-bold text-white/60">Par VIN</span>
+              <span className="rounded-full bg-white/10 px-4 py-1.5 text-[10px] font-bold text-white/60">Immatriculation étrangère</span>
             </div>
-            <div className="flex items-center gap-2 rounded-b-xl rounded-tr-xl border border-white/10 bg-white/5 p-2">
-              <div className="flex flex-1 items-center gap-2">
-                {searchType === "plate" && <span className="flex h-8 w-8 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white">F</span>}
+
+            {/* Input row */}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {/* Plaque input */}
+              <div className="flex items-center gap-1 rounded-lg border-2 border-blue-500 bg-white px-2 py-2">
+                <span className="flex h-8 w-6 items-center justify-center rounded-sm bg-blue-700 text-[9px] font-bold text-white">F</span>
                 <input
-                  className="flex-1 bg-transparent py-2 text-sm text-white placeholder-white/30 outline-none"
-                  placeholder={searchType === "plate" ? "AA - 123 - BB" : searchType === "vin" ? "Entrez le numéro VIN" : "Numéro d'immatriculation"}
-                  value={value}
-                  onChange={(e) => setValue(e.target.value.toUpperCase())}
+                  className="w-28 bg-transparent text-center text-lg font-extrabold text-[#111] outline-none placeholder-slate-300"
+                  placeholder="AA - 123 - BB"
+                  value={plaque}
+                  onChange={(e) => setPlaque(e.target.value.toUpperCase())}
+                />
+                <div className="flex flex-col items-center">
+                  <span className="text-[7px]">🇪🇺</span>
+                  <span className="rounded bg-blue-700 px-1 text-[7px] font-bold text-white">75</span>
+                </div>
+              </div>
+
+              <span className="text-xs font-bold text-white/40">ou</span>
+
+              {/* VIN input */}
+              <div className="flex items-center gap-1 rounded-lg border border-white/20 bg-white/10 px-3 py-2">
+                <span className="text-[10px] text-white/30">||||||||</span>
+                <input
+                  className="w-36 bg-transparent text-sm text-white outline-none placeholder-white/30"
+                  placeholder="Entrez le numéro VIN"
+                  value={vin}
+                  onChange={(e) => setVin(e.target.value.toUpperCase())}
                 />
               </div>
-              <button onClick={() => { if (value) req.mutate({ searchType, searchValue: value }); }}
-                disabled={!value || req.isPending}
-                className="flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#C5A028] disabled:opacity-40">
-                Vérifier l'historique <ArrowRight size={12} />
+
+              {/* Button */}
+              <button
+                onClick={() => {
+                  const val = plaque || vin;
+                  if (val) req.mutate({ searchType: plaque ? "plate" : "vin", searchValue: val });
+                }}
+                disabled={(!plaque && !vin) || req.isPending}
+                className="flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#C5A028] disabled:opacity-40"
+              >
+                VÉRIFIER L'HISTORIQUE <ArrowRight size={14} />
               </button>
             </div>
-            <div className="mt-2 flex flex-wrap justify-center gap-3 text-[9px] text-white/40">
+
+            {/* Sub badges */}
+            <div className="mt-2 flex flex-wrap gap-4 text-[9px] text-white/40">
               <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-400" /> Rapport instantané en quelques secondes</span>
               <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-400" /> Paiement 100% sécurisé</span>
               <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-400" /> Données officielles et vérifiées</span>
             </div>
-          </div>
 
-          {done && (
-            <div className="mx-auto mt-4 max-w-xl rounded-lg bg-green-500/20 border border-green-500/30 p-3 text-center">
-              <p className="text-sm text-green-300 font-semibold">Demande enregistrée ! Le rapport sera disponible dans votre compte.</p>
-            </div>
-          )}
-
-          {/* Car illustration */}
-          <div className="mt-6 flex justify-center opacity-10">
-            <Car size={100} className="text-white" />
+            {done && (
+              <div className="mt-3 rounded-lg bg-green-500/20 border border-green-400/30 p-3">
+                <p className="text-sm text-green-300 font-semibold">Demande enregistrée ! Le rapport sera disponible dans votre compte.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* ═══ RAPPORTS — en ligne cliquable ═══ */}
-      <section className="bg-white py-8">
+      {/* ═══════════════════════════════════════════════════════════
+          2. CHOISISSEZ VOTRE RAPPORT — 3 cartes toujours visibles
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-[#F8F9FA] py-8">
         <div className="container-page">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <h2 className="text-sm font-extrabold uppercase tracking-wide text-[#111]">Choisissez votre rapport</h2>
-              <p className="mt-0.5 text-xs text-slate-500">Des informations claires pour une décision en toute confiance.</p>
+              <h2 className="text-base font-extrabold uppercase text-[#111]">Choisissez votre rapport</h2>
+              <p className="text-xs text-slate-500">Des informations claires pour une décision en toute confiance.</p>
             </div>
-            <span className="flex items-center gap-1 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-[9px] font-semibold text-green-700">
+            <span className="flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-[9px] font-semibold text-green-700">
               <CheckCircle size={10} /> Garantie satisfait ou remboursé 14 jours
             </span>
           </div>
 
-          {/* 3 rapports côte à côte — cliquables */}
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
             {RAPPORTS.map((r) => {
-              const isOpen = selectedRapport === r.id;
+              const Icon = r.icon;
               return (
-                <div key={r.id} className={`rounded-xl border-2 transition ${r.popular ? "border-[#D4AF37] shadow-md" : "border-slate-200"} ${isOpen ? "bg-[#FEFCE8]" : "bg-white"}`}>
-                  <button type="button" onClick={() => setSelectedRapport(isOpen ? null : r.id)} className="w-full p-4 text-left">
-                    {r.popular && (
-                      <span className="mb-2 inline-block rounded-full bg-[#D4AF37] px-3 py-0.5 text-[9px] font-bold uppercase text-white">Le plus populaire</span>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-extrabold text-[#111]">{r.label}</h3>
-                      <ChevronDown size={14} className={`text-[#D4AF37] transition ${isOpen ? "rotate-180" : ""}`} />
-                    </div>
-                    <p className="mt-1 text-[10px] text-slate-500">{r.desc}</p>
-                    <p className="mt-2 text-lg font-extrabold text-[#111]">{r.prix.toFixed(2)} €<span className="text-[10px] font-normal text-slate-400"> par rapport</span></p>
-                  </button>
-                  {isOpen && (
-                    <div className="border-t border-slate-200 px-4 pb-4 pt-3">
-                      <div className="space-y-1.5">
-                        {r.features.map((f) => (
-                          <div key={f} className="flex items-center gap-1.5 text-xs text-[#111]">
-                            <CheckCircle size={10} className="shrink-0 text-green-500" /> {f}
-                          </div>
-                        ))}
-                      </div>
-                      <button className={`mt-3 w-full rounded-lg py-2 text-xs font-bold text-white ${r.popular ? "bg-[#D4AF37] hover:bg-[#C5A028]" : "bg-[#111] hover:bg-[#333]"}`}>
-                        Choisir
-                      </button>
+                <div key={r.id} className={`relative rounded-2xl bg-white p-5 shadow-sm ${r.popular ? "border-2 border-[#D4AF37] shadow-lg ring-1 ring-[#D4AF37]/20" : "border border-slate-200"}`}>
+                  {r.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="rounded-full bg-orange-500 px-4 py-1 text-[9px] font-bold uppercase text-white shadow">Le plus populaire</span>
                     </div>
                   )}
+                  <div className="flex items-start gap-3">
+                    <div className={`mt-1 ${r.iconColor}`}>
+                      <Icon size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-extrabold text-[#111]">{r.label}</h3>
+                      <p className="mt-0.5 text-[10px] text-slate-500">{r.desc}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <span className="text-2xl font-extrabold text-[#111]">{r.prix} €</span>
+                    <span className="ml-1 text-[10px] text-slate-400">par rapport</span>
+                  </div>
+                  <div className="mt-4 space-y-1.5">
+                    {r.features.map((f) => (
+                      <div key={f} className="flex items-center gap-1.5 text-xs text-[#111]">
+                        <CheckCircle size={12} className="shrink-0 text-green-500" /> {f}
+                      </div>
+                    ))}
+                  </div>
+                  <button className={`mt-5 w-full rounded-full py-2.5 text-xs font-bold transition ${r.btnClass}`}>
+                    CHOISIR
+                  </button>
                 </div>
               );
             })}
@@ -208,100 +252,164 @@ export default function Historique() {
         </div>
       </section>
 
-      {/* ═══ ALERTES RISQUES ═══ */}
+      {/* ═══════════════════════════════════════════════════════════
+          3. BANDEAU JAUNE — ÉVITEZ LES PIÈGES
+         ═══════════════════════════════════════════════════════════ */}
       <section className="bg-[#FFF3CD] py-4">
-        <div className="container-page">
-          <p className="text-center text-[10px] font-bold uppercase tracking-wide text-[#8B6914]">
+        <div className="container-page text-center">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#8B6914]">
             Économisez des milliers d'euros et évitez les pièges
           </p>
-          <div className="mt-2 flex flex-wrap justify-center gap-4 text-[10px] text-[#8B6914]">
-            {["Véhicule volé", "Compteur trafiqué", "Véhicule accidenté", "Véhicule gagé", "Importation à risque"].map((r) => (
-              <span key={r} className="flex items-center gap-1"><AlertTriangle size={10} className="text-orange-600" /> {r}</span>
+          <div className="mt-2 flex flex-wrap justify-center gap-4">
+            {PIEGES.map((p) => (
+              <span key={p.label} className={`flex items-center gap-1 text-[10px] font-semibold ${p.color}`}>
+                <p.icon size={12} /> {p.label}
+              </span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══ CE QUE CONTIENT VOTRE RAPPORT ═══ */}
+      {/* ═══════════════════════════════════════════════════════════
+          4. CE QUE CONTIENT VOTRE RAPPORT — 8 icônes
+         ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-8">
         <div className="container-page">
-          <Section title="CE QUE CONTIENT VOTRE RAPPORT">
-            <div className="grid grid-cols-4 gap-3 sm:grid-cols-8">
-              {CONTENU_RAPPORT.map((c) => {
-                const Icon = c.icon;
-                return (
-                  <div key={c.label} className="flex flex-col items-center gap-1 text-center">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200">
-                      <Icon size={16} className="text-slate-600" />
+          <h2 className="text-center text-sm font-extrabold uppercase tracking-wide text-[#111]">Ce que contient votre rapport</h2>
+          <div className="mx-auto mt-5 grid max-w-2xl grid-cols-4 gap-4 sm:grid-cols-8">
+            {CONTENU_RAPPORT.map((c) => {
+              const Icon = c.icon;
+              return (
+                <div key={c.label} className="flex flex-col items-center gap-1.5 text-center">
+                  <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm">
+                    <Icon size={18} className="text-slate-600" />
+                    <div className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-green-500">
+                      <CheckCircle size={8} className="text-white" />
                     </div>
-                    <span className="text-[9px] font-semibold text-[#111]">{c.label}</span>
                   </div>
-                );
-              })}
-            </div>
-          </Section>
-
-          {/* Exemple de rapport */}
-          <Section title="EXEMPLE DE RAPPORT">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-xl border border-slate-200 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-bold text-[#111]">RENAULT CLIO IV</h4>
-                    <p className="text-[10px] text-slate-500">1.5 dCi 90 cv</p>
-                    <span className="mt-1 inline-flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-[9px] font-bold text-blue-700">
-                      <span className="flex h-3 w-3 items-center justify-center rounded-sm bg-blue-600 text-[7px] text-white">F</span> AA-123-BB
-                    </span>
-                  </div>
-                  <span className="rounded border border-green-200 bg-green-50 px-2 py-0.5 text-[9px] font-bold text-green-700">RAPPORT COMPLET</span>
+                  <span className="text-[9px] font-bold text-[#111]">{c.label}</span>
                 </div>
-                <div className="mt-3 flex items-center gap-4">
-                  <div className="flex flex-col items-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-green-400">
-                      <span className="text-sm font-extrabold text-[#111]">92</span>
-                    </div>
-                    <p className="text-[8px] text-slate-400">/100</p>
-                    <p className="text-[9px] font-bold text-green-600">Excellent</p>
-                  </div>
-                  <div className="flex-1 space-y-1 text-[10px] text-slate-600">
-                    <div className="flex justify-between"><span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Accidents</span><span className="font-semibold">Aucun accident déclaré</span></div>
-                    <div className="flex justify-between"><span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Kilométrage</span><span className="font-semibold">128 450 km — Cohérent</span></div>
-                    <div className="flex justify-between"><span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Vol</span><span className="font-semibold">Aucun vol déclaré</span></div>
-                    <div className="flex justify-between"><span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Entretien</span><span className="font-semibold">12 entretiens trouvés</span></div>
-                    <div className="flex justify-between"><span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Propriétaires</span><span className="font-semibold">2 propriétaires</span></div>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-                  <h4 className="text-xs font-bold text-red-800">Pourquoi vérifier l'historique ?</h4>
-                  <div className="mt-2 space-y-2 text-[10px] text-red-700">
-                    <p><strong>Achetez en toute confiance</strong> — Évitez les mauvaises surprises et les vices cachés.</p>
-                    <p><strong>Protégez votre investissement</strong> — Un historique clair = une meilleure valeur.</p>
-                    <p><strong>Gagnez du temps</strong> — Rapport instantané disponible 24H/24 et 7J/7.</p>
-                  </div>
-                </div>
-                <div className="rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-4">
-                  <h4 className="text-xs font-bold text-[#111]">Analyse Intelligente MKA.P-MS</h4>
-                  <p className="mt-1 text-[10px] text-slate-600">Notre IA analyse des millions de données pour vous fournir un rapport fiable et objectif.</p>
-                </div>
-              </div>
-            </div>
-          </Section>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      {/* ═══ BADGES BAS ═══ */}
-      <section className="border-t border-slate-200 bg-[#F8F9FA] py-6">
+      {/* ═══════════════════════════════════════════════════════════
+          5. EXEMPLE DE RAPPORT + POURQUOI VÉRIFIER + ANALYSE IA
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-[#F8F9FA] py-8">
         <div className="container-page">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-            {BADGES_BOTTOM.map((b) => (
-              <div key={b.label} className="flex flex-col items-center gap-1 text-center">
-                <ShieldCheck size={16} className="text-[#111]" />
-                <h4 className="text-[10px] font-bold text-[#111]">{b.label}</h4>
-                <p className="text-[8px] text-slate-500">{b.desc}</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Left — Exemple de rapport */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="flex items-center gap-2">
+                <Star size={14} className="text-[#D4AF37]" fill="#D4AF37" />
+                <h3 className="text-sm font-extrabold text-[#111]">EXEMPLE DE RAPPORT</h3>
               </div>
-            ))}
+              <div className="mt-3 flex items-start justify-between">
+                <div>
+                  <h4 className="text-base font-bold text-[#111]">RENAULT CLIO IV</h4>
+                  <p className="text-[10px] text-slate-500">1.5 dCi 90 cv</p>
+                  <span className="mt-1 inline-flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-[9px] font-bold text-blue-700">
+                    <span className="flex h-3 w-3 items-center justify-center rounded-sm bg-blue-600 text-[6px] text-white">F</span> AA-123-BB
+                  </span>
+                  <p className="mt-1 text-[8px] text-slate-400">Rapport généré le 28/05/2024 à 21:10</p>
+                </div>
+                <span className="rounded border border-green-200 bg-green-50 px-2 py-0.5 text-[8px] font-bold text-green-700">RAPPORT COMPLET</span>
+              </div>
+
+              {/* Score + Details */}
+              <div className="mt-4 flex gap-4">
+                <div className="flex flex-col items-center">
+                  <p className="text-[8px] text-slate-400">Score de confiance</p>
+                  <div className="mt-1 flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-green-400">
+                    <div className="text-center">
+                      <span className="text-xl font-extrabold text-[#111]">92</span>
+                      <p className="text-[7px] text-slate-400">/100</p>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-[10px] font-bold text-green-600">Excellent</p>
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px]"><span className="flex items-center gap-1 text-slate-600"><CheckCircle size={10} className="text-green-500" /> Accidents</span><span className="font-semibold text-[#111]">Aucun accident déclaré</span></div>
+                  <div className="flex items-center justify-between text-[10px]"><span className="flex items-center gap-1 text-slate-600"><CheckCircle size={10} className="text-green-500" /> Kilométrage</span><span className="font-semibold text-[#111]">128 450 km <span className="text-green-600">Cohérent</span></span></div>
+                  <div className="flex items-center justify-between text-[10px]"><span className="flex items-center gap-1 text-slate-600"><CheckCircle size={10} className="text-green-500" /> Vol</span><span className="font-semibold text-[#111]">Aucun vol déclaré</span></div>
+                  <div className="flex items-center justify-between text-[10px]"><span className="flex items-center gap-1 text-slate-600"><CheckCircle size={10} className="text-green-500" /> Gage</span><span className="font-semibold text-[#111]">Aucun gage enregistré</span></div>
+                  <div className="flex items-center justify-between text-[10px]"><span className="flex items-center gap-1 text-slate-600"><CheckCircle size={10} className="text-green-500" /> Entretien</span><span className="font-semibold text-[#111]">12 entretiens trouvés</span></div>
+                  <div className="flex items-center justify-between text-[10px]"><span className="flex items-center gap-1 text-slate-600"><CheckCircle size={10} className="text-green-500" /> Propriétaires</span><span className="font-semibold text-[#111]">2 propriétaires</span></div>
+                  <div className="flex items-center justify-between text-[10px]"><span className="flex items-center gap-1 text-slate-600"><CheckCircle size={10} className="text-green-500" /> Importation</span><span className="font-semibold text-[#111]">Non importé</span></div>
+                  <div className="flex items-center justify-between text-[10px]"><span className="flex items-center gap-1 text-slate-600"><CheckCircle size={10} className="text-green-500" /> Contrôle technique</span><span className="font-semibold text-[#111]">Valide jusqu'au 12/2025</span></div>
+                </div>
+              </div>
+
+              <button className="mt-4 flex items-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 text-[10px] font-bold text-slate-700 hover:bg-slate-50">
+                VOIR UN EXEMPLE COMPLET <ArrowRight size={10} />
+              </button>
+            </div>
+
+            {/* Right — Pourquoi + Analyse IA */}
+            <div className="flex flex-col gap-4">
+              {/* Pourquoi vérifier */}
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-5">
+                <h3 className="text-sm font-extrabold text-red-800">POURQUOI VÉRIFIER L'HISTORIQUE ?</h3>
+                <div className="mt-3 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <ShieldCheck size={14} className="mt-0.5 shrink-0 text-red-600" />
+                    <div>
+                      <p className="text-xs font-bold text-red-800">Achetez en toute confiance</p>
+                      <p className="text-[10px] text-red-700">Évitez les mauvaises surprises et les vices cachés.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <ShieldCheck size={14} className="mt-0.5 shrink-0 text-red-600" />
+                    <div>
+                      <p className="text-xs font-bold text-red-800">Protégez votre investissement</p>
+                      <p className="text-[10px] text-red-700">Un historique clair = une meilleure valeur.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <ShieldCheck size={14} className="mt-0.5 shrink-0 text-red-600" />
+                    <div>
+                      <p className="text-xs font-bold text-red-800">Gagnez du temps</p>
+                      <p className="text-[10px] text-red-700">Rapport instantané disponible 24H/24 et 7J/7.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Analyse Intelligente MKA.P-MS */}
+              <div className="rounded-2xl bg-gradient-to-br from-[#1A1A2E] to-[#2D2D3A] p-5">
+                <h3 className="text-sm font-extrabold text-[#D4AF37]">ANALYSE INTELLIGENTE MKA.P-MS</h3>
+                <p className="mt-2 text-xs text-white/60">Notre IA analyse des millions de données pour vous fournir un rapport fiable et objectif.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          6. BADGES BAS — 5 colonnes
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="border-t border-slate-200 bg-white py-6">
+        <div className="container-page">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+            {[
+              { icon: Globe, label: "Sources officielles", desc: "Données provenant d'organismes officiels et partenaires agréés" },
+              { icon: Lock, label: "100% sécurisé", desc: "Vos données sont protégées et confidentielles" },
+              { icon: Zap, label: "Rapport instantané", desc: "Disponible immédiatement après paiement" },
+              { icon: Clock, label: "Disponible 24h/24", desc: "Service accessible à tout moment, où que vous soyez" },
+              { icon: Headphones, label: "Support expert", desc: "Une équipe à votre écoute 7j/7" },
+            ].map((b) => {
+              const Icon = b.icon;
+              return (
+                <div key={b.label} className="flex flex-col items-center gap-1.5 text-center">
+                  <Icon size={18} className="text-[#111]" />
+                  <h4 className="text-[10px] font-bold text-[#111]">{b.label}</h4>
+                  <p className="text-[8px] text-slate-500 leading-tight">{b.desc}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
