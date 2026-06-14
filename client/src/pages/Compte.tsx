@@ -5,6 +5,7 @@ import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
 import { isAdmin, isPro, ROLE_LABELS } from "@shared/roles";
 import type { UserRole } from "@shared/roles";
+import FileUpload from "../components/FileUpload";
 
 type Tab = "annonces" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "profil";
 
@@ -277,7 +278,16 @@ export default function Compte() {
                 </select>
                 <input className="input max-w-xs" placeholder="Titre" value={doc.title} onChange={(e) => setDoc({ ...doc, title: e.target.value })} />
               </div>
-              <input className="input" placeholder="Lien du fichier (https://…)" value={doc.fileUrl} onChange={(e) => setDoc({ ...doc, fileUrl: e.target.value })} />
+              <FileUpload
+                label="Ajouter le fichier (photo, PDF)"
+                accept="image/*,.pdf,.doc,.docx"
+                multiple={false}
+                maxFiles={1}
+                onUploaded={(files) => {
+                  if (files.length > 0) setDoc({ ...doc, fileUrl: files[0].url });
+                }}
+              />
+              {doc.fileUrl && <p className="text-xs text-green-600">Fichier ajouté</p>}
               <button className="btn-primary !text-sm">Enregistrer</button>
             </form>
             {coffre.data?.map((d) => (

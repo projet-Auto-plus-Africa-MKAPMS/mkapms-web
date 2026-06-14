@@ -8,9 +8,9 @@ export default function VtcTaxi() {
 
   return (
     <div className="container-page py-8">
-      <h1 className="text-2xl font-extrabold text-slate-900">VTC / TAXI</h1>
+      <h1 className="text-2xl font-extrabold text-slate-900">VTC / TAXI — Location de flottes</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Sociétés VTC et Taxi, flottes et chauffeurs. Réservez une course ou demandez une disponibilité.
+        Location de véhicules conformes VTC et Taxi. Gestion de flotte, contrats et documents professionnels.
       </p>
 
       <div className="mt-6 flex gap-2">

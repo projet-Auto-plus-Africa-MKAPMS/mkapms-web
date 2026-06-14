@@ -4,6 +4,7 @@ import { CheckCircle2, Clock, ShieldAlert, Upload } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { profilesForRole, PROFILE_LIST, type ProfileDef } from "@shared/profiles";
+import FileUpload from "../components/FileUpload";
 
 const STATUS_LABEL: Record<string, string> = {
   non_demarre: "Non démarré",
@@ -106,12 +107,20 @@ export default function Validation() {
                     <Upload size={14} className="text-gold-dark" /> {d.label}
                     {already && <span className="badge bg-green-100 text-green-700">déjà soumis</span>}
                   </label>
-                  <input
-                    className="input mt-1"
-                    placeholder="Lien ou référence du document (PDF, photo…)"
-                    value={docs[key] ?? ""}
-                    onChange={(e) => setDoc(key, e.target.value)}
-                  />
+                  <div className="mt-1">
+                    <FileUpload
+                      label={`Ajouter ${d.label}`}
+                      accept="image/*,.pdf,.doc,.docx"
+                      multiple={false}
+                      maxFiles={1}
+                      onUploaded={(files) => {
+                        if (files.length > 0) setDoc(key, files[0].url);
+                      }}
+                    />
+                    {docs[key] && (
+                      <p className="mt-1 text-xs text-green-600">Fichier ajouté</p>
+                    )}
+                  </div>
                 </div>
               );
             })}

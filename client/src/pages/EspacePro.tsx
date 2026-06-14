@@ -5,7 +5,7 @@ import { useAuth } from "../lib/auth";
 const ACTIVITIES = [
   { value: "vente_pro", label: "Vente Pro", icon: "🚗", desc: "Vendeur automobile professionnel" },
   { value: "location_pro", label: "Location Pro", icon: "🔑", desc: "Société de location de véhicules" },
-  { value: "vtc_taxi", label: "VTC / TAXI", icon: "🚕", desc: "Transport de personnes" },
+  { value: "vtc_taxi", label: "VTC / TAXI", icon: "🚕", desc: "Location de véhicules conformes VTC & Taxi" },
   { value: "garage_plus", label: "Garage+", icon: "🔧", desc: "Atelier mécanique, carrosserie" },
   { value: "pieces_auto", label: "Pièces Auto", icon: "⚙", desc: "Boutique / stock de pièces" },
   { value: "livraison", label: "Livraison", icon: "🚚", desc: "Service de livraison" },
@@ -99,7 +99,8 @@ function DashboardVtcTaxi() {
   const d = dashboard.data;
   return (
     <div>
-      <h2 className="mb-4 text-xl font-bold text-[#111]">Tableau de bord — VTC / TAXI</h2>
+      <h2 className="mb-4 text-xl font-bold text-[#111]">Tableau de bord — Location VTC / TAXI</h2>
+      <p className="mb-4 text-sm text-[#6B7280]">Gestion de votre flotte de véhicules conformes VTC & Taxi — location, contrats, documents.</p>
       {!societe.data ? (
         <p className="text-sm text-[#6B7280]">Créez votre société pour commencer.</p>
       ) : (

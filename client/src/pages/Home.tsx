@@ -24,7 +24,7 @@ const CATEGORIES = [
 const PARTENAIRES = [
   { title: "Top Garages", desc: "Des garages certifiés proches de chez vous.", cta: "Voir les garages", to: "/garages", color: "bg-[#D4AF37]" },
   { title: "Experts en pièces", desc: "Trouvez vos pièces auto, au meilleur prix.", cta: "Voir les pièces", to: "/pieces", color: "bg-[#D4AF37]" },
-  { title: "VTC & Taxis", desc: "Réservez votre chauffeur en toute sérénité.", cta: "Réserver", to: "/vtc-taxi", color: "bg-[#D4AF37]" },
+  { title: "VTC & Taxis", desc: "Location de véhicules conformes VTC & Taxi pour professionnels.", cta: "Voir les flottes", to: "/vtc-taxi", color: "bg-[#D4AF37]" },
   { title: "Dépanneurs", desc: "Une assistance rapide 24h/24 et 7j/7.", cta: "Demander", to: "/depannage", color: "bg-[#D4AF37]" },
 ];
 
