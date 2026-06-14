@@ -513,89 +513,264 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           4. HISTORIQUE VÉHICULE
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#2D2D3A] to-[#1A1A2E] py-10">
-        <div className="container-page relative">
-          {/* Top bar badges */}
-          <div className="flex flex-wrap justify-center gap-4 text-[9px] text-white/60">
-            <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Données officielles</span>
-            <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Paiement 100% sécurisé</span>
-            <span className="flex items-center gap-1"><CheckCircle size={10} className="text-green-400" /> Rapport instantané</span>
+      {/* ═══ SECTION HISTORIQUE — Bloc premium noir/or au milieu de la page blanche ═══ */}
+      <section className="bg-white">
+        {/* Header section historique — fond blanc */}
+        <div className="border-b border-[#F5F5F5]">
+          <div className="container-page flex items-center justify-between py-3">
+            <Link to="/historique" className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#111]">
+                <span className="text-xs font-extrabold text-[#D4AF37]">M</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-extrabold text-[#111]">MKA<span className="text-[#D4AF37]">.P</span>-MS</h3>
+                <p className="text-[6px] font-semibold uppercase tracking-widest text-slate-400">La Marketplace Automobile</p>
+              </div>
+            </Link>
+            <div className="hidden items-center gap-3 md:flex">
+              <span className="flex items-center gap-1 rounded-full border border-[#F5F5F5] px-2.5 py-1 text-[8px] text-slate-500">
+                <CheckCircle size={9} className="text-[#D4AF37]" /> <strong className="text-[#111]">Données officielles</strong>
+              </span>
+              <span className="flex items-center gap-1 rounded-full border border-[#F5F5F5] px-2.5 py-1 text-[8px] text-slate-500">
+                <CheckCircle size={9} className="text-[#D4AF37]" /> <strong className="text-[#111]">Paiement 100% sécurisé</strong>
+              </span>
+              <span className="flex items-center gap-1 rounded-full border border-[#F5F5F5] px-2.5 py-1 text-[8px] text-slate-500">
+                <CheckCircle size={9} className="text-[#D4AF37]" /> <strong className="text-[#111]">Rapport instantané</strong>
+              </span>
+            </div>
+            <Link to="/compte" className="flex items-center gap-1 rounded-full border border-[#D4AF37] px-3 py-1.5 text-[9px] font-semibold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">
+              Mon compte
+            </Link>
           </div>
+        </div>
 
-          {/* Title + Stats + Score */}
-          <div className="mt-4 flex flex-col items-center text-center lg:flex-row lg:justify-between lg:text-left">
-            <div>
-              <h2 className="text-xl font-extrabold uppercase text-white sm:text-2xl">Vérifiez l'historique<br /><span className="text-[#D4AF37]">d'un véhicule</span></h2>
-              <p className="mt-2 text-sm text-white/60">Évitez les mauvaises surprises et achetez en toute confiance.</p>
-              <div className="mt-3 flex flex-wrap justify-center gap-4 text-[10px] text-white/50 lg:justify-start">
-                <span className="flex items-center gap-1"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> + 537 842 rapports</span>
-                <span className="flex items-center gap-1"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> 4,8/5 (12 684 avis)</span>
-                <span>Garantie satisfait ou remboursé</span>
+        {/* Hero — Bloc noir premium avec reflets or */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#111111] via-[#1A1A1A] to-[#0D0D0D]">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(212,175,55,0.08)_0%,_transparent_60%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(212,175,55,0.05)_0%,_transparent_50%)]" />
+          <div className="container-page relative py-8 lg:py-10">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-md">
+                <h2 className="text-xl font-extrabold uppercase leading-tight text-white sm:text-2xl lg:text-3xl">
+                  Vérifiez l'historique<br />de votre futur<br /><span className="italic text-[#D4AF37]">véhicule</span>
+                </h2>
+                <p className="mt-2 text-sm text-white/50">Évitez les mauvaises surprises et achetez en toute confiance.</p>
+                <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-white/50">
+                  <span className="flex items-center gap-1"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> + 537 842 rapports</span>
+                  <span className="flex items-center gap-1"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> 4,8/5 (12 684 avis)</span>
+                  <span className="flex items-center gap-1"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> Garantie satisfait ou remboursé sous 14 jours</span>
+                </div>
+              </div>
+              {/* Score de confiance + silhouette voiture */}
+              <div className="flex items-center gap-4">
+                <div className="opacity-20">
+                  <Car size={100} className="text-white" />
+                </div>
+                <div className="rounded-xl border border-[#D4AF37]/30 bg-[#111]/80 px-5 py-3 text-center backdrop-blur-sm">
+                  <p className="text-[8px] font-semibold text-white/50">Score de confiance</p>
+                  <div className="mx-auto mt-1.5 flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-green-400">
+                    <div className="text-center"><span className="text-lg font-extrabold text-white">92</span><p className="text-[7px] text-white/40">/100</p></div>
+                  </div>
+                  <p className="mt-1 text-[10px] font-bold text-green-400">Excellent</p>
+                  <p className="mt-0.5 text-[7px] text-white/40">Ce véhicule présente<br />un faible risque</p>
+                </div>
               </div>
             </div>
-            <div className="mt-4 flex flex-col items-center lg:mt-0">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-green-400 bg-[#111]">
-                <span className="text-lg font-extrabold text-white">92</span>
-              </div>
-              <p className="mt-1 text-[9px] text-white/40">/100</p>
-              <p className="text-[10px] font-bold text-green-400">Excellent</p>
-            </div>
           </div>
+        </div>
 
-          {/* Search tabs + input */}
-          <div className="mx-auto mt-5 max-w-xl">
+        {/* Recherche — fond blanc, contours or */}
+        <div className="border-b border-[#F5F5F5] bg-white py-4">
+          <div className="container-page">
             <div className="flex gap-1">
-              {(["plate", "vin"] as const).map((t) => (
+              {(["plate", "vin", "foreign"] as const).map((t) => (
                 <button key={t} onClick={() => {}}
-                  className={`rounded-t-lg px-4 py-1.5 text-xs font-bold ${t === "plate" ? "bg-[#D4AF37] text-white" : "bg-white/10 text-white/60"}`}>
-                  {t === "plate" ? "Par plaque" : "Par VIN"}
+                  className={`rounded-full px-3 py-1.5 text-[10px] font-bold transition ${t === "plate" ? "bg-[#D4AF37] text-white" : "border border-[#D4AF37]/30 text-[#111] hover:bg-[#D4AF37]/5"}`}>
+                  {t === "plate" ? "Par plaque" : t === "vin" ? "Par VIN" : "Immatriculation étrangère"}
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-2 rounded-b-xl rounded-tr-xl border border-white/10 bg-white/5 p-2">
-              <div className="flex flex-1 items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white">F</span>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1 rounded-lg border-2 border-[#D4AF37] bg-white px-2 py-2">
+                <span className="flex h-7 w-5 items-center justify-center rounded-sm bg-blue-700 text-[8px] font-bold text-white">F</span>
                 <input
-                  className="flex-1 bg-transparent py-2 text-sm text-white placeholder-white/30 outline-none"
-                  placeholder="Entrez le n° de plaque (ex: AB-123-CD)"
+                  className="w-28 bg-transparent text-center text-base font-extrabold text-[#111] outline-none placeholder-slate-300"
+                  placeholder="AA - 123 - BB"
                   value={histPlaque}
                   onChange={(e) => setHistPlaque(e.target.value.toUpperCase())}
                 />
+                <div className="flex flex-col items-center"><span className="text-[6px]">🇪🇺</span><span className="rounded bg-blue-700 px-0.5 text-[6px] font-bold text-white">75</span></div>
               </div>
-              <button onClick={() => setHistResult(true)} className="flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#C5A028]">
-                Vérifier <ArrowRight size={12} />
-              </button>
+              <span className="text-xs font-bold text-slate-300">ou</span>
+              <div className="flex items-center gap-1 rounded-lg border border-[#D4AF37]/30 bg-white px-3 py-2">
+                <span className="text-[9px] text-slate-300">||||||||</span>
+                <input className="w-32 bg-transparent text-sm text-[#111] outline-none placeholder-slate-300" placeholder="Entrez le numéro VIN" />
+              </div>
+              <Link to="/historique" className="flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-4 py-2.5 text-xs font-bold text-[#111] hover:bg-[#C5A028] hover:text-white">
+                VÉRIFIER L'HISTORIQUE <ArrowRight size={12} />
+              </Link>
             </div>
-            <div className="mt-2 flex flex-wrap justify-center gap-3 text-[9px] text-white/40">
-              <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-400" /> Rapport instantané</span>
-              <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-400" /> Paiement 100% sécurisé</span>
-              <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-400" /> Données officielles</span>
+            <div className="mt-2 flex flex-wrap gap-3 text-[8px] text-slate-400">
+              <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Rapport instantané en quelques secondes</span>
+              <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Paiement 100% sécurisé</span>
+              <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Données officielles et vérifiées</span>
             </div>
           </div>
+        </div>
 
-          {/* Tags infos — 2 colonnes sur mobile */}
-          <div className="mx-auto mt-5 grid max-w-md grid-cols-2 gap-x-6 gap-y-1.5 sm:grid-cols-4">
-            {["Accidents", "Vol", "Kilométrage", "Gage", "Entretien", "Importation", "Propriétaires", "Et plus encore…"].map((t) => (
-              <div key={t} className="flex items-center gap-1.5">
-                <CheckCircle size={12} className="shrink-0 text-green-400" />
-                <span className="text-xs font-medium text-white/70">{t}</span>
+        {/* Tarifs — fond blanc, cartes blanches, contours or */}
+        <div className="bg-white py-6">
+          <div className="container-page">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-extrabold uppercase text-[#111]">Choisissez votre rapport</h3>
+                <p className="text-[10px] text-slate-500">Des informations claires pour une décision en toute confiance.</p>
               </div>
-            ))}
-          </div>
-
-          {/* Result preview */}
-          {histResult && (
-            <div className="mx-auto mt-5 grid max-w-lg grid-cols-2 gap-2 sm:grid-cols-4">
-              <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-[9px] text-white/40">Propriétaires</p><p className="text-lg font-bold text-white">2</p></div>
-              <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-[9px] text-white/40">Accidents</p><p className="text-lg font-bold text-green-400">0</p></div>
-              <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-[9px] text-white/40">Dernier CT</p><p className="text-lg font-bold text-white">03/25</p></div>
-              <div className="rounded-lg bg-white/10 p-3 text-center"><p className="text-[9px] text-white/40">Km vérifié</p><p className="text-lg font-bold text-white">45 200</p></div>
+              <span className="flex items-center gap-1 rounded-full border border-[#D4AF37]/30 px-3 py-1 text-[8px] font-semibold text-[#111]">
+                <CheckCircle size={9} className="text-green-500" /> Garantie satisfait ou remboursé 14 jours
+              </span>
             </div>
-          )}
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {[
+                { label: "RAPPORT EXPRESS", prix: "4,99", desc: "Les informations essentielles pour un premier contrôle.", features: ["Accidents", "Vol", "Kilométrage", "Gage", "Importation", "Et plus encore…"], icon: "⚡", popular: false },
+                { label: "RAPPORT COMPLET", prix: "7,99", desc: "L'historique détaillé pour acheter en toute sérénité.", features: ["Tout le rapport Express", "Entretien et réparations", "Nombre de propriétaires", "Contrôles techniques", "Détails sur l'importation", "Et plus encore…"], icon: "🛡️", popular: true },
+                { label: "RAPPORT PREMIUM", prix: "12,99", desc: "Le rapport ultra-détaillé avec analyse avancée IA.", features: ["Tout le rapport Complet", "Analyse IA des risques", "Estimation valeur marché", "Historique photos (si disponible)", "Documents administratifs", "Et plus encore…"], icon: "🏆", popular: false },
+              ].map((r) => (
+                <div key={r.label} className={`relative rounded-xl bg-white p-4 ${r.popular ? "border-2 border-[#D4AF37] shadow-lg shadow-[#D4AF37]/10" : "border border-[#D4AF37]/20"}`}>
+                  {r.popular && <div className="absolute -top-2.5 left-1/2 -translate-x-1/2"><span className="rounded-full bg-[#D4AF37] px-3 py-0.5 text-[8px] font-bold uppercase text-white shadow">Le plus populaire</span></div>}
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">{r.icon}</span>
+                    <div><h4 className="text-xs font-extrabold text-[#111]">{r.label}</h4><p className="mt-0.5 text-[9px] text-slate-500">{r.desc}</p></div>
+                  </div>
+                  <div className="mt-3"><span className="text-xl font-extrabold text-[#111]">{r.prix} €</span><span className="ml-1 text-[9px] text-slate-400">par rapport</span></div>
+                  <div className="mt-3 space-y-1">{r.features.map((f) => (<div key={f} className="flex items-center gap-1 text-[10px] text-[#111]"><CheckCircle size={10} className="shrink-0 text-[#D4AF37]" /> {f}</div>))}</div>
+                  <Link to="/historique" className={`mt-4 block w-full rounded-full py-2 text-center text-[10px] font-bold transition ${r.popular ? "bg-[#D4AF37] text-white hover:bg-[#C5A028]" : "border-2 border-[#D4AF37] text-[#111] hover:bg-[#D4AF37] hover:text-white"}`}>CHOISIR</Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-          {/* Dessin voiture en bas */}
-          <div className="mt-6 flex justify-center opacity-10">
-            <Car size={120} className="text-white" />
+        {/* Bandeau alerte */}
+        <div className="border-y border-[#D4AF37]/20 bg-[#FFFDF5] py-3">
+          <div className="container-page text-center">
+            <p className="text-[9px] font-extrabold uppercase tracking-widest text-[#8B6914]">Économisez des milliers d'euros et évitez les pièges</p>
+            <div className="mt-1.5 flex flex-wrap justify-center gap-3 text-[9px]">
+              <span className="flex items-center gap-1 font-semibold text-red-600"><AlertTriangle size={10} /> Véhicule volé</span>
+              <span className="flex items-center gap-1 font-semibold text-orange-600"><AlertTriangle size={10} /> Compteur trafiqué</span>
+              <span className="flex items-center gap-1 font-semibold text-red-600"><AlertTriangle size={10} /> Véhicule accidenté</span>
+              <span className="flex items-center gap-1 font-semibold text-orange-600"><AlertTriangle size={10} /> Véhicule gagé</span>
+              <span className="flex items-center gap-1 font-semibold text-red-600"><AlertTriangle size={10} /> Importation à risque</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Ce que contient — fond blanc, icônes or */}
+        <div className="bg-white py-5">
+          <div className="container-page">
+            <h3 className="text-center text-xs font-extrabold uppercase tracking-wide text-[#111]">Ce que contient votre rapport</h3>
+            <div className="mx-auto mt-4 grid max-w-xl grid-cols-4 gap-3 sm:grid-cols-8">
+              {["Accidents", "Vol", "Kilométrage", "Gage", "Entretien", "Importation", "Propriétaires", "Et plus encore"].map((t) => (
+                <div key={t} className="flex flex-col items-center gap-1 text-center">
+                  <div className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-white shadow-sm">
+                    <CheckCircle size={14} className="text-[#D4AF37]" />
+                    <div className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-green-500"><CheckCircle size={7} className="text-white" /></div>
+                  </div>
+                  <span className="text-[8px] font-bold text-[#111]">{t}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Exemple + Pourquoi + Analyse IA */}
+        <div className="bg-[#F5F5F5] py-6">
+          <div className="container-page">
+            <div className="grid gap-3 md:grid-cols-2">
+              {/* Exemple de rapport */}
+              <div className="rounded-xl border border-[#D4AF37]/20 bg-white p-4">
+                <div className="flex items-center gap-2"><Star size={12} className="text-[#D4AF37]" fill="#D4AF37" /><h4 className="text-xs font-extrabold text-[#111]">EXEMPLE DE RAPPORT</h4></div>
+                <div className="mt-2 flex items-start justify-between">
+                  <div>
+                    <h5 className="text-sm font-bold text-[#111]">RENAULT CLIO IV</h5>
+                    <p className="text-[9px] text-slate-500">1.5 dCi 90 cv</p>
+                    <span className="mt-1 inline-flex items-center gap-1 rounded bg-blue-100 px-1.5 py-0.5 text-[8px] font-bold text-blue-700"><span className="flex h-2.5 w-2.5 items-center justify-center rounded-sm bg-blue-600 text-[5px] text-white">F</span> AA-123-BB</span>
+                    <p className="mt-0.5 text-[7px] text-slate-400">Rapport généré le 28/05/2024 à 21:10</p>
+                  </div>
+                  <span className="rounded border border-green-200 bg-green-50 px-1.5 py-0.5 text-[7px] font-bold text-green-700">RAPPORT COMPLET</span>
+                </div>
+                <div className="mt-3 flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <p className="text-[7px] text-slate-400">Score de confiance</p>
+                    <div className="mt-1 flex h-12 w-12 items-center justify-center rounded-full border-[2px] border-green-400"><div className="text-center"><span className="text-base font-extrabold text-[#111]">92</span><p className="text-[6px] text-slate-400">/100</p></div></div>
+                    <p className="mt-0.5 text-[9px] font-bold text-green-600">Excellent</p>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    {[
+                      { l: "Accidents", v: "Aucun accident déclaré" }, { l: "Kilométrage", v: "128 450 km Cohérent" },
+                      { l: "Vol", v: "Aucun vol déclaré" }, { l: "Gage", v: "Aucun gage enregistré" },
+                      { l: "Entretien", v: "12 entretiens trouvés" }, { l: "Propriétaires", v: "2 propriétaires" },
+                      { l: "Importation", v: "Non importé" }, { l: "Contrôle technique", v: "Valide jusqu'au 12/2025" },
+                    ].map((r) => (
+                      <div key={r.l} className="flex items-center justify-between text-[9px]">
+                        <span className="flex items-center gap-1 text-slate-600"><CheckCircle size={8} className="text-[#D4AF37]" /> {r.l}</span>
+                        <span className="font-semibold text-[#111]">{r.v}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <Link to="/historique" className="mt-3 flex items-center gap-1.5 rounded-full border border-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">VOIR UN EXEMPLE COMPLET <ArrowRight size={9} /></Link>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                {/* Pourquoi vérifier */}
+                <div className="rounded-xl border border-[#D4AF37]/20 bg-white p-4">
+                  <h4 className="text-xs font-extrabold text-[#111]">POURQUOI VÉRIFIER L'HISTORIQUE ?</h4>
+                  <div className="mt-2 space-y-2">
+                    {[
+                      { t: "Achetez en toute confiance", d: "Évitez les mauvaises surprises et les vices cachés." },
+                      { t: "Protégez votre investissement", d: "Un historique clair = une meilleure valeur." },
+                      { t: "Gagnez du temps", d: "Rapport instantané disponible 24H/24 et 7J/7." },
+                    ].map((p) => (
+                      <div key={p.t} className="flex items-start gap-2">
+                        <ShieldCheck size={12} className="mt-0.5 shrink-0 text-[#D4AF37]" />
+                        <div><p className="text-[10px] font-bold text-[#111]">{p.t}</p><p className="text-[9px] text-slate-500">{p.d}</p></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Analyse IA — noir premium */}
+                <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#111111] to-[#1A1A1A] p-4">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(212,175,55,0.1)_0%,_transparent_60%)]" />
+                  <div className="relative flex items-center gap-2">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#D4AF37]"><span className="text-[7px] font-bold text-white">IA</span></div>
+                    <h4 className="text-xs font-extrabold text-[#D4AF37]">ANALYSE INTELLIGENTE MKA.P-MS</h4>
+                  </div>
+                  <p className="relative mt-1.5 text-[10px] text-white/60">Notre IA analyse des millions de données pour vous fournir un rapport fiable et objectif.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer garanties — fond blanc, icônes or */}
+        <div className="border-t border-[#F5F5F5] bg-white py-5">
+          <div className="container-page">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+              {[
+                { label: "Sources officielles", desc: "Données provenant d'organismes officiels et partenaires agréés" },
+                { label: "100% sécurisé", desc: "Vos données sont protégées et confidentielles" },
+                { label: "Rapport instantané", desc: "Disponible immédiatement après paiement" },
+                { label: "Disponible 24h/24", desc: "Service accessible à tout moment, où que vous soyez" },
+                { label: "Support expert", desc: "Une équipe à votre écoute 7j/7" },
+              ].map((b) => (
+                <div key={b.label} className="flex flex-col items-center gap-1 text-center">
+                  <CheckCircle size={16} className="text-[#D4AF37]" />
+                  <h5 className="text-[9px] font-bold text-[#111]">{b.label}</h5>
+                  <p className="text-[7px] text-slate-500 leading-tight">{b.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
