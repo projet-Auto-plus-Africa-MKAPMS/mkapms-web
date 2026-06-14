@@ -515,34 +515,26 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       <section className="border-y border-[#D4AF37]/20 bg-[#FFFDF5] py-8">
         <div className="container-page">
-          <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between">
-            <div className="max-w-sm">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#111]">
-                  <span className="text-xs font-extrabold text-[#D4AF37]">M</span>
-                </div>
-                <h2 className="text-base font-extrabold text-[#111]">Historique <span className="text-[#D4AF37]">Véhicule</span></h2>
+          <div className="flex flex-col items-center text-center">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#111]">
+                <span className="text-xs font-extrabold text-[#D4AF37]">M</span>
               </div>
-              <p className="mt-2 text-xs text-[#6B7280]">Vérifiez l'historique complet de votre futur véhicule avant d'acheter. Rapports officiels, score de confiance, analyse IA.</p>
-              <div className="mt-3 space-y-1.5">
-                <div className="flex items-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Rapport Express 4,99 € · Complet 7,99 € · Premium 12,99 €</div>
-                <div className="flex items-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Score de confiance MKA.P-MS /100</div>
-                <div className="flex items-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Données officielles vérifiées</div>
-                <div className="flex items-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Rapport instantané + Analyse IA</div>
-              </div>
-              <Link to="/historique" className="mt-4 inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-5 py-2 text-xs font-bold text-white hover:bg-[#C5A028]">
-                Découvrir l'Historique Véhicule <ArrowRight size={12} />
-              </Link>
+              <h2 className="text-base font-extrabold text-[#111]">Historique <span className="text-[#D4AF37]">Véhicule</span></h2>
             </div>
-            <div className="rounded-xl border border-[#D4AF37]/30 bg-white p-5 text-center shadow-sm">
-              <p className="text-[9px] font-semibold text-[#D4AF37]">SCORE DE CONFIANCE</p>
-              <div className="mx-auto mt-2 flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-green-400">
-                <div className="text-center"><span className="text-xl font-extrabold text-[#111]">92</span><p className="text-[7px] text-slate-400">/100</p></div>
-              </div>
-              <p className="mt-1 text-[10px] font-bold text-green-600">Excellent</p>
-              <p className="mt-1 text-[8px] text-slate-500">+ 537 842 rapports · 4,8/5</p>
-              <Link to="/historique" className="mt-3 block rounded-lg border border-[#D4AF37] py-1.5 text-[10px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">
-                Vérifier un véhicule
+            <p className="mt-2 max-w-md text-xs text-[#6B7280]">Vérifiez l'historique complet de votre futur véhicule avant d'acheter. Rapports officiels, score de confiance, analyse IA.</p>
+            <div className="mt-3 space-y-1.5">
+              <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Rapport Express 4,99 € · Complet 7,99 € · Premium 12,99 €</div>
+              <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Score de confiance MKA.P-MS /100</div>
+              <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Données officielles vérifiées</div>
+              <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Rapport instantané + Analyse IA</div>
+            </div>
+            <div className="mt-5 flex flex-col items-center gap-3">
+              <Link to="/historique" className="inline-flex items-center gap-1 rounded-full border-2 border-[#D4AF37] px-6 py-2.5 text-xs font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">
+                Vérifier un véhicule <ArrowRight size={12} />
+              </Link>
+              <Link to="/historique" className="inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#C5A028]">
+                Découvrir l'Historique Véhicule <ArrowRight size={12} />
               </Link>
             </div>
           </div>
