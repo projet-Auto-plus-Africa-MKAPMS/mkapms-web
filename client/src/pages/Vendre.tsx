@@ -48,7 +48,7 @@ export default function Vendre() {
     modele: "",
     version: "",
     annee: "2020",
-    kilometrage: "80000",
+    kilometrage: "",
     prix: "",
     carburant: "diesel",
     boite: "manuelle",
@@ -131,6 +131,9 @@ export default function Vendre() {
         modele: form.modele || "standard",
         annee: form.annee ? Number(form.annee) : undefined,
         kilometrage: form.kilometrage ? Number(form.kilometrage) : undefined,
+        carburant: form.carburant || undefined,
+        boite: form.boite || undefined,
+        etat: etatGeneral || undefined,
       });
       setEstim(r);
     } finally {
@@ -316,24 +319,26 @@ export default function Vendre() {
                 </div>
               </div>
 
-              {/* Kilométrage — slider */}
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">
-                  Kilométrage : {Number(form.kilometrage).toLocaleString()} km
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="300000"
-                  step="5000"
-                  value={form.kilometrage}
-                  onChange={(e) => set("kilometrage", e.target.value)}
-                  className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-[#D4AF37]"
-                />
-                <div className="flex justify-between text-xs text-[#9CA3AF] mt-1">
-                  <span>0 km</span>
-                  <span>150 000 km</span>
-                  <span>300 000 km</span>
+              {/* Kilométrage + Boîte */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">Kilométrage (km)</label>
+                  <input
+                    type="number"
+                    className="input"
+                    placeholder="Ex : 85000"
+                    value={form.kilometrage}
+                    onChange={(e) => set("kilometrage", e.target.value)}
+                    min="0"
+                    max="999999"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">Boîte de vitesse</label>
+                  <select className="input" value={form.boite} onChange={(e) => set("boite", e.target.value)}>
+                    <option value="manuelle">Manuelle</option>
+                    <option value="automatique">Automatique</option>
+                  </select>
                 </div>
               </div>
 

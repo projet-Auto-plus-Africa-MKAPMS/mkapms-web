@@ -190,6 +190,8 @@ export const annoncesRouter = router({
         annee: z.number().optional(),
         kilometrage: z.number().optional(),
         carburant: z.string().optional(),
+        boite: z.string().optional(),
+        etat: z.string().optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -247,7 +249,7 @@ export const annoncesRouter = router({
         };
       }
 
-      // Estimation intelligente basée sur marque, modèle, année, km et marché français
+      // Estimation intelligente basée sur marque, modèle, année, km, état, carburant, boîte
       const brandBases: Record<string, number> = {
         "renault": 22000, "peugeot": 23000, "citroën": 21000, "citroen": 21000,
         "volkswagen": 28000, "bmw": 38000, "mercedes": 40000, "audi": 36000,
@@ -262,42 +264,125 @@ export const annoncesRouter = router({
       const age = input.annee ? Math.max(0, year - input.annee) : 6;
       const brandKey = input.marque.toLowerCase().trim();
       const base = brandBases[brandKey] || 26000;
+
       // Décote : 12% par an pour les marques standard, 10% pour premium
       const isPremium = ["bmw", "mercedes", "audi", "porsche", "tesla", "jaguar", "land rover", "lexus", "volvo"].includes(brandKey);
       const decoteAnnuelle = isPremium ? 0.90 : 0.88;
       let mid = base * Math.pow(decoteAnnuelle, age);
-      // Pénalité kilométrique : -0.03€/km au-delà de 10000 km/an d'usage normal
-      if (input.kilometrage != null) {
-        const kmNormal = age * 12000;
-        const excessKm = Math.max(0, input.kilometrage - kmNormal);
-        mid -= excessKm * 0.03;
-        // Bonus si faible km
-        if (input.kilometrage < kmNormal * 0.6) mid *= 1.05;
+
+      // Ajustement carburant : diesel décote plus vite depuis 2020, électrique garde mieux
+      if (input.carburant) {
+        const c = input.carburant.toLowerCase();
+        if (c === "diesel" && age <= 5) mid *= 0.92; // diesel récent perd de la valeur
+        else if (c === "electrique") mid *= 1.08; // électrique garde mieux
+        else if (c === "hybride") mid *= 1.05;
       }
-      mid = Math.max(800, Math.round(mid));
+
+      // Ajustement boîte : automatique vaut plus
+      if (input.boite === "automatique") mid *= 1.06;
+
+      // Pénalité kilométrique
+      if (input.kilometrage != null && input.kilometrage > 0) {
+        const kmNormal = Math.max(1, age) * 12000;
+        const excessKm = Math.max(0, input.kilometrage - kmNormal);
+        mid -= excessKm * 0.035;
+        // Bonus si faible km
+        if (input.kilometrage < kmNormal * 0.6) mid *= 1.07;
+        // Grosse pénalité > 200 000 km
+        if (input.kilometrage > 200000) mid *= 0.75;
+        else if (input.kilometrage > 150000) mid *= 0.85;
+      }
+
+      // Ajustement état général
+      if (input.etat) {
+        const etatFactors: Record<string, number> = {
+          "Excellent": 1.10,
+          "Très bon": 1.05,
+          "Bon": 1.00,
+          "Correct": 0.90,
+          "À rénover": 0.70,
+        };
+        mid *= etatFactors[input.etat] || 1.0;
+      }
+
+      mid = Math.max(500, Math.round(mid));
       return {
         method: "estimation_marche" as const,
         sampleSize: sample.length,
-        low: Math.round(mid * 0.88),
+        low: Math.round(mid * 0.90),
         mid,
-        high: Math.round(mid * 1.12),
+        high: Math.round(mid * 1.10),
       };
     }),
 
-  // Identification rapide par plaque ou VIN — pré-remplit les champs annonce
+  // Identification rapide par plaque ou VIN — API externe + fallback base locale
   lookupPlate: publicProcedure
     .input(z.object({
       type: z.enum(["plaque", "vin"]),
       query: z.string().min(1),
     }))
     .query(async ({ input }) => {
-      // Chercher dans les annonces existantes avec la même plaque/VIN
-      const q = input.query.replace(/[\s-]/g, "").toUpperCase();
-      // Pour l'instant on simule avec une base de données de marques connues
-      // À terme : API SIV / HistoVec / service tiers
-      const knownPlates: Record<string, { marque: string; modele: string; version?: string; annee?: number; carburant?: string; boite?: string; categorie?: string }> = {};
+      const q = input.query.replace(/[\s]/g, "").toUpperCase();
+      const token = process.env.PLATE_API_TOKEN || "TokenDemo2026B";
 
-      // Essayer de trouver dans les annonces existantes
+      // 1. Appel API externe pour identification par plaque
+      if (input.type === "plaque") {
+        try {
+          const url = `https://api.apiplaqueimmatriculation.com/plaque?immatriculation=${encodeURIComponent(q)}&token=${token}&pays=FR`;
+          const resp = await fetch(url, { method: "POST", signal: AbortSignal.timeout(8000) });
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data && (data.marque || data.modele)) {
+              // Mapper les énergies
+              const energyMap: Record<string, string> = {
+                "GO": "diesel", "ES": "essence", "EL": "electrique",
+                "EH": "hybride", "GH": "hybride", "GL": "gpl",
+                "DIESEL": "diesel", "ESSENCE": "essence", "ELECTRIQUE": "electrique",
+              };
+              const carburant = energyMap[(data.energie || data.carburant || "").toUpperCase()] || data.energie || null;
+              return {
+                marque: data.marque || null,
+                modele: data.modele || data.modele_etude || null,
+                version: data.version || data.variante || null,
+                annee: data.annee ? Number(data.annee) : (data.date_mise_circulation ? Number(data.date_mise_circulation.substring(0, 4)) : null),
+                carburant,
+                categorie: null,
+                boite: data.boite || data.boite_vitesse || null,
+                puissance: data.puissance_cv || data.puissance_fiscale || null,
+              };
+            }
+          }
+        } catch {
+          // API externe indisponible — on continue avec le fallback
+        }
+      }
+
+      // 2. Pour VIN, essayer l'API VIN
+      if (input.type === "vin" && q.length >= 11) {
+        try {
+          const url = `https://api.apiplaqueimmatriculation.com/vin?vin=${encodeURIComponent(q)}&token=${token}`;
+          const resp = await fetch(url, { method: "POST", signal: AbortSignal.timeout(8000) });
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data && (data.marque || data.modele)) {
+              return {
+                marque: data.marque || null,
+                modele: data.modele || null,
+                version: data.version || null,
+                annee: data.annee ? Number(data.annee) : null,
+                carburant: data.energie || data.carburant || null,
+                categorie: null,
+                boite: data.boite || null,
+                puissance: data.puissance_cv || null,
+              };
+            }
+          }
+        } catch {
+          // API VIN indisponible
+        }
+      }
+
+      // 3. Fallback : chercher dans les annonces existantes
       const existing = await db
         .select({
           marque: annonces.marque,
@@ -308,10 +393,7 @@ export const annoncesRouter = router({
           categorie: annonces.categorie,
         })
         .from(annonces)
-        .where(input.type === "plaque"
-          ? ilike(annonces.titre, `%${q}%`)
-          : ilike(annonces.titre, `%${q}%`)
-        )
+        .where(ilike(annonces.titre, `%${q}%`))
         .limit(1);
 
       if (existing.length > 0) {
@@ -326,12 +408,6 @@ export const annoncesRouter = router({
           boite: null,
           puissance: null,
         };
-      }
-
-      // Si pas trouvé en base, retourner null (l'utilisateur remplit manuellement)
-      if (knownPlates[q]) {
-        const p = knownPlates[q];
-        return { ...p, puissance: null };
       }
 
       return null;
