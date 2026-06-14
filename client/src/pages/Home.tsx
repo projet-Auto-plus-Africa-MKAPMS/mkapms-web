@@ -333,10 +333,11 @@ export default function Home() {
         <div className="container-page">
           <h2 className="text-center text-xl font-bold text-[#111]">Nos services principaux</h2>
           <p className="mt-1 text-center text-sm text-[#6B7280]">Tout ce dont vous avez besoin, au même endroit</p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {[
               { title: "Achat / Vente", desc: "Trouvez ou vendez votre véhicule facilement.", cta: "Voir les annonces", to: "/acheter", color: "from-blue-600 to-blue-800" },
               { title: "Location", desc: "Voitures, utilitaires, motos… Louez en toute confiance.", cta: "Voir les offres", to: "/louer", color: "from-emerald-600 to-emerald-800" },
+              { title: "VO Interne", desc: "Gestion complète des véhicules d'occasion : achat, réparation, revente.", cta: "Accéder au VO", to: "/vo", color: "from-violet-600 to-violet-800" },
               { title: "Devis", desc: "Recevez plusieurs devis et comparez facilement.", cta: "Demander un devis", to: "/devis", color: "from-orange-500 to-orange-700" },
               { title: "Livraison & Pièces", desc: "Faites livrer vos pièces ou vos véhicules rapidement.", cta: "Découvrir", to: "/pieces", color: "from-[#D4AF37] to-[#B8960E]" },
             ].map((s) => (
@@ -530,6 +531,7 @@ const FOOTER_SECTIONS = [
     title: "Nos Services", links: [
       { label: "Achat / Vente", to: "/acheter" },
       { label: "Location", to: "/louer" },
+      { label: "VO Interne", to: "/vo" },
       { label: "Devis", to: "/devis" },
       { label: "Livraison", to: "/livraison" },
       { label: "Garage", to: "/garages" },
