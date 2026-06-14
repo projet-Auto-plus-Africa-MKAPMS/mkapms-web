@@ -400,7 +400,7 @@ export default function Home() {
             <Link to="/acheter" className="flex items-center gap-1 text-sm font-semibold text-[#D4AF37] hover:underline">Voir toutes <ArrowRight size={14} /></Link>
           </div>
           <div className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-7">
-            {CATEGORIES.map((c) => (
+            {CATEGORIES.slice(0, 6).map((c) => (
               <Link key={c.label} to={c.to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F3F4F6] transition group-hover:bg-[#D4AF37]/10">
                   <Car size={22} className="text-[#6B7280] group-hover:text-[#D4AF37]" />
@@ -410,6 +410,17 @@ export default function Home() {
               </Link>
             ))}
           </div>
+          {CATEGORIES.length > 6 && (
+            <div className="mt-3 flex justify-center">
+              <Link to={CATEGORIES[6].to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md w-[calc(33.333%-8px)] sm:w-[calc(25%-9px)] md:w-[calc(14.285%-10px)]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F3F4F6] transition group-hover:bg-[#D4AF37]/10">
+                  <Car size={22} className="text-[#6B7280] group-hover:text-[#D4AF37]" />
+                </div>
+                <span className="text-xs font-bold text-[#111]">{CATEGORIES[6].label}</span>
+                <span className="text-[10px] text-[#9CA3AF]">{CATEGORIES[6].count} annonces</span>
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
