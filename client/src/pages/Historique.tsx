@@ -670,141 +670,184 @@ export default function Historique() {
     );
   }
 
-  /* ═══ STEP 0 — PAGE D'ATTERRISSAGE (LANDING) ═══ */
+  /* ═══ STEP 0 — PAGE D'ATTERRISSAGE (LANDING) — FOND BLANC PREMIUM ═══ */
   return (
-    <div>
-      {/* ═══ 1. BANDEAU SUPÉRIEUR (HEADER) — Logo + avantages + Mon compte ═══ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#1A1A2E] via-[#16213E] to-[#0F3460]">
-        <div className="border-b border-white/10">
-          <div className="container-page flex items-center justify-between py-3">
-            {/* Logo MKA.P-MS */}
-            <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white">
-                <span className="text-sm font-extrabold text-[#111]">M</span>
-              </div>
-              <div>
-                <h2 className="text-sm font-extrabold text-white">MKA<span className="text-[#D4AF37]">.P</span>-MS</h2>
-                <p className="text-[7px] font-semibold uppercase tracking-widest text-white/40">La Marketplace Automobile</p>
-              </div>
-            </Link>
+    <div className="bg-white">
 
-            {/* 3 avantages clés */}
-            <div className="hidden items-center gap-4 md:flex">
-              <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[9px] text-white/70">
-                <CheckCircle size={10} className="text-green-400" /> <strong className="text-white">Données officielles</strong> — Sources sécurisées
-              </span>
-              <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[9px] text-white/70">
-                <CheckCircle size={10} className="text-green-400" /> <strong className="text-white">Paiement 100% sécurisé</strong> — Stripe & protocole SSL
-              </span>
-              <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[9px] text-white/70">
-                <CheckCircle size={10} className="text-green-400" /> <strong className="text-white">Rapport instantané</strong> — Disponible en quelques secondes
-              </span>
+      {/* ═══ 1. BANDEAU SUPÉRIEUR (HEADER) — Fond blanc, logo + avantages + Mon compte ═══ */}
+      <header className="border-b border-[#F5F5F5]">
+        <div className="container-page flex items-center justify-between py-3">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#111]">
+              <span className="text-sm font-extrabold text-[#D4AF37]">M</span>
             </div>
-
-            {/* Mon compte */}
-            <Link to="/compte" className="flex items-center gap-1.5 rounded-full border border-white/20 px-3 py-1.5 text-[10px] font-semibold text-white hover:bg-white/10 transition">
-              <Users size={12} /> Mon compte
-            </Link>
+            <div>
+              <h2 className="text-sm font-extrabold text-[#111]">MKA<span className="text-[#D4AF37]">.P</span>-MS</h2>
+              <p className="text-[7px] font-semibold uppercase tracking-widest text-slate-400">La Marketplace Automobile</p>
+            </div>
+          </Link>
+          <div className="hidden items-center gap-4 md:flex">
+            <span className="flex items-center gap-1.5 rounded-full border border-[#F5F5F5] px-3 py-1 text-[9px] text-slate-500">
+              <CheckCircle size={10} className="text-[#D4AF37]" /> <strong className="text-[#111]">Données officielles</strong> — Sources sécurisées
+            </span>
+            <span className="flex items-center gap-1.5 rounded-full border border-[#F5F5F5] px-3 py-1 text-[9px] text-slate-500">
+              <CheckCircle size={10} className="text-[#D4AF37]" /> <strong className="text-[#111]">Paiement 100% sécurisé</strong> — Stripe & protocole SSL
+            </span>
+            <span className="flex items-center gap-1.5 rounded-full border border-[#F5F5F5] px-3 py-1 text-[9px] text-slate-500">
+              <CheckCircle size={10} className="text-[#D4AF37]" /> <strong className="text-[#111]">Rapport instantané</strong> — Disponible en quelques secondes
+            </span>
           </div>
+          <Link to="/compte" className="flex items-center gap-1.5 rounded-full border border-[#D4AF37] px-3 py-1.5 text-[10px] font-semibold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">
+            <Users size={12} /> Mon compte
+          </Link>
         </div>
+      </header>
 
-        <div className="container-page py-8 lg:py-12">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+      {/* ═══ 2. HERO — Bloc noir premium avec dégradé + reflets or ═══ */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#111111] via-[#1A1A1A] to-[#0D0D0D]">
+        {/* Reflets or subtils */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(212,175,55,0.08)_0%,_transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(212,175,55,0.05)_0%,_transparent_50%)]" />
+
+        <div className="container-page relative py-10 lg:py-14">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+            {/* Titre + Stats */}
             <div className="max-w-lg">
               <h1 className="text-2xl font-extrabold uppercase leading-tight text-white sm:text-3xl lg:text-4xl">
-                Vérifiez l'historique<br /><span className="italic text-[#D4AF37]">d'un véhicule</span>
+                Vérifiez l'historique<br />de votre futur<br /><span className="italic text-[#D4AF37]">véhicule</span>
               </h1>
-              <p className="mt-3 text-sm text-white/60">Évitez les mauvaises surprises et achetez en toute confiance.</p>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <div className="rounded-lg bg-white/10 px-3 py-2">
+              <p className="mt-3 text-sm text-white/50">Évitez les mauvaises surprises et achetez en toute confiance.</p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <div className="rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/5 px-3 py-2">
                   <div className="flex items-center gap-1.5"><Star size={12} className="text-[#D4AF37]" fill="#D4AF37" /><span className="text-sm font-bold text-white">+ 537 842</span></div>
                   <p className="text-[8px] text-white/40">rapports générés ce mois-ci</p>
                 </div>
-                <div className="rounded-lg bg-white/10 px-3 py-2">
+                <div className="rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/5 px-3 py-2">
                   <div className="flex items-center gap-1.5"><span className="text-sm font-bold text-white">4,8/5</span></div>
                   <p className="text-[8px] text-white/40">basé sur 12 684 avis ★★★★★</p>
                 </div>
-                <div className="rounded-lg bg-white/10 px-3 py-2">
-                  <p className="text-[10px] font-semibold text-white/70">Garantie satisfait</p>
+                <div className="rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/5 px-3 py-2">
+                  <p className="text-[10px] font-semibold text-[#D4AF37]">Garantie satisfait</p>
                   <p className="text-[8px] text-white/40">ou remboursé sous 14 jours</p>
                 </div>
               </div>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 px-6 py-4 text-center backdrop-blur">
-              <p className="text-[9px] font-semibold text-white/50">Score de confiance</p>
-              <div className="mx-auto mt-2 flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-green-400">
-                <div className="text-center"><span className="text-2xl font-extrabold text-white">92</span><p className="text-[8px] text-white/40">/100</p></div>
-              </div>
-              <p className="mt-2 text-sm font-bold text-green-400">Excellent</p>
-              <p className="mt-0.5 text-[9px] text-white/40">Ce véhicule présente<br />un faible risque</p>
-            </div>
-          </div>
-        </div>
 
-        {/* Search */}
-        <div className="border-t border-white/10 bg-white/5">
-          <div className="container-page py-4">
-            <div className="flex gap-1">
-              {([
-                { id: "plate", label: "Par plaque" },
-                { id: "vin", label: "Par VIN" },
-                { id: "foreign", label: "Immatriculation étrangère" },
-              ] as const).map((t) => (
-                <button key={t.id} onClick={() => setSearchMode(t.id as SearchMode)}
-                  className={`rounded-full px-4 py-1.5 text-[10px] font-bold transition ${searchMode === t.id ? "bg-[#D4AF37] text-white" : "bg-white/10 text-white/60 hover:bg-white/15"}`}>
-                  {t.label}
-                </button>
-              ))}
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-1 rounded-lg border-2 border-blue-500 bg-white px-2 py-2">
-                <span className="flex h-8 w-6 items-center justify-center rounded-sm bg-blue-700 text-[9px] font-bold text-white">F</span>
-                <input className="w-28 bg-transparent text-center text-lg font-extrabold text-[#111] outline-none placeholder-slate-300"
-                  placeholder="AA - 123 - BB" value={plaque} onChange={(e) => setPlaque(e.target.value.toUpperCase())} />
-                <div className="flex flex-col items-center"><span className="text-[7px]">🇪🇺</span><span className="rounded bg-blue-700 px-1 text-[7px] font-bold text-white">75</span></div>
+            {/* Silhouette voiture + Score flottant */}
+            <div className="relative flex items-center justify-center lg:w-[45%]">
+              {/* Silhouette voiture premium générique — SVG */}
+              <div className="relative w-full">
+                <svg viewBox="0 0 600 250" className="w-full opacity-80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="carGrad" x1="0" y1="0" x2="600" y2="250">
+                      <stop offset="0%" stopColor="#2A2A2A" />
+                      <stop offset="50%" stopColor="#1A1A1A" />
+                      <stop offset="100%" stopColor="#0D0D0D" />
+                    </linearGradient>
+                    <linearGradient id="goldReflect" x1="100" y1="120" x2="500" y2="120">
+                      <stop offset="0%" stopColor="transparent" />
+                      <stop offset="40%" stopColor="#D4AF37" stopOpacity="0.15" />
+                      <stop offset="60%" stopColor="#D4AF37" stopOpacity="0.1" />
+                      <stop offset="100%" stopColor="transparent" />
+                    </linearGradient>
+                  </defs>
+                  {/* Body */}
+                  <path d="M80 180 Q80 130 160 110 L240 90 Q300 70 380 75 L460 85 Q520 95 540 130 L550 160 Q555 175 540 180 Z" fill="url(#carGrad)" stroke="#D4AF37" strokeWidth="0.5" strokeOpacity="0.3" />
+                  {/* Gold reflection */}
+                  <path d="M100 170 Q200 140 350 135 Q450 132 530 155" stroke="url(#goldReflect)" strokeWidth="2" fill="none" />
+                  {/* Windows */}
+                  <path d="M200 108 L260 88 Q310 76 360 80 L400 86 L380 108 Z" fill="#222" stroke="#D4AF37" strokeWidth="0.3" strokeOpacity="0.4" />
+                  {/* Wheels */}
+                  <circle cx="175" cy="185" r="28" fill="#111" stroke="#333" strokeWidth="3" />
+                  <circle cx="175" cy="185" r="12" fill="#222" stroke="#D4AF37" strokeWidth="1" strokeOpacity="0.5" />
+                  <circle cx="455" cy="185" r="28" fill="#111" stroke="#333" strokeWidth="3" />
+                  <circle cx="455" cy="185" r="12" fill="#222" stroke="#D4AF37" strokeWidth="1" strokeOpacity="0.5" />
+                  {/* Headlight */}
+                  <ellipse cx="545" cy="155" rx="8" ry="12" fill="#D4AF37" opacity="0.6" />
+                  {/* Taillight */}
+                  <rect x="78" y="155" width="6" height="18" rx="2" fill="#CC3333" opacity="0.7" />
+                  {/* Ground reflection */}
+                  <ellipse cx="315" cy="220" rx="250" ry="15" fill="#D4AF37" opacity="0.03" />
+                </svg>
+
+                {/* Score de confiance — Bloc flottant à droite */}
+                <div className="absolute right-0 top-0 rounded-xl border border-[#D4AF37]/30 bg-[#111]/90 px-5 py-3 text-center backdrop-blur-sm">
+                  <p className="text-[9px] font-semibold text-white/50">Score de confiance</p>
+                  <div className="mx-auto mt-2 flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-green-400">
+                    <div className="text-center"><span className="text-xl font-extrabold text-white">92</span><p className="text-[7px] text-white/40">/100</p></div>
+                  </div>
+                  <p className="mt-1 text-xs font-bold text-green-400">Excellent</p>
+                  <p className="mt-0.5 text-[8px] text-white/40">Ce véhicule présente<br />un faible risque</p>
+                </div>
               </div>
-              <span className="text-xs font-bold text-white/40">ou</span>
-              <div className="flex items-center gap-1 rounded-lg border border-white/20 bg-white/10 px-3 py-2">
-                <span className="text-[10px] text-white/30">||||||||</span>
-                <input className="w-36 bg-transparent text-sm text-white outline-none placeholder-white/30"
-                  placeholder="Entrez le numéro VIN" value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} />
-              </div>
-              <button onClick={handleVerify} disabled={!plaque && !vin}
-                className="flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#C5A028] disabled:opacity-40">
-                VÉRIFIER L'HISTORIQUE <ArrowRight size={14} />
-              </button>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-4 text-[9px] text-white/40">
-              <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-400" /> Rapport instantané en quelques secondes</span>
-              <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-400" /> Paiement 100% sécurisé</span>
-              <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-400" /> Données officielles et vérifiées</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ═══ 2. RAPPORTS ═══ */}
-      <section className="bg-[#F8F9FA] py-8">
+      {/* ═══ 3. RECHERCHE — Fond blanc, contours or ═══ */}
+      <section className="border-b border-[#F5F5F5] bg-white py-5">
+        <div className="container-page">
+          <div className="flex gap-1">
+            {([
+              { id: "plate", label: "Par plaque" },
+              { id: "vin", label: "Par VIN" },
+              { id: "foreign", label: "Immatriculation étrangère" },
+            ] as const).map((t) => (
+              <button key={t.id} onClick={() => setSearchMode(t.id as SearchMode)}
+                className={`rounded-full px-4 py-1.5 text-[10px] font-bold transition ${searchMode === t.id ? "bg-[#D4AF37] text-white" : "border border-[#D4AF37]/30 text-[#111] hover:bg-[#D4AF37]/5"}`}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1 rounded-lg border-2 border-[#D4AF37] bg-white px-2 py-2">
+              <span className="flex h-8 w-6 items-center justify-center rounded-sm bg-blue-700 text-[9px] font-bold text-white">F</span>
+              <input className="w-28 bg-transparent text-center text-lg font-extrabold text-[#111] outline-none placeholder-slate-300"
+                placeholder="AA - 123 - BB" value={plaque} onChange={(e) => setPlaque(e.target.value.toUpperCase())} />
+              <div className="flex flex-col items-center"><span className="text-[7px]">🇪🇺</span><span className="rounded bg-blue-700 px-1 text-[7px] font-bold text-white">75</span></div>
+            </div>
+            <span className="text-xs font-bold text-slate-300">ou</span>
+            <div className="flex items-center gap-1 rounded-lg border border-[#D4AF37]/30 bg-white px-3 py-2">
+              <span className="text-[10px] text-slate-300">||||||||</span>
+              <input className="w-36 bg-transparent text-sm text-[#111] outline-none placeholder-slate-300"
+                placeholder="Entrez le numéro VIN" value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} />
+            </div>
+            <button onClick={handleVerify} disabled={!plaque && !vin}
+              className="flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-5 py-2.5 text-xs font-bold text-[#111] hover:bg-[#C5A028] hover:text-white disabled:opacity-40">
+              VÉRIFIER L'HISTORIQUE <ArrowRight size={14} />
+            </button>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-4 text-[9px] text-slate-400">
+            <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Rapport instantané en quelques secondes</span>
+            <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Paiement 100% sécurisé</span>
+            <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Données officielles et vérifiées</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ 4. TARIFS — Fond blanc, cartes blanches, contours or ═══ */}
+      <section className="bg-white py-8">
         <div className="container-page">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <h2 className="text-base font-extrabold uppercase text-[#111]">Choisissez votre rapport</h2>
               <p className="text-xs text-slate-500">Des informations claires pour une décision en toute confiance.</p>
             </div>
-            <span className="flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-[9px] font-semibold text-green-700">
-              <CheckCircle size={10} /> Garantie satisfait ou remboursé 14 jours
+            <span className="flex items-center gap-1 rounded-full border border-[#D4AF37]/30 px-3 py-1 text-[9px] font-semibold text-[#111]">
+              <CheckCircle size={10} className="text-green-500" /> Garantie satisfait ou remboursé 14 jours
             </span>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {RAPPORTS.map((r) => {
               const Icon = r.icon;
               return (
-                <div key={r.id} className={`relative rounded-2xl bg-white p-5 shadow-sm ${r.popular ? "border-2 border-[#D4AF37] shadow-lg ring-1 ring-[#D4AF37]/20" : "border border-slate-200"}`}>
-                  {r.popular && <div className="absolute -top-3 left-1/2 -translate-x-1/2"><span className="rounded-full bg-orange-500 px-4 py-1 text-[9px] font-bold uppercase text-white shadow">Le plus populaire</span></div>}
+                <div key={r.id} className={`relative rounded-2xl bg-white p-5 ${r.popular ? "border-2 border-[#D4AF37] shadow-lg shadow-[#D4AF37]/10" : "border border-[#D4AF37]/20"}`}>
+                  {r.popular && <div className="absolute -top-3 left-1/2 -translate-x-1/2"><span className="rounded-full bg-[#D4AF37] px-4 py-1 text-[9px] font-bold uppercase text-white shadow">Le plus populaire</span></div>}
                   <div className="flex items-start gap-3"><div className={`mt-1 ${r.iconColor}`}><Icon size={24} /></div><div><h3 className="text-sm font-extrabold text-[#111]">{r.label}</h3><p className="mt-0.5 text-[10px] text-slate-500">{r.desc}</p></div></div>
                   <div className="mt-4"><span className="text-2xl font-extrabold text-[#111]">{r.prixLabel} €</span><span className="ml-1 text-[10px] text-slate-400">par rapport</span></div>
-                  <div className="mt-4 space-y-1.5">{r.features.map((f) => (<div key={f} className="flex items-center gap-1.5 text-xs text-[#111]"><CheckCircle size={12} className="shrink-0 text-green-500" /> {f}</div>))}</div>
-                  <button onClick={() => { handleVerify(); chooseRapport(r.id); }} className={`mt-5 w-full rounded-full py-2.5 text-xs font-bold transition ${r.btnClass}`}>CHOISIR</button>
+                  <div className="mt-4 space-y-1.5">{r.features.map((f) => (<div key={f} className="flex items-center gap-1.5 text-xs text-[#111]"><CheckCircle size={12} className="shrink-0 text-[#D4AF37]" /> {f}</div>))}</div>
+                  <button onClick={() => { handleVerify(); chooseRapport(r.id); }} className={`mt-5 w-full rounded-full py-2.5 text-xs font-bold transition ${r.popular ? "bg-[#D4AF37] text-white hover:bg-[#C5A028]" : "border-2 border-[#D4AF37] text-[#111] hover:bg-[#D4AF37] hover:text-white"}`}>CHOISIR</button>
                 </div>
               );
             })}
@@ -812,8 +855,8 @@ export default function Historique() {
         </div>
       </section>
 
-      {/* ═══ 3. BANDEAU ═══ */}
-      <section className="bg-[#FFF3CD] py-4">
+      {/* ═══ 5. BANDEAU ALERTE ═══ */}
+      <section className="border-y border-[#D4AF37]/20 bg-[#FFFDF5] py-4">
         <div className="container-page text-center">
           <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#8B6914]">Économisez des milliers d'euros et évitez les pièges</p>
           <div className="mt-2 flex flex-wrap justify-center gap-4">
@@ -822,7 +865,7 @@ export default function Historique() {
         </div>
       </section>
 
-      {/* ═══ 4. CE QUE CONTIENT ═══ */}
+      {/* ═══ 6. CE QUE CONTIENT — Fond blanc, icônes or ═══ */}
       <section className="bg-white py-8">
         <div className="container-page">
           <h2 className="text-center text-sm font-extrabold uppercase tracking-wide text-[#111]">Ce que contient votre rapport</h2>
@@ -831,8 +874,8 @@ export default function Historique() {
               const Icon = c.icon;
               return (
                 <div key={c.label} className="flex flex-col items-center gap-1.5 text-center">
-                  <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm">
-                    <Icon size={18} className="text-slate-600" />
+                  <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-white shadow-sm">
+                    <Icon size={18} className="text-[#D4AF37]" />
                     <div className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-green-500"><CheckCircle size={8} className="text-white" /></div>
                   </div>
                   <span className="text-[9px] font-bold text-[#111]">{c.label}</span>
@@ -843,11 +886,11 @@ export default function Historique() {
         </div>
       </section>
 
-      {/* ═══ 5. EXEMPLE + POURQUOI + ANALYSE IA ═══ */}
-      <section className="bg-[#F8F9FA] py-8">
+      {/* ═══ 7. EXEMPLE DE RAPPORT — Fond blanc, titre noir, icônes or, scores verts ═══ */}
+      <section className="bg-[#F5F5F5] py-8">
         <div className="container-page">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="rounded-2xl border border-[#D4AF37]/20 bg-white p-5">
               <div className="flex items-center gap-2"><Star size={14} className="text-[#D4AF37]" fill="#D4AF37" /><h3 className="text-sm font-extrabold text-[#111]">EXEMPLE DE RAPPORT</h3></div>
               <div className="mt-3 flex items-start justify-between">
                 <div>
@@ -872,17 +915,19 @@ export default function Historique() {
                     { l: "Importation", v: "Non importé" }, { l: "Contrôle technique", v: "Valide jusqu'au 12/2025" },
                   ].map((r) => (
                     <div key={r.l} className="flex items-center justify-between text-[10px]">
-                      <span className="flex items-center gap-1 text-slate-600"><CheckCircle size={10} className="text-green-500" /> {r.l}</span>
+                      <span className="flex items-center gap-1 text-slate-600"><CheckCircle size={10} className="text-[#D4AF37]" /> {r.l}</span>
                       <span className="font-semibold text-[#111]">{r.v}</span>
                     </div>
                   ))}
                 </div>
               </div>
-              <button className="mt-4 flex items-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 text-[10px] font-bold text-slate-700 hover:bg-slate-50">VOIR UN EXEMPLE COMPLET <ArrowRight size={10} /></button>
+              <button className="mt-4 flex items-center gap-1.5 rounded-full border border-[#D4AF37] px-4 py-2 text-[10px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">VOIR UN EXEMPLE COMPLET <ArrowRight size={10} /></button>
             </div>
+
+            {/* 8. POURQUOI VÉRIFIER + 9. ANALYSE IA */}
             <div className="flex flex-col gap-4">
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-5">
-                <h3 className="text-sm font-extrabold text-red-800">POURQUOI VÉRIFIER L'HISTORIQUE ?</h3>
+              <div className="rounded-2xl border border-[#D4AF37]/20 bg-white p-5">
+                <h3 className="text-sm font-extrabold text-[#111]">POURQUOI VÉRIFIER L'HISTORIQUE ?</h3>
                 <div className="mt-3 space-y-3">
                   {[
                     { t: "Achetez en toute confiance", d: "Évitez les mauvaises surprises et les vices cachés." },
@@ -890,23 +935,31 @@ export default function Historique() {
                     { t: "Gagnez du temps", d: "Rapport instantané disponible 24H/24 et 7J/7." },
                   ].map((p) => (
                     <div key={p.t} className="flex items-start gap-2">
-                      <ShieldCheck size={14} className="mt-0.5 shrink-0 text-red-600" />
-                      <div><p className="text-xs font-bold text-red-800">{p.t}</p><p className="text-[10px] text-red-700">{p.d}</p></div>
+                      <ShieldCheck size={14} className="mt-0.5 shrink-0 text-[#D4AF37]" />
+                      <div><p className="text-xs font-bold text-[#111]">{p.t}</p><p className="text-[10px] text-slate-500">{p.d}</p></div>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="rounded-2xl bg-gradient-to-br from-[#1A1A2E] to-[#2D2D3A] p-5">
-                <h3 className="text-sm font-extrabold text-[#D4AF37]">ANALYSE INTELLIGENTE MKA.P-MS</h3>
-                <p className="mt-2 text-xs text-white/60">Notre IA analyse des millions de données pour vous fournir un rapport fiable et objectif.</p>
+
+              {/* Analyse IA — Bloc noir premium avec reflets or */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#111111] to-[#1A1A1A] p-5">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(212,175,55,0.1)_0%,_transparent_60%)]" />
+                <div className="relative">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#D4AF37]"><span className="text-[8px] font-bold text-white">IA</span></div>
+                    <h3 className="text-sm font-extrabold text-[#D4AF37]">ANALYSE INTELLIGENTE MKA.P-MS</h3>
+                  </div>
+                  <p className="mt-2 text-xs text-white/60">Notre IA analyse des millions de données pour vous fournir un rapport fiable et objectif.</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ═══ 6. BADGES BAS ═══ */}
-      <section className="border-t border-slate-200 bg-white py-6">
+      {/* ═══ 10. PIED DE PAGE GARANTIES — Fond blanc, textes noirs, icônes or ═══ */}
+      <section className="border-t border-[#F5F5F5] bg-white py-6">
         <div className="container-page">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
             {[
@@ -919,7 +972,7 @@ export default function Historique() {
               const Icon = b.icon;
               return (
                 <div key={b.label} className="flex flex-col items-center gap-1.5 text-center">
-                  <Icon size={18} className="text-[#111]" />
+                  <Icon size={18} className="text-[#D4AF37]" />
                   <h4 className="text-[10px] font-bold text-[#111]">{b.label}</h4>
                   <p className="text-[8px] text-slate-500 leading-tight">{b.desc}</p>
                 </div>
