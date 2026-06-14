@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Search, Plus, PlusCircle, FileText, Wrench, Car, KeyRound, Truck, Star,
   ArrowRight, ShieldCheck, Users, User, Gauge, Heart, ChevronRight, ChevronDown,
-  CheckCircle, Clock, Package, Phone, Mail, MapPin, Globe,
+  CheckCircle, Clock, Package, Phone, Mail, MapPin, Globe, Headphones, Tag,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -90,74 +90,86 @@ export default function Home() {
     <div className="overflow-x-hidden bg-white">
 
       {/* ═══════════════════════════════════════════════════════════
-          1. HERO — FOND NOIR
+          1. HERO — FOND CLAIR + VOITURE COUVERTE
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-[#111]">
-        <div
-          className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-30"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1400&q=80')" }}
-        />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#111]/90 to-[#111]/60" />
-
-        <div className="container-page relative grid gap-8 py-12 md:py-16 lg:grid-cols-[1fr_340px]">
-          {/* Gauche */}
-          <div>
-            <h1 className="text-2xl font-black uppercase leading-tight text-white sm:text-3xl md:text-5xl">
-              La plateforme auto<br />
-              <span className="text-[#D4AF37]">qui simplifie tout</span>
-            </h1>
-            <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/60">
-              Achat, vente, location, entretien, livraison et bien plus encore. Tout l'univers automobile réuni au même endroit.
-            </p>
-
-            {/* 4 actions rapides */}
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:max-w-md">
-              {[
-                { icon: Plus, label: "Déposer une annonce", to: "/vendre" },
-                { icon: Search, label: "Rechercher un véhicule", to: "/acheter" },
-                { icon: FileText, label: "Obtenir un devis", to: "/devis" },
-                { icon: Wrench, label: "Trouver un garage", to: "/garages" },
-              ].map((a) => {
-                const Icon = a.icon;
-                return (
-                  <Link key={a.to} to={a.to} className="group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-3 text-center transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#D4AF37]/20 transition group-hover:bg-[#D4AF37]">
-                      <Icon size={18} className="text-[#D4AF37] group-hover:text-white" />
-                    </div>
-                    <span className="text-[10px] font-medium leading-tight text-white/70 sm:text-xs">{a.label}</span>
-                  </Link>
-                );
-              })}
+      <section className="relative overflow-hidden bg-[#F5F3EF]">
+        <div className="container-page relative py-10 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">La marketplace automobile</p>
+          <h1 className="mt-3 text-2xl font-black uppercase leading-tight text-[#111] sm:text-3xl md:text-4xl">
+            La référence<br />
+            <span className="text-[#D4AF37]">de confiance</span><br />
+            pour tous vos projets auto
+          </h1>
+          <div className="mx-auto my-4 flex items-center justify-center gap-3">
+            <div className="h-px w-12 bg-[#D4AF37]" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#D4AF37]">
+              <span className="text-xs font-bold text-[#D4AF37]">M</span>
             </div>
-
-            {/* Note */}
-            <div className="mt-6 flex items-center gap-2">
-              <div className="flex items-center gap-1 rounded-full bg-[#D4AF37] px-3 py-1">
-                <Star size={14} className="text-white" fill="white" />
-                <span className="text-sm font-bold text-white">4,8/5</span>
-              </div>
-              <span className="text-xs text-white/50">+50 000 utilisateurs nous font confiance</span>
-            </div>
+            <div className="h-px w-12 bg-[#D4AF37]" />
           </div>
+          <p className="mx-auto max-w-md text-sm text-[#6B7280]">
+            Achat, vente, location, entretien, livraison et bien plus encore.<br />
+            Tout l'univers automobile réuni au même endroit.
+          </p>
+          <img
+            src="https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&q=80"
+            alt="Voiture vitrine"
+            className="mx-auto mt-6 h-48 w-auto object-contain sm:h-56 md:h-64"
+          />
+        </div>
+      </section>
 
-          {/* Droite — Se connecter / Créer un compte */}
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-md">
-            <div className="grid grid-cols-2 gap-3">
-              <Link to="/connexion" className="flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] p-5 text-center transition hover:border-[#D4AF37] hover:shadow-md">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10">
-                  <User size={22} className="text-[#D4AF37]" />
+      {/* ═══════════════════════════════════════════════════════════
+          1b. 4 ACTIONS — VENDRE, ACHETER, LOUER, RÉPARER
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-[#F5F3EF] pb-8">
+        <div className="container-page">
+          <div className="mx-auto grid max-w-lg grid-cols-4 gap-3">
+            {[
+              { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
+              { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
+              { icon: KeyRound, label: "LOUER", sub: "Un véhicule", to: "/louer" },
+              { icon: Wrench, label: "RÉPARER", sub: "Mon véhicule", to: "/garages" },
+            ].map((a) => {
+              const Icon = a.icon;
+              return (
+                <Link key={a.to} to={a.to} className="group flex flex-col items-center gap-1 text-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#111] text-white transition group-hover:bg-[#D4AF37]">
+                    <Icon size={22} />
+                  </div>
+                  <span className="mt-1 text-[10px] font-extrabold uppercase tracking-wide text-[#111]">{a.label}</span>
+                  <span className="text-[9px] text-[#6B7280]">{a.sub}</span>
+                  <div className="mx-auto mt-1 h-0.5 w-6 rounded bg-[#D4AF37]" />
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          1c. 4 BADGES CONFIANCE
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-white py-8 border-t border-[#E5E7EB]">
+        <div className="container-page">
+          <div className="mx-auto grid max-w-2xl grid-cols-2 gap-4 sm:grid-cols-4">
+            {[
+              { icon: ShieldCheck, title: "FIABILITÉ\nGARANTIE", desc: "Transactions\n100% sécurisées" },
+              { icon: FileText, title: "TRANSPARENCE\nTOTALE", desc: "Historique vérifié\net certifié" },
+              { icon: Globe, title: "RÉSEAU\nMONDIAL", desc: "Livraison Europe\net Afrique" },
+              { icon: Headphones, title: "ACCOMPAGNEMENT\nPREMIUM", desc: "Support disponible\n7j/7" },
+            ].map((b) => {
+              const Icon = b.icon;
+              return (
+                <div key={b.title} className="flex flex-col items-center gap-1 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5">
+                    <Icon size={20} className="text-[#D4AF37]" />
+                  </div>
+                  <h3 className="mt-1 whitespace-pre-line text-[9px] font-extrabold uppercase tracking-wide text-[#111]">{b.title}</h3>
+                  <p className="whitespace-pre-line text-[9px] text-[#6B7280]">{b.desc}</p>
                 </div>
-                <p className="text-sm font-bold text-[#111]">Se connecter</p>
-                <p className="text-[10px] text-[#6B7280]">Accédez à votre espace</p>
-              </Link>
-              <Link to="/connexion?tab=register" className="flex flex-col items-center gap-2 rounded-xl border border-[#D4AF37] bg-[#D4AF37]/5 p-5 text-center transition hover:bg-[#D4AF37]/10 hover:shadow-md">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]">
-                  <PlusCircle size={22} className="text-white" />
-                </div>
-                <p className="text-sm font-bold text-[#D4AF37]">Créer un compte</p>
-                <p className="text-[10px] text-[#6B7280]">Particulier ou Professionnel</p>
-              </Link>
-            </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -386,6 +398,32 @@ export default function Home() {
                 </Link>
               </div>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          2b. SE CONNECTER / CRÉER UN COMPTE
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-white py-6">
+        <div className="container-page">
+          <div className="mx-auto max-w-md rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
+            <div className="grid grid-cols-2 gap-3">
+              <Link to="/connexion" className="flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                  <User size={22} className="text-[#D4AF37]" />
+                </div>
+                <p className="text-sm font-bold text-[#111]">Se connecter</p>
+                <p className="text-[10px] text-[#6B7280]">Accédez à votre espace</p>
+              </Link>
+              <Link to="/connexion?tab=register" className="flex flex-col items-center gap-2 rounded-xl border border-[#D4AF37] bg-[#D4AF37]/5 p-4 text-center transition hover:bg-[#D4AF37]/10 hover:shadow-md">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]">
+                  <PlusCircle size={22} className="text-white" />
+                </div>
+                <p className="text-sm font-bold text-[#D4AF37]">Créer un compte</p>
+                <p className="text-[10px] text-[#6B7280]">Particulier ou Professionnel</p>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
