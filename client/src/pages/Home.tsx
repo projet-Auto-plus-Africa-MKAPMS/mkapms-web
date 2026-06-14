@@ -93,7 +93,11 @@ export default function Home() {
           1. HERO — FOND NOIR
          ═══════════════════════════════════════════════════════════ */}
       <section className="relative overflow-hidden bg-[#111]">
-        <div className="pointer-events-none absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImciIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEiIGZpbGw9InJnYmEoMjEyLDE3NSw1NSwwLjA1KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSJ1cmwoI2cpIi8+PC9zdmc+')] opacity-40" />
+        <div
+          className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-30"
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1400&q=80')" }}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#111]/90 to-[#111]/60" />
 
         <div className="container-page relative grid gap-8 py-12 md:py-16 lg:grid-cols-[1fr_340px]">
           {/* Gauche */}
@@ -161,7 +165,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           2. RECHERCHE + ESTIMATION — CÔTE À CÔTE
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F8F9FA] py-10">
+      <section className="bg-white py-10">
         <div className="container-page grid gap-6 lg:grid-cols-2">
           {/* Recherche */}
           <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
@@ -494,7 +498,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           6. ANNONCES PREMIUM + ESPACE PUB
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F8F9FA] py-10">
+      <section className="bg-white py-10">
         <div className="container-page">
           <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
             <div>
@@ -529,7 +533,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           7. ANNONCES CLASSIQUES
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F8F9FA] pb-10">
+      <section className="bg-white pb-10">
         <div className="container-page">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
@@ -627,12 +631,12 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           11. ESPACE PRO — BANDE NOIRE
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#111] py-10">
+      <section className="bg-white py-10 border-t border-[#E5E7EB]">
         <div className="container-page">
           <div className="flex flex-col items-center gap-4 text-center lg:flex-row lg:justify-between lg:text-left">
             <div>
-              <h2 className="text-xl font-bold text-white">Espace Pro : développez votre activité</h2>
-              <p className="mt-1 text-sm text-white/50">Accédez à tous nos outils et services dédiés aux professionnels.</p>
+              <h2 className="text-xl font-bold text-[#111]">Espace Pro : développez votre activité</h2>
+              <p className="mt-1 text-sm text-[#6B7280]">Accédez à tous nos outils et services dédiés aux professionnels.</p>
             </div>
             <Link to="/espace-pro" className="shrink-0 rounded-xl border-2 border-[#D4AF37] px-6 py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white">
               Découvrir l'espace Pro
@@ -640,15 +644,15 @@ export default function Home() {
           </div>
           <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-8">
             {PRO_ACTIVITIES.map((a) => (
-              <Link key={a.label} to={a.to} className="group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-3 text-center transition hover:border-[#D4AF37]">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 transition group-hover:bg-[#D4AF37]/20">
+              <Link key={a.label} to={a.to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] p-3 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#D4AF37]/10 transition group-hover:bg-[#D4AF37]/20">
                   <Wrench size={18} className="text-[#D4AF37]" />
                 </div>
-                <span className="text-[10px] font-medium text-white/60 sm:text-xs">{a.label}</span>
+                <span className="text-[10px] font-medium text-[#374151] sm:text-xs">{a.label}</span>
               </Link>
             ))}
           </div>
-          <p className="mt-4 text-center text-xs text-white/40">Gérez votre activité, vos véhicules, vos équipes et vos documents.</p>
+          <p className="mt-4 text-center text-xs text-[#9CA3AF]">Gérez votre activité, vos véhicules, vos équipes et vos documents.</p>
         </div>
       </section>
 
