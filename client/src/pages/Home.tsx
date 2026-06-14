@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search, Plus, FileText, Wrench, Car, KeyRound, Truck, Star,
-  ArrowRight, ShieldCheck, Users, Gauge, Heart, ChevronRight,
-  CheckCircle, Clock, Package, Phone, Mail, MapPin,
+  ArrowRight, ShieldCheck, Users, Gauge, Heart, ChevronRight, ChevronDown,
+  CheckCircle, Clock, Package, Phone, Mail, MapPin, Globe,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -517,89 +517,214 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          12. NEWSLETTER + RÉSEAUX SOCIAUX
+          12–13. FOOTER COMPLET (Desktop 6 colonnes / Mobile accordéon)
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F8F9FA] py-10">
-        <div className="container-page">
-          <h2 className="text-lg font-bold text-[#111]">Restez informé</h2>
-          <p className="mt-1 text-sm text-[#6B7280]">Recevez nos meilleures offres et nouveautés</p>
-          <div className="mt-4 flex max-w-md gap-2">
-            <input
-              className="flex-1 rounded-xl border border-[#D1D5DB] px-4 py-2.5 text-sm outline-none focus:border-[#D4AF37]"
-              placeholder="Votre adresse email"
-              type="email"
-              value={newsEmail}
-              onChange={(e) => setNewsEmail(e.target.value)}
-            />
-            <button className="rounded-xl bg-[#111] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#222]">
-              S'abonner
-            </button>
+      <HomeFooter newsEmail={newsEmail} setNewsEmail={setNewsEmail} />
+    </div>
+  );
+}
+
+/* ── Footer sections data ── */
+const FOOTER_SECTIONS = [
+  {
+    title: "Nos Services", links: [
+      { label: "Achat / Vente", to: "/acheter" },
+      { label: "Location", to: "/louer" },
+      { label: "Devis", to: "/devis" },
+      { label: "Livraison", to: "/livraison" },
+      { label: "Garage", to: "/garages" },
+      { label: "Pièces Auto", to: "/pieces" },
+      { label: "Dépannage", to: "/depannage" },
+    ],
+  },
+  {
+    title: "Plateforme", links: [
+      { label: "Acheter", to: "/acheter" },
+      { label: "Louer", to: "/louer" },
+      { label: "Devis Garage", to: "/devis" },
+      { label: "Réseau de garages", to: "/garages" },
+      { label: "Abonnements", to: "/abonnements" },
+      { label: "Notre Mission", to: "/mission" },
+    ],
+  },
+  {
+    title: "Espace Pro", links: [
+      { label: "Devenir partenaire", to: "/espace-pro" },
+      { label: "Gestion de flotte", to: "/espace-pro" },
+      { label: "Solutions pro", to: "/espace-pro" },
+      { label: "Abonnements", to: "/abonnements" },
+      { label: "Vente Pro", to: "/espace-pro" },
+      { label: "Garage Pro", to: "/garage-plus" },
+      { label: "Location Pro", to: "/espace-pro" },
+      { label: "VTC / Taxi Pro", to: "/vtc-taxi" },
+      { label: "Livraison Pro", to: "/livraison" },
+      { label: "Pièces Auto Pro", to: "/pieces" },
+      { label: "Dépannage Pro", to: "/depannage" },
+      { label: "Compatibilité Pro", to: "/espace-pro" },
+      { label: "Comptabilité Pro", to: "/comptabilite" },
+    ],
+  },
+  {
+    title: "Informations", links: [
+      { label: "À propos", to: "/mission" },
+      { label: "CGU", to: "/aide#cgv" },
+      { label: "Confidentialité", to: "/aide#rgpd" },
+      { label: "Aide & FAQ", to: "/aide" },
+      { label: "Contact", to: "/aide" },
+    ],
+  },
+  {
+    title: "Aide & Légal", links: [
+      { label: "Centre d'aide / FAQ", to: "/aide" },
+      { label: "Centre de confiance", to: "/confiance" },
+      { label: "CGV / CGU", to: "/aide#cgv" },
+      { label: "Confidentialité (RGPD)", to: "/aide#rgpd" },
+      { label: "Mentions légales", to: "/aide#mentions" },
+    ],
+  },
+];
+
+const AJOUTS = [
+  "Deux sessions d'annonces (Premium & Classiques)",
+  "Espace Pro complet et visible",
+  "Historique véhicule mis en avant",
+  "Catégories + services + partenaires",
+  "Publicité intégrée",
+  "Statistiques & preuves sociales",
+  "Parcours utilisateur fluide et logique",
+  "Paiement sécurisé",
+  "Support réactif 7/7",
+  "Mises à jour régulières",
+];
+
+function FooterAccordion({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-slate-200">
+      <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center justify-between py-3 text-left">
+        <span className="text-sm font-bold text-[#111]">{title}</span>
+        <ChevronDown size={16} className={`text-slate-400 transition ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && <div className="pb-3">{children}</div>}
+    </div>
+  );
+}
+
+function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEmail: (v: string) => void }) {
+  return (
+    <>
+      {/* ═══ DESKTOP FOOTER ═══ */}
+      <footer className="hidden border-t border-slate-200 bg-white md:block">
+        {/* Top : Logo + description + Newsletter */}
+        <div className="container-page flex flex-wrap items-start justify-between gap-8 py-10">
+          <div className="max-w-xs">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#111]">
+                <span className="text-lg font-extrabold text-[#D4AF37]">M</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold text-[#111]">MK<span className="text-[#D4AF37]">A</span>.P-MS</h3>
+                <p className="text-[9px] font-semibold uppercase tracking-widest text-slate-400">Prestation Multi-Services</p>
+              </div>
+            </div>
+            <p className="mt-3 text-sm text-slate-500">La plateforme auto qui simplifie toutes vos démarches.</p>
           </div>
-          <div className="mt-4 flex gap-3">
-            {["Facebook", "Instagram", "YouTube", "TikTok"].map((s) => (
-              <a key={s} href="#" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#111] text-xs font-bold text-white transition hover:bg-[#D4AF37]">
-                {s[0]}
-              </a>
-            ))}
+
+          <div>
+            <div className="flex items-center gap-2">
+              <Mail size={16} className="text-[#D4AF37]" />
+              <h4 className="text-sm font-bold text-[#111]">Newsletter & Réseaux</h4>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">Recevez nos meilleures offres et nouveautés !</p>
+            <div className="mt-3 flex gap-2">
+              <input
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]"
+                placeholder="Votre adresse email"
+                type="email"
+                value={newsEmail}
+                onChange={(e) => setNewsEmail(e.target.value)}
+              />
+              <button className="rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-bold text-white hover:bg-[#C5A028]">S'abonner</button>
+            </div>
+            <div className="mt-3 flex gap-3">
+              {["f", "i", "Y", "t"].map((s, i) => (
+                <a key={i} href="#" className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition hover:bg-[#D4AF37] hover:text-white hover:border-[#D4AF37]">{s}</a>
+              ))}
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* ═══════════════════════════════════════════════════════════
-          13. FOOTER COMPLET
-         ═══════════════════════════════════════════════════════════ */}
-      <footer className="bg-[#111] py-10 text-white/60">
-        <div className="container-page">
-          <div className="grid gap-8 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-            <div>
-              <h3 className="text-lg font-extrabold text-white">MK<span className="text-[#D4AF37]">A</span>.P-MS</h3>
-              <p className="mt-2 text-xs leading-relaxed">La plateforme auto qui simplifie toutes vos démarches.</p>
-            </div>
-            <div>
-              <h4 className="mb-3 text-sm font-bold text-white">Nos services</h4>
-              <div className="space-y-2 text-xs">
-                <Link to="/acheter" className="block hover:text-[#D4AF37]">Achat / Vente</Link>
-                <Link to="/louer" className="block hover:text-[#D4AF37]">Location</Link>
-                <Link to="/devis" className="block hover:text-[#D4AF37]">Devis</Link>
-                <Link to="/livraison" className="block hover:text-[#D4AF37]">Livraison</Link>
-                <Link to="/garages" className="block hover:text-[#D4AF37]">Garage</Link>
-                <Link to="/pieces" className="block hover:text-[#D4AF37]">Pièces Auto</Link>
-                <Link to="/depannage" className="block hover:text-[#D4AF37]">Dépannage</Link>
+        {/* 6 colonnes de liens */}
+        <div className="border-t border-slate-200">
+          <div className="container-page grid grid-cols-6 gap-6 py-8">
+            {FOOTER_SECTIONS.map((sec) => (
+              <div key={sec.title}>
+                <h4 className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#111]">
+                  <Package size={14} className="text-[#D4AF37]" />
+                  {sec.title}
+                </h4>
+                <div className="space-y-1.5">
+                  {sec.links.map((l) => (
+                    <Link key={l.label} to={l.to} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#D4AF37]">
+                      <ChevronRight size={10} className="text-slate-300" />{l.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
+            ))}
             <div>
-              <h4 className="mb-3 text-sm font-bold text-white">Informations</h4>
-              <div className="space-y-2 text-xs">
-                <Link to="/mission" className="block hover:text-[#D4AF37]">À propos</Link>
-                <Link to="/aide#cgv" className="block hover:text-[#D4AF37]">CGU</Link>
-                <Link to="/aide#rgpd" className="block hover:text-[#D4AF37]">Confidentialité</Link>
-                <Link to="/aide" className="block hover:text-[#D4AF37]">Aide & FAQ</Link>
-                <Link to="/aide" className="block hover:text-[#D4AF37]">Contact</Link>
-              </div>
-            </div>
-            <div>
-              <h4 className="mb-3 text-sm font-bold text-white">Espace Pro</h4>
-              <div className="space-y-2 text-xs">
-                <Link to="/espace-pro" className="block hover:text-[#D4AF37]">Devenir partenaire</Link>
-                <Link to="/espace-pro" className="block hover:text-[#D4AF37]">Gestion de flotte</Link>
-                <Link to="/espace-pro" className="block hover:text-[#D4AF37]">Solutions pro</Link>
-                <Link to="/abonnements" className="block hover:text-[#D4AF37]">Abonnements</Link>
-              </div>
-            </div>
-            <div>
-              <h4 className="mb-3 text-sm font-bold text-white">Nous contacter</h4>
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center gap-2"><Phone size={12} /> 01 23 45 67 89</div>
-                <div className="flex items-center gap-2"><Mail size={12} /> contact@mkapms.com</div>
-                <div className="flex items-center gap-2"><Clock size={12} /> Lun - Dim : 8h - 20h</div>
-                <div className="flex items-center gap-2"><MapPin size={12} /> Support 7/7</div>
+              <h4 className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#111]">
+                <Phone size={14} className="text-[#D4AF37]" />
+                Nous Contacter
+              </h4>
+              <div className="space-y-2 text-xs text-slate-500">
+                <div className="flex items-center gap-2"><Phone size={12} className="text-slate-400" /> 01 23 45 67 89</div>
+                <div className="flex items-center gap-2"><Mail size={12} className="text-slate-400" /> contact@mkapms.com</div>
+                <div className="flex items-center gap-2"><Clock size={12} className="text-slate-400" /> Lun – Dim : 8h – 20h</div>
+                <div className="flex items-center gap-2"><MapPin size={12} className="text-slate-400" /> Support 7/7</div>
+                <div className="flex items-start gap-2"><Globe size={12} className="mt-0.5 shrink-0 text-slate-400" /> 14 Rue du petit Viarmes, 95270 Belloy-en-France, France</div>
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 sm:flex-row">
-            <p className="text-xs">© 2024 MKA.P-MS - Tous droits réservés</p>
-            <div className="flex gap-3">
+        {/* Autres Ajouts Intégrés + cartes */}
+        <div className="border-t border-slate-200 bg-[#FAFAFA]">
+          <div className="container-page py-8">
+            <h4 className="flex items-center gap-2 text-sm font-bold text-[#111]">
+              <Star size={16} className="text-[#D4AF37]" /> Autres Ajouts Intégrés
+            </h4>
+            <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-1.5 lg:grid-cols-5">
+              {AJOUTS.map((a) => (
+                <div key={a} className="flex items-center gap-2 text-xs text-slate-600">
+                  <CheckCircle size={12} className="shrink-0 text-orange-500" />{a}
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 grid grid-cols-2 gap-4 lg:max-w-2xl lg:mx-auto">
+              <div className="rounded-xl border border-[#D4AF37]/30 bg-white p-5">
+                <div className="flex items-center gap-2">
+                  <Star size={16} className="text-[#D4AF37]" />
+                  <h5 className="text-sm font-bold text-[#111]">Deux Sessions d'Annonces</h5>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">Premium (abonnés, boostées) en haut de page. Classiques en dessous.</p>
+              </div>
+              <div className="rounded-xl border border-[#D4AF37]/30 bg-white p-5">
+                <div className="flex items-center gap-2">
+                  <Star size={16} className="text-[#D4AF37]" />
+                  <h5 className="text-sm font-bold text-[#111]">Espace Pro Complet</h5>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">Accès direct à tous les outils et services dédiés aux professionnels.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bas : copyright + paiement */}
+        <div className="border-t border-slate-200 bg-white">
+          <div className="container-page flex flex-wrap items-center justify-between gap-4 py-4">
+            <p className="text-xs text-slate-400">© 2026 MKA.P-MS — Auto Plus Africa — SASU, capital 2 500 €. SIREN 932 217 896 · TVA FR43932217896.</p>
+            <div className="flex gap-2">
               <span className="rounded bg-blue-800 px-3 py-1 text-xs font-bold text-white">VISA</span>
               <span className="rounded bg-red-600 px-3 py-1 text-xs font-bold text-white">MasterCard</span>
               <span className="rounded bg-blue-600 px-3 py-1 text-xs font-bold text-white">PayPal</span>
@@ -607,6 +732,95 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </div>
+
+      {/* ═══ MOBILE FOOTER (accordéon) ═══ */}
+      <footer className="border-t border-slate-200 bg-white md:hidden">
+        {/* Logo + menu */}
+        <div className="container-page flex items-center justify-between py-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#111]">
+              <span className="text-sm font-extrabold text-[#D4AF37]">M</span>
+            </div>
+            <div>
+              <h3 className="text-sm font-extrabold text-[#111]">MK<span className="text-[#D4AF37]">A</span>.P-MS</h3>
+              <p className="text-[7px] font-semibold uppercase tracking-widest text-slate-400">Prestation Multi-Services</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Sections en accordéon */}
+        <div className="container-page">
+          {FOOTER_SECTIONS.map((sec) => (
+            <FooterAccordion key={sec.title} title={sec.title}>
+              <div className="space-y-2 pl-1">
+                {sec.links.map((l) => (
+                  <Link key={l.label} to={l.to} className="flex items-center gap-2 text-xs text-slate-500 hover:text-[#D4AF37]">
+                    <ChevronRight size={10} className="text-slate-300" />{l.label}
+                  </Link>
+                ))}
+              </div>
+            </FooterAccordion>
+          ))}
+          <FooterAccordion title="Nous Contacter">
+            <div className="space-y-2 pl-1 text-xs text-slate-500">
+              <div className="flex items-center gap-2"><Phone size={12} className="text-slate-400" /> 01 23 45 67 89</div>
+              <div className="flex items-center gap-2"><Mail size={12} className="text-slate-400" /> contact@mkapms.com</div>
+              <div className="flex items-center gap-2"><Clock size={12} className="text-slate-400" /> Lun – Dim : 8h – 20h</div>
+              <div className="flex items-center gap-2"><MapPin size={12} className="text-slate-400" /> Support 7/7</div>
+              <div className="flex items-start gap-2"><Globe size={12} className="mt-0.5 shrink-0 text-slate-400" /> 14 Rue du petit Viarmes, 95270 Belloy-en-France, France</div>
+            </div>
+          </FooterAccordion>
+        </div>
+
+        {/* Newsletter & Réseaux */}
+        <div className="container-page border-t border-slate-200 py-6">
+          <div className="flex items-center gap-2">
+            <Mail size={14} className="text-[#D4AF37]" />
+            <h4 className="text-sm font-bold text-[#111]">Newsletter & Réseaux</h4>
+          </div>
+          <div className="mt-3 flex gap-2">
+            <input
+              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]"
+              placeholder="Votre adresse email"
+              type="email"
+              value={newsEmail}
+              onChange={(e) => setNewsEmail(e.target.value)}
+            />
+            <button className="rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-bold text-white hover:bg-[#C5A028]">S'abonner</button>
+          </div>
+          <div className="mt-3 flex gap-3">
+            {["f", "i", "Y", "t"].map((s, i) => (
+              <a key={i} href="#" className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition hover:bg-[#D4AF37] hover:text-white">{s}</a>
+            ))}
+          </div>
+        </div>
+
+        {/* Autres Ajouts */}
+        <div className="container-page border-t border-slate-200 py-6">
+          <h4 className="flex items-center gap-2 text-sm font-bold text-[#111]">
+            <Star size={14} className="text-[#D4AF37]" /> Autres Ajouts Intégrés
+          </h4>
+          <div className="mt-3 space-y-1.5">
+            {AJOUTS.map((a) => (
+              <div key={a} className="flex items-center gap-2 text-xs text-slate-600">
+                <CheckCircle size={12} className="shrink-0 text-orange-500" />{a}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Copyright + paiement */}
+        <div className="border-t border-slate-200 bg-white">
+          <div className="container-page py-4 text-center">
+            <p className="text-[10px] text-slate-400">© 2026 MKA.P-MS — Auto Plus Africa — SASU, capital 2 500 €. SIREN 932 217 896 · TVA FR43932217896.</p>
+            <div className="mt-3 flex justify-center gap-2">
+              <span className="rounded bg-blue-800 px-3 py-1 text-xs font-bold text-white">VISA</span>
+              <span className="rounded bg-red-600 px-3 py-1 text-xs font-bold text-white">MasterCard</span>
+              <span className="rounded bg-blue-600 px-3 py-1 text-xs font-bold text-white">PayPal</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </>
   );
 }
