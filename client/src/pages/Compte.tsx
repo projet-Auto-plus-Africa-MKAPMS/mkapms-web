@@ -7,7 +7,12 @@ import { isAdmin, isPro, ROLE_LABELS } from "@shared/roles";
 import type { UserRole } from "@shared/roles";
 import FileUpload from "../components/FileUpload";
 
-type Tab = "annonces" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "services" | "profil";
+type Tab = "annonces" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil";
+
+const DEMO_RAPPORTS = [
+  { id: 1, plaque: "AB-123-CD", vinPartiel: "VF1KR****567890", type: "Rapport Complet", prix: "7,99 \u20ac", date: "28/05/2024", statut: "Disponible" },
+  { id: 2, plaque: "EF-456-GH", vinPartiel: "WBA8E****123456", type: "Rapport Express", prix: "4,99 \u20ac", date: "15/04/2024", statut: "Disponible" },
+];
 
 const ALL_SERVICES = [
   { label: "Acheter un v\u00e9hicule", to: "/acheter", emoji: "\ud83d\ude97", desc: "Parcourez les annonces et trouvez votre v\u00e9hicule id\u00e9al" },
@@ -73,6 +78,7 @@ export default function Compte() {
     ["fidelite", "Fidélité"],
     ["coffre", "Coffre-fort"],
     ["vehicules", "Mes véhicules"],
+    ["rapports", "Mes rapports"],
     ["services", "Tous les services"],
     ["profil", "Profil"],
   ];
@@ -341,6 +347,36 @@ export default function Compte() {
               </div>
             ))}
             {dossiers.data?.length === 0 && <p className="text-sm text-slate-500">Aucun véhicule dans votre carnet.</p>}
+          </div>
+        )}
+        {tab === "rapports" && (
+          <div>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Mes rapports historiques</h2>
+                <p className="mt-1 text-sm text-slate-500">Tous vos rapports véhicule achetés</p>
+              </div>
+              <Link to="/historique" className="rounded-lg bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#C5A028]">
+                Acheter un rapport
+              </Link>
+            </div>
+            <div className="mt-4 space-y-3">
+              {DEMO_RAPPORTS.map((r) => (
+                <div key={r.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4">
+                  <div>
+                    <p className="text-sm font-bold text-[#111]">{r.plaque}</p>
+                    <p className="text-[10px] text-slate-400">VIN : {r.vinPartiel}</p>
+                    <p className="text-[10px] text-slate-500">{r.type} · {r.prix} · {r.date}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded bg-green-50 px-2 py-0.5 text-[9px] font-bold text-green-700">{r.statut}</span>
+                    <button className="rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-bold text-[#111] hover:bg-slate-50">Voir</button>
+                    <button className="rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-bold text-[#111] hover:bg-slate-50">PDF</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-[10px] text-slate-400 italic">Vos rapports sont aussi disponibles dans : Messagerie interne, Centre documents {'>'} Véhicules {'>'} Historiques.</p>
           </div>
         )}
         {tab === "services" && (
