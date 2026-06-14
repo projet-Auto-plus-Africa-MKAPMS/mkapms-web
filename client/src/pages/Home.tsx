@@ -227,59 +227,47 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-10">
         <div className="container-page grid gap-6 lg:grid-cols-2">
-          {/* Recherche */}
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+          {/* Recherche — compact : tabs + filtres en grille + bouton */}
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
             <h3 className="text-lg font-bold text-[#111]">Rechercher un véhicule</h3>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-2 flex flex-wrap gap-1.5">
               {(["toutes", "voitures", "motos", "utilitaires"] as const).map((t) => (
                 <button key={t} onClick={() => setSearchTab(t)}
                   className={`rounded-full px-3 py-1 text-xs font-semibold capitalize transition ${searchTab === t ? "bg-[#111] text-white" : "bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]"}`}
                 >{t}</button>
               ))}
             </div>
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Marque</label>
-                <select className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" value={sMarque} onChange={(e) => setSMarque(e.target.value)}>
-                  <option value="">Toutes les marques</option>
-                  {["Peugeot","Renault","Citroën","BMW","Mercedes","Audi","Volkswagen","Toyota","Ford","Opel","Fiat","Hyundai","Kia","Nissan","Dacia"].map((m) => <option key={m} value={m}>{m}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Modèle</label>
-                <select className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" value={sModele} onChange={(e) => setSModele(e.target.value)}>
-                  <option value="">Tous les modèles</option>
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Localisation</label>
-                <select className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" value={sLoc} onChange={(e) => setSLoc(e.target.value)}>
-                  <option value="">Toute la France</option>
-                  <option value="Paris">Paris</option>
-                  <option value="Lyon">Lyon</option>
-                  <option value="Marseille">Marseille</option>
-                  <option value="Toulouse">Toulouse</option>
-                  <option value="Bordeaux">Bordeaux</option>
-                  <option value="Nice">Nice</option>
-                  <option value="Lille">Lille</option>
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-[#9CA3AF]">Prix maximum</label>
-                <select className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2.5 text-sm outline-none focus:border-[#D4AF37]" value={sPrix} onChange={(e) => setSPrix(e.target.value)}>
-                  <option value="">Prix maximum</option>
-                  <option value="5000">5 000 €</option>
-                  <option value="10000">10 000 €</option>
-                  <option value="15000">15 000 €</option>
-                  <option value="20000">20 000 €</option>
-                  <option value="30000">30 000 €</option>
-                  <option value="50000">50 000 €</option>
-                </select>
-              </div>
-              <button onClick={doSearch} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white hover:bg-[#C5A028]">
-                Rechercher <Search size={16} />
-              </button>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <select className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" value={sMarque} onChange={(e) => setSMarque(e.target.value)}>
+                <option value="">Marque</option>
+                {["Peugeot","Renault","Citroën","BMW","Mercedes","Audi","Volkswagen","Toyota","Ford","Opel","Fiat","Hyundai","Kia","Nissan","Dacia"].map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+              <select className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" value={sModele} onChange={(e) => setSModele(e.target.value)}>
+                <option value="">Modèle</option>
+              </select>
+              <select className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" value={sLoc} onChange={(e) => setSLoc(e.target.value)}>
+                <option value="">Localisation</option>
+                <option value="Paris">Paris</option>
+                <option value="Lyon">Lyon</option>
+                <option value="Marseille">Marseille</option>
+                <option value="Toulouse">Toulouse</option>
+                <option value="Bordeaux">Bordeaux</option>
+                <option value="Nice">Nice</option>
+                <option value="Lille">Lille</option>
+              </select>
+              <select className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" value={sPrix} onChange={(e) => setSPrix(e.target.value)}>
+                <option value="">Prix max</option>
+                <option value="5000">5 000 €</option>
+                <option value="10000">10 000 €</option>
+                <option value="15000">15 000 €</option>
+                <option value="20000">20 000 €</option>
+                <option value="30000">30 000 €</option>
+                <option value="50000">50 000 €</option>
+              </select>
             </div>
+            <button onClick={doSearch} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] py-2.5 text-sm font-bold text-white hover:bg-[#C5A028]">
+              Rechercher <Search size={16} />
+            </button>
           </div>
 
           {/* Estimation de voiture — formulaire complet */}
@@ -574,39 +562,27 @@ export default function Home() {
               { icon: Car, title: "Achat / Vente", desc: "Trouvez ou vendez votre véhicule.", cta: "Voir les annonces", to: "/acheter" },
               { icon: KeyRound, title: "Location", desc: "Louez en toute confiance.", cta: "Voir les offres", to: "/louer" },
               { icon: Gauge, title: "VO Interne", desc: "Gestion complète véhicules d'occasion.", cta: "Accéder au VO", to: "/vo" },
-              { icon: FileText, title: "Devis", desc: "Comparez plusieurs devis.", cta: "Demander un devis", to: "/devis" },
+              { icon: FileText, title: "Devis & Garages", desc: "Devis rapide + réseau de garages.", cta: "Demander un devis", to: "/garages" },
+              { icon: Wrench, title: "Dépannage", desc: "Assistance routière 24h/24, 7j/7.", cta: "Demander", to: "/depannage", accent: true },
               { icon: Truck, title: "Livraison & Pièces", desc: "Pièces et livraison rapide.", cta: "Découvrir", to: "/pieces" },
             ];
-            const first4 = services.slice(0, 4);
-            const last = services[4];
             return (
-              <>
-                <div className="mx-auto mt-6 grid max-w-3xl grid-cols-2 gap-3 md:grid-cols-4">
-                  {first4.map((s) => {
-                    const Icon = s.icon;
-                    return (
-                      <Link key={s.to} to={s.to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#D4AF37]/10 transition group-hover:bg-[#D4AF37]/20">
-                          <Icon size={26} className="text-[#D4AF37]" />
-                        </div>
-                        <h3 className="text-xs font-bold text-[#111]">{s.title}</h3>
-                        <p className="text-[10px] text-[#6B7280] leading-tight">{s.desc}</p>
-                        <span className="mt-1 rounded-lg bg-[#D4AF37] px-3 py-1.5 text-[10px] font-bold text-white">{s.cta}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-                <div className="mx-auto mt-3 flex max-w-3xl justify-center">
-                  <Link to={last.to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md w-[calc(50%-6px)] md:w-[calc(25%-9px)]">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#D4AF37]/10 transition group-hover:bg-[#D4AF37]/20">
-                      <last.icon size={26} className="text-[#D4AF37]" />
-                    </div>
-                    <h3 className="text-xs font-bold text-[#111]">{last.title}</h3>
-                    <p className="text-[10px] text-[#6B7280] leading-tight">{last.desc}</p>
-                    <span className="mt-1 rounded-lg bg-[#D4AF37] px-3 py-1.5 text-[10px] font-bold text-white">{last.cta}</span>
-                  </Link>
-                </div>
-              </>
+              <div className="mx-auto mt-6 grid max-w-3xl grid-cols-2 gap-3 md:grid-cols-3">
+                {services.map((s) => {
+                  const Icon = s.icon;
+                  const isAccent = (s as any).accent;
+                  return (
+                    <Link key={s.to} to={s.to} className={`group flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition hover:shadow-md ${isAccent ? "border-red-200 bg-red-50 hover:border-red-400" : "border-[#E5E7EB] bg-white hover:border-[#D4AF37]"}`}>
+                      <div className={`flex h-14 w-14 items-center justify-center rounded-full transition ${isAccent ? "bg-red-100 group-hover:bg-red-200" : "bg-[#D4AF37]/10 group-hover:bg-[#D4AF37]/20"}`}>
+                        <Icon size={26} className={isAccent ? "text-red-600" : "text-[#D4AF37]"} />
+                      </div>
+                      <h3 className="text-xs font-bold text-[#111]">{s.title}</h3>
+                      <p className="text-[10px] text-[#6B7280] leading-tight">{s.desc}</p>
+                      <span className={`mt-1 rounded-lg px-3 py-1.5 text-[10px] font-bold text-white ${isAccent ? "bg-red-600" : "bg-[#D4AF37]"}`}>{s.cta}</span>
+                    </Link>
+                  );
+                })}
+              </div>
             );
           })()}
         </div>

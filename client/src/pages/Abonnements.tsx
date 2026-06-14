@@ -16,6 +16,7 @@ const TABS: [PlanCategory, string][] = [
   ["vtc_taxi", "VTC / TAXI"],
   ["pieces", "Pièces Auto"],
   ["livraison", "Livraison"],
+  ["depannage", "Dépannage"],
   ["franchise", "Franchise"],
 ];
 

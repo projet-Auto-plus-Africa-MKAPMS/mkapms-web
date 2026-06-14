@@ -7,7 +7,22 @@ import { isAdmin, isPro, ROLE_LABELS } from "@shared/roles";
 import type { UserRole } from "@shared/roles";
 import FileUpload from "../components/FileUpload";
 
-type Tab = "annonces" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "profil";
+type Tab = "annonces" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "services" | "profil";
+
+const ALL_SERVICES = [
+  { label: "Acheter un v\u00e9hicule", to: "/acheter", emoji: "\ud83d\ude97", desc: "Parcourez les annonces et trouvez votre v\u00e9hicule id\u00e9al" },
+  { label: "Vendre un v\u00e9hicule", to: "/vendre", emoji: "\ud83d\udcb0", desc: "D\u00e9posez une annonce et vendez rapidement" },
+  { label: "Location", to: "/louer", emoji: "\ud83d\udd11", desc: "Louez un v\u00e9hicule en toute confiance" },
+  { label: "Garage & R\u00e9paration", to: "/garages", emoji: "\ud83d\udd27", desc: "Trouvez un garage et demandez un devis" },
+  { label: "D\u00e9pannage", to: "/depannage", emoji: "\ud83d\ude91", desc: "Assistance routi\u00e8re 24h/24, 7j/7" },
+  { label: "Carte Grise", to: "/carte-grise", emoji: "\ud83d\udcc4", desc: "D\u00e9marches carte grise en ligne" },
+  { label: "Livraison", to: "/livraison", emoji: "\ud83d\ude9a", desc: "Livraison France & Afrique" },
+  { label: "Historique V\u00e9hicule", to: "/historique", emoji: "\ud83d\udcca", desc: "Rapport complet kilom\u00e9trage, entretien, CT" },
+  { label: "Pi\u00e8ces Auto", to: "/pieces", emoji: "\u2699\ufe0f", desc: "Catalogue pi\u00e8ces d\u00e9tach\u00e9es" },
+  { label: "Moto & Scooter", to: "/acheter?type=moto", emoji: "\ud83c\udfcd\ufe0f", desc: "V\u00e9hicules deux roues" },
+  { label: "Financement", to: "/abonnements", emoji: "\ud83c\udfe6", desc: "Solutions de financement auto" },
+  { label: "Support", to: "/aide", emoji: "\ud83d\udcde", desc: "Aide et assistance 7j/7" },
+];
 
 const TIER_LABELS: Record<string, string> = { bronze: "Bronze", silver: "Silver", gold: "Gold", platinum: "Platinum", elite: "Elite" };
 
@@ -58,6 +73,7 @@ export default function Compte() {
     ["fidelite", "Fidélité"],
     ["coffre", "Coffre-fort"],
     ["vehicules", "Mes véhicules"],
+    ["services", "Tous les services"],
     ["profil", "Profil"],
   ];
 
@@ -325,6 +341,21 @@ export default function Compte() {
               </div>
             ))}
             {dossiers.data?.length === 0 && <p className="text-sm text-slate-500">Aucun véhicule dans votre carnet.</p>}
+          </div>
+        )}
+        {tab === "services" && (
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Tous les services MKA.P-MS</h2>
+            <p className="mt-1 text-sm text-slate-500">Accédez à tous nos services depuis votre compte</p>
+            <div className="mt-4 grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {ALL_SERVICES.map((s) => (
+                <Link key={s.to} to={s.to} className="group flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-white p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                  <span className="text-3xl">{s.emoji}</span>
+                  <h3 className="text-xs font-bold text-[#111]">{s.label}</h3>
+                  <p className="text-[10px] text-slate-500 leading-tight">{s.desc}</p>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
         {tab === "profil" && <ProfilForm />}

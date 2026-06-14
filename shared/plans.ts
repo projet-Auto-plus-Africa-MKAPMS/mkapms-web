@@ -14,6 +14,7 @@ export type PlanCategory =
   | "pieces"
   | "livraison"
   | "vo"
+  | "depannage"
   | "franchise";
 
 export interface PlanQuotas {
@@ -426,6 +427,67 @@ export const VO_MODULES: Plan[] = [
   },
 ];
 
+// §8.9 — Abonnements Dépanneur professionnel
+const dq = (m: number | null): PlanQuotas => ({ maxAnnonces: m, maxPhotos: null, maxVideos: null });
+export const DEPANNAGE_PLANS: Plan[] = [
+  {
+    code: "depannage_start", label: "Dépannage Start", audience: "pro", category: "depannage",
+    priceEur: 29, recurring: true,
+    features: [
+      "Jusqu'à 20 missions/mois",
+      "Tableau de bord dépanneur",
+      "Réception missions automatique",
+      "GPS intégré",
+      "Messagerie clients",
+      "Facturation automatique",
+    ],
+    quotas: dq(20),
+  },
+  {
+    code: "depannage_premium", label: "Dépannage Premium", audience: "pro", category: "depannage",
+    priceEur: 59, recurring: true, highlight: true,
+    features: [
+      "Jusqu'à 100 missions/mois",
+      "Tout Start",
+      "Priorité d'affichage",
+      "Statistiques avancées",
+      "Avis clients mis en avant",
+      "Badge Premium dépanneur",
+      "Support prioritaire",
+    ],
+    quotas: dq(100),
+  },
+  {
+    code: "depannage_elite", label: "Dépannage Elite", audience: "pro", category: "depannage",
+    priceEur: 99, recurring: true,
+    features: [
+      "Missions illimitées",
+      "Tout Premium",
+      "Priorité absolue d'affichage",
+      "Multi-véhicules",
+      "Rapports mensuels avancés",
+      "Signature électronique",
+      "Gestion documents automatisée",
+    ],
+    quotas: dq(null),
+  },
+  {
+    code: "depannage_business", label: "Dépannage Business", audience: "pro", category: "depannage",
+    priceEur: 199, recurring: true,
+    features: [
+      "Missions illimitées",
+      "Tout Elite",
+      "Flotte complète",
+      "Multi-conducteurs",
+      "Multi-véhicules illimités",
+      "Comptabilité intégrée",
+      "API partenaires",
+      "Support dédié 7j/7",
+    ],
+    quotas: dq(null),
+  },
+];
+
 export const ALL_PLANS: Plan[] = [
   ...PARTICULIER_PLANS,
   ...PRO_PLANS,
@@ -436,6 +498,7 @@ export const ALL_PLANS: Plan[] = [
   ...LIVRAISON_PLANS,
   ...VO_PLANS,
   ...VO_MODULES,
+  ...DEPANNAGE_PLANS,
   FRANCHISE_PLAN,
 ];
 
@@ -449,6 +512,7 @@ export const PLAN_CATEGORY_LABELS: Record<PlanCategory, string> = {
   pieces: "Boutique Pièces Auto",
   livraison: "Livraison",
   vo: "VO — Véhicules d'Occasion",
+  depannage: "Dépannage / Assistance",
   franchise: "Franchise MKA.P-MS",
 };
 
