@@ -197,27 +197,29 @@ export default function Vendre() {
         {/* ═══ ÉTAPE 1 — ESTIMATION ═══ */}
         {step === 1 && (
           <div className="card mx-auto max-w-2xl p-6">
-            {/* Choix Vente / Location */}
-            <div className="mb-6 flex gap-3">
-              <button
-                type="button"
-                onClick={() => setTypeAnnonce("vente")}
-                className={`flex-1 rounded-xl border-2 p-4 text-center font-bold transition ${typeAnnonce === "vente" ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-[#E5E7EB] text-[#6B7280]"}`}
-              >
-                🏷 Vendre
-              </button>
-              <button
-                type="button"
-                onClick={() => setTypeAnnonce("location")}
-                className={`flex-1 rounded-xl border-2 p-4 text-center font-bold transition ${typeAnnonce === "location" ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-[#E5E7EB] text-[#6B7280]"}`}
-              >
-                🔑 Mettre en location
-              </button>
-            </div>
+            {/* Choix Vente / Location — Location visible uniquement pour les pros */}
+            {user.accountType === "professionnel" && (
+              <div className="mb-6 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setTypeAnnonce("vente")}
+                  className={`flex-1 rounded-xl border-2 p-4 text-center font-bold transition ${typeAnnonce === "vente" ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-[#E5E7EB] text-[#6B7280]"}`}
+                >
+                  Vendre
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTypeAnnonce("location")}
+                  className={`flex-1 rounded-xl border-2 p-4 text-center font-bold transition ${typeAnnonce === "location" ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-[#E5E7EB] text-[#6B7280]"}`}
+                >
+                  Mettre en location
+                </button>
+              </div>
+            )}
 
-            <h2 className="mb-2 text-xl font-bold text-[#111]">Identifiez votre véhicule</h2>
+            <h2 className="mb-2 text-2xl font-extrabold text-[#111]">Estimation de voiture</h2>
             <p className="mb-6 text-sm text-[#6B7280]">
-              Saisissez votre plaque ou votre numéro VIN — ou continuez manuellement.
+              Entrez votre plaque d'immatriculation ou numéro VIN pour identifier et estimer votre véhicule automatiquement.
             </p>
 
             <div className="rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] p-5">
@@ -241,7 +243,7 @@ export default function Vendre() {
                     disabled={!plaque.trim() || plateLoading}
                     onClick={() => identifierVehicule("plaque")}
                   >
-                    {plateLoading ? "..." : "Valider"}
+                    {plateLoading ? "..." : "Estimation du véhicule"}
                   </button>
                 </div>
               </div>
@@ -263,7 +265,7 @@ export default function Vendre() {
                     disabled={!vin.trim() || plateLoading}
                     onClick={() => identifierVehicule("vin")}
                   >
-                    {plateLoading ? "..." : "Valider"}
+                    {plateLoading ? "..." : "Estimation du véhicule"}
                   </button>
                 </div>
               </div>
