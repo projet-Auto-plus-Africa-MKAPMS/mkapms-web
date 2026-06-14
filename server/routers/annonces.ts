@@ -264,6 +264,59 @@ export const annoncesRouter = router({
       };
     }),
 
+  // Identification rapide par plaque ou VIN — pré-remplit les champs annonce
+  lookupPlate: publicProcedure
+    .input(z.object({
+      type: z.enum(["plaque", "vin"]),
+      query: z.string().min(1),
+    }))
+    .query(async ({ input }) => {
+      // Chercher dans les annonces existantes avec la même plaque/VIN
+      const q = input.query.replace(/[\s-]/g, "").toUpperCase();
+      // Pour l'instant on simule avec une base de données de marques connues
+      // À terme : API SIV / HistoVec / service tiers
+      const knownPlates: Record<string, { marque: string; modele: string; version?: string; annee?: number; carburant?: string; boite?: string; categorie?: string }> = {};
+
+      // Essayer de trouver dans les annonces existantes
+      const existing = await db
+        .select({
+          marque: annonces.marque,
+          modele: annonces.modele,
+          version: annonces.version,
+          annee: annonces.annee,
+          carburant: annonces.carburant,
+          categorie: annonces.categorie,
+        })
+        .from(annonces)
+        .where(input.type === "plaque"
+          ? ilike(annonces.titre, `%${q}%`)
+          : ilike(annonces.titre, `%${q}%`)
+        )
+        .limit(1);
+
+      if (existing.length > 0) {
+        const e = existing[0];
+        return {
+          marque: e.marque,
+          modele: e.modele,
+          version: e.version,
+          annee: e.annee,
+          carburant: e.carburant,
+          categorie: e.categorie,
+          boite: null,
+          puissance: null,
+        };
+      }
+
+      // Si pas trouvé en base, retourner null (l'utilisateur remplit manuellement)
+      if (knownPlates[q]) {
+        const p = knownPlates[q];
+        return { ...p, puissance: null };
+      }
+
+      return null;
+    }),
+
   incrementView: publicProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
