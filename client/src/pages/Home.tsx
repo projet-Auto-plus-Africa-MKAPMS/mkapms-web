@@ -607,23 +607,29 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          10. PARTENAIRES
+          10. CARROUSEL ANNONCES (swipe gauche/droite)
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-10">
         <div className="container-page">
-          <h2 className="text-center text-xl font-bold text-[#111]">Nos professionnels partenaires</h2>
-          <Link to="/garages" className="mt-1 block text-center text-sm text-[#6B7280] hover:text-[#D4AF37]">Voir tous nos partenaires →</Link>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {PARTENAIRES.map((p) => (
-              <Link key={p.title} to={p.to} className="rounded-2xl border border-[#E5E7EB] bg-white p-5 transition hover:shadow-md">
-                <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[#F3F4F6]">
-                  <Wrench size={28} className="text-[#D4AF37]" />
-                </div>
-                <h3 className="mt-3 font-bold text-[#111]">{p.title}</h3>
-                <p className="mt-1 text-xs text-[#6B7280]">{p.desc}</p>
-                <span className="mt-3 inline-block rounded-lg bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white">{p.cta}</span>
-              </Link>
-            ))}
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-[#111]">Découvrez nos annonces</h2>
+            <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir tout →</Link>
+          </div>
+          <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+            {featured.isLoading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="w-[220px] shrink-0 snap-start">
+                    <div className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
+                  </div>
+                ))
+              : featured.data?.items.slice(0, 10).map((v) => (
+                  <div key={v.id} className="w-[220px] shrink-0 snap-start">
+                    <VehicleCard v={v as any} />
+                  </div>
+                ))}
+            {featured.data && featured.data.items.length === 0 && (
+              <p className="text-sm text-[#9CA3AF]">Aucune annonce pour le moment.</p>
+            )}
           </div>
         </div>
       </section>

@@ -85,6 +85,10 @@ a {
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* Hide scrollbar for horizontal carousels */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* PWA standalone mode — espace sous la barre de statut iOS */
 @media all and (display-mode: standalone) {
   header {
