@@ -328,10 +328,28 @@ function BottomNav() {
   );
 }
 
+function BackButton() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  if (location.pathname === "/") return null;
+  return (
+    <div className="container-page pt-3">
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-1 text-sm font-medium text-[#6B7280] hover:text-[#111] transition"
+      >
+        <span className="text-lg leading-none">←</span> Retour
+      </button>
+    </div>
+  );
+}
+
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
+      <BackButton />
       <main className="flex-1 pb-20 md:pb-0">{children}</main>
       <Footer />
       <BottomNav />

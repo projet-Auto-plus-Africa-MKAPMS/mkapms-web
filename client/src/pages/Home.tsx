@@ -308,19 +308,35 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Km + Boîte */}
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Kilométrage</label>
-                <input type="number" className="input text-sm border-[#D4AF37]" placeholder="85000" value={estimKm} onChange={(e) => setEstimKm(e.target.value)} />
+            {/* Km (slider) */}
+            <div className="mt-3">
+              <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">
+                Kilométrage : {estimKm ? Number(estimKm).toLocaleString() : "0"} km
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="300000"
+                step="1000"
+                value={estimKm || "0"}
+                onChange={(e) => setEstimKm(e.target.value)}
+                className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                style={{ background: `linear-gradient(to right, #D4AF37 ${(Number(estimKm || 0) / 300000) * 100}%, #E5E7EB ${(Number(estimKm || 0) / 300000) * 100}%)` }}
+              />
+              <div className="flex justify-between text-[10px] text-[#9CA3AF] mt-1">
+                <span>0 km</span>
+                <span>150 000 km</span>
+                <span>300 000 km</span>
               </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Boîte</label>
-                <select className="input text-sm" value={estimBoite} onChange={(e) => setEstimBoite(e.target.value)}>
-                  <option value="manuelle">Manuelle</option>
-                  <option value="automatique">Automatique</option>
-                </select>
-              </div>
+            </div>
+
+            {/* Boîte */}
+            <div className="mt-3">
+              <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Boîte</label>
+              <select className="input text-sm" value={estimBoite} onChange={(e) => setEstimBoite(e.target.value)}>
+                <option value="manuelle">Manuelle</option>
+                <option value="automatique">Automatique</option>
+              </select>
             </div>
 
             {/* État */}

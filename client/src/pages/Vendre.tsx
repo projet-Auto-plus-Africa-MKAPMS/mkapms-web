@@ -236,21 +236,21 @@ export default function Vendre() {
               Obtenez une estimation gratuite en quelques secondes.
             </p>
 
-            {/* Plaque + VIN côte à côte */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            {/* Plaque + VIN côte à côte — alignés comme page accueil */}
+            <div className="grid grid-cols-2 gap-2 mb-4">
               <div>
-                <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">Plaque d'immatriculation</label>
+                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Plaque</label>
                 <input
-                  className="input"
+                  className="input text-sm"
                   placeholder="AB-123-CD"
                   value={plaque}
                   onChange={(e) => setPlaque(e.target.value.toUpperCase())}
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">VIN (17 caractères)</label>
+                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">VIN</label>
                 <input
-                  className="input"
+                  className="input text-sm"
                   placeholder="VF1XXXXX..."
                   value={vin}
                   onChange={(e) => setVin(e.target.value.toUpperCase())}
@@ -319,27 +319,35 @@ export default function Vendre() {
                 </div>
               </div>
 
-              {/* Kilométrage + Boîte */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">Kilométrage (km)</label>
-                  <input
-                    type="number"
-                    className="input border-[#D4AF37]"
-                    placeholder="Ex : 85000"
-                    value={form.kilometrage}
-                    onChange={(e) => set("kilometrage", e.target.value)}
-                    min="0"
-                    max="999999"
-                  />
+              {/* Kilométrage (slider) */}
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">
+                  Kilométrage : {form.kilometrage ? Number(form.kilometrage).toLocaleString() : "0"} km
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="300000"
+                  step="1000"
+                  value={form.kilometrage || "0"}
+                  onChange={(e) => set("kilometrage", e.target.value)}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                  style={{ background: `linear-gradient(to right, #D4AF37 ${(Number(form.kilometrage || 0) / 300000) * 100}%, #E5E7EB ${(Number(form.kilometrage || 0) / 300000) * 100}%)` }}
+                />
+                <div className="flex justify-between text-xs text-[#9CA3AF] mt-1">
+                  <span>0 km</span>
+                  <span>150 000 km</span>
+                  <span>300 000 km</span>
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">Boîte de vitesse</label>
-                  <select className="input" value={form.boite} onChange={(e) => set("boite", e.target.value)}>
-                    <option value="manuelle">Manuelle</option>
-                    <option value="automatique">Automatique</option>
-                  </select>
-                </div>
+              </div>
+
+              {/* Boîte de vitesse */}
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">Boîte de vitesse</label>
+                <select className="input" value={form.boite} onChange={(e) => set("boite", e.target.value)}>
+                  <option value="manuelle">Manuelle</option>
+                  <option value="automatique">Automatique</option>
+                </select>
               </div>
 
               {/* État général */}
