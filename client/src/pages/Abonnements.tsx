@@ -74,7 +74,7 @@ export default function Abonnements() {
 
       <h2 className="mt-8 text-center text-lg font-bold text-slate-700">{PLAN_CATEGORY_LABELS[tab]}</h2>
 
-      <div className="mt-6 grid gap-6 md:grid-cols-3">
+      <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {filtered.map((p) => (
           <div
             key={p.code}

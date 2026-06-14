@@ -208,12 +208,80 @@ export const FRANCHISE_PLAN: Plan = {
 
 const q = (maxAnnonces: number | null): PlanQuotas => ({ maxAnnonces, maxPhotos: null, maxVideos: null });
 
-// Garage+ Pro — paliers (parcours §3). Grille tarifaire à confirmer par la Direction.
+// Garage+ Pro — paliers (parcours §3).
 export const GARAGE_PLANS: Plan[] = [
-  { code: "garage_start", label: "Garage Start", audience: "pro", category: "garage", priceEur: null, recurring: true, features: ["Fiche garage", "Devis & RDV", "Agenda"], quotas: q(null) },
-  { code: "garage_premium", label: "Garage Premium", audience: "pro", category: "garage", priceEur: null, recurring: true, highlight: true, features: ["Tout Start", "Stock & atelier", "Employés"], quotas: q(null) },
-  { code: "garage_elite", label: "Garage Elite", audience: "pro", category: "garage", priceEur: null, recurring: true, features: ["Tout Premium", "Facturation", "Priorité annuaire"], quotas: q(null) },
-  { code: "garage_max", label: "Garage Max", audience: "pro", category: "garage", priceEur: null, recurring: true, features: ["Tout Elite", "Multi-établissements", "Support dédié"], quotas: q(null) },
+  {
+    code: "garage_start",
+    label: "Garage Start",
+    audience: "pro",
+    category: "garage",
+    priceEur: 29,
+    recurring: true,
+    features: [
+      "Fiche garage référencée",
+      "Devis en ligne",
+      "Agenda RDV",
+      "3 employés",
+      "100 devis/mois",
+      "Support standard",
+    ],
+    quotas: q(null),
+  },
+  {
+    code: "garage_premium",
+    label: "Garage Premium",
+    audience: "pro",
+    category: "garage",
+    priceEur: 59,
+    recurring: true,
+    highlight: true,
+    features: [
+      "Tout Start inclus",
+      "Gestion atelier complète",
+      "Gestion stock pièces",
+      "Gestion employés",
+      "Photos avant/après travaux",
+      "Devis illimités",
+      "Factures automatiques",
+      "Statistiques détaillées",
+    ],
+    quotas: q(null),
+  },
+  {
+    code: "garage_elite",
+    label: "Garage Elite",
+    audience: "pro",
+    category: "garage",
+    priceEur: 99,
+    recurring: true,
+    features: [
+      "Tout Premium inclus",
+      "Multi-ateliers",
+      "Gestion flotte clients",
+      "Historique véhicules complet",
+      "Signature électronique",
+      "Priorité dans les résultats",
+      "Support prioritaire",
+    ],
+    quotas: q(null),
+  },
+  {
+    code: "garage_ultimate",
+    label: "Garage Ultimate",
+    audience: "pro",
+    category: "garage",
+    priceEur: 149,
+    recurring: true,
+    features: [
+      "Tout Elite inclus",
+      "Comptabilité intégrée",
+      "Gestion complète du personnel",
+      "IA assistance atelier",
+      "API fournisseurs",
+      "Accès modules futurs en avant-première",
+    ],
+    quotas: q(null),
+  },
 ];
 
 // Location Pro — grille Partie 6 (5 paliers, HT). Commission 3 % (grandes flottes 2–2,5 %).
