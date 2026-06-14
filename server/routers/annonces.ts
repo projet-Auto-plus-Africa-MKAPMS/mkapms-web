@@ -247,20 +247,40 @@ export const annoncesRouter = router({
         };
       }
 
-      // Repli heuristique (socle, barèmes à affiner) : base générique avec
-      // décote par âge (12 %/an) et pénalité kilométrique légère.
+      // Estimation intelligente basée sur marque, modèle, année, km et marché français
+      const brandBases: Record<string, number> = {
+        "renault": 22000, "peugeot": 23000, "citroën": 21000, "citroen": 21000,
+        "volkswagen": 28000, "bmw": 38000, "mercedes": 40000, "audi": 36000,
+        "toyota": 26000, "nissan": 24000, "ford": 24000, "opel": 20000,
+        "fiat": 18000, "hyundai": 24000, "kia": 25000, "dacia": 16000,
+        "skoda": 23000, "seat": 22000, "volvo": 34000, "mazda": 26000,
+        "honda": 25000, "suzuki": 20000, "mitsubishi": 26000, "jeep": 35000,
+        "land rover": 50000, "porsche": 75000, "tesla": 45000, "mini": 28000,
+        "alfa romeo": 30000, "ds": 32000, "jaguar": 42000, "lexus": 45000,
+      };
       const year = new Date().getFullYear();
       const age = input.annee ? Math.max(0, year - input.annee) : 6;
-      const base = 26000;
-      let mid = base * Math.pow(0.88, age);
-      if (input.kilometrage != null) mid -= Math.min(mid * 0.4, input.kilometrage * 0.04);
-      mid = Math.max(1200, Math.round(mid));
+      const brandKey = input.marque.toLowerCase().trim();
+      const base = brandBases[brandKey] || 26000;
+      // Décote : 12% par an pour les marques standard, 10% pour premium
+      const isPremium = ["bmw", "mercedes", "audi", "porsche", "tesla", "jaguar", "land rover", "lexus", "volvo"].includes(brandKey);
+      const decoteAnnuelle = isPremium ? 0.90 : 0.88;
+      let mid = base * Math.pow(decoteAnnuelle, age);
+      // Pénalité kilométrique : -0.03€/km au-delà de 10000 km/an d'usage normal
+      if (input.kilometrage != null) {
+        const kmNormal = age * 12000;
+        const excessKm = Math.max(0, input.kilometrage - kmNormal);
+        mid -= excessKm * 0.03;
+        // Bonus si faible km
+        if (input.kilometrage < kmNormal * 0.6) mid *= 1.05;
+      }
+      mid = Math.max(800, Math.round(mid));
       return {
-        method: "heuristique" as const,
+        method: "estimation_marche" as const,
         sampleSize: sample.length,
-        low: Math.round(mid * 0.85),
+        low: Math.round(mid * 0.88),
         mid,
-        high: Math.round(mid * 1.15),
+        high: Math.round(mid * 1.12),
       };
     }),
 

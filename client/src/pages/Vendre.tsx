@@ -18,6 +18,16 @@ const STEPS = [
   { num: 6, label: "Publication", icon: CheckCircle },
 ];
 
+const MARQUES = [
+  "Renault", "Peugeot", "Citroën", "Volkswagen", "BMW", "Mercedes", "Audi",
+  "Toyota", "Nissan", "Ford", "Opel", "Fiat", "Hyundai", "Kia", "Dacia",
+  "Skoda", "Seat", "Volvo", "Mazda", "Honda", "Suzuki", "Mitsubishi",
+  "Jeep", "Land Rover", "Porsche", "Tesla", "Mini", "Alfa Romeo", "DS",
+  "Jaguar", "Lexus", "Chevrolet", "Dodge", "Autre",
+];
+
+const ETATS = ["Excellent", "Très bon", "Bon", "Correct", "À rénover"];
+
 export default function Vendre() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -29,6 +39,7 @@ export default function Vendre() {
   const [vin, setVin] = useState("");
   const [plateLoading, setPlateLoading] = useState(false);
   const [plateResult, setPlateResult] = useState<any>(null);
+  const [etatGeneral, setEtatGeneral] = useState("Bon");
 
   const [typeAnnonce, setTypeAnnonce] = useState<"vente" | "location">("vente");
   const [form, setForm] = useState({
@@ -36,10 +47,10 @@ export default function Vendre() {
     marque: "",
     modele: "",
     version: "",
-    annee: "",
-    kilometrage: "",
+    annee: "2020",
+    kilometrage: "80000",
     prix: "",
-    carburant: "essence",
+    carburant: "diesel",
     boite: "manuelle",
     categorie: "berline",
     famille: "auto",
@@ -85,9 +96,10 @@ export default function Vendre() {
     setPhotos((prev) => [...prev, ...files.map((f) => f.url)].slice(0, maxPhotos));
   }
 
-  /* Identification par plaque / VIN — remplit les champs automatiquement */
-  async function identifierVehicule(type: "plaque" | "vin") {
-    const query = type === "plaque" ? plaque.trim() : vin.trim();
+  /* Identification par plaque / VIN */
+  async function identifierVehicule() {
+    const query = plaque.trim() || vin.trim();
+    const type = plaque.trim() ? "plaque" : "vin";
     if (!query) return;
     setPlateLoading(true);
     try {
@@ -101,10 +113,9 @@ export default function Vendre() {
         if (r.carburant) set("carburant", r.carburant);
         if (r.boite) set("boite", r.boite);
         if (r.categorie) set("categorie", r.categorie);
-        if (r.puissance) set("version", r.puissance);
       }
     } catch {
-      // Pas grave si lookup échoue — l'utilisateur remplit manuellement
+      // lookup failed — user fills manually
     } finally {
       setPlateLoading(false);
     }
@@ -112,12 +123,12 @@ export default function Vendre() {
 
   /* Estimation du prix */
   async function estimerPrix() {
-    if (!form.marque || !form.modele) return;
+    if (!form.marque) return;
     setEstimLoading(true);
     try {
       const r = await utils.annonces.estimate.fetch({
         marque: form.marque,
-        modele: form.modele,
+        modele: form.modele || "standard",
         annee: form.annee ? Number(form.annee) : undefined,
         kilometrage: form.kilometrage ? Number(form.kilometrage) : undefined,
       });
@@ -150,9 +161,9 @@ export default function Vendre() {
   }
 
   function canNext(): boolean {
-    if (step === 1) return true; // estimation est optionnelle
+    if (step === 1) return true;
     if (step === 2) return !!form.marque && !!form.modele;
-    if (step === 3) return true; // photos optionnelles
+    if (step === 3) return true;
     if (step === 4) return !!form.prix;
     if (step === 5) return true;
     return true;
@@ -163,7 +174,7 @@ export default function Vendre() {
       {/* Header */}
       <h1 className="text-2xl font-extrabold text-slate-900">Déposer une annonce</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Gratuit pour les particuliers · {maxPhotos} photos incluses · Photos supplémentaires payantes
+        Gratuit pour les particuliers · {maxPhotos} photos incluses
       </p>
 
       {/* Stepper */}
@@ -194,157 +205,217 @@ export default function Vendre() {
 
       {/* Contenu de l'étape */}
       <div className="mt-6">
-        {/* ═══ ÉTAPE 1 — ESTIMATION ═══ */}
+        {/* ═══ ÉTAPE 1 — ESTIMATION DE VOITURE ═══ */}
         {step === 1 && (
           <div className="card mx-auto max-w-2xl p-6">
-            {/* Choix Vente / Location — Location visible uniquement pour les pros */}
+            {/* Choix Vente / Location — pros only */}
             {user.accountType === "professionnel" && (
               <div className="mb-6 flex gap-3">
                 <button
                   type="button"
                   onClick={() => setTypeAnnonce("vente")}
-                  className={`flex-1 rounded-xl border-2 p-4 text-center font-bold transition ${typeAnnonce === "vente" ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-[#E5E7EB] text-[#6B7280]"}`}
+                  className={`flex-1 rounded-xl border-2 p-3 text-center font-bold transition ${typeAnnonce === "vente" ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-[#E5E7EB] text-[#6B7280]"}`}
                 >
                   Vendre
                 </button>
                 <button
                   type="button"
                   onClick={() => setTypeAnnonce("location")}
-                  className={`flex-1 rounded-xl border-2 p-4 text-center font-bold transition ${typeAnnonce === "location" ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-[#E5E7EB] text-[#6B7280]"}`}
+                  className={`flex-1 rounded-xl border-2 p-3 text-center font-bold transition ${typeAnnonce === "location" ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-[#E5E7EB] text-[#6B7280]"}`}
                 >
                   Mettre en location
                 </button>
               </div>
             )}
 
-            <h2 className="mb-2 text-2xl font-extrabold text-[#111]">Estimation de voiture</h2>
+            <h2 className="mb-1 text-2xl font-extrabold text-[#111]">Estimation de voiture</h2>
             <p className="mb-6 text-sm text-[#6B7280]">
-              Entrez votre plaque d'immatriculation ou numéro VIN pour identifier et estimer votre véhicule automatiquement.
+              Obtenez une estimation gratuite en quelques secondes.
             </p>
 
-            <div className="rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] p-5">
-              <h3 className="mb-4 flex items-center gap-2 font-bold text-[#111]">
-                <Search size={18} className="text-[#D4AF37]" /> Identification rapide du véhicule
-              </h3>
-
-              {/* Plaque */}
-              <div className="mb-4">
-                <label className="mb-1 block text-sm font-medium text-[#374151]">Plaque d'immatriculation</label>
-                <div className="flex gap-2">
-                  <input
-                    className="input flex-1"
-                    placeholder="AB-123-CD"
-                    value={plaque}
-                    onChange={(e) => setPlaque(e.target.value.toUpperCase())}
-                  />
-                  <button
-                    type="button"
-                    className="rounded-lg bg-[#D4AF37] px-5 py-2 text-sm font-bold text-white hover:bg-[#C5A028] disabled:opacity-50"
-                    disabled={!plaque.trim() || plateLoading}
-                    onClick={() => identifierVehicule("plaque")}
-                  >
-                    {plateLoading ? "..." : "Estimation du véhicule"}
-                  </button>
-                </div>
+            {/* Plaque + VIN côte à côte */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">Plaque d'immatriculation</label>
+                <input
+                  className="input"
+                  placeholder="AB-123-CD"
+                  value={plaque}
+                  onChange={(e) => setPlaque(e.target.value.toUpperCase())}
+                />
               </div>
-
-              {/* VIN */}
-              <div className="mb-4">
-                <label className="mb-1 block text-sm font-medium text-[#374151]">Numéro VIN (17 caractères)</label>
-                <div className="flex gap-2">
-                  <input
-                    className="input flex-1"
-                    placeholder="VF3XXXXXXXXXXXXXX"
-                    value={vin}
-                    onChange={(e) => setVin(e.target.value.toUpperCase())}
-                    maxLength={17}
-                  />
-                  <button
-                    type="button"
-                    className="rounded-lg border border-[#D1D5DB] bg-white px-5 py-2 text-sm font-medium text-[#374151] hover:bg-[#F3F4F6] disabled:opacity-50"
-                    disabled={!vin.trim() || plateLoading}
-                    onClick={() => identifierVehicule("vin")}
-                  >
-                    {plateLoading ? "..." : "Estimation du véhicule"}
-                  </button>
-                </div>
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">VIN (17 caractères)</label>
+                <input
+                  className="input"
+                  placeholder="VF1XXXXX..."
+                  value={vin}
+                  onChange={(e) => setVin(e.target.value.toUpperCase())}
+                  maxLength={17}
+                />
               </div>
-
-              <p className="text-xs text-[#6B7280]">
-                Saisissez votre plaque ou VIN pour identifier automatiquement votre véhicule. Sinon, complétez le formulaire manuellement ci-dessous.
-              </p>
-
-              {/* Résultat plaque */}
-              {plateResult && (
-                <div className="mt-4 rounded-lg bg-green-50 p-4">
-                  <p className="text-sm font-semibold text-green-700">Véhicule identifié !</p>
-                  <p className="mt-1 text-sm text-green-600">
-                    {plateResult.marque} {plateResult.modele} {plateResult.version ?? ""} {plateResult.annee ? `(${plateResult.annee})` : ""}
-                    {plateResult.carburant && ` — ${plateResult.carburant}`}
-                  </p>
-                  <p className="mt-1 text-xs text-green-500">Les champs ont été pré-remplis automatiquement.</p>
-                </div>
-              )}
             </div>
 
-            {/* Estimation de prix */}
-            {(form.marque || plateResult) && (
-              <div className="mt-6 rounded-xl border border-[#E5E7EB] bg-white p-5">
-                <h3 className="mb-3 flex items-center gap-2 font-bold text-[#111]">
-                  <TrendingUp size={18} className="text-[#D4AF37]" /> Estimation du prix
-                </h3>
-                <button
-                  type="button"
-                  className="w-full rounded-lg bg-[#111] px-4 py-3 font-semibold text-white hover:bg-[#333] disabled:opacity-50"
-                  disabled={!form.marque || !form.modele || estimLoading}
-                  onClick={estimerPrix}
-                >
-                  {estimLoading ? "Calcul en cours…" : "Estimer le prix de mon véhicule"}
-                </button>
-                {estim && (
-                  <div className="mt-4 rounded-lg bg-[#FFFBEB] p-4 text-center">
-                    <p className="text-sm text-[#92400E]">Prix estimé</p>
-                    <p className="text-2xl font-extrabold text-[#D4AF37]">
-                      {formatPrice(estim.low)} – {formatPrice(estim.high)}
-                    </p>
-                    <p className="mt-1 text-sm text-[#6B7280]">
-                      Prix conseillé : <strong>{formatPrice(estim.mid)}</strong>
-                    </p>
-                    <p className="mt-1 text-xs text-[#9CA3AF]">
-                      {estim.method === "comparables"
-                        ? `Basé sur ${estim.sampleSize} véhicules similaires`
-                        : "Estimation indicative"}
-                    </p>
-                    <button
-                      type="button"
-                      className="mt-3 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-bold text-white"
-                      onClick={() => set("prix", String(estim.mid))}
-                    >
-                      Utiliser ce prix
-                    </button>
-                  </div>
-                )}
+            {/* Gros bouton Rechercher */}
+            <button
+              type="button"
+              className="mb-4 w-full rounded-xl bg-[#D4AF37] px-4 py-4 text-base font-bold text-white shadow-md hover:bg-[#C5A028] disabled:opacity-50 flex items-center justify-center gap-2"
+              disabled={(!plaque.trim() && !vin.trim()) || plateLoading}
+              onClick={identifierVehicule}
+            >
+              <Search size={20} />
+              {plateLoading ? "Recherche en cours..." : "Rechercher et remplir automatiquement"}
+            </button>
+
+            {/* Résultat identification */}
+            {plateResult && (
+              <div className="mb-4 rounded-xl bg-green-50 border border-green-200 p-4">
+                <p className="text-sm font-bold text-green-700">Véhicule identifié !</p>
+                <p className="mt-1 text-sm text-green-600">
+                  {plateResult.marque} {plateResult.modele} {plateResult.version ?? ""} {plateResult.annee ? `(${plateResult.annee})` : ""}
+                </p>
               </div>
             )}
 
-            {/* Boutons */}
-            <div className="mt-6 flex gap-3">
+            {/* Formulaire estimation */}
+            <div className="space-y-4">
+              {/* Marque + Modèle */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">Marque *</label>
+                  <select className="input" value={form.marque} onChange={(e) => set("marque", e.target.value)}>
+                    <option value="">Choisir</option>
+                    {MARQUES.map((m) => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">Modèle *</label>
+                  <input className="input" value={form.modele} onChange={(e) => set("modele", e.target.value)} placeholder="Ex : 308, Clio..." />
+                </div>
+              </div>
+
+              {/* Année + Carburant */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">Année *</label>
+                  <select className="input" value={form.annee} onChange={(e) => set("annee", e.target.value)}>
+                    {Array.from({ length: 30 }, (_, i) => 2025 - i).map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">Carburant</label>
+                  <select className="input" value={form.carburant} onChange={(e) => set("carburant", e.target.value)}>
+                    <option value="diesel">Diesel</option>
+                    <option value="essence">Essence</option>
+                    <option value="electrique">Électrique</option>
+                    <option value="hybride">Hybride</option>
+                    <option value="gpl">GPL</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Kilométrage — slider */}
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">
+                  Kilométrage : {Number(form.kilometrage).toLocaleString()} km
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="300000"
+                  step="5000"
+                  value={form.kilometrage}
+                  onChange={(e) => set("kilometrage", e.target.value)}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-[#D4AF37]"
+                />
+                <div className="flex justify-between text-xs text-[#9CA3AF] mt-1">
+                  <span>0 km</span>
+                  <span>150 000 km</span>
+                  <span>300 000 km</span>
+                </div>
+              </div>
+
+              {/* État général */}
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-[#D4AF37]">État général</label>
+                <div className="flex flex-wrap gap-2">
+                  {ETATS.map((e) => (
+                    <button
+                      key={e}
+                      type="button"
+                      onClick={() => setEtatGeneral(e)}
+                      className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                        etatGeneral === e
+                          ? "border-[#D4AF37] bg-[#D4AF37] text-white"
+                          : "border-[#D1D5DB] bg-white text-[#374151] hover:bg-[#F9FAFB]"
+                      }`}
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Nom + Téléphone (optionnel) */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-sm text-[#6B7280]">Votre nom (optionnel)</label>
+                  <input className="input" placeholder="Votre nom" value={form.titre} onChange={(e) => set("titre", e.target.value)} />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm text-[#6B7280]">Téléphone (optionnel)</label>
+                  <input className="input" placeholder="+33 6 XX XX XX" value={form.contactTelephone} onChange={(e) => set("contactTelephone", e.target.value)} />
+                </div>
+              </div>
+            </div>
+
+            {/* Bouton Obtenir estimation */}
+            <button
+              type="button"
+              className="mt-6 w-full rounded-xl bg-[#111] px-4 py-4 text-base font-bold text-white hover:bg-[#333] disabled:opacity-50 flex items-center justify-center gap-2"
+              disabled={!form.marque || estimLoading}
+              onClick={estimerPrix}
+            >
+              <TrendingUp size={20} />
+              {estimLoading ? "Calcul en cours..." : "Obtenir mon estimation gratuite"}
+            </button>
+
+            {/* Résultat estimation */}
+            {estim && (
+              <div className="mt-5 rounded-xl border-2 border-[#D4AF37] bg-[#FFFBEB] p-6 text-center">
+                <p className="text-sm font-medium text-[#92400E]">Estimation de votre véhicule</p>
+                <p className="mt-2 text-3xl font-extrabold text-[#D4AF37]">
+                  {formatPrice(estim.low)} – {formatPrice(estim.high)}
+                </p>
+                <p className="mt-2 text-base text-[#111]">
+                  Prix conseillé : <strong>{formatPrice(estim.mid)}</strong>
+                </p>
+                <p className="mt-1 text-xs text-[#9CA3AF]">
+                  {estim.method === "comparables"
+                    ? `Basé sur ${estim.sampleSize} véhicules similaires sur la plateforme`
+                    : "Estimation basée sur la cote du marché français (marque, année, km)"}
+                </p>
+                <button
+                  type="button"
+                  className="mt-4 rounded-lg bg-[#D4AF37] px-6 py-2 text-sm font-bold text-white hover:bg-[#C5A028]"
+                  onClick={() => { set("prix", String(estim.mid)); setStep(2); }}
+                >
+                  Utiliser ce prix et continuer →
+                </button>
+              </div>
+            )}
+
+            {/* Bouton passer à l'étape 2 */}
+            <div className="mt-4 flex gap-3">
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="flex-1 rounded-lg border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151] hover:bg-[#F3F4F6]"
+                className="flex-1 rounded-xl border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151] hover:bg-[#F3F4F6]"
               >
-                Saisir manuellement →
+                {form.marque ? "Continuer sans estimation →" : "Saisir manuellement →"}
               </button>
-              {(plateResult || form.marque) && (
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="flex-1 rounded-lg bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white hover:bg-[#C5A028]"
-                >
-                  Continuer →
-                </button>
-              )}
             </div>
           </div>
         )}
@@ -374,10 +445,23 @@ export default function Vendre() {
                   ))}
                 </select>
               </div>
-              <div><label className="label">Marque *</label><input className="input" value={form.marque} onChange={(e) => set("marque", e.target.value)} placeholder="Renault" /></div>
+              <div>
+                <label className="label">Marque *</label>
+                <select className="input" value={form.marque} onChange={(e) => set("marque", e.target.value)}>
+                  <option value="">Choisir</option>
+                  {MARQUES.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
               <div><label className="label">Modèle *</label><input className="input" value={form.modele} onChange={(e) => set("modele", e.target.value)} placeholder="Clio" /></div>
               <div><label className="label">Version</label><input className="input" value={form.version} onChange={(e) => set("version", e.target.value)} placeholder="RS Line" /></div>
-              <div><label className="label">Année</label><input className="input" type="number" value={form.annee} onChange={(e) => set("annee", e.target.value)} placeholder="2022" /></div>
+              <div>
+                <label className="label">Année</label>
+                <select className="input" value={form.annee} onChange={(e) => set("annee", e.target.value)}>
+                  {Array.from({ length: 30 }, (_, i) => 2025 - i).map((y) => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
               <div><label className="label">Kilométrage (km)</label><input className="input" type="number" value={form.kilometrage} onChange={(e) => set("kilometrage", e.target.value)} placeholder="50000" /></div>
               <div>
                 <label className="label">Énergie</label>
