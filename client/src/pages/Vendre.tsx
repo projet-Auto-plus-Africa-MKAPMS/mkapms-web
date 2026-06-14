@@ -325,7 +325,7 @@ export default function Vendre() {
                   <label className="mb-1 block text-sm font-semibold text-[#D4AF37]">Kilométrage (km)</label>
                   <input
                     type="number"
-                    className="input"
+                    className="input border-[#D4AF37]"
                     placeholder="Ex : 85000"
                     value={form.kilometrage}
                     onChange={(e) => set("kilometrage", e.target.value)}

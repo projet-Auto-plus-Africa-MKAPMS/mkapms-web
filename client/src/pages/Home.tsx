@@ -45,6 +45,7 @@ export default function Home() {
   const navigate = useNavigate();
   const stats = trpc.meta.homeStats.useQuery();
   const featured = trpc.annonces.list.useQuery({ type: "vente", limit: 8 });
+  const trpcUtils = trpc.useUtils();
 
   /* recherche */
   const [searchTab, setSearchTab] = useState<"toutes" | "voitures" | "motos" | "utilitaires">("toutes");
@@ -55,7 +56,18 @@ export default function Home() {
 
   /* estimation */
   const [estimPlaque, setEstimPlaque] = useState("");
-  const [estimResult, setEstimResult] = useState(false);
+  const [estimVin, setEstimVin] = useState("");
+  const [estimMarque, setEstimMarque] = useState("");
+  const [estimModele, setEstimModele] = useState("");
+  const [estimAnnee, setEstimAnnee] = useState("2020");
+  const [estimCarburant, setEstimCarburant] = useState("diesel");
+  const [estimKm, setEstimKm] = useState("");
+  const [estimBoite, setEstimBoite] = useState("manuelle");
+  const [estimEtat, setEstimEtat] = useState("Bon");
+  const [estimLoading, setEstimLoading] = useState(false);
+  const [estimLookupLoading, setEstimLookupLoading] = useState(false);
+  const [estimResult, setEstimResult] = useState<{ low: number; mid: number; high: number } | null>(null);
+  const [estimPlateResult, setEstimPlateResult] = useState<any>(null);
 
   /* historique */
   const [histPlaque, setHistPlaque] = useState("");
@@ -213,40 +225,154 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Estimation */}
+          {/* Estimation de voiture — formulaire complet */}
           <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
-            <h3 className="text-lg font-bold text-[#111]">Estimer la valeur de votre véhicule</h3>
+            <h3 className="text-xl font-extrabold text-[#111]">Estimation de voiture</h3>
             <p className="mt-1 text-xs text-[#6B7280]">Obtenez une estimation gratuite en quelques secondes</p>
-            <div className="mt-4">
-              <div className="flex items-center gap-2 rounded-xl border border-[#D1D5DB] bg-[#F9FAFB] px-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white">F</span>
-                <input
-                  className="flex-1 bg-transparent py-3 text-sm outline-none"
-                  placeholder="Entrez votre immatriculation"
-                  value={estimPlaque}
-                  onChange={(e) => setEstimPlaque(e.target.value.toUpperCase())}
-                />
+
+            {/* Plaque + VIN */}
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Plaque</label>
+                <input className="input text-sm" placeholder="AB-123-CD" value={estimPlaque} onChange={(e) => setEstimPlaque(e.target.value.toUpperCase())} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">VIN</label>
+                <input className="input text-sm" placeholder="VF1XXXXX..." value={estimVin} onChange={(e) => setEstimVin(e.target.value.toUpperCase())} maxLength={17} />
               </div>
             </div>
-
-            {/* Résultat estimation */}
-            <div className="mt-6 flex flex-col items-center">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#D4AF37]/10">
-                <Car size={36} className="text-[#D4AF37]" />
-              </div>
-              <p className="mt-3 text-sm font-medium text-[#6B7280]">Estimation</p>
-              <p className="text-3xl font-extrabold text-[#111]">
-                {estimResult ? "12 450 €" : "— €"}
-              </p>
-              <p className="text-xs text-[#9CA3AF]">Prix moyen du marché</p>
-            </div>
-
             <button
-              onClick={() => setEstimResult(true)}
-              className="mt-4 w-full rounded-xl border-2 border-[#D4AF37] py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
+              type="button"
+              className="mt-3 w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white hover:bg-[#C5A028] disabled:opacity-50 flex items-center justify-center gap-2"
+              disabled={(!estimPlaque.trim() && !estimVin.trim()) || estimLookupLoading}
+              onClick={async () => {
+                const query = estimPlaque.trim() || estimVin.trim();
+                const type = estimPlaque.trim() ? "plaque" : "vin";
+                if (!query) return;
+                setEstimLookupLoading(true);
+                try {
+                  const r = await trpcUtils.annonces.lookupPlate.fetch({ type, query });
+                  if (r) {
+                    setEstimPlateResult(r);
+                    if (r.marque) setEstimMarque(r.marque);
+                    if (r.modele) setEstimModele(r.modele);
+                    if (r.annee) setEstimAnnee(String(r.annee));
+                    if (r.carburant) setEstimCarburant(r.carburant);
+                    if (r.boite) setEstimBoite(r.boite);
+                  }
+                } catch {} finally { setEstimLookupLoading(false); }
+              }}
             >
-              Estimer maintenant
+              <Search size={16} />
+              {estimLookupLoading ? "Recherche..." : "Rechercher et remplir automatiquement"}
             </button>
+
+            {estimPlateResult && (
+              <div className="mt-2 rounded-lg bg-green-50 border border-green-200 p-2 text-xs text-green-700 font-medium">
+                {estimPlateResult.marque} {estimPlateResult.modele} {estimPlateResult.annee && `(${estimPlateResult.annee})`}
+              </div>
+            )}
+
+            {/* Marque + Modèle */}
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Marque *</label>
+                <select className="input text-sm" value={estimMarque} onChange={(e) => setEstimMarque(e.target.value)}>
+                  <option value="">Choisir</option>
+                  {["Renault","Peugeot","Citroën","Volkswagen","BMW","Mercedes","Audi","Toyota","Nissan","Ford","Opel","Fiat","Hyundai","Kia","Dacia","Skoda","Seat","Volvo","Mazda","Honda","Suzuki","Mitsubishi","Jeep","Land Rover","Porsche","Tesla","Mini","Alfa Romeo","DS","Jaguar","Lexus","Autre"].map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Modèle *</label>
+                <input className="input text-sm" placeholder="308, Clio..." value={estimModele} onChange={(e) => setEstimModele(e.target.value)} />
+              </div>
+            </div>
+
+            {/* Année + Carburant */}
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Année</label>
+                <select className="input text-sm" value={estimAnnee} onChange={(e) => setEstimAnnee(e.target.value)}>
+                  {Array.from({ length: 30 }, (_, i) => 2025 - i).map((y) => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Carburant</label>
+                <select className="input text-sm" value={estimCarburant} onChange={(e) => setEstimCarburant(e.target.value)}>
+                  <option value="diesel">Diesel</option>
+                  <option value="essence">Essence</option>
+                  <option value="electrique">Électrique</option>
+                  <option value="hybride">Hybride</option>
+                  <option value="gpl">GPL</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Km + Boîte */}
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Kilométrage</label>
+                <input type="number" className="input text-sm border-[#D4AF37]" placeholder="85000" value={estimKm} onChange={(e) => setEstimKm(e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Boîte</label>
+                <select className="input text-sm" value={estimBoite} onChange={(e) => setEstimBoite(e.target.value)}>
+                  <option value="manuelle">Manuelle</option>
+                  <option value="automatique">Automatique</option>
+                </select>
+              </div>
+            </div>
+
+            {/* État */}
+            <div className="mt-3">
+              <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">État général</label>
+              <div className="flex flex-wrap gap-1.5">
+                {["Excellent", "Très bon", "Bon", "Correct", "À rénover"].map((e) => (
+                  <button key={e} type="button" onClick={() => setEstimEtat(e)}
+                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${estimEtat === e ? "border-[#D4AF37] bg-[#D4AF37] text-white" : "border-[#D1D5DB] text-[#374151]"}`}
+                  >{e}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Bouton estimer */}
+            <button
+              type="button"
+              className="mt-4 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white hover:bg-[#333] disabled:opacity-50"
+              disabled={!estimMarque || estimLoading}
+              onClick={async () => {
+                setEstimLoading(true);
+                try {
+                  const r = await trpcUtils.annonces.estimate.fetch({
+                    marque: estimMarque,
+                    modele: estimModele || "standard",
+                    annee: estimAnnee ? Number(estimAnnee) : undefined,
+                    kilometrage: estimKm ? Number(estimKm) : undefined,
+                    carburant: estimCarburant,
+                    boite: estimBoite,
+                    etat: estimEtat,
+                  });
+                  setEstimResult(r);
+                } finally { setEstimLoading(false); }
+              }}
+            >
+              {estimLoading ? "Calcul..." : "Obtenir mon estimation gratuite"}
+            </button>
+
+            {/* Résultat */}
+            {estimResult && (
+              <div className="mt-4 rounded-xl border-2 border-[#D4AF37] bg-[#FFFBEB] p-4 text-center">
+                <p className="text-xs text-[#92400E]">Estimation de votre véhicule</p>
+                <p className="mt-1 text-2xl font-extrabold text-[#D4AF37]">
+                  {estimResult.low.toLocaleString()} € – {estimResult.high.toLocaleString()} €
+                </p>
+                <p className="mt-1 text-sm text-[#111]">Prix conseillé : <strong>{estimResult.mid.toLocaleString()} €</strong></p>
+                <p className="mt-1 text-xs text-[#9CA3AF]">Estimation basée sur la cote du marché français</p>
+                <Link to="/vendre" className="mt-3 inline-block rounded-lg bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#C5A028]">
+                  Déposer une annonce →
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </section>
