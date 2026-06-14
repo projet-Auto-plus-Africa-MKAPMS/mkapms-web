@@ -893,21 +893,21 @@ function FooterAccordion({ title, children }: { title: string; children: React.R
 function AjoutItem({ label, details }: { label: string; details: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className={`rounded-lg transition ${open ? "bg-gradient-to-r from-[#D4AF37]/5 to-[#D4AF37]/10 border border-[#D4AF37]/20" : ""}`}>
+    <div className={`rounded-lg transition ${open ? "bg-gradient-to-r from-[#D4AF37]/10 to-[#D4AF37]/15 border border-[#D4AF37]/30" : ""}`}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center gap-2 px-2 py-2 text-left"
+        className="flex w-full items-center gap-2.5 px-2 py-2.5 text-left"
       >
-        <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${open ? "bg-[#D4AF37]" : "bg-[#D4AF37]/20"}`}>
-          <CheckCircle size={10} className={open ? "text-white" : "text-[#D4AF37]"} />
+        <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${open ? "bg-[#D4AF37] shadow-sm" : "bg-[#D4AF37]/40"}`}>
+          <CheckCircle size={13} className={open ? "text-white" : "text-[#8B7A1A]"} />
         </div>
-        <span className={`flex-1 text-xs ${open ? "font-bold text-[#111]" : "text-slate-600"}`}>{label}</span>
-        <ChevronDown size={12} className={`shrink-0 text-[#D4AF37] transition ${open ? "rotate-180" : ""}`} />
+        <span className={`flex-1 text-xs font-semibold ${open ? "font-bold text-[#000]" : "text-[#1A1A1A]"}`}>{label}</span>
+        <ChevronDown size={12} className={`shrink-0 text-[#8B7A1A] transition ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="px-9 pb-3">
-          <p className="text-[11px] leading-relaxed text-[#6B7280]">{details}</p>
+        <div className="px-10 pb-3">
+          <p className="text-[11px] leading-relaxed text-[#444444]">{details}</p>
         </div>
       )}
     </div>
