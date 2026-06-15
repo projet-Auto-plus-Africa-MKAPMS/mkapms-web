@@ -1104,60 +1104,59 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
           </div>
         </div>
 
-        {/* Sections en accordéon */}
+        {/* Sections en grille 2 colonnes */}
         <div className="container-page">
-          {FOOTER_SECTIONS.map((sec) => (
-            <FooterAccordion key={sec.title} title={sec.title}>
-              <div className="space-y-2 pl-1">
-                {sec.links.map((l) => (
-                  <Link key={l.label} to={l.to} className="flex items-center gap-2 text-xs text-slate-500 hover:text-[#D4AF37]">
-                    <ChevronRight size={10} className="text-slate-300" />{l.label}
-                  </Link>
-                ))}
+          <div className="grid grid-cols-2 gap-3">
+            {FOOTER_SECTIONS.map((sec) => (
+              <FooterAccordion key={sec.title} title={sec.title}>
+                <div className="space-y-2 pl-1">
+                  {sec.links.map((l) => (
+                    <Link key={l.label} to={l.to} className="flex items-center gap-2 text-xs text-slate-500 hover:text-[#D4AF37]">
+                      <ChevronRight size={10} className="text-slate-300" />{l.label}
+                    </Link>
+                  ))}
+                </div>
+              </FooterAccordion>
+            ))}
+            <FooterAccordion title="Nous Contacter">
+              <div className="space-y-2 pl-1 text-xs text-slate-500">
+                <div className="flex items-center gap-2"><Phone size={12} className="text-slate-400" /> 01 23 45 67 89</div>
+                <div className="flex items-center gap-2"><Mail size={12} className="text-slate-400" /> contact@mkapms.com</div>
+                <div className="flex items-center gap-2"><Clock size={12} className="text-slate-400" /> Lun – Dim : 8h – 20h</div>
+                <div className="flex items-center gap-2"><MapPin size={12} className="text-slate-400" /> Support 7/7</div>
               </div>
             </FooterAccordion>
-          ))}
-          <FooterAccordion title="Nous Contacter">
-            <div className="space-y-2 pl-1 text-xs text-slate-500">
-              <div className="flex items-center gap-2"><Phone size={12} className="text-slate-400" /> 01 23 45 67 89</div>
-              <div className="flex items-center gap-2"><Mail size={12} className="text-slate-400" /> contact@mkapms.com</div>
-              <div className="flex items-center gap-2"><Clock size={12} className="text-slate-400" /> Lun – Dim : 8h – 20h</div>
-              <div className="flex items-center gap-2"><MapPin size={12} className="text-slate-400" /> Support 7/7</div>
-              <div className="flex items-start gap-2"><Globe size={12} className="mt-0.5 shrink-0 text-slate-400" /> 14 Rue du petit Viarmes, 95270 Belloy-en-France, France</div>
-            </div>
-          </FooterAccordion>
+          </div>
         </div>
 
         {/* Newsletter & Réseaux */}
         <div className="container-page border-t border-slate-200 py-6">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-2">
             <Mail size={14} className="text-[#D4AF37]" />
-            <h4 className="text-sm font-bold text-[#111]">Newsletter & Réseaux</h4>
+            <h4 className="text-sm font-bold text-[#111] text-center">Abonnez-vous & suivez-nous</h4>
           </div>
-          <div className="mt-3 flex gap-2">
-            <input
-              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]"
-              placeholder="Votre adresse email"
-              type="email"
-              value={newsEmail}
-              onChange={(e) => setNewsEmail(e.target.value)}
-            />
-            <button className="rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-bold text-white hover:bg-[#C5A028]">S'abonner</button>
-          </div>
-          <div className="mt-3 flex gap-3">
+          <input
+            className="mt-3 w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-[#D4AF37]"
+            placeholder="Votre adresse email"
+            type="email"
+            value={newsEmail}
+            onChange={(e) => setNewsEmail(e.target.value)}
+          />
+          <button className="mt-2 w-full rounded-lg bg-[#D4AF37] py-2.5 text-sm font-bold text-white hover:bg-[#C5A028]">S'abonner</button>
+          <div className="mt-4 flex justify-center gap-3">
             {SOCIAL_LINKS.map((s) => (
               <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" title={s.name} className={`flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition ${s.color} hover:text-white hover:border-transparent`}>{s.label}</a>
             ))}
           </div>
-          <p className="mt-2 text-[9px] text-slate-400">Suivez-nous sur les réseaux sociaux</p>
+          <p className="mt-2 text-center text-[9px] text-slate-400">Suivez-nous sur les réseaux sociaux</p>
         </div>
 
-        {/* Autres Ajouts — cliquables avec détails */}
+        {/* Autres Ajouts — grille 2 colonnes */}
         <div className="container-page border-t border-slate-200 py-6">
           <h4 className="flex items-center gap-2 text-sm font-bold text-[#111]">
             <Star size={14} className="text-[#D4AF37]" /> Autres Ajouts Intégrés
           </h4>
-          <div className="mt-3 space-y-1">
+          <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1">
             {AJOUTS.map((a) => (
               <AjoutItem key={a.label} label={a.label} details={a.details} />
             ))}
