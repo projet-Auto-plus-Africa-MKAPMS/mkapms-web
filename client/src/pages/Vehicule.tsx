@@ -985,7 +985,7 @@ export default function Vehicule() {
             <div className="mt-2 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-ink">
-                  {v.vendeurType === "professionnel" ? "MKA.P-MS Garage" : v.contactNom || "Particulier"}
+                  {v.vendeurType === "professionnel" ? "Vendeur Professionnel" : v.contactNom || "Particulier"}
                 </p>
                 {v.vendeur && (
                   <div className="mt-1 flex items-center gap-1.5 text-sm">

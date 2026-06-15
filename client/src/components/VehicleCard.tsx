@@ -59,12 +59,15 @@ export { BadgeChip };
 export default function VehicleCard({ v }: { v: VehicleCardData }) {
   const { format: formatPrice } = useCurrency();
   const isLocation = v.type === "location";
+  const isMkapmsStock = v.id >= 8000 && v.id <= 8005;
   const sellerLabel =
-    v.vendeurType === "professionnel"
-      ? "MKA.P-MS Garage"
-      : v.vendeurType === "concession"
-        ? "Concession"
-        : "Particulier";
+    isMkapmsStock
+      ? "MKA.P-MS Officiel"
+      : v.vendeurType === "professionnel"
+        ? "Professionnel"
+        : v.vendeurType === "concession"
+          ? "Concession"
+          : "Particulier";
   const tier = getCardTier(v);
   const isOfficielTier = tier === "officiel" || tier === "elite";
   const photoHeight =
@@ -76,7 +79,6 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
           ? "h-[160px] lg:h-[220px]"
           : "h-[140px] lg:h-[200px]";
 
-  const isMkapmsStock = v.id >= 8000 && v.id <= 8005;
   const badges = computeBadges({
     id: v.id,
     vendeurType: v.vendeurType,

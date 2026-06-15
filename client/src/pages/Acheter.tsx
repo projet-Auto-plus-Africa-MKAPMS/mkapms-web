@@ -9,7 +9,7 @@ const VENDEURS = [
   { value: "", label: "Tous" },
   { value: "particulier", label: "Particulier" },
   { value: "professionnel", label: "Professionnel" },
-  { value: "concession", label: "MKA.P-MS Garage" },
+  { value: "concession", label: "MKA.P-MS Officiel" },
 ];
 const TYPES = [
   { value: "", label: "Tous" },
