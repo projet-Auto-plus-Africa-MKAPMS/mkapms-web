@@ -159,7 +159,7 @@ export default function Home() {
 
         {/* ── CAROUSEL + 4 ACTIONS (même conteneur = zéro espace) ── */}
         <div className="px-4 pt-1 pb-4 md:px-6 md:pt-4 md:pb-6">
-          <div className="relative mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl">
+          <div className="mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl">
             <div
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
@@ -179,20 +179,20 @@ export default function Home() {
                 />
               ))}
             </div>
-            <div className="absolute bottom-2 left-0 right-0 flex items-center justify-center gap-1.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setCarouselIdx(i)}
-                  className={`h-2 w-2 rounded-full transition-all ${
-                    carouselIdx === i ? "bg-[#D4AF37] scale-110" : "bg-white/70"
-                  }`}
-                />
-              ))}
-            </div>
           </div>
-          <div className="mx-auto mt-2 grid max-w-3xl grid-cols-4 gap-1.5 md:max-w-2xl md:mt-3 md:gap-3">
+          <div className="flex items-center justify-center gap-1.5 py-1 md:py-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setCarouselIdx(i)}
+                className={`h-1.5 w-1.5 rounded-full transition-all md:h-2 md:w-2 ${
+                  carouselIdx === i ? "bg-[#D4AF37] scale-110" : "bg-[#C4C4C4]"
+                }`}
+              />
+            ))}
+          </div>
+          <div className="mx-auto grid max-w-3xl grid-cols-4 gap-1.5 md:max-w-2xl md:gap-3">
             {[
               { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
               { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
