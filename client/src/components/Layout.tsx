@@ -36,7 +36,7 @@ function Header() {
   const [open, setOpen] = useState(false);
   return (
     <header
-      className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur"
+      className="fixed inset-x-0 top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur"
       style={{
         paddingTop: window.matchMedia("(display-mode: standalone)").matches
           || (navigator as any).standalone === true
@@ -349,6 +349,10 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
+      {/* Spacer pour compenser le header fixe */}
+      <div className="h-16" style={{
+        marginTop: typeof window !== "undefined" && (window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true) ? "28px" : undefined,
+      }} />
       <BackButton />
       <main className="flex-1 pb-20 md:pb-0">{children}</main>
       <Footer />

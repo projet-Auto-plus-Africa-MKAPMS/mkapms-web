@@ -76,6 +76,7 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
           ? "h-[160px] lg:h-[220px]"
           : "h-[140px] lg:h-[200px]";
 
+  const isMkapmsStock = v.id >= 8000 && v.id <= 8005;
   const badges = computeBadges({
     id: v.id,
     vendeurType: v.vendeurType,
@@ -89,7 +90,7 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
     coupDeCoeur: v.coupDeCoeur,
     prixEnBaisse: v.prixEnBaisse,
     createdAt: v.createdAt,
-  });
+  }).filter((b) => !(isMkapmsStock && (b.code === "vendeur_pro" || b.code === "garage_verifie")));
 
   return (
     <Link to={`/vehicule/${v.id}`} className={`card group overflow-hidden transition hover:shadow-md ${isOfficielTier ? "border-[#D4AF37]/40 shadow-lg" : ""}`}>

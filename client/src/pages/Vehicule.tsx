@@ -1162,27 +1162,25 @@ export default function Vehicule() {
         </div>
       )}
 
-      {/* Barre fixe mobile — adaptée au type */}
-      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-slate-200 bg-white/95 p-2 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] backdrop-blur md:hidden">
+      {/* Barre fixe mobile — adaptée au type, positionnée au-dessus de la barre de navigation */}
+      <div className="fixed inset-x-0 bottom-[72px] z-30 border-t border-slate-200 bg-white p-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] md:hidden">
         <div className="container-page">
           {isMkapmsStock ? (
-            /* MKA.P-MS Officiel : Acheter (gauche) + Contact (droite) */
-            <div className="grid grid-cols-2 gap-2">
-              <button className="btn-acheter h-[48px] text-xs" onClick={primaryAction}>Acheter</button>
-              <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-message flex h-[48px] items-center justify-center gap-1 text-xs"><MessageSquare size={14} /> Contact</a>
+            /* MKA.P-MS Officiel : Acheter (gauche) + Contact (droite), PAS de Appeler */
+            <div className="grid grid-cols-2 gap-3">
+              <button className="btn-acheter h-[52px] text-sm font-bold" onClick={primaryAction}>Acheter</button>
+              <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-message flex h-[52px] items-center justify-center gap-2 text-sm font-bold"><Phone size={16} /> Contact</a>
             </div>
           ) : isLocation ? (
-            <div className="grid grid-cols-2 gap-2">
-              <button className="btn-acheter h-[48px] text-xs" onClick={() => requireLogin(() => navigate("/compte/messages"))}><Send size={14} /> Demande</button>
-              <button className="btn-message h-[48px] text-xs" onClick={() => requireLogin(() => navigate("/compte/documents"))}><FileText size={14} /> Dossier</button>
+            <div className="grid grid-cols-2 gap-3">
+              <button className="btn-acheter h-[52px] text-sm font-bold" onClick={() => requireLogin(() => navigate("/compte/messages"))}><Send size={14} /> Demande</button>
+              <button className="btn-message h-[52px] text-sm font-bold" onClick={() => requireLogin(() => navigate("/compte/documents"))}><FileText size={14} /> Dossier</button>
             </div>
           ) : (
-            <div className={`grid gap-2 ${v.contactTelephone ? "grid-cols-3" : "grid-cols-2"}`}>
-              <button className="btn-message h-[48px] text-xs" onClick={messageAction}><MessageSquare size={14} /> Message</button>
-              {v.contactTelephone && (
-                <a href={`tel:${v.contactTelephone}`} className="btn-appeler h-[48px] text-xs"><Phone size={14} /> Appeler</a>
-              )}
-              <button className="btn-acheter h-[48px] text-xs" onClick={primaryAction}>{isLocation ? "Louer" : "Acheter"}</button>
+            /* Pro / Particulier : Acheter + Contact (2 boutons, pas 3) */
+            <div className="grid grid-cols-2 gap-3">
+              <button className="btn-acheter h-[52px] text-sm font-bold" onClick={primaryAction}>Acheter</button>
+              <button className="btn-message h-[52px] text-sm font-bold" onClick={messageAction}><MessageSquare size={14} /> Contact</button>
             </div>
           )}
         </div>
