@@ -469,7 +469,60 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          2b. SE CONNECTER / CRÉER UN COMPTE
+          3. CATÉGORIES POPULAIRES
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-white py-10">
+        <div className="container-page">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-bold text-[#111] sm:text-xl">Catégories populaires</h2>
+            <Link to="/acheter" className="flex items-center gap-1 text-sm font-semibold text-[#D4AF37] hover:underline">Voir toutes <ArrowRight size={14} /></Link>
+          </div>
+          <div className="mt-6 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+            {CATEGORIES.map((c) => (
+              <Link key={c.label} to={c.to} className="group flex w-[120px] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white px-3 py-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F3F4F6] transition group-hover:bg-[#D4AF37]/10">
+                  {(() => { const Icon = CAT_ICONS[c.icon]; return <Icon size={22} className="text-[#6B7280] group-hover:text-[#D4AF37]" />; })()}
+                </div>
+                <span className="text-xs font-bold text-[#111]">{c.label}</span>
+                <span className="text-[10px] text-[#9CA3AF]">{c.count} annonces</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          3b. ANNONCES PREMIUM (entre Catégories et Se connecter)
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-white py-8">
+        <div className="container-page">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
+              <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" /> Annonces Premium
+            </h2>
+            <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes →</Link>
+          </div>
+          <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+            {featured.isLoading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="w-[220px] shrink-0 snap-start">
+                    <div className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
+                  </div>
+                ))
+              : (featured.data?.items && featured.data.items.length > 0
+                  ? featured.data.items.slice(0, 10)
+                  : DEMO_ANNONCES.filter(a => a.boosted)
+                ).map((v: any) => (
+                  <div key={v.id} className="w-[220px] shrink-0 snap-start">
+                    <VehicleCard v={v} />
+                  </div>
+                ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          3c. SE CONNECTER / CRÉER UN COMPTE
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-6">
         <div className="container-page">
@@ -490,29 +543,6 @@ export default function Home() {
                 <p className="text-[10px] text-[#6B7280]">Particulier ou Professionnel</p>
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          3. CATÉGORIES POPULAIRES
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-10">
-        <div className="container-page">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-bold text-[#111] sm:text-xl">Catégories populaires</h2>
-            <Link to="/acheter" className="flex items-center gap-1 text-sm font-semibold text-[#D4AF37] hover:underline">Voir toutes <ArrowRight size={14} /></Link>
-          </div>
-          <div className="mt-6 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-            {CATEGORIES.map((c) => (
-              <Link key={c.label} to={c.to} className="group flex w-[120px] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white px-3 py-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F3F4F6] transition group-hover:bg-[#D4AF37]/10">
-                  {(() => { const Icon = CAT_ICONS[c.icon]; return <Icon size={22} className="text-[#6B7280] group-hover:text-[#D4AF37]" />; })()}
-                </div>
-                <span className="text-xs font-bold text-[#111]">{c.label}</span>
-                <span className="text-[10px] text-[#9CA3AF]">{c.count} annonces</span>
-              </Link>
-            ))}
           </div>
         </div>
       </section>
@@ -638,35 +668,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════
-          6. ANNONCES PREMIUM + ESPACE PUB
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-10">
-        <div className="container-page">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
-              <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" /> Annonces Premium
-            </h2>
-            <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes →</Link>
-          </div>
-          <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-            {featured.isLoading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="w-[220px] shrink-0 snap-start">
-                    <div className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
-                  </div>
-                ))
-              : (featured.data?.items && featured.data.items.length > 0
-                  ? featured.data.items.slice(0, 10)
-                  : DEMO_ANNONCES.filter(a => a.boosted)
-                ).map((v: any) => (
-                  <div key={v.id} className="w-[220px] shrink-0 snap-start">
-                    <VehicleCard v={v} />
-                  </div>
-                ))}
-          </div>
-        </div>
-      </section>
+      {/* (Annonces Premium déplacée en section 3b, après Catégories) */}
 
       {/* ═══════════════════════════════════════════════════════════
           7. ANNONCES PARTICULIERS — carrousel horizontal

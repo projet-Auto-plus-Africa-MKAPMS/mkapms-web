@@ -19,6 +19,31 @@ import { useCurrency } from "../lib/currency";
 import { ACOMPTE_PALIERS } from "@shared/plans";
 import { computeTrustScore, TRUST_LEVEL_LABEL } from "@shared/trust";
 
+/* ── Véhicules démo (IDs >= 8000) ── */
+const DEMO_VEHICLES: Record<number, any> = Object.fromEntries([
+  { id: 8001, titre: "Peugeot 308 GT", marque: "Peugeot", modele: "308", annee: 2023, kilometrage: 12000, carburant: "Essence", prix: 26900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Peugeot 308 GT en excellent état, premier propriétaire. Véhicule révisé et garanti MKA.P-MS.", photoPrincipale: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80" },
+  { id: 8002, titre: "Renault Austral Iconic", marque: "Renault", modele: "Austral", annee: 2024, kilometrage: 5000, carburant: "Hybride", prix: 34500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Renault Austral Iconic hybride, faible kilométrage. Garantie constructeur.", photoPrincipale: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&q=80" },
+  { id: 8003, titre: "Citroën C5 X Shine", marque: "Citroën", modele: "C5 X", annee: 2023, kilometrage: 18000, carburant: "Diesel", prix: 31900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Citroën C5 X Shine, confort et élégance. Entretien complet.", photoPrincipale: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80" },
+  { id: 8004, titre: "Mercedes GLA 200", marque: "Mercedes", modele: "GLA", annee: 2022, kilometrage: 22000, carburant: "Essence", prix: 38900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Mercedes GLA 200, SUV compact premium. Garantie MKA.P-MS.", photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&q=80" },
+  { id: 8005, titre: "BMW X1 sDrive18i", marque: "BMW", modele: "X1", annee: 2023, kilometrage: 15000, carburant: "Essence", prix: 35500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "BMW X1 sDrive18i, motorisation essence efficiente. État impeccable.", photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80" },
+  { id: 9001, titre: "Peugeot 3008 GT Line", marque: "Peugeot", modele: "3008", annee: 2022, kilometrage: 35000, carburant: "Diesel", prix: 28900, type: "vente", ville: "Paris", vendeurType: "professionnel", description: "Peugeot 3008 GT Line, SUV familial. Révision complète effectuée.", photoPrincipale: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80" },
+  { id: 9002, titre: "Renault Clio V Intens", marque: "Renault", modele: "Clio", annee: 2023, kilometrage: 18000, carburant: "Essence", prix: 16500, type: "vente", ville: "Lyon", vendeurType: "particulier", description: "Renault Clio V Intens, citadine polyvalente en parfait état.", photoPrincipale: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800&q=80" },
+  { id: 9003, titre: "BMW Série 3 320d M Sport", marque: "BMW", modele: "Série 3", annee: 2021, kilometrage: 42000, carburant: "Diesel", prix: 35900, type: "vente", ville: "Marseille", vendeurType: "professionnel", boosted: true, description: "BMW Série 3 M Sport, performance et élégance.", photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80" },
+  { id: 9004, titre: "Mercedes Classe A 200", marque: "Mercedes", modele: "Classe A", annee: 2022, kilometrage: 25000, carburant: "Essence", prix: 32000, type: "vente", ville: "Toulouse", vendeurType: "professionnel", boosted: true, description: "Mercedes Classe A 200, compacte premium.", photoPrincipale: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80" },
+  { id: 9005, titre: "Citroën C3 Aircross", marque: "Citroën", modele: "C3 Aircross", annee: 2023, kilometrage: 12000, carburant: "Essence", prix: 19900, type: "vente", ville: "Bordeaux", vendeurType: "particulier", description: "Citroën C3 Aircross, petit SUV pratique.", photoPrincipale: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80" },
+  { id: 9006, titre: "Volkswagen Golf 8 R-Line", marque: "Volkswagen", modele: "Golf", annee: 2022, kilometrage: 30000, carburant: "Essence", prix: 27500, type: "vente", ville: "Nice", vendeurType: "professionnel", boosted: true, description: "VW Golf 8 R-Line, compacte sportive.", photoPrincipale: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80" },
+  { id: 9007, titre: "Toyota Yaris Hybride", marque: "Toyota", modele: "Yaris", annee: 2023, kilometrage: 8000, carburant: "Hybride", prix: 21500, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 45, description: "Toyota Yaris Hybride en location. Économique et fiable.", photoPrincipale: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&q=80" },
+  { id: 9008, titre: "Audi A4 Avant S-Line", marque: "Audi", modele: "A4", annee: 2021, kilometrage: 55000, carburant: "Diesel", prix: 31900, type: "vente", ville: "Lille", vendeurType: "professionnel", boosted: true, description: "Audi A4 Avant S-Line, break sportif.", photoPrincipale: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&q=80" },
+  { id: 9009, titre: "Dacia Sandero Stepway", marque: "Dacia", modele: "Sandero", annee: 2022, kilometrage: 22000, carburant: "Essence", prix: 14500, type: "vente", ville: "Nantes", vendeurType: "particulier", description: "Dacia Sandero Stepway, rapport qualité-prix imbattable.", photoPrincipale: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&q=80" },
+  { id: 9010, titre: "Fiat 500 Lounge", marque: "Fiat", modele: "500", annee: 2021, kilometrage: 32000, carburant: "Essence", prix: 13900, type: "vente", ville: "Strasbourg", vendeurType: "particulier", description: "Fiat 500 Lounge, citadine iconique.", photoPrincipale: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80" },
+  { id: 9101, titre: "Peugeot 208 GT", marque: "Peugeot", modele: "208", annee: 2023, kilometrage: 5000, carburant: "Essence", prix: 35, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 35, description: "Peugeot 208 GT disponible en location. Compacte et sportive.", photoPrincipale: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80" },
+  { id: 9102, titre: "Renault Captur Intens", marque: "Renault", modele: "Captur", annee: 2022, kilometrage: 15000, carburant: "Diesel", prix: 42, type: "location", ville: "Lyon", vendeurType: "professionnel", prixJour: 42, description: "Renault Captur Intens en location. SUV compact et confortable.", photoPrincipale: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&q=80" },
+  { id: 9103, titre: "Citroën C4 Feel", marque: "Citroën", modele: "C4", annee: 2023, kilometrage: 8000, carburant: "Hybride", prix: 48, type: "location", ville: "Marseille", vendeurType: "professionnel", prixJour: 48, description: "Citroën C4 Feel hybride. Confort et économie.", photoPrincipale: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80" },
+  { id: 9104, titre: "Mercedes Classe C", marque: "Mercedes", modele: "Classe C", annee: 2022, kilometrage: 20000, carburant: "Diesel", prix: 75, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 75, boosted: true, description: "Mercedes Classe C premium en location. Élégance et performance.", photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&q=80" },
+  { id: 9105, titre: "Toyota RAV4 Hybride", marque: "Toyota", modele: "RAV4", annee: 2023, kilometrage: 10000, carburant: "Hybride", prix: 55, type: "location", ville: "Toulouse", vendeurType: "professionnel", prixJour: 55, description: "Toyota RAV4 Hybride. SUV familial en location.", photoPrincipale: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=800&q=80" },
+  { id: 9106, titre: "BMW Série 1 118i", marque: "BMW", modele: "Série 1", annee: 2022, kilometrage: 18000, carburant: "Essence", prix: 60, type: "location", ville: "Bordeaux", vendeurType: "professionnel", prixJour: 60, boosted: true, description: "BMW Série 1 118i en location. Compacte premium.", photoPrincipale: "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?w=800&q=80" },
+].map((v) => [v.id, { ...v, photos: [{ url: v.photoPrincipale }], contactTelephone: "+33123456789", reference: `DEMO-${v.id}`, vendeur: { rating: "4.5", reviewCount: 12 } }]));
+
 export default function Vehicule() {
   const { format: formatPrice } = useCurrency();
   const { id } = useParams();
@@ -28,7 +53,8 @@ export default function Vehicule() {
   const [photoIdx, setPhotoIdx] = useState(0);
   const [acompte, setAcompte] = useState<number>(ACOMPTE_PALIERS[1]);
 
-  const q = trpc.annonces.get.useQuery({ id: annonceId }, { enabled: !!annonceId });
+  const isDemo = annonceId >= 8000;
+  const q = trpc.annonces.get.useQuery({ id: annonceId }, { enabled: !!annonceId && !isDemo });
   const legal = trpc.meta.legal.useQuery();
   const estimateQuery = trpc.annonces.estimate.useQuery(
     {
@@ -52,12 +78,15 @@ export default function Vehicule() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [annonceId]);
 
-  if (q.isLoading) return <div className="container-page py-16 text-slate-500">Chargement…</div>;
-  if (q.error || !q.data)
-    return <div className="container-page py-16 text-slate-500">Véhicule introuvable.</div>;
+  if (!isDemo && q.isLoading) return <div className="container-page py-16 text-slate-500">Chargement…</div>;
 
-  const v = q.data;
-  const photos = v.photos.length ? v.photos.map((p) => p.url) : [];
+  const demoV = isDemo ? DEMO_VEHICLES[annonceId] : null;
+  const realV = !isDemo ? q.data : null;
+  const v = demoV || realV;
+
+  if (!v) return <div className="container-page py-16 text-slate-500">Véhicule introuvable.</div>;
+
+  const photos = v.photos?.length ? v.photos.map((p: any) => p.url) : (v.photoPrincipale ? [v.photoPrincipale] : []);
   const isLocation = v.type === "location";
 
   // Indice de Confiance MKA.P-MS (Partie 5) — calcul transparent.

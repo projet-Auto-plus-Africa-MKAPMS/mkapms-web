@@ -23,6 +23,16 @@ const ZONES = [
   { value: "59", label: "59 — Nord (Lille)" },
 ];
 
+/* ── annonces location démo (fallback si la DB est vide) ── */
+const DEMO_LOCATION = [
+  { id: 9101, titre: "Peugeot 208 GT", marque: "Peugeot", modele: "208", annee: 2023, kilometrage: 5000, carburant: "Essence", prix: 35, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 35, photoPrincipale: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&h=280&fit=crop" },
+  { id: 9102, titre: "Renault Captur Intens", marque: "Renault", modele: "Captur", annee: 2022, kilometrage: 15000, carburant: "Diesel", prix: 42, type: "location", ville: "Lyon", vendeurType: "professionnel", prixJour: 42, photoPrincipale: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=280&fit=crop" },
+  { id: 9103, titre: "Citroën C4 Feel", marque: "Citroën", modele: "C4", annee: 2023, kilometrage: 8000, carburant: "Hybride", prix: 48, type: "location", ville: "Marseille", vendeurType: "professionnel", prixJour: 48, photoPrincipale: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop" },
+  { id: 9104, titre: "Mercedes Classe C", marque: "Mercedes", modele: "Classe C", annee: 2022, kilometrage: 20000, carburant: "Diesel", prix: 75, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 75, boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=280&fit=crop" },
+  { id: 9105, titre: "Toyota RAV4 Hybride", marque: "Toyota", modele: "RAV4", annee: 2023, kilometrage: 10000, carburant: "Hybride", prix: 55, type: "location", ville: "Toulouse", vendeurType: "professionnel", prixJour: 55, photoPrincipale: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=400&h=280&fit=crop" },
+  { id: 9106, titre: "BMW Série 1 118i", marque: "BMW", modele: "Série 1", annee: 2022, kilometrage: 18000, carburant: "Essence", prix: 60, type: "location", ville: "Bordeaux", vendeurType: "professionnel", prixJour: 60, boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?w=400&h=280&fit=crop" },
+];
+
 export default function Louer() {
   const [segment, setSegment] = useState("");
   const [q, setQ] = useState("");
@@ -41,8 +51,9 @@ export default function Louer() {
   );
   const list = trpc.annonces.list.useQuery(input);
 
-  // Ordre: MKA.P-MS > VTC/Taxi Pro > Premium > Particuliers
-  const allItems = list.data?.items || [];
+  // Fallback : si pas de résultats en DB, utiliser les démo
+  const dbItems = list.data?.items || [];
+  const allItems = dbItems.length > 0 ? dbItems : DEMO_LOCATION as any[];
   const mkapmsItems = allItems.filter((v: any) => v.vendeurType === "concession");
   const vtcItems = allItems.filter((v: any) => (v.vendeurType === "professionnel" || v.boosted) && v.vendeurType !== "concession");
   const particulierItems = allItems.filter((v: any) => v.vendeurType !== "professionnel" && !v.boosted && v.vendeurType !== "concession");
