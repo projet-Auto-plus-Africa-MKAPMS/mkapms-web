@@ -209,7 +209,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           1c. 4 ACTIONS — VENDRE, ACHETER, LOUER, RÉPARER
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F5F3EF] pb-6">
+      <section className="bg-[#F5F3EF] pb-8">
         <div className="container-page">
           <div className="mx-auto grid max-w-2xl grid-cols-4 gap-2.5 md:gap-4">
             {[
@@ -223,16 +223,16 @@ export default function Home() {
                 <Link
                   key={a.to}
                   to={a.to}
-                  className="group flex flex-col items-center gap-2 rounded-2xl border border-[#D4AF37]/30 bg-white p-3 text-center transition hover:shadow-md md:p-5"
+                  className="group flex flex-col items-center gap-2.5 rounded-2xl border border-[#D4AF37]/50 bg-white px-2 pb-3 pt-4 text-center transition hover:shadow-md md:px-4 md:pb-5 md:pt-6"
                 >
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#D4AF37]/40 bg-white md:h-20 md:w-20">
-                    <Icon size={24} className="text-[#D4AF37] md:hidden" />
-                    <Icon size={36} className="hidden text-[#D4AF37] md:block" />
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#D4AF37]/50 bg-white md:h-[88px] md:w-[88px]">
+                    <Icon size={30} className="text-[#D4AF37] md:hidden" />
+                    <Icon size={42} className="hidden text-[#D4AF37] md:block" />
                   </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wide text-[#111] md:text-sm">{a.label}</span>
+                  <span className="text-[11px] font-extrabold uppercase tracking-wide text-[#111] md:text-sm">{a.label}</span>
                   <span className="text-[9px] text-[#6B7280] md:text-xs">{a.sub}</span>
-                  <div className="flex h-8 w-full items-center justify-center rounded-full bg-[#D4AF37] transition group-hover:bg-[#C5A028] md:h-10">
-                    <ArrowRight size={16} className="text-white" />
+                  <div className="flex h-9 w-full items-center justify-center rounded-full bg-[#D4AF37] transition group-hover:bg-[#C5A028] md:h-11">
+                    <ArrowRight size={18} className="text-white" />
                   </div>
                 </Link>
               );
@@ -246,18 +246,18 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-6 border-t border-[#E5E7EB]">
         <div className="container-page">
-          <div className="mx-auto grid max-w-2xl grid-cols-4 gap-2">
+          <div className="mx-auto flex max-w-2xl">
             {[
               { icon: Shield, title: "100% SÉCURISÉ", desc: "Transactions protégées" },
               { icon: Award, title: "MEILLEURS PRIX", desc: "Des offres compétitives" },
               { icon: Headphones, title: "SUPPORT 7J/7", desc: "Une équipe à votre écoute" },
               { icon: CheckCircle, title: "FACILE & RAPIDE", desc: "Publiez ou trouvez en quelques clics" },
-            ].map((b) => {
+            ].map((b, idx) => {
               const Icon = b.icon;
               return (
-                <div key={b.title} className="flex flex-col items-center gap-1.5 text-center px-1">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5 md:h-14 md:w-14">
-                    <Icon size={22} className="text-[#D4AF37]" />
+                <div key={b.title} className={`flex flex-1 flex-col items-center gap-1.5 text-center px-1.5 ${idx < 3 ? "border-r border-[#E5E7EB]" : ""}`}>
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/5 md:h-16 md:w-16">
+                    <Icon size={26} className="text-[#D4AF37]" />
                   </div>
                   <h3 className="text-[9px] font-extrabold uppercase tracking-wide text-[#111] md:text-xs">{b.title}</h3>
                   <p className="text-[9px] text-[#6B7280] leading-tight md:text-[11px]">{b.desc}</p>
