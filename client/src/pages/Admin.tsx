@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { isAdmin, isDirection } from "@shared/roles";
+import { Eye, Pencil, Trash2, Pause, Play, ChevronDown, ChevronUp, X } from "lucide-react";
 
 export default function Admin() {
   const { user } = useAuth();
@@ -16,6 +17,8 @@ export default function Admin() {
   const warehousesList = trpc.warehouses.list.useQuery(undefined, { enabled: direction });
   const countriesList = trpc.countries.listAll.useQuery(undefined, { enabled: direction });
   const annoncesPending = trpc.admin.annoncesPending.useQuery(undefined, { enabled });
+  const [annoncesFilter, setAnnoncesFilter] = useState<"vente" | "location" | undefined>(undefined);
+  const annoncesAll = trpc.admin.annoncesAll.useQuery({ limit: 50, offset: 0, type: annoncesFilter }, { enabled });
   const garagesPending = trpc.admin.garagesPending.useQuery(undefined, { enabled });
   const kycPending = trpc.admin.kycPending.useQuery(undefined, { enabled });
   const payments = trpc.admin.paymentsList.useQuery({ limit: 20 }, { enabled });
@@ -28,7 +31,7 @@ export default function Admin() {
   const modulesList = trpc.modules.list.useQuery(undefined, { enabled: direction });
 
   const utils = trpc.useUtils();
-  const moderate = trpc.admin.moderateAnnonce.useMutation({ onSuccess: () => utils.admin.annoncesPending.invalidate() });
+  const moderate = trpc.admin.moderateAnnonce.useMutation({ onSuccess: () => { utils.admin.annoncesPending.invalidate(); utils.admin.annoncesAll.invalidate(); } });
   const validateGarage = trpc.admin.validateGarage.useMutation({ onSuccess: () => utils.admin.garagesPending.invalidate() });
   const validateKyc = trpc.admin.validateKyc.useMutation({ onSuccess: () => utils.admin.kycPending.invalidate() });
   const createStaff = trpc.admin.createStaff.useMutation({
@@ -140,6 +143,9 @@ export default function Admin() {
   const [kartingEvent, setKartingEvent] = useState({ titre: "", type: "evenement", dateEvent: "" });
   const [formation, setFormation] = useState({ titre: "", categorie: "garage", certifiante: false, active: false });
   const [ticketReply, setTicketReply] = useState<Record<number, string>>({});
+  const [selectedAnnonce, setSelectedAnnonce] = useState<any>(null);
+  const [editingAnnonce, setEditingAnnonce] = useState<any>(null);
+  const navigate = useNavigate();
 
   if (!enabled) {
     return (
@@ -299,6 +305,57 @@ export default function Admin() {
             </div>
           ))}
           {annoncesPending.data?.length === 0 && <p className="text-sm text-slate-500">Aucune annonce en attente.</p>}
+        </div>
+      </section>
+
+      {/* ── Gestion complète des annonces ── */}
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Gestion des annonces <span className="text-xs font-normal text-gold-dark">({annoncesAll.data?.total ?? 0} annonces)</span></h2>
+        <div className="mt-2 flex gap-2">
+          <button onClick={() => setAnnoncesFilter(undefined)} className={`rounded-full px-3 py-1 text-xs font-semibold transition ${!annoncesFilter ? "bg-[#111] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>Toutes</button>
+          <button onClick={() => setAnnoncesFilter("vente")} className={`rounded-full px-3 py-1 text-xs font-semibold transition ${annoncesFilter === "vente" ? "bg-[#111] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>Vente</button>
+          <button onClick={() => setAnnoncesFilter("location")} className={`rounded-full px-3 py-1 text-xs font-semibold transition ${annoncesFilter === "location" ? "bg-[#111] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>Location</button>
+        </div>
+        <div className="mt-3 space-y-2">
+          {annoncesAll.data?.items.map((a: any) => (
+            <div key={a.id} className="card overflow-hidden">
+              <div className="flex items-center gap-3 p-3 cursor-pointer hover:bg-slate-50 transition" onClick={() => setSelectedAnnonce(selectedAnnonce?.id === a.id ? null : a)}>
+                {a.photoPrincipale && <img src={a.photoPrincipale} alt="" className="h-12 w-16 rounded-lg object-cover flex-shrink-0" />}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-800 truncate">{a.titre}</p>
+                  <p className="text-xs text-slate-500">{a.marque} {a.modele} · {a.type === "location" ? "Location" : "Vente"} · {a.ville || "N/A"}</p>
+                </div>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold flex-shrink-0 ${a.status === "publiee" ? "bg-green-100 text-green-700" : a.status === "en_validation" ? "bg-amber-100 text-amber-700" : a.status === "archivee" ? "bg-slate-100 text-slate-500" : a.status === "refusee" ? "bg-red-100 text-red-600" : a.status === "pause" ? "bg-blue-100 text-blue-600" : "bg-slate-100 text-slate-600"}`}>{a.status}</span>
+                {selectedAnnonce?.id === a.id ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+              </div>
+              {selectedAnnonce?.id === a.id && (
+                <div className="border-t border-slate-100 bg-slate-50 p-4">
+                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
+                    <div><span className="font-semibold">Réf :</span> {a.reference || `#${a.id}`}</div>
+                    <div><span className="font-semibold">Prix :</span> {a.type === "location" && a.prixJour ? `${a.prixJour}€/j` : `${Number(a.prix).toLocaleString("fr-FR")}€`}</div>
+                    <div><span className="font-semibold">Année :</span> {a.annee || "N/A"}</div>
+                    <div><span className="font-semibold">Km :</span> {a.kilometrage ? `${a.kilometrage.toLocaleString("fr-FR")} km` : "N/A"}</div>
+                    <div><span className="font-semibold">Carburant :</span> {a.carburant || "N/A"}</div>
+                    <div><span className="font-semibold">Boîte :</span> {a.boite || "N/A"}</div>
+                    <div><span className="font-semibold">Vendeur :</span> {a.vendeurType || "N/A"}</div>
+                    <div><span className="font-semibold">Créé :</span> {a.createdAt ? new Date(a.createdAt).toLocaleDateString("fr-FR") : "N/A"}</div>
+                  </div>
+                  {a.description && <p className="mt-2 text-xs text-slate-500 line-clamp-3">{a.description}</p>}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button className="inline-flex items-center gap-1 rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800" onClick={() => navigate(`/vehicule/${a.id}`)}><Eye size={13} /> Voir</button>
+                    {a.status === "publiee" && (
+                      <button className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700" onClick={() => moderate.mutate({ id: a.id, action: "archivee" })}><Pause size={13} /> Mettre en pause</button>
+                    )}
+                    {(a.status === "archivee" || a.status === "refusee") && (
+                      <button className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700" onClick={() => moderate.mutate({ id: a.id, action: "publiee" })}><Play size={13} /> Republier</button>
+                    )}
+                    <button className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700" onClick={() => { if(confirm("Supprimer cette annonce définitivement ?")) moderate.mutate({ id: a.id, action: "archivee" }); }}><Trash2 size={13} /> Supprimer</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+          {annoncesAll.data?.items.length === 0 && <p className="text-sm text-slate-500">Aucune annonce trouvée.</p>}
         </div>
       </section>
 

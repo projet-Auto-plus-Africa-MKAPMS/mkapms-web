@@ -25,6 +25,7 @@ import {
   partsShops,
   partsStock,
   deliveryMissions,
+  annoncePhotos,
 } from "../schema.js";
 import { sql as dsql } from "drizzle-orm";
 
@@ -180,6 +181,22 @@ export const adminRouter = router({
         .orderBy(desc(users.createdAt))
         .limit(input.limit)
         .offset(input.offset);
+    }),
+
+  // Liste complète des annonces pour l'admin
+  annoncesAll: adminProcedure
+    .input(z.object({ limit: z.number().default(50), offset: z.number().default(0), type: z.enum(["vente", "location"]).optional() }).default({}))
+    .query(async ({ input }) => {
+      const conds: any[] = [];
+      if (input.type) conds.push(eq(annonces.type, input.type));
+      const where = conds.length ? conds.reduce((a, b) => dsql`${a} AND ${b}`) : undefined;
+      const rows = await db.select().from(annonces).where(where).orderBy(desc(annonces.createdAt)).limit(input.limit).offset(input.offset);
+      const ids = rows.map((r) => r.id);
+      const photos = ids.length ? await db.select().from(annoncePhotos).where(dsql`${annoncePhotos.annonceId} in (${dsql.join(ids, dsql`, `)})`).orderBy(annoncePhotos.ordre) : [];
+      const photoMap = new Map<number, string>();
+      for (const p of photos) { if (!photoMap.has(p.annonceId!)) photoMap.set(p.annonceId!, p.url); }
+      const [{ count }] = await db.select({ count: dsql<number>`count(*)::int` }).from(annonces).where(where);
+      return { total: count, items: rows.map((r) => ({ ...r, photoPrincipale: photoMap.get(r.id) ?? null })) };
     }),
 
   // Modération des annonces (§10.3)
