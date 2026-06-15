@@ -20,6 +20,16 @@ import {
   CreditCard,
   Send,
   Building2,
+  Share2,
+  Wrench,
+  Truck,
+  FileCheck,
+  Search,
+  Shield,
+  Award,
+  BarChart3,
+  Battery,
+  CalendarCheck,
 } from "lucide-react";
 
 /* ── Classification des tiers ── */
@@ -219,6 +229,282 @@ export default function Vehicule() {
       }
     });
   const messageAction = () => requireLogin(() => navigate("/compte/messages"));
+
+  /* ══════════════════════════════════════════════════════════════════
+     PAGE MKA.P-MS OFFICIEL — layout dédié, ordre exact de la maquette
+     ══════════════════════════════════════════════════════════════════ */
+  if (isMkapmsStock && !isLocation) {
+    const allPhotos = allCategoryPhotos.length > 0 ? allCategoryPhotos : (v.photoPrincipale ? [v.photoPrincipale] : []);
+    return (
+      <div className="pb-40 md:pb-10">
+        {/* ── 2. PHOTO VÉHICULE avec flèches + boutons flottants sur la photo ── */}
+        <div className="relative w-full bg-slate-100" style={{ height: "clamp(300px, 50vh, 480px)" }}>
+          {allPhotos.length > 0 ? (
+            <img
+              src={allPhotos[photoIdx] || ""}
+              alt={v.titre}
+              className="h-full w-full object-cover cursor-pointer"
+              onClick={() => { setLightboxIdx(photoIdx); setLightboxOpen(true); }}
+            />
+          ) : (
+            <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
+          )}
+          {/* Flèches */}
+          {allPhotos.length > 1 && (
+            <>
+              <button onClick={() => setPhotoIdx((i) => Math.max(0, i - 1))} className="absolute left-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg hover:bg-white transition"><ChevronLeft size={24} /></button>
+              <button onClick={() => setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1))} className="absolute right-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg hover:bg-white transition"><ChevronRight size={24} /></button>
+            </>
+          )}
+          {/* Compteur */}
+          {allPhotos.length > 1 && (
+            <span className="absolute bottom-3 right-3 rounded-full bg-noir/70 px-3 py-1 text-xs font-semibold text-white">{photoIdx + 1} / {allPhotos.length}</span>
+          )}
+          {/* Badges */}
+          {(() => {
+            const vehicleBadges = computeBadges({
+              id: v.id, vendeurType: v.vendeurType, type: v.type,
+              status: v.status, boosted: v.boosted, certified: v.certified,
+              tier: v.tier, planCode: v.planCode, createdAt: v.createdAt,
+            }).filter((b) => b.code !== "vendeur_pro" && b.code !== "garage_verifie");
+            return vehicleBadges.length > 0 ? (
+              <div className="absolute left-3 top-3 flex flex-col gap-1">
+                {vehicleBadges.map((b) => <BadgeChip key={b.code} badge={b} />)}
+              </div>
+            ) : null;
+          })()}
+          {/* Boutons flottants Appel + WhatsApp SUR la photo (côté droit bas) */}
+          <div className="absolute bottom-3 right-14 flex flex-col gap-2">
+            <a href={`tel:${v.contactTelephone || ""}`} className="flex h-12 w-12 items-center justify-center rounded-full bg-[#111] text-white shadow-lg hover:bg-[#333]"><Phone size={20} /></a>
+            <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25d366] text-white shadow-lg hover:bg-[#1ebe57]"><MessageSquare size={20} /></a>
+          </div>
+        </div>
+
+        <div className="container-page space-y-5 py-5">
+          {/* ── 3. PRIX ── */}
+          <div className="text-center">
+            <p className="text-3xl font-extrabold text-noir">{formatPrice(Number(v.prix))}</p>
+            <p className="mt-1 text-xs text-slate-500">Prix TTC · Frais inclus</p>
+          </div>
+
+          {/* ── 4-5. BOUTONS Réserver + Message ── */}
+          <div className="grid grid-cols-2 gap-3">
+            <button className="btn-acheter flex h-[52px] items-center justify-center gap-2 text-sm font-bold" onClick={() => requireLogin(() => document.getElementById("reserver-mkapms")?.scrollIntoView({ behavior: "smooth" }))}><CalendarCheck size={16} /> Réserver ce véhicule</button>
+            <button className="btn-message flex h-[52px] items-center justify-center gap-2 text-sm font-bold" onClick={messageAction}><MessageSquare size={16} /> Message</button>
+          </div>
+
+          {/* ── 6-7. Favoris + Partager ── */}
+          <div className="flex items-center justify-between px-2">
+            <button className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-noir" onClick={() => requireLogin(() => toggleFav.mutate({ annonceId: v.id }))}><Heart size={18} /> Ajouter aux favoris</button>
+            <button className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-noir" onClick={() => { if (navigator.share) navigator.share({ title: v.titre, url: window.location.href }); }}><Share2 size={18} /> Partager</button>
+          </div>
+
+          {/* ── 8. DESCRIPTION avec onglets ── */}
+          <div className="card p-5">
+            <h2 className="mb-3 font-bold text-noir">Description</h2>
+            <div className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-100 pb-2 scrollbar-hide">
+              {([
+                { key: "description" as const, label: "Description" },
+                { key: "points_forts" as const, label: "Points forts" },
+                { key: "equipements" as const, label: "Équipements" },
+                { key: "imperfections" as const, label: "Imperfections" },
+              ]).map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setDescTab(tab.key)}
+                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                    descTab === tab.key ? "bg-[#111] text-white" : "text-slate-500 hover:bg-slate-50"
+                  }`}
+                >{tab.label}</button>
+              ))}
+            </div>
+            {descTab === "description" && <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">{v.description || "Aucune description fournie."}</p>}
+            {descTab === "points_forts" && v.pointsForts && <ul className="space-y-2">{v.pointsForts.map((pf: string) => <li key={pf} className="flex items-center gap-2 text-sm text-slate-700"><ShieldCheck size={14} className="text-[#D4AF37]" /> {pf}</li>)}</ul>}
+            {descTab === "equipements" && v.equipements && <div className="grid grid-cols-2 gap-2">{v.equipements.map((eq: string) => <div key={eq} className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-3 py-2 text-xs"><ShieldCheck size={12} className="text-emerald-600" /> {eq}</div>)}</div>}
+            {descTab === "imperfections" && v.imperfections && <ul className="space-y-2">{v.imperfections.map((imp: string) => <li key={imp} className="flex items-center gap-2 text-sm text-slate-600"><Flag size={14} className="text-orange-500" /> {imp}</li>)}</ul>}
+          </div>
+
+          {/* ── 9. CARACTÉRISTIQUES PRINCIPALES ── */}
+          <div className="card p-5">
+            <h2 className="mb-4 font-bold text-noir">Caractéristiques principales</h2>
+            <div className="grid grid-cols-3 gap-3 md:grid-cols-6">
+              {[
+                { label: "Marque", value: v.marque },
+                { label: "Modèle", value: v.modele },
+                { label: "Année", value: v.annee },
+                { label: "Kilométrage", value: v.kilometrage ? `${v.kilometrage.toLocaleString("fr-FR")} km` : "—" },
+                { label: "Énergie", value: v.carburant },
+                { label: "Localisation", value: v.ville },
+              ].map((c) => (
+                <div key={c.label} className="text-center">
+                  <p className="text-[10px] text-slate-400">{c.label}</p>
+                  <p className="text-xs font-bold text-noir">{c.value || "—"}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── 10. VÉHICULE CERTIFIÉ MKA.P-MS (fond noir + icônes) ── */}
+          <div className="overflow-hidden rounded-2xl bg-[#111]">
+            <div className="p-5">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={20} className="text-[#D4AF37]" />
+                <h2 className="text-lg font-extrabold text-white">Véhicule certifié MKA.P-MS</h2>
+              </div>
+              <p className="mt-1 text-xs text-slate-400">Chaque véhicule est contrôlé avant sa mise en vente.</p>
+            </div>
+            <div className="grid grid-cols-4 gap-2 px-4 pb-5 md:grid-cols-8">
+              {[
+                { icon: Wrench, label: "Contrôle mécanique", sub: "120 points" },
+                { icon: History, label: "Historique", sub: "vérifié" },
+                { icon: TrendingUp, label: "Essai routier", sub: "effectué" },
+                { icon: BarChart3, label: "Kilométrage", sub: "certifié" },
+                { icon: FileText, label: "Rapport", sub: "disponible" },
+                { icon: Truck, label: "Livraison", sub: "possible" },
+                { icon: Shield, label: "Garantie", sub: "disponible" },
+                { icon: Award, label: "Assistance", sub: "administrative" },
+              ].map((item) => (
+                <div key={item.label} className="flex flex-col items-center text-center">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D4AF37]/20">
+                    <item.icon size={18} className="text-[#D4AF37]" />
+                  </div>
+                  <p className="mt-1 text-[9px] font-semibold leading-tight text-white">{item.label}</p>
+                  <p className="text-[8px] text-slate-500">{item.sub}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── 11-12. ÉTAT DU VÉHICULE + HISTORIQUE COMPLET (côte à côte) ── */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {/* 11. État du véhicule */}
+            <div className="card p-5">
+              <h3 className="flex items-center gap-2 font-bold text-noir"><Battery size={16} /> État du véhicule</h3>
+              <p className="mt-2 text-xs text-slate-500">Batterie hybride</p>
+              <p className="mt-1 text-3xl font-extrabold text-emerald-600">97 %</p>
+              <p className="text-xs font-semibold text-emerald-600">Excellent état</p>
+              <div className="mt-3 flex gap-0.5">
+                {Array.from({ length: 20 }).map((_, i) => (
+                  <div key={i} className={`h-3 flex-1 rounded-sm ${i < 19 ? "bg-blue-500" : "bg-slate-200"}`} />
+                ))}
+              </div>
+              <p className="mt-2 flex items-center gap-1 text-xs text-emerald-600"><ShieldCheck size={12} /> Garantie batterie disponible</p>
+            </div>
+
+            {/* 12. Historique complet du véhicule */}
+            <div className="card p-5">
+              <h3 className="font-bold text-noir">Historique complet du véhicule</h3>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {["Kilométrage", "Vol", "Gage", "Entretien", "Importation", "Contrôle technique", "Propriétaires", "Sinistres"].map((item) => (
+                  <div key={item} className="flex items-center gap-1.5 text-xs text-slate-600">
+                    <ShieldCheck size={12} className="text-emerald-600" /> {item}
+                  </div>
+                ))}
+              </div>
+              <Link to="/historique" className="mt-4 block w-full rounded-lg bg-[#D4AF37] py-2.5 text-center text-xs font-bold text-white hover:bg-[#C5A028] transition">Voir le rapport complet</Link>
+              <p className="mt-1 text-center text-[10px] text-slate-400">À partir de 2,99 €</p>
+            </div>
+          </div>
+
+          {/* ── 13. SERVICES DISPONIBLES ── */}
+          <div className="card p-5">
+            <h2 className="mb-4 font-bold text-noir">Services disponibles pour ce véhicule</h2>
+            <div className="grid grid-cols-3 gap-3 md:grid-cols-9">
+              {[
+                { icon: Wrench, label: "Devis garage" },
+                { icon: Truck, label: "Livraison" },
+                { icon: FileCheck, label: "Carte grise" },
+                { icon: Search, label: "Contrôle avant achat" },
+                { icon: Wrench, label: "Dépannage" },
+                { icon: Shield, label: "Garantie" },
+                { icon: TrendingUp, label: "Reprise" },
+                { icon: CreditCard, label: "Financement" },
+                { icon: Award, label: "Expertise" },
+              ].map((svc) => (
+                <div key={svc.label} className="flex flex-col items-center text-center">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
+                    <svc.icon size={18} className="text-[#D4AF37]" />
+                  </div>
+                  <p className="mt-1 text-[9px] font-medium leading-tight text-slate-600">{svc.label}</p>
+                </div>
+              ))}
+            </div>
+            <Link to="/services" className="mt-3 block text-right text-xs font-semibold text-[#D4AF37]">Voir tous nos services →</Link>
+          </div>
+
+          {/* ── 14-15. BOUTONS ACHETER + CONTACTER EN BAS ── */}
+          <div id="reserver-mkapms" className="grid grid-cols-2 gap-3">
+            <button className="btn-acheter flex h-[56px] items-center justify-center gap-2 text-sm font-bold" onClick={() => requireLogin(() => reserve.mutate({ annonceId: v.id, acompte: 200 }))}><CreditCard size={16} /> Acheter ce véhicule</button>
+            <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-message flex h-[56px] items-center justify-center gap-2 text-sm font-bold"><Phone size={16} /> Contacter le vendeur</a>
+          </div>
+        </div>
+
+        {/* Barre fixe mobile MKA.P-MS */}
+        <div className="fixed inset-x-0 bottom-[76px] z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden">
+          <div className="container-page">
+            <div className="grid grid-cols-2 gap-3">
+              <button className="btn-acheter h-[52px] text-sm font-bold" onClick={primaryAction}>Acheter</button>
+              <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-message flex h-[52px] items-center justify-center gap-2 text-sm font-bold"><Phone size={16} /> Contact</a>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal signalement */}
+        {showReport && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowReport(false)}>
+            <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-base font-bold text-[#111]">Signaler cette annonce</h3>
+              <p className="mt-1 text-xs text-slate-500">Réf. {v.reference || `#${v.id}`} — {v.titre}</p>
+              {reportSent ? (
+                <div className="mt-4 rounded-lg bg-green-50 border border-green-200 p-3 text-center">
+                  <p className="text-sm font-semibold text-green-700">Signalement envoyé</p>
+                  <button onClick={() => { setShowReport(false); setReportSent(false); setReportReason(""); }} className="mt-3 rounded-lg bg-[#111] px-4 py-2 text-xs font-bold text-white">Fermer</button>
+                </div>
+              ) : (
+                <>
+                  <div className="mt-3 space-y-2">
+                    {["Annonce frauduleuse", "Photos non conformes", "Prix incorrect", "Véhicule déjà vendu", "Contenu inapproprié", "Autre"].map((r) => (
+                      <button key={r} onClick={() => setReportReason(r)} className={`w-full rounded-lg border px-3 py-2 text-left text-xs transition ${reportReason === r ? "border-[#D4AF37] bg-[#D4AF37]/10 font-semibold text-[#111]" : "border-slate-200 text-slate-600 hover:border-[#D4AF37]"}`}>{r}</button>
+                    ))}
+                  </div>
+                  <button disabled={!reportReason} onClick={() => setReportSent(true)} className="mt-4 w-full rounded-lg bg-red-600 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-40">Envoyer le signalement</button>
+                  <button onClick={() => setShowReport(false)} className="mt-2 w-full text-center text-xs text-slate-400">Annuler</button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* LIGHTBOX plein écran */}
+        {hasPhotoCategories && lightboxOpen && (() => {
+          const catPhotos = (v.photoCategories[photoCat] || []) as string[];
+          const lbIdx = Math.min(lightboxIdx, Math.max(0, catPhotos.length - 1));
+          return (
+            <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => setLightboxOpen(false)}>
+              <div className="flex items-center justify-between px-4 pb-3 pt-14" style={{ paddingTop: "max(3.5rem, env(safe-area-inset-top, 3.5rem))" }} onClick={(e) => e.stopPropagation()}>
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                  {PHOTO_CATEGORIES.filter((c) => (v.photoCategories[c.key] || []).length > 0).map((c) => (
+                    <button key={c.key} onClick={() => { setPhotoCat(c.key); setLightboxIdx(0); }} className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${photoCat === c.key ? "bg-[#D4AF37] text-black" : "border border-white/30 text-white/70 hover:border-[#D4AF37] hover:text-white"}`}>{c.label}</button>
+                  ))}
+                </div>
+                <button onClick={() => setLightboxOpen(false)} className="ml-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 text-lg font-bold">✕</button>
+              </div>
+              <div className="relative flex flex-1 items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                {catPhotos.length > 0 ? <img src={catPhotos[lbIdx]} alt="" className="h-full w-full object-cover" /> : <p className="text-white/60">Aucune photo dans cette catégorie</p>}
+                {catPhotos.length > 1 && (
+                  <>
+                    <button onClick={() => setLightboxIdx((i) => Math.max(0, i - 1))} className="absolute left-2 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"><ChevronLeft size={28} /></button>
+                    <button onClick={() => setLightboxIdx((i) => Math.min(catPhotos.length - 1, i + 1))} className="absolute right-2 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"><ChevronRight size={28} /></button>
+                  </>
+                )}
+                {catPhotos.length > 0 && <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs text-white">{lbIdx + 1} / {catPhotos.length}</span>}
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+    );
+  }
 
   return (
     <div className="container-page py-6 pb-32 md:pb-10">
