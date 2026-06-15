@@ -133,46 +133,42 @@ export default function Home() {
     <div className="overflow-x-hidden bg-white">
 
       {/* ═══════════════════════════════════════════════════════════
-          1. HERO — TEXTE PRINCIPAL + LOGO M
+          HOMEPAGE — tout visible sur 1 écran mobile
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F5F3EF] pt-6 pb-2">
-        <div className="container-page text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#D4AF37] md:text-xs">LA MARKETPLACE AUTOMOBILE</p>
-          <h1 className="mt-3 text-[22px] font-black uppercase leading-[1.15] md:text-3xl lg:text-4xl">
+      <section className="bg-[#F5F3EF]">
+        <div className="container-page text-center pt-3 pb-1 md:pt-6 md:pb-2">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.25em] text-[#D4AF37] md:text-xs">LA MARKETPLACE AUTOMOBILE</p>
+          <h1 className="mt-1.5 text-[20px] font-black uppercase leading-[1.12] md:mt-3 md:text-3xl lg:text-4xl">
             <span className="text-[#111]">ACHETEZ, VENDEZ,</span><br />
             <span className="text-[#D4AF37]">LOUEZ, RÉPAREZ,</span><br />
             <span className="text-[#D4AF37]">ENTRETENEZ EN TOUTE CONFIANCE,</span><br />
             <span className="text-[#111]">PARTOUT, À TOUT MOMENT.</span>
           </h1>
-          <div className="mx-auto my-4 flex items-center justify-center gap-3">
-            <div className="h-px w-12 bg-[#D4AF37]" />
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#D4AF37]">
-              <span className="text-sm font-extrabold text-[#D4AF37]">M</span>
+          <div className="mx-auto my-2 flex items-center justify-center gap-2 md:my-4 md:gap-3">
+            <div className="h-px w-10 bg-[#D4AF37] md:w-12" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#D4AF37] md:h-9 md:w-9">
+              <span className="text-[11px] font-extrabold text-[#D4AF37] md:text-sm">M</span>
             </div>
-            <div className="h-px w-12 bg-[#D4AF37]" />
+            <div className="h-px w-10 bg-[#D4AF37] md:w-12" />
           </div>
-          <p className="mx-auto max-w-md text-sm text-[#6B7280] leading-relaxed">
+          <p className="mx-auto max-w-md text-xs text-[#6B7280] leading-snug md:text-sm md:leading-relaxed">
             Achat, vente, location, entretien, livraison et bien plus encore.<br />
             Tout l'univers automobile réuni au même endroit.
           </p>
         </div>
-      </section>
 
-      {/* ═══════════════════════════════════════════════════════════
-          1b. CAROUSEL PHOTOS VOITURES — auto-slide + indicateurs
-         ═══════════════════════════════════════════════════════════ */}
-      {(() => {
-        const CAROUSEL_PHOTOS = [
-          "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=600&fit=crop",
-          "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=600&fit=crop",
-          "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop",
-          "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=600&fit=crop",
-          "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=600&fit=crop",
-        ];
-        return (
-          <section className="bg-[#F5F3EF] pb-6 pt-4">
-            <div className="container-page">
-              <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl">
+        {/* ── CAROUSEL ── */}
+        {(() => {
+          const CAROUSEL_PHOTOS = [
+            "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=450&fit=crop",
+            "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=450&fit=crop",
+            "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=450&fit=crop",
+            "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=450&fit=crop",
+            "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=450&fit=crop",
+          ];
+          return (
+            <div className="container-page pt-2 pb-1 md:pt-4 md:pb-2">
+              <div className="relative mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl">
                 <div
                   className="flex transition-transform duration-500 ease-in-out"
                   style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
@@ -182,36 +178,30 @@ export default function Home() {
                       key={i}
                       src={src}
                       alt={`Véhicule ${i + 1}`}
-                      className="w-full shrink-0 aspect-[4/3] object-cover"
+                      className="w-full shrink-0 aspect-[16/9] object-cover"
                     />
                   ))}
                 </div>
               </div>
-              <div className="mt-3 flex items-center justify-center gap-2">
+              <div className="mt-1.5 flex items-center justify-center gap-1.5 md:mt-3">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <button
                     key={i}
                     type="button"
                     onClick={() => setCarouselIdx(i)}
-                    className={`h-2.5 w-2.5 rounded-full transition-all ${
-                      carouselIdx === i
-                        ? "bg-[#D4AF37] scale-110"
-                        : "bg-[#C4C4C4]"
+                    className={`h-2 w-2 rounded-full transition-all ${
+                      carouselIdx === i ? "bg-[#D4AF37] scale-110" : "bg-[#C4C4C4]"
                     }`}
                   />
                 ))}
               </div>
             </div>
-          </section>
-        );
-      })()}
+          );
+        })()}
 
-      {/* ═══════════════════════════════════════════════════════════
-          1c. 4 ACTIONS — VENDRE, ACHETER, LOUER, RÉPARER
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F5F3EF] pb-8">
-        <div className="container-page">
-          <div className="mx-auto grid max-w-2xl grid-cols-4 gap-2.5 md:gap-4">
+        {/* ── 4 ACTIONS ── */}
+        <div className="container-page pt-2 pb-4 md:pt-4 md:pb-6">
+          <div className="mx-auto grid max-w-lg grid-cols-4 gap-1.5 md:max-w-2xl md:gap-3">
             {[
               { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
               { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
@@ -223,16 +213,17 @@ export default function Home() {
                 <Link
                   key={a.to}
                   to={a.to}
-                  className="group flex flex-col items-center gap-2.5 rounded-2xl border border-[#D4AF37]/50 bg-white px-2 pb-3 pt-4 text-center transition hover:shadow-md md:px-4 md:pb-5 md:pt-6"
+                  className="group flex flex-col items-center gap-1 rounded-xl border border-[#D4AF37]/40 bg-white px-1 pb-2 pt-2.5 text-center transition hover:shadow-md md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5"
                 >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#D4AF37]/50 bg-white md:h-[88px] md:w-[88px]">
-                    <Icon size={30} className="text-[#D4AF37] md:hidden" />
-                    <Icon size={42} className="hidden text-[#D4AF37] md:block" />
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-white md:h-16 md:w-16">
+                    <Icon size={20} className="text-[#D4AF37] md:hidden" />
+                    <Icon size={32} className="hidden text-[#D4AF37] md:block" />
                   </div>
-                  <span className="text-[11px] font-extrabold uppercase tracking-wide text-[#111] md:text-sm">{a.label}</span>
-                  <span className="text-[9px] text-[#6B7280] md:text-xs">{a.sub}</span>
-                  <div className="flex h-9 w-full items-center justify-center rounded-full bg-[#D4AF37] transition group-hover:bg-[#C5A028] md:h-11">
-                    <ArrowRight size={18} className="text-white" />
+                  <span className="text-[9px] font-extrabold uppercase tracking-wide text-[#111] md:text-xs">{a.label}</span>
+                  <span className="text-[7px] text-[#6B7280] md:text-[10px]">{a.sub}</span>
+                  <div className="flex h-6 w-full items-center justify-center rounded-full bg-[#D4AF37] transition group-hover:bg-[#C5A028] md:h-9">
+                    <ArrowRight size={12} className="text-white md:hidden" />
+                    <ArrowRight size={16} className="hidden text-white md:block" />
                   </div>
                 </Link>
               );
@@ -241,12 +232,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════
-          1d. 4 BADGES CONFIANCE
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-6 border-t border-[#E5E7EB]">
+      {/* ── 4 BADGES CONFIANCE ── */}
+      <section className="bg-white py-3 border-t border-[#E5E7EB] md:py-6">
         <div className="container-page">
-          <div className="mx-auto flex max-w-2xl">
+          <div className="mx-auto flex max-w-lg md:max-w-2xl">
             {[
               { icon: Shield, title: "100% SÉCURISÉ", desc: "Transactions protégées" },
               { icon: Award, title: "MEILLEURS PRIX", desc: "Des offres compétitives" },
@@ -255,12 +244,13 @@ export default function Home() {
             ].map((b, idx) => {
               const Icon = b.icon;
               return (
-                <div key={b.title} className={`flex flex-1 flex-col items-center gap-1.5 text-center px-1.5 ${idx < 3 ? "border-r border-[#E5E7EB]" : ""}`}>
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/5 md:h-16 md:w-16">
-                    <Icon size={26} className="text-[#D4AF37]" />
+                <div key={b.title} className={`flex flex-1 flex-col items-center gap-0.5 text-center px-1 md:gap-1.5 ${idx < 3 ? "border-r border-[#E5E7EB]" : ""}`}>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5 md:h-14 md:w-14">
+                    <Icon size={16} className="text-[#D4AF37] md:hidden" />
+                    <Icon size={24} className="hidden text-[#D4AF37] md:block" />
                   </div>
-                  <h3 className="text-[9px] font-extrabold uppercase tracking-wide text-[#111] md:text-xs">{b.title}</h3>
-                  <p className="text-[9px] text-[#6B7280] leading-tight md:text-[11px]">{b.desc}</p>
+                  <h3 className="text-[7px] font-extrabold uppercase leading-tight tracking-wide text-[#111] md:text-[10px]">{b.title}</h3>
+                  <p className="text-[7px] text-[#6B7280] leading-tight md:text-[9px]">{b.desc}</p>
                 </div>
               );
             })}
