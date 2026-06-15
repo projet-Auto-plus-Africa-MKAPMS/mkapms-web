@@ -127,28 +127,28 @@ export default function Home() {
           1. HERO — FOND CLAIR + VOITURE COUVERTE
          ═══════════════════════════════════════════════════════════ */}
       <section className="relative overflow-hidden bg-[#F5F3EF]">
-        <div className="container-page relative py-5 text-center sm:py-6">
+        <div className="container-page relative py-4 text-center sm:py-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">La marketplace automobile</p>
-          <h1 className="mt-2 text-2xl font-black uppercase leading-tight text-[#111] sm:text-3xl md:text-4xl">
+          <h1 className="mt-1 text-2xl font-black uppercase leading-tight text-[#111] sm:text-3xl md:text-4xl">
             La référence<br />
             <span className="text-[#D4AF37]">de confiance</span><br />
             pour tous vos projets auto
           </h1>
-          <div className="mx-auto my-3 flex items-center justify-center gap-3">
+          <div className="mx-auto my-2 flex items-center justify-center gap-3">
             <div className="h-px w-12 bg-[#D4AF37]" />
             <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#D4AF37]">
               <span className="text-xs font-bold text-[#D4AF37]">M</span>
             </div>
             <div className="h-px w-12 bg-[#D4AF37]" />
           </div>
-          <p className="mx-auto max-w-md text-sm text-[#6B7280]">
+          <p className="mx-auto max-w-md text-xs text-[#6B7280]">
             Achat, vente, location, entretien, livraison et bien plus encore.<br />
             Tout l'univers automobile réuni au même endroit.
           </p>
           <img
-            src="https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=900&q=80"
-            alt="Voiture vitrine"
-            className="mx-auto mt-4 w-full max-w-2xl object-contain rounded-lg"
+            src="https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&q=80"
+            alt="Voiture couverte"
+            className="mx-auto mt-3 h-40 w-auto max-w-full object-contain sm:h-48"
           />
         </div>
       </section>
