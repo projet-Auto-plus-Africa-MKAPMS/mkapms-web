@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { MapPin, Gauge, Calendar, Fuel } from "lucide-react";
 import { useCurrency } from "../lib/currency";
+import { computeBadges, type Badge } from "@shared/badges";
 
 export interface VehicleCardData {
   id: number;
@@ -20,6 +21,13 @@ export interface VehicleCardData {
   boosted?: boolean | null;
   photoPrincipale?: string | null;
   tier?: string | null;
+  status?: string | null;
+  certified?: boolean | null;
+  planCode?: string | null;
+  createdAt?: string | null;
+  urgent?: boolean | null;
+  coupDeCoeur?: boolean | null;
+  prixEnBaisse?: boolean | null;
 }
 
 function getCardTier(v: VehicleCardData): "officiel" | "elite" | "premium" | "professionnel" | "particulier" {
@@ -35,6 +43,18 @@ const PLACEHOLDER =
   encodeURIComponent(
     `<svg xmlns='http://www.w3.org/2000/svg' width='400' height='280'><rect width='100%' height='100%' fill='#e2e8f0'/><text x='50%' y='50%' fill='#94a3b8' font-family='sans-serif' font-size='20' text-anchor='middle' dominant-baseline='middle'>MKA.P-MS</text></svg>`,
   );
+
+function BadgeChip({ badge }: { badge: Badge }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${badge.color} ${badge.textColor} ${badge.borderColor ? `border ${badge.borderColor}` : ""}`}
+    >
+      {badge.label}
+    </span>
+  );
+}
+
+export { BadgeChip };
 
 export default function VehicleCard({ v }: { v: VehicleCardData }) {
   const { format: formatPrice } = useCurrency();
@@ -56,11 +76,20 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
           ? "h-[160px] lg:h-[220px]"
           : "h-[140px] lg:h-[200px]";
 
-  const tierBadge =
-    tier === "officiel" ? "MKA.P-MS Officiel"
-    : tier === "elite" ? "Élite"
-    : tier === "premium" ? "Premium"
-    : null;
+  const badges = computeBadges({
+    id: v.id,
+    vendeurType: v.vendeurType,
+    type: v.type,
+    status: v.status,
+    boosted: v.boosted,
+    certified: v.certified,
+    tier: v.tier,
+    planCode: v.planCode,
+    urgent: v.urgent,
+    coupDeCoeur: v.coupDeCoeur,
+    prixEnBaisse: v.prixEnBaisse,
+    createdAt: v.createdAt,
+  });
 
   return (
     <Link to={`/vehicule/${v.id}`} className={`card group overflow-hidden transition hover:shadow-md ${isOfficielTier ? "border-[#D4AF37]/40 shadow-lg" : ""}`}>
@@ -71,15 +100,12 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
           className="h-full w-full object-cover transition group-hover:scale-105"
           loading="lazy"
         />
-        <span className="badge absolute left-3 top-3 bg-noir/80 text-white">
-          {isLocation ? "À louer" : "À vendre"}
-        </span>
-        {tierBadge && (
-          <span className={`badge absolute right-3 top-3 font-bold px-2.5 py-1 ${tier === "officiel" ? "bg-[#111] text-white" : tier === "elite" ? "bg-gradient-to-r from-[#111] to-[#D4AF37] text-white" : "bg-gold text-noir"}`}>{tierBadge}</span>
-        )}
-        {!tierBadge && v.vendeurType === "professionnel" && (
-          <span className="badge absolute left-3 top-10 bg-[#D4AF37] text-white text-[9px] font-bold px-2 py-0.5">PRO</span>
-        )}
+        {/* Badges — coin supérieur gauche, max 3 */}
+        <div className="absolute left-2 top-2 flex flex-col gap-1">
+          {badges.map((b) => (
+            <BadgeChip key={b.code} badge={b} />
+          ))}
+        </div>
       </div>
       <div className="p-4">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-gold-dark">

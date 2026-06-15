@@ -41,6 +41,8 @@ import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
 import { ACOMPTE_PALIERS } from "@shared/plans";
 import { computeTrustScore, TRUST_LEVEL_LABEL } from "@shared/trust";
+import { computeBadges } from "@shared/badges";
+import { BadgeChip } from "../components/VehicleCard";
 
 /* ── Véhicules démo (IDs >= 8000) ── */
 const DEMO_VEHICLES: Record<number, any> = Object.fromEntries([
@@ -211,11 +213,19 @@ export default function Vehicule() {
                   {photoIdx + 1} / {photos.length}
                 </span>
               )}
-              {tierBadge && (
-                <span className={`badge absolute left-3 top-3 text-white font-bold px-3 py-1 ${tier === "officiel" ? "bg-[#111]" : tier === "elite" ? "bg-gradient-to-r from-[#111] to-[#D4AF37]" : "bg-[#D4AF37] text-[#111]"}`}>
-                  {tierBadge}
-                </span>
-              )}
+              {/* Badges automatiques — coin supérieur gauche, max 3 */}
+              {(() => {
+                const vehicleBadges = computeBadges({
+                  id: v.id, vendeurType: v.vendeurType, type: v.type,
+                  status: v.status, boosted: v.boosted, certified: v.certified,
+                  tier: v.tier, planCode: v.planCode, createdAt: v.createdAt,
+                });
+                return vehicleBadges.length > 0 ? (
+                  <div className="absolute left-3 top-3 flex flex-col gap-1">
+                    {vehicleBadges.map((b) => <BadgeChip key={b.code} badge={b} />)}
+                  </div>
+                ) : null;
+              })()}
             </div>
             {/* Galerie : 6 photos mobile, 12 desktop */}
             {photos.length > 1 && (
