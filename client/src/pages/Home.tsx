@@ -167,7 +167,7 @@ export default function Home() {
             "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=450&fit=crop",
           ];
           return (
-            <div className="container-page pt-2 pb-1 md:pt-4 md:pb-2">
+            <div className="container-page pt-2 pb-0 md:pt-4 md:pb-2">
               <div className="relative mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl">
                 <div
                   className="flex transition-transform duration-500 ease-in-out"
@@ -178,12 +178,12 @@ export default function Home() {
                       key={i}
                       src={src}
                       alt={`Véhicule ${i + 1}`}
-                      className="w-full shrink-0 aspect-[16/9] object-cover"
+                      className="w-full shrink-0 aspect-[4/3] object-cover"
                     />
                   ))}
                 </div>
               </div>
-              <div className="mt-1.5 flex items-center justify-center gap-1.5 md:mt-3">
+              <div className="mt-1 flex items-center justify-center gap-1.5 md:mt-3">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <button
                     key={i}
@@ -200,7 +200,7 @@ export default function Home() {
         })()}
 
         {/* ── 4 ACTIONS ── */}
-        <div className="container-page pt-2 pb-4 md:pt-4 md:pb-6">
+        <div className="container-page pt-1.5 pb-4 md:pt-4 md:pb-6">
           <div className="mx-auto grid max-w-lg grid-cols-4 gap-1.5 md:max-w-2xl md:gap-3">
             {[
               { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
