@@ -30,6 +30,12 @@ import {
   BarChart3,
   Battery,
   CalendarCheck,
+  MapPin,
+  Bell,
+  Mail,
+  Car,
+  Store,
+  ChevronDown,
 } from "lucide-react";
 
 /* ── Classification des tiers ── */
@@ -268,25 +274,15 @@ export default function Vehicule() {
                 <button onClick={() => setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1))} className="absolute right-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg hover:bg-white transition"><ChevronRight size={24} /></button>
               </>
             )}
-            {/* Compteur */}
-            {allPhotos.length > 1 && (
-              <span className="absolute bottom-3 right-3 rounded-full bg-noir/70 px-3 py-1 text-xs font-semibold text-white">{photoIdx + 1} / {allPhotos.length}</span>
-            )}
-            {/* Badges */}
-            {(() => {
-              const vehicleBadges = computeBadges({
-                id: v.id, vendeurType: v.vendeurType, type: v.type,
-                status: v.status, boosted: v.boosted, certified: v.certified,
-                tier: v.tier, planCode: v.planCode, createdAt: v.createdAt,
-              }).filter((b) => b.code !== "vendeur_pro" && b.code !== "garage_verifie");
-              return vehicleBadges.length > 0 ? (
-                <div className="absolute left-3 top-3 flex flex-col gap-1">
-                  {vehicleBadges.map((b) => <BadgeChip key={b.code} badge={b} />)}
-                </div>
-              ) : null;
-            })()}
-            {/* Boutons flottants Appel + WhatsApp — petits, stylés, près de la flèche → */}
-            <div className={`absolute bottom-12 right-3 flex flex-col gap-2 transition-opacity duration-300 ${scrollHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+            {/* Compteur + Badge M (style La Centrale) */}
+            <div className="absolute bottom-3 left-3 flex items-center gap-2">
+              {allPhotos.length > 0 && (
+                <span className="rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-noir shadow">{photoIdx + 1}/{allPhotos.length}</span>
+              )}
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#111] text-xs font-extrabold text-[#D4AF37] shadow">M</span>
+            </div>
+            {/* Boutons flottants Appel + WhatsApp — haut droit, petits, stylés */}
+            <div className={`absolute right-3 top-[35%] flex flex-col gap-2 transition-opacity duration-300 ${scrollHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
               <a href={`tel:${v.contactTelephone || ""}`} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#111]/80 text-white shadow-md backdrop-blur-sm hover:bg-[#111]"><Phone size={15} /></a>
               <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#25d366]/90 text-white shadow-md backdrop-blur-sm hover:bg-[#25d366]">
                 <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.578-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.24 0-4.326-.68-6.06-1.844l-.434-.3-2.825.902.935-2.752-.33-.468A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
@@ -304,6 +300,19 @@ export default function Vehicule() {
             <p className="mt-1 text-sm text-slate-400">Réf. annonce : DEMO-{v.id}</p>
             <p className="mt-3 text-3xl font-extrabold text-noir">{formatPrice(Number(v.prix))}</p>
             <p className="text-sm text-slate-500">Prix TTC · Frais inclus</p>
+          </div>
+
+          {/* ── Mini carte localisation ── */}
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                <MapPin size={16} className="text-[#D4AF37]" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-noir">MKA.P-MS Officiel</p>
+                <p className="text-xs text-slate-500">{v.ville || "Belloy-en-France"} · 95270</p>
+              </div>
+            </div>
           </div>
 
           {/* ── 4. Favoris + Partager ── */}
@@ -456,17 +465,116 @@ export default function Vehicule() {
             </div>
             <Link to="/services" className="mt-4 block text-center text-sm font-bold text-[#D4AF37]">Voir tous nos services →</Link>
           </div>
+
+          {/* ── SECTION PRIX — barre de comparaison ── */}
+          <div className="card p-5">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#D4AF37] text-[#D4AF37]">€</div>
+              <h2 className="text-lg font-bold text-noir">Prix</h2>
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              <p className="text-2xl font-extrabold text-noir">{formatPrice(Number(v.prix))}</p>
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">€ Offre équitable</span>
+            </div>
+            <div className="mt-3 flex h-2 overflow-hidden rounded-full">
+              <div className="w-1/5 bg-emerald-600" />
+              <div className="w-1/4 bg-emerald-400" />
+              <div className="w-1/4 bg-slate-300" />
+              <div className="flex-1 bg-orange-300" />
+            </div>
+            <div className="relative mt-0.5">
+              <ChevronDown size={14} className="absolute text-noir" style={{ left: "40%" }} />
+            </div>
+            <p className="mt-4 text-sm leading-relaxed text-slate-600">Le prix de cette annonce est dans la moyenne des prix des véhicules similaires.</p>
+            <Link to="#" className="mt-1 text-sm font-semibold text-noir underline">En savoir plus</Link>
+          </div>
+
+          {/* ── CRÉER UNE ALERTE PRIX ── */}
+          <button
+            className="w-full rounded-xl bg-[#111] py-3.5 text-sm font-bold text-white transition hover:bg-[#333]"
+            onClick={() => requireLogin(() => { /* alerte prix */ })}
+          >
+            <Bell size={16} className="mr-2 inline-block" /> Créer une alerte prix
+          </button>
+
+          {/* ── CARTE VENDEUR — MKA.P-MS Officiel ── */}
+          <div className="card overflow-hidden">
+            <div className="p-5">
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                <Store size={16} /> <span>Professionnel de l'automobile</span>
+              </div>
+              <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700"><ShieldCheck size={12} /> Pro vérifié</span>
+              <div className="mt-3 flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#111]">
+                  <span className="text-lg font-extrabold text-[#D4AF37]">M</span>
+                </div>
+                <div>
+                  <p className="text-base font-bold text-noir">MKA.P-MS Officiel</p>
+                  <p className="text-xs text-slate-500">Depuis 2024 · Île-de-France</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-slate-100 px-5 py-3">
+              <div className="flex items-center gap-2">
+                <MapPin size={14} className="text-[#D4AF37]" />
+                <p className="text-sm font-medium text-noir">95270 Belloy-en-France</p>
+              </div>
+              <Link to="#" className="mt-1 ml-5 text-xs font-semibold text-slate-500 underline">Voir la carte</Link>
+            </div>
+            <div className="border-t border-slate-100 px-5 py-3">
+              <p className="text-xs font-medium text-slate-500">Services</p>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                <span className="rounded-full bg-[#D4AF37]/10 px-2.5 py-0.5 text-xs font-medium text-[#D4AF37]">Garantie</span>
+                <span className="rounded-full bg-[#D4AF37]/10 px-2.5 py-0.5 text-xs font-medium text-[#D4AF37]">Label MKA.P-MS</span>
+                <span className="rounded-full bg-[#D4AF37]/10 px-2.5 py-0.5 text-xs font-medium text-[#D4AF37]">Livraison</span>
+              </div>
+            </div>
+            <div className="border-t border-slate-100 px-5 py-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-noir">Horaires et à propos</p>
+                <ChevronRight size={16} className="text-slate-400" />
+              </div>
+            </div>
+            <div className="border-t border-slate-100 p-4">
+              <Link to="/acheter" className="block w-full rounded-xl bg-[#111] py-3 text-center text-sm font-bold text-white hover:bg-[#333] transition">Voir les annonces MKA.P-MS</Link>
+            </div>
+          </div>
+
+          {/* ── VENDEZ VOTRE VÉHICULE — style premium ── */}
+          <div className="space-y-4">
+            <div className="card overflow-hidden">
+              <div className="flex items-start gap-4 p-5">
+                <div className="flex-1">
+                  <p className="flex items-center gap-1.5 text-base font-bold text-noir"><span className="h-4 w-1 rounded-full bg-[#D4AF37]" /> Vendez à un professionnel</p>
+                  <p className="mt-1 text-sm text-slate-500">Vendez votre véhicule en 48h.</p>
+                  <Link to="/vendre" className="mt-3 inline-block rounded-xl bg-[#111] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#333] transition">Faire racheter mon véhicule</Link>
+                </div>
+                <div className="flex h-16 w-20 items-center justify-center rounded-lg bg-slate-100">
+                  <Car size={32} className="text-slate-400" />
+                </div>
+              </div>
+            </div>
+            <div className="card overflow-hidden">
+              <div className="flex items-start gap-4 p-5">
+                <div className="flex-1">
+                  <p className="flex items-center gap-1.5 text-base font-bold text-noir"><span className="h-4 w-1 rounded-full bg-[#D4AF37]" /> Vendez à un particulier</p>
+                  <p className="mt-1 text-sm text-slate-500">Déposez votre annonce gratuitement en 5 min.</p>
+                  <Link to="/publier" className="mt-3 inline-block rounded-xl bg-[#111] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#333] transition">Déposer mon annonce</Link>
+                </div>
+                <div className="flex h-16 w-20 items-center justify-center rounded-lg bg-slate-100">
+                  <Car size={32} className="text-slate-400" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Barre fixe mobile MKA.P-MS — décollée, disparaît au scroll */}
         <div className={`fixed inset-x-0 bottom-[82px] z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden transition-all duration-300 ${scrollHidden ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"}`}>
           <div className="container-page">
             <div className="grid grid-cols-2 gap-3">
-              <button className="btn-acheter h-[52px] text-sm font-bold" onClick={primaryAction}>Acheter</button>
-              <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-[52px] items-center justify-center gap-2 rounded-xl bg-[#25d366] text-sm font-bold text-white shadow hover:bg-[#1ebe57] transition">
-                <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.578-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.24 0-4.326-.68-6.06-1.844l-.434-.3-2.825.902.935-2.752-.33-.468A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-                WhatsApp
-              </a>
+              <button className="flex h-[52px] items-center justify-center gap-2 rounded-xl border-2 border-noir bg-white text-sm font-bold text-noir shadow hover:bg-slate-50 transition" onClick={messageAction}><Mail size={16} /> Message</button>
+              <button className="btn-acheter flex h-[52px] items-center justify-center gap-2 text-sm font-bold" onClick={primaryAction}><Phone size={16} /> Appeler</button>
             </div>
           </div>
         </div>
