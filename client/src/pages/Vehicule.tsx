@@ -238,7 +238,7 @@ export default function Vehicule() {
     return (
       <div className="pb-40 md:pb-10">
         {/* ── 2. PHOTO VÉHICULE avec flèches + boutons flottants sur la photo ── */}
-        <div className="relative w-full bg-slate-100" style={{ height: "clamp(300px, 50vh, 480px)" }}>
+        <div className="relative w-full bg-slate-100" style={{ height: "clamp(350px, 58vh, 560px)" }}>
           {allPhotos.length > 0 ? (
             <img
               src={allPhotos[photoIdx] || ""}
