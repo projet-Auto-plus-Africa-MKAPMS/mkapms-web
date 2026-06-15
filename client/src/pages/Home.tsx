@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search, Plus, PlusCircle, FileText, Wrench, Car, KeyRound, Truck, Star,
   ArrowRight, ShieldCheck, Users, User, Gauge, Heart, ChevronRight, ChevronDown,
   CheckCircle, Check, Clock, Package, Phone, Mail, MapPin, Globe, Headphones, Tag, Zap,
+  Award, Shield,
 } from "lucide-react";
 
 /* ── Icône moto (SVG custom) ── */
@@ -111,7 +112,15 @@ export default function Home() {
   /* historique */
   const [histPlaque, setHistPlaque] = useState("");
   const [histResult, setHistResult] = useState(false);
-  const [openBadge, setOpenBadge] = useState<string | null>(null);
+
+  /* carousel accueil */
+  const [carouselIdx, setCarouselIdx] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCarouselIdx((prev) => (prev + 1) % 5);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   /* newsletter */
   const [newsEmail, setNewsEmail] = useState("");
@@ -124,41 +133,85 @@ export default function Home() {
     <div className="overflow-x-hidden bg-white">
 
       {/* ═══════════════════════════════════════════════════════════
-          1. HERO — FOND CLAIR + VOITURE COUVERTE
+          1. HERO — TEXTE PRINCIPAL + LOGO M
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-[#F5F3EF] h-[650px] md:h-[750px] lg:h-[850px] flex items-center">
-        <div className="container-page relative text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4AF37] md:text-sm">La marketplace automobile</p>
-          <h1 className="mt-2 text-3xl font-black uppercase leading-tight text-[#111] md:text-4xl lg:text-5xl">
-            La référence<br />
-            <span className="text-[#D4AF37]">de confiance</span><br />
-            pour tous vos projets auto
+      <section className="bg-[#F5F3EF] pt-6 pb-2">
+        <div className="container-page text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#D4AF37] md:text-xs">LA MARKETPLACE AUTOMOBILE</p>
+          <h1 className="mt-3 text-[22px] font-black uppercase leading-[1.15] md:text-3xl lg:text-4xl">
+            <span className="text-[#111]">ACHETEZ, VENDEZ,</span><br />
+            <span className="text-[#D4AF37]">LOUEZ, RÉPAREZ,</span><br />
+            <span className="text-[#D4AF37]">ENTRETENEZ EN TOUTE CONFIANCE,</span><br />
+            <span className="text-[#111]">PARTOUT, À TOUT MOMENT.</span>
           </h1>
-          <div className="mx-auto my-3 flex items-center justify-center gap-3">
+          <div className="mx-auto my-4 flex items-center justify-center gap-3">
             <div className="h-px w-12 bg-[#D4AF37]" />
-            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#D4AF37]">
-              <span className="text-xs font-bold text-[#D4AF37]">M</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#D4AF37]">
+              <span className="text-sm font-extrabold text-[#D4AF37]">M</span>
             </div>
             <div className="h-px w-12 bg-[#D4AF37]" />
           </div>
-          <p className="mx-auto max-w-md text-sm text-[#6B7280] md:text-base">
+          <p className="mx-auto max-w-md text-sm text-[#6B7280] leading-relaxed">
             Achat, vente, location, entretien, livraison et bien plus encore.<br />
             Tout l'univers automobile réuni au même endroit.
           </p>
-          <img
-            src="https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&q=80"
-            alt="Voiture couverte"
-            className="mx-auto mt-4 h-48 w-auto max-w-full object-contain md:h-64 lg:h-80"
-          />
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          1b. 4 ACTIONS — VENDRE, ACHETER, LOUER, RÉPARER
+          1b. CAROUSEL PHOTOS VOITURES — auto-slide + indicateurs
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F5F3EF] pb-8">
+      {(() => {
+        const CAROUSEL_PHOTOS = [
+          "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=500&fit=crop",
+          "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=500&fit=crop",
+          "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=500&fit=crop",
+          "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=500&fit=crop",
+          "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=500&fit=crop",
+        ];
+        return (
+          <section className="bg-[#F5F3EF] pb-6 pt-4">
+            <div className="container-page">
+              <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl">
+                <div
+                  className="flex transition-transform duration-500 ease-in-out"
+                  style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
+                >
+                  {CAROUSEL_PHOTOS.map((src, i) => (
+                    <img
+                      key={i}
+                      src={src}
+                      alt={`Véhicule ${i + 1}`}
+                      className="w-full shrink-0 aspect-[16/9] object-cover"
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-center gap-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setCarouselIdx(i)}
+                    className={`h-2.5 w-2.5 rounded-full transition-all ${
+                      carouselIdx === i
+                        ? "bg-[#D4AF37] scale-110"
+                        : "bg-[#C4C4C4]"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* ═══════════════════════════════════════════════════════════
+          1c. 4 ACTIONS — VENDRE, ACHETER, LOUER, RÉPARER
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-[#F5F3EF] pb-6">
         <div className="container-page">
-          <div className="mx-auto grid max-w-3xl grid-cols-4 gap-4">
+          <div className="mx-auto grid max-w-2xl grid-cols-4 gap-2.5 md:gap-4">
             {[
               { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
               { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
@@ -167,15 +220,20 @@ export default function Home() {
             ].map((a) => {
               const Icon = a.icon;
               return (
-                <Link key={a.to} to={a.to} className="group flex flex-col items-center justify-center gap-1.5 text-center">
-                  <div className="flex h-[100px] w-[100px] items-center justify-center rounded-2xl bg-[#111] text-white transition group-hover:bg-[#D4AF37] lg:h-[160px] lg:w-[160px] xl:h-[220px] xl:w-[220px]">
-                    <Icon size={28} className="lg:hidden" />
-                    <Icon size={48} className="hidden lg:block xl:hidden" />
-                    <Icon size={60} className="hidden xl:block" />
+                <Link
+                  key={a.to}
+                  to={a.to}
+                  className="group flex flex-col items-center gap-2 rounded-2xl border border-[#D4AF37]/30 bg-white p-3 text-center transition hover:shadow-md md:p-5"
+                >
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#D4AF37]/40 bg-white md:h-20 md:w-20">
+                    <Icon size={24} className="text-[#D4AF37] md:hidden" />
+                    <Icon size={36} className="hidden text-[#D4AF37] md:block" />
                   </div>
-                  <span className="mt-1 text-xs font-extrabold uppercase tracking-wide text-[#111] lg:text-sm">{a.label}</span>
-                  <span className="text-[10px] text-[#6B7280] lg:text-xs">{a.sub}</span>
-                  <div className="mx-auto mt-1 h-0.5 w-6 rounded bg-[#D4AF37]" />
+                  <span className="text-[10px] font-extrabold uppercase tracking-wide text-[#111] md:text-sm">{a.label}</span>
+                  <span className="text-[9px] text-[#6B7280] md:text-xs">{a.sub}</span>
+                  <div className="flex h-8 w-full items-center justify-center rounded-full bg-[#D4AF37] transition group-hover:bg-[#C5A028] md:h-10">
+                    <ArrowRight size={16} className="text-white" />
+                  </div>
                 </Link>
               );
             })}
@@ -184,72 +242,25 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          1c. 4 BADGES CONFIANCE
+          1d. 4 BADGES CONFIANCE
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-8 border-t border-[#E5E7EB]">
+      <section className="bg-white py-6 border-t border-[#E5E7EB]">
         <div className="container-page">
           <div className="mx-auto grid max-w-2xl grid-cols-4 gap-2">
             {[
-              { icon: ShieldCheck, title: "FIABILITÉ\nGARANTIE", desc: "Transactions\n100% sécurisées", details: [
-                "Paiement sécurisé via Stripe (3D Secure)",
-                "Vérification d'identité obligatoire (KYC)",
-                "Protection acheteur : remboursement si non conforme",
-                "Protection vendeur : paiement garanti après livraison",
-                "Transactions chiffrées SSL 256 bits",
-                "Wallet sécurisé avec double authentification",
-              ]},
-              { icon: FileText, title: "TRANSPARENCE\nTOTALE", desc: "Historique vérifié\net certifié", details: [
-                "Historique complet du véhicule vérifié",
-                "Contrôle technique certifié",
-                "Kilométrage réel garanti",
-                "Rapport d'inspection détaillé",
-                "Photos haute résolution obligatoires",
-                "Aucun frais caché — tout est affiché",
-              ]},
-              { icon: Globe, title: "RÉSEAU\nMONDIAL", desc: "Livraison Europe\net Afrique", details: [
-                "Livraison dans toute la France métropolitaine",
-                "Export vers l'Afrique (Sénégal, Côte d'Ivoire, Mali…)",
-                "Réseau de garages partenaires certifiés",
-                "Partenaires logistiques professionnels",
-                "Suivi de livraison en temps réel",
-                "Assurance transport incluse",
-              ]},
-              { icon: Headphones, title: "ACCOMPAGNEMENT\nPREMIUM", desc: "Support disponible\n7j/7", details: [
-                "Support client disponible 7j/7",
-                "Assistance téléphonique et par chat",
-                "Accompagnement personnalisé pour les pros",
-                "Aide à la création d'annonces",
-                "Conseils pour l'estimation de votre véhicule",
-                "Équipe dédiée pour les professionnels",
-              ]},
+              { icon: Shield, title: "100% SÉCURISÉ", desc: "Transactions protégées" },
+              { icon: Award, title: "MEILLEURS PRIX", desc: "Des offres compétitives" },
+              { icon: Headphones, title: "SUPPORT 7J/7", desc: "Une équipe à votre écoute" },
+              { icon: CheckCircle, title: "FACILE & RAPIDE", desc: "Publiez ou trouvez en quelques clics" },
             ].map((b) => {
               const Icon = b.icon;
-              const isOpen = openBadge === b.title;
               return (
-                <div key={b.title} className="flex flex-col items-center gap-1 text-center">
-                  <button
-                    type="button"
-                    onClick={() => setOpenBadge(isOpen ? null : b.title)}
-                    className={`flex flex-col items-center gap-1 rounded-xl p-2 transition ${isOpen ? "bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]" : "hover:bg-[#F8F9FA]"}`}
-                  >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5">
-                      <Icon size={20} className="text-[#D4AF37]" />
-                    </div>
-                    <h3 className="mt-1 whitespace-pre-line text-[9px] font-extrabold uppercase tracking-wide text-[#111]">{b.title}</h3>
-                    <p className="whitespace-pre-line text-[9px] text-[#6B7280]">{b.desc}</p>
-                  </button>
-                  {isOpen && (
-                    <div className="mt-2 w-full rounded-lg border border-[#D4AF37]/20 bg-[#FEFCE8] p-3 text-left">
-                      <ul className="space-y-1.5">
-                        {b.details.map((d) => (
-                          <li key={d} className="flex items-start gap-1.5 text-[10px] text-[#111]">
-                            <Check size={10} className="mt-0.5 shrink-0 text-[#D4AF37]" />
-                            {d}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                <div key={b.title} className="flex flex-col items-center gap-1.5 text-center px-1">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5 md:h-14 md:w-14">
+                    <Icon size={22} className="text-[#D4AF37]" />
+                  </div>
+                  <h3 className="text-[9px] font-extrabold uppercase tracking-wide text-[#111] md:text-xs">{b.title}</h3>
+                  <p className="text-[9px] text-[#6B7280] leading-tight md:text-[11px]">{b.desc}</p>
                 </div>
               );
             })}
