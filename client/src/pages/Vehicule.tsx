@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   Heart,
@@ -107,6 +107,17 @@ export default function Vehicule() {
   const [lightboxIdx, setLightboxIdx] = useState(0);
   const [descTab, setDescTab] = useState<"description" | "points_forts" | "equipements" | "imperfections">("description");
   const [acompte, setAcompte] = useState<number>(ACOMPTE_PALIERS[1]);
+  const [scrollHidden, setScrollHidden] = useState(false);
+  const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const onScroll = () => {
+      setScrollHidden(true);
+      if (scrollTimer.current) clearTimeout(scrollTimer.current);
+      scrollTimer.current = setTimeout(() => setScrollHidden(false), 600);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", onScroll); if (scrollTimer.current) clearTimeout(scrollTimer.current); };
+  }, []);
 
   const isDemo = annonceId >= 8000;
   const q = trpc.annonces.get.useQuery({ id: annonceId }, { enabled: !!annonceId && !isDemo });
@@ -274,11 +285,11 @@ export default function Vehicule() {
                 </div>
               ) : null;
             })()}
-            {/* Boutons flottants Appel + WhatsApp — bas droite, sous les flèches */}
-            <div className="absolute bottom-16 right-3 flex flex-col gap-3">
-              <a href={`tel:${v.contactTelephone || ""}`} className="flex h-12 w-12 items-center justify-center rounded-full bg-[#111] text-white shadow-lg hover:bg-[#333]"><Phone size={20} /></a>
-              <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25d366] text-white shadow-lg hover:bg-[#1ebe57]">
-                <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.578-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.24 0-4.326-.68-6.06-1.844l-.434-.3-2.825.902.935-2.752-.33-.468A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+            {/* Boutons flottants Appel + WhatsApp — petits, stylés, près de la flèche → */}
+            <div className={`absolute bottom-12 right-3 flex flex-col gap-2 transition-opacity duration-300 ${scrollHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+              <a href={`tel:${v.contactTelephone || ""}`} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#111]/80 text-white shadow-md backdrop-blur-sm hover:bg-[#111]"><Phone size={15} /></a>
+              <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#25d366]/90 text-white shadow-md backdrop-blur-sm hover:bg-[#25d366]">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.578-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.24 0-4.326-.68-6.06-1.844l-.434-.3-2.825.902.935-2.752-.33-.468A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
               </a>
             </div>
           </div>
@@ -375,50 +386,54 @@ export default function Vehicule() {
                 { icon: Award, label: "Assistance", sub: "administrative", to: "/services" },
               ].map((item) => (
                 <Link key={item.label} to={item.to} className="flex flex-col items-center text-center transition hover:scale-105">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/20">
-                    <item.icon size={22} className="text-[#D4AF37]" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/30 border border-[#D4AF37]/40">
+                    <item.icon size={22} strokeWidth={2.5} className="text-[#D4AF37]" />
                   </div>
-                  <p className="mt-1.5 text-[11px] font-semibold leading-tight text-white">{item.label}</p>
-                  <p className="text-[10px] text-slate-400">{item.sub}</p>
+                  <p className="mt-1.5 text-xs font-bold leading-tight text-white">{item.label}</p>
+                  <p className="text-[11px] font-medium text-[#D4AF37]/70">{item.sub}</p>
                 </Link>
               ))}
             </div>
           </div>
 
-          {/* ── 11-12. ÉTAT DU VÉHICULE + HISTORIQUE COMPLET (côte à côte) ── */}
+          {/* ── 11-12. ÉTAT DU VÉHICULE + HISTORIQUE COMPLET ── */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* 11. État du véhicule */}
-            <div className="card p-5">
-              <h3 className="flex items-center gap-2 font-bold text-noir"><Battery size={16} /> État du véhicule</h3>
-              <p className="mt-2 text-xs text-slate-500">Batterie hybride</p>
-              <p className="mt-1 text-3xl font-extrabold text-emerald-600">97 %</p>
-              <p className="text-xs font-semibold text-emerald-600">Excellent état</p>
-              <div className="mt-3 flex gap-0.5">
-                {Array.from({ length: 20 }).map((_, i) => (
-                  <div key={i} className={`h-3 flex-1 rounded-sm ${i < 19 ? "bg-blue-500" : "bg-slate-200"}`} />
-                ))}
+            {/* 11. État du véhicule — stylé, centré */}
+            <div className="card overflow-hidden">
+              <div className="bg-gradient-to-br from-emerald-50 to-white p-5 text-center">
+                <h3 className="flex items-center justify-center gap-2 text-lg font-bold text-noir"><Battery size={20} strokeWidth={2.5} /> État du véhicule</h3>
+                <p className="mt-2 text-sm font-medium text-slate-500">Batterie hybride</p>
+                <p className="mt-1 text-4xl font-extrabold text-emerald-600">97 %</p>
+                <p className="text-sm font-bold text-emerald-600">Excellent état</p>
+                <div className="mx-auto mt-3 flex max-w-[200px] gap-0.5">
+                  {Array.from({ length: 20 }).map((_, i) => (
+                    <div key={i} className={`h-3 flex-1 rounded-sm ${i < 19 ? "bg-emerald-500" : "bg-slate-200"}`} />
+                  ))}
+                </div>
+                <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600"><ShieldCheck size={14} strokeWidth={2.5} /> Garantie batterie disponible</p>
               </div>
-              <p className="mt-2 flex items-center gap-1 text-xs text-emerald-600"><ShieldCheck size={12} /> Garantie batterie disponible</p>
             </div>
 
-            {/* 12. Historique complet du véhicule */}
-            <div className="card p-5">
-              <h3 className="font-bold text-noir">Historique complet du véhicule</h3>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                {["Kilométrage", "Vol", "Gage", "Entretien", "Importation", "Contrôle technique", "Propriétaires", "Sinistres"].map((item) => (
-                  <div key={item} className="flex items-center gap-1.5 text-xs text-slate-600">
-                    <ShieldCheck size={12} className="text-emerald-600" /> {item}
-                  </div>
-                ))}
+            {/* 12. Historique complet — foncé, visible */}
+            <div className="card overflow-hidden">
+              <div className="bg-gradient-to-br from-slate-50 to-white p-5">
+                <h3 className="text-lg font-bold text-noir">Historique complet</h3>
+                <div className="mt-3 grid grid-cols-2 gap-2.5">
+                  {["Kilométrage", "Vol", "Gage", "Entretien", "Importation", "Contrôle technique", "Propriétaires", "Sinistres"].map((item) => (
+                    <div key={item} className="flex items-center gap-2 text-sm font-medium text-noir">
+                      <ShieldCheck size={14} strokeWidth={2.5} className="text-emerald-600" /> {item}
+                    </div>
+                  ))}
+                </div>
+                <Link to="/historique" className="mt-4 block w-full rounded-xl bg-[#D4AF37] py-3 text-center text-sm font-bold text-white hover:bg-[#C5A028] transition">Voir le rapport complet</Link>
+                <p className="mt-1.5 text-center text-xs text-slate-400">À partir de 2,99 €</p>
               </div>
-              <Link to="/historique" className="mt-4 block w-full rounded-lg bg-[#D4AF37] py-2.5 text-center text-xs font-bold text-white hover:bg-[#C5A028] transition">Voir le rapport complet</Link>
-              <p className="mt-1 text-center text-[10px] text-slate-400">À partir de 2,99 €</p>
             </div>
           </div>
 
-          {/* ── 13. SERVICES DISPONIBLES — colonnes glissables, cliquables ── */}
+          {/* ── 13. SERVICES DISPONIBLES — colonnes glissables, stylées, centrées ── */}
           <div className="card p-5">
-            <h2 className="mb-4 text-lg font-bold text-noir">Services disponibles pour ce véhicule</h2>
+            <h2 className="mb-4 text-center text-lg font-bold text-noir">Services disponibles</h2>
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
               {[
                 { icon: Wrench, label: "Devis garage", to: "/garages" },
@@ -432,19 +447,19 @@ export default function Vehicule() {
                 { icon: Award, label: "Expertise", to: "/services" },
               ].map((svc) => (
                 <Link key={svc.label} to={svc.to} className="flex shrink-0 flex-col items-center text-center transition hover:scale-105" style={{ width: "80px" }}>
-                  <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
-                    <svc.icon size={24} className="text-[#D4AF37]" />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 shadow-sm">
+                    <svc.icon size={24} strokeWidth={2} className="text-[#D4AF37]" />
                   </div>
-                  <p className="mt-1.5 text-xs font-medium leading-tight text-slate-600">{svc.label}</p>
+                  <p className="mt-1.5 text-xs font-semibold leading-tight text-noir">{svc.label}</p>
                 </Link>
               ))}
             </div>
-            <Link to="/services" className="mt-3 block text-right text-sm font-semibold text-[#D4AF37]">Voir tous nos services →</Link>
+            <Link to="/services" className="mt-4 block text-center text-sm font-bold text-[#D4AF37]">Voir tous nos services →</Link>
           </div>
         </div>
 
-        {/* Barre fixe mobile MKA.P-MS — décollée de la navigation */}
-        <div className="fixed inset-x-0 bottom-[82px] z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden">
+        {/* Barre fixe mobile MKA.P-MS — décollée, disparaît au scroll */}
+        <div className={`fixed inset-x-0 bottom-[82px] z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden transition-all duration-300 ${scrollHidden ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"}`}>
           <div className="container-page">
             <div className="grid grid-cols-2 gap-3">
               <button className="btn-acheter h-[52px] text-sm font-bold" onClick={primaryAction}>Acheter</button>
