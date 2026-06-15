@@ -167,8 +167,8 @@ export default function Home() {
             "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=450&fit=crop",
           ];
           return (
-            <div className="container-page pt-1 pb-0 md:pt-4 md:pb-2">
-              <div className="relative mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl">
+            <div className="px-4 pt-1 md:px-6 md:pt-4">
+              <div className="relative mx-auto max-w-3xl overflow-hidden rounded-t-xl md:rounded-2xl">
                 <div
                   className="flex transition-transform duration-500 ease-in-out"
                   style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
@@ -201,7 +201,7 @@ export default function Home() {
         })()}
 
         {/* ── 4 ACTIONS ── */}
-        <div className="container-page pt-1 pb-4 md:pt-4 md:pb-6">
+        <div className="px-4 pb-4 md:px-6 md:pt-4 md:pb-6">
           <div className="mx-auto grid max-w-lg grid-cols-4 gap-1.5 md:max-w-2xl md:gap-3">
             {[
               { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
