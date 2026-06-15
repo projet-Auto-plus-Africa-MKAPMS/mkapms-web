@@ -159,7 +159,7 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-8 border-t border-[#E5E7EB]">
         <div className="container-page">
-          <div className="mx-auto grid max-w-2xl grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="mx-auto grid max-w-2xl grid-cols-4 gap-2">
             {[
               { icon: ShieldCheck, title: "FIABILITÉ\nGARANTIE", desc: "Transactions\n100% sécurisées", details: [
                 "Paiement sécurisé via Stripe (3D Secure)",
