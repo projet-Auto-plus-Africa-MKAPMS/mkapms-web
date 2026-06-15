@@ -68,11 +68,11 @@ const PHOTO_CATEGORIES: { key: PhotoCategory; label: string }[] = [
 
 /* ── Véhicules démo (IDs >= 8000) ── */
 const DEMO_VEHICLES: Record<number, any> = Object.fromEntries([
-  { id: 8001, titre: "Peugeot 308 GT", marque: "Peugeot", modele: "308", annee: 2023, kilometrage: 12000, carburant: "Essence", prix: 26900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Peugeot 308 GT en excellent état, premier propriétaire. Véhicule révisé et garanti MKA.P-MS.", pointsForts: ["Faible kilométrage (12 000 km)", "Premier propriétaire", "Entretien à jour", "Garantie MKA.P-MS incluse", "Contrôle technique OK"], equipements: ["Climatisation automatique", "GPS intégré", "Caméra de recul", "Régulateur adaptatif", "Sièges chauffants", "Jantes alliage 18\"", "LED full", "Apple CarPlay / Android Auto"], imperfections: ["Micro-rayure pare-chocs arrière (retouchée)", "Usure normale des pneus avant"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80", "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: [] }, photoPrincipale: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80" },
-  { id: 8002, titre: "Renault Austral Iconic", marque: "Renault", modele: "Austral", annee: 2024, kilometrage: 5000, carburant: "Hybride", prix: 34500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Renault Austral Iconic hybride, faible kilométrage. Garantie constructeur.", pointsForts: ["Hybride — économie de carburant", "Seulement 5 000 km", "Garantie constructeur", "Technologie dernier cri", "Finition Iconic haut de gamme"], equipements: ["Toit panoramique", "Affichage tête haute", "Aide au stationnement 360°", "Charge sans fil", "Multimédia 12\"", "Sono Harman Kardon"], imperfections: ["Aucune imperfection constatée"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&q=80", "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: [] }, photoPrincipale: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&q=80" },
-  { id: 8003, titre: "Citroën C5 X Shine", marque: "Citroën", modele: "C5 X", annee: 2023, kilometrage: 18000, carburant: "Diesel", prix: 31900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Citroën C5 X Shine, confort et élégance. Entretien complet.", pointsForts: ["Confort suspension hydraulique", "Entretien 100% à jour", "Diesel économique", "Grand coffre familial"], equipements: ["Suspension hydraulique", "Matrix LED", "Keyless entry", "Sièges massants", "Aide au stationnement"], imperfections: ["Légère usure siège conducteur"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: [] }, photoPrincipale: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80" },
-  { id: 8004, titre: "Mercedes GLA 200", marque: "Mercedes", modele: "GLA", annee: 2022, kilometrage: 22000, carburant: "Essence", prix: 38900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Mercedes GLA 200, SUV compact premium. Garantie MKA.P-MS.", pointsForts: ["SUV compact premium", "Garantie MKA.P-MS", "Système MBUX complet", "Motorisation efficiente"], equipements: ["MBUX multimédia", "Caméra 360°", "Pack AMG Line", "LED haute performance", "Sièges sport", "Jantes AMG 19\""], imperfections: ["Micro-impact pare-brise (réparé)"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&q=80", "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: ["https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&q=80"] }, photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&q=80" },
-  { id: 8005, titre: "BMW X1 sDrive18i", marque: "BMW", modele: "X1", annee: 2023, kilometrage: 15000, carburant: "Essence", prix: 35500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "BMW X1 sDrive18i, motorisation essence efficiente. État impeccable.", pointsForts: ["État impeccable", "BMW Connected Drive", "Faible consommation", "Design moderne"], equipements: ["BMW Live Cockpit", "Driving Assistant", "Parking Assistant", "LED adaptatifs", "Toit ouvrant", "Sono HiFi"], imperfections: ["Aucune imperfection constatée"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80", "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: [] }, photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80" },
+  { id: 8001, titre: "Peugeot 308 GT", marque: "Peugeot", modele: "308", annee: 2023, kilometrage: 12000, carburant: "Essence", prix: 26900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", motorisation: "1.2 PureTech 130ch GT EAT8", description: "Peugeot 308 GT en excellent état, premier propriétaire. Véhicule révisé et garanti MKA.P-MS.", pointsForts: ["Faible kilométrage (12 000 km)", "Premier propriétaire", "Entretien à jour", "Garantie MKA.P-MS incluse", "Contrôle technique OK"], equipements: ["Climatisation automatique", "GPS intégré", "Caméra de recul", "Régulateur adaptatif", "Sièges chauffants", "Jantes alliage 18\"", "LED full", "Apple CarPlay / Android Auto"], imperfections: ["Micro-rayure pare-chocs arrière (retouchée)", "Usure normale des pneus avant"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80", "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: [] }, photoPrincipale: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80" },
+  { id: 8002, titre: "Renault Austral Iconic", marque: "Renault", modele: "Austral", annee: 2024, kilometrage: 5000, carburant: "Hybride", prix: 34500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", motorisation: "1.2 E-Tech 200ch Iconic", description: "Renault Austral Iconic hybride, faible kilométrage. Garantie constructeur.", pointsForts: ["Hybride — économie de carburant", "Seulement 5 000 km", "Garantie constructeur", "Technologie dernier cri", "Finition Iconic haut de gamme"], equipements: ["Toit panoramique", "Affichage tête haute", "Aide au stationnement 360°", "Charge sans fil", "Multimédia 12\"", "Sono Harman Kardon"], imperfections: ["Aucune imperfection constatée"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&q=80", "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: [] }, photoPrincipale: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&q=80" },
+  { id: 8003, titre: "Citroën C5 X Shine", marque: "Citroën", modele: "C5 X", annee: 2023, kilometrage: 18000, carburant: "Diesel", prix: 31900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", motorisation: "1.5 BlueHDi 130ch Shine EAT8", description: "Citroën C5 X Shine, confort et élégance. Entretien complet.", pointsForts: ["Confort suspension hydraulique", "Entretien 100% à jour", "Diesel économique", "Grand coffre familial"], equipements: ["Suspension hydraulique", "Matrix LED", "Keyless entry", "Sièges massants", "Aide au stationnement"], imperfections: ["Légère usure siège conducteur"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: [] }, photoPrincipale: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80" },
+  { id: 8004, titre: "Mercedes GLA 200", marque: "Mercedes", modele: "GLA", annee: 2022, kilometrage: 22000, carburant: "Essence", prix: 38900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", motorisation: "1.3 163ch AMG Line 7G-DCT", description: "Mercedes GLA 200, SUV compact premium. Garantie MKA.P-MS.", pointsForts: ["SUV compact premium", "Garantie MKA.P-MS", "Système MBUX complet", "Motorisation efficiente"], equipements: ["MBUX multimédia", "Caméra 360°", "Pack AMG Line", "LED haute performance", "Sièges sport", "Jantes AMG 19\""], imperfections: ["Micro-impact pare-brise (réparé)"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&q=80", "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: ["https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&q=80"] }, photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&q=80" },
+  { id: 8005, titre: "BMW X1 sDrive18i", marque: "BMW", modele: "X1", annee: 2023, kilometrage: 15000, carburant: "Essence", prix: 35500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", motorisation: "1.5i 136ch sDrive18i xLine DKG7", description: "BMW X1 sDrive18i, motorisation essence efficiente. État impeccable.", pointsForts: ["État impeccable", "BMW Connected Drive", "Faible consommation", "Design moderne"], equipements: ["BMW Live Cockpit", "Driving Assistant", "Parking Assistant", "LED adaptatifs", "Toit ouvrant", "Sono HiFi"], imperfections: ["Aucune imperfection constatée"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80", "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: [] }, photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80" },
   { id: 9001, titre: "Peugeot 3008 GT Line", marque: "Peugeot", modele: "3008", annee: 2022, kilometrage: 35000, carburant: "Diesel", prix: 28900, type: "vente", ville: "Paris", vendeurType: "professionnel", description: "Peugeot 3008 GT Line, SUV familial. Révision complète effectuée.", photoPrincipale: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80" },
   { id: 9002, titre: "Renault Clio V Intens", marque: "Renault", modele: "Clio", annee: 2023, kilometrage: 18000, carburant: "Essence", prix: 16500, type: "vente", ville: "Lyon", vendeurType: "particulier", description: "Renault Clio V Intens, citadine polyvalente en parfait état.", photoPrincipale: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800&q=80" },
   { id: 9003, titre: "BMW Série 3 320d M Sport", marque: "BMW", modele: "Série 3", annee: 2021, kilometrage: 42000, carburant: "Diesel", prix: 35900, type: "vente", ville: "Marseille", vendeurType: "professionnel", boosted: true, description: "BMW Série 3 M Sport, performance et élégance.", photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80" },
@@ -273,27 +273,27 @@ export default function Vehicule() {
               </div>
             ) : null;
           })()}
-          {/* Boutons flottants Appel + WhatsApp SUR la photo (côté droit bas) */}
-          <div className="absolute bottom-3 right-14 flex flex-col gap-2">
+          {/* Boutons flottants Appel + WhatsApp SUR la photo (côté droit milieu) */}
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-3">
             <a href={`tel:${v.contactTelephone || ""}`} className="flex h-12 w-12 items-center justify-center rounded-full bg-[#111] text-white shadow-lg hover:bg-[#333]"><Phone size={20} /></a>
-            <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25d366] text-white shadow-lg hover:bg-[#1ebe57]"><MessageSquare size={20} /></a>
+            <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25d366] text-white shadow-lg hover:bg-[#1ebe57]">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.578-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.24 0-4.326-.68-6.06-1.844l-.434-.3-2.825.902.935-2.752-.33-.468A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+            </a>
           </div>
         </div>
 
         <div className="container-page space-y-5 py-5">
-          {/* ── 3. PRIX ── */}
-          <div className="text-center">
-            <p className="text-3xl font-extrabold text-noir">{formatPrice(Number(v.prix))}</p>
-            <p className="mt-1 text-xs text-slate-500">Prix TTC · Frais inclus</p>
+          {/* ── 3. NOM VÉHICULE + MOTORISATION + PRIX ── */}
+          <div className="card p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#D4AF37]">MKA.P-MS OFFICIEL</p>
+            <h1 className="mt-1 text-xl font-extrabold text-noir">{v.titre}</h1>
+            {v.motorisation && <p className="mt-0.5 text-sm text-slate-500">{v.marque} {v.modele} {v.motorisation}</p>}
+            <p className="mt-0.5 text-xs text-slate-400">Réf. annonce : DEMO-{v.id}</p>
+            <p className="mt-3 text-2xl font-extrabold text-noir">{formatPrice(Number(v.prix))}</p>
+            <p className="text-xs text-slate-500">Prix TTC · Frais inclus</p>
           </div>
 
-          {/* ── 4-5. BOUTONS Réserver + Message ── */}
-          <div className="grid grid-cols-2 gap-3">
-            <button className="btn-acheter flex h-[52px] items-center justify-center gap-2 text-sm font-bold" onClick={() => requireLogin(() => document.getElementById("reserver-mkapms")?.scrollIntoView({ behavior: "smooth" }))}><CalendarCheck size={16} /> Réserver ce véhicule</button>
-            <button className="btn-message flex h-[52px] items-center justify-center gap-2 text-sm font-bold" onClick={messageAction}><MessageSquare size={16} /> Message</button>
-          </div>
-
-          {/* ── 6-7. Favoris + Partager ── */}
+          {/* ── 4. Favoris + Partager ── */}
           <div className="flex items-center justify-between px-2">
             <button className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-noir" onClick={() => requireLogin(() => toggleFav.mutate({ annonceId: v.id }))}><Heart size={18} /> Ajouter aux favoris</button>
             <button className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-noir" onClick={() => { if (navigator.share) navigator.share({ title: v.titre, url: window.location.href }); }}><Share2 size={18} /> Partager</button>
@@ -323,6 +323,14 @@ export default function Vehicule() {
             {descTab === "equipements" && v.equipements && <div className="grid grid-cols-2 gap-2">{v.equipements.map((eq: string) => <div key={eq} className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-3 py-2 text-xs"><ShieldCheck size={12} className="text-emerald-600" /> {eq}</div>)}</div>}
             {descTab === "imperfections" && v.imperfections && <ul className="space-y-2">{v.imperfections.map((imp: string) => <li key={imp} className="flex items-center gap-2 text-sm text-slate-600"><Flag size={14} className="text-orange-500" /> {imp}</li>)}</ul>}
           </div>
+
+          {/* ── BOUTON RÉSERVER (fin et long) ── */}
+          <button
+            className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white transition hover:bg-[#C5A028]"
+            onClick={() => requireLogin(() => document.getElementById("reserver-mkapms")?.scrollIntoView({ behavior: "smooth" }))}
+          >
+            <CalendarCheck size={16} className="mr-2 inline-block" /> Réserver ce véhicule
+          </button>
 
           {/* ── 9. CARACTÉRISTIQUES PRINCIPALES ── */}
           <div className="card p-5">
@@ -444,7 +452,10 @@ export default function Vehicule() {
           <div className="container-page">
             <div className="grid grid-cols-2 gap-3">
               <button className="btn-acheter h-[52px] text-sm font-bold" onClick={primaryAction}>Acheter</button>
-              <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-message flex h-[52px] items-center justify-center gap-2 text-sm font-bold"><Phone size={16} /> Contact</a>
+              <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-[52px] items-center justify-center gap-2 rounded-xl bg-[#25d366] text-sm font-bold text-white shadow hover:bg-[#1ebe57] transition">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.578-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.24 0-4.326-.68-6.06-1.844l-.434-.3-2.825.902.935-2.752-.33-.468A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                WhatsApp
+              </a>
             </div>
           </div>
         </div>
@@ -481,7 +492,8 @@ export default function Vehicule() {
           const lbIdx = Math.min(lightboxIdx, Math.max(0, catPhotos.length - 1));
           return (
             <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => setLightboxOpen(false)}>
-              <div className="flex items-center justify-between px-4 pb-3 pt-14" style={{ paddingTop: "max(3.5rem, env(safe-area-inset-top, 3.5rem))" }} onClick={(e) => e.stopPropagation()}>
+              {/* Onglets catégories — descendus sous la barre d'état */}
+              <div className="flex items-center justify-between px-4 pb-3" style={{ paddingTop: "max(5rem, calc(env(safe-area-inset-top, 2rem) + 3rem))" }} onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                   {PHOTO_CATEGORIES.filter((c) => (v.photoCategories[c.key] || []).length > 0).map((c) => (
                     <button key={c.key} onClick={() => { setPhotoCat(c.key); setLightboxIdx(0); }} className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${photoCat === c.key ? "bg-[#D4AF37] text-black" : "border border-white/30 text-white/70 hover:border-[#D4AF37] hover:text-white"}`}>{c.label}</button>
@@ -489,8 +501,9 @@ export default function Vehicule() {
                 </div>
                 <button onClick={() => setLightboxOpen(false)} className="ml-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 text-lg font-bold">✕</button>
               </div>
-              <div className="relative flex flex-1 items-center justify-center" onClick={(e) => e.stopPropagation()}>
-                {catPhotos.length > 0 ? <img src={catPhotos[lbIdx]} alt="" className="h-full w-full object-cover" /> : <p className="text-white/60">Aucune photo dans cette catégorie</p>}
+              {/* Photo lightbox — légèrement plus petite que plein écran */}
+              <div className="relative flex flex-1 items-center justify-center px-4 pb-8" onClick={(e) => e.stopPropagation()}>
+                {catPhotos.length > 0 ? <img src={catPhotos[lbIdx]} alt="" className="max-h-[65vh] w-full rounded-xl object-contain" /> : <p className="text-white/60">Aucune photo dans cette catégorie</p>}
                 {catPhotos.length > 1 && (
                   <>
                     <button onClick={() => setLightboxIdx((i) => Math.max(0, i - 1))} className="absolute left-2 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"><ChevronLeft size={28} /></button>
@@ -1460,8 +1473,8 @@ export default function Vehicule() {
         const lbIdx = Math.min(lightboxIdx, Math.max(0, catPhotos.length - 1));
         return (
           <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => setLightboxOpen(false)}>
-            {/* Header lightbox — avec safe area pour barre d'état mobile */}
-            <div className="flex items-center justify-between px-4 pb-3 pt-14" style={{ paddingTop: "max(3.5rem, env(safe-area-inset-top, 3.5rem))" }} onClick={(e) => e.stopPropagation()}>
+            {/* Header lightbox — descendu sous la barre d'état */}
+            <div className="flex items-center justify-between px-4 pb-3" style={{ paddingTop: "max(5rem, calc(env(safe-area-inset-top, 2rem) + 3rem))" }} onClick={(e) => e.stopPropagation()}>
               <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                 {PHOTO_CATEGORIES.filter((c) => (v.photoCategories[c.key] || []).length > 0).map((c) => (
                   <button
@@ -1480,10 +1493,10 @@ export default function Vehicule() {
               <button onClick={() => setLightboxOpen(false)} className="ml-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 text-lg font-bold">✕</button>
             </div>
 
-            {/* Photo principale lightbox — même taille que sur la page */}
-            <div className="relative flex flex-1 items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            {/* Photo principale lightbox — légèrement plus petite */}
+            <div className="relative flex flex-1 items-center justify-center px-4 pb-8" onClick={(e) => e.stopPropagation()}>
               {catPhotos.length > 0 ? (
-                <img src={catPhotos[lbIdx]} alt="" className="h-full w-full object-cover" />
+                <img src={catPhotos[lbIdx]} alt="" className="max-h-[65vh] w-full rounded-xl object-contain" />
               ) : (
                 <p className="text-white/60">Aucune photo dans cette catégorie</p>
               )}
