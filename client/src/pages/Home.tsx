@@ -700,51 +700,30 @@ export default function Home() {
               { icon: CheckCircle, title: "Complet", desc: "Tous les services auto réunis au même endroit.", details: "Achat, vente, location, pièces détachées, carte grise, assurance, livraison, financement — tout en un." },
               { icon: Heart, title: "Accompagnement", desc: "Une équipe à votre écoute à chaque étape.", details: "Assistance personnalisée, chat en direct, aide à la négociation et suivi de votre dossier de A à Z." },
             ];
-            const first4 = items.slice(0, 4);
-            const last = items[4];
             return (
-              <>
-                <div className="mx-auto mt-6 grid max-w-3xl grid-cols-2 gap-3 md:grid-cols-4">
-                  {first4.map((r) => {
-                    const Icon = r.icon;
-                    return (
-                      <button
-                        key={r.title}
-                        type="button"
-                        onClick={(e) => {
-                          const el = e.currentTarget.querySelector("[data-details]") as HTMLElement;
-                          if (el) el.classList.toggle("hidden");
-                        }}
-                        className="flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center transition hover:shadow-md hover:border-[#D4AF37] cursor-pointer"
-                      >
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10">
-                          <Icon size={22} className="text-[#D4AF37]" />
-                        </div>
-                        <h3 className="text-sm font-bold text-[#111]">{r.title}</h3>
-                        <p className="text-[10px] text-[#6B7280] leading-tight">{r.desc}</p>
-                        <p data-details className="hidden mt-2 text-[10px] text-[#374151] leading-tight border-t border-[#E5E7EB] pt-2">{r.details}</p>
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="mx-auto mt-3 flex max-w-3xl justify-center">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      const el = e.currentTarget.querySelector("[data-details]") as HTMLElement;
-                      if (el) el.classList.toggle("hidden");
-                    }}
-                    className="flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center transition hover:shadow-md hover:border-[#D4AF37] cursor-pointer w-[calc(50%-6px)] md:w-[calc(25%-9px)]"
-                  >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10">
-                      <last.icon size={22} className="text-[#D4AF37]" />
-                    </div>
-                    <h3 className="text-sm font-bold text-[#111]">{last.title}</h3>
-                    <p className="text-[10px] text-[#6B7280] leading-tight">{last.desc}</p>
-                    <p data-details className="hidden mt-2 text-[10px] text-[#374151] leading-tight border-t border-[#E5E7EB] pt-2">{last.details}</p>
-                  </button>
-                </div>
-              </>
+              <div className="mt-6 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+                {items.map((r) => {
+                  const Icon = r.icon;
+                  return (
+                    <button
+                      key={r.title}
+                      type="button"
+                      onClick={(e) => {
+                        const el = e.currentTarget.querySelector("[data-details]") as HTMLElement;
+                        if (el) el.classList.toggle("hidden");
+                      }}
+                      className="flex w-[150px] shrink-0 snap-start flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center transition hover:shadow-md hover:border-[#D4AF37] cursor-pointer"
+                    >
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                        <Icon size={22} className="text-[#D4AF37]" />
+                      </div>
+                      <h3 className="text-sm font-bold text-[#111]">{r.title}</h3>
+                      <p className="text-[10px] text-[#6B7280] leading-tight">{r.desc}</p>
+                      <p data-details className="hidden mt-2 text-[10px] text-[#374151] leading-tight border-t border-[#E5E7EB] pt-2">{r.details}</p>
+                    </button>
+                  );
+                })}
+              </div>
             );
           })()}
         </div>
