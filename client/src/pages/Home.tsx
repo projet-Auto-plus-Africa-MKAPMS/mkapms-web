@@ -566,18 +566,18 @@ export default function Home() {
               { icon: Star, title: "Finance+", desc: "LOA & paiement fractionné.", cta: "Simuler", to: "/finance", gold: true },
             ];
             return (
-              <div className="mx-auto mt-6 grid max-w-3xl grid-cols-2 gap-3 md:grid-cols-3">
+              <div className="mt-6 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
                 {services.map((s) => {
                   const Icon = s.icon;
                   const isAccent = (s as any).accent;
                   return (
-                    <Link key={s.to} to={s.to} className={`group flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition hover:shadow-md ${isAccent ? "border-red-200 bg-red-50 hover:border-red-400" : "border-[#E5E7EB] bg-white hover:border-[#D4AF37]"}`}>
-                      <div className={`flex h-14 w-14 items-center justify-center rounded-full transition ${isAccent ? "bg-red-100 group-hover:bg-red-200" : "bg-[#D4AF37]/10 group-hover:bg-[#D4AF37]/20"}`}>
-                        <Icon size={26} className={isAccent ? "text-red-600" : "text-[#D4AF37]"} />
+                    <Link key={s.to} to={s.to} className={`group flex w-[140px] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border px-3 py-5 text-center transition hover:shadow-md ${isAccent ? "border-red-200 bg-red-50 hover:border-red-400" : "border-[#E5E7EB] bg-white hover:border-[#D4AF37]"}`}>
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-full transition ${isAccent ? "bg-red-100 group-hover:bg-red-200" : "bg-[#D4AF37]/10 group-hover:bg-[#D4AF37]/20"}`}>
+                        <Icon size={22} className={isAccent ? "text-red-600" : "text-[#D4AF37]"} />
                       </div>
                       <h3 className="text-xs font-bold text-[#111]">{s.title}</h3>
                       <p className="text-[10px] text-[#6B7280] leading-tight">{s.desc}</p>
-                      <span className={`mt-1 rounded-lg px-3 py-1.5 text-[10px] font-bold text-white ${isAccent ? "bg-red-600" : "bg-[#D4AF37]"}`}>{s.cta}</span>
+                      <span className={`mt-auto rounded-lg px-3 py-1.5 text-[10px] font-bold text-white ${isAccent ? "bg-red-600" : "bg-[#D4AF37]"}`}>{s.cta}</span>
                     </Link>
                   );
                 })}
