@@ -1174,14 +1174,14 @@ export default function Vehicule() {
         const lbIdx = Math.min(lightboxIdx, Math.max(0, catPhotos.length - 1));
         return (
           <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => setLightboxOpen(false)}>
-            {/* Header lightbox */}
-            <div className="flex items-center justify-between px-4 py-3" onClick={(e) => e.stopPropagation()}>
-              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+            {/* Header lightbox — avec safe area pour barre d'état mobile */}
+            <div className="flex items-center justify-between px-4 pb-3 pt-14" style={{ paddingTop: "max(3.5rem, env(safe-area-inset-top, 3.5rem))" }} onClick={(e) => e.stopPropagation()}>
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                 {PHOTO_CATEGORIES.filter((c) => (v.photoCategories[c.key] || []).length > 0).map((c) => (
                   <button
                     key={c.key}
                     onClick={() => { setPhotoCat(c.key); setLightboxIdx(0); }}
-                    className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                    className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
                       photoCat === c.key
                         ? "bg-[#D4AF37] text-black"
                         : "border border-white/30 text-white/70 hover:border-[#D4AF37] hover:text-white"
@@ -1191,13 +1191,13 @@ export default function Vehicule() {
                   </button>
                 ))}
               </div>
-              <button onClick={() => setLightboxOpen(false)} className="ml-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20">✕</button>
+              <button onClick={() => setLightboxOpen(false)} className="ml-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 text-lg font-bold">✕</button>
             </div>
 
-            {/* Photo principale lightbox */}
-            <div className="relative flex flex-1 items-center justify-center px-4" onClick={(e) => e.stopPropagation()}>
+            {/* Photo principale lightbox — même taille que sur la page */}
+            <div className="relative flex flex-1 items-center justify-center" onClick={(e) => e.stopPropagation()}>
               {catPhotos.length > 0 ? (
-                <img src={catPhotos[lbIdx]} alt="" className="max-h-full max-w-full object-contain" />
+                <img src={catPhotos[lbIdx]} alt="" className="h-full w-full object-cover" />
               ) : (
                 <p className="text-white/60">Aucune photo dans cette catégorie</p>
               )}
