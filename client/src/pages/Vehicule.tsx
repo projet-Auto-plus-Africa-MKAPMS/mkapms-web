@@ -546,7 +546,189 @@ export default function Vehicule() {
             <AvisSection targetUserId={v.vendeur.id} canReview={!!user && user.id !== v.vendeur.id} />
           )}
 
-          <Link to="/acheter" className="block text-center text-sm font-semibold text-gold-dark">
+          {/* ═══════════════════════════════════════════════════════════
+              10–15. BLOCS ACCOMPAGNEMENT VENTE (VENTE uniquement)
+             ═══════════════════════════════════════════════════════════ */}
+          {!isLocation && (<>
+
+          {/* 10. BLOC CONFIANCE — différencié par tier */}
+          {isOfficiel ? (
+            /* ── MKA.P-MS OFFICIEL ── */
+            <div className="overflow-hidden rounded-2xl border border-[#D4AF37]/30 bg-[#111]">
+              <div className="p-6">
+                <span className="inline-flex items-center rounded-full bg-[#D4AF37] px-3 py-1 text-[10px] font-bold text-[#111]">MKA.P-MS OFFICIEL</span>
+                <h2 className="mt-3 text-xl font-extrabold text-white">Véhicule certifié MKA.P-MS</h2>
+                <p className="mt-1 text-sm text-slate-400">Chaque véhicule est contrôlé avant sa mise en vente.</p>
+                <ul className="mt-4 space-y-2">
+                  {["Contrôle mécanique", "Historique vérifié", "Essai routier", "Kilométrage contrôlé", "Dossier complet", "Rapport disponible"].map((t) => (
+                    <li key={t} className="flex items-center gap-2 text-sm text-white"><ShieldCheck size={14} className="text-[#D4AF37]" /> {t}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="border-t border-[#D4AF37]/20 bg-[#1a1a1a] p-5">
+                <h3 className="text-sm font-bold text-[#D4AF37]">Garantie disponible</h3>
+                <ul className="mt-2 space-y-1.5 text-xs text-slate-300">
+                  {["Historique complet", "Assistance administrative", "Livraison possible", "Reprise possible"].map((t) => (
+                    <li key={t} className="flex items-center gap-2"><ShieldCheck size={12} className="text-[#D4AF37]" /> {t}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="border-t border-[#D4AF37]/20 bg-[#111] p-5">
+                <div className="grid grid-cols-2 gap-3 text-center">
+                  {[
+                    { icon: "🛡️", text: "Achat sécurisé" },
+                    { icon: "📋", text: "Documents vérifiés" },
+                    { icon: "🚗", text: "Véhicule contrôlé" },
+                    { icon: "⭐", text: "Support MKA.P-MS" },
+                  ].map((c) => (
+                    <div key={c.text} className="rounded-xl bg-[#1a1a1a] border border-[#D4AF37]/10 p-3">
+                      <span className="text-lg">{c.icon}</span>
+                      <p className="mt-1 text-[10px] font-semibold text-white">{c.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : tier === "professionnel" || tier === "premium" ? (
+            /* ── VENDEUR PRO ── */
+            <div className="card overflow-hidden">
+              <div className="bg-blue-900 p-5">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center rounded-full bg-blue-700 px-2.5 py-0.5 text-[10px] font-bold text-white">VENDEUR PRO</span>
+                  {v.garageVerifie && <span className="inline-flex items-center rounded-full bg-blue-600 px-2.5 py-0.5 text-[10px] font-bold text-white">GARAGE VÉRIFIÉ ✓</span>}
+                </div>
+                <h2 className="mt-3 text-lg font-extrabold text-white">Professionnel vérifié</h2>
+                <p className="mt-1 text-sm text-blue-200">Cette annonce est publiée par un professionnel partenaire MKA.P-MS.</p>
+                <ul className="mt-3 space-y-1.5">
+                  {["Société vérifiée", "Documents contrôlés", "Historique consultable", "Assistance après-vente", "Garantie selon vendeur"].map((t) => (
+                    <li key={t} className="flex items-center gap-2 text-sm text-white"><ShieldCheck size={14} className="text-blue-300" /> {t}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="border-t border-slate-100 p-5">
+                <h3 className="text-sm font-bold text-[#111]">Pourquoi choisir un professionnel ?</h3>
+                <ul className="mt-2 space-y-1.5 text-xs text-slate-600">
+                  {["Plus de choix", "Factures disponibles", "Historique d'entretien", "Accompagnement administratif", "Financement disponible"].map((t) => (
+                    <li key={t} className="flex items-center gap-2"><ShieldCheck size={12} className="text-blue-600" /> {t}</li>
+                  ))}
+                </ul>
+              </div>
+              {v.vendeur && (
+                <div className="border-t border-slate-100 p-5">
+                  <h3 className="text-sm font-bold text-[#111]">Réputation</h3>
+                  <div className="mt-2 grid grid-cols-2 gap-3">
+                    <div className="rounded-xl bg-slate-50 p-3 text-center">
+                      <p className="text-2xl font-extrabold text-[#111]">{Number(v.vendeur.rating || 0).toFixed(1)}</p>
+                      <p className="text-[10px] text-slate-500">Note / 5</p>
+                    </div>
+                    <div className="rounded-xl bg-slate-50 p-3 text-center">
+                      <p className="text-2xl font-extrabold text-[#111]">{v.vendeur.reviewCount || 0}</p>
+                      <p className="text-[10px] text-slate-500">Avis clients</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* ── PARTICULIER ── */
+            <div className="card overflow-hidden">
+              <div className="bg-white p-5">
+                <h2 className="text-lg font-extrabold text-[#111]">Pourquoi acheter sur MKA.P-MS ?</h2>
+                <p className="mt-1 text-sm text-slate-500">Achetez en toute confiance</p>
+                <ul className="mt-3 space-y-2">
+                  {["Historique disponible", "Messagerie sécurisée", "Paiement sécurisé", "Assistance administrative", "Accompagnement MKA.P-MS"].map((t) => (
+                    <li key={t} className="flex items-center gap-2 text-sm text-slate-700"><ShieldCheck size={14} className="text-[#D4AF37]" /> {t}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* ═══════════════════════════════════════════════════════════
+              11. BLOC VÉRIFIER L'HISTORIQUE
+             ═══════════════════════════════════════════════════════════ */}
+          <div className="card p-5">
+            <h2 className="text-base font-extrabold text-[#111]">Vérifiez l'historique avant d'acheter</h2>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600 md:grid-cols-4">
+              {["Accidents", "Kilométrage", "Vol", "Gage", "Contrôle technique", "Entretiens", "Importation", "Propriétaires"].map((t) => (
+                <div key={t} className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-3 py-2">
+                  <ShieldCheck size={12} className="text-emerald-600" /> {t}
+                </div>
+              ))}
+            </div>
+            <Link to="/historique" className="btn-gold mt-4 w-full text-sm">VÉRIFIER L'HISTORIQUE</Link>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════
+              12. BLOC SERVICES MKA.P-MS
+             ═══════════════════════════════════════════════════════════ */}
+          <div className="card p-5">
+            <h2 className="text-base font-extrabold text-[#111]">Besoin d'aide ?</h2>
+            <p className="mt-1 text-xs text-slate-500">Services disponibles pour ce véhicule</p>
+            <ul className="mt-3 space-y-2">
+              {["Devis garage", "Dépannage", "Livraison", "Carte grise", "Contrôle avant achat", "Assurance"].map((t) => (
+                <li key={t} className="flex items-center gap-2 text-sm text-slate-700">
+                  <ShieldCheck size={14} className="text-[#D4AF37]" /> {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════
+              13. PUBLICITÉS INTERNES MKA.P-MS
+             ═══════════════════════════════════════════════════════════ */}
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            {[
+              { text: "Besoin d'un financement ?", sub: "Voir les solutions", to: "/finance", bg: "bg-[#111]", tc: "text-white", sc: "text-[#D4AF37]" },
+              { text: "Besoin d'un garage ?", sub: "Obtenir un devis", to: "/garages", bg: "bg-blue-700", tc: "text-white", sc: "text-blue-200" },
+              { text: "Besoin d'une livraison ?", sub: "Comparer les transporteurs", to: "/livraison", bg: "bg-emerald-700", tc: "text-white", sc: "text-emerald-200" },
+              { text: "Vérifier l'historique", sub: "À partir de 2,99 €", to: "/historique", bg: "bg-[#D4AF37]", tc: "text-[#111]", sc: "text-[#111]/70" },
+              { text: "Carte grise", sub: "Faire ma demande", to: "/carte-grise", bg: "bg-slate-800", tc: "text-white", sc: "text-slate-300" },
+              { text: "Contrôle avant achat", sub: "Prendre rendez-vous", to: "/garages", bg: "bg-orange-600", tc: "text-white", sc: "text-orange-100" },
+            ].map((ad) => (
+              <Link key={ad.text} to={ad.to} className={`rounded-xl ${ad.bg} p-4 transition hover:opacity-90`}>
+                <p className={`text-xs font-bold ${ad.tc}`}>{ad.text}</p>
+                <p className={`mt-1 text-[10px] ${ad.sc}`}>{ad.sub}</p>
+              </Link>
+            ))}
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════
+              14. FAQ
+             ═══════════════════════════════════════════════════════════ */}
+          <div className="card p-5">
+            <h2 className="text-base font-extrabold text-[#111]">Questions fréquentes</h2>
+            <div className="mt-3 space-y-3">
+              {[
+                { q: "Comment acheter ?", a: "Contactez le vendeur via la messagerie MKA.P-MS, négociez le prix, et procédez au paiement sécurisé via la plateforme." },
+                { q: "Comment vendre ?", a: "Créez votre annonce gratuitement, ajoutez vos photos et description. Votre véhicule sera visible immédiatement." },
+                { q: "Quels documents sont nécessaires ?", a: "Carte grise, contrôle technique de moins de 6 mois, pièce d'identité du vendeur, certificat de non-gage." },
+                { q: "Comment sécuriser la transaction ?", a: "MKA.P-MS propose le paiement sécurisé Stripe. Les fonds sont protégés jusqu'à la confirmation de l'acheteur." },
+                { q: "Comment vérifier un véhicule ?", a: "Utilisez notre service de vérification d'historique pour consulter les accidents, le kilométrage, les entretiens et plus." },
+              ].map((faq) => (
+                <details key={faq.q} className="group rounded-lg border border-slate-100 bg-slate-50">
+                  <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[#111] hover:text-[#D4AF37]">{faq.q}</summary>
+                  <p className="px-4 pb-3 text-xs text-slate-600 leading-relaxed">{faq.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════
+              15. VÉHICULES SIMILAIRES (placeholder)
+             ═══════════════════════════════════════════════════════════ */}
+          <div className="card p-5">
+            <h2 className="text-base font-extrabold text-[#111]">Véhicules similaires</h2>
+            <p className="mt-1 text-xs text-slate-500">D'autres véhicules qui pourraient vous intéresser</p>
+            <Link to={`/acheter?q=${encodeURIComponent(v.marque || "")}`} className="btn-outline mt-3 w-full text-sm">
+              Voir les {v.marque} disponibles →
+            </Link>
+          </div>
+
+          </>)}
+          {/* ═══ FIN BLOCS ACCOMPAGNEMENT VENTE ═══ */}
+
+          <Link to={isLocation ? "/louer" : "/acheter"} className="block text-center text-sm font-semibold text-gold-dark">
             ← Retour aux annonces
           </Link>
         </section>
