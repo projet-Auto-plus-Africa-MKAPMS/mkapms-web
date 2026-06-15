@@ -431,12 +431,13 @@ export default function Vehicule() {
             </Link>
           </div>
 
-          {/* Finance+ MKA.P-MS */}
-          {!isLocation && (
+          {/* Finance+ MKA.P-MS — uniquement pour véhicules MKA.P-MS Officiel */}
+          {!isLocation && isOfficiel && (
             <div className="card border-[#D4AF37]/20 p-5">
               <h3 className="flex items-center gap-2 font-bold text-noir">
-                <Star size={16} className="text-[#D4AF37]" fill="#D4AF37" /> Finance+
+                <Star size={16} className="text-[#D4AF37]" fill="#D4AF37" /> Finance+ MKA.P-MS
               </h3>
+              <p className="mt-1 text-[10px] text-slate-500">Financement exclusif MKA.P-MS pour ce véhicule.</p>
               <div className="mt-3 space-y-1.5">
                 <div className="flex items-center gap-1.5 text-xs text-slate-600"><ShieldCheck size={12} className="text-[#D4AF37]" /> Disponible en LOA</div>
                 <div className="flex items-center gap-1.5 text-xs text-slate-600"><ShieldCheck size={12} className="text-[#D4AF37]" /> Disponible en paiement fractionné</div>
@@ -447,6 +448,29 @@ export default function Vehicule() {
                 <Link to="/finance" className="flex items-center justify-center gap-1 rounded-lg bg-[#D4AF37] py-2 text-[10px] font-bold text-white hover:bg-[#C5A028]">Simuler</Link>
                 <Link to="/finance" className="flex items-center justify-center gap-1 rounded-lg border border-[#D4AF37] py-2 text-[10px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">Conditions</Link>
               </div>
+            </div>
+          )}
+
+          {/* Finance — Demande d'accès pour vendeurs Pro (pas encore activé) */}
+          {!isLocation && !isOfficiel && (tier === "professionnel" || tier === "premium") && (
+            <div className="card border-slate-200 p-5">
+              <h3 className="flex items-center gap-2 font-bold text-noir">
+                <CreditCard size={16} className="text-slate-400" /> Financement
+              </h3>
+              <p className="mt-1 text-xs text-slate-500">
+                Le financement pour ce véhicule n'est pas encore disponible. Les vendeurs Pro peuvent demander l'accès au programme Finance+ MKA.P-MS.
+              </p>
+              <div className="mt-3 space-y-1.5 text-xs text-slate-500">
+                <div className="flex items-center gap-1.5"><ShieldCheck size={12} className="text-slate-400" /> Étude des conditions générales MKA.P-MS</div>
+                <div className="flex items-center gap-1.5"><ShieldCheck size={12} className="text-slate-400" /> Validation des documents du vendeur</div>
+                <div className="flex items-center gap-1.5"><ShieldCheck size={12} className="text-slate-400" /> Mise à disposition du véhicule pour financement</div>
+              </div>
+              <button
+                className="mt-3 w-full rounded-lg border border-[#D4AF37] py-2 text-[10px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition"
+                onClick={() => requireLogin(() => navigate("/compte/messages"))}
+              >
+                Demander l'accès Finance+
+              </button>
             </div>
           )}
         </aside>

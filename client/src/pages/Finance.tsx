@@ -463,6 +463,17 @@ export default function Finance() {
         </div>
       </section>
 
+      {/* Bandeau exclusivité MKA.P-MS */}
+      <div className="border-b border-[#D4AF37]/20 bg-[#FFFBEB]">
+        <div className="container-page flex items-center gap-3 py-3">
+          <Lock size={16} className="shrink-0 text-[#D4AF37]" />
+          <p className="text-xs text-[#111]">
+            <strong>Financement exclusif MKA.P-MS</strong> — Le programme Finance+ est actuellement réservé aux véhicules du stock MKA.P-MS.
+            Vous êtes vendeur Pro ? <button onClick={() => document.getElementById("pro-finance-access")?.scrollIntoView({ behavior: "smooth" })} className="font-bold text-[#D4AF37] underline">Demandez l'accès →</button>
+          </p>
+        </div>
+      </div>
+
       {/* Produits — fond blanc */}
       <section className="bg-white py-8">
         <div className="container-page">
@@ -616,6 +627,72 @@ export default function Finance() {
               <h4 className="text-[9px] font-bold text-[#111]">Support dédié</h4>
               <p className="text-[7px] text-slate-500 leading-tight">Une équipe Finance+ à votre écoute</p>
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ SECTION VENDEURS PRO — Demande d'accès Finance+ ═══ */}
+      <section id="pro-finance-access" className="border-t border-slate-200 bg-slate-50 py-10">
+        <div className="container-page">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="inline-flex items-center rounded-full bg-blue-800 px-3 py-1 text-[10px] font-bold text-white">VENDEURS PRO</span>
+            <h2 className="mt-4 text-xl font-extrabold text-[#111]">Proposez le financement sur vos véhicules</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Le programme Finance+ MKA.P-MS permet à vos clients de financer l'achat de vos véhicules directement depuis la plateforme.
+              Pour activer cette fonctionnalité, soumettez une demande d'accès.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-8 max-w-xl">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <h3 className="font-bold text-[#111]">Conditions d'accès</h3>
+              <ul className="mt-3 space-y-2 text-sm text-slate-600">
+                {[
+                  "Compte professionnel vérifié (KBIS, pièce d'identité)",
+                  "Acceptation des conditions générales Finance+ MKA.P-MS",
+                  "Mise à disposition des informations véhicule (carte grise, photos, historique)",
+                  "Respect des règles de tarification et transparence MKA.P-MS",
+                  "Engagement à répondre aux demandes clients sous 48 h",
+                ].map((t) => (
+                  <li key={t} className="flex items-start gap-2">
+                    <CheckCircle size={14} className="mt-0.5 shrink-0 text-[#D4AF37]" /> {t}
+                  </li>
+                ))}
+              </ul>
+
+              <h3 className="mt-6 font-bold text-[#111]">Documents nécessaires</h3>
+              <ul className="mt-3 space-y-2 text-sm text-slate-600">
+                {[
+                  "KBIS ou extrait d'inscription",
+                  "Pièce d'identité du dirigeant",
+                  "SIRET / N° TVA intracommunautaire",
+                  "RIB société",
+                  "Conditions générales signées",
+                ].map((t) => (
+                  <li key={t} className="flex items-start gap-2">
+                    <FileText size={14} className="mt-0.5 shrink-0 text-slate-400" /> {t}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-6 rounded-xl bg-[#FFFBEB] border border-[#D4AF37]/20 p-4">
+                <p className="text-xs text-slate-600">
+                  <strong className="text-[#111]">Processus de validation :</strong> Votre demande sera étudiée par l'équipe MKA.P-MS.
+                  Après validation de vos documents et acceptation des conditions, le module Finance+ sera activé sur vos annonces.
+                  Les règles de financement (taux, durée, conditions) sont définies par MKA.P-MS et peuvent varier selon le type de véhicule et le profil client.
+                </p>
+              </div>
+
+              <Link
+                to="/compte/messages"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-[#D4AF37] py-3 text-sm font-bold text-white hover:bg-[#C5A028] transition"
+              >
+                <ArrowRight size={16} /> Faire ma demande d'accès Finance+
+              </Link>
+              <p className="mt-2 text-center text-[10px] text-slate-400">
+                Contact : mka.garageauto@gmail.com — Réponse sous 5 jours ouvrés
+              </p>
+            </div>
           </div>
         </div>
       </section>
