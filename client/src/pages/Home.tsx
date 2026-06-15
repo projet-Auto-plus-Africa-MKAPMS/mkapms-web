@@ -163,11 +163,11 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       {(() => {
         const CAROUSEL_PHOTOS = [
-          "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=500&fit=crop",
-          "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=500&fit=crop",
-          "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=500&fit=crop",
-          "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=500&fit=crop",
-          "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=500&fit=crop",
+          "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=600&fit=crop",
         ];
         return (
           <section className="bg-[#F5F3EF] pb-6 pt-4">
@@ -182,7 +182,7 @@ export default function Home() {
                       key={i}
                       src={src}
                       alt={`Véhicule ${i + 1}`}
-                      className="w-full shrink-0 aspect-[16/9] object-cover"
+                      className="w-full shrink-0 aspect-[4/3] object-cover"
                     />
                   ))}
                 </div>
