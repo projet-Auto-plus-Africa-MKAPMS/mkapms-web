@@ -93,6 +93,8 @@ export default function Vehicule() {
   const { user } = useAuth();
   const [photoIdx, setPhotoIdx] = useState(0);
   const [photoCat, setPhotoCat] = useState<PhotoCategory>("exterieur");
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIdx, setLightboxIdx] = useState(0);
   const [descTab, setDescTab] = useState<"description" | "points_forts" | "equipements" | "imperfections">("description");
   const [acompte, setAcompte] = useState<number>(ACOMPTE_PALIERS[1]);
 
@@ -230,61 +232,29 @@ export default function Vehicule() {
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         {/* ===== 1. PHOTOS ===== */}
         <section className="min-w-0 lg:col-start-1 lg:row-start-1">
-          {/* Onglets catégorie photo — MKA.P-MS Officiel uniquement */}
-          {hasPhotoCategories && (
-            <div className="mb-2 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-              {PHOTO_CATEGORIES.filter((c) => (v.photoCategories[c.key] || []).length > 0 || c.key === "autres").map((c) => (
-                <button
-                  key={c.key}
-                  onClick={() => { setPhotoCat(c.key); setPhotoIdx(0); }}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                    photoCat === c.key
-                      ? "bg-[#111] text-[#D4AF37]"
-                      : "border border-slate-200 bg-white text-slate-600 hover:border-[#D4AF37]"
-                  }`}
-                >
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          )}
-
           <div className={`card overflow-hidden ${isOfficiel ? "border-[#D4AF37]/40 shadow-lg" : ""}`}>
-            <div className={`relative w-full ${photoHeightClass} bg-slate-100`}>
-              {activeCatPhotos.length ? (
-                <img src={activeCatPhotos[activeCatIdx]} alt={v.titre} className="h-full w-full object-cover" />
+            <div
+              className={`relative w-full ${photoHeightClass} bg-slate-100 cursor-pointer`}
+              onClick={() => { if (hasPhotoCategories) { setLightboxIdx(photoIdx); setLightboxOpen(true); } }}
+            >
+              {/* MKA.P-MS: toutes les photos dans l'ordre, non filtrées */}
+              {(hasPhotoCategories ? allCategoryPhotos : photos).length ? (
+                <img src={(hasPhotoCategories ? allCategoryPhotos : photos)[photoIdx] || ""} alt={v.titre} className="h-full w-full object-cover" />
               ) : (
-                <div className="grid h-full place-items-center text-slate-400">Pas de photo dans cette catégorie</div>
+                <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
               )}
 
-              {/* Flèches gauche/droite — MKA.P-MS Officiel */}
-              {hasPhotoCategories && activeCatPhotos.length > 1 && (
+              {/* Flèches gauche/droite */}
+              {(hasPhotoCategories ? allCategoryPhotos.length : photos.length) > 1 && (
                 <>
                   <button
-                    onClick={() => setPhotoIdx((i) => Math.max(0, i - 1))}
+                    onClick={(e) => { e.stopPropagation(); setPhotoIdx((i) => Math.max(0, i - 1)); }}
                     className="absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition"
                   >
                     <ChevronLeft size={22} />
                   </button>
                   <button
-                    onClick={() => setPhotoIdx((i) => Math.min(activeCatPhotos.length - 1, i + 1))}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition"
-                  >
-                    <ChevronRight size={22} />
-                  </button>
-                </>
-              )}
-              {/* Flèches pour véhicules non-MKA.P-MS */}
-              {!hasPhotoCategories && photos.length > 1 && (
-                <>
-                  <button
-                    onClick={() => setPhotoIdx((i) => Math.max(0, i - 1))}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition"
-                  >
-                    <ChevronLeft size={22} />
-                  </button>
-                  <button
-                    onClick={() => setPhotoIdx((i) => Math.min(photos.length - 1, i + 1))}
+                    onClick={(e) => { e.stopPropagation(); setPhotoIdx((i) => Math.min((hasPhotoCategories ? allCategoryPhotos.length : photos.length) - 1, i + 1)); }}
                     className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition"
                   >
                     <ChevronRight size={22} />
@@ -293,9 +263,9 @@ export default function Vehicule() {
               )}
 
               {/* Compteur photos */}
-              {(hasPhotoCategories ? activeCatPhotos.length > 0 : photos.length > 1) && (
+              {(hasPhotoCategories ? allCategoryPhotos.length : photos.length) > 1 && (
                 <span className="badge absolute bottom-3 right-3 bg-noir/70 text-white">
-                  {hasPhotoCategories ? `${activeCatIdx + 1} / ${activeCatPhotos.length}` : `${photoIdx + 1} / ${photos.length}`}
+                  {photoIdx + 1} / {hasPhotoCategories ? allCategoryPhotos.length : photos.length}
                 </span>
               )}
 
@@ -313,15 +283,15 @@ export default function Vehicule() {
                 ) : null;
               })()}
             </div>
-            {/* Galerie miniatures */}
-            {(hasPhotoCategories ? activeCatPhotos.length > 1 : photos.length > 1) && (
+            {/* Galerie miniatures — uniquement pour NON-MKA.P-MS */}
+            {!hasPhotoCategories && photos.length > 1 && (
               <div className="flex gap-2 overflow-x-auto p-3">
-                {(hasPhotoCategories ? activeCatPhotos : photos).slice(0, typeof window !== "undefined" && window.innerWidth >= 1024 ? 12 : 6).map((p: string, i: number) => (
+                {photos.slice(0, typeof window !== "undefined" && window.innerWidth >= 1024 ? 12 : 6).map((p: string, i: number) => (
                   <button
                     key={i}
                     onClick={() => setPhotoIdx(i)}
                     className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg ring-offset-1 ${
-                      i === (hasPhotoCategories ? activeCatIdx : photoIdx) ? "ring-2 ring-gold" : "ring-1 ring-slate-200"
+                      i === photoIdx ? "ring-2 ring-gold" : "ring-1 ring-slate-200"
                     }`}
                   >
                     <img src={p} alt="" className="h-full w-full object-cover" />
@@ -1162,8 +1132,8 @@ export default function Vehicule() {
         </div>
       )}
 
-      {/* Barre fixe mobile — adaptée au type, positionnée au-dessus de la barre de navigation */}
-      <div className="fixed inset-x-0 bottom-[72px] z-30 border-t border-slate-200 bg-white p-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] md:hidden">
+      {/* Barre fixe mobile — adaptée au type, bien séparée de la nav bar */}
+      <div className="fixed inset-x-0 bottom-[76px] z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden">
         <div className="container-page">
           {isMkapmsStock ? (
             /* MKA.P-MS Officiel : Acheter (gauche) + Contact (droite), PAS de Appeler */
@@ -1186,17 +1156,76 @@ export default function Vehicule() {
         </div>
       </div>
 
-      {/* Boutons flottants — UNIQUEMENT pour MKA.P-MS Officiel (vente ET location) */}
+      {/* Boutons flottants — UNIQUEMENT pour MKA.P-MS Officiel (vente ET location), milieu droit */}
       {isOfficiel && v.contactTelephone && (
-        <div className="fixed bottom-32 right-4 z-40 flex flex-col gap-3 md:bottom-8 md:right-8">
-          <a href={`tel:${v.contactTelephone}`} className="flex h-16 w-16 items-center justify-center rounded-full bg-[#111] text-white shadow-lg hover:bg-[#333] lg:h-20 lg:w-20">
-            <Phone size={24} className="lg:hidden" /><Phone size={30} className="hidden lg:block" />
+        <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3 md:right-6">
+          <a href={`tel:${v.contactTelephone}`} className="flex h-14 w-14 items-center justify-center rounded-full bg-[#111] text-white shadow-lg hover:bg-[#333] lg:h-16 lg:w-16">
+            <Phone size={22} className="lg:hidden" /><Phone size={26} className="hidden lg:block" />
           </a>
-          <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-16 w-16 items-center justify-center rounded-full bg-[#25d366] text-white shadow-lg hover:bg-[#1ebe57] lg:h-20 lg:w-20">
-            <MessageSquare size={24} className="lg:hidden" /><MessageSquare size={30} className="hidden lg:block" />
+          <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-14 w-14 items-center justify-center rounded-full bg-[#25d366] text-white shadow-lg hover:bg-[#1ebe57] lg:h-16 lg:w-16">
+            <MessageSquare size={22} className="lg:hidden" /><MessageSquare size={26} className="hidden lg:block" />
           </a>
         </div>
       )}
+
+      {/* ── LIGHTBOX plein écran — MKA.P-MS Officiel : catégories visibles ici ── */}
+      {hasPhotoCategories && lightboxOpen && (() => {
+        const catPhotos = (v.photoCategories[photoCat] || []) as string[];
+        const lbIdx = Math.min(lightboxIdx, Math.max(0, catPhotos.length - 1));
+        return (
+          <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => setLightboxOpen(false)}>
+            {/* Header lightbox */}
+            <div className="flex items-center justify-between px-4 py-3" onClick={(e) => e.stopPropagation()}>
+              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+                {PHOTO_CATEGORIES.filter((c) => (v.photoCategories[c.key] || []).length > 0).map((c) => (
+                  <button
+                    key={c.key}
+                    onClick={() => { setPhotoCat(c.key); setLightboxIdx(0); }}
+                    className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                      photoCat === c.key
+                        ? "bg-[#D4AF37] text-black"
+                        : "border border-white/30 text-white/70 hover:border-[#D4AF37] hover:text-white"
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => setLightboxOpen(false)} className="ml-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20">✕</button>
+            </div>
+
+            {/* Photo principale lightbox */}
+            <div className="relative flex flex-1 items-center justify-center px-4" onClick={(e) => e.stopPropagation()}>
+              {catPhotos.length > 0 ? (
+                <img src={catPhotos[lbIdx]} alt="" className="max-h-full max-w-full object-contain" />
+              ) : (
+                <p className="text-white/60">Aucune photo dans cette catégorie</p>
+              )}
+              {catPhotos.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setLightboxIdx((i) => Math.max(0, i - 1))}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+                  >
+                    <ChevronLeft size={28} />
+                  </button>
+                  <button
+                    onClick={() => setLightboxIdx((i) => Math.min(catPhotos.length - 1, i + 1))}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+                  >
+                    <ChevronRight size={28} />
+                  </button>
+                </>
+              )}
+              {catPhotos.length > 0 && (
+                <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs text-white">
+                  {lbIdx + 1} / {catPhotos.length}
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
