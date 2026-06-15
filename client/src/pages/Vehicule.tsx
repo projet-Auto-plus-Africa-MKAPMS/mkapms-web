@@ -237,60 +237,62 @@ export default function Vehicule() {
     const allPhotos = allCategoryPhotos.length > 0 ? allCategoryPhotos : (v.photoPrincipale ? [v.photoPrincipale] : []);
     return (
       <div className="pb-40 md:pb-10">
-        {/* ── 2. PHOTO VÉHICULE avec flèches + boutons flottants sur la photo ── */}
-        <div className="relative w-full bg-slate-100" style={{ height: "clamp(350px, 58vh, 560px)" }}>
-          {allPhotos.length > 0 ? (
-            <img
-              src={allPhotos[photoIdx] || ""}
-              alt={v.titre}
-              className="h-full w-full object-cover cursor-pointer"
-              onClick={() => { setLightboxIdx(photoIdx); setLightboxOpen(true); }}
-            />
-          ) : (
-            <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
-          )}
-          {/* Flèches */}
-          {allPhotos.length > 1 && (
-            <>
-              <button onClick={() => setPhotoIdx((i) => Math.max(0, i - 1))} className="absolute left-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg hover:bg-white transition"><ChevronLeft size={24} /></button>
-              <button onClick={() => setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1))} className="absolute right-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg hover:bg-white transition"><ChevronRight size={24} /></button>
-            </>
-          )}
-          {/* Compteur */}
-          {allPhotos.length > 1 && (
-            <span className="absolute bottom-3 right-3 rounded-full bg-noir/70 px-3 py-1 text-xs font-semibold text-white">{photoIdx + 1} / {allPhotos.length}</span>
-          )}
-          {/* Badges */}
-          {(() => {
-            const vehicleBadges = computeBadges({
-              id: v.id, vendeurType: v.vendeurType, type: v.type,
-              status: v.status, boosted: v.boosted, certified: v.certified,
-              tier: v.tier, planCode: v.planCode, createdAt: v.createdAt,
-            }).filter((b) => b.code !== "vendeur_pro" && b.code !== "garage_verifie");
-            return vehicleBadges.length > 0 ? (
-              <div className="absolute left-3 top-3 flex flex-col gap-1">
-                {vehicleBadges.map((b) => <BadgeChip key={b.code} badge={b} />)}
-              </div>
-            ) : null;
-          })()}
-          {/* Boutons flottants Appel + WhatsApp SUR la photo (côté droit milieu) */}
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-3">
-            <a href={`tel:${v.contactTelephone || ""}`} className="flex h-12 w-12 items-center justify-center rounded-full bg-[#111] text-white shadow-lg hover:bg-[#333]"><Phone size={20} /></a>
-            <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25d366] text-white shadow-lg hover:bg-[#1ebe57]">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.578-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.24 0-4.326-.68-6.06-1.844l-.434-.3-2.825.902.935-2.752-.33-.468A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-            </a>
+        {/* ── 2. PHOTO VÉHICULE — espace latéral, flèches dégagées ── */}
+        <div className="px-3 pt-2 md:px-4">
+          <div className="relative w-full overflow-hidden rounded-xl bg-slate-100" style={{ height: "clamp(350px, 58vh, 560px)" }}>
+            {allPhotos.length > 0 ? (
+              <img
+                src={allPhotos[photoIdx] || ""}
+                alt={v.titre}
+                className="h-full w-full object-cover cursor-pointer"
+                onClick={() => { setLightboxIdx(photoIdx); setLightboxOpen(true); }}
+              />
+            ) : (
+              <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
+            )}
+            {/* Flèches navigation */}
+            {allPhotos.length > 1 && (
+              <>
+                <button onClick={() => setPhotoIdx((i) => Math.max(0, i - 1))} className="absolute left-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg hover:bg-white transition"><ChevronLeft size={24} /></button>
+                <button onClick={() => setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1))} className="absolute right-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg hover:bg-white transition"><ChevronRight size={24} /></button>
+              </>
+            )}
+            {/* Compteur */}
+            {allPhotos.length > 1 && (
+              <span className="absolute bottom-3 right-3 rounded-full bg-noir/70 px-3 py-1 text-xs font-semibold text-white">{photoIdx + 1} / {allPhotos.length}</span>
+            )}
+            {/* Badges */}
+            {(() => {
+              const vehicleBadges = computeBadges({
+                id: v.id, vendeurType: v.vendeurType, type: v.type,
+                status: v.status, boosted: v.boosted, certified: v.certified,
+                tier: v.tier, planCode: v.planCode, createdAt: v.createdAt,
+              }).filter((b) => b.code !== "vendeur_pro" && b.code !== "garage_verifie");
+              return vehicleBadges.length > 0 ? (
+                <div className="absolute left-3 top-3 flex flex-col gap-1">
+                  {vehicleBadges.map((b) => <BadgeChip key={b.code} badge={b} />)}
+                </div>
+              ) : null;
+            })()}
+            {/* Boutons flottants Appel + WhatsApp — bas droite, sous les flèches */}
+            <div className="absolute bottom-16 right-3 flex flex-col gap-3">
+              <a href={`tel:${v.contactTelephone || ""}`} className="flex h-12 w-12 items-center justify-center rounded-full bg-[#111] text-white shadow-lg hover:bg-[#333]"><Phone size={20} /></a>
+              <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25d366] text-white shadow-lg hover:bg-[#1ebe57]">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.578-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.24 0-4.326-.68-6.06-1.844l-.434-.3-2.825.902.935-2.752-.33-.468A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+              </a>
+            </div>
           </div>
         </div>
 
         <div className="container-page space-y-5 py-5">
-          {/* ── 3. NOM VÉHICULE + MOTORISATION + PRIX ── */}
-          <div className="card p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#D4AF37]">MKA.P-MS OFFICIEL</p>
-            <h1 className="mt-1 text-xl font-extrabold text-noir">{v.titre}</h1>
-            {v.motorisation && <p className="mt-0.5 text-sm text-slate-500">{v.marque} {v.modele} {v.motorisation}</p>}
-            <p className="mt-0.5 text-xs text-slate-400">Réf. annonce : DEMO-{v.id}</p>
-            <p className="mt-3 text-2xl font-extrabold text-noir">{formatPrice(Number(v.prix))}</p>
-            <p className="text-xs text-slate-500">Prix TTC · Frais inclus</p>
+          {/* ── 3. NOM VÉHICULE + MOTORISATION + PRIX — centré ── */}
+          <div className="card p-5 text-center">
+            <p className="text-sm font-semibold uppercase tracking-wider text-[#D4AF37]">MKA.P-MS OFFICIEL</p>
+            <h1 className="mt-1 text-2xl font-extrabold text-noir">{v.titre}</h1>
+            {v.motorisation && <p className="mt-1 text-base text-slate-500">{v.marque} {v.modele} {v.motorisation}</p>}
+            <p className="mt-1 text-sm text-slate-400">Réf. annonce : DEMO-{v.id}</p>
+            <p className="mt-3 text-3xl font-extrabold text-noir">{formatPrice(Number(v.prix))}</p>
+            <p className="text-sm text-slate-500">Prix TTC · Frais inclus</p>
           </div>
 
           {/* ── 4. Favoris + Partager ── */}
@@ -301,8 +303,8 @@ export default function Vehicule() {
 
           {/* ── 8. DESCRIPTION avec onglets ── */}
           <div className="card p-5">
-            <h2 className="mb-3 font-bold text-noir">Description</h2>
-            <div className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-100 pb-2 scrollbar-hide">
+            <h2 className="mb-3 text-lg font-bold text-noir">Description</h2>
+            <div className="mb-4 flex gap-1.5 overflow-x-auto border-b border-slate-100 pb-2 scrollbar-hide">
               {([
                 { key: "description" as const, label: "Description" },
                 { key: "points_forts" as const, label: "Points forts" },
@@ -312,16 +314,16 @@ export default function Vehicule() {
                 <button
                   key={tab.key}
                   onClick={() => setDescTab(tab.key)}
-                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold transition ${
                     descTab === tab.key ? "bg-[#111] text-white" : "text-slate-500 hover:bg-slate-50"
                   }`}
                 >{tab.label}</button>
               ))}
             </div>
-            {descTab === "description" && <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">{v.description || "Aucune description fournie."}</p>}
-            {descTab === "points_forts" && v.pointsForts && <ul className="space-y-2">{v.pointsForts.map((pf: string) => <li key={pf} className="flex items-center gap-2 text-sm text-slate-700"><ShieldCheck size={14} className="text-[#D4AF37]" /> {pf}</li>)}</ul>}
-            {descTab === "equipements" && v.equipements && <div className="grid grid-cols-2 gap-2">{v.equipements.map((eq: string) => <div key={eq} className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-3 py-2 text-xs"><ShieldCheck size={12} className="text-emerald-600" /> {eq}</div>)}</div>}
-            {descTab === "imperfections" && v.imperfections && <ul className="space-y-2">{v.imperfections.map((imp: string) => <li key={imp} className="flex items-center gap-2 text-sm text-slate-600"><Flag size={14} className="text-orange-500" /> {imp}</li>)}</ul>}
+            {descTab === "description" && <p className="whitespace-pre-line text-base leading-relaxed text-slate-600">{v.description || "Aucune description fournie."}</p>}
+            {descTab === "points_forts" && v.pointsForts && <ul className="space-y-3">{v.pointsForts.map((pf: string) => <li key={pf} className="flex items-center gap-2 text-base text-slate-700"><ShieldCheck size={16} className="text-[#D4AF37]" /> {pf}</li>)}</ul>}
+            {descTab === "equipements" && v.equipements && <div className="grid grid-cols-2 gap-2">{v.equipements.map((eq: string) => <div key={eq} className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-sm"><ShieldCheck size={14} className="text-emerald-600" /> {eq}</div>)}</div>}
+            {descTab === "imperfections" && v.imperfections && <ul className="space-y-3">{v.imperfections.map((imp: string) => <li key={imp} className="flex items-center gap-2 text-base text-slate-600"><Flag size={16} className="text-orange-500" /> {imp}</li>)}</ul>}
           </div>
 
           {/* ── BOUTON RÉSERVER (fin et long) ── */}
@@ -334,8 +336,8 @@ export default function Vehicule() {
 
           {/* ── 9. CARACTÉRISTIQUES PRINCIPALES ── */}
           <div className="card p-5">
-            <h2 className="mb-4 font-bold text-noir">Caractéristiques principales</h2>
-            <div className="grid grid-cols-3 gap-3 md:grid-cols-6">
+            <h2 className="mb-4 text-lg font-bold text-noir">Caractéristiques principales</h2>
+            <div className="grid grid-cols-3 gap-4 md:grid-cols-6">
               {[
                 { label: "Marque", value: v.marque },
                 { label: "Modèle", value: v.modele },
@@ -345,40 +347,40 @@ export default function Vehicule() {
                 { label: "Localisation", value: v.ville },
               ].map((c) => (
                 <div key={c.label} className="text-center">
-                  <p className="text-[10px] text-slate-400">{c.label}</p>
-                  <p className="text-xs font-bold text-noir">{c.value || "—"}</p>
+                  <p className="text-xs text-slate-400">{c.label}</p>
+                  <p className="text-sm font-bold text-noir">{c.value || "—"}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* ── 10. VÉHICULE CERTIFIÉ MKA.P-MS (fond noir + icônes) ── */}
+          {/* ── 10. VÉHICULE CERTIFIÉ MKA.P-MS (fond noir + icônes cliquables) ── */}
           <div className="overflow-hidden rounded-2xl bg-[#111]">
             <div className="p-5">
               <div className="flex items-center gap-2">
-                <ShieldCheck size={20} className="text-[#D4AF37]" />
-                <h2 className="text-lg font-extrabold text-white">Véhicule certifié MKA.P-MS</h2>
+                <ShieldCheck size={24} className="text-[#D4AF37]" />
+                <h2 className="text-xl font-extrabold text-white">Véhicule certifié MKA.P-MS</h2>
               </div>
-              <p className="mt-1 text-xs text-slate-400">Chaque véhicule est contrôlé avant sa mise en vente.</p>
+              <p className="mt-1 text-sm text-slate-400">Chaque véhicule est contrôlé avant sa mise en vente.</p>
             </div>
-            <div className="grid grid-cols-4 gap-2 px-4 pb-5 md:grid-cols-8">
+            <div className="grid grid-cols-4 gap-3 px-4 pb-6 md:grid-cols-8">
               {[
-                { icon: Wrench, label: "Contrôle mécanique", sub: "120 points" },
-                { icon: History, label: "Historique", sub: "vérifié" },
-                { icon: TrendingUp, label: "Essai routier", sub: "effectué" },
-                { icon: BarChart3, label: "Kilométrage", sub: "certifié" },
-                { icon: FileText, label: "Rapport", sub: "disponible" },
-                { icon: Truck, label: "Livraison", sub: "possible" },
-                { icon: Shield, label: "Garantie", sub: "disponible" },
-                { icon: Award, label: "Assistance", sub: "administrative" },
+                { icon: Wrench, label: "Contrôle mécanique", sub: "120 points", to: "/services" },
+                { icon: History, label: "Historique", sub: "vérifié", to: "/historique" },
+                { icon: TrendingUp, label: "Essai routier", sub: "effectué", to: "/services" },
+                { icon: BarChart3, label: "Kilométrage", sub: "certifié", to: "/services" },
+                { icon: FileText, label: "Rapport", sub: "disponible", to: "/historique" },
+                { icon: Truck, label: "Livraison", sub: "possible", to: "/services" },
+                { icon: Shield, label: "Garantie", sub: "disponible", to: "/services" },
+                { icon: Award, label: "Assistance", sub: "administrative", to: "/services" },
               ].map((item) => (
-                <div key={item.label} className="flex flex-col items-center text-center">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D4AF37]/20">
-                    <item.icon size={18} className="text-[#D4AF37]" />
+                <Link key={item.label} to={item.to} className="flex flex-col items-center text-center transition hover:scale-105">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/20">
+                    <item.icon size={22} className="text-[#D4AF37]" />
                   </div>
-                  <p className="mt-1 text-[9px] font-semibold leading-tight text-white">{item.label}</p>
-                  <p className="text-[8px] text-slate-500">{item.sub}</p>
-                </div>
+                  <p className="mt-1.5 text-[11px] font-semibold leading-tight text-white">{item.label}</p>
+                  <p className="text-[10px] text-slate-400">{item.sub}</p>
+                </Link>
               ))}
             </div>
           </div>
@@ -414,41 +416,35 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* ── 13. SERVICES DISPONIBLES ── */}
+          {/* ── 13. SERVICES DISPONIBLES — colonnes glissables, cliquables ── */}
           <div className="card p-5">
-            <h2 className="mb-4 font-bold text-noir">Services disponibles pour ce véhicule</h2>
-            <div className="grid grid-cols-3 gap-3 md:grid-cols-9">
+            <h2 className="mb-4 text-lg font-bold text-noir">Services disponibles pour ce véhicule</h2>
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
               {[
-                { icon: Wrench, label: "Devis garage" },
-                { icon: Truck, label: "Livraison" },
-                { icon: FileCheck, label: "Carte grise" },
-                { icon: Search, label: "Contrôle avant achat" },
-                { icon: Wrench, label: "Dépannage" },
-                { icon: Shield, label: "Garantie" },
-                { icon: TrendingUp, label: "Reprise" },
-                { icon: CreditCard, label: "Financement" },
-                { icon: Award, label: "Expertise" },
+                { icon: Wrench, label: "Devis garage", to: "/garages" },
+                { icon: Truck, label: "Livraison", to: "/services" },
+                { icon: FileCheck, label: "Carte grise", to: "/carte-grise" },
+                { icon: Search, label: "Contrôle avant achat", to: "/services" },
+                { icon: Wrench, label: "Dépannage", to: "/services" },
+                { icon: Shield, label: "Garantie", to: "/services" },
+                { icon: TrendingUp, label: "Reprise", to: "/services" },
+                { icon: CreditCard, label: "Financement", to: "/finance" },
+                { icon: Award, label: "Expertise", to: "/services" },
               ].map((svc) => (
-                <div key={svc.label} className="flex flex-col items-center text-center">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
-                    <svc.icon size={18} className="text-[#D4AF37]" />
+                <Link key={svc.label} to={svc.to} className="flex shrink-0 flex-col items-center text-center transition hover:scale-105" style={{ width: "80px" }}>
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
+                    <svc.icon size={24} className="text-[#D4AF37]" />
                   </div>
-                  <p className="mt-1 text-[9px] font-medium leading-tight text-slate-600">{svc.label}</p>
-                </div>
+                  <p className="mt-1.5 text-xs font-medium leading-tight text-slate-600">{svc.label}</p>
+                </Link>
               ))}
             </div>
-            <Link to="/services" className="mt-3 block text-right text-xs font-semibold text-[#D4AF37]">Voir tous nos services →</Link>
-          </div>
-
-          {/* ── 14-15. BOUTONS ACHETER + CONTACTER EN BAS ── */}
-          <div id="reserver-mkapms" className="grid grid-cols-2 gap-3">
-            <button className="btn-acheter flex h-[56px] items-center justify-center gap-2 text-sm font-bold" onClick={() => requireLogin(() => reserve.mutate({ annonceId: v.id, acompte: 200 }))}><CreditCard size={16} /> Acheter ce véhicule</button>
-            <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-message flex h-[56px] items-center justify-center gap-2 text-sm font-bold"><Phone size={16} /> Contacter le vendeur</a>
+            <Link to="/services" className="mt-3 block text-right text-sm font-semibold text-[#D4AF37]">Voir tous nos services →</Link>
           </div>
         </div>
 
-        {/* Barre fixe mobile MKA.P-MS */}
-        <div className="fixed inset-x-0 bottom-[76px] z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden">
+        {/* Barre fixe mobile MKA.P-MS — décollée de la navigation */}
+        <div className="fixed inset-x-0 bottom-[82px] z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden">
           <div className="container-page">
             <div className="grid grid-cols-2 gap-3">
               <button className="btn-acheter h-[52px] text-sm font-bold" onClick={primaryAction}>Acheter</button>
