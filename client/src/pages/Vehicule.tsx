@@ -12,7 +12,30 @@ import {
   Flag,
   History,
   ChevronRight,
+  FileText,
+  FolderCheck,
+  Eye as EyeIcon,
+  Download,
+  CreditCard,
+  Send,
+  Building2,
 } from "lucide-react";
+
+/* ── Classification des tiers ── */
+type VehicleTier = "officiel" | "elite" | "premium" | "professionnel" | "particulier";
+
+function getVehicleTier(v: any): VehicleTier {
+  const id = v.id;
+  // MKA.P-MS stock officiel (8000-8005)
+  if (id >= 8000 && id <= 8005) return "officiel";
+  // Elite: boosted + officiel vendeurType
+  if (v.tier === "elite") return "elite";
+  // Premium: boosted annonces pro
+  if (v.boosted && v.vendeurType === "professionnel") return "premium";
+  // Professionnel
+  if (v.vendeurType === "professionnel" || v.vendeurType === "concession") return "professionnel";
+  return "particulier";
+}
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
@@ -88,6 +111,26 @@ export default function Vehicule() {
 
   const photos = v.photos?.length ? v.photos.map((p: any) => p.url) : (v.photoPrincipale ? [v.photoPrincipale] : []);
   const isLocation = v.type === "location";
+  const isVtcTaxi = v.segmentLocation === "vtc_taxi";
+  const tier = getVehicleTier(v);
+  const isOfficiel = tier === "officiel" || tier === "elite" || tier === "premium";
+
+  /* Photo height classes per tier (responsive) */
+  const photoHeightClass =
+    tier === "officiel" || tier === "elite"
+      ? "h-[520px] md:h-[600px] lg:h-[720px] xl:h-[850px]"
+      : tier === "premium"
+        ? "h-[420px] md:h-[500px] lg:h-[650px]"
+        : tier === "professionnel"
+          ? "h-[280px] md:h-[340px] lg:h-[380px]"
+          : "h-[220px] md:h-[250px] lg:h-[280px]";
+
+  /* Badge label */
+  const tierBadge =
+    tier === "officiel" ? "MKA.P-MS Officiel"
+    : tier === "elite" ? "Élite"
+    : tier === "premium" ? "Premium"
+    : null;
 
   // Indice de Confiance MKA.P-MS (Partie 5) — calcul transparent.
   const trust = computeTrustScore({
@@ -156,8 +199,8 @@ export default function Vehicule() {
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         {/* ===== 1. PHOTOS ===== */}
         <section className="min-w-0 lg:col-start-1 lg:row-start-1">
-          <div className="card overflow-hidden">
-            <div className="relative aspect-[4/3] bg-slate-100">
+          <div className={`card overflow-hidden ${isOfficiel ? "border-[#D4AF37]/40 shadow-lg" : ""}`}>
+            <div className={`relative w-full ${photoHeightClass} bg-slate-100`}>
               {photos.length ? (
                 <img src={photos[photoIdx]} alt={v.titre} className="h-full w-full object-cover" />
               ) : (
@@ -168,10 +211,16 @@ export default function Vehicule() {
                   {photoIdx + 1} / {photos.length}
                 </span>
               )}
+              {tierBadge && (
+                <span className={`badge absolute left-3 top-3 text-white font-bold px-3 py-1 ${tier === "officiel" ? "bg-[#111]" : tier === "elite" ? "bg-gradient-to-r from-[#111] to-[#D4AF37]" : "bg-[#D4AF37] text-[#111]"}`}>
+                  {tierBadge}
+                </span>
+              )}
             </div>
+            {/* Galerie : 6 photos mobile, 12 desktop */}
             {photos.length > 1 && (
               <div className="flex gap-2 overflow-x-auto p-3">
-                {photos.map((p, i) => (
+                {photos.slice(0, typeof window !== "undefined" && window.innerWidth >= 1024 ? 12 : 6).map((p, i) => (
                   <button
                     key={i}
                     onClick={() => setPhotoIdx(i)}
@@ -235,29 +284,62 @@ export default function Vehicule() {
               );
             })()}
 
-            {/* BOUTONS d'action standardisés */}
+            {/* BOUTONS d'action — adaptés au tier et au type */}
             <div className="mt-5 space-y-2">
-              <button className="btn-acheter w-full" onClick={primaryAction}>
-                {isLocation ? "Louer ce véhicule" : "Acheter ce véhicule"}
-              </button>
-              <div className="grid grid-cols-2 gap-2">
-                <button className="btn-message" onClick={messageAction}>
-                  <MessageSquare size={16} /> Message
-                </button>
-                {v.contactTelephone ? (
-                  <a href={`tel:${v.contactTelephone}`} className="btn-appeler">
-                    <Phone size={16} /> Appeler
-                  </a>
+              {isLocation ? (
+                /* ── LOCATION : tout passe par MKA.P-MS, pas de tel/WhatsApp direct ── */
+                isVtcTaxi ? (
+                  /* VTC / Taxi */
+                  <>
+                    <button className="btn-acheter w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/messages"))}><Send size={16} /> Demander location</button>
+                    <button className="btn-message w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/documents"))}><FileText size={16} /> Envoyer documents</button>
+                    <button className="btn-outline w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/dossiers"))}><EyeIcon size={16} /> Suivre validation</button>
+                    <button className="btn-gold w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/contrats"))}><FolderCheck size={16} /> Signer contrat</button>
+                    <button className="btn-reserver w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/paiements"))}><CreditCard size={16} /> Payer acompte</button>
+                  </>
                 ) : (
-                  <button className="btn-outline" onClick={messageAction}>
-                    <Phone size={16} /> Appeler
-                  </button>
-                )}
-              </div>
-              {v.contactTelephone && (
-                <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-whatsapp w-full">
-                  WhatsApp
-                </a>
+                  /* Location classique */
+                  <>
+                    <button className="btn-acheter w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/messages"))}><Send size={16} /> Faire une demande</button>
+                    <button className="btn-message w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/documents"))}><FileText size={16} /> Déposer dossier</button>
+                    <button className="btn-outline w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/dossiers"))}><EyeIcon size={16} /> Suivre dossier</button>
+                    <button className="btn-gold w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/contrats"))}><Download size={16} /> Télécharger contrat</button>
+                    <button className="btn-reserver w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/paiements"))}><CreditCard size={16} /> Effectuer paiement</button>
+                  </>
+                )
+              ) : tier === "professionnel" ? (
+                /* ── VENTE PRO : Message + Téléphone + WhatsApp + Voir société ── */
+                <>
+                  <button className="btn-acheter w-full h-[56px] lg:h-[64px]" onClick={primaryAction}>Acheter ce véhicule</button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button className="btn-message h-[56px] lg:h-[64px]" onClick={messageAction}><MessageSquare size={16} /> Message</button>
+                    {v.contactTelephone ? (
+                      <a href={`tel:${v.contactTelephone}`} className="btn-appeler h-[56px] lg:h-[64px]"><Phone size={16} /> Appeler</a>
+                    ) : (
+                      <button className="btn-outline h-[56px] lg:h-[64px]" onClick={messageAction}><Phone size={16} /> Appeler</button>
+                    )}
+                  </div>
+                  {v.contactTelephone && (
+                    <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-whatsapp w-full h-[56px] lg:h-[64px]">WhatsApp</a>
+                  )}
+                  <button className="btn-outline w-full h-[56px] lg:h-[64px]" onClick={() => navigate("/pro")}><Building2 size={16} /> Voir société</button>
+                </>
+              ) : (
+                /* ── VENTE PARTICULIER : Message + Téléphone + WhatsApp ── */
+                <>
+                  <button className="btn-acheter w-full h-[54px] lg:h-[60px]" onClick={primaryAction}>Acheter ce véhicule</button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button className="btn-message h-[54px] lg:h-[60px]" onClick={messageAction}><MessageSquare size={16} /> Message</button>
+                    {v.contactTelephone ? (
+                      <a href={`tel:${v.contactTelephone}`} className="btn-appeler h-[54px] lg:h-[60px]"><Phone size={16} /> Appeler</a>
+                    ) : (
+                      <button className="btn-outline h-[54px] lg:h-[60px]" onClick={messageAction}><Phone size={16} /> Appeler</button>
+                    )}
+                  </div>
+                  {v.contactTelephone && (
+                    <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-whatsapp w-full h-[54px] lg:h-[60px]">WhatsApp</a>
+                  )}
+                </>
               )}
               <div className="flex items-center justify-between pt-1">
                 <button
@@ -492,21 +574,37 @@ export default function Vehicule() {
         </div>
       )}
 
+      {/* Barre fixe mobile — adaptée au type */}
       <div className="fixed inset-x-0 bottom-16 z-30 border-t border-slate-200 bg-white/95 p-2 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] backdrop-blur md:hidden">
-        <div className={`container-page grid gap-2 ${v.contactTelephone ? "grid-cols-3" : "grid-cols-2"}`}>
-          <button className="btn-message" onClick={messageAction}>
-            <MessageSquare size={16} /> Message
-          </button>
-          {v.contactTelephone && (
-            <a href={`tel:${v.contactTelephone}`} className="btn-appeler">
-              <Phone size={16} /> Appeler
-            </a>
+        <div className="container-page">
+          {isLocation ? (
+            <div className="grid grid-cols-2 gap-2">
+              <button className="btn-acheter h-[48px] text-xs" onClick={() => requireLogin(() => navigate("/compte/messages"))}><Send size={14} /> Demande</button>
+              <button className="btn-message h-[48px] text-xs" onClick={() => requireLogin(() => navigate("/compte/documents"))}><FileText size={14} /> Dossier</button>
+            </div>
+          ) : (
+            <div className={`grid gap-2 ${v.contactTelephone ? "grid-cols-3" : "grid-cols-2"}`}>
+              <button className="btn-message h-[48px] text-xs" onClick={messageAction}><MessageSquare size={14} /> Message</button>
+              {v.contactTelephone && (
+                <a href={`tel:${v.contactTelephone}`} className="btn-appeler h-[48px] text-xs"><Phone size={14} /> Appeler</a>
+              )}
+              <button className="btn-acheter h-[48px] text-xs" onClick={primaryAction}>{isLocation ? "Louer" : "Acheter"}</button>
+            </div>
           )}
-          <button className="btn-acheter" onClick={primaryAction}>
-            {isLocation ? "Louer" : "Acheter"}
-          </button>
         </div>
       </div>
+
+      {/* Boutons flottants — UNIQUEMENT pour MKA.P-MS Officiel */}
+      {isOfficiel && v.contactTelephone && !isLocation && (
+        <div className="fixed bottom-32 right-4 z-40 flex flex-col gap-3 md:bottom-8 md:right-8">
+          <a href={`tel:${v.contactTelephone}`} className="flex h-16 w-16 items-center justify-center rounded-full bg-[#111] text-white shadow-lg hover:bg-[#333] lg:h-20 lg:w-20">
+            <Phone size={24} className="lg:hidden" /><Phone size={30} className="hidden lg:block" />
+          </a>
+          <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-16 w-16 items-center justify-center rounded-full bg-[#25d366] text-white shadow-lg hover:bg-[#1ebe57] lg:h-20 lg:w-20">
+            <MessageSquare size={24} className="lg:hidden" /><MessageSquare size={30} className="hidden lg:block" />
+          </a>
+        </div>
+      )}
     </div>
   );
 }

@@ -89,6 +89,22 @@ a {
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* Carousel card responsive widths: 2 cards phone / 3 tablet / 4 desktop / 6 ultra-wide */
+.carousel-card {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  width: calc(50% - 8px); /* 2 cards on phone */
+}
+@media (min-width: 768px) {
+  .carousel-card { width: calc(33.333% - 10px); } /* 3 cards on tablet */
+}
+@media (min-width: 1024px) {
+  .carousel-card { width: calc(25% - 12px); } /* 4 cards on desktop */
+}
+@media (min-width: 1920px) {
+  .carousel-card { width: calc(16.666% - 13px); } /* 6 cards on ultra-wide */
+}
+
 /* PWA standalone mode — espace sous la barre de statut iOS */
 @media all and (display-mode: standalone) {
   header {

@@ -2,6 +2,13 @@
 export default {
   content: ["./client/index.html", "./client/src/**/*.{ts,tsx}"],
   theme: {
+    screens: {
+      sm: "320px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1440px",
+      "2xl": "1920px",
+    },
     extend: {
       colors: {
         // Identité MKA.P-MS : Noir luxe (UI principale) + Or premium (accent) sur fond blanc.

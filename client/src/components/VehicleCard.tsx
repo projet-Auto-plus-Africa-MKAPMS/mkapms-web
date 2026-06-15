@@ -19,6 +19,15 @@ export interface VehicleCardData {
   vendeurType?: string | null;
   boosted?: boolean | null;
   photoPrincipale?: string | null;
+  tier?: string | null;
+}
+
+function getCardTier(v: VehicleCardData): "officiel" | "elite" | "premium" | "professionnel" | "particulier" {
+  if (v.id >= 8000 && v.id <= 8005) return "officiel";
+  if (v.tier === "elite") return "elite";
+  if (v.boosted && v.vendeurType === "professionnel") return "premium";
+  if (v.vendeurType === "professionnel" || v.vendeurType === "concession") return "professionnel";
+  return "particulier";
 }
 
 const PLACEHOLDER =
@@ -36,9 +45,26 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
       : v.vendeurType === "concession"
         ? "Concession"
         : "Particulier";
+  const tier = getCardTier(v);
+  const isOfficielTier = tier === "officiel" || tier === "elite";
+  const photoHeight =
+    tier === "officiel" || tier === "elite"
+      ? "h-[200px] lg:h-[260px]"
+      : tier === "premium"
+        ? "h-[180px] lg:h-[240px]"
+        : tier === "professionnel"
+          ? "h-[160px] lg:h-[220px]"
+          : "h-[140px] lg:h-[200px]";
+
+  const tierBadge =
+    tier === "officiel" ? "MKA.P-MS Officiel"
+    : tier === "elite" ? "Élite"
+    : tier === "premium" ? "Premium"
+    : null;
+
   return (
-    <Link to={`/vehicule/${v.id}`} className="card group overflow-hidden transition hover:shadow-md">
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+    <Link to={`/vehicule/${v.id}`} className={`card group overflow-hidden transition hover:shadow-md ${isOfficielTier ? "border-[#D4AF37]/40 shadow-lg" : ""}`}>
+      <div className={`relative ${photoHeight} w-full overflow-hidden bg-slate-100`}>
         <img
           src={v.photoPrincipale || PLACEHOLDER}
           alt={v.titre}
@@ -48,11 +74,11 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
         <span className="badge absolute left-3 top-3 bg-noir/80 text-white">
           {isLocation ? "À louer" : "À vendre"}
         </span>
-        {v.vendeurType === "professionnel" && (
-          <span className="badge absolute left-3 top-10 bg-[#D4AF37] text-white text-[9px] font-bold px-2 py-0.5">PRO</span>
+        {tierBadge && (
+          <span className={`badge absolute right-3 top-3 font-bold px-2.5 py-1 ${tier === "officiel" ? "bg-[#111] text-white" : tier === "elite" ? "bg-gradient-to-r from-[#111] to-[#D4AF37] text-white" : "bg-gold text-noir"}`}>{tierBadge}</span>
         )}
-        {v.boosted && (
-          <span className="badge absolute right-3 top-3 bg-gold text-noir">Premium</span>
+        {!tierBadge && v.vendeurType === "professionnel" && (
+          <span className="badge absolute left-3 top-10 bg-[#D4AF37] text-white text-[9px] font-bold px-2 py-0.5">PRO</span>
         )}
       </div>
       <div className="p-4">

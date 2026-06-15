@@ -126,29 +126,29 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           1. HERO — FOND CLAIR + VOITURE COUVERTE
          ═══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-[#F5F3EF]">
-        <div className="container-page relative py-4 text-center sm:py-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">La marketplace automobile</p>
-          <h1 className="mt-1 text-2xl font-black uppercase leading-tight text-[#111] sm:text-3xl md:text-4xl">
+      <section className="relative overflow-hidden bg-[#F5F3EF] h-[650px] md:h-[750px] lg:h-[850px] flex items-center">
+        <div className="container-page relative text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4AF37] md:text-sm">La marketplace automobile</p>
+          <h1 className="mt-2 text-3xl font-black uppercase leading-tight text-[#111] md:text-4xl lg:text-5xl">
             La référence<br />
             <span className="text-[#D4AF37]">de confiance</span><br />
             pour tous vos projets auto
           </h1>
-          <div className="mx-auto my-2 flex items-center justify-center gap-3">
+          <div className="mx-auto my-3 flex items-center justify-center gap-3">
             <div className="h-px w-12 bg-[#D4AF37]" />
             <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#D4AF37]">
               <span className="text-xs font-bold text-[#D4AF37]">M</span>
             </div>
             <div className="h-px w-12 bg-[#D4AF37]" />
           </div>
-          <p className="mx-auto max-w-md text-xs text-[#6B7280]">
+          <p className="mx-auto max-w-md text-sm text-[#6B7280] md:text-base">
             Achat, vente, location, entretien, livraison et bien plus encore.<br />
             Tout l'univers automobile réuni au même endroit.
           </p>
           <img
             src="https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&q=80"
             alt="Voiture couverte"
-            className="mx-auto mt-3 h-40 w-auto max-w-full object-contain sm:h-48"
+            className="mx-auto mt-4 h-48 w-auto max-w-full object-contain md:h-64 lg:h-80"
           />
         </div>
       </section>
@@ -158,7 +158,7 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-[#F5F3EF] pb-8">
         <div className="container-page">
-          <div className="mx-auto grid max-w-lg grid-cols-4 gap-3">
+          <div className="mx-auto grid max-w-3xl grid-cols-4 gap-4">
             {[
               { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
               { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
@@ -167,12 +167,14 @@ export default function Home() {
             ].map((a) => {
               const Icon = a.icon;
               return (
-                <Link key={a.to} to={a.to} className="group flex flex-col items-center gap-1 text-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#111] text-white transition group-hover:bg-[#D4AF37]">
-                    <Icon size={22} />
+                <Link key={a.to} to={a.to} className="group flex flex-col items-center justify-center gap-1.5 text-center">
+                  <div className="flex h-[100px] w-[100px] items-center justify-center rounded-2xl bg-[#111] text-white transition group-hover:bg-[#D4AF37] lg:h-[160px] lg:w-[160px] xl:h-[220px] xl:w-[220px]">
+                    <Icon size={28} className="lg:hidden" />
+                    <Icon size={48} className="hidden lg:block xl:hidden" />
+                    <Icon size={60} className="hidden xl:block" />
                   </div>
-                  <span className="mt-1 text-[10px] font-extrabold uppercase tracking-wide text-[#111]">{a.label}</span>
-                  <span className="text-[9px] text-[#6B7280]">{a.sub}</span>
+                  <span className="mt-1 text-xs font-extrabold uppercase tracking-wide text-[#111] lg:text-sm">{a.label}</span>
+                  <span className="text-[10px] text-[#6B7280] lg:text-xs">{a.sub}</span>
                   <div className="mx-auto mt-1 h-0.5 w-6 rounded bg-[#D4AF37]" />
                 </Link>
               );
@@ -281,7 +283,7 @@ export default function Home() {
                 { id: 8004, titre: "Mercedes GLA 200", marque: "Mercedes", modele: "GLA", annee: 2022, kilometrage: 22000, carburant: "Essence", prix: 38900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=280&fit=crop" },
                 { id: 8005, titre: "BMW X1 sDrive18i", marque: "BMW", modele: "X1", annee: 2023, kilometrage: 15000, carburant: "Essence", prix: 35500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=280&fit=crop" },
               ].map((v: any) => (
-                <div key={v.id} className="w-[200px] shrink-0 snap-start">
+                <div key={v.id} className="carousel-card">
                   <VehicleCard v={v} />
                 </div>
               ))}
@@ -505,7 +507,7 @@ export default function Home() {
           <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
             {featured.isLoading
               ? Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="w-[220px] shrink-0 snap-start">
+                  <div key={i} className="carousel-card">
                     <div className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
                   </div>
                 ))
@@ -513,7 +515,7 @@ export default function Home() {
                   ? featured.data.items.slice(0, 10)
                   : DEMO_ANNONCES.filter(a => a.boosted)
                 ).map((v: any) => (
-                  <div key={v.id} className="w-[220px] shrink-0 snap-start">
+                  <div key={v.id} className="carousel-card">
                     <VehicleCard v={v} />
                   </div>
                 ))}
@@ -683,7 +685,7 @@ export default function Home() {
           </div>
           <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
             {DEMO_ANNONCES.filter(a => a.vendeurType === "particulier").map((v: any) => (
-              <div key={v.id} className="w-[220px] shrink-0 snap-start">
+              <div key={v.id} className="carousel-card">
                 <VehicleCard v={v} />
               </div>
             ))}
@@ -704,7 +706,7 @@ export default function Home() {
           </div>
           <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
             {DEMO_LOCATION.map((v: any) => (
-              <div key={v.id} className="w-[220px] shrink-0 snap-start">
+              <div key={v.id} className="carousel-card">
                 <VehicleCard v={v} />
               </div>
             ))}
@@ -806,7 +808,7 @@ export default function Home() {
           <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
             {featured.isLoading
               ? Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="w-[220px] shrink-0 snap-start">
+                  <div key={i} className="carousel-card">
                     <div className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
                   </div>
                 ))
@@ -814,7 +816,7 @@ export default function Home() {
                   ? featured.data.items.slice(0, 10)
                   : DEMO_ANNONCES
                 ).map((v: any) => (
-                  <div key={v.id} className="w-[220px] shrink-0 snap-start">
+                  <div key={v.id} className="carousel-card">
                     <VehicleCard v={v} />
                   </div>
                 ))}
