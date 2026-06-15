@@ -45,6 +45,18 @@ const DEMO_ANNONCES = [
   { id: 9006, titre: "Volkswagen Golf 8 R-Line", marque: "Volkswagen", modele: "Golf", annee: 2022, kilometrage: 30000, carburant: "Essence", prix: 27500, type: "vente", ville: "Nice", vendeurType: "professionnel", boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=280&fit=crop" },
   { id: 9007, titre: "Toyota Yaris Hybride", marque: "Toyota", modele: "Yaris", annee: 2023, kilometrage: 8000, carburant: "Hybride", prix: 21500, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 45, photoPrincipale: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=280&fit=crop" },
   { id: 9008, titre: "Audi A4 Avant S-Line", marque: "Audi", modele: "A4", annee: 2021, kilometrage: 55000, carburant: "Diesel", prix: 31900, type: "vente", ville: "Lille", vendeurType: "professionnel", boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=280&fit=crop" },
+  { id: 9009, titre: "Dacia Sandero Stepway", marque: "Dacia", modele: "Sandero", annee: 2022, kilometrage: 22000, carburant: "Essence", prix: 14500, type: "vente", ville: "Nantes", vendeurType: "particulier", photoPrincipale: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=400&h=280&fit=crop" },
+  { id: 9010, titre: "Fiat 500 Lounge", marque: "Fiat", modele: "500", annee: 2021, kilometrage: 32000, carburant: "Essence", prix: 13900, type: "vente", ville: "Strasbourg", vendeurType: "particulier", photoPrincipale: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=400&h=280&fit=crop" },
+];
+
+/* ── annonces location démo ── */
+const DEMO_LOCATION = [
+  { id: 9101, titre: "Peugeot 208 GT", marque: "Peugeot", modele: "208", annee: 2023, kilometrage: 5000, carburant: "Essence", prix: 35, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 35, photoPrincipale: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&h=280&fit=crop" },
+  { id: 9102, titre: "Renault Captur Intens", marque: "Renault", modele: "Captur", annee: 2022, kilometrage: 15000, carburant: "Diesel", prix: 42, type: "location", ville: "Lyon", vendeurType: "professionnel", prixJour: 42, photoPrincipale: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=280&fit=crop" },
+  { id: 9103, titre: "Citroën C4 Feel", marque: "Citroën", modele: "C4", annee: 2023, kilometrage: 8000, carburant: "Hybride", prix: 48, type: "location", ville: "Marseille", vendeurType: "professionnel", prixJour: 48, photoPrincipale: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop" },
+  { id: 9104, titre: "Mercedes Classe C", marque: "Mercedes", modele: "Classe C", annee: 2022, kilometrage: 20000, carburant: "Diesel", prix: 75, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 75, boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=280&fit=crop" },
+  { id: 9105, titre: "Toyota RAV4 Hybride", marque: "Toyota", modele: "RAV4", annee: 2023, kilometrage: 10000, carburant: "Hybride", prix: 55, type: "location", ville: "Toulouse", vendeurType: "professionnel", prixJour: 55, photoPrincipale: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=400&h=280&fit=crop" },
+  { id: 9106, titre: "BMW Série 1 118i", marque: "BMW", modele: "Série 1", annee: 2022, kilometrage: 18000, carburant: "Essence", prix: 60, type: "location", ville: "Bordeaux", vendeurType: "professionnel", prixJour: 60, boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?w=400&h=280&fit=crop" },
 ];
 
 /* ── partenaires ── */
@@ -639,31 +651,43 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          7. ANNONCES CLASSIQUES — carrousel horizontal
+          7. ANNONCES PARTICULIERS — carrousel horizontal
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white pb-10">
         <div className="container-page">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
-              Toutes les annonces
+              Annonces Particuliers
             </h2>
-            <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes →</Link>
+            <Link to="/acheter?vendeurType=particulier" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes →</Link>
           </div>
           <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-            {featured.isLoading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="w-[220px] shrink-0 snap-start">
-                    <div className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
-                  </div>
-                ))
-              : (featured.data?.items && featured.data.items.length > 0
-                  ? featured.data.items
-                  : DEMO_ANNONCES
-                ).map((v: any) => (
-                  <div key={v.id} className="w-[220px] shrink-0 snap-start">
-                    <VehicleCard v={v} />
-                  </div>
-                ))}
+            {DEMO_ANNONCES.filter(a => a.vendeurType === "particulier").map((v: any) => (
+              <div key={v.id} className="w-[220px] shrink-0 snap-start">
+                <VehicleCard v={v} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          7b. ANNONCES LOCATION — carrousel horizontal
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-[#F9F9F9] py-10">
+        <div className="container-page">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
+              <KeyRound size={18} className="text-[#D4AF37]" /> Annonces Location
+            </h2>
+            <Link to="/louer" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes →</Link>
+          </div>
+          <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+            {DEMO_LOCATION.map((v: any) => (
+              <div key={v.id} className="w-[220px] shrink-0 snap-start">
+                <VehicleCard v={v} />
+              </div>
+            ))}
           </div>
         </div>
       </section>
