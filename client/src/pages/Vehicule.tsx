@@ -12,6 +12,7 @@ import {
   Flag,
   History,
   ChevronRight,
+  ChevronLeft,
   FileText,
   FolderCheck,
   Eye as EyeIcon,
@@ -44,13 +45,24 @@ import { computeTrustScore, TRUST_LEVEL_LABEL } from "@shared/trust";
 import { computeBadges } from "@shared/badges";
 import { BadgeChip } from "../components/VehicleCard";
 
+/* ── Catégories photo pour véhicules MKA.P-MS Officiel ── */
+type PhotoCategory = "exterieur" | "sieges" | "coffre" | "tableau_de_bord" | "roues" | "autres";
+const PHOTO_CATEGORIES: { key: PhotoCategory; label: string }[] = [
+  { key: "exterieur", label: "Extérieur" },
+  { key: "sieges", label: "Sièges" },
+  { key: "coffre", label: "Coffre" },
+  { key: "tableau_de_bord", label: "Tableau de bord" },
+  { key: "roues", label: "Roues" },
+  { key: "autres", label: "Autres" },
+];
+
 /* ── Véhicules démo (IDs >= 8000) ── */
 const DEMO_VEHICLES: Record<number, any> = Object.fromEntries([
-  { id: 8001, titre: "Peugeot 308 GT", marque: "Peugeot", modele: "308", annee: 2023, kilometrage: 12000, carburant: "Essence", prix: 26900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Peugeot 308 GT en excellent état, premier propriétaire. Véhicule révisé et garanti MKA.P-MS.", photoPrincipale: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80" },
-  { id: 8002, titre: "Renault Austral Iconic", marque: "Renault", modele: "Austral", annee: 2024, kilometrage: 5000, carburant: "Hybride", prix: 34500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Renault Austral Iconic hybride, faible kilométrage. Garantie constructeur.", photoPrincipale: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&q=80" },
-  { id: 8003, titre: "Citroën C5 X Shine", marque: "Citroën", modele: "C5 X", annee: 2023, kilometrage: 18000, carburant: "Diesel", prix: 31900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Citroën C5 X Shine, confort et élégance. Entretien complet.", photoPrincipale: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80" },
-  { id: 8004, titre: "Mercedes GLA 200", marque: "Mercedes", modele: "GLA", annee: 2022, kilometrage: 22000, carburant: "Essence", prix: 38900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Mercedes GLA 200, SUV compact premium. Garantie MKA.P-MS.", photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&q=80" },
-  { id: 8005, titre: "BMW X1 sDrive18i", marque: "BMW", modele: "X1", annee: 2023, kilometrage: 15000, carburant: "Essence", prix: 35500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "BMW X1 sDrive18i, motorisation essence efficiente. État impeccable.", photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80" },
+  { id: 8001, titre: "Peugeot 308 GT", marque: "Peugeot", modele: "308", annee: 2023, kilometrage: 12000, carburant: "Essence", prix: 26900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Peugeot 308 GT en excellent état, premier propriétaire. Véhicule révisé et garanti MKA.P-MS.", pointsForts: ["Faible kilométrage (12 000 km)", "Premier propriétaire", "Entretien à jour", "Garantie MKA.P-MS incluse", "Contrôle technique OK"], equipements: ["Climatisation automatique", "GPS intégré", "Caméra de recul", "Régulateur adaptatif", "Sièges chauffants", "Jantes alliage 18\"", "LED full", "Apple CarPlay / Android Auto"], imperfections: ["Micro-rayure pare-chocs arrière (retouchée)", "Usure normale des pneus avant"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80", "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: [] }, photoPrincipale: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80" },
+  { id: 8002, titre: "Renault Austral Iconic", marque: "Renault", modele: "Austral", annee: 2024, kilometrage: 5000, carburant: "Hybride", prix: 34500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Renault Austral Iconic hybride, faible kilométrage. Garantie constructeur.", pointsForts: ["Hybride — économie de carburant", "Seulement 5 000 km", "Garantie constructeur", "Technologie dernier cri", "Finition Iconic haut de gamme"], equipements: ["Toit panoramique", "Affichage tête haute", "Aide au stationnement 360°", "Charge sans fil", "Multimédia 12\"", "Sono Harman Kardon"], imperfections: ["Aucune imperfection constatée"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&q=80", "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: [] }, photoPrincipale: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&q=80" },
+  { id: 8003, titre: "Citroën C5 X Shine", marque: "Citroën", modele: "C5 X", annee: 2023, kilometrage: 18000, carburant: "Diesel", prix: 31900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Citroën C5 X Shine, confort et élégance. Entretien complet.", pointsForts: ["Confort suspension hydraulique", "Entretien 100% à jour", "Diesel économique", "Grand coffre familial"], equipements: ["Suspension hydraulique", "Matrix LED", "Keyless entry", "Sièges massants", "Aide au stationnement"], imperfections: ["Légère usure siège conducteur"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: [] }, photoPrincipale: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80" },
+  { id: 8004, titre: "Mercedes GLA 200", marque: "Mercedes", modele: "GLA", annee: 2022, kilometrage: 22000, carburant: "Essence", prix: 38900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "Mercedes GLA 200, SUV compact premium. Garantie MKA.P-MS.", pointsForts: ["SUV compact premium", "Garantie MKA.P-MS", "Système MBUX complet", "Motorisation efficiente"], equipements: ["MBUX multimédia", "Caméra 360°", "Pack AMG Line", "LED haute performance", "Sièges sport", "Jantes AMG 19\""], imperfections: ["Micro-impact pare-brise (réparé)"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&q=80", "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: ["https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&q=80"] }, photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&q=80" },
+  { id: 8005, titre: "BMW X1 sDrive18i", marque: "BMW", modele: "X1", annee: 2023, kilometrage: 15000, carburant: "Essence", prix: 35500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", description: "BMW X1 sDrive18i, motorisation essence efficiente. État impeccable.", pointsForts: ["État impeccable", "BMW Connected Drive", "Faible consommation", "Design moderne"], equipements: ["BMW Live Cockpit", "Driving Assistant", "Parking Assistant", "LED adaptatifs", "Toit ouvrant", "Sono HiFi"], imperfections: ["Aucune imperfection constatée"], photoCategories: { exterieur: ["https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80", "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?w=800&q=80"], sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80"], coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"], tableau_de_bord: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80"], roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80"], autres: [] }, photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80" },
   { id: 9001, titre: "Peugeot 3008 GT Line", marque: "Peugeot", modele: "3008", annee: 2022, kilometrage: 35000, carburant: "Diesel", prix: 28900, type: "vente", ville: "Paris", vendeurType: "professionnel", description: "Peugeot 3008 GT Line, SUV familial. Révision complète effectuée.", photoPrincipale: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80" },
   { id: 9002, titre: "Renault Clio V Intens", marque: "Renault", modele: "Clio", annee: 2023, kilometrage: 18000, carburant: "Essence", prix: 16500, type: "vente", ville: "Lyon", vendeurType: "particulier", description: "Renault Clio V Intens, citadine polyvalente en parfait état.", photoPrincipale: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800&q=80" },
   { id: 9003, titre: "BMW Série 3 320d M Sport", marque: "BMW", modele: "Série 3", annee: 2021, kilometrage: 42000, carburant: "Diesel", prix: 35900, type: "vente", ville: "Marseille", vendeurType: "professionnel", boosted: true, description: "BMW Série 3 M Sport, performance et élégance.", photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80" },
@@ -80,6 +92,8 @@ export default function Vehicule() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [photoIdx, setPhotoIdx] = useState(0);
+  const [photoCat, setPhotoCat] = useState<PhotoCategory>("exterieur");
+  const [descTab, setDescTab] = useState<"description" | "points_forts" | "equipements" | "imperfections">("description");
   const [acompte, setAcompte] = useState<number>(ACOMPTE_PALIERS[1]);
 
   const isDemo = annonceId >= 8000;
@@ -120,11 +134,22 @@ export default function Vehicule() {
   const isVtcTaxi = v.segmentLocation === "vtc_taxi";
   const tier = getVehicleTier(v);
   const isOfficiel = tier === "officiel" || tier === "elite" || tier === "premium";
+  const isMkapmsStock = v.id >= 8000 && v.id <= 8005;
 
-  /* Photo height classes per tier (responsive) */
+  /* Photos catégorisées pour véhicules MKA.P-MS Officiel */
+  const hasPhotoCategories = isMkapmsStock && v.photoCategories;
+  const categoryPhotos = hasPhotoCategories ? (v.photoCategories[photoCat] || []) as string[] : [];
+  const activeCatPhotos = hasPhotoCategories ? categoryPhotos : photos;
+  const activeCatIdx = hasPhotoCategories ? Math.min(photoIdx, Math.max(0, activeCatPhotos.length - 1)) : photoIdx;
+  const allCategoryPhotos = hasPhotoCategories
+    ? Object.values(v.photoCategories as Record<string, string[]>).flat()
+    : photos;
+  const totalPhotoCount = allCategoryPhotos.length;
+
+  /* Photo height classes per tier (responsive) — réduit légèrement pour MKA.P-MS */
   const photoHeightClass =
     tier === "officiel" || tier === "elite"
-      ? "h-[520px] md:h-[600px] lg:h-[720px] xl:h-[850px]"
+      ? "h-[420px] md:h-[500px] lg:h-[620px] xl:h-[720px]"
       : tier === "premium"
         ? "h-[420px] md:h-[500px] lg:h-[650px]"
         : tier === "professionnel"
@@ -205,25 +230,82 @@ export default function Vehicule() {
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         {/* ===== 1. PHOTOS ===== */}
         <section className="min-w-0 lg:col-start-1 lg:row-start-1">
+          {/* Onglets catégorie photo — MKA.P-MS Officiel uniquement */}
+          {hasPhotoCategories && (
+            <div className="mb-2 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+              {PHOTO_CATEGORIES.filter((c) => (v.photoCategories[c.key] || []).length > 0 || c.key === "autres").map((c) => (
+                <button
+                  key={c.key}
+                  onClick={() => { setPhotoCat(c.key); setPhotoIdx(0); }}
+                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                    photoCat === c.key
+                      ? "bg-[#111] text-[#D4AF37]"
+                      : "border border-slate-200 bg-white text-slate-600 hover:border-[#D4AF37]"
+                  }`}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className={`card overflow-hidden ${isOfficiel ? "border-[#D4AF37]/40 shadow-lg" : ""}`}>
             <div className={`relative w-full ${photoHeightClass} bg-slate-100`}>
-              {photos.length ? (
-                <img src={photos[photoIdx]} alt={v.titre} className="h-full w-full object-cover" />
+              {activeCatPhotos.length ? (
+                <img src={activeCatPhotos[activeCatIdx]} alt={v.titre} className="h-full w-full object-cover" />
               ) : (
-                <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
+                <div className="grid h-full place-items-center text-slate-400">Pas de photo dans cette catégorie</div>
               )}
-              {photos.length > 1 && (
+
+              {/* Flèches gauche/droite — MKA.P-MS Officiel */}
+              {hasPhotoCategories && activeCatPhotos.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setPhotoIdx((i) => Math.max(0, i - 1))}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition"
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
+                  <button
+                    onClick={() => setPhotoIdx((i) => Math.min(activeCatPhotos.length - 1, i + 1))}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition"
+                  >
+                    <ChevronRight size={22} />
+                  </button>
+                </>
+              )}
+              {/* Flèches pour véhicules non-MKA.P-MS */}
+              {!hasPhotoCategories && photos.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setPhotoIdx((i) => Math.max(0, i - 1))}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition"
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
+                  <button
+                    onClick={() => setPhotoIdx((i) => Math.min(photos.length - 1, i + 1))}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition"
+                  >
+                    <ChevronRight size={22} />
+                  </button>
+                </>
+              )}
+
+              {/* Compteur photos */}
+              {(hasPhotoCategories ? activeCatPhotos.length > 0 : photos.length > 1) && (
                 <span className="badge absolute bottom-3 right-3 bg-noir/70 text-white">
-                  {photoIdx + 1} / {photos.length}
+                  {hasPhotoCategories ? `${activeCatIdx + 1} / ${activeCatPhotos.length}` : `${photoIdx + 1} / ${photos.length}`}
                 </span>
               )}
-              {/* Badges automatiques — coin supérieur gauche, max 3 */}
+
+              {/* Badges automatiques — coin supérieur gauche, max 3, sans PRO pour MKA.P-MS */}
               {(() => {
                 const vehicleBadges = computeBadges({
                   id: v.id, vendeurType: v.vendeurType, type: v.type,
                   status: v.status, boosted: v.boosted, certified: v.certified,
                   tier: v.tier, planCode: v.planCode, createdAt: v.createdAt,
-                });
+                }).filter((b) => !(isMkapmsStock && (b.code === "vendeur_pro" || b.code === "garage_verifie")));
                 return vehicleBadges.length > 0 ? (
                   <div className="absolute left-3 top-3 flex flex-col gap-1">
                     {vehicleBadges.map((b) => <BadgeChip key={b.code} badge={b} />)}
@@ -231,15 +313,15 @@ export default function Vehicule() {
                 ) : null;
               })()}
             </div>
-            {/* Galerie : 6 photos mobile, 12 desktop */}
-            {photos.length > 1 && (
+            {/* Galerie miniatures */}
+            {(hasPhotoCategories ? activeCatPhotos.length > 1 : photos.length > 1) && (
               <div className="flex gap-2 overflow-x-auto p-3">
-                {photos.slice(0, typeof window !== "undefined" && window.innerWidth >= 1024 ? 12 : 6).map((p, i) => (
+                {(hasPhotoCategories ? activeCatPhotos : photos).slice(0, typeof window !== "undefined" && window.innerWidth >= 1024 ? 12 : 6).map((p: string, i: number) => (
                   <button
                     key={i}
                     onClick={() => setPhotoIdx(i)}
                     className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg ring-offset-1 ${
-                      i === photoIdx ? "ring-2 ring-gold" : "ring-1 ring-slate-200"
+                      i === (hasPhotoCategories ? activeCatIdx : photoIdx) ? "ring-2 ring-gold" : "ring-1 ring-slate-200"
                     }`}
                   >
                     <img src={p} alt="" className="h-full w-full object-cover" />
@@ -254,7 +336,7 @@ export default function Vehicule() {
         <aside className="space-y-5 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-20">
           <div className="card p-5">
             <p className="text-xs font-semibold uppercase tracking-wide text-gold-dark">
-              {v.vendeurType === "professionnel" ? "MKA.P-MS Garage" : "Particulier"}
+              {isMkapmsStock ? "MKA.P-MS Officiel" : v.vendeurType === "professionnel" ? "Professionnel" : "Particulier"}
             </p>
             <h1 className="mt-1 text-xl font-extrabold text-noir">{v.titre}</h1>
             <p className="text-sm text-slate-500">{v.version || `${v.marque} ${v.modele}`}</p>
@@ -300,7 +382,16 @@ export default function Vehicule() {
 
             {/* BOUTONS d'action — adaptés au tier et au type */}
             <div className="mt-5 space-y-2">
-              {isLocation ? (
+              {isMkapmsStock && !isLocation ? (
+                /* ── MKA.P-MS Officiel (vente) : WhatsApp + Message en haut ── */
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-whatsapp flex h-[56px] items-center justify-center gap-2 lg:h-[64px]"><MessageSquare size={16} /> WhatsApp</a>
+                    <button className="btn-message h-[56px] lg:h-[64px]" onClick={messageAction}><MessageSquare size={16} /> Message</button>
+                  </div>
+                  <button className="btn-acheter w-full h-[56px] lg:h-[64px]" onClick={primaryAction}>Acheter ce véhicule</button>
+                </>
+              ) : isLocation ? (
                 /* ── LOCATION : tout passe par MKA.P-MS, pas de tel/WhatsApp direct ── */
                 isVtcTaxi ? (
                   /* VTC / Taxi — boutons spécifiques activité professionnelle */
@@ -374,8 +465,8 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* Réserver avec acompte (vente) */}
-          {!isLocation && (
+          {/* Réserver avec acompte (vente) — pour NON-MKA.P-MS, position ici ; pour MKA.P-MS, après Finance+ */}
+          {!isLocation && !isMkapmsStock && (
             <div id="reserver" className="card p-5">
               <h3 className="font-bold text-noir">Réserver avec acompte</h3>
               <p className="mt-1 text-sm text-slate-500">
@@ -473,6 +564,38 @@ export default function Vehicule() {
               </button>
             </div>
           )}
+
+          {/* Réserver avec acompte — MKA.P-MS Officiel : positionné SOUS Finance+ */}
+          {!isLocation && isMkapmsStock && (
+            <div id="reserver" className="card border-[#D4AF37]/20 p-5">
+              <h3 className="font-bold text-noir">Réserver ce véhicule</h3>
+              <p className="mt-1 text-sm text-slate-500">
+                Bloquez ce véhicule 24 h, le temps de finaliser votre achat.
+              </p>
+              <div className="mt-3 grid grid-cols-4 gap-2">
+                {ACOMPTE_PALIERS.map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setAcompte(p)}
+                    className={`rounded-lg border px-2 py-2 text-sm font-semibold transition ${
+                      acompte === p
+                        ? "border-gold bg-gold-soft text-gold-dark"
+                        : "border-slate-300 text-slate-600 hover:border-slate-400"
+                    }`}
+                  >
+                    {p} €
+                  </button>
+                ))}
+              </div>
+              <button
+                className="btn-reserver mt-4 w-full"
+                disabled={reserve.isPending}
+                onClick={() => requireLogin(() => reserve.mutate({ annonceId: v.id, acompte }))}
+              >
+                {reserve.isPending ? "Redirection…" : "Réserver maintenant"}
+              </button>
+            </div>
+          )}
         </aside>
 
         {/* ===== 4 → 8 : Infos, Description, Historique, Vendeur, Avis ===== */}
@@ -500,12 +623,71 @@ export default function Vehicule() {
             )}
           </div>
 
-          {/* 5. DESCRIPTION */}
+          {/* 5. DESCRIPTION — avec onglets pour MKA.P-MS Officiel */}
           <div className="card p-5">
-            <h2 className="mb-3 font-bold text-noir">Description</h2>
-            <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
-              {v.description || "Aucune description fournie par le vendeur."}
-            </p>
+            {isMkapmsStock ? (
+              <>
+                <div className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-100 pb-2 scrollbar-hide">
+                  {([
+                    { key: "description" as const, label: "Description" },
+                    { key: "points_forts" as const, label: "Points forts" },
+                    { key: "equipements" as const, label: "Équipements" },
+                    { key: "imperfections" as const, label: "Imperfections" },
+                  ]).map((tab) => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setDescTab(tab.key)}
+                      className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                        descTab === tab.key
+                          ? "bg-[#111] text-white"
+                          : "text-slate-500 hover:bg-slate-50"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+                {descTab === "description" && (
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
+                    {v.description || "Aucune description fournie."}
+                  </p>
+                )}
+                {descTab === "points_forts" && v.pointsForts && (
+                  <ul className="space-y-2">
+                    {v.pointsForts.map((pf: string) => (
+                      <li key={pf} className="flex items-center gap-2 text-sm text-slate-700">
+                        <ShieldCheck size={14} className="text-[#D4AF37]" /> {pf}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {descTab === "equipements" && v.equipements && (
+                  <div className="grid grid-cols-2 gap-2 text-sm text-slate-600">
+                    {v.equipements.map((eq: string) => (
+                      <div key={eq} className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-3 py-2 text-xs">
+                        <ShieldCheck size={12} className="text-emerald-600" /> {eq}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {descTab === "imperfections" && v.imperfections && (
+                  <ul className="space-y-2">
+                    {v.imperfections.map((imp: string) => (
+                      <li key={imp} className="flex items-center gap-2 text-sm text-slate-600">
+                        <Flag size={14} className="text-orange-500" /> {imp}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            ) : (
+              <>
+                <h2 className="mb-3 font-bold text-noir">Description</h2>
+                <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
+                  {v.description || "Aucune description fournie par le vendeur."}
+                </p>
+              </>
+            )}
           </div>
 
           {/* 6. HISTORIQUE */}
@@ -983,7 +1165,13 @@ export default function Vehicule() {
       {/* Barre fixe mobile — adaptée au type */}
       <div className="fixed inset-x-0 bottom-16 z-30 border-t border-slate-200 bg-white/95 p-2 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] backdrop-blur md:hidden">
         <div className="container-page">
-          {isLocation ? (
+          {isMkapmsStock ? (
+            /* MKA.P-MS Officiel : Acheter (gauche) + Contact (droite) */
+            <div className="grid grid-cols-2 gap-2">
+              <button className="btn-acheter h-[48px] text-xs" onClick={primaryAction}>Acheter</button>
+              <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-message flex h-[48px] items-center justify-center gap-1 text-xs"><MessageSquare size={14} /> Contact</a>
+            </div>
+          ) : isLocation ? (
             <div className="grid grid-cols-2 gap-2">
               <button className="btn-acheter h-[48px] text-xs" onClick={() => requireLogin(() => navigate("/compte/messages"))}><Send size={14} /> Demande</button>
               <button className="btn-message h-[48px] text-xs" onClick={() => requireLogin(() => navigate("/compte/documents"))}><FileText size={14} /> Dossier</button>
