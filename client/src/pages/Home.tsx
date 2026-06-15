@@ -655,15 +655,15 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           ESPACE PUBLICITAIRE #1
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-gradient-to-r from-[#111] to-[#1a1a1a] py-6">
+      <section className="bg-gradient-to-r from-[#111] to-[#1a1a1a]">
         <div className="container-page">
-          <div className="flex items-center justify-between rounded-2xl border border-[#D4AF37]/30 bg-[#111] p-5">
+          <div className="flex h-[160px] items-center justify-between rounded-2xl border border-[#D4AF37]/30 bg-[#111] p-5 lg:h-[250px]">
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37]">Publicité partenaire</p>
-              <h3 className="mt-1 text-lg font-extrabold text-white">Votre publicité ici</h3>
-              <p className="mt-1 text-xs text-slate-400">Espace réservé aux partenaires MKA.P-MS — Contactez-nous pour apparaître ici</p>
+              <h3 className="mt-1 text-lg font-extrabold text-white lg:text-2xl">Votre publicité ici</h3>
+              <p className="mt-1 text-xs text-slate-400 lg:text-sm">Espace réservé aux partenaires MKA.P-MS — Contactez-nous pour apparaître ici</p>
             </div>
-            <Link to="/aide" className="shrink-0 rounded-full bg-[#D4AF37] px-5 py-2 text-xs font-bold text-white hover:bg-[#C5A028]">
+            <Link to="/aide" className="shrink-0 rounded-full bg-[#D4AF37] px-5 py-2 text-xs font-bold text-white hover:bg-[#C5A028] lg:px-8 lg:py-3 lg:text-sm">
               Annoncer →
             </Link>
           </div>
@@ -717,15 +717,15 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           ESPACE PUBLICITAIRE #2
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#FFFDF5] py-5">
+      <section className="bg-[#FFFDF5]">
         <div className="container-page">
-          <div className="flex items-center justify-between rounded-2xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm">
+          <div className="flex h-[160px] items-center justify-between rounded-2xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm lg:h-[250px]">
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37]">Publicité</p>
-              <h3 className="mt-1 text-base font-extrabold text-[#111]">Boostez votre visibilité sur MKA.P-MS</h3>
-              <p className="mt-1 text-xs text-slate-500">Professionnels, particuliers — mettez en avant vos annonces et services</p>
+              <h3 className="mt-1 text-base font-extrabold text-[#111] lg:text-xl">Boostez votre visibilité sur MKA.P-MS</h3>
+              <p className="mt-1 text-xs text-slate-500 lg:text-sm">Professionnels, particuliers — mettez en avant vos annonces et services</p>
             </div>
-            <Link to="/abonnements" className="shrink-0 rounded-full border-2 border-[#D4AF37] px-5 py-2 text-xs font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">
+            <Link to="/abonnements" className="shrink-0 rounded-full border-2 border-[#D4AF37] px-5 py-2 text-xs font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition lg:px-8 lg:py-3 lg:text-sm">
               Voir les offres →
             </Link>
           </div>
@@ -827,15 +827,15 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           ESPACE PUBLICITAIRE #3
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F5F5F5] py-5">
+      <section className="bg-[#F5F5F5]">
         <div className="container-page">
-          <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-[#D4AF37] to-[#C5A028] p-5 shadow-sm">
+          <div className="flex h-[160px] items-center justify-between rounded-2xl bg-gradient-to-r from-[#D4AF37] to-[#C5A028] p-5 shadow-sm lg:h-[250px]">
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-widest text-white/80">Publicité premium</p>
-              <h3 className="mt-1 text-base font-extrabold text-white">Devenez partenaire MKA.P-MS</h3>
-              <p className="mt-1 text-xs text-white/80">Gagnez en visibilité auprès de milliers d'acheteurs et de professionnels</p>
+              <h3 className="mt-1 text-base font-extrabold text-white lg:text-xl">Devenez partenaire MKA.P-MS</h3>
+              <p className="mt-1 text-xs text-white/80 lg:text-sm">Gagnez en visibilité auprès de milliers d'acheteurs et de professionnels</p>
             </div>
-            <Link to="/espace-pro" className="shrink-0 rounded-full bg-white px-5 py-2 text-xs font-bold text-[#111] hover:bg-[#F5F5F5]">
+            <Link to="/espace-pro" className="shrink-0 rounded-full bg-white px-5 py-2 text-xs font-bold text-[#111] hover:bg-[#F5F5F5] lg:px-8 lg:py-3 lg:text-sm">
               En savoir plus →
             </Link>
           </div>
