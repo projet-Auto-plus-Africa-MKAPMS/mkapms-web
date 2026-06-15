@@ -110,11 +110,9 @@ export default function Vehicule() {
   const whatsapp = `https://wa.me/${(v.contactTelephone || "").replace(/\D/g, "")}?text=${encodeURIComponent(
     `Bonjour, je suis intéressé par l'annonce "${v.titre}" (réf #${v.id}) sur MKA.P-MS.`,
   )}`;
-  const reportHref = `mailto:${legal.data?.email ?? "mka.garageauto@gmail.com"}?subject=${encodeURIComponent(
-    `Signalement annonce ${v.reference || `#${v.id}`} — ${v.titre}`,
-  )}&body=${encodeURIComponent(
-    `Bonjour,\n\nJe souhaite signaler l'annonce "${v.titre}" (réf ${v.reference || `#${v.id}`}) pour la raison suivante :\n\n`,
-  )}`;
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportSent, setReportSent] = useState(false);
 
   function requireLogin(action: () => void) {
     if (!user) return navigate("/connexion");
@@ -147,7 +145,7 @@ export default function Vehicule() {
   const messageAction = () => requireLogin(() => navigate("/compte/messages"));
 
   return (
-    <div className="container-page py-6 pb-44 md:pb-10">
+    <div className="container-page py-6 pb-32 md:pb-10">
       {/* Fil d'ariane */}
       <div className="mb-4 flex items-center gap-1 text-xs text-slate-400">
         <Link to="/acheter" className="hover:text-noir">Annonces</Link>
@@ -159,7 +157,7 @@ export default function Vehicule() {
         {/* ===== 1. PHOTOS ===== */}
         <section className="min-w-0 lg:col-start-1 lg:row-start-1">
           <div className="card overflow-hidden">
-            <div className="relative aspect-[16/10] bg-slate-100">
+            <div className="relative aspect-[4/3] bg-slate-100">
               {photos.length ? (
                 <img src={photos[photoIdx]} alt={v.titre} className="h-full w-full object-cover" />
               ) : (
@@ -268,12 +266,12 @@ export default function Vehicule() {
                 >
                   <Heart size={16} /> Ajouter aux favoris
                 </button>
-                <a
-                  href={reportHref}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-danger"
+                <button
+                  onClick={() => requireLogin(() => setShowReport(true))}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-red-500"
                 >
                   <Flag size={13} /> Signaler
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -463,7 +461,38 @@ export default function Vehicule() {
       </div>
 
       {/* Barre d'actions fixe (mobile) — toujours visible, au-dessus de la navigation */}
-      <div className="fixed inset-x-0 bottom-14 z-30 border-t border-slate-200 bg-white/95 p-2 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] backdrop-blur md:hidden">
+      {/* ── Modal signalement interne ── */}
+      {showReport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowReport(false)}>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-base font-bold text-[#111]">Signaler cette annonce</h3>
+            <p className="mt-1 text-xs text-slate-500">Réf. {v.reference || `#${v.id}`} — {v.titre}</p>
+            {reportSent ? (
+              <div className="mt-4 rounded-lg bg-green-50 border border-green-200 p-3 text-center">
+                <p className="text-sm font-semibold text-green-700">Signalement envoyé</p>
+                <p className="mt-1 text-xs text-green-600">Notre équipe va examiner cette annonce. Merci.</p>
+                <button onClick={() => { setShowReport(false); setReportSent(false); setReportReason(""); }} className="mt-3 rounded-lg bg-[#111] px-4 py-2 text-xs font-bold text-white">Fermer</button>
+              </div>
+            ) : (
+              <>
+                <div className="mt-3 space-y-2">
+                  {["Annonce frauduleuse", "Photos non conformes", "Prix incorrect", "Véhicule déjà vendu", "Contenu inapproprié", "Autre"].map((r) => (
+                    <button key={r} onClick={() => setReportReason(r)} className={`w-full rounded-lg border px-3 py-2 text-left text-xs transition ${reportReason === r ? "border-[#D4AF37] bg-[#D4AF37]/10 font-semibold text-[#111]" : "border-slate-200 text-slate-600 hover:border-[#D4AF37]"}`}>{r}</button>
+                  ))}
+                </div>
+                <button
+                  disabled={!reportReason}
+                  onClick={() => setReportSent(true)}
+                  className="mt-4 w-full rounded-lg bg-red-600 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-40"
+                >Envoyer le signalement</button>
+                <button onClick={() => setShowReport(false)} className="mt-2 w-full text-center text-xs text-slate-400 hover:text-slate-600">Annuler</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-slate-200 bg-white/95 p-2 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] backdrop-blur md:hidden">
         <div className={`container-page grid gap-2 ${v.contactTelephone ? "grid-cols-3" : "grid-cols-2"}`}>
           <button className="btn-message" onClick={messageAction}>
             <MessageSquare size={16} /> Message
