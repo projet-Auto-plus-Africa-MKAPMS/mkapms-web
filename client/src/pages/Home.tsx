@@ -157,52 +157,42 @@ export default function Home() {
           </p>
         </div>
 
-        {/* ── CAROUSEL ── */}
-        {(() => {
-          const CAROUSEL_PHOTOS = [
-            "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=450&fit=crop",
-            "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=450&fit=crop",
-            "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=450&fit=crop",
-            "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=450&fit=crop",
-            "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=450&fit=crop",
-          ];
-          return (
-            <div className="px-4 pt-1 md:px-6 md:pt-4">
-              <div className="relative mx-auto max-w-3xl overflow-hidden rounded-t-xl md:rounded-2xl">
-                <div
-                  className="flex transition-transform duration-500 ease-in-out"
-                  style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
-                >
-                  {CAROUSEL_PHOTOS.map((src, i) => (
-                    <img
-                      key={i}
-                      src={src}
-                      alt={`Véhicule ${i + 1}`}
-                      className="w-full shrink-0 aspect-[4/3] object-cover"
-                    />
-                  ))}
-                </div>
-                {/* dots overlaid at bottom of photo */}
-                <div className="absolute bottom-2 left-0 right-0 flex items-center justify-center gap-1.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setCarouselIdx(i)}
-                      className={`h-2 w-2 rounded-full transition-all ${
-                        carouselIdx === i ? "bg-[#D4AF37] scale-110" : "bg-white/70"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
+        {/* ── CAROUSEL + 4 ACTIONS (même conteneur = zéro espace) ── */}
+        <div className="px-4 pt-1 pb-4 md:px-6 md:pt-4 md:pb-6">
+          <div className="relative mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl">
+            <div
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
+            >
+              {[
+                "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=450&fit=crop",
+                "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=450&fit=crop",
+                "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=450&fit=crop",
+                "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=450&fit=crop",
+                "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=450&fit=crop",
+              ].map((src, i) => (
+                <img
+                  key={i}
+                  src={src}
+                  alt={`Véhicule ${i + 1}`}
+                  className="w-full shrink-0 aspect-[4/3] object-cover"
+                />
+              ))}
             </div>
-          );
-        })()}
-
-        {/* ── 4 ACTIONS ── */}
-        <div className="px-4 pb-4 md:px-6 md:pt-4 md:pb-6">
-          <div className="mx-auto grid max-w-lg grid-cols-4 gap-1.5 md:max-w-2xl md:gap-3">
+            <div className="absolute bottom-2 left-0 right-0 flex items-center justify-center gap-1.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setCarouselIdx(i)}
+                  className={`h-2 w-2 rounded-full transition-all ${
+                    carouselIdx === i ? "bg-[#D4AF37] scale-110" : "bg-white/70"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="mx-auto mt-2 grid max-w-3xl grid-cols-4 gap-1.5 md:max-w-2xl md:mt-3 md:gap-3">
             {[
               { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
               { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
