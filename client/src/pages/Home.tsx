@@ -136,7 +136,7 @@ export default function Home() {
           HOMEPAGE — tout visible sur 1 écran mobile
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-[#F5F3EF]">
-        <div className="container-page text-center pt-3 pb-1 md:pt-6 md:pb-2">
+        <div className="container-page text-center pt-3 pb-0 md:pt-6 md:pb-1">
           <p className="text-[9px] font-semibold uppercase tracking-[0.25em] text-[#D4AF37] md:text-xs">LA MARKETPLACE AUTOMOBILE</p>
           <h1 className="mt-1.5 text-[20px] font-black uppercase leading-[1.12] md:mt-3 md:text-3xl lg:text-4xl">
             <span className="text-[#111]">ACHETEZ, VENDEZ,</span><br />
@@ -158,7 +158,7 @@ export default function Home() {
         </div>
 
         {/* ── CAROUSEL + 4 ACTIONS (même conteneur = zéro espace) ── */}
-        <div className="px-4 pt-1 pb-4 md:px-6 md:pt-4 md:pb-6">
+        <div className="px-4 pt-0 pb-4 md:px-6 md:pt-2 md:pb-6">
           <div className="mx-auto max-w-3xl overflow-hidden rounded-xl bg-[#E5E2DB] md:rounded-2xl">
             <div
               className="flex transition-transform duration-500 ease-in-out"
@@ -176,7 +176,7 @@ export default function Home() {
                   src={src}
                   alt=""
                   loading={i === 0 ? "eager" : "lazy"}
-                  className="w-full shrink-0 aspect-[3/2] object-cover"
+                  className="w-full shrink-0 aspect-[4/3] object-cover"
                 />
               ))}
             </div>
