@@ -3,22 +3,37 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Search, Plus, PlusCircle, FileText, Wrench, Car, KeyRound, Truck, Star,
   ArrowRight, ShieldCheck, Users, User, Gauge, Heart, ChevronRight, ChevronDown,
-  CheckCircle, Check, Clock, Package, Phone, Mail, MapPin, Globe, Headphones, Tag,
+  CheckCircle, Check, Clock, Package, Phone, Mail, MapPin, Globe, Headphones, Tag, Zap,
 } from "lucide-react";
+
+/* ── Icône moto (SVG custom) ── */
+const MotoIcon = ({ size = 20, className = "" }: { size?: number; className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="5" cy="17" r="3" />
+    <circle cx="19" cy="17" r="3" />
+    <path d="M5 14l4-9h3" />
+    <path d="M12 5l3 9h4" />
+    <path d="M15 6h4l-1 3" />
+    <path d="M9 5L8 2" />
+  </svg>
+);
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import VehicleCard from "../components/VehicleCard";
 
 /* ── catégories ── */
-const CATEGORIES = [
-  { label: "Citadines", count: "+2 350", to: "/acheter?categorie=citadine" },
-  { label: "Berlines", count: "+4 152", to: "/acheter?categorie=berline" },
-  { label: "SUV & 4x4", count: "+3 782", to: "/acheter?categorie=suv" },
-  { label: "Utilitaires", count: "+1 256", to: "/acheter?categorie=utilitaire" },
-  { label: "Coupés", count: "+1 842", to: "/acheter?categorie=coupe" },
-  { label: "Motos", count: "+2 620", to: "/acheter?famille=moto" },
-  { label: "Scooters", count: "+1 125", to: "/acheter?famille=moto&categorie=scooter" },
+const CATEGORIES: { label: string; count: string; to: string; icon: "car" | "truck" | "gauge" | "moto" }[] = [
+  { label: "Citadines", count: "+2 350", to: "/acheter?categorie=citadine", icon: "car" },
+  { label: "Berlines", count: "+4 152", to: "/acheter?categorie=berline", icon: "car" },
+  { label: "SUV & 4x4", count: "+3 782", to: "/acheter?categorie=suv", icon: "truck" },
+  { label: "Utilitaires", count: "+1 256", to: "/acheter?categorie=utilitaire", icon: "truck" },
+  { label: "Coupés", count: "+1 842", to: "/acheter?categorie=coupe", icon: "gauge" },
+  { label: "Motos", count: "+2 620", to: "/acheter?famille=moto", icon: "moto" },
+  { label: "Scooters", count: "+1 125", to: "/acheter?famille=moto&categorie=scooter", icon: "moto" },
 ];
+const CAT_ICONS: Record<string, React.FC<{ size: number; className: string }>> = {
+  car: Car, truck: Truck, gauge: Gauge, moto: MotoIcon,
+};
 
 /* ── annonces démo ── */
 const DEMO_ANNONCES = [
@@ -462,7 +477,7 @@ export default function Home() {
             {CATEGORIES.map((c) => (
               <Link key={c.label} to={c.to} className="group flex w-[120px] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white px-3 py-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F3F4F6] transition group-hover:bg-[#D4AF37]/10">
-                  <Car size={22} className="text-[#6B7280] group-hover:text-[#D4AF37]" />
+                  {(() => { const Icon = CAT_ICONS[c.icon]; return <Icon size={22} className="text-[#6B7280] group-hover:text-[#D4AF37]" />; })()}
                 </div>
                 <span className="text-xs font-bold text-[#111]">{c.label}</span>
                 <span className="text-[10px] text-[#9CA3AF]">{c.count} annonces</span>

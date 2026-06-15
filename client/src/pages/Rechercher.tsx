@@ -1,9 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ArrowLeft, Search, ChevronRight, Car, Truck, Bike,
+  ArrowLeft, Search, ChevronRight, ChevronDown, Car, Truck,
   X, SlidersHorizontal,
 } from "lucide-react";
+
+/* ── Icône moto (SVG custom car lucide n'a pas de moto) ── */
+const MotoIcon = ({ size = 20, className = "" }: { size?: number; className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="5" cy="17" r="3" />
+    <circle cx="19" cy="17" r="3" />
+    <path d="M5 14l4-9h3" />
+    <path d="M12 5l3 9h4" />
+    <path d="M15 6h4l-1 3" />
+    <path d="M9 5L8 2" />
+  </svg>
+);
 
 /* ── types de véhicules par catégorie ── */
 const VOITURE_TYPES = ["Citadine", "Berline", "SUV", "Coupé", "Cabriolet", "Break", "Monospace", "Pick-up", "Sans permis"];
@@ -138,7 +150,7 @@ export default function Rechercher() {
         {([
           { key: "voiture" as const, icon: Car, label: "Voitures" },
           { key: "utilitaire" as const, icon: Truck, label: "Utilitaires" },
-          { key: "moto" as const, icon: Bike, label: "2 roues" },
+          { key: "moto" as const, icon: MotoIcon, label: "2 roues" },
         ]).map(tab => (
           <button key={tab.key} onClick={() => setMainTab(tab.key)}
             className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium border-b-2 transition ${mainTab === tab.key ? "border-[#D4AF37] text-[#D4AF37]" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
@@ -289,8 +301,15 @@ export default function Rechercher() {
             <button className="rounded-lg border border-slate-200 px-3 text-slate-400 hover:border-slate-400">⊕</button>
           </div>
           <button onClick={() => toggleSection("regions")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Régions et pays voisins <ChevronRight size={16} className="text-slate-400" />
+            Régions et pays voisins <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["regions"] ? "rotate-90" : ""}`} />
           </button>
+          {expandedSections["regions"] && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {["Île-de-France", "PACA", "Auvergne-Rhône-Alpes", "Occitanie", "Nouvelle-Aquitaine", "Hauts-de-France", "Grand Est", "Bretagne", "Normandie", "Belgique", "Luxembourg", "Suisse"].map(r => (
+                <button key={r} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:border-[#D4AF37] hover:text-[#D4AF37] transition">{r}</button>
+              ))}
+            </div>
+          )}
           <div className="mt-3 flex items-center justify-between">
             <span className="text-sm text-slate-600">Avec livraison</span>
             <button onClick={() => setAvecLivraison(!avecLivraison)} className={toggleClass(avecLivraison)}>
@@ -325,7 +344,7 @@ export default function Rechercher() {
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
           <h3 className="text-sm font-bold text-[#111]">Couleurs</h3>
           <button onClick={() => toggleSection("couleurExt")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Couleurs extérieur <ChevronRight size={16} className="text-slate-400" />
+            Couleurs extérieur <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["couleurExt"] ? "rotate-90" : ""}`} />
           </button>
           {expandedSections["couleurExt"] && (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -335,7 +354,7 @@ export default function Rechercher() {
             </div>
           )}
           <button onClick={() => toggleSection("couleurInt")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Couleurs intérieur <ChevronRight size={16} className="text-slate-400" />
+            Couleurs intérieur <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["couleurInt"] ? "rotate-90" : ""}`} />
           </button>
           {expandedSections["couleurInt"] && (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -350,11 +369,23 @@ export default function Rechercher() {
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
           <h3 className="text-sm font-bold text-[#111]">Performance</h3>
           <button onClick={() => toggleSection("puissanceFiscale")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Puissance fiscale <ChevronRight size={16} className="text-slate-400" />
+            Puissance fiscale <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["puissanceFiscale"] ? "rotate-90" : ""}`} />
           </button>
+          {expandedSections["puissanceFiscale"] && (
+            <div className="mt-2 flex gap-3">
+              <input placeholder="CV min" className={inputClass} />
+              <input placeholder="CV max" className={inputClass} />
+            </div>
+          )}
           <button onClick={() => toggleSection("puissanceDin")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Puissance DIN (ch) <ChevronRight size={16} className="text-slate-400" />
+            Puissance DIN (ch) <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["puissanceDin"] ? "rotate-90" : ""}`} />
           </button>
+          {expandedSections["puissanceDin"] && (
+            <div className="mt-2 flex gap-3">
+              <input placeholder="ch min" className={inputClass} />
+              <input placeholder="ch max" className={inputClass} />
+            </div>
+          )}
           <div className="mt-3 flex items-center justify-between">
             <span className="text-sm text-slate-600">4 roues motrices</span>
             <button onClick={() => setQuatreRoues(!quatreRoues)} className={toggleClass(quatreRoues)}>
@@ -367,11 +398,21 @@ export default function Rechercher() {
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
           <h3 className="text-sm font-bold text-[#111]">Consommation</h3>
           <button onClick={() => toggleSection("consMax")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Consommation max <ChevronRight size={16} className="text-slate-400" />
+            Consommation max <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["consMax"] ? "rotate-90" : ""}`} />
           </button>
+          {expandedSections["consMax"] && (
+            <div className="mt-2">
+              <input placeholder="L/100km max" className={inputClass} />
+            </div>
+          )}
           <button onClick={() => toggleSection("emissionCo2")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Emission de CO2 <ChevronRight size={16} className="text-slate-400" />
+            Emission de CO2 <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["emissionCo2"] ? "rotate-90" : ""}`} />
           </button>
+          {expandedSections["emissionCo2"] && (
+            <div className="mt-2">
+              <input placeholder="g CO₂/km max" className={inputClass} />
+            </div>
+          )}
         </div>
 
         {/* ── Historique ── */}
@@ -395,22 +436,49 @@ export default function Rechercher() {
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
           <h3 className="text-sm font-bold text-[#111]">Places & Portes</h3>
           <button onClick={() => toggleSection("nbPlaces")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Nombre de places <ChevronRight size={16} className="text-slate-400" />
+            Nombre de places <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["nbPlaces"] ? "rotate-90" : ""}`} />
           </button>
+          {expandedSections["nbPlaces"] && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {[2, 3, 4, 5, 6, 7, 8, 9].map(n => (
+                <button key={n} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:border-[#D4AF37] hover:text-[#D4AF37] transition">{n}</button>
+              ))}
+            </div>
+          )}
           <button onClick={() => toggleSection("nbPortes")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Nombre de portes <ChevronRight size={16} className="text-slate-400" />
+            Nombre de portes <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["nbPortes"] ? "rotate-90" : ""}`} />
           </button>
+          {expandedSections["nbPortes"] && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {[2, 3, 4, 5].map(n => (
+                <button key={n} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:border-[#D4AF37] hover:text-[#D4AF37] transition">{n}</button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ── Dimensions ── */}
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
           <h3 className="text-sm font-bold text-[#111]">Dimensions</h3>
           <button onClick={() => toggleSection("dimVehicule")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Dimensions du véhicule <ChevronRight size={16} className="text-slate-400" />
+            Dimensions du véhicule <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["dimVehicule"] ? "rotate-90" : ""}`} />
           </button>
+          {expandedSections["dimVehicule"] && (
+            <div className="mt-2 space-y-2">
+              <input placeholder="Longueur max (cm)" className={inputClass} />
+              <input placeholder="Largeur max (cm)" className={inputClass} />
+              <input placeholder="Hauteur max (cm)" className={inputClass} />
+            </div>
+          )}
           <button onClick={() => toggleSection("volumeCoffre")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Volume du coffre <ChevronRight size={16} className="text-slate-400" />
+            Volume du coffre <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["volumeCoffre"] ? "rotate-90" : ""}`} />
           </button>
+          {expandedSections["volumeCoffre"] && (
+            <div className="mt-2 flex gap-3">
+              <input placeholder="Litres min" className={inputClass} />
+              <input placeholder="Litres max" className={inputClass} />
+            </div>
+          )}
         </div>
 
         {/* ── Autres critères ── */}
