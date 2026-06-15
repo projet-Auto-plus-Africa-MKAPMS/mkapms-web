@@ -35,7 +35,7 @@ export default function GaragePlus() {
             const Icon = o.icon;
             return (
               <div key={o.t} className="card p-5">
-                <Icon className="text-brand" />
+                <Icon className="text-gold-dark" />
                 <h3 className="mt-3 font-bold text-slate-900">{o.t}</h3>
                 <p className="mt-1 text-sm text-slate-500">{o.d}</p>
               </div>

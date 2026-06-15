@@ -6,8 +6,17 @@ import { httpBatchLink } from "@trpc/client";
 import superjson from "superjson";
 import { trpc } from "./lib/trpc";
 import { getToken, AuthProvider } from "./lib/auth";
+import { CurrencyProvider } from "./lib/currency";
 import App from "./App";
 import "./index.css";
+
+// Nettoyer l'ancien service worker (supprime le cache bloquant)
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((r) => r.unregister());
+  });
+  caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
+}
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -31,9 +40,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <CurrencyProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </CurrencyProvider>
         </AuthProvider>
       </QueryClientProvider>
     </trpc.Provider>

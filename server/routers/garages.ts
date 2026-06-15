@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { and, desc, eq, ilike, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { router, publicProcedure, protectedProcedure } from "../trpc.js";
+import { router, publicProcedure, protectedProcedure, proProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { garagesPublics } from "../schema.js";
+import { garagesPublics, rdvGarage, serviceTracking } from "../schema.js";
+import { notifications } from "../modules/core.js";
 
 export const garagesRouter = router({
   // Annuaire public des garages (§7.1)
@@ -86,4 +87,63 @@ export const garagesRouter = router({
         .returning();
       return created;
     }),
+
+  // ── SUIVI INTERVENTION GARAGE (client voit chaque étape) ──
+  updateIntervention: proProcedure
+    .input(z.object({
+      rdvId: z.number(),
+      status: z.enum(["planifiee", "accueil", "diagnostic", "devis_envoye", "en_reparation", "controle_qualite", "pret", "termine", "annulee"]),
+      detail: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const statusLabels: Record<string, string> = {
+        planifiee: "Rendez-vous planifié",
+        accueil: "Véhicule réceptionné",
+        diagnostic: "Diagnostic en cours",
+        devis_envoye: "Devis envoyé",
+        en_reparation: "Réparation en cours",
+        controle_qualite: "Contrôle qualité",
+        pret: "Véhicule prêt — à récupérer",
+        termine: "Intervention terminée",
+        annulee: "Intervention annulée",
+      };
+
+      // Update RDV status
+      const [rdv] = await db.update(rdvGarage)
+        .set({ status: input.status as "en_attente", updatedAt: new Date() })
+        .where(eq(rdvGarage.id, input.rdvId))
+        .returning();
+      if (!rdv) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // Service tracking event
+      await db.insert(serviceTracking).values({
+        userId: rdv.clientId,
+        serviceType: "garage",
+        serviceId: rdv.id,
+        reference: `RDV-${rdv.id}`,
+        titre: `Intervention garage`,
+        status: input.status,
+        statusLabel: statusLabels[input.status] ?? input.status,
+        detail: input.detail,
+      });
+
+      // Notification client
+      await db.insert(notifications).values({
+        userId: rdv.clientId,
+        type: "garage",
+        title: `Garage — ${statusLabels[input.status]}`,
+        body: input.detail ?? `Votre véhicule est maintenant : ${statusLabels[input.status]}.`,
+        url: "/compte",
+      });
+
+      return rdv;
+    }),
+
+  // Client: voir le suivi de ses interventions garage
+  myInterventions: protectedProcedure.query(async ({ ctx }) => {
+    const rdvs = await db.select().from(rdvGarage)
+      .where(eq(rdvGarage.clientId, ctx.user.uid))
+      .orderBy(desc(rdvGarage.createdAt));
+    return rdvs;
+  }),
 });

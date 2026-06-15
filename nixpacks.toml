@@ -5,7 +5,9 @@ NODE_VERSION = "20"
 NPM_CONFIG_PRODUCTION = "false"
 
 [phases.install]
-cmds = ["npm ci"]
+# NODE_ENV=production (variable de service) ferait sauter les devDependencies ;
+# on force leur installation car vite/esbuild/tsc sont nécessaires au build.
+cmds = ["npm ci --include=dev"]
 
 [phases.build]
 cmds = ["npm run build"]

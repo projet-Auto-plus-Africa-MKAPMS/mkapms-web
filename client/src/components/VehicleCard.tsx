@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { MapPin, Gauge, Calendar, Fuel } from "lucide-react";
-import { formatPrice } from "@shared/currency";
+import { useCurrency } from "../lib/currency";
 
 export interface VehicleCardData {
   id: number;
@@ -28,6 +28,7 @@ const PLACEHOLDER =
   );
 
 export default function VehicleCard({ v }: { v: VehicleCardData }) {
+  const { format: formatPrice } = useCurrency();
   const isLocation = v.type === "location";
   const sellerLabel =
     v.vendeurType === "professionnel"
@@ -44,15 +45,18 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
           className="h-full w-full object-cover transition group-hover:scale-105"
           loading="lazy"
         />
-        <span className="badge absolute left-3 top-3 bg-brand text-white">
+        <span className="badge absolute left-3 top-3 bg-noir/80 text-white">
           {isLocation ? "À louer" : "À vendre"}
         </span>
+        {v.vendeurType === "professionnel" && (
+          <span className="badge absolute left-3 top-10 bg-[#D4AF37] text-white text-[9px] font-bold px-2 py-0.5">PRO</span>
+        )}
         {v.boosted && (
-          <span className="badge absolute right-3 top-3 bg-brand-gold text-slate-900">Premium</span>
+          <span className="badge absolute right-3 top-3 bg-gold text-noir">Premium</span>
         )}
       </div>
       <div className="p-4">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-brand">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gold-dark">
           {sellerLabel}
         </p>
         <h3 className="mt-1 truncate text-sm font-bold text-slate-900">{v.titre}</h3>

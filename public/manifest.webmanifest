@@ -1,13 +1,20 @@
 {
-  "name": "MKA.P-MS — Auto Plus Africa",
+  "name": "MKA.P-MS — LA MARKETPLACE AUTOMOBILE",
   "short_name": "MKA.P-MS",
-  "description": "Achat, vente, location et entretien de véhicules.",
+  "description": "Achat, vente, location, garage, pièces auto, livraison, dépannage — la marketplace automobile complète.",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
-  "theme_color": "#0b4f9c",
+  "theme_color": "#D4AF37",
+  "categories": ["auto", "shopping", "business"],
+  "lang": "fr",
   "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
-  ]
+  ],
+  "screenshots": [],
+  "related_applications": [],
+  "prefer_related_applications": false
 }

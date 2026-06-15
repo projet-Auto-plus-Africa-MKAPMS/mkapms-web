@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { router, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { favoris, annonces } from "../schema.js";
+import { favoris, annonces, annoncePhotos } from "../schema.js";
 
 export const favorisRouter = router({
   toggle: protectedProcedure
@@ -24,11 +24,27 @@ export const favorisRouter = router({
     }),
 
   mine: protectedProcedure.query(async ({ ctx }) => {
-    return db
+    const rows = await db
       .select({ annonce: annonces })
       .from(favoris)
       .innerJoin(annonces, eq(favoris.annonceId, annonces.id))
       .where(eq(favoris.userId, ctx.user.uid))
       .orderBy(desc(favoris.createdAt));
+    // photo principale par annonce (même logique que annonces.list)
+    const ids = rows.map((r) => r.annonce.id);
+    const photos = ids.length
+      ? await db
+          .select()
+          .from(annoncePhotos)
+          .where(sql`${annoncePhotos.annonceId} in (${sql.join(ids, sql`, `)})`)
+          .orderBy(annoncePhotos.ordre)
+      : [];
+    const photoMap = new Map<number, string>();
+    for (const p of photos) {
+      if (p.annonceId != null && !photoMap.has(p.annonceId)) photoMap.set(p.annonceId, p.url);
+    }
+    return rows.map((r) => ({
+      annonce: { ...r.annonce, photoPrincipale: photoMap.get(r.annonce.id) ?? null },
+    }));
   }),
 });
