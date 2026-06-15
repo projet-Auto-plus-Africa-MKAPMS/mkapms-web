@@ -116,15 +116,35 @@ export const BADGE_VENDU: Badge = {
 };
 
 /* ── BADGES LOCATION ── */
+export const BADGE_LOCATION_PRO: Badge = {
+  code: "location_pro", label: "LOCATION PRO",
+  color: "bg-blue-800", textColor: "text-white",
+  priority: 12, category: "location",
+};
+export const BADGE_VTC_TAXI: Badge = {
+  code: "vtc_taxi", label: "VTC / TAXI",
+  color: "bg-[#111]", textColor: "text-[#D4AF37]", borderColor: "border-[#D4AF37]",
+  priority: 11, category: "location",
+};
 export const BADGE_DISPONIBLE: Badge = {
   code: "disponible", label: "DISPONIBLE",
   color: "bg-emerald-500", textColor: "text-white",
   priority: 14, category: "location",
 };
-export const BADGE_LOUE: Badge = {
-  code: "loue", label: "LOUÉ",
+export const BADGE_RESERVE_LOCATION: Badge = {
+  code: "reserve_location", label: "RÉSERVÉ",
   color: "bg-orange-500", textColor: "text-white",
   priority: 17, category: "location",
+};
+export const BADGE_LOUE: Badge = {
+  code: "loue", label: "LOUÉ",
+  color: "bg-red-800", textColor: "text-white",
+  priority: 18, category: "location",
+};
+export const BADGE_EN_ENTRETIEN: Badge = {
+  code: "en_entretien", label: "EN ENTRETIEN",
+  color: "bg-slate-600", textColor: "text-white",
+  priority: 19, category: "location",
 };
 export const BADGE_LOA_DISPONIBLE: Badge = {
   code: "loa_disponible", label: "LOA DISPONIBLE",
@@ -232,7 +252,14 @@ export function computeBadges(v: BadgeInput): Badge[] {
 
   // Location badges
   if (v.type === "location") {
-    if (v.status === "publiee" || !v.status) badges.push(BADGE_DISPONIBLE);
+    // Type de location
+    if (v.segmentLocation === "vtc_taxi") badges.push(BADGE_VTC_TAXI);
+    else if (v.vendeurType === "professionnel" || v.vendeurType === "concession") badges.push(BADGE_LOCATION_PRO);
+    // Statut location
+    if (v.status === "louee") badges.push(BADGE_LOUE);
+    else if (v.status === "reservee") badges.push(BADGE_RESERVE_LOCATION);
+    else if (v.status === "entretien") badges.push(BADGE_EN_ENTRETIEN);
+    else if (v.status === "publiee" || !v.status) badges.push(BADGE_DISPONIBLE);
     if (v.loaDisponible) badges.push(BADGE_LOA_DISPONIBLE);
     if (v.paiementFractionne) badges.push(BADGE_PAIEMENT_FRACTIONNE);
   }

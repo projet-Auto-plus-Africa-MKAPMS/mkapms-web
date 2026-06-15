@@ -67,7 +67,11 @@ const DEMO_VEHICLES: Record<number, any> = Object.fromEntries([
   { id: 9104, titre: "Mercedes Classe C", marque: "Mercedes", modele: "Classe C", annee: 2022, kilometrage: 20000, carburant: "Diesel", prix: 75, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 75, boosted: true, description: "Mercedes Classe C premium en location. Élégance et performance.", photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&q=80" },
   { id: 9105, titre: "Toyota RAV4 Hybride", marque: "Toyota", modele: "RAV4", annee: 2023, kilometrage: 10000, carburant: "Hybride", prix: 55, type: "location", ville: "Toulouse", vendeurType: "professionnel", prixJour: 55, description: "Toyota RAV4 Hybride. SUV familial en location.", photoPrincipale: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=800&q=80" },
   { id: 9106, titre: "BMW Série 1 118i", marque: "BMW", modele: "Série 1", annee: 2022, kilometrage: 18000, carburant: "Essence", prix: 60, type: "location", ville: "Bordeaux", vendeurType: "professionnel", prixJour: 60, boosted: true, description: "BMW Série 1 118i en location. Compacte premium.", photoPrincipale: "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?w=800&q=80" },
-].map((v) => [v.id, { ...v, photos: [{ url: v.photoPrincipale }], contactTelephone: "+33123456789", reference: `DEMO-${v.id}`, vendeur: { rating: "4.5", reviewCount: 12 } }]));
+  /* ── VTC / TAXI ── */
+  { id: 9201, titre: "Mercedes Classe E 220d", marque: "Mercedes", modele: "Classe E", annee: 2023, kilometrage: 15000, carburant: "Diesel", prix: 120, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 120, segmentLocation: "vtc_taxi", description: "Mercedes Classe E 220d — véhicule idéal pour activité VTC. Confort premium, consommation maîtrisée.", photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&q=80" },
+  { id: 9202, titre: "Tesla Model 3 Long Range", marque: "Tesla", modele: "Model 3", annee: 2024, kilometrage: 5000, carburant: "Électrique", prix: 135, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 135, segmentLocation: "vtc_taxi", description: "Tesla Model 3 Long Range pour VTC. Zéro émission, autonomie supérieure.", photoPrincipale: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&q=80" },
+  { id: 9203, titre: "Toyota Camry Hybride", marque: "Toyota", modele: "Camry", annee: 2023, kilometrage: 20000, carburant: "Hybride", prix: 95, type: "location", ville: "Lyon", vendeurType: "professionnel", prixJour: 95, segmentLocation: "vtc_taxi", description: "Toyota Camry Hybride — fiabilité et économie pour chauffeurs Taxi/VTC.", photoPrincipale: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&q=80" },
+].map((v) => [v.id, { ...v, photos: [{ url: v.photoPrincipale }], contactTelephone: "+33123456789", reference: `DEMO-${v.id}`, vendeur: { id: 999, rating: "4.5", reviewCount: 12 } }]));
 
 export default function Vehicule() {
   const { format: formatPrice } = useCurrency();
@@ -299,22 +303,24 @@ export default function Vehicule() {
               {isLocation ? (
                 /* ── LOCATION : tout passe par MKA.P-MS, pas de tel/WhatsApp direct ── */
                 isVtcTaxi ? (
-                  /* VTC / Taxi */
+                  /* VTC / Taxi — boutons spécifiques activité professionnelle */
                   <>
-                    <button className="btn-acheter w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/messages"))}><Send size={16} /> Demander location</button>
-                    <button className="btn-message w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/documents"))}><FileText size={16} /> Envoyer documents</button>
-                    <button className="btn-outline w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/dossiers"))}><EyeIcon size={16} /> Suivre validation</button>
+                    <button className="btn-acheter w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/messages"))}><Send size={16} /> Demander ce véhicule</button>
+                    <button className="btn-message w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/documents"))}><FileText size={16} /> Envoyer documents VTC/TAXI</button>
+                    <button className="btn-gold w-full h-[54px] lg:h-[60px]" onClick={() => navigate("/finance")}><TrendingUp size={16} /> Simuler mensualité</button>
+                    <button className="btn-outline w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/dossiers"))}><EyeIcon size={16} /> Suivre mon dossier</button>
                     <button className="btn-gold w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/contrats"))}><FolderCheck size={16} /> Signer contrat</button>
-                    <button className="btn-reserver w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/paiements"))}><CreditCard size={16} /> Payer acompte</button>
+                    <button className="btn-reserver w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/paiements"))}><CreditCard size={16} /> Payer l'acompte</button>
                   </>
                 ) : (
-                  /* Location classique */
+                  /* Location classique — parcours client standard */
                   <>
+                    <button className="btn-outline w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/messages"))}><EyeIcon size={16} /> Vérifier disponibilité</button>
                     <button className="btn-acheter w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/messages"))}><Send size={16} /> Faire une demande</button>
-                    <button className="btn-message w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/documents"))}><FileText size={16} /> Déposer dossier</button>
-                    <button className="btn-outline w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/dossiers"))}><EyeIcon size={16} /> Suivre dossier</button>
-                    <button className="btn-gold w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/contrats"))}><Download size={16} /> Télécharger contrat</button>
-                    <button className="btn-reserver w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/paiements"))}><CreditCard size={16} /> Effectuer paiement</button>
+                    <button className="btn-message w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/documents"))}><FileText size={16} /> Envoyer mes documents</button>
+                    <button className="btn-gold w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/contrats"))}><FolderCheck size={16} /> Signer le contrat</button>
+                    <button className="btn-reserver w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/paiements"))}><CreditCard size={16} /> Payer / Réserver</button>
+                    <button className="btn-outline w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/locations"))}><EyeIcon size={16} /> Suivre ma location</button>
                   </>
                 )
               ) : tier === "professionnel" ? (
@@ -728,6 +734,190 @@ export default function Vehicule() {
           </>)}
           {/* ═══ FIN BLOCS ACCOMPAGNEMENT VENTE ═══ */}
 
+          {/* ═══════════════════════════════════════════════════════════
+              BLOCS ACCOMPAGNEMENT LOCATION (Location uniquement)
+             ═══════════════════════════════════════════════════════════ */}
+          {isLocation && (<>
+
+          {/* ── BLOC CONFIANCE LOCATION — différencié Normal vs VTC/TAXI ── */}
+          {isVtcTaxi ? (
+            /* ── VTC / TAXI : bloc professionnel ── */
+            <div className="overflow-hidden rounded-2xl border border-[#D4AF37]/30 bg-[#111]">
+              <div className="p-6">
+                <span className="inline-flex items-center rounded-full bg-[#D4AF37] px-3 py-1 text-[10px] font-bold text-[#111]">VTC / TAXI</span>
+                <h2 className="mt-3 text-lg font-extrabold text-white">Véhicule adapté VTC / Taxi</h2>
+                <p className="mt-2 text-sm text-slate-400">
+                  Ce véhicule est destiné aux professionnels souhaitant exercer ou développer une activité VTC ou Taxi.
+                  La demande se fait directement sur MKA.P-MS avec vérification des documents, validation du dossier, contrat et paiement sécurisé.
+                </p>
+                <ul className="mt-4 space-y-2">
+                  {["Véhicule adapté activité professionnelle", "Documents chauffeur vérifiés", "Société ou statut professionnel contrôlé", "Contrat de location sécurisé", "Suivi dossier dans votre espace", "Paiement et factures disponibles sur la plateforme"].map((t) => (
+                    <li key={t} className="flex items-center gap-2 text-sm text-white"><ShieldCheck size={14} className="text-[#D4AF37]" /> {t}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Conditions avant validation */}
+              <div className="border-t border-[#D4AF37]/20 bg-[#1a1a1a] p-5">
+                <h3 className="text-sm font-bold text-[#D4AF37]">Conditions avant validation</h3>
+                <p className="mt-1 text-xs text-slate-400">Avant toute validation, les documents du chauffeur ou de la société sont analysés et contrôlés.</p>
+                <ul className="mt-3 space-y-1.5 text-xs text-slate-300">
+                  {["Identité vérifiée", "Permis contrôlé", "Carte VTC/TAXI demandée si nécessaire", "Société vérifiée si compte pro", "Paiement confirmé avant réservation finale"].map((t) => (
+                    <li key={t} className="flex items-center gap-2"><ShieldCheck size={12} className="text-[#D4AF37]" /> {t}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Documents chauffeur */}
+              <div className="border-t border-[#D4AF37]/20 bg-[#111] p-5">
+                <h3 className="text-sm font-bold text-white">Documents chauffeur</h3>
+                <ul className="mt-2 space-y-1 text-xs text-slate-400">
+                  {["Pièce d'identité", "Permis de conduire", "Carte VTC ou carte Taxi", "Justificatif domicile", "Attestation assurance si nécessaire"].map((t) => (
+                    <li key={t} className="flex items-center gap-1.5">• {t}</li>
+                  ))}
+                </ul>
+                <h3 className="mt-4 text-sm font-bold text-white">Documents société (si applicable)</h3>
+                <ul className="mt-2 space-y-1 text-xs text-slate-400">
+                  {["KBIS", "SIRET", "TVA si disponible", "RIB société", "Assurance professionnelle"].map((t) => (
+                    <li key={t} className="flex items-center gap-1.5">• {t}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Étapes VTC/TAXI */}
+              <div className="border-t border-[#D4AF37]/20 bg-[#1a1a1a] p-5">
+                <h3 className="text-sm font-bold text-[#D4AF37]">Étapes de la demande</h3>
+                <ol className="mt-3 space-y-2">
+                  {["Choisir véhicule", "Lire les conditions", "Cliquer « Demander ce véhicule »", "Envoyer documents", "Dossier analysé par IA", "Validation humaine par le loueur", "Signature contrat", "Paiement acompte ou première échéance", "Véhicule réservé", "Remise du véhicule"].map((t, i) => (
+                    <li key={t} className="flex items-center gap-2 text-xs text-slate-300">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#D4AF37] text-[9px] font-bold text-[#111]">{i + 1}</span> {t}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          ) : (
+            /* ── LOCATION NORMALE : bloc confiance ── */
+            <div className="card overflow-hidden">
+              <div className="bg-white p-6">
+                <span className="inline-flex items-center rounded-full bg-blue-800 px-3 py-1 text-[10px] font-bold text-white">LOCATION PRO</span>
+                <h2 className="mt-3 text-lg font-extrabold text-[#111]">Louez votre véhicule en toute confiance</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  Cette annonce est proposée par un professionnel vérifié MKA.P-MS.
+                  Toutes les étapes de réservation, documents, contrat et paiement sont suivies directement depuis votre espace utilisateur.
+                </p>
+                <ul className="mt-4 space-y-2">
+                  {["Professionnel vérifié", "Contrat généré sur la plateforme", "Paiement sécurisé", "Documents suivis étape par étape", "État des lieux départ/retour", "Assistance MKA.P-MS disponible"].map((t) => (
+                    <li key={t} className="flex items-center gap-2 text-sm text-slate-700"><ShieldCheck size={14} className="text-blue-600" /> {t}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Documents client */}
+              <div className="border-t border-slate-100 p-5">
+                <h3 className="text-sm font-bold text-[#111]">Documents à fournir</h3>
+                <ul className="mt-2 space-y-1 text-xs text-slate-600">
+                  {["Pièce d'identité", "Permis de conduire", "Justificatif domicile", "Moyen de paiement", "Dépôt de garantie si nécessaire"].map((t) => (
+                    <li key={t} className="flex items-center gap-1.5">• {t}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Comment ça marche */}
+              <div className="border-t border-slate-100 p-5">
+                <h3 className="text-sm font-bold text-[#111]">Comment ça marche ?</h3>
+                <ol className="mt-3 space-y-2">
+                  {["Choisissez votre véhicule", "Envoyez vos documents", "Attendez la validation", "Signez le contrat", "Récupérez le véhicule"].map((t, i) => (
+                    <li key={t} className="flex items-center gap-2 text-xs text-slate-600">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[9px] font-bold text-white">{i + 1}</span> {t}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          )}
+
+          {/* ── PUBLICITÉS INTERNES LOCATION ── */}
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            {isVtcTaxi ? (
+              /* Pubs internes VTC/TAXI */
+              <>
+                {[
+                  { text: "Véhicules disponibles VTC", sub: "Voir la sélection", to: "/louer?segment=vtc", bg: "bg-[#111]", tc: "text-white", sc: "text-[#D4AF37]" },
+                  { text: "Location longue durée", sub: "Solutions sur mesure", to: "/finance", bg: "bg-blue-800", tc: "text-white", sc: "text-blue-200" },
+                  { text: "Assurance professionnelle", sub: "Protégez votre activité", to: "/assurance", bg: "bg-emerald-700", tc: "text-white", sc: "text-emerald-200" },
+                  { text: "Gestion flotte", sub: "Optimisez votre parc", to: "/pro", bg: "bg-slate-800", tc: "text-white", sc: "text-slate-300" },
+                  { text: "Documents chauffeur", sub: "Vérifier vos documents", to: "/compte/documents", bg: "bg-[#D4AF37]", tc: "text-[#111]", sc: "text-[#111]/70" },
+                  { text: "Comptabilité Pro", sub: "Factures et exports", to: "/compte/factures", bg: "bg-orange-600", tc: "text-white", sc: "text-orange-100" },
+                ].map((ad) => (
+                  <Link key={ad.text} to={ad.to} className={`rounded-xl ${ad.bg} p-4 transition hover:opacity-90`}>
+                    <p className={`text-xs font-bold ${ad.tc}`}>{ad.text}</p>
+                    <p className={`mt-1 text-[10px] ${ad.sc}`}>{ad.sub}</p>
+                  </Link>
+                ))}
+              </>
+            ) : (
+              /* Pubs internes Location normale */
+              <>
+                {[
+                  { text: "Assurance location", sub: "Roulez couvert", to: "/assurance", bg: "bg-blue-700", tc: "text-white", sc: "text-blue-200" },
+                  { text: "Dépannage", sub: "Assistance 24h/24", to: "/garages", bg: "bg-red-600", tc: "text-white", sc: "text-red-100" },
+                  { text: "Historique véhicule", sub: "Transparence totale", to: "/historique", bg: "bg-emerald-700", tc: "text-white", sc: "text-emerald-200" },
+                  { text: "Pièces auto", sub: "Commander en ligne", to: "/pieces", bg: "bg-slate-800", tc: "text-white", sc: "text-slate-300" },
+                  { text: "Garage+", sub: "Trouver un garage", to: "/garages", bg: "bg-[#D4AF37]", tc: "text-[#111]", sc: "text-[#111]/70" },
+                ].map((ad) => (
+                  <Link key={ad.text} to={ad.to} className={`rounded-xl ${ad.bg} p-4 transition hover:opacity-90`}>
+                    <p className={`text-xs font-bold ${ad.tc}`}>{ad.text}</p>
+                    <p className={`mt-1 text-[10px] ${ad.sc}`}>{ad.sub}</p>
+                  </Link>
+                ))}
+              </>
+            )}
+          </div>
+
+          {/* ── FAQ LOCATION — différenciée Normal vs VTC/TAXI ── */}
+          <div className="card p-5">
+            <h2 className="text-base font-extrabold text-[#111]">Questions fréquentes</h2>
+            <div className="mt-3 space-y-3">
+              {isVtcTaxi ? (
+                <>
+                  {[
+                    { q: "Puis-je louer sans carte VTC ?", a: "Non, la carte VTC ou carte Taxi est obligatoire pour exercer une activité de transport professionnel. Elle sera demandée lors de l'envoi de vos documents." },
+                    { q: "Quels documents sont obligatoires ?", a: "Pièce d'identité, permis de conduire, carte VTC ou Taxi, justificatif domicile, et attestation d'assurance si nécessaire. Pour les sociétés : KBIS, SIRET, RIB." },
+                    { q: "Est-ce réservé aux sociétés ?", a: "Non, les chauffeurs indépendants (micro-entreprise, auto-entrepreneur) peuvent également faire une demande avec leur statut professionnel." },
+                    { q: "Puis-je ajouter plusieurs chauffeurs ?", a: "Oui, si vous êtes une société avec une flotte, vous pouvez ajouter plusieurs chauffeurs autorisés sur le contrat de location." },
+                    { q: "Comment fonctionne le contrat ?", a: "Le contrat est généré directement sur MKA.P-MS après validation de votre dossier. Vous le signez électroniquement depuis votre espace." },
+                    { q: "Comment suivre mes paiements ?", a: "Tous vos paiements, échéances et factures sont disponibles dans votre espace utilisateur, rubrique 'Mes paiements'." },
+                  ].map((faq) => (
+                    <details key={faq.q} className="group rounded-lg border border-slate-100 bg-slate-50">
+                      <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[#111] hover:text-[#D4AF37]">{faq.q}</summary>
+                      <p className="px-4 pb-3 text-xs text-slate-600 leading-relaxed">{faq.a}</p>
+                    </details>
+                  ))}
+                </>
+              ) : (
+                <>
+                  {[
+                    { q: "Quels documents fournir pour louer ?", a: "Pièce d'identité, permis de conduire valide, justificatif de domicile récent et un moyen de paiement. Un dépôt de garantie peut être demandé." },
+                    { q: "Quand payer ?", a: "Le paiement se fait au moment de la réservation via la plateforme sécurisée. Vous recevez une confirmation immédiate." },
+                    { q: "Comment fonctionne la caution ?", a: "La caution est bloquée sur votre moyen de paiement au moment de la prise en charge et restituée après vérification de l'état du véhicule au retour." },
+                    { q: "Que faire en cas de retard ?", a: "Contactez le loueur via la messagerie MKA.P-MS pour signaler tout retard. Des frais supplémentaires peuvent s'appliquer selon les conditions." },
+                    { q: "Comment modifier ma demande ?", a: "Rendez-vous dans votre espace utilisateur, rubrique 'Mes locations', pour modifier les dates ou annuler avant la validation." },
+                    { q: "Comment annuler une réservation ?", a: "L'annulation est possible depuis votre espace avant le début de la location. Les conditions d'annulation dépendent du loueur." },
+                  ].map((faq) => (
+                    <details key={faq.q} className="group rounded-lg border border-slate-100 bg-slate-50">
+                      <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[#111] hover:text-[#D4AF37]">{faq.q}</summary>
+                      <p className="px-4 pb-3 text-xs text-slate-600 leading-relaxed">{faq.a}</p>
+                    </details>
+                  ))}
+                </>
+              )}
+            </div>
+          </div>
+
+          </>)}
+          {/* ═══ FIN BLOCS ACCOMPAGNEMENT LOCATION ═══ */}
+
           <Link to={isLocation ? "/louer" : "/acheter"} className="block text-center text-sm font-semibold text-gold-dark">
             ← Retour aux annonces
           </Link>
@@ -786,8 +976,8 @@ export default function Vehicule() {
         </div>
       </div>
 
-      {/* Boutons flottants — UNIQUEMENT pour MKA.P-MS Officiel */}
-      {isOfficiel && v.contactTelephone && !isLocation && (
+      {/* Boutons flottants — UNIQUEMENT pour MKA.P-MS Officiel (vente ET location) */}
+      {isOfficiel && v.contactTelephone && (
         <div className="fixed bottom-32 right-4 z-40 flex flex-col gap-3 md:bottom-8 md:right-8">
           <a href={`tel:${v.contactTelephone}`} className="flex h-16 w-16 items-center justify-center rounded-full bg-[#111] text-white shadow-lg hover:bg-[#333] lg:h-20 lg:w-20">
             <Phone size={24} className="lg:hidden" /><Phone size={30} className="hidden lg:block" />

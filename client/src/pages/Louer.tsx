@@ -31,6 +31,10 @@ const DEMO_LOCATION = [
   { id: 9104, titre: "Mercedes Classe C", marque: "Mercedes", modele: "Classe C", annee: 2022, kilometrage: 20000, carburant: "Diesel", prix: 75, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 75, boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=280&fit=crop" },
   { id: 9105, titre: "Toyota RAV4 Hybride", marque: "Toyota", modele: "RAV4", annee: 2023, kilometrage: 10000, carburant: "Hybride", prix: 55, type: "location", ville: "Toulouse", vendeurType: "professionnel", prixJour: 55, photoPrincipale: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=400&h=280&fit=crop" },
   { id: 9106, titre: "BMW Série 1 118i", marque: "BMW", modele: "Série 1", annee: 2022, kilometrage: 18000, carburant: "Essence", prix: 60, type: "location", ville: "Bordeaux", vendeurType: "professionnel", prixJour: 60, boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?w=400&h=280&fit=crop" },
+  /* VTC / TAXI */
+  { id: 9201, titre: "Mercedes Classe E 220d", marque: "Mercedes", modele: "Classe E", annee: 2023, kilometrage: 15000, carburant: "Diesel", prix: 120, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 120, segmentLocation: "vtc_taxi", photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=280&fit=crop" },
+  { id: 9202, titre: "Tesla Model 3 Long Range", marque: "Tesla", modele: "Model 3", annee: 2024, kilometrage: 5000, carburant: "Électrique", prix: 135, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 135, segmentLocation: "vtc_taxi", photoPrincipale: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=280&fit=crop" },
+  { id: 9203, titre: "Toyota Camry Hybride", marque: "Toyota", modele: "Camry", annee: 2023, kilometrage: 20000, carburant: "Hybride", prix: 95, type: "location", ville: "Lyon", vendeurType: "professionnel", prixJour: 95, segmentLocation: "vtc_taxi", photoPrincipale: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=280&fit=crop" },
 ];
 
 export default function Louer() {
@@ -55,8 +59,9 @@ export default function Louer() {
   const dbItems = list.data?.items || [];
   const allItems = dbItems.length > 0 ? dbItems : DEMO_LOCATION as any[];
   const mkapmsItems = allItems.filter((v: any) => v.vendeurType === "concession");
-  const vtcItems = allItems.filter((v: any) => (v.vendeurType === "professionnel" || v.boosted) && v.vendeurType !== "concession");
-  const particulierItems = allItems.filter((v: any) => v.vendeurType !== "professionnel" && !v.boosted && v.vendeurType !== "concession");
+  const vtcItems = allItems.filter((v: any) => v.segmentLocation === "vtc_taxi");
+  const proItems = allItems.filter((v: any) => v.segmentLocation !== "vtc_taxi" && v.vendeurType === "professionnel" && v.vendeurType !== "concession");
+  const particulierItems = allItems.filter((v: any) => v.segmentLocation !== "vtc_taxi" && v.vendeurType !== "professionnel" && v.vendeurType !== "concession");
 
   return (
     <div className="container-page py-8">
@@ -121,13 +126,14 @@ export default function Louer() {
         </div>
       )}
 
-      {/* ── 2. Carrousel VTC & Taxis en dessous ── */}
+      {/* ── 2. Location VTC & Taxis (séparé) ── */}
       {vtcItems.length > 0 && (
         <div className="mt-8">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-[#111]">
-            <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" /> Location VTC & Taxis — Professionnels
-          </h2>
-          <p className="mt-1 text-xs text-[#6B7280]">Véhicules conformes VTC et Taxi pour professionnels</p>
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-bold text-[#111]">VTC / Taxi — Véhicules professionnels</h2>
+            <span className="inline-flex items-center rounded-full bg-[#111] px-2.5 py-0.5 text-[9px] font-bold text-[#D4AF37] border border-[#D4AF37]">VTC / TAXI</span>
+          </div>
+          <p className="mt-1 text-xs text-[#6B7280]">Véhicules destinés aux chauffeurs VTC et Taxi — documents et contrats gérés sur MKA.P-MS</p>
           <div className="mt-3 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
             {vtcItems.map((v: any) => (
               <div key={v.id} className="w-[220px] shrink-0 snap-start">
@@ -138,10 +144,28 @@ export default function Louer() {
         </div>
       )}
 
-      {/* ── 3. Annonces Particuliers en grille ── */}
+      {/* ── 3. Location Pro classique ── */}
+      {proItems.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-bold text-[#111]">Location Pro</h2>
+            <span className="inline-flex items-center rounded-full bg-blue-800 px-2.5 py-0.5 text-[9px] font-bold text-white">LOCATION PRO</span>
+          </div>
+          <p className="mt-1 text-xs text-[#6B7280]">Véhicules proposés par des professionnels vérifiés</p>
+          <div className="mt-3 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+            {proItems.map((v: any) => (
+              <div key={v.id} className="w-[220px] shrink-0 snap-start">
+                <VehicleCard v={v as any} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 4. Autres véhicules ── */}
       <div className="mt-8">
         <h2 className="text-lg font-bold text-[#111]">
-          {segment ? SEGMENTS.find((s) => s.value === segment)?.label : "Véhicules en location — Particuliers"}
+          {segment ? SEGMENTS.find((s) => s.value === segment)?.label : "Tous les véhicules en location"}
         </h2>
         <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
           {list.isLoading
@@ -151,7 +175,7 @@ export default function Louer() {
             : (particulierItems.length > 0 ? particulierItems : allItems).map((v: any) => (
                 <VehicleCard key={v.id} v={v as any} />
               ))}
-          {list.data && list.data.items.length === 0 && (
+          {list.data && list.data.items.length === 0 && DEMO_LOCATION.length === 0 && (
             <p className="col-span-full py-12 text-center text-slate-500">
               Aucune offre de location disponible pour cette catégorie.
             </p>
