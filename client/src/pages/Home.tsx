@@ -233,46 +233,13 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-10">
         <div className="container-page grid gap-6 lg:grid-cols-2">
-          {/* Recherche — compact : tabs + filtres en grille + bouton */}
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
-            <h3 className="text-lg font-bold text-[#111]">Rechercher un véhicule</h3>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {(["toutes", "voitures", "motos", "utilitaires"] as const).map((t) => (
-                <button key={t} onClick={() => setSearchTab(t)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold capitalize transition ${searchTab === t ? "bg-[#111] text-white" : "bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]"}`}
-                >{t}</button>
-              ))}
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <select className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" value={sMarque} onChange={(e) => setSMarque(e.target.value)}>
-                <option value="">Marque</option>
-                {["Peugeot","Renault","Citroën","BMW","Mercedes","Audi","Volkswagen","Toyota","Ford","Opel","Fiat","Hyundai","Kia","Nissan","Dacia"].map((m) => <option key={m} value={m}>{m}</option>)}
-              </select>
-              <select className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" value={sModele} onChange={(e) => setSModele(e.target.value)}>
-                <option value="">Modèle</option>
-              </select>
-              <select className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" value={sLoc} onChange={(e) => setSLoc(e.target.value)}>
-                <option value="">Localisation</option>
-                <option value="Paris">Paris</option>
-                <option value="Lyon">Lyon</option>
-                <option value="Marseille">Marseille</option>
-                <option value="Toulouse">Toulouse</option>
-                <option value="Bordeaux">Bordeaux</option>
-                <option value="Nice">Nice</option>
-                <option value="Lille">Lille</option>
-              </select>
-              <select className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" value={sPrix} onChange={(e) => setSPrix(e.target.value)}>
-                <option value="">Prix max</option>
-                <option value="5000">5 000 €</option>
-                <option value="10000">10 000 €</option>
-                <option value="15000">15 000 €</option>
-                <option value="20000">20 000 €</option>
-                <option value="30000">30 000 €</option>
-                <option value="50000">50 000 €</option>
-              </select>
-            </div>
-            <button onClick={doSearch} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] py-2.5 text-sm font-bold text-white hover:bg-[#C5A028]">
-              Rechercher <Search size={16} />
+          {/* Recherche — gros bouton style La Centrale */}
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm flex flex-col items-center justify-center gap-4">
+            <Search size={28} className="text-[#D4AF37]" />
+            <h3 className="text-lg font-bold text-[#111] text-center">Rechercher un véhicule</h3>
+            <p className="text-xs text-[#6B7280] text-center">Voitures, motos, utilitaires — trouvez votre véhicule idéal</p>
+            <button onClick={doSearch} className="w-full flex items-center justify-center gap-2 rounded-full bg-[#D4AF37] py-4 text-base font-bold text-white hover:bg-[#C5A028] transition shadow-md">
+              <Search size={18} /> Nouvelle recherche
             </button>
           </div>
 
