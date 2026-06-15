@@ -831,15 +831,32 @@ export default function Home() {
               Découvrir l'espace Pro
             </Link>
           </div>
-          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-8">
-            {PRO_ACTIVITIES.map((a) => (
-              <Link key={a.label} to={a.to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] p-3 text-center transition hover:border-[#D4AF37] hover:shadow-md">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#D4AF37]/10 transition group-hover:bg-[#D4AF37]/20">
-                  <Wrench size={18} className="text-[#D4AF37]" />
+          {/* Carrousel 2 lignes — swipe gauche/droite */}
+          <div className="mt-8 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+            {Array.from({ length: Math.ceil(PRO_ACTIVITIES.length / 2) }).map((_, col) => {
+              const top = PRO_ACTIVITIES[col * 2];
+              const bot = PRO_ACTIVITIES[col * 2 + 1];
+              return (
+                <div key={col} className="flex w-[160px] shrink-0 snap-start flex-col gap-3">
+                  {top && (
+                    <Link to={top.to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#D4AF37]/10 transition group-hover:bg-[#D4AF37]/20">
+                        <Wrench size={18} className="text-[#D4AF37]" />
+                      </div>
+                      <span className="text-xs font-medium text-[#374151]">{top.label}</span>
+                    </Link>
+                  )}
+                  {bot && (
+                    <Link to={bot.to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#D4AF37]/10 transition group-hover:bg-[#D4AF37]/20">
+                        <Wrench size={18} className="text-[#D4AF37]" />
+                      </div>
+                      <span className="text-xs font-medium text-[#374151]">{bot.label}</span>
+                    </Link>
+                  )}
                 </div>
-                <span className="text-[10px] font-medium text-[#374151] sm:text-xs">{a.label}</span>
-              </Link>
-            ))}
+              );
+            })}
           </div>
           <p className="mt-4 text-center text-xs text-[#9CA3AF]">Gérez votre activité, vos véhicules, vos équipes et vos documents.</p>
         </div>

@@ -786,8 +786,9 @@ export default function Historique() {
       </section>
 
       {/* ═══ 3. RECHERCHE — Fond blanc, contours or ═══ */}
-      <section className="border-b border-[#F5F5F5] bg-white py-5">
+      <section className="bg-white py-6">
         <div className="container-page">
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm sm:p-6">
           <div className="flex gap-1">
             {([
               { id: "plate", label: "Par plaque" },
@@ -818,17 +819,19 @@ export default function Historique() {
               VÉRIFIER L'HISTORIQUE <ArrowRight size={14} />
             </button>
           </div>
-          <div className="mt-2 flex flex-wrap gap-4 text-[9px] text-slate-400">
+          <div className="mt-3 flex flex-wrap justify-center gap-4 text-[9px] text-slate-400">
             <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Rapport instantané en quelques secondes</span>
             <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Paiement 100% sécurisé</span>
             <span className="flex items-center gap-1"><CheckCircle size={8} className="text-green-500" /> Données officielles et vérifiées</span>
+          </div>
           </div>
         </div>
       </section>
 
       {/* ═══ 4. TARIFS — Fond blanc, cartes blanches, contours or ═══ */}
-      <section className="bg-white py-8">
+      <section className="bg-[#F9F9F9] py-8">
         <div className="container-page">
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <h2 className="text-base font-extrabold uppercase text-[#111]">Choisissez votre rapport</h2>
@@ -852,6 +855,7 @@ export default function Historique() {
               );
             })}
           </div>
+          </div>
         </div>
       </section>
 
@@ -868,6 +872,7 @@ export default function Historique() {
       {/* ═══ 6. CE QUE CONTIENT — Fond blanc, icônes or ═══ */}
       <section className="bg-white py-8">
         <div className="container-page">
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm sm:p-6">
           <h2 className="text-center text-sm font-extrabold uppercase tracking-wide text-[#111]">Ce que contient votre rapport</h2>
           <div className="mx-auto mt-5 grid max-w-2xl grid-cols-4 gap-4 sm:grid-cols-8">
             {CONTENU_RAPPORT.map((c) => {
@@ -882,6 +887,7 @@ export default function Historique() {
                 </div>
               );
             })}
+          </div>
           </div>
         </div>
       </section>
@@ -961,6 +967,7 @@ export default function Historique() {
       {/* ═══ 10. PIED DE PAGE GARANTIES — Fond blanc, textes noirs, icônes or ═══ */}
       <section className="border-t border-[#F5F5F5] bg-white py-6">
         <div className="container-page">
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm sm:p-6">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
             {[
               { icon: Globe, label: "Sources officielles", desc: "Données provenant d'organismes officiels et partenaires agréés" },
@@ -978,6 +985,7 @@ export default function Historique() {
                 </div>
               );
             })}
+          </div>
           </div>
         </div>
       </section>
