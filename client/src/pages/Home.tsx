@@ -90,13 +90,7 @@ export default function Home() {
   const [newsEmail, setNewsEmail] = useState("");
 
   function doSearch() {
-    const p = new URLSearchParams();
-    if (sMarque) p.set("q", sMarque + (sModele ? " " + sModele : ""));
-    if (sPrix) p.set("prixMax", sPrix);
-    if (sLoc) p.set("ville", sLoc);
-    if (searchTab === "motos") p.set("famille", "moto");
-    if (searchTab === "utilitaires") p.set("categorie", "utilitaire");
-    navigate(`/acheter?${p.toString()}`);
+    navigate("/rechercher");
   }
 
   return (
