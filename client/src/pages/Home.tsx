@@ -159,7 +159,7 @@ export default function Home() {
 
         {/* ── CAROUSEL + 4 ACTIONS (même conteneur = zéro espace) ── */}
         <div className="px-4 pt-1 pb-4 md:px-6 md:pt-4 md:pb-6">
-          <div className="mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl">
+          <div className="mx-auto max-w-3xl overflow-hidden rounded-xl bg-[#E5E2DB] md:rounded-2xl">
             <div
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
@@ -174,25 +174,23 @@ export default function Home() {
                 <img
                   key={i}
                   src={src}
-                  alt={`Véhicule ${i + 1}`}
+                  alt=""
+                  loading={i === 0 ? "eager" : "lazy"}
                   className="w-full shrink-0 aspect-[4/3] object-cover"
                 />
               ))}
             </div>
           </div>
-          <div className="flex items-center justify-center gap-1.5 py-1 md:py-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setCarouselIdx(i)}
-                className={`h-1.5 w-1.5 rounded-full transition-all md:h-2 md:w-2 ${
-                  carouselIdx === i ? "bg-[#D4AF37] scale-110" : "bg-[#C4C4C4]"
-                }`}
+          {/* ── indicateur premium : barre dorée glissante ── */}
+          <div className="mx-auto mt-1.5 flex max-w-[120px] items-center md:mt-2 md:max-w-[160px]">
+            <div className="relative h-[3px] w-full rounded-full bg-[#E5E2DB]">
+              <div
+                className="absolute top-0 left-0 h-full rounded-full bg-[#D4AF37] transition-all duration-500 ease-in-out"
+                style={{ width: "20%", transform: `translateX(${carouselIdx * 100}%)` }}
               />
-            ))}
+            </div>
           </div>
-          <div className="mx-auto grid max-w-3xl grid-cols-4 gap-1.5 md:max-w-2xl md:gap-3">
+          <div className="mx-auto mt-1.5 grid max-w-3xl grid-cols-4 gap-1.5 md:mt-3 md:max-w-2xl md:gap-3">
             {[
               { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
               { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
