@@ -258,8 +258,8 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           2. RECHERCHE + ESTIMATION — CÔTE À CÔTE
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-10">
-        <div className="container-page grid gap-6 lg:grid-cols-2">
+      <section className="bg-white py-4">
+        <div className="container-page space-y-6">
           {/* Recherche — gros bouton style La Centrale */}
           <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm flex flex-col items-center justify-center gap-4">
             <Search size={28} className="text-[#D4AF37]" />
@@ -268,6 +268,24 @@ export default function Home() {
             <button onClick={doSearch} className="w-full flex items-center justify-center gap-2 rounded-full bg-[#D4AF37] py-4 text-base font-bold text-white hover:bg-[#C5A028] transition shadow-md">
               <Search size={18} /> Nouvelle recherche
             </button>
+          </div>
+
+          {/* Carrousel Nos véhicules MKA.P-MS */}
+          <div>
+            <h3 className="text-base font-bold text-[#111]">Nos véhicules MKA.P-MS</h3>
+            <div className="mt-3 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+              {[
+                { id: 8001, titre: "Peugeot 308 GT", marque: "Peugeot", modele: "308", annee: 2023, kilometrage: 12000, carburant: "Essence", prix: 26900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=280&fit=crop" },
+                { id: 8002, titre: "Renault Austral Iconic", marque: "Renault", modele: "Austral", annee: 2024, kilometrage: 5000, carburant: "Hybride", prix: 34500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=280&fit=crop" },
+                { id: 8003, titre: "Citroën C5 X Shine", marque: "Citroën", modele: "C5 X", annee: 2023, kilometrage: 18000, carburant: "Diesel", prix: 31900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop" },
+                { id: 8004, titre: "Mercedes GLA 200", marque: "Mercedes", modele: "GLA", annee: 2022, kilometrage: 22000, carburant: "Essence", prix: 38900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=280&fit=crop" },
+                { id: 8005, titre: "BMW X1 sDrive18i", marque: "BMW", modele: "X1", annee: 2023, kilometrage: 15000, carburant: "Essence", prix: 35500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=280&fit=crop" },
+              ].map((v: any) => (
+                <div key={v.id} className="w-[200px] shrink-0 snap-start">
+                  <VehicleCard v={v} />
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Estimation de voiture — formulaire complet */}
