@@ -20,6 +20,18 @@ const CATEGORIES = [
   { label: "Scooters", count: "+1 125", to: "/acheter?famille=moto&categorie=scooter" },
 ];
 
+/* ── annonces démo ── */
+const DEMO_ANNONCES = [
+  { id: 9001, titre: "Peugeot 3008 GT Line", marque: "Peugeot", modele: "3008", annee: 2022, kilometrage: 35000, carburant: "Diesel", prix: 28900, type: "vente", ville: "Paris", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=280&fit=crop" },
+  { id: 9002, titre: "Renault Clio V Intens", marque: "Renault", modele: "Clio", annee: 2023, kilometrage: 18000, carburant: "Essence", prix: 16500, type: "vente", ville: "Lyon", vendeurType: "particulier", photoPrincipale: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=280&fit=crop" },
+  { id: 9003, titre: "BMW Série 3 320d M Sport", marque: "BMW", modele: "Série 3", annee: 2021, kilometrage: 42000, carburant: "Diesel", prix: 35900, type: "vente", ville: "Marseille", vendeurType: "professionnel", boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=280&fit=crop" },
+  { id: 9004, titre: "Mercedes Classe A 200", marque: "Mercedes", modele: "Classe A", annee: 2022, kilometrage: 25000, carburant: "Essence", prix: 32000, type: "vente", ville: "Toulouse", vendeurType: "professionnel", boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400&h=280&fit=crop" },
+  { id: 9005, titre: "Citroën C3 Aircross", marque: "Citroën", modele: "C3 Aircross", annee: 2023, kilometrage: 12000, carburant: "Essence", prix: 19900, type: "vente", ville: "Bordeaux", vendeurType: "particulier", photoPrincipale: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=280&fit=crop" },
+  { id: 9006, titre: "Volkswagen Golf 8 R-Line", marque: "Volkswagen", modele: "Golf", annee: 2022, kilometrage: 30000, carburant: "Essence", prix: 27500, type: "vente", ville: "Nice", vendeurType: "professionnel", boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=280&fit=crop" },
+  { id: 9007, titre: "Toyota Yaris Hybride", marque: "Toyota", modele: "Yaris", annee: 2023, kilometrage: 8000, carburant: "Hybride", prix: 21500, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 45, photoPrincipale: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=280&fit=crop" },
+  { id: 9008, titre: "Audi A4 Avant S-Line", marque: "Audi", modele: "A4", annee: 2021, kilometrage: 55000, carburant: "Diesel", prix: 31900, type: "vente", ville: "Lille", vendeurType: "professionnel", boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=280&fit=crop" },
+];
+
 /* ── partenaires ── */
 const PARTENAIRES = [
   { title: "Top Garages", desc: "Des garages certifiés proches de chez vous.", cta: "Voir les garages", to: "/garages", color: "bg-[#D4AF37]" },
@@ -614,6 +626,24 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
+          ESPACE PUBLICITAIRE #1
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-gradient-to-r from-[#111] to-[#1a1a1a] py-6">
+        <div className="container-page">
+          <div className="flex items-center justify-between rounded-2xl border border-[#D4AF37]/30 bg-[#111] p-5">
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37]">Publicité partenaire</p>
+              <h3 className="mt-1 text-lg font-extrabold text-white">Votre publicité ici</h3>
+              <p className="mt-1 text-xs text-slate-400">Espace réservé aux partenaires MKA.P-MS — Contactez-nous pour apparaître ici</p>
+            </div>
+            <Link to="/aide" className="shrink-0 rounded-full bg-[#D4AF37] px-5 py-2 text-xs font-bold text-white hover:bg-[#C5A028]">
+              Annoncer →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
           6. ANNONCES PREMIUM + ESPACE PUB
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-10">
@@ -631,9 +661,12 @@ export default function Home() {
                     <div className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
                   </div>
                 ))
-              : featured.data?.items.slice(0, 10).map((v) => (
+              : (featured.data?.items && featured.data.items.length > 0
+                  ? featured.data.items.slice(0, 10)
+                  : DEMO_ANNONCES.filter(a => a.boosted)
+                ).map((v: any) => (
                   <div key={v.id} className="w-[220px] shrink-0 snap-start">
-                    <VehicleCard v={v as any} />
+                    <VehicleCard v={v} />
                   </div>
                 ))}
           </div>
@@ -658,16 +691,32 @@ export default function Home() {
                     <div className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
                   </div>
                 ))
-              : featured.data?.items.map((v) => (
+              : (featured.data?.items && featured.data.items.length > 0
+                  ? featured.data.items
+                  : DEMO_ANNONCES
+                ).map((v: any) => (
                   <div key={v.id} className="w-[220px] shrink-0 snap-start">
-                    <VehicleCard v={v as any} />
+                    <VehicleCard v={v} />
                   </div>
                 ))}
-            {featured.data && featured.data.items.length === 0 && (
-              <p className="text-sm text-[#6B7280]">Aucune annonce.{" "}
-                <Link to="/vendre" className="font-semibold text-[#D4AF37]">Déposer une annonce</Link>.
-              </p>
-            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          ESPACE PUBLICITAIRE #2
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-[#FFFDF5] py-5">
+        <div className="container-page">
+          <div className="flex items-center justify-between rounded-2xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm">
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37]">Publicité</p>
+              <h3 className="mt-1 text-base font-extrabold text-[#111]">Boostez votre visibilité sur MKA.P-MS</h3>
+              <p className="mt-1 text-xs text-slate-500">Professionnels, particuliers — mettez en avant vos annonces et services</p>
+            </div>
+            <Link to="/abonnements" className="shrink-0 rounded-full border-2 border-[#D4AF37] px-5 py-2 text-xs font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">
+              Voir les offres →
+            </Link>
           </div>
         </div>
       </section>
@@ -773,14 +822,32 @@ export default function Home() {
                     <div className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
                   </div>
                 ))
-              : featured.data?.items.slice(0, 10).map((v) => (
+              : (featured.data?.items && featured.data.items.length > 0
+                  ? featured.data.items.slice(0, 10)
+                  : DEMO_ANNONCES
+                ).map((v: any) => (
                   <div key={v.id} className="w-[220px] shrink-0 snap-start">
-                    <VehicleCard v={v as any} />
+                    <VehicleCard v={v} />
                   </div>
                 ))}
-            {featured.data && featured.data.items.length === 0 && (
-              <p className="text-sm text-[#9CA3AF]">Aucune annonce pour le moment.</p>
-            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          ESPACE PUBLICITAIRE #3
+         ═══════════════════════════════════════════════════════════ */}
+      <section className="bg-[#F5F5F5] py-5">
+        <div className="container-page">
+          <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-[#D4AF37] to-[#C5A028] p-5 shadow-sm">
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-widest text-white/80">Publicité premium</p>
+              <h3 className="mt-1 text-base font-extrabold text-white">Devenez partenaire MKA.P-MS</h3>
+              <p className="mt-1 text-xs text-white/80">Gagnez en visibilité auprès de milliers d'acheteurs et de professionnels</p>
+            </div>
+            <Link to="/espace-pro" className="shrink-0 rounded-full bg-white px-5 py-2 text-xs font-bold text-[#111] hover:bg-[#F5F5F5]">
+              En savoir plus →
+            </Link>
           </div>
         </div>
       </section>

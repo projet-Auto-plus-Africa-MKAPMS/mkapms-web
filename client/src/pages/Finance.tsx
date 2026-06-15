@@ -505,12 +505,12 @@ export default function Finance() {
       <section className="bg-[#F5F5F5] py-8">
         <div className="container-page">
           <h2 className="text-center text-sm font-extrabold uppercase text-[#111]">Comment ça marche ?</h2>
-          <div className="mt-5 grid gap-3 md:grid-cols-6">
+          <div className="mt-5 grid grid-cols-3 gap-3">
             {STEPS_LOA.map((s, i) => (
-              <div key={s} className="flex flex-col items-center gap-2 rounded-xl border border-[#D4AF37]/20 bg-white p-4 text-center">
+              <button key={s} onClick={() => { setMode("loa"); setStep(i + 1); }} className="flex flex-col items-center gap-2 rounded-xl border border-[#D4AF37]/20 bg-white p-3 text-center transition hover:border-[#D4AF37] hover:shadow-md cursor-pointer">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37] text-xs font-bold text-white">{i + 1}</div>
                 <span className="text-[10px] font-bold text-[#111]">{s}</span>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -532,10 +532,10 @@ export default function Finance() {
               { icon: Calendar, label: "Échéances" },
               { icon: Bell, label: "Notifications" },
             ].map((item) => (
-              <div key={item.label} className="flex items-center gap-2 rounded-xl border border-[#D4AF37]/20 bg-white p-3">
+              <button key={item.label} onClick={() => setShowDashboard(true)} className="flex items-center gap-2 rounded-xl border border-[#D4AF37]/20 bg-white p-3 transition hover:border-[#D4AF37] hover:shadow-md cursor-pointer">
                 <item.icon size={16} className="text-[#D4AF37]" />
                 <span className="text-[10px] font-bold text-[#111]">{item.label}</span>
-              </div>
+              </button>
             ))}
           </div>
           <div className="mt-4 text-center">
@@ -596,20 +596,26 @@ export default function Finance() {
       {/* Garanties — fond blanc, icônes or */}
       <section className="border-t border-[#F5F5F5] bg-white py-6">
         <div className="container-page">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               { icon: Shield, label: "Protection véhicule", desc: "Véhicule protégé pendant toute la durée du contrat" },
               { icon: Lock, label: "Paiement sécurisé", desc: "Transactions protégées par protocole SSL" },
               { icon: Zap, label: "Réponse rapide", desc: "Réponse à votre dossier sous 48h" },
               { icon: Clock, label: "Suivi 24h/24", desc: "Accédez à votre espace à tout moment" },
-              { icon: Users, label: "Support dédié", desc: "Une équipe Finance+ à votre écoute" },
             ].map((b) => (
-              <div key={b.label} className="flex flex-col items-center gap-1 text-center">
+              <button key={b.label} onClick={() => {}} className="flex flex-col items-center gap-1 text-center transition hover:opacity-80 cursor-pointer rounded-xl border border-transparent hover:border-[#D4AF37]/30 p-2">
                 <b.icon size={16} className="text-[#D4AF37]" />
                 <h4 className="text-[9px] font-bold text-[#111]">{b.label}</h4>
                 <p className="text-[7px] text-slate-500 leading-tight">{b.desc}</p>
-              </div>
+              </button>
             ))}
+          </div>
+          <div className="mt-3 flex justify-center">
+            <button onClick={() => {}} className="flex flex-col items-center gap-1 text-center transition hover:opacity-80 cursor-pointer rounded-xl border border-transparent hover:border-[#D4AF37]/30 p-2">
+              <Users size={16} className="text-[#D4AF37]" />
+              <h4 className="text-[9px] font-bold text-[#111]">Support dédié</h4>
+              <p className="text-[7px] text-slate-500 leading-tight">Une équipe Finance+ à votre écoute</p>
+            </button>
           </div>
         </div>
       </section>
