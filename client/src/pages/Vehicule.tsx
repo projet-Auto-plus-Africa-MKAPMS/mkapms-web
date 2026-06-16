@@ -282,12 +282,20 @@ export default function Vehicule() {
                 <button onClick={() => setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1))} className="absolute right-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg hover:bg-white transition"><ChevronRight size={24} /></button>
               </>
             )}
-            {/* Compteur + Badge M (style La Centrale) */}
+            {/* Badge logo MKA.P-MS — haut gauche */}
+            <div className="absolute top-3 left-3 flex items-center gap-2 rounded-lg bg-[#111]/85 px-2.5 py-1.5 backdrop-blur-sm shadow">
+              <span className="flex h-6 w-6 items-center justify-center rounded bg-[#D4AF37] text-[10px] font-extrabold text-[#111]">M</span>
+              <div className="leading-tight">
+                <p className="text-[9px] font-medium uppercase text-slate-300">Véhicule Société</p>
+                <p className="text-[11px] font-bold text-[#D4AF37]">MKA.P-MS</p>
+                <p className="text-[8px] text-slate-400">AUTO PLUS AFRICA</p>
+              </div>
+            </div>
+            {/* Compteur photos — bas gauche */}
             <div className="absolute bottom-3 left-3 flex items-center gap-2">
               {allPhotos.length > 0 && (
                 <span className="rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-noir shadow">{photoIdx + 1}/{allPhotos.length}</span>
               )}
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#111] text-xs font-extrabold text-[#D4AF37] shadow">M</span>
             </div>
             {/* Boutons flottants Appel + WhatsApp — juste sous la flèche →, collés au bord */}
             <div className={`absolute right-2 top-[55%] flex flex-col gap-2 transition-opacity duration-200 ${scrollHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
@@ -304,8 +312,7 @@ export default function Vehicule() {
           <div className="card p-5 text-center">
             <p className="text-3xl font-extrabold text-[#D4AF37]">{formatPrice(Number(v.prix))}</p>
             <p className="text-xs text-slate-500">Prix TTC · Frais inclus</p>
-            <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-[#D4AF37]">MKA.P-MS OFFICIEL</p>
-            <h1 className="mt-1 text-2xl font-extrabold text-noir">{v.titre}</h1>
+            <h1 className="mt-2 text-2xl font-extrabold text-noir">{v.titre}</h1>
             {v.motorisation && <p className="mt-1 text-sm text-slate-500">{v.marque} {v.modele} {v.motorisation}</p>}
             <p className="mt-0.5 text-xs text-slate-400">Réf. annonce : DEMO-{v.id}</p>
             {/* Petite carte localisation */}
@@ -321,10 +328,9 @@ export default function Vehicule() {
             <button className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-noir" onClick={() => { if (navigator.share) navigator.share({ title: v.titre, url: window.location.href }); }}><Share2 size={18} /> Partager</button>
           </div>
 
-          {/* ── 8. DESCRIPTION avec onglets ── */}
+          {/* ── 8. DESCRIPTION avec onglets style encadré ── */}
           <div className="card p-5">
-            <h2 className="mb-3 text-lg font-bold text-noir">Description</h2>
-            <div className="mb-4 flex gap-1.5 overflow-x-auto border-b border-slate-100 pb-2 scrollbar-hide">
+            <div className="mb-4 flex gap-2 overflow-x-auto scrollbar-hide">
               {([
                 { key: "description" as const, label: "Description" },
                 { key: "points_forts" as const, label: "Points forts" },
@@ -334,8 +340,8 @@ export default function Vehicule() {
                 <button
                   key={tab.key}
                   onClick={() => setDescTab(tab.key)}
-                  className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                    descTab === tab.key ? "bg-[#111] text-white" : "text-slate-500 hover:bg-slate-50"
+                  className={`shrink-0 rounded-lg border px-4 py-2 text-sm font-semibold transition ${
+                    descTab === tab.key ? "border-noir bg-white text-noir shadow-sm" : "border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600"
                   }`}
                 >{tab.label}</button>
               ))}
