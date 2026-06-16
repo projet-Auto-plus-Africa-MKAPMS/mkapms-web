@@ -483,15 +483,17 @@ export default function Vehicule() {
             <p className="mt-4 text-sm leading-relaxed text-slate-600">Le prix de cette annonce est dans la moyenne des prix des véhicules similaires.</p>
             <Link to="#" className="mt-1 text-sm font-semibold text-noir underline">En savoir plus</Link>
 
-            {/* Historique prix + Cote véhicule — cliquables */}
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <button onClick={() => setShowPriceHistory(!showPriceHistory)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-center transition hover:bg-slate-100">
-                <TrendingUp size={18} className="mx-auto text-[#D4AF37]" />
-                <p className="mt-1 text-xs font-bold text-noir">Historique prix</p>
+            {/* Historique prix + Cote véhicule — avec flèche à droite */}
+            <div className="mt-4 space-y-3">
+              <button onClick={() => setShowPriceHistory(!showPriceHistory)} className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-left transition hover:bg-slate-100">
+                <TrendingUp size={18} className="text-[#D4AF37]" />
+                <span className="flex-1 text-sm font-bold text-noir">Historique prix</span>
+                <ChevronRight size={16} className="text-slate-400" />
               </button>
-              <button onClick={() => setShowCote(!showCote)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-center transition hover:bg-slate-100">
-                <BarChart3 size={18} className="mx-auto text-[#D4AF37]" />
-                <p className="mt-1 text-xs font-bold text-noir">Cote véhicule</p>
+              <button onClick={() => setShowCote(!showCote)} className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-left transition hover:bg-slate-100">
+                <BarChart3 size={18} className="text-[#D4AF37]" />
+                <span className="flex-1 text-sm font-bold text-noir">Cote véhicule</span>
+                <ChevronRight size={16} className="text-slate-400" />
               </button>
             </div>
 
@@ -528,18 +530,6 @@ export default function Vehicule() {
                 <Link to="/historique" className="mt-2 block text-xs font-bold text-[#D4AF37]">Faire racheter mon véhicule →</Link>
               </div>
             )}
-
-            {/* Localisation intégrée dans le cadre prix */}
-            <div className="mt-4 flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-3 cursor-pointer hover:bg-slate-100 transition" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#D4AF37]/10">
-                <MapPin size={18} className="text-[#D4AF37]" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-bold text-noir">MKA.P-MS Officiel</p>
-                <p className="text-xs text-slate-500">{v.ville || "Belloy-en-France"} · 95270</p>
-              </div>
-              <ChevronRight size={16} className="text-slate-400" />
-            </div>
 
             {/* Créer une alerte prix — intégré dans le cadre */}
             <button
@@ -626,8 +616,8 @@ export default function Vehicule() {
         <div className={`fixed inset-x-0 bottom-[82px] z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden transition-all duration-300 ${scrollHidden ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"}`}>
           <div className="container-page">
             <div className="grid grid-cols-2 gap-3">
-              <button className="flex h-[52px] items-center justify-center gap-2 rounded-xl border-2 border-noir bg-white text-sm font-bold text-noir shadow hover:bg-slate-50 transition" onClick={messageAction}><Mail size={16} /> Message</button>
               <button className="btn-acheter flex h-[52px] items-center justify-center gap-2 text-sm font-bold" onClick={primaryAction}><ShoppingCart size={16} /> Acheter</button>
+              <button className="flex h-[52px] items-center justify-center gap-2 rounded-xl border-2 border-noir bg-white text-sm font-bold text-noir shadow hover:bg-slate-50 transition" onClick={messageAction}><Mail size={16} /> Message</button>
             </div>
           </div>
         </div>
