@@ -117,7 +117,7 @@ export default function Home() {
   const [carouselIdx, setCarouselIdx] = useState(0);
   useEffect(() => {
     const timer = setInterval(() => {
-      setCarouselIdx((prev) => (prev + 1) % 5);
+      setCarouselIdx((prev) => (prev + 1) % 3);
     }, 4000);
     return () => clearInterval(timer);
   }, []);
@@ -136,29 +136,29 @@ export default function Home() {
           HOMEPAGE — tout visible sur 1 écran mobile
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-[#F5F3EF]">
-        <div className="container-page text-center pt-3 pb-0 md:pt-6 md:pb-1">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.25em] text-[#D4AF37] md:text-xs">LA MARKETPLACE AUTOMOBILE</p>
-          <h1 className="mt-1.5 text-[20px] font-black uppercase leading-[1.12] md:mt-3 md:text-3xl lg:text-4xl">
+        <div className="container-page text-center pt-2 pb-0 md:pt-5 md:pb-1">
+          <p className="text-[8px] font-semibold uppercase tracking-[0.25em] text-[#D4AF37] md:text-xs">LA MARKETPLACE AUTOMOBILE</p>
+          <h1 className="mt-1 text-[17px] font-black uppercase leading-[1.1] md:mt-3 md:text-3xl lg:text-4xl">
             <span className="text-[#111]">ACHETEZ, VENDEZ,</span><br />
             <span className="text-[#D4AF37]">LOUEZ, RÉPAREZ,</span><br />
             <span className="text-[#D4AF37]">ENTRETENEZ EN TOUTE CONFIANCE,</span><br />
             <span className="text-[#111]">PARTOUT, À TOUT MOMENT.</span>
           </h1>
-          <div className="mx-auto my-2 flex items-center justify-center gap-2 md:my-4 md:gap-3">
-            <div className="h-px w-10 bg-[#D4AF37] md:w-12" />
-            <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#D4AF37] md:h-9 md:w-9">
-              <span className="text-[11px] font-extrabold text-[#D4AF37] md:text-sm">M</span>
+          <div className="mx-auto my-1 flex items-center justify-center gap-2 md:my-3 md:gap-3">
+            <div className="h-px w-8 bg-[#D4AF37] md:w-12" />
+            <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#D4AF37] md:h-9 md:w-9">
+              <span className="text-[10px] font-extrabold text-[#D4AF37] md:text-sm">M</span>
             </div>
-            <div className="h-px w-10 bg-[#D4AF37] md:w-12" />
+            <div className="h-px w-8 bg-[#D4AF37] md:w-12" />
           </div>
-          <p className="mx-auto max-w-md text-xs text-[#6B7280] leading-snug md:text-sm md:leading-relaxed">
+          <p className="mx-auto max-w-md text-[10px] text-[#6B7280] leading-snug md:text-sm md:leading-relaxed">
             Achat, vente, location, entretien, livraison et bien plus encore.<br />
             Tout l'univers automobile réuni au même endroit.
           </p>
         </div>
 
         {/* ── CAROUSEL + 4 ACTIONS — collés, zéro espace ── */}
-        <div className="px-4 pt-0 pb-0 md:px-6 md:pt-0 md:pb-0">
+        <div className="px-3 pt-1 pb-0 md:px-6 md:pt-0 md:pb-0">
           <div className="mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl">
             <div
               className="flex transition-transform duration-500 ease-in-out"
@@ -168,23 +168,21 @@ export default function Home() {
                 "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=600&h=340&fit=crop",
                 "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&h=340&fit=crop",
                 "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&h=340&fit=crop",
-                "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&h=340&fit=crop",
-                "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&h=340&fit=crop",
               ].map((src, i) => (
                 <img
                   key={i}
                   src={src}
                   alt=""
                   loading={i === 0 ? "eager" : "lazy"}
-                  className="w-full shrink-0 aspect-[16/9] object-cover"
+                  className="w-full shrink-0 aspect-[2/1] object-cover"
                 />
               ))}
             </div>
           </div>
           {/* ── indicateur : points dorés ── */}
-          <div className="mx-auto flex max-w-[100px] items-center justify-center gap-1 py-0.5">
-            {[0,1,2,3,4].map((i) => (
-              <div key={i} className={`h-1.5 w-1.5 rounded-full transition ${carouselIdx === i ? "bg-[#D4AF37]" : "bg-[#E5E2DB]"}`} />
+          <div className="mx-auto flex items-center justify-center gap-1.5 py-1">
+            {[0,1,2].map((i) => (
+              <div key={i} className={`h-2 w-2 rounded-full transition ${carouselIdx % 3 === i ? "bg-[#D4AF37]" : "bg-[#E5E2DB]"}`} />
             ))}
           </div>
           <div className="mx-auto grid max-w-3xl grid-cols-4 gap-1.5 md:max-w-2xl md:gap-3">
@@ -199,16 +197,16 @@ export default function Home() {
                 <Link
                   key={a.to}
                   to={a.to}
-                  className="group flex flex-col items-center gap-1 rounded-xl border border-[#D4AF37]/40 bg-white px-1 pb-2 pt-2.5 text-center transition hover:shadow-md md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5"
+                  className="group flex flex-col items-center gap-0.5 rounded-xl border border-[#D4AF37]/40 bg-white px-1 pb-1.5 pt-2 text-center transition hover:shadow-md md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-white md:h-16 md:w-16">
-                    <Icon size={20} className="text-[#D4AF37] md:hidden" />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-white md:h-16 md:w-16">
+                    <Icon size={18} className="text-[#D4AF37] md:hidden" />
                     <Icon size={32} className="hidden text-[#D4AF37] md:block" />
                   </div>
-                  <span className="text-[9px] font-extrabold uppercase tracking-wide text-[#111] md:text-xs">{a.label}</span>
+                  <span className="text-[8px] font-extrabold uppercase tracking-wide text-[#111] md:text-xs">{a.label}</span>
                   <span className="text-[7px] text-[#6B7280] md:text-[10px]">{a.sub}</span>
-                  <div className="flex h-6 w-full items-center justify-center rounded-full bg-[#D4AF37] transition group-hover:bg-[#C5A028] md:h-9">
-                    <ArrowRight size={12} className="text-white md:hidden" />
+                  <div className="flex h-5 w-full items-center justify-center rounded-full bg-[#D4AF37] transition group-hover:bg-[#C5A028] md:h-9">
+                    <ArrowRight size={11} className="text-white md:hidden" />
                     <ArrowRight size={16} className="hidden text-white md:block" />
                   </div>
                 </Link>
@@ -219,7 +217,7 @@ export default function Home() {
       </section>
 
       {/* ── 4 BADGES CONFIANCE ── */}
-      <section className="bg-white py-3 border-t border-[#E5E7EB] md:py-6">
+      <section className="bg-white py-2 border-t border-[#E5E7EB] md:py-6">
         <div className="container-page">
           <div className="mx-auto flex max-w-lg md:max-w-2xl">
             {[
