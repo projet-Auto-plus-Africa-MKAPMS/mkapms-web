@@ -124,7 +124,7 @@ export default function Compte() {
         {TABS.map(([v, l]) => (
           <button
             key={v}
-            onClick={() => setTab(v)}
+            onClick={() => { setTab(v); window.scrollTo(0, 0); }}
             className={`px-4 py-2 text-sm font-semibold ${tab === v ? "border-b-2 border-gold text-noir" : "text-slate-500"}`}
           >
             {l}
@@ -207,25 +207,32 @@ export default function Compte() {
               <p className="text-sm font-bold text-slate-700">Demandes en attente</p>
               <div className="mt-2 space-y-2">
                 {[
-                  { id: "PUB-001", entreprise: "AutoPièces Express", type: "Vendeur de pièces", emplacement: "#4", status: "en_attente" },
-                  { id: "PUB-002", entreprise: "Garage Saint-Denis", type: "Réparateur", emplacement: "#1", status: "en_attente" },
-                  { id: "PUB-003", entreprise: "CleanCar 95", type: "Service lavage", emplacement: "#4", status: "approuvée" },
+                  { id: "PUB-001", entreprise: "AutoPièces Express", type: "Vendeur de pièces", emplacement: "#4", status: "en_attente", tel: "06 12 34 56 78", email: "contact@autopieces-express.fr", desc: "Ouverture magasin Sarcelles — pièces neuves toutes marques. Publicité image + lien vers notre site.", lien: "https://autopieces-express.fr", duree: "1 semaine" },
+                  { id: "PUB-002", entreprise: "Garage Saint-Denis", type: "Réparateur", emplacement: "#1", status: "en_attente", tel: "01 49 33 22 11", email: "info@garage-stdenis.fr", desc: "Vidange + contrôle technique à 59€. Promo été 2024.", lien: "https://garage-stdenis.fr", duree: "1 mois" },
+                  { id: "PUB-003", entreprise: "CleanCar 95", type: "Service lavage", emplacement: "#4", status: "approuvée", tel: "07 88 99 00 11", email: "cleancar95@gmail.com", desc: "Nettoyage complet intérieur/extérieur 49€ — Belloy-en-France", lien: "https://cleancar95.fr", duree: "3 jours" },
                 ].map((d) => (
-                  <div key={d.id} className="card p-3">
-                    <div className="flex items-center justify-between">
+                  <details key={d.id} className="card overflow-hidden">
+                    <summary className="flex cursor-pointer items-center justify-between p-3 hover:bg-slate-50">
                       <div>
                         <p className="text-sm font-bold text-slate-800">{d.entreprise} <span className="text-xs text-slate-400">({d.id})</span></p>
                         <p className="text-xs text-slate-500">{d.type} · Emplacement {d.emplacement}</p>
                       </div>
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${d.status === "approuvée" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{d.status === "approuvée" ? "Approuvée" : "En attente"}</span>
+                    </summary>
+                    <div className="border-t border-slate-100 bg-slate-50 p-3 space-y-1">
+                      <p className="text-xs text-slate-600"><span className="font-bold">Description :</span> {d.desc}</p>
+                      <p className="text-xs text-slate-600"><span className="font-bold">Téléphone :</span> {d.tel}</p>
+                      <p className="text-xs text-slate-600"><span className="font-bold">Email :</span> {d.email}</p>
+                      <p className="text-xs text-slate-600"><span className="font-bold">Lien :</span> <a href={d.lien} className="text-[#D4AF37] underline">{d.lien}</a></p>
+                      <p className="text-xs text-slate-600"><span className="font-bold">Durée demandée :</span> {d.duree}</p>
+                      {d.status === "en_attente" && (
+                        <div className="mt-2 flex gap-2">
+                          <button className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white">Approuver</button>
+                          <button className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white">Refuser</button>
+                        </div>
+                      )}
                     </div>
-                    {d.status === "en_attente" && (
-                      <div className="mt-2 flex gap-2">
-                        <button className="rounded-lg bg-green-600 px-3 py-1 text-xs font-bold text-white">Approuver</button>
-                        <button className="rounded-lg bg-red-600 px-3 py-1 text-xs font-bold text-white">Refuser</button>
-                      </div>
-                    )}
-                  </div>
+                  </details>
                 ))}
               </div>
             </div>
@@ -486,7 +493,7 @@ export default function Compte() {
               ))}
               {/* Bloc Publicités — dans la grille comme les autres */}
               {isAdmin(user.role) && (
-                <button onClick={() => setTab("publicites")} className="group flex flex-col items-center gap-2 rounded-xl border-2 border-[#D4AF37]/40 bg-[#FFFDF5] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                <button onClick={() => { setTab("publicites"); window.scrollTo(0, 0); }} className="group flex flex-col items-center gap-2 rounded-xl border-2 border-[#D4AF37]/40 bg-[#FFFDF5] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
                   <span className="text-3xl">📢</span>
                   <h3 className="text-xs font-bold text-[#111]">Publicités</h3>
                   <p className="text-[10px] text-slate-500 leading-tight">Emplacements & tarifs pub</p>
