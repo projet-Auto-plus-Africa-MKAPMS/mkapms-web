@@ -643,25 +643,25 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* ── PUBLICITÉS — carrousel défilant avec images Moussa ── */}
+          {/* ── PUBLICITÉS — carrousel défilant ── */}
           <div className="overflow-hidden">
             <p className="mb-3 text-xs font-medium text-slate-400 uppercase tracking-wide">Publicités</p>
             <div className="flex animate-[scroll_16s_linear_infinite] gap-3" style={{ width: "fit-content" }}>
               {[
-                { src: "/pubs/pub1-pieces.jpg", title: "Pièces Auto de Qualité", link: "/pieces" },
-                { src: "/pubs/pub2-culasse.jpg", title: "Culasse Moteur Performance", link: "/pieces" },
-                { src: "/pubs/pub3-huile.jpg", title: "Huile Moteur 5W-30", link: "/pieces" },
-                { src: "/pubs/pub4-visibilite.jpg", title: "Boostez votre visibilité", link: "/abonnements" },
+                { src: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=250&fit=crop", title: "Pièces Auto de Qualité", link: "/pieces" },
+                { src: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=400&h=250&fit=crop", title: "Culasse Moteur Performance", link: "/pieces" },
+                { src: "https://images.unsplash.com/photo-1607603750909-408e193868c7?w=400&h=250&fit=crop", title: "Huile Moteur 5W-30", link: "/pieces" },
+                { src: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=250&fit=crop", title: "Boostez votre visibilité", link: "/abonnements" },
               ].map((pub, i) => (
                 <Link key={i} to={pub.link} className="shrink-0 w-72 overflow-hidden rounded-xl block shadow-lg">
                   <img src={pub.src} alt={pub.title} className="h-44 w-full object-cover" loading="lazy" />
                 </Link>
               ))}
               {[
-                { src: "/pubs/pub1-pieces.jpg", title: "Pièces Auto de Qualité", link: "/pieces" },
-                { src: "/pubs/pub2-culasse.jpg", title: "Culasse Moteur Performance", link: "/pieces" },
-                { src: "/pubs/pub3-huile.jpg", title: "Huile Moteur 5W-30", link: "/pieces" },
-                { src: "/pubs/pub4-visibilite.jpg", title: "Boostez votre visibilité", link: "/abonnements" },
+                { src: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=250&fit=crop", title: "Pièces Auto de Qualité", link: "/pieces" },
+                { src: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=400&h=250&fit=crop", title: "Culasse Moteur Performance", link: "/pieces" },
+                { src: "https://images.unsplash.com/photo-1607603750909-408e193868c7?w=400&h=250&fit=crop", title: "Huile Moteur 5W-30", link: "/pieces" },
+                { src: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=250&fit=crop", title: "Boostez votre visibilité", link: "/abonnements" },
               ].map((pub, i) => (
                 <Link key={`dup-${i}`} to={pub.link} className="shrink-0 w-72 overflow-hidden rounded-xl block shadow-lg">
                   <img src={pub.src} alt={pub.title} className="h-44 w-full object-cover" loading="lazy" />

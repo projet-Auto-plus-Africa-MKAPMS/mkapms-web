@@ -157,34 +157,34 @@ export default function Home() {
           </p>
         </div>
 
-        {/* ── CAROUSEL 5 images + 4 ACTIONS — collés, zéro espace ── */}
-        <div className="px-4 pt-0 pb-0 md:px-6 md:pt-2 md:pb-0">
-          <div className="mx-auto max-w-3xl overflow-hidden rounded-t-xl md:rounded-t-2xl">
+        {/* ── CAROUSEL + 4 ACTIONS — collés, zéro espace ── */}
+        <div className="px-4 pt-0 pb-0 md:px-6 md:pt-0 md:pb-0">
+          <div className="mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl">
             <div
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
             >
               {[
-                { src: "/pubs/hero1-achetez.jpg", alt: "Achetez en toute confiance" },
-                { src: "/pubs/hero2-vendez.jpg", alt: "Vendez simplement" },
-                { src: "/pubs/hero3-vtc.jpg", alt: "Location VTC & Taxi" },
-                { src: "/pubs/hero4-location.jpg", alt: "Location Particuliers" },
-                { src: "/pubs/hero5-pro.jpg", alt: "Ventes Professionnels" },
-              ].map((slide, i) => (
+                "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=600&h=340&fit=crop",
+                "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&h=340&fit=crop",
+                "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&h=340&fit=crop",
+                "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&h=340&fit=crop",
+                "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&h=340&fit=crop",
+              ].map((src, i) => (
                 <img
                   key={i}
-                  src={slide.src}
-                  alt={slide.alt}
+                  src={src}
+                  alt=""
                   loading={i === 0 ? "eager" : "lazy"}
-                  className="w-full shrink-0 object-cover"
+                  className="w-full shrink-0 aspect-[16/9] object-cover"
                 />
               ))}
             </div>
           </div>
           {/* ── indicateur : points dorés ── */}
-          <div className="mx-auto flex max-w-[100px] items-center justify-center gap-1.5 py-1">
+          <div className="mx-auto flex max-w-[100px] items-center justify-center gap-1 py-0.5">
             {[0,1,2,3,4].map((i) => (
-              <div key={i} className={`h-2 w-2 rounded-full transition ${carouselIdx === i ? "bg-[#D4AF37]" : "bg-[#E5E2DB]"}`} />
+              <div key={i} className={`h-1.5 w-1.5 rounded-full transition ${carouselIdx === i ? "bg-[#D4AF37]" : "bg-[#E5E2DB]"}`} />
             ))}
           </div>
           <div className="mx-auto grid max-w-3xl grid-cols-4 gap-1.5 md:max-w-2xl md:gap-3">
