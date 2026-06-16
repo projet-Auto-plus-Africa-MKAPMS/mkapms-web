@@ -588,33 +588,7 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* ── VENDEZ VOTRE VÉHICULE — style premium ── */}
-          <div className="space-y-4">
-            <div className="card overflow-hidden">
-              <div className="flex items-start gap-4 p-5">
-                <div className="flex-1">
-                  <p className="flex items-center gap-1.5 text-base font-bold text-noir"><span className="h-4 w-1 rounded-full bg-[#D4AF37]" /> Vendez à un professionnel</p>
-                  <p className="mt-1 text-sm text-slate-500">Vendez votre véhicule en 48h.</p>
-                  <Link to="/vendre" className="mt-3 inline-block rounded-xl bg-[#111] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#333] transition">Faire racheter mon véhicule</Link>
-                </div>
-                <div className="flex h-16 w-20 items-center justify-center rounded-lg bg-slate-100">
-                  <Car size={32} className="text-slate-400" />
-                </div>
-              </div>
-            </div>
-            <div className="card overflow-hidden">
-              <div className="flex items-start gap-4 p-5">
-                <div className="flex-1">
-                  <p className="flex items-center gap-1.5 text-base font-bold text-noir"><span className="h-4 w-1 rounded-full bg-[#D4AF37]" /> Vendez à un particulier</p>
-                  <p className="mt-1 text-sm text-slate-500">Déposez votre annonce gratuitement en 5 min.</p>
-                  <Link to="/publier" className="mt-3 inline-block rounded-xl bg-[#111] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#333] transition">Déposer mon annonce</Link>
-                </div>
-                <div className="flex h-16 w-20 items-center justify-center rounded-lg bg-slate-100">
-                  <Car size={32} className="text-slate-400" />
-                </div>
-              </div>
-            </div>
-          </div>
+
         </div>
 
         {/* Barre fixe mobile MKA.P-MS — décollée, disparaît au scroll */}
