@@ -792,16 +792,16 @@ export default function Vehicule() {
     if (proGalleryOpen) {
       return (
         <div className="fixed inset-0 z-[100] bg-white flex flex-col">
-          {/* Header galerie */}
-          <div className="flex items-center justify-between border-b px-4 py-3">
+          {/* Header galerie — descendu plus bas */}
+          <div className="flex items-center justify-between border-b px-4 py-4 pt-8">
             <button onClick={() => setProGalleryOpen(false)} className="text-[#111]"><ChevronLeft size={24} /></button>
             <span className="text-sm font-bold text-[#111]">{photoIdx + 1}/{allPhotos.length}</span>
             <div className="w-6" />
           </div>
-          {/* Catégories en haut */}
-          <div className="flex gap-2 overflow-x-auto border-b px-4 py-2">
+          {/* Catégories — descendues plus bas avec plus d'espace */}
+          <div className="flex gap-2 overflow-x-auto border-b px-4 py-3">
             {proPhotoCategories.map((cat) => (
-              <button key={cat.key} onClick={() => setProGalleryCat(cat.key)} className={`shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition ${proGalleryCat === cat.key ? "border-red-500 text-red-500" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
+              <button key={cat.key} onClick={() => setProGalleryCat(cat.key)} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${proGalleryCat === cat.key ? "border-red-500 text-red-500" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
                 {cat.label}
               </button>
             ))}
@@ -843,7 +843,7 @@ export default function Vehicule() {
     return (
       <div className="pb-24 md:pb-20">
         {/* ===== PHOTO PRINCIPALE (pleine largeur, clic → galerie) ===== */}
-        <div className="relative w-full h-[50vh] md:h-[55vh] lg:h-[60vh] bg-slate-100 cursor-pointer" onClick={() => setProGalleryOpen(true)}>
+        <div className="relative w-full h-[55vh] md:h-[58vh] lg:h-[62vh] bg-slate-100 cursor-pointer" onClick={() => setProGalleryOpen(true)}>
           {allPhotos.length > 0 ? (
             <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="h-full w-full object-cover" />
           ) : (
@@ -865,11 +865,18 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* Badge PRO + Compteur — bas gauche */}
-          <div className="absolute bottom-4 left-4 flex items-center gap-2">
+          {/* Badge PRO + Compteur — bas gauche (plus haut car carte overlap) */}
+          <div className="absolute bottom-16 left-4 flex items-center gap-2">
             <span className="rounded-md bg-white/90 px-2 py-1 text-xs font-bold text-[#111]">{photoIdx + 1}/{allPhotos.length}</span>
             <span className="rounded-md bg-white/90 px-2 py-1 text-xs font-bold text-[#111]">{proBadge}</span>
           </div>
+
+          {/* WhatsApp collé à droite au milieu de la photo */}
+          {v.contactTelephone && (
+            <a href={whatsapp} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="absolute right-3 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-green-500 text-white shadow-lg hover:bg-green-600 transition z-10">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
+            </a>
+          )}
 
           {/* Flèches */}
           {allPhotos.length > 1 && (
@@ -880,23 +887,24 @@ export default function Vehicule() {
           )}
         </div>
 
-        {/* ===== CONTENU SOUS LA PHOTO ===== */}
-        <div className="container-page">
-          {/* NOM + PRIX */}
-          <div className="mt-4">
+        {/* ===== CARTE INFO (overlap sur la photo, style Le Bon Coin) ===== */}
+        <div className="container-page -mt-12 relative z-10">
+          <div className="rounded-2xl border border-[#D4AF37]/40 bg-white p-5 shadow-[0_0_20px_rgba(212,175,55,0.15)]">
             <h1 className="text-xl font-extrabold text-[#111] md:text-2xl">{v.titre}</h1>
-            <div className="mt-1 flex items-center gap-2 flex-wrap">
+            <p className="mt-1 text-xs text-slate-500">{v.ville || "Lyon"} · {v.annee || "2023"} · {v.kilometrage ? `${v.kilometrage.toLocaleString("fr-FR")} km` : ""} · {v.carburant || "Essence"}</p>
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
               <span className="text-2xl font-extrabold text-[#111]">{formatPrice(Number(v.prix))}</span>
               {estimateQuery.data && Number(v.prix) > 0 && (() => {
                 const est = estimateQuery.data;
                 const prixNum = Number(v.prix);
-                const label = prixNum <= est.mid * 0.97 ? "Bon prix" : prixNum <= est.high ? "Offre équitable" : "Au-dessus";
+                const label = prixNum <= est.mid * 0.97 ? "Bon prix" : prixNum <= est.high ? "Prix équitable" : "Au-dessus";
                 return <span className="rounded-full border border-slate-300 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600">{label}</span>;
               })()}
             </div>
             {estimateQuery.data && (
               <p className="mt-1 text-xs text-slate-500">ou {Math.round(Number(v.prix) / 60)} €/mois</p>
             )}
+            <span className="mt-2 inline-block rounded-full border border-[#111] px-3 py-0.5 text-[10px] font-bold text-[#111]">{proBadge}</span>
           </div>
 
           {/* VENDEUR PRO */}
@@ -929,9 +937,9 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* CARACTÉRISTIQUES */}
-          <div className="mt-5">
-            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><BadgeCheck size={18} className="text-red-400" /> Caractéristiques</h2>
+          {/* CARACTÉRISTIQUES — cliquable */}
+          <div className="mt-5 cursor-pointer" onClick={() => document.getElementById('pro-carac-detail')?.classList.toggle('hidden')}>
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><BadgeCheck size={18} className="text-red-400" /> Caractéristiques <ChevronDown size={16} className="text-slate-400 ml-auto" /></h2>
             <p className="mt-1 text-xs text-slate-400 uppercase">{v.titre} {v.version || ""}</p>
             <div className="mt-3 space-y-3">
               {[
@@ -950,25 +958,29 @@ export default function Vehicule() {
                 </div>
               ))}
             </div>
-            <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-[#111]">Voir tout (20)</button>
+            <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-[#111]" onClick={(e) => { e.stopPropagation(); document.getElementById('pro-carac-detail')?.classList.toggle('hidden'); }}>Voir tout (20)</button>
           </div>
 
-          {/* ÉQUIPEMENTS & OPTIONS */}
-          <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
+          {/* ÉQUIPEMENTS & OPTIONS — cliquable */}
+          <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4 cursor-pointer" onClick={() => requireLogin(() => navigate("/compte"))}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Wrench size={18} className="text-red-400" /> Équipements & options</h2>
             <ChevronRight size={20} className="text-slate-400" />
           </div>
 
-          {/* FINANCEMENT */}
+          {/* FINANCEMENT — Paiement plusieurs fois + LOA */}
           <div className="mt-6 border-t border-slate-100 pt-4">
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><CreditCard size={18} className="text-red-400" /> Financement</h2>
-            <div className="mt-3 rounded-xl border border-slate-200 p-4">
+            <div className="mt-3 rounded-xl border border-slate-200 p-5">
               <div className="flex gap-2 mb-3">
-                <span className="rounded-full border-b-2 border-red-500 px-4 py-1 text-xs font-bold text-red-500">Crédit</span>
-                <span className="rounded-full px-4 py-1 text-xs font-bold text-slate-400">LOA</span>
+                <span className="rounded-full border-b-2 border-[#D4AF37] px-4 py-1.5 text-xs font-bold text-[#D4AF37] cursor-pointer">Paiement en plusieurs fois</span>
+                <span className="rounded-full px-4 py-1.5 text-xs font-bold text-slate-400 cursor-pointer hover:text-[#111]">LOA</span>
               </div>
-              <p className="text-center text-lg font-extrabold text-[#111]">Dès {Math.round(Number(v.prix) / 60)} €<span className="text-sm font-normal text-slate-500">/mois</span></p>
-              <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white">Faire une offre au vendeur</button>
+              <p className="text-center text-xl font-extrabold text-[#111]">Dès {Math.round(Number(v.prix) / 60)} €<span className="text-sm font-normal text-slate-500">/mois</span></p>
+              <p className="text-center text-[10px] text-slate-400 mt-1">Sur 60 mois • Sans apport</p>
+              <div className="mt-3 flex items-center justify-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-bold text-green-700">● Disponible</span>
+              </div>
+              <button className="mt-4 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => navigate("/finance"))}>Faire une offre au vendeur</button>
             </div>
           </div>
 
@@ -986,8 +998,8 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* GARANTIES */}
-          <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
+          {/* GARANTIES — cliquable */}
+          <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4 cursor-pointer" onClick={() => requireLogin(() => navigate("/compte"))}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><ShieldCheck size={18} className="text-red-400" /> Garanties</h2>
             <ChevronRight size={20} className="text-slate-400" />
           </div>
@@ -1009,7 +1021,7 @@ export default function Vehicule() {
                 </div>
               ))}
             </div>
-            <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white">Voir l'historique complet</button>
+            <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => navigate("/compte"))}>Voir l'historique complet</button>
           </div>
 
           {/* PRIX */}
@@ -1023,16 +1035,16 @@ export default function Vehicule() {
               <p className="mt-1 text-xs text-slate-500">Le prix est dans la moyenne des véhicules similaires.</p>
             )}
             <div className="mt-3 space-y-2">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer" onClick={() => requireLogin(() => navigate("/compte"))}>
                 <span className="text-sm text-[#111]">Historique</span>
                 <ChevronRight size={16} className="text-slate-400" />
               </div>
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer" onClick={() => requireLogin(() => navigate("/compte"))}>
                 <span className="text-sm text-[#111]">Cote du véhicule</span>
                 <span className="text-xs font-semibold text-[#111] underline">Consulter</span>
               </div>
             </div>
-            <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-[#111]">Créer une alerte prix</button>
+            <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-[#111]" onClick={() => requireLogin(() => setShowAlertPanel(true))}>Créer une alerte prix</button>
           </div>
 
           {/* VENDEUR PRO COMPLET */}
@@ -1052,8 +1064,9 @@ export default function Vehicule() {
               <MapPin size={14} className="text-red-500" />
               <span className="text-sm font-bold text-[#111]">{v.ville || "Lyon"}</span>
             </div>
-            <div className="mt-2 flex items-center justify-between border-b border-slate-100 py-2">
+            <div className="mt-2 flex items-center justify-between border-b border-slate-100 py-2 cursor-pointer" onClick={() => navigate("/pro")}>
               <span className="text-sm text-[#111]">Horaires et à propos</span>
+              <span className="text-xs text-red-500 font-semibold">Fermé</span>
               <ChevronRight size={16} className="text-slate-400" />
             </div>
             <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => navigate("/pro")}>Voir les annonces du pro</button>
@@ -1077,7 +1090,7 @@ export default function Vehicule() {
           <div className="mt-6 rounded-xl border border-red-200 bg-red-50/30 p-4">
             <p className="text-sm font-bold text-[#111]">Ce {v.titre} vous intéresse ?</p>
             <p className="mt-1 text-xs text-slate-500">Enregistrez la recherche et soyez alerté des nouvelles annonces similaires.</p>
-            <button className="mt-3 w-full rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-[#111] flex items-center justify-center gap-2"><Bell size={14} /> Enregistrer ma recherche</button>
+            <button className="mt-3 w-full rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-[#111] flex items-center justify-center gap-2" onClick={() => requireLogin(() => setShowAlertPanel(true))}><Bell size={14} /> Enregistrer ma recherche</button>
           </div>
 
           {/* ALLER PLUS LOIN */}
@@ -1089,7 +1102,7 @@ export default function Vehicule() {
                 { icon: <History size={18} />, title: "Historique complet", desc: "Consultez l'historique complet" },
                 { icon: <FileCheck size={18} />, title: "Fiche Technique", desc: "Toutes les informations du véhicule" },
               ].map((item) => (
-                <div key={item.title} className="flex items-center gap-3 border-b border-slate-100 pb-3">
+                <div key={item.title} className="flex items-center gap-3 border-b border-slate-100 pb-3 cursor-pointer" onClick={() => requireLogin(() => navigate("/compte"))}>
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500">{item.icon}</div>
                   <div>
                     <p className="text-sm font-bold text-[#111] underline">{item.title}</p>
@@ -1124,12 +1137,7 @@ export default function Vehicule() {
           )}
         </div>
 
-        {/* WhatsApp flottant */}
-        {v.contactTelephone && (
-          <a href={whatsapp} target="_blank" rel="noreferrer" className="fixed bottom-[130px] right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-xl hover:bg-green-600 transition md:bottom-[80px]">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
-          </a>
-        )}
+        {/* WhatsApp est maintenant collé sur la photo principale (voir ci-dessus) */}
       </div>
     );
   }
