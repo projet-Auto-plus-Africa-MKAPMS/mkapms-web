@@ -892,7 +892,7 @@ export default function Vehicule() {
           </div>
 
           {/* WhatsApp collé à droite — très petit, premium glow doré, flottant */}
-          <a href={whatsapp} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className={`absolute right-2 top-[55%] flex h-8 w-8 items-center justify-center rounded-full transition-all duration-500 ${scrollHidden ? 'opacity-0 scale-50 pointer-events-none' : 'opacity-100 scale-100'}`} style={{backgroundColor: '#25D366', zIndex: 20, boxShadow: scrollHidden ? 'none' : '0 0 12px rgba(212,175,55,0.6), 0 0 4px rgba(37,211,102,0.8)'}}>
+          <a href={whatsapp} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className={`absolute right-2 top-[55%] flex h-8 w-8 items-center justify-center rounded-full transition-all duration-500 ${scrollHidden ? 'opacity-0 scale-50 pointer-events-none' : 'opacity-100 scale-100'}`} style={{backgroundColor: '#25D366', zIndex: 20, boxShadow: scrollHidden ? 'none' : '0 0 16px rgba(212,175,55,0.8), 0 0 6px rgba(37,211,102,0.9), 0 0 30px rgba(212,175,55,0.3)'}}>
             <svg width="16" height="16" viewBox="0 0 448 512" fill="white"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
           </a>
 
@@ -907,7 +907,7 @@ export default function Vehicule() {
 
         {/* ===== CARTE INFO (overlap sur la photo, style Le Bon Coin) ===== */}
         <div className="container-page -mt-12 relative z-10">
-          <div className="rounded-2xl border border-[#D4AF37]/40 bg-white p-5 pb-6 shadow-[0_0_20px_rgba(212,175,55,0.15)]">
+          <div className="rounded-2xl border-2 border-[#111] bg-white p-5 pb-6" style={{boxShadow: '0 0 18px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.12)'}}>
             <h1 className="text-center text-xl font-extrabold text-[#111] md:text-2xl">{v.titre}</h1>
             <p className="text-center mt-1 text-xs text-slate-500">{v.ville || "Lyon"} · {v.annee || "2023"} · {v.kilometrage ? `${v.kilometrage.toLocaleString("fr-FR")} km` : ""} · {v.carburant || "Essence"}</p>
             <div className="mt-2 flex items-center justify-center gap-2 flex-wrap">
@@ -939,7 +939,7 @@ export default function Vehicule() {
           </button>
 
           {/* POINTS FORTS — lignes séparatrices OR lumineux */}
-          <div className="mt-5 border-t-2 border-b-2 border-[#111]/20 py-4" style={{boxShadow: '0 1px 4px rgba(0,0,0,0.08), 0 -1px 4px rgba(0,0,0,0.08)'}}>
+          <div className="mt-5 border-t-2 border-b-2 border-[#111] py-4" style={{boxShadow: '0 2px 8px rgba(212,175,55,0.2), 0 -2px 8px rgba(212,175,55,0.2)'}}>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <History size={20} className="mx-auto text-slate-500" />
@@ -998,7 +998,7 @@ export default function Vehicule() {
           </div>
 
           {/* ÉQUIPEMENTS & OPTIONS — cliquable ouvre/ferme */}
-          <div className="mt-6 border-t-2 border-[#111]/15 pt-4" style={{boxShadow: '0 -1px 4px rgba(0,0,0,0.06)'}}>
+          <div className="mt-6 border-t-2 border-[#111]/40 pt-4" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
             <div className="flex items-center justify-between cursor-pointer" onClick={() => setProEquipOpen(!proEquipOpen)}>
               <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Wrench size={18} className="text-red-400" /> Équipements & options</h2>
               <ChevronDown size={18} className={`text-slate-400 transition-transform ${proEquipOpen ? 'rotate-180' : ''}`} />
@@ -1015,7 +1015,7 @@ export default function Vehicule() {
           </div>
 
           {/* FINANCEMENT — Paiement plusieurs fois + LOA (tab switch) */}
-          <div className="mt-6 border-t-2 border-[#111]/15 pt-4" style={{boxShadow: '0 -1px 4px rgba(0,0,0,0.06)'}}>
+          <div className="mt-6 border-t-2 border-[#111]/40 pt-4" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><CreditCard size={18} className="text-red-400" /> Financement</h2>
             <div className="mt-3 rounded-xl border border-slate-200 p-5">
               <div className="flex gap-2 mb-3">
@@ -1055,7 +1055,7 @@ export default function Vehicule() {
           </div>
 
           {/* GARANTIES — cliquable → ouvre modal */}
-          <div className="mt-6 flex items-center justify-between border-t-2 border-[#D4AF37]/30 pt-4 cursor-pointer" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}} onClick={() => setProGarantieOpen(true)}>
+          <div className="mt-6 flex items-center justify-between border-t-2 border-[#111]/40 pt-4 cursor-pointer" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}} onClick={() => setProGarantieOpen(true)}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><ShieldCheck size={18} className="text-red-400" /> Garanties</h2>
             <ChevronRight size={20} className="text-slate-400" />
           </div>
@@ -1104,12 +1104,12 @@ export default function Vehicule() {
           </div>
 
           {/* VENDEUR PRO COMPLET — plaque avec carte maps */}
-          <div className="mt-6 border-t-2 border-[#111]/15 pt-4" style={{boxShadow: '0 -1px 4px rgba(0,0,0,0.06)'}}>
+          <div className="mt-6 border-t-2 border-[#111]/40 pt-4" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Store size={18} className="text-red-400" /> Professionnel de l'automobile</h2>
             <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-bold text-green-700"><ShieldCheck size={10} /> Pro vérifié</span>
 
-            {/* Plaque vendeur */}
-            <div className="mt-3 rounded-xl border border-slate-200 p-4">
+            {/* Plaque vendeur — même contour premium que carte prix */}
+            <div className="mt-3 rounded-2xl border-2 border-[#111] p-4" style={{boxShadow: '0 0 18px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.12)'}}>
               <div className="flex items-center gap-3">
                 <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold text-[#111]">
                   {(v.vendeur?.nom || v.marque || "P").charAt(0).toUpperCase()}
@@ -1219,7 +1219,7 @@ export default function Vehicule() {
           </div>
 
           {/* CES ANNONCES PEUVENT VOUS INTÉRESSER */}
-          <div className="mt-6 border-t-2 border-[#111]/15 pt-4" style={{boxShadow: '0 -1px 4px rgba(0,0,0,0.06)'}}>
+          <div className="mt-6 border-t-2 border-[#111]/40 pt-4" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-extrabold text-[#111]">Ces annonces peuvent vous intéresser :</h2>
               <ChevronRight size={20} className="text-slate-400" />
