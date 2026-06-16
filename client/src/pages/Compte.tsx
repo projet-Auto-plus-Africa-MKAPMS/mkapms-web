@@ -7,7 +7,7 @@ import { isAdmin, isPro, ROLE_LABELS } from "@shared/roles";
 import type { UserRole } from "@shared/roles";
 import FileUpload from "../components/FileUpload";
 
-type Tab = "annonces" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil";
+type Tab = "annonces" | "toutes-annonces" | "publicites" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil";
 
 const DEMO_RAPPORTS = [
   { id: 1, plaque: "AB-123-CD", vinPartiel: "VF1KR****567890", type: "Rapport Complet", prix: "7,99 \u20ac", date: "28/05/2024", statut: "Disponible" },
@@ -67,7 +67,7 @@ export default function Compte() {
     );
   }
 
-  const TABS: [Tab, string][] = [
+  const baseTabs: [Tab, string][] = [
     ["annonces", "Mes annonces"],
     ["favoris", "Favoris"],
     ["recherches", "Mes alertes"],
@@ -81,6 +81,14 @@ export default function Compte() {
     ["rapports", "Mes rapports"],
     ["services", "Tous les services"],
     ["profil", "Profil"],
+  ];
+  const adminTabs: [Tab, string][] = isAdmin(user.role)
+    ? [["toutes-annonces", "Toutes les annonces"], ["publicites", "Publicités"]]
+    : [];
+  const TABS: [Tab, string][] = [
+    ["annonces", "Mes annonces"],
+    ...adminTabs,
+    ...baseTabs.slice(1),
   ];
 
   return (
@@ -143,6 +151,87 @@ export default function Compte() {
             {mineAnnonces.data?.length === 0 && <p className="text-sm text-slate-500">Aucune annonce.</p>}
           </div>
         )}
+
+        {/* TOUTES LES ANNONCES — admin/PDG uniquement */}
+        {tab === "toutes-annonces" && (
+          <div className="space-y-3">
+            <p className="text-sm text-slate-500">Toutes les annonces de la plateforme (tous les utilisateurs : pro, particulier, société).</p>
+            {mineAnnonces.data?.map((a) => (
+              <Link key={a.id} to={`/vehicule/${a.id}`} className="card flex items-center justify-between p-4 hover:bg-slate-50 transition cursor-pointer">
+                <div>
+                  <p className="font-semibold text-slate-800">{a.titre}</p>
+                  <p className="text-xs text-slate-400">
+                    {(a as { reference?: string | null }).reference ? `${(a as { reference?: string | null }).reference} · ` : ""}
+                    {a.status} · {formatPrice(Number(a.prix))}
+                  </p>
+                  <p className="text-[10px] text-slate-300 mt-0.5">Vendeur ID: {a.userId}</p>
+                </div>
+                <span className="text-xs text-slate-400">→</span>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* PUBLICITÉS — gestion emplacements */}
+        {tab === "publicites" && (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-500">Emplacements publicitaires sur la plateforme. Cliquez pour voir les détails de chaque emplacement.</p>
+            {[
+              { id: 1, name: "Page d'accueil — Carrousel #1", cases: 5, actif: 3, status: "actif" },
+              { id: 2, name: "Page d'accueil — Carrousel #2", cases: 5, actif: 1, status: "actif" },
+              { id: 3, name: "Page d'accueil — Carrousel #3 (Premium)", cases: 5, actif: 2, status: "actif" },
+              { id: 4, name: "Page produit — Bas de page", cases: 4, actif: 4, status: "actif" },
+              { id: 5, name: "Page recherche — Sidebar", cases: 3, actif: 0, status: "inactif" },
+              { id: 6, name: "Page résultats — Entre annonces", cases: 4, actif: 0, status: "inactif" },
+            ].map((emp) => (
+              <Link key={emp.id} to="/demande-publicite" className="card p-4 hover:bg-slate-50 transition cursor-pointer block">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">#{emp.id} — {emp.name}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{emp.cases} cases disponibles · {emp.actif} occupées</p>
+                    <div className="mt-2 flex gap-1">
+                      {Array.from({ length: emp.cases }).map((_, i) => (
+                        <div key={i} className={`h-3 w-8 rounded ${i < emp.actif ? "bg-[#D4AF37]" : "bg-slate-200"}`} />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${emp.status === "actif" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>{emp.status}</span>
+                    <span className="text-xs text-slate-400">→</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+
+            <div className="mt-4">
+              <p className="text-sm font-bold text-slate-700">Demandes en attente</p>
+              <div className="mt-2 space-y-2">
+                {[
+                  { id: "PUB-001", entreprise: "AutoPièces Express", type: "Vendeur de pièces", emplacement: "#4", status: "en_attente" },
+                  { id: "PUB-002", entreprise: "Garage Saint-Denis", type: "Réparateur", emplacement: "#1", status: "en_attente" },
+                  { id: "PUB-003", entreprise: "CleanCar 95", type: "Service lavage", emplacement: "#4", status: "approuvée" },
+                ].map((d) => (
+                  <div key={d.id} className="card p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-slate-800">{d.entreprise} <span className="text-xs text-slate-400">({d.id})</span></p>
+                        <p className="text-xs text-slate-500">{d.type} · Emplacement {d.emplacement}</p>
+                      </div>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${d.status === "approuvée" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{d.status === "approuvée" ? "Approuvée" : "En attente"}</span>
+                    </div>
+                    {d.status === "en_attente" && (
+                      <div className="mt-2 flex gap-2">
+                        <button className="rounded-lg bg-green-600 px-3 py-1 text-xs font-bold text-white">Approuver</button>
+                        <button className="rounded-lg bg-red-600 px-3 py-1 text-xs font-bold text-white">Refuser</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {tab === "favoris" && (
           <div className="grid gap-3 md:grid-cols-2">
             {favoris.data?.map((f) => (
