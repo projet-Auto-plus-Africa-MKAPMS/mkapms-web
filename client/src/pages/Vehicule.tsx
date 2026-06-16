@@ -483,6 +483,18 @@ export default function Vehicule() {
             <p className="mt-4 text-sm leading-relaxed text-slate-600">Le prix de cette annonce est dans la moyenne des prix des véhicules similaires.</p>
             <Link to="#" className="mt-1 text-sm font-semibold text-noir underline">En savoir plus</Link>
 
+            {/* Localisation intégrée dans le cadre prix */}
+            <div className="mt-4 flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-3 cursor-pointer hover:bg-slate-100 transition" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                <MapPin size={18} className="text-[#D4AF37]" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-noir">MKA.P-MS Officiel</p>
+                <p className="text-xs text-slate-500">{v.ville || "Belloy-en-France"} · 95270</p>
+              </div>
+              <ChevronRight size={16} className="text-slate-400" />
+            </div>
+
             {/* Historique prix + Cote véhicule — avec flèche à droite */}
             <div className="mt-4 space-y-3">
               <button onClick={() => setShowPriceHistory(!showPriceHistory)} className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-left transition hover:bg-slate-100">
