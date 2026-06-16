@@ -486,11 +486,11 @@ export default function Compte() {
               ))}
               {/* Bloc Publicités — dans la grille comme les autres */}
               {isAdmin(user.role) && (
-                <Link to="/abonnements" className="group flex flex-col items-center gap-2 rounded-xl border-2 border-[#D4AF37]/40 bg-[#FFFDF5] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                <button onClick={() => setTab("publicites")} className="group flex flex-col items-center gap-2 rounded-xl border-2 border-[#D4AF37]/40 bg-[#FFFDF5] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
                   <span className="text-3xl">📢</span>
                   <h3 className="text-xs font-bold text-[#111]">Publicités</h3>
                   <p className="text-[10px] text-slate-500 leading-tight">Emplacements & tarifs pub</p>
-                </Link>
+                </button>
               )}
             </div>
           </div>
