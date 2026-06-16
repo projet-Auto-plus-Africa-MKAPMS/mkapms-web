@@ -643,36 +643,24 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* ── PUBLICITÉS — carrousel images, défilement auto ── */}
-          <div className="overflow-hidden">
+          {/* ── PUBLICITÉS — 4 images exactes envoyées par Moussa ── */}
+          <div>
             <p className="mb-3 text-xs font-medium text-slate-400 uppercase tracking-wide">Publicités</p>
-            <div className="flex animate-[scroll_16s_linear_infinite] gap-3" style={{ width: "fit-content" }}>
+            <div className="grid grid-cols-2 gap-2">
               {[
-                { img: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=300&fit=crop", title: "Pièces Auto de Qualité", link: "/pieces" },
-                { img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=400&h=300&fit=crop", title: "Culasse Moteur Performance", link: "/pieces" },
-                { img: "https://images.unsplash.com/photo-1635273051427-7tried0a41b9?w=400&h=300&fit=crop", title: "Huile Moteur 5W-30", link: "/pieces" },
-                { img: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=300&fit=crop", title: "Boostez votre visibilité", link: "/abonnements" },
+                { pos: "top left", title: "Pièces Auto de Qualité", link: "/pieces" },
+                { pos: "top right", title: "Culasse Moteur Performance", link: "/pieces" },
+                { pos: "bottom left", title: "Huile Moteur 5W-30", link: "/pieces" },
+                { pos: "bottom right", title: "Boostez votre visibilité", link: "/abonnements" },
               ].map((pub, i) => (
-                <Link key={i} to={pub.link} className="shrink-0 w-64 overflow-hidden rounded-xl bg-[#1a1a1a] shadow-lg hover:shadow-xl transition block">
-                  <img src={pub.img} alt={pub.title} className="h-36 w-full object-cover opacity-90" loading="lazy" />
-                  <div className="p-3">
-                    <p className="text-xs font-bold text-white">{pub.title}</p>
-                    <p className="mt-1 text-[10px] text-[#D4AF37]">Sponsorisé →</p>
-                  </div>
-                </Link>
-              ))}
-              {[
-                { img: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=300&fit=crop", title: "Pièces Auto de Qualité", link: "/pieces" },
-                { img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=400&h=300&fit=crop", title: "Culasse Moteur Performance", link: "/pieces" },
-                { img: "https://images.unsplash.com/photo-1635273051427-7tried0a41b9?w=400&h=300&fit=crop", title: "Huile Moteur 5W-30", link: "/pieces" },
-                { img: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=300&fit=crop", title: "Boostez votre visibilité", link: "/abonnements" },
-              ].map((pub, i) => (
-                <Link key={`dup-${i}`} to={pub.link} className="shrink-0 w-64 overflow-hidden rounded-xl bg-[#1a1a1a] shadow-lg hover:shadow-xl transition block">
-                  <img src={pub.img} alt={pub.title} className="h-36 w-full object-cover opacity-90" loading="lazy" />
-                  <div className="p-3">
-                    <p className="text-xs font-bold text-white">{pub.title}</p>
-                    <p className="mt-1 text-[10px] text-[#D4AF37]">Sponsorisé →</p>
-                  </div>
+                <Link key={i} to={pub.link} className="relative overflow-hidden rounded-xl aspect-[4/3] block">
+                  <img
+                    src="https://app.devin.ai/attachments/ee2336c5-32cb-43fc-b1dc-205f1206704d/07F3AA65-ACCE-4A4A-BFFB-A2753B3362AA.png"
+                    alt={pub.title}
+                    className="absolute inset-0 h-[200%] w-[200%] object-cover"
+                    style={{ objectPosition: pub.pos }}
+                    loading="lazy"
+                  />
                 </Link>
               ))}
             </div>
