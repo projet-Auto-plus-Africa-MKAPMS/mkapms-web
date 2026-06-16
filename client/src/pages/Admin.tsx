@@ -1184,51 +1184,53 @@ export default function Admin() {
           <section className="mt-10">
             <h2 className="text-lg font-bold text-slate-800">Gestion Publicités <span className="text-xs font-normal text-gold-dark">(Direction / PDG)</span></h2>
             <p className="mt-1 text-sm text-slate-500">Emplacements publicitaires sur la plateforme. Les annonceurs souscrivent un abonnement pub pour afficher ici.</p>
-            <div className="mt-4 space-y-3">
-              <div className="card p-4">
-                <div className="flex items-center justify-between">
+
+            {/* Emplacements */}
+            <h3 className="mt-5 text-sm font-bold text-slate-700">Emplacements disponibles</h3>
+            <div className="mt-2 space-y-2">
+              {[
+                { id: 1, name: "Page produit (bas de page)", type: "Carrousel 4 images · défilement auto", status: "actif" },
+                { id: 2, name: "Page d'accueil (bannière)", type: "Bannière pleine largeur · rotation 8s", status: "inactif" },
+                { id: 3, name: "Page recherche (sidebar)", type: "Carte verticale · fixe", status: "inactif" },
+                { id: 4, name: "Page résultats (entre annonces)", type: "Carte inline · tous les 5 résultats", status: "inactif" },
+              ].map((e) => (
+                <div key={e.id} className="card flex items-center justify-between p-3">
                   <div>
-                    <p className="text-sm font-bold text-slate-800">Emplacement #1 — Page produit (bas de page)</p>
-                    <p className="text-xs text-slate-400">Carrousel 4 cartes · défilement automatique</p>
+                    <p className="text-sm font-bold text-slate-800">#{e.id} — {e.name}</p>
+                    <p className="text-xs text-slate-400">{e.type}</p>
                   </div>
-                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">Actif</span>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${e.status === "actif" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>{e.status}</span>
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                  <div className="rounded-lg bg-slate-50 p-2"><span className="font-bold">Pub 1:</span> AutoPièces Express</div>
-                  <div className="rounded-lg bg-slate-50 p-2"><span className="font-bold">Pub 2:</span> Garage Saint-Denis</div>
-                  <div className="rounded-lg bg-slate-50 p-2"><span className="font-bold">Pub 3:</span> AssurAuto Pro</div>
-                  <div className="rounded-lg bg-slate-50 p-2"><span className="font-bold">Pub 4:</span> CleanCar 95</div>
-                </div>
-              </div>
-              <div className="card p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">Emplacement #2 — Page d'accueil (bannière)</p>
-                    <p className="text-xs text-slate-400">Bannière pleine largeur · rotation 8s</p>
-                  </div>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">Inactif</span>
-                </div>
-              </div>
-              <div className="card p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">Emplacement #3 — Page recherche (sidebar)</p>
-                    <p className="text-xs text-slate-400">Carte verticale · fixe</p>
-                  </div>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">Inactif</span>
-                </div>
-              </div>
-              <div className="card p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">Emplacement #4 — Page résultats (entre annonces)</p>
-                    <p className="text-xs text-slate-400">Carte inline · tous les 5 résultats</p>
-                  </div>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">Inactif</span>
-                </div>
-              </div>
+              ))}
             </div>
-            <p className="mt-3 text-xs text-slate-400">Tarifs à configurer. Chaque emplacement = image/texte + lien du site de l'annonceur.</p>
+
+            {/* Demandes de publicités */}
+            <h3 className="mt-6 text-sm font-bold text-slate-700">Demandes de publicité en attente</h3>
+            <div className="mt-2 space-y-3">
+              {[
+                { id: "PUB-001", entreprise: "AutoPièces Express", type: "Vendeur de pièces", emplacement: "#1", desc: "Ouverture magasin Sarcelles — pièces neuves toutes marques", status: "en_attente" },
+                { id: "PUB-002", entreprise: "Garage Saint-Denis", type: "Réparateur / Garage", emplacement: "#1", desc: "Vidange + contrôle technique à 59€", status: "en_attente" },
+                { id: "PUB-003", entreprise: "CleanCar 95", type: "Service auto (lavage)", emplacement: "#1", desc: "Nettoyage complet intérieur/extérieur 49€", status: "approuvée" },
+              ].map((d) => (
+                <div key={d.id} className="card p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">{d.entreprise} <span className="text-xs font-normal text-slate-400">({d.id})</span></p>
+                      <p className="text-xs text-slate-500">Type : <span className="font-semibold">{d.type}</span> · Emplacement {d.emplacement}</p>
+                      <p className="mt-1 text-xs text-slate-600">{d.desc}</p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${d.status === "approuvée" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{d.status === "approuvée" ? "Approuvée" : "En attente"}</span>
+                  </div>
+                  {d.status === "en_attente" && (
+                    <div className="mt-3 flex gap-2">
+                      <button className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700">Approuver</button>
+                      <button className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700">Refuser</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-slate-400">Publicités interdites : alcool, cigarettes, armes, contenu illicite. Filtrage par type d'activité (restaurateur, vendeur pièces, garage, etc.).</p>
           </section>
         </>
       )}

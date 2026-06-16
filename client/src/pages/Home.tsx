@@ -176,7 +176,7 @@ export default function Home() {
                   src={src}
                   alt=""
                   loading={i === 0 ? "eager" : "lazy"}
-                  className="w-full shrink-0 aspect-[16/9] object-cover"
+                  className="w-full shrink-0 aspect-[3/4] object-cover"
                 />
               ))}
             </div>

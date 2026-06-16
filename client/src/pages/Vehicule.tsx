@@ -643,33 +643,37 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* ── PUBLICITÉS — carrousel auto, pubs externes ── */}
-          <div className="overflow-hidden rounded-xl">
-            <p className="mb-2 text-xs font-medium text-slate-400 uppercase tracking-wide">Publicités</p>
-            <div className="flex animate-[scroll_16s_linear_infinite] gap-4" style={{ width: "fit-content" }}>
+          {/* ── PUBLICITÉS — carrousel images, défilement auto ── */}
+          <div className="overflow-hidden">
+            <p className="mb-3 text-xs font-medium text-slate-400 uppercase tracking-wide">Publicités</p>
+            <div className="flex animate-[scroll_16s_linear_infinite] gap-3" style={{ width: "fit-content" }}>
               {[
-                { title: "AutoPièces Express", desc: "Ouverture nouveau magasin à Sarcelles ! -20% cette semaine", bg: "bg-orange-50", color: "text-orange-700", link: "#pub-1" },
-                { title: "Garage Saint-Denis", desc: "Vidange + contrôle 59€ seulement. Prenez RDV →", bg: "bg-blue-50", color: "text-blue-700", link: "#pub-2" },
-                { title: "AssurAuto Pro", desc: "Votre assurance auto dès 19€/mois. Devis gratuit en 2min", bg: "bg-emerald-50", color: "text-emerald-700", link: "#pub-3" },
-                { title: "CleanCar 95", desc: "Nettoyage intérieur/extérieur complet 49€. Belloy-en-France", bg: "bg-purple-50", color: "text-purple-700", link: "#pub-4" },
+                { img: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=300&fit=crop", title: "Pièces Auto de Qualité", link: "/pieces" },
+                { img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=400&h=300&fit=crop", title: "Culasse Moteur Performance", link: "/pieces" },
+                { img: "https://images.unsplash.com/photo-1635273051427-7tried0a41b9?w=400&h=300&fit=crop", title: "Huile Moteur 5W-30", link: "/pieces" },
+                { img: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=300&fit=crop", title: "Boostez votre visibilité", link: "/abonnements" },
               ].map((pub, i) => (
-                <a key={i} href={pub.link} className={`shrink-0 w-52 rounded-xl ${pub.bg} p-5 cursor-pointer hover:shadow-md transition block`}>
-                  <p className={`text-sm font-bold ${pub.color}`}>{pub.title}</p>
-                  <p className="mt-1.5 text-xs leading-relaxed text-slate-600">{pub.desc}</p>
-                  <p className="mt-2 text-[10px] font-semibold text-slate-400">Sponsorisé →</p>
-                </a>
+                <Link key={i} to={pub.link} className="shrink-0 w-64 overflow-hidden rounded-xl bg-[#1a1a1a] shadow-lg hover:shadow-xl transition block">
+                  <img src={pub.img} alt={pub.title} className="h-36 w-full object-cover opacity-90" loading="lazy" />
+                  <div className="p-3">
+                    <p className="text-xs font-bold text-white">{pub.title}</p>
+                    <p className="mt-1 text-[10px] text-[#D4AF37]">Sponsorisé →</p>
+                  </div>
+                </Link>
               ))}
               {[
-                { title: "AutoPièces Express", desc: "Ouverture nouveau magasin à Sarcelles ! -20% cette semaine", bg: "bg-orange-50", color: "text-orange-700", link: "#pub-1" },
-                { title: "Garage Saint-Denis", desc: "Vidange + contrôle 59€ seulement. Prenez RDV →", bg: "bg-blue-50", color: "text-blue-700", link: "#pub-2" },
-                { title: "AssurAuto Pro", desc: "Votre assurance auto dès 19€/mois. Devis gratuit en 2min", bg: "bg-emerald-50", color: "text-emerald-700", link: "#pub-3" },
-                { title: "CleanCar 95", desc: "Nettoyage intérieur/extérieur complet 49€. Belloy-en-France", bg: "bg-purple-50", color: "text-purple-700", link: "#pub-4" },
+                { img: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=300&fit=crop", title: "Pièces Auto de Qualité", link: "/pieces" },
+                { img: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=400&h=300&fit=crop", title: "Culasse Moteur Performance", link: "/pieces" },
+                { img: "https://images.unsplash.com/photo-1635273051427-7tried0a41b9?w=400&h=300&fit=crop", title: "Huile Moteur 5W-30", link: "/pieces" },
+                { img: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=300&fit=crop", title: "Boostez votre visibilité", link: "/abonnements" },
               ].map((pub, i) => (
-                <a key={`dup-${i}`} href={pub.link} className={`shrink-0 w-52 rounded-xl ${pub.bg} p-5 cursor-pointer hover:shadow-md transition block`}>
-                  <p className={`text-sm font-bold ${pub.color}`}>{pub.title}</p>
-                  <p className="mt-1.5 text-xs leading-relaxed text-slate-600">{pub.desc}</p>
-                  <p className="mt-2 text-[10px] font-semibold text-slate-400">Sponsorisé →</p>
-                </a>
+                <Link key={`dup-${i}`} to={pub.link} className="shrink-0 w-64 overflow-hidden rounded-xl bg-[#1a1a1a] shadow-lg hover:shadow-xl transition block">
+                  <img src={pub.img} alt={pub.title} className="h-36 w-full object-cover opacity-90" loading="lazy" />
+                  <div className="p-3">
+                    <p className="text-xs font-bold text-white">{pub.title}</p>
+                    <p className="mt-1 text-[10px] text-[#D4AF37]">Sponsorisé →</p>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
