@@ -972,6 +972,13 @@ export default function Vehicule() {
             <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-[#111]" onClick={() => setProCaracOpen(!proCaracOpen)}>{proCaracOpen ? 'Masquer' : 'Voir tout (20)'}</button>
           </div>
 
+          {/* DESCRIPTION — entre caractéristiques et équipements, cliquable s'ouvre en grand */}
+          <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4 cursor-pointer" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}} onClick={() => setProDescOpen(true)}>
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><FileText size={18} className="text-red-400" /> Description</h2>
+            <p className="mt-2 text-sm text-slate-600 line-clamp-3">{v.description || "Véhicule en excellent état, entretenu régulièrement en concession. Non fumeur. Disponible immédiatement pour essai et vente."}</p>
+            <p className="mt-2 text-xs font-semibold text-[#D4AF37]">Lire la suite →</p>
+          </div>
+
           {/* ÉQUIPEMENTS & OPTIONS — cliquable ouvre/ferme */}
           <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}}>
             <div className="flex items-center justify-between cursor-pointer" onClick={() => setProEquipOpen(!proEquipOpen)}>
@@ -1078,13 +1085,6 @@ export default function Vehicule() {
             <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-[#111]" onClick={() => requireLogin(() => setShowAlertPanel(true))}>Créer une alerte prix</button>
           </div>
 
-          {/* DESCRIPTION — cliquable, s'ouvre en grand */}
-          <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4 cursor-pointer" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}} onClick={() => setProDescOpen(true)}>
-            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><FileText size={18} className="text-red-400" /> Description</h2>
-            <p className="mt-2 text-sm text-slate-600 line-clamp-3">{v.description || "Véhicule en excellent état, entretenu régulièrement en concession. Non fumeur. Disponible immédiatement pour essai et vente."}</p>
-            <p className="mt-2 text-xs font-semibold text-[#D4AF37]">Lire la suite →</p>
-          </div>
-
           {/* VENDEUR PRO COMPLET — plaque avec carte maps */}
           <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Store size={18} className="text-red-400" /> Professionnel de l'automobile</h2>
@@ -1122,7 +1122,7 @@ export default function Vehicule() {
                 </div>
               </div>
 
-              <button className="mt-3 w-full rounded-xl border border-[#D4AF37] py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#FFFDF5] transition" onClick={() => requireLogin(() => messageAction())}>Demander un essai</button>
+              <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => messageAction())}>Demander un essai</button>
             </div>
 
             <div className="mt-3 flex items-center justify-between border-b border-slate-100 py-2 cursor-pointer" onClick={() => navigate("/pro")}>
@@ -1130,7 +1130,26 @@ export default function Vehicule() {
               <span className="text-xs text-red-500 font-semibold">Fermé</span>
               <ChevronRight size={16} className="text-slate-400" />
             </div>
-            <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => navigate("/pro")}>Voir les annonces du pro</button>
+            {/* Annonces du pro — carrousel */}
+            <div className="mt-4">
+              <h3 className="text-sm font-bold text-[#111] mb-2">Les annonces de ce pro :</h3>
+              <div className="flex gap-3 overflow-x-auto pb-2">
+                {[8001, 8002, 8003, 8004, 8005].filter((id) => id !== v.id).slice(0, 4).map((id) => {
+                  const sim = DEMO_VEHICLES[id];
+                  if (!sim) return null;
+                  return (
+                    <Link key={id} to={`/vehicule/${id}`} className="w-36 shrink-0 overflow-hidden rounded-xl border border-slate-200">
+                      <img src={sim.photoPrincipale} alt={sim.titre} className="h-24 w-full object-cover" />
+                      <div className="p-2">
+                        <p className="text-[10px] font-bold text-[#111] truncate">{sim.titre}</p>
+                        <p className="text-xs font-extrabold text-[#111]">{formatPrice(Number(sim.prix))}</p>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+            <button className="mt-3 w-full rounded-xl border border-[#111] py-3 text-sm font-bold text-[#111]" onClick={() => navigate("/pro")}>Voir toutes les annonces du pro</button>
           </div>
 
           {/* PUBLICITÉ FIN DE PAGE — auto-défilante (plus grande) */}
@@ -1185,9 +1204,9 @@ export default function Vehicule() {
                 const sim = DEMO_VEHICLES[id];
                 if (!sim) return null;
                 return (
-                  <Link key={id} to={`/vehicule/${id}`} className="w-40 shrink-0 overflow-hidden rounded-xl border border-slate-200 hover:border-[#D4AF37] transition">
+                  <Link key={id} to={`/vehicule/${id}`} className="w-44 shrink-0 overflow-hidden rounded-xl border border-slate-200 hover:border-[#D4AF37] transition">
                     <div className="relative">
-                      <img src={sim.photoPrincipale} alt={sim.titre} className="h-28 w-full object-cover" />
+                      <img src={sim.photoPrincipale} alt={sim.titre} className="h-36 w-full object-cover" />
                       <button className="absolute top-2 right-2 text-slate-400"><Heart size={16} /></button>
                     </div>
                     <div className="p-2">
@@ -1209,8 +1228,8 @@ export default function Vehicule() {
           </div>
         </div>
 
-        {/* ===== BARRE FIXE EN BAS : Message + Appeler — collé au-dessus nav bar */}
-        <div className="fixed bottom-[48px] left-0 right-0 z-50 border-t border-slate-200 bg-white px-4 py-1 flex gap-3 md:bottom-0">
+        {/* ===== BARRE FIXE EN BAS : Message + Appeler — AU-DESSUS nav bar */}
+        <div className="fixed bottom-[58px] left-0 right-0 z-30 border-t border-slate-200 bg-white px-4 py-1.5 flex gap-3 md:bottom-0" style={{zIndex: 35}}>
           <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white" onClick={messageAction}>
             <Mail size={16} /> Message
           </button>
