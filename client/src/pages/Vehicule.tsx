@@ -123,6 +123,9 @@ export default function Vehicule() {
   const [proGalleryCat, setProGalleryCat] = useState("exterieur");
   const [proAdIdx1, setProAdIdx1] = useState(0);
   const [proAdIdx2, setProAdIdx2] = useState(0);
+  const [proFinanceTab, setProFinanceTab] = useState<"paiement" | "loa">("paiement");
+  const [proCaracOpen, setProCaracOpen] = useState(true);
+  const [proEquipOpen, setProEquipOpen] = useState(false);
   const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     const onScroll = () => {
@@ -889,10 +892,10 @@ export default function Vehicule() {
 
         {/* ===== CARTE INFO (overlap sur la photo, style Le Bon Coin) ===== */}
         <div className="container-page -mt-12 relative z-10">
-          <div className="rounded-2xl border border-[#D4AF37]/40 bg-white p-5 shadow-[0_0_20px_rgba(212,175,55,0.15)]">
-            <h1 className="text-xl font-extrabold text-[#111] md:text-2xl">{v.titre}</h1>
-            <p className="mt-1 text-xs text-slate-500">{v.ville || "Lyon"} · {v.annee || "2023"} · {v.kilometrage ? `${v.kilometrage.toLocaleString("fr-FR")} km` : ""} · {v.carburant || "Essence"}</p>
-            <div className="mt-2 flex items-center gap-2 flex-wrap">
+          <div className="rounded-2xl border border-[#D4AF37]/40 bg-white p-5 pb-6 shadow-[0_0_20px_rgba(212,175,55,0.15)]">
+            <h1 className="text-center text-xl font-extrabold text-[#111] md:text-2xl">{v.titre}</h1>
+            <p className="text-center mt-1 text-xs text-slate-500">{v.ville || "Lyon"} · {v.annee || "2023"} · {v.kilometrage ? `${v.kilometrage.toLocaleString("fr-FR")} km` : ""} · {v.carburant || "Essence"}</p>
+            <div className="mt-2 flex items-center justify-center gap-2 flex-wrap">
               <span className="text-2xl font-extrabold text-[#111]">{formatPrice(Number(v.prix))}</span>
               {estimateQuery.data && Number(v.prix) > 0 && (() => {
                 const est = estimateQuery.data;
@@ -901,23 +904,21 @@ export default function Vehicule() {
                 return <span className="rounded-full border border-slate-300 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600">{label}</span>;
               })()}
             </div>
-            {estimateQuery.data && (
-              <p className="mt-1 text-xs text-slate-500">ou {Math.round(Number(v.prix) / 60)} €/mois</p>
-            )}
+            <p className="text-center mt-1 text-xs text-slate-500">ou {Math.round(Number(v.prix) / 60)} €/mois</p>
             <span className="mt-2 inline-block rounded-full border border-[#111] px-3 py-0.5 text-[10px] font-bold text-[#111]">{proBadge}</span>
-          </div>
 
-          {/* VENDEUR PRO */}
-          <div className="mt-4 flex items-center gap-3 rounded-xl bg-slate-50 p-3">
-            <MapPin size={16} className="text-red-500" />
-            <div className="flex-1">
-              <p className="text-sm font-bold text-[#111]">{v.vendeur?.nom || "MKA Motors"} — {v.ville || "Lyon"}</p>
-              <p className="text-xs text-slate-500">Concessionnaire professionnel</p>
+            {/* VENDEUR PRO — intégré dans la carte */}
+            <div className="mt-4 flex items-center gap-3 rounded-xl bg-slate-50 p-3 border-t border-[#D4AF37]/20 pt-4">
+              <MapPin size={16} className="text-red-500" />
+              <div className="flex-1">
+                <p className="text-sm font-bold text-[#111]">{v.vendeur?.nom || "MKA Motors"} — {v.ville || "Lyon"}</p>
+                <p className="text-xs text-slate-500">Concessionnaire professionnel</p>
+              </div>
             </div>
           </div>
 
-          {/* POINTS FORTS */}
-          <div className="mt-5 border-t border-b border-slate-100 py-4">
+          {/* POINTS FORTS — lignes séparatrices OR lumineux */}
+          <div className="mt-5 border-t-2 border-b-2 border-[#D4AF37]/30 py-4" style={{boxShadow: '0 1px 3px rgba(212,175,55,0.2), 0 -1px 3px rgba(212,175,55,0.2)'}}>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <History size={20} className="mx-auto text-slate-500" />
@@ -937,46 +938,73 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* CARACTÉRISTIQUES — cliquable */}
-          <div className="mt-5 cursor-pointer" onClick={() => document.getElementById('pro-carac-detail')?.classList.toggle('hidden')}>
-            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><BadgeCheck size={18} className="text-red-400" /> Caractéristiques <ChevronDown size={16} className="text-slate-400 ml-auto" /></h2>
-            <p className="mt-1 text-xs text-slate-400 uppercase">{v.titre} {v.version || ""}</p>
-            <div className="mt-3 space-y-3">
-              {[
-                ["📅", "Année", v.annee],
-                ["🛣️", "Kilométrage", v.kilometrage ? `${v.kilometrage.toLocaleString("fr-FR")} km` : null],
-                ["⚙️", "Boîte de vitesse", v.boite || "Automatique"],
-                ["⛽", "Énergie", v.carburant],
-                ["🚪", "Nombre de portes", v.portes || "5"],
-                ["🐴", "Puissance fiscale", v.puissanceCv ? `${v.puissanceCv} CV` : null],
-                ["💪", "Puissance DIN", v.puissanceCv ? `${v.puissanceCv} ch` : null],
-                ["📊", "Consommation", "5,3 L /100 km"],
-              ].filter(([, , val]) => val != null).map(([icon, label, val]) => (
-                <div key={label as string} className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <span className="flex items-center gap-2 text-sm text-[#111]"><span>{icon}</span> {label}</span>
-                  <span className="text-sm font-bold text-[#111]">{String(val)}</span>
-                </div>
-              ))}
+          {/* CARACTÉRISTIQUES — cliquable ouvre/ferme */}
+          <div className="mt-5">
+            <div className="flex items-center justify-between cursor-pointer" onClick={() => setProCaracOpen(!proCaracOpen)}>
+              <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><BadgeCheck size={18} className="text-red-400" /> Caractéristiques</h2>
+              <ChevronDown size={18} className={`text-slate-400 transition-transform ${proCaracOpen ? 'rotate-180' : ''}`} />
             </div>
-            <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-[#111]" onClick={(e) => { e.stopPropagation(); document.getElementById('pro-carac-detail')?.classList.toggle('hidden'); }}>Voir tout (20)</button>
+            <p className="mt-1 text-xs text-slate-400 uppercase">{v.titre} {v.version || ""}</p>
+            {proCaracOpen && (
+              <div className="mt-3 space-y-3">
+                {[
+                  ["📅", "Année", v.annee],
+                  ["🛣️", "Kilométrage", v.kilometrage ? `${v.kilometrage.toLocaleString("fr-FR")} km` : null],
+                  ["⚙️", "Boîte de vitesse", v.boite || "Automatique"],
+                  ["⛽", "Énergie", v.carburant],
+                  ["🚪", "Nombre de portes", v.portes || "5"],
+                  ["🐴", "Puissance fiscale", v.puissanceCv ? `${v.puissanceCv} CV` : null],
+                  ["💪", "Puissance DIN", v.puissanceCv ? `${v.puissanceCv} ch` : null],
+                  ["📊", "Consommation", "5,3 L /100 km"],
+                  ["🎨", "Couleur", v.couleur || "Noir"],
+                  ["🛡️", "Garantie", v.garantie || "12 mois"],
+                ].filter(([, , val]) => val != null).map(([icon, label, val]) => (
+                  <div key={label as string} className="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <span className="flex items-center gap-2 text-sm text-[#111]"><span>{icon}</span> {label}</span>
+                    <span className="text-sm font-bold text-[#111]">{String(val)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-[#111]" onClick={() => setProCaracOpen(!proCaracOpen)}>{proCaracOpen ? 'Masquer' : 'Voir tout (20)'}</button>
           </div>
 
-          {/* ÉQUIPEMENTS & OPTIONS — cliquable */}
-          <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4 cursor-pointer" onClick={() => requireLogin(() => navigate("/compte"))}>
-            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Wrench size={18} className="text-red-400" /> Équipements & options</h2>
-            <ChevronRight size={20} className="text-slate-400" />
+          {/* ÉQUIPEMENTS & OPTIONS — cliquable ouvre/ferme */}
+          <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}}>
+            <div className="flex items-center justify-between cursor-pointer" onClick={() => setProEquipOpen(!proEquipOpen)}>
+              <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Wrench size={18} className="text-red-400" /> Équipements & options</h2>
+              <ChevronDown size={18} className={`text-slate-400 transition-transform ${proEquipOpen ? 'rotate-180' : ''}`} />
+            </div>
+            {proEquipOpen && (
+              <ul className="mt-3 space-y-2">
+                {(v.equipements || ["GPS / Navigation", "Sièges cuir chauffants", "Caméra de recul", "Aide au stationnement", "Apple CarPlay / Android Auto", "Climatisation automatique", "Jantes alliage 19\""]).map((eq: string) => (
+                  <li key={eq} className="flex items-center gap-2 text-sm text-slate-600">
+                    <span className="text-green-600">●</span> {eq}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
-          {/* FINANCEMENT — Paiement plusieurs fois + LOA */}
-          <div className="mt-6 border-t border-slate-100 pt-4">
+          {/* FINANCEMENT — Paiement plusieurs fois + LOA (tab switch) */}
+          <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><CreditCard size={18} className="text-red-400" /> Financement</h2>
             <div className="mt-3 rounded-xl border border-slate-200 p-5">
               <div className="flex gap-2 mb-3">
-                <span className="rounded-full border-b-2 border-[#D4AF37] px-4 py-1.5 text-xs font-bold text-[#D4AF37] cursor-pointer">Paiement en plusieurs fois</span>
-                <span className="rounded-full px-4 py-1.5 text-xs font-bold text-slate-400 cursor-pointer hover:text-[#111]">LOA</span>
+                <span onClick={() => setProFinanceTab('paiement')} className={`rounded-full px-4 py-1.5 text-xs font-bold cursor-pointer transition ${proFinanceTab === 'paiement' ? 'border-b-2 border-[#D4AF37] text-[#D4AF37]' : 'text-slate-400 hover:text-[#111]'}`}>Paiement en plusieurs fois</span>
+                <span onClick={() => setProFinanceTab('loa')} className={`rounded-full px-4 py-1.5 text-xs font-bold cursor-pointer transition ${proFinanceTab === 'loa' ? 'border-b-2 border-[#D4AF37] text-[#D4AF37]' : 'text-slate-400 hover:text-[#111]'}`}>LOA</span>
               </div>
-              <p className="text-center text-xl font-extrabold text-[#111]">Dès {Math.round(Number(v.prix) / 60)} €<span className="text-sm font-normal text-slate-500">/mois</span></p>
-              <p className="text-center text-[10px] text-slate-400 mt-1">Sur 60 mois • Sans apport</p>
+              {proFinanceTab === 'paiement' ? (
+                <>
+                  <p className="text-center text-xl font-extrabold text-[#111]">Dès {Math.round(Number(v.prix) / 60)} €<span className="text-sm font-normal text-slate-500">/mois</span></p>
+                  <p className="text-center text-[10px] text-slate-400 mt-1">Sur 60 mois • Sans apport</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-center text-xl font-extrabold text-[#111]">Dès {Math.round(Number(v.prix) / 48)} €<span className="text-sm font-normal text-slate-500">/mois</span></p>
+                  <p className="text-center text-[10px] text-slate-400 mt-1">LOA sur 48 mois • Apport 10%</p>
+                </>
+              )}
               <div className="mt-3 flex items-center justify-center gap-2">
                 <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-bold text-green-700">● Disponible</span>
               </div>
@@ -999,7 +1027,7 @@ export default function Vehicule() {
           </div>
 
           {/* GARANTIES — cliquable */}
-          <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4 cursor-pointer" onClick={() => requireLogin(() => navigate("/compte"))}>
+          <div className="mt-6 flex items-center justify-between border-t-2 border-[#D4AF37]/30 pt-4 cursor-pointer" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}} onClick={() => navigate("/aide")}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><ShieldCheck size={18} className="text-red-400" /> Garanties</h2>
             <ChevronRight size={20} className="text-slate-400" />
           </div>
@@ -1021,7 +1049,7 @@ export default function Vehicule() {
                 </div>
               ))}
             </div>
-            <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => navigate("/compte"))}>Voir l'historique complet</button>
+            <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => navigate("/aide")}>Voir l'historique complet</button>
           </div>
 
           {/* PRIX */}
@@ -1035,11 +1063,11 @@ export default function Vehicule() {
               <p className="mt-1 text-xs text-slate-500">Le prix est dans la moyenne des véhicules similaires.</p>
             )}
             <div className="mt-3 space-y-2">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer" onClick={() => requireLogin(() => navigate("/compte"))}>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer" onClick={() => setShowPriceHistory(!showPriceHistory)}>
                 <span className="text-sm text-[#111]">Historique</span>
                 <ChevronRight size={16} className="text-slate-400" />
               </div>
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer" onClick={() => requireLogin(() => navigate("/compte"))}>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer" onClick={() => setShowCote(!showCote)}>
                 <span className="text-sm text-[#111]">Cote du véhicule</span>
                 <span className="text-xs font-semibold text-[#111] underline">Consulter</span>
               </div>
@@ -1102,7 +1130,7 @@ export default function Vehicule() {
                 { icon: <History size={18} />, title: "Historique complet", desc: "Consultez l'historique complet" },
                 { icon: <FileCheck size={18} />, title: "Fiche Technique", desc: "Toutes les informations du véhicule" },
               ].map((item) => (
-                <div key={item.title} className="flex items-center gap-3 border-b border-slate-100 pb-3 cursor-pointer" onClick={() => requireLogin(() => navigate("/compte"))}>
+                <div key={item.title} className="flex items-center gap-3 border-b border-slate-100 pb-3 cursor-pointer" onClick={() => navigate("/aide")}>
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500">{item.icon}</div>
                   <div>
                     <p className="text-sm font-bold text-[#111] underline">{item.title}</p>
@@ -1121,8 +1149,8 @@ export default function Vehicule() {
           </div>
         </div>
 
-        {/* ===== BARRE FIXE EN BAS : Message + Appeler ===== */}
-        <div className="fixed bottom-[60px] left-0 right-0 z-50 border-t border-slate-200 bg-white px-4 py-2 flex gap-3 md:bottom-0">
+        {/* ===== BARRE FIXE EN BAS : Message + Appeler — juste au-dessus nav bar */}
+        <div className="fixed bottom-[52px] left-0 right-0 z-50 border-t border-slate-200 bg-white px-4 py-1.5 flex gap-3 md:bottom-0">
           <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white" onClick={messageAction}>
             <Mail size={16} /> Message
           </button>
