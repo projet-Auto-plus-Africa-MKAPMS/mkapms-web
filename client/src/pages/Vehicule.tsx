@@ -922,29 +922,24 @@ export default function Vehicule() {
             <p className="text-center mt-1 text-xs text-slate-500">ou {Math.round(Number(v.prix) / 60)} €/mois</p>
             <div className="mt-2 text-center"><span className="inline-flex items-center gap-1 rounded-full border border-green-600 bg-green-50 px-3 py-0.5 text-[10px] font-bold text-green-700"><ShieldCheck size={10} /> Pro vérifié</span></div>
 
-            {/* VENDEUR PRO — carte maps cliquable + icône localisation + texte centré */}
-            <div className="mt-4 rounded-xl overflow-hidden border border-[#D4AF37]/20 cursor-pointer" onClick={() => window.open(`https://www.google.com/maps/search/${encodeURIComponent((v.vendeur?.nom || 'MKA Motors') + ' ' + (v.ville || 'Paris'))}`, '_blank')}>
-              <div className="w-full h-[80px] bg-slate-200 flex items-center justify-center relative">
-                <div className="absolute inset-0 bg-gradient-to-b from-slate-100 to-slate-200"></div>
-                <MapPin size={28} className="text-red-500 relative z-10" />
+            {/* VENDEUR PRO — carte maps premium petite + icône */}
+            <div className="mt-3 rounded-lg overflow-hidden border border-slate-200 cursor-pointer" onClick={() => window.open(`https://www.google.com/maps/search/${encodeURIComponent((v.vendeur?.nom || 'MKA Motors') + ' ' + (v.ville || 'Paris'))}`, '_blank')}>
+              <div className="w-full h-[50px] bg-gradient-to-r from-slate-100 to-slate-200 flex items-center justify-center">
+                <MapPin size={20} className="text-red-500" />
               </div>
-              <div className="bg-slate-50 p-3 text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <MapPin size={12} className="text-red-500" />
-                  <p className="text-sm font-bold text-[#111]">{v.vendeur?.nom || "MKA Motors"} — {v.ville || "Lyon"}</p>
-                </div>
-                <p className="text-xs text-slate-500">Concessionnaire professionnel</p>
+              <div className="bg-white px-3 py-2 text-center border-t border-slate-100">
+                <p className="text-xs font-bold text-[#111] flex items-center justify-center gap-1"><MapPin size={10} className="text-red-500" /> {v.vendeur?.nom || "MKA Motors"} — {v.ville || "Lyon"}</p>
               </div>
             </div>
           </div>
 
           {/* BOUTON RÉSERVATION */}
-          <button className="mt-4 w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white shadow-lg" onClick={() => requireLogin(() => navigate("/reservation"))}>
+          <button className="mt-4 w-full rounded-xl bg-[#111] py-3.5 text-sm font-bold text-white shadow-lg" onClick={() => requireLogin(() => navigate("/reservation"))}>
             Réserver ce véhicule
           </button>
 
           {/* POINTS FORTS — lignes séparatrices OR lumineux */}
-          <div className="mt-5 border-t-2 border-b-2 border-[#D4AF37]/30 py-4" style={{boxShadow: '0 1px 3px rgba(212,175,55,0.2), 0 -1px 3px rgba(212,175,55,0.2)'}}>
+          <div className="mt-5 border-t-2 border-b-2 border-[#111]/20 py-4" style={{boxShadow: '0 1px 4px rgba(0,0,0,0.08), 0 -1px 4px rgba(0,0,0,0.08)'}}>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <History size={20} className="mx-auto text-slate-500" />
@@ -996,14 +991,14 @@ export default function Vehicule() {
           </div>
 
           {/* DESCRIPTION — entre caractéristiques et équipements, cliquable s'ouvre en grand */}
-          <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4 cursor-pointer" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}} onClick={() => setProDescOpen(true)}>
+          <div className="mt-6 border-t-2 border-[#111]/15 pt-4 cursor-pointer" style={{boxShadow: '0 -1px 4px rgba(0,0,0,0.06)'}} onClick={() => setProDescOpen(true)}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><FileText size={18} className="text-red-400" /> Description</h2>
             <p className="mt-2 text-sm text-slate-600 line-clamp-3">{v.description || "Véhicule en excellent état, entretenu régulièrement en concession. Non fumeur. Disponible immédiatement pour essai et vente."}</p>
             <p className="mt-2 text-xs font-semibold text-[#D4AF37]">Lire la suite →</p>
           </div>
 
           {/* ÉQUIPEMENTS & OPTIONS — cliquable ouvre/ferme */}
-          <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}}>
+          <div className="mt-6 border-t-2 border-[#111]/15 pt-4" style={{boxShadow: '0 -1px 4px rgba(0,0,0,0.06)'}}>
             <div className="flex items-center justify-between cursor-pointer" onClick={() => setProEquipOpen(!proEquipOpen)}>
               <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Wrench size={18} className="text-red-400" /> Équipements & options</h2>
               <ChevronDown size={18} className={`text-slate-400 transition-transform ${proEquipOpen ? 'rotate-180' : ''}`} />
@@ -1020,7 +1015,7 @@ export default function Vehicule() {
           </div>
 
           {/* FINANCEMENT — Paiement plusieurs fois + LOA (tab switch) */}
-          <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}}>
+          <div className="mt-6 border-t-2 border-[#111]/15 pt-4" style={{boxShadow: '0 -1px 4px rgba(0,0,0,0.06)'}}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><CreditCard size={18} className="text-red-400" /> Financement</h2>
             <div className="mt-3 rounded-xl border border-slate-200 p-5">
               <div className="flex gap-2 mb-3">
@@ -1109,7 +1104,7 @@ export default function Vehicule() {
           </div>
 
           {/* VENDEUR PRO COMPLET — plaque avec carte maps */}
-          <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}}>
+          <div className="mt-6 border-t-2 border-[#111]/15 pt-4" style={{boxShadow: '0 -1px 4px rgba(0,0,0,0.06)'}}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Store size={18} className="text-red-400" /> Professionnel de l'automobile</h2>
             <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-bold text-green-700"><ShieldCheck size={10} /> Pro vérifié</span>
 
@@ -1224,7 +1219,7 @@ export default function Vehicule() {
           </div>
 
           {/* CES ANNONCES PEUVENT VOUS INTÉRESSER */}
-          <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}}>
+          <div className="mt-6 border-t-2 border-[#111]/15 pt-4" style={{boxShadow: '0 -1px 4px rgba(0,0,0,0.06)'}}>
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-extrabold text-[#111]">Ces annonces peuvent vous intéresser :</h2>
               <ChevronRight size={20} className="text-slate-400" />
