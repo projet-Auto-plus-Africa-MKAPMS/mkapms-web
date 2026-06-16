@@ -50,6 +50,7 @@ const EspacePro = lazy(() => import("./pages/EspacePro"));
 const InscriptionProVO = lazy(() => import("./pages/InscriptionProVO"));
 const Finance = lazy(() => import("./pages/Finance"));
 const Rechercher = lazy(() => import("./pages/Rechercher"));
+const DemandePublicite = lazy(() => import("./pages/DemandePublicite"));
 
 // Chaque univers est isolé : un crash dans l'un n'affecte pas les autres.
 function U({ name, children }: { name: string; children: React.ReactNode }) {
@@ -112,6 +113,7 @@ export default function App() {
             <Route path="/finance" element={<U name="Finance+"><Finance /></U>} />
             <Route path="/rechercher" element={<U name="Recherche"><Rechercher /></U>} />
             <Route path="/connexion" element={<Connexion />} />
+            <Route path="/demande-publicite" element={<DemandePublicite />} />
             <Route path="/favoris" element={<U name="Favoris"><Favoris /></U>} />
             <Route path="/compte/validation" element={<U name="Validation"><Validation /></U>} />
             <Route path="/compte/*" element={<U name="Mon compte"><Compte /></U>} />

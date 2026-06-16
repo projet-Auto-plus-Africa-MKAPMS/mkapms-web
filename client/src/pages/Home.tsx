@@ -122,6 +122,15 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
+  /* carrousels publicitaires */
+  const [adIdx1, setAdIdx1] = useState(0);
+  const [adIdx2, setAdIdx2] = useState(0);
+  useEffect(() => {
+    const t1 = setInterval(() => setAdIdx1((p) => (p + 1) % 5), 5000);
+    const t2 = setInterval(() => setAdIdx2((p) => (p + 1) % 5), 6000);
+    return () => { clearInterval(t1); clearInterval(t2); };
+  }, []);
+
   /* newsletter */
   const [newsEmail, setNewsEmail] = useState("");
 
@@ -638,19 +647,36 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          ESPACE PUBLICITAIRE #1
+          ESPACE PUBLICITAIRE #1 — carrousel 5 postes auto-défilant
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-gradient-to-r from-[#111] to-[#1a1a1a]">
+      <section className="bg-gradient-to-r from-[#111] to-[#1a1a1a] py-6">
         <div className="container-page">
-          <div className="flex h-[160px] items-center justify-between rounded-2xl border border-[#D4AF37]/30 bg-[#111] p-5 lg:h-[250px]">
-            <div>
-              <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37]">Publicité partenaire</p>
-              <h3 className="mt-1 text-lg font-extrabold text-white lg:text-2xl">Votre publicité ici</h3>
-              <p className="mt-1 text-xs text-slate-400 lg:text-sm">Espace réservé aux partenaires MKA.P-MS — Contactez-nous pour apparaître ici</p>
+          <div className="overflow-hidden rounded-2xl border border-[#D4AF37]/30">
+            <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${adIdx1 * 100}%)` }}>
+              {[
+                { tag: "Emplacement #1", title: "Votre publicité ici", desc: "Espace premium visible par tous les visiteurs de la plateforme", bg: "bg-[#111]" },
+                { tag: "Emplacement #2", title: "Boostez vos ventes", desc: "Mettez en avant votre garage, magasin ou service automobile", bg: "bg-[#1B2A4A]" },
+                { tag: "Emplacement #3", title: "Offre spéciale", desc: "Faites connaître vos promotions à des milliers d'acheteurs", bg: "bg-[#2D1B4E]" },
+                { tag: "Emplacement #4", title: "Visibilité maximale", desc: "Votre marque sur la page d'accueil — impact garanti", bg: "bg-[#111]" },
+                { tag: "Emplacement #5", title: "Partenaire officiel", desc: "Rejoignez le réseau MKA.P-MS et développez votre activité", bg: "bg-[#1B2A4A]" },
+              ].map((ad, i) => (
+                <div key={i} className={`flex h-[160px] w-full shrink-0 items-center justify-between ${ad.bg} p-5 lg:h-[220px]`}>
+                  <div>
+                    <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37]">{ad.tag}</p>
+                    <h3 className="mt-1 text-lg font-extrabold text-white lg:text-2xl">{ad.title}</h3>
+                    <p className="mt-1 text-xs text-slate-400 lg:text-sm">{ad.desc}</p>
+                  </div>
+                  <Link to="/demande-publicite" className="shrink-0 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#111] hover:bg-[#F5F5F5] lg:px-6 lg:py-3 lg:text-sm">
+                    En savoir plus →
+                  </Link>
+                </div>
+              ))}
             </div>
-            <Link to="/aide" className="shrink-0 rounded-full bg-[#D4AF37] px-5 py-2 text-xs font-bold text-white hover:bg-[#C5A028] lg:px-8 lg:py-3 lg:text-sm">
-              Annoncer →
-            </Link>
+          </div>
+          <div className="mx-auto mt-2 flex items-center justify-center gap-1.5">
+            {[0,1,2,3,4].map((i) => (
+              <div key={i} className={`h-1.5 w-1.5 rounded-full transition ${adIdx1 === i ? "bg-[#D4AF37]" : "bg-white/30"}`} />
+            ))}
           </div>
         </div>
       </section>
@@ -700,19 +726,31 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          ESPACE PUBLICITAIRE #2
+          ESPACE PUBLICITAIRE #2 — carrousel auto-défilant
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#FFFDF5]">
+      <section className="bg-[#FFFDF5] py-4">
         <div className="container-page">
-          <div className="flex h-[160px] items-center justify-between rounded-2xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm lg:h-[250px]">
-            <div>
-              <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37]">Publicité</p>
-              <h3 className="mt-1 text-base font-extrabold text-[#111] lg:text-xl">Boostez votre visibilité sur MKA.P-MS</h3>
-              <p className="mt-1 text-xs text-slate-500 lg:text-sm">Professionnels, particuliers — mettez en avant vos annonces et services</p>
+          <div className="overflow-hidden rounded-2xl border border-[#D4AF37]/20 shadow-sm">
+            <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${(adIdx1 + 2) % 5 * 100}%)` }}>
+              {[
+                { title: "Boostez votre visibilité", desc: "Professionnels, particuliers — mettez en avant vos annonces et services" },
+                { title: "Espace publicitaire disponible", desc: "Contactez-nous pour réserver cet emplacement premium" },
+                { title: "Votre marque ici", desc: "Touchez des milliers de passionnés d'automobile chaque jour" },
+                { title: "Offres partenaires", desc: "Profitez de nos tarifs spéciaux pour les nouveaux annonceurs" },
+                { title: "Publicité ciblée", desc: "Atteignez exactement votre audience grâce à nos emplacements stratégiques" },
+              ].map((ad, i) => (
+                <div key={i} className="flex h-[140px] w-full shrink-0 items-center justify-between bg-white p-5 lg:h-[200px]">
+                  <div>
+                    <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37]">Publicité</p>
+                    <h3 className="mt-1 text-base font-extrabold text-[#111] lg:text-xl">{ad.title}</h3>
+                    <p className="mt-1 text-xs text-slate-500 lg:text-sm">{ad.desc}</p>
+                  </div>
+                  <Link to="/demande-publicite" className="shrink-0 rounded-full border-2 border-[#D4AF37] px-4 py-2 text-xs font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition lg:px-6 lg:py-3 lg:text-sm">
+                    En savoir plus →
+                  </Link>
+                </div>
+              ))}
             </div>
-            <Link to="/abonnements" className="shrink-0 rounded-full border-2 border-[#D4AF37] px-5 py-2 text-xs font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition lg:px-8 lg:py-3 lg:text-sm">
-              Voir les offres →
-            </Link>
           </div>
         </div>
       </section>
@@ -810,19 +848,36 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          ESPACE PUBLICITAIRE #3
+          ESPACE PUBLICITAIRE #3 — carrousel 5 postes auto-défilant
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F5F5F5]">
+      <section className="bg-[#F5F5F5] py-6">
         <div className="container-page">
-          <div className="flex h-[160px] items-center justify-between rounded-2xl bg-gradient-to-r from-[#D4AF37] to-[#C5A028] p-5 shadow-sm lg:h-[250px]">
-            <div>
-              <p className="text-[9px] font-semibold uppercase tracking-widest text-white/80">Publicité premium</p>
-              <h3 className="mt-1 text-base font-extrabold text-white lg:text-xl">Devenez partenaire MKA.P-MS</h3>
-              <p className="mt-1 text-xs text-white/80 lg:text-sm">Gagnez en visibilité auprès de milliers d'acheteurs et de professionnels</p>
+          <div className="overflow-hidden rounded-2xl shadow-sm">
+            <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${adIdx2 * 100}%)` }}>
+              {[
+                { tag: "Publicité premium", title: "Devenez partenaire MKA.P-MS", desc: "Gagnez en visibilité auprès de milliers d'acheteurs et de professionnels", grad: "from-[#D4AF37] to-[#C5A028]" },
+                { tag: "Publicité premium", title: "Garage & Réparation", desc: "Faites découvrir votre garage à une clientèle qualifiée", grad: "from-[#C5A028] to-[#8B6914]" },
+                { tag: "Publicité premium", title: "Pièces & Accessoires", desc: "Vendez vos pièces détachées directement sur la plateforme", grad: "from-[#8B6914] to-[#D4AF37]" },
+                { tag: "Publicité premium", title: "Assurance & Financement", desc: "Proposez vos services financiers aux acheteurs MKA.P-MS", grad: "from-[#D4AF37] to-[#B8960C]" },
+                { tag: "Publicité premium", title: "Livraison & Transport", desc: "Offrez vos services de livraison à nos vendeurs et acheteurs", grad: "from-[#B8960C] to-[#D4AF37]" },
+              ].map((ad, i) => (
+                <div key={i} className={`flex h-[160px] w-full shrink-0 items-center justify-between bg-gradient-to-r ${ad.grad} p-5 lg:h-[220px]`}>
+                  <div>
+                    <p className="text-[9px] font-semibold uppercase tracking-widest text-white/80">{ad.tag}</p>
+                    <h3 className="mt-1 text-base font-extrabold text-white lg:text-xl">{ad.title}</h3>
+                    <p className="mt-1 text-xs text-white/80 lg:text-sm">{ad.desc}</p>
+                  </div>
+                  <Link to="/demande-publicite" className="shrink-0 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#111] hover:bg-[#F5F5F5] lg:px-6 lg:py-3 lg:text-sm">
+                    En savoir plus →
+                  </Link>
+                </div>
+              ))}
             </div>
-            <Link to="/espace-pro" className="shrink-0 rounded-full bg-white px-5 py-2 text-xs font-bold text-[#111] hover:bg-[#F5F5F5] lg:px-8 lg:py-3 lg:text-sm">
-              En savoir plus →
-            </Link>
+          </div>
+          <div className="mx-auto mt-2 flex items-center justify-center gap-1.5">
+            {[0,1,2,3,4].map((i) => (
+              <div key={i} className={`h-1.5 w-1.5 rounded-full transition ${adIdx2 === i ? "bg-[#D4AF37]" : "bg-[#E5E2DB]"}`} />
+            ))}
           </div>
         </div>
       </section>

@@ -1,0 +1,252 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, Upload, CheckCircle } from "lucide-react";
+
+const TYPES_ACTIVITE = [
+  { value: "garage", label: "Garage / Réparation automobile" },
+  { value: "pieces", label: "Vendeur de pièces détachées" },
+  { value: "restaurant", label: "Restaurateur / Alimentation" },
+  { value: "assurance", label: "Assurance / Financement" },
+  { value: "livraison", label: "Livraison / Transport" },
+  { value: "concession", label: "Concessionnaire / Vendeur auto" },
+  { value: "lavage", label: "Lavage / Nettoyage auto" },
+  { value: "autre", label: "Autre activité" },
+];
+
+const EMPLACEMENTS = [
+  { value: "accueil-1", label: "Page d'accueil — Carrousel #1 (entre annonces)", prix: "50€/jour" },
+  { value: "accueil-2", label: "Page d'accueil — Carrousel #2 (section premium)", prix: "80€/jour" },
+  { value: "produit", label: "Page produit — Bas de page (carrousel)", prix: "30€/jour" },
+  { value: "recherche", label: "Page recherche — Sidebar", prix: "40€/jour" },
+  { value: "resultats", label: "Page résultats — Entre les annonces", prix: "35€/jour" },
+];
+
+const DUREES = [
+  { value: "1h", label: "1 heure", multi: 1 },
+  { value: "3h", label: "3 heures", multi: 3 },
+  { value: "1j", label: "1 jour (24h)", multi: 10 },
+  { value: "7j", label: "1 semaine", multi: 50 },
+  { value: "30j", label: "1 mois", multi: 150 },
+  { value: "90j", label: "3 mois", multi: 350 },
+];
+
+export default function DemandePublicite() {
+  const [step, setStep] = useState(1);
+  const [type, setType] = useState("");
+  const [nom, setNom] = useState("");
+  const [email, setEmail] = useState("");
+  const [tel, setTel] = useState("");
+  const [societe, setSociete] = useState("");
+  const [desc, setDesc] = useState("");
+  const [emplacement, setEmplacement] = useState("");
+  const [duree, setDuree] = useState("");
+  const [lien, setLien] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  // Champs dynamiques selon le type
+  const [sousType, setSousType] = useState("");
+
+  const handleSubmit = () => {
+    setSubmitted(true);
+  };
+
+  if (submitted) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+          <CheckCircle size={32} className="text-green-600" />
+        </div>
+        <h1 className="text-xl font-bold text-[#111]">Demande envoyée !</h1>
+        <p className="text-sm text-slate-500">Votre demande de publicité a été soumise. Notre équipe va l'examiner et vous contacter sous 24h.</p>
+        <Link to="/" className="mt-4 rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-white hover:bg-[#C5A028]">
+          Retour à l'accueil
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container-page py-6">
+      <Link to="/" className="mb-4 flex items-center gap-1 text-sm text-slate-500 hover:text-[#D4AF37]">
+        <ArrowLeft size={16} /> Retour
+      </Link>
+
+      <h1 className="text-xl font-bold text-[#111]">Demande de publicité</h1>
+      <p className="mt-1 text-sm text-slate-500">Remplissez le formulaire pour soumettre votre demande. Notre équipe l'examinera rapidement.</p>
+
+      {/* Indicateur d'étapes */}
+      <div className="mt-4 flex items-center gap-2">
+        {[1, 2, 3].map((s) => (
+          <div key={s} className="flex items-center gap-2">
+            <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${step >= s ? "bg-[#D4AF37] text-white" : "bg-slate-100 text-slate-400"}`}>
+              {s}
+            </div>
+            {s < 3 && <div className={`h-0.5 w-8 ${step > s ? "bg-[#D4AF37]" : "bg-slate-200"}`} />}
+          </div>
+        ))}
+        <span className="ml-2 text-xs text-slate-400">
+          {step === 1 ? "Votre activité" : step === 2 ? "Emplacement & durée" : "Contenu de la pub"}
+        </span>
+      </div>
+
+      {/* ÉTAPE 1 — Type d'activité */}
+      {step === 1 && (
+        <div className="mt-6 space-y-4">
+          <div>
+            <label className="text-sm font-bold text-slate-700">Type d'activité *</label>
+            <select value={type} onChange={(e) => { setType(e.target.value); setSousType(""); }} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm">
+              <option value="">Sélectionnez votre activité</option>
+              {TYPES_ACTIVITE.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
+          </div>
+
+          {/* Champs dynamiques selon le type */}
+          {type === "garage" && (
+            <div>
+              <label className="text-sm font-bold text-slate-700">Spécialité du garage</label>
+              <select value={sousType} onChange={(e) => setSousType(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm">
+                <option value="">Sélectionnez</option>
+                <option value="mecanique">Mécanique générale</option>
+                <option value="carrosserie">Carrosserie / Peinture</option>
+                <option value="electrique">Électricité auto</option>
+                <option value="diagnostic">Diagnostic / Contrôle technique</option>
+                <option value="pneus">Pneumatiques</option>
+              </select>
+            </div>
+          )}
+          {type === "pieces" && (
+            <div>
+              <label className="text-sm font-bold text-slate-700">Genre de pièces</label>
+              <select value={sousType} onChange={(e) => setSousType(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm">
+                <option value="">Sélectionnez</option>
+                <option value="neuves">Pièces neuves d'origine</option>
+                <option value="occasion">Pièces d'occasion</option>
+                <option value="accessoires">Accessoires & tuning</option>
+                <option value="huiles">Huiles & lubrifiants</option>
+                <option value="pneus">Pneus</option>
+              </select>
+            </div>
+          )}
+          {type === "restaurant" && (
+            <div>
+              <label className="text-sm font-bold text-slate-700">Type de restauration</label>
+              <select value={sousType} onChange={(e) => setSousType(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm">
+                <option value="">Sélectionnez</option>
+                <option value="fast-food">Fast-food / Snack</option>
+                <option value="traiteur">Traiteur / Événementiel</option>
+                <option value="boulangerie">Boulangerie / Pâtisserie</option>
+                <option value="superette">Supérette / Épicerie</option>
+              </select>
+            </div>
+          )}
+          {type === "autre" && (
+            <div>
+              <label className="text-sm font-bold text-slate-700">Précisez votre activité</label>
+              <input value={sousType} onChange={(e) => setSousType(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="Ex: École de conduite, Car wash..." />
+            </div>
+          )}
+
+          <div>
+            <label className="text-sm font-bold text-slate-700">Nom de la société *</label>
+            <input value={societe} onChange={(e) => setSociete(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="Ex: Garage Saint-Denis" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-bold text-slate-700">Nom complet *</label>
+              <input value={nom} onChange={(e) => setNom(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="Prénom Nom" />
+            </div>
+            <div>
+              <label className="text-sm font-bold text-slate-700">Téléphone *</label>
+              <input value={tel} onChange={(e) => setTel(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="06 XX XX XX XX" />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-bold text-slate-700">Email *</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="contact@societe.fr" />
+          </div>
+
+          <button onClick={() => setStep(2)} disabled={!type || !societe || !nom} className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white hover:bg-[#C5A028] disabled:opacity-40">
+            Suivant →
+          </button>
+        </div>
+      )}
+
+      {/* ÉTAPE 2 — Emplacement & Durée */}
+      {step === 2 && (
+        <div className="mt-6 space-y-4">
+          <div>
+            <label className="text-sm font-bold text-slate-700">Emplacement souhaité *</label>
+            <div className="mt-2 space-y-2">
+              {EMPLACEMENTS.map((e) => (
+                <label key={e.value} className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 transition ${emplacement === e.value ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-slate-200 hover:border-slate-300"}`}>
+                  <div className="flex items-center gap-2">
+                    <input type="radio" name="emplacement" value={e.value} checked={emplacement === e.value} onChange={(ev) => setEmplacement(ev.target.value)} className="accent-[#D4AF37]" />
+                    <span className="text-sm text-slate-700">{e.label}</span>
+                  </div>
+                  <span className="text-xs font-bold text-[#D4AF37]">{e.prix}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-bold text-slate-700">Durée d'affichage *</label>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {DUREES.map((d) => (
+                <button key={d.value} type="button" onClick={() => setDuree(d.value)} className={`rounded-xl border p-2.5 text-center text-xs font-bold transition ${duree === d.value ? "border-[#D4AF37] bg-[#FFFDF5] text-[#B8960C]" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-bold text-slate-700">Description de votre annonce</label>
+            <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="Décrivez ce que vous souhaitez mettre en avant..." />
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => setStep(1)} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-bold text-slate-600">← Retour</button>
+            <button onClick={() => setStep(3)} disabled={!emplacement || !duree} className="flex-1 rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white hover:bg-[#C5A028] disabled:opacity-40">Suivant →</button>
+          </div>
+        </div>
+      )}
+
+      {/* ÉTAPE 3 — Contenu */}
+      {step === 3 && (
+        <div className="mt-6 space-y-4">
+          <div>
+            <label className="text-sm font-bold text-slate-700">Lien de votre site / page *</label>
+            <input value={lien} onChange={(e) => setLien(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="https://www.votresite.fr" />
+          </div>
+          <div>
+            <label className="text-sm font-bold text-slate-700">Image / Visuel de la publicité</label>
+            <div className="mt-1 flex h-32 w-full cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 hover:border-[#D4AF37]">
+              <div className="flex flex-col items-center gap-1 text-slate-400">
+                <Upload size={24} />
+                <span className="text-xs">Cliquez pour uploader votre visuel</span>
+                <span className="text-[10px]">JPG, PNG — max 5 Mo</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Récapitulatif */}
+          <div className="rounded-xl border border-[#D4AF37]/30 bg-[#FFFDF5] p-4">
+            <p className="text-sm font-bold text-[#111]">Récapitulatif</p>
+            <div className="mt-2 space-y-1 text-xs text-slate-600">
+              <p>Société : <span className="font-bold">{societe}</span></p>
+              <p>Type : <span className="font-bold">{TYPES_ACTIVITE.find((t) => t.value === type)?.label}</span></p>
+              <p>Emplacement : <span className="font-bold">{EMPLACEMENTS.find((e) => e.value === emplacement)?.label}</span></p>
+              <p>Durée : <span className="font-bold">{DUREES.find((d) => d.value === duree)?.label}</span></p>
+              <p>Prix estimé : <span className="font-bold text-[#B8960C]">{EMPLACEMENTS.find((e) => e.value === emplacement)?.prix}</span></p>
+            </div>
+          </div>
+
+          <p className="text-[10px] text-slate-400">En soumettant cette demande, vous acceptez nos conditions générales. Les publicités liées à l'alcool, au tabac, aux armes ou à tout contenu illicite seront refusées.</p>
+
+          <div className="flex gap-2">
+            <button onClick={() => setStep(2)} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-bold text-slate-600">← Retour</button>
+            <button onClick={handleSubmit} disabled={!lien} className="flex-1 rounded-xl bg-[#B8960C] py-3 text-sm font-bold text-white hover:bg-[#9a7d0a] disabled:opacity-40">Envoyer la demande</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
