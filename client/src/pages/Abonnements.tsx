@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
 import { PLAN_CATEGORY_LABELS, PHOTO_PACKS, FREE_PHOTOS, VO_MODULES, type PlanCategory } from "@shared/plans";
 
+type TabValue = PlanCategory | "publicite";
+
 // Règle centrale (parcours §12) : chaque profil ne voit QUE ses offres.
-const TABS: [PlanCategory, string][] = [
+const TABS: [TabValue, string][] = [
   ["particulier", "Particuliers"],
   ["pro_vente", "Pro Vente"],
   ["vo", "VO"],
@@ -18,13 +20,14 @@ const TABS: [PlanCategory, string][] = [
   ["livraison", "Livraison"],
   ["depannage", "Dépannage"],
   ["franchise", "Franchise"],
+  ["publicite", "Publicité"],
 ];
 
 export default function Abonnements() {
   const { user } = useAuth();
   const { format: formatPrice } = useCurrency();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<PlanCategory>("pro_vente");
+  const [tab, setTab] = useState<TabValue>("pro_vente");
   const plans = trpc.abonnements.listPlans.useQuery();
 
   // Chaque profil voit d'abord ses offres (Partie 6 §5).
@@ -46,7 +49,7 @@ export default function Abonnements() {
     },
   });
 
-  const filtered = plans.data?.filter((p) => p.category === tab) ?? [];
+  const filtered = tab !== "publicite" ? (plans.data?.filter((p) => p.category === tab) ?? []) : [];
 
   function subscribe(code: string) {
     if (!user) return navigate("/connexion");
@@ -61,12 +64,12 @@ export default function Abonnements() {
       </p>
 
       <div className="mt-8 flex justify-center">
-        <div className="inline-flex max-w-full flex-wrap justify-center gap-1 rounded-xl border border-slate-200 bg-white p-1">
+        <div className="inline-flex max-w-full flex-wrap justify-center gap-2 rounded-2xl border border-slate-200 bg-white p-2">
           {TABS.map(([v, l]) => (
             <button
               key={v}
               onClick={() => setTab(v)}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold ${tab === v ? "bg-gold text-noir" : "text-slate-600"}`}
+              className={`rounded-xl px-5 py-3 text-sm font-semibold transition ${tab === v ? "bg-gold text-noir shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}
             >
               {l}
             </button>
@@ -74,7 +77,7 @@ export default function Abonnements() {
         </div>
       </div>
 
-      <h2 className="mt-8 text-center text-lg font-bold text-slate-700">{PLAN_CATEGORY_LABELS[tab]}</h2>
+      <h2 className="mt-8 text-center text-lg font-bold text-slate-700">{tab === "publicite" ? "Publicité — Emplacements & Tarifs" : PLAN_CATEGORY_LABELS[tab as PlanCategory]}</h2>
 
       <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {filtered.map((p) => (
@@ -160,6 +163,40 @@ export default function Abonnements() {
                 <button className="btn-outline mt-4" onClick={() => subscribe(mod.code)}>
                   Activer ce module
                 </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {tab === "publicite" && (
+        <div className="mt-6 space-y-4">
+          <p className="text-center text-sm text-slate-500">Réservez un emplacement publicitaire sur la plateforme. Chaque emplacement dispose de plusieurs cases en rotation.</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[
+              { id: 1, name: "Accueil — Carrousel #1", cases: 5, tarif: "50€/jour", tarifSem: "300€/sem", tarifMois: "900€/mois", desc: "Entre annonces Pro et Particuliers. Très visible." },
+              { id: 2, name: "Accueil — Carrousel #2", cases: 5, tarif: "40€/jour", tarifSem: "250€/sem", tarifMois: "700€/mois", desc: "Après section Location. Public mixte." },
+              { id: 3, name: "Accueil — Premium #3", cases: 5, tarif: "80€/jour", tarifSem: "500€/sem", tarifMois: "1500€/mois", desc: "Section dorée premium. Haute conversion." },
+              { id: 4, name: "Page Produit — Bas de page", cases: 4, tarif: "30€/jour", tarifSem: "180€/sem", tarifMois: "500€/mois", desc: "Sous chaque fiche véhicule. Public qualifié." },
+              { id: 5, name: "Page Recherche — Sidebar", cases: 3, tarif: "40€/jour", tarifSem: "250€/sem", tarifMois: "700€/mois", desc: "Sidebar droite des résultats." },
+              { id: 6, name: "Page Résultats — Entre annonces", cases: 4, tarif: "35€/jour", tarifSem: "200€/sem", tarifMois: "600€/mois", desc: "Inséré entre les annonces. Natif." },
+            ].map((emp) => (
+              <div key={emp.id} className="card p-5">
+                <h3 className="text-sm font-extrabold text-slate-900">#{emp.id} — {emp.name}</h3>
+                <p className="mt-1 text-xs text-slate-500">{emp.desc}</p>
+                <div className="mt-3 flex gap-1">
+                  {Array.from({ length: emp.cases }).map((_, i) => (
+                    <div key={i} className="h-3 w-8 rounded bg-[#D4AF37]/30" />
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-slate-400">{emp.cases} cases disponibles</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="rounded-lg bg-[#FFFDF5] border border-[#D4AF37]/30 px-2 py-1 text-xs font-bold text-[#B8960C]">{emp.tarif}</span>
+                  <span className="rounded-lg bg-slate-50 border border-slate-200 px-2 py-1 text-xs text-slate-600">{emp.tarifSem}</span>
+                  <span className="rounded-lg bg-slate-50 border border-slate-200 px-2 py-1 text-xs text-slate-600">{emp.tarifMois}</span>
+                </div>
+                <Link to="/demande-publicite" className="btn-primary mt-4 block text-center !text-xs">
+                  Réserver cet emplacement
+                </Link>
               </div>
             ))}
           </div>
