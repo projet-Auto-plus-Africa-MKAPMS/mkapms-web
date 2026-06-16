@@ -157,40 +157,39 @@ export default function Home() {
           </p>
         </div>
 
-        {/* ── CAROUSEL + 4 ACTIONS (même conteneur = zéro espace) ── */}
+        {/* ── CAROUSEL 5 images + 4 ACTIONS — collés, zéro espace ── */}
         <div className="px-4 pt-0 pb-0 md:px-6 md:pt-2 md:pb-0">
-          <div className="mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl">
+          <div className="mx-auto max-w-3xl overflow-hidden rounded-t-xl md:rounded-t-2xl">
             <div
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
             >
               {[
-                "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=450&fit=crop",
-                "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=450&fit=crop",
-                "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=450&fit=crop",
-                "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=450&fit=crop",
-                "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=450&fit=crop",
-              ].map((src, i) => (
-                <img
-                  key={i}
-                  src={src}
-                  alt=""
-                  loading={i === 0 ? "eager" : "lazy"}
-                  className="w-full shrink-0 aspect-[16/10] object-cover"
-                />
+                { pos: "0% 0%", alt: "Achetez en toute confiance" },
+                { pos: "25% 0%", alt: "Vendez simplement" },
+                { pos: "50% 0%", alt: "Location VTC & Taxi" },
+                { pos: "75% 0%", alt: "Location Particuliers" },
+                { pos: "100% 0%", alt: "Ventes Professionnels" },
+              ].map((slide, i) => (
+                <div key={i} className="relative w-full shrink-0 aspect-[9/16] max-h-[55vh]">
+                  <img
+                    src="https://app.devin.ai/attachments/6d108eea-f2c9-4d78-b259-b79c3aa23c6e/28B27178-C133-45F2-AFA0-572E5C68A411.png"
+                    alt={slide.alt}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    className="absolute inset-0 h-full w-[500%] object-cover"
+                    style={{ objectPosition: slide.pos }}
+                  />
+                </div>
               ))}
             </div>
           </div>
-          {/* ── indicateur premium : barre dorée glissante ── */}
-          <div className="mx-auto mt-0.5 flex max-w-[120px] items-center md:mt-1 md:max-w-[160px]">
-            <div className="relative h-[3px] w-full rounded-full bg-[#E5E2DB]">
-              <div
-                className="absolute top-0 left-0 h-full rounded-full bg-[#D4AF37] transition-all duration-500 ease-in-out"
-                style={{ width: "20%", transform: `translateX(${carouselIdx * 100}%)` }}
-              />
-            </div>
+          {/* ── indicateur : points dorés ── */}
+          <div className="mx-auto flex max-w-[100px] items-center justify-center gap-1.5 py-1">
+            {[0,1,2,3,4].map((i) => (
+              <div key={i} className={`h-2 w-2 rounded-full transition ${carouselIdx === i ? "bg-[#D4AF37]" : "bg-[#E5E2DB]"}`} />
+            ))}
           </div>
-          <div className="mx-auto mt-0.5 grid max-w-3xl grid-cols-4 gap-1.5 md:mt-1 md:max-w-2xl md:gap-3">
+          <div className="mx-auto grid max-w-3xl grid-cols-4 gap-1.5 md:max-w-2xl md:gap-3">
             {[
               { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
               { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
