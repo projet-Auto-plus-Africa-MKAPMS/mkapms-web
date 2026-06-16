@@ -812,18 +812,21 @@ export default function Vehicule() {
               </button>
             ))}
           </div>
-          {/* Photo */}
-          <div className="flex-1 flex items-center justify-center bg-white px-2 relative">
+          {/* Photo — swipe gauche/droite avec le doigt */}
+          <div className="flex-1 flex items-center justify-center bg-white px-2 relative"
+            onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+              const startX = (e.currentTarget as any)._touchX;
+              const endX = e.changedTouches[0].clientX;
+              const diff = startX - endX;
+              if (diff > 50) setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1));
+              if (diff < -50) setPhotoIdx((i) => Math.max(0, i - 1));
+            }}
+          >
             {allPhotos.length > 0 ? (
               <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="max-h-full max-w-full object-contain" />
             ) : (
               <p className="text-slate-400">Aucune photo</p>
-            )}
-            {allPhotos.length > 1 && (
-              <>
-                <button onClick={() => setPhotoIdx((i) => Math.max(0, i - 1))} className="absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/10 text-[#111]"><ChevronLeft size={22} /></button>
-                <button onClick={() => setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1))} className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/10 text-[#111]"><ChevronRight size={22} /></button>
-              </>
             )}
           </div>
           {/* Info en bas */}
@@ -848,8 +851,19 @@ export default function Vehicule() {
 
     return (
       <div className="pb-24 md:pb-20">
-        {/* ===== PHOTO PRINCIPALE (pleine largeur, clic → galerie) ===== */}
-        <div className="relative w-full h-[55vh] md:h-[58vh] lg:h-[62vh] bg-slate-100 cursor-pointer" onClick={() => setProGalleryOpen(true)}>
+        {/* ===== PHOTO PRINCIPALE (pleine largeur, clic → galerie, swipe gauche/droite) ===== */}
+        <div className="relative w-full h-[55vh] md:h-[58vh] lg:h-[62vh] bg-slate-100 cursor-pointer"
+          onClick={() => setProGalleryOpen(true)}
+          onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
+          onTouchEnd={(e) => {
+            const startX = (e.currentTarget as any)._touchX;
+            const endX = e.changedTouches[0].clientX;
+            const diff = startX - endX;
+            if (Math.abs(diff) > 50) { e.preventDefault(); }
+            if (diff > 50) setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1));
+            if (diff < -50) setPhotoIdx((i) => Math.max(0, i - 1));
+          }}
+        >
           {allPhotos.length > 0 ? (
             <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="h-full w-full object-cover" />
           ) : (
@@ -1125,7 +1139,7 @@ export default function Vehicule() {
               <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => messageAction())}>Demander un essai</button>
             </div>
 
-            <div className="mt-3 flex items-center justify-between border-b border-slate-100 py-2 cursor-pointer" onClick={() => setShowAlertPanel(true)}>
+            <div className="mt-3 flex items-center justify-between border-b border-slate-100 py-2 cursor-pointer" onClick={() => navigate(`/vendeur/${v.vendeur?.id || v.userId || 1}`)}>
               <span className="text-sm text-[#111]">Horaires et à propos</span>
               <span className="text-xs text-red-500 font-semibold">Fermé</span>
               <ChevronRight size={16} className="text-slate-400" />
@@ -1236,7 +1250,7 @@ export default function Vehicule() {
         </div>
 
         {/* ===== BARRE FIXE EN BAS : Message + Appeler — AU-DESSUS nav bar */}
-        <div className="fixed bottom-[72px] left-0 right-0 border-t border-slate-200 bg-white px-4 py-2 flex gap-3 md:bottom-0" style={{zIndex: 35}}>
+        <div className="fixed bottom-[82px] left-0 right-0 border-t border-slate-200 bg-white px-4 py-2 flex gap-3 md:bottom-0" style={{zIndex: 35}}>
           <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white" onClick={messageAction}>
             <Mail size={16} /> Message
           </button>
@@ -1256,7 +1270,7 @@ export default function Vehicule() {
         {/* === MODAL HISTORIQUE === */}
         {proHistoriqueOpen && (
           <div className="fixed inset-0 z-[200] bg-white flex flex-col overflow-y-auto">
-            <div className="flex items-center justify-between border-b px-4 py-4 pt-8 sticky top-0 bg-white z-10">
+            <div className="flex items-center justify-between border-b px-4 py-4 pt-14 sticky top-0 bg-white z-10">
               <h2 className="text-lg font-extrabold text-[#111]">Historique</h2>
               <button onClick={() => setProHistoriqueOpen(false)} className="text-xl text-slate-500">✕</button>
             </div>
@@ -1285,7 +1299,7 @@ export default function Vehicule() {
         {/* === MODAL GARANTIE === */}
         {proGarantieOpen && (
           <div className="fixed inset-0 z-[200] bg-white flex flex-col overflow-y-auto">
-            <div className="flex items-center justify-between border-b px-4 py-4 pt-8 sticky top-0 bg-white z-10">
+            <div className="flex items-center justify-between border-b px-4 py-4 pt-14 sticky top-0 bg-white z-10">
               <h2 className="text-lg font-extrabold text-[#111]">Garanties</h2>
               <button onClick={() => setProGarantieOpen(false)} className="text-xl text-slate-500">✕</button>
             </div>
@@ -1313,7 +1327,7 @@ export default function Vehicule() {
         {/* === MODAL DESCRIPTION === */}
         {proDescOpen && (
           <div className="fixed inset-0 z-[200] bg-white flex flex-col overflow-y-auto">
-            <div className="flex items-center justify-between border-b px-4 py-4 pt-8 sticky top-0 bg-white z-10">
+            <div className="flex items-center justify-between border-b px-4 py-4 pt-14 sticky top-0 bg-white z-10">
               <h2 className="text-lg font-extrabold text-[#111]">Description</h2>
               <button onClick={() => setProDescOpen(false)} className="text-xl text-slate-500">✕</button>
             </div>
