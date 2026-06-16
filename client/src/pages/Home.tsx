@@ -159,7 +159,7 @@ export default function Home() {
 
         {/* ── CAROUSEL + 4 ACTIONS (même conteneur = zéro espace) ── */}
         <div className="px-4 pt-0 pb-0 md:px-6 md:pt-2 md:pb-0">
-          <div className="mx-auto max-w-3xl overflow-hidden rounded-t-xl bg-[#E5E2DB] md:rounded-t-2xl" style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
+          <div className="mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl">
             <div
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
@@ -176,7 +176,7 @@ export default function Home() {
                   src={src}
                   alt=""
                   loading={i === 0 ? "eager" : "lazy"}
-                  className="w-full shrink-0 aspect-[4/3] object-cover"
+                  className="w-full shrink-0 aspect-[16/10] object-cover"
                 />
               ))}
             </div>

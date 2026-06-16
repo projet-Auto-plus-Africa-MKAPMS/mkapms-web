@@ -643,24 +643,44 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* ── PUBLICITÉS — 4 images exactes envoyées par Moussa ── */}
-          <div>
+          {/* ── PUBLICITÉS — carrousel défilant avec images Moussa ── */}
+          <div className="overflow-hidden">
             <p className="mb-3 text-xs font-medium text-slate-400 uppercase tracking-wide">Publicités</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex animate-[scroll_16s_linear_infinite] gap-3" style={{ width: "fit-content" }}>
               {[
-                { pos: "top left", title: "Pièces Auto de Qualité", link: "/pieces" },
-                { pos: "top right", title: "Culasse Moteur Performance", link: "/pieces" },
-                { pos: "bottom left", title: "Huile Moteur 5W-30", link: "/pieces" },
-                { pos: "bottom right", title: "Boostez votre visibilité", link: "/abonnements" },
+                { pos: "0% 0%", title: "Pièces Auto de Qualité", link: "/pieces" },
+                { pos: "100% 0%", title: "Culasse Moteur Performance", link: "/pieces" },
+                { pos: "0% 100%", title: "Huile Moteur 5W-30", link: "/pieces" },
+                { pos: "100% 100%", title: "Boostez votre visibilité", link: "/abonnements" },
               ].map((pub, i) => (
-                <Link key={i} to={pub.link} className="relative overflow-hidden rounded-xl aspect-[4/3] block">
-                  <img
-                    src="https://app.devin.ai/attachments/ee2336c5-32cb-43fc-b1dc-205f1206704d/07F3AA65-ACCE-4A4A-BFFB-A2753B3362AA.png"
-                    alt={pub.title}
-                    className="absolute inset-0 h-[200%] w-[200%] object-cover"
-                    style={{ objectPosition: pub.pos }}
-                    loading="lazy"
-                  />
+                <Link key={i} to={pub.link} className="shrink-0 w-72 overflow-hidden rounded-xl block shadow-lg">
+                  <div className="relative h-44 w-full">
+                    <img
+                      src="https://app.devin.ai/attachments/ee2336c5-32cb-43fc-b1dc-205f1206704d/07F3AA65-ACCE-4A4A-BFFB-A2753B3362AA.png"
+                      alt={pub.title}
+                      className="absolute h-[200%] w-[200%] object-cover"
+                      style={{ objectPosition: pub.pos }}
+                      loading="lazy"
+                    />
+                  </div>
+                </Link>
+              ))}
+              {[
+                { pos: "0% 0%", title: "Pièces Auto de Qualité", link: "/pieces" },
+                { pos: "100% 0%", title: "Culasse Moteur Performance", link: "/pieces" },
+                { pos: "0% 100%", title: "Huile Moteur 5W-30", link: "/pieces" },
+                { pos: "100% 100%", title: "Boostez votre visibilité", link: "/abonnements" },
+              ].map((pub, i) => (
+                <Link key={`dup-${i}`} to={pub.link} className="shrink-0 w-72 overflow-hidden rounded-xl block shadow-lg">
+                  <div className="relative h-44 w-full">
+                    <img
+                      src="https://app.devin.ai/attachments/ee2336c5-32cb-43fc-b1dc-205f1206704d/07F3AA65-ACCE-4A4A-BFFB-A2753B3362AA.png"
+                      alt={pub.title}
+                      className="absolute h-[200%] w-[200%] object-cover"
+                      style={{ objectPosition: pub.pos }}
+                      loading="lazy"
+                    />
+                  </div>
                 </Link>
               ))}
             </div>
