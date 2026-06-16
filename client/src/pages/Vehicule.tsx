@@ -257,10 +257,9 @@ export default function Vehicule() {
     const allPhotos = allCategoryPhotos.length > 0 ? allCategoryPhotos : (v.photoPrincipale ? [v.photoPrincipale] : []);
     return (
       <div className="pb-40 md:pb-10">
-        {/* ── 1. NOM VÉHICULE EN HAUT — centré, grand, or ── */}
+        {/* ── 1. NOM VÉHICULE EN HAUT — centré, grand, noir ── */}
         <div className="px-4 pt-4 pb-2 text-center">
-          <h1 className="text-2xl font-extrabold text-[#D4AF37]">{v.titre}</h1>
-          {v.motorisation && <p className="mt-0.5 text-sm text-slate-500">{v.motorisation}</p>}
+          <h1 className="text-2xl font-extrabold text-noir">{v.titre}</h1>
         </div>
 
         {/* ── 2. PHOTO VÉHICULE — espace latéral, flèches dégagées ── */}
@@ -292,7 +291,7 @@ export default function Vehicule() {
             </div>
             {/* Boutons flottants Appel + WhatsApp — juste sous la flèche →, collés au bord */}
             <div className={`absolute right-2 top-[55%] flex flex-col gap-2 transition-opacity duration-200 ${scrollHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-              <a href={`tel:${v.contactTelephone || ""}`} className="flex h-8 w-8 items-center justify-center rounded-full bg-[#111]/80 text-white shadow-md backdrop-blur-sm hover:bg-[#111]"><Phone size={14} /></a>
+              <a href={`tel:${v.contactTelephone || ""}`} className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1B2A4A] text-white shadow-lg ring-1 ring-white/20 backdrop-blur-sm hover:bg-[#243656] transition"><Phone size={14} /></a>
               <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-[#25d366]/90 text-white shadow-md backdrop-blur-sm hover:bg-[#25d366]">
                 <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.578-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.24 0-4.326-.68-6.06-1.844l-.434-.3-2.825.902.935-2.752-.33-.468A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
               </a>
@@ -531,24 +530,25 @@ export default function Vehicule() {
             )}
 
             {/* Localisation intégrée dans le cadre prix */}
-            <div className="mt-4 flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5 cursor-pointer hover:bg-slate-100 transition" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37]/10">
-                <MapPin size={16} className="text-[#D4AF37]" />
+            <div className="mt-4 flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-3 cursor-pointer hover:bg-slate-100 transition" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                <MapPin size={18} className="text-[#D4AF37]" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-bold text-noir">MKA.P-MS Officiel</p>
                 <p className="text-xs text-slate-500">{v.ville || "Belloy-en-France"} · 95270</p>
               </div>
+              <ChevronRight size={16} className="text-slate-400" />
             </div>
-          </div>
 
-          {/* ── CRÉER UNE ALERTE PRIX ── */}
-          <button
-            className="w-full rounded-xl bg-[#111] py-3.5 text-sm font-bold text-white transition hover:bg-[#333]"
-            onClick={() => requireLogin(() => { /* alerte prix */ })}
-          >
-            <Bell size={16} className="mr-2 inline-block" /> Créer une alerte prix
-          </button>
+            {/* Créer une alerte prix — intégré dans le cadre */}
+            <button
+              className="mt-4 w-full rounded-xl bg-[#111] py-3.5 text-sm font-bold text-white transition hover:bg-[#333]"
+              onClick={() => requireLogin(() => { /* alerte prix */ })}
+            >
+              <Bell size={16} className="mr-2 inline-block" /> Créer une alerte prix
+            </button>
+          </div>
 
           {/* ── CARTE VENDEUR — MKA.P-MS Officiel ── */}
           <div className="card overflow-hidden">
