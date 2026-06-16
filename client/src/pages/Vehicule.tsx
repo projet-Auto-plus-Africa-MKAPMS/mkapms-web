@@ -304,10 +304,10 @@ export default function Vehicule() {
           <div className="card p-5 text-center">
             <p className="text-sm font-semibold uppercase tracking-wider text-[#D4AF37]">MKA.P-MS OFFICIEL</p>
             <h1 className="mt-1 text-2xl font-extrabold text-noir">{v.titre}</h1>
-            {v.motorisation && <p className="mt-1 text-base text-slate-500">{v.marque} {v.modele} {v.motorisation}</p>}
-            <p className="mt-1 text-sm text-slate-400">Réf. annonce : DEMO-{v.id}</p>
-            <p className="mt-3 text-3xl font-extrabold text-[#D4AF37]">{formatPrice(Number(v.prix))}</p>
-            <p className="text-sm text-slate-500">Prix TTC · Frais inclus</p>
+            <p className="mt-2 text-3xl font-extrabold text-[#D4AF37]">{formatPrice(Number(v.prix))}</p>
+            <p className="text-xs text-slate-500">Prix TTC · Frais inclus</p>
+            {v.motorisation && <p className="mt-2 text-sm text-slate-500">{v.marque} {v.modele} {v.motorisation}</p>}
+            <p className="mt-0.5 text-xs text-slate-400">Réf. annonce : DEMO-{v.id}</p>
             {/* Petite carte localisation */}
             <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 cursor-pointer hover:bg-slate-100 transition" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
               <MapPin size={14} className="text-[#D4AF37]" />
