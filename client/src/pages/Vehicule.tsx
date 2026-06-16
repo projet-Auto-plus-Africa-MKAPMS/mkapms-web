@@ -551,46 +551,52 @@ export default function Vehicule() {
             </button>
           </div>
 
-          {/* ── CARTE VENDEUR — MKA.P-MS Officiel ── */}
+          {/* ── LOCALISATION — grande carte ── */}
           <div className="card overflow-hidden">
-            <div className="p-5">
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <Store size={16} /> <span>Professionnel de l'automobile</span>
+            <div className="flex items-center gap-2 px-5 pt-4 pb-2">
+              <MapPin size={18} className="text-[#D4AF37]" />
+              <h2 className="text-lg font-bold text-noir">Localisation</h2>
+            </div>
+            <div className="relative h-48 w-full bg-slate-100 cursor-pointer" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
+              <iframe
+                title="Localisation véhicule"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}&output=embed&z=13`}
+                className="h-full w-full pointer-events-none"
+                loading="lazy"
+              />
+            </div>
+            <div className="px-5 py-3">
+              <p className="text-base font-bold text-noir">{v.ville || "Belloy-en-France"}</p>
+              <p className="text-sm text-slate-500">95270</p>
+            </div>
+          </div>
+
+          {/* ── VENDEUR — MKA.P-MS Véhicule Société ── */}
+          <div className="card p-5">
+            <h2 className="text-lg font-bold text-noir">Vendeur</h2>
+            <div className="mt-3 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                <Store size={22} className="text-slate-500" />
               </div>
-              <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700"><ShieldCheck size={12} /> Pro vérifié</span>
-              <div className="mt-3 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#111]">
-                  <span className="text-lg font-extrabold text-[#D4AF37]">M</span>
+              <div>
+                <p className="text-base font-bold text-noir">MKA.P-MS — Véhicule Société</p>
+                <p className="text-xs text-slate-500">Société certifiée</p>
+                <div className="mt-0.5 flex items-center gap-1">
+                  <Star size={14} className="fill-[#D4AF37] text-[#D4AF37]" />
+                  <span className="text-sm font-bold text-noir">4,8</span>
+                  <span className="text-xs text-slate-400">(128 avis)</span>
                 </div>
-                <div>
-                  <p className="text-base font-bold text-noir">MKA.P-MS Officiel</p>
-                  <p className="text-xs text-slate-500">Depuis 2024 · Île-de-France</p>
-                </div>
               </div>
             </div>
-            <div className="bg-slate-100 px-5 py-3">
-              <div className="flex items-center gap-2">
-                <MapPin size={14} className="text-[#D4AF37]" />
-                <p className="text-sm font-medium text-noir">95270 Belloy-en-France</p>
+            <div className="mt-4 flex items-center gap-6">
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck size={16} className="text-emerald-600" />
+                <span className="text-sm text-slate-600">Paiement sécurisé</span>
               </div>
-              <Link to="#" className="mt-1 ml-5 text-xs font-semibold text-slate-500 underline">Voir la carte</Link>
-            </div>
-            <div className="border-t border-slate-100 px-5 py-3">
-              <p className="text-xs font-medium text-slate-500">Services</p>
-              <div className="mt-1 flex flex-wrap gap-1.5">
-                <span className="rounded-full bg-[#D4AF37]/10 px-2.5 py-0.5 text-xs font-medium text-[#D4AF37]">Garantie</span>
-                <span className="rounded-full bg-[#D4AF37]/10 px-2.5 py-0.5 text-xs font-medium text-[#D4AF37]">Label MKA.P-MS</span>
-                <span className="rounded-full bg-[#D4AF37]/10 px-2.5 py-0.5 text-xs font-medium text-[#D4AF37]">Livraison</span>
+              <div className="flex items-center gap-1.5">
+                <TrendingUp size={16} className="text-emerald-600" />
+                <span className="text-sm text-slate-600">Réponse en 1h</span>
               </div>
-            </div>
-            <div className="border-t border-slate-100 px-5 py-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-noir">Horaires et à propos</p>
-                <ChevronRight size={16} className="text-slate-400" />
-              </div>
-            </div>
-            <div className="border-t border-slate-100 p-4">
-              <Link to="/acheter" className="block w-full rounded-xl bg-[#111] py-3 text-center text-sm font-bold text-white hover:bg-[#333] transition">Voir les annonces MKA.P-MS</Link>
             </div>
           </div>
 
