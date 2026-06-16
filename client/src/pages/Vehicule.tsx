@@ -119,6 +119,10 @@ export default function Vehicule() {
   const [showCote, setShowCote] = useState(false);
   const [priceSlider, setPriceSlider] = useState(40);
   const [showAlertPanel, setShowAlertPanel] = useState(false);
+  const [proGalleryOpen, setProGalleryOpen] = useState(false);
+  const [proGalleryCat, setProGalleryCat] = useState("exterieur");
+  const [proAdIdx1, setProAdIdx1] = useState(0);
+  const [proAdIdx2, setProAdIdx2] = useState(0);
   const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     const onScroll = () => {
@@ -750,327 +754,379 @@ export default function Vehicule() {
     const allPhotos = photos.length > 0 ? photos : (v.photoPrincipale ? [v.photoPrincipale] : []);
     const proBadge = v.tier === "elite" ? "PRO ELITE" : v.boosted ? "PRO PREMIUM" : "PRO";
     const proPhotoCategories = [
-      { key: "exterieur", label: "Extérieur", count: Math.ceil(allPhotos.length * 0.3) || 1 },
-      { key: "interieur", label: "Intérieur", count: Math.ceil(allPhotos.length * 0.2) || 1 },
-      { key: "sieges", label: "Sièges", count: Math.ceil(allPhotos.length * 0.1) || 1 },
-      { key: "tableau", label: "Tableau de bord", count: Math.ceil(allPhotos.length * 0.1) || 1 },
-      { key: "coffre", label: "Coffre", count: Math.ceil(allPhotos.length * 0.1) || 1 },
-      { key: "moteur", label: "Moteur", count: Math.ceil(allPhotos.length * 0.1) || 1 },
-      { key: "documents", label: "Documents", count: Math.ceil(allPhotos.length * 0.05) || 0 },
-      { key: "autres", label: "Autres", count: Math.ceil(allPhotos.length * 0.05) || 0 },
+      { key: "exterieur", label: "Extérieur" },
+      { key: "interieur", label: "Intérieur" },
+      { key: "sieges", label: "Sièges" },
+      { key: "tableau", label: "Tableau de bord" },
+      { key: "coffre", label: "Coffre" },
+      { key: "moteur", label: "Moteur" },
+      { key: "documents", label: "Documents" },
+      { key: "autres", label: "Autres" },
+      { key: "video360", label: "Vidéo 360°" },
+      { key: "video", label: "Vidéo" },
+    ];
+    const proAds1 = [
+      { title: "Votre pub ici", desc: "Espace disponible" },
+      { title: "Garage certifié", desc: "Entretien & réparation" },
+      { title: "Pièces détachées", desc: "Neuves & occasion" },
+      { title: "Assurance auto", desc: "Devis en 2 min" },
+      { title: "Livraison", desc: "France & Afrique" },
+    ];
+    const proAds2 = [
+      { title: "Financement auto", desc: "Crédit simple & rapide" },
+      { title: "Carte grise", desc: "En ligne en 24h" },
+      { title: "Contrôle technique", desc: "Centre agréé" },
+      { title: "Dépannage 24/7", desc: "Assistance partout" },
+      { title: "Expertise", desc: "Rapport détaillé" },
     ];
 
-    return (
-      <div className="container-page py-6 pb-32 md:pb-10">
-        {/* Fil d'ariane */}
-        <div className="mb-2 flex items-center gap-1 text-xs text-slate-400">
-          <Link to="/" className="hover:text-noir">Accueil</Link>
-          <ChevronRight size={13} />
-          <Link to="/acheter" className="hover:text-noir">Annonces</Link>
-          <ChevronRight size={13} />
-          <span className="text-slate-500">{v.marque}</span>
-          <ChevronRight size={13} />
-          <span className="text-slate-500">{v.modele}</span>
-        </div>
+    /* Auto-scroll pub */
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => {
+      const t1 = setInterval(() => setProAdIdx1((i) => (i + 1) % proAds1.length), 4000);
+      const t2 = setInterval(() => setProAdIdx2((i) => (i + 1) % proAds2.length), 5000);
+      return () => { clearInterval(t1); clearInterval(t2); };
+    }, []);
 
-        {/* Nom véhicule centré */}
-        <h1 className="text-center text-xl font-extrabold text-[#111] md:text-2xl">{v.titre}</h1>
-        <p className="text-center text-xs text-[#D4AF37] font-semibold mt-0.5">MKA.P-MS</p>
-
-        <div className="mt-4 grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
-          {/* ===== PHOTO PRINCIPALE ===== */}
-          <section className="min-w-0 lg:col-start-1 lg:row-start-1">
-            <div className="relative w-full h-[350px] md:h-[450px] lg:h-[550px] overflow-hidden rounded-2xl bg-slate-100">
-              {allPhotos.length > 0 ? (
-                <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="h-full w-full object-cover" />
+    /* === GALERIE PHOTO (page séparée) === */
+    if (proGalleryOpen) {
+      return (
+        <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+          {/* Header galerie */}
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <button onClick={() => setProGalleryOpen(false)} className="text-[#111]"><ChevronLeft size={24} /></button>
+            <span className="text-sm font-bold text-[#111]">{photoIdx + 1}/{allPhotos.length}</span>
+            <div className="w-6" />
+          </div>
+          {/* Catégories en haut */}
+          <div className="flex gap-2 overflow-x-auto border-b px-4 py-2">
+            {proPhotoCategories.map((cat) => (
+              <button key={cat.key} onClick={() => setProGalleryCat(cat.key)} className={`shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition ${proGalleryCat === cat.key ? "border-red-500 text-red-500" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
+                {cat.label}
+              </button>
+            ))}
+          </div>
+          {/* Photo */}
+          <div className="flex-1 flex items-center justify-center bg-white px-2 relative">
+            {allPhotos.length > 0 ? (
+              <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="max-h-full max-w-full object-contain" />
+            ) : (
+              <p className="text-slate-400">Aucune photo</p>
+            )}
+            {allPhotos.length > 1 && (
+              <>
+                <button onClick={() => setPhotoIdx((i) => Math.max(0, i - 1))} className="absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/10 text-[#111]"><ChevronLeft size={22} /></button>
+                <button onClick={() => setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1))} className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/10 text-[#111]"><ChevronRight size={22} /></button>
+              </>
+            )}
+          </div>
+          {/* Info en bas */}
+          <div className="border-t px-4 py-3">
+            <p className="text-lg font-extrabold text-[#111]">{v.titre}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-lg font-extrabold text-[#111]">{formatPrice(Number(v.prix))}</span>
+              <span className="rounded-full border border-slate-300 px-2 py-0.5 text-[10px] font-semibold text-slate-600">Offre équitable</span>
+            </div>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white" onClick={messageAction}><Mail size={16} /> Message</button>
+              {v.contactTelephone ? (
+                <a href={`tel:${v.contactTelephone}`} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#e11d48] text-sm font-bold text-white"><Phone size={16} /> Appeler</a>
               ) : (
-                <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
-              )}
-
-              {/* Badge PRO — haut gauche */}
-              <span className="absolute left-3 top-3 rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-extrabold text-white shadow-lg">
-                {proBadge}
-              </span>
-
-              {/* Compteur photos — bas gauche */}
-              {allPhotos.length > 1 && (
-                <span className="absolute bottom-3 left-3 flex items-center gap-1 rounded-lg bg-black/60 px-2.5 py-1 text-xs font-bold text-white">
-                  📷 {photoIdx + 1} / {allPhotos.length}
-                </span>
-              )}
-
-              {/* Flèches navigation */}
-              {allPhotos.length > 1 && (
-                <>
-                  <button onClick={() => setPhotoIdx((i) => Math.max(0, i - 1))} className="absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#111] shadow hover:bg-white">
-                    <ChevronLeft size={22} />
-                  </button>
-                  <button onClick={() => setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1))} className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#111] shadow hover:bg-white">
-                    <ChevronRight size={22} />
-                  </button>
-                </>
+                <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#e11d48] text-sm font-bold text-white" onClick={messageAction}><Phone size={16} /> Appeler</button>
               )}
             </div>
+          </div>
+        </div>
+      );
+    }
 
-            {/* Navigation catégories photos (style La Centrale) — sans miniatures */}
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-              {proPhotoCategories.filter((c) => c.count > 0).map((cat, idx) => (
-                <button key={cat.key} className={`flex shrink-0 flex-col items-center gap-0.5 rounded-xl border px-4 py-2.5 text-center transition ${idx === 0 ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-slate-200 hover:border-[#D4AF37]"}`}>
-                  <span className="text-xs font-bold text-[#111]">{cat.label}</span>
-                  <span className="text-[10px] text-slate-400">{cat.count} photos</span>
-                </button>
-              ))}
-            </div>
+    return (
+      <div className="pb-24 md:pb-20">
+        {/* ===== PHOTO PRINCIPALE (pleine largeur, clic → galerie) ===== */}
+        <div className="relative w-full h-[50vh] md:h-[55vh] lg:h-[60vh] bg-slate-100 cursor-pointer" onClick={() => setProGalleryOpen(true)}>
+          {allPhotos.length > 0 ? (
+            <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="h-full w-full object-cover" />
+          ) : (
+            <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
+          )}
 
-            {/* === DESCRIPTION === */}
-            <div className="card mt-6 p-5">
-              <h2 className="text-sm font-extrabold uppercase text-[#111]">Description</h2>
-              <p className="mt-2 text-sm text-slate-600 leading-relaxed">{v.description || "Véhicule en excellent état, entretenu suivi en concession. Non fumeur. Disponible immédiatement."}</p>
-            </div>
-
-            {/* === ÉQUIPEMENTS === */}
-            <div className="card mt-4 p-5">
-              <h2 className="text-sm font-extrabold uppercase text-[#111]">Équipements principaux</h2>
-              <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {(v.equipements || ["GPS / Navigation", "Sièges cuir chauffants", "Caméra de recul", "Aide au stationnement", "Apple CarPlay / Android Auto", "Climatisation automatique", "Jantes alliage 19\""]).map((eq: string) => (
-                  <li key={eq} className="flex items-center gap-2 text-sm text-slate-600">
-                    <span className="text-green-600">●</span> {eq}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* === PUBLICITÉ MILIEU DE PAGE — 5 cages auto === */}
-            <div className="mt-4 overflow-hidden rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-r from-[#111] to-[#1a1a1a] p-4">
-              <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37] mb-2">Espace publicitaire</p>
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {[
-                  { tag: "Pub #1", title: "Votre pub ici", bg: "bg-[#1B2A4A]" },
-                  { tag: "Pub #2", title: "Boostez vos ventes", bg: "bg-[#2D1B4E]" },
-                  { tag: "Pub #3", title: "Offre spéciale", bg: "bg-[#1a3a2a]" },
-                  { tag: "Pub #4", title: "Visibilité max", bg: "bg-[#3a1a1a]" },
-                  { tag: "Pub #5", title: "Partenaire", bg: "bg-[#1B2A4A]" },
-                ].map((ad, i) => (
-                  <Link key={i} to="/demande-publicite" className={`flex h-20 w-36 shrink-0 flex-col items-center justify-center rounded-xl ${ad.bg} p-3 text-center hover:ring-1 hover:ring-[#D4AF37] transition`}>
-                    <p className="text-[8px] uppercase tracking-wider text-[#D4AF37]">{ad.tag}</p>
-                    <p className="mt-1 text-xs font-bold text-white">{ad.title}</p>
-                    <p className="mt-1 text-[9px] text-slate-400">En savoir plus →</p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* === HISTORIQUE VÉHICULE === */}
-            <div className="card mt-4 p-5">
-              <h2 className="text-sm font-extrabold uppercase text-[#111]">Historique du véhicule</h2>
-              <ul className="mt-3 space-y-2">
-                {[
-                  { icon: "✅", label: "Véhicule non accidenté" },
-                  { icon: "✅", label: "Kilométrage certifié" },
-                  { icon: "✅", label: "Contrôle technique OK" },
-                  { icon: "✅", label: "Aucun vol signalé" },
-                  { icon: "✅", label: "Aucun gage" },
-                  { icon: "✅", label: "Entretien à jour" },
-                  { icon: "ℹ️", label: `Import : Non` },
-                  { icon: "ℹ️", label: `Propriétaires : 1` },
-                ].map((h) => (
-                  <li key={h.label} className="flex items-center gap-2 text-sm text-slate-600">
-                    <span>{h.icon}</span> {h.label}
-                  </li>
-                ))}
-              </ul>
-              <button className="mt-4 w-full rounded-xl border border-[#D4AF37] py-2.5 text-xs font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">
-                Vérifier l'historique complet
+          {/* Header overlay: retour + partage + favori */}
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+            <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow">
+              <ChevronLeft size={20} className="text-[#111]" />
+            </button>
+            <div className="flex gap-2">
+              <button onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(window.location.href); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow">
+                <Share2 size={18} className="text-[#111]" />
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); requireLogin(() => toggleFav.mutate({ annonceId: v.id })); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow">
+                <Heart size={18} className="text-[#111]" />
               </button>
             </div>
+          </div>
 
-            {/* === SERVICES COMPLÉMENTAIRES === */}
-            <div className="card mt-4 p-5">
-              <h2 className="text-sm font-extrabold uppercase text-[#111]">Services complémentaires</h2>
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {[
-                  { icon: "🔧", label: "Devis garage" },
-                  { icon: "🚚", label: "Livraison" },
-                  { icon: "📄", label: "Carte grise" },
-                  { icon: "🔍", label: "Contrôle avant achat" },
-                  { icon: "🚗", label: "Dépannage" },
-                  { icon: "🛡️", label: "Assurance" },
-                  { icon: "💰", label: "Financement" },
-                  { icon: "⭐", label: "Expertise" },
-                ].map((s) => (
-                  <button key={s.label} className="flex flex-col items-center gap-1 rounded-xl border border-slate-200 p-3 text-center hover:border-[#D4AF37] hover:bg-[#FFFDF5] transition">
-                    <span className="text-xl">{s.icon}</span>
-                    <span className="text-[10px] font-bold text-[#111]">{s.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* Badge PRO + Compteur — bas gauche */}
+          <div className="absolute bottom-4 left-4 flex items-center gap-2">
+            <span className="rounded-md bg-white/90 px-2 py-1 text-xs font-bold text-[#111]">{photoIdx + 1}/{allPhotos.length}</span>
+            <span className="rounded-md bg-white/90 px-2 py-1 text-xs font-bold text-[#111]">{proBadge}</span>
+          </div>
 
-            {/* === PUBLICITÉ FIN DE PAGE — 5 cages auto (plus grand) === */}
-            <div className="mt-6 overflow-hidden rounded-2xl border border-[#D4AF37]/30 bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] p-5">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-[#D4AF37] mb-3">Publicités partenaires</p>
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {[
-                  { tag: "Premium #1", title: "Garage certifié", desc: "Réparation & entretien", bg: "bg-[#1B2A4A]" },
-                  { tag: "Premium #2", title: "Pièces détachées", desc: "Neuves & occasion", bg: "bg-[#2D1B4E]" },
-                  { tag: "Premium #3", title: "Assurance auto", desc: "Devis en 2 min", bg: "bg-[#1a3a2a]" },
-                  { tag: "Premium #4", title: "Financement", desc: "Crédit auto simple", bg: "bg-[#3a2a1a]" },
-                  { tag: "Premium #5", title: "Livraison", desc: "France & Afrique", bg: "bg-[#1B2A4A]" },
-                ].map((ad, i) => (
-                  <Link key={i} to="/demande-publicite" className={`flex h-28 w-44 shrink-0 flex-col items-center justify-center rounded-xl ${ad.bg} p-4 text-center hover:ring-1 hover:ring-[#D4AF37] transition`}>
-                    <p className="text-[8px] uppercase tracking-wider text-[#D4AF37]">{ad.tag}</p>
-                    <p className="mt-1 text-sm font-bold text-white">{ad.title}</p>
-                    <p className="mt-0.5 text-[10px] text-slate-400">{ad.desc}</p>
-                    <p className="mt-2 text-[9px] font-semibold text-[#D4AF37]">En savoir plus →</p>
-                  </Link>
-                ))}
-              </div>
-            </div>
+          {/* Flèches */}
+          {allPhotos.length > 1 && (
+            <>
+              <button onClick={(e) => { e.stopPropagation(); setPhotoIdx((i) => Math.max(0, i - 1)); }} className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow"><ChevronLeft size={22} /></button>
+              <button onClick={(e) => { e.stopPropagation(); setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1)); }} className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow"><ChevronRight size={22} /></button>
+            </>
+          )}
+        </div>
 
-            {/* === VÉHICULES SIMILAIRES === */}
-            <div className="card mt-4 p-5">
-              <h2 className="text-sm font-extrabold uppercase text-[#111]">Véhicules similaires</h2>
-              <div className="mt-3 flex gap-3 overflow-x-auto">
-                {[8001, 8002, 8003].filter((id) => id !== v.id).map((id) => {
-                  const sim = DEMO_VEHICLES[id];
-                  if (!sim) return null;
-                  return (
-                    <Link key={id} to={`/vehicule/${id}`} className="w-40 shrink-0 overflow-hidden rounded-xl border border-slate-200 hover:border-[#D4AF37] transition">
-                      <img src={sim.photoPrincipale} alt={sim.titre} className="h-24 w-full object-cover" />
-                      <div className="p-2">
-                        <p className="text-xs font-bold text-[#111] truncate">{sim.titre}</p>
-                        <p className="text-xs font-bold text-[#B8960C]">{formatPrice(Number(sim.prix))}</p>
-                      </div>
-                    </Link>
-                  );
-                })}
-                <Link to="/acheter" className="flex w-40 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-center text-xs font-bold text-slate-500 hover:border-[#D4AF37]">
-                  Voir plus de véhicules similaires →
-                </Link>
-              </div>
-            </div>
-          </section>
-
-          {/* ===== SIDEBAR DROITE (prix + actions + vendeur) ===== */}
-          <aside className="space-y-5 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-20">
-            {/* PRIX + FICHE TECHNIQUE */}
-            <div className="card p-5">
-              <p className="text-xs font-bold uppercase tracking-wide text-[#D4AF37]">Professionnel</p>
-              <div className="mt-2 text-3xl font-extrabold text-[#111]">
-                {formatPrice(Number(v.prix))} <span className="text-base font-medium text-slate-400">TTC</span>
-              </div>
-
-              {/* Estimation prix */}
+        {/* ===== CONTENU SOUS LA PHOTO ===== */}
+        <div className="container-page">
+          {/* NOM + PRIX */}
+          <div className="mt-4">
+            <h1 className="text-xl font-extrabold text-[#111] md:text-2xl">{v.titre}</h1>
+            <div className="mt-1 flex items-center gap-2 flex-wrap">
+              <span className="text-2xl font-extrabold text-[#111]">{formatPrice(Number(v.prix))}</span>
               {estimateQuery.data && Number(v.prix) > 0 && (() => {
                 const est = estimateQuery.data;
                 const prixNum = Number(v.prix);
-                const label = prixNum <= est.mid * 0.97
-                  ? { t: "Bon prix", c: "text-green-600" }
-                  : prixNum <= est.high
-                    ? { t: "Prix du marché", c: "text-[#D4AF37]" }
-                    : { t: "Au-dessus du marché", c: "text-amber-600" };
-                return (
-                  <p className={`mt-1 text-xs font-semibold ${label.c}`}>
-                    📈 {label.t} · Estimation {formatPrice(est.low)} – {formatPrice(est.high)}
-                  </p>
-                );
+                const label = prixNum <= est.mid * 0.97 ? "Bon prix" : prixNum <= est.high ? "Offre équitable" : "Au-dessus";
+                return <span className="rounded-full border border-slate-300 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600">{label}</span>;
               })()}
+            </div>
+            {estimateQuery.data && (
+              <p className="mt-1 text-xs text-slate-500">ou {Math.round(Number(v.prix) / 60)} €/mois</p>
+            )}
+          </div>
 
-              {/* Fiche technique */}
-              <div className="mt-4 space-y-2 border-t border-slate-100 pt-4">
-                {[
-                  ["📅", "Année", v.annee],
-                  ["🛣️", "Kilométrage", v.kilometrage ? `${v.kilometrage.toLocaleString("fr-FR")} km` : null],
-                  ["⛽", "Carburant", v.carburant],
-                  ["⚙️", "Boîte de vitesse", v.boite || "Automatique"],
-                  ["🐴", "Puissance fiscale", v.puissanceCv ? `${v.puissanceCv} ch` : null],
-                  ["🎨", "Couleur", v.couleur],
-                  ["🚗", "Carrosserie", v.carrosserie || "Break"],
-                  ["🚪", "Nombre de portes", v.portes || "5"],
-                  ["💺", "Nombre de places", v.places || "5"],
-                  ["🌿", "Crit'Air", v.critair || "2"],
-                  ["🛡️", "Garantie", v.garantie || "12 mois"],
-                ].filter(([, , val]) => val != null).map(([icon, label, val]) => (
-                  <div key={label as string} className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-2 text-slate-500"><span className="text-xs">{icon}</span> {label}</span>
-                    <span className="font-semibold text-[#111]">{String(val)}</span>
-                  </div>
-                ))}
+          {/* VENDEUR PRO */}
+          <div className="mt-4 flex items-center gap-3 rounded-xl bg-slate-50 p-3">
+            <MapPin size={16} className="text-red-500" />
+            <div className="flex-1">
+              <p className="text-sm font-bold text-[#111]">{v.vendeur?.nom || "MKA Motors"} — {v.ville || "Lyon"}</p>
+              <p className="text-xs text-slate-500">Concessionnaire professionnel</p>
+            </div>
+          </div>
+
+          {/* POINTS FORTS */}
+          <div className="mt-5 border-t border-b border-slate-100 py-4">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <History size={20} className="mx-auto text-slate-500" />
+                <p className="mt-1 text-xs text-slate-500">Historique</p>
+                <p className="text-xs font-bold text-[#111]">Disponible</p>
+              </div>
+              <div>
+                <ShieldCheck size={20} className="mx-auto text-slate-500" />
+                <p className="mt-1 text-xs text-slate-500">Vignette</p>
+                <p className="text-xs font-bold text-[#111]">Crit'Air {v.critair || "1"}</p>
+              </div>
+              <div>
+                <BarChart3 size={20} className="mx-auto text-slate-500" />
+                <p className="mt-1 text-xs text-slate-500">Consommation</p>
+                <p className="text-xs font-bold text-[#111]">Faible</p>
               </div>
             </div>
+          </div>
 
-            {/* BOUTONS CONTACT */}
-            <div className="card p-5 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white hover:bg-[#333]" onClick={messageAction}>
-                  <MessageSquare size={16} /> Message
-                </button>
-                {v.contactTelephone ? (
-                  <a href={`tel:${v.contactTelephone}`} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-bold text-white hover:bg-blue-700">
-                    <Phone size={16} /> Appeler
-                  </a>
-                ) : (
-                  <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-bold text-white hover:bg-blue-700" onClick={messageAction}>
-                    <Phone size={16} /> Appeler
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* BLOC VENDEUR PROFESSIONNEL */}
-            <div className="card p-5">
-              <h3 className="text-xs font-bold uppercase text-slate-400">Vendeur professionnel</h3>
-              <div className="mt-3 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#111] text-sm font-bold text-white">
-                  {(v.vendeur?.nom || v.marque || "P").charAt(0).toUpperCase()}
+          {/* CARACTÉRISTIQUES */}
+          <div className="mt-5">
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><BadgeCheck size={18} className="text-red-400" /> Caractéristiques</h2>
+            <p className="mt-1 text-xs text-slate-400 uppercase">{v.titre} {v.version || ""}</p>
+            <div className="mt-3 space-y-3">
+              {[
+                ["📅", "Année", v.annee],
+                ["🛣️", "Kilométrage", v.kilometrage ? `${v.kilometrage.toLocaleString("fr-FR")} km` : null],
+                ["⚙️", "Boîte de vitesse", v.boite || "Automatique"],
+                ["⛽", "Énergie", v.carburant],
+                ["🚪", "Nombre de portes", v.portes || "5"],
+                ["🐴", "Puissance fiscale", v.puissanceCv ? `${v.puissanceCv} CV` : null],
+                ["💪", "Puissance DIN", v.puissanceCv ? `${v.puissanceCv} ch` : null],
+                ["📊", "Consommation", "5,3 L /100 km"],
+              ].filter(([, , val]) => val != null).map(([icon, label, val]) => (
+                <div key={label as string} className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <span className="flex items-center gap-2 text-sm text-[#111]"><span>{icon}</span> {label}</span>
+                  <span className="text-sm font-bold text-[#111]">{String(val)}</span>
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-[#111]">{v.vendeur?.nom || "MKA Motors"}</p>
-                  <div className="flex items-center gap-1">
-                    <Star size={12} className="text-[#D4AF37] fill-[#D4AF37]" />
-                    <span className="text-xs font-bold text-[#111]">4,9</span>
-                    <span className="text-xs text-slate-400">(125 avis)</span>
-                  </div>
-                  <p className="text-xs text-slate-400 flex items-center gap-1"><MapPin size={10} /> {v.ville || "Lyon (69)"}</p>
-                </div>
-              </div>
-              <button className="mt-3 w-full rounded-xl border border-slate-200 py-2 text-xs font-bold text-[#111] hover:border-[#D4AF37] hover:bg-[#FFFDF5] transition" onClick={() => navigate("/pro")}>
-                Voir la société
-              </button>
+              ))}
             </div>
+            <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-[#111]">Voir tout (20)</button>
+          </div>
 
-            {/* RÉSERVER AVEC ACOMPTE */}
-            <div className="card p-5">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-[#111]">Réserver ce véhicule</h3>
-                <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">Disponible</span>
+          {/* ÉQUIPEMENTS & OPTIONS */}
+          <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Wrench size={18} className="text-red-400" /> Équipements & options</h2>
+            <ChevronRight size={20} className="text-slate-400" />
+          </div>
+
+          {/* FINANCEMENT */}
+          <div className="mt-6 border-t border-slate-100 pt-4">
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><CreditCard size={18} className="text-red-400" /> Financement</h2>
+            <div className="mt-3 rounded-xl border border-slate-200 p-4">
+              <div className="flex gap-2 mb-3">
+                <span className="rounded-full border-b-2 border-red-500 px-4 py-1 text-xs font-bold text-red-500">Crédit</span>
+                <span className="rounded-full px-4 py-1 text-xs font-bold text-slate-400">LOA</span>
               </div>
-              <p className="mt-1 text-xs text-slate-500">Réservez ce véhicule pour 24h en versant un acompte.</p>
-              <div className="mt-3 grid grid-cols-4 gap-2">
-                {ACOMPTE_PALIERS.map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setAcompte(p)}
-                    className={`rounded-lg border px-2 py-2 text-sm font-semibold transition ${acompte === p ? "border-[#D4AF37] bg-[#FFFDF5] text-[#B8960C]" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}
-                  >
-                    {p} €
-                  </button>
-                ))}
-              </div>
-              <button
-                className="mt-3 w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white hover:bg-[#C5A028]"
-                disabled={reserve.isPending}
-                onClick={() => requireLogin(() => reserve.mutate({ annonceId: v.id, acompte }))}
-              >
-                {reserve.isPending ? "Redirection…" : "Réserver maintenant"}
-              </button>
+              <p className="text-center text-lg font-extrabold text-[#111]">Dès {Math.round(Number(v.prix) / 60)} €<span className="text-sm font-normal text-slate-500">/mois</span></p>
+              <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white">Faire une offre au vendeur</button>
             </div>
-          </aside>
+          </div>
+
+          {/* PUBLICITÉ MILIEU — auto-défilante */}
+          <div className="mt-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#111] to-[#222] p-4">
+            <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37] mb-2">Publicité</p>
+            <div className="relative h-20 overflow-hidden">
+              {proAds1.map((ad, i) => (
+                <Link key={i} to="/demande-publicite" className={`absolute inset-0 flex flex-col items-center justify-center text-center transition-opacity duration-700 ${i === proAdIdx1 ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+                  <p className="text-sm font-bold text-white">{ad.title}</p>
+                  <p className="text-[10px] text-slate-400">{ad.desc}</p>
+                  <p className="mt-1 text-[9px] font-semibold text-[#D4AF37]">En savoir plus →</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* GARANTIES */}
+          <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><ShieldCheck size={18} className="text-red-400" /> Garanties</h2>
+            <ChevronRight size={20} className="text-slate-400" />
+          </div>
+
+          {/* HISTORIQUE */}
+          <div className="mt-6 border-t border-slate-100 pt-4">
+            <div className="flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><History size={18} className="text-red-400" /> Historique</h2>
+            </div>
+            <div className="mt-3 space-y-3">
+              {[
+                { label: "Nombre de propriétaires", val: "2", icon: "👤" },
+                { label: "Existence vérifiée", val: "✅", icon: "🚗" },
+                { label: "Aucun sinistre détecté", val: "✅", icon: "✓" },
+              ].map((h) => (
+                <div key={h.label} className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <span className="text-sm text-[#111]">{h.label}</span>
+                  <span className="text-sm font-bold text-green-600">{h.val}</span>
+                </div>
+              ))}
+            </div>
+            <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white">Voir l'historique complet</button>
+          </div>
+
+          {/* PRIX */}
+          <div className="mt-6 border-t border-slate-100 pt-4">
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><TrendingUp size={18} className="text-red-400" /> Prix</h2>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-2xl font-extrabold text-[#111]">{formatPrice(Number(v.prix))}</span>
+              <span className="rounded-full border border-slate-300 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600">Offre équitable</span>
+            </div>
+            {estimateQuery.data && (
+              <p className="mt-1 text-xs text-slate-500">Le prix est dans la moyenne des véhicules similaires.</p>
+            )}
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <span className="text-sm text-[#111]">Historique</span>
+                <ChevronRight size={16} className="text-slate-400" />
+              </div>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <span className="text-sm text-[#111]">Cote du véhicule</span>
+                <span className="text-xs font-semibold text-[#111] underline">Consulter</span>
+              </div>
+            </div>
+            <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-[#111]">Créer une alerte prix</button>
+          </div>
+
+          {/* VENDEUR PRO COMPLET */}
+          <div className="mt-6 border-t border-slate-100 pt-4">
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Store size={18} className="text-red-400" /> Professionnel de l'automobile</h2>
+            <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-bold text-green-700"><ShieldCheck size={10} /> Pro vérifié</span>
+            <div className="mt-3 flex items-center gap-3">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold text-[#111]">
+                {(v.vendeur?.nom || v.marque || "P").charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className="text-sm font-bold text-[#111]">{v.vendeur?.nom || "MKA Motors"}</p>
+                <p className="text-xs text-slate-500">Concessionnaire</p>
+              </div>
+            </div>
+            <div className="mt-3 rounded-xl bg-slate-50 p-3 flex items-center gap-2">
+              <MapPin size={14} className="text-red-500" />
+              <span className="text-sm font-bold text-[#111]">{v.ville || "Lyon"}</span>
+            </div>
+            <div className="mt-2 flex items-center justify-between border-b border-slate-100 py-2">
+              <span className="text-sm text-[#111]">Horaires et à propos</span>
+              <ChevronRight size={16} className="text-slate-400" />
+            </div>
+            <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => navigate("/pro")}>Voir les annonces du pro</button>
+          </div>
+
+          {/* PUBLICITÉ FIN DE PAGE — auto-défilante (plus grande) */}
+          <div className="mt-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] p-5">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#D4AF37] mb-3">Publicités partenaires</p>
+            <div className="relative h-28 overflow-hidden">
+              {proAds2.map((ad, i) => (
+                <Link key={i} to="/demande-publicite" className={`absolute inset-0 flex flex-col items-center justify-center text-center transition-opacity duration-700 ${i === proAdIdx2 ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+                  <p className="text-lg font-bold text-white">{ad.title}</p>
+                  <p className="text-xs text-slate-400">{ad.desc}</p>
+                  <p className="mt-2 text-[10px] font-semibold text-[#D4AF37]">En savoir plus →</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* VÉHICULE VOUS INTÉRESSE ? */}
+          <div className="mt-6 rounded-xl border border-red-200 bg-red-50/30 p-4">
+            <p className="text-sm font-bold text-[#111]">Ce {v.titre} vous intéresse ?</p>
+            <p className="mt-1 text-xs text-slate-500">Enregistrez la recherche et soyez alerté des nouvelles annonces similaires.</p>
+            <button className="mt-3 w-full rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-[#111] flex items-center justify-center gap-2"><Bell size={14} /> Enregistrer ma recherche</button>
+          </div>
+
+          {/* ALLER PLUS LOIN */}
+          <div className="mt-6 border-t border-slate-100 pt-4">
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]">Aller plus loin</h2>
+            <div className="mt-3 space-y-3">
+              {[
+                { icon: <FileText size={18} />, title: "Cote du véhicule", desc: "Consultez la cote de ce véhicule" },
+                { icon: <History size={18} />, title: "Historique complet", desc: "Consultez l'historique complet" },
+                { icon: <FileCheck size={18} />, title: "Fiche Technique", desc: "Toutes les informations du véhicule" },
+              ].map((item) => (
+                <div key={item.title} className="flex items-center gap-3 border-b border-slate-100 pb-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500">{item.icon}</div>
+                  <div>
+                    <p className="text-sm font-bold text-[#111] underline">{item.title}</p>
+                    <p className="text-xs text-slate-500">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* FOOTER */}
+          <div className="mt-6 border-t border-slate-100 pt-4 text-center space-y-2">
+            <p className="text-xs font-semibold text-[#111] underline">Règles de prudence</p>
+            <p className="text-xs font-semibold text-[#111] underline">Signaler cette annonce</p>
+            <p className="text-[10px] text-slate-400">Réf. pro : {v.vendeur?.id || "97103"} | Réf. annonce : {v.reference || v.id}</p>
+          </div>
+        </div>
+
+        {/* ===== BARRE FIXE EN BAS : Message + Appeler ===== */}
+        <div className="fixed bottom-[60px] left-0 right-0 z-50 border-t border-slate-200 bg-white px-4 py-2 flex gap-3 md:bottom-0">
+          <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white" onClick={messageAction}>
+            <Mail size={16} /> Message
+          </button>
+          {v.contactTelephone ? (
+            <a href={`tel:${v.contactTelephone}`} className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#e11d48] text-sm font-bold text-white">
+              <Phone size={16} /> Appeler
+            </a>
+          ) : (
+            <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#e11d48] text-sm font-bold text-white" onClick={messageAction}>
+              <Phone size={16} /> Appeler
+            </button>
+          )}
         </div>
 
         {/* WhatsApp flottant */}
         {v.contactTelephone && (
-          <a href={whatsapp} target="_blank" rel="noreferrer" className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-xl hover:bg-green-600 transition">
+          <a href={whatsapp} target="_blank" rel="noreferrer" className="fixed bottom-[130px] right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-xl hover:bg-green-600 transition md:bottom-[80px]">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
           </a>
         )}
