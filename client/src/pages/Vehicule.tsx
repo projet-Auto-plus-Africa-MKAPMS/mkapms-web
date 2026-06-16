@@ -284,13 +284,12 @@ export default function Vehicule() {
                 <button onClick={() => setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1))} className="absolute right-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg hover:bg-white transition"><ChevronRight size={24} /></button>
               </>
             )}
-            {/* Badge logo MKA.P-MS — haut gauche */}
-            <div className="absolute top-3 left-3 flex items-center gap-2 rounded-lg bg-[#111]/85 px-2.5 py-1.5 backdrop-blur-sm shadow">
-              <span className="flex h-6 w-6 items-center justify-center rounded bg-[#D4AF37] text-[10px] font-extrabold text-[#111]">M</span>
+            {/* Badge logo MKA.P-MS — haut gauche, compact */}
+            <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-md bg-[#111]/85 px-2 py-1 backdrop-blur-sm shadow">
+              <span className="flex h-5 w-5 items-center justify-center rounded bg-[#D4AF37] text-[9px] font-extrabold text-[#111]">M</span>
               <div className="leading-tight">
-                <p className="text-[9px] font-medium uppercase text-slate-300">Véhicule Société</p>
-                <p className="text-[11px] font-bold text-[#D4AF37]">MKA.P-MS</p>
-                <p className="text-[8px] text-slate-400">AUTO PLUS AFRICA</p>
+                <p className="text-[8px] font-medium uppercase text-slate-300">Véhicule Société</p>
+                <p className="text-[10px] font-bold text-[#D4AF37]">MKA.P-MS</p>
               </div>
             </div>
             {/* Compteur photos — bas gauche */}
@@ -312,7 +311,7 @@ export default function Vehicule() {
         <div className="container-page space-y-5 py-5">
           {/* ── 3. NOM VÉHICULE + MOTORISATION + PRIX — centré ── */}
           <div className="card p-5 text-center">
-            <p className="text-3xl font-extrabold text-[#D4AF37]">{formatPrice(Number(v.prix))}</p>
+            <p className="text-3xl font-extrabold text-[#B8960C]">{formatPrice(Number(v.prix))}</p>
             <p className="text-xs text-slate-500">Prix TTC · Frais inclus</p>
             <h1 className="mt-2 text-2xl font-extrabold text-noir">{v.titre}</h1>
             {v.motorisation && <p className="mt-1 text-sm text-slate-500">{v.marque} {v.modele} {v.motorisation}</p>}
@@ -481,7 +480,7 @@ export default function Vehicule() {
               <h2 className="text-lg font-bold text-noir">Prix</h2>
             </div>
             <div className="mt-3 flex items-center gap-3">
-              <p className="text-2xl font-extrabold text-[#D4AF37]">{formatPrice(Number(v.prix))}</p>
+              <p className="text-2xl font-extrabold text-[#B8960C]">{formatPrice(Number(v.prix))}</p>
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">€ Offre équitable</span>
             </div>
             <div className="mt-3 relative">
@@ -546,7 +545,7 @@ export default function Vehicule() {
                 <div className="mt-2 flex items-center gap-3">
                   <div className="flex-1">
                     <p className="text-xs text-slate-400">Estimation cote</p>
-                    <p className="text-lg font-bold text-[#D4AF37]">{formatPrice(Math.round(Number(v.prix) * 0.95))} – {formatPrice(Math.round(Number(v.prix) * 1.05))}</p>
+                    <p className="text-lg font-bold text-[#B8960C]">{formatPrice(Math.round(Number(v.prix) * 0.95))} – {formatPrice(Math.round(Number(v.prix) * 1.05))}</p>
                   </div>
                 </div>
                 <p className="mt-2 text-xs text-slate-500">Basé sur le marché actuel pour ce modèle, cette année et ce kilométrage.</p>
@@ -564,7 +563,7 @@ export default function Vehicule() {
             {showAlertPanel && (
               <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
                 <p className="text-sm font-bold text-noir">M'alerter si le prix descend à :</p>
-                <p className="mt-2 text-center text-xl font-extrabold text-[#D4AF37]">
+                <p className="mt-2 text-center text-xl font-extrabold text-[#B8960C]">
                   {formatPrice(Math.round(Number(v.prix) * (0.7 + (priceSlider / 100) * 0.35)))}
                 </p>
                 <input
@@ -640,6 +639,33 @@ export default function Vehicule() {
             </div>
           </div>
 
+          {/* ── PUBLICITÉS — carrousel auto 4 pubs ── */}
+          <div className="overflow-hidden rounded-xl">
+            <div className="flex animate-[scroll_12s_linear_infinite] gap-3" style={{ width: "fit-content" }}>
+              {[
+                { title: "Assurance auto", desc: "Dès 19€/mois", bg: "bg-blue-50", color: "text-blue-700" },
+                { title: "Crédit auto", desc: "Taux à 3,9%", bg: "bg-emerald-50", color: "text-emerald-700" },
+                { title: "Garantie MKA.P-MS", desc: "Jusqu'à 36 mois", bg: "bg-amber-50", color: "text-amber-700" },
+                { title: "Livraison", desc: "Partout en France", bg: "bg-purple-50", color: "text-purple-700" },
+              ].map((pub, i) => (
+                <div key={i} className={`shrink-0 w-40 rounded-xl ${pub.bg} p-4 cursor-pointer hover:shadow-md transition`}>
+                  <p className={`text-sm font-bold ${pub.color}`}>{pub.title}</p>
+                  <p className="mt-1 text-xs text-slate-500">{pub.desc}</p>
+                </div>
+              ))}
+              {[
+                { title: "Assurance auto", desc: "Dès 19€/mois", bg: "bg-blue-50", color: "text-blue-700" },
+                { title: "Crédit auto", desc: "Taux à 3,9%", bg: "bg-emerald-50", color: "text-emerald-700" },
+                { title: "Garantie MKA.P-MS", desc: "Jusqu'à 36 mois", bg: "bg-amber-50", color: "text-amber-700" },
+                { title: "Livraison", desc: "Partout en France", bg: "bg-purple-50", color: "text-purple-700" },
+              ].map((pub, i) => (
+                <div key={`dup-${i}`} className={`shrink-0 w-40 rounded-xl ${pub.bg} p-4 cursor-pointer hover:shadow-md transition`}>
+                  <p className={`text-sm font-bold ${pub.color}`}>{pub.title}</p>
+                  <p className="mt-1 text-xs text-slate-500">{pub.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
 
         </div>
 

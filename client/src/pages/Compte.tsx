@@ -129,15 +129,16 @@ export default function Compte() {
           <div className="space-y-3">
             <Link to="/vendre" className="btn-primary inline-flex">+ Déposer une annonce</Link>
             {mineAnnonces.data?.map((a) => (
-              <div key={a.id} className="card flex items-center justify-between p-4">
+              <Link key={a.id} to={`/vehicule/${a.id}`} className="card flex items-center justify-between p-4 hover:bg-slate-50 transition cursor-pointer">
                 <div>
-                  <Link to={`/vehicule/${a.id}`} className="font-semibold text-slate-800">{a.titre}</Link>
+                  <p className="font-semibold text-slate-800">{a.titre}</p>
                   <p className="text-xs text-slate-400">
                     {(a as { reference?: string | null }).reference ? `${(a as { reference?: string | null }).reference} · ` : ""}
                     {a.status} · {formatPrice(Number(a.prix))}
                   </p>
                 </div>
-              </div>
+                <span className="text-xs text-slate-400">→</span>
+              </Link>
             ))}
             {mineAnnonces.data?.length === 0 && <p className="text-sm text-slate-500">Aucune annonce.</p>}
           </div>
