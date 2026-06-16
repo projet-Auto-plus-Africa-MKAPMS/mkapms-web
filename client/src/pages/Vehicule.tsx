@@ -798,14 +798,14 @@ export default function Vehicule() {
     if (proGalleryOpen) {
       return (
         <div className="fixed inset-0 z-[100] bg-white flex flex-col">
-          {/* Header galerie — descendu plus bas */}
-          <div className="flex items-center justify-between border-b px-4 py-4 pt-8">
-            <button onClick={() => setProGalleryOpen(false)} className="text-[#111]"><ChevronLeft size={24} /></button>
+          {/* Header galerie — bien descendu pour éviter la zone notch */}
+          <div className="flex items-center justify-between border-b px-4 py-4 pt-14">
+            <button onClick={() => setProGalleryOpen(false)} className="text-[#111] p-2"><ChevronLeft size={28} /></button>
             <span className="text-sm font-bold text-[#111]">{photoIdx + 1}/{allPhotos.length}</span>
-            <div className="w-6" />
+            <div className="w-10" />
           </div>
-          {/* Catégories — descendues plus bas avec plus d'espace */}
-          <div className="flex gap-2 overflow-x-auto border-b px-4 py-3">
+          {/* Catégories — bien descendues */}
+          <div className="flex gap-2 overflow-x-auto border-b px-4 py-4">
             {proPhotoCategories.map((cat) => (
               <button key={cat.key} onClick={() => setProGalleryCat(cat.key)} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${proGalleryCat === cat.key ? "border-red-500 text-red-500" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
                 {cat.label}
@@ -1125,7 +1125,7 @@ export default function Vehicule() {
               <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => messageAction())}>Demander un essai</button>
             </div>
 
-            <div className="mt-3 flex items-center justify-between border-b border-slate-100 py-2 cursor-pointer" onClick={() => navigate("/pro")}>
+            <div className="mt-3 flex items-center justify-between border-b border-slate-100 py-2 cursor-pointer" onClick={() => setShowAlertPanel(true)}>
               <span className="text-sm text-[#111]">Horaires et à propos</span>
               <span className="text-xs text-red-500 font-semibold">Fermé</span>
               <ChevronRight size={16} className="text-slate-400" />
@@ -1170,7 +1170,14 @@ export default function Vehicule() {
           <div className="mt-6 rounded-xl border border-red-200 bg-red-50/30 p-4">
             <p className="text-sm font-bold text-[#111]">Ce {v.titre} vous intéresse ?</p>
             <p className="mt-1 text-xs text-slate-500">Enregistrez la recherche et soyez alerté des nouvelles annonces similaires.</p>
-            <button className="mt-3 w-full rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-[#111] flex items-center justify-center gap-2" onClick={() => requireLogin(() => setShowAlertPanel(true))}><Bell size={14} /> Enregistrer ma recherche</button>
+            <button className="mt-3 w-full rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-[#111] flex items-center justify-center gap-2" onClick={() => setShowAlertPanel(!showAlertPanel)}><Bell size={14} /> Enregistrer ma recherche</button>
+            {showAlertPanel && (
+              <div className="mt-3 rounded-xl border border-[#D4AF37]/30 bg-[#FFFDF5] p-4">
+                <p className="text-sm font-bold text-[#111]">Alerte enregistrée !</p>
+                <p className="mt-1 text-xs text-slate-500">Vous serez notifié dès qu'une annonce similaire à "{v.titre}" est publiée.</p>
+                <button className="mt-3 w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-white" onClick={() => setShowAlertPanel(false)}>OK</button>
+              </div>
+            )}
           </div>
 
           {/* ALLER PLUS LOIN */}
@@ -1204,15 +1211,15 @@ export default function Vehicule() {
                 const sim = DEMO_VEHICLES[id];
                 if (!sim) return null;
                 return (
-                  <Link key={id} to={`/vehicule/${id}`} className="w-44 shrink-0 overflow-hidden rounded-xl border border-slate-200 hover:border-[#D4AF37] transition">
+                  <Link key={id} to={`/vehicule/${id}`} className="w-48 shrink-0 overflow-hidden rounded-xl border border-slate-200 hover:border-[#D4AF37] transition">
                     <div className="relative">
-                      <img src={sim.photoPrincipale} alt={sim.titre} className="h-36 w-full object-cover" />
+                      <img src={sim.photoPrincipale} alt={sim.titre} className="h-44 w-full object-cover" />
                       <button className="absolute top-2 right-2 text-slate-400"><Heart size={16} /></button>
                     </div>
-                    <div className="p-2">
-                      <p className="text-xs font-bold text-[#111] truncate">{sim.titre}</p>
-                      <p className="text-xs font-extrabold text-[#111] mt-0.5">{formatPrice(Number(sim.prix))}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{sim.ville || "Paris"}</p>
+                    <div className="p-3">
+                      <p className="text-sm font-bold text-[#111] truncate">{sim.titre}</p>
+                      <p className="text-sm font-extrabold text-[#111] mt-1">{formatPrice(Number(sim.prix))}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{sim.ville || "Paris"}</p>
                     </div>
                   </Link>
                 );
@@ -1229,7 +1236,7 @@ export default function Vehicule() {
         </div>
 
         {/* ===== BARRE FIXE EN BAS : Message + Appeler — AU-DESSUS nav bar */}
-        <div className="fixed bottom-[58px] left-0 right-0 z-30 border-t border-slate-200 bg-white px-4 py-1.5 flex gap-3 md:bottom-0" style={{zIndex: 35}}>
+        <div className="fixed bottom-[72px] left-0 right-0 border-t border-slate-200 bg-white px-4 py-2 flex gap-3 md:bottom-0" style={{zIndex: 35}}>
           <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white" onClick={messageAction}>
             <Mail size={16} /> Message
           </button>
