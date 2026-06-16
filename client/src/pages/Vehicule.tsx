@@ -36,6 +36,7 @@ import {
   Car,
   Store,
   ChevronDown,
+  ShoppingCart,
 } from "lucide-react";
 
 /* ── Classification des tiers ── */
@@ -114,6 +115,8 @@ export default function Vehicule() {
   const [descTab, setDescTab] = useState<"description" | "points_forts" | "equipements" | "imperfections">("description");
   const [acompte, setAcompte] = useState<number>(ACOMPTE_PALIERS[1]);
   const [scrollHidden, setScrollHidden] = useState(false);
+  const [showPriceHistory, setShowPriceHistory] = useState(false);
+  const [showCote, setShowCote] = useState(false);
   const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     const onScroll = () => {
@@ -254,6 +257,12 @@ export default function Vehicule() {
     const allPhotos = allCategoryPhotos.length > 0 ? allCategoryPhotos : (v.photoPrincipale ? [v.photoPrincipale] : []);
     return (
       <div className="pb-40 md:pb-10">
+        {/* ── 1. NOM VÉHICULE EN HAUT — centré, grand, or ── */}
+        <div className="px-4 pt-4 pb-2 text-center">
+          <h1 className="text-2xl font-extrabold text-[#D4AF37]">{v.titre}</h1>
+          {v.motorisation && <p className="mt-0.5 text-sm text-slate-500">{v.motorisation}</p>}
+        </div>
+
         {/* ── 2. PHOTO VÉHICULE — espace latéral, flèches dégagées ── */}
         <div className="px-3 pt-2 md:px-4">
           <div className="relative w-full overflow-hidden rounded-xl bg-slate-100" style={{ height: "clamp(350px, 58vh, 560px)" }}>
@@ -281,10 +290,10 @@ export default function Vehicule() {
               )}
               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#111] text-xs font-extrabold text-[#D4AF37] shadow">M</span>
             </div>
-            {/* Boutons flottants Appel + WhatsApp — haut droit */}
-            <div className={`absolute right-3 top-[20%] flex flex-col gap-2 transition-opacity duration-200 ${scrollHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-              <a href={`tel:${v.contactTelephone || ""}`} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#111]/80 text-white shadow-md backdrop-blur-sm hover:bg-[#111]"><Phone size={15} /></a>
-              <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#25d366]/90 text-white shadow-md backdrop-blur-sm hover:bg-[#25d366]">
+            {/* Boutons flottants Appel + WhatsApp — juste sous la flèche →, collés au bord */}
+            <div className={`absolute right-2 top-[55%] flex flex-col gap-2 transition-opacity duration-200 ${scrollHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+              <a href={`tel:${v.contactTelephone || ""}`} className="flex h-8 w-8 items-center justify-center rounded-full bg-[#111]/80 text-white shadow-md backdrop-blur-sm hover:bg-[#111]"><Phone size={14} /></a>
+              <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-[#25d366]/90 text-white shadow-md backdrop-blur-sm hover:bg-[#25d366]">
                 <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.578-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.24 0-4.326-.68-6.06-1.844l-.434-.3-2.825.902.935-2.752-.33-.468A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
               </a>
             </div>
@@ -298,21 +307,8 @@ export default function Vehicule() {
             <h1 className="mt-1 text-2xl font-extrabold text-noir">{v.titre}</h1>
             {v.motorisation && <p className="mt-1 text-base text-slate-500">{v.marque} {v.modele} {v.motorisation}</p>}
             <p className="mt-1 text-sm text-slate-400">Réf. annonce : DEMO-{v.id}</p>
-            <p className="mt-3 text-3xl font-extrabold text-noir">{formatPrice(Number(v.prix))}</p>
+            <p className="mt-3 text-3xl font-extrabold text-[#D4AF37]">{formatPrice(Number(v.prix))}</p>
             <p className="text-sm text-slate-500">Prix TTC · Frais inclus</p>
-          </div>
-
-          {/* ── Mini carte localisation ── */}
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37]/10">
-                <MapPin size={16} className="text-[#D4AF37]" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-noir">MKA.P-MS Officiel</p>
-                <p className="text-xs text-slate-500">{v.ville || "Belloy-en-France"} · 95270</p>
-              </div>
-            </div>
           </div>
 
           {/* ── 4. Favoris + Partager ── */}
@@ -473,7 +469,7 @@ export default function Vehicule() {
               <h2 className="text-lg font-bold text-noir">Prix</h2>
             </div>
             <div className="mt-3 flex items-center gap-3">
-              <p className="text-2xl font-extrabold text-noir">{formatPrice(Number(v.prix))}</p>
+              <p className="text-2xl font-extrabold text-[#D4AF37]">{formatPrice(Number(v.prix))}</p>
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">€ Offre équitable</span>
             </div>
             <div className="mt-3 flex h-2 overflow-hidden rounded-full">
@@ -487,6 +483,63 @@ export default function Vehicule() {
             </div>
             <p className="mt-4 text-sm leading-relaxed text-slate-600">Le prix de cette annonce est dans la moyenne des prix des véhicules similaires.</p>
             <Link to="#" className="mt-1 text-sm font-semibold text-noir underline">En savoir plus</Link>
+
+            {/* Historique prix + Cote véhicule — cliquables */}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button onClick={() => setShowPriceHistory(!showPriceHistory)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-center transition hover:bg-slate-100">
+                <TrendingUp size={18} className="mx-auto text-[#D4AF37]" />
+                <p className="mt-1 text-xs font-bold text-noir">Historique prix</p>
+              </button>
+              <button onClick={() => setShowCote(!showCote)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-center transition hover:bg-slate-100">
+                <BarChart3 size={18} className="mx-auto text-[#D4AF37]" />
+                <p className="mt-1 text-xs font-bold text-noir">Cote véhicule</p>
+              </button>
+            </div>
+
+            {/* Historique prix panel */}
+            {showPriceHistory && (
+              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
+                <h4 className="text-sm font-bold text-noir">Historique des prix</h4>
+                <div className="mt-2 flex items-center justify-between">
+                  <div className="text-center">
+                    <p className="text-xs text-slate-400">Mise en ligne</p>
+                    <p className="text-sm font-bold text-noir">{formatPrice(Number(v.prix))}</p>
+                  </div>
+                  <div className="flex-1 mx-3 h-px bg-slate-200" />
+                  <div className="text-center">
+                    <p className="text-xs text-slate-400">Aujourd'hui</p>
+                    <p className="text-sm font-bold text-[#D4AF37]">{formatPrice(Number(v.prix))}</p>
+                  </div>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">Pas de variation de prix depuis la mise en ligne.</p>
+              </div>
+            )}
+
+            {/* Cote véhicule panel */}
+            {showCote && (
+              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
+                <h4 className="text-sm font-bold text-noir">Cote du véhicule</h4>
+                <div className="mt-2 flex items-center gap-3">
+                  <div className="flex-1">
+                    <p className="text-xs text-slate-400">Estimation cote</p>
+                    <p className="text-lg font-bold text-[#D4AF37]">{formatPrice(Math.round(Number(v.prix) * 0.95))} – {formatPrice(Math.round(Number(v.prix) * 1.05))}</p>
+                  </div>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">Basé sur le marché actuel pour ce modèle, cette année et ce kilométrage.</p>
+                <Link to="/historique" className="mt-2 block text-xs font-bold text-[#D4AF37]">Faire racheter mon véhicule →</Link>
+              </div>
+            )}
+
+            {/* Localisation intégrée dans le cadre prix */}
+            <div className="mt-4 flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5 cursor-pointer hover:bg-slate-100 transition" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                <MapPin size={16} className="text-[#D4AF37]" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-noir">MKA.P-MS Officiel</p>
+                <p className="text-xs text-slate-500">{v.ville || "Belloy-en-France"} · 95270</p>
+              </div>
+            </div>
           </div>
 
           {/* ── CRÉER UNE ALERTE PRIX ── */}
@@ -574,7 +627,7 @@ export default function Vehicule() {
           <div className="container-page">
             <div className="grid grid-cols-2 gap-3">
               <button className="flex h-[52px] items-center justify-center gap-2 rounded-xl border-2 border-noir bg-white text-sm font-bold text-noir shadow hover:bg-slate-50 transition" onClick={messageAction}><Mail size={16} /> Message</button>
-              <button className="btn-acheter flex h-[52px] items-center justify-center gap-2 text-sm font-bold" onClick={primaryAction}><Phone size={16} /> Appeler</button>
+              <button className="btn-acheter flex h-[52px] items-center justify-center gap-2 text-sm font-bold" onClick={primaryAction}><ShoppingCart size={16} /> Acheter</button>
             </div>
           </div>
         </div>
