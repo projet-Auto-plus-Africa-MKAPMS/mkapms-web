@@ -1189,17 +1189,29 @@ export default function Admin() {
             <h3 className="mt-5 text-sm font-bold text-slate-700">Emplacements disponibles</h3>
             <div className="mt-2 space-y-2">
               {[
-                { id: 1, name: "Page produit (bas de page)", type: "Carrousel 4 images · défilement auto", status: "actif" },
-                { id: 2, name: "Page d'accueil (bannière)", type: "Bannière pleine largeur · rotation 8s", status: "inactif" },
-                { id: 3, name: "Page recherche (sidebar)", type: "Carte verticale · fixe", status: "inactif" },
-                { id: 4, name: "Page résultats (entre annonces)", type: "Carte inline · tous les 5 résultats", status: "inactif" },
+                { id: 1, name: "Accueil — Carrousel #1 (entre annonces)", cases: 5, occupees: 3, tarif: "50€/jour", type: "Carrousel 5 postes · défilement auto 5s", status: "actif" },
+                { id: 2, name: "Accueil — Carrousel #2 (après location)", cases: 5, occupees: 1, tarif: "40€/jour", type: "Carrousel 5 postes · défilement auto", status: "actif" },
+                { id: 3, name: "Accueil — Carrousel #3 Premium (fin page)", cases: 5, occupees: 2, tarif: "80€/jour", type: "Carrousel premium doré · haute visibilité", status: "actif" },
+                { id: 4, name: "Page Produit — Carrousel bas de page", cases: 4, occupees: 4, tarif: "30€/jour", type: "Carrousel 4 images · défilement auto", status: "actif" },
+                { id: 5, name: "Page Recherche — Sidebar droite", cases: 3, occupees: 0, tarif: "40€/jour", type: "Carte verticale fixe", status: "inactif" },
+                { id: 6, name: "Page Résultats — Entre annonces", cases: 4, occupees: 0, tarif: "35€/jour", type: "Carte inline · tous les 5 résultats", status: "inactif" },
               ].map((e) => (
-                <div key={e.id} className="card flex items-center justify-between p-3">
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">#{e.id} — {e.name}</p>
-                    <p className="text-xs text-slate-400">{e.type}</p>
+                <div key={e.id} className="card p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">#{e.id} — {e.name}</p>
+                      <p className="text-xs text-slate-400">{e.type} · <span className="font-bold text-[#B8960C]">{e.tarif}</span></p>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${e.status === "actif" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>{e.status}</span>
                   </div>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${e.status === "actif" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>{e.status}</span>
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="flex gap-1">
+                      {Array.from({ length: e.cases }).map((_, i) => (
+                        <div key={i} className={`h-2.5 w-6 rounded ${i < e.occupees ? "bg-[#D4AF37]" : "bg-slate-200"}`} />
+                      ))}
+                    </div>
+                    <span className="text-[10px] text-slate-400">{e.occupees}/{e.cases} occupées</span>
+                  </div>
                 </div>
               ))}
             </div>

@@ -312,6 +312,29 @@ export default function Compte() {
               </div>
             ))}
             {abos.data?.length === 0 && <p className="text-sm text-slate-500">Aucun abonnement actif.</p>}
+
+            {/* Abonnements Publicité — visible PDG/Directeur */}
+            {isAdmin(user.role) && (
+              <div className="mt-6 border-t border-slate-200 pt-4">
+                <p className="text-sm font-bold text-slate-800 mb-3">Abonnements Publicité</p>
+                {[
+                  { code: "PUB-ACCUEIL-1", label: "Publicité Accueil — Carrousel #1", cases: 5, tarif: "50€/jour", status: "actif" },
+                  { code: "PUB-ACCUEIL-2", label: "Publicité Accueil — Carrousel #2", cases: 5, tarif: "40€/jour", status: "actif" },
+                  { code: "PUB-PREMIUM", label: "Publicité Premium — Carrousel #3", cases: 5, tarif: "80€/jour", status: "actif" },
+                  { code: "PUB-PRODUIT", label: "Publicité Page Produit", cases: 4, tarif: "30€/jour", status: "actif" },
+                  { code: "PUB-RECHERCHE", label: "Publicité Page Recherche", cases: 3, tarif: "40€/jour", status: "inactif" },
+                  { code: "PUB-RESULTATS", label: "Publicité Entre Annonces", cases: 4, tarif: "35€/jour", status: "inactif" },
+                ].map((p) => (
+                  <Link key={p.code} to="/demande-publicite" className="card flex items-center justify-between p-4 mb-2 hover:bg-slate-50 transition cursor-pointer">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">{p.label}</p>
+                      <p className="text-xs text-slate-400">{p.code} · {p.cases} cases · {p.tarif}</p>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${p.status === "actif" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>{p.status}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         )}
         {tab === "litiges" && (
@@ -483,6 +506,40 @@ export default function Compte() {
                 </Link>
               ))}
             </div>
+
+            {/* Emplacements publicitaires détaillés */}
+            {isAdmin(user.role) && (
+              <div className="mt-8 border-t border-slate-200 pt-6">
+                <h3 className="text-base font-bold text-slate-900">Emplacements Publicités</h3>
+                <p className="mt-1 text-xs text-slate-500">Détails de chaque emplacement publicitaire sur la plateforme. Cliquez pour gérer.</p>
+                <div className="mt-4 space-y-3">
+                  {[
+                    { id: 1, name: "Accueil — Carrousel #1 (entre annonces)", cases: 5, occupees: 3, tarif: "50€/jour · 300€/semaine · 900€/mois", desc: "Situé entre les annonces Professionnels et Particuliers. Très visible." },
+                    { id: 2, name: "Accueil — Carrousel #2 (après location)", cases: 5, occupees: 1, tarif: "40€/jour · 250€/semaine · 700€/mois", desc: "Après la section Location. Public mixte acheteurs/loueurs." },
+                    { id: 3, name: "Accueil — Carrousel #3 Premium (fin de page)", cases: 5, occupees: 2, tarif: "80€/jour · 500€/semaine · 1500€/mois", desc: "Section dorée premium en bas de page. Haute conversion." },
+                    { id: 4, name: "Page Produit — Carrousel bas de page", cases: 4, occupees: 4, tarif: "30€/jour · 180€/semaine · 500€/mois", desc: "Visible sous chaque fiche véhicule. Public qualifié acheteur." },
+                    { id: 5, name: "Page Recherche — Sidebar droite", cases: 3, occupees: 0, tarif: "40€/jour · 250€/semaine · 700€/mois", desc: "Sidebar à droite des résultats de recherche." },
+                    { id: 6, name: "Page Résultats — Entre les annonces", cases: 4, occupees: 0, tarif: "35€/jour · 200€/semaine · 600€/mois", desc: "Inséré entre les annonces dans les résultats. Natif et discret." },
+                  ].map((emp) => (
+                    <Link key={emp.id} to="/demande-publicite" className="card block p-4 hover:bg-slate-50 transition cursor-pointer">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-bold text-slate-800">#{emp.id} — {emp.name}</p>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${emp.occupees > 0 ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>{emp.occupees > 0 ? "Actif" : "Inactif"}</span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">{emp.desc}</p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <div className="flex gap-1">
+                          {Array.from({ length: emp.cases }).map((_, i) => (
+                            <div key={i} className={`h-3 w-8 rounded ${i < emp.occupees ? "bg-[#D4AF37]" : "bg-slate-200"}`} />
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-slate-400">{emp.occupees}/{emp.cases} cases · {emp.tarif}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
         {tab === "profil" && <ProfilForm />}
