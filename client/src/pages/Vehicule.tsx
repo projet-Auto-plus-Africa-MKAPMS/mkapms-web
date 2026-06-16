@@ -117,6 +117,8 @@ export default function Vehicule() {
   const [scrollHidden, setScrollHidden] = useState(false);
   const [showPriceHistory, setShowPriceHistory] = useState(false);
   const [showCote, setShowCote] = useState(false);
+  const [priceSlider, setPriceSlider] = useState(40);
+  const [showAlertPanel, setShowAlertPanel] = useState(false);
   const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     const onScroll = () => {
@@ -482,16 +484,26 @@ export default function Vehicule() {
               <p className="text-2xl font-extrabold text-[#D4AF37]">{formatPrice(Number(v.prix))}</p>
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">€ Offre équitable</span>
             </div>
-            <div className="mt-3 flex h-2 overflow-hidden rounded-full">
-              <div className="w-1/5 bg-emerald-600" />
-              <div className="w-1/4 bg-emerald-400" />
-              <div className="w-1/4 bg-slate-300" />
-              <div className="flex-1 bg-orange-300" />
+            <div className="mt-3 relative">
+              <div className="flex h-2 overflow-hidden rounded-full">
+                <div className="w-1/5 bg-emerald-600" />
+                <div className="w-1/4 bg-emerald-400" />
+                <div className="w-1/4 bg-slate-300" />
+                <div className="flex-1 bg-orange-300" />
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={priceSlider}
+                onChange={(e) => setPriceSlider(Number(e.target.value))}
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              />
+              <div className="absolute top-full mt-0.5 -translate-x-1/2 pointer-events-none" style={{ left: `${priceSlider}%` }}>
+                <ChevronDown size={14} className="text-noir" />
+              </div>
             </div>
-            <div className="relative mt-0.5">
-              <ChevronDown size={14} className="absolute text-noir" style={{ left: "40%" }} />
-            </div>
-            <p className="mt-4 text-sm leading-relaxed text-slate-600">Le prix de cette annonce est dans la moyenne des prix des véhicules similaires.</p>
+            <p className="mt-5 text-sm leading-relaxed text-slate-600">Le prix de cette annonce est dans la moyenne des prix des véhicules similaires.</p>
             <Link to="#" className="mt-1 text-sm font-semibold text-noir underline">En savoir plus</Link>
 
             {/* Historique prix + Cote véhicule — avec flèche à droite */}
@@ -545,57 +557,85 @@ export default function Vehicule() {
             {/* Créer une alerte prix — intégré dans le cadre */}
             <button
               className="mt-4 w-full rounded-xl bg-[#111] py-3.5 text-sm font-bold text-white transition hover:bg-[#333]"
-              onClick={() => requireLogin(() => { /* alerte prix */ })}
+              onClick={() => setShowAlertPanel(!showAlertPanel)}
             >
               <Bell size={16} className="mr-2 inline-block" /> Créer une alerte prix
             </button>
-          </div>
-
-          {/* ── LOCALISATION — grande carte ── */}
-          <div className="card overflow-hidden">
-            <div className="flex items-center gap-2 px-5 pt-4 pb-2">
-              <MapPin size={18} className="text-[#D4AF37]" />
-              <h2 className="text-lg font-bold text-noir">Localisation</h2>
-            </div>
-            <div className="relative h-48 w-full bg-slate-100 cursor-pointer" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
-              <iframe
-                title="Localisation véhicule"
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}&output=embed&z=13`}
-                className="h-full w-full pointer-events-none"
-                loading="lazy"
-              />
-            </div>
-            <div className="px-5 py-3">
-              <p className="text-base font-bold text-noir">{v.ville || "Belloy-en-France"}</p>
-              <p className="text-sm text-slate-500">95270</p>
-            </div>
-          </div>
-
-          {/* ── VENDEUR — MKA.P-MS Véhicule Société ── */}
-          <div className="card p-5">
-            <h2 className="text-lg font-bold text-noir">Vendeur</h2>
-            <div className="mt-3 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                <Store size={22} className="text-slate-500" />
+            {showAlertPanel && (
+              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
+                <p className="text-sm font-bold text-noir">M'alerter si le prix descend à :</p>
+                <p className="mt-2 text-center text-xl font-extrabold text-[#D4AF37]">
+                  {formatPrice(Math.round(Number(v.prix) * (0.7 + (priceSlider / 100) * 0.35)))}
+                </p>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={priceSlider}
+                  onChange={(e) => setPriceSlider(Number(e.target.value))}
+                  className="mt-3 w-full h-2 rounded-full appearance-none bg-slate-200 cursor-pointer accent-[#D4AF37]"
+                />
+                <div className="mt-1 flex justify-between text-xs text-slate-400">
+                  <span>{formatPrice(Math.round(Number(v.prix) * 0.7))}</span>
+                  <span>{formatPrice(Number(v.prix))}</span>
+                </div>
+                <button
+                  className="mt-3 w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white transition hover:bg-[#b8962e]"
+                  onClick={() => requireLogin(() => { setShowAlertPanel(false); })}
+                >
+                  Activer l'alerte
+                </button>
               </div>
-              <div>
-                <p className="text-base font-bold text-noir">MKA.P-MS — Véhicule Société</p>
-                <p className="text-xs text-slate-500">Société certifiée</p>
-                <div className="mt-0.5 flex items-center gap-1">
-                  <Star size={14} className="fill-[#D4AF37] text-[#D4AF37]" />
-                  <span className="text-sm font-bold text-noir">4,8</span>
-                  <span className="text-xs text-slate-400">(128 avis)</span>
+            )}
+          </div>
+
+          {/* ── VENDEUR + LOCALISATION — même cadre ── */}
+          <div className="card overflow-hidden">
+            {/* Vendeur en haut */}
+            <div className="p-5">
+              <h2 className="text-lg font-bold text-noir">Vendeur</h2>
+              <div className="mt-3 flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                  <Store size={22} className="text-slate-500" />
+                </div>
+                <div>
+                  <p className="text-base font-bold text-noir">MKA.P-MS — Véhicule Société</p>
+                  <p className="text-xs text-slate-500">Société certifiée</p>
+                  <div className="mt-0.5 flex items-center gap-1">
+                    <Star size={14} className="fill-[#D4AF37] text-[#D4AF37]" />
+                    <span className="text-sm font-bold text-noir">4,8</span>
+                    <span className="text-xs text-slate-400">(128 avis)</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-6">
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck size={16} className="text-emerald-600" />
+                  <span className="text-sm text-slate-600">Paiement sécurisé</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp size={16} className="text-emerald-600" />
+                  <span className="text-sm text-slate-600">Réponse en 1h</span>
                 </div>
               </div>
             </div>
-            <div className="mt-4 flex items-center gap-6">
-              <div className="flex items-center gap-1.5">
-                <ShieldCheck size={16} className="text-emerald-600" />
-                <span className="text-sm text-slate-600">Paiement sécurisé</span>
+            {/* Localisation en dessous — carte réduite */}
+            <div className="border-t border-slate-100">
+              <div className="flex items-center gap-2 px-5 pt-3 pb-2">
+                <MapPin size={16} className="text-[#D4AF37]" />
+                <h3 className="text-sm font-bold text-noir">Localisation</h3>
               </div>
-              <div className="flex items-center gap-1.5">
-                <TrendingUp size={16} className="text-emerald-600" />
-                <span className="text-sm text-slate-600">Réponse en 1h</span>
+              <div className="relative h-32 w-full bg-slate-100 cursor-pointer" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
+                <iframe
+                  title="Localisation véhicule"
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}&output=embed&z=13`}
+                  className="h-full w-full pointer-events-none"
+                  loading="lazy"
+                />
+              </div>
+              <div className="px-5 py-2.5">
+                <p className="text-sm font-bold text-noir">{v.ville || "Belloy-en-France"}</p>
+                <p className="text-xs text-slate-500">95270</p>
               </div>
             </div>
           </div>
