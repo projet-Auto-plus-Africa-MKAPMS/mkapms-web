@@ -756,9 +756,10 @@ export default function Vehicule() {
      Design identique pour Pro Standard, Pro Premium, Pro Elite, Pro Vérifié
      NE s'applique PAS aux MKA.P-MS Officiel ni aux Particuliers
      ══════════════════════════════════════════════════════════════════ */
-  if ((tier === "professionnel" || (tier === "premium" && !isMkapmsStock)) && !isLocation) {
+  if ((tier === "professionnel" || tier === "particulier" || (tier === "premium" && !isMkapmsStock)) && !isLocation) {
     const allPhotos = photos.length > 0 ? photos : (v.photoPrincipale ? [v.photoPrincipale] : []);
-    const proBadge = v.tier === "elite" ? "PRO ELITE" : v.boosted ? "PRO PREMIUM" : "PRO";
+    const isParticulier = tier === "particulier";
+    const proBadge = isParticulier ? "PARTICULIER" : v.tier === "elite" ? "PRO ELITE" : v.boosted ? "PRO PREMIUM" : "PRO";
     const proPhotoCategories = [
       { key: "exterieur", label: "Extérieur" },
       { key: "interieur", label: "Intérieur" },
@@ -920,7 +921,7 @@ export default function Vehicule() {
               })()}
             </div>
             <p className="text-center mt-1 text-xs text-slate-500">ou {Math.round(Number(v.prix) / 60)} €/mois</p>
-            <div className="mt-2 text-center"><span className="inline-flex items-center gap-1 rounded-full border border-green-600 bg-green-50 px-3 py-0.5 text-[10px] font-bold text-green-700"><ShieldCheck size={10} /> Pro vérifié</span></div>
+            <div className="mt-2 text-center"><span className="inline-flex items-center gap-1 rounded-full border border-green-600 bg-green-50 px-3 py-0.5 text-[10px] font-bold text-green-700"><ShieldCheck size={10} /> {isParticulier ? "Particulier vérifié" : "Pro vérifié"}</span></div>
 
             {/* VENDEUR PRO — carte maps premium petite + icône */}
             <div className="mt-3 rounded-lg overflow-hidden border border-slate-200 cursor-pointer" onClick={() => window.open(`https://www.google.com/maps/search/${encodeURIComponent((v.vendeur?.nom || 'MKA Motors') + ' ' + (v.ville || 'Paris'))}`, '_blank')}>
@@ -1105,8 +1106,8 @@ export default function Vehicule() {
 
           {/* VENDEUR PRO COMPLET — plaque avec carte maps */}
           <div className="mt-6 border-t-2 border-[#111]/40 pt-4" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
-            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Store size={18} className="text-red-400" /> Professionnel de l'automobile</h2>
-            <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-bold text-green-700"><ShieldCheck size={10} /> Pro vérifié</span>
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Store size={18} className="text-red-400" /> {isParticulier ? "Particulier" : "Professionnel de l'automobile"}</h2>
+            <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-bold text-green-700"><ShieldCheck size={10} /> {isParticulier ? "Particulier vérifié" : "Pro vérifié"}</span>
 
             {/* Plaque vendeur — même contour premium que carte prix */}
             <div className="mt-3 rounded-2xl border-2 border-[#111] p-4" style={{boxShadow: '0 0 18px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.12)'}}>
@@ -1116,7 +1117,7 @@ export default function Vehicule() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-bold text-[#111]">{v.vendeur?.nom || "MKA Motors"}</p>
-                  <p className="text-xs text-slate-500">Concessionnaire</p>
+                  <p className="text-xs text-slate-500">{isParticulier ? "Vendeur particulier" : "Concessionnaire"}</p>
                   <div className="flex items-center gap-1 mt-0.5">
                     <Star size={10} className="text-[#D4AF37] fill-[#D4AF37]" />
                     <Star size={10} className="text-[#D4AF37] fill-[#D4AF37]" />
@@ -1150,7 +1151,7 @@ export default function Vehicule() {
             </div>
             {/* Annonces du pro — carrousel */}
             <div className="mt-4">
-              <h3 className="text-sm font-bold text-[#111] mb-2">Les annonces de ce pro :</h3>
+              <h3 className="text-sm font-bold text-[#111] mb-2">{isParticulier ? "Autres annonces du vendeur :" : "Les annonces de ce pro :"}</h3>
               <div className="flex gap-3 overflow-x-auto pb-2">
                 {[8001, 8002, 8003, 8004, 8005].filter((id) => id !== v.id).slice(0, 4).map((id) => {
                   const sim = DEMO_VEHICLES[id];
@@ -1167,7 +1168,7 @@ export default function Vehicule() {
                 })}
               </div>
             </div>
-            <button className="mt-3 w-full rounded-xl border border-[#111] py-3 text-sm font-bold text-[#111]" onClick={() => navigate("/pro")}>Voir toutes les annonces du pro</button>
+            <button className="mt-3 w-full rounded-xl border border-[#111] py-3 text-sm font-bold text-[#111]" onClick={() => navigate("/pro")}>{isParticulier ? "Voir les annonces du vendeur" : "Voir toutes les annonces du pro"}</button>
           </div>
 
           {/* PUBLICITÉ FIN DE PAGE — auto-défilante (plus grande) */}
