@@ -158,7 +158,7 @@ export default function Home() {
         </div>
 
         {/* ── CAROUSEL + 4 ACTIONS (même conteneur = zéro espace) ── */}
-        <div className="px-4 pt-0 pb-4 md:px-6 md:pt-2 md:pb-6">
+        <div className="px-4 pt-0 pb-1 md:px-6 md:pt-2 md:pb-3">
           <div className="mx-auto max-w-3xl overflow-hidden rounded-xl bg-[#E5E2DB] md:rounded-2xl">
             <div
               className="flex transition-transform duration-500 ease-in-out"
@@ -182,7 +182,7 @@ export default function Home() {
             </div>
           </div>
           {/* ── indicateur premium : barre dorée glissante ── */}
-          <div className="mx-auto mt-1.5 flex max-w-[120px] items-center md:mt-2 md:max-w-[160px]">
+          <div className="mx-auto mt-1 flex max-w-[120px] items-center md:mt-1.5 md:max-w-[160px]">
             <div className="relative h-[3px] w-full rounded-full bg-[#E5E2DB]">
               <div
                 className="absolute top-0 left-0 h-full rounded-full bg-[#D4AF37] transition-all duration-500 ease-in-out"
@@ -190,7 +190,7 @@ export default function Home() {
               />
             </div>
           </div>
-          <div className="mx-auto mt-1.5 grid max-w-3xl grid-cols-4 gap-1.5 md:mt-3 md:max-w-2xl md:gap-3">
+          <div className="mx-auto mt-1 grid max-w-3xl grid-cols-4 gap-1.5 md:mt-2 md:max-w-2xl md:gap-3">
             {[
               { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
               { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
