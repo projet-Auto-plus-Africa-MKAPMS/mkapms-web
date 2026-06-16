@@ -126,6 +126,9 @@ export default function Vehicule() {
   const [proFinanceTab, setProFinanceTab] = useState<"paiement" | "loa">("paiement");
   const [proCaracOpen, setProCaracOpen] = useState(true);
   const [proEquipOpen, setProEquipOpen] = useState(false);
+  const [proHistoriqueOpen, setProHistoriqueOpen] = useState(false);
+  const [proGarantieOpen, setProGarantieOpen] = useState(false);
+  const [proDescOpen, setProDescOpen] = useState(false);
   const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     const onScroll = () => {
@@ -1026,8 +1029,8 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* GARANTIES — cliquable */}
-          <div className="mt-6 flex items-center justify-between border-t-2 border-[#D4AF37]/30 pt-4 cursor-pointer" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}} onClick={() => navigate("/aide")}>
+          {/* GARANTIES — cliquable → ouvre modal */}
+          <div className="mt-6 flex items-center justify-between border-t-2 border-[#D4AF37]/30 pt-4 cursor-pointer" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}} onClick={() => setProGarantieOpen(true)}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><ShieldCheck size={18} className="text-red-400" /> Garanties</h2>
             <ChevronRight size={20} className="text-slate-400" />
           </div>
@@ -1049,7 +1052,7 @@ export default function Vehicule() {
                 </div>
               ))}
             </div>
-            <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => navigate("/aide")}>Voir l'historique complet</button>
+            <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => setProHistoriqueOpen(true)}>Voir l'historique complet</button>
           </div>
 
           {/* PRIX */}
@@ -1075,24 +1078,54 @@ export default function Vehicule() {
             <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-[#111]" onClick={() => requireLogin(() => setShowAlertPanel(true))}>Créer une alerte prix</button>
           </div>
 
-          {/* VENDEUR PRO COMPLET */}
-          <div className="mt-6 border-t border-slate-100 pt-4">
+          {/* DESCRIPTION — cliquable, s'ouvre en grand */}
+          <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4 cursor-pointer" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}} onClick={() => setProDescOpen(true)}>
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><FileText size={18} className="text-red-400" /> Description</h2>
+            <p className="mt-2 text-sm text-slate-600 line-clamp-3">{v.description || "Véhicule en excellent état, entretenu régulièrement en concession. Non fumeur. Disponible immédiatement pour essai et vente."}</p>
+            <p className="mt-2 text-xs font-semibold text-[#D4AF37]">Lire la suite →</p>
+          </div>
+
+          {/* VENDEUR PRO COMPLET — plaque avec carte maps */}
+          <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Store size={18} className="text-red-400" /> Professionnel de l'automobile</h2>
             <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-bold text-green-700"><ShieldCheck size={10} /> Pro vérifié</span>
-            <div className="mt-3 flex items-center gap-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold text-[#111]">
-                {(v.vendeur?.nom || v.marque || "P").charAt(0).toUpperCase()}
+
+            {/* Plaque vendeur */}
+            <div className="mt-3 rounded-xl border border-slate-200 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold text-[#111]">
+                  {(v.vendeur?.nom || v.marque || "P").charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-[#111]">{v.vendeur?.nom || "MKA Motors"}</p>
+                  <p className="text-xs text-slate-500">Concessionnaire</p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <Star size={10} className="text-[#D4AF37] fill-[#D4AF37]" />
+                    <Star size={10} className="text-[#D4AF37] fill-[#D4AF37]" />
+                    <Star size={10} className="text-[#D4AF37] fill-[#D4AF37]" />
+                    <Star size={10} className="text-[#D4AF37] fill-[#D4AF37]" />
+                    <Star size={10} className="text-slate-300" />
+                    <span className="text-[10px] text-slate-500 ml-1">125 avis</span>
+                  </div>
+                </div>
+                <ChevronRight size={20} className="text-slate-400 cursor-pointer" onClick={() => navigate("/pro")} />
               </div>
-              <div>
-                <p className="text-sm font-bold text-[#111]">{v.vendeur?.nom || "MKA Motors"}</p>
-                <p className="text-xs text-slate-500">Concessionnaire</p>
+
+              <p className="mt-2 text-[10px] text-slate-500">N° SIRET : 889 512 109 00014</p>
+              <p className="mt-1 text-[10px] text-slate-500 flex items-center gap-1"><Clock size={10} /> Dernière activité il y a 1 heure</p>
+
+              {/* Mini carte maps */}
+              <div className="mt-3 h-28 w-full rounded-xl bg-slate-200 overflow-hidden relative">
+                <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=400&h=150&fit=crop" alt="Carte" className="h-full w-full object-cover opacity-80" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="rounded-full bg-red-500 p-1.5"><MapPin size={14} className="text-white" /></div>
+                </div>
               </div>
+
+              <button className="mt-3 w-full rounded-xl border border-[#D4AF37] py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#FFFDF5] transition" onClick={() => requireLogin(() => messageAction())}>Demander un essai</button>
             </div>
-            <div className="mt-3 rounded-xl bg-slate-50 p-3 flex items-center gap-2">
-              <MapPin size={14} className="text-red-500" />
-              <span className="text-sm font-bold text-[#111]">{v.ville || "Lyon"}</span>
-            </div>
-            <div className="mt-2 flex items-center justify-between border-b border-slate-100 py-2 cursor-pointer" onClick={() => navigate("/pro")}>
+
+            <div className="mt-3 flex items-center justify-between border-b border-slate-100 py-2 cursor-pointer" onClick={() => navigate("/pro")}>
               <span className="text-sm text-[#111]">Horaires et à propos</span>
               <span className="text-xs text-red-500 font-semibold">Fermé</span>
               <ChevronRight size={16} className="text-slate-400" />
@@ -1141,16 +1174,43 @@ export default function Vehicule() {
             </div>
           </div>
 
+          {/* CES ANNONCES PEUVENT VOUS INTÉRESSER */}
+          <div className="mt-6 border-t-2 border-[#D4AF37]/30 pt-4" style={{boxShadow: '0 -1px 3px rgba(212,175,55,0.15)'}}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-extrabold text-[#111]">Ces annonces peuvent vous intéresser :</h2>
+              <ChevronRight size={20} className="text-slate-400" />
+            </div>
+            <div className="mt-3 flex gap-3 overflow-x-auto pb-2">
+              {[8001, 8002, 8003, 8004].filter((id) => id !== v.id).map((id) => {
+                const sim = DEMO_VEHICLES[id];
+                if (!sim) return null;
+                return (
+                  <Link key={id} to={`/vehicule/${id}`} className="w-40 shrink-0 overflow-hidden rounded-xl border border-slate-200 hover:border-[#D4AF37] transition">
+                    <div className="relative">
+                      <img src={sim.photoPrincipale} alt={sim.titre} className="h-28 w-full object-cover" />
+                      <button className="absolute top-2 right-2 text-slate-400"><Heart size={16} /></button>
+                    </div>
+                    <div className="p-2">
+                      <p className="text-xs font-bold text-[#111] truncate">{sim.titre}</p>
+                      <p className="text-xs font-extrabold text-[#111] mt-0.5">{formatPrice(Number(sim.prix))}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{sim.ville || "Paris"}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
           {/* FOOTER */}
           <div className="mt-6 border-t border-slate-100 pt-4 text-center space-y-2">
-            <p className="text-xs font-semibold text-[#111] underline">Règles de prudence</p>
-            <p className="text-xs font-semibold text-[#111] underline">Signaler cette annonce</p>
+            <p className="text-xs font-semibold text-[#111] underline cursor-pointer">Signaler cette annonce</p>
+            <p className="text-xs font-semibold text-[#111] underline cursor-pointer">Vos droits et obligations</p>
             <p className="text-[10px] text-slate-400">Réf. pro : {v.vendeur?.id || "97103"} | Réf. annonce : {v.reference || v.id}</p>
           </div>
         </div>
 
-        {/* ===== BARRE FIXE EN BAS : Message + Appeler — juste au-dessus nav bar */}
-        <div className="fixed bottom-[52px] left-0 right-0 z-50 border-t border-slate-200 bg-white px-4 py-1.5 flex gap-3 md:bottom-0">
+        {/* ===== BARRE FIXE EN BAS : Message + Appeler — collé au-dessus nav bar */}
+        <div className="fixed bottom-[48px] left-0 right-0 z-50 border-t border-slate-200 bg-white px-4 py-1 flex gap-3 md:bottom-0">
           <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white" onClick={messageAction}>
             <Mail size={16} /> Message
           </button>
@@ -1166,6 +1226,76 @@ export default function Vehicule() {
         </div>
 
         {/* WhatsApp est maintenant collé sur la photo principale (voir ci-dessus) */}
+
+        {/* === MODAL HISTORIQUE === */}
+        {proHistoriqueOpen && (
+          <div className="fixed inset-0 z-[200] bg-white flex flex-col overflow-y-auto">
+            <div className="flex items-center justify-between border-b px-4 py-4 pt-8 sticky top-0 bg-white z-10">
+              <h2 className="text-lg font-extrabold text-[#111]">Historique</h2>
+              <button onClick={() => setProHistoriqueOpen(false)} className="text-xl text-slate-500">✕</button>
+            </div>
+            <div className="p-5 space-y-4">
+              {[
+                { label: "Nombre de propriétaires", val: "2" },
+                { label: "Existence vérifiée au fichier national", val: "Oui" },
+                { label: "Sinistres déclarés", val: "Aucun" },
+                { label: "Kilométrage certifié", val: v.kilometrage ? `${v.kilometrage.toLocaleString("fr-FR")} km` : "Non renseigné" },
+                { label: "Contrôle technique", val: "Valide" },
+                { label: "Vol signalé", val: "Non" },
+                { label: "Gage / Opposition", val: "Aucun" },
+                { label: "Entretiens réalisés", val: "À jour" },
+                { label: "Importation", val: "Non" },
+                { label: "Date de 1ère mise en circulation", val: v.annee ? `${v.annee}` : "Non renseigné" },
+              ].map((h) => (
+                <div key={h.label} className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <span className="text-sm text-[#111]">{h.label}</span>
+                  <span className="text-sm font-bold text-green-600">{h.val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* === MODAL GARANTIE === */}
+        {proGarantieOpen && (
+          <div className="fixed inset-0 z-[200] bg-white flex flex-col overflow-y-auto">
+            <div className="flex items-center justify-between border-b px-4 py-4 pt-8 sticky top-0 bg-white z-10">
+              <h2 className="text-lg font-extrabold text-[#111]">Garanties</h2>
+              <button onClick={() => setProGarantieOpen(false)} className="text-xl text-slate-500">✕</button>
+            </div>
+            <div className="p-5 space-y-4">
+              {[
+                { type: "Moteur", duree: "48 mois", statut: "Active" },
+                { type: "Boîte de vitesse", duree: "24 mois", statut: "Active" },
+                { type: "Garantie conducteur", duree: "12 mois", statut: "Active" },
+                { type: "Suspension", duree: "12 mois", statut: "Active" },
+                { type: "Électronique", duree: "24 mois", statut: "Active" },
+              ].map((g) => (
+                <div key={g.type} className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div>
+                    <p className="text-sm font-bold text-[#111]">{g.type}</p>
+                    <p className="text-xs text-slate-500">{g.duree}</p>
+                  </div>
+                  <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-bold text-green-700">{g.statut}</span>
+                </div>
+              ))}
+              <p className="text-xs text-slate-400 mt-4">Les garanties sont définies par le vendeur professionnel lors du dépôt de l'annonce.</p>
+            </div>
+          </div>
+        )}
+
+        {/* === MODAL DESCRIPTION === */}
+        {proDescOpen && (
+          <div className="fixed inset-0 z-[200] bg-white flex flex-col overflow-y-auto">
+            <div className="flex items-center justify-between border-b px-4 py-4 pt-8 sticky top-0 bg-white z-10">
+              <h2 className="text-lg font-extrabold text-[#111]">Description</h2>
+              <button onClick={() => setProDescOpen(false)} className="text-xl text-slate-500">✕</button>
+            </div>
+            <div className="p-5">
+              <p className="text-sm text-[#111] leading-relaxed whitespace-pre-wrap">{v.description || `Véhicule en excellent état, entretenu régulièrement en concession.\n\n- CT valide\n- Aucun défaut électronique\n- Vidange faite\n\n${v.titre}\nMoteur ${v.puissanceCv || "136"}ch, Boîte ${v.boite || "Automatique"}\n${v.kilometrage ? v.kilometrage.toLocaleString("fr-FR") + " km" : ""}\n\nINFORMATIONS :\n\nDisponible immédiatement pour essai.\nGarantie constructeur ou vendeur incluse.\nFinancement possible sur place.`}</p>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
