@@ -165,21 +165,19 @@ export default function Home() {
               style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
             >
               {[
-                { pos: "0% 0%", alt: "Achetez en toute confiance" },
-                { pos: "25% 0%", alt: "Vendez simplement" },
-                { pos: "50% 0%", alt: "Location VTC & Taxi" },
-                { pos: "75% 0%", alt: "Location Particuliers" },
-                { pos: "100% 0%", alt: "Ventes Professionnels" },
+                { src: "/pubs/hero1-achetez.jpg", alt: "Achetez en toute confiance" },
+                { src: "/pubs/hero2-vendez.jpg", alt: "Vendez simplement" },
+                { src: "/pubs/hero3-vtc.jpg", alt: "Location VTC & Taxi" },
+                { src: "/pubs/hero4-location.jpg", alt: "Location Particuliers" },
+                { src: "/pubs/hero5-pro.jpg", alt: "Ventes Professionnels" },
               ].map((slide, i) => (
-                <div key={i} className="relative w-full shrink-0 aspect-[9/16] max-h-[55vh]">
-                  <img
-                    src="https://app.devin.ai/attachments/6d108eea-f2c9-4d78-b259-b79c3aa23c6e/28B27178-C133-45F2-AFA0-572E5C68A411.png"
-                    alt={slide.alt}
-                    loading={i === 0 ? "eager" : "lazy"}
-                    className="absolute inset-0 h-full w-[500%] object-cover"
-                    style={{ objectPosition: slide.pos }}
-                  />
-                </div>
+                <img
+                  key={i}
+                  src={slide.src}
+                  alt={slide.alt}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  className="w-full shrink-0 object-cover"
+                />
               ))}
             </div>
           </div>
