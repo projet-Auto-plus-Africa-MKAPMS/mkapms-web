@@ -212,20 +212,40 @@ export default function DemandePublicite() {
       {/* ÉTAPE 3 — Contenu */}
       {step === 3 && (
         <div className="mt-6 space-y-4">
+          {/* Choix type de contenu */}
           <div>
-            <label className="text-sm font-bold text-slate-700">Lien de votre site / page *</label>
-            <input value={lien} onChange={(e) => setLien(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="https://www.votresite.fr" />
-          </div>
-          <div>
-            <label className="text-sm font-bold text-slate-700">Image / Visuel de la publicité</label>
-            <div className="mt-1 flex h-32 w-full cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 hover:border-[#D4AF37]">
-              <div className="flex flex-col items-center gap-1 text-slate-400">
-                <Upload size={24} />
-                <span className="text-xs">Cliquez pour uploader votre visuel</span>
-                <span className="text-[10px]">JPG, PNG — max 5 Mo</span>
-              </div>
+            <label className="text-sm font-bold text-slate-700">Type de contenu publicitaire *</label>
+            <div className="mt-2 flex gap-2">
+              <button type="button" onClick={() => setLien("")} className={`flex-1 rounded-xl border-2 p-3 text-center text-sm font-bold transition ${!lien ? "border-[#D4AF37] bg-[#FFFDF5] text-[#B8960C]" : "border-slate-200 text-slate-500"}`}>
+                📷 Image / Photo
+              </button>
+              <button type="button" onClick={() => setLien("https://")} className={`flex-1 rounded-xl border-2 p-3 text-center text-sm font-bold transition ${lien ? "border-[#D4AF37] bg-[#FFFDF5] text-[#B8960C]" : "border-slate-200 text-slate-500"}`}>
+                🔗 Lien du site
+              </button>
             </div>
           </div>
+
+          {/* Si lien */}
+          {lien && (
+            <div>
+              <label className="text-sm font-bold text-slate-700">Lien de votre site / page *</label>
+              <input value={lien} onChange={(e) => setLien(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="https://www.votresite.fr" />
+            </div>
+          )}
+
+          {/* Si photo */}
+          {!lien && (
+            <div>
+              <label className="text-sm font-bold text-slate-700">Image / Visuel de la publicité *</label>
+              <div className="mt-1 flex h-40 w-full cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-[#D4AF37]/50 bg-[#FFFDF5] hover:border-[#D4AF37]">
+                <div className="flex flex-col items-center gap-2 text-[#B8960C]">
+                  <Upload size={28} />
+                  <span className="text-sm font-bold">Cliquez pour uploader votre visuel</span>
+                  <span className="text-[10px] text-slate-400">JPG, PNG — max 5 Mo · Format recommandé : 600×400px</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Récapitulatif */}
           <div className="rounded-xl border border-[#D4AF37]/30 bg-[#FFFDF5] p-4">
@@ -243,7 +263,7 @@ export default function DemandePublicite() {
 
           <div className="flex gap-2">
             <button onClick={() => setStep(2)} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-bold text-slate-600">← Retour</button>
-            <button onClick={handleSubmit} disabled={!lien} className="flex-1 rounded-xl bg-[#B8960C] py-3 text-sm font-bold text-white hover:bg-[#9a7d0a] disabled:opacity-40">Envoyer la demande</button>
+            <button onClick={handleSubmit} className="flex-1 rounded-xl bg-[#B8960C] py-3 text-sm font-bold text-white hover:bg-[#9a7d0a]">Envoyer la demande</button>
           </div>
         </div>
       )}
