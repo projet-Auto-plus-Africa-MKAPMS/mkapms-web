@@ -483,8 +483,8 @@ export default function Vehicule() {
               <p className="text-2xl font-extrabold text-[#B8960C]">{formatPrice(Number(v.prix))}</p>
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">€ Offre équitable</span>
             </div>
-            <div className="mt-3 relative">
-              <div className="flex h-2 overflow-hidden rounded-full">
+            <div className="mt-3 relative pt-2 pb-4">
+              <div className="flex h-2.5 overflow-hidden rounded-full">
                 <div className="w-1/5 bg-emerald-600" />
                 <div className="w-1/4 bg-emerald-400" />
                 <div className="w-1/4 bg-slate-300" />
@@ -496,10 +496,11 @@ export default function Vehicule() {
                 max={100}
                 value={priceSlider}
                 onChange={(e) => setPriceSlider(Number(e.target.value))}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                className="absolute inset-0 h-12 w-full cursor-pointer opacity-0 z-10"
+                style={{ top: "-12px" }}
               />
-              <div className="absolute top-full mt-0.5 -translate-x-1/2 pointer-events-none" style={{ left: `${priceSlider}%` }}>
-                <ChevronDown size={14} className="text-noir" />
+              <div className="absolute -translate-x-1/2 pointer-events-none" style={{ left: `${priceSlider}%`, top: "18px" }}>
+                <ChevronDown size={16} className="text-noir" />
               </div>
             </div>
             <p className="mt-5 text-sm leading-relaxed text-slate-600">Le prix de cette annonce est dans la moyenne des prix des véhicules similaires.</p>
@@ -561,25 +562,28 @@ export default function Vehicule() {
               <Bell size={16} className="mr-2 inline-block" /> Créer une alerte prix
             </button>
             {showAlertPanel && (
-              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
+              <div className="mt-3 rounded-xl border border-[#D4AF37]/30 bg-[#FFFDF5] p-5">
                 <p className="text-sm font-bold text-noir">M'alerter si le prix descend à :</p>
-                <p className="mt-2 text-center text-xl font-extrabold text-[#B8960C]">
+                <p className="mt-3 text-center text-2xl font-extrabold text-[#B8960C]">
                   {formatPrice(Math.round(Number(v.prix) * (0.7 + (priceSlider / 100) * 0.35)))}
                 </p>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={priceSlider}
-                  onChange={(e) => setPriceSlider(Number(e.target.value))}
-                  className="mt-3 w-full h-2 rounded-full appearance-none bg-slate-200 cursor-pointer accent-[#D4AF37]"
-                />
-                <div className="mt-1 flex justify-between text-xs text-slate-400">
+                <div className="mt-4 relative">
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={priceSlider}
+                    onChange={(e) => setPriceSlider(Number(e.target.value))}
+                    className="w-full h-3 rounded-full appearance-none bg-slate-200 cursor-pointer accent-[#B8960C]"
+                    style={{ WebkitAppearance: "none" }}
+                  />
+                </div>
+                <div className="mt-2 flex justify-between text-xs text-slate-500">
                   <span>{formatPrice(Math.round(Number(v.prix) * 0.7))}</span>
                   <span>{formatPrice(Number(v.prix))}</span>
                 </div>
                 <button
-                  className="mt-3 w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white transition hover:bg-[#b8962e]"
+                  className="mt-4 w-full rounded-xl bg-[#B8960C] py-3.5 text-sm font-bold text-white transition hover:bg-[#9a7d0a]"
                   onClick={() => requireLogin(() => { setShowAlertPanel(false); })}
                 >
                   Activer l'alerte
@@ -639,30 +643,33 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* ── PUBLICITÉS — carrousel auto 4 pubs ── */}
+          {/* ── PUBLICITÉS — carrousel auto, pubs externes ── */}
           <div className="overflow-hidden rounded-xl">
-            <div className="flex animate-[scroll_12s_linear_infinite] gap-3" style={{ width: "fit-content" }}>
+            <p className="mb-2 text-xs font-medium text-slate-400 uppercase tracking-wide">Publicités</p>
+            <div className="flex animate-[scroll_16s_linear_infinite] gap-4" style={{ width: "fit-content" }}>
               {[
-                { title: "Assurance auto", desc: "Dès 19€/mois", bg: "bg-blue-50", color: "text-blue-700" },
-                { title: "Crédit auto", desc: "Taux à 3,9%", bg: "bg-emerald-50", color: "text-emerald-700" },
-                { title: "Garantie MKA.P-MS", desc: "Jusqu'à 36 mois", bg: "bg-amber-50", color: "text-amber-700" },
-                { title: "Livraison", desc: "Partout en France", bg: "bg-purple-50", color: "text-purple-700" },
+                { title: "AutoPièces Express", desc: "Ouverture nouveau magasin à Sarcelles ! -20% cette semaine", bg: "bg-orange-50", color: "text-orange-700", link: "#pub-1" },
+                { title: "Garage Saint-Denis", desc: "Vidange + contrôle 59€ seulement. Prenez RDV →", bg: "bg-blue-50", color: "text-blue-700", link: "#pub-2" },
+                { title: "AssurAuto Pro", desc: "Votre assurance auto dès 19€/mois. Devis gratuit en 2min", bg: "bg-emerald-50", color: "text-emerald-700", link: "#pub-3" },
+                { title: "CleanCar 95", desc: "Nettoyage intérieur/extérieur complet 49€. Belloy-en-France", bg: "bg-purple-50", color: "text-purple-700", link: "#pub-4" },
               ].map((pub, i) => (
-                <div key={i} className={`shrink-0 w-40 rounded-xl ${pub.bg} p-4 cursor-pointer hover:shadow-md transition`}>
+                <a key={i} href={pub.link} className={`shrink-0 w-52 rounded-xl ${pub.bg} p-5 cursor-pointer hover:shadow-md transition block`}>
                   <p className={`text-sm font-bold ${pub.color}`}>{pub.title}</p>
-                  <p className="mt-1 text-xs text-slate-500">{pub.desc}</p>
-                </div>
+                  <p className="mt-1.5 text-xs leading-relaxed text-slate-600">{pub.desc}</p>
+                  <p className="mt-2 text-[10px] font-semibold text-slate-400">Sponsorisé →</p>
+                </a>
               ))}
               {[
-                { title: "Assurance auto", desc: "Dès 19€/mois", bg: "bg-blue-50", color: "text-blue-700" },
-                { title: "Crédit auto", desc: "Taux à 3,9%", bg: "bg-emerald-50", color: "text-emerald-700" },
-                { title: "Garantie MKA.P-MS", desc: "Jusqu'à 36 mois", bg: "bg-amber-50", color: "text-amber-700" },
-                { title: "Livraison", desc: "Partout en France", bg: "bg-purple-50", color: "text-purple-700" },
+                { title: "AutoPièces Express", desc: "Ouverture nouveau magasin à Sarcelles ! -20% cette semaine", bg: "bg-orange-50", color: "text-orange-700", link: "#pub-1" },
+                { title: "Garage Saint-Denis", desc: "Vidange + contrôle 59€ seulement. Prenez RDV →", bg: "bg-blue-50", color: "text-blue-700", link: "#pub-2" },
+                { title: "AssurAuto Pro", desc: "Votre assurance auto dès 19€/mois. Devis gratuit en 2min", bg: "bg-emerald-50", color: "text-emerald-700", link: "#pub-3" },
+                { title: "CleanCar 95", desc: "Nettoyage intérieur/extérieur complet 49€. Belloy-en-France", bg: "bg-purple-50", color: "text-purple-700", link: "#pub-4" },
               ].map((pub, i) => (
-                <div key={`dup-${i}`} className={`shrink-0 w-40 rounded-xl ${pub.bg} p-4 cursor-pointer hover:shadow-md transition`}>
+                <a key={`dup-${i}`} href={pub.link} className={`shrink-0 w-52 rounded-xl ${pub.bg} p-5 cursor-pointer hover:shadow-md transition block`}>
                   <p className={`text-sm font-bold ${pub.color}`}>{pub.title}</p>
-                  <p className="mt-1 text-xs text-slate-500">{pub.desc}</p>
-                </div>
+                  <p className="mt-1.5 text-xs leading-relaxed text-slate-600">{pub.desc}</p>
+                  <p className="mt-2 text-[10px] font-semibold text-slate-400">Sponsorisé →</p>
+                </a>
               ))}
             </div>
           </div>

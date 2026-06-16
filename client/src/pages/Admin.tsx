@@ -1179,6 +1179,57 @@ export default function Admin() {
             </form>
             {certify.isSuccess && <p className="mt-2 text-sm text-green-600">Certification mise à jour.</p>}
           </section>
+
+          {/* Gestion Publicités */}
+          <section className="mt-10">
+            <h2 className="text-lg font-bold text-slate-800">Gestion Publicités <span className="text-xs font-normal text-gold-dark">(Direction / PDG)</span></h2>
+            <p className="mt-1 text-sm text-slate-500">Emplacements publicitaires sur la plateforme. Les annonceurs souscrivent un abonnement pub pour afficher ici.</p>
+            <div className="mt-4 space-y-3">
+              <div className="card p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">Emplacement #1 — Page produit (bas de page)</p>
+                    <p className="text-xs text-slate-400">Carrousel 4 cartes · défilement automatique</p>
+                  </div>
+                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">Actif</span>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                  <div className="rounded-lg bg-slate-50 p-2"><span className="font-bold">Pub 1:</span> AutoPièces Express</div>
+                  <div className="rounded-lg bg-slate-50 p-2"><span className="font-bold">Pub 2:</span> Garage Saint-Denis</div>
+                  <div className="rounded-lg bg-slate-50 p-2"><span className="font-bold">Pub 3:</span> AssurAuto Pro</div>
+                  <div className="rounded-lg bg-slate-50 p-2"><span className="font-bold">Pub 4:</span> CleanCar 95</div>
+                </div>
+              </div>
+              <div className="card p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">Emplacement #2 — Page d'accueil (bannière)</p>
+                    <p className="text-xs text-slate-400">Bannière pleine largeur · rotation 8s</p>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">Inactif</span>
+                </div>
+              </div>
+              <div className="card p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">Emplacement #3 — Page recherche (sidebar)</p>
+                    <p className="text-xs text-slate-400">Carte verticale · fixe</p>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">Inactif</span>
+                </div>
+              </div>
+              <div className="card p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">Emplacement #4 — Page résultats (entre annonces)</p>
+                    <p className="text-xs text-slate-400">Carte inline · tous les 5 résultats</p>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">Inactif</span>
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-slate-400">Tarifs à configurer. Chaque emplacement = image/texte + lien du site de l'annonceur.</p>
+          </section>
         </>
       )}
     </div>
