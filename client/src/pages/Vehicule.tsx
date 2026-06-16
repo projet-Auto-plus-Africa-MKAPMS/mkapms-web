@@ -308,6 +308,11 @@ export default function Vehicule() {
             <p className="mt-1 text-sm text-slate-400">Réf. annonce : DEMO-{v.id}</p>
             <p className="mt-3 text-3xl font-extrabold text-[#D4AF37]">{formatPrice(Number(v.prix))}</p>
             <p className="text-sm text-slate-500">Prix TTC · Frais inclus</p>
+            {/* Petite carte localisation */}
+            <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 cursor-pointer hover:bg-slate-100 transition" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
+              <MapPin size={14} className="text-[#D4AF37]" />
+              <span className="text-xs font-medium text-slate-600">{v.ville || "Belloy-en-France"} · 95270</span>
+            </div>
           </div>
 
           {/* ── 4. Favoris + Partager ── */}
@@ -482,29 +487,6 @@ export default function Vehicule() {
             </div>
             <p className="mt-4 text-sm leading-relaxed text-slate-600">Le prix de cette annonce est dans la moyenne des prix des véhicules similaires.</p>
             <Link to="#" className="mt-1 text-sm font-semibold text-noir underline">En savoir plus</Link>
-
-            {/* Localisation — mini carte visuelle intégrée dans le cadre prix */}
-            <div
-              className="mt-4 cursor-pointer overflow-hidden rounded-xl border border-slate-200 transition hover:shadow-md"
-              onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}
-            >
-              <div className="relative h-32 w-full bg-slate-100">
-                <iframe
-                  title="Localisation véhicule"
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}&output=embed&z=13`}
-                  className="h-full w-full pointer-events-none"
-                  loading="lazy"
-                />
-              </div>
-              <div className="flex items-center gap-2 bg-white px-4 py-3">
-                <MapPin size={18} className="text-[#D4AF37]" />
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-noir">{v.ville || "Belloy-en-France"}</p>
-                  <p className="text-xs text-slate-500">95270 · Voir sur la carte</p>
-                </div>
-                <ChevronRight size={16} className="text-slate-400" />
-              </div>
-            </div>
 
             {/* Historique prix + Cote véhicule — avec flèche à droite */}
             <div className="mt-4 space-y-3">
