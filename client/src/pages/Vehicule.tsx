@@ -893,7 +893,7 @@ export default function Vehicule() {
 
           {/* WhatsApp collé à droite au milieu de la photo */}
           {v.contactTelephone && (
-            <a href={whatsapp} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="absolute right-3 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-green-500 text-white shadow-lg hover:bg-green-600 transition z-10">
+            <a href={whatsapp} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="absolute right-3 top-[60%] -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-green-500 text-white shadow-lg hover:bg-green-600 transition z-10">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
             </a>
           )}
@@ -933,6 +933,11 @@ export default function Vehicule() {
               </div>
             </div>
           </div>
+
+          {/* BOUTON RÉSERVATION */}
+          <button className="mt-4 w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white shadow-lg" onClick={() => requireLogin(() => navigate("/reservation"))}>
+            Réserver ce véhicule
+          </button>
 
           {/* POINTS FORTS — lignes séparatrices OR lumineux */}
           <div className="mt-5 border-t-2 border-b-2 border-[#D4AF37]/30 py-4" style={{boxShadow: '0 1px 3px rgba(212,175,55,0.2), 0 -1px 3px rgba(212,175,55,0.2)'}}>
@@ -1249,11 +1254,8 @@ export default function Vehicule() {
           </div>
         </div>
 
-        {/* ===== BARRE FIXE EN BAS : Message + Appeler — AU-DESSUS nav bar */}
-        <div className="fixed bottom-[82px] left-0 right-0 border-t border-slate-200 bg-white px-4 py-2 flex gap-3 md:bottom-0" style={{zIndex: 35}}>
-          <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white" onClick={messageAction}>
-            <Mail size={16} /> Message
-          </button>
+        {/* ===== BARRE FIXE EN BAS : Appeler + WhatsApp + Message — AU-DESSUS nav bar */}
+        <div className="fixed bottom-[82px] left-0 right-0 border-t border-slate-200 bg-white px-4 py-2 flex gap-2 md:bottom-0" style={{zIndex: 35}}>
           {v.contactTelephone ? (
             <a href={`tel:${v.contactTelephone}`} className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#e11d48] text-sm font-bold text-white">
               <Phone size={16} /> Appeler
@@ -1263,6 +1265,12 @@ export default function Vehicule() {
               <Phone size={16} /> Appeler
             </button>
           )}
+          <a href={`https://wa.me/${v.contactTelephone || "33600000000"}`} target="_blank" rel="noopener noreferrer" className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#25D366] text-white shrink-0">
+            <MessageSquare size={18} />
+          </a>
+          <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white" onClick={messageAction}>
+            <Mail size={16} /> Message
+          </button>
         </div>
 
         {/* WhatsApp est maintenant collé sur la photo principale (voir ci-dessus) */}
