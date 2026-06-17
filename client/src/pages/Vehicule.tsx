@@ -377,11 +377,11 @@ export default function Vehicule() {
                 <span className="rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-noir shadow">{photoIdx + 1}/{allPhotos.length}</span>
               )}
             </div>
-            {/* Boutons flottants Appel + WhatsApp — juste sous la flèche →, collés au bord */}
-            <div className={`absolute right-2 top-[55%] flex flex-col gap-2 transition-opacity duration-200 ${scrollHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-              <a href={`tel:${v.contactTelephone || ""}`} className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1B2A4A] text-white shadow-lg ring-1 ring-white/20 backdrop-blur-sm hover:bg-[#243656] transition"><Phone size={14} /></a>
-              <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-[#25d366]/90 text-white shadow-md backdrop-blur-sm hover:bg-[#25d366]">
-                <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.578-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.24 0-4.326-.68-6.06-1.844l-.434-.3-2.825.902.935-2.752-.33-.468A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+            {/* Boutons flottants Appel + WhatsApp — petits, glow or lumineux, comme Pro */}
+            <div className={`absolute right-2 top-[55%] flex flex-col gap-2 transition-all duration-500 ${scrollHidden ? "opacity-0 scale-50 pointer-events-none" : "opacity-100 scale-100"}`}>
+              <a href={`tel:${v.contactTelephone || ""}`} className="flex h-8 w-8 items-center justify-center rounded-full text-white transition" style={{backgroundColor: '#2d3436', zIndex: 20, boxShadow: '0 0 12px rgba(212,175,55,0.6), 0 0 4px rgba(45,52,54,0.9)'}}><Phone size={13} /></a>
+              <a href={whatsapp} target="_blank" rel="noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full transition" style={{backgroundColor: '#25D366', zIndex: 20, boxShadow: '0 0 16px rgba(212,175,55,0.8), 0 0 6px rgba(37,211,102,0.9), 0 0 30px rgba(212,175,55,0.3)'}}>
+                <svg width="14" height="14" viewBox="0 0 448 512" fill="white"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
               </a>
             </div>
           </div>
@@ -463,16 +463,16 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* ── 10. VÉHICULE CERTIFIÉ MKA.P-MS — fond premium clair, style plaque vitrée ── */}
-          <div className="overflow-hidden rounded-2xl border-2 border-[#111] bg-gradient-to-br from-white to-[#FFFDF5]" style={{boxShadow: '0 0 18px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.12)'}}>
-            <div className="p-5">
+          {/* ── 10. VÉHICULE CERTIFIÉ MKA.P-MS — compact, fond premium clair, style plaque vitrée ── */}
+          <div className="overflow-hidden rounded-xl border-2 border-[#111] bg-gradient-to-br from-white to-[#FFFDF5]" style={{boxShadow: '0 0 14px rgba(212,175,55,0.25), 0 2px 12px rgba(0,0,0,0.08)'}}>
+            <div className="px-4 pt-3 pb-1">
               <div className="flex items-center gap-2">
-                <ShieldCheck size={24} className="text-[#D4AF37]" />
-                <h2 className="text-xl font-extrabold text-[#111]">Véhicule certifié MKA.P-MS</h2>
+                <ShieldCheck size={18} className="text-[#D4AF37]" />
+                <h2 className="text-base font-extrabold text-[#111]">Véhicule certifié MKA.P-MS</h2>
               </div>
-              <p className="mt-1 text-sm text-slate-500">Chaque véhicule est contrôlé avant sa mise en vente.</p>
+              <p className="mt-0.5 text-[11px] text-slate-500">Chaque véhicule est contrôlé avant sa mise en vente.</p>
             </div>
-            <div className="grid grid-cols-4 gap-3 px-4 pb-6 md:grid-cols-8">
+            <div className="grid grid-cols-4 gap-2 px-3 pb-3 md:grid-cols-8">
               {[
                 { icon: Wrench, label: "Contrôle mécanique", sub: "120 points", to: "/services" },
                 { icon: History, label: "Historique", sub: "vérifié", to: "/historique" },
@@ -484,11 +484,11 @@ export default function Vehicule() {
                 { icon: Award, label: "Assistance", sub: "administrative", to: "/services" },
               ].map((item) => (
                 <Link key={item.label} to={item.to} className="flex flex-col items-center text-center transition hover:scale-105">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#D4AF37]/40 bg-[#D4AF37]/10">
-                    <item.icon size={22} strokeWidth={2.5} className="text-[#D4AF37]" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10">
+                    <item.icon size={18} strokeWidth={2.5} className="text-[#D4AF37]" />
                   </div>
-                  <p className="mt-1.5 text-xs font-bold leading-tight text-[#111]">{item.label}</p>
-                  <p className="text-[11px] font-medium text-[#D4AF37]">{item.sub}</p>
+                  <p className="mt-1 text-[10px] font-bold leading-tight text-[#111]">{item.label}</p>
+                  <p className="text-[9px] font-medium text-[#D4AF37]">{item.sub}</p>
                 </Link>
               ))}
             </div>
@@ -496,19 +496,19 @@ export default function Vehicule() {
 
           {/* ── 11-12. ÉTAT DU VÉHICULE + HISTORIQUE COMPLET ── */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* 11. État du véhicule — réduit, contour foncé plaque */}
-            <div className="overflow-hidden rounded-2xl border-2 border-[#111]" style={{boxShadow: '0 0 12px rgba(212,175,55,0.2), 0 2px 8px rgba(0,0,0,0.08)'}}>
-              <div className="bg-gradient-to-br from-emerald-50 to-white p-4 text-center">
-                <h3 className="flex items-center justify-center gap-2 text-base font-bold text-noir"><Battery size={18} strokeWidth={2.5} /> État du véhicule</h3>
-                <p className="mt-2 text-sm font-medium text-slate-500">Batterie hybride</p>
-                <p className="mt-1 text-4xl font-extrabold text-emerald-600">97 %</p>
-                <p className="text-sm font-bold text-emerald-600">Excellent état</p>
-                <div className="mx-auto mt-3 flex max-w-[200px] gap-0.5">
+            {/* 11. État du véhicule — compact, contour foncé plaque */}
+            <div className="overflow-hidden rounded-xl border-2 border-[#111]" style={{boxShadow: '0 0 10px rgba(212,175,55,0.15), 0 2px 6px rgba(0,0,0,0.06)'}}>
+              <div className="bg-gradient-to-br from-emerald-50 to-white p-3 text-center">
+                <h3 className="flex items-center justify-center gap-2 text-sm font-bold text-noir"><Battery size={16} strokeWidth={2.5} /> État du véhicule</h3>
+                <p className="mt-1 text-xs font-medium text-slate-500">Batterie hybride</p>
+                <p className="mt-0.5 text-3xl font-extrabold text-emerald-600">97 %</p>
+                <p className="text-xs font-bold text-emerald-600">Excellent état</p>
+                <div className="mx-auto mt-2 flex max-w-[160px] gap-0.5">
                   {Array.from({ length: 20 }).map((_, i) => (
-                    <div key={i} className={`h-3 flex-1 rounded-sm ${i < 19 ? "bg-emerald-500" : "bg-slate-200"}`} />
+                    <div key={i} className={`h-2 flex-1 rounded-sm ${i < 19 ? "bg-emerald-500" : "bg-slate-200"}`} />
                   ))}
                 </div>
-                <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600"><ShieldCheck size={14} strokeWidth={2.5} /> Garantie batterie disponible</p>
+                <p className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600"><ShieldCheck size={12} strokeWidth={2.5} /> Garantie batterie disponible</p>
               </div>
             </div>
 
@@ -588,18 +588,16 @@ export default function Vehicule() {
             <p className="mt-5 text-sm leading-relaxed text-slate-600">Le prix de cette annonce est dans la moyenne des prix des véhicules similaires.</p>
             <Link to="#" className="mt-1 text-sm font-semibold text-noir underline">En savoir plus</Link>
 
-            {/* Historique prix + Cote véhicule — avec flèche à droite */}
-            <div className="mt-4 space-y-3">
-              <button onClick={() => setShowPriceHistory(!showPriceHistory)} className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-left transition hover:bg-slate-100">
-                <TrendingUp size={18} className="text-[#D4AF37]" />
-                <span className="flex-1 text-sm font-bold text-noir">Historique prix</span>
+            {/* Historique prix + Cote véhicule — même style Pro */}
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer" onClick={() => setShowPriceHistory(!showPriceHistory)}>
+                <span className="text-sm text-[#111]">Historique</span>
                 <ChevronRight size={16} className="text-slate-400" />
-              </button>
-              <button onClick={() => setShowCote(!showCote)} className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-left transition hover:bg-slate-100">
-                <BarChart3 size={18} className="text-[#D4AF37]" />
-                <span className="flex-1 text-sm font-bold text-noir">Cote véhicule</span>
-                <ChevronRight size={16} className="text-slate-400" />
-              </button>
+              </div>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer" onClick={() => setShowCote(!showCote)}>
+                <span className="text-sm text-[#111]">Cote du véhicule</span>
+                <span className="text-xs font-semibold text-[#111] underline">Consulter</span>
+              </div>
             </div>
 
             {/* Historique prix panel */}
@@ -636,42 +634,8 @@ export default function Vehicule() {
               </div>
             )}
 
-            {/* Créer une alerte prix — intégré dans le cadre */}
-            <button
-              className="mt-4 w-full rounded-xl bg-[#111] py-3.5 text-sm font-bold text-white transition hover:bg-[#333]"
-              onClick={() => setShowAlertPanel(!showAlertPanel)}
-            >
-              <Bell size={16} className="mr-2 inline-block" /> Créer une alerte prix
-            </button>
-            {showAlertPanel && (
-              <div className="mt-3 rounded-xl border border-[#D4AF37]/30 bg-[#FFFDF5] p-5">
-                <p className="text-sm font-bold text-noir">M'alerter si le prix descend à :</p>
-                <p className="mt-3 text-center text-2xl font-extrabold text-[#B8960C]">
-                  {formatPrice(Math.round(Number(v.prix) * (0.7 + (priceSlider / 100) * 0.35)))}
-                </p>
-                <div className="mt-4 relative">
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={priceSlider}
-                    onChange={(e) => setPriceSlider(Number(e.target.value))}
-                    className="w-full h-3 rounded-full appearance-none bg-slate-200 cursor-pointer accent-[#B8960C]"
-                    style={{ WebkitAppearance: "none" }}
-                  />
-                </div>
-                <div className="mt-2 flex justify-between text-xs text-slate-500">
-                  <span>{formatPrice(Math.round(Number(v.prix) * 0.7))}</span>
-                  <span>{formatPrice(Number(v.prix))}</span>
-                </div>
-                <button
-                  className="mt-4 w-full rounded-xl bg-[#B8960C] py-3.5 text-sm font-bold text-white transition hover:bg-[#9a7d0a]"
-                  onClick={() => requireLogin(() => { setShowAlertPanel(false); })}
-                >
-                  Activer l'alerte
-                </button>
-              </div>
-            )}
+            {/* Créer une alerte prix — même style que Pro/Particulier */}
+            <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-[#111]" onClick={() => requireLogin(() => setShowAlertPanel(true))}>Créer une alerte prix</button>
           </div>
 
           {/* ── VENDEUR + LOCALISATION — même plaque premium que Pro ── */}
