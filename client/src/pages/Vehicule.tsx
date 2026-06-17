@@ -581,40 +581,14 @@ export default function Vehicule() {
             <Link to="/services" className="mt-4 block text-center text-sm font-bold text-[#D4AF37]">Voir tous nos services →</Link>
           </div>
 
-          {/* ── SECTION PRIX — contour foncé plaque ── */}
-          <div className="rounded-2xl border-2 border-[#111] p-5" style={{boxShadow: '0 0 12px rgba(212,175,55,0.2), 0 2px 8px rgba(0,0,0,0.08)'}}>
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#D4AF37] text-[#D4AF37]">€</div>
-              <h2 className="text-lg font-bold text-noir">Prix</h2>
+          {/* ── SECTION PRIX — même système que Pro/Particulier ── */}
+          <div className="border-t border-slate-100 pt-4">
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><TrendingUp size={18} className="text-red-400" /> Prix</h2>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-2xl font-extrabold text-[#111]">{formatPrice(Number(v.prix))}</span>
+              <span className="rounded-full border border-slate-300 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600">Offre équitable</span>
             </div>
-            <div className="mt-3 flex items-center gap-3">
-              <p className="text-2xl font-extrabold text-[#B8960C]">{formatPrice(Number(v.prix))}</p>
-              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">€ Offre équitable</span>
-            </div>
-            <div className="mt-3 relative pt-2 pb-4">
-              <div className="flex h-2.5 overflow-hidden rounded-full">
-                <div className="w-1/5 bg-emerald-600" />
-                <div className="w-1/4 bg-emerald-400" />
-                <div className="w-1/4 bg-slate-300" />
-                <div className="flex-1 bg-orange-300" />
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={priceSlider}
-                onChange={(e) => setPriceSlider(Number(e.target.value))}
-                className="absolute inset-0 h-12 w-full cursor-pointer opacity-0 z-10"
-                style={{ top: "-12px" }}
-              />
-              <div className="absolute -translate-x-1/2 pointer-events-none" style={{ left: `${priceSlider}%`, top: "18px" }}>
-                <ChevronDown size={16} className="text-noir" />
-              </div>
-            </div>
-            <p className="mt-5 text-sm leading-relaxed text-slate-600">Le prix de cette annonce est dans la moyenne des prix des véhicules similaires.</p>
-            <Link to="#" className="mt-1 text-sm font-semibold text-noir underline">En savoir plus</Link>
-
-            {/* Historique prix + Cote véhicule — même style Pro */}
+            <p className="mt-1 text-xs text-slate-500">Le prix est dans la moyenne des véhicules similaires.</p>
             <div className="mt-3 space-y-2">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer" onClick={() => setShowPriceHistory(!showPriceHistory)}>
                 <span className="text-sm text-[#111]">Historique</span>
@@ -625,42 +599,6 @@ export default function Vehicule() {
                 <span className="text-xs font-semibold text-[#111] underline">Consulter</span>
               </div>
             </div>
-
-            {/* Historique prix panel */}
-            {showPriceHistory && (
-              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
-                <h4 className="text-sm font-bold text-noir">Historique des prix</h4>
-                <div className="mt-2 flex items-center justify-between">
-                  <div className="text-center">
-                    <p className="text-xs text-slate-400">Mise en ligne</p>
-                    <p className="text-sm font-bold text-noir">{formatPrice(Number(v.prix))}</p>
-                  </div>
-                  <div className="flex-1 mx-3 h-px bg-slate-200" />
-                  <div className="text-center">
-                    <p className="text-xs text-slate-400">Aujourd'hui</p>
-                    <p className="text-sm font-bold text-[#D4AF37]">{formatPrice(Number(v.prix))}</p>
-                  </div>
-                </div>
-                <p className="mt-2 text-xs text-slate-500">Pas de variation de prix depuis la mise en ligne.</p>
-              </div>
-            )}
-
-            {/* Cote véhicule panel */}
-            {showCote && (
-              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
-                <h4 className="text-sm font-bold text-noir">Cote du véhicule</h4>
-                <div className="mt-2 flex items-center gap-3">
-                  <div className="flex-1">
-                    <p className="text-xs text-slate-400">Estimation cote</p>
-                    <p className="text-lg font-bold text-[#B8960C]">{formatPrice(Math.round(Number(v.prix) * 0.95))} – {formatPrice(Math.round(Number(v.prix) * 1.05))}</p>
-                  </div>
-                </div>
-                <p className="mt-2 text-xs text-slate-500">Basé sur le marché actuel pour ce modèle, cette année et ce kilométrage.</p>
-                <Link to="/historique" className="mt-2 block text-xs font-bold text-[#D4AF37]">Faire racheter mon véhicule →</Link>
-              </div>
-            )}
-
-            {/* Créer une alerte prix — même style que Pro/Particulier */}
             <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-[#111]" onClick={() => requireLogin(() => setShowAlertPanel(true))}>Créer une alerte prix</button>
           </div>
 
