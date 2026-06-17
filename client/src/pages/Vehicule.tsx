@@ -289,22 +289,25 @@ export default function Vehicule() {
       { key: "video_5", label: "Vidéo #5" },
     ];
 
-    /* === GALERIE PHOTO MKA.P-MS (page séparée — même système Pro) === */
+    /* === GALERIE PHOTO MKA.P-MS (page séparée — EXACTEMENT même système Pro/Particulier) === */
     if (proGalleryOpen) {
       return (
         <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+          {/* Header galerie — bien descendu pour éviter la zone notch */}
           <div className="flex items-center justify-between border-b px-4 py-4 pt-14">
             <button onClick={() => setProGalleryOpen(false)} className="text-[#111] p-2"><ChevronLeft size={28} /></button>
             <span className="text-sm font-bold text-[#111]">{photoIdx + 1}/{allPhotos.length}</span>
             <div className="w-10" />
           </div>
+          {/* Catégories — bien descendues */}
           <div className="flex gap-2 overflow-x-auto border-b px-4 py-4">
             {mkaPhotoCategories.map((cat) => (
-              <button key={cat.key} onClick={() => setProGalleryCat(cat.key)} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${proGalleryCat === cat.key ? "border-[#D4AF37] text-[#D4AF37]" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
+              <button key={cat.key} onClick={() => setProGalleryCat(cat.key)} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${proGalleryCat === cat.key ? "border-red-500 text-red-500" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
                 {cat.label}
               </button>
             ))}
           </div>
+          {/* Photo — swipe gauche/droite avec le doigt */}
           <div className="flex-1 flex items-center justify-center bg-white px-2 relative"
             onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
             onTouchEnd={(e) => {
@@ -318,8 +321,24 @@ export default function Vehicule() {
             {allPhotos.length > 0 ? (
               <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="max-h-full max-w-full object-contain" />
             ) : (
-              <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
+              <p className="text-slate-400">Aucune photo</p>
             )}
+          </div>
+          {/* Info en bas */}
+          <div className="border-t px-4 py-3">
+            <p className="text-lg font-extrabold text-[#111]">{v.titre}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-lg font-extrabold text-[#111]">{formatPrice(Number(v.prix))}</span>
+              <span className="rounded-full border border-slate-300 px-2 py-0.5 text-[10px] font-semibold text-slate-600">Offre équitable</span>
+            </div>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white" onClick={messageAction}><Mail size={16} /> Message</button>
+              {v.contactTelephone ? (
+                <a href={`tel:${v.contactTelephone}`} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-sm font-bold text-white"><Phone size={16} /> Appeler</a>
+              ) : (
+                <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-sm font-bold text-white" onClick={messageAction}><Phone size={16} /> Appeler</button>
+              )}
+            </div>
           </div>
         </div>
       );
@@ -327,13 +346,8 @@ export default function Vehicule() {
 
     return (
       <div className="pb-40 md:pb-10">
-        {/* ── 1. NOM VÉHICULE EN HAUT — centré, grand, noir ── */}
-        <div className="px-4 pt-4 pb-2 text-center">
-          <h1 className="text-2xl font-extrabold text-noir">{v.titre}</h1>
-        </div>
-
-        {/* ── 2. PHOTO VÉHICULE — pleine largeur, bord à bord ── */}
-        <div>
+        {/* ── 2. PHOTO VÉHICULE — pleine largeur, bord à bord, comme Pro ── */}
+        <div className="w-full">
           <div className="relative w-full overflow-hidden bg-slate-100" style={{ height: "clamp(350px, 58vh, 560px)" }}
             onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
             onTouchEnd={(e) => { const dx = e.changedTouches[0].clientX - ((e.currentTarget as any)._touchX || 0); if (dx < -40) setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1)); if (dx > 40) setPhotoIdx((i) => Math.max(0, i - 1)); }}
