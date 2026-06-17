@@ -276,7 +276,10 @@ export default function Vehicule() {
 
         {/* ── 2. PHOTO VÉHICULE — espace latéral, flèches dégagées ── */}
         <div className="px-3 pt-2 md:px-4">
-          <div className="relative w-full overflow-hidden rounded-xl bg-slate-100" style={{ height: "clamp(350px, 58vh, 560px)" }}>
+          <div className="relative w-full overflow-hidden rounded-xl bg-slate-100" style={{ height: "clamp(350px, 58vh, 560px)" }}
+            onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
+            onTouchEnd={(e) => { const dx = e.changedTouches[0].clientX - ((e.currentTarget as any)._touchX || 0); if (dx < -40) setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1)); if (dx > 40) setPhotoIdx((i) => Math.max(0, i - 1)); }}
+          >
             {allPhotos.length > 0 ? (
               <img
                 src={allPhotos[photoIdx] || ""}
@@ -287,13 +290,7 @@ export default function Vehicule() {
             ) : (
               <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
             )}
-            {/* Flèches navigation */}
-            {allPhotos.length > 1 && (
-              <>
-                <button onClick={() => setPhotoIdx((i) => Math.max(0, i - 1))} className="absolute left-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg hover:bg-white transition"><ChevronLeft size={24} /></button>
-                <button onClick={() => setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1))} className="absolute right-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg hover:bg-white transition"><ChevronRight size={24} /></button>
-              </>
-            )}
+            {/* Swipe gauche/droite — même système que Pro/Particulier */}
             {/* Badge logo MKA.P-MS — haut gauche, compact */}
             <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-md bg-[#111]/85 px-2 py-1 backdrop-blur-sm shadow">
               <span className="flex h-5 w-5 items-center justify-center rounded bg-[#D4AF37] text-[9px] font-extrabold text-[#111]">M</span>
@@ -318,29 +315,32 @@ export default function Vehicule() {
           </div>
         </div>
 
-        <div className="container-page space-y-5 py-5">
-          {/* ── 3. NOM VÉHICULE + MOTORISATION + PRIX — centré ── */}
-          <div className="card p-5 text-center">
-            <p className="text-3xl font-extrabold text-[#B8960C]">{formatPrice(Number(v.prix))}</p>
-            <p className="text-xs text-slate-500">Prix TTC · Frais inclus</p>
-            <h1 className="mt-2 text-2xl font-extrabold text-noir">{v.titre}</h1>
+        {/* Carte prix montée au-dessus de la photo — même système Pro */}
+        <div className="container-page -mt-12 relative z-10">
+          <div className="rounded-2xl border-2 border-[#111] bg-white p-5 pb-6 text-center" style={{boxShadow: '0 0 18px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.12)'}}>
+            <h1 className="text-xl font-extrabold text-[#111] md:text-2xl">{v.titre}</h1>
             {v.motorisation && <p className="mt-1 text-sm text-slate-500">{v.marque} {v.modele} {v.motorisation}</p>}
             <p className="mt-0.5 text-xs text-slate-400">Réf. annonce : DEMO-{v.id}</p>
-            {/* Petite carte localisation */}
+            <p className="mt-2 text-2xl font-extrabold text-[#B8960C]">{formatPrice(Number(v.prix))}</p>
+            <p className="text-xs text-slate-500">Prix TTC · Frais inclus</p>
+            <p className="mt-1 text-xs text-slate-500">ou {Math.round(Number(v.prix) / 60)} €/mois</p>
+            <div className="mt-2"><span className="inline-flex items-center gap-1 rounded-full border border-[#D4AF37] bg-[#FFFDF5] px-3 py-0.5 text-[10px] font-bold text-[#D4AF37]"><ShieldCheck size={10} /> MKA.P-MS Certifié</span></div>
             <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 cursor-pointer hover:bg-slate-100 transition" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
               <MapPin size={14} className="text-[#D4AF37]" />
               <span className="text-xs font-medium text-slate-600">{v.ville || "Belloy-en-France"} · 95270</span>
             </div>
           </div>
+        </div>
 
+        <div className="container-page space-y-5 py-5">
           {/* ── 4. Favoris + Partager ── */}
           <div className="flex items-center justify-between px-2">
             <button className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-noir" onClick={() => requireLogin(() => toggleFav.mutate({ annonceId: v.id }))}><Heart size={18} /> Ajouter aux favoris</button>
             <button className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-noir" onClick={() => { if (navigator.share) navigator.share({ title: v.titre, url: window.location.href }); }}><Share2 size={18} /> Partager</button>
           </div>
 
-          {/* ── 8. DESCRIPTION avec onglets style encadré ── */}
-          <div className="card p-5">
+          {/* ── 8. DESCRIPTION avec onglets — traits haut/bas foncés, ouverts gauche/droite ── */}
+          <div className="border-t-2 border-b-2 border-[#111]/40 py-5" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15), 0 2px 8px rgba(212,175,55,0.15)'}}>
             <div className="mb-4 flex gap-2 overflow-x-auto scrollbar-hide">
               {([
                 { key: "description" as const, label: "Description" },
@@ -365,14 +365,14 @@ export default function Vehicule() {
 
           {/* ── BOUTON RÉSERVER (fin et long) ── */}
           <button
-            className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white transition hover:bg-[#C5A028]"
+            className="w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white transition hover:bg-[#333]"
             onClick={() => requireLogin(() => document.getElementById("reserver-mkapms")?.scrollIntoView({ behavior: "smooth" }))}
           >
             <CalendarCheck size={16} className="mr-2 inline-block" /> Réserver ce véhicule
           </button>
 
-          {/* ── 9. CARACTÉRISTIQUES PRINCIPALES ── */}
-          <div className="card p-5">
+          {/* ── 9. CARACTÉRISTIQUES PRINCIPALES — traits ouverts gauche/droite ── */}
+          <div className="border-t-2 border-b-2 border-[#111]/40 py-5" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15), 0 2px 8px rgba(212,175,55,0.15)'}}>
             <h2 className="mb-4 text-lg font-bold text-noir">Caractéristiques principales</h2>
             <div className="grid grid-cols-3 gap-4 md:grid-cols-6">
               {[
@@ -391,14 +391,14 @@ export default function Vehicule() {
             </div>
           </div>
 
-          {/* ── 10. VÉHICULE CERTIFIÉ MKA.P-MS (fond noir + icônes cliquables) ── */}
-          <div className="overflow-hidden rounded-2xl bg-[#111]">
+          {/* ── 10. VÉHICULE CERTIFIÉ MKA.P-MS — fond premium clair, style plaque vitrée ── */}
+          <div className="overflow-hidden rounded-2xl border-2 border-[#111] bg-gradient-to-br from-white to-[#FFFDF5]" style={{boxShadow: '0 0 18px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.12)'}}>
             <div className="p-5">
               <div className="flex items-center gap-2">
                 <ShieldCheck size={24} className="text-[#D4AF37]" />
-                <h2 className="text-xl font-extrabold text-white">Véhicule certifié MKA.P-MS</h2>
+                <h2 className="text-xl font-extrabold text-[#111]">Véhicule certifié MKA.P-MS</h2>
               </div>
-              <p className="mt-1 text-sm text-slate-400">Chaque véhicule est contrôlé avant sa mise en vente.</p>
+              <p className="mt-1 text-sm text-slate-500">Chaque véhicule est contrôlé avant sa mise en vente.</p>
             </div>
             <div className="grid grid-cols-4 gap-3 px-4 pb-6 md:grid-cols-8">
               {[
@@ -412,11 +412,11 @@ export default function Vehicule() {
                 { icon: Award, label: "Assistance", sub: "administrative", to: "/services" },
               ].map((item) => (
                 <Link key={item.label} to={item.to} className="flex flex-col items-center text-center transition hover:scale-105">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/30 border border-[#D4AF37]/40">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#D4AF37]/40 bg-[#D4AF37]/10">
                     <item.icon size={22} strokeWidth={2.5} className="text-[#D4AF37]" />
                   </div>
-                  <p className="mt-1.5 text-xs font-bold leading-tight text-white">{item.label}</p>
-                  <p className="text-[11px] font-medium text-[#D4AF37]/70">{item.sub}</p>
+                  <p className="mt-1.5 text-xs font-bold leading-tight text-[#111]">{item.label}</p>
+                  <p className="text-[11px] font-medium text-[#D4AF37]">{item.sub}</p>
                 </Link>
               ))}
             </div>
@@ -424,10 +424,10 @@ export default function Vehicule() {
 
           {/* ── 11-12. ÉTAT DU VÉHICULE + HISTORIQUE COMPLET ── */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* 11. État du véhicule — stylé, centré */}
-            <div className="card overflow-hidden">
-              <div className="bg-gradient-to-br from-emerald-50 to-white p-5 text-center">
-                <h3 className="flex items-center justify-center gap-2 text-lg font-bold text-noir"><Battery size={20} strokeWidth={2.5} /> État du véhicule</h3>
+            {/* 11. État du véhicule — réduit, contour foncé plaque */}
+            <div className="overflow-hidden rounded-2xl border-2 border-[#111]" style={{boxShadow: '0 0 12px rgba(212,175,55,0.2), 0 2px 8px rgba(0,0,0,0.08)'}}>
+              <div className="bg-gradient-to-br from-emerald-50 to-white p-4 text-center">
+                <h3 className="flex items-center justify-center gap-2 text-base font-bold text-noir"><Battery size={18} strokeWidth={2.5} /> État du véhicule</h3>
                 <p className="mt-2 text-sm font-medium text-slate-500">Batterie hybride</p>
                 <p className="mt-1 text-4xl font-extrabold text-emerald-600">97 %</p>
                 <p className="text-sm font-bold text-emerald-600">Excellent état</p>
@@ -440,9 +440,9 @@ export default function Vehicule() {
               </div>
             </div>
 
-            {/* 12. Historique complet — foncé, visible */}
-            <div className="card overflow-hidden">
-              <div className="bg-gradient-to-br from-slate-50 to-white p-5">
+            {/* 12. Historique complet — traits haut/bas foncés, ouverts gauche/droite */}
+            <div className="border-t-2 border-b-2 border-[#111]/40 overflow-hidden" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15), 0 2px 8px rgba(212,175,55,0.15)'}}>
+              <div className="bg-gradient-to-br from-slate-50 to-white p-4">
                 <h3 className="text-lg font-bold text-noir">Historique complet</h3>
                 <div className="mt-3 grid grid-cols-2 gap-2.5">
                   {["Kilométrage", "Vol", "Gage", "Entretien", "Importation", "Contrôle technique", "Propriétaires", "Sinistres"].map((item) => (
@@ -451,14 +451,14 @@ export default function Vehicule() {
                     </div>
                   ))}
                 </div>
-                <Link to="/historique" className="mt-4 block w-full rounded-xl bg-[#D4AF37] py-3 text-center text-sm font-bold text-white hover:bg-[#C5A028] transition">Voir le rapport complet</Link>
+                <Link to="/historique" className="mt-4 block w-full rounded-xl bg-[#111] py-3 text-center text-sm font-bold text-white hover:bg-[#333] transition">Voir le rapport complet</Link>
                 <p className="mt-1.5 text-center text-xs text-slate-400">À partir de 2,99 €</p>
               </div>
             </div>
           </div>
 
-          {/* ── 13. SERVICES DISPONIBLES — colonnes glissables, stylées, centrées ── */}
-          <div className="card p-5">
+          {/* ── 13. SERVICES DISPONIBLES — traits haut/bas foncés, ouverts gauche/droite ── */}
+          <div className="border-t-2 border-b-2 border-[#111]/40 py-5" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15), 0 2px 8px rgba(212,175,55,0.15)'}}>
             <h2 className="mb-4 text-center text-lg font-bold text-noir">Services disponibles</h2>
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
               {[
@@ -483,8 +483,8 @@ export default function Vehicule() {
             <Link to="/services" className="mt-4 block text-center text-sm font-bold text-[#D4AF37]">Voir tous nos services →</Link>
           </div>
 
-          {/* ── SECTION PRIX — barre de comparaison ── */}
-          <div className="card p-5">
+          {/* ── SECTION PRIX — contour foncé plaque ── */}
+          <div className="rounded-2xl border-2 border-[#111] p-5" style={{boxShadow: '0 0 12px rgba(212,175,55,0.2), 0 2px 8px rgba(0,0,0,0.08)'}}>
             <div className="flex items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#D4AF37] text-[#D4AF37]">€</div>
               <h2 className="text-lg font-bold text-noir">Prix</h2>
@@ -602,17 +602,17 @@ export default function Vehicule() {
             )}
           </div>
 
-          {/* ── VENDEUR + LOCALISATION — même cadre ── */}
-          <div className="card overflow-hidden">
+          {/* ── VENDEUR + LOCALISATION — même plaque premium que Pro ── */}
+          <div className="rounded-2xl border-2 border-[#111] overflow-hidden" style={{boxShadow: '0 0 18px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.12)'}}>
             {/* Vendeur en haut */}
             <div className="p-5">
               <h2 className="text-lg font-bold text-noir">Vendeur</h2>
               <div className="mt-3 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                  <Store size={22} className="text-slate-500" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30">
+                  <Store size={22} className="text-[#D4AF37]" />
                 </div>
                 <div>
-                  <p className="text-base font-bold text-noir">MKA.P-MS — Véhicule Société</p>
+                  <p className="text-base font-bold text-noir">MKA.P-MS — Garage franchisé</p>
                   <p className="text-xs text-slate-500">Société certifiée</p>
                   <div className="mt-0.5 flex items-center gap-1">
                     <Star size={14} className="fill-[#D4AF37] text-[#D4AF37]" />
@@ -638,7 +638,7 @@ export default function Vehicule() {
                 <MapPin size={16} className="text-[#D4AF37]" />
                 <h3 className="text-sm font-bold text-noir">Localisation</h3>
               </div>
-              <div className="relative h-32 w-full bg-slate-100 cursor-pointer" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
+              <div className="relative h-20 w-full bg-slate-100 cursor-pointer" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
                 <iframe
                   title="Localisation véhicule"
                   src={`https://maps.google.com/maps?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}&output=embed&z=13`}
@@ -651,6 +651,33 @@ export default function Vehicule() {
                 <p className="text-xs text-slate-500">95270</p>
               </div>
             </div>
+          </div>
+
+          {/* ── ALLER PLUS LOIN ── */}
+          <div className="border-t-2 border-[#111]/40 pt-4" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]">Aller plus loin</h2>
+            <div className="mt-3 space-y-3">
+              {[
+                { icon: <FileText size={18} />, title: "Cote du véhicule", desc: "Consultez la cote de ce véhicule" },
+                { icon: <History size={18} />, title: "Historique complet", desc: "Consultez l'historique complet" },
+                { icon: <FileCheck size={18} />, title: "Fiche Technique", desc: "Toutes les informations du véhicule" },
+              ].map((item) => (
+                <div key={item.title} className="flex items-center gap-3 border-b border-[#111]/15 pb-3 cursor-pointer" onClick={() => navigate("/aide")}>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500">{item.icon}</div>
+                  <div>
+                    <p className="text-sm font-bold text-[#111] underline">{item.title}</p>
+                    <p className="text-xs text-slate-500">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── FOOTER ── */}
+          <div className="mt-4 border-t-2 border-[#111]/40 pt-4 text-center space-y-2" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
+            <p className="text-xs font-semibold text-[#111] underline cursor-pointer" onClick={() => setShowReport(true)}>Signaler cette annonce</p>
+            <p className="text-xs font-semibold text-[#111] underline cursor-pointer">Vos droits et obligations</p>
+            <p className="text-[10px] text-slate-400">Réf. pro : {v.vendeur?.id || "MKA"} | Réf. annonce : {v.reference || v.id}</p>
           </div>
 
           {/* ── PUBLICITÉS — carrousel défilant ── */}
@@ -686,8 +713,8 @@ export default function Vehicule() {
         <div className={`fixed inset-x-0 bottom-[82px] z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden transition-all duration-300 ${scrollHidden ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"}`}>
           <div className="container-page">
             <div className="grid grid-cols-2 gap-3">
-              <button className="btn-acheter flex h-[52px] items-center justify-center gap-2 text-sm font-bold" onClick={primaryAction}><ShoppingCart size={16} /> Acheter</button>
-              <button className="flex h-[52px] items-center justify-center gap-2 rounded-xl border-2 border-noir bg-white text-sm font-bold text-noir shadow hover:bg-slate-50 transition" onClick={messageAction}><Mail size={16} /> Message</button>
+              <button className="flex h-[52px] items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-sm font-bold text-white" onClick={primaryAction}><Phone size={16} /> Appeler</button>
+              <button className="flex h-[52px] items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white" onClick={messageAction}><Mail size={16} /> Message</button>
             </div>
           </div>
         </div>
