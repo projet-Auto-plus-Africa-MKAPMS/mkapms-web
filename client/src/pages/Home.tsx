@@ -146,8 +146,8 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-[#F5F3EF] home-hero" style={{ WebkitTextSizeAdjust: '100%' }}>
         <div className="container-page text-center pt-1 pb-0 md:pt-5 md:pb-1 home-hero-text">
-          <p className="text-[8px] font-semibold uppercase tracking-[0.25em] text-[#D4AF37] md:text-xs">LA MARKETPLACE AUTOMOBILE</p>
-          <h1 className="mt-0.5 text-[14px] font-black uppercase leading-[1.1] md:mt-3 md:text-3xl lg:text-4xl home-hero-title">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#D4AF37] md:text-xs">LA MARKETPLACE AUTOMOBILE</p>
+          <h1 className="mt-0.5 text-[16px] font-black uppercase leading-[1.15] md:mt-3 md:text-3xl lg:text-4xl home-hero-title">
             <span className="text-[#111]">ACHETEZ, VENDEZ,</span><br />
             <span className="text-[#D4AF37]">LOUEZ, RÉPAREZ,</span><br />
             <span className="text-[#D4AF37]">ENTRETENEZ EN TOUTE CONFIANCE,</span><br />
@@ -160,7 +160,7 @@ export default function Home() {
             </div>
             <div className="h-px w-6 bg-[#D4AF37] md:w-12" />
           </div>
-          <p className="mx-auto max-w-md text-[8px] text-[#6B7280] leading-snug md:text-sm md:leading-relaxed home-hero-desc">
+          <p className="mx-auto max-w-md text-[9px] text-[#6B7280] leading-snug md:text-sm md:leading-relaxed home-hero-desc">
             Achat, vente, location, entretien, livraison et bien plus encore.<br />
             Tout l'univers automobile réuni au même endroit.
           </p>
@@ -223,7 +223,7 @@ export default function Home() {
                 <Link
                   key={a.to}
                   to={a.to}
-                  className="group flex flex-col items-center gap-0.5 rounded-lg border-2 border-[#111]/50 bg-white px-2 pb-1.5 pt-2 text-center transition hover:shadow-md hover:border-[#D4AF37] md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5 home-action-card"
+                  className="group flex flex-col items-center gap-1 rounded-lg border-2 border-[#111]/50 bg-white px-2 pb-2 pt-2.5 text-center transition hover:shadow-md hover:border-[#D4AF37] md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5 home-action-card"
                 >
                   <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-white md:h-16 md:w-16 home-action-icon">
                     <Icon size={16} className="text-[#D4AF37] md:hidden" />
@@ -231,7 +231,7 @@ export default function Home() {
                   </div>
                   <span className="text-[8px] font-extrabold uppercase tracking-wide text-[#111] md:text-xs">{a.label}</span>
                   <span className="text-[6px] text-[#6B7280] md:text-[10px]">{a.sub}</span>
-                  <div className="flex h-5 w-full items-center justify-center rounded-full bg-[#111] transition group-hover:bg-[#333] md:h-9">
+                  <div className="flex h-6 w-full items-center justify-center rounded-full bg-[#111] transition group-hover:bg-[#333] md:h-9">
                     <ArrowRight size={10} className="text-white md:hidden" />
                     <ArrowRight size={16} className="hidden text-white md:block" />
                   </div>
@@ -243,7 +243,7 @@ export default function Home() {
       </section>
 
       {/* ── 4 BADGES CONFIANCE ── */}
-      <section className="bg-white py-1 border-t border-[#E5E7EB] md:py-6 home-badges">
+      <section className="bg-white py-0.5 border-t border-[#E5E7EB] md:py-6 home-badges">
         <div className="container-page">
           <div className="mx-auto flex max-w-lg md:max-w-2xl">
             {[
@@ -269,16 +269,16 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          2. RECHERCHE + ESTIMATION — CÔTE À CÔTE
+          2. RECHERCHE + ESTIMATION
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-4">
-        <div className="container-page space-y-6">
+      <section className="bg-white py-2">
+        <div className="container-page space-y-4">
           {/* Recherche — gros bouton style La Centrale */}
-          <div className="rounded-2xl border-2 border-[#111]/60 bg-white p-4 flex flex-col items-center justify-center gap-3" style={{boxShadow: '0 0 12px rgba(212,175,55,0.25), 0 2px 8px rgba(0,0,0,0.08)'}}>
-            <Search size={24} className="text-[#D4AF37]" />
-            <h3 className="text-base font-bold text-[#111] text-center">Rechercher un véhicule</h3>
-            <p className="text-xs text-[#6B7280] text-center">Voitures, motos, utilitaires — trouvez votre véhicule idéal</p>
-            <button onClick={doSearch} className="w-full flex items-center justify-center gap-2 rounded-full bg-[#111] py-3 text-sm font-bold text-white hover:bg-[#333] transition shadow-md">
+          <div className="rounded-xl border-2 border-[#111]/60 bg-white p-3 flex flex-col items-center justify-center gap-2" style={{boxShadow: '0 0 12px rgba(212,175,55,0.25), 0 2px 8px rgba(0,0,0,0.08)'}}>
+            <Search size={20} className="text-[#D4AF37]" />
+            <h3 className="text-sm font-bold text-[#111] text-center">Rechercher un véhicule</h3>
+            <p className="text-[10px] text-[#6B7280] text-center">Voitures, motos, utilitaires — trouvez votre véhicule idéal</p>
+            <button onClick={doSearch} className="w-full flex items-center justify-center gap-2 rounded-full bg-[#111] py-2.5 text-sm font-bold text-white hover:bg-[#333] transition shadow-md">
               <Search size={16} /> Nouvelle recherche
             </button>
           </div>
