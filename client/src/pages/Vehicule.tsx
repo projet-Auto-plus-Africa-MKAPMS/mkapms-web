@@ -308,7 +308,7 @@ export default function Vehicule() {
             ))}
           </div>
           {/* Photo — swipe gauche/droite avec le doigt */}
-          <div className="flex-1 flex items-center justify-center bg-white px-2 relative"
+          <div className="flex-1 flex items-center justify-center bg-white px-2 relative overflow-hidden"
             onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
             onTouchEnd={(e) => {
               const startX = (e.currentTarget as any)._touchX;
@@ -319,7 +319,7 @@ export default function Vehicule() {
             }}
           >
             {allPhotos.length > 0 ? (
-              <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="max-h-full max-w-full object-contain" />
+              <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="max-w-full object-contain" style={{maxHeight: '55vh'}} />
             ) : (
               <p className="text-slate-400">Aucune photo</p>
             )}
@@ -913,7 +913,7 @@ export default function Vehicule() {
             ))}
           </div>
           {/* Photo — swipe gauche/droite avec le doigt */}
-          <div className="flex-1 flex items-center justify-center bg-white px-2 relative"
+          <div className="flex-1 flex items-center justify-center bg-white px-2 relative overflow-hidden"
             onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
             onTouchEnd={(e) => {
               const startX = (e.currentTarget as any)._touchX;
@@ -924,7 +924,7 @@ export default function Vehicule() {
             }}
           >
             {allPhotos.length > 0 ? (
-              <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="max-h-full max-w-full object-contain" />
+              <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="max-w-full object-contain" style={{maxHeight: '55vh'}} />
             ) : (
               <p className="text-slate-400">Aucune photo</p>
             )}
