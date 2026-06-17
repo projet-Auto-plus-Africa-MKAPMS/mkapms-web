@@ -188,7 +188,7 @@ export default function Home() {
                     playsInline
                     loop
                     className="w-full shrink-0 object-cover home-carousel-img"
-                    style={{ aspectRatio: '2.5 / 1', maxHeight: '35vw' }}
+                    style={{ aspectRatio: '2.2 / 1', maxHeight: '40vw' }}
                   >
                     <source src={slide.src} type="video/mp4" />
                   </video>
@@ -199,7 +199,7 @@ export default function Home() {
                     alt=""
                     loading={i === 0 ? "eager" : "lazy"}
                     className="w-full shrink-0 object-cover home-carousel-img"
-                    style={{ aspectRatio: '2.5 / 1', maxHeight: '35vw' }}
+                    style={{ aspectRatio: '2.2 / 1', maxHeight: '40vw' }}
                   />
                 )
               ))}
@@ -223,7 +223,7 @@ export default function Home() {
                 <Link
                   key={a.to}
                   to={a.to}
-                  className="group flex flex-col items-center gap-1 rounded-lg border-2 border-[#111]/50 bg-white px-2 pb-2 pt-2.5 text-center transition hover:shadow-md hover:border-[#D4AF37] md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5 home-action-card"
+                  className="group flex flex-col items-center gap-1.5 rounded-lg border-2 border-[#111]/50 bg-white px-2 pb-3 pt-3 text-center transition hover:shadow-md hover:border-[#D4AF37] md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5 home-action-card"
                 >
                   <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-white md:h-16 md:w-16 home-action-icon">
                     <Icon size={16} className="text-[#D4AF37] md:hidden" />
@@ -539,21 +539,25 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-6">
         <div className="container-page">
-          <div className="mx-auto max-w-md rounded-2xl border-2 border-[#111]/50 bg-white p-5" style={{boxShadow: '0 0 10px rgba(212,175,55,0.2)'}}>
+          <div className="mx-auto max-w-md border-t-2 border-b-2 border-[#111]/50 bg-white px-4 py-3" style={{boxShadow: '0 0 10px rgba(212,175,55,0.2)'}}>
             <div className="grid grid-cols-2 gap-3">
-              <Link to="/connexion" className="flex flex-col items-center gap-2 rounded-xl border-2 border-[#111]/40 bg-[#F8F9FA] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10">
-                  <User size={22} className="text-[#D4AF37]" />
+              <Link to="/connexion" className="flex flex-row items-center gap-2 border-t-2 border-b-2 border-[#111]/40 bg-[#F8F9FA] px-3 py-2.5 text-center transition hover:border-[#D4AF37] hover:shadow-md rounded-none">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                  <User size={18} className="text-[#D4AF37]" />
                 </div>
-                <p className="text-sm font-bold text-[#111]">Se connecter</p>
-                <p className="text-[10px] text-[#6B7280]">Accédez à votre espace</p>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-[#111]">Se connecter</p>
+                  <p className="text-[9px] text-[#6B7280]">Accédez à votre espace</p>
+                </div>
               </Link>
-              <Link to="/connexion?tab=register" className="flex flex-col items-center gap-2 rounded-xl border-2 border-[#D4AF37] bg-[#D4AF37]/5 p-4 text-center transition hover:bg-[#D4AF37]/10 hover:shadow-md">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]">
-                  <PlusCircle size={22} className="text-white" />
+              <Link to="/connexion?tab=register" className="flex flex-row items-center gap-2 border-t-2 border-b-2 border-[#D4AF37] bg-[#D4AF37]/5 px-3 py-2.5 text-center transition hover:bg-[#D4AF37]/10 hover:shadow-md rounded-none">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#D4AF37]">
+                  <PlusCircle size={18} className="text-white" />
                 </div>
-                <p className="text-sm font-bold text-[#D4AF37]">Créer un compte</p>
-                <p className="text-[10px] text-[#6B7280]">Particulier ou Professionnel</p>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-[#D4AF37]">Créer un compte</p>
+                  <p className="text-[9px] text-[#6B7280]">Particulier ou Professionnel</p>
+                </div>
               </Link>
             </div>
           </div>
