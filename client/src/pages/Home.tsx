@@ -145,29 +145,29 @@ export default function Home() {
           HOMEPAGE — tout visible sur 1 écran mobile
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-[#F5F3EF] home-hero">
-        <div className="container-page text-center pt-2 pb-0 md:pt-5 md:pb-1 home-hero-text">
+        <div className="container-page text-center pt-1 pb-0 md:pt-5 md:pb-1 home-hero-text">
           <p className="text-[8px] font-semibold uppercase tracking-[0.25em] text-[#D4AF37] md:text-xs">LA MARKETPLACE AUTOMOBILE</p>
-          <h1 className="mt-1 text-[17px] font-black uppercase leading-[1.1] md:mt-3 md:text-3xl lg:text-4xl home-hero-title">
+          <h1 className="mt-0.5 text-[14px] font-black uppercase leading-[1.1] md:mt-3 md:text-3xl lg:text-4xl home-hero-title">
             <span className="text-[#111]">ACHETEZ, VENDEZ,</span><br />
             <span className="text-[#D4AF37]">LOUEZ, RÉPAREZ,</span><br />
             <span className="text-[#D4AF37]">ENTRETENEZ EN TOUTE CONFIANCE,</span><br />
             <span className="text-[#111]">PARTOUT, À TOUT MOMENT.</span>
           </h1>
-          <div className="mx-auto my-1 flex items-center justify-center gap-2 md:my-3 md:gap-3 home-hero-sep">
-            <div className="h-px w-8 bg-[#D4AF37] md:w-12" />
-            <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#D4AF37] md:h-9 md:w-9">
-              <span className="text-[10px] font-extrabold text-[#D4AF37] md:text-sm">M</span>
+          <div className="mx-auto my-0.5 flex items-center justify-center gap-1.5 md:my-3 md:gap-3 home-hero-sep">
+            <div className="h-px w-6 bg-[#D4AF37] md:w-12" />
+            <div className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#D4AF37] md:h-9 md:w-9">
+              <span className="text-[8px] font-extrabold text-[#D4AF37] md:text-sm">M</span>
             </div>
-            <div className="h-px w-8 bg-[#D4AF37] md:w-12" />
+            <div className="h-px w-6 bg-[#D4AF37] md:w-12" />
           </div>
-          <p className="mx-auto max-w-md text-[10px] text-[#6B7280] leading-snug md:text-sm md:leading-relaxed home-hero-desc">
+          <p className="mx-auto max-w-md text-[8px] text-[#6B7280] leading-snug md:text-sm md:leading-relaxed home-hero-desc">
             Achat, vente, location, entretien, livraison et bien plus encore.<br />
             Tout l'univers automobile réuni au même endroit.
           </p>
         </div>
 
         {/* ── CAROUSEL + 4 ACTIONS — collés, zéro espace ── */}
-        <div className="px-3 pt-1 pb-0 md:px-6 md:pt-0 md:pb-0" style={{marginBottom: 0}}>
+        <div className="px-3 pt-0.5 pb-0 md:px-6 md:pt-0 md:pb-0" style={{marginBottom: 0}}>
           <div className="mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl home-carousel" style={{marginBottom: 0}}>
             <div
               className="flex transition-transform duration-500 ease-in-out"
@@ -183,7 +183,8 @@ export default function Home() {
                   src={src}
                   alt=""
                   loading={i === 0 ? "eager" : "lazy"}
-                  className="w-full shrink-0 aspect-[2/1] object-cover home-carousel-img"
+                  className="w-full shrink-0 object-cover home-carousel-img"
+                  style={{ aspectRatio: '2.5 / 1' }}
                 />
               ))}
             </div>
@@ -194,7 +195,7 @@ export default function Home() {
               <div key={i} className={`h-2 w-2 rounded-full transition ${carouselIdx % 3 === i ? "bg-[#D4AF37]" : "bg-[#E5E2DB]"}`} />
             ))}
           </div>
-          <div className="mx-auto grid max-w-3xl grid-cols-4 gap-1.5 md:max-w-2xl md:gap-3 home-actions">
+          <div className="mx-auto grid max-w-3xl grid-cols-4 gap-1 md:max-w-2xl md:gap-3 home-actions">
             {[
               { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
               { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
@@ -206,16 +207,16 @@ export default function Home() {
                 <Link
                   key={a.to}
                   to={a.to}
-                  className="group flex flex-col items-center gap-0.5 rounded-xl border-2 border-[#111]/50 bg-white px-1 pb-1.5 pt-2 text-center transition hover:shadow-md hover:border-[#D4AF37] md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5 home-action-card"
+                  className="group flex flex-col items-center gap-px rounded-lg border-2 border-[#111]/50 bg-white px-1 pb-1 pt-1.5 text-center transition hover:shadow-md hover:border-[#D4AF37] md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5 home-action-card"
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-white md:h-16 md:w-16 home-action-icon">
-                    <Icon size={18} className="text-[#D4AF37] md:hidden" />
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-white md:h-16 md:w-16 home-action-icon">
+                    <Icon size={14} className="text-[#D4AF37] md:hidden" />
                     <Icon size={32} className="hidden text-[#D4AF37] md:block" />
                   </div>
-                  <span className="text-[8px] font-extrabold uppercase tracking-wide text-[#111] md:text-xs">{a.label}</span>
-                  <span className="text-[7px] text-[#6B7280] md:text-[10px]">{a.sub}</span>
-                  <div className="flex h-5 w-full items-center justify-center rounded-full bg-[#111] transition group-hover:bg-[#333] md:h-9">
-                    <ArrowRight size={11} className="text-white md:hidden" />
+                  <span className="text-[7px] font-extrabold uppercase tracking-wide text-[#111] md:text-xs">{a.label}</span>
+                  <span className="text-[6px] text-[#6B7280] md:text-[10px]">{a.sub}</span>
+                  <div className="flex h-4 w-full items-center justify-center rounded-full bg-[#111] transition group-hover:bg-[#333] md:h-9">
+                    <ArrowRight size={9} className="text-white md:hidden" />
                     <ArrowRight size={16} className="hidden text-white md:block" />
                   </div>
                 </Link>
@@ -226,7 +227,7 @@ export default function Home() {
       </section>
 
       {/* ── 4 BADGES CONFIANCE ── */}
-      <section className="bg-white py-2 border-t border-[#E5E7EB] md:py-6 home-badges">
+      <section className="bg-white py-1 border-t border-[#E5E7EB] md:py-6 home-badges">
         <div className="container-page">
           <div className="mx-auto flex max-w-lg md:max-w-2xl">
             {[
@@ -238,8 +239,8 @@ export default function Home() {
               const Icon = b.icon;
               return (
                 <div key={b.title} className={`flex flex-1 flex-col items-center gap-0.5 text-center px-1 md:gap-1.5 home-badge-item ${idx < 3 ? "border-r border-[#E5E7EB]" : ""}`}>
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5 md:h-14 md:w-14 home-badge-icon">
-                    <Icon size={16} className="text-[#D4AF37] md:hidden" />
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5 md:h-14 md:w-14 home-badge-icon">
+                    <Icon size={12} className="text-[#D4AF37] md:hidden" />
                     <Icon size={24} className="hidden text-[#D4AF37] md:block" />
                   </div>
                   <h3 className="text-[7px] font-extrabold uppercase leading-tight tracking-wide text-[#111] md:text-[10px]">{b.title}</h3>
