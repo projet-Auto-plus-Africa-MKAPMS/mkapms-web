@@ -797,7 +797,7 @@ export default function Vehicule() {
         </div>
 
         {/* Barre fixe mobile MKA.P-MS — décollée, disparaît au scroll */}
-        <div className={`fixed inset-x-0 bottom-[82px] z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden transition-all duration-300 ${scrollHidden ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"}`}>
+        <div className={`fixed inset-x-0 z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden transition-all duration-300 ${scrollHidden ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"}`} style={{ bottom: 'calc(52px + env(safe-area-inset-bottom, 0px))' }}>
           <div className="container-page">
             <div className="grid grid-cols-2 gap-3">
               <button className="flex h-[52px] items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-sm font-bold text-white" onClick={primaryAction}><Phone size={16} /> Appeler</button>
@@ -1394,7 +1394,7 @@ export default function Vehicule() {
         </div>
 
         {/* ===== BARRE FIXE EN BAS : Acheter + Message — FLOTTANTS (disparaissent au scroll) */}
-        <div className={`fixed bottom-[82px] left-0 right-0 border-t border-slate-200 bg-white px-4 py-2 flex gap-3 md:bottom-0 transition-all duration-300 ${scrollHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`} style={{zIndex: 35}}>
+        <div className={`fixed left-0 right-0 border-t border-slate-200 bg-white px-4 py-2 flex gap-3 md:bottom-0 transition-all duration-300 ${scrollHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`} style={{zIndex: 35, bottom: 'calc(52px + env(safe-area-inset-bottom, 0px))'}}>
           <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-sm font-bold text-white" onClick={primaryAction}>
             <ShoppingCart size={16} /> Acheter
           </button>
@@ -2391,7 +2391,7 @@ export default function Vehicule() {
       )}
 
       {/* Barre fixe mobile — adaptée au type, bien séparée de la nav bar */}
-      <div className="fixed inset-x-0 bottom-[76px] z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden">
+      <div className="fixed inset-x-0 z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden" style={{ bottom: 'calc(52px + env(safe-area-inset-bottom, 0px))' }}>
         <div className="container-page">
           {isMkapmsStock ? (
             /* MKA.P-MS Officiel : Acheter (gauche) + Contact (droite), PAS de Appeler */
