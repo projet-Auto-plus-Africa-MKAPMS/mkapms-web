@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search, Plus, PlusCircle, FileText, Wrench, Car, KeyRound, Truck, Star,
@@ -122,6 +122,34 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
+  /* ── vidéos fond d'écran (5 vidéos, 10s chacune) ── */
+  const BG_VIDEOS = [
+    "https://cdn.pixabay.com/video/2020/07/30/45349-445999229_large.mp4",
+    "https://cdn.pixabay.com/video/2024/02/23/201706-916180622_large.mp4",
+    "https://cdn.pixabay.com/video/2017/10/30/12588-241009690_large.mp4",
+    "https://cdn.pixabay.com/video/2021/04/05/69848-533968498_large.mp4",
+    "https://cdn.pixabay.com/video/2016/09/01/4818-181851498_large.mp4",
+  ];
+  const [bgVideoIdx, setBgVideoIdx] = useState(0);
+  const [bgVideoFading, setBgVideoFading] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setBgVideoFading(true);
+      setTimeout(() => {
+        setBgVideoIdx((p) => (p + 1) % BG_VIDEOS.length);
+        setBgVideoFading(false);
+      }, 600);
+    }, 10000);
+    return () => clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.load();
+      videoRef.current.play().catch(() => {});
+    }
+  }, [bgVideoIdx]);
+
   /* carrousels publicitaires */
   const [adIdx1, setAdIdx1] = useState(0);
   const [adIdx2, setAdIdx2] = useState(0);
@@ -139,12 +167,27 @@ export default function Home() {
   }
 
   return (
-    <div className="overflow-x-hidden bg-white">
+    <div className="overflow-x-hidden bg-transparent" style={{ position: 'relative' }}>
+      {/* ── VIDÉO FOND FIXE ── */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden' }}>
+        <video
+          ref={videoRef}
+          key={bgVideoIdx}
+          autoPlay
+          muted
+          playsInline
+          loop
+          className={`w-full h-full object-cover transition-opacity duration-600 ${bgVideoFading ? 'opacity-0' : 'opacity-100'}`}
+          style={{ filter: 'brightness(0.5)' }}
+        >
+          <source src={BG_VIDEOS[bgVideoIdx]} type="video/mp4" />
+        </video>
+      </div>
 
       {/* ═══════════════════════════════════════════════════════════
           HOMEPAGE — tout visible sur 1 écran mobile
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F5F3EF] home-hero" style={{ WebkitTextSizeAdjust: '100%' }}>
+      <section className="home-hero" style={{ WebkitTextSizeAdjust: '100%', position: 'relative', zIndex: 1, background: 'rgba(245, 243, 239, 0.85)' }}>
         <div className="container-page text-center pt-1 pb-0 md:pt-5 md:pb-1 home-hero-text">
           <p className="text-[8px] font-semibold uppercase tracking-[0.25em] text-[#D4AF37] md:text-xs">LA MARKETPLACE AUTOMOBILE</p>
           <h1 className="mt-0.5 text-[14px] font-black uppercase leading-[1.1] md:mt-3 md:text-3xl lg:text-4xl home-hero-title">
@@ -207,7 +250,7 @@ export default function Home() {
                 <Link
                   key={a.to}
                   to={a.to}
-                  className="group flex flex-col items-center gap-px rounded-lg border-2 border-[#111]/50 bg-white px-1 pb-1 pt-1.5 text-center transition hover:shadow-md hover:border-[#D4AF37] md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5 home-action-card"
+                  className="group flex flex-col items-center gap-px rounded-lg border-2 border-[#111]/50 bg-white/90 backdrop-blur-sm px-1 pb-1 pt-1.5 text-center transition hover:shadow-md hover:border-[#D4AF37] md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5 home-action-card"
                 >
                   <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-white md:h-16 md:w-16 home-action-icon">
                     <Icon size={14} className="text-[#D4AF37] md:hidden" />
@@ -227,7 +270,7 @@ export default function Home() {
       </section>
 
       {/* ── 4 BADGES CONFIANCE ── */}
-      <section className="bg-white py-1 border-t border-[#E5E7EB] md:py-6 home-badges">
+      <section className="py-1 border-t border-[#E5E7EB] md:py-6 home-badges" style={{ position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
         <div className="container-page">
           <div className="mx-auto flex max-w-lg md:max-w-2xl">
             {[
@@ -255,7 +298,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           2. RECHERCHE + ESTIMATION — CÔTE À CÔTE
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-4">
+      <section className="py-4" style={{ position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
         <div className="container-page space-y-6">
           {/* Recherche — gros bouton style La Centrale */}
           <div className="rounded-2xl border-2 border-[#111]/60 bg-white p-4 flex flex-col items-center justify-center gap-3" style={{boxShadow: '0 0 12px rgba(212,175,55,0.25), 0 2px 8px rgba(0,0,0,0.08)'}}>
@@ -468,7 +511,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           3. CATÉGORIES POPULAIRES
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-10">
+      <section className="py-10" style={{ position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
         <div className="container-page">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-bold text-[#111] sm:text-xl">Catégories populaires</h2>
@@ -491,7 +534,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           3b. ANNONCES PREMIUM (entre Catégories et Se connecter)
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-8">
+      <section className="py-8" style={{ position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
         <div className="container-page">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
@@ -521,7 +564,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           3c. SE CONNECTER / CRÉER UN COMPTE
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-6">
+      <section className="py-6" style={{ position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
         <div className="container-page">
           <div className="mx-auto max-w-md rounded-2xl border-2 border-[#111]/50 bg-white p-5" style={{boxShadow: '0 0 10px rgba(212,175,55,0.2)'}}>
             <div className="grid grid-cols-2 gap-3">
@@ -579,7 +622,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           5. SERVICES PRINCIPAUX
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-10">
+      <section className="py-10" style={{ position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
         <div className="container-page">
           <h2 className="text-center text-xl font-bold text-[#111]">Nos services principaux</h2>
           <p className="mt-1 text-center text-sm text-[#6B7280]">Tout ce dont vous avez besoin, au même endroit</p>
@@ -650,7 +693,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           ESPACE PUBLICITAIRE #1 — carrousel 5 postes auto-défilant
          ═══════════════════════════════════════════════════════════ */}
-      <section className="border-y-2 border-[#111]/60 py-6" style={{background: 'linear-gradient(to right, #111, #1a1a1a)', boxShadow: '0 -2px 8px rgba(212,175,55,0.25), 0 2px 8px rgba(212,175,55,0.25)'}}>
+      <section className="border-y-2 border-[#111]/60 py-6" style={{position: 'relative', zIndex: 1, background: 'linear-gradient(to right, #111, #1a1a1a)', boxShadow: '0 -2px 8px rgba(212,175,55,0.25), 0 2px 8px rgba(212,175,55,0.25)'}}>
         <div className="container-page">
           <div className="overflow-hidden rounded-2xl border-2 border-[#D4AF37]/50" style={{boxShadow: '0 0 12px rgba(212,175,55,0.3)'}}>
             <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${adIdx1 * 100}%)` }}>
@@ -687,7 +730,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           7. ANNONCES PARTICULIERS — carrousel horizontal
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white pb-10">
+      <section className="pb-10" style={{ position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
         <div className="container-page">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
@@ -708,7 +751,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           7b. ANNONCES LOCATION — carrousel horizontal
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F9F9F9] py-10">
+      <section className="py-10" style={{ position: 'relative', zIndex: 1, background: 'rgba(249,249,249,0.85)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
         <div className="container-page">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
@@ -729,7 +772,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           ESPACE PUBLICITAIRE #2 — carrousel auto-défilant
          ═══════════════════════════════════════════════════════════ */}
-      <section className="border-y-2 border-[#111]/40 bg-[#FFFDF5] py-4" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
+      <section className="border-y-2 border-[#111]/40 bg-[#FFFDF5] py-4" style={{position: 'relative', zIndex: 1, boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
         <div className="container-page">
           <div className="overflow-hidden rounded-2xl border-2 border-[#111]/50" style={{boxShadow: '0 0 10px rgba(212,175,55,0.25)'}}>
             <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${(adIdx1 + 2) % 5 * 100}%)` }}>
@@ -759,7 +802,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           8. POURQUOI CHOISIR MKA.P-MS
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-10">
+      <section className="py-10" style={{ position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
         <div className="container-page">
           <h2 className="text-center text-xl font-bold text-[#111]">Pourquoi choisir MKA.P-MS ?</h2>
           {(() => {
@@ -803,7 +846,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           9. STATISTIQUES — BANDE OR
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#D4AF37] py-6">
+      <section className="py-6" style={{ position: 'relative', zIndex: 1, background: '#D4AF37' }}>
         <div className="container-page grid grid-cols-2 gap-4 text-center sm:grid-cols-3 md:grid-cols-6">
           {[
             { v: "+100 000", l: "Utilisateurs" },
@@ -824,7 +867,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           10. CARROUSEL ANNONCES (swipe gauche/droite)
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-10">
+      <section className="py-10" style={{ position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
         <div className="container-page">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-[#111]">Découvrez nos annonces</h2>
@@ -852,7 +895,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           ESPACE PUBLICITAIRE #3 — carrousel 5 postes auto-défilant
          ═══════════════════════════════════════════════════════════ */}
-      <section className="border-y-2 border-[#111]/40 bg-[#F5F5F5] py-6" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
+      <section className="border-y-2 border-[#111]/40 bg-[#F5F5F5] py-6" style={{position: 'relative', zIndex: 1, boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
         <div className="container-page">
           <div className="overflow-hidden rounded-2xl border-2 border-[#111]/50" style={{boxShadow: '0 0 10px rgba(212,175,55,0.2)'}}>
             <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${adIdx2 * 100}%)` }}>
@@ -887,7 +930,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           11. ESPACE PRO — BANDE NOIRE
          ═══════════════════════════════════════════════════════════ */}
-      <section className="border-y-2 border-[#111]/40 bg-white py-10" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
+      <section className="border-y-2 border-[#111]/40 py-10" style={{position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
         <div className="container-page">
           <div className="flex flex-col items-center gap-4 text-center lg:flex-row lg:justify-between lg:text-left">
             <div>
@@ -1060,7 +1103,7 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
   return (
     <>
       {/* ═══ DESKTOP FOOTER ═══ */}
-      <footer className="hidden border-t-2 border-[#111]/40 bg-white md:block" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2)'}}>
+      <footer className="hidden border-t-2 border-[#111]/40 md:block" style={{position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', boxShadow: '0 -2px 8px rgba(212,175,55,0.2)'}}>
         {/* Top : Logo + description + Newsletter */}
         <div className="container-page flex flex-wrap items-start justify-between gap-8 py-10">
           <div className="max-w-xs">
@@ -1178,7 +1221,7 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
       </footer>
 
       {/* ═══ MOBILE FOOTER (accordéon) ═══ */}
-      <footer className="border-t-2 border-[#111]/40 bg-white md:hidden" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2)'}}>
+      <footer className="border-t-2 border-[#111]/40 md:hidden" style={{position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', boxShadow: '0 -2px 8px rgba(212,175,55,0.2)'}}>
         {/* Logo + menu */}
         <div className="container-page flex items-center justify-between py-4">
           <div className="flex items-center gap-2">
