@@ -167,8 +167,8 @@ export default function Home() {
         </div>
 
         {/* ── CAROUSEL + 4 ACTIONS — collés, zéro espace ── */}
-        <div className="px-3 pt-1 pb-0 md:px-6 md:pt-0 md:pb-0">
-          <div className="mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl">
+        <div className="px-3 pt-1 pb-0 md:px-6 md:pt-0 md:pb-0" style={{marginBottom: 0}}>
+          <div className="mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl" style={{marginBottom: 0}}>
             <div
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
@@ -189,7 +189,7 @@ export default function Home() {
             </div>
           </div>
           {/* ── indicateur : points dorés ── */}
-          <div className="mx-auto flex items-center justify-center gap-1.5 py-1">
+          <div className="mx-auto flex items-center justify-center gap-1.5 py-0.5">
             {[0,1,2].map((i) => (
               <div key={i} className={`h-2 w-2 rounded-full transition ${carouselIdx % 3 === i ? "bg-[#D4AF37]" : "bg-[#E5E2DB]"}`} />
             ))}
@@ -206,7 +206,7 @@ export default function Home() {
                 <Link
                   key={a.to}
                   to={a.to}
-                  className="group flex flex-col items-center gap-0.5 rounded-xl border border-[#D4AF37]/40 bg-white px-1 pb-1.5 pt-2 text-center transition hover:shadow-md md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5"
+                  className="group flex flex-col items-center gap-0.5 rounded-xl border-2 border-[#111]/50 bg-white px-1 pb-1.5 pt-2 text-center transition hover:shadow-md hover:border-[#D4AF37] md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5"
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-white md:h-16 md:w-16">
                     <Icon size={18} className="text-[#D4AF37] md:hidden" />
@@ -214,7 +214,7 @@ export default function Home() {
                   </div>
                   <span className="text-[8px] font-extrabold uppercase tracking-wide text-[#111] md:text-xs">{a.label}</span>
                   <span className="text-[7px] text-[#6B7280] md:text-[10px]">{a.sub}</span>
-                  <div className="flex h-5 w-full items-center justify-center rounded-full bg-[#D4AF37] transition group-hover:bg-[#C5A028] md:h-9">
+                  <div className="flex h-5 w-full items-center justify-center rounded-full bg-[#111] transition group-hover:bg-[#333] md:h-9">
                     <ArrowRight size={11} className="text-white md:hidden" />
                     <ArrowRight size={16} className="hidden text-white md:block" />
                   </div>
@@ -257,12 +257,12 @@ export default function Home() {
       <section className="bg-white py-4">
         <div className="container-page space-y-6">
           {/* Recherche — gros bouton style La Centrale */}
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm flex flex-col items-center justify-center gap-4">
-            <Search size={28} className="text-[#D4AF37]" />
-            <h3 className="text-lg font-bold text-[#111] text-center">Rechercher un véhicule</h3>
+          <div className="rounded-2xl border-2 border-[#111]/60 bg-white p-4 flex flex-col items-center justify-center gap-3" style={{boxShadow: '0 0 12px rgba(212,175,55,0.25), 0 2px 8px rgba(0,0,0,0.08)'}}>
+            <Search size={24} className="text-[#D4AF37]" />
+            <h3 className="text-base font-bold text-[#111] text-center">Rechercher un véhicule</h3>
             <p className="text-xs text-[#6B7280] text-center">Voitures, motos, utilitaires — trouvez votre véhicule idéal</p>
-            <button onClick={doSearch} className="w-full flex items-center justify-center gap-2 rounded-full bg-[#D4AF37] py-4 text-base font-bold text-white hover:bg-[#C5A028] transition shadow-md">
-              <Search size={18} /> Nouvelle recherche
+            <button onClick={doSearch} className="w-full flex items-center justify-center gap-2 rounded-full bg-[#111] py-3 text-sm font-bold text-white hover:bg-[#333] transition shadow-md">
+              <Search size={16} /> Nouvelle recherche
             </button>
           </div>
 
@@ -285,7 +285,7 @@ export default function Home() {
           </div>
 
           {/* Estimation de voiture — formulaire complet */}
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border-2 border-[#111]/60 bg-white p-6" style={{boxShadow: '0 0 12px rgba(212,175,55,0.25), 0 2px 8px rgba(0,0,0,0.08)'}}>
             <h3 className="text-xl font-extrabold text-[#111]">Estimation de voiture</h3>
             <p className="mt-1 text-xs text-[#6B7280]">Obtenez une estimation gratuite en quelques secondes</p>
 
@@ -475,7 +475,7 @@ export default function Home() {
           </div>
           <div className="mt-6 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
             {CATEGORIES.map((c) => (
-              <Link key={c.label} to={c.to} className="group flex w-[120px] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white px-3 py-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+              <Link key={c.label} to={c.to} className="group flex w-[120px] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border-2 border-[#111]/50 bg-white px-3 py-4 text-center transition hover:border-[#D4AF37] hover:shadow-md" style={{boxShadow: '0 0 8px rgba(212,175,55,0.2)' }}>
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F3F4F6] transition group-hover:bg-[#D4AF37]/10">
                   {(() => { const Icon = CAT_ICONS[c.icon]; return <Icon size={22} className="text-[#6B7280] group-hover:text-[#D4AF37]" />; })()}
                 </div>
@@ -522,16 +522,16 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-6">
         <div className="container-page">
-          <div className="mx-auto max-w-md rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
+          <div className="mx-auto max-w-md rounded-2xl border-2 border-[#111]/50 bg-white p-5" style={{boxShadow: '0 0 10px rgba(212,175,55,0.2)'}}>
             <div className="grid grid-cols-2 gap-3">
-              <Link to="/connexion" className="flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+              <Link to="/connexion" className="flex flex-col items-center gap-2 rounded-xl border-2 border-[#111]/40 bg-[#F8F9FA] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10">
                   <User size={22} className="text-[#D4AF37]" />
                 </div>
                 <p className="text-sm font-bold text-[#111]">Se connecter</p>
                 <p className="text-[10px] text-[#6B7280]">Accédez à votre espace</p>
               </Link>
-              <Link to="/connexion?tab=register" className="flex flex-col items-center gap-2 rounded-xl border border-[#D4AF37] bg-[#D4AF37]/5 p-4 text-center transition hover:bg-[#D4AF37]/10 hover:shadow-md">
+              <Link to="/connexion?tab=register" className="flex flex-col items-center gap-2 rounded-xl border-2 border-[#D4AF37] bg-[#D4AF37]/5 p-4 text-center transition hover:bg-[#D4AF37]/10 hover:shadow-md">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]">
                   <PlusCircle size={22} className="text-white" />
                 </div>
@@ -546,7 +546,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           4. HISTORIQUE VÉHICULE — Carte compacte (page complète sur /historique)
          ═══════════════════════════════════════════════════════════ */}
-      <section className="border-y border-[#D4AF37]/20 bg-[#FFFDF5] py-8">
+      <section className="border-y-2 border-[#111]/40 bg-[#FFFDF5] py-8" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
         <div className="container-page">
           <div className="flex flex-col items-center text-center">
             <div className="flex items-center gap-2">
@@ -598,7 +598,7 @@ export default function Home() {
                   const Icon = s.icon;
                   const isAccent = (s as any).accent;
                   return (
-                    <Link key={s.to} to={s.to} className={`group flex w-[140px] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border px-3 py-5 text-center transition hover:shadow-md ${isAccent ? "border-red-200 bg-red-50 hover:border-red-400" : "border-[#E5E7EB] bg-white hover:border-[#D4AF37]"}`}>
+                    <Link key={s.to} to={s.to} className={`group flex w-[140px] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border-2 px-3 py-5 text-center transition hover:shadow-md ${isAccent ? "border-red-400 bg-red-50 hover:border-red-500" : "border-[#111]/50 bg-white hover:border-[#D4AF37]"}`} style={{boxShadow: '0 0 8px rgba(212,175,55,0.15)'}}>
                       <div className={`flex h-12 w-12 items-center justify-center rounded-full transition ${isAccent ? "bg-red-100 group-hover:bg-red-200" : "bg-[#D4AF37]/10 group-hover:bg-[#D4AF37]/20"}`}>
                         <Icon size={22} className={isAccent ? "text-red-600" : "text-[#D4AF37]"} />
                       </div>
@@ -617,7 +617,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           SECTION FINANCE+
          ═══════════════════════════════════════════════════════════ */}
-      <section className="border-y border-[#D4AF37]/20 bg-[#FFFDF5] py-8">
+      <section className="border-y-2 border-[#111]/40 bg-[#FFFDF5] py-8" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
         <div className="container-page">
           <div className="flex flex-col items-center text-center">
             <div className="flex items-center gap-2">
@@ -649,9 +649,9 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           ESPACE PUBLICITAIRE #1 — carrousel 5 postes auto-défilant
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-gradient-to-r from-[#111] to-[#1a1a1a] py-6">
+      <section className="border-y-2 border-[#111]/60 py-6" style={{background: 'linear-gradient(to right, #111, #1a1a1a)', boxShadow: '0 -2px 8px rgba(212,175,55,0.25), 0 2px 8px rgba(212,175,55,0.25)'}}>
         <div className="container-page">
-          <div className="overflow-hidden rounded-2xl border border-[#D4AF37]/30">
+          <div className="overflow-hidden rounded-2xl border-2 border-[#D4AF37]/50" style={{boxShadow: '0 0 12px rgba(212,175,55,0.3)'}}>
             <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${adIdx1 * 100}%)` }}>
               {[
                 { tag: "Emplacement #1", title: "Votre publicité ici", desc: "Espace premium visible par tous les visiteurs de la plateforme", bg: "bg-[#111]" },
@@ -728,9 +728,9 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           ESPACE PUBLICITAIRE #2 — carrousel auto-défilant
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#FFFDF5] py-4">
+      <section className="border-y-2 border-[#111]/40 bg-[#FFFDF5] py-4" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
         <div className="container-page">
-          <div className="overflow-hidden rounded-2xl border border-[#D4AF37]/20 shadow-sm">
+          <div className="overflow-hidden rounded-2xl border-2 border-[#111]/50" style={{boxShadow: '0 0 10px rgba(212,175,55,0.25)'}}>
             <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${(adIdx1 + 2) % 5 * 100}%)` }}>
               {[
                 { title: "Boostez votre visibilité", desc: "Professionnels, particuliers — mettez en avant vos annonces et services" },
@@ -760,7 +760,7 @@ export default function Home() {
          ═══════════════════════════════════════════════════════════ */}
       <section className="bg-white py-10">
         <div className="container-page">
-          <h2 className="text-center text-xl font-bold text-[#111]">Pourquoi choisir MKA-P-MS ?</h2>
+          <h2 className="text-center text-xl font-bold text-[#111]">Pourquoi choisir MKA.P-MS ?</h2>
           {(() => {
             const items = [
               { icon: ShieldCheck, title: "Sécurisé", desc: "Vos transactions sont protégées à 100%.", details: "Paiement sécurisé, vérification des annonces, protection acheteur/vendeur, données chiffrées et conformité RGPD." },
@@ -781,7 +781,8 @@ export default function Home() {
                         const el = e.currentTarget.querySelector("[data-details]") as HTMLElement;
                         if (el) el.classList.toggle("hidden");
                       }}
-                      className="flex w-[150px] shrink-0 snap-start flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center transition hover:shadow-md hover:border-[#D4AF37] cursor-pointer"
+                      className="flex w-[150px] shrink-0 snap-start flex-col items-center gap-2 rounded-xl border-2 border-[#111]/50 bg-white p-4 text-center transition hover:shadow-md hover:border-[#D4AF37] cursor-pointer"
+                      style={{boxShadow: '0 0 8px rgba(212,175,55,0.15)'}}
                     >
                       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10">
                         <Icon size={22} className="text-[#D4AF37]" />
@@ -850,9 +851,9 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           ESPACE PUBLICITAIRE #3 — carrousel 5 postes auto-défilant
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F5F5F5] py-6">
+      <section className="border-y-2 border-[#111]/40 bg-[#F5F5F5] py-6" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
         <div className="container-page">
-          <div className="overflow-hidden rounded-2xl shadow-sm">
+          <div className="overflow-hidden rounded-2xl border-2 border-[#111]/50" style={{boxShadow: '0 0 10px rgba(212,175,55,0.2)'}}>
             <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${adIdx2 * 100}%)` }}>
               {[
                 { tag: "Publicité premium", title: "Devenez partenaire MKA.P-MS", desc: "Gagnez en visibilité auprès de milliers d'acheteurs et de professionnels", grad: "from-[#D4AF37] to-[#C5A028]" },
@@ -885,7 +886,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           11. ESPACE PRO — BANDE NOIRE
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-10 border-t border-[#E5E7EB]">
+      <section className="border-y-2 border-[#111]/40 bg-white py-10" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
         <div className="container-page">
           <div className="flex flex-col items-center gap-4 text-center lg:flex-row lg:justify-between lg:text-left">
             <div>
@@ -904,17 +905,17 @@ export default function Home() {
               return (
                 <div key={col} className="flex w-[160px] shrink-0 snap-start flex-col gap-3">
                   {top && (
-                    <Link to={top.to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                    <Link to={top.to} className="group flex flex-col items-center gap-2 border-y-2 border-[#111]/40 bg-[#F8F9FA] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md" style={{boxShadow: '0 0 6px rgba(212,175,55,0.15)'}}>
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#D4AF37]/10 transition group-hover:bg-[#D4AF37]/20">
-                        <Wrench size={18} className="text-[#D4AF37]" />
+                        {top.label.includes("Vente") ? <Tag size={18} className="text-[#D4AF37]" /> : top.label.includes("Garage") ? <Wrench size={18} className="text-[#D4AF37]" /> : top.label.includes("Location") ? <KeyRound size={18} className="text-[#D4AF37]" /> : top.label.includes("VTC") ? <Car size={18} className="text-[#D4AF37]" /> : top.label.includes("Livraison") ? <Truck size={18} className="text-[#D4AF37]" /> : top.label.includes("Pièces") ? <Package size={18} className="text-[#D4AF37]" /> : top.label.includes("Dépannage") ? <Zap size={18} className="text-[#D4AF37]" /> : top.label.includes("Comptabilité") ? <FileText size={18} className="text-[#D4AF37]" /> : <Wrench size={18} className="text-[#D4AF37]" />}
                       </div>
                       <span className="text-xs font-medium text-[#374151]">{top.label}</span>
                     </Link>
                   )}
                   {bot && (
-                    <Link to={bot.to} className="group flex flex-col items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                    <Link to={bot.to} className="group flex flex-col items-center gap-2 border-y-2 border-[#111]/40 bg-[#F8F9FA] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md" style={{boxShadow: '0 0 6px rgba(212,175,55,0.15)'}}>
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#D4AF37]/10 transition group-hover:bg-[#D4AF37]/20">
-                        <Wrench size={18} className="text-[#D4AF37]" />
+                        {bot.label.includes("Vente") ? <Tag size={18} className="text-[#D4AF37]" /> : bot.label.includes("Garage") ? <Wrench size={18} className="text-[#D4AF37]" /> : bot.label.includes("Location") ? <KeyRound size={18} className="text-[#D4AF37]" /> : bot.label.includes("VTC") ? <Car size={18} className="text-[#D4AF37]" /> : bot.label.includes("Livraison") ? <Truck size={18} className="text-[#D4AF37]" /> : bot.label.includes("Pièces") ? <Package size={18} className="text-[#D4AF37]" /> : bot.label.includes("Dépannage") ? <Zap size={18} className="text-[#D4AF37]" /> : bot.label.includes("Comptabilité") ? <FileText size={18} className="text-[#D4AF37]" /> : <Wrench size={18} className="text-[#D4AF37]" />}
                       </div>
                       <span className="text-xs font-medium text-[#374151]">{bot.label}</span>
                     </Link>
@@ -1020,7 +1021,7 @@ const SOCIAL_LINKS = [
 function FooterAccordion({ title, children }: { title: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-slate-200">
+    <div className="border-b-2 border-[#111]/30">
       <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center justify-between py-3 text-left">
         <span className="text-sm font-bold text-[#111]">{title}</span>
         <ChevronDown size={16} className={`text-slate-400 transition ${open ? "rotate-180" : ""}`} />
@@ -1058,7 +1059,7 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
   return (
     <>
       {/* ═══ DESKTOP FOOTER ═══ */}
-      <footer className="hidden border-t border-slate-200 bg-white md:block">
+      <footer className="hidden border-t-2 border-[#111]/40 bg-white md:block" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2)'}}>
         {/* Top : Logo + description + Newsletter */}
         <div className="container-page flex flex-wrap items-start justify-between gap-8 py-10">
           <div className="max-w-xs">
@@ -1088,7 +1089,7 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
                 value={newsEmail}
                 onChange={(e) => setNewsEmail(e.target.value)}
               />
-              <button className="rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-bold text-white hover:bg-[#C5A028]">S'abonner</button>
+              <button className="rounded-lg bg-[#111] px-4 py-2 text-sm font-bold text-white hover:bg-[#333]">S'abonner</button>
             </div>
             <div className="mt-3 flex gap-3">
               {SOCIAL_LINKS.map((s) => (
@@ -1099,7 +1100,7 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
         </div>
 
         {/* 6 colonnes de liens */}
-        <div className="border-t border-slate-200">
+        <div className="border-t-2 border-[#111]/30" style={{boxShadow: '0 -1px 6px rgba(212,175,55,0.15)'}}>
           <div className="container-page grid grid-cols-6 gap-6 py-8">
             {FOOTER_SECTIONS.map((sec) => (
               <div key={sec.title}>
@@ -1133,7 +1134,7 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
         </div>
 
         {/* Autres Ajouts Intégrés + cartes */}
-        <div className="border-t border-slate-200 bg-[#FAFAFA]">
+        <div className="border-t-2 border-[#111]/30 bg-[#FAFAFA]" style={{boxShadow: '0 -1px 6px rgba(212,175,55,0.15)'}}>
           <div className="container-page py-8">
             <h4 className="flex items-center gap-2 text-sm font-bold text-[#111]">
               <Star size={16} className="text-[#D4AF37]" /> Autres Ajouts Intégrés
@@ -1163,7 +1164,7 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
         </div>
 
         {/* Bas : copyright + paiement */}
-        <div className="border-t border-slate-200 bg-white">
+        <div className="border-t-2 border-[#111]/30 bg-white" style={{boxShadow: '0 -1px 6px rgba(212,175,55,0.15)'}}>
           <div className="container-page flex flex-wrap items-center justify-between gap-4 py-4">
             <p className="text-xs text-slate-400">© 2026 MKA.P-MS — Auto Plus Africa — SASU, capital 2 500 €. SIREN 932 217 896 · TVA FR43932217896.</p>
             <div className="flex gap-2">
@@ -1176,7 +1177,7 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
       </footer>
 
       {/* ═══ MOBILE FOOTER (accordéon) ═══ */}
-      <footer className="border-t border-slate-200 bg-white md:hidden">
+      <footer className="border-t-2 border-[#111]/40 bg-white md:hidden" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2)'}}>
         {/* Logo + menu */}
         <div className="container-page flex items-center justify-between py-4">
           <div className="flex items-center gap-2">
@@ -1216,7 +1217,7 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
         </div>
 
         {/* Newsletter & Réseaux */}
-        <div className="container-page border-t border-slate-200 py-6">
+        <div className="container-page border-t-2 border-[#111]/30 py-6" style={{boxShadow: '0 -1px 6px rgba(212,175,55,0.15)'}}>
           <div className="flex items-center justify-center gap-2">
             <Mail size={14} className="text-[#D4AF37]" />
             <h4 className="text-sm font-bold text-[#111] text-center">Abonnez-vous & suivez-nous</h4>
@@ -1228,7 +1229,7 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
             value={newsEmail}
             onChange={(e) => setNewsEmail(e.target.value)}
           />
-          <button className="mt-2 w-full rounded-lg bg-[#D4AF37] py-2.5 text-sm font-bold text-white hover:bg-[#C5A028]">S'abonner</button>
+          <button className="mt-2 w-full rounded-lg bg-[#111] py-2.5 text-sm font-bold text-white hover:bg-[#333]">S'abonner</button>
           <div className="mt-4 flex justify-center gap-3">
             {SOCIAL_LINKS.map((s) => (
               <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" title={s.name} className={`flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition ${s.color} hover:text-white hover:border-transparent`}>{s.label}</a>
@@ -1238,7 +1239,7 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
         </div>
 
         {/* Autres Ajouts — grille 2 colonnes */}
-        <div className="container-page border-t border-slate-200 py-6">
+        <div className="container-page border-t-2 border-[#111]/30 py-6" style={{boxShadow: '0 -1px 6px rgba(212,175,55,0.15)'}}>
           <h4 className="flex items-center gap-2 text-sm font-bold text-[#111]">
             <Star size={14} className="text-[#D4AF37]" /> Autres Ajouts Intégrés
           </h4>
@@ -1250,7 +1251,7 @@ function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEma
         </div>
 
         {/* Copyright + paiement */}
-        <div className="border-t border-slate-200 bg-white">
+        <div className="border-t-2 border-[#111]/30 bg-white" style={{boxShadow: '0 -1px 6px rgba(212,175,55,0.15)'}}>
           <div className="container-page py-4 text-center">
             <p className="text-[10px] text-slate-400">© 2026 MKA.P-MS — Auto Plus Africa — SASU, capital 2 500 €. SIREN 932 217 896 · TVA FR43932217896.</p>
             <div className="mt-3 flex justify-center gap-2">
