@@ -22,19 +22,16 @@ import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import VehicleCard from "../components/VehicleCard";
 
-/* ── catégories ── */
-const CATEGORIES: { label: string; count: string; to: string; icon: "car" | "truck" | "gauge" | "moto" }[] = [
-  { label: "Citadines", count: "+2 350", to: "/acheter?categorie=citadine", icon: "car" },
-  { label: "Berlines", count: "+4 152", to: "/acheter?categorie=berline", icon: "car" },
-  { label: "SUV & 4x4", count: "+3 782", to: "/acheter?categorie=suv", icon: "truck" },
-  { label: "Utilitaires", count: "+1 256", to: "/acheter?categorie=utilitaire", icon: "truck" },
-  { label: "Coupés", count: "+1 842", to: "/acheter?categorie=coupe", icon: "gauge" },
-  { label: "Motos", count: "+2 620", to: "/acheter?famille=moto", icon: "moto" },
-  { label: "Scooters", count: "+1 125", to: "/acheter?famille=moto&categorie=scooter", icon: "moto" },
+/* ── catégories avec vraies photos ── */
+const CATEGORIES = [
+  { label: "Citadine", count: "+2 350", to: "/acheter?categorie=citadine", img: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=200&h=120&fit=crop" },
+  { label: "Berline", count: "+4 152", to: "/acheter?categorie=berline", img: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=200&h=120&fit=crop" },
+  { label: "SUV", count: "+3 782", to: "/acheter?categorie=suv", img: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=200&h=120&fit=crop" },
+  { label: "Utilitaire", count: "+1 256", to: "/acheter?categorie=utilitaire", img: "https://images.unsplash.com/photo-1632245889029-e406faaa34cd?w=200&h=120&fit=crop" },
+  { label: "Moto", count: "+2 620", to: "/acheter?famille=moto", img: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=200&h=120&fit=crop" },
+  { label: "Sportive", count: "+1 842", to: "/acheter?categorie=coupe", img: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=200&h=120&fit=crop" },
+  { label: "Scooter", count: "+1 125", to: "/acheter?famille=moto&categorie=scooter", img: "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=200&h=120&fit=crop" },
 ];
-const CAT_ICONS: Record<string, React.FC<{ size: number; className: string }>> = {
-  car: Car, truck: Truck, gauge: Gauge, moto: MotoIcon,
-};
 
 /* ── annonces démo ── */
 const DEMO_ANNONCES = [
@@ -188,7 +185,7 @@ export default function Home() {
                     playsInline
                     loop
                     className="w-full shrink-0 object-cover home-carousel-img"
-                    style={{ aspectRatio: '2.2 / 1', maxHeight: '40vw' }}
+                    style={{ aspectRatio: '2.2 / 1', maxHeight: '40vw', pointerEvents: 'none' }}
                   >
                     <source src={slide.src} type="video/mp4" />
                   </video>
@@ -492,10 +489,8 @@ export default function Home() {
           </div>
           <div className="mt-6 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
             {CATEGORIES.map((c) => (
-              <Link key={c.label} to={c.to} className="group flex w-[120px] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border-2 border-[#111]/50 bg-white px-3 py-4 text-center transition hover:border-[#D4AF37] hover:shadow-md" style={{boxShadow: '0 0 8px rgba(212,175,55,0.2)' }}>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F3F4F6] transition group-hover:bg-[#D4AF37]/10">
-                  {(() => { const Icon = CAT_ICONS[c.icon]; return <Icon size={22} className="text-[#6B7280] group-hover:text-[#D4AF37]" />; })()}
-                </div>
+              <Link key={c.label} to={c.to} className="group flex w-[110px] shrink-0 snap-start flex-col items-center gap-1.5 rounded-xl border-2 border-[#111]/50 bg-white px-2 py-3 text-center transition hover:border-[#D4AF37] hover:shadow-md" style={{boxShadow: '0 0 8px rgba(212,175,55,0.2)' }}>
+                <img src={c.img} alt={c.label} className="h-16 w-full object-contain" loading="lazy" />
                 <span className="text-xs font-bold text-[#111]">{c.label}</span>
                 <span className="text-[10px] text-[#9CA3AF]">{c.count} annonces</span>
               </Link>
@@ -541,23 +536,19 @@ export default function Home() {
         <div className="container-page">
           <div className="mx-auto max-w-md border-t-2 border-b-2 border-[#111]/50 bg-white px-4 py-3" style={{boxShadow: '0 0 10px rgba(212,175,55,0.2)'}}>
             <div className="grid grid-cols-2 gap-3">
-              <Link to="/connexion" className="flex flex-row items-center gap-2 border-t-2 border-b-2 border-[#111]/40 bg-[#F8F9FA] px-3 py-2.5 text-center transition hover:border-[#D4AF37] hover:shadow-md rounded-none">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#D4AF37]/10">
+              <Link to="/connexion" className="flex flex-col items-center justify-center gap-1 border-t-2 border-b-2 border-[#111]/40 bg-[#F8F9FA] px-3 py-2.5 text-center transition hover:border-[#D4AF37] hover:shadow-md rounded-none">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D4AF37]/10">
                   <User size={18} className="text-[#D4AF37]" />
                 </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold text-[#111]">Se connecter</p>
-                  <p className="text-[9px] text-[#6B7280]">Accédez à votre espace</p>
-                </div>
+                <p className="text-sm font-bold text-[#111] text-center">Se connecter</p>
+                <p className="text-[9px] text-[#6B7280] text-center">Accédez à votre espace</p>
               </Link>
-              <Link to="/connexion?tab=register" className="flex flex-row items-center gap-2 border-t-2 border-b-2 border-[#D4AF37] bg-[#D4AF37]/5 px-3 py-2.5 text-center transition hover:bg-[#D4AF37]/10 hover:shadow-md rounded-none">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#D4AF37]">
+              <Link to="/connexion?tab=register" className="flex flex-col items-center justify-center gap-1 border-t-2 border-b-2 border-[#D4AF37] bg-[#D4AF37]/5 px-3 py-2.5 text-center transition hover:bg-[#D4AF37]/10 hover:shadow-md rounded-none">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D4AF37]">
                   <PlusCircle size={18} className="text-white" />
                 </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold text-[#D4AF37]">Créer un compte</p>
-                  <p className="text-[9px] text-[#6B7280]">Particulier ou Professionnel</p>
-                </div>
+                <p className="text-sm font-bold text-[#D4AF37] text-center">Créer un compte</p>
+                <p className="text-[9px] text-[#6B7280] text-center">Particulier ou Professionnel</p>
               </Link>
             </div>
           </div>
@@ -683,7 +674,7 @@ export default function Home() {
               ].map((ad: any, i) => (
                 <div key={i} className={`relative flex h-[160px] w-full shrink-0 items-center justify-between ${ad.bg} p-5 lg:h-[220px] overflow-hidden`}>
                   {ad.video && (
-                    <video autoPlay muted playsInline loop className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.3 }}>
+                    <video autoPlay muted playsInline loop className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.3, pointerEvents: 'none' }}>
                       <source src={ad.video} type="video/mp4" />
                     </video>
                   )}
@@ -890,7 +881,7 @@ export default function Home() {
               ].map((ad: any, i) => (
                 <div key={i} className={`relative flex h-[160px] w-full shrink-0 items-center justify-between bg-gradient-to-r ${ad.grad} p-5 lg:h-[220px] overflow-hidden`}>
                   {ad.video && (
-                    <video autoPlay muted playsInline loop className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.25 }}>
+                    <video autoPlay muted playsInline loop className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.25, pointerEvents: 'none' }}>
                       <source src={ad.video} type="video/mp4" />
                     </video>
                   )}
