@@ -144,7 +144,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════
           HOMEPAGE — tout visible sur 1 écran mobile
          ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F5F3EF] home-hero">
+      <section className="bg-[#F5F3EF] home-hero" style={{ WebkitTextSizeAdjust: '100%' }}>
         <div className="container-page text-center pt-1 pb-0 md:pt-5 md:pb-1 home-hero-text">
           <p className="text-[8px] font-semibold uppercase tracking-[0.25em] text-[#D4AF37] md:text-xs">LA MARKETPLACE AUTOMOBILE</p>
           <h1 className="mt-0.5 text-[14px] font-black uppercase leading-[1.1] md:mt-3 md:text-3xl lg:text-4xl home-hero-title">
@@ -184,7 +184,7 @@ export default function Home() {
                   alt=""
                   loading={i === 0 ? "eager" : "lazy"}
                   className="w-full shrink-0 object-cover home-carousel-img"
-                  style={{ aspectRatio: '2.5 / 1' }}
+                  style={{ aspectRatio: '2.5 / 1', maxHeight: '35vw' }}
                 />
               ))}
             </div>
