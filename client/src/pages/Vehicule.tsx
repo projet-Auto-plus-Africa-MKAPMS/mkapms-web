@@ -1393,17 +1393,11 @@ export default function Vehicule() {
           </div>
         </div>
 
-        {/* ===== BARRE FIXE EN BAS : Appeler + Message — FLOTTANTS (disparaissent au scroll) */}
+        {/* ===== BARRE FIXE EN BAS : Acheter + Message — FLOTTANTS (disparaissent au scroll) */}
         <div className={`fixed bottom-[82px] left-0 right-0 border-t border-slate-200 bg-white px-4 py-2 flex gap-3 md:bottom-0 transition-all duration-300 ${scrollHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`} style={{zIndex: 35}}>
-          {v.contactTelephone ? (
-            <a href={`tel:${v.contactTelephone}`} className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-sm font-bold text-white">
-              <Phone size={16} /> Appeler
-            </a>
-          ) : (
-            <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-sm font-bold text-white" onClick={messageAction}>
-              <Phone size={16} /> Appeler
-            </button>
-          )}
+          <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-sm font-bold text-white" onClick={primaryAction}>
+            <ShoppingCart size={16} /> Acheter
+          </button>
           <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white" onClick={messageAction}>
             <Mail size={16} /> Message
           </button>

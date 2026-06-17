@@ -188,6 +188,19 @@ export const annonces = pgTable("annonces", {
   selectionMkaAt: timestamp("selection_mka_at"),
   // Partie 11 — flotte MKA.P-MS.
   ownership: annonceOwnershipEnum("ownership").notNull().default("client"),
+  // Détails véhicule — reliés au formulaire d'ajout
+  pointsForts: jsonb("points_forts").default("[]"),
+  equipements: jsonb("equipements").default("[]"),
+  imperfections: jsonb("imperfections").default("[]"),
+  sellerie: varchar("sellerie", { length: 64 }),
+  cylindree: varchar("cylindree", { length: 64 }),
+  consommation: varchar("consommation", { length: 64 }),
+  classeEmission: varchar("classe_emission", { length: 32 }),
+  confort: jsonb("confort").default("[]"),
+  multimedia: jsonb("multimedia").default("[]"),
+  securite: jsonb("securite").default("[]"),
+  videos360: jsonb("videos_360").default("[]"),
+  videosNormales: jsonb("videos_normales").default("[]"),
 });
 
 export const auditLogs = pgTable("audit_logs", {

@@ -534,10 +534,22 @@ export const annoncesRouter = router({
         pays: z.string().default("FR"),
         contactTelephone: z.string().optional(),
         photos: z.array(z.string()).default([]),
+        pointsForts: z.array(z.string()).default([]),
+        equipements: z.array(z.string()).default([]),
+        imperfections: z.array(z.string()).default([]),
+        sellerie: z.string().optional(),
+        cylindree: z.string().optional(),
+        consommation: z.string().optional(),
+        classeEmission: z.string().optional(),
+        confort: z.array(z.string()).default([]),
+        multimedia: z.array(z.string()).default([]),
+        securite: z.array(z.string()).default([]),
+        videos360: z.array(z.string()).default([]),
+        videosNormales: z.array(z.string()).default([]),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { photos, ...rest } = input;
+      const { photos, pointsForts, equipements, imperfections, confort, multimedia, securite, videos360, videosNormales, ...rest } = input;
       const [created] = await db
         .insert(annonces)
         .values({
@@ -569,6 +581,18 @@ export const annoncesRouter = router({
           vendeurType: ctx.user.role === "user" ? "particulier" : "professionnel",
           status: "publiee",
           publishedAt: new Date(),
+          sellerie: rest.sellerie,
+          cylindree: rest.cylindree,
+          consommation: rest.consommation,
+          classeEmission: rest.classeEmission,
+          pointsForts: JSON.stringify(pointsForts),
+          equipements: JSON.stringify(equipements),
+          imperfections: JSON.stringify(imperfections),
+          confort: JSON.stringify(confort),
+          multimedia: JSON.stringify(multimedia),
+          securite: JSON.stringify(securite),
+          videos360: JSON.stringify(videos360),
+          videosNormales: JSON.stringify(videosNormales),
         })
         .returning();
 

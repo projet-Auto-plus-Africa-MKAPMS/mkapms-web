@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { TrendingUp, Search, Car, Camera, FileText, Phone, CheckCircle } from "lucide-react";
+import { TrendingUp, Search, Car, Camera, FileText, Phone, CheckCircle, Video, ListChecks, Settings, Shield, Sparkles } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
@@ -12,10 +12,14 @@ import FileUpload from "../components/FileUpload";
 const STEPS = [
   { num: 1, label: "Estimation", icon: Search },
   { num: 2, label: "Détails", icon: Car },
-  { num: 3, label: "Photos", icon: Camera },
-  { num: 4, label: "Description & Prix", icon: FileText },
-  { num: 5, label: "Contact", icon: Phone },
-  { num: 6, label: "Publication", icon: CheckCircle },
+  { num: 3, label: "Carrosserie", icon: Settings },
+  { num: 4, label: "Moteur", icon: Settings },
+  { num: 5, label: "Photos", icon: Camera },
+  { num: 6, label: "Vidéos", icon: Video },
+  { num: 7, label: "Description & Prix", icon: FileText },
+  { num: 8, label: "Équipements", icon: ListChecks },
+  { num: 9, label: "Contact", icon: Phone },
+  { num: 10, label: "Publication", icon: CheckCircle },
 ];
 
 const MARQUES = [
@@ -58,8 +62,29 @@ export default function Vendre() {
     codePostal: "",
     contactTelephone: "",
     description: "",
+    couleur: "",
+    sellerie: "",
+    portes: "5",
+    places: "5",
+    cylindree: "",
+    consommation: "",
+    classeEmission: "EURO 6",
   });
   const [photos, setPhotos] = useState<string[]>([]);
+  const [videos360, setVideos360] = useState<string[]>([]);
+  const [videosNormales, setVideosNormales] = useState<string[]>([]);
+  const [pointsForts, setPointsForts] = useState<string[]>([]);
+  const [pfInput, setPfInput] = useState("");
+  const [equipements, setEquipements] = useState<string[]>([]);
+  const [eqInput, setEqInput] = useState("");
+  const [imperfections, setImperfections] = useState<string[]>([]);
+  const [impInput, setImpInput] = useState("");
+  const [confort, setConfort] = useState<string[]>([]);
+  const [confInput, setConfInput] = useState("");
+  const [multimedia, setMultimedia] = useState<string[]>([]);
+  const [mmInput, setMmInput] = useState("");
+  const [securite, setSecurite] = useState<string[]>([]);
+  const [secInput, setSecInput] = useState("");
 
   const [estim, setEstim] = useState<
     { low: number; mid: number; high: number; method: string; sampleSize: number } | null
@@ -160,6 +185,21 @@ export default function Vendre() {
       contactTelephone: form.contactTelephone || undefined,
       description: form.description || undefined,
       photos,
+      couleur: form.couleur || undefined,
+      portes: form.portes ? Number(form.portes) : undefined,
+      places: form.places ? Number(form.places) : undefined,
+      sellerie: form.sellerie || undefined,
+      cylindree: form.cylindree || undefined,
+      consommation: form.consommation || undefined,
+      classeEmission: form.classeEmission || undefined,
+      pointsForts,
+      equipements,
+      imperfections,
+      confort,
+      multimedia,
+      securite,
+      videos360,
+      videosNormales,
     });
   }
 
@@ -167,8 +207,12 @@ export default function Vendre() {
     if (step === 1) return true;
     if (step === 2) return !!form.marque && !!form.modele;
     if (step === 3) return true;
-    if (step === 4) return !!form.prix;
+    if (step === 4) return true;
     if (step === 5) return true;
+    if (step === 6) return true;
+    if (step === 7) return !!form.prix;
+    if (step === 8) return true;
+    if (step === 9) return true;
     return true;
   }
 
@@ -505,8 +549,57 @@ export default function Vendre() {
           </div>
         )}
 
-        {/* ═══ ÉTAPE 3 — PHOTOS ═══ */}
+        {/* ═══ ÉTAPE 3 — CARROSSERIE & HABITACLE ═══ */}
         {step === 3 && (
+          <div className="card mx-auto max-w-3xl p-6">
+            <h2 className="mb-4 text-xl font-bold text-[#111]">Carrosserie & Habitacle</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div><label className="label">Couleur</label><input className="input" value={form.couleur} onChange={(e) => set("couleur", e.target.value)} placeholder="Noir, Blanc, Gris..." /></div>
+              <div><label className="label">Sellerie</label>
+                <select className="input" value={form.sellerie} onChange={(e) => set("sellerie", e.target.value)}>
+                  <option value="">Choisir</option><option value="Tissu">Tissu</option><option value="Cuir">Cuir</option><option value="Alcantara">Alcantara</option><option value="Simili cuir">Simili cuir</option><option value="Mixte">Mixte</option>
+                </select>
+              </div>
+              <div><label className="label">Nombre de portes</label>
+                <select className="input" value={form.portes} onChange={(e) => set("portes", e.target.value)}>
+                  {["2","3","4","5"].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
+              <div><label className="label">Nombre de places</label>
+                <select className="input" value={form.places} onChange={(e) => set("places", e.target.value)}>
+                  {["2","4","5","7","8","9"].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button type="button" onClick={() => setStep(2)} className="rounded-lg border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151]">← Retour</button>
+              <button type="button" onClick={() => setStep(4)} className="flex-1 rounded-lg bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white hover:bg-[#C5A028]">Continuer →</button>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ ÉTAPE 4 — MOTEUR & CONSOMMATION ═══ */}
+        {step === 4 && (
+          <div className="card mx-auto max-w-3xl p-6">
+            <h2 className="mb-4 text-xl font-bold text-[#111]">Moteur & Consommation</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div><label className="label">Cylindrée</label><input className="input" value={form.cylindree} onChange={(e) => set("cylindree", e.target.value)} placeholder="1598 cm³" /></div>
+              <div><label className="label">Consommation</label><input className="input" value={form.consommation} onChange={(e) => set("consommation", e.target.value)} placeholder="5.2 L/100km" /></div>
+              <div><label className="label">Classe d'émission</label>
+                <select className="input" value={form.classeEmission} onChange={(e) => set("classeEmission", e.target.value)}>
+                  {["EURO 1","EURO 2","EURO 3","EURO 4","EURO 5","EURO 6","EURO 6d","EURO 7"].map(e => <option key={e} value={e}>{e}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button type="button" onClick={() => setStep(3)} className="rounded-lg border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151]">← Retour</button>
+              <button type="button" onClick={() => setStep(5)} className="flex-1 rounded-lg bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white hover:bg-[#C5A028]">Continuer →</button>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ ÉTAPE 5 — PHOTOS ═══ */}
+        {step === 5 && (
           <div className="card mx-auto max-w-3xl p-6">
             <h2 className="mb-2 text-xl font-bold text-[#111]">Photos du véhicule</h2>
             <p className="mb-4 text-sm text-[#6B7280]">
@@ -539,14 +632,38 @@ export default function Vendre() {
               </div>
             )}
             <div className="mt-6 flex gap-3">
-              <button type="button" onClick={() => setStep(2)} className="rounded-lg border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151]">← Retour</button>
-              <button type="button" onClick={() => setStep(4)} className="flex-1 rounded-lg bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white hover:bg-[#C5A028]">Continuer →</button>
+              <button type="button" onClick={() => setStep(4)} className="rounded-lg border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151]">← Retour</button>
+              <button type="button" onClick={() => setStep(6)} className="flex-1 rounded-lg bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white hover:bg-[#C5A028]">Continuer →</button>
             </div>
           </div>
         )}
 
-        {/* ═══ ÉTAPE 4 — DESCRIPTION & PRIX ═══ */}
-        {step === 4 && (
+        {/* ═══ ÉTAPE 6 — VIDÉOS (360° + NORMALES) ═══ */}
+        {step === 6 && (
+          <div className="card mx-auto max-w-3xl p-6">
+            <h2 className="mb-2 text-xl font-bold text-[#111]">Vidéos du véhicule</h2>
+            <p className="mb-4 text-sm text-[#6B7280]">Ajoutez des vidéos 360° et normales pour mettre en valeur votre véhicule.</p>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-bold text-[#D4AF37] mb-2">Vidéos 360° (jusqu'à 5)</h3>
+                <FileUpload label={`Vidéo 360° (${videos360.length}/5)`} accept="video/*" multiple maxFiles={5 - videos360.length} onUploaded={(files) => setVideos360(prev => [...prev, ...files.map(f => f.url)].slice(0, 5))} />
+                {videos360.length > 0 && <div className="mt-2 space-y-1">{videos360.map((v, i) => <div key={i} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs"><span>Vidéo 360° #{i+1}</span><button onClick={() => setVideos360(arr => arr.filter((_,j) => j!==i))} className="text-red-500 text-xs">×</button></div>)}</div>}
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#D4AF37] mb-2">Vidéos normales (jusqu'à 5)</h3>
+                <FileUpload label={`Vidéo (${videosNormales.length}/5)`} accept="video/*" multiple maxFiles={5 - videosNormales.length} onUploaded={(files) => setVideosNormales(prev => [...prev, ...files.map(f => f.url)].slice(0, 5))} />
+                {videosNormales.length > 0 && <div className="mt-2 space-y-1">{videosNormales.map((v, i) => <div key={i} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs"><span>Vidéo #{i+1}</span><button onClick={() => setVideosNormales(arr => arr.filter((_,j) => j!==i))} className="text-red-500 text-xs">×</button></div>)}</div>}
+              </div>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button type="button" onClick={() => setStep(5)} className="rounded-lg border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151]">← Retour</button>
+              <button type="button" onClick={() => setStep(7)} className="flex-1 rounded-lg bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white hover:bg-[#C5A028]">Continuer →</button>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ ÉTAPE 7 — DESCRIPTION & PRIX ═══ */}
+        {step === 7 && (
           <div className="card mx-auto max-w-3xl p-6">
             <h2 className="mb-4 text-xl font-bold text-[#111]">Description & Prix</h2>
             <div className="space-y-4">
@@ -576,14 +693,63 @@ export default function Vendre() {
               </div>
             </div>
             <div className="mt-6 flex gap-3">
-              <button type="button" onClick={() => setStep(3)} className="rounded-lg border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151]">← Retour</button>
-              <button type="button" onClick={() => setStep(5)} disabled={!canNext()} className="flex-1 rounded-lg bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white hover:bg-[#C5A028] disabled:opacity-50">Continuer →</button>
+              <button type="button" onClick={() => setStep(6)} className="rounded-lg border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151]">← Retour</button>
+              <button type="button" onClick={() => setStep(8)} disabled={!canNext()} className="flex-1 rounded-lg bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white hover:bg-[#C5A028] disabled:opacity-50">Continuer →</button>
             </div>
           </div>
         )}
 
-        {/* ═══ ÉTAPE 5 — CONTACT ═══ */}
-        {step === 5 && (
+        {/* ═══ ÉTAPE 8 — ÉQUIPEMENTS & POINTS FORTS ═══ */}
+        {step === 8 && (
+          <div className="card mx-auto max-w-3xl p-6">
+            <h2 className="mb-4 text-xl font-bold text-[#111]">Équipements & Détails</h2>
+            <div className="space-y-5">
+              {/* Points forts */}
+              <div>
+                <label className="label">Points forts</label>
+                <div className="flex gap-2"><input className="input flex-1" value={pfInput} onChange={e => setPfInput(e.target.value)} placeholder="Ex: Climatisation auto" onKeyDown={e => { if (e.key === 'Enter' && pfInput.trim()) { setPointsForts(prev => [...prev, pfInput.trim()]); setPfInput(''); } }} /><button type="button" onClick={() => { if (pfInput.trim()) { setPointsForts(prev => [...prev, pfInput.trim()]); setPfInput(''); } }} className="rounded-lg bg-[#D4AF37] px-3 py-2 text-sm font-bold text-white">+</button></div>
+                {pointsForts.length > 0 && <div className="mt-2 flex flex-wrap gap-1">{pointsForts.map((p,i) => <span key={i} className="inline-flex items-center gap-1 rounded-full bg-[#D4AF37]/10 px-3 py-1 text-xs font-medium text-[#111]">{p}<button onClick={() => setPointsForts(arr => arr.filter((_,j) => j!==i))} className="text-red-400">×</button></span>)}</div>}
+              </div>
+              {/* Équipements */}
+              <div>
+                <label className="label">Équipements</label>
+                <div className="flex gap-2"><input className="input flex-1" value={eqInput} onChange={e => setEqInput(e.target.value)} placeholder="Ex: GPS, Radar de recul" onKeyDown={e => { if (e.key === 'Enter' && eqInput.trim()) { setEquipements(prev => [...prev, eqInput.trim()]); setEqInput(''); } }} /><button type="button" onClick={() => { if (eqInput.trim()) { setEquipements(prev => [...prev, eqInput.trim()]); setEqInput(''); } }} className="rounded-lg bg-[#D4AF37] px-3 py-2 text-sm font-bold text-white">+</button></div>
+                {equipements.length > 0 && <div className="mt-2 flex flex-wrap gap-1">{equipements.map((p,i) => <span key={i} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">{p}<button onClick={() => setEquipements(arr => arr.filter((_,j) => j!==i))} className="text-red-400">×</button></span>)}</div>}
+              </div>
+              {/* Imperfections */}
+              <div>
+                <label className="label">Imperfections</label>
+                <div className="flex gap-2"><input className="input flex-1" value={impInput} onChange={e => setImpInput(e.target.value)} placeholder="Ex: Rayure pare-chocs" onKeyDown={e => { if (e.key === 'Enter' && impInput.trim()) { setImperfections(prev => [...prev, impInput.trim()]); setImpInput(''); } }} /><button type="button" onClick={() => { if (impInput.trim()) { setImperfections(prev => [...prev, impInput.trim()]); setImpInput(''); } }} className="rounded-lg bg-orange-500 px-3 py-2 text-sm font-bold text-white">+</button></div>
+                {imperfections.length > 0 && <div className="mt-2 flex flex-wrap gap-1">{imperfections.map((p,i) => <span key={i} className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700">{p}<button onClick={() => setImperfections(arr => arr.filter((_,j) => j!==i))} className="text-red-400">×</button></span>)}</div>}
+              </div>
+              {/* Confort */}
+              <div>
+                <label className="label">Confort</label>
+                <div className="flex gap-2"><input className="input flex-1" value={confInput} onChange={e => setConfInput(e.target.value)} placeholder="Ex: Sièges chauffants" onKeyDown={e => { if (e.key === 'Enter' && confInput.trim()) { setConfort(prev => [...prev, confInput.trim()]); setConfInput(''); } }} /><button type="button" onClick={() => { if (confInput.trim()) { setConfort(prev => [...prev, confInput.trim()]); setConfInput(''); } }} className="rounded-lg bg-[#D4AF37] px-3 py-2 text-sm font-bold text-white">+</button></div>
+                {confort.length > 0 && <div className="mt-2 flex flex-wrap gap-1">{confort.map((p,i) => <span key={i} className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">{p}<button onClick={() => setConfort(arr => arr.filter((_,j) => j!==i))} className="text-red-400">×</button></span>)}</div>}
+              </div>
+              {/* Multimédia */}
+              <div>
+                <label className="label">Multimédia</label>
+                <div className="flex gap-2"><input className="input flex-1" value={mmInput} onChange={e => setMmInput(e.target.value)} placeholder="Ex: Apple CarPlay" onKeyDown={e => { if (e.key === 'Enter' && mmInput.trim()) { setMultimedia(prev => [...prev, mmInput.trim()]); setMmInput(''); } }} /><button type="button" onClick={() => { if (mmInput.trim()) { setMultimedia(prev => [...prev, mmInput.trim()]); setMmInput(''); } }} className="rounded-lg bg-[#D4AF37] px-3 py-2 text-sm font-bold text-white">+</button></div>
+                {multimedia.length > 0 && <div className="mt-2 flex flex-wrap gap-1">{multimedia.map((p,i) => <span key={i} className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700">{p}<button onClick={() => setMultimedia(arr => arr.filter((_,j) => j!==i))} className="text-red-400">×</button></span>)}</div>}
+              </div>
+              {/* Sécurité */}
+              <div>
+                <label className="label">Sécurité</label>
+                <div className="flex gap-2"><input className="input flex-1" value={secInput} onChange={e => setSecInput(e.target.value)} placeholder="Ex: ABS, ESP" onKeyDown={e => { if (e.key === 'Enter' && secInput.trim()) { setSecurite(prev => [...prev, secInput.trim()]); setSecInput(''); } }} /><button type="button" onClick={() => { if (secInput.trim()) { setSecurite(prev => [...prev, secInput.trim()]); setSecInput(''); } }} className="rounded-lg bg-[#D4AF37] px-3 py-2 text-sm font-bold text-white">+</button></div>
+                {securite.length > 0 && <div className="mt-2 flex flex-wrap gap-1">{securite.map((p,i) => <span key={i} className="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">{p}<button onClick={() => setSecurite(arr => arr.filter((_,j) => j!==i))} className="text-red-400">×</button></span>)}</div>}
+              </div>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button type="button" onClick={() => setStep(7)} className="rounded-lg border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151]">← Retour</button>
+              <button type="button" onClick={() => setStep(9)} className="flex-1 rounded-lg bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white hover:bg-[#C5A028]">Continuer →</button>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ ÉTAPE 9 — CONTACT ═══ */}
+        {step === 9 && (
           <div className="card mx-auto max-w-3xl p-6">
             <h2 className="mb-4 text-xl font-bold text-[#111]">Coordonnées</h2>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -592,14 +758,14 @@ export default function Vendre() {
               <div className="sm:col-span-2"><label className="label">Téléphone de contact</label><input className="input" value={form.contactTelephone} onChange={(e) => set("contactTelephone", e.target.value)} placeholder="+33 6 12 34 56 78" /></div>
             </div>
             <div className="mt-6 flex gap-3">
-              <button type="button" onClick={() => setStep(4)} className="rounded-lg border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151]">← Retour</button>
-              <button type="button" onClick={() => setStep(6)} className="flex-1 rounded-lg bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white hover:bg-[#C5A028]">Continuer →</button>
+              <button type="button" onClick={() => setStep(8)} className="rounded-lg border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151]">← Retour</button>
+              <button type="button" onClick={() => setStep(10)} className="flex-1 rounded-lg bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white hover:bg-[#C5A028]">Continuer →</button>
             </div>
           </div>
         )}
 
-        {/* ═══ ÉTAPE 6 — PUBLICATION ═══ */}
-        {step === 6 && (
+        {/* ═══ ÉTAPE 10 — PUBLICATION ═══ */}
+        {step === 10 && (
           <div className="card mx-auto max-w-3xl p-6">
             <h2 className="mb-4 text-xl font-bold text-[#111]">Récapitulatif & Publication</h2>
             <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] p-5">
@@ -626,7 +792,7 @@ export default function Vendre() {
             </div>
 
             <div className="mt-6 flex gap-3">
-              <button type="button" onClick={() => setStep(5)} className="rounded-lg border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151]">← Retour</button>
+              <button type="button" onClick={() => setStep(9)} className="rounded-lg border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#374151]">← Retour</button>
               <button
                 type="button"
                 onClick={submit}
