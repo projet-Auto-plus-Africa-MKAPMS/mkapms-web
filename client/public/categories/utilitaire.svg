@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <defs>
+    <linearGradient id="bodyU" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f0f0f0"/>
+      <stop offset="100%" stop-color="#d8d8d8"/>
+    </linearGradient>
+    <linearGradient id="glassU" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a0d0e8"/>
+      <stop offset="100%" stop-color="#6aaccc"/>
+    </linearGradient>
+  </defs>
+  <!-- Cargo body - large box -->
+  <rect x="120" y="35" width="235" height="100" rx="4" fill="url(#bodyU)" stroke="#aaa" stroke-width="1.5"/>
+  <!-- Cabin -->
+  <path d="M50,125 L60,125 L62,90 Q65,60 90,50 L120,45 L120,135 L40,135 L40,125 Z" fill="url(#bodyU)" stroke="#aaa" stroke-width="1.5"/>
+  <!-- Cabin roof -->
+  <path d="M62,55 Q68,35 95,32 L120,32 L120,45 L90,50 Z" fill="url(#bodyU)" stroke="#aaa" stroke-width="1.5"/>
+  <!-- Windshield -->
+  <path d="M66,55 Q72,38 96,35 L118,35 L118,48 L90,52 Z" fill="url(#glassU)" stroke="#5a8a9f" stroke-width="1"/>
+  <!-- Side window -->
+  <path d="M90,52 L118,48 L118,85 L90,85 Z" fill="url(#glassU)" stroke="#5a8a9f" stroke-width="1"/>
+  <!-- Headlight -->
+  <path d="M48,100 Q42,98 42,105 Q42,112 48,110 L58,108 L58,102 Z" fill="#fff8dc" stroke="#ccc" stroke-width="0.5"/>
+  <!-- Taillight -->
+  <rect x="355" y="108" width="6" height="14" rx="1" fill="#e33" stroke="#c22" stroke-width="0.5"/>
+  <!-- Cargo door lines -->
+  <line x1="240" y1="38" x2="240" y2="132" stroke="#bbb" stroke-width="1"/>
+  <!-- Door handle on cargo -->
+  <rect x="348" y="78" width="5" height="16" rx="1" fill="#bbb"/>
+  <!-- Cabin door handle -->
+  <rect x="100" y="78" width="12" height="4" rx="2" fill="#bbb"/>
+  <!-- Side mirror -->
+  <rect x="56" y="58" width="8" height="12" rx="2" fill="#ccc" stroke="#aaa" stroke-width="0.5"/>
+  <!-- Bumpers -->
+  <path d="M40,125 Q32,125 32,130 L32,138 L55,138 L55,135 L40,135 Z" fill="#bbb"/>
+  <path d="M355,130 Q365,130 365,135 L365,140 L345,140 L345,135 Z" fill="#bbb"/>
+  <!-- Bottom panel -->
+  <rect x="40" y="132" width="320" height="6" rx="1" fill="#ccc"/>
+  <!-- Wheels -->
+  <circle cx="88" cy="140" r="24" fill="#333"/>
+  <circle cx="88" cy="140" r="16" fill="#555"/>
+  <circle cx="88" cy="140" r="9" fill="#777"/>
+  <circle cx="88" cy="140" r="3" fill="#aaa"/>
+  <circle cx="310" cy="140" r="24" fill="#333"/>
+  <circle cx="310" cy="140" r="16" fill="#555"/>
+  <circle cx="310" cy="140" r="9" fill="#777"/>
+  <circle cx="310" cy="140" r="3" fill="#aaa"/>
+  <!-- Spokes -->
+  <line x1="88" y1="124" x2="88" y2="156" stroke="#888" stroke-width="1.5"/>
+  <line x1="72" y1="140" x2="104" y2="140" stroke="#888" stroke-width="1.5"/>
+  <line x1="310" y1="124" x2="310" y2="156" stroke="#888" stroke-width="1.5"/>
+  <line x1="294" y1="140" x2="326" y2="140" stroke="#888" stroke-width="1.5"/>
+  <!-- Shadow -->
+  <ellipse cx="200" cy="168" rx="165" ry="6" fill="rgba(0,0,0,0.08)"/>
+</svg>
