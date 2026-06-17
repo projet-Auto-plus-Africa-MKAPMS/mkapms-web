@@ -87,6 +87,12 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/acheter" element={<U name="Vente"><Acheter /></U>} />
             <Route path="/louer" element={<U name="Location"><Louer /></U>} />
+            <Route path="/louer/vtc-taxi" element={<U name="Location VTC & Taxi"><VtcTaxi /></U>} />
+            <Route path="/louer/particulier" element={<U name="Location Particulier"><Louer /></U>} />
+            <Route path="/louer/pro" element={<U name="Location Pro"><Louer /></U>} />
+            <Route path="/louer/utilitaires" element={<U name="Utilitaires"><Louer /></U>} />
+            <Route path="/louer/camions" element={<U name="Camions"><Louer /></U>} />
+            <Route path="/louer/minibus" element={<U name="Minibus"><Louer /></U>} />
             <Route path="/vehicule/:id" element={<U name="Vente"><Vehicule /></U>} />
             <Route path="/vendre" element={<U name="Vente"><Vendre /></U>} />
             <Route path="/devis" element={<U name="Devis"><Devis /></U>} />

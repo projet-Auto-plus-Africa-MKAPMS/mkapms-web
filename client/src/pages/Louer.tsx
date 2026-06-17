@@ -1,191 +1,196 @@
-import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Star, Search, MapPin, BellPlus } from "lucide-react";
-import { trpc } from "../lib/trpc";
-import { useAuth } from "../lib/auth";
-import VehicleCard from "../components/VehicleCard";
+import { Shield, Car, Users, Truck, HardHat, Bus, CarFront, ChevronRight, Star, Clock, Headphones, CreditCard } from "lucide-react";
 
-const SEGMENTS = [
-  { value: "", label: "Toutes catégories", desc: "" },
-  { value: "vtc_taxi", label: "VTC / Taxi", desc: "Véhicules conformes VTC et Taxi" },
-  { value: "particulier", label: "Particulier", desc: "Disponible 24 h après paiement" },
-  { value: "professionnel", label: "Pro / Utilitaire", desc: "Disponible 48 h après paiement" },
-];
+/* ══════════════════════════════════════════════════════════════════════════
+   UNIVERS LOCATION — Portes d'entrée
+   Chaque univers est un monde séparé avec ses propres véhicules,
+   textes, filtres et parcours de réservation.
+   ══════════════════════════════════════════════════════════════════════════ */
 
-const ZONES = [
-  { value: "", label: "Toute la France" },
-  { value: "75", label: "75 — Paris" },
-  { value: "13", label: "13 — Bouches-du-Rhône" },
-  { value: "69", label: "69 — Rhône (Lyon)" },
-  { value: "31", label: "31 — Haute-Garonne (Toulouse)" },
-  { value: "33", label: "33 — Gironde (Bordeaux)" },
-  { value: "06", label: "06 — Alpes-Maritimes (Nice)" },
-  { value: "59", label: "59 — Nord (Lille)" },
-];
-
-/* ── annonces location démo (fallback si la DB est vide) ── */
-const DEMO_LOCATION = [
-  { id: 9101, titre: "Peugeot 208 GT", marque: "Peugeot", modele: "208", annee: 2023, kilometrage: 5000, carburant: "Essence", prix: 35, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 35, photoPrincipale: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&h=280&fit=crop" },
-  { id: 9102, titre: "Renault Captur Intens", marque: "Renault", modele: "Captur", annee: 2022, kilometrage: 15000, carburant: "Diesel", prix: 42, type: "location", ville: "Lyon", vendeurType: "professionnel", prixJour: 42, photoPrincipale: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=280&fit=crop" },
-  { id: 9103, titre: "Citroën C4 Feel", marque: "Citroën", modele: "C4", annee: 2023, kilometrage: 8000, carburant: "Hybride", prix: 48, type: "location", ville: "Marseille", vendeurType: "professionnel", prixJour: 48, photoPrincipale: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop" },
-  { id: 9104, titre: "Mercedes Classe C", marque: "Mercedes", modele: "Classe C", annee: 2022, kilometrage: 20000, carburant: "Diesel", prix: 75, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 75, boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=280&fit=crop" },
-  { id: 9105, titre: "Toyota RAV4 Hybride", marque: "Toyota", modele: "RAV4", annee: 2023, kilometrage: 10000, carburant: "Hybride", prix: 55, type: "location", ville: "Toulouse", vendeurType: "professionnel", prixJour: 55, photoPrincipale: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=400&h=280&fit=crop" },
-  { id: 9106, titre: "BMW Série 1 118i", marque: "BMW", modele: "Série 1", annee: 2022, kilometrage: 18000, carburant: "Essence", prix: 60, type: "location", ville: "Bordeaux", vendeurType: "professionnel", prixJour: 60, boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?w=400&h=280&fit=crop" },
-  /* VTC / TAXI */
-  { id: 9201, titre: "Mercedes Classe E 220d", marque: "Mercedes", modele: "Classe E", annee: 2023, kilometrage: 15000, carburant: "Diesel", prix: 120, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 120, segmentLocation: "vtc_taxi", photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=280&fit=crop" },
-  { id: 9202, titre: "Tesla Model 3 Long Range", marque: "Tesla", modele: "Model 3", annee: 2024, kilometrage: 5000, carburant: "Électrique", prix: 135, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 135, segmentLocation: "vtc_taxi", photoPrincipale: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=280&fit=crop" },
-  { id: 9203, titre: "Toyota Camry Hybride", marque: "Toyota", modele: "Camry", annee: 2023, kilometrage: 20000, carburant: "Hybride", prix: 95, type: "location", ville: "Lyon", vendeurType: "professionnel", prixJour: 95, segmentLocation: "vtc_taxi", photoPrincipale: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=280&fit=crop" },
-  { id: 9204, titre: "BMW Série 5 530e Hybride", marque: "BMW", modele: "Série 5", annee: 2023, kilometrage: 12000, carburant: "Hybride", prix: 140, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 140, segmentLocation: "vtc_taxi", boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=280&fit=crop" },
-  { id: 9205, titre: "Peugeot 508 GT Hybride", marque: "Peugeot", modele: "508", annee: 2024, kilometrage: 3000, carburant: "Hybride", prix: 110, type: "location", ville: "Marseille", vendeurType: "professionnel", prixJour: 110, segmentLocation: "vtc_taxi", photoPrincipale: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=280&fit=crop" },
-  { id: 9206, titre: "Skoda Superb Combi", marque: "Skoda", modele: "Superb", annee: 2023, kilometrage: 18000, carburant: "Diesel", prix: 85, type: "location", ville: "Toulouse", vendeurType: "professionnel", prixJour: 85, segmentLocation: "vtc_taxi", photoPrincipale: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=280&fit=crop" },
-  { id: 9207, titre: "Mercedes Classe V 250d", marque: "Mercedes", modele: "Classe V", annee: 2022, kilometrage: 25000, carburant: "Diesel", prix: 160, type: "location", ville: "Nice", vendeurType: "professionnel", prixJour: 160, segmentLocation: "vtc_taxi", boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400&h=280&fit=crop" },
-  { id: 9208, titre: "Volkswagen ID.4 Pro", marque: "Volkswagen", modele: "ID.4", annee: 2024, kilometrage: 2000, carburant: "Électrique", prix: 115, type: "location", ville: "Bordeaux", vendeurType: "professionnel", prixJour: 115, segmentLocation: "vtc_taxi", photoPrincipale: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=280&fit=crop" },
-  { id: 9209, titre: "Hyundai Ioniq 6", marque: "Hyundai", modele: "Ioniq 6", annee: 2024, kilometrage: 1000, carburant: "Électrique", prix: 130, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 130, segmentLocation: "vtc_taxi", photoPrincipale: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=400&h=280&fit=crop" },
+const UNIVERS = [
+  {
+    id: "vtc-taxi",
+    titre: "Location VTC & Taxi",
+    desc: "Véhicules premium conformes VTC et Taxi. Berlines, breaks, vans. Prêts à travailler.",
+    badge: "VTC & TAXI",
+    badgeColor: "bg-[#111] text-[#D4AF37] border-[#D4AF37]",
+    photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=600&h=340&fit=crop",
+    icon: Shield,
+    to: "/louer/vtc-taxi",
+    count: "14 véhicules",
+    highlight: true,
+  },
+  {
+    id: "particulier",
+    titre: "Location Particulier",
+    desc: "Citadines, berlines, SUV. Week-end, vacances, dépannage temporaire. Simple et rapide.",
+    badge: "PARTICULIER",
+    badgeColor: "bg-[#D4AF37] text-white",
+    photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&h=340&fit=crop",
+    icon: CarFront,
+    to: "/louer/particulier",
+    count: "32 véhicules",
+    highlight: false,
+  },
+  {
+    id: "pro",
+    titre: "Location Pro / Entreprise",
+    desc: "Flotte d'entreprise, utilitaires, longue durée. Contrats sur mesure, facturation pro.",
+    badge: "PRO",
+    badgeColor: "bg-blue-800 text-white",
+    photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=600&h=340&fit=crop",
+    icon: Users,
+    to: "/louer/pro",
+    count: "18 véhicules",
+    highlight: false,
+  },
+  {
+    id: "utilitaires",
+    titre: "Utilitaires & Camionnettes",
+    desc: "Kangoo, Trafic, Master, Transit. Pour déménagements, livraisons, chantiers.",
+    badge: "UTILITAIRE",
+    badgeColor: "bg-orange-600 text-white",
+    photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=600&h=340&fit=crop",
+    icon: Truck,
+    to: "/louer/utilitaires",
+    count: "12 véhicules",
+    highlight: false,
+  },
+  {
+    id: "camions",
+    titre: "Camions / Engins",
+    desc: "Camions, bennes, engins de chantier. Location courte et longue durée.",
+    badge: "CAMION",
+    badgeColor: "bg-[#333] text-white",
+    photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&h=340&fit=crop",
+    icon: HardHat,
+    to: "/louer/camions",
+    count: "8 véhicules",
+    highlight: false,
+  },
+  {
+    id: "minibus",
+    titre: "Minibus",
+    desc: "Transport de groupe, événements, navettes. 9 à 22 places.",
+    badge: "MINIBUS",
+    badgeColor: "bg-purple-700 text-white",
+    photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&h=340&fit=crop",
+    icon: Bus,
+    to: "/louer/minibus",
+    count: "6 véhicules",
+    highlight: false,
+  },
 ];
 
 export default function Louer() {
-  const [segment, setSegment] = useState("");
-  const [q, setQ] = useState("");
-  const [zone, setZone] = useState("");
-  const { user } = useAuth();
-
-  const input = useMemo(
-    () => ({
-      type: "location" as const,
-      q: q || undefined,
-      segmentLocation: (segment || undefined) as any,
-      ville: zone || undefined,
-      limit: 48,
-    }),
-    [segment, q, zone],
-  );
-  const list = trpc.annonces.list.useQuery(input);
-
-  // Fallback : si pas de résultats en DB, utiliser les démo
-  const dbItems = list.data?.items || [];
-  const allItems = dbItems.length > 0 ? dbItems : DEMO_LOCATION as any[];
-  const mkapmsItems = allItems.filter((v: any) => v.vendeurType === "concession");
-  const vtcItems = allItems.filter((v: any) => v.segmentLocation === "vtc_taxi");
-  const proItems = allItems.filter((v: any) => v.segmentLocation !== "vtc_taxi" && v.vendeurType === "professionnel" && v.vendeurType !== "concession");
-  const particulierItems = allItems.filter((v: any) => v.segmentLocation !== "vtc_taxi" && v.vendeurType !== "professionnel" && v.vendeurType !== "concession");
-
   return (
-    <div className="container-page py-8">
-      <h1 className="text-2xl font-extrabold text-slate-900">Louer un véhicule</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        {list.data ? `${list.data.total} véhicule(s) disponible(s)` : "Recherche…"}
-      </p>
-
-      {/* ── Recherche + Filtres en premier ── */}
-      <div className="mt-6 card p-4">
-        <h2 className="font-bold text-[#111] mb-3">Rechercher une location</h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div>
-            <label className="label flex items-center gap-1"><Search size={14} className="text-[#D4AF37]" /> Recherche</label>
-            <input className="input text-sm" placeholder="Marque, modèle…" value={q} onChange={(e) => setQ(e.target.value)} />
-          </div>
-          <div>
-            <label className="label flex items-center gap-1"><MapPin size={14} className="text-[#D4AF37]" /> Zone</label>
-            <select className="input text-sm" value={zone} onChange={(e) => setZone(e.target.value)}>
-              {ZONES.map((z) => <option key={z.value} value={z.value}>{z.label}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="label">Catégorie</label>
-            <select className="input text-sm" value={segment} onChange={(e) => setSegment(e.target.value)}>
-              {SEGMENTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-            </select>
+    <div className="min-h-screen bg-[#F5F3EF] pb-24">
+      {/* ── Hero ── */}
+      <div className="relative overflow-hidden bg-[#111] px-4 pt-6 pb-8">
+        <div className="absolute inset-0 opacity-20">
+          <img
+            src="https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&h=400&fit=crop"
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        </div>
+        <div className="relative z-10">
+          <h1 className="text-2xl font-black text-white leading-tight">
+            Location de véhicules
+          </h1>
+          <p className="mt-2 text-sm text-white/70 leading-relaxed">
+            Choisissez votre univers. Chaque catégorie a ses propres véhicules, tarifs et parcours de réservation.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#D4AF37]/20 px-2.5 py-1 text-[11px] font-semibold text-[#D4AF37]">
+              <Star size={10} fill="#D4AF37" /> Réservation 100% en ligne
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/80">
+              <Clock size={10} /> En moins de 3 min
+            </span>
           </div>
         </div>
       </div>
 
-      {/* ── Segments visuels ── */}
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {SEGMENTS.map((s) => (
-          <button
-            key={s.value}
-            onClick={() => setSegment(s.value)}
-            className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-center transition ${
-              segment === s.value ? "border-[#D4AF37] bg-[#D4AF37]/5 ring-1 ring-[#D4AF37]" : "border-[#E5E7EB] hover:shadow-md hover:border-[#D4AF37]"
-            }`}
-          >
-            <div className="font-bold text-sm text-[#111]">{s.label}</div>
-            {s.desc && <div className="text-[10px] text-[#6B7280]">{s.desc}</div>}
-          </button>
-        ))}
+      {/* ── Univers — Portes d'entrée ── */}
+      <div className="px-4 -mt-4 relative z-10 space-y-3">
+        {UNIVERS.map((u) => {
+          const Icon = u.icon;
+          return (
+            <Link
+              key={u.id}
+              to={u.to}
+              className={`group block rounded-2xl bg-white overflow-hidden border-2 transition hover:shadow-lg active:scale-[0.99] ${
+                u.highlight ? "border-[#D4AF37]/40 shadow-md" : "border-[#E5E7EB]"
+              }`}
+            >
+              {/* Photo */}
+              <div className="relative h-[160px] overflow-hidden">
+                <img
+                  src={u.photo}
+                  alt={u.titre}
+                  className="h-full w-full object-cover transition group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                {/* Badge */}
+                <span className={`absolute top-3 left-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold border ${u.badgeColor}`}>
+                  <Icon size={12} /> {u.badge}
+                </span>
+                {/* Compteur */}
+                <span className="absolute top-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-[#111]">
+                  {u.count}
+                </span>
+                {/* Titre sur photo */}
+                <div className="absolute bottom-3 left-3 right-3">
+                  <h2 className="text-lg font-extrabold text-white drop-shadow-lg">{u.titre}</h2>
+                </div>
+              </div>
+              {/* Description */}
+              <div className="flex items-center gap-3 px-4 py-3">
+                <p className="flex-1 text-xs text-[#6B7280] leading-relaxed">{u.desc}</p>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                  <ChevronRight size={16} className="text-[#D4AF37]" />
+                </div>
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
-      {/* ── 1. Nos véhicules MKA.P-MS (toujours en premier) ── */}
-      {mkapmsItems.length > 0 && (
-        <div className="mt-8">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-[#111]">
-            <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" /> Location MKA.P-MS
-          </h2>
-          <p className="text-xs text-[#6B7280]">Nos véhicules en location — qualité garantie</p>
-          <div className="mt-3 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-            {mkapmsItems.map((v: any) => (
-              <div key={v.id} className="w-[220px] shrink-0 snap-start">
-                <VehicleCard v={v as any} />
+      {/* ── Avantages plateforme ── */}
+      <div className="mx-4 mt-6 rounded-2xl bg-[#111] p-5">
+        <h2 className="text-base font-bold text-white text-center">Pourquoi louer chez MKA.P-MS ?</h2>
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          {[
+            { icon: CreditCard, label: "Paiement sécurisé", desc: "CB, Apple Pay, Google Pay" },
+            { icon: Clock, label: "Réservation rapide", desc: "En moins de 3 minutes" },
+            { icon: Headphones, label: "Assistance 24/7", desc: "Support dédié 7j/7" },
+            { icon: Shield, label: "Véhicules contrôlés", desc: "Révisés et assurés" },
+          ].map((a, i) => {
+            const AIcon = a.icon;
+            return (
+              <div key={i} className="rounded-xl bg-white/5 p-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#D4AF37]/20">
+                  <AIcon size={16} className="text-[#D4AF37]" />
+                </div>
+                <h3 className="mt-2 text-xs font-bold text-white">{a.label}</h3>
+                <p className="text-[10px] text-white/50">{a.desc}</p>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      )}
+      </div>
 
-      {/* ── 2. Location VTC & Taxis (séparé) ── */}
-      {vtcItems.length > 0 && (
-        <div className="mt-8">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold text-[#111]">VTC / Taxi — Véhicules professionnels</h2>
-            <span className="inline-flex items-center rounded-full bg-[#111] px-2.5 py-0.5 text-[9px] font-bold text-[#D4AF37] border border-[#D4AF37]">VTC / TAXI</span>
-          </div>
-          <p className="mt-1 text-xs text-[#6B7280]">Véhicules destinés aux chauffeurs VTC et Taxi — documents et contrats gérés sur MKA.P-MS</p>
-          <div className="mt-3 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-            {vtcItems.map((v: any) => (
-              <div key={v.id} className="w-[220px] shrink-0 snap-start">
-                <VehicleCard v={v as any} />
-              </div>
-            ))}
-          </div>
+      {/* ── Besoin d'aide ── */}
+      <div className="mx-4 mt-4 mb-6 rounded-2xl bg-white border border-[#E5E7EB] p-4 flex items-center gap-3">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#D4AF37]/10">
+          <Headphones size={20} className="text-[#D4AF37]" />
         </div>
-      )}
-
-      {/* ── 3. Location Pro classique ── */}
-      {proItems.length > 0 && (
-        <div className="mt-8">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold text-[#111]">Location Pro</h2>
-            <span className="inline-flex items-center rounded-full bg-blue-800 px-2.5 py-0.5 text-[9px] font-bold text-white">LOCATION PRO</span>
-          </div>
-          <p className="mt-1 text-xs text-[#6B7280]">Véhicules proposés par des professionnels vérifiés</p>
-          <div className="mt-3 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-            {proItems.map((v: any) => (
-              <div key={v.id} className="w-[220px] shrink-0 snap-start">
-                <VehicleCard v={v as any} />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── 4. Autres véhicules ── */}
-      <div className="mt-8">
-        <h2 className="text-lg font-bold text-[#111]">
-          {segment ? SEGMENTS.find((s) => s.value === segment)?.label : "Tous les véhicules en location"}
-        </h2>
-        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-          {list.isLoading
-            ? Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="card aspect-[4/5] animate-pulse bg-slate-100" />
-              ))
-            : (particulierItems.length > 0 ? particulierItems : allItems).map((v: any) => (
-                <VehicleCard key={v.id} v={v as any} />
-              ))}
-          {list.data && list.data.items.length === 0 && DEMO_LOCATION.length === 0 && (
-            <p className="col-span-full py-12 text-center text-slate-500">
-              Aucune offre de location disponible pour cette catégorie.
-            </p>
-          )}
+        <div>
+          <h3 className="text-sm font-bold text-[#111]">Besoin d'aide ?</h3>
+          <p className="text-xs text-[#6B7280]">Chat en ligne ou 09 70 70 50 50</p>
+          <p className="text-[10px] text-[#6B7280]">7j/7 de 8h à 20h</p>
         </div>
       </div>
     </div>
