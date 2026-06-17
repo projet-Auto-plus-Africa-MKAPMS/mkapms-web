@@ -964,6 +964,52 @@ export default function Vehicule() {
             </div>
           </div>
 
+          {/* VÉHICULE CERTIFIÉ MKA.P-MS — fond noir premium */}
+          <div className="mt-6 rounded-2xl bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] p-5" style={{boxShadow: '0 0 18px rgba(212,175,55,0.25), 0 4px 20px rgba(0,0,0,0.15)'}}>
+            <div className="flex items-center gap-2 mb-1">
+              <ShieldCheck size={20} className="text-[#D4AF37]" />
+              <h2 className="text-base font-extrabold text-white">Véhicule certifié MKA.P-MS</h2>
+            </div>
+            <p className="text-[11px] text-slate-400 mb-4">Chaque véhicule est contrôlé avant sa mise en vente.</p>
+            <div className="grid grid-cols-4 gap-y-5 gap-x-2">
+              {[
+                { icon: <Wrench size={20} />, label: "Contrôle mécanique", sub: "120 points" },
+                { icon: <History size={20} />, label: "Historique", sub: "vérifié" },
+                { icon: <TrendingUp size={20} />, label: "Essai routier", sub: "effectué" },
+                { icon: <BarChart3 size={20} />, label: "Kilométrage", sub: "certifié" },
+                { icon: <FileText size={20} />, label: "Rapport", sub: "disponible" },
+                { icon: <Truck size={20} />, label: "Livraison", sub: "possible" },
+                { icon: <ShieldCheck size={20} />, label: "Garantie", sub: "disponible" },
+                { icon: <Award size={20} />, label: "Assistance", sub: "administrative" },
+              ].map((s) => (
+                <div key={s.label} className="flex flex-col items-center text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/20 text-[#D4AF37]">{s.icon}</div>
+                  <p className="mt-1.5 text-[10px] font-bold text-white leading-tight">{s.label}</p>
+                  <p className="text-[9px] text-[#D4AF37]">{s.sub}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* SERVICES DISPONIBLES */}
+          <div className="mt-6 rounded-2xl border-2 border-[#111]/40 bg-white p-5" style={{boxShadow: '0 0 12px rgba(212,175,55,0.15), 0 2px 8px rgba(0,0,0,0.06)'}}>
+            <h2 className="text-center text-base font-extrabold text-[#111] mb-4">Services disponibles</h2>
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { icon: <ShieldCheck size={22} />, label: "Garantie" },
+                { icon: <TrendingUp size={22} />, label: "Reprise" },
+                { icon: <CreditCard size={22} />, label: "Financement" },
+                { icon: <Award size={22} />, label: "Expertise" },
+              ].map((s) => (
+                <div key={s.label} className="flex flex-col items-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#D4AF37]/30 bg-[#FFFDF5] text-[#D4AF37]">{s.icon}</div>
+                  <p className="mt-1.5 text-[11px] font-semibold text-[#111]">{s.label}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-center text-xs font-semibold text-[#D4AF37] cursor-pointer" onClick={() => navigate("/services")}>Voir tous nos services →</p>
+          </div>
+
           {/* CARACTÉRISTIQUES — cliquable ouvre/ferme */}
           <div className="mt-5">
             <div className="flex items-center justify-between cursor-pointer" onClick={() => setProCaracOpen(!proCaracOpen)}>
