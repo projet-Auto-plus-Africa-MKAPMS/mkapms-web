@@ -24,13 +24,13 @@ import VehicleCard from "../components/VehicleCard";
 
 /* ── catégories avec vraies photos ── */
 const CATEGORIES = [
-  { label: "Citadine", count: "+2 350", to: "/acheter?categorie=citadine", img: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=200&h=120&fit=crop" },
-  { label: "Berline", count: "+4 152", to: "/acheter?categorie=berline", img: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=200&h=120&fit=crop" },
+  { label: "Citadine", count: "+2 350", to: "/acheter?categorie=citadine", img: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=200&h=120&fit=crop" },
+  { label: "Berline", count: "+4 152", to: "/acheter?categorie=berline", img: "https://images.unsplash.com/photo-1590316536591-92ba019a7b50?w=200&h=120&fit=crop" },
   { label: "SUV", count: "+3 782", to: "/acheter?categorie=suv", img: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=200&h=120&fit=crop" },
-  { label: "Utilitaire", count: "+1 256", to: "/acheter?categorie=utilitaire", img: "https://images.unsplash.com/photo-1632245889029-e406faaa34cd?w=200&h=120&fit=crop" },
+  { label: "Utilitaire", count: "+1 256", to: "/acheter?categorie=utilitaire", img: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=200&h=120&fit=crop" },
   { label: "Moto", count: "+2 620", to: "/acheter?famille=moto", img: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=200&h=120&fit=crop" },
   { label: "Sportive", count: "+1 842", to: "/acheter?categorie=coupe", img: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=200&h=120&fit=crop" },
-  { label: "Scooter", count: "+1 125", to: "/acheter?famille=moto&categorie=scooter", img: "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=200&h=120&fit=crop" },
+  { label: "Scooter", count: "+1 125", to: "/acheter?famille=moto&categorie=scooter", img: "https://images.unsplash.com/photo-1666275898279-29e7b777bafb?w=200&h=120&fit=crop" },
 ];
 
 /* ── annonces démo ── */

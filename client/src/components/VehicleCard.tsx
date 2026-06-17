@@ -28,6 +28,7 @@ export interface VehicleCardData {
   urgent?: boolean | null;
   coupDeCoeur?: boolean | null;
   prixEnBaisse?: boolean | null;
+  segmentLocation?: string | null;
 }
 
 function getCardTier(v: VehicleCardData): "officiel" | "elite" | "premium" | "professionnel" | "particulier" {
@@ -108,6 +109,9 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
           {badges.map((b) => (
             <BadgeChip key={b.code} badge={b} />
           ))}
+          {v.segmentLocation === "vtc_taxi" && (
+            <span className="inline-flex items-center rounded-full bg-[#111] px-2 py-0.5 text-[9px] font-bold text-[#D4AF37] border border-[#D4AF37]">VTC / TAXI</span>
+          )}
         </div>
       </div>
       <div className="p-4">
