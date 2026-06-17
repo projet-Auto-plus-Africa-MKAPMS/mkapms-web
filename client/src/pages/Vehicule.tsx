@@ -267,6 +267,64 @@ export default function Vehicule() {
      ══════════════════════════════════════════════════════════════════ */
   if (isMkapmsStock && !isLocation) {
     const allPhotos = allCategoryPhotos.length > 0 ? allCategoryPhotos : (v.photoPrincipale ? [v.photoPrincipale] : []);
+    const mkaPhotoCategories = [
+      { key: "exterieur", label: "Extérieur" },
+      { key: "interieur", label: "Intérieur" },
+      { key: "sieges", label: "Sièges" },
+      { key: "tableau", label: "Tableau de bord" },
+      { key: "coffre", label: "Coffre" },
+      { key: "moteur", label: "Moteur" },
+      { key: "roues", label: "Roues" },
+      { key: "documents", label: "Documents" },
+      { key: "autres", label: "Autres" },
+      { key: "video360_1", label: "Vidéo 360° #1" },
+      { key: "video360_2", label: "Vidéo 360° #2" },
+      { key: "video360_3", label: "Vidéo 360° #3" },
+      { key: "video360_4", label: "Vidéo 360° #4" },
+      { key: "video360_5", label: "Vidéo 360° #5" },
+      { key: "video_1", label: "Vidéo #1" },
+      { key: "video_2", label: "Vidéo #2" },
+      { key: "video_3", label: "Vidéo #3" },
+      { key: "video_4", label: "Vidéo #4" },
+      { key: "video_5", label: "Vidéo #5" },
+    ];
+
+    /* === GALERIE PHOTO MKA.P-MS (page séparée — même système Pro) === */
+    if (proGalleryOpen) {
+      return (
+        <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+          <div className="flex items-center justify-between border-b px-4 py-4 pt-14">
+            <button onClick={() => setProGalleryOpen(false)} className="text-[#111] p-2"><ChevronLeft size={28} /></button>
+            <span className="text-sm font-bold text-[#111]">{photoIdx + 1}/{allPhotos.length}</span>
+            <div className="w-10" />
+          </div>
+          <div className="flex gap-2 overflow-x-auto border-b px-4 py-4">
+            {mkaPhotoCategories.map((cat) => (
+              <button key={cat.key} onClick={() => setProGalleryCat(cat.key)} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${proGalleryCat === cat.key ? "border-[#D4AF37] text-[#D4AF37]" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
+                {cat.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex-1 flex items-center justify-center bg-white px-2 relative"
+            onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+              const startX = (e.currentTarget as any)._touchX;
+              const endX = e.changedTouches[0].clientX;
+              const diff = startX - endX;
+              if (diff > 50) setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1));
+              if (diff < -50) setPhotoIdx((i) => Math.max(0, i - 1));
+            }}
+          >
+            {allPhotos.length > 0 ? (
+              <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="max-h-full max-w-full object-contain" />
+            ) : (
+              <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="pb-40 md:pb-10">
         {/* ── 1. NOM VÉHICULE EN HAUT — centré, grand, noir ── */}
@@ -274,9 +332,9 @@ export default function Vehicule() {
           <h1 className="text-2xl font-extrabold text-noir">{v.titre}</h1>
         </div>
 
-        {/* ── 2. PHOTO VÉHICULE — espace latéral, flèches dégagées ── */}
-        <div className="px-3 pt-2 md:px-4">
-          <div className="relative w-full overflow-hidden rounded-xl bg-slate-100" style={{ height: "clamp(350px, 58vh, 560px)" }}
+        {/* ── 2. PHOTO VÉHICULE — pleine largeur, bord à bord ── */}
+        <div>
+          <div className="relative w-full overflow-hidden bg-slate-100" style={{ height: "clamp(350px, 58vh, 560px)" }}
             onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
             onTouchEnd={(e) => { const dx = e.changedTouches[0].clientX - ((e.currentTarget as any)._touchX || 0); if (dx < -40) setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1)); if (dx > 40) setPhotoIdx((i) => Math.max(0, i - 1)); }}
           >
@@ -285,7 +343,7 @@ export default function Vehicule() {
                 src={allPhotos[photoIdx] || ""}
                 alt={v.titre}
                 className="h-full w-full object-cover cursor-pointer"
-                onClick={() => { setLightboxIdx(photoIdx); setLightboxOpen(true); }}
+                onClick={() => { setProGalleryCat("exterieur"); setProGalleryOpen(true); }}
               />
             ) : (
               <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
