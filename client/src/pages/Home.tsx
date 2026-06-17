@@ -113,12 +113,12 @@ export default function Home() {
   const [histPlaque, setHistPlaque] = useState("");
   const [histResult, setHistResult] = useState(false);
 
-  /* carousel accueil */
+  /* carousel accueil (5 slides : vidéos + images, 10s chacune) */
   const [carouselIdx, setCarouselIdx] = useState(0);
   useEffect(() => {
     const timer = setInterval(() => {
-      setCarouselIdx((prev) => (prev + 1) % 3);
-    }, 4000);
+      setCarouselIdx((prev) => (prev + 1) % 5);
+    }, 10000);
     return () => clearInterval(timer);
   }, []);
 
@@ -170,32 +170,48 @@ export default function Home() {
         <div className="px-3 pt-0.5 pb-0 md:px-6 md:pt-0 md:pb-0" style={{marginBottom: 0}}>
           <div className="mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl home-carousel" style={{marginBottom: 0}}>
             <div
-              className="flex transition-transform duration-500 ease-in-out"
+              className="flex transition-transform duration-700 ease-in-out"
               style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
             >
-              {[
-                "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=600&h=340&fit=crop",
-                "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&h=340&fit=crop",
-                "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&h=340&fit=crop",
-              ].map((src, i) => (
-                <img
-                  key={i}
-                  src={src}
-                  alt=""
-                  loading={i === 0 ? "eager" : "lazy"}
-                  className="w-full shrink-0 object-cover home-carousel-img"
-                  style={{ aspectRatio: '2.5 / 1', maxHeight: '35vw' }}
-                />
+              {([
+                { type: "video" as const, src: "https://videos.pexels.com/video-files/3195394/3195394-sd_640_360_25fps.mp4" },
+                { type: "img" as const, src: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=600&h=340&fit=crop" },
+                { type: "img" as const, src: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&h=340&fit=crop" },
+                { type: "img" as const, src: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&h=340&fit=crop" },
+                { type: "video" as const, src: "https://videos.pexels.com/video-files/2795173/2795173-sd_640_360_25fps.mp4" },
+              ] as const).map((slide, i) => (
+                slide.type === "video" ? (
+                  <video
+                    key={i}
+                    autoPlay
+                    muted
+                    playsInline
+                    loop
+                    className="w-full shrink-0 object-cover home-carousel-img"
+                    style={{ aspectRatio: '2.5 / 1', maxHeight: '35vw' }}
+                  >
+                    <source src={slide.src} type="video/mp4" />
+                  </video>
+                ) : (
+                  <img
+                    key={i}
+                    src={slide.src}
+                    alt=""
+                    loading={i === 0 ? "eager" : "lazy"}
+                    className="w-full shrink-0 object-cover home-carousel-img"
+                    style={{ aspectRatio: '2.5 / 1', maxHeight: '35vw' }}
+                  />
+                )
               ))}
             </div>
           </div>
           {/* ── indicateur : points dorés ── */}
           <div className="mx-auto flex items-center justify-center gap-1.5 py-0.5">
-            {[0,1,2].map((i) => (
-              <div key={i} className={`h-2 w-2 rounded-full transition ${carouselIdx % 3 === i ? "bg-[#D4AF37]" : "bg-[#E5E2DB]"}`} />
+            {[0,1,2,3,4].map((i) => (
+              <div key={i} className={`h-1.5 w-1.5 rounded-full transition ${carouselIdx % 5 === i ? "bg-[#D4AF37]" : "bg-[#E5E2DB]"}`} />
             ))}
           </div>
-          <div className="mx-auto grid max-w-3xl grid-cols-4 gap-1 md:max-w-2xl md:gap-3 home-actions">
+          <div className="mx-auto grid max-w-3xl grid-cols-4 gap-1.5 md:max-w-2xl md:gap-3 home-actions" style={{marginTop: '4px'}}>
             {[
               { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
               { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
@@ -207,16 +223,16 @@ export default function Home() {
                 <Link
                   key={a.to}
                   to={a.to}
-                  className="group flex flex-col items-center gap-px rounded-lg border-2 border-[#111]/50 bg-white px-1 pb-1 pt-1.5 text-center transition hover:shadow-md hover:border-[#D4AF37] md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5 home-action-card"
+                  className="group flex flex-col items-center gap-0.5 rounded-lg border-2 border-[#111]/50 bg-white px-2 pb-1.5 pt-2 text-center transition hover:shadow-md hover:border-[#D4AF37] md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5 home-action-card"
                 >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-white md:h-16 md:w-16 home-action-icon">
-                    <Icon size={14} className="text-[#D4AF37] md:hidden" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-white md:h-16 md:w-16 home-action-icon">
+                    <Icon size={16} className="text-[#D4AF37] md:hidden" />
                     <Icon size={32} className="hidden text-[#D4AF37] md:block" />
                   </div>
-                  <span className="text-[7px] font-extrabold uppercase tracking-wide text-[#111] md:text-xs">{a.label}</span>
+                  <span className="text-[8px] font-extrabold uppercase tracking-wide text-[#111] md:text-xs">{a.label}</span>
                   <span className="text-[6px] text-[#6B7280] md:text-[10px]">{a.sub}</span>
-                  <div className="flex h-4 w-full items-center justify-center rounded-full bg-[#111] transition group-hover:bg-[#333] md:h-9">
-                    <ArrowRight size={9} className="text-white md:hidden" />
+                  <div className="flex h-5 w-full items-center justify-center rounded-full bg-[#111] transition group-hover:bg-[#333] md:h-9">
+                    <ArrowRight size={10} className="text-white md:hidden" />
                     <ArrowRight size={16} className="hidden text-white md:block" />
                   </div>
                 </Link>
@@ -655,19 +671,24 @@ export default function Home() {
           <div className="overflow-hidden rounded-2xl border-2 border-[#D4AF37]/50" style={{boxShadow: '0 0 12px rgba(212,175,55,0.3)'}}>
             <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${adIdx1 * 100}%)` }}>
               {[
-                { tag: "Emplacement #1", title: "Votre publicité ici", desc: "Espace premium visible par tous les visiteurs de la plateforme", bg: "bg-[#111]" },
+                { tag: "Emplacement #1", title: "Votre publicité ici", desc: "Espace premium visible par tous les visiteurs de la plateforme", bg: "bg-[#111]", video: "https://videos.pexels.com/video-files/3195394/3195394-sd_640_360_25fps.mp4" },
                 { tag: "Emplacement #2", title: "Boostez vos ventes", desc: "Mettez en avant votre garage, magasin ou service automobile", bg: "bg-[#1B2A4A]" },
-                { tag: "Emplacement #3", title: "Offre spéciale", desc: "Faites connaître vos promotions à des milliers d'acheteurs", bg: "bg-[#2D1B4E]" },
+                { tag: "Emplacement #3", title: "Offre spéciale", desc: "Faites connaître vos promotions à des milliers d'acheteurs", bg: "bg-[#2D1B4E]", video: "https://videos.pexels.com/video-files/2795173/2795173-sd_640_360_25fps.mp4" },
                 { tag: "Emplacement #4", title: "Visibilité maximale", desc: "Votre marque sur la page d'accueil — impact garanti", bg: "bg-[#111]" },
-                { tag: "Emplacement #5", title: "Partenaire officiel", desc: "Rejoignez le réseau MKA.P-MS et développez votre activité", bg: "bg-[#1B2A4A]" },
-              ].map((ad, i) => (
-                <div key={i} className={`flex h-[160px] w-full shrink-0 items-center justify-between ${ad.bg} p-5 lg:h-[220px]`}>
-                  <div>
+                { tag: "Emplacement #5", title: "Partenaire officiel", desc: "Rejoignez le réseau MKA.P-MS et développez votre activité", bg: "bg-[#1B2A4A]", video: "https://videos.pexels.com/video-files/857251/857251-sd_640_360_25fps.mp4" },
+              ].map((ad: any, i) => (
+                <div key={i} className={`relative flex h-[160px] w-full shrink-0 items-center justify-between ${ad.bg} p-5 lg:h-[220px] overflow-hidden`}>
+                  {ad.video && (
+                    <video autoPlay muted playsInline loop className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.3 }}>
+                      <source src={ad.video} type="video/mp4" />
+                    </video>
+                  )}
+                  <div style={{ position: 'relative', zIndex: 1 }}>
                     <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37]">{ad.tag}</p>
                     <h3 className="mt-1 text-lg font-extrabold text-white lg:text-2xl">{ad.title}</h3>
                     <p className="mt-1 text-xs text-slate-400 lg:text-sm">{ad.desc}</p>
                   </div>
-                  <Link to="/demande-publicite" className="shrink-0 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#111] hover:bg-[#F5F5F5] lg:px-6 lg:py-3 lg:text-sm">
+                  <Link to="/demande-publicite" className="shrink-0 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#111] hover:bg-[#F5F5F5] lg:px-6 lg:py-3 lg:text-sm" style={{ position: 'relative', zIndex: 1 }}>
                     En savoir plus →
                   </Link>
                 </div>
@@ -857,19 +878,24 @@ export default function Home() {
           <div className="overflow-hidden rounded-2xl border-2 border-[#111]/50" style={{boxShadow: '0 0 10px rgba(212,175,55,0.2)'}}>
             <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${adIdx2 * 100}%)` }}>
               {[
-                { tag: "Publicité premium", title: "Devenez partenaire MKA.P-MS", desc: "Gagnez en visibilité auprès de milliers d'acheteurs et de professionnels", grad: "from-[#D4AF37] to-[#C5A028]" },
+                { tag: "Publicité premium", title: "Devenez partenaire MKA.P-MS", desc: "Gagnez en visibilité auprès de milliers d'acheteurs et de professionnels", grad: "from-[#D4AF37] to-[#C5A028]", video: "https://videos.pexels.com/video-files/3195394/3195394-sd_640_360_25fps.mp4" },
                 { tag: "Publicité premium", title: "Garage & Réparation", desc: "Faites découvrir votre garage à une clientèle qualifiée", grad: "from-[#C5A028] to-[#8B6914]" },
-                { tag: "Publicité premium", title: "Pièces & Accessoires", desc: "Vendez vos pièces détachées directement sur la plateforme", grad: "from-[#8B6914] to-[#D4AF37]" },
+                { tag: "Publicité premium", title: "Pièces & Accessoires", desc: "Vendez vos pièces détachées directement sur la plateforme", grad: "from-[#8B6914] to-[#D4AF37]", video: "https://videos.pexels.com/video-files/2795173/2795173-sd_640_360_25fps.mp4" },
                 { tag: "Publicité premium", title: "Assurance & Financement", desc: "Proposez vos services financiers aux acheteurs MKA.P-MS", grad: "from-[#D4AF37] to-[#B8960C]" },
                 { tag: "Publicité premium", title: "Livraison & Transport", desc: "Offrez vos services de livraison à nos vendeurs et acheteurs", grad: "from-[#B8960C] to-[#D4AF37]" },
-              ].map((ad, i) => (
-                <div key={i} className={`flex h-[160px] w-full shrink-0 items-center justify-between bg-gradient-to-r ${ad.grad} p-5 lg:h-[220px]`}>
-                  <div>
+              ].map((ad: any, i) => (
+                <div key={i} className={`relative flex h-[160px] w-full shrink-0 items-center justify-between bg-gradient-to-r ${ad.grad} p-5 lg:h-[220px] overflow-hidden`}>
+                  {ad.video && (
+                    <video autoPlay muted playsInline loop className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.25 }}>
+                      <source src={ad.video} type="video/mp4" />
+                    </video>
+                  )}
+                  <div style={{ position: 'relative', zIndex: 1 }}>
                     <p className="text-[9px] font-semibold uppercase tracking-widest text-white/80">{ad.tag}</p>
                     <h3 className="mt-1 text-base font-extrabold text-white lg:text-xl">{ad.title}</h3>
                     <p className="mt-1 text-xs text-white/80 lg:text-sm">{ad.desc}</p>
                   </div>
-                  <Link to="/demande-publicite" className="shrink-0 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#111] hover:bg-[#F5F5F5] lg:px-6 lg:py-3 lg:text-sm">
+                  <Link to="/demande-publicite" className="shrink-0 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#111] hover:bg-[#F5F5F5] lg:px-6 lg:py-3 lg:text-sm" style={{ position: 'relative', zIndex: 1 }}>
                     En savoir plus →
                   </Link>
                 </div>
