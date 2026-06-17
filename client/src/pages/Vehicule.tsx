@@ -463,6 +463,32 @@ export default function Vehicule() {
             </div>
           </div>
 
+          {/* ── FINANCEMENT MKA.P-MS — même système que Pro ── */}
+          <div className="border-t-2 border-b-2 border-[#111]/40 py-5" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15), 0 2px 8px rgba(212,175,55,0.15)'}}>
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><CreditCard size={18} className="text-red-400" /> Financement</h2>
+            <div className="mt-3 rounded-xl border border-slate-200 p-5">
+              <div className="flex gap-2 mb-3">
+                <span onClick={() => setProFinanceTab('paiement')} className={`rounded-full px-4 py-1.5 text-xs font-bold cursor-pointer transition ${proFinanceTab === 'paiement' ? 'border-b-2 border-[#D4AF37] text-[#D4AF37]' : 'text-slate-400 hover:text-[#111]'}`}>Paiement en plusieurs fois</span>
+                <span onClick={() => setProFinanceTab('loa')} className={`rounded-full px-4 py-1.5 text-xs font-bold cursor-pointer transition ${proFinanceTab === 'loa' ? 'border-b-2 border-[#D4AF37] text-[#D4AF37]' : 'text-slate-400 hover:text-[#111]'}`}>LOA</span>
+              </div>
+              {proFinanceTab === 'paiement' ? (
+                <>
+                  <p className="text-center text-xl font-extrabold text-[#111]">Dès {Math.round(Number(v.prix) / 60)} €<span className="text-sm font-normal text-slate-500">/mois</span></p>
+                  <p className="text-center text-[10px] text-slate-400 mt-1">Sur 60 mois • Sans apport</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-center text-xl font-extrabold text-[#111]">Dès {Math.round(Number(v.prix) / 48)} €<span className="text-sm font-normal text-slate-500">/mois</span></p>
+                  <p className="text-center text-[10px] text-slate-400 mt-1">LOA sur 48 mois • Apport 10%</p>
+                </>
+              )}
+              <div className="mt-3 flex items-center justify-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-bold text-green-700">● Disponible</span>
+              </div>
+              <button className="mt-4 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => navigate("/finance"))}>Faire une offre au vendeur</button>
+            </div>
+          </div>
+
           {/* ── 10. VÉHICULE CERTIFIÉ MKA.P-MS — compact, fond premium clair, style plaque vitrée ── */}
           <div className="overflow-hidden rounded-xl border-2 border-[#111] bg-gradient-to-br from-white to-[#FFFDF5]" style={{boxShadow: '0 0 14px rgba(212,175,55,0.25), 0 2px 12px rgba(0,0,0,0.08)'}}>
             <div className="px-4 pt-3 pb-1">
@@ -638,43 +664,44 @@ export default function Vehicule() {
             <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-[#111]" onClick={() => requireLogin(() => setShowAlertPanel(true))}>Créer une alerte prix</button>
           </div>
 
-          {/* ── VENDEUR + LOCALISATION — même plaque premium que Pro ── */}
-          <div className="rounded-2xl border-2 border-[#111] overflow-hidden" style={{boxShadow: '0 0 18px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.12)'}}>
+          {/* ── VENDEUR + LOCALISATION — réduit, même plaque premium que Pro ── */}
+          <div className="rounded-xl border-2 border-[#111] overflow-hidden" style={{boxShadow: '0 0 14px rgba(212,175,55,0.25), 0 2px 12px rgba(0,0,0,0.08)'}}>
             {/* Vendeur en haut */}
-            <div className="p-5">
-              <h2 className="text-lg font-bold text-noir">Vendeur</h2>
-              <div className="mt-3 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30">
-                  <Store size={22} className="text-[#D4AF37]" />
+            <div className="p-4">
+              <h2 className="text-base font-bold text-noir">Vendeur</h2>
+              <div className="mt-2 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30">
+                  <Store size={18} className="text-[#D4AF37]" />
                 </div>
                 <div>
-                  <p className="text-base font-bold text-noir">MKA.P-MS — Garage franchisé</p>
-                  <p className="text-xs text-slate-500">Société certifiée</p>
+                  <p className="text-sm font-bold text-noir">MKA.P-MS — Garage franchisé</p>
+                  <p className="text-[11px] text-slate-500">Société certifiée</p>
                   <div className="mt-0.5 flex items-center gap-1">
-                    <Star size={14} className="fill-[#D4AF37] text-[#D4AF37]" />
-                    <span className="text-sm font-bold text-noir">4,8</span>
-                    <span className="text-xs text-slate-400">(128 avis)</span>
+                    <Star size={12} className="fill-[#D4AF37] text-[#D4AF37]" />
+                    <span className="text-xs font-bold text-noir">4,8</span>
+                    <span className="text-[10px] text-slate-400">(128 avis)</span>
                   </div>
                 </div>
               </div>
-              <div className="mt-4 flex items-center gap-6">
-                <div className="flex items-center gap-1.5">
-                  <ShieldCheck size={16} className="text-emerald-600" />
-                  <span className="text-sm text-slate-600">Paiement sécurisé</span>
+              <div className="mt-3 flex items-center gap-4">
+                <div className="flex items-center gap-1">
+                  <ShieldCheck size={14} className="text-emerald-600" />
+                  <span className="text-xs text-slate-600">Paiement sécurisé</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <TrendingUp size={16} className="text-emerald-600" />
-                  <span className="text-sm text-slate-600">Réponse en 1h</span>
+                <div className="flex items-center gap-1">
+                  <TrendingUp size={14} className="text-emerald-600" />
+                  <span className="text-xs text-slate-600">Réponse en 1h</span>
                 </div>
               </div>
+              <button className="mt-3 w-full rounded-xl bg-[#111] py-2.5 text-sm font-bold text-white" onClick={() => requireLogin(() => navigate("/services"))}>Demander un essai routier</button>
             </div>
-            {/* Localisation en dessous — carte réduite */}
+            {/* Localisation — carte réduite */}
             <div className="border-t border-slate-100">
-              <div className="flex items-center gap-2 px-5 pt-3 pb-2">
-                <MapPin size={16} className="text-[#D4AF37]" />
-                <h3 className="text-sm font-bold text-noir">Localisation</h3>
+              <div className="flex items-center gap-2 px-4 pt-2 pb-1">
+                <MapPin size={14} className="text-[#D4AF37]" />
+                <h3 className="text-xs font-bold text-noir">Localisation</h3>
               </div>
-              <div className="relative h-20 w-full bg-slate-100 cursor-pointer" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
+              <div className="relative h-16 w-full bg-slate-100 cursor-pointer" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}`, "_blank")}>
                 <iframe
                   title="Localisation véhicule"
                   src={`https://maps.google.com/maps?q=${encodeURIComponent(v.ville || "Belloy-en-France 95270")}&output=embed&z=13`}
@@ -682,9 +709,9 @@ export default function Vehicule() {
                   loading="lazy"
                 />
               </div>
-              <div className="px-5 py-2.5">
-                <p className="text-sm font-bold text-noir">{v.ville || "Belloy-en-France"}</p>
-                <p className="text-xs text-slate-500">95270</p>
+              <div className="px-4 py-1.5">
+                <p className="text-xs font-bold text-noir">{v.ville || "Belloy-en-France"}</p>
+                <p className="text-[10px] text-slate-500">95270</p>
               </div>
             </div>
           </div>
@@ -707,13 +734,6 @@ export default function Vehicule() {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* ── FOOTER ── */}
-          <div className="mt-4 border-t-2 border-[#111]/40 pt-4 text-center space-y-2" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
-            <p className="text-xs font-semibold text-[#111] underline cursor-pointer" onClick={() => setShowReport(true)}>Signaler cette annonce</p>
-            <p className="text-xs font-semibold text-[#111] underline cursor-pointer">Vos droits et obligations</p>
-            <p className="text-[10px] text-slate-400">Réf. pro : {v.vendeur?.id || "MKA"} | Réf. annonce : {v.reference || v.id}</p>
           </div>
 
           {/* ── PUBLICITÉS — carrousel défilant ── */}
@@ -741,6 +761,13 @@ export default function Vehicule() {
                 </Link>
               ))}
             </div>
+          </div>
+
+          {/* ── FOOTER — après publicités ── */}
+          <div className="mt-4 border-t-2 border-[#111]/40 pt-4 text-center space-y-2" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
+            <p className="text-xs font-semibold text-[#111] underline cursor-pointer" onClick={() => setShowReport(true)}>Signaler cette annonce</p>
+            <p className="text-xs font-semibold text-[#111] underline cursor-pointer">Vos droits et obligations</p>
+            <p className="text-[10px] text-slate-400">Réf. pro : {v.vendeur?.id || "MKA"} | Réf. annonce : {v.reference || v.id}</p>
           </div>
 
         </div>
@@ -1110,25 +1137,6 @@ export default function Vehicule() {
           </div>
           )}
 
-          {/* SERVICES DISPONIBLES — après Finance */}
-          <div className="mt-6 rounded-2xl border-2 border-[#111]/40 bg-white p-5" style={{boxShadow: '0 0 12px rgba(212,175,55,0.15), 0 2px 8px rgba(0,0,0,0.06)'}}>
-            <h2 className="text-center text-base font-extrabold text-[#111] mb-4">Services disponibles</h2>
-            <div className="grid grid-cols-4 gap-3">
-              {[
-                { icon: <ShieldCheck size={22} />, label: "Garantie" },
-                { icon: <TrendingUp size={22} />, label: "Reprise" },
-                { icon: <CreditCard size={22} />, label: "Financement" },
-                { icon: <Award size={22} />, label: "Expertise" },
-              ].map((s) => (
-                <div key={s.label} className="flex flex-col items-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#D4AF37]/30 bg-[#FFFDF5] text-[#D4AF37]">{s.icon}</div>
-                  <p className="mt-1.5 text-[11px] font-semibold text-[#111]">{s.label}</p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-4 text-center text-xs font-semibold text-[#D4AF37] cursor-pointer" onClick={() => navigate("/services")}>Voir tous nos services →</p>
-          </div>
-
           {/* PUBLICITÉ MILIEU — auto-défilante */}
           <div className="mt-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#111] to-[#222] p-4">
             <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37] mb-2">Publicité</p>
@@ -1190,6 +1198,25 @@ export default function Vehicule() {
               </div>
             </div>
             <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-[#111]" onClick={() => requireLogin(() => setShowAlertPanel(true))}>Créer une alerte prix</button>
+          </div>
+
+          {/* SERVICES DISPONIBLES — après Créer une alerte */}
+          <div className="mt-6 rounded-2xl border-2 border-[#111]/40 bg-white p-5" style={{boxShadow: '0 0 12px rgba(212,175,55,0.15), 0 2px 8px rgba(0,0,0,0.06)'}}>
+            <h2 className="text-center text-base font-extrabold text-[#111] mb-4">Services disponibles</h2>
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { icon: <ShieldCheck size={22} />, label: "Garantie" },
+                { icon: <TrendingUp size={22} />, label: "Reprise" },
+                { icon: <CreditCard size={22} />, label: "Financement" },
+                { icon: <Award size={22} />, label: "Expertise" },
+              ].map((s) => (
+                <div key={s.label} className="flex flex-col items-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#D4AF37]/30 bg-[#FFFDF5] text-[#D4AF37]">{s.icon}</div>
+                  <p className="mt-1.5 text-[11px] font-semibold text-[#111]">{s.label}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-center text-xs font-semibold text-[#D4AF37] cursor-pointer" onClick={() => navigate("/services")}>Voir tous nos services →</p>
           </div>
 
           {/* VENDEUR PRO COMPLET — plaque avec carte maps */}
