@@ -22,15 +22,15 @@ import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import VehicleCard from "../components/VehicleCard";
 
-/* ── catégories avec illustrations véhicules (style La Centrale) ── */
+/* ── catégories avec vraies photos modernes ── */
 const CATEGORIES = [
-  { label: "Citadine", count: "2 350 véhicules", to: "/acheter?categorie=citadine", img: "/categories/citadine.svg" },
-  { label: "Berline", count: "4 152 véhicules", to: "/acheter?categorie=berline", img: "/categories/berline.svg" },
-  { label: "SUV", count: "3 782 véhicules", to: "/acheter?categorie=suv", img: "/categories/suv.svg" },
-  { label: "Utilitaire", count: "1 256 véhicules", to: "/acheter?categorie=utilitaire", img: "/categories/utilitaire.svg" },
-  { label: "Moto", count: "2 620 véhicules", to: "/acheter?famille=moto", img: "/categories/moto.svg" },
-  { label: "Sportive", count: "1 842 véhicules", to: "/acheter?categorie=coupe", img: "/categories/sportive.svg" },
-  { label: "Scooter", count: "1 125 véhicules", to: "/acheter?famille=moto&categorie=scooter", img: "/categories/scooter.svg" },
+  { label: "Citadine", count: "2 350 véhicules", to: "/acheter?categorie=citadine", img: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=300&h=180&fit=crop" },
+  { label: "Berline", count: "4 152 véhicules", to: "/acheter?categorie=berline", img: "https://images.unsplash.com/photo-1590316536591-92ba019a7b50?w=300&h=180&fit=crop" },
+  { label: "SUV", count: "3 782 véhicules", to: "/acheter?categorie=suv", img: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=300&h=180&fit=crop" },
+  { label: "Utilitaire", count: "1 256 véhicules", to: "/acheter?categorie=utilitaire", img: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=300&h=180&fit=crop" },
+  { label: "Moto", count: "2 620 véhicules", to: "/acheter?famille=moto", img: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=300&h=180&fit=crop" },
+  { label: "Sportive", count: "1 842 véhicules", to: "/acheter?categorie=coupe", img: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=300&h=180&fit=crop" },
+  { label: "Scooter", count: "1 125 véhicules", to: "/acheter?famille=moto&categorie=scooter", img: "https://images.unsplash.com/photo-1666275898279-29e7b777bafb?w=300&h=180&fit=crop" },
 ];
 
 /* ── annonces démo ── */
@@ -489,10 +489,12 @@ export default function Home() {
           </div>
           <div className="mt-4 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
             {CATEGORIES.map((c) => (
-              <Link key={c.label} to={c.to} className="group flex w-[160px] shrink-0 snap-start flex-col items-center rounded-xl border border-[#e5e5e5] bg-[#f8f8f8] px-3 py-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
-                <img src={c.img} alt={c.label} className="h-20 w-full object-contain" loading="lazy" />
-                <span className="mt-2 text-sm font-bold text-[#111]">{c.label}</span>
-                <span className="text-xs text-[#9CA3AF]">{c.count}</span>
+              <Link key={c.label} to={c.to} className="group flex w-[155px] shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-[#e5e5e5] bg-white text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                <img src={c.img} alt={c.label} className="h-[90px] w-full object-cover" loading="lazy" />
+                <div className="px-2 py-2.5">
+                  <span className="text-sm font-bold text-[#111]">{c.label}</span>
+                  <p className="text-[11px] text-[#9CA3AF]">{c.count}</p>
+                </div>
               </Link>
             ))}
           </div>
