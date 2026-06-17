@@ -37,6 +37,7 @@ import {
   Store,
   ChevronDown,
   ShoppingCart,
+  X,
 } from "lucide-react";
 
 /* ── Classification des tiers ── */
@@ -113,6 +114,7 @@ export default function Vehicule() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState(0);
   const [descTab, setDescTab] = useState<"description" | "points_forts" | "equipements" | "imperfections">("description");
+  const [mkaEquipOpen, setMkaEquipOpen] = useState<string | null>(null);
   const [acompte, setAcompte] = useState<number>(ACOMPTE_PALIERS[1]);
   const [scrollHidden, setScrollHidden] = useState(false);
   const [showPriceHistory, setShowPriceHistory] = useState(false);
@@ -411,7 +413,7 @@ export default function Vehicule() {
             <button className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-noir" onClick={() => { if (navigator.share) navigator.share({ title: v.titre, url: window.location.href }); }}><Share2 size={18} /> Partager</button>
           </div>
 
-          {/* ── 8. DESCRIPTION avec onglets — traits haut/bas foncés, ouverts gauche/droite ── */}
+          {/* ── 8. DESCRIPTION avec onglets — traits haut/bas OUVERTS gauche/droite ── */}
           <div className="border-t-2 border-b-2 border-[#111]/40 py-5" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15), 0 2px 8px rgba(212,175,55,0.15)'}}>
             <div className="mb-4 flex gap-2 overflow-x-auto scrollbar-hide">
               {([
@@ -462,6 +464,123 @@ export default function Vehicule() {
               ))}
             </div>
           </div>
+
+          {/* ── CARACTÉRISTIQUES DÉTAILLÉES — sections avec lignes comme la concurrence ── */}
+          <div className="border-t-2 border-b-2 border-[#111]/40 py-5 space-y-6" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15), 0 2px 8px rgba(212,175,55,0.15)'}}>
+            {/* Carrosserie et habitacle */}
+            <div>
+              <h3 className="text-lg font-bold text-noir mb-3">Carrosserie et habitacle</h3>
+              <div className="space-y-0">
+                {[
+                  { label: "Classe du véhicule", value: v.categorie || "Berline" },
+                  { label: "Portes", value: "5" },
+                  { label: "Nombre de places", value: "5" },
+                  { label: "Couleur", value: v.couleur || "—" },
+                  { label: "Sellerie", value: "Tissu" },
+                ].map((r) => (
+                  <div key={r.label} className="flex items-center justify-between border-b border-slate-100 py-3">
+                    <span className="text-sm text-slate-600">{r.label}</span>
+                    <span className="text-sm font-medium text-[#111]">{r.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Moteur et consommation */}
+            <div>
+              <h3 className="text-lg font-bold text-noir mb-3">Moteur et consommation</h3>
+              <div className="space-y-0">
+                {[
+                  { label: "Cylindrée", value: v.cylindree || "—" },
+                  { label: "Consommation", value: v.consommation || "—" },
+                  { label: "Classe d'émission", value: v.classeEmission || "EURO 6" },
+                ].map((r) => (
+                  <div key={r.label} className="flex items-center justify-between border-b border-slate-100 py-3">
+                    <span className="text-sm text-slate-600">{r.label}</span>
+                    <span className="text-sm font-medium text-[#111]">{r.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Historique du véhicule */}
+            <div>
+              <h3 className="text-lg font-bold text-noir mb-3">Historique du véhicule</h3>
+              <div className="space-y-0">
+                {[
+                  { label: "Nombre de clefs", value: "2" },
+                  { label: "Régime de TVA", value: "TVA non récupérable" },
+                ].map((r) => (
+                  <div key={r.label} className="flex items-center justify-between border-b border-slate-100 py-3">
+                    <span className="text-sm text-slate-600">{r.label}</span>
+                    <span className="text-sm font-medium text-[#111]">{r.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Identification du véhicule */}
+            <div>
+              <h3 className="text-lg font-bold text-noir mb-3">Identification du véhicule</h3>
+              <div className="space-y-0">
+                {[
+                  { label: "Numéro d'inventaire", value: v.reference || `MKA${v.id}` },
+                ].map((r) => (
+                  <div key={r.label} className="flex items-center justify-between border-b border-slate-100 py-3">
+                    <span className="text-sm text-slate-600">{r.label}</span>
+                    <span className="text-sm font-medium text-[#111]">{r.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── ÉQUIPEMENTS — catégories cliquables avec modal ── */}
+          <div className="border-t-2 border-b-2 border-[#111]/40 py-5" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15), 0 2px 8px rgba(212,175,55,0.15)'}}>
+            <h2 className="text-center text-xl font-extrabold text-[#D4AF37] mb-1">Équipements</h2>
+            <div className="mx-auto mb-4 h-0.5 w-12 rounded bg-[#D4AF37]" />
+            <div className="space-y-0">
+              {[
+                { key: "points_forts", label: "Points forts" },
+                { key: "confort", label: "Confort" },
+                { key: "multimedia", label: "Multimédia" },
+                { key: "eclairage", label: "Éclairage et visibilité" },
+                { key: "securite", label: "Sécurité" },
+                { key: "autres", label: "Autres" },
+              ].map((cat) => (
+                <button key={cat.key} onClick={() => setMkaEquipOpen(cat.key)} className="flex w-full items-center justify-between border-b border-slate-100 py-4 text-left">
+                  <span className="text-base font-bold text-[#111]">{cat.label}</span>
+                  <ChevronRight size={20} className="text-slate-400" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Modal Équipements */}
+          {mkaEquipOpen && (
+            <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/30" onClick={() => setMkaEquipOpen(null)}>
+              <div className="w-full max-w-lg rounded-t-2xl bg-white p-5 pb-10 max-h-[70vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-[#1a56db]">
+                    {mkaEquipOpen === "points_forts" ? "Points forts" : mkaEquipOpen === "confort" ? "Confort" : mkaEquipOpen === "multimedia" ? "Multimédia" : mkaEquipOpen === "eclairage" ? "Éclairage et visibilité" : mkaEquipOpen === "securite" ? "Sécurité" : "Autres"}
+                  </h3>
+                  <button onClick={() => setMkaEquipOpen(null)} className="text-slate-400 hover:text-[#111]"><X size={24} /></button>
+                </div>
+                <ul className="space-y-3">
+                  {(mkaEquipOpen === "points_forts" && v.pointsForts ? v.pointsForts :
+                    mkaEquipOpen === "autres" && v.equipements ? v.equipements :
+                    mkaEquipOpen === "confort" ? ["Climatisation automatique", "Sièges chauffants", "Rétroviseurs électriques", "Volant multifonction", "Accoudoir central"] :
+                    mkaEquipOpen === "multimedia" ? ["Écran tactile", "Navigation GPS", "Bluetooth", "Apple CarPlay / Android Auto", "Système audio premium"] :
+                    mkaEquipOpen === "eclairage" ? ["Phares LED", "Feux de jour LED", "Éclairage d'ambiance", "Capteur de luminosité"] :
+                    mkaEquipOpen === "securite" ? ["ABS", "ESP", "Airbags frontaux et latéraux", "Aide au stationnement", "Caméra de recul", "Régulateur de vitesse"] :
+                    ["Équipement non disponible"]
+                  ).map((item: string) => (
+                    <li key={item} className="flex items-start gap-2 text-sm text-[#111]">
+                      <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#111]" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
 
           {/* ── FINANCEMENT MKA.P-MS — même système que Pro ── */}
           <div className="border-t-2 border-b-2 border-[#111]/40 py-5" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15), 0 2px 8px rgba(212,175,55,0.15)'}}>
