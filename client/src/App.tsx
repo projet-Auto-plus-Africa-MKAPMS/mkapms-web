@@ -41,6 +41,14 @@ const LocationPro = lazy(() => import("./pages/LocationPro"));
 const LocationParticulier = lazy(() => import("./pages/LocationParticulier"));
 const ProduitVtcTaxi = lazy(() => import("./pages/ProduitVtcTaxi"));
 const ProduitParticulier = lazy(() => import("./pages/ProduitParticulier"));
+const CentreDocuments = lazy(() => import("./pages/CentreDocuments"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const Messagerie = lazy(() => import("./pages/Messagerie"));
+const ListeAttente = lazy(() => import("./pages/ListeAttente"));
+const ReservationRecurrente = lazy(() => import("./pages/ReservationRecurrente"));
+const Comparateur = lazy(() => import("./pages/Comparateur"));
+const EtatVehicule = lazy(() => import("./pages/EtatVehicule"));
+const RenouvellementLocation = lazy(() => import("./pages/RenouvellementLocation"));
 const ImportAfrica = lazy(() => import("./pages/ImportAfrica"));
 const Historique = lazy(() => import("./pages/Historique"));
 const Wallet = lazy(() => import("./pages/Wallet"));
@@ -99,6 +107,15 @@ export default function App() {
             <Route path="/louer/utilitaires" element={<U name="Utilitaires"><Louer /></U>} />
             <Route path="/louer/camions" element={<U name="Camions"><Louer /></U>} />
             <Route path="/louer/minibus" element={<U name="Minibus"><Louer /></U>} />
+            <Route path="/louer/liste-attente" element={<U name="Liste d'attente"><ListeAttente /></U>} />
+            <Route path="/louer/reservations-recurrentes" element={<U name="Réservations récurrentes"><ReservationRecurrente /></U>} />
+            <Route path="/louer/comparateur" element={<U name="Comparateur"><Comparateur /></U>} />
+            <Route path="/louer/favoris" element={<U name="Favoris"><Favoris /></U>} />
+            <Route path="/louer/etats-vehicule" element={<U name="États véhicule"><EtatVehicule /></U>} />
+            <Route path="/louer/renouvellement" element={<U name="Renouvellement"><RenouvellementLocation /></U>} />
+            <Route path="/documents" element={<U name="Documents"><CentreDocuments /></U>} />
+            <Route path="/notifications" element={<U name="Notifications"><Notifications /></U>} />
+            <Route path="/messagerie" element={<U name="Messagerie"><Messagerie /></U>} />
             <Route path="/vehicule/:id" element={<U name="Vente"><Vehicule /></U>} />
             <Route path="/vendre" element={<U name="Vente"><Vendre /></U>} />
             <Route path="/devis" element={<U name="Devis"><Devis /></U>} />
