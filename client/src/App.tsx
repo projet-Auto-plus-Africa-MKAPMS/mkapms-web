@@ -156,6 +156,10 @@ const Rechercher = lazy(() => import("./pages/Rechercher"));
 const DemandePublicite = lazy(() => import("./pages/DemandePublicite"));
 const PubliciteDetail = lazy(() => import("./pages/PubliciteDetail"));
 
+// Phase finale V1
+const AbonnementsDefinitifs = lazy(() => import("./pages/AbonnementsDefinitifs"));
+const BadgesDefinitifs = lazy(() => import("./pages/BadgesDefinitifs"));
+const PubliciteInterne = lazy(() => import("./pages/PubliciteInterne"));
 // Garage
 const AssistanceRoutiere = lazy(() => import("./pages/garage/AssistanceRoutiere"));
 const BoutiquePieces = lazy(() => import("./pages/garage/BoutiquePieces"));
@@ -287,6 +291,7 @@ const AdminCommissions = lazy(() => import("./pages/superadmin/AdminCommissions"
 const AdminComptesPro = lazy(() => import("./pages/superadmin/AdminComptesPro"));
 const AdminEmployes = lazy(() => import("./pages/superadmin/AdminEmployes"));
 const AdminFraude = lazy(() => import("./pages/superadmin/AdminFraude"));
+const AdminGeneral = lazy(() => import("./pages/superadmin/AdminGeneral"));
 const AdminJournal = lazy(() => import("./pages/superadmin/AdminJournal"));
 const AdminLitiges = lazy(() => import("./pages/superadmin/AdminLitiges"));
 const AdminModerationAnnonces = lazy(() => import("./pages/superadmin/AdminModerationAnnonces"));
@@ -299,7 +304,12 @@ const AdminStatistiques = lazy(() => import("./pages/superadmin/AdminStatistique
 const AdminSupport = lazy(() => import("./pages/superadmin/AdminSupport"));
 const AdminUtilisateurs = lazy(() => import("./pages/superadmin/AdminUtilisateurs"));
 const AdminValidationDocs = lazy(() => import("./pages/superadmin/AdminValidationDocs"));
+const CentreRH = lazy(() => import("./pages/superadmin/CentreRH"));
+const CentreTickets = lazy(() => import("./pages/superadmin/CentreTickets"));
+const ComptabiliteComplete = lazy(() => import("./pages/superadmin/ComptabiliteComplete"));
+const GestionEmployesMKAPMS = lazy(() => import("./pages/superadmin/GestionEmployesMKAPMS"));
 const SuperAdminDashboard = lazy(() => import("./pages/superadmin/SuperAdminDashboard"));
+const ValidationDocumentsComplete = lazy(() => import("./pages/superadmin/ValidationDocumentsComplete"));
 // Utilisateurs
 const AbonnementsUtilisateur = lazy(() => import("./pages/utilisateurs/AbonnementsUtilisateur"));
 const CentreAlertesUtilisateur = lazy(() => import("./pages/utilisateurs/CentreAlertesUtilisateur"));
@@ -795,6 +805,10 @@ export default function App() {
             <Route path="/compte/validation" element={<U name="Validation"><Validation /></U>} />
             <Route path="/compte/*" element={<U name="Mon compte"><Compte /></U>} />
             <Route path="/admin/*" element={<U name="Back-office"><Admin /></U>} />
+            {/* Phase finale V1 */}
+            <Route path="/abonnements-definitifs" element={<U name="Abonnements"><AbonnementsDefinitifs /></U>} />
+            <Route path="/badges-definitifs" element={<U name="Badges"><BadgesDefinitifs /></U>} />
+            <Route path="/publicite-interne" element={<U name="Publicité"><PubliciteInterne /></U>} />
             {/* Garage */}
             <Route path="/garage/assistance-routiere" element={<U name="Garage"><AssistanceRoutiere /></U>} />
             <Route path="/garage/boutique-pieces" element={<U name="Garage"><BoutiquePieces /></U>} />
@@ -926,6 +940,7 @@ export default function App() {
             <Route path="/superadmin/admin-comptes-pro" element={<U name="Super Admin"><AdminComptesPro /></U>} />
             <Route path="/superadmin/admin-employes" element={<U name="Super Admin"><AdminEmployes /></U>} />
             <Route path="/superadmin/admin-fraude" element={<U name="Super Admin"><AdminFraude /></U>} />
+            <Route path="/superadmin/admin-general" element={<U name="Super Admin"><AdminGeneral /></U>} />
             <Route path="/superadmin/admin-journal" element={<U name="Super Admin"><AdminJournal /></U>} />
             <Route path="/superadmin/admin-litiges" element={<U name="Super Admin"><AdminLitiges /></U>} />
             <Route path="/superadmin/admin-moderation-annonces" element={<U name="Super Admin"><AdminModerationAnnonces /></U>} />
@@ -938,7 +953,12 @@ export default function App() {
             <Route path="/superadmin/admin-support" element={<U name="Super Admin"><AdminSupport /></U>} />
             <Route path="/superadmin/admin-utilisateurs" element={<U name="Super Admin"><AdminUtilisateurs /></U>} />
             <Route path="/superadmin/admin-validation-docs" element={<U name="Super Admin"><AdminValidationDocs /></U>} />
+            <Route path="/superadmin/centre-r-h" element={<U name="Super Admin"><CentreRH /></U>} />
+            <Route path="/superadmin/centre-tickets" element={<U name="Super Admin"><CentreTickets /></U>} />
+            <Route path="/superadmin/comptabilite-complete" element={<U name="Super Admin"><ComptabiliteComplete /></U>} />
+            <Route path="/superadmin/gestion-employes-m-k-a-p-m-s" element={<U name="Super Admin"><GestionEmployesMKAPMS /></U>} />
             <Route path="/superadmin" element={<U name="Super Admin"><SuperAdminDashboard /></U>} />
+            <Route path="/superadmin/validation-documents-complete" element={<U name="Super Admin"><ValidationDocumentsComplete /></U>} />
             {/* Utilisateurs */}
             <Route path="/utilisateurs/abonnements-utilisateur" element={<U name="Utilisateurs"><AbonnementsUtilisateur /></U>} />
             <Route path="/utilisateurs/centre-alertes-utilisateur" element={<U name="Utilisateurs"><CentreAlertesUtilisateur /></U>} />
