@@ -49,6 +49,24 @@ const ReservationRecurrente = lazy(() => import("./pages/ReservationRecurrente")
 const Comparateur = lazy(() => import("./pages/Comparateur"));
 const EtatVehicule = lazy(() => import("./pages/EtatVehicule"));
 const RenouvellementLocation = lazy(() => import("./pages/RenouvellementLocation"));
+const RemplacementVehicule = lazy(() => import("./pages/RemplacementVehicule"));
+const GestionConducteurs = lazy(() => import("./pages/GestionConducteurs"));
+const InspectionNumerique = lazy(() => import("./pages/InspectionNumerique"));
+const AssistanceSinistre = lazy(() => import("./pages/AssistanceSinistre"));
+const CentrePenalites = lazy(() => import("./pages/CentrePenalites"));
+const ControleDocuments = lazy(() => import("./pages/ControleDocuments"));
+const HistoriqueLocation = lazy(() => import("./pages/HistoriqueLocation"));
+const ProgrammeVTC = lazy(() => import("./pages/ProgrammeVTC"));
+const CalendrierDispo = lazy(() => import("./pages/CalendrierDispo"));
+const ScoreConfiance = lazy(() => import("./pages/ScoreConfiance"));
+const LivraisonVehicule = lazy(() => import("./pages/LivraisonVehicule"));
+const LocationLOA = lazy(() => import("./pages/LocationLOA"));
+const VehiculesCertifies = lazy(() => import("./pages/VehiculesCertifies"));
+const ReservationMulti = lazy(() => import("./pages/ReservationMulti"));
+const GestionFranchises = lazy(() => import("./pages/GestionFranchises"));
+const RenouvellementFlotte = lazy(() => import("./pages/RenouvellementFlotte"));
+const TableauBordLoueur = lazy(() => import("./pages/TableauBordLoueur"));
+const ScoreQualiteLoueur = lazy(() => import("./pages/ScoreQualiteLoueur"));
 const ImportAfrica = lazy(() => import("./pages/ImportAfrica"));
 const Historique = lazy(() => import("./pages/Historique"));
 const Wallet = lazy(() => import("./pages/Wallet"));
@@ -116,6 +134,24 @@ export default function App() {
             <Route path="/documents" element={<U name="Documents"><CentreDocuments /></U>} />
             <Route path="/notifications" element={<U name="Notifications"><Notifications /></U>} />
             <Route path="/messagerie" element={<U name="Messagerie"><Messagerie /></U>} />
+            <Route path="/louer/remplacement" element={<U name="Remplacement"><RemplacementVehicule /></U>} />
+            <Route path="/louer/conducteurs" element={<U name="Conducteurs"><GestionConducteurs /></U>} />
+            <Route path="/louer/inspection" element={<U name="Inspection"><InspectionNumerique /></U>} />
+            <Route path="/louer/assistance" element={<U name="Assistance"><AssistanceSinistre /></U>} />
+            <Route path="/louer/penalites" element={<U name="Pénalités"><CentrePenalites /></U>} />
+            <Route path="/louer/controle-documents" element={<U name="Contrôle documents"><ControleDocuments /></U>} />
+            <Route path="/louer/historique" element={<U name="Historique location"><HistoriqueLocation /></U>} />
+            <Route path="/louer/programme-vtc" element={<U name="Programme VTC"><ProgrammeVTC /></U>} />
+            <Route path="/louer/calendrier" element={<U name="Calendrier"><CalendrierDispo /></U>} />
+            <Route path="/louer/score-confiance" element={<U name="Score confiance"><ScoreConfiance /></U>} />
+            <Route path="/louer/livraison" element={<U name="Livraison"><LivraisonVehicule /></U>} />
+            <Route path="/louer/loa" element={<U name="LOA"><LocationLOA /></U>} />
+            <Route path="/louer/certifies" element={<U name="Certifiés"><VehiculesCertifies /></U>} />
+            <Route path="/louer/multi-vehicules" element={<U name="Multi-véhicules"><ReservationMulti /></U>} />
+            <Route path="/louer/franchises" element={<U name="Franchises"><GestionFranchises /></U>} />
+            <Route path="/louer/renouvellement-flotte" element={<U name="Renouvellement flotte"><RenouvellementFlotte /></U>} />
+            <Route path="/louer/tableau-bord-loueur" element={<U name="Tableau bord loueur"><TableauBordLoueur /></U>} />
+            <Route path="/louer/score-loueur" element={<U name="Score loueur"><ScoreQualiteLoueur /></U>} />
             <Route path="/vehicule/:id" element={<U name="Vente"><Vehicule /></U>} />
             <Route path="/vendre" element={<U name="Vente"><Vendre /></U>} />
             <Route path="/devis" element={<U name="Devis"><Devis /></U>} />
