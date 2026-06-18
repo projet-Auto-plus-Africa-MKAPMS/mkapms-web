@@ -67,6 +67,58 @@ const GestionFranchises = lazy(() => import("./pages/GestionFranchises"));
 const RenouvellementFlotte = lazy(() => import("./pages/RenouvellementFlotte"));
 const TableauBordLoueur = lazy(() => import("./pages/TableauBordLoueur"));
 const ScoreQualiteLoueur = lazy(() => import("./pages/ScoreQualiteLoueur"));
+// Univers Vente
+const VenteGenerale = lazy(() => import("./pages/VenteGenerale"));
+const VenteParticulier = lazy(() => import("./pages/VenteParticulier"));
+const VentePro = lazy(() => import("./pages/VentePro"));
+const VenteMKAPMS = lazy(() => import("./pages/VenteMKAPMS"));
+const VenteMoto = lazy(() => import("./pages/VenteMoto"));
+const VenteUtilitaires = lazy(() => import("./pages/VenteUtilitaires"));
+const VenteCamions = lazy(() => import("./pages/VenteCamions"));
+const VenteVTC = lazy(() => import("./pages/VenteVTC"));
+const VentePromotions = lazy(() => import("./pages/VentePromotions"));
+const VenteEncheres = lazy(() => import("./pages/VenteEncheres"));
+const EstimationAuto = lazy(() => import("./pages/EstimationAuto"));
+const HistoriqueVehiculeVente = lazy(() => import("./pages/HistoriqueVehiculeVente"));
+const RepriseVehicule = lazy(() => import("./pages/RepriseVehicule"));
+const DepotAnnonce = lazy(() => import("./pages/DepotAnnonce"));
+const EspaceProVente = lazy(() => import("./pages/EspaceProVente"));
+// Inscriptions
+const InscriptionParticulier = lazy(() => import("./pages/InscriptionParticulier"));
+const TableauBordParticulier = lazy(() => import("./pages/TableauBordParticulier"));
+const InscriptionProVente = lazy(() => import("./pages/InscriptionProVente"));
+const TableauBordProVente = lazy(() => import("./pages/TableauBordProVente"));
+// Vente operations
+const GestionStockVO = lazy(() => import("./pages/vente/GestionStockVO"));
+const DossierVehicule = lazy(() => import("./pages/vente/DossierVehicule"));
+const WorkflowAchatVO = lazy(() => import("./pages/vente/WorkflowAchatVO"));
+const CentreTransport = lazy(() => import("./pages/vente/CentreTransport"));
+const CentreDiagnostic = lazy(() => import("./pages/vente/CentreDiagnostic"));
+const CentreReparations = lazy(() => import("./pages/vente/CentreReparations"));
+const CentrePhotosMedias = lazy(() => import("./pages/vente/CentrePhotosMedias"));
+const ReservationsVente = lazy(() => import("./pages/vente/ReservationsVente"));
+const LivraisonVente = lazy(() => import("./pages/vente/LivraisonVente"));
+const DossierClient = lazy(() => import("./pages/vente/DossierClient"));
+const AvisVendeurs = lazy(() => import("./pages/vente/AvisVendeurs"));
+const QualiteVendeur = lazy(() => import("./pages/vente/QualiteVendeur"));
+const AchatExpress = lazy(() => import("./pages/vente/AchatExpress"));
+const TableauBordVendeur = lazy(() => import("./pages/vente/TableauBordVendeur"));
+const AlertesAuto = lazy(() => import("./pages/vente/AlertesAuto"));
+const MultiSites = lazy(() => import("./pages/vente/MultiSites"));
+const GestionEmployes = lazy(() => import("./pages/vente/GestionEmployes"));
+const DroitsAcces = lazy(() => import("./pages/vente/DroitsAcces"));
+const CentreFournisseurs = lazy(() => import("./pages/vente/CentreFournisseurs"));
+const CentreMarges = lazy(() => import("./pages/vente/CentreMarges"));
+const CentreObjectifs = lazy(() => import("./pages/vente/CentreObjectifs"));
+const CentrePerformances = lazy(() => import("./pages/vente/CentrePerformances"));
+const CentrePublicites = lazy(() => import("./pages/vente/CentrePublicites"));
+const CentreCampagnes = lazy(() => import("./pages/vente/CentreCampagnes"));
+const CentreClientsVente = lazy(() => import("./pages/vente/CentreClientsVente"));
+const CentreFinancement = lazy(() => import("./pages/vente/CentreFinancement"));
+const CentreControleQualite = lazy(() => import("./pages/vente/CentreControleQualite"));
+const CentreExport = lazy(() => import("./pages/vente/CentreExport"));
+const CentreArchives = lazy(() => import("./pages/vente/CentreArchives"));
+const CentreSecurite = lazy(() => import("./pages/vente/CentreSecurite"));
 const ImportAfrica = lazy(() => import("./pages/ImportAfrica"));
 const Historique = lazy(() => import("./pages/Historique"));
 const Wallet = lazy(() => import("./pages/Wallet"));
@@ -152,6 +204,58 @@ export default function App() {
             <Route path="/louer/renouvellement-flotte" element={<U name="Renouvellement flotte"><RenouvellementFlotte /></U>} />
             <Route path="/louer/tableau-bord-loueur" element={<U name="Tableau bord loueur"><TableauBordLoueur /></U>} />
             <Route path="/louer/score-loueur" element={<U name="Score loueur"><ScoreQualiteLoueur /></U>} />
+            {/* Univers Vente */}
+            <Route path="/acheter" element={<U name="Vente"><VenteGenerale /></U>} />
+            <Route path="/acheter/particulier" element={<U name="Vente Particulier"><VenteParticulier /></U>} />
+            <Route path="/acheter/professionnel" element={<U name="Vente Pro"><VentePro /></U>} />
+            <Route path="/acheter/mkapms-officiel" element={<U name="Vente MKA.P-MS"><VenteMKAPMS /></U>} />
+            <Route path="/acheter/moto" element={<U name="Vente Moto"><VenteMoto /></U>} />
+            <Route path="/acheter/utilitaires" element={<U name="Vente Utilitaires"><VenteUtilitaires /></U>} />
+            <Route path="/acheter/camions" element={<U name="Vente Camions"><VenteCamions /></U>} />
+            <Route path="/acheter/vtc-taxi" element={<U name="Vente VTC"><VenteVTC /></U>} />
+            <Route path="/acheter/promotions" element={<U name="Promotions"><VentePromotions /></U>} />
+            <Route path="/acheter/encheres" element={<U name="Ench\u00e8res"><VenteEncheres /></U>} />
+            <Route path="/acheter/estimation" element={<U name="Estimation"><EstimationAuto /></U>} />
+            <Route path="/acheter/historique-vehicule" element={<U name="Historique v\u00e9hicule"><HistoriqueVehiculeVente /></U>} />
+            <Route path="/acheter/reprise" element={<U name="Reprise"><RepriseVehicule /></U>} />
+            <Route path="/acheter/depot-annonce" element={<U name="D\u00e9p\u00f4t annonce"><DepotAnnonce /></U>} />
+            <Route path="/acheter/espace-pro" element={<U name="Espace Pro Vente"><EspaceProVente /></U>} />
+            {/* Inscriptions */}
+            <Route path="/inscription" element={<U name="Inscription"><InscriptionParticulier /></U>} />
+            <Route path="/tableau-de-bord" element={<U name="Mon espace"><TableauBordParticulier /></U>} />
+            <Route path="/acheter/inscription-pro" element={<U name="Inscription Pro"><InscriptionProVente /></U>} />
+            <Route path="/vente/tableau-de-bord-pro" element={<U name="Dashboard Pro"><TableauBordProVente /></U>} />
+            {/* Vente operations */}
+            <Route path="/vente/stock" element={<U name="Stock VO"><GestionStockVO /></U>} />
+            <Route path="/vente/dossier-vehicule" element={<U name="Dossier v\u00e9hicule"><DossierVehicule /></U>} />
+            <Route path="/vente/workflow" element={<U name="Workflow VO"><WorkflowAchatVO /></U>} />
+            <Route path="/vente/transport" element={<U name="Transport"><CentreTransport /></U>} />
+            <Route path="/vente/diagnostic" element={<U name="Diagnostic"><CentreDiagnostic /></U>} />
+            <Route path="/vente/reparations" element={<U name="R\u00e9parations"><CentreReparations /></U>} />
+            <Route path="/vente/photos" element={<U name="Photos"><CentrePhotosMedias /></U>} />
+            <Route path="/vente/reservations" element={<U name="R\u00e9servations Vente"><ReservationsVente /></U>} />
+            <Route path="/vente/livraison" element={<U name="Livraison Vente"><LivraisonVente /></U>} />
+            <Route path="/vente/dossier-client" element={<U name="Dossier Client"><DossierClient /></U>} />
+            <Route path="/vente/avis" element={<U name="Avis Vendeurs"><AvisVendeurs /></U>} />
+            <Route path="/vente/qualite" element={<U name="Qualit\u00e9 Vendeur"><QualiteVendeur /></U>} />
+            <Route path="/vente/achat-express" element={<U name="Achat Express"><AchatExpress /></U>} />
+            <Route path="/vente/resume-vendeur" element={<U name="R\u00e9sum\u00e9 Vendeur"><TableauBordVendeur /></U>} />
+            <Route path="/vente/alertes" element={<U name="Alertes"><AlertesAuto /></U>} />
+            <Route path="/vente/multi-sites" element={<U name="Multi-Sites"><MultiSites /></U>} />
+            <Route path="/vente/employes" element={<U name="Employ\u00e9s"><GestionEmployes /></U>} />
+            <Route path="/vente/droits" element={<U name="Droits acc\u00e8s"><DroitsAcces /></U>} />
+            <Route path="/vente/fournisseurs" element={<U name="Fournisseurs"><CentreFournisseurs /></U>} />
+            <Route path="/vente/marges" element={<U name="Marges"><CentreMarges /></U>} />
+            <Route path="/vente/objectifs" element={<U name="Objectifs"><CentreObjectifs /></U>} />
+            <Route path="/vente/performances" element={<U name="Performances"><CentrePerformances /></U>} />
+            <Route path="/vente/publicites" element={<U name="Publicit\u00e9s"><CentrePublicites /></U>} />
+            <Route path="/vente/campagnes" element={<U name="Campagnes"><CentreCampagnes /></U>} />
+            <Route path="/vente/clients" element={<U name="Clients"><CentreClientsVente /></U>} />
+            <Route path="/vente/financement" element={<U name="Financement"><CentreFinancement /></U>} />
+            <Route path="/vente/controle-qualite" element={<U name="Contr\u00f4le Qualit\u00e9"><CentreControleQualite /></U>} />
+            <Route path="/vente/export" element={<U name="Export"><CentreExport /></U>} />
+            <Route path="/vente/archives" element={<U name="Archives"><CentreArchives /></U>} />
+            <Route path="/vente/securite" element={<U name="S\u00e9curit\u00e9"><CentreSecurite /></U>} />
             <Route path="/vehicule/:id" element={<U name="Vente"><Vehicule /></U>} />
             <Route path="/vendre" element={<U name="Vente"><Vendre /></U>} />
             <Route path="/devis" element={<U name="Devis"><Devis /></U>} />
