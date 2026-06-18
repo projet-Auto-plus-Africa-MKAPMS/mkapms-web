@@ -489,12 +489,19 @@ const VentePays = lazy(() => import("./pages/conformite/VentePays"));
 const AcademieMKAPMS = lazy(() => import("./pages/labs/AcademieMKAPMS"));
 const AnalyseMarcheMondiale = lazy(() => import("./pages/labs/AnalyseMarcheMondiale"));
 const AnalyseTrafic = lazy(() => import("./pages/labs/AnalyseTrafic"));
+const ArchivesHistoriques = lazy(() => import("./pages/labs/ArchivesHistoriques"));
 const AssistantFondateur = lazy(() => import("./pages/labs/AssistantFondateur"));
+const AuditQualite = lazy(() => import("./pages/labs/AuditQualite"));
 const AutomatisationComplete = lazy(() => import("./pages/labs/AutomatisationComplete"));
 const BenchmarkFlottes = lazy(() => import("./pages/labs/BenchmarkFlottes"));
+const BibliothequeAutomobile = lazy(() => import("./pages/labs/BibliothequeAutomobile"));
+const BibliothequeReparations = lazy(() => import("./pages/labs/BibliothequeReparations"));
+const Brevets = lazy(() => import("./pages/labs/Brevets"));
+const CampusAutomobile = lazy(() => import("./pages/labs/CampusAutomobile"));
 const CarnetEntretienAuto = lazy(() => import("./pages/labs/CarnetEntretienAuto"));
 const CentreAcquisitionsLabs = lazy(() => import("./pages/labs/CentreAcquisitionsLabs"));
 const CentreAppelsOffres = lazy(() => import("./pages/labs/CentreAppelsOffres"));
+const CentreCoordinationMondial = lazy(() => import("./pages/labs/CentreCoordinationMondial"));
 const CentreDecisionsStrategiques = lazy(() => import("./pages/labs/CentreDecisionsStrategiques"));
 const CentreDonneesMondiales = lazy(() => import("./pages/labs/CentreDonneesMondiales"));
 const CentreExpansionAuto = lazy(() => import("./pages/labs/CentreExpansionAuto"));
@@ -502,8 +509,10 @@ const CentreExpansionAutomatique2 = lazy(() => import("./pages/labs/CentreExpans
 const CentreExportAuto = lazy(() => import("./pages/labs/CentreExportAuto"));
 const CentreFormationAfrique = lazy(() => import("./pages/labs/CentreFormationAfrique"));
 const CentreInnovation = lazy(() => import("./pages/labs/CentreInnovation"));
+const CentreIntelligenceMarche = lazy(() => import("./pages/labs/CentreIntelligenceMarche"));
 const CentreInvestissementsLabs = lazy(() => import("./pages/labs/CentreInvestissementsLabs"));
 const CentreOpportunitesMondiales = lazy(() => import("./pages/labs/CentreOpportunitesMondiales"));
+const CentreRechercheAuto = lazy(() => import("./pages/labs/CentreRechercheAuto"));
 const CentreRechercheMKAPMS = lazy(() => import("./pages/labs/CentreRechercheMKAPMS"));
 const CentreStrategieGroupe = lazy(() => import("./pages/labs/CentreStrategieGroupe"));
 const CentreTraduction = lazy(() => import("./pages/labs/CentreTraduction"));
@@ -512,6 +521,7 @@ const CentresReconditionnement = lazy(() => import("./pages/labs/CentresRecondit
 const CentresTechniques = lazy(() => import("./pages/labs/CentresTechniques"));
 const CertificationVehicule = lazy(() => import("./pages/labs/CertificationVehicule"));
 const CoffrefortInternational = lazy(() => import("./pages/labs/CoffrefortInternational"));
+const ConferencesInternationales = lazy(() => import("./pages/labs/ConferencesInternationales"));
 const ControleDistanceFlottes = lazy(() => import("./pages/labs/ControleDistanceFlottes"));
 const ControleProduction = lazy(() => import("./pages/labs/ControleProduction"));
 const DataCloudAuto = lazy(() => import("./pages/labs/DataCloudAuto"));
@@ -521,10 +531,13 @@ const EnergyRecharge = lazy(() => import("./pages/labs/EnergyRecharge"));
 const ExpansionMondiale = lazy(() => import("./pages/labs/ExpansionMondiale"));
 const Filiales = lazy(() => import("./pages/labs/Filiales"));
 const FleetNetworkMondial = lazy(() => import("./pages/labs/FleetNetworkMondial"));
+const FondationFormation = lazy(() => import("./pages/labs/FondationFormation"));
+const FondationMobilite = lazy(() => import("./pages/labs/FondationMobilite"));
 const FondsDeveloppement = lazy(() => import("./pages/labs/FondsDeveloppement"));
 const FondsExpansionAfrique = lazy(() => import("./pages/labs/FondsExpansionAfrique"));
 const FranchiseMKAPMS = lazy(() => import("./pages/labs/FranchiseMKAPMS"));
 const FranchisesGlobal = lazy(() => import("./pages/labs/FranchisesGlobal"));
+const Future2050 = lazy(() => import("./pages/labs/Future2050"));
 const GestionEntrepots = lazy(() => import("./pages/labs/GestionEntrepots"));
 const GestionFlotteIntelligente = lazy(() => import("./pages/labs/GestionFlotteIntelligente"));
 const GestionFlottesConnectees = lazy(() => import("./pages/labs/GestionFlottesConnectees"));
@@ -537,8 +550,11 @@ const IAConseillerAchat = lazy(() => import("./pages/labs/IAConseillerAchat"));
 const IAConseillerGarage = lazy(() => import("./pages/labs/IAConseillerGarage"));
 const IAConseillerVente = lazy(() => import("./pages/labs/IAConseillerVente"));
 const IAOperationnelleMondiale = lazy(() => import("./pages/labs/IAOperationnelleMondiale"));
+const IdentiteNumeriqueEntreprise = lazy(() => import("./pages/labs/IdentiteNumeriqueEntreprise"));
 const IdentiteNumeriqueVehicule = lazy(() => import("./pages/labs/IdentiteNumeriqueVehicule"));
+const IdentiteNumeriqueVehicule2 = lazy(() => import("./pages/labs/IdentiteNumeriqueVehicule2"));
 const InspectionDistance = lazy(() => import("./pages/labs/InspectionDistance"));
+const InstitutFormation = lazy(() => import("./pages/labs/InstitutFormation"));
 const JumeauNumerique = lazy(() => import("./pages/labs/JumeauNumerique"));
 const JumeauxNumeriques = lazy(() => import("./pages/labs/JumeauxNumeriques"));
 const LabelCertifie = lazy(() => import("./pages/labs/LabelCertifie"));
@@ -546,7 +562,11 @@ const LicencesMKAPMS = lazy(() => import("./pages/labs/LicencesMKAPMS"));
 const LogistiquesCentres = lazy(() => import("./pages/labs/LogistiquesCentres"));
 const MKAPMSWorld = lazy(() => import("./pages/labs/MKAPMSWorld"));
 const MaintenancePredictive = lazy(() => import("./pages/labs/MaintenancePredictive"));
+const MuseeNumerique = lazy(() => import("./pages/labs/MuseeNumerique"));
+const NormeMKAPMS = lazy(() => import("./pages/labs/NormeMKAPMS"));
+const ObjectifUltime = lazy(() => import("./pages/labs/ObjectifUltime"));
 const ObservatoireAutomobile = lazy(() => import("./pages/labs/ObservatoireAutomobile"));
+const ParcIndustriel = lazy(() => import("./pages/labs/ParcIndustriel"));
 const PasseportNumeriqueVehicule = lazy(() => import("./pages/labs/PasseportNumeriqueVehicule"));
 const PlaceMarcheB2B = lazy(() => import("./pages/labs/PlaceMarcheB2B"));
 const ProgrammeInnovation = lazy(() => import("./pages/labs/ProgrammeInnovation"));
@@ -557,10 +577,12 @@ const ReseauDepannageAfrique = lazy(() => import("./pages/labs/ReseauDepannageAf
 const ReseauDepanneurs = lazy(() => import("./pages/labs/ReseauDepanneurs"));
 const ReseauDistribution = lazy(() => import("./pages/labs/ReseauDistribution"));
 const ReseauExperts = lazy(() => import("./pages/labs/ReseauExperts"));
+const ReseauExpertsGlobal = lazy(() => import("./pages/labs/ReseauExpertsGlobal"));
 const ReseauFournisseursGlobal = lazy(() => import("./pages/labs/ReseauFournisseursGlobal"));
 const ReseauGaragesAfrique = lazy(() => import("./pages/labs/ReseauGaragesAfrique"));
 const ReseauIndustriel = lazy(() => import("./pages/labs/ReseauIndustriel"));
 const ReseauMobiliteMondiale = lazy(() => import("./pages/labs/ReseauMobiliteMondiale"));
+const ReseauMondialComplet = lazy(() => import("./pages/labs/ReseauMondialComplet"));
 const ReseauMondialPartenaires = lazy(() => import("./pages/labs/ReseauMondialPartenaires"));
 const ReseauMondialServices = lazy(() => import("./pages/labs/ReseauMondialServices"));
 const ReseauPiecesAfrique = lazy(() => import("./pages/labs/ReseauPiecesAfrique"));
@@ -571,9 +593,11 @@ const ReseauUsines = lazy(() => import("./pages/labs/ReseauUsines"));
 const SignatureUniverselle = lazy(() => import("./pages/labs/SignatureUniverselle"));
 const SmartVehicles = lazy(() => import("./pages/labs/SmartVehicles"));
 const StationnementIntelligent = lazy(() => import("./pages/labs/StationnementIntelligent"));
+const SystemesProprietaires = lazy(() => import("./pages/labs/SystemesProprietaires"));
 const Telematique = lazy(() => import("./pages/labs/Telematique"));
 const VehiculesConnectes = lazy(() => import("./pages/labs/VehiculesConnectes"));
 const VisionFinaleMKAPMS = lazy(() => import("./pages/labs/VisionFinaleMKAPMS"));
+const ZonesTechniques = lazy(() => import("./pages/labs/ZonesTechniques"));
 
 // Chaque univers est isolé : un crash dans l'un n'affecte pas les autres.
 function U({ name, children }: { name: string; children: React.ReactNode }) {
@@ -1082,12 +1106,19 @@ export default function App() {
             <Route path="/labs/academie-m-k-a-p-m-s" element={<U name="Labs"><AcademieMKAPMS /></U>} />
             <Route path="/labs/analyse-marche-mondiale" element={<U name="Labs"><AnalyseMarcheMondiale /></U>} />
             <Route path="/labs/analyse-trafic" element={<U name="Labs"><AnalyseTrafic /></U>} />
+            <Route path="/labs/archives-historiques" element={<U name="Labs"><ArchivesHistoriques /></U>} />
             <Route path="/labs/assistant-fondateur" element={<U name="Labs"><AssistantFondateur /></U>} />
+            <Route path="/labs/audit-qualite" element={<U name="Labs"><AuditQualite /></U>} />
             <Route path="/labs/automatisation-complete" element={<U name="Labs"><AutomatisationComplete /></U>} />
             <Route path="/labs/benchmark-flottes" element={<U name="Labs"><BenchmarkFlottes /></U>} />
+            <Route path="/labs/bibliotheque-automobile" element={<U name="Labs"><BibliothequeAutomobile /></U>} />
+            <Route path="/labs/bibliotheque-reparations" element={<U name="Labs"><BibliothequeReparations /></U>} />
+            <Route path="/labs/brevets" element={<U name="Labs"><Brevets /></U>} />
+            <Route path="/labs/campus-automobile" element={<U name="Labs"><CampusAutomobile /></U>} />
             <Route path="/labs/carnet-entretien-auto" element={<U name="Labs"><CarnetEntretienAuto /></U>} />
             <Route path="/labs/centre-acquisitions-labs" element={<U name="Labs"><CentreAcquisitionsLabs /></U>} />
             <Route path="/labs/centre-appels-offres" element={<U name="Labs"><CentreAppelsOffres /></U>} />
+            <Route path="/labs/centre-coordination-mondial" element={<U name="Labs"><CentreCoordinationMondial /></U>} />
             <Route path="/labs/centre-decisions-strategiques" element={<U name="Labs"><CentreDecisionsStrategiques /></U>} />
             <Route path="/labs/centre-donnees-mondiales" element={<U name="Labs"><CentreDonneesMondiales /></U>} />
             <Route path="/labs/centre-expansion-auto" element={<U name="Labs"><CentreExpansionAuto /></U>} />
@@ -1095,8 +1126,10 @@ export default function App() {
             <Route path="/labs/centre-export-auto" element={<U name="Labs"><CentreExportAuto /></U>} />
             <Route path="/labs/centre-formation-afrique" element={<U name="Labs"><CentreFormationAfrique /></U>} />
             <Route path="/labs/centre-innovation" element={<U name="Labs"><CentreInnovation /></U>} />
+            <Route path="/labs/centre-intelligence-marche" element={<U name="Labs"><CentreIntelligenceMarche /></U>} />
             <Route path="/labs/centre-investissements-labs" element={<U name="Labs"><CentreInvestissementsLabs /></U>} />
             <Route path="/labs/centre-opportunites-mondiales" element={<U name="Labs"><CentreOpportunitesMondiales /></U>} />
+            <Route path="/labs/centre-recherche-auto" element={<U name="Labs"><CentreRechercheAuto /></U>} />
             <Route path="/labs/centre-recherche-m-k-a-p-m-s" element={<U name="Labs"><CentreRechercheMKAPMS /></U>} />
             <Route path="/labs/centre-strategie-groupe" element={<U name="Labs"><CentreStrategieGroupe /></U>} />
             <Route path="/labs/centre-traduction" element={<U name="Labs"><CentreTraduction /></U>} />
@@ -1105,6 +1138,7 @@ export default function App() {
             <Route path="/labs/centres-techniques" element={<U name="Labs"><CentresTechniques /></U>} />
             <Route path="/labs/certification-vehicule" element={<U name="Labs"><CertificationVehicule /></U>} />
             <Route path="/labs/coffrefort-international" element={<U name="Labs"><CoffrefortInternational /></U>} />
+            <Route path="/labs/conferences-internationales" element={<U name="Labs"><ConferencesInternationales /></U>} />
             <Route path="/labs/controle-distance-flottes" element={<U name="Labs"><ControleDistanceFlottes /></U>} />
             <Route path="/labs/controle-production" element={<U name="Labs"><ControleProduction /></U>} />
             <Route path="/labs/data-cloud-auto" element={<U name="Labs"><DataCloudAuto /></U>} />
@@ -1114,10 +1148,13 @@ export default function App() {
             <Route path="/labs/expansion-mondiale" element={<U name="Labs"><ExpansionMondiale /></U>} />
             <Route path="/labs/filiales" element={<U name="Labs"><Filiales /></U>} />
             <Route path="/labs/fleet-network-mondial" element={<U name="Labs"><FleetNetworkMondial /></U>} />
+            <Route path="/labs/fondation-formation" element={<U name="Labs"><FondationFormation /></U>} />
+            <Route path="/labs/fondation-mobilite" element={<U name="Labs"><FondationMobilite /></U>} />
             <Route path="/labs/fonds-developpement" element={<U name="Labs"><FondsDeveloppement /></U>} />
             <Route path="/labs/fonds-expansion-afrique" element={<U name="Labs"><FondsExpansionAfrique /></U>} />
             <Route path="/labs/franchise-m-k-a-p-m-s" element={<U name="Labs"><FranchiseMKAPMS /></U>} />
             <Route path="/labs/franchises-global" element={<U name="Labs"><FranchisesGlobal /></U>} />
+            <Route path="/labs/future2050" element={<U name="Labs"><Future2050 /></U>} />
             <Route path="/labs/gestion-entrepots" element={<U name="Labs"><GestionEntrepots /></U>} />
             <Route path="/labs/gestion-flotte-intelligente" element={<U name="Labs"><GestionFlotteIntelligente /></U>} />
             <Route path="/labs/gestion-flottes-connectees" element={<U name="Labs"><GestionFlottesConnectees /></U>} />
@@ -1130,8 +1167,11 @@ export default function App() {
             <Route path="/labs/i-a-conseiller-garage" element={<U name="Labs"><IAConseillerGarage /></U>} />
             <Route path="/labs/i-a-conseiller-vente" element={<U name="Labs"><IAConseillerVente /></U>} />
             <Route path="/labs/i-a-operationnelle-mondiale" element={<U name="Labs"><IAOperationnelleMondiale /></U>} />
+            <Route path="/labs/identite-numerique-entreprise" element={<U name="Labs"><IdentiteNumeriqueEntreprise /></U>} />
             <Route path="/labs/identite-numerique-vehicule" element={<U name="Labs"><IdentiteNumeriqueVehicule /></U>} />
+            <Route path="/labs/identite-numerique-vehicule2" element={<U name="Labs"><IdentiteNumeriqueVehicule2 /></U>} />
             <Route path="/labs/inspection-distance" element={<U name="Labs"><InspectionDistance /></U>} />
+            <Route path="/labs/institut-formation" element={<U name="Labs"><InstitutFormation /></U>} />
             <Route path="/labs/jumeau-numerique" element={<U name="Labs"><JumeauNumerique /></U>} />
             <Route path="/labs/jumeaux-numeriques" element={<U name="Labs"><JumeauxNumeriques /></U>} />
             <Route path="/labs/label-certifie" element={<U name="Labs"><LabelCertifie /></U>} />
@@ -1139,7 +1179,11 @@ export default function App() {
             <Route path="/labs/logistiques-centres" element={<U name="Labs"><LogistiquesCentres /></U>} />
             <Route path="/labs/m-k-a-p-m-s-world" element={<U name="Labs"><MKAPMSWorld /></U>} />
             <Route path="/labs/maintenance-predictive" element={<U name="Labs"><MaintenancePredictive /></U>} />
+            <Route path="/labs/musee-numerique" element={<U name="Labs"><MuseeNumerique /></U>} />
+            <Route path="/labs/norme-m-k-a-p-m-s" element={<U name="Labs"><NormeMKAPMS /></U>} />
+            <Route path="/labs/objectif-ultime" element={<U name="Labs"><ObjectifUltime /></U>} />
             <Route path="/labs/observatoire-automobile" element={<U name="Labs"><ObservatoireAutomobile /></U>} />
+            <Route path="/labs/parc-industriel" element={<U name="Labs"><ParcIndustriel /></U>} />
             <Route path="/labs/passeport-numerique-vehicule" element={<U name="Labs"><PasseportNumeriqueVehicule /></U>} />
             <Route path="/labs/place-marche-b2-b" element={<U name="Labs"><PlaceMarcheB2B /></U>} />
             <Route path="/labs/programme-innovation" element={<U name="Labs"><ProgrammeInnovation /></U>} />
@@ -1150,10 +1194,12 @@ export default function App() {
             <Route path="/labs/reseau-depanneurs" element={<U name="Labs"><ReseauDepanneurs /></U>} />
             <Route path="/labs/reseau-distribution" element={<U name="Labs"><ReseauDistribution /></U>} />
             <Route path="/labs/reseau-experts" element={<U name="Labs"><ReseauExperts /></U>} />
+            <Route path="/labs/reseau-experts-global" element={<U name="Labs"><ReseauExpertsGlobal /></U>} />
             <Route path="/labs/reseau-fournisseurs-global" element={<U name="Labs"><ReseauFournisseursGlobal /></U>} />
             <Route path="/labs/reseau-garages-afrique" element={<U name="Labs"><ReseauGaragesAfrique /></U>} />
             <Route path="/labs/reseau-industriel" element={<U name="Labs"><ReseauIndustriel /></U>} />
             <Route path="/labs/reseau-mobilite-mondiale" element={<U name="Labs"><ReseauMobiliteMondiale /></U>} />
+            <Route path="/labs/reseau-mondial-complet" element={<U name="Labs"><ReseauMondialComplet /></U>} />
             <Route path="/labs/reseau-mondial-partenaires" element={<U name="Labs"><ReseauMondialPartenaires /></U>} />
             <Route path="/labs/reseau-mondial-services" element={<U name="Labs"><ReseauMondialServices /></U>} />
             <Route path="/labs/reseau-pieces-afrique" element={<U name="Labs"><ReseauPiecesAfrique /></U>} />
@@ -1164,9 +1210,11 @@ export default function App() {
             <Route path="/labs/signature-universelle" element={<U name="Labs"><SignatureUniverselle /></U>} />
             <Route path="/labs/smart-vehicles" element={<U name="Labs"><SmartVehicles /></U>} />
             <Route path="/labs/stationnement-intelligent" element={<U name="Labs"><StationnementIntelligent /></U>} />
+            <Route path="/labs/systemes-proprietaires" element={<U name="Labs"><SystemesProprietaires /></U>} />
             <Route path="/labs/telematique" element={<U name="Labs"><Telematique /></U>} />
             <Route path="/labs/vehicules-connectes" element={<U name="Labs"><VehiculesConnectes /></U>} />
             <Route path="/labs/vision-finale-m-k-a-p-m-s" element={<U name="Labs"><VisionFinaleMKAPMS /></U>} />
+            <Route path="/labs/zones-techniques" element={<U name="Labs"><ZonesTechniques /></U>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
