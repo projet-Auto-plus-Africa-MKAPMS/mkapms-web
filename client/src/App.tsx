@@ -486,464 +486,94 @@ const TableauBordInternational = lazy(() => import("./pages/conformite/TableauBo
 const TaxesAutomatiques = lazy(() => import("./pages/conformite/TaxesAutomatiques"));
 const VentePays = lazy(() => import("./pages/conformite/VentePays"));
 // Labs
-const AnalyseMarcheMondiale = lazy(() => import("./pages/labs/AnalyseMarcheMondiale"));
-const AutomatisationComplete = lazy(() => import("./pages/labs/AutomatisationComplete"));
-const ControleDistanceFlottes = lazy(() => import("./pages/labs/ControleDistanceFlottes"));
-const ExpansionMondiale = lazy(() => import("./pages/labs/ExpansionMondiale"));
-const Filiales = lazy(() => import("./pages/labs/Filiales"));
-const FranchisesGlobal = lazy(() => import("./pages/labs/FranchisesGlobal"));
-const GestionFlotteIntelligente = lazy(() => import("./pages/labs/GestionFlotteIntelligente"));
-const IAAvancee = lazy(() => import("./pages/labs/IAAvancee"));
-const JumeauxNumeriques = lazy(() => import("./pages/labs/JumeauxNumeriques"));
-const LicencesMKAPMS = lazy(() => import("./pages/labs/LicencesMKAPMS"));
-const MaintenancePredictive = lazy(() => import("./pages/labs/MaintenancePredictive"));
-const Telematique = lazy(() => import("./pages/labs/Telematique"));
-const VehiculesConnectes = lazy(() => import("./pages/labs/VehiculesConnectes"));
-
-// Garage
-// Démarches
-// Pièces
-// Finance
-// Super Admin
-// Utilisateurs
-// Notifications
-// Partenaires
-// Marketing
-// Mobile
-// IA
-// International
-// Investisseurs
-// Entreprises
-// Formations
-// Recrutement
-// Communauté
-// Corporate
-// Opérations
-// Automatisations
-// Expansion
-// Conformité
-// Labs
 const AcademieMKAPMS = lazy(() => import("./pages/labs/AcademieMKAPMS"));
+const AnalyseMarcheMondiale = lazy(() => import("./pages/labs/AnalyseMarcheMondiale"));
+const AnalyseTrafic = lazy(() => import("./pages/labs/AnalyseTrafic"));
+const AssistantFondateur = lazy(() => import("./pages/labs/AssistantFondateur"));
+const AutomatisationComplete = lazy(() => import("./pages/labs/AutomatisationComplete"));
+const BenchmarkFlottes = lazy(() => import("./pages/labs/BenchmarkFlottes"));
 const CarnetEntretienAuto = lazy(() => import("./pages/labs/CarnetEntretienAuto"));
 const CentreAcquisitionsLabs = lazy(() => import("./pages/labs/CentreAcquisitionsLabs"));
 const CentreAppelsOffres = lazy(() => import("./pages/labs/CentreAppelsOffres"));
+const CentreDecisionsStrategiques = lazy(() => import("./pages/labs/CentreDecisionsStrategiques"));
 const CentreDonneesMondiales = lazy(() => import("./pages/labs/CentreDonneesMondiales"));
 const CentreExpansionAuto = lazy(() => import("./pages/labs/CentreExpansionAuto"));
+const CentreExpansionAutomatique2 = lazy(() => import("./pages/labs/CentreExpansionAutomatique2"));
 const CentreExportAuto = lazy(() => import("./pages/labs/CentreExportAuto"));
+const CentreFormationAfrique = lazy(() => import("./pages/labs/CentreFormationAfrique"));
 const CentreInnovation = lazy(() => import("./pages/labs/CentreInnovation"));
 const CentreInvestissementsLabs = lazy(() => import("./pages/labs/CentreInvestissementsLabs"));
-const CentreStrategieGroupe = lazy(() => import("./pages/labs/CentreStrategieGroupe"));
-const FranchiseMKAPMS = lazy(() => import("./pages/labs/FranchiseMKAPMS"));
-const GestionFlottesConnectees = lazy(() => import("./pages/labs/GestionFlottesConnectees"));
-const GestionMarques = lazy(() => import("./pages/labs/GestionMarques"));
-const HubAfrique = lazy(() => import("./pages/labs/HubAfrique"));
-const IAAutomobile = lazy(() => import("./pages/labs/IAAutomobile"));
-const IAConseillerAchat = lazy(() => import("./pages/labs/IAConseillerAchat"));
-const IAConseillerGarage = lazy(() => import("./pages/labs/IAConseillerGarage"));
-const IAConseillerVente = lazy(() => import("./pages/labs/IAConseillerVente"));
-const LabelCertifie = lazy(() => import("./pages/labs/LabelCertifie"));
-const PlaceMarcheB2B = lazy(() => import("./pages/labs/PlaceMarcheB2B"));
-const ReseauConvoyeurs = lazy(() => import("./pages/labs/ReseauConvoyeurs"));
-const ReseauDepannageAfrique = lazy(() => import("./pages/labs/ReseauDepannageAfrique"));
-const ReseauDepanneurs = lazy(() => import("./pages/labs/ReseauDepanneurs"));
-const ReseauGaragesAfrique = lazy(() => import("./pages/labs/ReseauGaragesAfrique"));
-const ReseauPiecesAfrique = lazy(() => import("./pages/labs/ReseauPiecesAfrique"));
-const ReseauTransport = lazy(() => import("./pages/labs/ReseauTransport"));
-const VisionFinaleMKAPMS = lazy(() => import("./pages/labs/VisionFinaleMKAPMS"));
-
-// Garage
-const GarageAssistanceRoutiere = lazy(() => import("./pages/garage/AssistanceRoutiere"));
-const GarageBoutiquePieces = lazy(() => import("./pages/garage/BoutiquePieces"));
-const GarageCarrosserieGarage = lazy(() => import("./pages/garage/CarrosserieGarage"));
-const GarageCentreLavage = lazy(() => import("./pages/garage/CentreLavage"));
-const GarageCentreReclamations = lazy(() => import("./pages/garage/CentreReclamations"));
-const GarageCommandePieces = lazy(() => import("./pages/garage/CommandePieces"));
-const GarageCommandesAutomatiques = lazy(() => import("./pages/garage/CommandesAutomatiques"));
-const GarageContratsFlottes = lazy(() => import("./pages/garage/ContratsFlottes"));
-const GarageControleQualiteGarage = lazy(() => import("./pages/garage/ControleQualiteGarage"));
-const GarageControleQualitePremium = lazy(() => import("./pages/garage/ControleQualitePremium"));
-const GarageControleTechnique = lazy(() => import("./pages/garage/ControleTechnique"));
-const GarageDemandeDevis = lazy(() => import("./pages/garage/DemandeDevis"));
-const GarageDepannageAvance = lazy(() => import("./pages/garage/DepannageAvance"));
-const GarageDepannageGarage = lazy(() => import("./pages/garage/DepannageGarage"));
-const GarageDiagnosticAvance = lazy(() => import("./pages/garage/DiagnosticAvance"));
-const GarageDiagnosticGarage = lazy(() => import("./pages/garage/DiagnosticGarage"));
-const GarageDossiersFlottes = lazy(() => import("./pages/garage/DossiersFlottes"));
-const GarageEntretiensPreventifs = lazy(() => import("./pages/garage/EntretiensPreventifs"));
-const GarageEsthetiqueAuto = lazy(() => import("./pages/garage/EsthetiqueAuto"));
-const GarageFichesTechniciens = lazy(() => import("./pages/garage/FichesTechniciens"));
-const GarageFileAttenteAtelier = lazy(() => import("./pages/garage/FileAttenteAtelier"));
-const GarageFlottesEntreprises = lazy(() => import("./pages/garage/FlottesEntreprises"));
-const GarageFournisseursGarage = lazy(() => import("./pages/garage/FournisseursGarage"));
-const GarageGarageGenerale = lazy(() => import("./pages/garage/GarageGenerale"));
-const GarageGarageParticulier = lazy(() => import("./pages/garage/GarageParticulier"));
-const GarageGarageProfessionnel = lazy(() => import("./pages/garage/GarageProfessionnel"));
-const GarageGarantieTravaux = lazy(() => import("./pages/garage/GarantieTravaux"));
-const GarageGestionMecaniciens = lazy(() => import("./pages/garage/GestionMecaniciens"));
-const GarageGestionOutillage = lazy(() => import("./pages/garage/GestionOutillage"));
-const GarageGestionPonts = lazy(() => import("./pages/garage/GestionPonts"));
-const GarageHistoriqueGarage = lazy(() => import("./pages/garage/HistoriqueGarage"));
-const GarageLavagePreparation = lazy(() => import("./pages/garage/LavagePreparation"));
-const GarageMultiGarages = lazy(() => import("./pages/garage/MultiGarages"));
-const GarageObjectifFinalGarage = lazy(() => import("./pages/garage/ObjectifFinalGarage"));
-const GarageObjectifGarage = lazy(() => import("./pages/garage/ObjectifGarage"));
-const GarageOrdreReparation = lazy(() => import("./pages/garage/OrdreReparation"));
-const GaragePanierPieces = lazy(() => import("./pages/garage/PanierPieces"));
-const GaragePhotosIntervention = lazy(() => import("./pages/garage/PhotosIntervention"));
-const GaragePhotosTechniques = lazy(() => import("./pages/garage/PhotosTechniques"));
-const GaragePlanningAtelier = lazy(() => import("./pages/garage/PlanningAtelier"));
-const GaragePneumatiques = lazy(() => import("./pages/garage/Pneumatiques"));
-const GaragePneumatiquesAvance = lazy(() => import("./pages/garage/PneumatiquesAvance"));
-const GaragePreparationVenteVO = lazy(() => import("./pages/garage/PreparationVenteVO"));
-const GaragePriseRendezVous = lazy(() => import("./pages/garage/PriseRendezVous"));
-const GarageReceptionVehicule = lazy(() => import("./pages/garage/ReceptionVehicule"));
-const GarageRecherchePieces = lazy(() => import("./pages/garage/RecherchePieces"));
-const GarageRelanceClient = lazy(() => import("./pages/garage/RelanceClient"));
-const GarageRentabiliteAtelier = lazy(() => import("./pages/garage/RentabiliteAtelier"));
-const GarageReseauPartenaires = lazy(() => import("./pages/garage/ReseauPartenaires"));
-const GarageReservationAtelier = lazy(() => import("./pages/garage/ReservationAtelier"));
-const GarageRestitutionClient = lazy(() => import("./pages/garage/RestitutionClient"));
-const GarageStatistiquesGarage = lazy(() => import("./pages/garage/StatistiquesGarage"));
-const GarageStockPieces = lazy(() => import("./pages/garage/StockPieces"));
-const GarageSuiviTempsReel = lazy(() => import("./pages/garage/SuiviTempsReel"));
-const GarageTableauBordChefAtelier = lazy(() => import("./pages/garage/TableauBordChefAtelier"));
-const GarageTempsIntervention = lazy(() => import("./pages/garage/TempsIntervention"));
-const GarageTransfertDossiers = lazy(() => import("./pages/garage/TransfertDossiers"));
-const GarageValidationClient = lazy(() => import("./pages/garage/ValidationClient"));
-const GarageValidationInterne = lazy(() => import("./pages/garage/ValidationInterne"));
-const GarageVehiculesAttente = lazy(() => import("./pages/garage/VehiculesAttente"));
-// Démarches
-const DemarchesAlertesDemarches = lazy(() => import("./pages/demarches/AlertesDemarches"));
-const DemarchesArchivesAdministratives = lazy(() => import("./pages/demarches/ArchivesAdministratives"));
-const DemarchesCarteGriseDemarche = lazy(() => import("./pages/demarches/CarteGriseDemarche"));
-const DemarchesCentreDocumentsDemarches = lazy(() => import("./pages/demarches/CentreDocumentsDemarches"));
-const DemarchesChangementAdresse = lazy(() => import("./pages/demarches/ChangementAdresse"));
-const DemarchesChangementTitulaire = lazy(() => import("./pages/demarches/ChangementTitulaire"));
-const DemarchesDeclarationCession = lazy(() => import("./pages/demarches/DeclarationCession"));
-const DemarchesDemarchesGenerale = lazy(() => import("./pages/demarches/DemarchesGenerale"));
-const DemarchesDuplicataDemarche = lazy(() => import("./pages/demarches/DuplicataDemarche"));
-const DemarchesEspaceProDemarches = lazy(() => import("./pages/demarches/EspaceProDemarches"));
-const DemarchesImmatriculationProvisoire = lazy(() => import("./pages/demarches/ImmatriculationProvisoire"));
-const DemarchesImportationVehicule = lazy(() => import("./pages/demarches/ImportationVehicule"));
-const DemarchesMessagerieDemarches = lazy(() => import("./pages/demarches/MessagerieDemarches"));
-const DemarchesObjectifDemarches = lazy(() => import("./pages/demarches/ObjectifDemarches"));
-const DemarchesPaiementDemarches = lazy(() => import("./pages/demarches/PaiementDemarches"));
-const DemarchesPlaquesImmatriculation = lazy(() => import("./pages/demarches/PlaquesImmatriculation"));
-const DemarchesSignaturesElectroniques = lazy(() => import("./pages/demarches/SignaturesElectroniques"));
-const DemarchesStatistiquesDemarches = lazy(() => import("./pages/demarches/StatistiquesDemarches"));
-const DemarchesSuccessionVehicule = lazy(() => import("./pages/demarches/SuccessionVehicule"));
-const DemarchesSuiviDossier = lazy(() => import("./pages/demarches/SuiviDossier"));
-const DemarchesVerificationIA = lazy(() => import("./pages/demarches/VerificationIA"));
-const DemarchesWWGarage = lazy(() => import("./pages/demarches/WWGarage"));
-// Pièces
-const PiecesAbonnementsProPieces = lazy(() => import("./pages/pieces/AbonnementsProPieces"));
-const PiecesAvisProduitsPieces = lazy(() => import("./pages/pieces/AvisProduitsPieces"));
-const PiecesFournisseursPieces = lazy(() => import("./pages/pieces/FournisseursPieces"));
-const PiecesLogistiquePieces = lazy(() => import("./pages/pieces/LogistiquePieces"));
-const PiecesMontageGarage = lazy(() => import("./pages/pieces/MontageGarage"));
-const PiecesObjectifPieces = lazy(() => import("./pages/pieces/ObjectifPieces"));
-const PiecesPanierPiecesDetachees = lazy(() => import("./pages/pieces/PanierPiecesDetachees"));
-const PiecesPiecesAccessoires = lazy(() => import("./pages/pieces/PiecesAccessoires"));
-const PiecesPiecesBatteries = lazy(() => import("./pages/pieces/PiecesBatteries"));
-const PiecesPiecesCarrosserie = lazy(() => import("./pages/pieces/PiecesCarrosserie"));
-const PiecesPiecesEclairage = lazy(() => import("./pages/pieces/PiecesEclairage"));
-const PiecesPiecesFreinage = lazy(() => import("./pages/pieces/PiecesFreinage"));
-const PiecesPiecesGenerale = lazy(() => import("./pages/pieces/PiecesGenerale"));
-const PiecesPiecesHuiles = lazy(() => import("./pages/pieces/PiecesHuiles"));
-const PiecesPiecesMoteur = lazy(() => import("./pages/pieces/PiecesMoteur"));
-const PiecesPiecesPneumatiques = lazy(() => import("./pages/pieces/PiecesPneumatiques"));
-const PiecesPiecesSuspension = lazy(() => import("./pages/pieces/PiecesSuspension"));
-const PiecesRechercheIntelligentePieces = lazy(() => import("./pages/pieces/RechercheIntelligentePieces"));
-const PiecesRetoursPieces = lazy(() => import("./pages/pieces/RetoursPieces"));
-const PiecesStatistiquesPieces = lazy(() => import("./pages/pieces/StatistiquesPieces"));
-const PiecesVendeursPieces = lazy(() => import("./pages/pieces/VendeursPieces"));
-const PiecesVerificationCompatibilite = lazy(() => import("./pages/pieces/VerificationCompatibilite"));
-// Finance
-const FinanceAcompteFinance = lazy(() => import("./pages/finance/AcompteFinance"));
-const FinanceAlertesPaiements = lazy(() => import("./pages/finance/AlertesPaiements"));
-const FinanceCentreEcheancier = lazy(() => import("./pages/finance/CentreEcheancier"));
-const FinanceCentreFactures = lazy(() => import("./pages/finance/CentreFactures"));
-const FinanceContratsFinanciers = lazy(() => import("./pages/finance/ContratsFinanciers"));
-const FinanceDepotGarantieFinance = lazy(() => import("./pages/finance/DepotGarantieFinance"));
-const FinanceFinanceGenerale = lazy(() => import("./pages/finance/FinanceGenerale"));
-const FinanceGarantieSecurite = lazy(() => import("./pages/finance/GarantieSecurite"));
-const FinanceLOAFinance = lazy(() => import("./pages/finance/LOAFinance"));
-const FinanceObjectifFinance = lazy(() => import("./pages/finance/ObjectifFinance"));
-const FinancePaiementComptant = lazy(() => import("./pages/finance/PaiementComptant"));
-const FinancePaiementFractionne = lazy(() => import("./pages/finance/PaiementFractionne"));
-const FinancePaiementsProfessionnels = lazy(() => import("./pages/finance/PaiementsProfessionnels"));
-const FinanceRemboursementsFinance = lazy(() => import("./pages/finance/RemboursementsFinance"));
-const FinanceTableauBordFinance = lazy(() => import("./pages/finance/TableauBordFinance"));
-// Super Admin
-const SuperadminAdminAbonnements = lazy(() => import("./pages/superadmin/AdminAbonnements"));
-const SuperadminAdminBadges = lazy(() => import("./pages/superadmin/AdminBadges"));
-const SuperadminAdminCarteMoniale = lazy(() => import("./pages/superadmin/AdminCarteMoniale"));
-const SuperadminAdminCommissions = lazy(() => import("./pages/superadmin/AdminCommissions"));
-const SuperadminAdminComptesPro = lazy(() => import("./pages/superadmin/AdminComptesPro"));
-const SuperadminAdminEmployes = lazy(() => import("./pages/superadmin/AdminEmployes"));
-const SuperadminAdminFraude = lazy(() => import("./pages/superadmin/AdminFraude"));
-const SuperadminAdminJournal = lazy(() => import("./pages/superadmin/AdminJournal"));
-const SuperadminAdminLitiges = lazy(() => import("./pages/superadmin/AdminLitiges"));
-const SuperadminAdminModerationAnnonces = lazy(() => import("./pages/superadmin/AdminModerationAnnonces"));
-const SuperadminAdminModerationAvis = lazy(() => import("./pages/superadmin/AdminModerationAvis"));
-const SuperadminAdminObjectif = lazy(() => import("./pages/superadmin/AdminObjectif"));
-const SuperadminAdminPaiements = lazy(() => import("./pages/superadmin/AdminPaiements"));
-const SuperadminAdminSauvegardes = lazy(() => import("./pages/superadmin/AdminSauvegardes"));
-const SuperadminAdminSecurite = lazy(() => import("./pages/superadmin/AdminSecurite"));
-const SuperadminAdminStatistiques = lazy(() => import("./pages/superadmin/AdminStatistiques"));
-const SuperadminAdminSupport = lazy(() => import("./pages/superadmin/AdminSupport"));
-const SuperadminAdminUtilisateurs = lazy(() => import("./pages/superadmin/AdminUtilisateurs"));
-const SuperadminAdminValidationDocs = lazy(() => import("./pages/superadmin/AdminValidationDocs"));
-const SuperadminSuperAdminDashboard = lazy(() => import("./pages/superadmin/SuperAdminDashboard"));
-// Utilisateurs
-const UtilisateursAbonnementsUtilisateur = lazy(() => import("./pages/utilisateurs/AbonnementsUtilisateur"));
-const UtilisateursCentreAlertesUtilisateur = lazy(() => import("./pages/utilisateurs/CentreAlertesUtilisateur"));
-const UtilisateursCentreFavorisUtilisateur = lazy(() => import("./pages/utilisateurs/CentreFavorisUtilisateur"));
-const UtilisateursCentreSupportUtilisateur = lazy(() => import("./pages/utilisateurs/CentreSupportUtilisateur"));
-const UtilisateursCompteParticulier = lazy(() => import("./pages/utilisateurs/CompteParticulier"));
-const UtilisateursCompteProUtilisateur = lazy(() => import("./pages/utilisateurs/CompteProUtilisateur"));
-const UtilisateursDocumentsPersonnels = lazy(() => import("./pages/utilisateurs/DocumentsPersonnels"));
-const UtilisateursEmployesUtilisateur = lazy(() => import("./pages/utilisateurs/EmployesUtilisateur"));
-const UtilisateursFacturesUtilisateur = lazy(() => import("./pages/utilisateurs/FacturesUtilisateur"));
-const UtilisateursHistoriqueAchats = lazy(() => import("./pages/utilisateurs/HistoriqueAchats"));
-const UtilisateursHistoriqueDemarches = lazy(() => import("./pages/utilisateurs/HistoriqueDemarches"));
-const UtilisateursHistoriqueDepannages = lazy(() => import("./pages/utilisateurs/HistoriqueDepannages"));
-const UtilisateursHistoriqueEntretiens = lazy(() => import("./pages/utilisateurs/HistoriqueEntretiens"));
-const UtilisateursHistoriqueLocations = lazy(() => import("./pages/utilisateurs/HistoriqueLocations"));
-const UtilisateursMesVehicules = lazy(() => import("./pages/utilisateurs/MesVehicules"));
-const UtilisateursMessagerieGlobale = lazy(() => import("./pages/utilisateurs/MessagerieGlobale"));
-const UtilisateursObjectifUtilisateur = lazy(() => import("./pages/utilisateurs/ObjectifUtilisateur"));
-const UtilisateursSecuriteUtilisateur = lazy(() => import("./pages/utilisateurs/SecuriteUtilisateur"));
-const UtilisateursSuppressionCompte = lazy(() => import("./pages/utilisateurs/SuppressionCompte"));
-const UtilisateursTableauBordPerso = lazy(() => import("./pages/utilisateurs/TableauBordPerso"));
-// Notifications
-const NotificationsAlertesUrgentes = lazy(() => import("./pages/notifications/AlertesUrgentes"));
-const NotificationsAnnoncesImportantes = lazy(() => import("./pages/notifications/AnnoncesImportantes"));
-const NotificationsCanauxCommunication = lazy(() => import("./pages/notifications/CanauxCommunication"));
-const NotificationsCoffreFortNumerique = lazy(() => import("./pages/notifications/CoffreFortNumerique"));
-const NotificationsDocumentsEntreprises = lazy(() => import("./pages/notifications/DocumentsEntreprises"));
-const NotificationsDocumentsPersonnelsGlobal = lazy(() => import("./pages/notifications/DocumentsPersonnelsGlobal"));
-const NotificationsDocumentsVehicules = lazy(() => import("./pages/notifications/DocumentsVehicules"));
-const NotificationsHistoriqueNotifications = lazy(() => import("./pages/notifications/HistoriqueNotifications"));
-const NotificationsNotificationsDemarches = lazy(() => import("./pages/notifications/NotificationsDemarches"));
-const NotificationsNotificationsDepannage = lazy(() => import("./pages/notifications/NotificationsDepannage"));
-const NotificationsNotificationsGarage = lazy(() => import("./pages/notifications/NotificationsGarage"));
-const NotificationsNotificationsGenerale = lazy(() => import("./pages/notifications/NotificationsGenerale"));
-const NotificationsNotificationsLocation = lazy(() => import("./pages/notifications/NotificationsLocation"));
-const NotificationsNotificationsMessages = lazy(() => import("./pages/notifications/NotificationsMessages"));
-const NotificationsNotificationsPaiements = lazy(() => import("./pages/notifications/NotificationsPaiements"));
-const NotificationsNotificationsVente = lazy(() => import("./pages/notifications/NotificationsVente"));
-const NotificationsObjectifNotifications = lazy(() => import("./pages/notifications/ObjectifNotifications"));
-const NotificationsParametresNotifications = lazy(() => import("./pages/notifications/ParametresNotifications"));
-const NotificationsRappelsAutomatiques = lazy(() => import("./pages/notifications/RappelsAutomatiques"));
-const NotificationsSignaturesGlobales = lazy(() => import("./pages/notifications/SignaturesGlobales"));
-// Partenaires
-const PartenairesAttributionDemandes = lazy(() => import("./pages/partenaires/AttributionDemandes"));
-const PartenairesCartePartenaires = lazy(() => import("./pages/partenaires/CartePartenaires"));
-const PartenairesEvaluationPartenaires = lazy(() => import("./pages/partenaires/EvaluationPartenaires"));
-const PartenairesFichePartenaire = lazy(() => import("./pages/partenaires/FichePartenaire"));
-const PartenairesInscriptionPartenaire = lazy(() => import("./pages/partenaires/InscriptionPartenaire"));
-const PartenairesNiveauxPartenaires = lazy(() => import("./pages/partenaires/NiveauxPartenaires"));
-const PartenairesObjectifPartenaires = lazy(() => import("./pages/partenaires/ObjectifPartenaires"));
-const PartenairesPartenairesGenerale = lazy(() => import("./pages/partenaires/PartenairesGenerale"));
-const PartenairesStatistiquesPartenaires = lazy(() => import("./pages/partenaires/StatistiquesPartenaires"));
-const PartenairesSuspensionPartenaires = lazy(() => import("./pages/partenaires/SuspensionPartenaires"));
-// Marketing
-const MarketingCampagnesAutomatiques = lazy(() => import("./pages/marketing/CampagnesAutomatiques"));
-const MarketingCodesPromotionnels = lazy(() => import("./pages/marketing/CodesPromotionnels"));
-const MarketingEspacesPublicitaires = lazy(() => import("./pages/marketing/EspacesPublicitaires"));
-const MarketingProgrammeFidelite = lazy(() => import("./pages/marketing/ProgrammeFidelite"));
-const MarketingProgrammeParrainage = lazy(() => import("./pages/marketing/ProgrammeParrainage"));
-const MarketingPublicitesPro = lazy(() => import("./pages/marketing/PublicitesPro"));
-// Mobile
-const MobileAppAndroid = lazy(() => import("./pages/mobile/AppAndroid"));
-const MobileAppIOS = lazy(() => import("./pages/mobile/AppIOS"));
-const MobileModeHorsLigne = lazy(() => import("./pages/mobile/ModeHorsLigne"));
-const MobileNotificationsPush = lazy(() => import("./pages/mobile/NotificationsPush"));
-// IA
-const IaIAAideDevis = lazy(() => import("./pages/ia/IAAideDevis"));
-const IaIAAnalyseMarche = lazy(() => import("./pages/ia/IAAnalyseMarche"));
-const IaIAAssistantClient = lazy(() => import("./pages/ia/IAAssistantClient"));
-const IaIADetectionFraude = lazy(() => import("./pages/ia/IADetectionFraude"));
-const IaIAEstimation = lazy(() => import("./pages/ia/IAEstimation"));
-// International
-const InternationalMultiDevises = lazy(() => import("./pages/international/MultiDevises"));
-const InternationalMultiLangues = lazy(() => import("./pages/international/MultiLangues"));
-const InternationalMultiPays = lazy(() => import("./pages/international/MultiPays"));
-// Investisseurs
-const InvestisseursEspaceInvestisseurs = lazy(() => import("./pages/investisseurs/EspaceInvestisseurs"));
-const InvestisseursObjectifGlobal = lazy(() => import("./pages/investisseurs/ObjectifGlobal"));
-// Entreprises
-const EntreprisesCentreCarburant = lazy(() => import("./pages/entreprises/CentreCarburant"));
-const EntreprisesCentreGeolocalisation = lazy(() => import("./pages/entreprises/CentreGeolocalisation"));
-const EntreprisesCentreImmobilisation = lazy(() => import("./pages/entreprises/CentreImmobilisation"));
-const EntreprisesCompteFlotte = lazy(() => import("./pages/entreprises/CompteFlotte"));
-const EntreprisesContratsEntreprises = lazy(() => import("./pages/entreprises/ContratsEntreprises"));
-const UEntreprisesGestionConducteurs = lazy(() => import("./pages/entreprises/GestionConducteurs"));
-const EntreprisesGestionParc = lazy(() => import("./pages/entreprises/GestionParc"));
-const EntreprisesHistoriqueFlotte = lazy(() => import("./pages/entreprises/HistoriqueFlotte"));
-const EntreprisesObjectifFlottes = lazy(() => import("./pages/entreprises/ObjectifFlottes"));
-const EntreprisesRapportsEntreprises = lazy(() => import("./pages/entreprises/RapportsEntreprises"));
-// Formations
-const FormationsCertificats = lazy(() => import("./pages/formations/Certificats"));
-const FormationsFormationGarage = lazy(() => import("./pages/formations/FormationGarage"));
-const FormationsFormationTaxi = lazy(() => import("./pages/formations/FormationTaxi"));
-const FormationsFormationVTC = lazy(() => import("./pages/formations/FormationVTC"));
-const FormationsFormationVente = lazy(() => import("./pages/formations/FormationVente"));
-// Recrutement
-const RecrutementDepotCV = lazy(() => import("./pages/recrutement/DepotCV"));
-const RecrutementOffresEmploi = lazy(() => import("./pages/recrutement/OffresEmploi"));
-const RecrutementRechercheTalents = lazy(() => import("./pages/recrutement/RechercheTalents"));
-// Communauté
-const CommunauteAvisConseils = lazy(() => import("./pages/communaute/AvisConseils"));
-const CommunauteGuidesAchat = lazy(() => import("./pages/communaute/GuidesAchat"));
-const CommunauteGuidesGarage = lazy(() => import("./pages/communaute/GuidesGarage"));
-const CommunauteGuidesLocation = lazy(() => import("./pages/communaute/GuidesLocation"));
-const CommunauteGuidesVente = lazy(() => import("./pages/communaute/GuidesVente"));
-const CommunauteQuestionsReponses = lazy(() => import("./pages/communaute/QuestionsReponses"));
-// Corporate
-const CorporateAPropos = lazy(() => import("./pages/corporate/APropos"));
-const CorporateContactEntreprise = lazy(() => import("./pages/corporate/ContactEntreprise"));
-const CorporateNosPartenaires = lazy(() => import("./pages/corporate/NosPartenaires"));
-const CorporateNosServices = lazy(() => import("./pages/corporate/NosServices"));
-const CorporatePresseActualites = lazy(() => import("./pages/corporate/PresseActualites"));
-const CorporateVisionMKAPMS = lazy(() => import("./pages/corporate/VisionMKAPMS"));
-// Opérations
-const OperationsAmbassadeurs = lazy(() => import("./pages/operations/Ambassadeurs"));
-const OperationsCentreAcquisition = lazy(() => import("./pages/operations/CentreAcquisition"));
-const OperationsCentreAudit = lazy(() => import("./pages/operations/CentreAudit"));
-const OperationsCentreConformite = lazy(() => import("./pages/operations/CentreConformite"));
-const OperationsCentreDonneesMarche = lazy(() => import("./pages/operations/CentreDonneesMarche"));
-const OperationsCentreExpansion = lazy(() => import("./pages/operations/CentreExpansion"));
-const OperationsCentreOpportunites = lazy(() => import("./pages/operations/CentreOpportunites"));
-const OperationsCentrePrevisions = lazy(() => import("./pages/operations/CentrePrevisions"));
-const OperationsCentreRisques = lazy(() => import("./pages/operations/CentreRisques"));
-const OperationsCentreValidation = lazy(() => import("./pages/operations/CentreValidation"));
-const OperationsControleQualiteGlobal = lazy(() => import("./pages/operations/ControleQualiteGlobal"));
-const OperationsMKAPMSAfrique = lazy(() => import("./pages/operations/MKAPMSAfrique"));
-const OperationsMKAPMSAssurance = lazy(() => import("./pages/operations/MKAPMSAssurance"));
-const OperationsMKAPMSBanque = lazy(() => import("./pages/operations/MKAPMSBanque"));
-const OperationsMKAPMSMobility = lazy(() => import("./pages/operations/MKAPMSMobility"));
-const OperationsMKAPMSTransport = lazy(() => import("./pages/operations/MKAPMSTransport"));
-const OperationsObjectifFinalPlateforme = lazy(() => import("./pages/operations/ObjectifFinalPlateforme"));
-const OperationsProgrammeEntreprisesStrategiques = lazy(() => import("./pages/operations/ProgrammeEntreprisesStrategiques"));
-const OperationsProgrammePremium = lazy(() => import("./pages/operations/ProgrammePremium"));
-const OperationsTableauBordFondateur = lazy(() => import("./pages/operations/TableauBordFondateur"));
-// Automatisations
-const AutomatisationsCentreAlertesStrategiques = lazy(() => import("./pages/automatisations/CentreAlertesStrategiques"));
-const AutomatisationsCentreAutoMarketing = lazy(() => import("./pages/automatisations/CentreAutoMarketing"));
-const AutomatisationsCentreCroissance = lazy(() => import("./pages/automatisations/CentreCroissance"));
-const AutomatisationsCentreKPI = lazy(() => import("./pages/automatisations/CentreKPI"));
-const AutomatisationsCentreObjectifsEntreprise = lazy(() => import("./pages/automatisations/CentreObjectifsEntreprise"));
-const AutomatisationsCentrePerformanceIA = lazy(() => import("./pages/automatisations/CentrePerformanceIA"));
-const AutomatisationsEscaladesAutomatiques = lazy(() => import("./pages/automatisations/EscaladesAutomatiques"));
-const AutomatisationsFilesAttente = lazy(() => import("./pages/automatisations/FilesAttente"));
-const AutomatisationsIAAffectation = lazy(() => import("./pages/automatisations/IAAffectation"));
-const AutomatisationsIAControle = lazy(() => import("./pages/automatisations/IAControle"));
-const AutomatisationsIAPriorisation = lazy(() => import("./pages/automatisations/IAPriorisation"));
-const AutomatisationsMoteurTaches = lazy(() => import("./pages/automatisations/MoteurTaches"));
-const AutomatisationsMoteurWorkflow = lazy(() => import("./pages/automatisations/MoteurWorkflow"));
-const AutomatisationsObjectifAutomatisations = lazy(() => import("./pages/automatisations/ObjectifAutomatisations"));
-const AutomatisationsWorkflowsPersonnalises = lazy(() => import("./pages/automatisations/WorkflowsPersonnalises"));
-// Expansion
-const ExpansionCentreInternational = lazy(() => import("./pages/expansion/CentreInternational"));
-const ExpansionMultiDevisesGlobal = lazy(() => import("./pages/expansion/MultiDevisesGlobal"));
-const ExpansionMultiLanguesGlobal = lazy(() => import("./pages/expansion/MultiLanguesGlobal"));
-const ExpansionPhaseAfriqueCentrale = lazy(() => import("./pages/expansion/PhaseAfriqueCentrale"));
-const ExpansionPhaseAfriqueEst = lazy(() => import("./pages/expansion/PhaseAfriqueEst"));
-const ExpansionPhaseAfriqueNord = lazy(() => import("./pages/expansion/PhaseAfriqueNord"));
-const ExpansionPhaseAfriqueOuest = lazy(() => import("./pages/expansion/PhaseAfriqueOuest"));
-const ExpansionPhaseAmeriqueLatine = lazy(() => import("./pages/expansion/PhaseAmeriqueLatine"));
-const ExpansionPhaseAmeriqueNord = lazy(() => import("./pages/expansion/PhaseAmeriqueNord"));
-const ExpansionPhaseAsie = lazy(() => import("./pages/expansion/PhaseAsie"));
-const ExpansionPhaseEurope = lazy(() => import("./pages/expansion/PhaseEurope"));
-const ExpansionPhaseEuropeFranco = lazy(() => import("./pages/expansion/PhaseEuropeFranco"));
-const ExpansionPhaseFrance = lazy(() => import("./pages/expansion/PhaseFrance"));
-const ExpansionPhaseMoyenOrient = lazy(() => import("./pages/expansion/PhaseMoyenOrient"));
-const ExpansionPhaseOceanie = lazy(() => import("./pages/expansion/PhaseOceanie"));
-const ExpansionTableauBordMondial = lazy(() => import("./pages/expansion/TableauBordMondial"));
-const ExpansionVisionFinale = lazy(() => import("./pages/expansion/VisionFinale"));
-// Conformité
-const ConformiteAssurancesPays = lazy(() => import("./pages/conformite/AssurancesPays"));
-const ConformiteCentrePays = lazy(() => import("./pages/conformite/CentrePays"));
-const ConformiteContratsAdaptes = lazy(() => import("./pages/conformite/ContratsAdaptes"));
-const ConformiteDevisesAutomatiques = lazy(() => import("./pages/conformite/DevisesAutomatiques"));
-const ConformiteDocumentsObligatoiresPays = lazy(() => import("./pages/conformite/DocumentsObligatoiresPays"));
-const ConformiteGaragePays = lazy(() => import("./pages/conformite/GaragePays"));
-const ConformiteIAJuridique = lazy(() => import("./pages/conformite/IAJuridique"));
-const ConformiteImmatriculationsPays = lazy(() => import("./pages/conformite/ImmatriculationsPays"));
-const ConformiteLocationPays = lazy(() => import("./pages/conformite/LocationPays"));
-const ConformiteMisesAJourReglementaires = lazy(() => import("./pages/conformite/MisesAJourReglementaires"));
-const ConformiteMoteurReglesPays = lazy(() => import("./pages/conformite/MoteurReglesPays"));
-const ConformiteMoyensPaiementLocaux = lazy(() => import("./pages/conformite/MoyensPaiementLocaux"));
-const ConformiteObjectifConformite = lazy(() => import("./pages/conformite/ObjectifConformite"));
-const ConformiteTableauBordInternational = lazy(() => import("./pages/conformite/TableauBordInternational"));
-const ConformiteTaxesAutomatiques = lazy(() => import("./pages/conformite/TaxesAutomatiques"));
-const ConformiteVentePays = lazy(() => import("./pages/conformite/VentePays"));
-// Labs
-const LabsAcademieMKAPMS = lazy(() => import("./pages/labs/AcademieMKAPMS"));
-const LabsAnalyseMarcheMondiale = lazy(() => import("./pages/labs/AnalyseMarcheMondiale"));
-const LabsAutomatisationComplete = lazy(() => import("./pages/labs/AutomatisationComplete"));
-const BenchmarkFlottes = lazy(() => import("./pages/labs/BenchmarkFlottes"));
-const LabsCarnetEntretienAuto = lazy(() => import("./pages/labs/CarnetEntretienAuto"));
-const LabsCentreAcquisitionsLabs = lazy(() => import("./pages/labs/CentreAcquisitionsLabs"));
-const LabsCentreAppelsOffres = lazy(() => import("./pages/labs/CentreAppelsOffres"));
-const CentreDecisionsStrategiques = lazy(() => import("./pages/labs/CentreDecisionsStrategiques"));
-const LabsCentreDonneesMondiales = lazy(() => import("./pages/labs/CentreDonneesMondiales"));
-const LabsCentreExpansionAuto = lazy(() => import("./pages/labs/CentreExpansionAuto"));
-const LabsCentreExportAuto = lazy(() => import("./pages/labs/CentreExportAuto"));
-const LabsCentreInnovation = lazy(() => import("./pages/labs/CentreInnovation"));
-const LabsCentreInvestissementsLabs = lazy(() => import("./pages/labs/CentreInvestissementsLabs"));
+const CentreOpportunitesMondiales = lazy(() => import("./pages/labs/CentreOpportunitesMondiales"));
 const CentreRechercheMKAPMS = lazy(() => import("./pages/labs/CentreRechercheMKAPMS"));
-const LabsCentreStrategieGroupe = lazy(() => import("./pages/labs/CentreStrategieGroupe"));
+const CentreStrategieGroupe = lazy(() => import("./pages/labs/CentreStrategieGroupe"));
+const CentreTraduction = lazy(() => import("./pages/labs/CentreTraduction"));
+const CentresMobiliteUrbaine = lazy(() => import("./pages/labs/CentresMobiliteUrbaine"));
+const CentresReconditionnement = lazy(() => import("./pages/labs/CentresReconditionnement"));
+const CentresTechniques = lazy(() => import("./pages/labs/CentresTechniques"));
 const CertificationVehicule = lazy(() => import("./pages/labs/CertificationVehicule"));
 const CoffrefortInternational = lazy(() => import("./pages/labs/CoffrefortInternational"));
-const LabsControleDistanceFlottes = lazy(() => import("./pages/labs/ControleDistanceFlottes"));
+const ControleDistanceFlottes = lazy(() => import("./pages/labs/ControleDistanceFlottes"));
 const ControleProduction = lazy(() => import("./pages/labs/ControleProduction"));
 const DataCloudAuto = lazy(() => import("./pages/labs/DataCloudAuto"));
 const EnergyAfrique = lazy(() => import("./pages/labs/EnergyAfrique"));
 const EnergyBatteries = lazy(() => import("./pages/labs/EnergyBatteries"));
 const EnergyRecharge = lazy(() => import("./pages/labs/EnergyRecharge"));
-const LabsExpansionMondiale = lazy(() => import("./pages/labs/ExpansionMondiale"));
-const LabsFiliales = lazy(() => import("./pages/labs/Filiales"));
+const ExpansionMondiale = lazy(() => import("./pages/labs/ExpansionMondiale"));
+const Filiales = lazy(() => import("./pages/labs/Filiales"));
 const FleetNetworkMondial = lazy(() => import("./pages/labs/FleetNetworkMondial"));
-const LabsFranchiseMKAPMS = lazy(() => import("./pages/labs/FranchiseMKAPMS"));
-const LabsFranchisesGlobal = lazy(() => import("./pages/labs/FranchisesGlobal"));
+const FondsDeveloppement = lazy(() => import("./pages/labs/FondsDeveloppement"));
+const FondsExpansionAfrique = lazy(() => import("./pages/labs/FondsExpansionAfrique"));
+const FranchiseMKAPMS = lazy(() => import("./pages/labs/FranchiseMKAPMS"));
+const FranchisesGlobal = lazy(() => import("./pages/labs/FranchisesGlobal"));
 const GestionEntrepots = lazy(() => import("./pages/labs/GestionEntrepots"));
-const LabsGestionFlotteIntelligente = lazy(() => import("./pages/labs/GestionFlotteIntelligente"));
-const LabsGestionFlottesConnectees = lazy(() => import("./pages/labs/GestionFlottesConnectees"));
+const GestionFlotteIntelligente = lazy(() => import("./pages/labs/GestionFlotteIntelligente"));
+const GestionFlottesConnectees = lazy(() => import("./pages/labs/GestionFlottesConnectees"));
 const GestionGroupe = lazy(() => import("./pages/labs/GestionGroupe"));
-const LabsGestionMarques = lazy(() => import("./pages/labs/GestionMarques"));
-const LabsHubAfrique = lazy(() => import("./pages/labs/HubAfrique"));
-const LabsIAAutomobile = lazy(() => import("./pages/labs/IAAutomobile"));
-const LabsIAAvancee = lazy(() => import("./pages/labs/IAAvancee"));
-const LabsIAConseillerAchat = lazy(() => import("./pages/labs/IAConseillerAchat"));
-const LabsIAConseillerGarage = lazy(() => import("./pages/labs/IAConseillerGarage"));
-const LabsIAConseillerVente = lazy(() => import("./pages/labs/IAConseillerVente"));
+const GestionMarques = lazy(() => import("./pages/labs/GestionMarques"));
+const HubAfrique = lazy(() => import("./pages/labs/HubAfrique"));
+const IAAutomobile = lazy(() => import("./pages/labs/IAAutomobile"));
+const IAAvancee = lazy(() => import("./pages/labs/IAAvancee"));
+const IAConseillerAchat = lazy(() => import("./pages/labs/IAConseillerAchat"));
+const IAConseillerGarage = lazy(() => import("./pages/labs/IAConseillerGarage"));
+const IAConseillerVente = lazy(() => import("./pages/labs/IAConseillerVente"));
+const IAOperationnelleMondiale = lazy(() => import("./pages/labs/IAOperationnelleMondiale"));
+const IdentiteNumeriqueVehicule = lazy(() => import("./pages/labs/IdentiteNumeriqueVehicule"));
 const InspectionDistance = lazy(() => import("./pages/labs/InspectionDistance"));
 const JumeauNumerique = lazy(() => import("./pages/labs/JumeauNumerique"));
-const LabsJumeauxNumeriques = lazy(() => import("./pages/labs/JumeauxNumeriques"));
-const LabsLabelCertifie = lazy(() => import("./pages/labs/LabelCertifie"));
-const LabsLicencesMKAPMS = lazy(() => import("./pages/labs/LicencesMKAPMS"));
+const JumeauxNumeriques = lazy(() => import("./pages/labs/JumeauxNumeriques"));
+const LabelCertifie = lazy(() => import("./pages/labs/LabelCertifie"));
+const LicencesMKAPMS = lazy(() => import("./pages/labs/LicencesMKAPMS"));
 const LogistiquesCentres = lazy(() => import("./pages/labs/LogistiquesCentres"));
-const LabsMaintenancePredictive = lazy(() => import("./pages/labs/MaintenancePredictive"));
+const MKAPMSWorld = lazy(() => import("./pages/labs/MKAPMSWorld"));
+const MaintenancePredictive = lazy(() => import("./pages/labs/MaintenancePredictive"));
 const ObservatoireAutomobile = lazy(() => import("./pages/labs/ObservatoireAutomobile"));
-const LabsPlaceMarcheB2B = lazy(() => import("./pages/labs/PlaceMarcheB2B"));
-const LabsReseauConvoyeurs = lazy(() => import("./pages/labs/ReseauConvoyeurs"));
-const LabsReseauDepannageAfrique = lazy(() => import("./pages/labs/ReseauDepannageAfrique"));
-const LabsReseauDepanneurs = lazy(() => import("./pages/labs/ReseauDepanneurs"));
+const PasseportNumeriqueVehicule = lazy(() => import("./pages/labs/PasseportNumeriqueVehicule"));
+const PlaceMarcheB2B = lazy(() => import("./pages/labs/PlaceMarcheB2B"));
+const ProgrammeInnovation = lazy(() => import("./pages/labs/ProgrammeInnovation"));
+const ProgrammeJeunesEntrepreneurs = lazy(() => import("./pages/labs/ProgrammeJeunesEntrepreneurs"));
+const ReseauAssistance247 = lazy(() => import("./pages/labs/ReseauAssistance247"));
+const ReseauConvoyeurs = lazy(() => import("./pages/labs/ReseauConvoyeurs"));
+const ReseauDepannageAfrique = lazy(() => import("./pages/labs/ReseauDepannageAfrique"));
+const ReseauDepanneurs = lazy(() => import("./pages/labs/ReseauDepanneurs"));
 const ReseauDistribution = lazy(() => import("./pages/labs/ReseauDistribution"));
+const ReseauExperts = lazy(() => import("./pages/labs/ReseauExperts"));
 const ReseauFournisseursGlobal = lazy(() => import("./pages/labs/ReseauFournisseursGlobal"));
-const LabsReseauGaragesAfrique = lazy(() => import("./pages/labs/ReseauGaragesAfrique"));
+const ReseauGaragesAfrique = lazy(() => import("./pages/labs/ReseauGaragesAfrique"));
+const ReseauIndustriel = lazy(() => import("./pages/labs/ReseauIndustriel"));
+const ReseauMobiliteMondiale = lazy(() => import("./pages/labs/ReseauMobiliteMondiale"));
 const ReseauMondialPartenaires = lazy(() => import("./pages/labs/ReseauMondialPartenaires"));
 const ReseauMondialServices = lazy(() => import("./pages/labs/ReseauMondialServices"));
-const LabsReseauPiecesAfrique = lazy(() => import("./pages/labs/ReseauPiecesAfrique"));
-const LabsReseauTransport = lazy(() => import("./pages/labs/ReseauTransport"));
+const ReseauPiecesAfrique = lazy(() => import("./pages/labs/ReseauPiecesAfrique"));
+const ReseauTransport = lazy(() => import("./pages/labs/ReseauTransport"));
+const ReseauTransportMarchandises = lazy(() => import("./pages/labs/ReseauTransportMarchandises"));
+const ReseauTransportPersonnes = lazy(() => import("./pages/labs/ReseauTransportPersonnes"));
 const ReseauUsines = lazy(() => import("./pages/labs/ReseauUsines"));
+const SignatureUniverselle = lazy(() => import("./pages/labs/SignatureUniverselle"));
 const SmartVehicles = lazy(() => import("./pages/labs/SmartVehicles"));
-const LabsTelematique = lazy(() => import("./pages/labs/Telematique"));
-const LabsVehiculesConnectes = lazy(() => import("./pages/labs/VehiculesConnectes"));
-const LabsVisionFinaleMKAPMS = lazy(() => import("./pages/labs/VisionFinaleMKAPMS"));
+const StationnementIntelligent = lazy(() => import("./pages/labs/StationnementIntelligent"));
+const Telematique = lazy(() => import("./pages/labs/Telematique"));
+const VehiculesConnectes = lazy(() => import("./pages/labs/VehiculesConnectes"));
+const VisionFinaleMKAPMS = lazy(() => import("./pages/labs/VisionFinaleMKAPMS"));
 
 // Chaque univers est isolé : un crash dans l'un n'affecte pas les autres.
 function U({ name, children }: { name: string; children: React.ReactNode }) {
@@ -1120,398 +750,423 @@ export default function App() {
             <Route path="/compte/*" element={<U name="Mon compte"><Compte /></U>} />
             <Route path="/admin/*" element={<U name="Back-office"><Admin /></U>} />
             {/* Garage */}
-            <Route path="/garage/assistance-routiere" element={<U name="Garage"><GarageAssistanceRoutiere /></U>} />
-            <Route path="/garage/boutique-pieces" element={<U name="Garage"><GarageBoutiquePieces /></U>} />
-            <Route path="/garage/carrosserie-garage" element={<U name="Garage"><GarageCarrosserieGarage /></U>} />
-            <Route path="/garage/centre-lavage" element={<U name="Garage"><GarageCentreLavage /></U>} />
-            <Route path="/garage/centre-reclamations" element={<U name="Garage"><GarageCentreReclamations /></U>} />
-            <Route path="/garage/commande-pieces" element={<U name="Garage"><GarageCommandePieces /></U>} />
-            <Route path="/garage/commandes-automatiques" element={<U name="Garage"><GarageCommandesAutomatiques /></U>} />
-            <Route path="/garage/contrats-flottes" element={<U name="Garage"><GarageContratsFlottes /></U>} />
-            <Route path="/garage/controle-qualite-garage" element={<U name="Garage"><GarageControleQualiteGarage /></U>} />
-            <Route path="/garage/controle-qualite-premium" element={<U name="Garage"><GarageControleQualitePremium /></U>} />
-            <Route path="/garage/controle-technique" element={<U name="Garage"><GarageControleTechnique /></U>} />
-            <Route path="/garage/demande-devis" element={<U name="Garage"><GarageDemandeDevis /></U>} />
-            <Route path="/garage/depannage-avance" element={<U name="Garage"><GarageDepannageAvance /></U>} />
-            <Route path="/garage/depannage-garage" element={<U name="Garage"><GarageDepannageGarage /></U>} />
-            <Route path="/garage/diagnostic-avance" element={<U name="Garage"><GarageDiagnosticAvance /></U>} />
-            <Route path="/garage/diagnostic-garage" element={<U name="Garage"><GarageDiagnosticGarage /></U>} />
-            <Route path="/garage/dossiers-flottes" element={<U name="Garage"><GarageDossiersFlottes /></U>} />
-            <Route path="/garage/entretiens-preventifs" element={<U name="Garage"><GarageEntretiensPreventifs /></U>} />
-            <Route path="/garage/esthetique-auto" element={<U name="Garage"><GarageEsthetiqueAuto /></U>} />
-            <Route path="/garage/fiches-techniciens" element={<U name="Garage"><GarageFichesTechniciens /></U>} />
-            <Route path="/garage/file-attente-atelier" element={<U name="Garage"><GarageFileAttenteAtelier /></U>} />
-            <Route path="/garage/flottes-entreprises" element={<U name="Garage"><GarageFlottesEntreprises /></U>} />
-            <Route path="/garage/fournisseurs-garage" element={<U name="Garage"><GarageFournisseursGarage /></U>} />
-            <Route path="/garage" element={<U name="Garage"><GarageGarageGenerale /></U>} />
-            <Route path="/garage/garage-particulier" element={<U name="Garage"><GarageGarageParticulier /></U>} />
-            <Route path="/garage/garage-professionnel" element={<U name="Garage"><GarageGarageProfessionnel /></U>} />
-            <Route path="/garage/garantie-travaux" element={<U name="Garage"><GarageGarantieTravaux /></U>} />
-            <Route path="/garage/gestion-mecaniciens" element={<U name="Garage"><GarageGestionMecaniciens /></U>} />
-            <Route path="/garage/gestion-outillage" element={<U name="Garage"><GarageGestionOutillage /></U>} />
-            <Route path="/garage/gestion-ponts" element={<U name="Garage"><GarageGestionPonts /></U>} />
-            <Route path="/garage/historique-garage" element={<U name="Garage"><GarageHistoriqueGarage /></U>} />
-            <Route path="/garage/lavage-preparation" element={<U name="Garage"><GarageLavagePreparation /></U>} />
-            <Route path="/garage/multi-garages" element={<U name="Garage"><GarageMultiGarages /></U>} />
-            <Route path="/garage/objectif-final-garage" element={<U name="Garage"><GarageObjectifFinalGarage /></U>} />
-            <Route path="/garage/objectif-garage" element={<U name="Garage"><GarageObjectifGarage /></U>} />
-            <Route path="/garage/ordre-reparation" element={<U name="Garage"><GarageOrdreReparation /></U>} />
-            <Route path="/garage/panier-pieces" element={<U name="Garage"><GaragePanierPieces /></U>} />
-            <Route path="/garage/photos-intervention" element={<U name="Garage"><GaragePhotosIntervention /></U>} />
-            <Route path="/garage/photos-techniques" element={<U name="Garage"><GaragePhotosTechniques /></U>} />
-            <Route path="/garage/planning-atelier" element={<U name="Garage"><GaragePlanningAtelier /></U>} />
-            <Route path="/garage/pneumatiques" element={<U name="Garage"><GaragePneumatiques /></U>} />
-            <Route path="/garage/pneumatiques-avance" element={<U name="Garage"><GaragePneumatiquesAvance /></U>} />
-            <Route path="/garage/preparation-vente-v-o" element={<U name="Garage"><GaragePreparationVenteVO /></U>} />
-            <Route path="/garage/prise-rendez-vous" element={<U name="Garage"><GaragePriseRendezVous /></U>} />
-            <Route path="/garage/reception-vehicule" element={<U name="Garage"><GarageReceptionVehicule /></U>} />
-            <Route path="/garage/recherche-pieces" element={<U name="Garage"><GarageRecherchePieces /></U>} />
-            <Route path="/garage/relance-client" element={<U name="Garage"><GarageRelanceClient /></U>} />
-            <Route path="/garage/rentabilite-atelier" element={<U name="Garage"><GarageRentabiliteAtelier /></U>} />
-            <Route path="/garage/reseau-partenaires" element={<U name="Garage"><GarageReseauPartenaires /></U>} />
-            <Route path="/garage/reservation-atelier" element={<U name="Garage"><GarageReservationAtelier /></U>} />
-            <Route path="/garage/restitution-client" element={<U name="Garage"><GarageRestitutionClient /></U>} />
-            <Route path="/garage/statistiques-garage" element={<U name="Garage"><GarageStatistiquesGarage /></U>} />
-            <Route path="/garage/stock-pieces" element={<U name="Garage"><GarageStockPieces /></U>} />
-            <Route path="/garage/suivi-temps-reel" element={<U name="Garage"><GarageSuiviTempsReel /></U>} />
-            <Route path="/garage/tableau-bord-chef-atelier" element={<U name="Garage"><GarageTableauBordChefAtelier /></U>} />
-            <Route path="/garage/temps-intervention" element={<U name="Garage"><GarageTempsIntervention /></U>} />
-            <Route path="/garage/transfert-dossiers" element={<U name="Garage"><GarageTransfertDossiers /></U>} />
-            <Route path="/garage/validation-client" element={<U name="Garage"><GarageValidationClient /></U>} />
-            <Route path="/garage/validation-interne" element={<U name="Garage"><GarageValidationInterne /></U>} />
-            <Route path="/garage/vehicules-attente" element={<U name="Garage"><GarageVehiculesAttente /></U>} />
+            <Route path="/garage/assistance-routiere" element={<U name="Garage"><AssistanceRoutiere /></U>} />
+            <Route path="/garage/boutique-pieces" element={<U name="Garage"><BoutiquePieces /></U>} />
+            <Route path="/garage/carrosserie-garage" element={<U name="Garage"><CarrosserieGarage /></U>} />
+            <Route path="/garage/centre-lavage" element={<U name="Garage"><CentreLavage /></U>} />
+            <Route path="/garage/centre-reclamations" element={<U name="Garage"><CentreReclamations /></U>} />
+            <Route path="/garage/commande-pieces" element={<U name="Garage"><CommandePieces /></U>} />
+            <Route path="/garage/commandes-automatiques" element={<U name="Garage"><CommandesAutomatiques /></U>} />
+            <Route path="/garage/contrats-flottes" element={<U name="Garage"><ContratsFlottes /></U>} />
+            <Route path="/garage/controle-qualite-garage" element={<U name="Garage"><ControleQualiteGarage /></U>} />
+            <Route path="/garage/controle-qualite-premium" element={<U name="Garage"><ControleQualitePremium /></U>} />
+            <Route path="/garage/controle-technique" element={<U name="Garage"><ControleTechnique /></U>} />
+            <Route path="/garage/demande-devis" element={<U name="Garage"><DemandeDevis /></U>} />
+            <Route path="/garage/depannage-avance" element={<U name="Garage"><DepannageAvance /></U>} />
+            <Route path="/garage/depannage-garage" element={<U name="Garage"><DepannageGarage /></U>} />
+            <Route path="/garage/diagnostic-avance" element={<U name="Garage"><DiagnosticAvance /></U>} />
+            <Route path="/garage/diagnostic-garage" element={<U name="Garage"><DiagnosticGarage /></U>} />
+            <Route path="/garage/dossiers-flottes" element={<U name="Garage"><DossiersFlottes /></U>} />
+            <Route path="/garage/entretiens-preventifs" element={<U name="Garage"><EntretiensPreventifs /></U>} />
+            <Route path="/garage/esthetique-auto" element={<U name="Garage"><EsthetiqueAuto /></U>} />
+            <Route path="/garage/fiches-techniciens" element={<U name="Garage"><FichesTechniciens /></U>} />
+            <Route path="/garage/file-attente-atelier" element={<U name="Garage"><FileAttenteAtelier /></U>} />
+            <Route path="/garage/flottes-entreprises" element={<U name="Garage"><FlottesEntreprises /></U>} />
+            <Route path="/garage/fournisseurs-garage" element={<U name="Garage"><FournisseursGarage /></U>} />
+            <Route path="/garage" element={<U name="Garage"><GarageGenerale /></U>} />
+            <Route path="/garage/garage-particulier" element={<U name="Garage"><GarageParticulier /></U>} />
+            <Route path="/garage/garage-professionnel" element={<U name="Garage"><GarageProfessionnel /></U>} />
+            <Route path="/garage/garantie-travaux" element={<U name="Garage"><GarantieTravaux /></U>} />
+            <Route path="/garage/gestion-mecaniciens" element={<U name="Garage"><GestionMecaniciens /></U>} />
+            <Route path="/garage/gestion-outillage" element={<U name="Garage"><GestionOutillage /></U>} />
+            <Route path="/garage/gestion-ponts" element={<U name="Garage"><GestionPonts /></U>} />
+            <Route path="/garage/historique-garage" element={<U name="Garage"><HistoriqueGarage /></U>} />
+            <Route path="/garage/lavage-preparation" element={<U name="Garage"><LavagePreparation /></U>} />
+            <Route path="/garage/multi-garages" element={<U name="Garage"><MultiGarages /></U>} />
+            <Route path="/garage/objectif-final-garage" element={<U name="Garage"><ObjectifFinalGarage /></U>} />
+            <Route path="/garage/objectif-garage" element={<U name="Garage"><ObjectifGarage /></U>} />
+            <Route path="/garage/ordre-reparation" element={<U name="Garage"><OrdreReparation /></U>} />
+            <Route path="/garage/panier-pieces" element={<U name="Garage"><PanierPieces /></U>} />
+            <Route path="/garage/photos-intervention" element={<U name="Garage"><PhotosIntervention /></U>} />
+            <Route path="/garage/photos-techniques" element={<U name="Garage"><PhotosTechniques /></U>} />
+            <Route path="/garage/planning-atelier" element={<U name="Garage"><PlanningAtelier /></U>} />
+            <Route path="/garage/pneumatiques" element={<U name="Garage"><Pneumatiques /></U>} />
+            <Route path="/garage/pneumatiques-avance" element={<U name="Garage"><PneumatiquesAvance /></U>} />
+            <Route path="/garage/preparation-vente-v-o" element={<U name="Garage"><PreparationVenteVO /></U>} />
+            <Route path="/garage/prise-rendez-vous" element={<U name="Garage"><PriseRendezVous /></U>} />
+            <Route path="/garage/reception-vehicule" element={<U name="Garage"><ReceptionVehicule /></U>} />
+            <Route path="/garage/recherche-pieces" element={<U name="Garage"><RecherchePieces /></U>} />
+            <Route path="/garage/relance-client" element={<U name="Garage"><RelanceClient /></U>} />
+            <Route path="/garage/rentabilite-atelier" element={<U name="Garage"><RentabiliteAtelier /></U>} />
+            <Route path="/garage/reseau-partenaires" element={<U name="Garage"><ReseauPartenaires /></U>} />
+            <Route path="/garage/reservation-atelier" element={<U name="Garage"><ReservationAtelier /></U>} />
+            <Route path="/garage/restitution-client" element={<U name="Garage"><RestitutionClient /></U>} />
+            <Route path="/garage/statistiques-garage" element={<U name="Garage"><StatistiquesGarage /></U>} />
+            <Route path="/garage/stock-pieces" element={<U name="Garage"><StockPieces /></U>} />
+            <Route path="/garage/suivi-temps-reel" element={<U name="Garage"><SuiviTempsReel /></U>} />
+            <Route path="/garage/tableau-bord-chef-atelier" element={<U name="Garage"><TableauBordChefAtelier /></U>} />
+            <Route path="/garage/temps-intervention" element={<U name="Garage"><TempsIntervention /></U>} />
+            <Route path="/garage/transfert-dossiers" element={<U name="Garage"><TransfertDossiers /></U>} />
+            <Route path="/garage/validation-client" element={<U name="Garage"><ValidationClient /></U>} />
+            <Route path="/garage/validation-interne" element={<U name="Garage"><ValidationInterne /></U>} />
+            <Route path="/garage/vehicules-attente" element={<U name="Garage"><VehiculesAttente /></U>} />
             {/* Démarches */}
-            <Route path="/demarches/alertes-demarches" element={<U name="Démarches"><DemarchesAlertesDemarches /></U>} />
-            <Route path="/demarches/archives-administratives" element={<U name="Démarches"><DemarchesArchivesAdministratives /></U>} />
-            <Route path="/demarches/carte-grise-demarche" element={<U name="Démarches"><DemarchesCarteGriseDemarche /></U>} />
-            <Route path="/demarches/centre-documents-demarches" element={<U name="Démarches"><DemarchesCentreDocumentsDemarches /></U>} />
-            <Route path="/demarches/changement-adresse" element={<U name="Démarches"><DemarchesChangementAdresse /></U>} />
-            <Route path="/demarches/changement-titulaire" element={<U name="Démarches"><DemarchesChangementTitulaire /></U>} />
-            <Route path="/demarches/declaration-cession" element={<U name="Démarches"><DemarchesDeclarationCession /></U>} />
-            <Route path="/demarches" element={<U name="Démarches"><DemarchesDemarchesGenerale /></U>} />
-            <Route path="/demarches/duplicata-demarche" element={<U name="Démarches"><DemarchesDuplicataDemarche /></U>} />
-            <Route path="/demarches/espace-pro-demarches" element={<U name="Démarches"><DemarchesEspaceProDemarches /></U>} />
-            <Route path="/demarches/immatriculation-provisoire" element={<U name="Démarches"><DemarchesImmatriculationProvisoire /></U>} />
-            <Route path="/demarches/importation-vehicule" element={<U name="Démarches"><DemarchesImportationVehicule /></U>} />
-            <Route path="/demarches/messagerie-demarches" element={<U name="Démarches"><DemarchesMessagerieDemarches /></U>} />
-            <Route path="/demarches/objectif-demarches" element={<U name="Démarches"><DemarchesObjectifDemarches /></U>} />
-            <Route path="/demarches/paiement-demarches" element={<U name="Démarches"><DemarchesPaiementDemarches /></U>} />
-            <Route path="/demarches/plaques-immatriculation" element={<U name="Démarches"><DemarchesPlaquesImmatriculation /></U>} />
-            <Route path="/demarches/signatures-electroniques" element={<U name="Démarches"><DemarchesSignaturesElectroniques /></U>} />
-            <Route path="/demarches/statistiques-demarches" element={<U name="Démarches"><DemarchesStatistiquesDemarches /></U>} />
-            <Route path="/demarches/succession-vehicule" element={<U name="Démarches"><DemarchesSuccessionVehicule /></U>} />
-            <Route path="/demarches/suivi-dossier" element={<U name="Démarches"><DemarchesSuiviDossier /></U>} />
-            <Route path="/demarches/verification-i-a" element={<U name="Démarches"><DemarchesVerificationIA /></U>} />
-            <Route path="/demarches/w-w-garage" element={<U name="Démarches"><DemarchesWWGarage /></U>} />
+            <Route path="/demarches/alertes-demarches" element={<U name="Démarches"><AlertesDemarches /></U>} />
+            <Route path="/demarches/archives-administratives" element={<U name="Démarches"><ArchivesAdministratives /></U>} />
+            <Route path="/demarches/carte-grise-demarche" element={<U name="Démarches"><CarteGriseDemarche /></U>} />
+            <Route path="/demarches/centre-documents-demarches" element={<U name="Démarches"><CentreDocumentsDemarches /></U>} />
+            <Route path="/demarches/changement-adresse" element={<U name="Démarches"><ChangementAdresse /></U>} />
+            <Route path="/demarches/changement-titulaire" element={<U name="Démarches"><ChangementTitulaire /></U>} />
+            <Route path="/demarches/declaration-cession" element={<U name="Démarches"><DeclarationCession /></U>} />
+            <Route path="/demarches" element={<U name="Démarches"><DemarchesGenerale /></U>} />
+            <Route path="/demarches/duplicata-demarche" element={<U name="Démarches"><DuplicataDemarche /></U>} />
+            <Route path="/demarches/espace-pro-demarches" element={<U name="Démarches"><EspaceProDemarches /></U>} />
+            <Route path="/demarches/immatriculation-provisoire" element={<U name="Démarches"><ImmatriculationProvisoire /></U>} />
+            <Route path="/demarches/importation-vehicule" element={<U name="Démarches"><ImportationVehicule /></U>} />
+            <Route path="/demarches/messagerie-demarches" element={<U name="Démarches"><MessagerieDemarches /></U>} />
+            <Route path="/demarches/objectif-demarches" element={<U name="Démarches"><ObjectifDemarches /></U>} />
+            <Route path="/demarches/paiement-demarches" element={<U name="Démarches"><PaiementDemarches /></U>} />
+            <Route path="/demarches/plaques-immatriculation" element={<U name="Démarches"><PlaquesImmatriculation /></U>} />
+            <Route path="/demarches/signatures-electroniques" element={<U name="Démarches"><SignaturesElectroniques /></U>} />
+            <Route path="/demarches/statistiques-demarches" element={<U name="Démarches"><StatistiquesDemarches /></U>} />
+            <Route path="/demarches/succession-vehicule" element={<U name="Démarches"><SuccessionVehicule /></U>} />
+            <Route path="/demarches/suivi-dossier" element={<U name="Démarches"><SuiviDossier /></U>} />
+            <Route path="/demarches/verification-i-a" element={<U name="Démarches"><VerificationIA /></U>} />
+            <Route path="/demarches/w-w-garage" element={<U name="Démarches"><WWGarage /></U>} />
             {/* Pièces */}
-            <Route path="/pieces/abonnements-pro-pieces" element={<U name="Pièces"><PiecesAbonnementsProPieces /></U>} />
-            <Route path="/pieces/avis-produits-pieces" element={<U name="Pièces"><PiecesAvisProduitsPieces /></U>} />
-            <Route path="/pieces/fournisseurs-pieces" element={<U name="Pièces"><PiecesFournisseursPieces /></U>} />
-            <Route path="/pieces/logistique-pieces" element={<U name="Pièces"><PiecesLogistiquePieces /></U>} />
-            <Route path="/pieces/montage-garage" element={<U name="Pièces"><PiecesMontageGarage /></U>} />
-            <Route path="/pieces/objectif-pieces" element={<U name="Pièces"><PiecesObjectifPieces /></U>} />
-            <Route path="/pieces/panier-pieces-detachees" element={<U name="Pièces"><PiecesPanierPiecesDetachees /></U>} />
-            <Route path="/pieces/pieces-accessoires" element={<U name="Pièces"><PiecesPiecesAccessoires /></U>} />
-            <Route path="/pieces/pieces-batteries" element={<U name="Pièces"><PiecesPiecesBatteries /></U>} />
-            <Route path="/pieces/pieces-carrosserie" element={<U name="Pièces"><PiecesPiecesCarrosserie /></U>} />
-            <Route path="/pieces/pieces-eclairage" element={<U name="Pièces"><PiecesPiecesEclairage /></U>} />
-            <Route path="/pieces/pieces-freinage" element={<U name="Pièces"><PiecesPiecesFreinage /></U>} />
-            <Route path="/pieces" element={<U name="Pièces"><PiecesPiecesGenerale /></U>} />
-            <Route path="/pieces/pieces-huiles" element={<U name="Pièces"><PiecesPiecesHuiles /></U>} />
-            <Route path="/pieces/pieces-moteur" element={<U name="Pièces"><PiecesPiecesMoteur /></U>} />
-            <Route path="/pieces/pieces-pneumatiques" element={<U name="Pièces"><PiecesPiecesPneumatiques /></U>} />
-            <Route path="/pieces/pieces-suspension" element={<U name="Pièces"><PiecesPiecesSuspension /></U>} />
-            <Route path="/pieces/recherche-intelligente-pieces" element={<U name="Pièces"><PiecesRechercheIntelligentePieces /></U>} />
-            <Route path="/pieces/retours-pieces" element={<U name="Pièces"><PiecesRetoursPieces /></U>} />
-            <Route path="/pieces/statistiques-pieces" element={<U name="Pièces"><PiecesStatistiquesPieces /></U>} />
-            <Route path="/pieces/vendeurs-pieces" element={<U name="Pièces"><PiecesVendeursPieces /></U>} />
-            <Route path="/pieces/verification-compatibilite" element={<U name="Pièces"><PiecesVerificationCompatibilite /></U>} />
+            <Route path="/pieces/abonnements-pro-pieces" element={<U name="Pièces"><AbonnementsProPieces /></U>} />
+            <Route path="/pieces/avis-produits-pieces" element={<U name="Pièces"><AvisProduitsPieces /></U>} />
+            <Route path="/pieces/fournisseurs-pieces" element={<U name="Pièces"><FournisseursPieces /></U>} />
+            <Route path="/pieces/logistique-pieces" element={<U name="Pièces"><LogistiquePieces /></U>} />
+            <Route path="/pieces/montage-garage" element={<U name="Pièces"><MontageGarage /></U>} />
+            <Route path="/pieces/objectif-pieces" element={<U name="Pièces"><ObjectifPieces /></U>} />
+            <Route path="/pieces/panier-pieces-detachees" element={<U name="Pièces"><PanierPiecesDetachees /></U>} />
+            <Route path="/pieces/pieces-accessoires" element={<U name="Pièces"><PiecesAccessoires /></U>} />
+            <Route path="/pieces/pieces-batteries" element={<U name="Pièces"><PiecesBatteries /></U>} />
+            <Route path="/pieces/pieces-carrosserie" element={<U name="Pièces"><PiecesCarrosserie /></U>} />
+            <Route path="/pieces/pieces-eclairage" element={<U name="Pièces"><PiecesEclairage /></U>} />
+            <Route path="/pieces/pieces-freinage" element={<U name="Pièces"><PiecesFreinage /></U>} />
+            <Route path="/pieces" element={<U name="Pièces"><PiecesGenerale /></U>} />
+            <Route path="/pieces/pieces-huiles" element={<U name="Pièces"><PiecesHuiles /></U>} />
+            <Route path="/pieces/pieces-moteur" element={<U name="Pièces"><PiecesMoteur /></U>} />
+            <Route path="/pieces/pieces-pneumatiques" element={<U name="Pièces"><PiecesPneumatiques /></U>} />
+            <Route path="/pieces/pieces-suspension" element={<U name="Pièces"><PiecesSuspension /></U>} />
+            <Route path="/pieces/recherche-intelligente-pieces" element={<U name="Pièces"><RechercheIntelligentePieces /></U>} />
+            <Route path="/pieces/retours-pieces" element={<U name="Pièces"><RetoursPieces /></U>} />
+            <Route path="/pieces/statistiques-pieces" element={<U name="Pièces"><StatistiquesPieces /></U>} />
+            <Route path="/pieces/vendeurs-pieces" element={<U name="Pièces"><VendeursPieces /></U>} />
+            <Route path="/pieces/verification-compatibilite" element={<U name="Pièces"><VerificationCompatibilite /></U>} />
             {/* Finance */}
-            <Route path="/finance/acompte-finance" element={<U name="Finance"><FinanceAcompteFinance /></U>} />
-            <Route path="/finance/alertes-paiements" element={<U name="Finance"><FinanceAlertesPaiements /></U>} />
-            <Route path="/finance/centre-echeancier" element={<U name="Finance"><FinanceCentreEcheancier /></U>} />
-            <Route path="/finance/centre-factures" element={<U name="Finance"><FinanceCentreFactures /></U>} />
-            <Route path="/finance/contrats-financiers" element={<U name="Finance"><FinanceContratsFinanciers /></U>} />
-            <Route path="/finance/depot-garantie-finance" element={<U name="Finance"><FinanceDepotGarantieFinance /></U>} />
-            <Route path="/finance" element={<U name="Finance"><FinanceFinanceGenerale /></U>} />
-            <Route path="/finance/garantie-securite" element={<U name="Finance"><FinanceGarantieSecurite /></U>} />
-            <Route path="/finance/l-o-a-finance" element={<U name="Finance"><FinanceLOAFinance /></U>} />
-            <Route path="/finance/objectif-finance" element={<U name="Finance"><FinanceObjectifFinance /></U>} />
-            <Route path="/finance/paiement-comptant" element={<U name="Finance"><FinancePaiementComptant /></U>} />
-            <Route path="/finance/paiement-fractionne" element={<U name="Finance"><FinancePaiementFractionne /></U>} />
-            <Route path="/finance/paiements-professionnels" element={<U name="Finance"><FinancePaiementsProfessionnels /></U>} />
-            <Route path="/finance/remboursements-finance" element={<U name="Finance"><FinanceRemboursementsFinance /></U>} />
-            <Route path="/finance/tableau-bord-finance" element={<U name="Finance"><FinanceTableauBordFinance /></U>} />
+            <Route path="/finance/acompte-finance" element={<U name="Finance"><AcompteFinance /></U>} />
+            <Route path="/finance/alertes-paiements" element={<U name="Finance"><AlertesPaiements /></U>} />
+            <Route path="/finance/centre-echeancier" element={<U name="Finance"><CentreEcheancier /></U>} />
+            <Route path="/finance/centre-factures" element={<U name="Finance"><CentreFactures /></U>} />
+            <Route path="/finance/contrats-financiers" element={<U name="Finance"><ContratsFinanciers /></U>} />
+            <Route path="/finance/depot-garantie-finance" element={<U name="Finance"><DepotGarantieFinance /></U>} />
+            <Route path="/finance" element={<U name="Finance"><FinanceGenerale /></U>} />
+            <Route path="/finance/garantie-securite" element={<U name="Finance"><GarantieSecurite /></U>} />
+            <Route path="/finance/l-o-a-finance" element={<U name="Finance"><LOAFinance /></U>} />
+            <Route path="/finance/objectif-finance" element={<U name="Finance"><ObjectifFinance /></U>} />
+            <Route path="/finance/paiement-comptant" element={<U name="Finance"><PaiementComptant /></U>} />
+            <Route path="/finance/paiement-fractionne" element={<U name="Finance"><PaiementFractionne /></U>} />
+            <Route path="/finance/paiements-professionnels" element={<U name="Finance"><PaiementsProfessionnels /></U>} />
+            <Route path="/finance/remboursements-finance" element={<U name="Finance"><RemboursementsFinance /></U>} />
+            <Route path="/finance/tableau-bord-finance" element={<U name="Finance"><TableauBordFinance /></U>} />
             {/* Super Admin */}
-            <Route path="/superadmin/admin-abonnements" element={<U name="Super Admin"><SuperadminAdminAbonnements /></U>} />
-            <Route path="/superadmin/admin-badges" element={<U name="Super Admin"><SuperadminAdminBadges /></U>} />
-            <Route path="/superadmin/admin-carte-moniale" element={<U name="Super Admin"><SuperadminAdminCarteMoniale /></U>} />
-            <Route path="/superadmin/admin-commissions" element={<U name="Super Admin"><SuperadminAdminCommissions /></U>} />
-            <Route path="/superadmin/admin-comptes-pro" element={<U name="Super Admin"><SuperadminAdminComptesPro /></U>} />
-            <Route path="/superadmin/admin-employes" element={<U name="Super Admin"><SuperadminAdminEmployes /></U>} />
-            <Route path="/superadmin/admin-fraude" element={<U name="Super Admin"><SuperadminAdminFraude /></U>} />
-            <Route path="/superadmin/admin-journal" element={<U name="Super Admin"><SuperadminAdminJournal /></U>} />
-            <Route path="/superadmin/admin-litiges" element={<U name="Super Admin"><SuperadminAdminLitiges /></U>} />
-            <Route path="/superadmin/admin-moderation-annonces" element={<U name="Super Admin"><SuperadminAdminModerationAnnonces /></U>} />
-            <Route path="/superadmin/admin-moderation-avis" element={<U name="Super Admin"><SuperadminAdminModerationAvis /></U>} />
-            <Route path="/superadmin/admin-objectif" element={<U name="Super Admin"><SuperadminAdminObjectif /></U>} />
-            <Route path="/superadmin/admin-paiements" element={<U name="Super Admin"><SuperadminAdminPaiements /></U>} />
-            <Route path="/superadmin/admin-sauvegardes" element={<U name="Super Admin"><SuperadminAdminSauvegardes /></U>} />
-            <Route path="/superadmin/admin-securite" element={<U name="Super Admin"><SuperadminAdminSecurite /></U>} />
-            <Route path="/superadmin/admin-statistiques" element={<U name="Super Admin"><SuperadminAdminStatistiques /></U>} />
-            <Route path="/superadmin/admin-support" element={<U name="Super Admin"><SuperadminAdminSupport /></U>} />
-            <Route path="/superadmin/admin-utilisateurs" element={<U name="Super Admin"><SuperadminAdminUtilisateurs /></U>} />
-            <Route path="/superadmin/admin-validation-docs" element={<U name="Super Admin"><SuperadminAdminValidationDocs /></U>} />
-            <Route path="/superadmin" element={<U name="Super Admin"><SuperadminSuperAdminDashboard /></U>} />
+            <Route path="/superadmin/admin-abonnements" element={<U name="Super Admin"><AdminAbonnements /></U>} />
+            <Route path="/superadmin/admin-badges" element={<U name="Super Admin"><AdminBadges /></U>} />
+            <Route path="/superadmin/admin-carte-moniale" element={<U name="Super Admin"><AdminCarteMoniale /></U>} />
+            <Route path="/superadmin/admin-commissions" element={<U name="Super Admin"><AdminCommissions /></U>} />
+            <Route path="/superadmin/admin-comptes-pro" element={<U name="Super Admin"><AdminComptesPro /></U>} />
+            <Route path="/superadmin/admin-employes" element={<U name="Super Admin"><AdminEmployes /></U>} />
+            <Route path="/superadmin/admin-fraude" element={<U name="Super Admin"><AdminFraude /></U>} />
+            <Route path="/superadmin/admin-journal" element={<U name="Super Admin"><AdminJournal /></U>} />
+            <Route path="/superadmin/admin-litiges" element={<U name="Super Admin"><AdminLitiges /></U>} />
+            <Route path="/superadmin/admin-moderation-annonces" element={<U name="Super Admin"><AdminModerationAnnonces /></U>} />
+            <Route path="/superadmin/admin-moderation-avis" element={<U name="Super Admin"><AdminModerationAvis /></U>} />
+            <Route path="/superadmin/admin-objectif" element={<U name="Super Admin"><AdminObjectif /></U>} />
+            <Route path="/superadmin/admin-paiements" element={<U name="Super Admin"><AdminPaiements /></U>} />
+            <Route path="/superadmin/admin-sauvegardes" element={<U name="Super Admin"><AdminSauvegardes /></U>} />
+            <Route path="/superadmin/admin-securite" element={<U name="Super Admin"><AdminSecurite /></U>} />
+            <Route path="/superadmin/admin-statistiques" element={<U name="Super Admin"><AdminStatistiques /></U>} />
+            <Route path="/superadmin/admin-support" element={<U name="Super Admin"><AdminSupport /></U>} />
+            <Route path="/superadmin/admin-utilisateurs" element={<U name="Super Admin"><AdminUtilisateurs /></U>} />
+            <Route path="/superadmin/admin-validation-docs" element={<U name="Super Admin"><AdminValidationDocs /></U>} />
+            <Route path="/superadmin" element={<U name="Super Admin"><SuperAdminDashboard /></U>} />
             {/* Utilisateurs */}
-            <Route path="/utilisateurs/abonnements-utilisateur" element={<U name="Utilisateurs"><UtilisateursAbonnementsUtilisateur /></U>} />
-            <Route path="/utilisateurs/centre-alertes-utilisateur" element={<U name="Utilisateurs"><UtilisateursCentreAlertesUtilisateur /></U>} />
-            <Route path="/utilisateurs/centre-favoris-utilisateur" element={<U name="Utilisateurs"><UtilisateursCentreFavorisUtilisateur /></U>} />
-            <Route path="/utilisateurs/centre-support-utilisateur" element={<U name="Utilisateurs"><UtilisateursCentreSupportUtilisateur /></U>} />
-            <Route path="/utilisateurs" element={<U name="Utilisateurs"><UtilisateursCompteParticulier /></U>} />
-            <Route path="/utilisateurs/compte-pro-utilisateur" element={<U name="Utilisateurs"><UtilisateursCompteProUtilisateur /></U>} />
-            <Route path="/utilisateurs/documents-personnels" element={<U name="Utilisateurs"><UtilisateursDocumentsPersonnels /></U>} />
-            <Route path="/utilisateurs/employes-utilisateur" element={<U name="Utilisateurs"><UtilisateursEmployesUtilisateur /></U>} />
-            <Route path="/utilisateurs/factures-utilisateur" element={<U name="Utilisateurs"><UtilisateursFacturesUtilisateur /></U>} />
-            <Route path="/utilisateurs/historique-achats" element={<U name="Utilisateurs"><UtilisateursHistoriqueAchats /></U>} />
-            <Route path="/utilisateurs/historique-demarches" element={<U name="Utilisateurs"><UtilisateursHistoriqueDemarches /></U>} />
-            <Route path="/utilisateurs/historique-depannages" element={<U name="Utilisateurs"><UtilisateursHistoriqueDepannages /></U>} />
-            <Route path="/utilisateurs/historique-entretiens" element={<U name="Utilisateurs"><UtilisateursHistoriqueEntretiens /></U>} />
-            <Route path="/utilisateurs/historique-locations" element={<U name="Utilisateurs"><UtilisateursHistoriqueLocations /></U>} />
-            <Route path="/utilisateurs/mes-vehicules" element={<U name="Utilisateurs"><UtilisateursMesVehicules /></U>} />
-            <Route path="/utilisateurs/messagerie-globale" element={<U name="Utilisateurs"><UtilisateursMessagerieGlobale /></U>} />
-            <Route path="/utilisateurs/objectif-utilisateur" element={<U name="Utilisateurs"><UtilisateursObjectifUtilisateur /></U>} />
-            <Route path="/utilisateurs/securite-utilisateur" element={<U name="Utilisateurs"><UtilisateursSecuriteUtilisateur /></U>} />
-            <Route path="/utilisateurs/suppression-compte" element={<U name="Utilisateurs"><UtilisateursSuppressionCompte /></U>} />
-            <Route path="/utilisateurs/tableau-bord-perso" element={<U name="Utilisateurs"><UtilisateursTableauBordPerso /></U>} />
+            <Route path="/utilisateurs/abonnements-utilisateur" element={<U name="Utilisateurs"><AbonnementsUtilisateur /></U>} />
+            <Route path="/utilisateurs/centre-alertes-utilisateur" element={<U name="Utilisateurs"><CentreAlertesUtilisateur /></U>} />
+            <Route path="/utilisateurs/centre-favoris-utilisateur" element={<U name="Utilisateurs"><CentreFavorisUtilisateur /></U>} />
+            <Route path="/utilisateurs/centre-support-utilisateur" element={<U name="Utilisateurs"><CentreSupportUtilisateur /></U>} />
+            <Route path="/utilisateurs" element={<U name="Utilisateurs"><CompteParticulier /></U>} />
+            <Route path="/utilisateurs/compte-pro-utilisateur" element={<U name="Utilisateurs"><CompteProUtilisateur /></U>} />
+            <Route path="/utilisateurs/documents-personnels" element={<U name="Utilisateurs"><DocumentsPersonnels /></U>} />
+            <Route path="/utilisateurs/employes-utilisateur" element={<U name="Utilisateurs"><EmployesUtilisateur /></U>} />
+            <Route path="/utilisateurs/factures-utilisateur" element={<U name="Utilisateurs"><FacturesUtilisateur /></U>} />
+            <Route path="/utilisateurs/historique-achats" element={<U name="Utilisateurs"><HistoriqueAchats /></U>} />
+            <Route path="/utilisateurs/historique-demarches" element={<U name="Utilisateurs"><HistoriqueDemarches /></U>} />
+            <Route path="/utilisateurs/historique-depannages" element={<U name="Utilisateurs"><HistoriqueDepannages /></U>} />
+            <Route path="/utilisateurs/historique-entretiens" element={<U name="Utilisateurs"><HistoriqueEntretiens /></U>} />
+            <Route path="/utilisateurs/historique-locations" element={<U name="Utilisateurs"><HistoriqueLocations /></U>} />
+            <Route path="/utilisateurs/mes-vehicules" element={<U name="Utilisateurs"><MesVehicules /></U>} />
+            <Route path="/utilisateurs/messagerie-globale" element={<U name="Utilisateurs"><MessagerieGlobale /></U>} />
+            <Route path="/utilisateurs/objectif-utilisateur" element={<U name="Utilisateurs"><ObjectifUtilisateur /></U>} />
+            <Route path="/utilisateurs/securite-utilisateur" element={<U name="Utilisateurs"><SecuriteUtilisateur /></U>} />
+            <Route path="/utilisateurs/suppression-compte" element={<U name="Utilisateurs"><SuppressionCompte /></U>} />
+            <Route path="/utilisateurs/tableau-bord-perso" element={<U name="Utilisateurs"><TableauBordPerso /></U>} />
             {/* Notifications */}
-            <Route path="/notifications/alertes-urgentes" element={<U name="Notifications"><NotificationsAlertesUrgentes /></U>} />
-            <Route path="/notifications/annonces-importantes" element={<U name="Notifications"><NotificationsAnnoncesImportantes /></U>} />
-            <Route path="/notifications/canaux-communication" element={<U name="Notifications"><NotificationsCanauxCommunication /></U>} />
-            <Route path="/notifications/coffre-fort-numerique" element={<U name="Notifications"><NotificationsCoffreFortNumerique /></U>} />
-            <Route path="/notifications/documents-entreprises" element={<U name="Notifications"><NotificationsDocumentsEntreprises /></U>} />
-            <Route path="/notifications/documents-personnels-global" element={<U name="Notifications"><NotificationsDocumentsPersonnelsGlobal /></U>} />
-            <Route path="/notifications/documents-vehicules" element={<U name="Notifications"><NotificationsDocumentsVehicules /></U>} />
-            <Route path="/notifications/historique-notifications" element={<U name="Notifications"><NotificationsHistoriqueNotifications /></U>} />
-            <Route path="/notifications/notifications-demarches" element={<U name="Notifications"><NotificationsNotificationsDemarches /></U>} />
-            <Route path="/notifications/notifications-depannage" element={<U name="Notifications"><NotificationsNotificationsDepannage /></U>} />
-            <Route path="/notifications/notifications-garage" element={<U name="Notifications"><NotificationsNotificationsGarage /></U>} />
-            <Route path="/notifications" element={<U name="Notifications"><NotificationsNotificationsGenerale /></U>} />
-            <Route path="/notifications/notifications-location" element={<U name="Notifications"><NotificationsNotificationsLocation /></U>} />
-            <Route path="/notifications/notifications-messages" element={<U name="Notifications"><NotificationsNotificationsMessages /></U>} />
-            <Route path="/notifications/notifications-paiements" element={<U name="Notifications"><NotificationsNotificationsPaiements /></U>} />
-            <Route path="/notifications/notifications-vente" element={<U name="Notifications"><NotificationsNotificationsVente /></U>} />
-            <Route path="/notifications/objectif-notifications" element={<U name="Notifications"><NotificationsObjectifNotifications /></U>} />
-            <Route path="/notifications/parametres-notifications" element={<U name="Notifications"><NotificationsParametresNotifications /></U>} />
-            <Route path="/notifications/rappels-automatiques" element={<U name="Notifications"><NotificationsRappelsAutomatiques /></U>} />
-            <Route path="/notifications/signatures-globales" element={<U name="Notifications"><NotificationsSignaturesGlobales /></U>} />
+            <Route path="/notifications/alertes-urgentes" element={<U name="Notifications"><AlertesUrgentes /></U>} />
+            <Route path="/notifications/annonces-importantes" element={<U name="Notifications"><AnnoncesImportantes /></U>} />
+            <Route path="/notifications/canaux-communication" element={<U name="Notifications"><CanauxCommunication /></U>} />
+            <Route path="/notifications/coffre-fort-numerique" element={<U name="Notifications"><CoffreFortNumerique /></U>} />
+            <Route path="/notifications/documents-entreprises" element={<U name="Notifications"><DocumentsEntreprises /></U>} />
+            <Route path="/notifications/documents-personnels-global" element={<U name="Notifications"><DocumentsPersonnelsGlobal /></U>} />
+            <Route path="/notifications/documents-vehicules" element={<U name="Notifications"><DocumentsVehicules /></U>} />
+            <Route path="/notifications/historique-notifications" element={<U name="Notifications"><HistoriqueNotifications /></U>} />
+            <Route path="/notifications/notifications-demarches" element={<U name="Notifications"><NotificationsDemarches /></U>} />
+            <Route path="/notifications/notifications-depannage" element={<U name="Notifications"><NotificationsDepannage /></U>} />
+            <Route path="/notifications/notifications-garage" element={<U name="Notifications"><NotificationsGarage /></U>} />
+            <Route path="/notifications" element={<U name="Notifications"><NotificationsGenerale /></U>} />
+            <Route path="/notifications/notifications-location" element={<U name="Notifications"><NotificationsLocation /></U>} />
+            <Route path="/notifications/notifications-messages" element={<U name="Notifications"><NotificationsMessages /></U>} />
+            <Route path="/notifications/notifications-paiements" element={<U name="Notifications"><NotificationsPaiements /></U>} />
+            <Route path="/notifications/notifications-vente" element={<U name="Notifications"><NotificationsVente /></U>} />
+            <Route path="/notifications/objectif-notifications" element={<U name="Notifications"><ObjectifNotifications /></U>} />
+            <Route path="/notifications/parametres-notifications" element={<U name="Notifications"><ParametresNotifications /></U>} />
+            <Route path="/notifications/rappels-automatiques" element={<U name="Notifications"><RappelsAutomatiques /></U>} />
+            <Route path="/notifications/signatures-globales" element={<U name="Notifications"><SignaturesGlobales /></U>} />
             {/* Partenaires */}
-            <Route path="/partenaires/attribution-demandes" element={<U name="Partenaires"><PartenairesAttributionDemandes /></U>} />
-            <Route path="/partenaires/carte-partenaires" element={<U name="Partenaires"><PartenairesCartePartenaires /></U>} />
-            <Route path="/partenaires/evaluation-partenaires" element={<U name="Partenaires"><PartenairesEvaluationPartenaires /></U>} />
-            <Route path="/partenaires/fiche-partenaire" element={<U name="Partenaires"><PartenairesFichePartenaire /></U>} />
-            <Route path="/partenaires/inscription-partenaire" element={<U name="Partenaires"><PartenairesInscriptionPartenaire /></U>} />
-            <Route path="/partenaires/niveaux-partenaires" element={<U name="Partenaires"><PartenairesNiveauxPartenaires /></U>} />
-            <Route path="/partenaires/objectif-partenaires" element={<U name="Partenaires"><PartenairesObjectifPartenaires /></U>} />
-            <Route path="/partenaires" element={<U name="Partenaires"><PartenairesPartenairesGenerale /></U>} />
-            <Route path="/partenaires/statistiques-partenaires" element={<U name="Partenaires"><PartenairesStatistiquesPartenaires /></U>} />
-            <Route path="/partenaires/suspension-partenaires" element={<U name="Partenaires"><PartenairesSuspensionPartenaires /></U>} />
+            <Route path="/partenaires/attribution-demandes" element={<U name="Partenaires"><AttributionDemandes /></U>} />
+            <Route path="/partenaires/carte-partenaires" element={<U name="Partenaires"><CartePartenaires /></U>} />
+            <Route path="/partenaires/evaluation-partenaires" element={<U name="Partenaires"><EvaluationPartenaires /></U>} />
+            <Route path="/partenaires/fiche-partenaire" element={<U name="Partenaires"><FichePartenaire /></U>} />
+            <Route path="/partenaires/inscription-partenaire" element={<U name="Partenaires"><InscriptionPartenaire /></U>} />
+            <Route path="/partenaires/niveaux-partenaires" element={<U name="Partenaires"><NiveauxPartenaires /></U>} />
+            <Route path="/partenaires/objectif-partenaires" element={<U name="Partenaires"><ObjectifPartenaires /></U>} />
+            <Route path="/partenaires" element={<U name="Partenaires"><PartenairesGenerale /></U>} />
+            <Route path="/partenaires/statistiques-partenaires" element={<U name="Partenaires"><StatistiquesPartenaires /></U>} />
+            <Route path="/partenaires/suspension-partenaires" element={<U name="Partenaires"><SuspensionPartenaires /></U>} />
             {/* Marketing */}
-            <Route path="/marketing/campagnes-automatiques" element={<U name="Marketing"><MarketingCampagnesAutomatiques /></U>} />
-            <Route path="/marketing/codes-promotionnels" element={<U name="Marketing"><MarketingCodesPromotionnels /></U>} />
-            <Route path="/marketing/espaces-publicitaires" element={<U name="Marketing"><MarketingEspacesPublicitaires /></U>} />
-            <Route path="/marketing/programme-fidelite" element={<U name="Marketing"><MarketingProgrammeFidelite /></U>} />
-            <Route path="/marketing/programme-parrainage" element={<U name="Marketing"><MarketingProgrammeParrainage /></U>} />
-            <Route path="/marketing/publicites-pro" element={<U name="Marketing"><MarketingPublicitesPro /></U>} />
+            <Route path="/marketing/campagnes-automatiques" element={<U name="Marketing"><CampagnesAutomatiques /></U>} />
+            <Route path="/marketing/codes-promotionnels" element={<U name="Marketing"><CodesPromotionnels /></U>} />
+            <Route path="/marketing/espaces-publicitaires" element={<U name="Marketing"><EspacesPublicitaires /></U>} />
+            <Route path="/marketing/programme-fidelite" element={<U name="Marketing"><ProgrammeFidelite /></U>} />
+            <Route path="/marketing/programme-parrainage" element={<U name="Marketing"><ProgrammeParrainage /></U>} />
+            <Route path="/marketing/publicites-pro" element={<U name="Marketing"><PublicitesPro /></U>} />
             {/* Mobile */}
-            <Route path="/mobile/app-android" element={<U name="Mobile"><MobileAppAndroid /></U>} />
-            <Route path="/mobile/app-i-o-s" element={<U name="Mobile"><MobileAppIOS /></U>} />
-            <Route path="/mobile/mode-hors-ligne" element={<U name="Mobile"><MobileModeHorsLigne /></U>} />
-            <Route path="/mobile/notifications-push" element={<U name="Mobile"><MobileNotificationsPush /></U>} />
+            <Route path="/mobile/app-android" element={<U name="Mobile"><AppAndroid /></U>} />
+            <Route path="/mobile/app-i-o-s" element={<U name="Mobile"><AppIOS /></U>} />
+            <Route path="/mobile/mode-hors-ligne" element={<U name="Mobile"><ModeHorsLigne /></U>} />
+            <Route path="/mobile/notifications-push" element={<U name="Mobile"><NotificationsPush /></U>} />
             {/* IA */}
-            <Route path="/ia/i-a-aide-devis" element={<U name="IA"><IaIAAideDevis /></U>} />
-            <Route path="/ia/i-a-analyse-marche" element={<U name="IA"><IaIAAnalyseMarche /></U>} />
-            <Route path="/ia/i-a-assistant-client" element={<U name="IA"><IaIAAssistantClient /></U>} />
-            <Route path="/ia/i-a-detection-fraude" element={<U name="IA"><IaIADetectionFraude /></U>} />
-            <Route path="/ia/i-a-estimation" element={<U name="IA"><IaIAEstimation /></U>} />
+            <Route path="/ia/i-a-aide-devis" element={<U name="IA"><IAAideDevis /></U>} />
+            <Route path="/ia/i-a-analyse-marche" element={<U name="IA"><IAAnalyseMarche /></U>} />
+            <Route path="/ia/i-a-assistant-client" element={<U name="IA"><IAAssistantClient /></U>} />
+            <Route path="/ia/i-a-detection-fraude" element={<U name="IA"><IADetectionFraude /></U>} />
+            <Route path="/ia/i-a-estimation" element={<U name="IA"><IAEstimation /></U>} />
             {/* International */}
-            <Route path="/international/multi-devises" element={<U name="International"><InternationalMultiDevises /></U>} />
-            <Route path="/international/multi-langues" element={<U name="International"><InternationalMultiLangues /></U>} />
-            <Route path="/international/multi-pays" element={<U name="International"><InternationalMultiPays /></U>} />
+            <Route path="/international/multi-devises" element={<U name="International"><MultiDevises /></U>} />
+            <Route path="/international/multi-langues" element={<U name="International"><MultiLangues /></U>} />
+            <Route path="/international/multi-pays" element={<U name="International"><MultiPays /></U>} />
             {/* Investisseurs */}
-            <Route path="/investisseurs/espace-investisseurs" element={<U name="Investisseurs"><InvestisseursEspaceInvestisseurs /></U>} />
-            <Route path="/investisseurs/objectif-global" element={<U name="Investisseurs"><InvestisseursObjectifGlobal /></U>} />
+            <Route path="/investisseurs/espace-investisseurs" element={<U name="Investisseurs"><EspaceInvestisseurs /></U>} />
+            <Route path="/investisseurs/objectif-global" element={<U name="Investisseurs"><ObjectifGlobal /></U>} />
             {/* Entreprises */}
-            <Route path="/entreprises/centre-carburant" element={<U name="Entreprises"><EntreprisesCentreCarburant /></U>} />
-            <Route path="/entreprises/centre-geolocalisation" element={<U name="Entreprises"><EntreprisesCentreGeolocalisation /></U>} />
-            <Route path="/entreprises/centre-immobilisation" element={<U name="Entreprises"><EntreprisesCentreImmobilisation /></U>} />
-            <Route path="/entreprises/compte-flotte" element={<U name="Entreprises"><EntreprisesCompteFlotte /></U>} />
-            <Route path="/entreprises/contrats-entreprises" element={<U name="Entreprises"><EntreprisesContratsEntreprises /></U>} />
-            <Route path="/entreprises/gestion-conducteurs" element={<U name="Entreprises"><UEntreprisesGestionConducteurs /></U>} />
-            <Route path="/entreprises/gestion-parc" element={<U name="Entreprises"><EntreprisesGestionParc /></U>} />
-            <Route path="/entreprises/historique-flotte" element={<U name="Entreprises"><EntreprisesHistoriqueFlotte /></U>} />
-            <Route path="/entreprises/objectif-flottes" element={<U name="Entreprises"><EntreprisesObjectifFlottes /></U>} />
-            <Route path="/entreprises/rapports-entreprises" element={<U name="Entreprises"><EntreprisesRapportsEntreprises /></U>} />
+            <Route path="/entreprises/centre-carburant" element={<U name="Entreprises"><CentreCarburant /></U>} />
+            <Route path="/entreprises/centre-geolocalisation" element={<U name="Entreprises"><CentreGeolocalisation /></U>} />
+            <Route path="/entreprises/centre-immobilisation" element={<U name="Entreprises"><CentreImmobilisation /></U>} />
+            <Route path="/entreprises/compte-flotte" element={<U name="Entreprises"><CompteFlotte /></U>} />
+            <Route path="/entreprises/contrats-entreprises" element={<U name="Entreprises"><ContratsEntreprises /></U>} />
+            <Route path="/entreprises/gestion-conducteurs" element={<U name="Entreprises"><EntreprisesGestionConducteurs /></U>} />
+            <Route path="/entreprises/gestion-parc" element={<U name="Entreprises"><GestionParc /></U>} />
+            <Route path="/entreprises/historique-flotte" element={<U name="Entreprises"><HistoriqueFlotte /></U>} />
+            <Route path="/entreprises/objectif-flottes" element={<U name="Entreprises"><ObjectifFlottes /></U>} />
+            <Route path="/entreprises/rapports-entreprises" element={<U name="Entreprises"><RapportsEntreprises /></U>} />
             {/* Formations */}
-            <Route path="/formations/certificats" element={<U name="Formations"><FormationsCertificats /></U>} />
-            <Route path="/formations/formation-garage" element={<U name="Formations"><FormationsFormationGarage /></U>} />
-            <Route path="/formations/formation-taxi" element={<U name="Formations"><FormationsFormationTaxi /></U>} />
-            <Route path="/formations/formation-v-t-c" element={<U name="Formations"><FormationsFormationVTC /></U>} />
-            <Route path="/formations/formation-vente" element={<U name="Formations"><FormationsFormationVente /></U>} />
+            <Route path="/formations/certificats" element={<U name="Formations"><Certificats /></U>} />
+            <Route path="/formations/formation-garage" element={<U name="Formations"><FormationGarage /></U>} />
+            <Route path="/formations/formation-taxi" element={<U name="Formations"><FormationTaxi /></U>} />
+            <Route path="/formations/formation-v-t-c" element={<U name="Formations"><FormationVTC /></U>} />
+            <Route path="/formations/formation-vente" element={<U name="Formations"><FormationVente /></U>} />
             {/* Recrutement */}
-            <Route path="/recrutement/depot-c-v" element={<U name="Recrutement"><RecrutementDepotCV /></U>} />
-            <Route path="/recrutement/offres-emploi" element={<U name="Recrutement"><RecrutementOffresEmploi /></U>} />
-            <Route path="/recrutement/recherche-talents" element={<U name="Recrutement"><RecrutementRechercheTalents /></U>} />
+            <Route path="/recrutement/depot-c-v" element={<U name="Recrutement"><DepotCV /></U>} />
+            <Route path="/recrutement/offres-emploi" element={<U name="Recrutement"><OffresEmploi /></U>} />
+            <Route path="/recrutement/recherche-talents" element={<U name="Recrutement"><RechercheTalents /></U>} />
             {/* Communauté */}
-            <Route path="/communaute/avis-conseils" element={<U name="Communauté"><CommunauteAvisConseils /></U>} />
-            <Route path="/communaute/guides-achat" element={<U name="Communauté"><CommunauteGuidesAchat /></U>} />
-            <Route path="/communaute/guides-garage" element={<U name="Communauté"><CommunauteGuidesGarage /></U>} />
-            <Route path="/communaute/guides-location" element={<U name="Communauté"><CommunauteGuidesLocation /></U>} />
-            <Route path="/communaute/guides-vente" element={<U name="Communauté"><CommunauteGuidesVente /></U>} />
-            <Route path="/communaute/questions-reponses" element={<U name="Communauté"><CommunauteQuestionsReponses /></U>} />
+            <Route path="/communaute/avis-conseils" element={<U name="Communauté"><AvisConseils /></U>} />
+            <Route path="/communaute/guides-achat" element={<U name="Communauté"><GuidesAchat /></U>} />
+            <Route path="/communaute/guides-garage" element={<U name="Communauté"><GuidesGarage /></U>} />
+            <Route path="/communaute/guides-location" element={<U name="Communauté"><GuidesLocation /></U>} />
+            <Route path="/communaute/guides-vente" element={<U name="Communauté"><GuidesVente /></U>} />
+            <Route path="/communaute/questions-reponses" element={<U name="Communauté"><QuestionsReponses /></U>} />
             {/* Corporate */}
-            <Route path="/corporate/a-propos" element={<U name="Corporate"><CorporateAPropos /></U>} />
-            <Route path="/corporate/contact-entreprise" element={<U name="Corporate"><CorporateContactEntreprise /></U>} />
-            <Route path="/corporate/nos-partenaires" element={<U name="Corporate"><CorporateNosPartenaires /></U>} />
-            <Route path="/corporate/nos-services" element={<U name="Corporate"><CorporateNosServices /></U>} />
-            <Route path="/corporate/presse-actualites" element={<U name="Corporate"><CorporatePresseActualites /></U>} />
-            <Route path="/corporate/vision-m-k-a-p-m-s" element={<U name="Corporate"><CorporateVisionMKAPMS /></U>} />
+            <Route path="/corporate/a-propos" element={<U name="Corporate"><APropos /></U>} />
+            <Route path="/corporate/contact-entreprise" element={<U name="Corporate"><ContactEntreprise /></U>} />
+            <Route path="/corporate/nos-partenaires" element={<U name="Corporate"><NosPartenaires /></U>} />
+            <Route path="/corporate/nos-services" element={<U name="Corporate"><NosServices /></U>} />
+            <Route path="/corporate/presse-actualites" element={<U name="Corporate"><PresseActualites /></U>} />
+            <Route path="/corporate/vision-m-k-a-p-m-s" element={<U name="Corporate"><VisionMKAPMS /></U>} />
             {/* Opérations */}
-            <Route path="/operations/ambassadeurs" element={<U name="Opérations"><OperationsAmbassadeurs /></U>} />
-            <Route path="/operations/centre-acquisition" element={<U name="Opérations"><OperationsCentreAcquisition /></U>} />
-            <Route path="/operations/centre-audit" element={<U name="Opérations"><OperationsCentreAudit /></U>} />
-            <Route path="/operations/centre-conformite" element={<U name="Opérations"><OperationsCentreConformite /></U>} />
-            <Route path="/operations/centre-donnees-marche" element={<U name="Opérations"><OperationsCentreDonneesMarche /></U>} />
-            <Route path="/operations/centre-expansion" element={<U name="Opérations"><OperationsCentreExpansion /></U>} />
-            <Route path="/operations/centre-opportunites" element={<U name="Opérations"><OperationsCentreOpportunites /></U>} />
-            <Route path="/operations/centre-previsions" element={<U name="Opérations"><OperationsCentrePrevisions /></U>} />
-            <Route path="/operations/centre-risques" element={<U name="Opérations"><OperationsCentreRisques /></U>} />
-            <Route path="/operations/centre-validation" element={<U name="Opérations"><OperationsCentreValidation /></U>} />
-            <Route path="/operations/controle-qualite-global" element={<U name="Opérations"><OperationsControleQualiteGlobal /></U>} />
-            <Route path="/operations/m-k-a-p-m-s-afrique" element={<U name="Opérations"><OperationsMKAPMSAfrique /></U>} />
-            <Route path="/operations/m-k-a-p-m-s-assurance" element={<U name="Opérations"><OperationsMKAPMSAssurance /></U>} />
-            <Route path="/operations/m-k-a-p-m-s-banque" element={<U name="Opérations"><OperationsMKAPMSBanque /></U>} />
-            <Route path="/operations/m-k-a-p-m-s-mobility" element={<U name="Opérations"><OperationsMKAPMSMobility /></U>} />
-            <Route path="/operations/m-k-a-p-m-s-transport" element={<U name="Opérations"><OperationsMKAPMSTransport /></U>} />
-            <Route path="/operations/objectif-final-plateforme" element={<U name="Opérations"><OperationsObjectifFinalPlateforme /></U>} />
-            <Route path="/operations/programme-entreprises-strategiques" element={<U name="Opérations"><OperationsProgrammeEntreprisesStrategiques /></U>} />
-            <Route path="/operations/programme-premium" element={<U name="Opérations"><OperationsProgrammePremium /></U>} />
-            <Route path="/operations/tableau-bord-fondateur" element={<U name="Opérations"><OperationsTableauBordFondateur /></U>} />
+            <Route path="/operations/ambassadeurs" element={<U name="Opérations"><Ambassadeurs /></U>} />
+            <Route path="/operations/centre-acquisition" element={<U name="Opérations"><CentreAcquisition /></U>} />
+            <Route path="/operations/centre-audit" element={<U name="Opérations"><CentreAudit /></U>} />
+            <Route path="/operations/centre-conformite" element={<U name="Opérations"><CentreConformite /></U>} />
+            <Route path="/operations/centre-donnees-marche" element={<U name="Opérations"><CentreDonneesMarche /></U>} />
+            <Route path="/operations/centre-expansion" element={<U name="Opérations"><CentreExpansion /></U>} />
+            <Route path="/operations/centre-opportunites" element={<U name="Opérations"><CentreOpportunites /></U>} />
+            <Route path="/operations/centre-previsions" element={<U name="Opérations"><CentrePrevisions /></U>} />
+            <Route path="/operations/centre-risques" element={<U name="Opérations"><CentreRisques /></U>} />
+            <Route path="/operations/centre-validation" element={<U name="Opérations"><CentreValidation /></U>} />
+            <Route path="/operations/controle-qualite-global" element={<U name="Opérations"><ControleQualiteGlobal /></U>} />
+            <Route path="/operations/m-k-a-p-m-s-afrique" element={<U name="Opérations"><MKAPMSAfrique /></U>} />
+            <Route path="/operations/m-k-a-p-m-s-assurance" element={<U name="Opérations"><MKAPMSAssurance /></U>} />
+            <Route path="/operations/m-k-a-p-m-s-banque" element={<U name="Opérations"><MKAPMSBanque /></U>} />
+            <Route path="/operations/m-k-a-p-m-s-mobility" element={<U name="Opérations"><MKAPMSMobility /></U>} />
+            <Route path="/operations/m-k-a-p-m-s-transport" element={<U name="Opérations"><MKAPMSTransport /></U>} />
+            <Route path="/operations/objectif-final-plateforme" element={<U name="Opérations"><ObjectifFinalPlateforme /></U>} />
+            <Route path="/operations/programme-entreprises-strategiques" element={<U name="Opérations"><ProgrammeEntreprisesStrategiques /></U>} />
+            <Route path="/operations/programme-premium" element={<U name="Opérations"><ProgrammePremium /></U>} />
+            <Route path="/operations/tableau-bord-fondateur" element={<U name="Opérations"><TableauBordFondateur /></U>} />
             {/* Automatisations */}
-            <Route path="/automatisations/centre-alertes-strategiques" element={<U name="Automatisations"><AutomatisationsCentreAlertesStrategiques /></U>} />
-            <Route path="/automatisations/centre-auto-marketing" element={<U name="Automatisations"><AutomatisationsCentreAutoMarketing /></U>} />
-            <Route path="/automatisations/centre-croissance" element={<U name="Automatisations"><AutomatisationsCentreCroissance /></U>} />
-            <Route path="/automatisations/centre-k-p-i" element={<U name="Automatisations"><AutomatisationsCentreKPI /></U>} />
-            <Route path="/automatisations/centre-objectifs-entreprise" element={<U name="Automatisations"><AutomatisationsCentreObjectifsEntreprise /></U>} />
-            <Route path="/automatisations/centre-performance-i-a" element={<U name="Automatisations"><AutomatisationsCentrePerformanceIA /></U>} />
-            <Route path="/automatisations/escalades-automatiques" element={<U name="Automatisations"><AutomatisationsEscaladesAutomatiques /></U>} />
-            <Route path="/automatisations/files-attente" element={<U name="Automatisations"><AutomatisationsFilesAttente /></U>} />
-            <Route path="/automatisations/i-a-affectation" element={<U name="Automatisations"><AutomatisationsIAAffectation /></U>} />
-            <Route path="/automatisations/i-a-controle" element={<U name="Automatisations"><AutomatisationsIAControle /></U>} />
-            <Route path="/automatisations/i-a-priorisation" element={<U name="Automatisations"><AutomatisationsIAPriorisation /></U>} />
-            <Route path="/automatisations/moteur-taches" element={<U name="Automatisations"><AutomatisationsMoteurTaches /></U>} />
-            <Route path="/automatisations/moteur-workflow" element={<U name="Automatisations"><AutomatisationsMoteurWorkflow /></U>} />
-            <Route path="/automatisations/objectif-automatisations" element={<U name="Automatisations"><AutomatisationsObjectifAutomatisations /></U>} />
-            <Route path="/automatisations/workflows-personnalises" element={<U name="Automatisations"><AutomatisationsWorkflowsPersonnalises /></U>} />
+            <Route path="/automatisations/centre-alertes-strategiques" element={<U name="Automatisations"><CentreAlertesStrategiques /></U>} />
+            <Route path="/automatisations/centre-auto-marketing" element={<U name="Automatisations"><CentreAutoMarketing /></U>} />
+            <Route path="/automatisations/centre-croissance" element={<U name="Automatisations"><CentreCroissance /></U>} />
+            <Route path="/automatisations/centre-k-p-i" element={<U name="Automatisations"><CentreKPI /></U>} />
+            <Route path="/automatisations/centre-objectifs-entreprise" element={<U name="Automatisations"><CentreObjectifsEntreprise /></U>} />
+            <Route path="/automatisations/centre-performance-i-a" element={<U name="Automatisations"><CentrePerformanceIA /></U>} />
+            <Route path="/automatisations/escalades-automatiques" element={<U name="Automatisations"><EscaladesAutomatiques /></U>} />
+            <Route path="/automatisations/files-attente" element={<U name="Automatisations"><FilesAttente /></U>} />
+            <Route path="/automatisations/i-a-affectation" element={<U name="Automatisations"><IAAffectation /></U>} />
+            <Route path="/automatisations/i-a-controle" element={<U name="Automatisations"><IAControle /></U>} />
+            <Route path="/automatisations/i-a-priorisation" element={<U name="Automatisations"><IAPriorisation /></U>} />
+            <Route path="/automatisations/moteur-taches" element={<U name="Automatisations"><MoteurTaches /></U>} />
+            <Route path="/automatisations/moteur-workflow" element={<U name="Automatisations"><MoteurWorkflow /></U>} />
+            <Route path="/automatisations/objectif-automatisations" element={<U name="Automatisations"><ObjectifAutomatisations /></U>} />
+            <Route path="/automatisations/workflows-personnalises" element={<U name="Automatisations"><WorkflowsPersonnalises /></U>} />
             {/* Expansion */}
-            <Route path="/expansion/centre-international" element={<U name="Expansion"><ExpansionCentreInternational /></U>} />
-            <Route path="/expansion/multi-devises-global" element={<U name="Expansion"><ExpansionMultiDevisesGlobal /></U>} />
-            <Route path="/expansion/multi-langues-global" element={<U name="Expansion"><ExpansionMultiLanguesGlobal /></U>} />
-            <Route path="/expansion/phase-afrique-centrale" element={<U name="Expansion"><ExpansionPhaseAfriqueCentrale /></U>} />
-            <Route path="/expansion/phase-afrique-est" element={<U name="Expansion"><ExpansionPhaseAfriqueEst /></U>} />
-            <Route path="/expansion/phase-afrique-nord" element={<U name="Expansion"><ExpansionPhaseAfriqueNord /></U>} />
-            <Route path="/expansion/phase-afrique-ouest" element={<U name="Expansion"><ExpansionPhaseAfriqueOuest /></U>} />
-            <Route path="/expansion/phase-amerique-latine" element={<U name="Expansion"><ExpansionPhaseAmeriqueLatine /></U>} />
-            <Route path="/expansion/phase-amerique-nord" element={<U name="Expansion"><ExpansionPhaseAmeriqueNord /></U>} />
-            <Route path="/expansion/phase-asie" element={<U name="Expansion"><ExpansionPhaseAsie /></U>} />
-            <Route path="/expansion/phase-europe" element={<U name="Expansion"><ExpansionPhaseEurope /></U>} />
-            <Route path="/expansion/phase-europe-franco" element={<U name="Expansion"><ExpansionPhaseEuropeFranco /></U>} />
-            <Route path="/expansion/phase-france" element={<U name="Expansion"><ExpansionPhaseFrance /></U>} />
-            <Route path="/expansion/phase-moyen-orient" element={<U name="Expansion"><ExpansionPhaseMoyenOrient /></U>} />
-            <Route path="/expansion/phase-oceanie" element={<U name="Expansion"><ExpansionPhaseOceanie /></U>} />
-            <Route path="/expansion/tableau-bord-mondial" element={<U name="Expansion"><ExpansionTableauBordMondial /></U>} />
-            <Route path="/expansion/vision-finale" element={<U name="Expansion"><ExpansionVisionFinale /></U>} />
+            <Route path="/expansion/centre-international" element={<U name="Expansion"><CentreInternational /></U>} />
+            <Route path="/expansion/multi-devises-global" element={<U name="Expansion"><MultiDevisesGlobal /></U>} />
+            <Route path="/expansion/multi-langues-global" element={<U name="Expansion"><MultiLanguesGlobal /></U>} />
+            <Route path="/expansion/phase-afrique-centrale" element={<U name="Expansion"><PhaseAfriqueCentrale /></U>} />
+            <Route path="/expansion/phase-afrique-est" element={<U name="Expansion"><PhaseAfriqueEst /></U>} />
+            <Route path="/expansion/phase-afrique-nord" element={<U name="Expansion"><PhaseAfriqueNord /></U>} />
+            <Route path="/expansion/phase-afrique-ouest" element={<U name="Expansion"><PhaseAfriqueOuest /></U>} />
+            <Route path="/expansion/phase-amerique-latine" element={<U name="Expansion"><PhaseAmeriqueLatine /></U>} />
+            <Route path="/expansion/phase-amerique-nord" element={<U name="Expansion"><PhaseAmeriqueNord /></U>} />
+            <Route path="/expansion/phase-asie" element={<U name="Expansion"><PhaseAsie /></U>} />
+            <Route path="/expansion/phase-europe" element={<U name="Expansion"><PhaseEurope /></U>} />
+            <Route path="/expansion/phase-europe-franco" element={<U name="Expansion"><PhaseEuropeFranco /></U>} />
+            <Route path="/expansion/phase-france" element={<U name="Expansion"><PhaseFrance /></U>} />
+            <Route path="/expansion/phase-moyen-orient" element={<U name="Expansion"><PhaseMoyenOrient /></U>} />
+            <Route path="/expansion/phase-oceanie" element={<U name="Expansion"><PhaseOceanie /></U>} />
+            <Route path="/expansion/tableau-bord-mondial" element={<U name="Expansion"><TableauBordMondial /></U>} />
+            <Route path="/expansion/vision-finale" element={<U name="Expansion"><VisionFinale /></U>} />
             {/* Conformité */}
-            <Route path="/conformite/assurances-pays" element={<U name="Conformité"><ConformiteAssurancesPays /></U>} />
-            <Route path="/conformite/centre-pays" element={<U name="Conformité"><ConformiteCentrePays /></U>} />
-            <Route path="/conformite/contrats-adaptes" element={<U name="Conformité"><ConformiteContratsAdaptes /></U>} />
-            <Route path="/conformite/devises-automatiques" element={<U name="Conformité"><ConformiteDevisesAutomatiques /></U>} />
-            <Route path="/conformite/documents-obligatoires-pays" element={<U name="Conformité"><ConformiteDocumentsObligatoiresPays /></U>} />
-            <Route path="/conformite/garage-pays" element={<U name="Conformité"><ConformiteGaragePays /></U>} />
-            <Route path="/conformite/i-a-juridique" element={<U name="Conformité"><ConformiteIAJuridique /></U>} />
-            <Route path="/conformite/immatriculations-pays" element={<U name="Conformité"><ConformiteImmatriculationsPays /></U>} />
-            <Route path="/conformite/location-pays" element={<U name="Conformité"><ConformiteLocationPays /></U>} />
-            <Route path="/conformite/mises-a-jour-reglementaires" element={<U name="Conformité"><ConformiteMisesAJourReglementaires /></U>} />
-            <Route path="/conformite/moteur-regles-pays" element={<U name="Conformité"><ConformiteMoteurReglesPays /></U>} />
-            <Route path="/conformite/moyens-paiement-locaux" element={<U name="Conformité"><ConformiteMoyensPaiementLocaux /></U>} />
-            <Route path="/conformite/objectif-conformite" element={<U name="Conformité"><ConformiteObjectifConformite /></U>} />
-            <Route path="/conformite/tableau-bord-international" element={<U name="Conformité"><ConformiteTableauBordInternational /></U>} />
-            <Route path="/conformite/taxes-automatiques" element={<U name="Conformité"><ConformiteTaxesAutomatiques /></U>} />
-            <Route path="/conformite/vente-pays" element={<U name="Conformité"><ConformiteVentePays /></U>} />
+            <Route path="/conformite/assurances-pays" element={<U name="Conformité"><AssurancesPays /></U>} />
+            <Route path="/conformite/centre-pays" element={<U name="Conformité"><CentrePays /></U>} />
+            <Route path="/conformite/contrats-adaptes" element={<U name="Conformité"><ContratsAdaptes /></U>} />
+            <Route path="/conformite/devises-automatiques" element={<U name="Conformité"><DevisesAutomatiques /></U>} />
+            <Route path="/conformite/documents-obligatoires-pays" element={<U name="Conformité"><DocumentsObligatoiresPays /></U>} />
+            <Route path="/conformite/garage-pays" element={<U name="Conformité"><GaragePays /></U>} />
+            <Route path="/conformite/i-a-juridique" element={<U name="Conformité"><IAJuridique /></U>} />
+            <Route path="/conformite/immatriculations-pays" element={<U name="Conformité"><ImmatriculationsPays /></U>} />
+            <Route path="/conformite/location-pays" element={<U name="Conformité"><LocationPays /></U>} />
+            <Route path="/conformite/mises-a-jour-reglementaires" element={<U name="Conformité"><MisesAJourReglementaires /></U>} />
+            <Route path="/conformite/moteur-regles-pays" element={<U name="Conformité"><MoteurReglesPays /></U>} />
+            <Route path="/conformite/moyens-paiement-locaux" element={<U name="Conformité"><MoyensPaiementLocaux /></U>} />
+            <Route path="/conformite/objectif-conformite" element={<U name="Conformité"><ObjectifConformite /></U>} />
+            <Route path="/conformite/tableau-bord-international" element={<U name="Conformité"><TableauBordInternational /></U>} />
+            <Route path="/conformite/taxes-automatiques" element={<U name="Conformité"><TaxesAutomatiques /></U>} />
+            <Route path="/conformite/vente-pays" element={<U name="Conformité"><VentePays /></U>} />
             {/* Labs */}
-            <Route path="/labs/academie-m-k-a-p-m-s" element={<U name="Labs"><LabsAcademieMKAPMS /></U>} />
-            <Route path="/labs/analyse-marche-mondiale" element={<U name="Labs"><LabsAnalyseMarcheMondiale /></U>} />
-            <Route path="/labs/automatisation-complete" element={<U name="Labs"><LabsAutomatisationComplete /></U>} />
+            <Route path="/labs/academie-m-k-a-p-m-s" element={<U name="Labs"><AcademieMKAPMS /></U>} />
+            <Route path="/labs/analyse-marche-mondiale" element={<U name="Labs"><AnalyseMarcheMondiale /></U>} />
+            <Route path="/labs/analyse-trafic" element={<U name="Labs"><AnalyseTrafic /></U>} />
+            <Route path="/labs/assistant-fondateur" element={<U name="Labs"><AssistantFondateur /></U>} />
+            <Route path="/labs/automatisation-complete" element={<U name="Labs"><AutomatisationComplete /></U>} />
             <Route path="/labs/benchmark-flottes" element={<U name="Labs"><BenchmarkFlottes /></U>} />
-            <Route path="/labs/carnet-entretien-auto" element={<U name="Labs"><LabsCarnetEntretienAuto /></U>} />
-            <Route path="/labs/centre-acquisitions-labs" element={<U name="Labs"><LabsCentreAcquisitionsLabs /></U>} />
-            <Route path="/labs/centre-appels-offres" element={<U name="Labs"><LabsCentreAppelsOffres /></U>} />
+            <Route path="/labs/carnet-entretien-auto" element={<U name="Labs"><CarnetEntretienAuto /></U>} />
+            <Route path="/labs/centre-acquisitions-labs" element={<U name="Labs"><CentreAcquisitionsLabs /></U>} />
+            <Route path="/labs/centre-appels-offres" element={<U name="Labs"><CentreAppelsOffres /></U>} />
             <Route path="/labs/centre-decisions-strategiques" element={<U name="Labs"><CentreDecisionsStrategiques /></U>} />
-            <Route path="/labs/centre-donnees-mondiales" element={<U name="Labs"><LabsCentreDonneesMondiales /></U>} />
-            <Route path="/labs/centre-expansion-auto" element={<U name="Labs"><LabsCentreExpansionAuto /></U>} />
-            <Route path="/labs/centre-export-auto" element={<U name="Labs"><LabsCentreExportAuto /></U>} />
-            <Route path="/labs/centre-innovation" element={<U name="Labs"><LabsCentreInnovation /></U>} />
-            <Route path="/labs/centre-investissements-labs" element={<U name="Labs"><LabsCentreInvestissementsLabs /></U>} />
+            <Route path="/labs/centre-donnees-mondiales" element={<U name="Labs"><CentreDonneesMondiales /></U>} />
+            <Route path="/labs/centre-expansion-auto" element={<U name="Labs"><CentreExpansionAuto /></U>} />
+            <Route path="/labs/centre-expansion-automatique2" element={<U name="Labs"><CentreExpansionAutomatique2 /></U>} />
+            <Route path="/labs/centre-export-auto" element={<U name="Labs"><CentreExportAuto /></U>} />
+            <Route path="/labs/centre-formation-afrique" element={<U name="Labs"><CentreFormationAfrique /></U>} />
+            <Route path="/labs/centre-innovation" element={<U name="Labs"><CentreInnovation /></U>} />
+            <Route path="/labs/centre-investissements-labs" element={<U name="Labs"><CentreInvestissementsLabs /></U>} />
+            <Route path="/labs/centre-opportunites-mondiales" element={<U name="Labs"><CentreOpportunitesMondiales /></U>} />
             <Route path="/labs/centre-recherche-m-k-a-p-m-s" element={<U name="Labs"><CentreRechercheMKAPMS /></U>} />
-            <Route path="/labs/centre-strategie-groupe" element={<U name="Labs"><LabsCentreStrategieGroupe /></U>} />
+            <Route path="/labs/centre-strategie-groupe" element={<U name="Labs"><CentreStrategieGroupe /></U>} />
+            <Route path="/labs/centre-traduction" element={<U name="Labs"><CentreTraduction /></U>} />
+            <Route path="/labs/centres-mobilite-urbaine" element={<U name="Labs"><CentresMobiliteUrbaine /></U>} />
+            <Route path="/labs/centres-reconditionnement" element={<U name="Labs"><CentresReconditionnement /></U>} />
+            <Route path="/labs/centres-techniques" element={<U name="Labs"><CentresTechniques /></U>} />
             <Route path="/labs/certification-vehicule" element={<U name="Labs"><CertificationVehicule /></U>} />
             <Route path="/labs/coffrefort-international" element={<U name="Labs"><CoffrefortInternational /></U>} />
-            <Route path="/labs/controle-distance-flottes" element={<U name="Labs"><LabsControleDistanceFlottes /></U>} />
+            <Route path="/labs/controle-distance-flottes" element={<U name="Labs"><ControleDistanceFlottes /></U>} />
             <Route path="/labs/controle-production" element={<U name="Labs"><ControleProduction /></U>} />
             <Route path="/labs/data-cloud-auto" element={<U name="Labs"><DataCloudAuto /></U>} />
             <Route path="/labs/energy-afrique" element={<U name="Labs"><EnergyAfrique /></U>} />
             <Route path="/labs/energy-batteries" element={<U name="Labs"><EnergyBatteries /></U>} />
             <Route path="/labs/energy-recharge" element={<U name="Labs"><EnergyRecharge /></U>} />
-            <Route path="/labs/expansion-mondiale" element={<U name="Labs"><LabsExpansionMondiale /></U>} />
-            <Route path="/labs/filiales" element={<U name="Labs"><LabsFiliales /></U>} />
+            <Route path="/labs/expansion-mondiale" element={<U name="Labs"><ExpansionMondiale /></U>} />
+            <Route path="/labs/filiales" element={<U name="Labs"><Filiales /></U>} />
             <Route path="/labs/fleet-network-mondial" element={<U name="Labs"><FleetNetworkMondial /></U>} />
-            <Route path="/labs/franchise-m-k-a-p-m-s" element={<U name="Labs"><LabsFranchiseMKAPMS /></U>} />
-            <Route path="/labs/franchises-global" element={<U name="Labs"><LabsFranchisesGlobal /></U>} />
+            <Route path="/labs/fonds-developpement" element={<U name="Labs"><FondsDeveloppement /></U>} />
+            <Route path="/labs/fonds-expansion-afrique" element={<U name="Labs"><FondsExpansionAfrique /></U>} />
+            <Route path="/labs/franchise-m-k-a-p-m-s" element={<U name="Labs"><FranchiseMKAPMS /></U>} />
+            <Route path="/labs/franchises-global" element={<U name="Labs"><FranchisesGlobal /></U>} />
             <Route path="/labs/gestion-entrepots" element={<U name="Labs"><GestionEntrepots /></U>} />
-            <Route path="/labs/gestion-flotte-intelligente" element={<U name="Labs"><LabsGestionFlotteIntelligente /></U>} />
-            <Route path="/labs/gestion-flottes-connectees" element={<U name="Labs"><LabsGestionFlottesConnectees /></U>} />
+            <Route path="/labs/gestion-flotte-intelligente" element={<U name="Labs"><GestionFlotteIntelligente /></U>} />
+            <Route path="/labs/gestion-flottes-connectees" element={<U name="Labs"><GestionFlottesConnectees /></U>} />
             <Route path="/labs/gestion-groupe" element={<U name="Labs"><GestionGroupe /></U>} />
-            <Route path="/labs/gestion-marques" element={<U name="Labs"><LabsGestionMarques /></U>} />
-            <Route path="/labs/hub-afrique" element={<U name="Labs"><LabsHubAfrique /></U>} />
-            <Route path="/labs/i-a-automobile" element={<U name="Labs"><LabsIAAutomobile /></U>} />
-            <Route path="/labs/i-a-avancee" element={<U name="Labs"><LabsIAAvancee /></U>} />
-            <Route path="/labs/i-a-conseiller-achat" element={<U name="Labs"><LabsIAConseillerAchat /></U>} />
-            <Route path="/labs/i-a-conseiller-garage" element={<U name="Labs"><LabsIAConseillerGarage /></U>} />
-            <Route path="/labs/i-a-conseiller-vente" element={<U name="Labs"><LabsIAConseillerVente /></U>} />
+            <Route path="/labs/gestion-marques" element={<U name="Labs"><GestionMarques /></U>} />
+            <Route path="/labs/hub-afrique" element={<U name="Labs"><HubAfrique /></U>} />
+            <Route path="/labs/i-a-automobile" element={<U name="Labs"><IAAutomobile /></U>} />
+            <Route path="/labs/i-a-avancee" element={<U name="Labs"><IAAvancee /></U>} />
+            <Route path="/labs/i-a-conseiller-achat" element={<U name="Labs"><IAConseillerAchat /></U>} />
+            <Route path="/labs/i-a-conseiller-garage" element={<U name="Labs"><IAConseillerGarage /></U>} />
+            <Route path="/labs/i-a-conseiller-vente" element={<U name="Labs"><IAConseillerVente /></U>} />
+            <Route path="/labs/i-a-operationnelle-mondiale" element={<U name="Labs"><IAOperationnelleMondiale /></U>} />
+            <Route path="/labs/identite-numerique-vehicule" element={<U name="Labs"><IdentiteNumeriqueVehicule /></U>} />
             <Route path="/labs/inspection-distance" element={<U name="Labs"><InspectionDistance /></U>} />
             <Route path="/labs/jumeau-numerique" element={<U name="Labs"><JumeauNumerique /></U>} />
-            <Route path="/labs/jumeaux-numeriques" element={<U name="Labs"><LabsJumeauxNumeriques /></U>} />
-            <Route path="/labs/label-certifie" element={<U name="Labs"><LabsLabelCertifie /></U>} />
-            <Route path="/labs/licences-m-k-a-p-m-s" element={<U name="Labs"><LabsLicencesMKAPMS /></U>} />
+            <Route path="/labs/jumeaux-numeriques" element={<U name="Labs"><JumeauxNumeriques /></U>} />
+            <Route path="/labs/label-certifie" element={<U name="Labs"><LabelCertifie /></U>} />
+            <Route path="/labs/licences-m-k-a-p-m-s" element={<U name="Labs"><LicencesMKAPMS /></U>} />
             <Route path="/labs/logistiques-centres" element={<U name="Labs"><LogistiquesCentres /></U>} />
-            <Route path="/labs/maintenance-predictive" element={<U name="Labs"><LabsMaintenancePredictive /></U>} />
+            <Route path="/labs/m-k-a-p-m-s-world" element={<U name="Labs"><MKAPMSWorld /></U>} />
+            <Route path="/labs/maintenance-predictive" element={<U name="Labs"><MaintenancePredictive /></U>} />
             <Route path="/labs/observatoire-automobile" element={<U name="Labs"><ObservatoireAutomobile /></U>} />
-            <Route path="/labs/place-marche-b2-b" element={<U name="Labs"><LabsPlaceMarcheB2B /></U>} />
-            <Route path="/labs/reseau-convoyeurs" element={<U name="Labs"><LabsReseauConvoyeurs /></U>} />
-            <Route path="/labs/reseau-depannage-afrique" element={<U name="Labs"><LabsReseauDepannageAfrique /></U>} />
-            <Route path="/labs/reseau-depanneurs" element={<U name="Labs"><LabsReseauDepanneurs /></U>} />
+            <Route path="/labs/passeport-numerique-vehicule" element={<U name="Labs"><PasseportNumeriqueVehicule /></U>} />
+            <Route path="/labs/place-marche-b2-b" element={<U name="Labs"><PlaceMarcheB2B /></U>} />
+            <Route path="/labs/programme-innovation" element={<U name="Labs"><ProgrammeInnovation /></U>} />
+            <Route path="/labs/programme-jeunes-entrepreneurs" element={<U name="Labs"><ProgrammeJeunesEntrepreneurs /></U>} />
+            <Route path="/labs/reseau-assistance247" element={<U name="Labs"><ReseauAssistance247 /></U>} />
+            <Route path="/labs/reseau-convoyeurs" element={<U name="Labs"><ReseauConvoyeurs /></U>} />
+            <Route path="/labs/reseau-depannage-afrique" element={<U name="Labs"><ReseauDepannageAfrique /></U>} />
+            <Route path="/labs/reseau-depanneurs" element={<U name="Labs"><ReseauDepanneurs /></U>} />
             <Route path="/labs/reseau-distribution" element={<U name="Labs"><ReseauDistribution /></U>} />
+            <Route path="/labs/reseau-experts" element={<U name="Labs"><ReseauExperts /></U>} />
             <Route path="/labs/reseau-fournisseurs-global" element={<U name="Labs"><ReseauFournisseursGlobal /></U>} />
-            <Route path="/labs/reseau-garages-afrique" element={<U name="Labs"><LabsReseauGaragesAfrique /></U>} />
+            <Route path="/labs/reseau-garages-afrique" element={<U name="Labs"><ReseauGaragesAfrique /></U>} />
+            <Route path="/labs/reseau-industriel" element={<U name="Labs"><ReseauIndustriel /></U>} />
+            <Route path="/labs/reseau-mobilite-mondiale" element={<U name="Labs"><ReseauMobiliteMondiale /></U>} />
             <Route path="/labs/reseau-mondial-partenaires" element={<U name="Labs"><ReseauMondialPartenaires /></U>} />
             <Route path="/labs/reseau-mondial-services" element={<U name="Labs"><ReseauMondialServices /></U>} />
-            <Route path="/labs/reseau-pieces-afrique" element={<U name="Labs"><LabsReseauPiecesAfrique /></U>} />
-            <Route path="/labs/reseau-transport" element={<U name="Labs"><LabsReseauTransport /></U>} />
+            <Route path="/labs/reseau-pieces-afrique" element={<U name="Labs"><ReseauPiecesAfrique /></U>} />
+            <Route path="/labs/reseau-transport" element={<U name="Labs"><ReseauTransport /></U>} />
+            <Route path="/labs/reseau-transport-marchandises" element={<U name="Labs"><ReseauTransportMarchandises /></U>} />
+            <Route path="/labs/reseau-transport-personnes" element={<U name="Labs"><ReseauTransportPersonnes /></U>} />
             <Route path="/labs/reseau-usines" element={<U name="Labs"><ReseauUsines /></U>} />
+            <Route path="/labs/signature-universelle" element={<U name="Labs"><SignatureUniverselle /></U>} />
             <Route path="/labs/smart-vehicles" element={<U name="Labs"><SmartVehicles /></U>} />
-            <Route path="/labs/telematique" element={<U name="Labs"><LabsTelematique /></U>} />
-            <Route path="/labs/vehicules-connectes" element={<U name="Labs"><LabsVehiculesConnectes /></U>} />
-            <Route path="/labs/vision-finale-m-k-a-p-m-s" element={<U name="Labs"><LabsVisionFinaleMKAPMS /></U>} />
+            <Route path="/labs/stationnement-intelligent" element={<U name="Labs"><StationnementIntelligent /></U>} />
+            <Route path="/labs/telematique" element={<U name="Labs"><Telematique /></U>} />
+            <Route path="/labs/vehicules-connectes" element={<U name="Labs"><VehiculesConnectes /></U>} />
+            <Route path="/labs/vision-finale-m-k-a-p-m-s" element={<U name="Labs"><VisionFinaleMKAPMS /></U>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
