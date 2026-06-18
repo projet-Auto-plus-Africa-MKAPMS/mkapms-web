@@ -1,0 +1,50 @@
+# MKA.P-MS — robots.txt
+# Autoriser Google à lire les pages publiques
+# Bloquer les pages privées
+
+User-agent: *
+
+# Pages publiques autorisées
+Allow: /
+Allow: /acheter
+Allow: /vente/*
+Allow: /louer
+Allow: /location/*
+Allow: /garage
+Allow: /depannage
+Allow: /pieces
+Allow: /demarches
+Allow: /moto
+Allow: /voiture-occasion
+Allow: /moto-occasion
+Allow: /location-voiture
+Allow: /garage-auto
+
+# Pages privées bloquées
+Disallow: /superadmin
+Disallow: /superadmin/*
+Disallow: /utilisateurs
+Disallow: /utilisateurs/*
+Disallow: /notifications
+Disallow: /notifications/*
+Disallow: /finance
+Disallow: /finance/*
+Disallow: /operations
+Disallow: /operations/*
+Disallow: /automatisations
+Disallow: /automatisations/*
+Disallow: /expansion
+Disallow: /expansion/*
+Disallow: /conformite
+Disallow: /conformite/*
+Disallow: /labs
+Disallow: /labs/*
+Disallow: /corporate
+Disallow: /corporate/*
+Disallow: /entreprises
+Disallow: /entreprises/*
+Disallow: /marketing
+Disallow: /marketing/*
+
+# Sitemap
+Sitemap: https://mkapms.com/sitemap.xml

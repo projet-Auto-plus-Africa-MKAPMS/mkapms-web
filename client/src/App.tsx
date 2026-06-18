@@ -156,10 +156,17 @@ const Rechercher = lazy(() => import("./pages/Rechercher"));
 const DemandePublicite = lazy(() => import("./pages/DemandePublicite"));
 const PubliciteDetail = lazy(() => import("./pages/PubliciteDetail"));
 
-// Phase finale V1
+// Phase finale V1 + SEO + Géolocalisation
 const AbonnementsDefinitifs = lazy(() => import("./pages/AbonnementsDefinitifs"));
 const BadgesDefinitifs = lazy(() => import("./pages/BadgesDefinitifs"));
 const PubliciteInterne = lazy(() => import("./pages/PubliciteInterne"));
+const VoitureOccasion = lazy(() => import("./pages/VoitureOccasion"));
+const MotoOccasion = lazy(() => import("./pages/MotoOccasion"));
+const LocationVoiture = lazy(() => import("./pages/LocationVoiture"));
+const GarageAuto = lazy(() => import("./pages/GarageAuto"));
+const SEOAbonnements = lazy(() => import("./pages/SEOAbonnements"));
+const RechercheGeolocalisee = lazy(() => import("./pages/RechercheGeolocalisee"));
+const RechercheLocale = lazy(() => import("./pages/RechercheLocale"));
 // Garage
 const AssistanceRoutiere = lazy(() => import("./pages/garage/AssistanceRoutiere"));
 const BoutiquePieces = lazy(() => import("./pages/garage/BoutiquePieces"));
@@ -298,6 +305,7 @@ const AdminModerationAnnonces = lazy(() => import("./pages/superadmin/AdminModer
 const AdminModerationAvis = lazy(() => import("./pages/superadmin/AdminModerationAvis"));
 const AdminObjectif = lazy(() => import("./pages/superadmin/AdminObjectif"));
 const AdminPaiements = lazy(() => import("./pages/superadmin/AdminPaiements"));
+const AdminSEO = lazy(() => import("./pages/superadmin/AdminSEO"));
 const AdminSauvegardes = lazy(() => import("./pages/superadmin/AdminSauvegardes"));
 const AdminSecurite = lazy(() => import("./pages/superadmin/AdminSecurite"));
 const AdminStatistiques = lazy(() => import("./pages/superadmin/AdminStatistiques"));
@@ -822,10 +830,17 @@ export default function App() {
             <Route path="/compte/validation" element={<U name="Validation"><Validation /></U>} />
             <Route path="/compte/*" element={<U name="Mon compte"><Compte /></U>} />
             <Route path="/admin/*" element={<U name="Back-office"><Admin /></U>} />
-            {/* Phase finale V1 */}
+            {/* Phase finale V1 + SEO + Géolocalisation */}
             <Route path="/abonnements-definitifs" element={<U name="Abonnements"><AbonnementsDefinitifs /></U>} />
             <Route path="/badges-definitifs" element={<U name="Badges"><BadgesDefinitifs /></U>} />
             <Route path="/publicite-interne" element={<U name="Publicité"><PubliciteInterne /></U>} />
+            <Route path="/voiture-occasion" element={<U name="Vente"><VoitureOccasion /></U>} />
+            <Route path="/moto-occasion" element={<U name="Moto"><MotoOccasion /></U>} />
+            <Route path="/location-voiture" element={<U name="Location"><LocationVoiture /></U>} />
+            <Route path="/garage-auto" element={<U name="Garage"><GarageAuto /></U>} />
+            <Route path="/seo-abonnements" element={<U name="SEO"><SEOAbonnements /></U>} />
+            <Route path="/recherche" element={<U name="Recherche"><RechercheGeolocalisee /></U>} />
+            <Route path="/:pays/:ville/:modele?" element={<U name="Recherche Locale"><RechercheLocale /></U>} />
             {/* Garage */}
             <Route path="/garage/assistance-routiere" element={<U name="Garage"><AssistanceRoutiere /></U>} />
             <Route path="/garage/boutique-pieces" element={<U name="Garage"><BoutiquePieces /></U>} />
@@ -964,6 +979,7 @@ export default function App() {
             <Route path="/superadmin/admin-moderation-avis" element={<U name="Super Admin"><AdminModerationAvis /></U>} />
             <Route path="/superadmin/admin-objectif" element={<U name="Super Admin"><AdminObjectif /></U>} />
             <Route path="/superadmin/admin-paiements" element={<U name="Super Admin"><AdminPaiements /></U>} />
+            <Route path="/superadmin/admin-s-e-o" element={<U name="Super Admin"><AdminSEO /></U>} />
             <Route path="/superadmin/admin-sauvegardes" element={<U name="Super Admin"><AdminSauvegardes /></U>} />
             <Route path="/superadmin/admin-securite" element={<U name="Super Admin"><AdminSecurite /></U>} />
             <Route path="/superadmin/admin-statistiques" element={<U name="Super Admin"><AdminStatistiques /></U>} />
