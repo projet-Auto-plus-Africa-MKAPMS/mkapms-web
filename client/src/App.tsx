@@ -39,6 +39,8 @@ const Depannage = lazy(() => import("./pages/Depannage"));
 const VtcTaxi = lazy(() => import("./pages/VtcTaxi"));
 const LocationPro = lazy(() => import("./pages/LocationPro"));
 const LocationParticulier = lazy(() => import("./pages/LocationParticulier"));
+const ProduitVtcTaxi = lazy(() => import("./pages/ProduitVtcTaxi"));
+const ProduitParticulier = lazy(() => import("./pages/ProduitParticulier"));
 const ImportAfrica = lazy(() => import("./pages/ImportAfrica"));
 const Historique = lazy(() => import("./pages/Historique"));
 const Wallet = lazy(() => import("./pages/Wallet"));
@@ -92,6 +94,8 @@ export default function App() {
             <Route path="/louer/vtc-taxi" element={<U name="Location VTC & Taxi"><VtcTaxi /></U>} />
             <Route path="/louer/particulier" element={<U name="Location Particulier"><LocationParticulier /></U>} />
             <Route path="/louer/pro" element={<U name="Location Pro"><LocationPro /></U>} />
+            <Route path="/louer/vtc-taxi/vehicule/:id" element={<U name="Produit VTC & Taxi"><ProduitVtcTaxi /></U>} />
+            <Route path="/louer/particulier/vehicule/:id" element={<U name="Produit Particulier"><ProduitParticulier /></U>} />
             <Route path="/louer/utilitaires" element={<U name="Utilitaires"><Louer /></U>} />
             <Route path="/louer/camions" element={<U name="Camions"><Louer /></U>} />
             <Route path="/louer/minibus" element={<U name="Minibus"><Louer /></U>} />
