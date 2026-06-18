@@ -119,6 +119,27 @@ const CentreControleQualite = lazy(() => import("./pages/vente/CentreControleQua
 const CentreExport = lazy(() => import("./pages/vente/CentreExport"));
 const CentreArchives = lazy(() => import("./pages/vente/CentreArchives"));
 const CentreSecurite = lazy(() => import("./pages/vente/CentreSecurite"));
+// Marketplace Avancée (51-70)
+const CentreNegociation = lazy(() => import("./pages/vente/CentreNegociation"));
+const CentreReservationAchat = lazy(() => import("./pages/vente/CentreReservationAchat"));
+const CentreVisiteVehicule = lazy(() => import("./pages/vente/CentreVisiteVehicule"));
+const CentreEssaiRoutier = lazy(() => import("./pages/vente/CentreEssaiRoutier"));
+const CentreDossiersAcheteurs = lazy(() => import("./pages/vente/CentreDossiersAcheteurs"));
+const CentreComparaison = lazy(() => import("./pages/vente/CentreComparaison"));
+const CentreAlertesRecherche = lazy(() => import("./pages/vente/CentreAlertesRecherche"));
+const CentreFavorisVente = lazy(() => import("./pages/vente/CentreFavorisVente"));
+const CentreRecommandations = lazy(() => import("./pages/vente/CentreRecommandations"));
+const CentreHistoriqueConsultations = lazy(() => import("./pages/vente/CentreHistoriqueConsultations"));
+const CentreVehiculesCertifiesVente = lazy(() => import("./pages/vente/CentreVehiculesCertifiesVente"));
+const CentreGarantieOccasion = lazy(() => import("./pages/vente/CentreGarantieOccasion"));
+const CentreRapportsVehicule = lazy(() => import("./pages/vente/CentreRapportsVehicule"));
+const CentreAchatDistance = lazy(() => import("./pages/vente/CentreAchatDistance"));
+const CentreLivraisonAcheteur = lazy(() => import("./pages/vente/CentreLivraisonAcheteur"));
+const CentreRetourClient = lazy(() => import("./pages/vente/CentreRetourClient"));
+const CentreBadgesVendeurs = lazy(() => import("./pages/vente/CentreBadgesVendeurs"));
+const CentreDetectionFraude = lazy(() => import("./pages/vente/CentreDetectionFraude"));
+const CentreConfianceAcheteur = lazy(() => import("./pages/vente/CentreConfianceAcheteur"));
+const WorkflowCompletAcheteur = lazy(() => import("./pages/vente/WorkflowCompletAcheteur"));
 const ImportAfrica = lazy(() => import("./pages/ImportAfrica"));
 const Historique = lazy(() => import("./pages/Historique"));
 const Wallet = lazy(() => import("./pages/Wallet"));
@@ -167,7 +188,6 @@ export default function App() {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/acheter" element={<U name="Vente"><Acheter /></U>} />
             <Route path="/louer" element={<U name="Location"><Louer /></U>} />
             <Route path="/louer/vtc-taxi" element={<U name="Location VTC & Taxi"><VtcTaxi /></U>} />
             <Route path="/louer/particulier" element={<U name="Location Particulier"><LocationParticulier /></U>} />
@@ -256,6 +276,27 @@ export default function App() {
             <Route path="/vente/export" element={<U name="Export"><CentreExport /></U>} />
             <Route path="/vente/archives" element={<U name="Archives"><CentreArchives /></U>} />
             <Route path="/vente/securite" element={<U name="S\u00e9curit\u00e9"><CentreSecurite /></U>} />
+            {/* Marketplace Avanc\u00e9e (51-70) */}
+            <Route path="/vente/negociation" element={<U name="N\u00e9gociation"><CentreNegociation /></U>} />
+            <Route path="/vente/reservation-achat" element={<U name="R\u00e9servation achat"><CentreReservationAchat /></U>} />
+            <Route path="/vente/visite" element={<U name="Visite v\u00e9hicule"><CentreVisiteVehicule /></U>} />
+            <Route path="/vente/essai" element={<U name="Essai routier"><CentreEssaiRoutier /></U>} />
+            <Route path="/vente/dossier-acheteur" element={<U name="Dossier acheteur"><CentreDossiersAcheteurs /></U>} />
+            <Route path="/vente/comparaison" element={<U name="Comparaison"><CentreComparaison /></U>} />
+            <Route path="/vente/alertes-recherche" element={<U name="Alertes recherche"><CentreAlertesRecherche /></U>} />
+            <Route path="/vente/favoris" element={<U name="Favoris Vente"><CentreFavorisVente /></U>} />
+            <Route path="/vente/recommandations" element={<U name="Recommandations"><CentreRecommandations /></U>} />
+            <Route path="/vente/historique-consultations" element={<U name="Historique consultations"><CentreHistoriqueConsultations /></U>} />
+            <Route path="/vente/certifies" element={<U name="V\u00e9hicules certifi\u00e9s"><CentreVehiculesCertifiesVente /></U>} />
+            <Route path="/vente/garantie" element={<U name="Garantie occasion"><CentreGarantieOccasion /></U>} />
+            <Route path="/vente/rapports" element={<U name="Rapports v\u00e9hicule"><CentreRapportsVehicule /></U>} />
+            <Route path="/vente/achat-distance" element={<U name="Achat \u00e0 distance"><CentreAchatDistance /></U>} />
+            <Route path="/vente/livraison-acheteur" element={<U name="Livraison acheteur"><CentreLivraisonAcheteur /></U>} />
+            <Route path="/vente/retour-client" element={<U name="Retour client"><CentreRetourClient /></U>} />
+            <Route path="/vente/badges" element={<U name="Badges vendeurs"><CentreBadgesVendeurs /></U>} />
+            <Route path="/vente/fraude" element={<U name="D\u00e9tection fraude"><CentreDetectionFraude /></U>} />
+            <Route path="/vente/confiance" element={<U name="Confiance acheteur"><CentreConfianceAcheteur /></U>} />
+            <Route path="/vente/parcours-acheteur" element={<U name="Parcours acheteur"><WorkflowCompletAcheteur /></U>} />
             <Route path="/vehicule/:id" element={<U name="Vente"><Vehicule /></U>} />
             <Route path="/vendre" element={<U name="Vente"><Vendre /></U>} />
             <Route path="/devis" element={<U name="Devis"><Devis /></U>} />
