@@ -630,6 +630,23 @@ const VehiculesConnectes = lazy(() => import("./pages/labs/VehiculesConnectes"))
 const VisionFinaleMKAPMS = lazy(() => import("./pages/labs/VisionFinaleMKAPMS"));
 const WorldVision = lazy(() => import("./pages/labs/WorldVision"));
 const ZonesTechniques = lazy(() => import("./pages/labs/ZonesTechniques"));
+// Dépôt Annonce
+const AnalyseIA = lazy(() => import("./pages/depot-annonce/AnalyseIA"));
+const ConseilsIA = lazy(() => import("./pages/depot-annonce/ConseilsIA"));
+const DepotAnnoncePortail = lazy(() => import("./pages/depot-annonce/DepotAnnoncePortail"));
+const DescriptionAnnonce = lazy(() => import("./pages/depot-annonce/DescriptionAnnonce"));
+const DocumentsAnnonce = lazy(() => import("./pages/depot-annonce/DocumentsAnnonce"));
+const ExpirationAnnonce = lazy(() => import("./pages/depot-annonce/ExpirationAnnonce"));
+const IdentificationVehicule = lazy(() => import("./pages/depot-annonce/IdentificationVehicule"));
+const InformationsPrincipales = lazy(() => import("./pages/depot-annonce/InformationsPrincipales"));
+const ModificationAnnonce = lazy(() => import("./pages/depot-annonce/ModificationAnnonce"));
+const ObjectifDepotAnnonce = lazy(() => import("./pages/depot-annonce/ObjectifDepotAnnonce"));
+const OptionsAnnonce = lazy(() => import("./pages/depot-annonce/OptionsAnnonce"));
+const PhotosVehicule = lazy(() => import("./pages/depot-annonce/PhotosVehicule"));
+const PublicationAnnonce = lazy(() => import("./pages/depot-annonce/PublicationAnnonce"));
+const ScoreQualiteAnnonce = lazy(() => import("./pages/depot-annonce/ScoreQualiteAnnonce"));
+const TableauBordAnnonceur = lazy(() => import("./pages/depot-annonce/TableauBordAnnonceur"));
+const VideosAnnonce = lazy(() => import("./pages/depot-annonce/VideosAnnonce"));
 
 // Chaque univers est isolé : un crash dans l'un n'affecte pas les autres.
 function U({ name, children }: { name: string; children: React.ReactNode }) {
@@ -1279,6 +1296,23 @@ export default function App() {
             <Route path="/labs/vision-finale-m-k-a-p-m-s" element={<U name="Labs"><VisionFinaleMKAPMS /></U>} />
             <Route path="/labs/world-vision" element={<U name="Labs"><WorldVision /></U>} />
             <Route path="/labs/zones-techniques" element={<U name="Labs"><ZonesTechniques /></U>} />
+            {/* Dépôt Annonce */}
+            <Route path="/depot-annonce/analyse-i-a" element={<U name="Dépôt Annonce"><AnalyseIA /></U>} />
+            <Route path="/depot-annonce/conseils-i-a" element={<U name="Dépôt Annonce"><ConseilsIA /></U>} />
+            <Route path="/depot-annonce" element={<U name="Dépôt Annonce"><DepotAnnoncePortail /></U>} />
+            <Route path="/depot-annonce/description-annonce" element={<U name="Dépôt Annonce"><DescriptionAnnonce /></U>} />
+            <Route path="/depot-annonce/documents-annonce" element={<U name="Dépôt Annonce"><DocumentsAnnonce /></U>} />
+            <Route path="/depot-annonce/expiration-annonce" element={<U name="Dépôt Annonce"><ExpirationAnnonce /></U>} />
+            <Route path="/depot-annonce/identification-vehicule" element={<U name="Dépôt Annonce"><IdentificationVehicule /></U>} />
+            <Route path="/depot-annonce/informations-principales" element={<U name="Dépôt Annonce"><InformationsPrincipales /></U>} />
+            <Route path="/depot-annonce/modification-annonce" element={<U name="Dépôt Annonce"><ModificationAnnonce /></U>} />
+            <Route path="/depot-annonce/objectif-depot-annonce" element={<U name="Dépôt Annonce"><ObjectifDepotAnnonce /></U>} />
+            <Route path="/depot-annonce/options-annonce" element={<U name="Dépôt Annonce"><OptionsAnnonce /></U>} />
+            <Route path="/depot-annonce/photos-vehicule" element={<U name="Dépôt Annonce"><PhotosVehicule /></U>} />
+            <Route path="/depot-annonce/publication-annonce" element={<U name="Dépôt Annonce"><PublicationAnnonce /></U>} />
+            <Route path="/depot-annonce/score-qualite-annonce" element={<U name="Dépôt Annonce"><ScoreQualiteAnnonce /></U>} />
+            <Route path="/depot-annonce/tableau-bord-annonceur" element={<U name="Dépôt Annonce"><TableauBordAnnonceur /></U>} />
+            <Route path="/depot-annonce/videos-annonce" element={<U name="Dépôt Annonce"><VideosAnnonce /></U>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
