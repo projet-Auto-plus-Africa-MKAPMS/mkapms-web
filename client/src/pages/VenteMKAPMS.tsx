@@ -48,10 +48,10 @@ export default function VenteMKAPMS() {
         <h2 className="text-base font-bold text-[#111]">Véhicules disponibles</h2>
         <div className="mt-3 space-y-3">
           {ANNONCES.map((a) => (
-            <div key={a.id} className="rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden shadow-sm">
+            <Link key={a.id} to={`/vehicule/${9040 + a.id}`} className="block rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden shadow-sm hover:shadow-lg transition">
               <div className="relative h-[150px]">
                 <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
-                <button className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-[#6B7280]" /></button>
+                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-[#6B7280]" /></span>
                 <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-2.5 py-0.5 text-[9px] font-bold text-white"><Star size={10} fill="white" /> Certifié</span>
               </div>
               <div className="p-4">
@@ -62,10 +62,10 @@ export default function VenteMKAPMS() {
                 </div>
                 <div className="mt-3 flex items-center justify-between">
                   <div><span className="text-xl font-black text-[#D4AF37]">{a.prix.toLocaleString("fr-FR")} €</span><p className="text-[10px] text-[#6B7280]">ou {a.finance}</p></div>
-                  <button className="rounded-xl bg-[#D4AF37] px-5 py-2.5 text-sm font-bold text-white active:scale-[0.98]">Voir</button>
+                  <span className="rounded-xl bg-[#D4AF37] px-5 py-2.5 text-sm font-bold text-white">Voir</span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

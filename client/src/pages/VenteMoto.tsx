@@ -119,21 +119,20 @@ export default function VenteMoto() {
         </div>
       )}
 
-      {/* Catégories complètes */}
+      {/* Catégories — scroll horizontal */}
       <div className="px-4 mt-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-[#111]">Catégories ({CATEGORIES_MOTO.length})</h2>
-          <button onClick={() => { setShowAllCats(!showAllCats); setSelectedCat(null); }} className="text-[10px] font-bold text-red-600">{showAllCats ? "Réduire" : "Voir tout"}</button>
+          {selectedCat && <button onClick={() => setSelectedCat(null)} className="text-[10px] font-bold text-red-600">Tout voir</button>}
         </div>
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          {displayedCats.map((c) => (
-            <button key={c.label} onClick={() => setSelectedCat(selectedCat === c.label ? null : c.label)} className={`rounded-xl overflow-hidden border-2 active:scale-[0.98] ${selectedCat === c.label ? "border-red-600" : "border-[#E5E7EB]"}`}>
+        <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          {CATEGORIES_MOTO.map((c) => (
+            <button key={c.label} onClick={() => setSelectedCat(selectedCat === c.label ? null : c.label)} className={`shrink-0 w-[100px] rounded-xl overflow-hidden border-2 active:scale-[0.98] ${selectedCat === c.label ? "border-red-600" : "border-[#E5E7EB]"}`}>
               <img src={c.photo} alt={c.label} className="w-full h-[50px] object-cover" loading="lazy" />
               <div className="p-1.5 bg-white"><p className="text-[10px] font-bold text-[#111] leading-tight">{c.label}</p><p className="text-[7px] text-[#6B7280] leading-tight truncate">{c.desc}</p></div>
             </button>
           ))}
         </div>
-        {!showAllCats && <button onClick={() => setShowAllCats(true)} className="w-full mt-2 flex items-center justify-center gap-1 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[10px] font-bold text-red-600"><ChevronDown size={12} /> Voir les {CATEGORIES_MOTO.length - 9} autres catégories</button>}
       </div>
 
       {/* Annonces */}
@@ -141,10 +140,10 @@ export default function VenteMoto() {
         <h2 className="text-base font-bold text-[#111]">{selectedCat ? `Annonces ${selectedCat}` : "Toutes les annonces"} ({filtered.length})</h2>
         <div className="mt-3 space-y-3">
           {filtered.map((a) => (
-            <div key={a.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+            <Link key={a.id} to={`/vehicule/${9070 + a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
               <div className="relative h-[130px]">
                 <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
-                <button className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-[#6B7280]" /></button>
+                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-[#6B7280]" /></span>
                 <span className="absolute top-2 left-2 rounded-full bg-red-600 px-2 py-0.5 text-[9px] font-bold text-white">{a.cat}</span>
               </div>
               <div className="p-4">
@@ -152,7 +151,7 @@ export default function VenteMoto() {
                 <p className="text-[10px] text-[#6B7280] mt-0.5">{a.annee} · {a.km.toLocaleString("fr-FR")} km · {a.cyl}</p>
                 <p className="mt-2 text-lg font-black text-red-600">{a.prix.toLocaleString("fr-FR")} €</p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

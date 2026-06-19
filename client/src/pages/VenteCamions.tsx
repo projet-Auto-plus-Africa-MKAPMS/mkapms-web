@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { ChevronLeft, Search, Truck, Heart } from "lucide-react";
 const CATEGORIES = [
-  { label: "Porte-voitures", photo: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=300&h=200&fit=crop" },
-  { label: "Bennes", photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=300&h=200&fit=crop" },
-  { label: "Frigorifiques", photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=300&h=200&fit=crop" },
-  { label: "Poids lourds", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=300&h=200&fit=crop" },
+  { label: "Porte-voitures", desc: "Transport auto", photo: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=300&h=200&fit=crop" },
+  { label: "Bennes", desc: "BTP, déchets", photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=300&h=200&fit=crop" },
+  { label: "Frigorifiques", desc: "Transport frais", photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=300&h=200&fit=crop" },
+  { label: "Poids lourds", desc: "19t+ porteurs", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=300&h=200&fit=crop" },
+  { label: "Plateaux", desc: "Matériel & engins", photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=300&h=200&fit=crop" },
+  { label: "Fourgons", desc: "7.5t → 12t", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=300&h=200&fit=crop" },
 ];
 const ANNONCES = [
   { id: 1, nom: "Iveco Daily Benne 35C14", annee: 2022, km: 55000, prix: 28500, ptac: "3.5 t", photo: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&h=260&fit=crop" },
@@ -23,15 +25,16 @@ export default function VenteCamions() {
       <div className="px-4 -mt-3 relative z-10 rounded-xl bg-white border border-[#E5E7EB] p-3 mx-4 shadow-sm">
         <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5"><Search size={14} className="text-[#6B7280]" /><input type="text" placeholder="Marque, modèle, PTAC…" className="w-full bg-transparent text-sm outline-none" /></div>
       </div>
+      {/* Catégories — scroll horizontal */}
       <div className="px-4 mt-4"><h2 className="text-base font-bold text-[#111]">Catégories</h2>
-        <div className="mt-3 grid grid-cols-2 gap-2">{CATEGORIES.map((c) => (<button key={c.label} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden active:scale-[0.98]"><img src={c.photo} alt="" className="w-full h-[70px] object-cover" loading="lazy" /><p className="p-2 text-[11px] font-bold text-[#111]">{c.label}</p></button>))}</div>
+        <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">{CATEGORIES.map((c) => (<button key={c.label} className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition"><img src={c.photo} alt="" className="w-full h-[60px] object-cover" loading="lazy" /><div className="p-2"><h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3><p className="text-[8px] text-[#6B7280]">{c.desc}</p></div></button>))}</div>
       </div>
       <div className="px-4 mt-6"><h2 className="text-base font-bold text-[#111]">Annonces camions</h2>
         <div className="mt-3 space-y-3">{ANNONCES.map((a) => (
-          <div key={a.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-            <div className="relative h-[130px]"><img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" /><button className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} /></button></div>
+          <Link key={a.id} to={`/vehicule/${9090 + a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
+            <div className="relative h-[130px]"><img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" /><span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} /></span></div>
             <div className="p-4"><h3 className="text-sm font-bold text-[#111]">{a.nom}</h3><p className="text-[10px] text-[#6B7280] mt-0.5">{a.annee} · {a.km.toLocaleString("fr-FR")} km · PTAC {a.ptac}</p><p className="mt-2 text-lg font-black text-gray-700">{a.prix.toLocaleString("fr-FR")} €</p></div>
-          </div>))}</div>
+          </Link>))}</div>
       </div>
     </div>
   );

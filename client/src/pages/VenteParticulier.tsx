@@ -71,14 +71,14 @@ export default function VenteParticulier() {
         </div>
       )}
 
-      {/* Catégories */}
+      {/* Catégories — scroll horizontal */}
       <div className="px-4 mt-6">
         <h2 className="text-base font-bold text-[#111]">Catégories</h2>
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {CATEGORIES.map((c) => (
-            <button key={c.label} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition">
+            <button key={c.label} className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition">
               <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
-              <div className="p-2"><h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3><p className="text-[8px] text-[#6B7280]">{c.modeles}</p></div>
+              <div className="p-2"><h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3><p className="text-[8px] text-[#6B7280] truncate">{c.modeles}</p></div>
             </button>
           ))}
         </div>
@@ -89,10 +89,10 @@ export default function VenteParticulier() {
         <h2 className="text-base font-bold text-[#111]">Annonces récentes</h2>
         <div className="mt-3 space-y-3">
           {ANNONCES.map((a) => (
-            <div key={a.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+            <Link key={a.id} to={`/vehicule/${9060 + a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
               <div className="relative h-[140px]">
                 <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
-                <button className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-[#6B7280]" /></button>
+                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-[#6B7280]" /></span>
                 <span className={`absolute top-2 left-2 rounded-full px-2 py-0.5 text-[9px] font-bold ${a.vendeur === "Professionnel" ? "bg-blue-800 text-white" : "bg-[#D4AF37] text-white"}`}>{a.vendeur}</span>
               </div>
               <div className="p-4">
@@ -106,7 +106,7 @@ export default function VenteParticulier() {
                   <span className="flex items-center gap-0.5 text-xs"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> {a.note}</span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

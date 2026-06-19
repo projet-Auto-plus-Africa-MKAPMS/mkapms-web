@@ -18,6 +18,15 @@ const ANNONCES = [
   { id: 4, nom: "Peugeot 5008 GT Pack", annee: 2024, km: 5000, prix: 36500, tva: false, garantie: "24 mois", carb: "Hybride", boite: "Auto", pro: "Peugeot Webstore", note: 4.6, photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop" },
 ];
 
+const CATEGORIES_PRO = [
+  { label: "Berlines", modeles: "Série 3, Classe C, A4, 508", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=300&h=200&fit=crop" },
+  { label: "SUV & 4x4", modeles: "X3, GLC, Q5, 3008", photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=300&h=200&fit=crop" },
+  { label: "Citadines", modeles: "208, Clio, Polo, A1", photo: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=300&h=200&fit=crop" },
+  { label: "Breaks", modeles: "508 SW, Passat, A4 Avant", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=300&h=200&fit=crop" },
+  { label: "Utilitaires", modeles: "Kangoo, Berlingo, Trafic", photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=300&h=200&fit=crop" },
+  { label: "Premium", modeles: "Classe E, Série 5, A6", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=300&h=200&fit=crop" },
+];
+
 const FILTRES_PRO = [
   "TVA récupérable", "Garantie constructeur", "Professionnel vérifié",
   "Livraison possible", "Contrôle technique OK", "1ère main",
@@ -61,13 +70,26 @@ export default function VentePro() {
         ))}
       </div>
 
+      {/* Catégories — scroll horizontal */}
+      <div className="px-4 mt-4">
+        <h2 className="text-base font-bold text-[#111]">Catégories</h2>
+        <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          {CATEGORIES_PRO.map((c) => (
+            <button key={c.label} className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition">
+              <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
+              <div className="p-2"><h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3><p className="text-[8px] text-[#6B7280] truncate">{c.modeles}</p></div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Annonces */}
       <div className="px-4 mt-4 space-y-3">
         {ANNONCES.map((a) => (
-          <div key={a.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+          <Link key={a.id} to={`/vehicule/${9000 + a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
             <div className="relative h-[140px]">
               <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
-              <button className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-[#6B7280]" /></button>
+              <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-[#6B7280]" /></span>
               <div className="absolute top-2 left-2 flex gap-1">
                 <span className="rounded-full bg-blue-800 px-2 py-0.5 text-[9px] font-bold text-white flex items-center gap-0.5"><Shield size={8} /> Pro vérifié</span>
                 {a.tva && <span className="rounded-full bg-green-600 px-2 py-0.5 text-[9px] font-bold text-white">TVA récup.</span>}
@@ -88,7 +110,7 @@ export default function VentePro() {
                 <span className="flex items-center gap-0.5 text-xs"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> {a.note}</span>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

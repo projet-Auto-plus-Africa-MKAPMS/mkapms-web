@@ -20,7 +20,7 @@ export default function VenteEncheres() {
       </div>
       <div className="px-4 mt-4 space-y-3">
         {LOTS.map((l) => (
-          <div key={l.id} className="rounded-xl bg-white border border-purple-200 overflow-hidden">
+          <Link key={l.id} to={`/vehicule/${9120 + l.id}`} className="block rounded-xl bg-white border border-purple-200 overflow-hidden hover:shadow-lg transition">
             <div className="relative h-[130px]">
               <img src={l.photo} alt={l.nom} className="w-full h-full object-cover" loading="lazy" />
               <span className="absolute top-2 left-2 rounded-full bg-purple-700 px-2 py-0.5 text-[9px] font-bold text-white flex items-center gap-1"><Gavel size={10} /> Enchère</span>
@@ -33,9 +33,9 @@ export default function VenteEncheres() {
                 <div className="rounded-lg bg-purple-50 p-2 text-center"><p className="text-[8px] text-purple-600">Offre actuelle</p><p className="text-sm font-black text-purple-700">{l.offreActuelle.toLocaleString("fr-FR")} €</p></div>
                 <div className="rounded-lg bg-[#F5F3EF] p-2 text-center"><p className="text-[8px] text-[#6B7280]">Enchères</p><p className="text-sm font-bold text-[#111]">{l.encheres}</p></div>
               </div>
-              <button className="mt-3 w-full rounded-xl bg-purple-700 py-2.5 text-sm font-bold text-white active:scale-[0.98] transition">Enchérir</button>
+              <span className="mt-3 block w-full rounded-xl bg-purple-700 py-2.5 text-sm font-bold text-white text-center active:scale-[0.98] transition">Enchérir</span>
             </div>
-          </div>))}
+          </Link>))}
       </div>
     </div>
   );
