@@ -35,7 +35,7 @@ export default function InscriptionProVente() {
         <h1 className="text-xl font-black text-white flex items-center gap-2"><Building2 size={20} /> Devenir professionnel</h1>
         <p className="mt-1 text-sm text-white/80">Ouvrir un compte pro vente MKA.P-MS</p>
       </div>
-      <div className="px-4 mt-4 flex gap-1">{ETAPES.map((e, i) => (<div key={i} className="flex-1"><div className={`h-1 rounded-full ${i <= step ? "bg-blue-600" : "bg-[#E5E7EB]"}`} /><p className={`text-[7px] mt-0.5 text-center ${i <= step ? "text-blue-700 font-bold" : "text-[#9CA3AF]"}`}>{e}</p></div>))}</div>
+      <div className="px-4 mt-4 flex gap-1">{ETAPES.map((e, i) => (<div key={i} className="flex-1"><div className={`h-1 rounded-full ${i <= step ? "bg-blue-600" : "bg-[#E5E7EB]"}`} /><p className={`text-[7px] mt-0.5 text-center ${i <= step ? "text-blue-700 font-bold" : "text-red-500"}`}>{e}</p></div>))}</div>
 
       {step === 0 && (
         <div className="mx-4 mt-4 rounded-xl bg-white border border-[#E5E7EB] p-4 space-y-2">
@@ -58,7 +58,7 @@ export default function InscriptionProVente() {
           ))}
           <h4 className="text-xs font-bold text-[#111] pt-2">Documents dirigeant</h4>
           {DOCS_DIRIGEANT.map((d) => (
-            <button key={d} className="w-full flex items-center gap-3 rounded-lg border border-[#E5E7EB] p-3"><Upload size={14} className="text-blue-600" /><span className="flex-1 text-sm text-[#111]">{d}</span><span className="text-[9px] text-[#9CA3AF]">Télécharger</span></button>
+            <button key={d} className="w-full flex items-center gap-3 rounded-lg border border-[#E5E7EB] p-3"><Upload size={14} className="text-blue-600" /><span className="flex-1 text-sm text-[#111]">{d}</span><span className="text-[9px] text-red-500">Télécharger</span></button>
           ))}
           <button onClick={() => setStep(2)} className="w-full rounded-xl bg-blue-800 py-3 text-sm font-bold text-white active:scale-[0.98]">Suivant</button>
         </div>
@@ -78,7 +78,7 @@ export default function InscriptionProVente() {
         <div className="mx-4 mt-4 rounded-xl bg-white border border-[#E5E7EB] p-4 space-y-3">
           <h3 className="text-sm font-bold text-[#111]">Documents société</h3>
           {DOCS_SOCIETE.map((d) => (
-            <button key={d} className="w-full flex items-center gap-3 rounded-lg border border-[#E5E7EB] p-3"><FileText size={14} className="text-blue-600" /><span className="flex-1 text-sm text-[#111]">{d}</span><Upload size={14} className="text-[#9CA3AF]" /></button>
+            <button key={d} className="w-full flex items-center gap-3 rounded-lg border border-[#E5E7EB] p-3"><FileText size={14} className="text-blue-600" /><span className="flex-1 text-sm text-[#111]">{d}</span><Upload size={14} className="text-red-500" /></button>
           ))}
           <button onClick={() => setStep(4)} className="w-full rounded-xl bg-blue-800 py-3 text-sm font-bold text-white active:scale-[0.98]">Soumettre</button>
         </div>
@@ -91,7 +91,7 @@ export default function InscriptionProVente() {
           <p className="text-xs text-[#6B7280]">Votre dossier est en cours de vérification.</p>
           <div className="space-y-1.5 text-left">
             {STATUTS.map((s) => (
-              <div key={s.label} className="flex items-center gap-2 text-xs"><span className={`h-2.5 w-2.5 rounded-full ${s.done ? "bg-blue-600" : "bg-[#E5E7EB]"}`} /><span className={s.done ? "text-[#111] font-semibold" : "text-[#9CA3AF]"}>{s.label}</span></div>
+              <div key={s.label} className="flex items-center gap-2 text-xs"><span className={`h-2.5 w-2.5 rounded-full ${s.done ? "bg-blue-600" : "bg-[#E5E7EB]"}`} /><span className={s.done ? "text-[#111] font-semibold" : "text-red-500"}>{s.label}</span></div>
             ))}
           </div>
           <Link to="/tableau-de-bord" className="inline-block w-full rounded-xl bg-blue-800 py-3 text-sm font-bold text-white mt-2 active:scale-[0.98]">Retour à mon espace</Link>

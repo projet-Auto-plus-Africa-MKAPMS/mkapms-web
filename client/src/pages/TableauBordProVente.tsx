@@ -72,7 +72,7 @@ export default function TableauBordProVente() {
               <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${m.color}`}><Icon size={14} className="text-white" /></div>
               <span className="flex-1 text-sm font-semibold text-[#111]">{m.label}</span>
               {m.count !== null && <span className="rounded-full bg-[#F5F3EF] h-5 min-w-[20px] px-1.5 flex items-center justify-center text-[9px] font-bold text-[#6B7280]">{m.count}</span>}
-              <ChevronRight size={14} className="text-[#D4D4D4]" />
+              <ChevronRight size={16} className="text-red-500" />
             </Link>
           );
         })}

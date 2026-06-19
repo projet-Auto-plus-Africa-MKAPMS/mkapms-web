@@ -79,7 +79,7 @@ export default function Favoris() {
                   Voir
                 </Link>
               </div>
-              <p className="mt-2 text-[10px] text-[#9CA3AF]">Ajouté {f.ajouteLe}</p>
+              <p className="mt-2 text-[10px] text-red-500">Ajouté {f.ajouteLe}</p>
             </div>
           </div>
         ))}
@@ -89,7 +89,7 @@ export default function Favoris() {
         <div className="px-4 mt-8 text-center">
           <Heart size={32} className="mx-auto text-[#D4AF37]" />
           <p className="mt-2 text-sm font-semibold text-[#6B7280]">Aucun favori</p>
-          <p className="text-xs text-[#9CA3AF] mt-1">Parcourez les véhicules et ajoutez-les en favori</p>
+          <p className="text-xs text-red-500 mt-1">Parcourez les véhicules et ajoutez-les en favori</p>
           <Link to="/louer" className="mt-4 inline-flex rounded-xl bg-[#D4AF37] px-6 py-2.5 text-sm font-bold text-white">Voir les véhicules</Link>
         </div>
       )}

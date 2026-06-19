@@ -76,7 +76,7 @@ export default function ScoreConfiance() {
               <div className="mt-2 h-1.5 rounded-full bg-[#E5E7EB] overflow-hidden">
                 <div className={`h-full rounded-full transition-all ${c.score >= 85 ? "bg-green-500" : c.score >= 70 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${c.score}%` }} />
               </div>
-              <p className="mt-1 text-[9px] text-[#9CA3AF]">{c.detail}</p>
+              <p className="mt-1 text-[9px] text-red-500">{c.detail}</p>
             </div>
           );
         })}

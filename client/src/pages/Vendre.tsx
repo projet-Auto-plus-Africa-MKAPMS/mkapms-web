@@ -236,7 +236,7 @@ export default function Vendre() {
                 type="button"
                 onClick={() => s.num <= step && setStep(s.num)}
                 className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition
-                  ${active ? "bg-[#D4AF37] text-white shadow-sm" : done ? "bg-green-100 text-green-700" : "text-[#9CA3AF]"}`}
+                  ${active ? "bg-[#D4AF37] text-white shadow-sm" : done ? "bg-green-100 text-green-700" : "text-red-500"}`}
               >
                 <Icon size={14} />
                 <span className="hidden sm:inline">{s.label}</span>
@@ -378,7 +378,7 @@ export default function Vendre() {
                   className="w-full h-2 rounded-lg appearance-none cursor-pointer"
                   style={{ background: `linear-gradient(to right, #D4AF37 ${(Number(form.kilometrage || 0) / 300000) * 100}%, #E5E7EB ${(Number(form.kilometrage || 0) / 300000) * 100}%)` }}
                 />
-                <div className="flex justify-between text-xs text-[#9CA3AF] mt-1">
+                <div className="flex justify-between text-xs text-red-500 mt-1">
                   <span>0 km</span>
                   <span>150 000 km</span>
                   <span>300 000 km</span>
@@ -670,7 +670,7 @@ export default function Vendre() {
               <div>
                 <label className="label">Titre de l'annonce</label>
                 <input className="input" value={form.titre} onChange={(e) => set("titre", e.target.value)} placeholder={`${form.marque} ${form.modele} ${form.version}`.trim() || "Mon véhicule"} />
-                <p className="mt-1 text-xs text-[#9CA3AF]">Laissez vide pour un titre automatique</p>
+                <p className="mt-1 text-xs text-red-500">Laissez vide pour un titre automatique</p>
               </div>
               <div>
                 <label className="label">Description</label>
@@ -803,7 +803,7 @@ export default function Vendre() {
               </button>
             </div>
             {create.error && <p className="mt-3 text-sm text-red-600">{create.error.message}</p>}
-            <p className="mt-3 text-xs text-[#9CA3AF] text-center">
+            <p className="mt-3 text-xs text-red-500 text-center">
               Des options de mise en avant (Boost) seront proposées après la publication.
             </p>
           </div>

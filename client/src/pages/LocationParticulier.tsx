@@ -169,8 +169,8 @@ export default function LocationParticulier() {
           <div>
             <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Ville de départ</label>
             <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
-              <MapPin size={14} className="text-[#D4AF37] shrink-0" />
-              <input type="text" placeholder="Paris, Lyon, Marseille…" value={lieu} onChange={(e) => setLieu(e.target.value)} className="w-full bg-transparent text-sm text-[#111] placeholder:text-[#9CA3AF] outline-none" />
+              <MapPin size={14} className="text-red-500 shrink-0" />
+              <input type="text" placeholder="Paris, Lyon, Marseille…" value={lieu} onChange={(e) => setLieu(e.target.value)} className="w-full bg-transparent text-sm text-[#111] placeholder:text-red-500 outline-none" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -245,7 +245,7 @@ export default function LocationParticulier() {
             <Filter size={14} className="text-[#D4AF37]" />
             <span className="text-sm font-bold text-[#111]">Filtres</span>
           </div>
-          <ChevronDown size={16} className={`text-[#6B7280] transition ${showFilters ? "rotate-180" : ""}`} />
+          <ChevronDown size={16} className={`text-red-500 transition ${showFilters ? "rotate-180" : ""}`} />
         </button>
         {showFilters && (
           <div className="mt-2 rounded-xl bg-white border border-[#E5E7EB] p-4 space-y-3">
@@ -317,7 +317,7 @@ export default function LocationParticulier() {
                     </div>
                   </div>
                   <div className="absolute right-0 top-0 bottom-1 w-6 bg-gradient-to-l from-white to-transparent pointer-events-none flex items-center justify-end">
-                    <ChevronRight size={14} className="text-[#9CA3AF]" />
+                    <ChevronRight size={14} className="text-red-500" />
                   </div>
                 </div>
                 <span className="mt-3 w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white active:scale-[0.98] transition flex items-center justify-center gap-2">
@@ -431,7 +431,7 @@ export default function LocationParticulier() {
             <div className="text-center">
               <MapPinned size={28} className="text-[#D4AF37] mx-auto" />
               <p className="mt-2 text-sm font-semibold text-[#6B7280]">Carte interactive</p>
-              <p className="text-[10px] text-[#9CA3AF]">Agences · Véhicules · Distance</p>
+              <p className="text-[10px] text-red-500">Agences · Véhicules · Distance</p>
             </div>
           </div>
         </div>
@@ -486,7 +486,7 @@ export default function LocationParticulier() {
                 className="flex w-full items-center justify-between py-3.5 text-left"
               >
                 <span className="text-sm font-semibold text-[#111] pr-4">{f.q}</span>
-                <ChevronDown size={16} className={`shrink-0 text-[#6B7280] transition ${openFaq === i ? "rotate-180" : ""}`} />
+                <ChevronDown size={16} className={`shrink-0 text-red-500 transition ${openFaq === i ? "rotate-180" : ""}`} />
               </button>
               {openFaq === i && (
                 <p className="pb-3 text-xs text-[#6B7280] leading-relaxed">{f.a}</p>

@@ -84,7 +84,7 @@ export default function Messagerie() {
                   ) : (
                     <p className="text-sm leading-relaxed">{m.contenu}</p>
                   )}
-                  <div className={`flex items-center justify-end gap-1 mt-1 ${isMoi ? "text-white/60" : "text-[#9CA3AF]"}`}>
+                  <div className={`flex items-center justify-end gap-1 mt-1 ${isMoi ? "text-white/60" : "text-red-500"}`}>
                     <span className="text-[9px]">{m.heure}</span>
                     {isMoi && <CheckCheck size={10} />}
                   </div>
@@ -149,7 +149,7 @@ export default function Messagerie() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-[#111] truncate">{c.nom}</h3>
-                <span className="text-[10px] text-[#9CA3AF] shrink-0">{c.date}</span>
+                <span className="text-[10px] text-red-500 shrink-0">{c.date}</span>
               </div>
               <p className="text-xs text-[#6B7280] mt-0.5 truncate">{c.dernier}</p>
             </div>

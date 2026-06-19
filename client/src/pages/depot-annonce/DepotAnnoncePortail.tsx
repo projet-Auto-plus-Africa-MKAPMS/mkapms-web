@@ -31,7 +31,7 @@ export default function DepotAnnoncePortail() {
             <Link key={t.label} to={t.to} className="flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-3.5 shadow-sm active:scale-[0.99]">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: t.color + "15" }}><Icon size={18} style={{ color: t.color }} /></div>
               <span className="flex-1 text-sm font-semibold text-[#111]">{t.label}</span>
-              <ChevronRight size={14} className="text-[#D4D4D4]" />
+              <ChevronRight size={16} className="text-red-500" />
             </Link>); })}
         </div>
       </div>

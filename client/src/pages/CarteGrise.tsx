@@ -67,10 +67,10 @@ function DossierTimeline({ status }: { status: string }) {
         return (
           <div key={step.key} className="flex items-center">
             <div className="flex flex-col items-center">
-              <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs ${done ? "bg-[#D4AF37] text-white" : "bg-[#F3F4F6] text-[#9CA3AF]"}`}>
+              <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs ${done ? "bg-[#D4AF37] text-white" : "bg-[#F3F4F6] text-red-500"}`}>
                 {step.icon}
               </div>
-              <span className={`mt-0.5 text-[9px] ${done ? "font-semibold text-[#111]" : "text-[#9CA3AF]"}`}>{step.label}</span>
+              <span className={`mt-0.5 text-[9px] ${done ? "font-semibold text-[#111]" : "text-red-500"}`}>{step.label}</span>
             </div>
             {i < CG_STEPS.length - 1 && <div className={`mx-0.5 h-0.5 w-4 ${i < activeIdx ? "bg-[#D4AF37]" : "bg-[#E5E7EB]"}`} />}
           </div>
@@ -161,7 +161,7 @@ function MesDossiers() {
             {d.vendeurNom && <div><span className="text-[#6B7280]">Vendeur :</span> {d.vendeurNom}</div>}
             {d.acheteurNom && <div><span className="text-[#6B7280]">Acheteur :</span> {d.acheteurNom}</div>}
           </div>
-          <div className="mt-2 text-xs text-[#9CA3AF]">Créé le {new Date(d.dateCreation).toLocaleDateString("fr-FR")}</div>
+          <div className="mt-2 text-xs text-red-500">Créé le {new Date(d.dateCreation).toLocaleDateString("fr-FR")}</div>
         </div>
       ))}
     </div>
@@ -265,7 +265,7 @@ function EspaceAgence() {
               <div className="mb-1 text-lg font-bold text-[#D4AF37]">{p.nom}</div>
               <div className="mb-1 text-2xl font-bold text-[#111]">{p.prix} € <span className="text-sm font-normal text-[#6B7280]">HT/mois</span></div>
               <div className="mb-1 text-sm font-medium text-[#374151]">{p.dossiers === 9999 ? "Dossiers illimités" : `${p.dossiers} dossiers actifs`} · {p.utilisateurs}</div>
-              <div className="mb-3 text-xs text-[#9CA3AF]">{p.cible}</div>
+              <div className="mb-3 text-xs text-red-500">{p.cible}</div>
               <ul className="space-y-1 text-sm text-[#374151]">
                 {p.features.map((f) => <li key={f}>• {f}</li>)}
               </ul>

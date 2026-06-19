@@ -90,7 +90,7 @@ export default function ReservationMulti() {
         <div className="flex justify-between text-xs"><span className="text-[#6B7280]">Total / jour</span><span className="font-bold">{totalJour} €</span></div>
         {remise > 0 && <div className="flex justify-between text-xs"><span className="text-green-600">Remise flotte (-{remise}%)</span><span className="font-bold text-green-600">-{Math.round(totalPeriode * remise / 100)} €</span></div>}
         <div className="border-t border-[#E5E7EB] pt-2 flex justify-between"><span className="text-sm font-bold text-[#111]">Total</span><span className="text-lg font-black text-blue-700">{totalFinal.toLocaleString("fr-FR")} €</span></div>
-        <p className="text-[9px] text-[#9CA3AF]">Facture unique pour tous les véhicules</p>
+        <p className="text-[9px] text-red-500">Facture unique pour tous les véhicules</p>
       </div>
 
       <div className="px-4 mt-4">

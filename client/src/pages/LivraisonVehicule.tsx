@@ -114,7 +114,7 @@ export default function LivraisonVehicule() {
                         </div>
                         <div>
                           <p className={`text-sm ${e.fait ? "font-bold text-[#111]" : "text-[#6B7280]"}`}>{e.label}</p>
-                          <p className="text-[10px] text-[#9CA3AF]">{e.heure}</p>
+                          <p className="text-[10px] text-red-500">{e.heure}</p>
                         </div>
                       </div>
                     ))}

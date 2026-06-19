@@ -153,13 +153,13 @@ export default function Louer() {
           <div>
             <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Lieu de retrait</label>
             <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
-              <MapPin size={14} className="text-[#D4AF37] shrink-0" />
+              <MapPin size={14} className="text-red-500 shrink-0" />
               <input
                 type="text"
                 placeholder="Ville, gare, aéroport…"
                 value={lieu}
                 onChange={(e) => setLieu(e.target.value)}
-                className="w-full bg-transparent text-sm text-[#111] placeholder:text-[#9CA3AF] outline-none"
+                className="w-full bg-transparent text-sm text-[#111] placeholder:text-red-500 outline-none"
               />
             </div>
           </div>
@@ -343,7 +343,7 @@ export default function Louer() {
             <div className="text-center">
               <MapPinned size={32} className="text-[#D4AF37] mx-auto" />
               <p className="mt-2 text-sm font-semibold text-[#6B7280]">Carte interactive</p>
-              <p className="text-[10px] text-[#9CA3AF]">Agences · Points de retrait · Garages</p>
+              <p className="text-[10px] text-red-500">Agences · Points de retrait · Garages</p>
             </div>
           </div>
         </div>
@@ -356,7 +356,7 @@ export default function Louer() {
           </button>
         </div>
         <div className="px-4 pb-3">
-          <p className="text-[10px] text-[#9CA3AF] text-center">La carte sert à localiser. La réservation se fait dans MKA.P-MS.</p>
+          <p className="text-[10px] text-red-500 text-center">La carte sert à localiser. La réservation se fait dans MKA.P-MS.</p>
         </div>
       </div>
 
@@ -420,7 +420,7 @@ export default function Louer() {
                 className="flex w-full items-center justify-between py-3.5 text-left"
               >
                 <span className="text-sm font-semibold text-[#111] pr-4">{f.q}</span>
-                <ChevronDown size={16} className={`shrink-0 text-[#6B7280] transition ${openFaq === i ? "rotate-180" : ""}`} />
+                <ChevronDown size={16} className={`shrink-0 text-red-500 transition ${openFaq === i ? "rotate-180" : ""}`} />
               </button>
               {openFaq === i && (
                 <p className="pb-3 text-xs text-[#6B7280] leading-relaxed">{f.a}</p>

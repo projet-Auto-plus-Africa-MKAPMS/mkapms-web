@@ -17,7 +17,7 @@ export default function CentreBadgesVendeurs() {
         <div key={b.label} className={`rounded-xl bg-white border p-4 flex items-center gap-3 ${b.ok ? "border-[#E5E7EB]" : "border-[#E5E7EB] opacity-50"}`}>
           <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${b.ok ? b.color : "bg-gray-200"}`}><Icon size={16} className="text-white" /></div>
           <div className="flex-1"><h3 className="text-sm font-bold text-[#111]">{b.label}</h3><p className="text-[10px] text-[#6B7280]">{b.desc}</p></div>
-          {b.ok ? <Check size={14} className="text-green-600" /> : <Clock size={14} className="text-[#9CA3AF]" />}
+          {b.ok ? <Check size={14} className="text-green-600" /> : <Clock size={14} className="text-red-500" />}
         </div>); })}</div>
     </div>
   );

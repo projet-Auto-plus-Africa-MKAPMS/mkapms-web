@@ -18,7 +18,7 @@ export default function LocationVoiture() {
       </div>
       <div className="px-4 mt-4 space-y-2">{TYPES.map(t => (
         <Link key={t.label} to={t.to} className="flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-4 shadow-sm active:scale-[0.99]">
-          <div className="flex-1"><p className="text-sm font-bold text-[#111]">{t.label}</p><p className="text-[10px] text-[#6B7280]">{t.desc}</p></div><ChevronRight size={14} className="text-[#D4D4D4]" />
+          <div className="flex-1"><p className="text-sm font-bold text-[#111]">{t.label}</p><p className="text-[10px] text-[#6B7280]">{t.desc}</p></div><ChevronRight size={16} className="text-red-500" />
         </Link>
       ))}</div>
     </div>

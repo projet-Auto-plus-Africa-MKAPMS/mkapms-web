@@ -11,7 +11,7 @@ export default function ReceptionVehicule() {
         <h3 className="text-sm font-bold text-[#111] pt-2">Photos obligatoires</h3>
         <div className="grid grid-cols-3 gap-2">{PHOTOS.map(p => (<button key={p} className="rounded-lg border-2 border-dashed border-[#D4AF37]/40 bg-[#D4AF37]/5 py-6 flex flex-col items-center gap-1"><Camera size={16} className="text-[#D4AF37]" /><span className="text-[8px] font-semibold text-[#111]">{p}</span></button>))}</div>
         <h3 className="text-sm font-bold text-[#111] pt-2">Signature client</h3>
-        <div className="rounded-lg border-2 border-dashed border-[#E5E7EB] h-24 flex items-center justify-center text-xs text-[#9CA3AF]">Signer ici</div>
+        <div className="rounded-lg border-2 border-dashed border-[#E5E7EB] h-24 flex items-center justify-center text-xs text-red-500">Signer ici</div>
         <button className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white active:scale-[0.98]">Valider la réception</button>
       </div>
     </div>

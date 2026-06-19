@@ -42,7 +42,7 @@ export default function VoitureOccasion() {
         <div className="mt-3 space-y-1.5">{MARQUES.map(m => (
           <Link key={m.nom} to="/vente-particulier" className="flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm active:scale-[0.99]">
             <div className="flex-1"><p className="text-sm font-bold text-[#111]">{m.nom}</p><p className="text-[9px] text-[#6B7280]">{m.modeles}</p></div>
-            <span className="text-[10px] font-bold text-[#D4AF37]">{m.count.toLocaleString("fr-FR")}</span><ChevronRight size={14} className="text-[#D4D4D4]" />
+            <span className="text-[10px] font-bold text-[#D4AF37]">{m.count.toLocaleString("fr-FR")}</span><ChevronRight size={16} className="text-red-500" />
           </Link>
         ))}</div>
       </div>

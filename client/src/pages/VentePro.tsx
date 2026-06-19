@@ -89,7 +89,7 @@ export default function VentePro() {
           <Link key={a.id} to={`/vehicule/${9000 + a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
             <div className="relative h-[140px]">
               <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
-              <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-[#6B7280]" /></span>
+              <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-slate-400 hover:text-red-500 hover:fill-red-500" /></span>
               <div className="absolute top-2 left-2 flex gap-1">
                 <span className="rounded-full bg-blue-800 px-2 py-0.5 text-[9px] font-bold text-white flex items-center gap-0.5"><Shield size={8} /> Pro vérifié</span>
                 {a.tva && <span className="rounded-full bg-green-600 px-2 py-0.5 text-[9px] font-bold text-white">TVA récup.</span>}
@@ -122,7 +122,7 @@ export default function VentePro() {
             <div key={i} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
               <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between px-4 py-3 text-left">
                 <span className="text-sm font-semibold text-[#111] pr-2">{f.q}</span>
-                <ChevronDown size={14} className={`text-[#6B7280] shrink-0 transition ${openFaq === i ? "rotate-180" : ""}`} />
+                <ChevronDown size={14} className={`text-red-500 shrink-0 transition ${openFaq === i ? "rotate-180" : ""}`} />
               </button>
               {openFaq === i && <div className="px-4 pb-3"><p className="text-xs text-[#6B7280]">{f.r}</p></div>}
             </div>

@@ -74,7 +74,7 @@ export default function VenteMKAPMS() {
             <Link key={a.vehiculeId} to={`/vehicule/${a.vehiculeId}`} className="block rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden shadow-sm hover:shadow-lg transition">
               <div className="relative h-[150px]">
                 <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
-                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-[#6B7280]" /></span>
+                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-slate-400 hover:text-red-500 hover:fill-red-500" /></span>
                 <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-2.5 py-0.5 text-[9px] font-bold text-white"><Star size={10} fill="white" /> Certifié</span>
               </div>
               <div className="p-4">

@@ -97,8 +97,8 @@ export default function LocationUtilitaires() {
           <div>
             <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Lieu de retrait</label>
             <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
-              <MapPin size={14} className="text-[#D4AF37] shrink-0" />
-              <input type="text" placeholder="Ville, zone industrielle…" value={lieu} onChange={(e) => setLieu(e.target.value)} className="w-full bg-transparent text-sm text-[#111] placeholder:text-[#9CA3AF] outline-none" />
+              <MapPin size={14} className="text-red-500 shrink-0" />
+              <input type="text" placeholder="Ville, zone industrielle…" value={lieu} onChange={(e) => setLieu(e.target.value)} className="w-full bg-transparent text-sm text-[#111] placeholder:text-red-500 outline-none" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -196,7 +196,7 @@ export default function LocationUtilitaires() {
                     </div>
                   </div>
                   <div className="absolute right-0 top-0 bottom-1 w-6 bg-gradient-to-l from-white to-transparent pointer-events-none flex items-center justify-end">
-                    <ChevronRight size={14} className="text-[#9CA3AF]" />
+                    <ChevronRight size={14} className="text-red-500" />
                   </div>
                 </div>
                 <span className="mt-3 w-full rounded-xl bg-orange-600 py-3 text-sm font-bold text-white active:scale-[0.98] transition flex items-center justify-center gap-2">
@@ -230,7 +230,7 @@ export default function LocationUtilitaires() {
             <div key={i} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
               <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between px-4 py-3 text-left">
                 <span className="text-sm font-semibold text-[#111]">{f.q}</span>
-                <ChevronDown size={16} className={`text-[#9CA3AF] transition ${openFaq === i ? "rotate-180" : ""}`} />
+                <ChevronDown size={16} className={`text-red-500 transition ${openFaq === i ? "rotate-180" : ""}`} />
               </button>
               {openFaq === i && <div className="px-4 pb-3"><p className="text-xs text-[#6B7280] leading-relaxed">{f.a}</p></div>}
             </div>

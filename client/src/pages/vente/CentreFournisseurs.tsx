@@ -13,7 +13,7 @@ export default function CentreFournisseurs() {
       <div className="px-4 mt-4 space-y-2">{FOURNISSEURS.map(f => (
         <div key={f.nom} className="rounded-xl bg-white border border-[#E5E7EB] p-4 flex items-center gap-3">
           <div className="flex-1"><h3 className="text-sm font-bold text-[#111]">{f.nom}</h3><p className="text-[10px] text-[#6B7280]">{f.type} · {f.commandes} commandes</p></div>
-          <span className="text-sm font-bold text-blue-700">{f.total}</span><ChevronRight size={14} className="text-[#D4D4D4]" />
+          <span className="text-sm font-bold text-blue-700">{f.total}</span><ChevronRight size={16} className="text-red-500" />
         </div>))}</div>
       <div className="px-4 mt-3"><button className="w-full rounded-xl border-2 border-dashed border-blue-400 bg-blue-50/50 py-3 text-sm font-bold text-blue-700 flex items-center justify-center gap-2"><Plus size={16} /> Ajouter fournisseur</button></div>
     </div>

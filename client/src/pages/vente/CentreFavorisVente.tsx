@@ -13,7 +13,7 @@ export default function CentreFavorisVente() {
         <div key={f.nom} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden flex">
           <img src={f.photo} alt="" className="w-24 h-20 object-cover" />
           <div className="flex-1 p-3"><h3 className="text-sm font-bold text-[#111]">{f.nom}</h3><p className="text-[10px] text-[#6B7280]">{f.km}</p><p className="text-sm font-black text-[#D4AF37] mt-0.5">{f.prix}</p></div>
-          <div className="flex flex-col justify-center gap-2 pr-3"><button><Bell size={14} className="text-[#D4AF37]" /></button><button><Trash2 size={14} className="text-[#9CA3AF]" /></button></div>
+          <div className="flex flex-col justify-center gap-2 pr-3"><button><Bell size={14} className="text-[#D4AF37]" /></button><button><Trash2 size={14} className="text-red-500" /></button></div>
         </div>))}</div>
     </div>
   );

@@ -39,10 +39,10 @@ function StatusTimeline({ status }: { status: string }) {
         return (
           <div key={step.key} className="flex items-center">
             <div className={`flex flex-col items-center ${current ? "scale-110" : ""}`}>
-              <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${done ? "bg-[#D4AF37] text-white" : "bg-[#F3F4F6] text-[#9CA3AF]"}`}>
+              <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${done ? "bg-[#D4AF37] text-white" : "bg-[#F3F4F6] text-red-500"}`}>
                 {step.icon}
               </div>
-              <span className={`mt-1 text-[10px] ${done ? "font-semibold text-[#111]" : "text-[#9CA3AF]"}`}>{step.label}</span>
+              <span className={`mt-1 text-[10px] ${done ? "font-semibold text-[#111]" : "text-red-500"}`}>{step.label}</span>
             </div>
             {i < STEPS.length - 1 && (
               <div className={`mx-1 h-0.5 w-6 ${i < idx ? "bg-[#D4AF37]" : "bg-[#E5E7EB]"}`} />
@@ -266,7 +266,7 @@ function MesDepots() {
             {d.prixExpertise != null && <div><span className="text-[#6B7280]">Expertise :</span> {Number(d.prixExpertise).toLocaleString()} €</div>}
             {d.prixVenteEffectif != null && <div><span className="text-[#6B7280]">Vendu :</span> {Number(d.prixVenteEffectif).toLocaleString()} €</div>}
           </div>
-          <div className="mt-2 text-xs text-[#9CA3AF]">Réf: DV-{d.id} — {new Date(d.createdAt).toLocaleDateString("fr-FR")}</div>
+          <div className="mt-2 text-xs text-red-500">Réf: DV-{d.id} — {new Date(d.createdAt).toLocaleDateString("fr-FR")}</div>
         </div>
       ))}
     </div>

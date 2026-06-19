@@ -927,7 +927,7 @@ export default function Historique() {
                   ))}
                 </div>
               </div>
-              <button className="mt-4 flex items-center gap-1.5 rounded-full border border-[#D4AF37] px-4 py-2 text-[10px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">VOIR UN EXEMPLE COMPLET <ArrowRight size={10} /></button>
+              <button className="mt-4 flex items-center gap-1.5 rounded-full border border-[#D4AF37] px-4 py-2 text-[10px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">VOIR UN EXEMPLE COMPLET <ArrowRight size={10} className="text-red-500" /></button>
             </div>
 
             {/* 8. POURQUOI VÉRIFIER + 9. ANALYSE IA */}

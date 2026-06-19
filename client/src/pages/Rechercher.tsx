@@ -301,7 +301,7 @@ export default function Rechercher() {
             <button className="rounded-lg border border-slate-200 px-3 text-slate-400 hover:border-slate-400">⊕</button>
           </div>
           <button onClick={() => toggleSection("regions")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Régions et pays voisins <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["regions"] ? "rotate-90" : ""}`} />
+            Régions et pays voisins <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["regions"] ? "rotate-90" : ""}`} />
           </button>
           {expandedSections["regions"] && (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -344,7 +344,7 @@ export default function Rechercher() {
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
           <h3 className="text-sm font-bold text-[#111]">Couleurs</h3>
           <button onClick={() => toggleSection("couleurExt")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Couleurs extérieur <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["couleurExt"] ? "rotate-90" : ""}`} />
+            Couleurs extérieur <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["couleurExt"] ? "rotate-90" : ""}`} />
           </button>
           {expandedSections["couleurExt"] && (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -354,7 +354,7 @@ export default function Rechercher() {
             </div>
           )}
           <button onClick={() => toggleSection("couleurInt")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Couleurs intérieur <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["couleurInt"] ? "rotate-90" : ""}`} />
+            Couleurs intérieur <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["couleurInt"] ? "rotate-90" : ""}`} />
           </button>
           {expandedSections["couleurInt"] && (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -369,7 +369,7 @@ export default function Rechercher() {
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
           <h3 className="text-sm font-bold text-[#111]">Performance</h3>
           <button onClick={() => toggleSection("puissanceFiscale")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Puissance fiscale <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["puissanceFiscale"] ? "rotate-90" : ""}`} />
+            Puissance fiscale <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["puissanceFiscale"] ? "rotate-90" : ""}`} />
           </button>
           {expandedSections["puissanceFiscale"] && (
             <div className="mt-2 flex gap-3">
@@ -378,7 +378,7 @@ export default function Rechercher() {
             </div>
           )}
           <button onClick={() => toggleSection("puissanceDin")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Puissance DIN (ch) <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["puissanceDin"] ? "rotate-90" : ""}`} />
+            Puissance DIN (ch) <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["puissanceDin"] ? "rotate-90" : ""}`} />
           </button>
           {expandedSections["puissanceDin"] && (
             <div className="mt-2 flex gap-3">
@@ -398,7 +398,7 @@ export default function Rechercher() {
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
           <h3 className="text-sm font-bold text-[#111]">Consommation</h3>
           <button onClick={() => toggleSection("consMax")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Consommation max <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["consMax"] ? "rotate-90" : ""}`} />
+            Consommation max <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["consMax"] ? "rotate-90" : ""}`} />
           </button>
           {expandedSections["consMax"] && (
             <div className="mt-2">
@@ -406,7 +406,7 @@ export default function Rechercher() {
             </div>
           )}
           <button onClick={() => toggleSection("emissionCo2")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Emission de CO2 <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["emissionCo2"] ? "rotate-90" : ""}`} />
+            Emission de CO2 <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["emissionCo2"] ? "rotate-90" : ""}`} />
           </button>
           {expandedSections["emissionCo2"] && (
             <div className="mt-2">
@@ -436,7 +436,7 @@ export default function Rechercher() {
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
           <h3 className="text-sm font-bold text-[#111]">Places & Portes</h3>
           <button onClick={() => toggleSection("nbPlaces")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Nombre de places <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["nbPlaces"] ? "rotate-90" : ""}`} />
+            Nombre de places <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["nbPlaces"] ? "rotate-90" : ""}`} />
           </button>
           {expandedSections["nbPlaces"] && (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -446,7 +446,7 @@ export default function Rechercher() {
             </div>
           )}
           <button onClick={() => toggleSection("nbPortes")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Nombre de portes <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["nbPortes"] ? "rotate-90" : ""}`} />
+            Nombre de portes <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["nbPortes"] ? "rotate-90" : ""}`} />
           </button>
           {expandedSections["nbPortes"] && (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -461,7 +461,7 @@ export default function Rechercher() {
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
           <h3 className="text-sm font-bold text-[#111]">Dimensions</h3>
           <button onClick={() => toggleSection("dimVehicule")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Dimensions du véhicule <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["dimVehicule"] ? "rotate-90" : ""}`} />
+            Dimensions du véhicule <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["dimVehicule"] ? "rotate-90" : ""}`} />
           </button>
           {expandedSections["dimVehicule"] && (
             <div className="mt-2 space-y-2">
@@ -471,7 +471,7 @@ export default function Rechercher() {
             </div>
           )}
           <button onClick={() => toggleSection("volumeCoffre")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Volume du coffre <ChevronRight size={16} className={`text-slate-400 transition ${expandedSections["volumeCoffre"] ? "rotate-90" : ""}`} />
+            Volume du coffre <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["volumeCoffre"] ? "rotate-90" : ""}`} />
           </button>
           {expandedSections["volumeCoffre"] && (
             <div className="mt-2 flex gap-3">
@@ -518,7 +518,7 @@ function FilterSection({ title, expanded, onToggle, children }: {
     <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white">
       <button onClick={onToggle} className="flex w-full items-center justify-between p-4">
         <h3 className="text-sm font-bold text-[#111]">{title}</h3>
-        <ChevronRight size={16} className={`text-slate-400 transition ${expanded ? "rotate-90" : ""}`} />
+        <ChevronRight size={16} className={`text-red-500 transition ${expanded ? "rotate-90" : ""}`} />
       </button>
       {expanded && <div className="px-4 pb-4">{children}</div>}
     </div>

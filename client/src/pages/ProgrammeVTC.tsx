@@ -99,7 +99,7 @@ export default function ProgrammeVTC() {
               <div key={i} className="rounded-xl bg-white border border-[#E5E7EB] p-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#D4AF37]/10"><Icon size={16} className="text-[#D4AF37]" /></div>
                 <div className="flex-1"><h3 className="text-sm font-bold text-[#111]">{o.titre}</h3><p className="text-[10px] text-[#6B7280]">{o.desc}</p></div>
-                <ChevronRight size={16} className="text-[#6B7280]" />
+                <ChevronRight size={16} className="text-red-500" />
               </div>
             );
           })}

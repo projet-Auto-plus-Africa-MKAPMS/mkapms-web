@@ -60,7 +60,7 @@ export default function CentrePenalites() {
       <div className="px-4 mt-4">
         <button onClick={() => setShowBareme(!showBareme)} className="w-full flex items-center justify-between rounded-xl bg-white border border-[#E5E7EB] px-4 py-3">
           <span className="text-sm font-bold text-[#111]">Barème des pénalités</span>
-          <ChevronDown size={16} className={`text-[#6B7280] transition ${showBareme ? "rotate-180" : ""}`} />
+          <ChevronDown size={16} className={`text-red-500 transition ${showBareme ? "rotate-180" : ""}`} />
         </button>
         {showBareme && (
           <div className="mt-2 rounded-xl bg-white border border-[#E5E7EB] p-4 space-y-3">

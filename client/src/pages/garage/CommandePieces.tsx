@@ -14,7 +14,7 @@ export default function CommandePieces() {
         <div key={r.ref} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center gap-3">
           <div className="flex-1"><h3 className="text-sm font-bold text-[#111]">{r.label}</h3><p className="text-[9px] text-[#6B7280]">{r.ref}</p></div>
           <span className="text-sm font-bold text-[#D4AF37]">{r.prix} €</span>
-          <button className={`rounded-lg px-3 py-1.5 text-xs font-bold ${r.dispo ? "bg-[#D4AF37] text-white" : "bg-[#E5E7EB] text-[#9CA3AF]"}`} disabled={!r.dispo}>{r.dispo ? "Ajouter" : "Indispo"}</button>
+          <button className={`rounded-lg px-3 py-1.5 text-xs font-bold ${r.dispo ? "bg-[#D4AF37] text-white" : "bg-[#E5E7EB] text-red-500"}`} disabled={!r.dispo}>{r.dispo ? "Ajouter" : "Indispo"}</button>
         </div>))}</div>
     </div>
   );

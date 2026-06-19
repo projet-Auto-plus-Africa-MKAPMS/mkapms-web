@@ -90,7 +90,7 @@ export default function RemplacementVehicule() {
                   {ETAPES.map((e) => (
                     <div key={e.n} className="flex-1 flex flex-col items-center">
                       <div className={`h-1.5 w-full rounded-full ${e.n <= d.etape ? "bg-[#D4AF37]" : "bg-[#E5E7EB]"}`} />
-                      <span className={`text-[8px] mt-0.5 ${e.n <= d.etape ? "text-[#111] font-semibold" : "text-[#9CA3AF]"}`}>{e.n}</span>
+                      <span className={`text-[8px] mt-0.5 ${e.n <= d.etape ? "text-[#111] font-semibold" : "text-red-500"}`}>{e.n}</span>
                     </div>
                   ))}
                 </div>

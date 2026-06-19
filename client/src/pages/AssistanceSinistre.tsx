@@ -57,7 +57,7 @@ export default function AssistanceSinistre() {
               <button key={u.id} onClick={() => { setSelected(u.id); setStep(1); }} className={`w-full flex items-center gap-3 rounded-xl border-2 p-4 text-left transition ${selected === u.id ? "border-[#D4AF37] bg-[#D4AF37]/5" : `${u.color}`}`}>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm"><Icon size={18} /></div>
                 <div className="flex-1"><span className="text-sm font-bold text-[#111]">{u.label}</span><p className="text-[10px] text-[#6B7280]">{u.desc}</p></div>
-                <ChevronRight size={16} className="text-[#6B7280]" />
+                <ChevronRight size={16} className="text-red-500" />
               </button>
             );
           })}
@@ -89,7 +89,7 @@ export default function AssistanceSinistre() {
               {[1, 2, 3].map((n) => (
                 <button key={n} className="rounded-lg border-2 border-dashed border-[#D4D4D4] py-6 flex flex-col items-center gap-1">
                   <Camera size={16} className="text-[#6B7280]" />
-                  <span className="text-[9px] text-[#9CA3AF]">Photo {n}</span>
+                  <span className="text-[9px] text-red-500">Photo {n}</span>
                 </button>
               ))}
             </div>
@@ -98,7 +98,7 @@ export default function AssistanceSinistre() {
           <button className="w-full rounded-xl bg-red-600 py-3.5 text-sm font-bold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md">
             <AlertTriangle size={16} /> Envoyer la demande d'assistance
           </button>
-          <p className="text-[10px] text-[#9CA3AF] text-center">Un conseiller vous contactera dans les 5 minutes</p>
+          <p className="text-[10px] text-red-500 text-center">Un conseiller vous contactera dans les 5 minutes</p>
         </div>
       )}
 
@@ -113,7 +113,7 @@ export default function AssistanceSinistre() {
                 <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold text-green-600 bg-green-50"><Check size={10} /> Résolu</span>
               </div>
               <p className="text-xs text-[#6B7280] mt-1">{h.desc}</p>
-              <p className="text-[10px] text-[#9CA3AF] mt-1">{h.date}</p>
+              <p className="text-[10px] text-red-500 mt-1">{h.date}</p>
             </div>
           ))}
         </div>

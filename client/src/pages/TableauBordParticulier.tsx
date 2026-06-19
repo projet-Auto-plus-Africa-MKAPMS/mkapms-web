@@ -59,7 +59,7 @@ export default function TableauBordParticulier() {
               <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${s.color}`}><Icon size={16} className="text-white" /></div>
               <span className="flex-1 text-sm font-semibold text-[#111]">{s.label}</span>
               {s.count !== null && <span className="rounded-full bg-red-500 h-5 min-w-[20px] px-1.5 flex items-center justify-center text-[9px] font-bold text-white">{s.count}</span>}
-              <ChevronRight size={16} className="text-[#D4D4D4]" />
+              <ChevronRight size={16} className="text-red-500" />
             </Link>
           );
         })}

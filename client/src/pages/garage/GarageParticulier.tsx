@@ -27,7 +27,7 @@ export default function GarageParticulier() {
             <h3 className="text-sm font-bold text-[#111]">{s.label}</h3>
             <div className="mt-1 flex gap-3 text-[10px] text-[#6B7280]"><span className="flex items-center gap-0.5"><Euro size={8} /> {s.prix}</span><span className="flex items-center gap-0.5"><Clock size={8} /> {s.delai}</span></div>
           </div>
-          <ChevronRight size={16} className="text-[#D4D4D4]" />
+          <ChevronRight size={16} className="text-red-500" />
         </Link>
       ))}</div>
       <div className="px-4 mt-4">

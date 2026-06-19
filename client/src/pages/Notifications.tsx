@@ -95,7 +95,7 @@ export default function Notifications() {
                     {!n.lu && <span className="h-2 w-2 rounded-full bg-[#D4AF37] shrink-0" />}
                   </div>
                   <p className="text-xs text-[#6B7280] mt-0.5 line-clamp-2">{n.desc}</p>
-                  <p className="text-[10px] text-[#9CA3AF] mt-1">{n.date}</p>
+                  <p className="text-[10px] text-red-500 mt-1">{n.date}</p>
                 </div>
               </div>
             </div>

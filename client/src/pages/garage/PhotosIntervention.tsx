@@ -13,7 +13,7 @@ export default function PhotosIntervention() {
         <div key={p.label} className="rounded-xl bg-white border border-[#E5E7EB] p-4">
           <div className="flex justify-between"><h3 className="text-sm font-bold text-[#111]">{p.label}</h3>{p.done ? <Check size={14} className="text-green-600" /> : <span className="text-[9px] text-amber-600 font-bold">En attente</span>}</div>
           <div className="mt-2 grid grid-cols-4 gap-1.5">{Array.from({length: 4}, (_, i) => (
-            <button key={i} className={`rounded-lg py-5 flex items-center justify-center ${i < p.photos ? "bg-[#D4AF37]/10 border border-[#D4AF37]/30" : "border-2 border-dashed border-[#E5E7EB]"}`}>{i < p.photos ? <Check size={12} className="text-[#D4AF37]" /> : <Camera size={12} className="text-[#9CA3AF]" />}</button>))}</div>
+            <button key={i} className={`rounded-lg py-5 flex items-center justify-center ${i < p.photos ? "bg-[#D4AF37]/10 border border-[#D4AF37]/30" : "border-2 border-dashed border-[#E5E7EB]"}`}>{i < p.photos ? <Check size={12} className="text-[#D4AF37]" /> : <Camera size={12} className="text-red-500" />}</button>))}</div>
         </div>))}</div>
     </div>
   );

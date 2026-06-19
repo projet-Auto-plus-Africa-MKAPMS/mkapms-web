@@ -11,7 +11,7 @@ export default function RepriseVehicule() {
         <h1 className="text-xl font-black text-white flex items-center gap-2"><ArrowRightLeft size={20} className="text-[#D4AF37]" /> Reprise véhicule</h1>
         <p className="mt-1 text-sm text-white/60">Déposez votre véhicule, recevez une proposition</p>
       </div>
-      <div className="px-4 mt-4 flex gap-1">{ETAPES.map((e, i) => (<div key={i} className="flex-1"><div className={`h-1 rounded-full ${i <= step ? "bg-[#D4AF37]" : "bg-[#E5E7EB]"}`} /><p className={`text-[8px] mt-0.5 text-center ${i <= step ? "text-[#D4AF37] font-bold" : "text-[#9CA3AF]"}`}>{e}</p></div>))}</div>
+      <div className="px-4 mt-4 flex gap-1">{ETAPES.map((e, i) => (<div key={i} className="flex-1"><div className={`h-1 rounded-full ${i <= step ? "bg-[#D4AF37]" : "bg-[#E5E7EB]"}`} /><p className={`text-[8px] mt-0.5 text-center ${i <= step ? "text-[#D4AF37] font-bold" : "text-red-500"}`}>{e}</p></div>))}</div>
       {step === 0 && (
         <div className="mx-4 mt-4 rounded-xl bg-white border border-[#E5E7EB] p-4 space-y-3">
           <h3 className="text-sm font-bold text-[#111]">Informations véhicule</h3>

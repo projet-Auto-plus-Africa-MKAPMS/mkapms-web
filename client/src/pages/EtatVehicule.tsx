@@ -119,7 +119,7 @@ export default function EtatVehicule() {
             <div className="text-center py-2">
               <Clock size={20} className="mx-auto text-amber-500" />
               <p className="mt-1 text-sm font-semibold text-[#6B7280]">En attente du retour</p>
-              <p className="text-xs text-[#9CA3AF]">Les photos seront prises lors de la restitution</p>
+              <p className="text-xs text-red-500">Les photos seront prises lors de la restitution</p>
             </div>
           )}
         </div>
@@ -150,7 +150,7 @@ export default function EtatVehicule() {
               {r.etatDepart.statut === "complete" ? <><Check size={10} /> Signé</> : <><Clock size={10} /> En attente</>}
             </span>
           </div>
-          {r.contrat.statut === "signe" && <p className="mt-2 text-[10px] text-[#9CA3AF]">Signé le {r.contrat.date}</p>}
+          {r.contrat.statut === "signe" && <p className="mt-2 text-[10px] text-red-500">Signé le {r.contrat.date}</p>}
           {r.contrat.statut !== "signe" && (
             <button className="mt-3 w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white flex items-center justify-center gap-2">
               <Pen size={14} /> Signer le contrat

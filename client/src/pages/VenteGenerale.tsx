@@ -99,7 +99,7 @@ export default function VenteGenerale() {
               <Link key={s.label} to={s.to} className="flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-4 active:scale-[0.99] transition">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#D4AF37]/10"><Icon size={18} className="text-[#D4AF37]" /></div>
                 <div className="flex-1"><h3 className="text-sm font-bold text-[#111]">{s.label}</h3><p className="text-[10px] text-[#6B7280]">{s.desc}</p></div>
-                <ChevronRight size={16} className="text-[#6B7280]" />
+                <ChevronRight size={16} className="text-red-500" />
               </Link>
             );
           })}
@@ -114,7 +114,7 @@ export default function VenteGenerale() {
             <div key={i} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
               <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between px-4 py-3 text-left">
                 <span className="text-sm font-semibold text-[#111] pr-2">{f.q}</span>
-                <ChevronDown size={14} className={`text-[#6B7280] shrink-0 transition ${openFaq === i ? "rotate-180" : ""}`} />
+                <ChevronDown size={14} className={`text-red-500 shrink-0 transition ${openFaq === i ? "rotate-180" : ""}`} />
               </button>
               {openFaq === i && <div className="px-4 pb-3"><p className="text-xs text-[#6B7280] leading-relaxed">{f.r}</p></div>}
             </div>

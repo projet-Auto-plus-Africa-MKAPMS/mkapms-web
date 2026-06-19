@@ -133,7 +133,7 @@ function AnnonceCard({ a, badgeColor = "bg-[#D4AF37]" }: { a: any; badgeColor?: 
           <p className="text-base font-black text-[#111]">
             {a.prix ? `${a.prix.toLocaleString("fr-FR")} €` : a.prixJour ? `${a.prixJour} €/jour` : ""}
           </p>
-          {a.ville && <span className="text-[10px] text-[#9CA3AF] flex items-center gap-0.5"><MapPin size={8} />{a.ville}</span>}
+          {a.ville && <span className="text-[10px] text-red-500 flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</span>}
         </div>
       </div>
     </Link>
@@ -323,7 +323,7 @@ export default function Home() {
                 <h2 className="text-sm md:text-base font-bold text-[#111]">MKA.P-MS OFFICIEL</h2>
                 <span className="rounded-sm bg-[#D4AF37] px-2 py-0.5 text-[8px] font-extrabold text-white uppercase">STOCK OFFICIEL</span>
               </div>
-              <Link to="/acheter?source=officiel" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} /></Link>
+              <Link to="/acheter?source=officiel" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             <HScroll>
               {ANNONCES_OFFICIELLES.map((a) => (
@@ -341,7 +341,7 @@ export default function Home() {
                 <Star size={14} className="text-[#D4AF37]" />
                 <h2 className="text-sm md:text-base font-bold text-[#111]">ANNONCES BOOSTÉES / ELITE</h2>
               </div>
-              <Link to="/acheter?boost=true" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} /></Link>
+              <Link to="/acheter?boost=true" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             <HScroll>
               {ANNONCES_BOOSTEES.map((a) => (
@@ -359,7 +359,7 @@ export default function Home() {
                 <Heart size={14} className="text-[#D4AF37]" />
                 <h2 className="text-sm md:text-base font-bold text-[#111]">ANNONCES PREMIUM</h2>
               </div>
-              <Link to="/acheter?premium=true" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} /></Link>
+              <Link to="/acheter?premium=true" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             <HScroll>
               {ANNONCES_PREMIUM.map((a) => (
@@ -392,10 +392,10 @@ export default function Home() {
           <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <MapPin size={14} className="text-[#D4AF37]" />
+                <MapPin size={14} className="text-red-500" />
                 <h2 className="text-sm md:text-base font-bold text-[#111]">VÉHICULES AUTOUR DE VOUS</h2>
               </div>
-              <Link to="/recherche" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} /></Link>
+              <Link to="/recherche" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             <HScroll>
               {VEHICULES_PROCHES.map((a) => (
@@ -413,7 +413,7 @@ export default function Home() {
                 <KeyRound size={14} className="text-[#D4AF37]" />
                 <h2 className="text-sm md:text-base font-bold text-[#111]">LOCATION TOUT COMPRIS (PARTICULIER, PRO, VTC, TAXI)</h2>
               </div>
-              <Link to="/louer" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} /></Link>
+              <Link to="/louer" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             <HScroll>
               {LOCATION_MIXTE.map((a) => (
@@ -431,7 +431,7 @@ export default function Home() {
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       <p className="text-base font-black text-[#D4AF37]">{a.prixJour} €<span className="text-[10px] font-normal text-[#6B7280]">/jour</span></p>
-                      <span className="text-[10px] text-[#9CA3AF] flex items-center gap-0.5"><MapPin size={8} />{a.ville}</span>
+                      <span className="text-[10px] text-red-500 flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</span>
                     </div>
                   </div>
                 </Link>
@@ -448,7 +448,7 @@ export default function Home() {
                 <Users size={14} className="text-[#D4AF37]" />
                 <h2 className="text-sm md:text-base font-bold text-[#111]">ANNONCES PARTICULIERS</h2>
               </div>
-              <Link to="/acheter?vendeur=particulier" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} /></Link>
+              <Link to="/acheter?vendeur=particulier" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             <HScroll>
               {ANNONCES_PARTICULIERS.map((a) => (

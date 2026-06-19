@@ -98,6 +98,12 @@ a {
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* FAQ summary markers — red arrows */
+details > summary::marker,
+details > summary::-webkit-details-marker {
+  color: #ef4444;
+}
+
 /* Carousel card responsive widths: 2 cards phone / 3 tablet / 4 desktop / 6 ultra-wide */
 .carousel-card {
   flex-shrink: 0;

@@ -45,12 +45,12 @@ export default function SuperAdminDashboard() {
               <Link key={m.label} to={m.to} className="flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-3 active:scale-[0.99] shadow-sm">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#D4AF37]/10"><Icon size={16} className="text-[#D4AF37]" /></div>
                 <div className="flex-1"><p className="text-sm font-semibold text-[#111]">{m.label}</p><p className="text-[10px] text-[#6B7280]">{m.desc}</p></div>
-                <ChevronRight size={14} className="text-[#D4D4D4]" />
+                <ChevronRight size={16} className="text-red-500" />
               </Link>); })}
           </div>
         </div>
       ))}
-      <div className="px-4"><p className="text-center text-[10px] text-[#9CA3AF]">Super Admin · Tu vois tout · Tu peux tout modifier</p></div>
+      <div className="px-4"><p className="text-center text-[10px] text-red-500">Super Admin · Tu vois tout · Tu peux tout modifier</p></div>
     </div>
   );
 }

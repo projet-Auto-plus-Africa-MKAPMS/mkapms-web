@@ -96,7 +96,7 @@ export default function ListeAttente() {
         <div className="px-4 mt-8 text-center">
           <Bell size={32} className="mx-auto text-[#D4AF37]" />
           <p className="mt-2 text-sm font-semibold text-[#6B7280]">Aucune alerte</p>
-          <p className="text-xs text-[#9CA3AF] mt-1">Parcourez les véhicules et activez des alertes</p>
+          <p className="text-xs text-red-500 mt-1">Parcourez les véhicules et activez des alertes</p>
         </div>
       )}
     </div>

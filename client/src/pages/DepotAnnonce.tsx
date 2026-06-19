@@ -65,7 +65,7 @@ export default function DepotAnnonce() {
             {TYPES.map((t) => { const Icon = t.icon; return (
               <button key={t.id} onClick={() => { setSelectedType(t.id); setStep(0); setPlaqueFound(false); }} className="w-full flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-4 active:scale-[0.99] transition">
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.color}`}><Icon size={18} className="text-white" /></div>
-                <span className="flex-1 text-sm font-bold text-[#111] text-left">{t.label}</span><ChevronRight size={16} className="text-[#6B7280]" />
+                <span className="flex-1 text-sm font-bold text-[#111] text-left">{t.label}</span><ChevronRight size={16} className="text-red-500" />
               </button>
             ); })}
           </div>
@@ -85,7 +85,7 @@ export default function DepotAnnonce() {
           Déposer : {TYPES.find((t) => t.id === selectedType)?.label.replace("Déposer ", "")}
         </h1>
       </div>
-      <div className="px-4 mt-4 flex gap-1">{ETAPES.map((e, i) => (<div key={i} className="flex-1"><div className={`h-1 rounded-full ${i <= step ? (isMoto ? "bg-red-600" : "bg-[#D4AF37]") : "bg-[#E5E7EB]"}`} /><p className={`text-[6px] mt-0.5 text-center ${i <= step ? (isMoto ? "text-red-600" : "text-[#D4AF37]") + " font-bold" : "text-[#9CA3AF]"}`}>{e}</p></div>))}</div>
+      <div className="px-4 mt-4 flex gap-1">{ETAPES.map((e, i) => (<div key={i} className="flex-1"><div className={`h-1 rounded-full ${i <= step ? (isMoto ? "bg-red-600" : "bg-[#D4AF37]") : "bg-[#E5E7EB]"}`} /><p className={`text-[6px] mt-0.5 text-center ${i <= step ? (isMoto ? "text-red-600" : "text-[#D4AF37]") + " font-bold" : "text-red-500"}`}>{e}</p></div>))}</div>
 
       {/* Step 0: Plaque / VIN / Manuel */}
       {step === 0 && (
@@ -274,7 +274,7 @@ export default function DepotAnnonce() {
               ["Cohérence prix", true], ["Qualité photos", true], ["Documents vérifiés", true],
               ["Doublons", true], ["Détection fraude", true], ["Score qualité", true],
             ].map(([s, done]) => (
-              <div key={s as string} className="flex items-center gap-2 text-xs"><span className={`h-2 w-2 rounded-full ${done ? "bg-green-500" : "bg-[#E5E7EB]"}`} /><span className={done ? "text-[#111] font-semibold" : "text-[#9CA3AF]"}>{s as string}</span>{done && <Check size={12} className="text-green-500 ml-auto" />}</div>
+              <div key={s as string} className="flex items-center gap-2 text-xs"><span className={`h-2 w-2 rounded-full ${done ? "bg-green-500" : "bg-[#E5E7EB]"}`} /><span className={done ? "text-[#111] font-semibold" : "text-red-500"}>{s as string}</span>{done && <Check size={12} className="text-green-500 ml-auto" />}</div>
             ))}
           </div>
           <div className="rounded-lg bg-green-50 border border-green-200 p-2"><p className="text-xs font-bold text-green-700">Score qualité : 85/100</p></div>

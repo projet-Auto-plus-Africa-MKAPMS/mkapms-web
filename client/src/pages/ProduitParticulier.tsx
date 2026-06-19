@@ -183,7 +183,7 @@ export default function ProduitParticulier() {
             ] : []),
           ].map((c, i) => { const Icon = c.icon; return (
             <div key={i} className="flex items-center justify-between py-3 border-b border-[#F3F4F6] last:border-0">
-              <div className="flex items-center gap-3"><Icon size={16} className="text-[#6B7280]" /><span className="text-sm text-[#6B7280]">{c.label}</span></div>
+              <div className="flex items-center gap-3"><Icon size={16} className="text-red-500" /><span className="text-sm text-[#6B7280]">{c.label}</span></div>
               <span className="text-sm font-semibold text-[#111]">{c.value}</span>
             </div>
           ); })}
@@ -291,7 +291,7 @@ export default function ProduitParticulier() {
             <div key={i} className="border-b border-[#F3F4F6] last:border-0">
               <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="flex w-full items-center justify-between py-3.5 text-left">
                 <span className="text-sm font-semibold text-[#111] pr-4">{f.q}</span>
-                <ChevronDown size={16} className={`shrink-0 text-[#6B7280] transition ${openFaq === i ? "rotate-180" : ""}`} />
+                <ChevronDown size={16} className={`shrink-0 text-red-500 transition ${openFaq === i ? "rotate-180" : ""}`} />
               </button>
               {openFaq === i && <p className="pb-3 text-xs text-[#6B7280] leading-relaxed">{f.a}</p>}
             </div>

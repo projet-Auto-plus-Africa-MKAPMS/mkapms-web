@@ -15,7 +15,7 @@ export default function LavagePreparation() {
       <div className="px-4 mt-4 space-y-2">{SERVICES.map(s => (
         <div key={s.label} className="rounded-xl bg-white border border-[#E5E7EB] p-4 flex items-center gap-3">
           <div className="flex-1"><h3 className="text-sm font-bold text-[#111]">{s.label}</h3><p className="text-[10px] text-[#6B7280]">{s.duree}</p></div>
-          <span className="text-sm font-bold text-cyan-700">{s.prix}</span><ChevronRight size={14} className="text-[#D4D4D4]" />
+          <span className="text-sm font-bold text-cyan-700">{s.prix}</span><ChevronRight size={16} className="text-red-500" />
         </div>))}</div>
     </div>
   );

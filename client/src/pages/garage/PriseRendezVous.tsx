@@ -11,7 +11,7 @@ export default function PriseRendezVous() {
       <div className="bg-[#111] px-4 pt-6 pb-5"><Link to="/garage" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Garage</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Calendar size={20} className="text-[#D4AF37]" /> Rendez-vous</h1></div>
       <div className="mx-4 mt-4 rounded-xl bg-white border border-[#E5E7EB] p-4 space-y-3">
         <h3 className="text-sm font-bold text-[#111]">Choisir un garage</h3>
-        {GARAGES.map((g, i) => (<button key={g} onClick={() => setSelectedGarage(i)} className={`w-full rounded-lg p-3 flex items-center gap-2 border-2 ${selectedGarage === i ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-[#E5E7EB]"}`}><MapPin size={14} className={selectedGarage === i ? "text-[#D4AF37]" : "text-[#9CA3AF]"} /><span className="text-sm text-[#111]">{g}</span></button>))}
+        {GARAGES.map((g, i) => (<button key={g} onClick={() => setSelectedGarage(i)} className={`w-full rounded-lg p-3 flex items-center gap-2 border-2 ${selectedGarage === i ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-[#E5E7EB]"}`}><MapPin size={14} className={selectedGarage === i ? "text-[#D4AF37]" : "text-red-500"} /><span className="text-sm text-[#111]">{g}</span></button>))}
         <h3 className="text-sm font-bold text-[#111] pt-2">Date</h3>
         <input type="date" className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm" />
         <h3 className="text-sm font-bold text-[#111]">Créneau</h3>

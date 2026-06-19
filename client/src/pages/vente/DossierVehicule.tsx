@@ -23,7 +23,7 @@ export default function DossierVehicule() {
             <FileText size={14} className={d.statut === "valide" ? "text-green-600" : "text-amber-500"} />
             <span className="flex-1 text-sm text-[#111]">{d.label}</span>
             <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${d.statut === "valide" ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>{d.statut === "valide" ? "Validé" : "En attente"}</span>
-            {d.statut === "en_attente" && <Upload size={12} className="text-[#9CA3AF]" />}
+            {d.statut === "en_attente" && <Upload size={12} className="text-red-500" />}
           </div>
         ))}
       </div>

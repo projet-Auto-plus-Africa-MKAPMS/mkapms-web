@@ -308,7 +308,7 @@ export default function ProduitLocation() {
           <div key={i} className="border-b border-[#F3F4F6] last:border-0">
             <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between px-4 py-3">
               <span className="text-sm font-semibold text-[#111] text-left">{f.q}</span>
-              <ChevronDown size={16} className={`text-[#6B7280] transition ${openFaq === i ? "rotate-180" : ""}`} />
+              <ChevronDown size={16} className={`text-red-500 transition ${openFaq === i ? "rotate-180" : ""}`} />
             </button>
             {openFaq === i && <p className="px-4 pb-3 text-xs text-[#6B7280]">{f.a}</p>}
           </div>

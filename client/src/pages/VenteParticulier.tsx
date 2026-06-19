@@ -92,7 +92,7 @@ export default function VenteParticulier() {
             <Link key={a.id} to={`/vehicule/${9060 + a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
               <div className="relative h-[140px]">
                 <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
-                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-[#6B7280]" /></span>
+                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-slate-400 hover:text-red-500 hover:fill-red-500" /></span>
                 <span className={`absolute top-2 left-2 rounded-full px-2 py-0.5 text-[9px] font-bold ${a.vendeur === "Professionnel" ? "bg-blue-800 text-white" : "bg-[#D4AF37] text-white"}`}>{a.vendeur}</span>
               </div>
               <div className="p-4">
@@ -119,7 +119,7 @@ export default function VenteParticulier() {
             <div key={i} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
               <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between px-4 py-3 text-left">
                 <span className="text-sm font-semibold text-[#111] pr-2">{f.q}</span>
-                <ChevronDown size={14} className={`text-[#6B7280] shrink-0 transition ${openFaq === i ? "rotate-180" : ""}`} />
+                <ChevronDown size={14} className={`text-red-500 shrink-0 transition ${openFaq === i ? "rotate-180" : ""}`} />
               </button>
               {openFaq === i && <div className="px-4 pb-3"><p className="text-xs text-[#6B7280]">{f.r}</p></div>}
             </div>

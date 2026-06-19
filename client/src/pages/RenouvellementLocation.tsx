@@ -126,7 +126,7 @@ export default function RenouvellementLocation() {
             <button className="w-full rounded-xl bg-[#D4AF37] py-4 text-base font-extrabold text-white shadow-lg active:scale-[0.98] transition flex items-center justify-center gap-2">
               <RefreshCw size={16} /> Prolonger ma location
             </button>
-            <p className="mt-2 text-[10px] text-[#9CA3AF] text-center">Sans refaire votre dossier. Paiement sécurisé.</p>
+            <p className="mt-2 text-[10px] text-red-500 text-center">Sans refaire votre dossier. Paiement sécurisé.</p>
           </div>
         </>
       )}
