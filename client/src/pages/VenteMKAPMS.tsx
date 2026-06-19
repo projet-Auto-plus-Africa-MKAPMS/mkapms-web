@@ -7,10 +7,20 @@ import { ChevronLeft, Star, Shield, Award, Check, History, CreditCard, Truck, Ch
    Véhicules appartenant à MKA.P-MS. Historique, contrôle qualité, Finance+, garantie.
    ══════════════════════════════════════════════════════════════════════════ */
 
+const CATEGORIES_OFFICIEL = [
+  { label: "Berlines", desc: "308 GT, Classe C, Série 3", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=300&h=200&fit=crop" },
+  { label: "SUV & 4x4", desc: "GLA, X1, Austral, C5 X", photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=300&h=200&fit=crop" },
+  { label: "Hybrides", desc: "Austral E-Tech, Model Y", photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=300&h=200&fit=crop" },
+  { label: "Premium", desc: "Mercedes, BMW, Audi", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=300&h=200&fit=crop" },
+  { label: "Familiales", desc: "C5 X, 3008, RAV4", photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=300&h=200&fit=crop" },
+];
+
 const ANNONCES = [
-  { id: 1, nom: "Mercedes Classe E 220d AMG Line", annee: 2024, km: 8000, prix: 48500, garantie: "24 mois", finance: "680 €/mois", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Historique complet", "Finance+", "Livraison gratuite"] },
-  { id: 2, nom: "BMW X5 xDrive 40d M Sport", annee: 2023, km: 22000, prix: 62000, garantie: "24 mois", finance: "870 €/mois", photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Historique complet", "Finance+", "Garantie MKA.P-MS"] },
-  { id: 3, nom: "Tesla Model Y Long Range", annee: 2024, km: 5000, prix: 44900, garantie: "24 mois", finance: "630 €/mois", photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=260&fit=crop", badges: ["Batterie certifiée", "Historique complet", "Finance+", "Livraison gratuite"] },
+  { vehiculeId: 8001, nom: "Peugeot 308 GT", annee: 2023, km: 12000, prix: 26900, garantie: "24 mois", finance: "380 €/mois", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Historique complet", "Finance+", "Livraison gratuite"] },
+  { vehiculeId: 8002, nom: "Renault Austral Iconic", annee: 2024, km: 5000, prix: 34500, garantie: "24 mois", finance: "490 €/mois", photo: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Historique complet", "Finance+", "Garantie MKA.P-MS"] },
+  { vehiculeId: 8003, nom: "Citroën C5 X Shine", annee: 2023, km: 18000, prix: 31900, garantie: "24 mois", finance: "450 €/mois", photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Suspension hydraulique", "Finance+", "Livraison gratuite"] },
+  { vehiculeId: 8004, nom: "Mercedes GLA 200 AMG Line", annee: 2022, km: 22000, prix: 38900, garantie: "24 mois", finance: "550 €/mois", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop", badges: ["Pack AMG Line", "Historique complet", "Finance+", "Garantie MKA.P-MS"] },
+  { vehiculeId: 8005, nom: "BMW X1 sDrive18i xLine", annee: 2023, km: 15000, prix: 35500, garantie: "24 mois", finance: "500 €/mois", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=260&fit=crop", badges: ["État impeccable", "Historique complet", "Finance+", "Livraison gratuite"] },
 ];
 
 const AVANTAGES = [
@@ -43,12 +53,25 @@ export default function VenteMKAPMS() {
         ); })}
       </div>
 
+      {/* Catégories — scroll horizontal */}
+      <div className="px-4 mt-4">
+        <h2 className="text-base font-bold text-[#111]">Catégories</h2>
+        <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          {CATEGORIES_OFFICIEL.map((c) => (
+            <button key={c.label} className="shrink-0 w-[120px] rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden text-left active:scale-[0.98] transition">
+              <img src={c.photo} alt="" className="w-full h-[60px] object-cover" loading="lazy" />
+              <div className="p-2"><h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3><p className="text-[8px] text-[#6B7280]">{c.desc}</p></div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Annonces */}
       <div className="px-4 mt-6">
         <h2 className="text-base font-bold text-[#111]">Véhicules disponibles</h2>
         <div className="mt-3 space-y-3">
           {ANNONCES.map((a) => (
-            <Link key={a.id} to={`/vehicule/${9040 + a.id}`} className="block rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden shadow-sm hover:shadow-lg transition">
+            <Link key={a.vehiculeId} to={`/vehicule/${a.vehiculeId}`} className="block rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden shadow-sm hover:shadow-lg transition">
               <div className="relative h-[150px]">
                 <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
                 <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-[#6B7280]" /></span>
