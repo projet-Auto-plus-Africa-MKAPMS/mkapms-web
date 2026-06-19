@@ -70,7 +70,7 @@ const ANNONCES_PARTICULIERS = [
 /* ── PUBS LATÉRALES ── */
 const ADS_LEFT = [
   { titre: "LOA", sous: "À PARTIR DE", prix: "199 €/MOIS", cta: "EN SAVOIR PLUS", color: "bg-[#D4AF37]", to: "/finance" },
-  { titre: "ASSURANCE AUTO", sous: "PROFITEZ DE", prix: "-30%", cta: "DÉCOUVRIR", color: "bg-red-600", to: "/assurance" },
+  { titre: "ASSURANCE AUTO", sous: "PROFITEZ DE", prix: "-30%", cta: "DÉCOUVRIR", color: "bg-red-600", to: "/demarches" },
   { titre: "PIÈCES AUTO D'ORIGINE", sous: "QUALITÉ PREMIUM", prix: "", cta: "DÉCOUVRIR", color: "bg-[#D4AF37]", to: "/pieces" },
   { titre: "REPRISE CASH", sous: "ESTIMATION IMMÉDIATE", prix: "", cta: "FAIRE ESTIMER", color: "bg-[#111]", to: "/vendre" },
   { titre: "VÉHICULES UTILITAIRES", sous: "POUR PROS", prix: "", cta: "VOIR NOS OFFRES", color: "bg-orange-600", to: "/louer/utilitaires" },
@@ -78,10 +78,10 @@ const ADS_LEFT = [
 
 const ADS_RIGHT = [
   { titre: "CRÉDIT AUTO", sous: "RAPIDE & FACILE", prix: "RÉPONSE EN 24H", cta: "SIMULER", color: "bg-[#111]", to: "/finance" },
-  { titre: "GARANTIE MÉCANIQUE", sous: "JUSQU'À 60 MOIS", prix: "", cta: "EN SAVOIR PLUS", color: "bg-[#D4AF37]", to: "/garantie" },
-  { titre: "NETTOYAGE AUTO", sous: "INTÉRIEUR / EXTÉRIEUR", prix: "", cta: "PRENDRE RDV", color: "bg-blue-600", to: "/services" },
+  { titre: "GARANTIE MÉCANIQUE", sous: "JUSQU'À 60 MOIS", prix: "", cta: "EN SAVOIR PLUS", color: "bg-[#D4AF37]", to: "/vente/garantie" },
+  { titre: "NETTOYAGE AUTO", sous: "INTÉRIEUR / EXTÉRIEUR", prix: "", cta: "PRENDRE RDV", color: "bg-blue-600", to: "/garages" },
   { titre: "PNEUS", sous: "TOUTES MARQUES", prix: "PRIX IMBATTABLES", cta: "VOIR LES OFFRES", color: "bg-[#333]", to: "/pieces" },
-  { titre: "CONTRÔLE TECHNIQUE", sous: "PRIS EN CHARGE", prix: "", cta: "EN SAVOIR PLUS", color: "bg-green-700", to: "/controle-technique" },
+  { titre: "CONTRÔLE TECHNIQUE", sous: "PRIS EN CHARGE", prix: "", cta: "EN SAVOIR PLUS", color: "bg-green-700", to: "/garage/controle-technique" },
 ];
 
 /* ── CARROUSEL PRINCIPAL ── */
@@ -210,7 +210,7 @@ export default function Home() {
                 </div>
               ))}
               {/* Contenu overlay */}
-              <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-8">
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 md:p-8">
                 <p className="text-[10px] md:text-xs font-semibold uppercase tracking-widest text-[#D4AF37]">LA MARKETPLACE AUTOMOBILE</p>
                 <h1 className="mt-1 text-xl md:text-3xl font-black text-white uppercase leading-tight">
                   ACHETEZ, VENDEZ, LOUEZ, RÉPAREZ
@@ -235,9 +235,7 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-              {/* Flèches */}
-              <button onClick={() => setSlideIdx((p) => (p - 1 + SLIDES.length) % SLIDES.length)} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/30 backdrop-blur flex items-center justify-center hover:bg-white/50 transition"><ChevronLeft size={18} className="text-white" /></button>
-              <button onClick={() => setSlideIdx((p) => (p + 1) % SLIDES.length)} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/30 backdrop-blur flex items-center justify-center hover:bg-white/50 transition"><ChevronRight size={18} className="text-white" /></button>
+
             </div>
             {/* Points indicateurs */}
             <div className="flex items-center justify-center gap-1.5 py-2 bg-white">
@@ -373,7 +371,7 @@ export default function Home() {
                 <h3 className="text-lg md:text-xl font-black text-white uppercase">BOOSTEZ VOTRE VISIBILITÉ</h3>
                 <p className="text-xs text-white/70 mt-1">AVEC MKA.P-MS</p>
               </div>
-              <Link to="/publicite" className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#c9a430] transition">EN SAVOIR PLUS</Link>
+              <Link to="/demande-publicite" className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#c9a430] transition">EN SAVOIR PLUS</Link>
             </div>
           </section>
 
@@ -460,13 +458,13 @@ export default function Home() {
                 { icon: KeyRound, label: "Location", desc: "Particulier, Pro, VTC, Taxi", to: "/louer", color: "text-blue-600" },
                 { icon: Wrench, label: "Garage", desc: "Réparation et entretien", to: "/garages", color: "text-orange-600" },
                 { icon: Truck, label: "Dépannage", desc: "Assistance 24h/24 7j/7", to: "/depannage", color: "text-red-600" },
-                { icon: ShieldCheck, label: "Contrôle Technique", desc: "Prise en charge et suivi", to: "/controle-technique", color: "text-green-600" },
+                { icon: ShieldCheck, label: "Contrôle Technique", desc: "Prise en charge et suivi", to: "/garage/controle-technique", color: "text-green-600" },
                 { icon: FileText, label: "Carte Grise", desc: "Démarches administratives", to: "/demarches", color: "text-purple-600" },
                 { icon: Package, label: "Livraison", desc: "Partout en France et à l'international", to: "/livraison", color: "text-[#D4AF37]" },
                 { icon: CreditCard, label: "Finance+", desc: "LOA, crédit, paiement jusqu'à 10x", to: "/finance", color: "text-emerald-600" },
                 { icon: History, label: "Historique Véhicule", desc: "Rapports officiels & Analyse IA", to: "/historique", color: "text-indigo-600" },
                 { icon: Cog, label: "Pièces Auto", desc: "Pièces d'origine au meilleur prix", to: "/pieces", color: "text-gray-700" },
-                { icon: Shield, label: "Assurance", desc: "Assurance auto compétitive", to: "/assurance", color: "text-sky-600" },
+                { icon: Shield, label: "Assurance", desc: "Assurance auto compétitive", to: "/demarches", color: "text-sky-600" },
                 { icon: BadgeCheck, label: "VTC / Taxi", desc: "Solutions professionnelles VTC", to: "/louer/vtc-taxi", color: "text-[#111]" },
               ].map((s) => (
                 <Link key={s.label} to={s.to} className="flex flex-col items-center text-center rounded-xl bg-white border border-[#E5E7EB] p-3 hover:border-[#D4AF37] hover:shadow-md transition group">
@@ -506,9 +504,10 @@ export default function Home() {
                 { icon: Car, label: "Marchands", desc: "Vendez vos véhicules", to: "/espace-pro" },
                 { icon: KeyRound, label: "Loueurs", desc: "Gérez votre flotte", to: "/louer/pro" },
                 { icon: Truck, label: "Dépanneurs", desc: "Recevez des interventions", to: "/depannage" },
-                { icon: ShieldCheck, label: "Contrôleurs techniques", desc: "Prises en charge en ligne", to: "/controle-technique" },
+                { icon: ShieldCheck, label: "Contrôleurs techniques", desc: "Prises en charge en ligne", to: "/garage/controle-technique" },
                 { icon: BadgeCheck, label: "Sociétés VTC", desc: "Location VTC & Taxi", to: "/louer/vtc-taxi" },
                 { icon: Package, label: "Transporteurs", desc: "Livraison et logistique", to: "/livraison" },
+                { icon: Receipt, label: "Démarches administratives", desc: "Carte grise, déclarations", to: "/demarches" },
               ].map((p) => (
                 <Link key={p.label} to={p.to} className="flex items-center gap-3 rounded-xl bg-[#F5F3EF] border border-[#E5E7EB] p-3 hover:border-[#D4AF37] hover:shadow-sm transition">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#D4AF37]/10">
@@ -534,21 +533,21 @@ export default function Home() {
           <section className="px-4 py-5 bg-[#F5F3EF] border-t border-[#E5E7EB]">
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide max-w-4xl mx-auto">
               {[
-                { icon: CreditCard, label: "Finance+", desc: "LOA, Crédit, Paiement jusqu'à 10x" },
-                { icon: History, label: "Historique véhicule", desc: "Rapports officiels & Analyse IA" },
-                { icon: Package, label: "Livraison", desc: "Partout en France et à l'International" },
-                { icon: Shield, label: "Garantie", desc: "Jusqu'à 60 mois offerte" },
-                { icon: ShieldCheck, label: "Contrôle technique", desc: "Prise de rendez-vous en ligne" },
-                { icon: Cog, label: "Pièces auto", desc: "Pièces d'origine au meilleur prix" },
-                { icon: Headphones, label: "Assistance", desc: "Disponible 7/7 24h/24" },
+                { icon: CreditCard, label: "Finance+", desc: "LOA, Crédit, Paiement jusqu'à 10x", to: "/finance" },
+                { icon: History, label: "Historique véhicule", desc: "Rapports officiels & Analyse IA", to: "/historique" },
+                { icon: Package, label: "Livraison", desc: "Partout en France et à l'International", to: "/livraison" },
+                { icon: Shield, label: "Garantie", desc: "Jusqu'à 60 mois offerte", to: "/vente/garantie" },
+                { icon: ShieldCheck, label: "Contrôle technique", desc: "Prise de rendez-vous en ligne", to: "/garage/controle-technique" },
+                { icon: Cog, label: "Pièces auto", desc: "Pièces d'origine au meilleur prix", to: "/pieces" },
+                { icon: Headphones, label: "Assistance", desc: "Disponible 7/7 24h/24", to: "/depannage" },
               ].map((s) => (
-                <div key={s.label} className="shrink-0 flex flex-col items-center text-center min-w-[110px] md:min-w-[130px]">
+                <Link key={s.label} to={s.to} className="shrink-0 flex flex-col items-center text-center min-w-[110px] md:min-w-[130px] hover:opacity-80 transition">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#D4AF37]/30 bg-white">
                     <s.icon size={20} className="text-[#D4AF37]" />
                   </div>
                   <h3 className="mt-2 text-[10px] md:text-xs font-bold text-[#111]">{s.label}</h3>
                   <p className="mt-0.5 text-[8px] md:text-[9px] text-[#6B7280] leading-tight">{s.desc}</p>
-                </div>
+                </Link>
               ))}
             </div>
           </section>
@@ -581,15 +580,27 @@ export default function Home() {
                 {/* Explorer */}
                 <div>
                   <p className="text-[10px] uppercase tracking-wider text-[#D4AF37] font-bold mb-2">EXPLORER</p>
-                  {["Acheter", "Vendre", "Louer", "Réparer / Garage", "Finance+", "Services"].map((l) => (
-                    <p key={l} className="text-xs text-white/60 hover:text-white py-0.5 cursor-pointer">{l}</p>
+                  {[
+                    { label: "Acheter", to: "/acheter" },
+                    { label: "Vendre", to: "/vendre" },
+                    { label: "Louer", to: "/louer" },
+                    { label: "Réparer / Garage", to: "/garages" },
+                    { label: "Finance+", to: "/finance" },
+                    { label: "Services", to: "/demarches" },
+                  ].map((l) => (
+                    <Link key={l.label} to={l.to} className="block text-xs text-white/60 hover:text-white py-0.5">{l.label}</Link>
                   ))}
                 </div>
                 {/* Aide */}
                 <div>
                   <p className="text-[10px] uppercase tracking-wider text-[#D4AF37] font-bold mb-2">AIDE & SUPPORT</p>
-                  {["Centre d'aide", "Contact", "Conditions générales", "Politique de confidentialité"].map((l) => (
-                    <p key={l} className="text-xs text-white/60 hover:text-white py-0.5 cursor-pointer">{l}</p>
+                  {[
+                    { label: "Centre d'aide", to: "/aide" },
+                    { label: "Contact", to: "/aide" },
+                    { label: "Conditions générales", to: "/aide" },
+                    { label: "Politique de confidentialité", to: "/aide" },
+                  ].map((l) => (
+                    <Link key={l.label} to={l.to} className="block text-xs text-white/60 hover:text-white py-0.5">{l.label}</Link>
                   ))}
                 </div>
                 {/* App */}
