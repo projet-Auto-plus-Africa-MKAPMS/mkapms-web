@@ -15,7 +15,10 @@ export type PlanCategory =
   | "livraison"
   | "vo"
   | "depannage"
-  | "franchise";
+  | "franchise"
+  | "encheres"
+  | "comptabilite"
+  | "carrosserie";
 
 export interface PlanQuotas {
   maxAnnonces: number | null; // null = illimité
@@ -488,6 +491,136 @@ export const DEPANNAGE_PLANS: Plan[] = [
   },
 ];
 
+// Enchères Pro — accès aux enchères professionnelles MKA.P-MS
+export const ENCHERES_PLANS: Plan[] = [
+  {
+    code: "encheres_acces", label: "Accès Enchères", audience: "pro", category: "encheres",
+    priceEur: 19, recurring: true,
+    features: [
+      "Accès aux enchères MKA.P-MS",
+      "Participation illimitée",
+      "Notifications nouvelles enchères",
+      "Historique des enchères",
+      "Dépôt d'offres",
+      "Réservé aux comptes pro validés",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "encheres_premium", label: "Enchères Premium", audience: "pro", category: "encheres",
+    priceEur: 49, recurring: true, highlight: true,
+    features: [
+      "Tout Accès inclus",
+      "Surenchère automatique",
+      "Alertes personnalisées",
+      "Accès prioritaire nouveaux lots",
+      "Rapport véhicule détaillé inclus",
+      "Historique complet des offres",
+      "Support prioritaire",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "encheres_elite", label: "Enchères Elite", audience: "pro", category: "encheres",
+    priceEur: 99, recurring: true,
+    features: [
+      "Tout Premium inclus",
+      "Accès avant-première aux lots",
+      "Négociation directe possible",
+      "Livraison organisée par MKA.P-MS",
+      "Factures et documents automatisés",
+      "Gestionnaire dédié",
+      "Multi-utilisateurs",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+];
+
+// Comptabilité — abonnements pour agences comptables
+export const COMPTABILITE_PLANS: Plan[] = [
+  {
+    code: "compta_start", label: "Comptabilité Start", audience: "pro", category: "comptabilite",
+    priceEur: 29, recurring: true,
+    features: [
+      "Fiche agence référencée",
+      "Jusqu'à 20 clients",
+      "Tableau de bord basique",
+      "Messagerie clients",
+      "Badge Comptable",
+    ],
+    quotas: { maxAnnonces: 20, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "compta_premium", label: "Comptabilité Premium", audience: "pro", category: "comptabilite",
+    priceEur: 59, recurring: true, highlight: true,
+    features: [
+      "Tout Start inclus",
+      "Jusqu'à 100 clients",
+      "Gestion documents",
+      "Facturation automatique",
+      "Statistiques avancées",
+      "Priorité recherche",
+      "Support prioritaire",
+    ],
+    quotas: { maxAnnonces: 100, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "compta_elite", label: "Comptabilité Elite", audience: "pro", category: "comptabilite",
+    priceEur: 99, recurring: true,
+    features: [
+      "Tout Premium inclus",
+      "Clients illimités",
+      "Multi-collaborateurs",
+      "API partenaires",
+      "Comptabilité intégrée",
+      "Gestionnaire dédié",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+];
+
+// Carrosserie Pro — abonnements carrossiers
+export const CARROSSERIE_PLANS: Plan[] = [
+  {
+    code: "carrosserie_start", label: "Carrosserie Start", audience: "pro", category: "carrosserie",
+    priceEur: 29, recurring: true,
+    features: [
+      "Fiche carrossier référencée",
+      "Devis en ligne",
+      "Photos avant/après",
+      "Agenda RDV",
+      "Badge Carrossier",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "carrosserie_premium", label: "Carrosserie Premium", audience: "pro", category: "carrosserie",
+    priceEur: 59, recurring: true, highlight: true,
+    features: [
+      "Tout Start inclus",
+      "Devis illimités",
+      "Gestion atelier",
+      "Suivi réparations",
+      "Factures automatiques",
+      "Statistiques",
+      "Priorité recherche",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "carrosserie_elite", label: "Carrosserie Elite", audience: "pro", category: "carrosserie",
+    priceEur: 99, recurring: true,
+    features: [
+      "Tout Premium inclus",
+      "Multi-ateliers",
+      "Employés illimités",
+      "Accès enchères carrosserie",
+      "Gestionnaire dédié",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+];
+
 export const ALL_PLANS: Plan[] = [
   ...PARTICULIER_PLANS,
   ...PRO_PLANS,
@@ -499,6 +632,9 @@ export const ALL_PLANS: Plan[] = [
   ...VO_PLANS,
   ...VO_MODULES,
   ...DEPANNAGE_PLANS,
+  ...ENCHERES_PLANS,
+  ...COMPTABILITE_PLANS,
+  ...CARROSSERIE_PLANS,
   FRANCHISE_PLAN,
 ];
 
@@ -514,6 +650,9 @@ export const PLAN_CATEGORY_LABELS: Record<PlanCategory, string> = {
   vo: "VO — Véhicules d'Occasion",
   depannage: "Dépannage / Assistance",
   franchise: "Franchise MKA.P-MS",
+  encheres: "Enchères Pro",
+  comptabilite: "Comptabilité",
+  carrosserie: "Carrosserie Pro",
 };
 
 export function getPlansByCategory(category: PlanCategory): Plan[] {

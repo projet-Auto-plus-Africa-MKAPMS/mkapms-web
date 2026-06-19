@@ -278,7 +278,7 @@ export default function Compte() {
         {tab === "reservations" && (
           <div className="space-y-3">
             {reservations.data?.map((r) => (
-              <div key={r.id} className="card p-4 text-sm">
+              <div key={r.id} onClick={() => navigate(`/acheter`)} className="card p-4 text-sm cursor-pointer hover:border-[#D4AF37] hover:shadow-md transition">
                 <p className="font-semibold text-slate-800">Réservation #{r.id}</p>
                 <p className="text-slate-500">Acompte {r.cautionAmount} € · {r.status} · {r.cautionStatus}</p>
               </div>
@@ -289,7 +289,7 @@ export default function Compte() {
         {tab === "devis" && (
           <div className="space-y-3">
             {devis.data?.map((d) => (
-              <div key={d.id} className="card p-4 text-sm">
+              <div key={d.id} onClick={() => navigate("/reparer")} className="card p-4 text-sm cursor-pointer hover:border-[#D4AF37] hover:shadow-md transition">
                 <p className="font-semibold text-slate-800">{d.typeIntervention}</p>
                 <p className="text-slate-500">{d.vehiculeMarque} {d.vehiculeModele} · {d.status}</p>
               </div>
@@ -301,7 +301,7 @@ export default function Compte() {
           <div className="space-y-3">
             <Link to="/abonnements" className="btn-outline inline-flex">Voir les offres</Link>
             {abos.data?.map((s) => (
-              <div key={s.id} className="card p-4 text-sm">
+              <div key={s.id} onClick={() => navigate("/abonnements")} className="card p-4 text-sm cursor-pointer hover:border-[#D4AF37] hover:shadow-md transition">
                 <p className="font-semibold text-slate-800">{s.planCode}</p>
                 <p className="text-slate-500">{s.status} {s.amount ? `· ${s.amount} €` : ""}</p>
               </div>
@@ -450,7 +450,7 @@ export default function Compte() {
             </div>
             <div className="mt-4 space-y-3">
               {DEMO_RAPPORTS.map((r) => (
-                <div key={r.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4">
+                <div key={r.id} onClick={() => navigate(`/historique?plaque=${r.plaque}`)} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 cursor-pointer hover:border-[#D4AF37] hover:shadow-md transition">
                   <div>
                     <p className="text-sm font-bold text-[#111]">{r.plaque}</p>
                     <p className="text-[10px] text-slate-400">VIN : {r.vinPartiel}</p>
@@ -458,8 +458,8 @@ export default function Compte() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="rounded bg-green-50 px-2 py-0.5 text-[9px] font-bold text-green-700">{r.statut}</span>
-                    <button className="rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-bold text-[#111] hover:bg-slate-50">Voir</button>
-                    <button className="rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-bold text-[#111] hover:bg-slate-50">PDF</button>
+                    <button onClick={(e) => { e.stopPropagation(); navigate(`/historique?plaque=${r.plaque}`); }} className="rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-bold text-[#111] hover:bg-slate-50">Voir</button>
+                    <button onClick={(e) => { e.stopPropagation(); navigate(`/historique?plaque=${r.plaque}&pdf=1`); }} className="rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-bold text-[#111] hover:bg-slate-50">PDF</button>
                   </div>
                 </div>
               ))}

@@ -66,8 +66,11 @@ interface LotType {
   miseDepart: number; offreActuelle: number; encheres: number; encherisseurs: number;
   heureDebut: string; heureFin: string; fin: string;
   photo: string; photos: string[];
+  photosCategories: { exterieur: string[]; interieur: string[]; moteur: string[]; coffre: string[]; tableau_bord: string[]; dommages: string[]; documents: string[]; pneus: string[] };
   marque: string; modele: string; version: string; annee: string;
   km: string; energie: string; boite: string; puissance: string;
+  typeVehicule: "auto" | "moto" | "utilitaire" | "camion" | "quad";
+  cylindree?: string; nbRoues?: string; ptac?: string; nbEssieux?: string; hauteur?: string;
   vin: string; localisation: string;
   etatGeneral: string; roulant: boolean;
   etatDetail: EtatVehicule;
@@ -94,9 +97,10 @@ const LOTS: LotType[] = [
     ],
     marque: "Diverses", modele: "Lot mixte", version: "Voir détails", annee: "2016-2020",
     km: "85 000 - 180 000", energie: "Diesel / Essence", boite: "Manuelle / Auto",
-    puissance: "90 - 150 ch", vin: "VF1****", localisation: "Nanterre (92)",
+    puissance: "90 - 150 ch", typeVehicule: "auto", vin: "VF1****", localisation: "Nanterre (92)",
     etatGeneral: "À remettre en état", roulant: false,
     etatDetail: { mecanique: "a_reparer", carrosserie: "moyen", interieur: "bon", pneus: "a_prevoir", vitrage: "bon", electronique: "moyen", documents: "bon", roulage: "a_reparer" },
+    photosCategories: { exterieur: ["https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80", "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80"], interieur: ["https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80"], moteur: ["https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=600&q=80"], coffre: [], tableau_bord: ["https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80"], dommages: ["https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80"], documents: [], pneus: [] },
     description: "Lot de 5 véhicules de reprise nécessitant des travaux mécaniques et carrosserie. Idéal pour garages, marchands ou exportateurs.",
     rapportDefauts: ["Distribution à faire sur 2 véhicules", "Embrayage usé (Mégane)", "Turbo HS (C4 Cactus)", "Boîte de vitesse bruyante (Golf)", "Moteur consommation d'huile (Focus)"],
     rapportTravaux: ["Distribution x2 : ~1 200 €", "Embrayage : ~800 €", "Turbo remplacement : ~1 500 €", "Boîte reconditionnée : ~1 800 €", "Moteur à réviser : ~600 €"],
@@ -125,9 +129,10 @@ const LOTS: LotType[] = [
     ],
     marque: "BMW", modele: "Série 3", version: "320d Sport", annee: "2019",
     km: "78 000", energie: "Diesel", boite: "Automatique", puissance: "190 ch",
-    vin: "WBA8****", localisation: "Boulogne (92)",
+    typeVehicule: "auto", vin: "WBA8****", localisation: "Boulogne (92)",
     etatGeneral: "Accident léger avant-droit", roulant: true,
     etatDetail: { mecanique: "bon", carrosserie: "a_reparer", interieur: "bon", pneus: "bon", vitrage: "a_prevoir", electronique: "bon", documents: "bon", roulage: "bon" },
+    photosCategories: { exterieur: ["https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80"], interieur: ["https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80"], moteur: [], coffre: [], tableau_bord: [], dommages: ["https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80"], documents: [], pneus: [] },
     description: "BMW 320d accidentée côté avant droit. Mécanique parfaite, carrosserie à refaire. Très bonne affaire pour carrossier.",
     rapportDefauts: ["Aile avant droite enfoncée", "Pare-chocs avant fissuré", "Phare AV droit cassé", "Léger décalage capot"],
     rapportTravaux: ["Aile AV droite : ~350 €", "Pare-chocs AV : ~280 €", "Phare AV droit : ~400 €", "Peinture : ~600 €", "Main d'œuvre : ~500 €"],
@@ -150,9 +155,10 @@ const LOTS: LotType[] = [
     ],
     marque: "Renault", modele: "Clio V", version: "1.0 TCe 100", annee: "2021",
     km: "45 000", energie: "Essence", boite: "Manuelle", puissance: "100 ch",
-    vin: "VF1R****", localisation: "Courbevoie (92)",
+    typeVehicule: "auto", vin: "VF1R****", localisation: "Courbevoie (92)",
     etatGeneral: "Panne moteur — bielle coulée", roulant: false,
     etatDetail: { mecanique: "a_reparer", carrosserie: "bon", interieur: "bon", pneus: "bon", vitrage: "bon", electronique: "bon", documents: "bon", roulage: "a_reparer" },
+    photosCategories: { exterieur: ["https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=600&q=80"], interieur: [], moteur: ["https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80"], coffre: [], tableau_bord: [], dommages: ["https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=600&q=80"], documents: [], pneus: [] },
     description: "Clio V récente, panne moteur importante. Carrosserie et intérieur impeccables. Idéale pour garage spécialisé ou exportateur.",
     rapportDefauts: ["Bielle coulée — moteur hors service", "Voyant moteur allumé", "Huile dans liquide de refroidissement"],
     rapportTravaux: ["Moteur échange standard : ~2 500 €", "Main d'œuvre : ~800 €", "Fluides et filtres : ~150 €"],
@@ -176,9 +182,10 @@ const LOTS: LotType[] = [
     ],
     marque: "Diverses", modele: "Flotte MKA.P-MS", version: "", annee: "2021-2022",
     km: "120 000 - 160 000", energie: "Diesel", boite: "Manuelle / Auto",
-    puissance: "110 - 180 ch", vin: "VF1****", localisation: "Nanterre (92)",
+    puissance: "110 - 180 ch", typeVehicule: "auto", vin: "VF1****", localisation: "Nanterre (92)",
     etatGeneral: "Fin de cycle — amortis", roulant: true,
     etatDetail: { mecanique: "moyen", carrosserie: "moyen", interieur: "moyen", pneus: "a_prevoir", vitrage: "bon", electronique: "bon", documents: "bon", roulage: "bon" },
+    photosCategories: { exterieur: ["https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80", "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80"], interieur: ["https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80"], moteur: [], coffre: [], tableau_bord: [], dommages: [], documents: [], pneus: [] },
     description: "3 véhicules flotte location MKA.P-MS en fin de cycle. Entretien constructeur suivi. Parfait pour revente ou export.",
     rapportDefauts: ["Kilométrage élevé", "Traces d'usure normales location", "Pneus à remplacer sur 2 véhicules", "Distribution à prévoir (C5 Aircross)"],
     rapportTravaux: ["Pneus x8 : ~520 €", "Distribution C5 Aircross : ~650 €", "Révision complète x3 : ~450 €"],
@@ -205,9 +212,10 @@ const LOTS: LotType[] = [
     ],
     marque: "Mercedes", modele: "Classe A", version: "180d AMG Line", annee: "2022",
     km: "140 000", energie: "Diesel", boite: "Automatique", puissance: "116 ch",
-    vin: "WDD1****", localisation: "Sèvres (92)",
+    typeVehicule: "auto", vin: "WDD1****", localisation: "Sèvres (92)",
     etatGeneral: "Fin de contrat location — haute km", roulant: true,
     etatDetail: { mecanique: "bon", carrosserie: "moyen", interieur: "moyen", pneus: "a_prevoir", vitrage: "bon", electronique: "bon", documents: "bon", roulage: "bon" },
+    photosCategories: { exterieur: ["https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80"], interieur: ["https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80"], moteur: [], coffre: [], tableau_bord: [], dommages: [], documents: [], pneus: [] },
     description: "Mercedes Classe A 180d AMG Line, retour location longue durée. Kilométrage élevé mais mécanique irréprochable. Export possible.",
     rapportDefauts: ["Kilométrage élevé", "Micro-rayures carrosserie", "Siège conducteur légèrement usé", "Pneus avant à remplacer"],
     rapportTravaux: ["Pneus avant x2 : ~300 €", "Lustrage carrosserie : ~200 €", "Nettoyage cuir : ~100 €"],
@@ -230,9 +238,10 @@ const LOTS: LotType[] = [
     ],
     marque: "Citroën", modele: "C3 Aircross", version: "1.2 PureTech 110", annee: "2020",
     km: "92 000", energie: "Essence", boite: "Manuelle", puissance: "110 ch",
-    vin: "VF7S****", localisation: "Levallois (92)",
+    typeVehicule: "auto", vin: "VF7S****", localisation: "Levallois (92)",
     etatGeneral: "Carrosserie endommagée — mécanique OK", roulant: true,
     etatDetail: { mecanique: "bon", carrosserie: "a_reparer", interieur: "bon", pneus: "moyen", vitrage: "bon", electronique: "bon", documents: "bon", roulage: "bon" },
+    photosCategories: { exterieur: ["https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80"], interieur: [], moteur: [], coffre: [], tableau_bord: [], dommages: ["https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80", "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80"], documents: [], pneus: [] },
     description: "C3 Aircross avec carrosserie endommagée sur côté gauche. Mécanique parfaitement fonctionnelle.",
     rapportDefauts: ["Porte AVG enfoncée", "Aile AVG rayée", "Rétroviseur AVG cassé", "Peinture à refaire côté gauche"],
     rapportTravaux: ["Porte AVG : ~400 €", "Aile AVG : ~250 €", "Rétroviseur : ~120 €", "Peinture côté G : ~600 €", "Main d'œuvre : ~350 €"],
@@ -269,7 +278,7 @@ export default function VenteEncheres() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [mode, setMode] = useState<"landing" | "lots" | "detail" | "mes_encheres" | "remportes" | "conditions" | "prochaines">("landing");
+  const [mode, setMode] = useState<"landing" | "lots" | "detail" | "mes_encheres" | "remportes" | "conditions" | "prochaines" | "photos" | "vehicule_detail">("landing");
   const [selectedLotId, setSelectedLotId] = useState<number | null>(null);
 
   /* Filtres */
@@ -283,18 +292,20 @@ export default function VenteEncheres() {
   /* Enchère */
   const [enchereInput, setEnchereInput] = useState("");
   const [showBidConfirm, setShowBidConfirm] = useState(false);
-  const [bidHistory, setBidHistory] = useState<{ montant: number; heure: string; pro: string }[]>([
-    { montant: 12400, heure: "14:32", pro: "Garage AutoPro ***" },
-    { montant: 12200, heure: "14:15", pro: "Export Cars ***" },
-    { montant: 12000, heure: "13:48", pro: "MécaPro ***" },
-    { montant: 11500, heure: "12:20", pro: "Garage AutoPro ***" },
-    { montant: 11000, heure: "11:05", pro: "Carrosserie Plus ***" },
-    { montant: 10500, heure: "10:30", pro: "Export Cars ***" },
-    { montant: 10000, heure: "10:00", pro: "MécaPro ***" },
+  const [bidHistory] = useState<{ montant: number; heure: string; pro: string }[]>([
+    { montant: 12400, heure: "14:32", pro: "Enchérisseur #7" },
+    { montant: 12200, heure: "14:15", pro: "Enchérisseur #3" },
+    { montant: 12000, heure: "13:48", pro: "Enchérisseur #5" },
+    { montant: 11500, heure: "12:20", pro: "Enchérisseur #7" },
+    { montant: 11000, heure: "11:05", pro: "Enchérisseur #2" },
+    { montant: 10500, heure: "10:30", pro: "Enchérisseur #3" },
+    { montant: 10000, heure: "10:00", pro: "Enchérisseur #5" },
   ]);
 
   /* Photo viewer */
   const [photoIdx, setPhotoIdx] = useState(0);
+  const [photoCat, setPhotoCat] = useState("exterieur");
+  const [selectedVehiculeIdx, setSelectedVehiculeIdx] = useState<number | null>(null);
 
   const selectedLot = LOTS.find((l) => l.id === selectedLotId);
   const isPro = user?.accountType === "professionnel" || user?.accountType === "admin";
@@ -496,10 +507,10 @@ export default function VenteEncheres() {
           <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
             <h3 className="text-sm font-bold text-white mb-3">Factures et documents</h3>
             {MES_ENCHERES_DEMO.filter((e) => e.statut !== "paiement_attente").map((e) => (
-              <div key={e.lotId} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0">
+              <div key={e.lotId} onClick={() => setMode("remportes")} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0 cursor-pointer hover:bg-white/5 transition rounded-lg px-2">
                 <Receipt size={14} className="text-white/40" />
                 <div className="flex-1"><p className="text-xs font-bold text-white">{e.titre}</p><p className="text-[10px] text-white/40">{e.date} — {e.montant.toLocaleString("fr-FR")} €</p></div>
-                <button className="text-[10px] text-purple-400 font-bold">PDF</button>
+                <button onClick={(ev) => { ev.stopPropagation(); }} className="text-[10px] text-purple-400 font-bold hover:text-purple-300 transition">PDF</button>
               </div>
             ))}
           </div>
@@ -710,23 +721,16 @@ export default function VenteEncheres() {
           <h1 className="text-xl font-black text-white">{selectedLot.titre}</h1>
         </div>
 
-        {/* Photos */}
+        {/* Photo principale — click ouvre galerie */}
         <div className="px-4 mt-4">
-          <div className="rounded-2xl overflow-hidden border border-white/10 relative">
-            <img src={selectedLot.photos[photoIdx] || selectedLot.photo} alt="" className="w-full h-56 md:h-72 object-cover" />
-            <div className="absolute bottom-3 left-3 flex gap-1.5">
-              {selectedLot.photos.map((_, i) => (
-                <button key={i} onClick={() => setPhotoIdx(i)} className={`h-2 w-2 rounded-full transition ${i === photoIdx ? "bg-white" : "bg-white/40"}`} />
-              ))}
+          <div className="rounded-2xl overflow-hidden border border-white/10 relative cursor-pointer" onClick={() => { setPhotoCat("exterieur"); setMode("photos"); }}>
+            <img src={selectedLot.photo} alt="" className="w-full h-56 md:h-72 object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            <div className="absolute bottom-3 left-3 flex items-center gap-2">
+              <Camera size={16} className="text-white" />
+              <span className="text-sm font-bold text-white">Voir toutes les photos</span>
             </div>
-            <span className="absolute top-3 right-3 rounded-full bg-black/60 px-2 py-1 text-[9px] text-white/80">{photoIdx + 1}/{selectedLot.photos.length}</span>
-          </div>
-          <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-            {selectedLot.photos.map((p, i) => (
-              <button key={i} onClick={() => setPhotoIdx(i)} className={`shrink-0 rounded-lg overflow-hidden border-2 transition ${i === photoIdx ? "border-purple-500" : "border-transparent opacity-60"}`}>
-                <img src={p} alt="" className="h-14 w-20 object-cover" />
-              </button>
-            ))}
+            <span className="absolute top-3 right-3 rounded-full bg-black/60 px-3 py-1 text-[10px] font-bold text-white">{selectedLot.photos.length} photos</span>
           </div>
         </div>
 
@@ -776,22 +780,54 @@ export default function VenteEncheres() {
             )}
           </div>
 
-          {/* ═══ BLOC 2 — IDENTITÉ VÉHICULE ═══ */}
+          {/* ═══ BLOC 2 — IDENTITÉ VÉHICULE (adapté par type) ═══ */}
           <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
             <h2 className="text-sm font-extrabold text-white uppercase tracking-wider mb-3 flex items-center gap-2"><Car size={16} className="text-[#D4AF37]" /> Identité du véhicule</h2>
             <div className="grid grid-cols-2 gap-2">
-              {[
-                { label: "Marque", val: selectedLot.marque },
-                { label: "Modèle", val: selectedLot.modele },
-                { label: "Version", val: selectedLot.version },
-                { label: "Année", val: selectedLot.annee },
-                { label: "Kilométrage", val: `${selectedLot.km} km` },
-                { label: "Énergie", val: selectedLot.energie },
-                { label: "Boîte", val: selectedLot.boite },
-                { label: "Puissance", val: selectedLot.puissance },
-                { label: "VIN", val: selectedLot.vin },
-                { label: "Localisation", val: selectedLot.localisation },
-              ].map((f) => (
+              {(() => {
+                const base = [
+                  { label: "Marque", val: selectedLot.marque },
+                  { label: "Modèle", val: selectedLot.modele },
+                  { label: "Version", val: selectedLot.version },
+                  { label: "Année", val: selectedLot.annee },
+                  { label: "Kilométrage", val: `${selectedLot.km} km` },
+                  { label: "Énergie", val: selectedLot.energie },
+                ];
+                const tv = selectedLot.typeVehicule;
+                if (tv === "moto" || tv === "quad") {
+                  base.push(
+                    { label: "Cylindrée", val: selectedLot.cylindree || "—" },
+                    { label: "Nombre de roues", val: selectedLot.nbRoues || (tv === "quad" ? "4" : "2") },
+                    { label: "Puissance", val: selectedLot.puissance },
+                    { label: "Type", val: tv === "quad" ? "Quad" : "Moto" },
+                  );
+                } else if (tv === "camion") {
+                  base.push(
+                    { label: "Boîte", val: selectedLot.boite },
+                    { label: "Puissance", val: selectedLot.puissance },
+                    { label: "PTAC", val: selectedLot.ptac || "—" },
+                    { label: "Nombre d'essieux", val: selectedLot.nbEssieux || "—" },
+                    { label: "Hauteur", val: selectedLot.hauteur || "—" },
+                  );
+                } else if (tv === "utilitaire") {
+                  base.push(
+                    { label: "Boîte", val: selectedLot.boite },
+                    { label: "Puissance", val: selectedLot.puissance },
+                    { label: "PTAC", val: selectedLot.ptac || "—" },
+                    { label: "Volume utile", val: selectedLot.hauteur || "—" },
+                  );
+                } else {
+                  base.push(
+                    { label: "Boîte", val: selectedLot.boite },
+                    { label: "Puissance", val: selectedLot.puissance },
+                  );
+                }
+                base.push(
+                  { label: "VIN", val: selectedLot.vin },
+                  { label: "Localisation", val: selectedLot.localisation },
+                );
+                return base;
+              })().filter(f => f.val && f.val !== "—").map((f) => (
                 <div key={f.label} className="rounded-lg bg-white/5 p-2.5">
                   <p className="text-[9px] text-white/30">{f.label}</p>
                   <p className="text-xs font-bold text-white">{f.val}</p>
@@ -854,18 +890,20 @@ export default function VenteEncheres() {
             </div>
           </div>
 
-          {/* ═══ BLOC 5 — VÉHICULES DU LOT ═══ */}
+          {/* ═══ BLOC 5 — VÉHICULES DU LOT (cliquables) ═══ */}
           <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
             <h2 className="text-sm font-extrabold text-white uppercase tracking-wider mb-3 flex items-center gap-2"><Car size={16} className="text-[#D4AF37]" /> Véhicules ({selectedLot.vehicules.length})</h2>
             <div className="space-y-2">
               {selectedLot.vehicules.map((v, i) => (
-                <div key={i} className="rounded-xl bg-white/5 p-3 flex items-center gap-3">
+                <div key={i} onClick={() => { setSelectedVehiculeIdx(i); setMode("vehicule_detail"); }}
+                  className="rounded-xl bg-white/5 p-3 flex items-center gap-3 cursor-pointer hover:bg-white/10 transition group">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5 text-lg shrink-0">🚗</div>
                   <div className="flex-1">
                     <p className="text-xs font-bold text-white">{v.marque} {v.modele}</p>
                     <p className="text-[10px] text-white/40">{v.annee} · {v.km.toLocaleString("fr-FR")} km</p>
                     <p className="text-[10px] text-amber-400">{v.etat}</p>
                   </div>
+                  <ChevronRight size={16} className="text-white/20 group-hover:text-purple-400 transition shrink-0" />
                 </div>
               ))}
             </div>
@@ -937,6 +975,158 @@ export default function VenteEncheres() {
             </div>
           </div>
         )}
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     GALERIE PHOTOS — par catégorie (extérieur, intérieur, moteur, dommages, etc.)
+     ════════════════════════════════════════════════════════════ */
+  if (mode === "photos" && selectedLot) {
+    const PHOTO_CATS = [
+      { id: "exterieur", label: "Extérieur", icon: Car },
+      { id: "interieur", label: "Intérieur", icon: Eye },
+      { id: "moteur", label: "Moteur", icon: Settings },
+      { id: "coffre", label: "Coffre", icon: Package },
+      { id: "tableau_bord", label: "Tableau de bord", icon: Gauge },
+      { id: "dommages", label: "Dommages", icon: AlertTriangle },
+      { id: "documents", label: "Documents", icon: FileText },
+      { id: "pneus", label: "Pneus", icon: Navigation },
+    ];
+    const currentPhotos = selectedLot.photosCategories[photoCat as keyof typeof selectedLot.photosCategories] || [];
+    const allPhotosCount = Object.values(selectedLot.photosCategories).reduce((s, arr) => s + arr.length, 0);
+
+    return (
+      <div className="min-h-screen bg-[#0a0a14] pb-24">
+        <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
+          <button onClick={() => { setMode("detail"); setPhotoIdx(0); }} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
+          <h1 className="text-xl font-black text-white flex items-center gap-2"><Camera size={20} className="text-purple-400" /> Photos professionnelles</h1>
+          <p className="text-xs text-white/40 mt-1">{allPhotosCount} photos · {selectedLot.titre}</p>
+        </div>
+
+        {/* Catégories */}
+        <div className="px-4 mt-4 flex gap-2 overflow-x-auto pb-2">
+          {PHOTO_CATS.map((c) => {
+            const count = (selectedLot.photosCategories[c.id as keyof typeof selectedLot.photosCategories] || []).length;
+            return (
+              <button key={c.id} onClick={() => { setPhotoCat(c.id); setPhotoIdx(0); }}
+                className={`shrink-0 rounded-full px-4 py-2 text-[10px] font-bold transition flex items-center gap-1.5 ${photoCat === c.id ? (c.id === "dommages" ? "bg-red-600 text-white" : "bg-purple-600 text-white") : "bg-white/5 border border-white/10 text-white/60"}`}>
+                <c.icon size={12} /> {c.label} {count > 0 && <span className="rounded-full bg-white/20 px-1.5 text-[8px]">{count}</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Photos grille */}
+        <div className="px-4 mt-4">
+          {currentPhotos.length > 0 ? (
+            <div className="grid grid-cols-2 gap-2">
+              {currentPhotos.map((p, i) => (
+                <div key={i} className="rounded-xl overflow-hidden border border-white/10 cursor-pointer hover:border-purple-500/50 transition" onClick={() => setPhotoIdx(i)}>
+                  <img src={p} alt={`${photoCat} ${i + 1}`} className="w-full h-36 md:h-48 object-cover" loading="lazy" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-16 text-center">
+              <Camera size={32} className="text-white/10 mx-auto mb-3" />
+              <p className="text-sm text-white/30">Aucune photo dans cette catégorie</p>
+            </div>
+          )}
+        </div>
+
+        {/* Photo plein écran */}
+        {currentPhotos.length > 0 && photoIdx < currentPhotos.length && (
+          <div className="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-4" onClick={() => setPhotoIdx(-1)}>
+            {photoIdx >= 0 && (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); setPhotoIdx(-1); }} className="absolute top-4 right-4 z-50"><X size={24} className="text-white/60" /></button>
+                <img src={currentPhotos[photoIdx]} alt="" className="max-h-[80vh] max-w-full rounded-xl object-contain" onClick={(e) => e.stopPropagation()} />
+                <div className="mt-4 flex gap-4">
+                  <button onClick={(e) => { e.stopPropagation(); setPhotoIdx(Math.max(0, photoIdx - 1)); }} className="rounded-full bg-white/10 p-2"><ChevronLeft size={20} className="text-white" /></button>
+                  <span className="text-white/60 text-sm self-center">{photoIdx + 1} / {currentPhotos.length}</span>
+                  <button onClick={(e) => { e.stopPropagation(); setPhotoIdx(Math.min(currentPhotos.length - 1, photoIdx + 1)); }} className="rounded-full bg-white/10 p-2"><ChevronRight size={20} className="text-white" /></button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     DÉTAIL VÉHICULE INDIVIDUEL (cliqué depuis le lot)
+     ════════════════════════════════════════════════════════════ */
+  if (mode === "vehicule_detail" && selectedLot && selectedVehiculeIdx !== null) {
+    const v = selectedLot.vehicules[selectedVehiculeIdx];
+    if (!v) { setMode("detail"); return null; }
+
+    return (
+      <div className="min-h-screen bg-[#0a0a14] pb-24">
+        <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
+          <button onClick={() => setMode("detail")} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour au lot</button>
+          <h1 className="text-xl font-black text-white">{v.marque} {v.modele}</h1>
+          <p className="text-xs text-white/40 mt-1">Lot : {selectedLot.titre}</p>
+        </div>
+
+        <div className="px-4 mt-6 space-y-4">
+          {/* Identité */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            <h2 className="text-sm font-extrabold text-white uppercase tracking-wider mb-3 flex items-center gap-2"><Car size={16} className="text-[#D4AF37]" /> Identité</h2>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: "Marque", val: v.marque },
+                { label: "Modèle", val: v.modele },
+                { label: "Année", val: String(v.annee) },
+                { label: "Kilométrage", val: `${v.km.toLocaleString("fr-FR")} km` },
+              ].map((f) => (
+                <div key={f.label} className="rounded-lg bg-white/5 p-2.5">
+                  <p className="text-[9px] text-white/30">{f.label}</p>
+                  <p className="text-xs font-bold text-white">{f.val}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* État */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            <h2 className="text-sm font-extrabold text-white uppercase tracking-wider mb-3 flex items-center gap-2"><ClipboardList size={16} className="text-[#D4AF37]" /> État</h2>
+            <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4">
+              <p className="text-sm font-bold text-amber-400">{v.etat}</p>
+            </div>
+          </div>
+
+          {/* Lien VO → Enchères */}
+          <div className="rounded-2xl bg-gradient-to-br from-purple-900/30 to-blue-900/20 border border-purple-500/20 p-5">
+            <h2 className="text-sm font-extrabold text-white uppercase tracking-wider mb-3 flex items-center gap-2"><RefreshCcw size={16} className="text-purple-400" /> Circuit de décision</h2>
+            <div className="space-y-2">
+              {[
+                { label: "Vente classique MKA.P-MS", desc: "Véhicule en bon état → vente directe", icon: Car, color: "bg-green-500/10 border-green-500/20 text-green-400" },
+                { label: "Préparation VO", desc: "Remise en état avant vente", icon: Wrench, color: "bg-blue-500/10 border-blue-500/20 text-blue-400" },
+                { label: "Enchères Pro", desc: "Véhicule à gros travaux → enchère professionnelle", icon: Gavel, color: "bg-purple-500/10 border-purple-500/20 text-purple-400" },
+              ].map((opt) => (
+                <div key={opt.label} className={`rounded-xl ${opt.color} border p-3 flex items-center gap-3 cursor-pointer hover:opacity-80 transition`}>
+                  <opt.icon size={16} className="shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold">{opt.label}</p>
+                    <p className="text-[10px] opacity-60">{opt.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2">
+            <button onClick={() => setMode("detail")} className="flex-1 rounded-xl bg-white/5 border border-white/10 py-3 text-xs font-bold text-white/60 flex items-center justify-center gap-2">
+              <ArrowLeft size={14} /> Retour au lot
+            </button>
+            <button onClick={() => { setPhotoCat("exterieur"); setMode("photos"); }} className="flex-1 rounded-xl bg-purple-600 py-3 text-xs font-bold text-white flex items-center justify-center gap-2">
+              <Camera size={14} /> Voir les photos
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
