@@ -119,7 +119,7 @@ export default function LocationPro() {
     : VEHICULES_PRO;
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
+    <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
 
       {/* ═══════════════════════════════════════════════════════════════════
           SECTION 1 — BANNIÈRE PRINCIPALE
@@ -128,7 +128,7 @@ export default function LocationPro() {
         <img
           src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&h=420&fit=crop"
           alt="Location professionnelle"
-          className="w-full h-[240px] object-cover"
+          className="w-full h-[240px] md:h-[320px] lg:h-[400px] object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#111]/90 via-[#111]/40 to-transparent" />
         {/* Retour */}
@@ -163,7 +163,7 @@ export default function LocationPro() {
               <input type="text" placeholder="Ville, zone industrielle, gare…" value={lieu} onChange={(e) => setLieu(e.target.value)} className="w-full bg-transparent text-sm text-[#111] placeholder:text-[#9CA3AF] outline-none" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             <div>
               <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Date de départ</label>
               <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
@@ -207,7 +207,7 @@ export default function LocationPro() {
               <button
                 key={c.titre}
                 onClick={() => setSelectedCat(isSelected ? null : c.titre)}
-                className={`shrink-0 w-[140px] rounded-xl bg-white border-2 overflow-hidden text-left transition active:scale-[0.98] ${isSelected ? "border-blue-800 shadow-md ring-2 ring-blue-800/30" : "border-[#E5E7EB]"}`}
+                className={`shrink-0 w-[140px] md:w-[160px] lg:w-[180px] rounded-xl bg-white border-2 overflow-hidden text-left transition active:scale-[0.98] ${isSelected ? "border-blue-800 shadow-md ring-2 ring-blue-800/30" : "border-[#E5E7EB]"}`}
               >
                 <div className="relative h-[80px] overflow-hidden">
                   <img src={c.photo} alt={c.titre} className="w-full h-full object-cover" loading="lazy" />
@@ -267,10 +267,10 @@ export default function LocationPro() {
           <h2 className="text-lg font-bold text-[#111]">Véhicules disponibles</h2>
           <span className="text-xs font-semibold text-[#6B7280]">{filteredVehicules.length} résultat{filteredVehicules.length > 1 ? "s" : ""}</span>
         </div>
-        <div className="mt-3 space-y-3">
+        <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredVehicules.map((v) => (
-            <Link key={v.id} to={`/louer/pro/vehicule/${v.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden active:scale-[0.99] transition">
-              <div className="relative h-[160px]">
+            <Link key={v.id} to={`/louer/pro/vehicule/${v.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden active:scale-[0.99] transition hover:shadow-lg">
+              <div className="relative h-[160px] md:h-[180px] lg:h-[200px]">
                 <img src={v.photo} alt={v.titre} className="w-full h-full object-cover" loading="lazy" />
                 <span className="absolute top-2 left-2 rounded-full bg-blue-800/90 px-2.5 py-0.5 text-[9px] font-bold text-white">{v.categorie}</span>
               </div>

@@ -164,7 +164,7 @@ export default function ProduitVtcTaxi() {
   const scrollToResv = () => resvRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
+    <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-5xl mx-auto">
 
       {/* ═══════════════════════════════════ BLOC 1 — PHOTOS ═══════════════════════════════════ */}
       <div className="relative">
@@ -177,7 +177,7 @@ export default function ProduitVtcTaxi() {
           </button>
         </div>
         <div className="relative">
-          <img src={GALLERY[photoIdx]} alt={VEHICLE.titre} className="w-full h-[280px] object-cover" />
+          <img src={GALLERY[photoIdx]} alt={VEHICLE.titre} className="w-full h-[280px] md:h-[380px] lg:h-[450px] object-cover" />
           <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-[#111]/90 px-3 py-1.5 text-xs font-bold text-[#D4AF37] border border-[#D4AF37]/60 backdrop-blur">
             <Shield size={12} /> VTC & TAXI
           </span>

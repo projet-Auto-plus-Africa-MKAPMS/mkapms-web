@@ -115,8 +115,8 @@ function HScroll({ children, className = "" }: { children: React.ReactNode; clas
 /* ── CARTE ANNONCE STANDARD ── */
 function AnnonceCard({ a, badgeColor = "bg-[#D4AF37]" }: { a: any; badgeColor?: string }) {
   return (
-    <Link to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[220px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
-      <div className="relative h-[130px]">
+    <Link to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
+      <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
         <img src={a.photo} alt={a.titre} className="w-full h-full object-cover" loading="lazy" />
         {a.badge && <span className={`absolute top-2 left-2 rounded-sm ${badgeColor} px-2 py-0.5 text-[8px] font-extrabold text-white uppercase tracking-wide`}>{a.badge}</span>}
         {a.type && <span className="absolute top-2 right-2 rounded-sm bg-[#D4AF37] px-2 py-0.5 text-[8px] font-extrabold text-white uppercase">{a.type}</span>}
@@ -187,7 +187,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════════════
           LAYOUT 3 COLONNES : PUB GAUCHE | CONTENU | PUB DROITE
           ═══════════════════════════════════════════════════════════════════ */}
-      <div className="max-w-[1400px] mx-auto flex">
+      <div className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto flex">
 
         {/* ── PUB GAUCHE (desktop seulement) ── */}
         <aside className="hidden xl:flex flex-col gap-4 w-[160px] shrink-0 pt-4 pl-2 sticky top-20 self-start h-fit">
@@ -209,7 +209,7 @@ export default function Home() {
               SECTION 2 — CARROUSEL PRINCIPAL (5 slides)
               ═══════════════════════════════════════════════════════════════ */}
           <section className="relative overflow-hidden">
-            <div className="relative h-[220px] md:h-[340px]">
+            <div className="relative h-[220px] md:h-[340px] lg:h-[420px] 2xl:h-[480px]">
               {SLIDES.map((s, i) => (
                 <div key={i} className={`absolute inset-0 transition-opacity duration-700 ${i === slideIdx ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
                   <img src={s.img} alt={s.label} className="w-full h-full object-cover" />
@@ -217,13 +217,13 @@ export default function Home() {
                 </div>
               ))}
               {/* Contenu overlay */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 md:p-8">
-                <p className="text-[10px] md:text-xs font-semibold uppercase tracking-widest text-[#D4AF37]">LA MARKETPLACE AUTOMOBILE</p>
-                <h1 className="mt-1 text-xl md:text-3xl font-black text-white uppercase leading-tight">
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 md:p-8 lg:p-12">
+                <p className="text-[10px] md:text-xs lg:text-sm font-semibold uppercase tracking-widest text-[#D4AF37]">LA MARKETPLACE AUTOMOBILE</p>
+                <h1 className="mt-1 text-xl md:text-3xl lg:text-4xl 2xl:text-5xl font-black text-white uppercase leading-tight">
                   ACHETEZ, VENDEZ, LOUEZ, RÉPAREZ
                 </h1>
-                <p className="text-xs md:text-sm text-white/80 mt-1">EN TOUTE CONFIANCE, PARTOUT, À TOUT MOMENT.</p>
-                <p className="text-[10px] md:text-xs text-white/60 mt-0.5">Tout l'univers automobile réuni au même endroit.</p>
+                <p className="text-xs md:text-sm lg:text-base text-white/80 mt-1">EN TOUTE CONFIANCE, PARTOUT, À TOUT MOMENT.</p>
+                <p className="text-[10px] md:text-xs lg:text-sm text-white/60 mt-0.5">Tout l'univers automobile réuni au même endroit.</p>
                 {/* Badges confiance */}
                 <div className="mt-3 flex gap-4 md:gap-6">
                   {[
@@ -372,15 +372,15 @@ export default function Home() {
               SECTION 8 — PUBLICITÉ PREMIUM #1
               ═══════════════════════════════════════════════════════════════ */}
           <section className="px-4 py-3 bg-white border-t border-[#F3F4F6]">
-            <div className="rounded-xl overflow-hidden relative h-[90px] md:h-[100px]">
+            <div className="rounded-xl overflow-hidden relative h-[90px] md:h-[100px] lg:h-[110px]">
               <span className="absolute top-2 left-2 z-10 text-[8px] font-semibold uppercase tracking-wider text-white/50">PUBLICITÉ</span>
               {ADS_CENTER.map((ad, i) => (
                 <Link key={i} to={ad.to} className={`absolute inset-0 ${ad.color} p-4 md:p-6 flex items-center justify-between transition-transform duration-700 ease-in-out`} style={{ transform: `translateX(${(i - adCenter1) * 100}%)` }}>
                   <div className="min-w-0">
-                    <h3 className="text-lg md:text-xl font-black text-white uppercase truncate">{ad.titre}</h3>
-                    <p className="text-xs text-white/70 mt-1 truncate">{ad.sous}</p>
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-black text-white uppercase truncate">{ad.titre}</h3>
+                    <p className="text-xs md:text-sm text-white/70 mt-1 truncate">{ad.sous}</p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white">EN SAVOIR PLUS</span>
+                  <span className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs md:text-sm font-bold text-white">EN SAVOIR PLUS</span>
                 </Link>
               ))}
             </div>
@@ -417,8 +417,8 @@ export default function Home() {
             </div>
             <HScroll>
               {LOCATION_MIXTE.map((a) => (
-                <Link key={a.id} to={`/louer/particulier/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[220px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
-                  <div className="relative h-[130px]">
+                <Link key={a.id} to={`/louer/particulier/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
+                  <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
                     <img src={a.photo} alt={a.titre} className="w-full h-full object-cover" loading="lazy" />
                     <span className={`absolute top-2 left-2 rounded-sm px-2 py-0.5 text-[8px] font-extrabold text-white uppercase ${a.type === "VTC" ? "bg-[#111] border border-[#D4AF37]" : a.type === "Pro" ? "bg-blue-800" : a.type === "Taxi" ? "bg-yellow-600" : "bg-[#D4AF37]"}`}>{a.prixJour} €/jour</span>
                     <span className="absolute top-2 right-2 rounded-sm bg-white/90 px-1.5 py-0.5 text-[8px] font-bold text-[#111]">{a.type}</span>
@@ -493,15 +493,15 @@ export default function Home() {
               SECTION 13 — PUBLICITÉ PREMIUM #2
               ═══════════════════════════════════════════════════════════════ */}
           <section className="px-4 py-3 bg-white border-t border-[#F3F4F6]">
-            <div className="rounded-xl overflow-hidden relative h-[90px] md:h-[100px]">
+            <div className="rounded-xl overflow-hidden relative h-[90px] md:h-[100px] lg:h-[110px]">
               <span className="absolute top-2 left-2 z-10 text-[8px] font-semibold uppercase tracking-wider text-white/50">PUBLICITÉ</span>
               {ADS_CENTER.map((ad, i) => (
                 <Link key={i} to={ad.to} className={`absolute inset-0 ${ad.color} p-4 md:p-6 flex items-center justify-between transition-transform duration-700 ease-in-out`} style={{ transform: `translateX(${(i - adCenter2) * 100}%)` }}>
                   <div className="min-w-0">
-                    <h3 className="text-lg md:text-xl font-black text-white uppercase truncate">{ad.titre}</h3>
-                    <p className="text-xs text-white/70 mt-1 truncate">{ad.sous}</p>
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-black text-white uppercase truncate">{ad.titre}</h3>
+                    <p className="text-xs md:text-sm text-white/70 mt-1 truncate">{ad.sous}</p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white">EN SAVOIR PLUS</span>
+                  <span className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs md:text-sm font-bold text-white">EN SAVOIR PLUS</span>
                 </Link>
               ))}
             </div>

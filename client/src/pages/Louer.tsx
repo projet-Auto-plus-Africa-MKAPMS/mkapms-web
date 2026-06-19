@@ -117,7 +117,7 @@ export default function Louer() {
   const [typeVehicule, setTypeVehicule] = useState("Tous types");
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
+    <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
 
       {/* ═══════════════════════════════════════════════════════════════════
           SECTION 1 — TITRE PRINCIPAL
@@ -223,7 +223,7 @@ export default function Louer() {
         <h2 className="text-lg font-bold text-[#111]">Choisissez votre univers</h2>
         <p className="text-xs text-[#6B7280] mt-0.5">Chaque univers a ses propres véhicules, tarifs et parcours.</p>
 
-        <div className="mt-4 space-y-4">
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {UNIVERS.map((u) => {
             const Icon = u.icon;
             return (
@@ -233,7 +233,7 @@ export default function Louer() {
                 className="group block rounded-2xl bg-white overflow-hidden border border-[#E5E7EB] transition hover:shadow-lg active:scale-[0.99]"
               >
                 {/* Photo */}
-                <div className="relative h-[180px] overflow-hidden">
+                <div className="relative h-[180px] md:h-[220px] lg:h-[240px] overflow-hidden">
                   <img
                     src={u.photo}
                     alt={u.titre}

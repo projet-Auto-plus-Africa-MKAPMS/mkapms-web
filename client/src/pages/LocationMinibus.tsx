@@ -71,11 +71,11 @@ export default function LocationMinibus() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
+    <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
 
       {/* BANNIÈRE */}
       <div className="relative overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=800&h=420&fit=crop" alt="Minibus" className="w-full h-[240px] object-cover" />
+        <img src="https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=800&h=420&fit=crop" alt="Minibus" className="w-full h-[240px] md:h-[320px] lg:h-[400px] object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#111]/90 via-[#111]/40 to-transparent" />
         <Link to="/louer" className="absolute top-4 left-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur">
           <ChevronLeft size={20} className="text-[#111]" />
@@ -144,7 +144,7 @@ export default function LocationMinibus() {
         <h2 className="text-lg font-bold text-[#111]">Catégories minibus</h2>
         <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {CATEGORIES.map((c) => (
-            <button key={c.titre} onClick={() => setSelectedCat(selectedCat === c.titre ? null : c.titre)} className={`shrink-0 w-[140px] rounded-xl overflow-hidden border-2 transition active:scale-[0.98] ${selectedCat === c.titre ? "border-[#D4AF37] shadow-md ring-2 ring-[#D4AF37]/30" : "border-[#E5E7EB]"}`}>
+            <button key={c.titre} onClick={() => setSelectedCat(selectedCat === c.titre ? null : c.titre)} className={`shrink-0 w-[140px] md:w-[160px] lg:w-[180px] rounded-xl overflow-hidden border-2 transition active:scale-[0.98] ${selectedCat === c.titre ? "border-[#D4AF37] shadow-md ring-2 ring-[#D4AF37]/30" : "border-[#E5E7EB]"}`}>
               <img src={c.photo} alt={c.titre} className="h-[80px] w-full object-cover" loading="lazy" />
               <div className="p-2 bg-white">
                 <p className="text-xs font-bold text-[#111] truncate">{c.titre}</p>
@@ -170,10 +170,10 @@ export default function LocationMinibus() {
           <h2 className="text-lg font-bold text-[#111]">Minibus disponibles</h2>
           <span className="text-xs text-[#6B7280]">{filteredVehicules.length} résultat{filteredVehicules.length > 1 ? "s" : ""}</span>
         </div>
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredVehicules.map((v) => (
-            <Link key={v.id} to={`/louer/minibus/vehicule/${v.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden active:scale-[0.99] transition">
-              <div className="relative h-[160px]">
+            <Link key={v.id} to={`/louer/minibus/vehicule/${v.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden active:scale-[0.99] transition hover:shadow-lg">
+              <div className="relative h-[160px] md:h-[180px] lg:h-[200px]">
                 <img src={v.photo} alt={v.titre} className="w-full h-full object-cover" loading="lazy" />
                 <span className="absolute top-2 left-2 rounded-full bg-purple-700 px-2.5 py-0.5 text-[9px] font-bold text-white">{v.categorie}</span>
                 <span className="absolute top-2 right-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-[#111]">{v.places} places</span>

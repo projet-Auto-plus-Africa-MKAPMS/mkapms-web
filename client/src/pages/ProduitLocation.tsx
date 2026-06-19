@@ -114,13 +114,13 @@ export default function ProduitLocation() {
   }, [photos.length]);
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-[120px]">
+    <div className="min-h-screen bg-[#F5F3EF] pb-[120px] max-w-5xl mx-auto">
 
       {/* GALERIE */}
       <div className="relative">
         <div ref={scrollRef} className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide">
           {photos.map((p, i) => (
-            <img key={i} src={p} alt={`${v.titre} ${i + 1}`} className="w-full h-[260px] object-cover shrink-0 snap-center" loading="lazy" />
+            <img key={i} src={p} alt={`${v.titre} ${i + 1}`} className="w-full h-[260px] md:h-[360px] lg:h-[450px] object-cover shrink-0 snap-center" loading="lazy" />
           ))}
         </div>
         <button onClick={() => navigate(-1)} className="absolute top-4 left-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur shadow">

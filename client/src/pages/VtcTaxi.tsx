@@ -109,14 +109,14 @@ export default function VtcTaxi() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
+    <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
 
       {/* BANNIÈRE */}
       <div className="relative overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&h=420&fit=crop"
           alt="Location VTC Taxi"
-          className="w-full h-[240px] object-cover"
+          className="w-full h-[240px] md:h-[320px] lg:h-[400px] object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#111]/90 via-[#111]/40 to-transparent" />
         <Link to="/louer" className="absolute top-4 left-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur">
@@ -209,10 +209,10 @@ export default function VtcTaxi() {
           <h2 className="text-lg font-bold text-[#111]">Véhicules disponibles</h2>
           <span className="text-xs text-[#6B7280]">{filteredVehicules.length} résultat{filteredVehicules.length > 1 ? "s" : ""}</span>
         </div>
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredVehicules.map((v) => (
-            <Link key={v.id} to={`/louer/vtc-taxi/vehicule/${v.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden active:scale-[0.99] transition">
-              <div className="relative h-[160px]">
+            <Link key={v.id} to={`/louer/vtc-taxi/vehicule/${v.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden active:scale-[0.99] transition hover:shadow-lg">
+              <div className="relative h-[160px] md:h-[180px] lg:h-[200px]">
                 <img src={v.photo} alt={v.titre} className="w-full h-full object-cover" loading="lazy" />
                 <span className="absolute top-2 left-2 rounded-full bg-[#111] border border-[#D4AF37] px-2.5 py-0.5 text-[9px] font-bold text-[#D4AF37]">{v.badge}</span>
               </div>

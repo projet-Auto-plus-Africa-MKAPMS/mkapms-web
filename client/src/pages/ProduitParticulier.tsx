@@ -104,7 +104,7 @@ export default function ProduitParticulier() {
   const scrollToResv = () => resvRef.current?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
+    <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-5xl mx-auto">
 
       {/* BLOC 1 — PHOTOS */}
       <div className="relative">
@@ -117,7 +117,7 @@ export default function ProduitParticulier() {
           </button>
         </div>
         <div className="relative">
-          <img src={GALLERY[photoIdx]} alt={VEHICLE.titre} className="w-full h-[280px] object-cover" />
+          <img src={GALLERY[photoIdx]} alt={VEHICLE.titre} className="w-full h-[280px] md:h-[380px] lg:h-[450px] object-cover" />
           <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white"><Car size={12} /> PARTICULIER</span>
           <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs font-bold text-white">{photoIdx + 1} / {GALLERY.length}</div>
           <button onClick={prevPhoto} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 backdrop-blur flex items-center justify-center"><ChevronLeft size={18} /></button>
