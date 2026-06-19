@@ -595,7 +595,7 @@ export default function Finance() {
                 className="w-full rounded-xl border border-[#D4AF37]/20 bg-white p-4 text-left transition hover:border-[#D4AF37]">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[#111]">{faq.q}</span>
-                  {expandedFaq === i ? <ChevronDown size={14} className="text-[#D4AF37]" /> : <ChevronRight size={16} className="text-red-500" />}
+                  {expandedFaq === i ? <ChevronDown size={14} className="text-[#D4AF37]" /> : <ChevronRight size={14} className="text-red-500" />}
                 </div>
                 {expandedFaq === i && <p className="mt-2 text-[10px] text-slate-600">{faq.a}</p>}
               </button>

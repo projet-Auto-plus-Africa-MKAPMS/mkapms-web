@@ -2202,6 +2202,19 @@ export default function Vehicule() {
             ))}
           </div>
 
+          {/* ── PUBLICITÉ ── */}
+          <div className="rounded-2xl overflow-hidden" style={{height: '110px', background: 'linear-gradient(135deg, #111 0%, #2d3436 100%)'}}>
+            <div className="flex items-center justify-between h-full px-5">
+              <div>
+                <p className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider">Publicité MKA.P-MS</p>
+                <p className="text-sm font-extrabold text-white mt-1">Livraison à domicile</p>
+                <p className="text-[10px] text-white/60 mt-0.5">Recevez votre véhicule chez vous · Partout en France</p>
+                <button className="mt-2 rounded-full bg-[#D4AF37] px-4 py-1 text-[10px] font-bold text-[#111]" onClick={() => navigate("/services")}>En savoir plus</button>
+              </div>
+              <div className="text-4xl">🚚</div>
+            </div>
+          </div>
+
           {/* ═══════════════════════════════════════════════════════════
               14. FAQ
              ═══════════════════════════════════════════════════════════ */}

@@ -112,7 +112,7 @@ export default function ScoreQualiteLoueur() {
                 <span className="flex items-center gap-0.5">{Array.from({ length: a.note }, (_, n) => (<Star key={n} size={10} className="text-[#D4AF37]" fill="#D4AF37" />))}</span>
               </div>
               <p className="text-xs text-[#6B7280] mt-1">{a.texte}</p>
-              <p className="text-[9px] text-red-500 mt-1">{a.date}</p>
+              <p className="text-[9px] text-[#9CA3AF] mt-1">{a.date}</p>
             </div>
           ))}
         </div>

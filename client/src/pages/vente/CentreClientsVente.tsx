@@ -15,7 +15,7 @@ export default function CentreClientsVente() {
         <div key={c.nom} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center gap-3">
           <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">{c.nom[0]}</div>
           <div className="flex-1"><h3 className="text-sm font-bold text-[#111]">{c.nom}</h3><p className="text-[9px] text-[#6B7280]">{c.achats} achats · {c.reservations} réserv. · Dernier: {c.dernierContact}</p></div>
-          <ChevronRight size={16} className="text-red-500" />
+          <ChevronRight size={14} className="text-red-500" />
         </div>))}</div>
     </div>
   );

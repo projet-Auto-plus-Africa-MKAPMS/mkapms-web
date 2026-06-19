@@ -131,7 +131,7 @@ function Rapports() {
         <div key={r.id} className="rounded-xl border border-[#E5E7EB] bg-white p-5">
           <div className="mb-2 flex items-center justify-between">
             <h3 className="font-bold text-[#111]">Rapport {r.type} — {r.periode}</h3>
-            <span className="text-xs text-red-500">{new Date(r.createdAt).toLocaleDateString("fr-FR")}</span>
+            <span className="text-xs text-[#9CA3AF]">{new Date(r.createdAt).toLocaleDateString("fr-FR")}</span>
           </div>
           <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
             <div><span className="text-[#6B7280]">Achats :</span> {Number(r.totalAchats ?? 0).toLocaleString()} €</div>

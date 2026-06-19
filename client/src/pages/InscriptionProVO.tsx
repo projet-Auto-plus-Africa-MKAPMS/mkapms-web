@@ -116,7 +116,7 @@ export default function InscriptionProVO() {
             <div className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
               i === step ? "bg-[#D4AF37] text-white" :
               i < step ? "bg-[#D4AF37]/20 text-[#D4AF37]" :
-              "bg-[#F3F4F6] text-red-500"
+              "bg-[#F3F4F6] text-[#9CA3AF]"
             }`}>
               {i < step ? <Check size={12} /> : <span>{i + 1}</span>}
               <span className="hidden sm:inline">{s}</span>

@@ -159,7 +159,7 @@ export default function Louer() {
                 placeholder="Ville, gare, aéroport…"
                 value={lieu}
                 onChange={(e) => setLieu(e.target.value)}
-                className="w-full bg-transparent text-sm text-[#111] placeholder:text-red-500 outline-none"
+                className="w-full bg-transparent text-sm text-[#111] placeholder:text-[#9CA3AF] outline-none"
               />
             </div>
           </div>
@@ -220,8 +220,8 @@ export default function Louer() {
           SECTION 3 — UNIVERS LOCATION
           ═══════════════════════════════════════════════════════════════════ */}
       <div className="px-4 mt-6">
-        <h2 className="text-lg font-bold text-[#111]">Choisissez votre univers</h2>
-        <p className="text-xs text-[#6B7280] mt-0.5">Chaque univers a ses propres véhicules, tarifs et parcours.</p>
+        <h2 className="text-lg font-bold text-[#111] text-center">Choisissez votre univers</h2>
+        <p className="text-xs text-[#6B7280] mt-0.5 text-center">Chaque univers a ses propres véhicules, tarifs et parcours.</p>
 
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {UNIVERS.map((u) => {
@@ -343,7 +343,7 @@ export default function Louer() {
             <div className="text-center">
               <MapPinned size={32} className="text-[#D4AF37] mx-auto" />
               <p className="mt-2 text-sm font-semibold text-[#6B7280]">Carte interactive</p>
-              <p className="text-[10px] text-red-500">Agences · Points de retrait · Garages</p>
+              <p className="text-[10px] text-[#9CA3AF]">Agences · Points de retrait · Garages</p>
             </div>
           </div>
         </div>
@@ -356,7 +356,7 @@ export default function Louer() {
           </button>
         </div>
         <div className="px-4 pb-3">
-          <p className="text-[10px] text-red-500 text-center">La carte sert à localiser. La réservation se fait dans MKA.P-MS.</p>
+          <p className="text-[10px] text-[#9CA3AF] text-center">La carte sert à localiser. La réservation se fait dans MKA.P-MS.</p>
         </div>
       </div>
 

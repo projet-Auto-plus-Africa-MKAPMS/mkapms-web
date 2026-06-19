@@ -140,10 +140,10 @@ function StatusTimeline({ status, onStepClick }: { status: string; onStepClick?:
               title={step.label}
             >
               <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs transition
-                ${current ? "bg-[#D4AF37] text-white ring-2 ring-[#D4AF37]/30" : done ? "bg-[#D4AF37] text-white" : "bg-[#F3F4F6] text-red-500"}`}>
+                ${current ? "bg-[#D4AF37] text-white ring-2 ring-[#D4AF37]/30" : done ? "bg-[#D4AF37] text-white" : "bg-[#F3F4F6] text-[#9CA3AF]"}`}>
                 {step.icon}
               </div>
-              <span className={`mt-0.5 w-12 text-center text-[8px] leading-tight ${done ? "font-semibold text-[#111]" : "text-red-500"}`}>
+              <span className={`mt-0.5 w-12 text-center text-[8px] leading-tight ${done ? "font-semibold text-[#111]" : "text-[#9CA3AF]"}`}>
                 {step.label}
               </span>
             </button>
@@ -233,7 +233,7 @@ function VOListe({ onSelect }: { onSelect: (id: number) => void }) {
               <div>
                 <span className="text-lg font-bold text-[#111]">{v.marque} {v.modele}</span>
                 {v.version && <span className="ml-2 text-sm text-[#6B7280]">{v.version}</span>}
-                {v.annee && <span className="ml-2 text-sm text-red-500">({v.annee})</span>}
+                {v.annee && <span className="ml-2 text-sm text-[#9CA3AF]">({v.annee})</span>}
               </div>
               <StatusBadge status={v.status} />
             </div>
@@ -248,7 +248,7 @@ function VOListe({ onSelect }: { onSelect: (id: number) => void }) {
               {v.coutTotal != null && Number(v.coutTotal) > 0 && <div><span className="text-[#6B7280]">Coût total :</span> {Number(v.coutTotal).toLocaleString()} €</div>}
               {v.margeNette != null && <div className={Number(v.margeNette) >= 0 ? "text-[#16A34A]" : "text-[#DC2626]"}><span className="text-[#6B7280]">Marge :</span> {Number(v.margeNette).toLocaleString()} €</div>}
             </div>
-            <div className="mt-2 flex items-center justify-between text-xs text-red-500">
+            <div className="mt-2 flex items-center justify-between text-xs text-[#9CA3AF]">
               <span>VO-{v.id} — {new Date(v.createdAt).toLocaleDateString("fr-FR")}</span>
               <span className="font-medium text-[#D4AF37]">Voir le dossier →</span>
             </div>
@@ -596,7 +596,7 @@ function VODetail({ id, onBack }: { id: number; onBack: () => void }) {
                     <div>
                       <p className="text-sm font-semibold text-[#111]">{e.statusLabel}</p>
                       {e.commentaire && <p className="text-xs text-[#6B7280]">{e.commentaire}</p>}
-                      <p className="text-xs text-red-500">
+                      <p className="text-xs text-[#9CA3AF]">
                         {e.responsable && `${e.responsable} · `}
                         {new Date(e.createdAt).toLocaleString("fr-FR")}
                       </p>
@@ -616,7 +616,7 @@ function VODetail({ id, onBack }: { id: number; onBack: () => void }) {
    TAB COMPOSANTS DÉTAIL
    ═══════════════════════════════════════════════════════════ */
 function DocList({ docs }: { docs: { id: number; nom: string; url: string; category: string; createdAt: Date }[] }) {
-  if (!docs.length) return <p className="mt-2 text-xs text-red-500">Aucun document pour cette étape.</p>;
+  if (!docs.length) return <p className="mt-2 text-xs text-[#9CA3AF]">Aucun document pour cette étape.</p>;
   return (
     <div className="mt-3 space-y-1">
       {docs.map((d) => (
@@ -627,7 +627,7 @@ function DocList({ docs }: { docs: { id: number; nom: string; url: string; categ
             <span className="flex h-8 w-8 items-center justify-center rounded bg-[#F3F4F6] text-[10px] font-bold text-[#6B7280]">PDF</span>
           )}
           <span className="flex-1 truncate text-[#374151]">{d.nom}</span>
-          <span className="text-xs text-red-500">{new Date(d.createdAt).toLocaleDateString("fr-FR")}</span>
+          <span className="text-xs text-[#9CA3AF]">{new Date(d.createdAt).toLocaleDateString("fr-FR")}</span>
         </a>
       ))}
     </div>

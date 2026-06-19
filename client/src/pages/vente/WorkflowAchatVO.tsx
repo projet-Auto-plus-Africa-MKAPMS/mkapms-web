@@ -27,10 +27,10 @@ export default function WorkflowAchatVO() {
           {ETAPES.map((e, i) => (
             <div key={i} className="flex items-start gap-3">
               <div className="flex flex-col items-center">
-                <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold ${e.fait ? "bg-blue-600 text-white" : "bg-[#E5E7EB] text-red-500"}`}>{e.fait ? <Check size={12} /> : i + 1}</div>
+                <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold ${e.fait ? "bg-blue-600 text-white" : "bg-[#E5E7EB] text-[#9CA3AF]"}`}>{e.fait ? <Check size={12} /> : i + 1}</div>
                 {i < ETAPES.length - 1 && <div className={`w-0.5 h-8 ${e.fait ? "bg-blue-600" : "bg-[#E5E7EB]"}`} />}
               </div>
-              <div className="pb-4"><p className={`text-sm ${e.fait ? "font-bold text-[#111]" : "text-red-500"}`}>{e.label}</p>{e.date && <p className="text-[9px] text-red-500">{e.date}</p>}</div>
+              <div className="pb-4"><p className={`text-sm ${e.fait ? "font-bold text-[#111]" : "text-[#9CA3AF]"}`}>{e.label}</p>{e.date && <p className="text-[9px] text-[#9CA3AF]">{e.date}</p>}</div>
             </div>
           ))}
         </div>

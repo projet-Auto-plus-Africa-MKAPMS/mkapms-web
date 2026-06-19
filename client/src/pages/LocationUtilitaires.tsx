@@ -98,7 +98,7 @@ export default function LocationUtilitaires() {
             <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Lieu de retrait</label>
             <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
               <MapPin size={14} className="text-red-500 shrink-0" />
-              <input type="text" placeholder="Ville, zone industrielle…" value={lieu} onChange={(e) => setLieu(e.target.value)} className="w-full bg-transparent text-sm text-[#111] placeholder:text-red-500 outline-none" />
+              <input type="text" placeholder="Ville, zone industrielle…" value={lieu} onChange={(e) => setLieu(e.target.value)} className="w-full bg-transparent text-sm text-[#111] placeholder:text-[#9CA3AF] outline-none" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">

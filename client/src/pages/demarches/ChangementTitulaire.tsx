@@ -8,7 +8,7 @@ export default function ChangementTitulaire() {
       <div className="bg-blue-700 px-4 pt-6 pb-5"><Link to="/demarches" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Démarches</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Users size={20} /> Changement titulaire</h1></div>
       <div className="px-4 mt-4 space-y-2">{DOCS.map(d => (
         <div key={d.label} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center gap-3">
-          {d.statut === "valide" ? <Check size={14} className="text-green-600" /> : <Clock size={14} className={d.statut === "en_attente" ? "text-amber-500" : "text-red-500"} />}
+          {d.statut === "valide" ? <Check size={14} className="text-green-600" /> : <Clock size={14} className={d.statut === "en_attente" ? "text-amber-500" : "text-[#9CA3AF]"} />}
           <span className="flex-1 text-sm text-[#111]">{d.label}</span>
           {d.statut !== "valide" && <Upload size={12} className="text-[#D4AF37]" />}
         </div>))}</div>

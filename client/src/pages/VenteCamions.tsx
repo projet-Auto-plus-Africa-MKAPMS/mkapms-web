@@ -32,7 +32,7 @@ export default function VenteCamions() {
       <div className="px-4 mt-6"><h2 className="text-base font-bold text-[#111]">Annonces camions</h2>
         <div className="mt-3 space-y-3">{ANNONCES.map((a) => (
           <Link key={a.id} to={`/vehicule/${9090 + a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
-            <div className="relative h-[130px]"><img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" /><span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} /></span></div>
+            <div className="relative h-[130px]"><img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" /><span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span></div>
             <div className="p-4"><h3 className="text-sm font-bold text-[#111]">{a.nom}</h3><p className="text-[10px] text-[#6B7280] mt-0.5">{a.annee} · {a.km.toLocaleString("fr-FR")} km · PTAC {a.ptac}</p><p className="mt-2 text-lg font-black text-gray-700">{a.prix.toLocaleString("fr-FR")} €</p></div>
           </Link>))}</div>
       </div>

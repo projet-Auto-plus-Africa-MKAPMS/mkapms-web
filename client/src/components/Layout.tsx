@@ -240,8 +240,8 @@ function Footer() {
     <footer className="mt-16 border-t border-slate-200 bg-white">
       <div className="container-page py-10 md:py-12">
         {/* Logo + description */}
-        <div className="mb-6">
-          <div className="flex flex-col">
+        <div className="mb-6 text-center">
+          <div className="flex flex-col items-center">
             <span className="text-lg font-extrabold tracking-tight text-noir">
               MK<span className="text-gold">A</span>.P-MS
             </span>
@@ -249,14 +249,14 @@ function Footer() {
               La marketplace automobile
             </span>
           </div>
-          <p className="mt-3 max-w-md text-sm text-slate-500">
+          <p className="mt-3 mx-auto max-w-md text-sm text-slate-500 text-center">
             La marketplace automobile de référence. Achat, location et entretien — une seule
             plateforme, pensée pour votre confiance.
           </p>
         </div>
 
         {/* Plateforme + Aide & légal côte à côte */}
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-4 text-center md:text-left">
           <div>
             <h4 className="mb-3 text-sm font-bold text-slate-800">Plateforme</h4>
             <ul className="space-y-2 text-sm text-slate-500">
@@ -278,7 +278,7 @@ function Footer() {
               <li><Link to="/aide#mentions">Mentions légales</Link></li>
             </ul>
           </div>
-          <div className="col-span-2 mt-2 md:col-span-2 md:mt-0">
+          <div className="col-span-2 mt-2 md:col-span-2 md:mt-0 text-center md:text-left">
             <h4 className="mb-3 text-sm font-bold text-slate-800">Contact</h4>
             <ul className="space-y-2 text-sm text-slate-500">
               <li>{legal?.telephone}</li>

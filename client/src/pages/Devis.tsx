@@ -256,7 +256,7 @@ export default function Devis() {
             <div className={`flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold transition ${
               i === step ? "bg-[#D4AF37] text-white" :
               i < step ? "bg-[#D4AF37]/20 text-[#D4AF37]" :
-              "bg-[#F3F4F6] text-red-500"
+              "bg-[#F3F4F6] text-[#9CA3AF]"
             }`}>
               {i < step ? <Check size={10} /> : <span>{i + 1}</span>}
               <span className="hidden sm:inline">{s}</span>
@@ -327,7 +327,7 @@ export default function Devis() {
 
             {/* Barre de recherche */}
             <div className="mt-4 relative">
-              <Search size={16} className="absolute left-3 top-3 text-red-500" />
+              <Search size={16} className="absolute left-3 top-3 text-[#9CA3AF]" />
               <input
                 className="input pl-9 text-sm"
                 placeholder="Rechercher : plaquettes, PLQ-AV-01, filtre, turbo..."
@@ -366,20 +366,20 @@ export default function Devis() {
                 >
                   <div>
                     <span className="font-medium text-[#111]">{p.nom}</span>
-                    <span className="ml-2 text-[9px] text-red-500">{p.ref}</span>
+                    <span className="ml-2 text-[9px] text-[#9CA3AF]">{p.ref}</span>
                     <span className="ml-2 text-[9px] px-1.5 py-0.5 rounded-full bg-[#F3F4F6] text-[#6B7280]">{p.categorie}</span>
                   </div>
                   <span className="shrink-0 text-sm font-bold text-[#D4AF37]">{p.prix} €</span>
                 </button>
               ))}
               {filteredPieces.length === 0 && (
-                <p className="py-6 text-center text-sm text-red-500">
+                <p className="py-6 text-center text-sm text-[#9CA3AF]">
                   Aucune pièce trouvée — le garage pourra la commander pour vous.
                 </p>
               )}
             </div>
 
-            <p className="mt-2 text-[10px] text-red-500">Cliquez sur une pièce pour l'ajouter au panier. Vous pouvez ajuster les quantités à l'étape suivante.</p>
+            <p className="mt-2 text-[10px] text-[#9CA3AF]">Cliquez sur une pièce pour l'ajouter au panier. Vous pouvez ajuster les quantités à l'étape suivante.</p>
           </div>
         )}
 
@@ -392,7 +392,7 @@ export default function Devis() {
 
             {selectedPieces.length === 0 ? (
               <div className="mt-4 py-8 text-center">
-                <p className="text-sm text-red-500">Aucune pièce sélectionnée.</p>
+                <p className="text-sm text-[#9CA3AF]">Aucune pièce sélectionnée.</p>
                 <button className="btn-outline mt-3 text-sm" onClick={() => setStep(1)}>← Retour au catalogue</button>
               </div>
             ) : (
@@ -401,7 +401,7 @@ export default function Devis() {
                   <div key={p.ref} className="flex items-center gap-3 rounded-lg border border-[#E5E7EB] p-3">
                     <div className="flex-1">
                       <p className="text-sm font-medium text-[#111]">{p.nom}</p>
-                      <p className="text-[10px] text-red-500">{p.ref} · {p.categorie}</p>
+                      <p className="text-[10px] text-[#9CA3AF]">{p.ref} · {p.categorie}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button type="button" onClick={() => updateQty(p.ref, -1)} className="rounded-full border border-[#E5E7EB] p-1 hover:bg-[#F3F4F6]"><Minus size={12} /></button>
@@ -504,7 +504,7 @@ export default function Devis() {
                         <Star size={12} className="text-[#D4AF37]" fill="#D4AF37" />
                         <span className="text-sm font-bold">{g.note}</span>
                       </div>
-                      <p className="text-[10px] text-red-500">{g.avis} avis</p>
+                      <p className="text-[10px] text-[#9CA3AF]">{g.avis} avis</p>
                     </div>
                   </div>
                   {selectedGarage === g.id && <Check size={16} className="text-[#D4AF37] mt-2" />}
@@ -648,14 +648,14 @@ export default function Devis() {
                 <div key={e.label} className="flex gap-3">
                   <div className="flex flex-col items-center">
                     <div className={`flex h-6 w-6 items-center justify-center rounded-full text-white text-xs ${e.done ? "bg-green-500" : "bg-[#E5E7EB]"}`}>
-                      {e.done ? <Check size={12} /> : <span className="text-red-500">{i + 1}</span>}
+                      {e.done ? <Check size={12} /> : <span className="text-[#9CA3AF]">{i + 1}</span>}
                     </div>
                     {i < 6 && <div className={`w-0.5 h-8 ${e.done ? "bg-green-300" : "bg-[#E5E7EB]"}`} />}
                   </div>
                   <div className="pb-6">
                     <p className={`text-sm font-medium ${e.done ? "text-green-700" : "text-[#111]"}`}>{e.label}</p>
                     <p className="text-[10px] text-[#6B7280]">{e.desc}</p>
-                    <p className="text-[10px] text-red-500">{e.date}</p>
+                    <p className="text-[10px] text-[#9CA3AF]">{e.date}</p>
                   </div>
                 </div>
               ))}

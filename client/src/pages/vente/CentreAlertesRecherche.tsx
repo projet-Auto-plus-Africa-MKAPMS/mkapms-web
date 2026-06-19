@@ -11,9 +11,9 @@ export default function CentreAlertesRecherche() {
       <div className="bg-[#111] px-4 pt-6 pb-5"><Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Vente</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Bell size={20} className="text-[#D4AF37]" /> Alertes recherche</h1></div>
       <div className="px-4 mt-4 space-y-2">{ALERTES.map(a => (
         <div key={a.recherche} className="rounded-xl bg-white border border-[#E5E7EB] p-4 flex items-center gap-3">
-          <Bell size={14} className={a.active ? "text-[#D4AF37]" : "text-red-500"} />
+          <Bell size={14} className={a.active ? "text-[#D4AF37]" : "text-[#9CA3AF]"} />
           <div className="flex-1"><h3 className="text-sm font-bold text-[#111]">{a.recherche}</h3><p className="text-[9px] text-[#6B7280]">{a.resultats} résultats · {a.active ? "Active" : "Désactivée"}</p></div>
-          <Trash2 size={14} className="text-red-500" />
+          <Trash2 size={14} className="text-[#9CA3AF]" />
         </div>))}</div>
       <div className="mx-4 mt-4 rounded-xl bg-white border border-[#E5E7EB] p-4">
         <h3 className="text-sm font-bold text-[#111] mb-2">Nouvelle alerte</h3>

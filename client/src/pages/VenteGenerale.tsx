@@ -46,8 +46,8 @@ export default function VenteGenerale() {
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       {/* HERO */}
       <div className="bg-[#111] px-4 pt-6 pb-6">
-        <h1 className="text-2xl font-black text-white">Achat de véhicules MKA.P-MS</h1>
-        <p className="mt-1 text-sm text-white/60">Choisissez votre univers et trouvez le véhicule adapté.</p>
+        <h1 className="text-2xl font-black text-white text-center">Achat de véhicules MKA.P-MS</h1>
+        <p className="mt-1 text-sm text-white/60 text-center">Choisissez votre univers et trouvez le véhicule adapté.</p>
       </div>
 
       {/* RECHERCHE RAPIDE */}
@@ -67,8 +67,8 @@ export default function VenteGenerale() {
 
       {/* UNIVERS VENTE */}
       <div className="px-4 mt-6">
-        <h2 className="text-lg font-black text-[#111]">Choisissez votre univers</h2>
-        <p className="text-xs text-[#6B7280] mt-0.5">Chaque univers a ses propres véhicules, filtres et parcours.</p>
+        <h2 className="text-lg font-black text-[#111] text-center">Choisissez votre univers</h2>
+        <p className="text-xs text-[#6B7280] mt-0.5 text-center">Chaque univers a ses propres véhicules, filtres et parcours.</p>
         <div className="mt-4 space-y-3">
           {UNIVERS.map((u) => (
             <Link key={u.id} to={u.to} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden active:scale-[0.99] transition shadow-sm">
@@ -108,7 +108,7 @@ export default function VenteGenerale() {
 
       {/* FAQ */}
       <div className="px-4 mt-8">
-        <h2 className="text-lg font-black text-[#111]">Questions fréquentes</h2>
+        <h2 className="text-lg font-black text-[#111] text-center">Questions fréquentes</h2>
         <div className="mt-3 space-y-2">
           {FAQ_VENTE.map((f, i) => (
             <div key={i} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">

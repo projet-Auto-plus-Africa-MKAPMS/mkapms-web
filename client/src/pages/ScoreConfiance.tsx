@@ -64,7 +64,7 @@ export default function ScoreConfiance() {
           return (
             <div key={c.id} className="rounded-xl bg-white border border-[#E5E7EB] p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F5F3EF]"><Icon size={16} className="text-[#6B7280]" /></div>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F5F3EF]"><Icon size={16} className="text-red-500" /></div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-bold text-[#111]">{c.label}</h3>
@@ -76,7 +76,7 @@ export default function ScoreConfiance() {
               <div className="mt-2 h-1.5 rounded-full bg-[#E5E7EB] overflow-hidden">
                 <div className={`h-full rounded-full transition-all ${c.score >= 85 ? "bg-green-500" : c.score >= 70 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${c.score}%` }} />
               </div>
-              <p className="mt-1 text-[9px] text-red-500">{c.detail}</p>
+              <p className="mt-1 text-[9px] text-[#9CA3AF]">{c.detail}</p>
             </div>
           );
         })}

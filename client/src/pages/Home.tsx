@@ -133,7 +133,7 @@ function AnnonceCard({ a, badgeColor = "bg-[#D4AF37]" }: { a: any; badgeColor?: 
           <p className="text-base font-black text-[#111]">
             {a.prix ? `${a.prix.toLocaleString("fr-FR")} €` : a.prixJour ? `${a.prixJour} €/jour` : ""}
           </p>
-          {a.ville && <span className="text-[10px] text-red-500 flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</span>}
+          {a.ville && <span className="text-[10px] text-[#9CA3AF] flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</span>}
         </div>
       </div>
     </Link>
@@ -431,7 +431,7 @@ export default function Home() {
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       <p className="text-base font-black text-[#D4AF37]">{a.prixJour} €<span className="text-[10px] font-normal text-[#6B7280]">/jour</span></p>
-                      <span className="text-[10px] text-red-500 flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</span>
+                      <span className="text-[10px] text-[#9CA3AF] flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</span>
                     </div>
                   </div>
                 </Link>

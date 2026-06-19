@@ -58,7 +58,7 @@ export default function GestionStockVO() {
                 <h3 className="text-sm font-bold text-[#111] truncate">{v.nom}</h3>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[8px] font-bold text-white ${s.color}`}>{s.label}</span>
-                  <span className="text-[8px] text-red-500">{v.date}</span>
+                  <span className="text-[8px] text-[#9CA3AF]">{v.date}</span>
                 </div>
               </div>
               <span className="text-sm font-black text-blue-800">{v.prix.toLocaleString("fr-FR")} €</span>

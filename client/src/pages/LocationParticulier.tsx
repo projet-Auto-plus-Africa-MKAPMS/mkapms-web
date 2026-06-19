@@ -170,7 +170,7 @@ export default function LocationParticulier() {
             <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Ville de départ</label>
             <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
               <MapPin size={14} className="text-red-500 shrink-0" />
-              <input type="text" placeholder="Paris, Lyon, Marseille…" value={lieu} onChange={(e) => setLieu(e.target.value)} className="w-full bg-transparent text-sm text-[#111] placeholder:text-red-500 outline-none" />
+              <input type="text" placeholder="Paris, Lyon, Marseille…" value={lieu} onChange={(e) => setLieu(e.target.value)} className="w-full bg-transparent text-sm text-[#111] placeholder:text-[#9CA3AF] outline-none" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -431,7 +431,7 @@ export default function LocationParticulier() {
             <div className="text-center">
               <MapPinned size={28} className="text-[#D4AF37] mx-auto" />
               <p className="mt-2 text-sm font-semibold text-[#6B7280]">Carte interactive</p>
-              <p className="text-[10px] text-red-500">Agences · Véhicules · Distance</p>
+              <p className="text-[10px] text-[#9CA3AF]">Agences · Véhicules · Distance</p>
             </div>
           </div>
         </div>

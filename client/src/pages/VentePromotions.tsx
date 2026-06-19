@@ -20,7 +20,7 @@ export default function VentePromotions() {
           <Link key={a.id} to={`/vehicule/${9110 + a.id}`} className="block rounded-xl bg-white border border-green-200 overflow-hidden hover:shadow-lg transition">
             <div className="relative h-[130px]">
               <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
-              <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} /></span>
+              <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span>
               <span className="absolute top-2 left-2 rounded-full bg-green-600 px-2.5 py-0.5 text-[10px] font-bold text-white">{a.remise}</span>
               <span className="absolute bottom-2 left-2 rounded-full bg-[#111] px-2 py-0.5 text-[9px] font-bold text-white flex items-center gap-1"><Clock size={10} /> {a.fin}</span>
             </div>

@@ -346,8 +346,8 @@ export default function ProduitVtcTaxi() {
         <div className="flex border-b border-[#F3F4F6]">
           {[{ n: 1, l: "Dates" }, { n: 2, l: "Dossier" }, { n: 3, l: "Contrat" }, { n: 4, l: "Acompte" }].map((s) => (
             <button key={s.n} onClick={() => setStep(s.n)} className="flex-1 flex flex-col items-center gap-0.5 py-2.5">
-              <div className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${step >= s.n ? "bg-[#D4AF37] text-white" : "bg-[#F3F4F6] text-red-500"}`}>{s.n}</div>
-              <span className={`text-[10px] font-semibold ${step >= s.n ? "text-[#111]" : "text-red-500"}`}>{s.l}</span>
+              <div className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${step >= s.n ? "bg-[#D4AF37] text-white" : "bg-[#F3F4F6] text-[#9CA3AF]"}`}>{s.n}</div>
+              <span className={`text-[10px] font-semibold ${step >= s.n ? "text-[#111]" : "text-[#9CA3AF]"}`}>{s.l}</span>
             </button>
           ))}
         </div>
@@ -498,6 +498,19 @@ export default function ProduitVtcTaxi() {
               <p className="mt-2 text-xs text-[#6B7280] leading-relaxed">{a.commentaire}</p>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* PUBLICITÉ */}
+      <div className="mx-4 mt-4 rounded-2xl overflow-hidden" style={{height: '110px', background: 'linear-gradient(135deg, #111 0%, #2d3436 100%)'}}>
+        <div className="flex items-center justify-between h-full px-5">
+          <div>
+            <p className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider">Publicité MKA.P-MS</p>
+            <p className="text-sm font-extrabold text-white mt-1">Assurance VTC professionnelle</p>
+            <p className="text-[10px] text-white/60 mt-0.5">RC Pro + Véhicule dès 89€/mois</p>
+            <button className="mt-2 rounded-full bg-[#D4AF37] px-4 py-1 text-[10px] font-bold text-[#111]" onClick={() => nav("/services")}>En savoir plus</button>
+          </div>
+          <div className="text-4xl">🚕</div>
         </div>
       </div>
 

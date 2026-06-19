@@ -94,7 +94,7 @@ export default function Connexion() {
 
               <div className="relative my-6 text-center">
                 <div className="absolute inset-x-0 top-1/2 h-px bg-[#E5E7EB]" />
-                <span className="relative bg-white px-4 text-xs font-medium text-red-500">ou par email</span>
+                <span className="relative bg-white px-4 text-xs font-medium text-[#9CA3AF]">ou par email</span>
               </div>
             </>
           )}
@@ -123,7 +123,7 @@ export default function Connexion() {
                       <option key={p.type} value={p.type}>{p.label}</option>
                     ))}
                   </select>
-                  <p className="mt-1 text-xs text-red-500">{getProfile(form.profileType)?.description}</p>
+                  <p className="mt-1 text-xs text-[#9CA3AF]">{getProfile(form.profileType)?.description}</p>
                 </div>
               </>
             )}
@@ -229,7 +229,7 @@ export default function Connexion() {
         </div>
 
         {/* Footer */}
-        <p className="mt-8 text-center text-xs text-red-500">
+        <p className="mt-8 text-center text-xs text-[#9CA3AF]">
           En continuant, vous acceptez les{" "}
           <a href="/aide#cgv" className="underline hover:text-[#6B7280]">conditions d'utilisation</a>
           {" "}et la{" "}
