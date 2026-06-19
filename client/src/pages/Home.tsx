@@ -372,16 +372,18 @@ export default function Home() {
               SECTION 8 — PUBLICITÉ PREMIUM #1
               ═══════════════════════════════════════════════════════════════ */}
           <section className="px-4 py-3 bg-white border-t border-[#F3F4F6]">
-            {(() => { const ad = ADS_CENTER[adCenter1]; return (
-            <div key={adCenter1} className={`rounded-xl ${ad.color} p-4 md:p-6 flex items-center justify-between overflow-hidden relative transition-all duration-500`}>
-              <span className="absolute top-2 left-2 text-[8px] font-semibold uppercase tracking-wider text-white/50">PUBLICITÉ</span>
-              <div>
-                <h3 className="text-lg md:text-xl font-black text-white uppercase">{ad.titre}</h3>
-                <p className="text-xs text-white/70 mt-1">{ad.sous}</p>
-              </div>
-              <Link to={ad.to} className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#c9a430] transition">EN SAVOIR PLUS</Link>
+            <div className="rounded-xl overflow-hidden relative h-[90px] md:h-[100px]">
+              <span className="absolute top-2 left-2 z-10 text-[8px] font-semibold uppercase tracking-wider text-white/50">PUBLICITÉ</span>
+              {ADS_CENTER.map((ad, i) => (
+                <Link key={i} to={ad.to} className={`absolute inset-0 ${ad.color} p-4 md:p-6 flex items-center justify-between transition-transform duration-700 ease-in-out`} style={{ transform: `translateX(${(i - adCenter1) * 100}%)` }}>
+                  <div className="min-w-0">
+                    <h3 className="text-lg md:text-xl font-black text-white uppercase truncate">{ad.titre}</h3>
+                    <p className="text-xs text-white/70 mt-1 truncate">{ad.sous}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white">EN SAVOIR PLUS</span>
+                </Link>
+              ))}
             </div>
-            ); })()}
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
@@ -491,16 +493,18 @@ export default function Home() {
               SECTION 13 — PUBLICITÉ PREMIUM #2
               ═══════════════════════════════════════════════════════════════ */}
           <section className="px-4 py-3 bg-white border-t border-[#F3F4F6]">
-            {(() => { const ad = ADS_CENTER[adCenter2]; return (
-            <div key={adCenter2} className={`rounded-xl ${ad.color} p-4 md:p-6 flex items-center justify-between overflow-hidden relative transition-all duration-500`}>
-              <span className="absolute top-2 left-2 text-[8px] font-semibold uppercase tracking-wider text-white/50">PUBLICITÉ</span>
-              <div>
-                <h3 className="text-lg md:text-xl font-black text-white uppercase">{ad.titre}</h3>
-                <p className="text-xs text-white/70 mt-1">{ad.sous}</p>
-              </div>
-              <Link to={ad.to} className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#c9a430] transition">EN SAVOIR PLUS</Link>
+            <div className="rounded-xl overflow-hidden relative h-[90px] md:h-[100px]">
+              <span className="absolute top-2 left-2 z-10 text-[8px] font-semibold uppercase tracking-wider text-white/50">PUBLICITÉ</span>
+              {ADS_CENTER.map((ad, i) => (
+                <Link key={i} to={ad.to} className={`absolute inset-0 ${ad.color} p-4 md:p-6 flex items-center justify-between transition-transform duration-700 ease-in-out`} style={{ transform: `translateX(${(i - adCenter2) * 100}%)` }}>
+                  <div className="min-w-0">
+                    <h3 className="text-lg md:text-xl font-black text-white uppercase truncate">{ad.titre}</h3>
+                    <p className="text-xs text-white/70 mt-1 truncate">{ad.sous}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white">EN SAVOIR PLUS</span>
+                </Link>
+              ))}
             </div>
-            ); })()}
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
