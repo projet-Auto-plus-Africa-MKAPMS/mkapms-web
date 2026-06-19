@@ -1,1291 +1,634 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Search, Plus, PlusCircle, FileText, Wrench, Car, KeyRound, Truck, Star,
-  ArrowRight, ShieldCheck, Users, User, Gauge, Heart, ChevronRight, ChevronDown,
-  CheckCircle, Check, Clock, Package, Phone, Mail, MapPin, Globe, Headphones, Tag, Zap,
-  Award, Shield,
+  Search, Tag, KeyRound, Wrench, Car, Star, ArrowRight, ShieldCheck,
+  Users, Gauge, Heart, ChevronRight, ChevronLeft, ChevronDown,
+  CheckCircle, Clock, Package, MapPin, Globe, Headphones, Award, Shield,
+  Truck, Zap, FileText, CreditCard, Phone, Settings, Eye, Navigation,
+  Briefcase, Building2, Stethoscope, BadgeCheck, CarFront, Bus, HardHat,
+  Fuel, History, Lock, Hammer, Receipt, Scale, Banknote, CircleDollarSign,
+  BookOpen, Cog, Sparkles, Play
 } from "lucide-react";
-
-/* ── Icône moto (SVG custom) ── */
-const MotoIcon = ({ size = 20, className = "" }: { size?: number; className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="5" cy="17" r="3" />
-    <circle cx="19" cy="17" r="3" />
-    <path d="M5 14l4-9h3" />
-    <path d="M12 5l3 9h4" />
-    <path d="M15 6h4l-1 3" />
-    <path d="M9 5L8 2" />
-  </svg>
-);
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
-import VehicleCard from "../components/VehicleCard";
 
-/* ── catégories avec vraies photos modernes ── */
-const CATEGORIES = [
-  { label: "Citadine", count: "2 350 véhicules", to: "/acheter?categorie=citadine", img: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=300&h=180&fit=crop" },
-  { label: "Berline", count: "4 152 véhicules", to: "/acheter?categorie=berline", img: "https://images.unsplash.com/photo-1590316536591-92ba019a7b50?w=300&h=180&fit=crop" },
-  { label: "SUV", count: "3 782 véhicules", to: "/acheter?categorie=suv", img: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=300&h=180&fit=crop" },
-  { label: "Utilitaire", count: "1 256 véhicules", to: "/acheter?categorie=utilitaire", img: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=300&h=180&fit=crop" },
-  { label: "Moto", count: "2 620 véhicules", to: "/acheter?famille=moto", img: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=300&h=180&fit=crop" },
-  { label: "Sportive", count: "1 842 véhicules", to: "/acheter?categorie=coupe", img: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=300&h=180&fit=crop" },
-  { label: "Scooter", count: "1 125 véhicules", to: "/acheter?famille=moto&categorie=scooter", img: "https://images.unsplash.com/photo-1666275898279-29e7b777bafb?w=300&h=180&fit=crop" },
+/* ══════════════════════════════════════════════════════════════════════════
+   PAGE D'ACCUEIL MKA.P-MS — VERSION DÉFINITIVE V1
+   16 sections dans l'ordre exact spécifié.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── DONNÉES ANNONCES ── */
+
+const ANNONCES_OFFICIELLES = [
+  { id: 9001, titre: "Peugeot 3008 GT", badge: "MKA.P-MS OFFICIEL", annee: 2023, km: 12000, carburant: "Essence", prix: 28900, ville: "Bois-en-France", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=280&fit=crop" },
+  { id: 9002, titre: "Renault Austral", badge: "MKA.P-MS OFFICIEL", annee: 2024, km: 5000, carburant: "Hybride", prix: 34500, ville: "Bois-en-France", photo: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=280&fit=crop" },
+  { id: 9003, titre: "BMW Série 3 320d", badge: "MKA.P-MS OFFICIEL", annee: 2022, km: 25000, carburant: "Diesel", prix: 32900, ville: "Bois-en-France", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=280&fit=crop" },
+  { id: 9004, titre: "Mercedes Classe A", badge: "MKA.P-MS OFFICIEL", annee: 2022, km: 18000, carburant: "Essence", prix: 29900, ville: "Bois-en-France", photo: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400&h=280&fit=crop" },
+  { id: 9050, titre: "Audi A3 Sportback", badge: "MKA.P-MS OFFICIEL", annee: 2023, km: 10000, carburant: "Essence", prix: 31200, ville: "Paris", photo: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=280&fit=crop" },
 ];
 
-/* ── annonces démo ── */
-const DEMO_ANNONCES = [
-  { id: 9001, titre: "Peugeot 3008 GT Line", marque: "Peugeot", modele: "3008", annee: 2022, kilometrage: 35000, carburant: "Diesel", prix: 28900, type: "vente", ville: "Paris", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=280&fit=crop" },
-  { id: 9002, titre: "Renault Clio V Intens", marque: "Renault", modele: "Clio", annee: 2023, kilometrage: 18000, carburant: "Essence", prix: 16500, type: "vente", ville: "Lyon", vendeurType: "particulier", photoPrincipale: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=280&fit=crop" },
-  { id: 9003, titre: "BMW Série 3 320d M Sport", marque: "BMW", modele: "Série 3", annee: 2021, kilometrage: 42000, carburant: "Diesel", prix: 35900, type: "vente", ville: "Marseille", vendeurType: "professionnel", boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=280&fit=crop" },
-  { id: 9004, titre: "Mercedes Classe A 200", marque: "Mercedes", modele: "Classe A", annee: 2022, kilometrage: 25000, carburant: "Essence", prix: 32000, type: "vente", ville: "Toulouse", vendeurType: "professionnel", boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400&h=280&fit=crop" },
-  { id: 9005, titre: "Citroën C3 Aircross", marque: "Citroën", modele: "C3 Aircross", annee: 2023, kilometrage: 12000, carburant: "Essence", prix: 19900, type: "vente", ville: "Bordeaux", vendeurType: "particulier", photoPrincipale: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=280&fit=crop" },
-  { id: 9006, titre: "Volkswagen Golf 8 R-Line", marque: "Volkswagen", modele: "Golf", annee: 2022, kilometrage: 30000, carburant: "Essence", prix: 27500, type: "vente", ville: "Nice", vendeurType: "professionnel", boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=280&fit=crop" },
-  { id: 9007, titre: "Toyota Yaris Hybride", marque: "Toyota", modele: "Yaris", annee: 2023, kilometrage: 8000, carburant: "Hybride", prix: 21500, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 45, photoPrincipale: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=280&fit=crop" },
-  { id: 9008, titre: "Audi A4 Avant S-Line", marque: "Audi", modele: "A4", annee: 2021, kilometrage: 55000, carburant: "Diesel", prix: 31900, type: "vente", ville: "Lille", vendeurType: "professionnel", boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=280&fit=crop" },
-  { id: 9009, titre: "Dacia Sandero Stepway", marque: "Dacia", modele: "Sandero", annee: 2022, kilometrage: 22000, carburant: "Essence", prix: 14500, type: "vente", ville: "Nantes", vendeurType: "particulier", photoPrincipale: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=400&h=280&fit=crop" },
-  { id: 9010, titre: "Fiat 500 Lounge", marque: "Fiat", modele: "500", annee: 2021, kilometrage: 32000, carburant: "Essence", prix: 13900, type: "vente", ville: "Strasbourg", vendeurType: "particulier", photoPrincipale: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=400&h=280&fit=crop" },
+const ANNONCES_BOOSTEES = [
+  { id: 9010, titre: "Audi A3 Sportback", badge: "ELITE", type: "BOOSTÉ", annee: 2021, km: 38000, prix: 27900, ville: "Paris", photo: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=280&fit=crop" },
+  { id: 9011, titre: "BMW Série 3 320i", badge: "ELITE", type: "BOOSTÉ", annee: 2020, km: 42000, prix: 29500, ville: "Lyon", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=280&fit=crop" },
+  { id: 9012, titre: "Mercedes Classe C", badge: "ELITE", type: "BOOSTÉ", annee: 2021, km: 35000, prix: 31900, ville: "Marseille", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=280&fit=crop" },
+  { id: 9013, titre: "Volkswagen Golf 8", badge: "ELITE", type: "BOOSTÉ", annee: 2023, km: 15000, prix: 24900, ville: "Nice", photo: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=280&fit=crop" },
+  { id: 9014, titre: "Toyota Corolla", badge: "ELITE", type: "BOOSTÉ", annee: 2022, km: 20000, prix: 23500, ville: "Toulouse", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=280&fit=crop" },
 ];
 
-/* ── annonces location démo ── */
-const DEMO_LOCATION = [
-  { id: 9101, titre: "Peugeot 208 GT", marque: "Peugeot", modele: "208", annee: 2023, kilometrage: 5000, carburant: "Essence", prix: 35, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 35, photoPrincipale: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&h=280&fit=crop" },
-  { id: 9102, titre: "Renault Captur Intens", marque: "Renault", modele: "Captur", annee: 2022, kilometrage: 15000, carburant: "Diesel", prix: 42, type: "location", ville: "Lyon", vendeurType: "professionnel", prixJour: 42, photoPrincipale: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=280&fit=crop" },
-  { id: 9103, titre: "Citroën C4 Feel", marque: "Citroën", modele: "C4", annee: 2023, kilometrage: 8000, carburant: "Hybride", prix: 48, type: "location", ville: "Marseille", vendeurType: "professionnel", prixJour: 48, photoPrincipale: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop" },
-  { id: 9104, titre: "Mercedes Classe C", marque: "Mercedes", modele: "Classe C", annee: 2022, kilometrage: 20000, carburant: "Diesel", prix: 75, type: "location", ville: "Paris", vendeurType: "professionnel", prixJour: 75, boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=280&fit=crop" },
-  { id: 9105, titre: "Toyota RAV4 Hybride", marque: "Toyota", modele: "RAV4", annee: 2023, kilometrage: 10000, carburant: "Hybride", prix: 55, type: "location", ville: "Toulouse", vendeurType: "professionnel", prixJour: 55, photoPrincipale: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=400&h=280&fit=crop" },
-  { id: 9106, titre: "BMW Série 1 118i", marque: "BMW", modele: "Série 1", annee: 2022, kilometrage: 18000, carburant: "Essence", prix: 60, type: "location", ville: "Bordeaux", vendeurType: "professionnel", prixJour: 60, boosted: true, photoPrincipale: "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?w=400&h=280&fit=crop" },
+const ANNONCES_PREMIUM = [
+  { id: 9020, titre: "Peugeot 508 GT", badge: "PREMIUM", annee: 2022, km: 22000, prix: 25900, ville: "Bordeaux", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=280&fit=crop" },
+  { id: 9021, titre: "Renault Clio V", badge: "PREMIUM", annee: 2021, km: 28000, prix: 15900, ville: "Lyon", photo: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=280&fit=crop" },
+  { id: 9022, titre: "Toyota C-HR", badge: "PREMIUM", annee: 2022, km: 20000, prix: 23900, ville: "Nantes", photo: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=400&h=280&fit=crop" },
+  { id: 9023, titre: "Kia Sportage", badge: "PREMIUM", annee: 2021, km: 30000, prix: 22500, ville: "Lille", photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=280&fit=crop" },
+  { id: 9024, titre: "Hyundai Tucson", badge: "PREMIUM", annee: 2023, km: 8000, prix: 29800, ville: "Paris", photo: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=280&fit=crop" },
 ];
 
-/* ── partenaires ── */
-const PARTENAIRES = [
-  { title: "Top Garages", desc: "Des garages certifiés proches de chez vous.", cta: "Voir les garages", to: "/garages", color: "bg-[#D4AF37]" },
-  { title: "Experts en pièces", desc: "Trouvez vos pièces auto, au meilleur prix.", cta: "Voir les pièces", to: "/pieces", color: "bg-[#D4AF37]" },
-  { title: "VTC & Taxis", desc: "Location de véhicules conformes VTC & Taxi pour professionnels.", cta: "Voir les flottes", to: "/vtc-taxi", color: "bg-[#D4AF37]" },
-  { title: "Dépanneurs", desc: "Une assistance rapide 24h/24 et 7j/7.", cta: "Demander", to: "/depannage", color: "bg-[#D4AF37]" },
+const VEHICULES_PROCHES = [
+  { id: 9030, titre: "Peugeot 308", distance: "2 km", annee: 2021, km: 25000, prix: 16900, ville: "Paris", photo: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&h=280&fit=crop" },
+  { id: 9031, titre: "Renault Captur", distance: "5 km", annee: 2020, km: 32000, prix: 14500, ville: "Paris", photo: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=280&fit=crop" },
+  { id: 9032, titre: "Toyota Yaris", distance: "8 km", annee: 2021, km: 18000, prix: 13900, ville: "Paris", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=280&fit=crop" },
+  { id: 9033, titre: "Volkswagen Polo", distance: "12 km", annee: 2022, km: 20000, prix: 15500, ville: "Paris", photo: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=280&fit=crop" },
+  { id: 9034, titre: "Citroën C3", distance: "15 km", annee: 2021, km: 28000, prix: 11900, ville: "Paris", photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop" },
 ];
 
-/* ── activités pro ── */
-const PRO_ACTIVITIES = [
-  { label: "Vente Pro", to: "/espace-pro" },
-  { label: "Garage Pro", to: "/garage-plus" },
-  { label: "Location Pro", to: "/espace-pro" },
-  { label: "VTC / Taxi", to: "/vtc-taxi" },
-  { label: "Livraison Pro", to: "/livraison" },
-  { label: "Pièces Auto", to: "/pieces" },
-  { label: "Dépannage Pro", to: "/depannage" },
-  { label: "Comptabilité Pro", to: "/comptabilite" },
+const LOCATION_MIXTE = [
+  { id: 9040, titre: "Renault Clio", type: "Particulier", prixJour: 29, annee: 2022, carburant: "Essence", ville: "Paris", photo: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=280&fit=crop" },
+  { id: 9041, titre: "Peugeot 208", type: "Particulier", prixJour: 32, annee: 2023, carburant: "Essence", ville: "Lyon", photo: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&h=280&fit=crop" },
+  { id: 9042, titre: "Mercedes Classe A", type: "Pro", prixJour: 55, annee: 2023, carburant: "Essence", ville: "Nice", photo: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400&h=280&fit=crop" },
+  { id: 9043, titre: "Tesla Model 3", type: "VTC", prixJour: 75, annee: 2024, carburant: "Électrique", ville: "Paris", photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=280&fit=crop" },
+  { id: 9044, titre: "Toyota Corolla", type: "Taxi", prixJour: 45, annee: 2022, carburant: "Hybride", ville: "Marseille", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=280&fit=crop" },
 ];
+
+const ANNONCES_PARTICULIERS = [
+  { id: 9060, titre: "Citroën C4", badge: "PARTICULIER", annee: 2020, km: 45000, prix: 12900, ville: "Lyon", photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop" },
+  { id: 9061, titre: "Opel Corsa", badge: "PARTICULIER", annee: 2019, km: 52000, prix: 9500, ville: "Toulouse", photo: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=400&h=280&fit=crop" },
+  { id: 9062, titre: "Ford Focus", badge: "PROFESSIONNEL", annee: 2018, km: 60000, prix: 8900, ville: "Nantes", photo: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=280&fit=crop" },
+  { id: 9063, titre: "Dacia Sandero", badge: "PRO ÉTUDIANT", annee: 2020, km: 40000, prix: 7900, ville: "Lille", photo: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=400&h=280&fit=crop" },
+  { id: 9064, titre: "Toyota RAV4", badge: "PROFESSIONNEL", annee: 2021, km: 22000, prix: 28900, ville: "Lille", photo: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=400&h=280&fit=crop" },
+];
+
+/* ── PUBS LATÉRALES ── */
+const ADS_LEFT = [
+  { titre: "LOA", sous: "À PARTIR DE", prix: "199 €/MOIS", cta: "EN SAVOIR PLUS", color: "bg-[#D4AF37]", to: "/finance" },
+  { titre: "ASSURANCE AUTO", sous: "PROFITEZ DE", prix: "-30%", cta: "DÉCOUVRIR", color: "bg-red-600", to: "/assurance" },
+  { titre: "PIÈCES AUTO D'ORIGINE", sous: "QUALITÉ PREMIUM", prix: "", cta: "DÉCOUVRIR", color: "bg-[#D4AF37]", to: "/pieces" },
+  { titre: "REPRISE CASH", sous: "ESTIMATION IMMÉDIATE", prix: "", cta: "FAIRE ESTIMER", color: "bg-[#111]", to: "/vendre" },
+  { titre: "VÉHICULES UTILITAIRES", sous: "POUR PROS", prix: "", cta: "VOIR NOS OFFRES", color: "bg-orange-600", to: "/louer/utilitaires" },
+];
+
+const ADS_RIGHT = [
+  { titre: "CRÉDIT AUTO", sous: "RAPIDE & FACILE", prix: "RÉPONSE EN 24H", cta: "SIMULER", color: "bg-[#111]", to: "/finance" },
+  { titre: "GARANTIE MÉCANIQUE", sous: "JUSQU'À 60 MOIS", prix: "", cta: "EN SAVOIR PLUS", color: "bg-[#D4AF37]", to: "/garantie" },
+  { titre: "NETTOYAGE AUTO", sous: "INTÉRIEUR / EXTÉRIEUR", prix: "", cta: "PRENDRE RDV", color: "bg-blue-600", to: "/services" },
+  { titre: "PNEUS", sous: "TOUTES MARQUES", prix: "PRIX IMBATTABLES", cta: "VOIR LES OFFRES", color: "bg-[#333]", to: "/pieces" },
+  { titre: "CONTRÔLE TECHNIQUE", sous: "PRIS EN CHARGE", prix: "", cta: "EN SAVOIR PLUS", color: "bg-green-700", to: "/controle-technique" },
+];
+
+/* ── CARROUSEL PRINCIPAL ── */
+const SLIDES = [
+  { label: "Vente", img: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=400&fit=crop", desc: "Achetez et vendez en toute confiance" },
+  { label: "Location", img: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=400&fit=crop", desc: "Louez le véhicule idéal" },
+  { label: "Garage", img: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=400&fit=crop", desc: "Réparation et entretien par des experts" },
+  { label: "Finance+", img: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=400&fit=crop", desc: "Financement et leasing sur mesure" },
+  { label: "Partenaires", img: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&h=400&fit=crop", desc: "Rejoignez notre réseau de professionnels" },
+];
+
+/* ── COMPOSANT SCROLL HORIZONTAL ── */
+function HScroll({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const scroll = (dir: "left" | "right") => {
+    if (!ref.current) return;
+    ref.current.scrollBy({ left: dir === "right" ? 280 : -280, behavior: "smooth" });
+  };
+  return (
+    <div className={`relative group ${className}`}>
+      <button onClick={() => scroll("left")} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 border border-[#E5E7EB] shadow flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><ChevronLeft size={16} /></button>
+      <div ref={ref} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide scroll-smooth">{children}</div>
+      <button onClick={() => scroll("right")} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 border border-[#E5E7EB] shadow flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><ChevronRight size={16} /></button>
+    </div>
+  );
+}
+
+/* ── CARTE ANNONCE STANDARD ── */
+function AnnonceCard({ a, badgeColor = "bg-[#D4AF37]" }: { a: any; badgeColor?: string }) {
+  return (
+    <Link to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[220px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
+      <div className="relative h-[130px]">
+        <img src={a.photo} alt={a.titre} className="w-full h-full object-cover" loading="lazy" />
+        {a.badge && <span className={`absolute top-2 left-2 rounded-sm ${badgeColor} px-2 py-0.5 text-[8px] font-extrabold text-white uppercase tracking-wide`}>{a.badge}</span>}
+        {a.type && <span className="absolute top-2 right-2 rounded-sm bg-[#D4AF37] px-2 py-0.5 text-[8px] font-extrabold text-white uppercase">{a.type}</span>}
+        {a.distance && <span className="absolute top-2 left-2 rounded-full bg-[#D4AF37] px-2 py-0.5 text-[9px] font-bold text-white">{a.distance}</span>}
+      </div>
+      <div className="p-3">
+        <h3 className="text-sm font-bold text-[#111] truncate">{a.titre}</h3>
+        <div className="mt-1 flex flex-wrap gap-x-2 text-[10px] text-[#6B7280]">
+          {a.annee && <span>{a.annee}</span>}
+          {a.km !== undefined && <span>· {a.km.toLocaleString("fr-FR")} km</span>}
+          {a.carburant && <span>· {a.carburant}</span>}
+        </div>
+        <div className="mt-2 flex items-end justify-between">
+          <p className="text-base font-black text-[#111]">
+            {a.prix ? `${a.prix.toLocaleString("fr-FR")} €` : a.prixJour ? `${a.prixJour} €/jour` : ""}
+          </p>
+          {a.ville && <span className="text-[10px] text-[#9CA3AF] flex items-center gap-0.5"><MapPin size={8} />{a.ville}</span>}
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const stats = trpc.meta.homeStats.useQuery();
-  const featured = trpc.annonces.list.useQuery({ type: "vente", limit: 8 });
-  const trpcUtils = trpc.useUtils();
 
-  /* recherche */
-  const [searchTab, setSearchTab] = useState<"toutes" | "voitures" | "motos" | "utilitaires">("toutes");
-  const [sMarque, setSMarque] = useState("");
-  const [sModele, setSModele] = useState("");
-  const [sLoc, setSLoc] = useState("");
-  const [sPrix, setSPrix] = useState("");
-
-  /* estimation */
-  const [estimPlaque, setEstimPlaque] = useState("");
-  const [estimVin, setEstimVin] = useState("");
-  const [estimMarque, setEstimMarque] = useState("");
-  const [estimModele, setEstimModele] = useState("");
-  const [estimAnnee, setEstimAnnee] = useState("2020");
-  const [estimCarburant, setEstimCarburant] = useState("diesel");
-  const [estimKm, setEstimKm] = useState("");
-  const [estimBoite, setEstimBoite] = useState("manuelle");
-  const [estimEtat, setEstimEtat] = useState("Bon");
-  const [estimLoading, setEstimLoading] = useState(false);
-  const [estimLookupLoading, setEstimLookupLoading] = useState(false);
-  const [estimResult, setEstimResult] = useState<{ low: number; mid: number; high: number } | null>(null);
-  const [estimPlateResult, setEstimPlateResult] = useState<any>(null);
-
-  /* historique */
-  const [histPlaque, setHistPlaque] = useState("");
-  const [histResult, setHistResult] = useState(false);
-
-  /* carousel accueil (5 slides : vidéos + images, 10s chacune) */
-  const [carouselIdx, setCarouselIdx] = useState(0);
+  /* Carrousel principal */
+  const [slideIdx, setSlideIdx] = useState(0);
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCarouselIdx((prev) => (prev + 1) % 5);
-    }, 10000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setSlideIdx((p) => (p + 1) % SLIDES.length), 8000);
+    return () => clearInterval(t);
   }, []);
 
-  /* carrousels publicitaires */
-  const [adIdx1, setAdIdx1] = useState(0);
-  const [adIdx2, setAdIdx2] = useState(0);
+  /* Pubs latérales rotation */
+  const [adLeftIdx, setAdLeftIdx] = useState(0);
+  const [adRightIdx, setAdRightIdx] = useState(0);
   useEffect(() => {
-    const t1 = setInterval(() => setAdIdx1((p) => (p + 1) % 5), 5000);
-    const t2 = setInterval(() => setAdIdx2((p) => (p + 1) % 5), 6000);
+    const t1 = setInterval(() => setAdLeftIdx((p) => (p + 1) % ADS_LEFT.length), 6000);
+    const t2 = setInterval(() => setAdRightIdx((p) => (p + 1) % ADS_RIGHT.length), 7000);
     return () => { clearInterval(t1); clearInterval(t2); };
   }, []);
 
-  /* newsletter */
-  const [newsEmail, setNewsEmail] = useState("");
+  /* Recherche */
+  const [sCategorie, setSCategorie] = useState("");
+  const [sMarque, setSMarque] = useState("");
+  const [sModele, setSModele] = useState("");
+  const [sPrix, setSPrix] = useState("");
+  const [sLocalisation, setSLocalisation] = useState("");
 
   function doSearch() {
-    navigate("/rechercher");
+    const params = new URLSearchParams();
+    if (sCategorie) params.set("categorie", sCategorie);
+    if (sMarque) params.set("marque", sMarque);
+    if (sModele) params.set("modele", sModele);
+    if (sPrix) params.set("prixMax", sPrix);
+    if (sLocalisation) params.set("ville", sLocalisation);
+    navigate(`/acheter?${params.toString()}`);
   }
 
   return (
-    <div className="overflow-x-hidden bg-white">
+    <div className="bg-[#F5F3EF] min-h-screen">
 
-      {/* ═══════════════════════════════════════════════════════════
-          HOMEPAGE — tout visible sur 1 écran mobile
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F5F3EF] home-hero" style={{ WebkitTextSizeAdjust: '100%' }}>
-        <div className="container-page text-center pt-1 pb-0 md:pt-5 md:pb-1 home-hero-text">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#D4AF37] md:text-xs">LA MARKETPLACE AUTOMOBILE</p>
-          <h1 className="mt-0.5 text-[16px] font-black uppercase leading-[1.15] md:mt-3 md:text-3xl lg:text-4xl home-hero-title">
-            <span className="text-[#111]">ACHETEZ, VENDEZ,</span><br />
-            <span className="text-[#D4AF37]">LOUEZ, RÉPAREZ,</span><br />
-            <span className="text-[#D4AF37]">ENTRETENEZ EN TOUTE CONFIANCE,</span><br />
-            <span className="text-[#111]">PARTOUT, À TOUT MOMENT.</span>
-          </h1>
-          <div className="mx-auto my-0.5 flex items-center justify-center gap-1.5 md:my-3 md:gap-3 home-hero-sep">
-            <div className="h-px w-6 bg-[#D4AF37] md:w-12" />
-            <div className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#D4AF37] md:h-9 md:w-9">
-              <span className="text-[8px] font-extrabold text-[#D4AF37] md:text-sm">M</span>
-            </div>
-            <div className="h-px w-6 bg-[#D4AF37] md:w-12" />
-          </div>
-          <p className="mx-auto max-w-md text-[9px] text-[#6B7280] leading-snug md:text-sm md:leading-relaxed home-hero-desc">
-            Achat, vente, location, entretien, livraison et bien plus encore.<br />
-            Tout l'univers automobile réuni au même endroit.
-          </p>
-        </div>
+      {/* ═══════════════════════════════════════════════════════════════════
+          LAYOUT 3 COLONNES : PUB GAUCHE | CONTENU | PUB DROITE
+          ═══════════════════════════════════════════════════════════════════ */}
+      <div className="max-w-[1400px] mx-auto flex">
 
-        {/* ── CAROUSEL + 4 ACTIONS — collés, zéro espace ── */}
-        <div className="px-3 pt-0.5 pb-0 md:px-6 md:pt-0 md:pb-0" style={{marginBottom: 0}}>
-          <div className="mx-auto max-w-3xl overflow-hidden rounded-xl md:rounded-2xl home-carousel" style={{marginBottom: 0}}>
-            <div
-              className="flex transition-transform duration-700 ease-in-out"
-              style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
-            >
-              {([
-                { type: "video" as const, src: "https://videos.pexels.com/video-files/3195394/3195394-sd_640_360_25fps.mp4" },
-                { type: "img" as const, src: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=600&h=340&fit=crop" },
-                { type: "img" as const, src: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&h=340&fit=crop" },
-                { type: "img" as const, src: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&h=340&fit=crop" },
-                { type: "video" as const, src: "https://videos.pexels.com/video-files/2795173/2795173-sd_640_360_25fps.mp4" },
-              ] as const).map((slide, i) => (
-                slide.type === "video" ? (
-                  <video
-                    key={i}
-                    autoPlay
-                    muted
-                    playsInline
-                    loop
-                    className="w-full shrink-0 object-cover home-carousel-img"
-                    style={{ aspectRatio: '2.2 / 1', maxHeight: '40vw', pointerEvents: 'none' }}
-                  >
-                    <source src={slide.src} type="video/mp4" />
-                  </video>
-                ) : (
-                  <img
-                    key={i}
-                    src={slide.src}
-                    alt=""
-                    loading={i === 0 ? "eager" : "lazy"}
-                    className="w-full shrink-0 object-cover home-carousel-img"
-                    style={{ aspectRatio: '2.2 / 1', maxHeight: '40vw' }}
-                  />
-                )
-              ))}
-            </div>
-          </div>
-          {/* ── indicateur : points dorés ── */}
-          <div className="mx-auto flex items-center justify-center gap-1.5 py-0.5">
-            {[0,1,2,3,4].map((i) => (
-              <div key={i} className={`h-1.5 w-1.5 rounded-full transition ${carouselIdx % 5 === i ? "bg-[#D4AF37]" : "bg-[#E5E2DB]"}`} />
-            ))}
-          </div>
-          <div className="mx-auto grid max-w-3xl grid-cols-4 gap-1.5 md:max-w-2xl md:gap-3 home-actions" style={{marginTop: '4px'}}>
-            {[
-              { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
-              { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
-              { icon: KeyRound, label: "LOUER", sub: "Un véhicule", to: "/louer" },
-              { icon: Wrench, label: "RÉPARER", sub: "Mon véhicule", to: "/garages" },
-            ].map((a) => {
-              const Icon = a.icon;
-              return (
-                <Link
-                  key={a.to}
-                  to={a.to}
-                  className="group flex flex-col items-center gap-1.5 rounded-lg border-2 border-[#111]/50 bg-white px-2 pb-3 pt-3 text-center transition hover:shadow-md hover:border-[#D4AF37] md:gap-2 md:rounded-2xl md:px-3 md:pb-4 md:pt-5 home-action-card"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#D4AF37]/40 bg-white md:h-16 md:w-16 home-action-icon">
-                    <Icon size={16} className="text-[#D4AF37] md:hidden" />
-                    <Icon size={32} className="hidden text-[#D4AF37] md:block" />
-                  </div>
-                  <span className="text-[8px] font-extrabold uppercase tracking-wide text-[#111] md:text-xs">{a.label}</span>
-                  <span className="text-[6px] text-[#6B7280] md:text-[10px]">{a.sub}</span>
-                  <div className="flex h-6 w-full items-center justify-center rounded-full bg-[#111] transition group-hover:bg-[#333] md:h-9">
-                    <ArrowRight size={10} className="text-white md:hidden" />
-                    <ArrowRight size={16} className="hidden text-white md:block" />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 4 BADGES CONFIANCE ── */}
-      <section className="bg-white py-0.5 border-t border-[#E5E7EB] md:py-6 home-badges">
-        <div className="container-page">
-          <div className="mx-auto flex max-w-lg md:max-w-2xl">
-            {[
-              { icon: Shield, title: "100% SÉCURISÉ", desc: "Transactions protégées" },
-              { icon: Award, title: "MEILLEURS PRIX", desc: "Des offres compétitives" },
-              { icon: Headphones, title: "SUPPORT 7J/7", desc: "Une équipe à votre écoute" },
-              { icon: CheckCircle, title: "FACILE & RAPIDE", desc: "Publiez ou trouvez en quelques clics" },
-            ].map((b, idx) => {
-              const Icon = b.icon;
-              return (
-                <div key={b.title} className={`flex flex-1 flex-col items-center gap-0.5 text-center px-1 md:gap-1.5 home-badge-item ${idx < 3 ? "border-r border-[#E5E7EB]" : ""}`}>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5 md:h-14 md:w-14 home-badge-icon">
-                    <Icon size={12} className="text-[#D4AF37] md:hidden" />
-                    <Icon size={24} className="hidden text-[#D4AF37] md:block" />
-                  </div>
-                  <h3 className="text-[7px] font-extrabold uppercase leading-tight tracking-wide text-[#111] md:text-[10px]">{b.title}</h3>
-                  <p className="text-[7px] text-[#6B7280] leading-tight md:text-[9px]">{b.desc}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          2. RECHERCHE + ESTIMATION
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-2">
-        <div className="container-page space-y-4">
-          {/* Recherche — gros bouton style La Centrale */}
-          <div className="rounded-xl border-2 border-[#111]/60 bg-white p-3 flex flex-col items-center justify-center gap-2" style={{boxShadow: '0 0 12px rgba(212,175,55,0.25), 0 2px 8px rgba(0,0,0,0.08)'}}>
-            <Search size={20} className="text-[#D4AF37]" />
-            <h3 className="text-sm font-bold text-[#111] text-center">Rechercher un véhicule</h3>
-            <p className="text-[10px] text-[#6B7280] text-center">Voitures, motos, utilitaires — trouvez votre véhicule idéal</p>
-            <button onClick={doSearch} className="w-full flex items-center justify-center gap-2 rounded-full bg-[#111] py-2.5 text-sm font-bold text-white hover:bg-[#333] transition shadow-md">
-              <Search size={16} /> Nouvelle recherche
-            </button>
-          </div>
-
-          {/* Carrousel Nos véhicules MKA.P-MS */}
-          <div>
-            <h3 className="text-base font-bold text-[#111]">Nos véhicules MKA.P-MS</h3>
-            <div className="mt-3 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-              {[
-                { id: 8001, titre: "Peugeot 308 GT", marque: "Peugeot", modele: "308", annee: 2023, kilometrage: 12000, carburant: "Essence", prix: 26900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=280&fit=crop" },
-                { id: 8002, titre: "Renault Austral Iconic", marque: "Renault", modele: "Austral", annee: 2024, kilometrage: 5000, carburant: "Hybride", prix: 34500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=280&fit=crop" },
-                { id: 8003, titre: "Citroën C5 X Shine", marque: "Citroën", modele: "C5 X", annee: 2023, kilometrage: 18000, carburant: "Diesel", prix: 31900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop" },
-                { id: 8004, titre: "Mercedes GLA 200", marque: "Mercedes", modele: "GLA", annee: 2022, kilometrage: 22000, carburant: "Essence", prix: 38900, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=280&fit=crop" },
-                { id: 8005, titre: "BMW X1 sDrive18i", marque: "BMW", modele: "X1", annee: 2023, kilometrage: 15000, carburant: "Essence", prix: 35500, type: "vente", ville: "Belloy-en-France", vendeurType: "professionnel", photoPrincipale: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=280&fit=crop" },
-              ].map((v: any) => (
-                <div key={v.id} className="carousel-card">
-                  <VehicleCard v={v} />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Estimation de voiture — formulaire complet */}
-          <div className="rounded-2xl border-2 border-[#111]/60 bg-white p-6" style={{boxShadow: '0 0 12px rgba(212,175,55,0.25), 0 2px 8px rgba(0,0,0,0.08)'}}>
-            <h3 className="text-xl font-extrabold text-[#111]">Estimation de voiture</h3>
-            <p className="mt-1 text-xs text-[#6B7280]">Obtenez une estimation gratuite en quelques secondes</p>
-
-            {/* Plaque + VIN */}
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Plaque</label>
-                <input className="input text-sm" placeholder="AB-123-CD" value={estimPlaque} onChange={(e) => setEstimPlaque(e.target.value.toUpperCase())} />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">VIN</label>
-                <input className="input text-sm" placeholder="VF1XXXXX..." value={estimVin} onChange={(e) => setEstimVin(e.target.value.toUpperCase())} maxLength={17} />
-              </div>
-            </div>
-            <button
-              type="button"
-              className="mt-3 w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white hover:bg-[#C5A028] disabled:opacity-50 flex items-center justify-center gap-2"
-              disabled={(!estimPlaque.trim() && !estimVin.trim()) || estimLookupLoading}
-              onClick={async () => {
-                const query = estimPlaque.trim() || estimVin.trim();
-                const type = estimPlaque.trim() ? "plaque" : "vin";
-                if (!query) return;
-                setEstimLookupLoading(true);
-                try {
-                  const r = await trpcUtils.annonces.lookupPlate.fetch({ type, query });
-                  if (r) {
-                    setEstimPlateResult(r);
-                    if (r.marque) setEstimMarque(r.marque);
-                    if (r.modele) setEstimModele(r.modele);
-                    if (r.annee) setEstimAnnee(String(r.annee));
-                    if (r.carburant) setEstimCarburant(r.carburant);
-                    if (r.boite) setEstimBoite(r.boite);
-                  }
-                } catch {} finally { setEstimLookupLoading(false); }
-              }}
-            >
-              <Search size={16} />
-              {estimLookupLoading ? "Recherche..." : "Rechercher et remplir automatiquement"}
-            </button>
-
-            {estimPlateResult && (
-              <div className="mt-2 rounded-lg bg-green-50 border border-green-200 p-2 text-xs text-green-700 font-medium">
-                {estimPlateResult.marque} {estimPlateResult.modele} {estimPlateResult.annee && `(${estimPlateResult.annee})`}
-              </div>
-            )}
-
-            {/* Marque + Modèle */}
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Marque *</label>
-                <select className="input text-sm" value={estimMarque} onChange={(e) => setEstimMarque(e.target.value)}>
-                  <option value="">Choisir</option>
-                  {["Renault","Peugeot","Citroën","Volkswagen","BMW","Mercedes","Audi","Toyota","Nissan","Ford","Opel","Fiat","Hyundai","Kia","Dacia","Skoda","Seat","Volvo","Mazda","Honda","Suzuki","Mitsubishi","Jeep","Land Rover","Porsche","Tesla","Mini","Alfa Romeo","DS","Jaguar","Lexus","Autre"].map((m) => <option key={m} value={m}>{m}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Modèle *</label>
-                <input className="input text-sm" placeholder="308, Clio..." value={estimModele} onChange={(e) => setEstimModele(e.target.value)} />
-              </div>
-            </div>
-
-            {/* Année + Carburant */}
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Année</label>
-                <select className="input text-sm" value={estimAnnee} onChange={(e) => setEstimAnnee(e.target.value)}>
-                  {Array.from({ length: 30 }, (_, i) => 2025 - i).map((y) => <option key={y} value={y}>{y}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Carburant</label>
-                <select className="input text-sm" value={estimCarburant} onChange={(e) => setEstimCarburant(e.target.value)}>
-                  <option value="diesel">Diesel</option>
-                  <option value="essence">Essence</option>
-                  <option value="electrique">Électrique</option>
-                  <option value="hybride">Hybride</option>
-                  <option value="gpl">GPL</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Km (slider) */}
-            <div className="mt-3">
-              <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">
-                Kilométrage : {estimKm ? Number(estimKm).toLocaleString() : "0"} km
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="300000"
-                step="1000"
-                value={estimKm || "0"}
-                onChange={(e) => setEstimKm(e.target.value)}
-                className="w-full h-2 rounded-lg appearance-none cursor-pointer"
-                style={{ background: `linear-gradient(to right, #D4AF37 ${(Number(estimKm || 0) / 300000) * 100}%, #E5E7EB ${(Number(estimKm || 0) / 300000) * 100}%)` }}
-              />
-              <div className="flex justify-between text-[10px] text-[#9CA3AF] mt-1">
-                <span>0 km</span>
-                <span>150 000 km</span>
-                <span>300 000 km</span>
-              </div>
-            </div>
-
-            {/* Boîte */}
-            <div className="mt-3">
-              <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">Boîte</label>
-              <select className="input text-sm" value={estimBoite} onChange={(e) => setEstimBoite(e.target.value)}>
-                <option value="manuelle">Manuelle</option>
-                <option value="automatique">Automatique</option>
-              </select>
-            </div>
-
-            {/* État */}
-            <div className="mt-3">
-              <label className="mb-1 block text-xs font-semibold text-[#D4AF37]">État général</label>
-              <div className="flex flex-wrap gap-1.5">
-                {["Excellent", "Très bon", "Bon", "Correct", "À rénover"].map((e) => (
-                  <button key={e} type="button" onClick={() => setEstimEtat(e)}
-                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${estimEtat === e ? "border-[#D4AF37] bg-[#D4AF37] text-white" : "border-[#D1D5DB] text-[#374151]"}`}
-                  >{e}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Bouton estimer */}
-            <button
-              type="button"
-              className="mt-4 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white hover:bg-[#333] disabled:opacity-50"
-              disabled={!estimMarque || estimLoading}
-              onClick={async () => {
-                setEstimLoading(true);
-                try {
-                  const r = await trpcUtils.annonces.estimate.fetch({
-                    marque: estimMarque,
-                    modele: estimModele || "standard",
-                    annee: estimAnnee ? Number(estimAnnee) : undefined,
-                    kilometrage: estimKm ? Number(estimKm) : undefined,
-                    carburant: estimCarburant,
-                    boite: estimBoite,
-                    etat: estimEtat,
-                  });
-                  setEstimResult(r);
-                } finally { setEstimLoading(false); }
-              }}
-            >
-              {estimLoading ? "Calcul..." : "Obtenir mon estimation gratuite"}
-            </button>
-
-            {/* Résultat — Analyse IA MKA.P-MS */}
-            {estimResult && (
-              <div className="mt-4 rounded-xl border-2 border-[#D4AF37] bg-[#FFFBEB] p-4 text-center">
-                <div className="flex items-center justify-center gap-1.5">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#D4AF37]"><span className="text-[8px] font-bold text-white">IA</span></div>
-                  <p className="text-xs font-bold text-[#92400E]">Estimation IA MKA.P-MS</p>
-                </div>
-                <p className="mt-2 text-2xl font-extrabold text-[#D4AF37]">
-                  {estimResult.low.toLocaleString()} € – {estimResult.high.toLocaleString()} €
-                </p>
-                <p className="mt-1 text-sm text-[#111]">Prix conseillé : <strong>{estimResult.mid.toLocaleString()} €</strong></p>
-                <p className="mt-1 text-[10px] text-[#6B7280]">
-                  {estimResult.method === "comparables"
-                    ? `Basée sur ${estimResult.sampleSize} véhicules similaires en vente`
-                    : "Analyse IA basée sur la cote du marché français, ajustée selon marque, modèle, année, km, état et carburant"}
-                </p>
-                <div className="mt-2 flex items-center justify-center gap-3 text-[9px] text-green-700">
-                  <span>✓ Analyse IA</span>
-                  <span>✓ Données marché</span>
-                  <span>✓ Mise à jour en temps réel</span>
-                </div>
-                <Link to="/vendre" className="mt-3 inline-block rounded-lg bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#C5A028]">
-                  Déposer une annonce →
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          3. CATÉGORIES POPULAIRES
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-10">
-        <div className="container-page">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-bold text-[#111] sm:text-xl">Catégories populaires</h2>
-            <Link to="/acheter" className="flex items-center gap-1 text-sm font-semibold text-[#D4AF37] hover:underline">Voir toutes <ArrowRight size={14} /></Link>
-          </div>
-          <div className="mt-4 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-            {CATEGORIES.map((c) => (
-              <Link key={c.label} to={c.to} className="group flex w-[155px] shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-[#e5e5e5] bg-white text-center transition hover:border-[#D4AF37] hover:shadow-md">
-                <img src={c.img} alt={c.label} className="h-[90px] w-full object-cover" loading="lazy" />
-                <div className="px-2 py-2.5">
-                  <span className="text-sm font-bold text-[#111]">{c.label}</span>
-                  <p className="text-[11px] text-[#9CA3AF]">{c.count}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          3b. ANNONCES PREMIUM (entre Catégories et Se connecter)
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-8">
-        <div className="container-page">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
-              <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" /> Annonces Premium
-            </h2>
-            <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes →</Link>
-          </div>
-          <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-            {featured.isLoading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="carousel-card">
-                    <div className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
-                  </div>
-                ))
-              : (featured.data?.items && featured.data.items.length > 0
-                  ? featured.data.items.slice(0, 10)
-                  : DEMO_ANNONCES.filter(a => a.boosted)
-                ).map((v: any) => (
-                  <div key={v.id} className="carousel-card">
-                    <VehicleCard v={v} />
-                  </div>
-                ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          3c. SE CONNECTER / CRÉER UN COMPTE
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-6">
-        <div className="container-page">
-          <div className="mx-auto max-w-md border-t-2 border-b-2 border-[#111]/50 bg-white px-4 py-3" style={{boxShadow: '0 0 10px rgba(212,175,55,0.2)'}}>
-            <div className="grid grid-cols-2 gap-3">
-              <Link to="/connexion" className="flex flex-col items-center justify-center gap-1 border-t-2 border-b-2 border-[#111]/40 bg-[#F8F9FA] px-3 py-2.5 text-center transition hover:border-[#D4AF37] hover:shadow-md rounded-none">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D4AF37]/10">
-                  <User size={18} className="text-[#D4AF37]" />
-                </div>
-                <p className="text-sm font-bold text-[#111] text-center">Se connecter</p>
-                <p className="text-[9px] text-[#6B7280] text-center">Accédez à votre espace</p>
-              </Link>
-              <Link to="/connexion?tab=register" className="flex flex-col items-center justify-center gap-1 border-t-2 border-b-2 border-[#D4AF37] bg-[#D4AF37]/5 px-3 py-2.5 text-center transition hover:bg-[#D4AF37]/10 hover:shadow-md rounded-none">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D4AF37]">
-                  <PlusCircle size={18} className="text-white" />
-                </div>
-                <p className="text-sm font-bold text-[#D4AF37] text-center">Créer un compte</p>
-                <p className="text-[9px] text-[#6B7280] text-center">Particulier ou Professionnel</p>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          4. HISTORIQUE VÉHICULE — Carte compacte (page complète sur /historique)
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="border-y-2 border-[#111]/40 bg-[#FFFDF5] py-8" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
-        <div className="container-page">
-          <div className="flex flex-col items-center text-center">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#111]">
-                <span className="text-xs font-extrabold text-[#D4AF37]">M</span>
-              </div>
-              <h2 className="text-base font-extrabold text-[#111]">Historique <span className="text-[#D4AF37]">Véhicule</span></h2>
-            </div>
-            <p className="mt-2 max-w-md text-xs text-[#6B7280]">Vérifiez l'historique complet de votre futur véhicule avant d'acheter. Rapports officiels, score de confiance, analyse IA.</p>
-            <div className="mt-3 space-y-1.5">
-              <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Rapport Express 4,99 € · Complet 7,99 € · Premium 12,99 €</div>
-              <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Score de confiance MKA.P-MS /100</div>
-              <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Données officielles vérifiées</div>
-              <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Rapport instantané + Analyse IA</div>
-            </div>
-            <div className="mt-5 flex flex-col items-center gap-3">
-              <Link to="/historique" className="inline-flex items-center gap-1 rounded-full border-2 border-[#D4AF37] px-6 py-2.5 text-xs font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">
-                Vérifier un véhicule <ArrowRight size={12} />
-              </Link>
-              <Link to="/historique" className="inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#C5A028]">
-                Découvrir l'Historique Véhicule <ArrowRight size={12} />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* ═══════════════════════════════════════════════════════════
-          5. SERVICES PRINCIPAUX
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-10">
-        <div className="container-page">
-          <h2 className="text-center text-xl font-bold text-[#111]">Nos services principaux</h2>
-          <p className="mt-1 text-center text-sm text-[#6B7280]">Tout ce dont vous avez besoin, au même endroit</p>
-          {(() => {
-            const services = [
-              { icon: Car, title: "Achat / Vente", desc: "Trouvez ou vendez votre véhicule.", cta: "Voir les annonces", to: "/acheter" },
-              { icon: KeyRound, title: "Location", desc: "Louez en toute confiance.", cta: "Voir les offres", to: "/louer" },
-              { icon: Gauge, title: "VO Interne", desc: "Gestion complète véhicules d'occasion.", cta: "Accéder au VO", to: "/vo" },
-              { icon: FileText, title: "Devis & Garages", desc: "Devis rapide + réseau de garages.", cta: "Demander un devis", to: "/garages" },
-              { icon: Wrench, title: "Dépannage", desc: "Assistance routière 24h/24, 7j/7.", cta: "Demander", to: "/depannage", accent: true },
-              { icon: Truck, title: "Livraison & Pièces", desc: "Pièces et livraison rapide.", cta: "Découvrir", to: "/pieces" },
-              { icon: Star, title: "Finance+", desc: "LOA & paiement fractionné.", cta: "Simuler", to: "/finance", gold: true },
-            ];
-            return (
-              <div className="mt-6 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-                {services.map((s) => {
-                  const Icon = s.icon;
-                  const isAccent = (s as any).accent;
-                  return (
-                    <Link key={s.to} to={s.to} className={`group flex w-[140px] shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border-2 px-3 py-5 text-center transition hover:shadow-md ${isAccent ? "border-red-400 bg-red-50 hover:border-red-500" : "border-[#111]/50 bg-white hover:border-[#D4AF37]"}`} style={{boxShadow: '0 0 8px rgba(212,175,55,0.15)'}}>
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-full transition ${isAccent ? "bg-red-100 group-hover:bg-red-200" : "bg-[#D4AF37]/10 group-hover:bg-[#D4AF37]/20"}`}>
-                        <Icon size={22} className={isAccent ? "text-red-600" : "text-[#D4AF37]"} />
-                      </div>
-                      <h3 className="text-xs font-bold text-[#111]">{s.title}</h3>
-                      <p className="text-[10px] text-[#6B7280] leading-tight">{s.desc}</p>
-                      <span className={`mt-auto rounded-lg px-3 py-1.5 text-[10px] font-bold text-white ${isAccent ? "bg-red-600" : "bg-[#D4AF37]"}`}>{s.cta}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            );
-          })()}
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          SECTION FINANCE+
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="border-y-2 border-[#111]/40 bg-[#FFFDF5] py-8" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
-        <div className="container-page">
-          <div className="flex flex-col items-center text-center">
-            <div className="flex items-center gap-2">
-              <Star size={18} className="text-[#D4AF37]" fill="#D4AF37" />
-              <h2 className="text-base font-extrabold text-[#111]">Finance+ MKA.P-MS</h2>
-            </div>
-            <p className="mt-2 max-w-md text-xs text-[#6B7280]">LOA, paiement fractionné — des solutions pour financer votre véhicule directement sur la plateforme.</p>
-            <div className="mt-3 space-y-1.5">
-              <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Location avec Option d'Achat</div>
-              <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Paiement fractionné jusqu'à 10x</div>
-              <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Simulation instantanée</div>
-              <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#111]"><CheckCircle size={10} className="text-[#D4AF37]" /> Tout reste dans MKA.P-MS</div>
-            </div>
-            <Link to="/finance" className="mt-4 inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#C5A028]">
-              Découvrir Finance+ <ArrowRight size={12} />
+        {/* ── PUB GAUCHE (desktop seulement) ── */}
+        <aside className="hidden xl:flex flex-col gap-4 w-[160px] shrink-0 pt-4 pl-2 sticky top-20 self-start h-fit">
+          {ADS_LEFT.map((ad, i) => (
+            <Link key={i} to={ad.to} className={`${ad.color} rounded-xl p-3 text-white text-center hover:opacity-90 transition`}>
+              <p className="text-[9px] uppercase tracking-wide opacity-80">PUBLICITÉS SPONSORISÉES</p>
+              <p className="mt-2 text-lg font-black leading-tight">{ad.titre}</p>
+              <p className="text-[10px] mt-1 opacity-90">{ad.sous}</p>
+              {ad.prix && <p className="text-xl font-black mt-1">{ad.prix}</p>}
+              <span className="mt-2 inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold">{ad.cta}</span>
             </Link>
-            <div className="mt-4 rounded-full border border-[#D4AF37]/30 bg-white px-8 py-3 text-center shadow-sm">
-              <p className="text-[8px] font-semibold text-[#D4AF37]">EXEMPLE LOA · À partir de</p>
-              <p className="text-xl font-extrabold text-[#D4AF37]">199 €<span className="text-xs text-slate-400">/mois</span></p>
-              <p className="text-[8px] text-slate-500">sur 48 mois • Option d'achat disponible</p>
-            </div>
-            <Link to="/finance" className="mt-3 inline-flex items-center gap-1 rounded-full border-2 border-[#D4AF37] px-6 py-2.5 text-xs font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">
-              Simuler ma LOA <ArrowRight size={12} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          ESPACE PUBLICITAIRE #1 — carrousel 5 postes auto-défilant
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="border-y-2 border-[#111]/60 py-6" style={{background: 'linear-gradient(to right, #111, #1a1a1a)', boxShadow: '0 -2px 8px rgba(212,175,55,0.25), 0 2px 8px rgba(212,175,55,0.25)'}}>
-        <div className="container-page">
-          <div className="overflow-hidden rounded-2xl border-2 border-[#D4AF37]/50" style={{boxShadow: '0 0 12px rgba(212,175,55,0.3)'}}>
-            <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${adIdx1 * 100}%)` }}>
-              {[
-                { tag: "Emplacement #1", title: "Votre publicité ici", desc: "Espace premium visible par tous les visiteurs de la plateforme", bg: "bg-[#111]", video: "https://videos.pexels.com/video-files/3195394/3195394-sd_640_360_25fps.mp4" },
-                { tag: "Emplacement #2", title: "Boostez vos ventes", desc: "Mettez en avant votre garage, magasin ou service automobile", bg: "bg-[#1B2A4A]" },
-                { tag: "Emplacement #3", title: "Offre spéciale", desc: "Faites connaître vos promotions à des milliers d'acheteurs", bg: "bg-[#2D1B4E]", video: "https://videos.pexels.com/video-files/2795173/2795173-sd_640_360_25fps.mp4" },
-                { tag: "Emplacement #4", title: "Visibilité maximale", desc: "Votre marque sur la page d'accueil — impact garanti", bg: "bg-[#111]" },
-                { tag: "Emplacement #5", title: "Partenaire officiel", desc: "Rejoignez le réseau MKA.P-MS et développez votre activité", bg: "bg-[#1B2A4A]", video: "https://videos.pexels.com/video-files/857251/857251-sd_640_360_25fps.mp4" },
-              ].map((ad: any, i) => (
-                <div key={i} className={`relative flex h-[160px] w-full shrink-0 items-center justify-between ${ad.bg} p-5 lg:h-[220px] overflow-hidden`}>
-                  {ad.video && (
-                    <video autoPlay muted playsInline loop className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.3, pointerEvents: 'none' }}>
-                      <source src={ad.video} type="video/mp4" />
-                    </video>
-                  )}
-                  <div style={{ position: 'relative', zIndex: 1 }}>
-                    <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37]">{ad.tag}</p>
-                    <h3 className="mt-1 text-lg font-extrabold text-white lg:text-2xl">{ad.title}</h3>
-                    <p className="mt-1 text-xs text-slate-400 lg:text-sm">{ad.desc}</p>
-                  </div>
-                  <Link to="/demande-publicite" className="shrink-0 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#111] hover:bg-[#F5F5F5] lg:px-6 lg:py-3 lg:text-sm" style={{ position: 'relative', zIndex: 1 }}>
-                    En savoir plus →
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="mx-auto mt-2 flex items-center justify-center gap-1.5">
-            {[0,1,2,3,4].map((i) => (
-              <div key={i} className={`h-1.5 w-1.5 rounded-full transition ${adIdx1 === i ? "bg-[#D4AF37]" : "bg-white/30"}`} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* (Annonces Premium déplacée en section 3b, après Catégories) */}
-
-      {/* ═══════════════════════════════════════════════════════════
-          7. ANNONCES PARTICULIERS — carrousel horizontal
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white pb-10">
-        <div className="container-page">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
-              Annonces Particuliers
-            </h2>
-            <Link to="/acheter?vendeurType=particulier" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes →</Link>
-          </div>
-          <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-            {DEMO_ANNONCES.filter(a => a.vendeurType === "particulier").map((v: any) => (
-              <div key={v.id} className="carousel-card">
-                <VehicleCard v={v} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          7b. ANNONCES LOCATION — carrousel horizontal
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#F9F9F9] py-10">
-        <div className="container-page">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-xl font-bold text-[#111]">
-              <KeyRound size={18} className="text-[#D4AF37]" /> Annonces Location
-            </h2>
-            <Link to="/louer" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir toutes →</Link>
-          </div>
-          <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-            {DEMO_LOCATION.map((v: any) => (
-              <div key={v.id} className="carousel-card">
-                <VehicleCard v={v} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          ESPACE PUBLICITAIRE #2 — carrousel auto-défilant
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="border-y-2 border-[#111]/40 bg-[#FFFDF5] py-4" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
-        <div className="container-page">
-          <div className="overflow-hidden rounded-2xl border-2 border-[#111]/50" style={{boxShadow: '0 0 10px rgba(212,175,55,0.25)'}}>
-            <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${(adIdx1 + 2) % 5 * 100}%)` }}>
-              {[
-                { title: "Boostez votre visibilité", desc: "Professionnels, particuliers — mettez en avant vos annonces et services" },
-                { title: "Espace publicitaire disponible", desc: "Contactez-nous pour réserver cet emplacement premium" },
-                { title: "Votre marque ici", desc: "Touchez des milliers de passionnés d'automobile chaque jour" },
-                { title: "Offres partenaires", desc: "Profitez de nos tarifs spéciaux pour les nouveaux annonceurs" },
-                { title: "Publicité ciblée", desc: "Atteignez exactement votre audience grâce à nos emplacements stratégiques" },
-              ].map((ad, i) => (
-                <div key={i} className="flex h-[140px] w-full shrink-0 items-center justify-between bg-white p-5 lg:h-[200px]">
-                  <div>
-                    <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37]">Publicité</p>
-                    <h3 className="mt-1 text-base font-extrabold text-[#111] lg:text-xl">{ad.title}</h3>
-                    <p className="mt-1 text-xs text-slate-500 lg:text-sm">{ad.desc}</p>
-                  </div>
-                  <Link to="/demande-publicite" className="shrink-0 rounded-full border-2 border-[#D4AF37] px-4 py-2 text-xs font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition lg:px-6 lg:py-3 lg:text-sm">
-                    En savoir plus →
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          8. POURQUOI CHOISIR MKA.P-MS
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-10">
-        <div className="container-page">
-          <h2 className="text-center text-xl font-bold text-[#111]">Pourquoi choisir MKA.P-MS ?</h2>
-          {(() => {
-            const items = [
-              { icon: ShieldCheck, title: "Sécurisé", desc: "Vos transactions sont protégées à 100%.", details: "Paiement sécurisé, vérification des annonces, protection acheteur/vendeur, données chiffrées et conformité RGPD." },
-              { icon: Users, title: "Fiable", desc: "Des milliers d'utilisateurs nous font confiance.", details: "Plus de 50 000 utilisateurs actifs, avis vérifiés, vendeurs certifiés et support réactif 7j/7." },
-              { icon: Gauge, title: "Rapide", desc: "Trouvez ce que vous cherchez en quelques clics.", details: "Recherche intelligente, filtres avancés, estimation instantanée par plaque et dépôt d'annonce en moins d'1 minute." },
-              { icon: CheckCircle, title: "Complet", desc: "Tous les services auto réunis au même endroit.", details: "Achat, vente, location, pièces détachées, carte grise, assurance, livraison, financement — tout en un." },
-              { icon: Heart, title: "Accompagnement", desc: "Une équipe à votre écoute à chaque étape.", details: "Assistance personnalisée, chat en direct, aide à la négociation et suivi de votre dossier de A à Z." },
-            ];
-            return (
-              <div className="mt-6 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-                {items.map((r) => {
-                  const Icon = r.icon;
-                  return (
-                    <button
-                      key={r.title}
-                      type="button"
-                      onClick={(e) => {
-                        const el = e.currentTarget.querySelector("[data-details]") as HTMLElement;
-                        if (el) el.classList.toggle("hidden");
-                      }}
-                      className="flex w-[150px] shrink-0 snap-start flex-col items-center gap-2 rounded-xl border-2 border-[#111]/50 bg-white p-4 text-center transition hover:shadow-md hover:border-[#D4AF37] cursor-pointer"
-                      style={{boxShadow: '0 0 8px rgba(212,175,55,0.15)'}}
-                    >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10">
-                        <Icon size={22} className="text-[#D4AF37]" />
-                      </div>
-                      <h3 className="text-sm font-bold text-[#111]">{r.title}</h3>
-                      <p className="text-[10px] text-[#6B7280] leading-tight">{r.desc}</p>
-                      <p data-details className="hidden mt-2 text-[10px] text-[#374151] leading-tight border-t border-[#E5E7EB] pt-2">{r.details}</p>
-                    </button>
-                  );
-                })}
-              </div>
-            );
-          })()}
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          9. STATISTIQUES — BANDE OR
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-[#D4AF37] py-6">
-        <div className="container-page grid grid-cols-2 gap-4 text-center sm:grid-cols-3 md:grid-cols-6">
-          {[
-            { v: "+100 000", l: "Utilisateurs" },
-            { v: "+30 000", l: "Véhicules disponibles" },
-            { v: "+5 000", l: "Professionnels" },
-            { v: "4,8/5", l: "Avis clients" },
-            { v: "100%", l: "Paiements sécurisés" },
-            { v: "Support 7/7", l: "À votre écoute" },
-          ].map((s) => (
-            <div key={s.l}>
-              <div className="text-xl font-extrabold text-white md:text-2xl">{s.v}</div>
-              <div className="mt-0.5 text-xs font-medium text-white/80">{s.l}</div>
-            </div>
           ))}
-        </div>
-      </section>
+        </aside>
 
-      {/* ═══════════════════════════════════════════════════════════
-          10. CARROUSEL ANNONCES (swipe gauche/droite)
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-white py-10">
-        <div className="container-page">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-[#111]">Découvrez nos annonces</h2>
-            <Link to="/acheter" className="text-sm font-semibold text-[#6B7280] hover:text-[#D4AF37]">Voir tout →</Link>
-          </div>
-          <div className="mt-4 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-            {featured.isLoading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="carousel-card">
-                    <div className="aspect-[4/5] animate-pulse rounded-2xl bg-[#E5E7EB]" />
-                  </div>
-                ))
-              : (featured.data?.items && featured.data.items.length > 0
-                  ? featured.data.items.slice(0, 10)
-                  : DEMO_ANNONCES
-                ).map((v: any) => (
-                  <div key={v.id} className="carousel-card">
-                    <VehicleCard v={v} />
-                  </div>
-                ))}
-          </div>
-        </div>
-      </section>
+        {/* ── CONTENU PRINCIPAL ── */}
+        <main className="flex-1 min-w-0">
 
-      {/* ═══════════════════════════════════════════════════════════
-          ESPACE PUBLICITAIRE #3 — carrousel 5 postes auto-défilant
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="border-y-2 border-[#111]/40 bg-[#F5F5F5] py-6" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
-        <div className="container-page">
-          <div className="overflow-hidden rounded-2xl border-2 border-[#111]/50" style={{boxShadow: '0 0 10px rgba(212,175,55,0.2)'}}>
-            <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${adIdx2 * 100}%)` }}>
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 2 — CARROUSEL PRINCIPAL (5 slides)
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="relative overflow-hidden">
+            <div className="relative h-[220px] md:h-[340px]">
+              {SLIDES.map((s, i) => (
+                <div key={i} className={`absolute inset-0 transition-opacity duration-700 ${i === slideIdx ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+                  <img src={s.img} alt={s.label} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                </div>
+              ))}
+              {/* Contenu overlay */}
+              <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-8">
+                <p className="text-[10px] md:text-xs font-semibold uppercase tracking-widest text-[#D4AF37]">LA MARKETPLACE AUTOMOBILE</p>
+                <h1 className="mt-1 text-xl md:text-3xl font-black text-white uppercase leading-tight">
+                  ACHETEZ, VENDEZ, LOUEZ, RÉPAREZ
+                </h1>
+                <p className="text-xs md:text-sm text-white/80 mt-1">EN TOUTE CONFIANCE, PARTOUT, À TOUT MOMENT.</p>
+                <p className="text-[10px] md:text-xs text-white/60 mt-0.5">Tout l'univers automobile réuni au même endroit.</p>
+                {/* Badges confiance */}
+                <div className="mt-3 flex gap-4 md:gap-6">
+                  {[
+                    { icon: Shield, label: "100% Sécurisé", desc: "Transactions protégées" },
+                    { icon: Award, label: "Meilleurs prix", desc: "Des offres compétitives" },
+                    { icon: Headphones, label: "Support 7J/7", desc: "Une équipe à votre écoute" },
+                    { icon: CheckCircle, label: "Rapide & Facile", desc: "Publiez ou trouvez en quelques clics" },
+                  ].map((b) => (
+                    <div key={b.label} className="flex items-center gap-1.5">
+                      <b.icon size={14} className="text-[#D4AF37] shrink-0" />
+                      <div>
+                        <p className="text-[8px] md:text-[10px] font-bold text-white">{b.label}</p>
+                        <p className="text-[7px] md:text-[9px] text-white/60 hidden md:block">{b.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Flèches */}
+              <button onClick={() => setSlideIdx((p) => (p - 1 + SLIDES.length) % SLIDES.length)} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/30 backdrop-blur flex items-center justify-center hover:bg-white/50 transition"><ChevronLeft size={18} className="text-white" /></button>
+              <button onClick={() => setSlideIdx((p) => (p + 1) % SLIDES.length)} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/30 backdrop-blur flex items-center justify-center hover:bg-white/50 transition"><ChevronRight size={18} className="text-white" /></button>
+            </div>
+            {/* Points indicateurs */}
+            <div className="flex items-center justify-center gap-1.5 py-2 bg-white">
+              {SLIDES.map((_, i) => (
+                <button key={i} onClick={() => setSlideIdx(i)} className={`h-2 rounded-full transition-all ${i === slideIdx ? "w-5 bg-[#D4AF37]" : "w-2 bg-[#E5E7EB]"}`} />
+              ))}
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 3 — UNIVERS MKA.P-MS (Acheter, Vendre, Louer, Réparer)
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="bg-white px-4 py-3 md:py-5">
+            <div className="grid grid-cols-4 gap-2 md:gap-4 max-w-2xl mx-auto">
               {[
-                { tag: "Publicité premium", title: "Devenez partenaire MKA.P-MS", desc: "Gagnez en visibilité auprès de milliers d'acheteurs et de professionnels", grad: "from-[#D4AF37] to-[#C5A028]", video: "https://videos.pexels.com/video-files/3195394/3195394-sd_640_360_25fps.mp4" },
-                { tag: "Publicité premium", title: "Garage & Réparation", desc: "Faites découvrir votre garage à une clientèle qualifiée", grad: "from-[#C5A028] to-[#8B6914]" },
-                { tag: "Publicité premium", title: "Pièces & Accessoires", desc: "Vendez vos pièces détachées directement sur la plateforme", grad: "from-[#8B6914] to-[#D4AF37]", video: "https://videos.pexels.com/video-files/2795173/2795173-sd_640_360_25fps.mp4" },
-                { tag: "Publicité premium", title: "Assurance & Financement", desc: "Proposez vos services financiers aux acheteurs MKA.P-MS", grad: "from-[#D4AF37] to-[#B8960C]" },
-                { tag: "Publicité premium", title: "Livraison & Transport", desc: "Offrez vos services de livraison à nos vendeurs et acheteurs", grad: "from-[#B8960C] to-[#D4AF37]" },
-              ].map((ad: any, i) => (
-                <div key={i} className={`relative flex h-[160px] w-full shrink-0 items-center justify-between bg-gradient-to-r ${ad.grad} p-5 lg:h-[220px] overflow-hidden`}>
-                  {ad.video && (
-                    <video autoPlay muted playsInline loop className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.25, pointerEvents: 'none' }}>
-                      <source src={ad.video} type="video/mp4" />
-                    </video>
-                  )}
-                  <div style={{ position: 'relative', zIndex: 1 }}>
-                    <p className="text-[9px] font-semibold uppercase tracking-widest text-white/80">{ad.tag}</p>
-                    <h3 className="mt-1 text-base font-extrabold text-white lg:text-xl">{ad.title}</h3>
-                    <p className="mt-1 text-xs text-white/80 lg:text-sm">{ad.desc}</p>
+                { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
+                { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
+                { icon: KeyRound, label: "LOUER", sub: "Un véhicule", to: "/louer" },
+                { icon: Wrench, label: "RÉPARER", sub: "Mon véhicule", to: "/garages" },
+              ].map((a) => (
+                <Link key={a.to} to={a.to} className="group flex flex-col items-center gap-1.5 rounded-xl border border-[#E5E7EB] bg-white p-3 md:p-4 text-center hover:border-[#D4AF37] hover:shadow-md transition">
+                  <div className="flex h-10 w-10 md:h-14 md:w-14 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5">
+                    <a.icon size={20} className="text-[#D4AF37]" />
                   </div>
-                  <Link to="/demande-publicite" className="shrink-0 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#111] hover:bg-[#F5F5F5] lg:px-6 lg:py-3 lg:text-sm" style={{ position: 'relative', zIndex: 1 }}>
-                    En savoir plus →
-                  </Link>
-                </div>
+                  <span className="text-[10px] md:text-xs font-extrabold uppercase tracking-wide text-[#111]">{a.label}</span>
+                  <span className="text-[8px] md:text-[10px] text-[#6B7280]">{a.sub}</span>
+                </Link>
               ))}
             </div>
-          </div>
-          <div className="mx-auto mt-2 flex items-center justify-center gap-1.5">
-            {[0,1,2,3,4].map((i) => (
-              <div key={i} className={`h-1.5 w-1.5 rounded-full transition ${adIdx2 === i ? "bg-[#D4AF37]" : "bg-[#E5E2DB]"}`} />
-            ))}
-          </div>
-        </div>
-      </section>
+          </section>
 
-      {/* ═══════════════════════════════════════════════════════════
-          11. ESPACE PRO — BANDE NOIRE
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="border-y-2 border-[#111]/40 bg-white py-10" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2), 0 2px 8px rgba(212,175,55,0.2)'}}>
-        <div className="container-page">
-          <div className="flex flex-col items-center gap-4 text-center lg:flex-row lg:justify-between lg:text-left">
-            <div>
-              <h2 className="text-xl font-bold text-[#111]">Espace Pro : développez votre activité</h2>
-              <p className="mt-1 text-sm text-[#6B7280]">Accédez à tous nos outils et services dédiés aux professionnels.</p>
-            </div>
-            <Link to="/espace-pro" className="shrink-0 rounded-xl border-2 border-[#D4AF37] px-6 py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white">
-              Découvrir l'espace Pro
-            </Link>
-          </div>
-          {/* Carrousel 2 lignes — swipe gauche/droite */}
-          <div className="mt-8 flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-            {Array.from({ length: Math.ceil(PRO_ACTIVITIES.length / 2) }).map((_, col) => {
-              const top = PRO_ACTIVITIES[col * 2];
-              const bot = PRO_ACTIVITIES[col * 2 + 1];
-              return (
-                <div key={col} className="flex w-[160px] shrink-0 snap-start flex-col gap-3">
-                  {top && (
-                    <Link to={top.to} className="group flex flex-col items-center gap-2 border-y-2 border-[#111]/40 bg-[#F8F9FA] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md" style={{boxShadow: '0 0 6px rgba(212,175,55,0.15)'}}>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#D4AF37]/10 transition group-hover:bg-[#D4AF37]/20">
-                        {top.label.includes("Vente") ? <Tag size={18} className="text-[#D4AF37]" /> : top.label.includes("Garage") ? <Wrench size={18} className="text-[#D4AF37]" /> : top.label.includes("Location") ? <KeyRound size={18} className="text-[#D4AF37]" /> : top.label.includes("VTC") ? <Car size={18} className="text-[#D4AF37]" /> : top.label.includes("Livraison") ? <Truck size={18} className="text-[#D4AF37]" /> : top.label.includes("Pièces") ? <Package size={18} className="text-[#D4AF37]" /> : top.label.includes("Dépannage") ? <Zap size={18} className="text-[#D4AF37]" /> : top.label.includes("Comptabilité") ? <FileText size={18} className="text-[#D4AF37]" /> : <Wrench size={18} className="text-[#D4AF37]" />}
-                      </div>
-                      <span className="text-xs font-medium text-[#374151]">{top.label}</span>
-                    </Link>
-                  )}
-                  {bot && (
-                    <Link to={bot.to} className="group flex flex-col items-center gap-2 border-y-2 border-[#111]/40 bg-[#F8F9FA] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md" style={{boxShadow: '0 0 6px rgba(212,175,55,0.15)'}}>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#D4AF37]/10 transition group-hover:bg-[#D4AF37]/20">
-                        {bot.label.includes("Vente") ? <Tag size={18} className="text-[#D4AF37]" /> : bot.label.includes("Garage") ? <Wrench size={18} className="text-[#D4AF37]" /> : bot.label.includes("Location") ? <KeyRound size={18} className="text-[#D4AF37]" /> : bot.label.includes("VTC") ? <Car size={18} className="text-[#D4AF37]" /> : bot.label.includes("Livraison") ? <Truck size={18} className="text-[#D4AF37]" /> : bot.label.includes("Pièces") ? <Package size={18} className="text-[#D4AF37]" /> : bot.label.includes("Dépannage") ? <Zap size={18} className="text-[#D4AF37]" /> : bot.label.includes("Comptabilité") ? <FileText size={18} className="text-[#D4AF37]" /> : <Wrench size={18} className="text-[#D4AF37]" />}
-                      </div>
-                      <span className="text-xs font-medium text-[#374151]">{bot.label}</span>
-                    </Link>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <p className="mt-4 text-center text-xs text-[#9CA3AF]">Gérez votre activité, vos véhicules, vos équipes et vos documents.</p>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          12–13. FOOTER COMPLET (Desktop 6 colonnes / Mobile accordéon)
-         ═══════════════════════════════════════════════════════════ */}
-      <HomeFooter newsEmail={newsEmail} setNewsEmail={setNewsEmail} />
-    </div>
-  );
-}
-
-/* ── Footer sections data ── */
-const FOOTER_SECTIONS = [
-  {
-    title: "Nos Services", links: [
-      { label: "Achat / Vente", to: "/acheter" },
-      { label: "Location", to: "/louer" },
-      { label: "VO Interne", to: "/vo" },
-      { label: "Devis", to: "/devis" },
-      { label: "Livraison", to: "/livraison" },
-      { label: "Garage", to: "/garages" },
-      { label: "Pièces Auto", to: "/pieces" },
-      { label: "Dépannage", to: "/depannage" },
-      { label: "Finance+", to: "/finance" },
-    ],
-  },
-  {
-    title: "Plateforme", links: [
-      { label: "Acheter", to: "/acheter" },
-      { label: "Louer", to: "/louer" },
-      { label: "Devis Garage", to: "/devis" },
-      { label: "Réseau de garages", to: "/garages" },
-      { label: "Abonnements", to: "/abonnements" },
-      { label: "Notre Mission", to: "/mission" },
-    ],
-  },
-  {
-    title: "Espace Pro", links: [
-      { label: "Devenir partenaire", to: "/espace-pro" },
-      { label: "Gestion de flotte", to: "/espace-pro" },
-      { label: "Solutions pro", to: "/espace-pro" },
-      { label: "Abonnements", to: "/abonnements" },
-      { label: "Vente Pro", to: "/espace-pro" },
-      { label: "Garage Pro", to: "/garage-plus" },
-      { label: "Location Pro", to: "/espace-pro" },
-      { label: "VTC / Taxi Pro", to: "/vtc-taxi" },
-      { label: "Livraison Pro", to: "/livraison" },
-      { label: "Pièces Auto Pro", to: "/pieces" },
-      { label: "Dépannage Pro", to: "/depannage" },
-      { label: "Compatibilité Pro", to: "/espace-pro" },
-      { label: "Comptabilité Pro", to: "/comptabilite" },
-    ],
-  },
-  {
-    title: "Informations", links: [
-      { label: "À propos", to: "/mission" },
-      { label: "CGU", to: "/aide#cgv" },
-      { label: "Confidentialité", to: "/aide#rgpd" },
-      { label: "Aide & FAQ", to: "/aide" },
-      { label: "Contact", to: "/aide" },
-    ],
-  },
-  {
-    title: "Aide & Légal", links: [
-      { label: "Centre d'aide / FAQ", to: "/aide" },
-      { label: "Centre de confiance", to: "/confiance" },
-      { label: "CGV / CGU", to: "/aide#cgv" },
-      { label: "Confidentialité (RGPD)", to: "/aide#rgpd" },
-      { label: "Mentions légales", to: "/aide#mentions" },
-    ],
-  },
-];
-
-const AJOUTS = [
-  { label: "Deux sessions d'annonces (Premium & Classiques)", details: "Les annonces Premium sont mises en avant dans un carrousel dédié en haut de page, tandis que les annonces classiques apparaissent dans la grille en dessous. Plus l'abonnement est élevé, plus la visibilité est importante." },
-  { label: "Espace Pro complet et visible", details: "Un tableau de bord dédié pour les professionnels : gestion des annonces, statistiques de vues, messagerie clients, réservations, acomptes, suivi des ventes et gestion d'équipe selon l'abonnement." },
-  { label: "Historique véhicule mis en avant", details: "Chaque véhicule peut avoir un historique complet visible : contrôle technique, kilométrage certifié, entretiens passés, sinistres éventuels. Ça donne confiance aux acheteurs." },
-  { label: "Catégories + services + partenaires", details: "Organisation par catégories (voitures, motos, utilitaires, scooters), services intégrés (devis, livraison, carte grise) et réseau de partenaires garages certifiés MKA.P-MS." },
-  { label: "Publicité intégrée", details: "Les professionnels avec un abonnement Premium ou supérieur bénéficient d'espaces publicitaires dédiés sur la plateforme pour maximiser leur visibilité." },
-  { label: "Statistiques & preuves sociales", details: "Nombre de vues, nombre de contacts, avis clients, notes garages, badges de confiance — tout est affiché pour créer la confiance et aider à la décision." },
-  { label: "Parcours utilisateur fluide et logique", details: "Chaque action est guidée étape par étape : déposer une annonce en 6 étapes, faire un devis en 8 étapes, s'inscrire en tant que pro VO en 5 étapes. Tout est pensé pour la rapidité." },
-  { label: "Paiement sécurisé", details: "Intégration Stripe complète avec 3D Secure, wallet interne sécurisé, virements automatiques, facturation automatique et protection acheteur/vendeur." },
-  { label: "Support réactif 7/7", details: "Équipe de support disponible 7 jours sur 7 par téléphone, email et chat intégré. Les professionnels avec abonnement Elite+ ont un support prioritaire." },
-  { label: "Mises à jour régulières", details: "La plateforme évolue en permanence avec de nouvelles fonctionnalités, améliorations UX et corrections. Les retours utilisateurs sont pris en compte rapidement." },
-];
-
-const SOCIAL_LINKS = [
-  { label: "f", name: "Facebook", url: "https://facebook.com/mkapms", color: "hover:bg-[#1877F2]" },
-  { label: "i", name: "Instagram", url: "https://instagram.com/mkapms", color: "hover:bg-[#E4405F]" },
-  { label: "Y", name: "YouTube", url: "https://youtube.com/@mkapms", color: "hover:bg-[#FF0000]" },
-  { label: "t", name: "TikTok", url: "https://tiktok.com/@mkapms", color: "hover:bg-[#000000]" },
-];
-
-function FooterAccordion({ title, children }: { title: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="border-b-2 border-[#111]/30">
-      <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center justify-between py-3 text-left">
-        <span className="text-sm font-bold text-[#111]">{title}</span>
-        <ChevronDown size={16} className={`text-slate-400 transition ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && <div className="pb-3">{children}</div>}
-    </div>
-  );
-}
-
-function AjoutItem({ label, details }: { label: string; details: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={`rounded-lg transition ${open ? "bg-gradient-to-r from-[#D4AF37]/10 to-[#D4AF37]/15 border border-[#D4AF37]/30" : ""}`}>
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center gap-2.5 px-2 py-2.5 text-left"
-      >
-        <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${open ? "bg-[#D4AF37] shadow-sm" : "bg-[#D4AF37]/40"}`}>
-          <CheckCircle size={13} className={open ? "text-white" : "text-[#8B7A1A]"} />
-        </div>
-        <span className={`flex-1 text-xs font-semibold ${open ? "font-bold text-[#000]" : "text-[#1A1A1A]"}`}>{label}</span>
-        <ChevronDown size={12} className={`shrink-0 text-[#8B7A1A] transition ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <div className="px-10 pb-3">
-          <p className="text-[11px] leading-relaxed text-[#444444]">{details}</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function HomeFooter({ newsEmail, setNewsEmail }: { newsEmail: string; setNewsEmail: (v: string) => void }) {
-  return (
-    <>
-      {/* ═══ DESKTOP FOOTER ═══ */}
-      <footer className="hidden border-t-2 border-[#111]/40 bg-white md:block" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2)'}}>
-        {/* Top : Logo + description + Newsletter */}
-        <div className="container-page flex flex-wrap items-start justify-between gap-8 py-10">
-          <div className="max-w-xs">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#111]">
-                <span className="text-lg font-extrabold text-[#D4AF37]">M</span>
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 4 — RECHERCHE AVANCÉE
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="bg-white px-4 pb-4">
+            <div className="max-w-3xl mx-auto rounded-2xl border border-[#E5E7EB] bg-[#FAFAF8] p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <Search size={18} className="text-[#D4AF37]" />
+                <h2 className="text-sm md:text-base font-bold text-[#111]">Rechercher un véhicule</h2>
               </div>
+              <p className="text-[10px] text-[#6B7280] mb-3">Voitures, motos, utilitaires — trouvez votre véhicule idéal</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+                <select value={sCategorie} onChange={(e) => setSCategorie(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
+                  <option value="">Toutes catégories</option>
+                  <option>Citadine</option><option>Berline</option><option>SUV</option><option>Coupé</option><option>Break</option><option>Utilitaire</option><option>Moto</option>
+                </select>
+                <select value={sMarque} onChange={(e) => setSMarque(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
+                  <option value="">Marque</option>
+                  <option>Peugeot</option><option>Renault</option><option>Citroën</option><option>BMW</option><option>Mercedes</option><option>Audi</option><option>Volkswagen</option><option>Toyota</option><option>Ford</option><option>Fiat</option>
+                </select>
+                <select value={sModele} onChange={(e) => setSModele(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
+                  <option value="">Modèle</option>
+                </select>
+                <select value={sPrix} onChange={(e) => setSPrix(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
+                  <option value="">Prix max</option>
+                  <option value="5000">5 000 €</option><option value="10000">10 000 €</option><option value="15000">15 000 €</option><option value="20000">20 000 €</option><option value="30000">30 000 €</option><option value="50000">50 000 €</option>
+                </select>
+                <select value={sLocalisation} onChange={(e) => setSLocalisation(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
+                  <option value="">Localisation</option>
+                  <option>Paris</option><option>Lyon</option><option>Marseille</option><option>Toulouse</option><option>Bordeaux</option><option>Nantes</option><option>Lille</option><option>Nice</option>
+                </select>
+                <button onClick={doSearch} className="rounded-lg bg-[#111] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#333] transition flex items-center justify-center gap-1">
+                  <Search size={14} /> Rechercher
+                </button>
+              </div>
+              <div className="mt-2 flex justify-end">
+                <Link to="/acheter" className="rounded-full bg-[#D4AF37] px-4 py-1.5 text-[10px] font-bold text-white hover:bg-[#c9a430] transition">SIMULER</Link>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 5 — VÉHICULES MKA.P-MS OFFICIELS
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm md:text-base font-bold text-[#111]">MKA.P-MS OFFICIEL</h2>
+                <span className="rounded-sm bg-[#D4AF37] px-2 py-0.5 text-[8px] font-extrabold text-white uppercase">STOCK OFFICIEL</span>
+              </div>
+              <Link to="/acheter?source=officiel" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} /></Link>
+            </div>
+            <HScroll>
+              {ANNONCES_OFFICIELLES.map((a) => (
+                <AnnonceCard key={a.id} a={a} badgeColor="bg-[#D4AF37]" />
+              ))}
+            </HScroll>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 6 — ANNONCES BOOSTÉES / ELITE
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Star size={14} className="text-[#D4AF37]" />
+                <h2 className="text-sm md:text-base font-bold text-[#111]">ANNONCES BOOSTÉES / ELITE</h2>
+              </div>
+              <Link to="/acheter?boost=true" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} /></Link>
+            </div>
+            <HScroll>
+              {ANNONCES_BOOSTEES.map((a) => (
+                <AnnonceCard key={a.id} a={a} badgeColor="bg-[#111]" />
+              ))}
+            </HScroll>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 7 — ANNONCES PREMIUM
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Heart size={14} className="text-[#D4AF37]" />
+                <h2 className="text-sm md:text-base font-bold text-[#111]">ANNONCES PREMIUM</h2>
+              </div>
+              <Link to="/acheter?premium=true" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} /></Link>
+            </div>
+            <HScroll>
+              {ANNONCES_PREMIUM.map((a) => (
+                <AnnonceCard key={a.id} a={a} badgeColor="bg-blue-600" />
+              ))}
+            </HScroll>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 8 — PUBLICITÉ PREMIUM #1
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-3 bg-white border-t border-[#F3F4F6]">
+            <div className="rounded-xl bg-[#111] p-4 md:p-6 flex items-center justify-between overflow-hidden relative">
+              <span className="absolute top-2 left-2 text-[8px] font-semibold uppercase tracking-wider text-white/50">PUBLICITÉ</span>
               <div>
-                <h3 className="text-lg font-extrabold text-[#111]">MK<span className="text-[#D4AF37]">A</span>.P-MS</h3>
-                <p className="text-[9px] font-semibold uppercase tracking-widest text-slate-400">Prestation Multi-Services</p>
+                <h3 className="text-lg md:text-xl font-black text-white uppercase">BOOSTEZ VOTRE VISIBILITÉ</h3>
+                <p className="text-xs text-white/70 mt-1">AVEC MKA.P-MS</p>
               </div>
+              <Link to="/publicite" className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#c9a430] transition">EN SAVOIR PLUS</Link>
             </div>
-            <p className="mt-3 text-sm text-slate-500">La plateforme auto qui simplifie toutes vos démarches.</p>
-          </div>
+          </section>
 
-          <div>
-            <div className="flex items-center gap-2">
-              <Mail size={16} className="text-[#D4AF37]" />
-              <h4 className="text-sm font-bold text-[#111]">Newsletter & Réseaux</h4>
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 9 — VÉHICULES AUTOUR DE VOUS
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <MapPin size={14} className="text-[#D4AF37]" />
+                <h2 className="text-sm md:text-base font-bold text-[#111]">VÉHICULES AUTOUR DE VOUS</h2>
+              </div>
+              <Link to="/recherche" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} /></Link>
             </div>
-            <p className="mt-1 text-xs text-slate-500">Recevez nos meilleures offres et nouveautés !</p>
-            <div className="mt-3 flex gap-2">
-              <input
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]"
-                placeholder="Votre adresse email"
-                type="email"
-                value={newsEmail}
-                onChange={(e) => setNewsEmail(e.target.value)}
-              />
-              <button className="rounded-lg bg-[#111] px-4 py-2 text-sm font-bold text-white hover:bg-[#333]">S'abonner</button>
+            <HScroll>
+              {VEHICULES_PROCHES.map((a) => (
+                <AnnonceCard key={a.id} a={a} badgeColor="bg-[#D4AF37]" />
+              ))}
+            </HScroll>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 10 — LOCATION (Particulier, Pro, VTC, Taxi mélangé)
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <KeyRound size={14} className="text-[#D4AF37]" />
+                <h2 className="text-sm md:text-base font-bold text-[#111]">LOCATION TOUT COMPRIS (PARTICULIER, PRO, VTC, TAXI)</h2>
+              </div>
+              <Link to="/louer" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} /></Link>
             </div>
-            <div className="mt-3 flex gap-3">
-              {SOCIAL_LINKS.map((s) => (
-                <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" title={s.name} className={`flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition ${s.color} hover:text-white hover:border-transparent`}>{s.label}</a>
+            <HScroll>
+              {LOCATION_MIXTE.map((a) => (
+                <Link key={a.id} to={`/louer/particulier/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[220px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
+                  <div className="relative h-[130px]">
+                    <img src={a.photo} alt={a.titre} className="w-full h-full object-cover" loading="lazy" />
+                    <span className={`absolute top-2 left-2 rounded-sm px-2 py-0.5 text-[8px] font-extrabold text-white uppercase ${a.type === "VTC" ? "bg-[#111] border border-[#D4AF37]" : a.type === "Pro" ? "bg-blue-800" : a.type === "Taxi" ? "bg-yellow-600" : "bg-[#D4AF37]"}`}>{a.prixJour} €/jour</span>
+                    <span className="absolute top-2 right-2 rounded-sm bg-white/90 px-1.5 py-0.5 text-[8px] font-bold text-[#111]">{a.type}</span>
+                  </div>
+                  <div className="p-3">
+                    <h3 className="text-sm font-bold text-[#111] truncate">{a.titre}</h3>
+                    <div className="mt-1 flex gap-2 text-[10px] text-[#6B7280]">
+                      <span>{a.carburant}</span>
+                      <span>· {a.annee}</span>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between">
+                      <p className="text-base font-black text-[#D4AF37]">{a.prixJour} €<span className="text-[10px] font-normal text-[#6B7280]">/jour</span></p>
+                      <span className="text-[10px] text-[#9CA3AF] flex items-center gap-0.5"><MapPin size={8} />{a.ville}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </HScroll>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 11 — ANNONCES PARTICULIERS
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Users size={14} className="text-[#D4AF37]" />
+                <h2 className="text-sm md:text-base font-bold text-[#111]">ANNONCES PARTICULIERS</h2>
+              </div>
+              <Link to="/acheter?vendeur=particulier" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} /></Link>
+            </div>
+            <HScroll>
+              {ANNONCES_PARTICULIERS.map((a) => (
+                <AnnonceCard key={a.id} a={a} badgeColor="bg-green-600" />
+              ))}
+            </HScroll>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 12 — NOS SERVICES (TRÈS IMPORTANT)
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-6 bg-[#F5F3EF] border-t border-[#E5E7EB]">
+            <h2 className="text-base md:text-lg font-black text-[#111] text-center uppercase mb-1">Nos Services</h2>
+            <p className="text-[10px] md:text-xs text-[#6B7280] text-center mb-4">MKA.P-MS — L'écosystème automobile complet</p>
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-w-4xl mx-auto">
+              {[
+                { icon: Car, label: "Achat / Vente", desc: "Véhicules neufs et d'occasion", to: "/acheter", color: "text-[#D4AF37]" },
+                { icon: KeyRound, label: "Location", desc: "Particulier, Pro, VTC, Taxi", to: "/louer", color: "text-blue-600" },
+                { icon: Wrench, label: "Garage", desc: "Réparation et entretien", to: "/garages", color: "text-orange-600" },
+                { icon: Truck, label: "Dépannage", desc: "Assistance 24h/24 7j/7", to: "/depannage", color: "text-red-600" },
+                { icon: ShieldCheck, label: "Contrôle Technique", desc: "Prise en charge et suivi", to: "/controle-technique", color: "text-green-600" },
+                { icon: FileText, label: "Carte Grise", desc: "Démarches administratives", to: "/demarches", color: "text-purple-600" },
+                { icon: Package, label: "Livraison", desc: "Partout en France et à l'international", to: "/livraison", color: "text-[#D4AF37]" },
+                { icon: CreditCard, label: "Finance+", desc: "LOA, crédit, paiement jusqu'à 10x", to: "/finance", color: "text-emerald-600" },
+                { icon: History, label: "Historique Véhicule", desc: "Rapports officiels & Analyse IA", to: "/historique", color: "text-indigo-600" },
+                { icon: Cog, label: "Pièces Auto", desc: "Pièces d'origine au meilleur prix", to: "/pieces", color: "text-gray-700" },
+                { icon: Shield, label: "Assurance", desc: "Assurance auto compétitive", to: "/assurance", color: "text-sky-600" },
+                { icon: BadgeCheck, label: "VTC / Taxi", desc: "Solutions professionnelles VTC", to: "/louer/vtc-taxi", color: "text-[#111]" },
+              ].map((s) => (
+                <Link key={s.label} to={s.to} className="flex flex-col items-center text-center rounded-xl bg-white border border-[#E5E7EB] p-3 hover:border-[#D4AF37] hover:shadow-md transition group">
+                  <div className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full bg-[#F5F3EF] group-hover:bg-[#D4AF37]/10 transition">
+                    <s.icon size={20} className={s.color} />
+                  </div>
+                  <h3 className="mt-2 text-[10px] md:text-xs font-bold text-[#111]">{s.label}</h3>
+                  <p className="mt-0.5 text-[8px] md:text-[9px] text-[#6B7280] leading-tight">{s.desc}</p>
+                </Link>
               ))}
             </div>
-          </div>
-        </div>
+          </section>
 
-        {/* 6 colonnes de liens */}
-        <div className="border-t-2 border-[#111]/30" style={{boxShadow: '0 -1px 6px rgba(212,175,55,0.15)'}}>
-          <div className="container-page grid grid-cols-6 gap-6 py-8">
-            {FOOTER_SECTIONS.map((sec) => (
-              <div key={sec.title}>
-                <h4 className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#111]">
-                  <Package size={14} className="text-[#D4AF37]" />
-                  {sec.title}
-                </h4>
-                <div className="space-y-1.5">
-                  {sec.links.map((l) => (
-                    <Link key={l.label} to={l.to} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#D4AF37]">
-                      <ChevronRight size={10} className="text-slate-300" />{l.label}
-                    </Link>
-                  ))}
-                </div>
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 13 — PUBLICITÉ PREMIUM #2
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-3 bg-white border-t border-[#F3F4F6]">
+            <div className="rounded-xl bg-[#D4AF37] p-4 md:p-6 flex items-center justify-between overflow-hidden relative">
+              <span className="absolute top-2 left-2 text-[8px] font-semibold uppercase tracking-wider text-white/50">PUBLICITÉ</span>
+              <div>
+                <h3 className="text-lg md:text-xl font-black text-white uppercase">VOUS ÊTES UN PROFESSIONNEL ?</h3>
+                <p className="text-xs text-white/80 mt-1">REJOIGNEZ MKA.P-MS ET DÉVELOPPEZ VOTRE ACTIVITÉ</p>
               </div>
-            ))}
-            <div>
-              <h4 className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#111]">
-                <Phone size={14} className="text-[#D4AF37]" />
-                Nous Contacter
-              </h4>
-              <div className="space-y-2 text-xs text-slate-500">
-                <div className="flex items-center gap-2"><Phone size={12} className="text-slate-400" /> 01 23 45 67 89</div>
-                <div className="flex items-center gap-2"><Mail size={12} className="text-slate-400" /> contact@mkapms.com</div>
-                <div className="flex items-center gap-2"><Clock size={12} className="text-slate-400" /> Lun – Dim : 8h – 20h</div>
-                <div className="flex items-center gap-2"><MapPin size={12} className="text-slate-400" /> Support 7/7</div>
-                <div className="flex items-start gap-2"><Globe size={12} className="mt-0.5 shrink-0 text-slate-400" /> 14 Rue du petit Viarmes, 95270 Belloy-en-France, France</div>
-              </div>
+              <Link to="/espace-pro" className="shrink-0 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#D4AF37] hover:bg-[#F5F3EF] transition">DEVENIR PARTENAIRE</Link>
             </div>
-          </div>
-        </div>
+          </section>
 
-        {/* Autres Ajouts Intégrés + cartes */}
-        <div className="border-t-2 border-[#111]/30 bg-[#FAFAFA]" style={{boxShadow: '0 -1px 6px rgba(212,175,55,0.15)'}}>
-          <div className="container-page py-8">
-            <h4 className="flex items-center gap-2 text-sm font-bold text-[#111]">
-              <Star size={16} className="text-[#D4AF37]" /> Autres Ajouts Intégrés
-            </h4>
-            <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1 lg:grid-cols-5">
-              {AJOUTS.map((a) => (
-                <AjoutItem key={a.label} label={a.label} details={a.details} />
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 14 — BLOC PROFESSIONNELS
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-6 bg-white border-t border-[#F3F4F6]">
+            <h2 className="text-base md:text-lg font-black text-[#111] text-center uppercase mb-1">Vous êtes professionnel ?</h2>
+            <p className="text-[10px] md:text-xs text-[#6B7280] text-center mb-4">Rejoignez MKA.P-MS et développez votre activité automobile</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
+              {[
+                { icon: Wrench, label: "Garages", desc: "Gérez vos ateliers et devis", to: "/garage-plus" },
+                { icon: Car, label: "Marchands", desc: "Vendez vos véhicules", to: "/espace-pro" },
+                { icon: KeyRound, label: "Loueurs", desc: "Gérez votre flotte", to: "/louer/pro" },
+                { icon: Truck, label: "Dépanneurs", desc: "Recevez des interventions", to: "/depannage" },
+                { icon: ShieldCheck, label: "Contrôleurs techniques", desc: "Prises en charge en ligne", to: "/controle-technique" },
+                { icon: BadgeCheck, label: "Sociétés VTC", desc: "Location VTC & Taxi", to: "/louer/vtc-taxi" },
+                { icon: Package, label: "Transporteurs", desc: "Livraison et logistique", to: "/livraison" },
+              ].map((p) => (
+                <Link key={p.label} to={p.to} className="flex items-center gap-3 rounded-xl bg-[#F5F3EF] border border-[#E5E7EB] p-3 hover:border-[#D4AF37] hover:shadow-sm transition">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                    <p.icon size={18} className="text-[#D4AF37]" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-[#111]">{p.label}</h3>
+                    <p className="text-[9px] text-[#6B7280]">{p.desc}</p>
+                  </div>
+                </Link>
               ))}
             </div>
-            <div className="mt-6 grid grid-cols-2 gap-4 lg:max-w-2xl lg:mx-auto">
-              <div className="rounded-xl border border-[#D4AF37]/30 bg-white p-5">
-                <div className="flex items-center gap-2">
-                  <Star size={16} className="text-[#D4AF37]" />
-                  <h5 className="text-sm font-bold text-[#111]">Deux Sessions d'Annonces</h5>
+            <div className="mt-4 text-center">
+              <Link to="/espace-pro" className="inline-block rounded-full bg-[#D4AF37] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#c9a430] transition">
+                Devenir partenaire
+              </Link>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 15 — SERVICES PREMIUM MKA.P-MS
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-5 bg-[#F5F3EF] border-t border-[#E5E7EB]">
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide max-w-4xl mx-auto">
+              {[
+                { icon: CreditCard, label: "Finance+", desc: "LOA, Crédit, Paiement jusqu'à 10x" },
+                { icon: History, label: "Historique véhicule", desc: "Rapports officiels & Analyse IA" },
+                { icon: Package, label: "Livraison", desc: "Partout en France et à l'International" },
+                { icon: Shield, label: "Garantie", desc: "Jusqu'à 60 mois offerte" },
+                { icon: ShieldCheck, label: "Contrôle technique", desc: "Prise de rendez-vous en ligne" },
+                { icon: Cog, label: "Pièces auto", desc: "Pièces d'origine au meilleur prix" },
+                { icon: Headphones, label: "Assistance", desc: "Disponible 7/7 24h/24" },
+              ].map((s) => (
+                <div key={s.label} className="shrink-0 flex flex-col items-center text-center min-w-[110px] md:min-w-[130px]">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#D4AF37]/30 bg-white">
+                    <s.icon size={20} className="text-[#D4AF37]" />
+                  </div>
+                  <h3 className="mt-2 text-[10px] md:text-xs font-bold text-[#111]">{s.label}</h3>
+                  <p className="mt-0.5 text-[8px] md:text-[9px] text-[#6B7280] leading-tight">{s.desc}</p>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">Premium (abonnés, boostées) en haut de page. Classiques en dessous.</p>
-              </div>
-              <div className="rounded-xl border border-[#D4AF37]/30 bg-white p-5">
-                <div className="flex items-center gap-2">
-                  <Star size={16} className="text-[#D4AF37]" />
-                  <h5 className="text-sm font-bold text-[#111]">Espace Pro Complet</h5>
+              ))}
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 16 — FOOTER (dans Layout, mais on ajoute newsletter + liens)
+              ═══════════════════════════════════════════════════════════════ */}
+          <footer className="bg-[#111] text-white">
+            <div className="max-w-5xl mx-auto px-4 py-8 md:py-12">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                {/* Newsletter */}
+                <div className="col-span-2 md:col-span-1">
+                  <p className="text-[10px] uppercase tracking-wider text-[#D4AF37] font-bold">RESTEZ INFORMÉ</p>
+                  <p className="text-xs text-white/60 mt-1">Recevez nos meilleures offres</p>
+                  <div className="mt-2 flex gap-1">
+                    <input type="email" placeholder="Votre email" className="flex-1 rounded-lg bg-white/10 border border-white/20 px-3 py-2 text-xs text-white placeholder-white/40 outline-none" />
+                    <button className="rounded-lg bg-[#D4AF37] px-3 py-2 text-xs font-bold text-white">S'abonner</button>
+                  </div>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">Accès direct à tous les outils et services dédiés aux professionnels.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bas : copyright + paiement */}
-        <div className="border-t-2 border-[#111]/30 bg-white" style={{boxShadow: '0 -1px 6px rgba(212,175,55,0.15)'}}>
-          <div className="container-page flex flex-wrap items-center justify-between gap-4 py-4">
-            <p className="text-xs text-slate-400">© 2026 MKA.P-MS — Auto Plus Africa — SASU, capital 2 500 €. SIREN 932 217 896 · TVA FR43932217896.</p>
-            <div className="flex gap-2">
-              <span className="rounded bg-blue-800 px-3 py-1 text-xs font-bold text-white">VISA</span>
-              <span className="rounded bg-red-600 px-3 py-1 text-xs font-bold text-white">MasterCard</span>
-              <span className="rounded bg-blue-600 px-3 py-1 text-xs font-bold text-white">PayPal</span>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      {/* ═══ MOBILE FOOTER (accordéon) ═══ */}
-      <footer className="border-t-2 border-[#111]/40 bg-white md:hidden" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.2)'}}>
-        {/* Logo + menu */}
-        <div className="container-page flex items-center justify-between py-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#111]">
-              <span className="text-sm font-extrabold text-[#D4AF37]">M</span>
-            </div>
-            <div>
-              <h3 className="text-sm font-extrabold text-[#111]">MK<span className="text-[#D4AF37]">A</span>.P-MS</h3>
-              <p className="text-[7px] font-semibold uppercase tracking-widest text-slate-400">Prestation Multi-Services</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Sections en grille 2 colonnes */}
-        <div className="container-page">
-          <div className="grid grid-cols-2 gap-3">
-            {FOOTER_SECTIONS.map((sec) => (
-              <FooterAccordion key={sec.title} title={sec.title}>
-                <div className="space-y-2 pl-1">
-                  {sec.links.map((l) => (
-                    <Link key={l.label} to={l.to} className="flex items-center gap-2 text-xs text-slate-500 hover:text-[#D4AF37]">
-                      <ChevronRight size={10} className="text-slate-300" />{l.label}
-                    </Link>
+                {/* Logo */}
+                <div>
+                  <p className="text-lg font-extrabold">MK<span className="text-[#D4AF37]">A</span>.P-MS</p>
+                  <p className="text-[9px] text-white/50 uppercase tracking-wider mt-0.5">LA MARKETPLACE AUTOMOBILE</p>
+                  <div className="flex gap-2 mt-3">
+                    {["f", "📷", "▶", "in", "♪"].map((s, i) => (
+                      <div key={i} className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[10px] text-white/60 hover:bg-[#D4AF37]/20 transition cursor-pointer">{s}</div>
+                    ))}
+                  </div>
+                </div>
+                {/* Explorer */}
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-[#D4AF37] font-bold mb-2">EXPLORER</p>
+                  {["Acheter", "Vendre", "Louer", "Réparer / Garage", "Finance+", "Services"].map((l) => (
+                    <p key={l} className="text-xs text-white/60 hover:text-white py-0.5 cursor-pointer">{l}</p>
                   ))}
                 </div>
-              </FooterAccordion>
-            ))}
-            <FooterAccordion title="Nous Contacter">
-              <div className="space-y-2 pl-1 text-xs text-slate-500">
-                <div className="flex items-center gap-2"><Phone size={12} className="text-slate-400" /> 01 23 45 67 89</div>
-                <div className="flex items-center gap-2"><Mail size={12} className="text-slate-400" /> contact@mkapms.com</div>
-                <div className="flex items-center gap-2"><Clock size={12} className="text-slate-400" /> Lun – Dim : 8h – 20h</div>
-                <div className="flex items-center gap-2"><MapPin size={12} className="text-slate-400" /> Support 7/7</div>
+                {/* Aide */}
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-[#D4AF37] font-bold mb-2">AIDE & SUPPORT</p>
+                  {["Centre d'aide", "Contact", "Conditions générales", "Politique de confidentialité"].map((l) => (
+                    <p key={l} className="text-xs text-white/60 hover:text-white py-0.5 cursor-pointer">{l}</p>
+                  ))}
+                </div>
+                {/* App */}
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-[#D4AF37] font-bold mb-2">TÉLÉCHARGEZ L'APPLICATION</p>
+                  <div className="space-y-2">
+                    <div className="rounded-lg bg-white/10 px-3 py-2 text-xs text-white/80 cursor-pointer hover:bg-white/20 transition">
+                      <p className="text-[8px] text-white/50">Disponible sur</p>
+                      <p className="font-bold">App Store</p>
+                    </div>
+                    <div className="rounded-lg bg-white/10 px-3 py-2 text-xs text-white/80 cursor-pointer hover:bg-white/20 transition">
+                      <p className="text-[8px] text-white/50">DISPONIBLE SUR</p>
+                      <p className="font-bold">Google Play</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </FooterAccordion>
-          </div>
-        </div>
-
-        {/* Newsletter & Réseaux */}
-        <div className="container-page border-t-2 border-[#111]/30 py-6" style={{boxShadow: '0 -1px 6px rgba(212,175,55,0.15)'}}>
-          <div className="flex items-center justify-center gap-2">
-            <Mail size={14} className="text-[#D4AF37]" />
-            <h4 className="text-sm font-bold text-[#111] text-center">Abonnez-vous & suivez-nous</h4>
-          </div>
-          <input
-            className="mt-3 w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-[#D4AF37]"
-            placeholder="Votre adresse email"
-            type="email"
-            value={newsEmail}
-            onChange={(e) => setNewsEmail(e.target.value)}
-          />
-          <button className="mt-2 w-full rounded-lg bg-[#111] py-2.5 text-sm font-bold text-white hover:bg-[#333]">S'abonner</button>
-          <div className="mt-4 flex justify-center gap-3">
-            {SOCIAL_LINKS.map((s) => (
-              <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" title={s.name} className={`flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition ${s.color} hover:text-white hover:border-transparent`}>{s.label}</a>
-            ))}
-          </div>
-          <p className="mt-2 text-center text-[9px] text-slate-400">Suivez-nous sur les réseaux sociaux</p>
-        </div>
-
-        {/* Autres Ajouts — grille 2 colonnes */}
-        <div className="container-page border-t-2 border-[#111]/30 py-6" style={{boxShadow: '0 -1px 6px rgba(212,175,55,0.15)'}}>
-          <h4 className="flex items-center gap-2 text-sm font-bold text-[#111]">
-            <Star size={14} className="text-[#D4AF37]" /> Autres Ajouts Intégrés
-          </h4>
-          <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1">
-            {AJOUTS.map((a) => (
-              <AjoutItem key={a.label} label={a.label} details={a.details} />
-            ))}
-          </div>
-        </div>
-
-        {/* Copyright + paiement */}
-        <div className="border-t-2 border-[#111]/30 bg-white" style={{boxShadow: '0 -1px 6px rgba(212,175,55,0.15)'}}>
-          <div className="container-page py-4 text-center">
-            <p className="text-[10px] text-slate-400">© 2026 MKA.P-MS — Auto Plus Africa — SASU, capital 2 500 €. SIREN 932 217 896 · TVA FR43932217896.</p>
-            <div className="mt-3 flex justify-center gap-2">
-              <span className="rounded bg-blue-800 px-3 py-1 text-xs font-bold text-white">VISA</span>
-              <span className="rounded bg-red-600 px-3 py-1 text-xs font-bold text-white">MasterCard</span>
-              <span className="rounded bg-blue-600 px-3 py-1 text-xs font-bold text-white">PayPal</span>
+              <div className="mt-8 pt-4 border-t border-white/10 text-center">
+                <p className="text-[10px] text-white/40">© 2024 MKA.P-MS — Tous droits réservés.</p>
+              </div>
             </div>
-          </div>
-        </div>
-      </footer>
-    </>
+          </footer>
+
+        </main>
+
+        {/* ── PUB DROITE (desktop seulement) ── */}
+        <aside className="hidden xl:flex flex-col gap-4 w-[160px] shrink-0 pt-4 pr-2 sticky top-20 self-start h-fit">
+          {ADS_RIGHT.map((ad, i) => (
+            <Link key={i} to={ad.to} className={`${ad.color} rounded-xl p-3 text-white text-center hover:opacity-90 transition`}>
+              <p className="text-[9px] uppercase tracking-wide opacity-80">PUBLICITÉS SPONSORISÉES</p>
+              <p className="mt-2 text-lg font-black leading-tight">{ad.titre}</p>
+              <p className="text-[10px] mt-1 opacity-90">{ad.sous}</p>
+              {ad.prix && <p className="text-sm font-black mt-1">{ad.prix}</p>}
+              <span className="mt-2 inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold">{ad.cta}</span>
+            </Link>
+          ))}
+        </aside>
+
+      </div>
+    </div>
   );
 }
