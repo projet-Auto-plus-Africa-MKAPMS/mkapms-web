@@ -571,8 +571,27 @@ export default function Garages() {
         Catalogue complet · Identification par plaque · Devis en 2 minutes · Suivi des réparations
       </p>
 
+      {/* Filtres type : Garage / Carrosserie */}
+      <div className="mt-6 flex gap-2">
+        {[
+          { id: "", label: "🔧 Tous", desc: "" },
+          { id: "garage", label: "🔧 Garage mécanique", desc: "" },
+          { id: "carrosserie", label: "🎨 Carrosserie", desc: "" },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setQ(t.id === q ? "" : t.id)}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              (q === t.id || (!q && t.id === "")) ? "bg-[#D4AF37] text-white" : "bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       {/* Recherche garages */}
-      <div className="mt-6 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+      <div className="mt-3 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
         <input className="input" placeholder="Nom du garage" value={q} onChange={(e) => setQ(e.target.value)} />
         <input className="input" placeholder="Ville" value={city} onChange={(e) => setCity(e.target.value)} />
       </div>
