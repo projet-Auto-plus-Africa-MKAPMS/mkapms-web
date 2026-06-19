@@ -199,7 +199,7 @@ export default function LocationPro() {
           ═══════════════════════════════════════════════════════════════════ */}
       <div className="px-4 mt-6">
         <h2 className="text-lg font-bold text-[#111]">Catégories professionnelles</h2>
-        <div className="mt-3 grid grid-cols-2 gap-3">
+        <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {CATEGORIES_PRO.map((c) => {
             const Icon = c.icon;
             const isSelected = selectedCat === c.titre;
@@ -207,7 +207,7 @@ export default function LocationPro() {
               <button
                 key={c.titre}
                 onClick={() => setSelectedCat(isSelected ? null : c.titre)}
-                className={`rounded-xl bg-white border-2 overflow-hidden text-left transition active:scale-[0.98] ${isSelected ? "border-blue-800 shadow-md" : "border-[#E5E7EB]"}`}
+                className={`shrink-0 w-[140px] rounded-xl bg-white border-2 overflow-hidden text-left transition active:scale-[0.98] ${isSelected ? "border-blue-800 shadow-md ring-2 ring-blue-800/30" : "border-[#E5E7EB]"}`}
               >
                 <div className="relative h-[80px] overflow-hidden">
                   <img src={c.photo} alt={c.titre} className="w-full h-full object-cover" loading="lazy" />
@@ -217,7 +217,7 @@ export default function LocationPro() {
                 <div className="px-2.5 py-2">
                   <div className="flex items-center gap-1.5">
                     <Icon size={12} className="text-blue-800" />
-                    <span className="text-xs font-bold text-[#111]">{c.titre}</span>
+                    <span className="text-xs font-bold text-[#111] truncate">{c.titre}</span>
                   </div>
                   <p className="text-[9px] text-[#6B7280] mt-0.5 truncate">{c.modeles.join(" · ")}</p>
                 </div>

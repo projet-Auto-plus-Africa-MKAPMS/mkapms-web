@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   ChevronLeft, ChevronRight, Heart, Star, Check, Fuel, Settings2,
   Zap, Users, DoorOpen, Gauge, Calendar, Shield, Clock, Lock,
@@ -134,6 +134,7 @@ const KM_OPTIONS = [
 ];
 
 export default function ProduitVtcTaxi() {
+  const nav = useNavigate();
   const [photoIdx, setPhotoIdx] = useState(0);
   const [fav, setFav] = useState(false);
   const [showAllChars, setShowAllChars] = useState(false);
@@ -168,9 +169,9 @@ export default function ProduitVtcTaxi() {
       {/* ═══════════════════════════════════ BLOC 1 — PHOTOS ═══════════════════════════════════ */}
       <div className="relative">
         <div className="sticky top-0 z-30 flex items-center justify-between bg-white/90 backdrop-blur px-4 py-3 border-b border-[#E5E7EB]">
-          <Link to="/louer/vtc-taxi" className="flex items-center gap-1.5 text-sm font-semibold text-[#6B7280]">
+          <button onClick={() => nav(-1)} className="flex items-center gap-1.5 text-sm font-semibold text-[#6B7280]">
             <ChevronLeft size={18} /> Retour VTC & Taxi
-          </Link>
+          </button>
           <button onClick={() => setFav(!fav)} className="flex items-center justify-center w-9 h-9 rounded-full bg-[#F3F4F6]">
             <Heart size={18} className={fav ? "fill-red-500 text-red-500" : "text-[#111]"} />
           </button>

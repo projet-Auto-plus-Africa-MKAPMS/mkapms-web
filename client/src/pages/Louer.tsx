@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  Shield, CarFront, Users, Truck, HardHat, Bus, ChevronRight, Star, Clock,
+  Shield, CarFront, Users, Truck, HardHat, Bus, ChevronLeft, ChevronRight, Star, Clock,
   Headphones, CreditCard, Search, MapPin, Calendar, ChevronDown, FileCheck,
   Lock, Globe, Rocket, Ban, Phone, Gauge, ArrowRight, Building2, UserPlus,
   CheckCircle2, MapPinned, Navigation
@@ -130,6 +130,9 @@ export default function Louer() {
             className="h-full w-full object-cover"
           />
         </div>
+        <Link to="/" className="absolute top-4 left-4 z-20 flex items-center justify-center w-9 h-9 rounded-full bg-white/20 backdrop-blur">
+          <ChevronLeft size={20} className="text-white" />
+        </Link>
         <div className="relative z-10">
           <h1 className="text-[22px] font-black text-white leading-tight">
             Location de véhicules<br />

@@ -56,8 +56,10 @@ export default function LocationUtilitaires() {
   const [dateDebut, setDateDebut] = useState("");
   const [dateRetour, setDateRetour] = useState("");
   const [filtre, setFiltre] = useState("Tous");
+  const [selectedCat, setSelectedCat] = useState<string | null>(null);
 
   const filteredVehicules = VEHICULES.filter((v) => {
+    if (selectedCat && v.categorie !== selectedCat) return false;
     if (filtre === "Tous") return true;
     if (filtre === "Léger" && v.categorie.includes("léger")) return true;
     if (filtre === "Fourgon" && v.categorie === "Fourgon") return true;
@@ -126,13 +128,13 @@ export default function LocationUtilitaires() {
         <h2 className="text-lg font-bold text-[#111]">Catégories utilitaires</h2>
         <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {CATEGORIES.map((c) => (
-            <div key={c.titre} className="shrink-0 w-[140px] rounded-xl overflow-hidden border border-[#E5E7EB]">
+            <button key={c.titre} onClick={() => setSelectedCat(selectedCat === c.titre ? null : c.titre)} className={`shrink-0 w-[140px] rounded-xl overflow-hidden border-2 transition active:scale-[0.98] ${selectedCat === c.titre ? "border-[#D4AF37] shadow-md ring-2 ring-[#D4AF37]/30" : "border-[#E5E7EB]"}`}>
               <img src={c.photo} alt={c.titre} className="h-[80px] w-full object-cover" loading="lazy" />
               <div className="p-2 bg-white">
                 <p className="text-xs font-bold text-[#111] truncate">{c.titre}</p>
                 <p className="text-[10px] text-[#6B7280]">{c.count} véhicules</p>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>

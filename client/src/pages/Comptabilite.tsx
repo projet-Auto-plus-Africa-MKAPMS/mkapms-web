@@ -24,7 +24,7 @@ export default function Comptabilite() {
   const { user } = useAuth();
   const [tab, setTab] = useState<"dashboard" | "ecritures" | "rapports">("dashboard");
 
-  if (!user) return <div className="p-8 text-center text-[#6B7280]">Connectez-vous pour accéder à la comptabilité.</div>;
+  /* Accessible à tous les utilisateurs (connectés ou non) */
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">

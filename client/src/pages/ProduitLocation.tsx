@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Link, useParams, useLocation } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronLeft, ChevronRight, Heart, Star, Check, Fuel, Settings2,
   Zap, Users, DoorOpen, Gauge, Calendar, Shield, Clock, Lock,
@@ -72,6 +72,7 @@ export default function ProduitLocation() {
   const [fav, setFav] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const v = id ? VEHICLES_DB[id] : null;
   const backPath = location.pathname.includes("/pro/") ? "/louer/pro"
@@ -95,9 +96,9 @@ export default function ProduitLocation() {
         <div className="text-center">
           <h1 className="text-xl font-bold text-[#111]">Véhicule introuvable</h1>
           <p className="mt-2 text-sm text-[#6B7280]">Ce véhicule n'existe pas ou a été retiré.</p>
-          <Link to={backPath} className="mt-4 inline-block rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-white">
+          <button onClick={() => navigate(-1)} className="mt-4 inline-block rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-white">
             Retour aux véhicules
-          </Link>
+          </button>
         </div>
       </div>
     );
@@ -122,9 +123,9 @@ export default function ProduitLocation() {
             <img key={i} src={p} alt={`${v.titre} ${i + 1}`} className="w-full h-[260px] object-cover shrink-0 snap-center" loading="lazy" />
           ))}
         </div>
-        <Link to={backPath} className="absolute top-4 left-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur shadow">
+        <button onClick={() => navigate(-1)} className="absolute top-4 left-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur shadow">
           <ChevronLeft size={20} className="text-[#111]" />
-        </Link>
+        </button>
         <button onClick={() => setFav(!fav)} className="absolute top-4 right-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur shadow">
           <Heart size={18} className={fav ? "fill-red-500 text-red-500" : "text-[#6B7280]"} />
         </button>

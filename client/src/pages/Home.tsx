@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search, Tag, KeyRound, Wrench, Car, Star, ArrowRight, ShieldCheck,
@@ -84,6 +84,16 @@ const ADS_RIGHT = [
   { titre: "CONTRÔLE TECHNIQUE", sous: "PRIS EN CHARGE", prix: "", cta: "EN SAVOIR PLUS", color: "bg-green-700", to: "/garage/controle-technique" },
 ];
 
+/* ── PUBLICITÉS CENTRALES ── */
+const ADS_CENTER = [
+  { titre: "BOOSTEZ VOTRE VISIBILITÉ", sous: "AVEC MKA.P-MS", color: "bg-[#111]", to: "/demande-publicite" },
+  { titre: "ASSURANCE AUTO", sous: "PROTECTION COMPLÈTE DÈS 29€/MOIS", color: "bg-red-700", to: "/demarches" },
+  { titre: "FINANCE+ MKA.P-MS", sous: "CRÉDIT AUTO EN 24H — LOA — PAIEMENT 10X", color: "bg-emerald-700", to: "/finance" },
+  { titre: "CONTRÔLE TECHNIQUE", sous: "PRISE EN CHARGE 100% EN LIGNE", color: "bg-green-700", to: "/garage/controle-technique" },
+  { titre: "LIVRAISON PARTOUT", sous: "FRANCE & INTERNATIONAL — EXPRESS", color: "bg-blue-700", to: "/livraison" },
+  { titre: "REPRISE CASH IMMÉDIATE", sous: "ESTIMATION GRATUITE EN 2 MINUTES", color: "bg-[#D4AF37]", to: "/vendre" },
+];
+
 /* ── CARROUSEL PRINCIPAL ── */
 const SLIDES = [
   { label: "Vente", img: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=400&fit=crop", desc: "Achetez et vendez en toute confiance" },
@@ -95,16 +105,9 @@ const SLIDES = [
 
 /* ── COMPOSANT SCROLL HORIZONTAL ── */
 function HScroll({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const scroll = (dir: "left" | "right") => {
-    if (!ref.current) return;
-    ref.current.scrollBy({ left: dir === "right" ? 280 : -280, behavior: "smooth" });
-  };
   return (
-    <div className={`relative group ${className}`}>
-      <button onClick={() => scroll("left")} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 border border-[#E5E7EB] shadow flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><ChevronLeft size={16} /></button>
-      <div ref={ref} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide scroll-smooth">{children}</div>
-      <button onClick={() => scroll("right")} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 border border-[#E5E7EB] shadow flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><ChevronRight size={16} /></button>
+    <div className={`${className}`}>
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide scroll-smooth">{children}</div>
     </div>
   );
 }
@@ -151,10 +154,14 @@ export default function Home() {
   /* Pubs latérales rotation */
   const [adLeftIdx, setAdLeftIdx] = useState(0);
   const [adRightIdx, setAdRightIdx] = useState(0);
+  const [adCenter1, setAdCenter1] = useState(0);
+  const [adCenter2, setAdCenter2] = useState(3);
   useEffect(() => {
     const t1 = setInterval(() => setAdLeftIdx((p) => (p + 1) % ADS_LEFT.length), 6000);
     const t2 = setInterval(() => setAdRightIdx((p) => (p + 1) % ADS_RIGHT.length), 7000);
-    return () => { clearInterval(t1); clearInterval(t2); };
+    const t3 = setInterval(() => setAdCenter1((p) => (p + 1) % ADS_CENTER.length), 5000);
+    const t4 = setInterval(() => setAdCenter2((p) => (p + 1) % ADS_CENTER.length), 6000);
+    return () => { clearInterval(t1); clearInterval(t2); clearInterval(t3); clearInterval(t4); };
   }, []);
 
   /* Recherche */
@@ -365,14 +372,16 @@ export default function Home() {
               SECTION 8 — PUBLICITÉ PREMIUM #1
               ═══════════════════════════════════════════════════════════════ */}
           <section className="px-4 py-3 bg-white border-t border-[#F3F4F6]">
-            <div className="rounded-xl bg-[#111] p-4 md:p-6 flex items-center justify-between overflow-hidden relative">
+            {(() => { const ad = ADS_CENTER[adCenter1]; return (
+            <div key={adCenter1} className={`rounded-xl ${ad.color} p-4 md:p-6 flex items-center justify-between overflow-hidden relative transition-all duration-500`}>
               <span className="absolute top-2 left-2 text-[8px] font-semibold uppercase tracking-wider text-white/50">PUBLICITÉ</span>
               <div>
-                <h3 className="text-lg md:text-xl font-black text-white uppercase">BOOSTEZ VOTRE VISIBILITÉ</h3>
-                <p className="text-xs text-white/70 mt-1">AVEC MKA.P-MS</p>
+                <h3 className="text-lg md:text-xl font-black text-white uppercase">{ad.titre}</h3>
+                <p className="text-xs text-white/70 mt-1">{ad.sous}</p>
               </div>
-              <Link to="/demande-publicite" className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#c9a430] transition">EN SAVOIR PLUS</Link>
+              <Link to={ad.to} className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#c9a430] transition">EN SAVOIR PLUS</Link>
             </div>
+            ); })()}
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
@@ -482,14 +491,16 @@ export default function Home() {
               SECTION 13 — PUBLICITÉ PREMIUM #2
               ═══════════════════════════════════════════════════════════════ */}
           <section className="px-4 py-3 bg-white border-t border-[#F3F4F6]">
-            <div className="rounded-xl bg-[#D4AF37] p-4 md:p-6 flex items-center justify-between overflow-hidden relative">
+            {(() => { const ad = ADS_CENTER[adCenter2]; return (
+            <div key={adCenter2} className={`rounded-xl ${ad.color} p-4 md:p-6 flex items-center justify-between overflow-hidden relative transition-all duration-500`}>
               <span className="absolute top-2 left-2 text-[8px] font-semibold uppercase tracking-wider text-white/50">PUBLICITÉ</span>
               <div>
-                <h3 className="text-lg md:text-xl font-black text-white uppercase">VOUS ÊTES UN PROFESSIONNEL ?</h3>
-                <p className="text-xs text-white/80 mt-1">REJOIGNEZ MKA.P-MS ET DÉVELOPPEZ VOTRE ACTIVITÉ</p>
+                <h3 className="text-lg md:text-xl font-black text-white uppercase">{ad.titre}</h3>
+                <p className="text-xs text-white/70 mt-1">{ad.sous}</p>
               </div>
-              <Link to="/espace-pro" className="shrink-0 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#D4AF37] hover:bg-[#F5F3EF] transition">DEVENIR PARTENAIRE</Link>
+              <Link to={ad.to} className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs font-bold text-white hover:bg-[#c9a430] transition">EN SAVOIR PLUS</Link>
             </div>
+            ); })()}
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
