@@ -1,242 +1,414 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  ChevronLeft, Gavel, Shield, Clock, Users, AlertCircle, Star,
-  CheckCircle, ArrowRight, Eye, Lock, Building2, FileText, Filter,
-  ChevronDown, ChevronRight, Search, MapPin, Truck, RefreshCcw,
-  Car, Wrench, ArrowLeft, Info, Phone, MessageSquare, X,
+  ChevronLeft, ChevronRight, ChevronDown, Gavel, Shield, Clock, Users,
+  AlertCircle, Star, CheckCircle, ArrowRight, Eye, Lock, Building2,
+  FileText, Filter, Search, MapPin, Truck, RefreshCcw, Car, Wrench,
+  ArrowLeft, Info, Phone, MessageSquare, X, Camera, CreditCard, Package,
+  Calendar, Bell, BarChart3, Download, ExternalLink, Settings, Zap,
+  Heart, Share2, Bookmark, AlertTriangle, CheckCircle2, XCircle,
+  MinusCircle, HelpCircle, Fuel, Gauge, Hash, Navigation, DollarSign,
+  Receipt, ClipboardList, History, Award, TrendingUp, Activity,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 
 /* ═══════════════════════════════════════════════════════════
-   CATÉGORIES ACHETEURS AUTORISÉS
+   ACHETEURS AUTORISÉS
    ═══════════════════════════════════════════════════════════ */
-const ACHETEURS_AUTORISES = [
-  { id: "garage", label: "Garages", icon: Wrench, desc: "Garages et ateliers mécaniques" },
-  { id: "marchand", label: "Marchands automobiles", icon: Car, desc: "Revendeurs et concessionnaires" },
-  { id: "exportateur", label: "Exportateurs", icon: Truck, desc: "Export véhicules d'occasion" },
-  { id: "carrossier", label: "Carrossiers", icon: Building2, desc: "Ateliers de carrosserie agréés" },
-  { id: "casse", label: "Casse automobile agréée", icon: RefreshCcw, desc: "Centres de recyclage automobile" },
-  { id: "pro_valide", label: "Professionnels validés", icon: Shield, desc: "SIRET/KBIS vérifié" },
+const ACHETEURS = [
+  { id: "garage", label: "Garages", icon: Wrench },
+  { id: "marchand", label: "Marchands automobiles", icon: Car },
+  { id: "exportateur", label: "Exportateurs", icon: Truck },
+  { id: "carrossier", label: "Carrossiers", icon: Building2 },
+  { id: "casse", label: "Casse automobile agréée", icon: RefreshCcw },
+  { id: "pro_valide", label: "Professionnels validés", icon: Shield },
 ];
 
 /* ═══════════════════════════════════════════════════════════
-   LOTS ENCHÈRES (demo enrichi — 3 circuits)
+   CATÉGORIES ENCHÈRES
    ═══════════════════════════════════════════════════════════ */
+const CATEGORIES = [
+  { id: "reprise", label: "Reprise client", color: "bg-amber-500", badge: "REPRISE CLIENT" },
+  { id: "stock", label: "Stock MKA.P-MS", color: "bg-[#D4AF37]", badge: "STOCK MKA.P-MS" },
+  { id: "flotte", label: "Flotte location", color: "bg-blue-500", badge: "FLOTTE" },
+  { id: "accidente", label: "Véhicule accidenté", color: "bg-red-500", badge: "ACCIDENTÉ" },
+  { id: "mecanique", label: "Véhicule mécanique", color: "bg-orange-500", badge: "MÉCANIQUE" },
+  { id: "carrosserie", label: "Véhicule carrosserie", color: "bg-pink-500", badge: "CARROSSERIE" },
+  { id: "export", label: "Export", color: "bg-emerald-500", badge: "EXPORT" },
+  { id: "lot", label: "Lot professionnel", color: "bg-purple-600", badge: "LOT PRO" },
+  { id: "roulant", label: "Véhicule roulant", color: "bg-green-500", badge: "ROULANT" },
+  { id: "non_roulant", label: "Véhicule non roulant", color: "bg-slate-600", badge: "NON ROULANT" },
+];
+
+/* ═══════════════════════════════════════════════════════════
+   ÉTAT VÉHICULE STATUTS
+   ═══════════════════════════════════════════════════════════ */
+type EtatStatut = "bon" | "moyen" | "a_prevoir" | "a_reparer" | "non_controle";
+const ETAT_LABELS: Record<EtatStatut, { label: string; color: string; icon: typeof CheckCircle }> = {
+  bon: { label: "Bon", color: "text-green-600 bg-green-50", icon: CheckCircle },
+  moyen: { label: "Moyen", color: "text-amber-600 bg-amber-50", icon: MinusCircle },
+  a_prevoir: { label: "À prévoir", color: "text-orange-600 bg-orange-50", icon: AlertTriangle },
+  a_reparer: { label: "À réparer", color: "text-red-600 bg-red-50", icon: XCircle },
+  non_controle: { label: "Non contrôlé", color: "text-slate-500 bg-slate-50", icon: HelpCircle },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   LOTS DEMO ENRICHIS
+   ═══════════════════════════════════════════════════════════ */
+interface VehiculeLot { marque: string; modele: string; annee: number; km: number; etat: string; }
+interface EtatVehicule {
+  mecanique: EtatStatut; carrosserie: EtatStatut; interieur: EtatStatut;
+  pneus: EtatStatut; vitrage: EtatStatut; electronique: EtatStatut;
+  documents: EtatStatut; roulage: EtatStatut;
+}
+interface LotType {
+  id: number; titre: string; categorie: string; nbVehicules: number;
+  miseDepart: number; offreActuelle: number; encheres: number; encherisseurs: number;
+  heureDebut: string; heureFin: string; fin: string;
+  photo: string; photos: string[];
+  marque: string; modele: string; version: string; annee: string;
+  km: string; energie: string; boite: string; puissance: string;
+  vin: string; localisation: string;
+  etatGeneral: string; roulant: boolean;
+  etatDetail: EtatVehicule;
+  description: string;
+  rapportDefauts: string[]; rapportTravaux: string[]; rapportEstimation: number;
+  rapportDocuments: string[]; rapportRemarques: string[];
+  vehicules: VehiculeLot[];
+  badges: string[];
+  palier: number;
+}
+
 const LOTS: LotType[] = [
-  // Circuit 2 — Reprises véhicules à gros travaux
   {
     id: 1, titre: "Lot 5 véhicules — Reprises garage",
-    circuit: "reprise", nbVehicules: 5, miseDepart: 8500, offreActuelle: 12400,
-    encheres: 14, fin: "2h 15min", finTimestamp: Date.now() + 2 * 3600 * 1000,
+    categorie: "lot", nbVehicules: 5, miseDepart: 8500, offreActuelle: 12400,
+    encheres: 14, encherisseurs: 6,
+    heureDebut: "09/06/2026 10:00", heureFin: "11/06/2026 18:00", fin: "2j 0h",
     photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&h=400&fit=crop",
-    marque: "Diverses", modele: "Lot mixte", annee: "2016-2020",
-    km: "85 000 - 180 000 km", etat: "À remettre en état",
-    carburant: "Diesel / Essence", description: "Lot de 5 véhicules de reprise nécessitant des travaux mécaniques et de carrosserie. Parfait pour garages et marchands.",
+    photos: [
+      "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80",
+      "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80",
+      "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=600&q=80",
+      "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80",
+    ],
+    marque: "Diverses", modele: "Lot mixte", version: "Voir détails", annee: "2016-2020",
+    km: "85 000 - 180 000", energie: "Diesel / Essence", boite: "Manuelle / Auto",
+    puissance: "90 - 150 ch", vin: "VF1****", localisation: "Nanterre (92)",
+    etatGeneral: "À remettre en état", roulant: false,
+    etatDetail: { mecanique: "a_reparer", carrosserie: "moyen", interieur: "bon", pneus: "a_prevoir", vitrage: "bon", electronique: "moyen", documents: "bon", roulage: "a_reparer" },
+    description: "Lot de 5 véhicules de reprise nécessitant des travaux mécaniques et carrosserie. Idéal pour garages, marchands ou exportateurs.",
+    rapportDefauts: ["Distribution à faire sur 2 véhicules", "Embrayage usé (Mégane)", "Turbo HS (C4 Cactus)", "Boîte de vitesse bruyante (Golf)", "Moteur consommation d'huile (Focus)"],
+    rapportTravaux: ["Distribution x2 : ~1 200 €", "Embrayage : ~800 €", "Turbo remplacement : ~1 500 €", "Boîte reconditionnée : ~1 800 €", "Moteur à réviser : ~600 €"],
+    rapportEstimation: 5900,
+    rapportDocuments: ["Carte grise x5", "Contrôle technique x3 (2 sans)", "Carnet entretien x2"],
+    rapportRemarques: ["Véhicules stockés en extérieur", "Kilométrages vérifiés HistoVec", "Lot non divisible"],
     vehicules: [
       { marque: "Peugeot", modele: "308 SW", annee: 2018, km: 95000, etat: "Distribution à faire" },
       { marque: "Renault", modele: "Mégane IV", annee: 2019, km: 85000, etat: "Embrayage usé" },
       { marque: "Citroën", modele: "C4 Cactus", annee: 2017, km: 110000, etat: "Turbo HS" },
-      { marque: "Volkswagen", modele: "Golf VII", annee: 2016, km: 140000, etat: "Boîte de vitesse" },
-      { marque: "Ford", modele: "Focus III", annee: 2018, km: 105000, etat: "Moteur à réviser" },
+      { marque: "Volkswagen", modele: "Golf VII", annee: 2016, km: 140000, etat: "Boîte bruyante" },
+      { marque: "Ford", modele: "Focus III", annee: 2018, km: 105000, etat: "Consommation d'huile" },
     ],
+    badges: ["LOT PRO", "NON ROULANT", "REPRISE CLIENT"],
+    palier: 200,
   },
   {
-    id: 2, titre: "BMW Série 3 320d — Accident léger",
-    circuit: "reprise", nbVehicules: 1, miseDepart: 6000, offreActuelle: 8200,
-    encheres: 8, fin: "4h 30min", finTimestamp: Date.now() + 4.5 * 3600 * 1000,
+    id: 2, titre: "BMW 320d — Accident léger AVD",
+    categorie: "accidente", nbVehicules: 1, miseDepart: 6000, offreActuelle: 8200,
+    encheres: 8, encherisseurs: 4,
+    heureDebut: "09/06/2026 14:00", heureFin: "12/06/2026 14:00", fin: "3j 0h",
     photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&h=400&fit=crop",
-    marque: "BMW", modele: "Série 3 320d", annee: "2019",
-    km: "78 000 km", etat: "Accident léger avant-droit",
-    carburant: "Diesel", description: "BMW 320d accidentée côté avant droit. Mécanique parfaite, carrosserie à refaire (aile + pare-chocs + phare). Très bonne affaire pour carrossier.",
-    vehicules: [
-      { marque: "BMW", modele: "320d", annee: 2019, km: 78000, etat: "Aile AV droite + pare-chocs" },
+    photos: [
+      "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80",
+      "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80",
     ],
+    marque: "BMW", modele: "Série 3", version: "320d Sport", annee: "2019",
+    km: "78 000", energie: "Diesel", boite: "Automatique", puissance: "190 ch",
+    vin: "WBA8****", localisation: "Boulogne (92)",
+    etatGeneral: "Accident léger avant-droit", roulant: true,
+    etatDetail: { mecanique: "bon", carrosserie: "a_reparer", interieur: "bon", pneus: "bon", vitrage: "a_prevoir", electronique: "bon", documents: "bon", roulage: "bon" },
+    description: "BMW 320d accidentée côté avant droit. Mécanique parfaite, carrosserie à refaire. Très bonne affaire pour carrossier.",
+    rapportDefauts: ["Aile avant droite enfoncée", "Pare-chocs avant fissuré", "Phare AV droit cassé", "Léger décalage capot"],
+    rapportTravaux: ["Aile AV droite : ~350 €", "Pare-chocs AV : ~280 €", "Phare AV droit : ~400 €", "Peinture : ~600 €", "Main d'œuvre : ~500 €"],
+    rapportEstimation: 2130,
+    rapportDocuments: ["Carte grise", "Contrôle technique OK", "Carnet entretien BMW", "Factures entretien"],
+    rapportRemarques: ["Mécanique parfaite", "Entretien BMW suivi", "Pneus neufs", "Boîte auto ZF 8HP parfaite"],
+    vehicules: [{ marque: "BMW", modele: "320d Sport", annee: 2019, km: 78000, etat: "Aile + pare-chocs + phare AVD" }],
+    badges: ["ENCHÈRE PRO", "CARROSSERIE", "ROULANT"],
+    palier: 200,
   },
   {
-    id: 3, titre: "Renault Clio V — Panne moteur",
-    circuit: "reprise", nbVehicules: 1, miseDepart: 2500, offreActuelle: 3800,
-    encheres: 11, fin: "1j 8h", finTimestamp: Date.now() + 32 * 3600 * 1000,
+    id: 3, titre: "Renault Clio V — Bielle coulée",
+    categorie: "mecanique", nbVehicules: 1, miseDepart: 2500, offreActuelle: 3800,
+    encheres: 11, encherisseurs: 7,
+    heureDebut: "08/06/2026 10:00", heureFin: "10/06/2026 18:00", fin: "1j 0h",
     photo: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=600&h=400&fit=crop",
-    marque: "Renault", modele: "Clio V", annee: "2021",
-    km: "45 000 km", etat: "Panne moteur — bielle coulée",
-    carburant: "Essence", description: "Clio V récente avec panne moteur importante. Idéale pour garage spécialisé ou exportateur. Carrosserie et intérieur impeccables.",
-    vehicules: [
-      { marque: "Renault", modele: "Clio V", annee: 2021, km: 45000, etat: "Bielle coulée — moteur à remplacer" },
+    photos: [
+      "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=600&q=80",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80",
     ],
+    marque: "Renault", modele: "Clio V", version: "1.0 TCe 100", annee: "2021",
+    km: "45 000", energie: "Essence", boite: "Manuelle", puissance: "100 ch",
+    vin: "VF1R****", localisation: "Courbevoie (92)",
+    etatGeneral: "Panne moteur — bielle coulée", roulant: false,
+    etatDetail: { mecanique: "a_reparer", carrosserie: "bon", interieur: "bon", pneus: "bon", vitrage: "bon", electronique: "bon", documents: "bon", roulage: "a_reparer" },
+    description: "Clio V récente, panne moteur importante. Carrosserie et intérieur impeccables. Idéale pour garage spécialisé ou exportateur.",
+    rapportDefauts: ["Bielle coulée — moteur hors service", "Voyant moteur allumé", "Huile dans liquide de refroidissement"],
+    rapportTravaux: ["Moteur échange standard : ~2 500 €", "Main d'œuvre : ~800 €", "Fluides et filtres : ~150 €"],
+    rapportEstimation: 3450,
+    rapportDocuments: ["Carte grise", "Pas de CT (véhicule récent)", "Carnet entretien Renault"],
+    rapportRemarques: ["Carrosserie impeccable", "Intérieur comme neuf", "45 000 km réels vérifiés"],
+    vehicules: [{ marque: "Renault", modele: "Clio V", annee: 2021, km: 45000, etat: "Bielle coulée — moteur HS" }],
+    badges: ["ENCHÈRE PRO", "MÉCANIQUE", "NON ROULANT"],
+    palier: 100,
   },
-  // Circuit 3 — Flotte location fin de cycle
   {
-    id: 4, titre: "Lot 3 véhicules — Fin de flotte location",
-    circuit: "flotte", nbVehicules: 3, miseDepart: 15000, offreActuelle: 19500,
-    encheres: 6, fin: "5h 00min", finTimestamp: Date.now() + 5 * 3600 * 1000,
+    id: 4, titre: "Lot 3 — Fin de flotte location",
+    categorie: "flotte", nbVehicules: 3, miseDepart: 15000, offreActuelle: 19500,
+    encheres: 6, encherisseurs: 3,
+    heureDebut: "09/06/2026 08:00", heureFin: "13/06/2026 18:00", fin: "4j 0h",
     photo: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&h=400&fit=crop",
-    marque: "Diverses", modele: "Flotte MKA.P-MS", annee: "2021-2022",
-    km: "120 000 - 160 000 km", etat: "Fin de cycle location — amortis",
-    carburant: "Diesel", description: "3 véhicules de la flotte de location MKA.P-MS arrivés en fin de cycle. Kilométrage atteint, entretien constructeur suivi. Parfait pour revente ou export.",
+    photos: [
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80",
+      "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80",
+      "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80",
+    ],
+    marque: "Diverses", modele: "Flotte MKA.P-MS", version: "", annee: "2021-2022",
+    km: "120 000 - 160 000", energie: "Diesel", boite: "Manuelle / Auto",
+    puissance: "110 - 180 ch", vin: "VF1****", localisation: "Nanterre (92)",
+    etatGeneral: "Fin de cycle — amortis", roulant: true,
+    etatDetail: { mecanique: "moyen", carrosserie: "moyen", interieur: "moyen", pneus: "a_prevoir", vitrage: "bon", electronique: "bon", documents: "bon", roulage: "bon" },
+    description: "3 véhicules flotte location MKA.P-MS en fin de cycle. Entretien constructeur suivi. Parfait pour revente ou export.",
+    rapportDefauts: ["Kilométrage élevé", "Traces d'usure normales location", "Pneus à remplacer sur 2 véhicules", "Distribution à prévoir (C5 Aircross)"],
+    rapportTravaux: ["Pneus x8 : ~520 €", "Distribution C5 Aircross : ~650 €", "Révision complète x3 : ~450 €"],
+    rapportEstimation: 1620,
+    rapportDocuments: ["Cartes grises x3", "CT OK x3", "Carnet entretien constructeur x3", "Historique location"],
+    rapportRemarques: ["Entretien constructeur suivi", "Kilométrages réels vérifiés", "Lot non divisible"],
     vehicules: [
-      { marque: "Peugeot", modele: "3008 GT", annee: 2021, km: 125000, etat: "Entretien OK — pneus neufs" },
+      { marque: "Peugeot", modele: "3008 GT", annee: 2021, km: 125000, etat: "Entretien OK — pneus à changer" },
       { marque: "Renault", modele: "Kadjar", annee: 2022, km: 135000, etat: "Révision complète faite" },
       { marque: "Citroën", modele: "C5 Aircross", annee: 2021, km: 155000, etat: "Distribution à prévoir" },
     ],
+    badges: ["LOT PRO", "FLOTTE", "ROULANT"],
+    palier: 500,
   },
   {
-    id: 5, titre: "Mercedes Classe A 180d — Retour location",
-    circuit: "flotte", nbVehicules: 1, miseDepart: 9000, offreActuelle: 11200,
-    encheres: 9, fin: "6h 45min", finTimestamp: Date.now() + 6.75 * 3600 * 1000,
+    id: 5, titre: "Mercedes Classe A 180d — Export",
+    categorie: "export", nbVehicules: 1, miseDepart: 9000, offreActuelle: 11200,
+    encheres: 9, encherisseurs: 5,
+    heureDebut: "09/06/2026 10:00", heureFin: "12/06/2026 10:00", fin: "3j 0h",
     photo: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&h=400&fit=crop",
-    marque: "Mercedes", modele: "Classe A 180d", annee: "2022",
-    km: "140 000 km", etat: "Fin de contrat location",
-    carburant: "Diesel", description: "Mercedes Classe A 180d, retour de location longue durée. Kilométrage élevé mais entretien constructeur complet. Quelques traces d'usage normales.",
-    vehicules: [
-      { marque: "Mercedes", modele: "Classe A 180d", annee: 2022, km: 140000, etat: "Entretien Mercedes suivi" },
+    photos: [
+      "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80",
+      "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80",
     ],
+    marque: "Mercedes", modele: "Classe A", version: "180d AMG Line", annee: "2022",
+    km: "140 000", energie: "Diesel", boite: "Automatique", puissance: "116 ch",
+    vin: "WDD1****", localisation: "Sèvres (92)",
+    etatGeneral: "Fin de contrat location — haute km", roulant: true,
+    etatDetail: { mecanique: "bon", carrosserie: "moyen", interieur: "moyen", pneus: "a_prevoir", vitrage: "bon", electronique: "bon", documents: "bon", roulage: "bon" },
+    description: "Mercedes Classe A 180d AMG Line, retour location longue durée. Kilométrage élevé mais mécanique irréprochable. Export possible.",
+    rapportDefauts: ["Kilométrage élevé", "Micro-rayures carrosserie", "Siège conducteur légèrement usé", "Pneus avant à remplacer"],
+    rapportTravaux: ["Pneus avant x2 : ~300 €", "Lustrage carrosserie : ~200 €", "Nettoyage cuir : ~100 €"],
+    rapportEstimation: 600,
+    rapportDocuments: ["Carte grise", "CT OK", "Carnet entretien Mercedes", "Historique complet"],
+    rapportRemarques: ["Mécanique Mercedes irréprochable", "Boîte DCT parfaite", "Idéal export Afrique"],
+    vehicules: [{ marque: "Mercedes", modele: "Classe A 180d AMG Line", annee: 2022, km: 140000, etat: "Fin de location — bon état" }],
+    badges: ["ENCHÈRE PRO", "EXPORT", "STOCK MKA.P-MS"],
+    palier: 200,
   },
-  // Circuit 2 — Véhicule moyen en enchère pro
   {
-    id: 6, titre: "Citroën C3 Aircross — À réviser",
-    circuit: "reprise", nbVehicules: 1, miseDepart: 4000, offreActuelle: 5100,
-    encheres: 5, fin: "3h 20min", finTimestamp: Date.now() + 3.33 * 3600 * 1000,
+    id: 6, titre: "Citroën C3 Aircross — Carrosserie",
+    categorie: "carrosserie", nbVehicules: 1, miseDepart: 4000, offreActuelle: 5100,
+    encheres: 5, encherisseurs: 3,
+    heureDebut: "09/06/2026 08:00", heureFin: "11/06/2026 18:00", fin: "2j 0h",
     photo: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&h=400&fit=crop",
-    marque: "Citroën", modele: "C3 Aircross", annee: "2020",
-    km: "92 000 km", etat: "Révision complète à faire",
-    carburant: "Essence", description: "C3 Aircross reprise client, nécessite une révision complète (distribution, freins, embrayage). Bon état général de carrosserie.",
-    vehicules: [
-      { marque: "Citroën", modele: "C3 Aircross", annee: 2020, km: 92000, etat: "Distribution + freins + embrayage" },
+    photos: [
+      "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80",
+      "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80",
     ],
+    marque: "Citroën", modele: "C3 Aircross", version: "1.2 PureTech 110", annee: "2020",
+    km: "92 000", energie: "Essence", boite: "Manuelle", puissance: "110 ch",
+    vin: "VF7S****", localisation: "Levallois (92)",
+    etatGeneral: "Carrosserie endommagée — mécanique OK", roulant: true,
+    etatDetail: { mecanique: "bon", carrosserie: "a_reparer", interieur: "bon", pneus: "moyen", vitrage: "bon", electronique: "bon", documents: "bon", roulage: "bon" },
+    description: "C3 Aircross avec carrosserie endommagée sur côté gauche. Mécanique parfaitement fonctionnelle.",
+    rapportDefauts: ["Porte AVG enfoncée", "Aile AVG rayée", "Rétroviseur AVG cassé", "Peinture à refaire côté gauche"],
+    rapportTravaux: ["Porte AVG : ~400 €", "Aile AVG : ~250 €", "Rétroviseur : ~120 €", "Peinture côté G : ~600 €", "Main d'œuvre : ~350 €"],
+    rapportEstimation: 1720,
+    rapportDocuments: ["Carte grise", "CT OK", "Carnet entretien"],
+    rapportRemarques: ["Mécanique parfaite", "Intérieur propre", "Roulant sans problème"],
+    vehicules: [{ marque: "Citroën", modele: "C3 Aircross", annee: 2020, km: 92000, etat: "Carrosserie AVG endommagée" }],
+    badges: ["ENCHÈRE PRO", "CARROSSERIE", "ROULANT"],
+    palier: 100,
   },
 ];
 
-interface LotVehicule { marque: string; modele: string; annee: number; km: number; etat: string; }
-interface LotType {
-  id: number; titre: string; circuit: string; nbVehicules: number;
-  miseDepart: number; offreActuelle: number; encheres: number;
-  fin: string; finTimestamp: number; photo: string;
-  marque: string; modele: string; annee: string;
-  km: string; etat: string; carburant: string; description: string;
-  vehicules: LotVehicule[];
+/* Enchères remportées demo */
+interface EnchereRemportee {
+  lotId: number; titre: string; montant: number; date: string;
+  statut: "remportee" | "paiement_attente" | "paye" | "retrait_programme" | "livre" | "cloture";
 }
+const MES_ENCHERES_DEMO: EnchereRemportee[] = [
+  { lotId: 10, titre: "Peugeot 208 — Reprise client", montant: 4200, date: "05/06/2026", statut: "paye" },
+  { lotId: 11, titre: "Lot 2 utilitaires — Flotte", montant: 8900, date: "02/06/2026", statut: "livre" },
+  { lotId: 12, titre: "Dacia Duster — Mécanique", montant: 3100, date: "31/05/2026", statut: "cloture" },
+];
 
-const CIRCUIT_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  reprise: { label: "Reprise", color: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
-  flotte: { label: "Flotte location", color: "text-blue-700", bg: "bg-blue-50 border-blue-200" },
+const STATUT_LABELS: Record<string, { label: string; color: string }> = {
+  remportee: { label: "Enchère remportée", color: "text-green-700 bg-green-50" },
+  paiement_attente: { label: "Paiement en attente", color: "text-amber-700 bg-amber-50" },
+  paye: { label: "Payé", color: "text-blue-700 bg-blue-50" },
+  retrait_programme: { label: "Retrait programmé", color: "text-purple-700 bg-purple-50" },
+  livre: { label: "Livré", color: "text-green-700 bg-green-50" },
+  cloture: { label: "Dossier clôturé", color: "text-slate-600 bg-slate-100" },
 };
 
 export default function VenteEncheres() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"landing" | "lots" | "detail">("landing");
+
+  const [mode, setMode] = useState<"landing" | "lots" | "detail" | "mes_encheres" | "remportes" | "conditions" | "prochaines">("landing");
   const [selectedLotId, setSelectedLotId] = useState<number | null>(null);
-  const [filterCircuit, setFilterCircuit] = useState("");
+
+  /* Filtres */
+  const [filterCat, setFilterCat] = useState("");
+  const [filterMarque, setFilterMarque] = useState("");
+  const [filterEnergie, setFilterEnergie] = useState("");
+  const [filterRoulant, setFilterRoulant] = useState("");
+  const [filterPrixMax, setFilterPrixMax] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+
+  /* Enchère */
   const [enchereInput, setEnchereInput] = useState("");
   const [showBidConfirm, setShowBidConfirm] = useState(false);
+  const [bidHistory, setBidHistory] = useState<{ montant: number; heure: string; pro: string }[]>([
+    { montant: 12400, heure: "14:32", pro: "Garage AutoPro ***" },
+    { montant: 12200, heure: "14:15", pro: "Export Cars ***" },
+    { montant: 12000, heure: "13:48", pro: "MécaPro ***" },
+    { montant: 11500, heure: "12:20", pro: "Garage AutoPro ***" },
+    { montant: 11000, heure: "11:05", pro: "Carrosserie Plus ***" },
+    { montant: 10500, heure: "10:30", pro: "Export Cars ***" },
+    { montant: 10000, heure: "10:00", pro: "MécaPro ***" },
+  ]);
+
+  /* Photo viewer */
+  const [photoIdx, setPhotoIdx] = useState(0);
 
   const selectedLot = LOTS.find((l) => l.id === selectedLotId);
-  const filteredLots = filterCircuit ? LOTS.filter((l) => l.circuit === filterCircuit) : LOTS;
-
   const isPro = user?.accountType === "professionnel" || user?.accountType === "admin";
 
+  const filteredLots = useMemo(() => {
+    return LOTS.filter((l) => {
+      if (filterCat && l.categorie !== filterCat) return false;
+      if (filterMarque && !l.marque.toLowerCase().includes(filterMarque.toLowerCase())) return false;
+      if (filterEnergie && !l.energie.toLowerCase().includes(filterEnergie.toLowerCase())) return false;
+      if (filterRoulant === "roulant" && !l.roulant) return false;
+      if (filterRoulant === "non_roulant" && l.roulant) return false;
+      if (filterPrixMax && l.miseDepart > Number(filterPrixMax)) return false;
+      return true;
+    });
+  }, [filterCat, filterMarque, filterEnergie, filterRoulant, filterPrixMax]);
+
   /* ════════════════════════════════════════════════════════════
-     LANDING PAGE — Présentation Enchères
+     PAGE D'ACCUEIL — MKA.P-MS Enchères Pro
      ════════════════════════════════════════════════════════════ */
   if (mode === "landing") {
     return (
-      <div className="min-h-screen bg-[#F5F3EF]">
+      <div className="min-h-screen bg-[#0a0a14]">
         {/* HERO */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#2d1b69] via-[#1a1145] to-[#111]">
-          <div className="absolute inset-0 opacity-20">
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1a0f3c] via-[#0d0820] to-[#0a0a14]" />
+          <div className="absolute inset-0 opacity-10">
             <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=1200&q=80" alt="" className="h-full w-full object-cover" />
           </div>
-          <div className="relative px-4 py-10 md:py-16 md:px-8 max-w-6xl mx-auto">
-            <div className="md:flex md:items-center md:justify-between md:gap-12">
-              <div className="md:max-w-xl">
-                <span className="inline-block rounded-full bg-white/20 px-4 py-1 text-[10px] font-bold text-white mb-3 uppercase tracking-widest">Enchères professionnelles</span>
-                <h1 className="text-3xl md:text-5xl font-black text-white leading-tight">
-                  ENCHÈRES<br /><span className="text-[#D4AF37]">AUTOMOBILES PRO</span>
-                </h1>
-                <p className="mt-3 text-sm md:text-base text-white/70 max-w-md">
-                  Véhicules de reprise, fins de flotte, véhicules à travaux — réservés aux professionnels.
-                </p>
-              </div>
-              <div className="mt-6 md:mt-0">
-                <div className="rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-5 space-y-3">
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2"><Lock size={14} className="text-[#D4AF37]" /> Accès réservé aux :</h3>
-                  {ACHETEURS_AUTORISES.map((a) => (
-                    <div key={a.id} className="flex items-center gap-2">
-                      <a.icon size={14} className="text-[#D4AF37] shrink-0" />
-                      <span className="text-xs text-white/90">{a.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          <div className="relative px-4 py-12 md:py-20 md:px-8 max-w-6xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5 mb-6">
+              <Lock size={12} className="text-purple-400" />
+              <span className="text-[10px] font-bold text-purple-300 uppercase tracking-widest">Espace professionnel réservé</span>
             </div>
+            <h1 className="text-4xl md:text-6xl font-black text-white leading-tight">
+              MK<span className="text-[#D4AF37]">A</span>.P-MS<br />
+              <span className="text-purple-400">ENCHÈRES PRO</span>
+            </h1>
+            <p className="mt-4 text-sm md:text-base text-white/50 max-w-lg mx-auto">
+              Véhicules professionnels, reprises, flottes et lots réservés aux professionnels validés.
+            </p>
           </div>
         </div>
 
-        {/* CIRCUITS */}
-        <div className="px-4 md:px-8 max-w-6xl mx-auto mt-10">
-          <h2 className="text-xl font-extrabold text-[#111] text-center mb-6">LES 3 CIRCUITS D'ENCHÈRES</h2>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 mb-3"><Car size={20} className="text-green-600" /></div>
-              <h3 className="text-sm font-bold text-[#111]">Circuit 1 — Vente directe</h3>
-              <p className="mt-1 text-xs text-[#6B7280]">Les meilleurs véhicules MKA.P-MS sont vendus en vente classique.</p>
-              <p className="mt-2 text-[10px] text-green-600 font-semibold">→ Vente directe MKA.P-MS</p>
-            </div>
-            <div className="rounded-2xl bg-white border border-amber-200 p-6 shadow-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 mb-3"><RefreshCcw size={20} className="text-amber-600" /></div>
-              <h3 className="text-sm font-bold text-[#111]">Circuit 2 — Reprises</h3>
-              <p className="mt-1 text-xs text-[#6B7280]">Véhicules de reprise avec travaux importants → enchères professionnelles.</p>
-              <p className="mt-2 text-[10px] text-amber-600 font-semibold">→ Enchères Pro</p>
-            </div>
-            <div className="rounded-2xl bg-white border border-blue-200 p-6 shadow-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 mb-3"><Truck size={20} className="text-blue-600" /></div>
-              <h3 className="text-sm font-bold text-[#111]">Circuit 3 — Flottes</h3>
-              <p className="mt-1 text-xs text-[#6B7280]">Véhicules de location en fin de cycle, kilométrage cible atteint.</p>
-              <p className="mt-2 text-[10px] text-blue-600 font-semibold">→ Enchères Pro</p>
-            </div>
-          </div>
-        </div>
-
-        {/* AVANTAGES */}
-        <div className="px-4 md:px-8 max-w-6xl mx-auto mt-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* 5 BOUTONS PRINCIPAUX */}
+        <div className="px-4 md:px-8 max-w-4xl mx-auto -mt-4 relative z-10">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {[
-              { icon: Shield, text: "Véhicules expertisés", desc: "Chaque véhicule est inspecté" },
-              { icon: Eye, text: "Transparence totale", desc: "Historique et état détaillés" },
-              { icon: Gavel, text: "Enchères sécurisées", desc: "Système d'enchères fiable" },
-              { icon: Lock, text: "Accès pro uniquement", desc: "SIRET/KBIS vérifié" },
-            ].map((a) => (
-              <div key={a.text} className="text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/10"><a.icon size={22} className="text-[#D4AF37]" /></div>
-                <h3 className="mt-3 text-sm font-bold text-[#111]">{a.text}</h3>
-                <p className="mt-1 text-xs text-[#6B7280]">{a.desc}</p>
-              </div>
+              { label: "Enchères en cours", icon: Gavel, mode: "lots" as const, color: "from-purple-600 to-purple-800" },
+              { label: "Prochaines ventes", icon: Calendar, mode: "prochaines" as const, color: "from-blue-600 to-blue-800" },
+              { label: "Mes enchères", icon: Activity, mode: "mes_encheres" as const, color: "from-amber-600 to-amber-800" },
+              { label: "Véhicules remportés", icon: Award, mode: "remportes" as const, color: "from-green-600 to-green-800" },
+              { label: "Conditions d'accès", icon: FileText, mode: "conditions" as const, color: "from-slate-600 to-slate-800" },
+            ].map((b) => (
+              <button
+                key={b.label}
+                onClick={() => {
+                  if (!user) { navigate("/connexion"); return; }
+                  setMode(b.mode);
+                }}
+                className={`rounded-2xl bg-gradient-to-br ${b.color} p-5 text-left hover:opacity-90 transition shadow-lg`}
+              >
+                <b.icon size={22} className="text-white/80 mb-2" />
+                <h3 className="text-sm font-bold text-white">{b.label}</h3>
+              </button>
             ))}
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="px-4 md:px-8 max-w-6xl mx-auto mt-10 mb-10">
-          <div className="rounded-2xl bg-gradient-to-r from-[#2d1b69] to-[#111] p-6 md:p-8 text-center">
-            <h2 className="text-lg md:text-xl font-extrabold text-white">ACCÉDER AUX ENCHÈRES</h2>
-            <p className="mt-2 text-sm text-white/60 max-w-md mx-auto">
-              {isPro ? "Vous êtes vérifié. Accédez aux lots disponibles." : "Réservé aux professionnels avec SIRET/KBIS vérifié."}
-            </p>
-            <button
-              className="mt-5 rounded-xl bg-[#D4AF37] px-8 py-3.5 text-sm font-bold text-white shadow-lg hover:bg-[#C5A028] transition"
-              onClick={() => {
-                if (!user) { navigate("/connexion"); return; }
-                setMode("lots");
-              }}
-            >
-              {isPro ? "Voir les lots disponibles" : "Se connecter en tant que Pro"}
-            </button>
-            {!isPro && user && (
-              <p className="mt-3 text-xs text-white/40">
-                Votre compte est de type particulier. Les enchères sont réservées aux comptes professionnels.
-              </p>
-            )}
+        {/* CATÉGORIES */}
+        <div className="px-4 md:px-8 max-w-6xl mx-auto mt-12">
+          <h2 className="text-lg font-extrabold text-white text-center mb-6">CATÉGORIES DE VÉHICULES</h2>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {CATEGORIES.map((c) => (
+              <button key={c.id} onClick={() => { setFilterCat(c.id); setMode("lots"); }}
+                className="rounded-xl bg-white/5 border border-white/10 p-4 text-center hover:bg-white/10 transition">
+                <span className={`inline-block rounded-full ${c.color} px-3 py-1 text-[9px] font-bold text-white mb-2`}>{c.badge}</span>
+                <p className="text-xs text-white/70">{c.label}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ACCÈS AUTORISÉ */}
+        <div className="px-4 md:px-8 max-w-6xl mx-auto mt-12">
+          <div className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-6 md:p-8">
+            <h2 className="text-lg font-extrabold text-white text-center mb-4">QUI PEUT ENCHÉRIR ?</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {ACHETEURS.map((a) => (
+                <div key={a.id} className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
+                  <a.icon size={18} className="text-purple-400 shrink-0" />
+                  <span className="text-sm text-white/80">{a.label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-center">
+              <p className="text-xs text-red-400 font-bold">❌ Particuliers non autorisés — Vérification SIRET/KBIS obligatoire</p>
+            </div>
+          </div>
+        </div>
+
+        {/* STATS */}
+        <div className="px-4 md:px-8 max-w-6xl mx-auto mt-12 mb-12">
+          <div className="grid grid-cols-4 gap-4">
+            {[
+              { val: `${LOTS.length}`, label: "Lots en cours" },
+              { val: `${LOTS.reduce((s, l) => s + l.encherisseurs, 0)}`, label: "Enchérisseurs" },
+              { val: `${LOTS.reduce((s, l) => s + l.nbVehicules, 0)}`, label: "Véhicules" },
+              { val: `${Math.round(LOTS.reduce((s, l) => s + l.offreActuelle, 0) / 1000)}k €`, label: "Volume" },
+            ].map((s) => (
+              <div key={s.label} className="text-center">
+                <p className="text-2xl font-black text-[#D4AF37]">{s.val}</p>
+                <p className="text-[10px] text-white/40 mt-1">{s.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -244,63 +416,136 @@ export default function VenteEncheres() {
   }
 
   /* ════════════════════════════════════════════════════════════
-     LISTE DES LOTS
+     CONDITIONS D'ACCÈS
      ════════════════════════════════════════════════════════════ */
-  if (mode === "lots") {
+  if (mode === "conditions") {
     return (
-      <div className="min-h-screen bg-[#F5F3EF] pb-24">
-        <div className="bg-gradient-to-r from-[#2d1b69] to-[#1a1145] px-4 pt-6 pb-5">
+      <div className="min-h-screen bg-[#0a0a14] pb-24">
+        <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
           <button onClick={() => setMode("landing")} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
-          <span className="inline-block rounded-full bg-white/20 px-3 py-0.5 text-[10px] font-bold text-white mb-2 uppercase tracking-widest">Enchères Pro</span>
-          <h1 className="text-xl font-black text-white flex items-center gap-2"><Gavel size={20} /> Lots disponibles</h1>
-          <p className="mt-1 text-sm text-white/70">{filteredLots.length} lot(s) en cours</p>
+          <h1 className="text-xl font-black text-white flex items-center gap-2"><FileText size={20} className="text-purple-400" /> Conditions d'accès</h1>
+        </div>
+        <div className="px-4 mt-6 max-w-3xl mx-auto space-y-4">
+          {[
+            { title: "Qui peut participer ?", items: ["Garages et ateliers mécaniques validés", "Marchands automobiles avec SIRET/KBIS", "Carrossiers agréés", "Exportateurs avec licence", "Centres de recyclage agréés (casse)", "Tout professionnel avec documents vérifiés"], icon: Users },
+            { title: "Documents requis", items: ["SIRET ou KBIS valide", "Pièce d'identité du gérant", "Justificatif de domicile professionnel", "Attestation d'assurance RC Pro", "RIB professionnel", "Acceptation des CGV enchères"], icon: FileText },
+            { title: "Règles d'enchère", items: ["Enchère minimum = prix de départ", "Palier d'enchère par lot (100€ à 500€)", "Surenchère automatique possible", "Clôture automatique à l'heure prévue", "Prolongation de 5 min si enchère dans la dernière minute", "Enchère irrévocable une fois placée"], icon: Gavel },
+            { title: "Après enchère remportée", items: ["Paiement sous 48h obligatoire", "Enlèvement sous 72h après paiement", "Transport possible (frais en sus)", "Facture automatique", "Véhicule vendu en l'état — sans garantie", "Aucune vente à particulier autorisée"], icon: CreditCard },
+          ].map((s) => (
+            <div key={s.title} className="rounded-2xl bg-white/5 border border-white/10 p-5">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-3"><s.icon size={16} className="text-purple-400" /> {s.title}</h3>
+              <ul className="space-y-2">
+                {s.items.map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-xs text-white/60"><CheckCircle size={12} className="text-purple-400 mt-0.5 shrink-0" /> {item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     MES ENCHÈRES (Tableau de bord pro)
+     ════════════════════════════════════════════════════════════ */
+  if (mode === "mes_encheres") {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] pb-24">
+        <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
+          <button onClick={() => setMode("landing")} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
+          <h1 className="text-xl font-black text-white flex items-center gap-2"><Activity size={20} className="text-purple-400" /> Tableau de bord</h1>
         </div>
 
-        {!isPro && (
-          <div className="mx-4 mt-4 rounded-xl bg-amber-50 border border-amber-200 p-3 flex items-start gap-2">
-            <AlertCircle size={14} className="text-amber-600 mt-0.5 shrink-0" />
-            <p className="text-xs text-amber-800"><span className="font-bold">Accès restreint :</span> Les enchères sont réservées aux professionnels validés. Vérification SIRET/KBIS obligatoire.</p>
+        {/* Stats */}
+        <div className="px-4 mt-6 grid grid-cols-4 gap-2">
+          {[
+            { val: "3", label: "Suivies", color: "text-blue-400" },
+            { val: "2", label: "En cours", color: "text-purple-400" },
+            { val: "1", label: "Gagnées", color: "text-green-400" },
+            { val: "2", label: "Perdues", color: "text-red-400" },
+          ].map((s) => (
+            <div key={s.label} className="rounded-xl bg-white/5 border border-white/10 p-3 text-center">
+              <p className={`text-xl font-black ${s.color}`}>{s.val}</p>
+              <p className="text-[9px] text-white/40 mt-0.5">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Sections */}
+        <div className="px-4 mt-6 space-y-4">
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            <h3 className="text-sm font-bold text-white mb-3">Enchères suivies</h3>
+            {LOTS.slice(0, 3).map((l) => (
+              <div key={l.id} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0 cursor-pointer" onClick={() => { setSelectedLotId(l.id); setMode("detail"); }}>
+                <img src={l.photo} alt="" className="h-10 w-14 rounded-lg object-cover shrink-0" />
+                <div className="flex-1 min-w-0"><p className="text-xs font-bold text-white truncate">{l.titre}</p><p className="text-[10px] text-white/40">{l.fin} restant</p></div>
+                <p className="text-xs font-bold text-purple-400">{l.offreActuelle.toLocaleString("fr-FR")} €</p>
+              </div>
+            ))}
           </div>
-        )}
 
-        {/* Filtres circuit */}
-        <div className="px-4 mt-4 flex gap-2">
-          <button onClick={() => setFilterCircuit("")} className={`rounded-full px-4 py-2 text-xs font-bold transition ${!filterCircuit ? "bg-[#D4AF37] text-white" : "bg-white border border-[#E5E7EB] text-[#6B7280]"}`}>Tous les lots</button>
-          <button onClick={() => setFilterCircuit("reprise")} className={`rounded-full px-4 py-2 text-xs font-bold transition ${filterCircuit === "reprise" ? "bg-amber-500 text-white" : "bg-white border border-[#E5E7EB] text-[#6B7280]"}`}>Reprises</button>
-          <button onClick={() => setFilterCircuit("flotte")} className={`rounded-full px-4 py-2 text-xs font-bold transition ${filterCircuit === "flotte" ? "bg-blue-500 text-white" : "bg-white border border-[#E5E7EB] text-[#6B7280]"}`}>Flottes</button>
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            <h3 className="text-sm font-bold text-white mb-3">Paiements à effectuer</h3>
+            <div className="flex items-center gap-3 py-2">
+              <DollarSign size={16} className="text-amber-400" />
+              <div className="flex-1"><p className="text-xs font-bold text-white">Aucun paiement en attente</p><p className="text-[10px] text-white/40">Vos paiements sont à jour</p></div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            <h3 className="text-sm font-bold text-white mb-3">Factures et documents</h3>
+            {MES_ENCHERES_DEMO.filter((e) => e.statut !== "paiement_attente").map((e) => (
+              <div key={e.lotId} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0">
+                <Receipt size={14} className="text-white/40" />
+                <div className="flex-1"><p className="text-xs font-bold text-white">{e.titre}</p><p className="text-[10px] text-white/40">{e.date} — {e.montant.toLocaleString("fr-FR")} €</p></div>
+                <button className="text-[10px] text-purple-400 font-bold">PDF</button>
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
+    );
+  }
 
-        {/* Lots */}
-        <div className="px-4 mt-4 space-y-3">
-          {filteredLots.map((l) => {
-            const ci = CIRCUIT_LABELS[l.circuit];
+  /* ════════════════════════════════════════════════════════════
+     VÉHICULES REMPORTÉS
+     ════════════════════════════════════════════════════════════ */
+  if (mode === "remportes") {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] pb-24">
+        <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
+          <button onClick={() => setMode("landing")} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
+          <h1 className="text-xl font-black text-white flex items-center gap-2"><Award size={20} className="text-[#D4AF37]" /> Véhicules remportés</h1>
+        </div>
+        <div className="px-4 mt-6 space-y-3">
+          {MES_ENCHERES_DEMO.map((e) => {
+            const st = STATUT_LABELS[e.statut];
             return (
-              <div key={l.id} className="rounded-2xl bg-white border border-[#E5E7EB] overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer" onClick={() => { setSelectedLotId(l.id); setMode("detail"); }}>
-                <div className="relative h-[160px]">
-                  <img src={l.photo} alt={l.titre} className="w-full h-full object-cover" loading="lazy" />
-                  <span className="absolute top-3 left-3 rounded-full bg-purple-700 px-3 py-1 text-[10px] font-bold text-white flex items-center gap-1"><Gavel size={10} /> Enchère</span>
-                  <span className={`absolute top-3 right-3 rounded-full border px-3 py-1 text-[10px] font-bold ${ci?.bg} ${ci?.color}`}>{ci?.label}</span>
-                  <span className="absolute bottom-3 right-3 rounded-full bg-[#111]/80 px-3 py-1 text-[10px] font-bold text-white flex items-center gap-1"><Clock size={10} /> {l.fin}</span>
-                  {l.nbVehicules > 1 && <span className="absolute bottom-3 left-3 rounded-full bg-[#D4AF37] px-3 py-1 text-[10px] font-bold text-white">{l.nbVehicules} véhicules</span>}
+              <div key={e.lotId} className="rounded-2xl bg-white/5 border border-white/10 p-5">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-white">{e.titre}</p>
+                    <p className="text-[10px] text-white/40 mt-0.5">{e.date}</p>
+                  </div>
+                  <span className={`rounded-full px-3 py-1 text-[9px] font-bold ${st.color}`}>{st.label}</span>
                 </div>
-                <div className="p-4">
-                  <h3 className="text-sm font-bold text-[#111]">{l.titre}</h3>
-                  <p className="text-xs text-[#6B7280] mt-0.5">{l.etat}</p>
-                  <div className="mt-3 grid grid-cols-3 gap-2">
-                    <div className="rounded-lg bg-[#F5F3EF] p-2 text-center">
-                      <p className="text-[8px] text-[#6B7280]">Mise de départ</p>
-                      <p className="text-sm font-bold text-[#111]">{l.miseDepart.toLocaleString("fr-FR")} €</p>
-                    </div>
-                    <div className="rounded-lg bg-purple-50 p-2 text-center">
-                      <p className="text-[8px] text-purple-600">Offre actuelle</p>
-                      <p className="text-sm font-black text-purple-700">{l.offreActuelle.toLocaleString("fr-FR")} €</p>
-                    </div>
-                    <div className="rounded-lg bg-[#F5F3EF] p-2 text-center">
-                      <p className="text-[8px] text-[#6B7280]">Enchères</p>
-                      <p className="text-sm font-bold text-[#111]">{l.encheres}</p>
-                    </div>
+                <div className="mt-3 flex items-center justify-between">
+                  <p className="text-lg font-black text-[#D4AF37]">{e.montant.toLocaleString("fr-FR")} €</p>
+                  <div className="flex gap-2">
+                    <button className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white">Facture</button>
+                    <button className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white">Documents</button>
                   </div>
                 </div>
+                {e.statut === "paye" && (
+                  <div className="mt-3 rounded-xl bg-blue-500/10 border border-blue-500/20 p-3">
+                    <p className="text-xs text-blue-400">Retrait disponible · Contactez-nous pour programmer l'enlèvement.</p>
+                    <div className="mt-2 flex gap-2">
+                      <button className="rounded-lg bg-blue-600 px-3 py-1.5 text-[10px] font-bold text-white">Programmer retrait</button>
+                      <button className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white">Demander livraison</button>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -310,151 +555,384 @@ export default function VenteEncheres() {
   }
 
   /* ════════════════════════════════════════════════════════════
-     DÉTAIL LOT / ENCHÉRIR
+     PROCHAINES VENTES
+     ════════════════════════════════════════════════════════════ */
+  if (mode === "prochaines") {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] pb-24">
+        <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
+          <button onClick={() => setMode("landing")} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
+          <h1 className="text-xl font-black text-white flex items-center gap-2"><Calendar size={20} className="text-blue-400" /> Prochaines ventes</h1>
+        </div>
+        <div className="px-4 mt-6 space-y-4">
+          {[
+            { date: "15/06/2026", titre: "Vente lot reprises #24", lots: 8, vehicules: 15, desc: "Reprises garage juin 2026" },
+            { date: "20/06/2026", titre: "Vente flotte location MKA.P-MS", lots: 5, vehicules: 12, desc: "Véhicules de location amortis Q2 2026" },
+            { date: "25/06/2026", titre: "Vente export Afrique #12", lots: 6, vehicules: 10, desc: "Véhicules préparés pour l'export" },
+          ].map((v) => (
+            <div key={v.date} className="rounded-2xl bg-white/5 border border-white/10 p-5">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-bold text-white">{v.titre}</p>
+                  <p className="text-[10px] text-white/40 mt-0.5">{v.desc}</p>
+                </div>
+                <span className="rounded-full bg-blue-500/20 px-3 py-1 text-[10px] font-bold text-blue-400">{v.date}</span>
+              </div>
+              <div className="mt-3 flex gap-4 text-xs">
+                <span className="text-white/60">{v.lots} lots</span>
+                <span className="text-white/60">{v.vehicules} véhicules</span>
+              </div>
+              <button className="mt-3 rounded-xl bg-purple-600 px-4 py-2 text-xs font-bold text-white">S'inscrire à la vente</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     LISTE DES LOTS — avec filtres
+     ════════════════════════════════════════════════════════════ */
+  if (mode === "lots") {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] pb-24">
+        <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
+          <button onClick={() => { setMode("landing"); setFilterCat(""); }} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
+          <div className="flex items-center gap-2">
+            <Gavel size={20} className="text-purple-400" />
+            <h1 className="text-xl font-black text-white">Enchères en cours</h1>
+          </div>
+          <p className="mt-1 text-sm text-white/50">{filteredLots.length} lot(s) disponible(s)</p>
+        </div>
+
+        {!isPro && (
+          <div className="mx-4 mt-4 rounded-xl bg-red-500/10 border border-red-500/20 p-3 flex items-start gap-2">
+            <AlertCircle size={14} className="text-red-400 mt-0.5 shrink-0" />
+            <p className="text-xs text-red-300"><span className="font-bold">Accès restreint.</span> Les enchères sont réservées aux professionnels validés (SIRET/KBIS).</p>
+          </div>
+        )}
+
+        {/* Filtres catégorie */}
+        <div className="px-4 mt-4 flex gap-2 overflow-x-auto pb-2">
+          <button onClick={() => setFilterCat("")} className={`shrink-0 rounded-full px-4 py-2 text-[10px] font-bold transition ${!filterCat ? "bg-purple-600 text-white" : "bg-white/5 border border-white/10 text-white/60"}`}>Tous</button>
+          {CATEGORIES.map((c) => (
+            <button key={c.id} onClick={() => setFilterCat(filterCat === c.id ? "" : c.id)} className={`shrink-0 rounded-full px-3 py-2 text-[10px] font-bold transition ${filterCat === c.id ? `${c.color} text-white` : "bg-white/5 border border-white/10 text-white/60"}`}>{c.badge}</button>
+          ))}
+        </div>
+
+        {/* Filtres avancés */}
+        <div className="px-4 mt-2">
+          <button onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-1 text-xs text-purple-400 font-semibold">
+            <Filter size={12} /> Filtres avancés {showFilters ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          </button>
+          {showFilters && (
+            <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
+              <input className="rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-xs text-white placeholder:text-white/30 outline-none" placeholder="Marque" value={filterMarque} onChange={(e) => setFilterMarque(e.target.value)} />
+              <select className="rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-xs text-white outline-none" value={filterEnergie} onChange={(e) => setFilterEnergie(e.target.value)}>
+                <option value="">Énergie</option>
+                <option value="diesel">Diesel</option>
+                <option value="essence">Essence</option>
+              </select>
+              <select className="rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-xs text-white outline-none" value={filterRoulant} onChange={(e) => setFilterRoulant(e.target.value)}>
+                <option value="">Roulant / Non</option>
+                <option value="roulant">Roulant</option>
+                <option value="non_roulant">Non roulant</option>
+              </select>
+              <input className="rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-xs text-white placeholder:text-white/30 outline-none" placeholder="Prix max (€)" type="number" value={filterPrixMax} onChange={(e) => setFilterPrixMax(e.target.value)} />
+            </div>
+          )}
+        </div>
+
+        {/* Lots */}
+        <div className="px-4 mt-4 space-y-3">
+          {filteredLots.map((l) => {
+            const cat = CATEGORIES.find((c) => c.id === l.categorie);
+            return (
+              <div key={l.id} className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden hover:bg-white/[0.08] transition cursor-pointer" onClick={() => { setSelectedLotId(l.id); setMode("detail"); setPhotoIdx(0); }}>
+                <div className="relative h-[160px]">
+                  <img src={l.photo} alt={l.titre} className="w-full h-full object-cover" loading="lazy" />
+                  <div className="absolute top-3 left-3 flex flex-wrap gap-1">
+                    {l.badges.map((b) => {
+                      const bc = CATEGORIES.find((c) => c.badge === b);
+                      return <span key={b} className={`rounded-full ${bc?.color || "bg-purple-600"} px-2.5 py-1 text-[8px] font-bold text-white`}>{b}</span>;
+                    })}
+                  </div>
+                  <span className="absolute bottom-3 right-3 rounded-full bg-black/70 px-3 py-1 text-[10px] font-bold text-white flex items-center gap-1"><Clock size={10} /> {l.fin}</span>
+                  {l.nbVehicules > 1 && <span className="absolute bottom-3 left-3 rounded-full bg-[#D4AF37] px-3 py-1 text-[10px] font-bold text-white">{l.nbVehicules} véhicules</span>}
+                </div>
+                <div className="p-4">
+                  <h3 className="text-sm font-bold text-white">{l.titre}</h3>
+                  <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-white/40">
+                    <span>{l.km} km</span>
+                    <span>·</span>
+                    <span>{l.energie}</span>
+                    <span>·</span>
+                    <span>{l.annee}</span>
+                    <span>·</span>
+                    <span>{l.localisation}</span>
+                  </div>
+                  <p className="mt-1 text-[10px] text-white/40">{l.etatGeneral}</p>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <div className="rounded-lg bg-white/5 p-2.5 text-center"><p className="text-[8px] text-white/40">Départ</p><p className="text-sm font-bold text-white">{l.miseDepart.toLocaleString("fr-FR")} €</p></div>
+                    <div className="rounded-lg bg-purple-500/10 p-2.5 text-center"><p className="text-[8px] text-purple-400">Offre actuelle</p><p className="text-sm font-black text-purple-400">{l.offreActuelle.toLocaleString("fr-FR")} €</p></div>
+                    <div className="rounded-lg bg-white/5 p-2.5 text-center"><p className="text-[8px] text-white/40">Enchérisseurs</p><p className="text-sm font-bold text-white">{l.encherisseurs}</p></div>
+                  </div>
+                  {l.rapportEstimation > 0 && (
+                    <p className="mt-2 text-[10px] text-white/30 flex items-center gap-1"><FileText size={10} /> Rapport disponible · Travaux estimés : {l.rapportEstimation.toLocaleString("fr-FR")} €</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          {filteredLots.length === 0 && <p className="text-center text-white/30 py-12">Aucun lot trouvé avec ces filtres.</p>}
+        </div>
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     PAGE PRODUIT ENCHÈRE — 6 blocs
      ════════════════════════════════════════════════════════════ */
   if (mode === "detail" && selectedLot) {
-    const ci = CIRCUIT_LABELS[selectedLot.circuit];
-    const nextBid = selectedLot.offreActuelle + 200;
+    const nextBid = selectedLot.offreActuelle + selectedLot.palier;
 
     return (
-      <div className="min-h-screen bg-[#F5F3EF] pb-24">
-        <div className="bg-gradient-to-r from-[#2d1b69] to-[#1a1145] px-4 pt-6 pb-5">
-          <button onClick={() => setMode("lots")} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour aux lots</button>
+      <div className="min-h-screen bg-[#0a0a14] pb-24">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
+          <button onClick={() => setMode("lots")} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
+          <div className="flex flex-wrap gap-1 mb-2">
+            {selectedLot.badges.map((b) => {
+              const bc = CATEGORIES.find((c) => c.badge === b);
+              return <span key={b} className={`rounded-full ${bc?.color || "bg-purple-600"} px-2.5 py-1 text-[8px] font-bold text-white`}>{b}</span>;
+            })}
+          </div>
           <h1 className="text-xl font-black text-white">{selectedLot.titre}</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <span className={`rounded-full border px-3 py-0.5 text-[10px] font-bold ${ci?.bg} ${ci?.color}`}>{ci?.label}</span>
-            <span className="text-[10px] text-white/60 flex items-center gap-1"><Clock size={10} /> Fin dans {selectedLot.fin}</span>
+        </div>
+
+        {/* Photos */}
+        <div className="px-4 mt-4">
+          <div className="rounded-2xl overflow-hidden border border-white/10 relative">
+            <img src={selectedLot.photos[photoIdx] || selectedLot.photo} alt="" className="w-full h-56 md:h-72 object-cover" />
+            <div className="absolute bottom-3 left-3 flex gap-1.5">
+              {selectedLot.photos.map((_, i) => (
+                <button key={i} onClick={() => setPhotoIdx(i)} className={`h-2 w-2 rounded-full transition ${i === photoIdx ? "bg-white" : "bg-white/40"}`} />
+              ))}
+            </div>
+            <span className="absolute top-3 right-3 rounded-full bg-black/60 px-2 py-1 text-[9px] text-white/80">{photoIdx + 1}/{selectedLot.photos.length}</span>
+          </div>
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+            {selectedLot.photos.map((p, i) => (
+              <button key={i} onClick={() => setPhotoIdx(i)} className={`shrink-0 rounded-lg overflow-hidden border-2 transition ${i === photoIdx ? "border-purple-500" : "border-transparent opacity-60"}`}>
+                <img src={p} alt="" className="h-14 w-20 object-cover" />
+              </button>
+            ))}
           </div>
         </div>
 
         <div className="px-4 mt-4 space-y-4">
-          {/* Photo */}
-          <div className="rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm">
-            <img src={selectedLot.photo} alt={selectedLot.titre} className="w-full h-56 object-cover" />
-          </div>
 
-          {/* Enchère actuelle */}
-          <div className="rounded-2xl bg-white border-2 border-purple-300 p-5 shadow-sm">
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div>
-                <p className="text-[10px] text-[#6B7280]">Mise de départ</p>
-                <p className="text-lg font-bold text-[#111]">{selectedLot.miseDepart.toLocaleString("fr-FR")} €</p>
-              </div>
-              <div className="border-x border-[#E5E7EB]">
-                <p className="text-[10px] text-purple-600">Offre actuelle</p>
-                <p className="text-xl font-black text-purple-700">{selectedLot.offreActuelle.toLocaleString("fr-FR")} €</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-[#6B7280]">Enchères</p>
-                <p className="text-lg font-bold text-[#111]">{selectedLot.encheres}</p>
-              </div>
+          {/* ═══ BLOC 1 — ENCHÈRE EN COURS ═══ */}
+          <div className="rounded-2xl bg-gradient-to-br from-purple-900/50 to-purple-800/30 border border-purple-500/30 p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Gavel size={18} className="text-purple-400" />
+              <h2 className="text-sm font-extrabold text-white uppercase tracking-wider">Enchère en cours</h2>
+              <span className="ml-auto flex items-center gap-1 rounded-full bg-red-500/20 px-3 py-1 text-[10px] font-bold text-red-400"><Clock size={10} /> {selectedLot.fin}</span>
             </div>
 
-            {/* Enchérir */}
+            <div className="grid grid-cols-3 gap-3 text-center mb-4">
+              <div className="rounded-xl bg-white/5 p-3"><p className="text-[9px] text-white/40">Prix de départ</p><p className="text-lg font-bold text-white">{selectedLot.miseDepart.toLocaleString("fr-FR")} €</p></div>
+              <div className="rounded-xl bg-purple-500/20 border border-purple-500/30 p-3"><p className="text-[9px] text-purple-300">Meilleure offre</p><p className="text-xl font-black text-purple-300">{selectedLot.offreActuelle.toLocaleString("fr-FR")} €</p></div>
+              <div className="rounded-xl bg-white/5 p-3"><p className="text-[9px] text-white/40">Offres</p><p className="text-lg font-bold text-white">{selectedLot.encheres}</p></div>
+            </div>
+
+            <div className="flex items-center justify-between text-[10px] text-white/40 mb-4">
+              <span>Prochaine mise min. : {nextBid.toLocaleString("fr-FR")} €</span>
+              <span>{selectedLot.encherisseurs} pro intéressés</span>
+            </div>
+
             {isPro ? (
-              <div className="mt-4 space-y-3">
+              <div className="space-y-3">
                 <div className="flex gap-2">
-                  <div className="flex-1 flex items-center rounded-xl border-2 border-[#E5E7EB] p-3 bg-white">
-                    <span className="text-sm font-bold text-[#6B7280] mr-2">€</span>
-                    <input
-                      className="flex-1 text-lg font-bold text-[#111] outline-none"
-                      placeholder={`Min. ${nextBid.toLocaleString("fr-FR")}`}
-                      value={enchereInput}
-                      onChange={(e) => setEnchereInput(e.target.value.replace(/[^\d]/g, ""))}
-                    />
+                  <div className="flex-1 flex items-center rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                    <span className="text-sm font-bold text-white/40 mr-2">€</span>
+                    <input className="flex-1 text-lg font-bold text-white outline-none bg-transparent placeholder:text-white/20" placeholder={`Min. ${nextBid.toLocaleString("fr-FR")}`} value={enchereInput} onChange={(e) => setEnchereInput(e.target.value.replace(/[^\d]/g, ""))} />
                   </div>
-                  <button
-                    className="rounded-xl bg-purple-700 px-6 py-3 text-sm font-bold text-white hover:bg-purple-800 transition disabled:opacity-50"
-                    disabled={!enchereInput || Number(enchereInput) < nextBid}
-                    onClick={() => setShowBidConfirm(true)}
-                  >
-                    <Gavel size={16} className="inline mr-1" /> Enchérir
+                  <button className="rounded-xl bg-purple-600 px-6 py-3 text-sm font-bold text-white hover:bg-purple-700 disabled:opacity-50 transition flex items-center gap-2" disabled={!enchereInput || Number(enchereInput) < nextBid} onClick={() => setShowBidConfirm(true)}>
+                    <Gavel size={16} /> Enchérir
                   </button>
                 </div>
-                <p className="text-[10px] text-[#9CA3AF] text-center">Enchère minimum : {nextBid.toLocaleString("fr-FR")} € (palier de 200 €)</p>
+                <div className="flex gap-2">
+                  <button className="flex-1 rounded-xl bg-white/5 border border-white/10 py-2.5 text-[10px] font-bold text-white/60 flex items-center justify-center gap-1"><Bookmark size={12} /> Ajouter à ma liste</button>
+                  <button className="flex-1 rounded-xl bg-white/5 border border-white/10 py-2.5 text-[10px] font-bold text-white/60 flex items-center justify-center gap-1"><FileText size={12} /> Voir rapport complet</button>
+                </div>
               </div>
             ) : (
-              <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-3 text-center">
-                <Lock size={16} className="text-amber-600 mx-auto mb-1" />
-                <p className="text-xs font-bold text-amber-800">Enchères réservées aux professionnels validés</p>
-                <p className="text-[10px] text-amber-600 mt-1">Connectez-vous avec un compte professionnel pour enchérir.</p>
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-center">
+                <Lock size={18} className="text-red-400 mx-auto mb-2" />
+                <p className="text-xs font-bold text-red-300">Réservé aux professionnels validés</p>
+                <p className="text-[10px] text-red-400/60 mt-1">SIRET/KBIS obligatoire pour enchérir</p>
               </div>
             )}
           </div>
 
-          {/* Description */}
-          <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
-            <h3 className="text-sm font-bold text-[#111] mb-2">Description du lot</h3>
-            <p className="text-sm text-[#6B7280] leading-relaxed">{selectedLot.description}</p>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-[#9CA3AF]">Marque</p><p className="text-sm font-bold text-[#111]">{selectedLot.marque}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-[#9CA3AF]">Modèle</p><p className="text-sm font-bold text-[#111]">{selectedLot.modele}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-[#9CA3AF]">Année</p><p className="text-sm font-bold text-[#111]">{selectedLot.annee}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-[#9CA3AF]">Kilométrage</p><p className="text-sm font-bold text-[#111]">{selectedLot.km}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-[#9CA3AF]">Carburant</p><p className="text-sm font-bold text-[#111]">{selectedLot.carburant}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-[#9CA3AF]">État</p><p className="text-sm font-bold text-[#111]">{selectedLot.etat}</p></div>
+          {/* ═══ BLOC 2 — IDENTITÉ VÉHICULE ═══ */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            <h2 className="text-sm font-extrabold text-white uppercase tracking-wider mb-3 flex items-center gap-2"><Car size={16} className="text-[#D4AF37]" /> Identité du véhicule</h2>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: "Marque", val: selectedLot.marque },
+                { label: "Modèle", val: selectedLot.modele },
+                { label: "Version", val: selectedLot.version },
+                { label: "Année", val: selectedLot.annee },
+                { label: "Kilométrage", val: `${selectedLot.km} km` },
+                { label: "Énergie", val: selectedLot.energie },
+                { label: "Boîte", val: selectedLot.boite },
+                { label: "Puissance", val: selectedLot.puissance },
+                { label: "VIN", val: selectedLot.vin },
+                { label: "Localisation", val: selectedLot.localisation },
+              ].map((f) => (
+                <div key={f.label} className="rounded-lg bg-white/5 p-2.5">
+                  <p className="text-[9px] text-white/30">{f.label}</p>
+                  <p className="text-xs font-bold text-white">{f.val}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Véhicules du lot */}
-          <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
-            <h3 className="text-sm font-bold text-[#111] mb-3">Véhicules du lot ({selectedLot.vehicules.length})</h3>
+          {/* ═══ BLOC 3 — ÉTAT DU VÉHICULE ═══ */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            <h2 className="text-sm font-extrabold text-white uppercase tracking-wider mb-3 flex items-center gap-2"><ClipboardList size={16} className="text-[#D4AF37]" /> État du véhicule</h2>
+            <div className="grid grid-cols-2 gap-2">
+              {(Object.entries(selectedLot.etatDetail) as [string, EtatStatut][]).map(([key, val]) => {
+                const e = ETAT_LABELS[val];
+                const labels: Record<string, string> = {
+                  mecanique: "Mécanique", carrosserie: "Carrosserie", interieur: "Intérieur",
+                  pneus: "Pneus", vitrage: "Vitrage", electronique: "Électronique",
+                  documents: "Documents", roulage: "Roulage",
+                };
+                return (
+                  <div key={key} className="rounded-lg bg-white/5 p-3 flex items-center gap-2">
+                    <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${e.color}`}>
+                      <e.icon size={14} />
+                    </div>
+                    <div>
+                      <p className="text-[9px] text-white/30">{labels[key] || key}</p>
+                      <p className={`text-xs font-bold ${e.color.split(" ")[0]}`}>{e.label}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ═══ BLOC 4 — RAPPORT MKA.P-MS ═══ */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            <h2 className="text-sm font-extrabold text-white uppercase tracking-wider mb-3 flex items-center gap-2"><FileText size={16} className="text-[#D4AF37]" /> Rapport MKA.P-MS</h2>
+
+            <div className="space-y-3">
+              <div>
+                <h4 className="text-[10px] font-bold text-red-400 uppercase mb-1">Défauts visibles</h4>
+                <ul className="space-y-1">{selectedLot.rapportDefauts.map((d) => <li key={d} className="flex items-start gap-2 text-xs text-white/60"><XCircle size={10} className="text-red-400 mt-0.5 shrink-0" /> {d}</li>)}</ul>
+              </div>
+              <div>
+                <h4 className="text-[10px] font-bold text-amber-400 uppercase mb-1">Travaux connus</h4>
+                <ul className="space-y-1">{selectedLot.rapportTravaux.map((t) => <li key={t} className="flex items-start gap-2 text-xs text-white/60"><Wrench size={10} className="text-amber-400 mt-0.5 shrink-0" /> {t}</li>)}</ul>
+              </div>
+              <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-center">
+                <p className="text-[10px] text-amber-400/60">Estimation travaux</p>
+                <p className="text-lg font-black text-amber-400">{selectedLot.rapportEstimation.toLocaleString("fr-FR")} €</p>
+              </div>
+              <div>
+                <h4 className="text-[10px] font-bold text-blue-400 uppercase mb-1">Documents disponibles</h4>
+                <ul className="space-y-1">{selectedLot.rapportDocuments.map((d) => <li key={d} className="flex items-start gap-2 text-xs text-white/60"><FileText size={10} className="text-blue-400 mt-0.5 shrink-0" /> {d}</li>)}</ul>
+              </div>
+              <div>
+                <h4 className="text-[10px] font-bold text-green-400 uppercase mb-1">Remarques</h4>
+                <ul className="space-y-1">{selectedLot.rapportRemarques.map((r) => <li key={r} className="flex items-start gap-2 text-xs text-white/60"><Info size={10} className="text-green-400 mt-0.5 shrink-0" /> {r}</li>)}</ul>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══ BLOC 5 — VÉHICULES DU LOT ═══ */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            <h2 className="text-sm font-extrabold text-white uppercase tracking-wider mb-3 flex items-center gap-2"><Car size={16} className="text-[#D4AF37]" /> Véhicules ({selectedLot.vehicules.length})</h2>
             <div className="space-y-2">
               {selectedLot.vehicules.map((v, i) => (
-                <div key={i} className="rounded-xl border border-[#E5E7EB] p-3 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F5F3EF] text-lg shrink-0">🚗</div>
+                <div key={i} className="rounded-xl bg-white/5 p-3 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5 text-lg shrink-0">🚗</div>
                   <div className="flex-1">
-                    <p className="text-sm font-bold text-[#111]">{v.marque} {v.modele}</p>
-                    <p className="text-[10px] text-[#6B7280]">{v.annee} · {v.km.toLocaleString("fr-FR")} km</p>
-                    <p className="text-[10px] text-amber-600 font-semibold">{v.etat}</p>
+                    <p className="text-xs font-bold text-white">{v.marque} {v.modele}</p>
+                    <p className="text-[10px] text-white/40">{v.annee} · {v.km.toLocaleString("fr-FR")} km</p>
+                    <p className="text-[10px] text-amber-400">{v.etat}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Conditions */}
-          <div className="rounded-2xl bg-[#F5F3EF] border border-[#E5E7EB] p-5">
-            <h3 className="text-sm font-bold text-[#111] mb-2">Conditions de vente</h3>
-            <ul className="space-y-1.5">
+          {/* ═══ HISTORIQUE DES OFFRES ═══ */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            <h2 className="text-sm font-extrabold text-white uppercase tracking-wider mb-3 flex items-center gap-2"><History size={16} className="text-purple-400" /> Historique des offres</h2>
+            <div className="space-y-1.5">
+              {bidHistory.map((b, i) => (
+                <div key={i} className={`rounded-lg p-2.5 flex items-center justify-between ${i === 0 ? "bg-purple-500/10 border border-purple-500/20" : "bg-white/5"}`}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-white/30">{b.heure}</span>
+                    <span className="text-xs text-white/60">{b.pro}</span>
+                  </div>
+                  <span className={`text-xs font-bold ${i === 0 ? "text-purple-400" : "text-white/60"}`}>{b.montant.toLocaleString("fr-FR")} €</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ═══ BLOC 6 — CONDITIONS DE VENTE ═══ */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            <h2 className="text-sm font-extrabold text-white uppercase tracking-wider mb-3 flex items-center gap-2"><Shield size={16} className="text-[#D4AF37]" /> Conditions de vente</h2>
+            <ul className="space-y-2">
               {[
-                "Vente en l'état — sans garantie",
-                "Enlèvement sous 72h après adjudication",
-                "Paiement intégral avant enlèvement",
-                "Frais de dossier : 150 € HT par lot",
-                "Véhicule vendu sans contrôle technique",
+                "Vente réservée aux professionnels validés",
+                "Véhicule vendu en l'état — aucune garantie",
+                "Paiement intégral sous 48h après adjudication",
+                `Palier d'enchère : ${selectedLot.palier} €`,
+                "Retrait sous 72h après paiement",
+                "Frais de dossier : 150 € HT / lot",
+                "Transport possible (frais en sus)",
+                "Aucune vente à particulier",
+                "Véhicule vendu sans contrôle technique (sauf mention)",
                 "Visite sur rendez-vous uniquement",
               ].map((c) => (
-                <li key={c} className="flex items-start gap-2 text-xs text-[#6B7280]">
-                  <Info size={10} className="text-[#9CA3AF] mt-0.5 shrink-0" /> {c}
-                </li>
+                <li key={c} className="flex items-start gap-2 text-xs text-white/50"><Info size={10} className="text-white/30 mt-0.5 shrink-0" /> {c}</li>
               ))}
             </ul>
           </div>
+
         </div>
 
-        {/* Confirmation enchère */}
+        {/* Confirmation enchère modal */}
         {showBidConfirm && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowBidConfirm(false)}>
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowBidConfirm(false)}>
+            <div className="bg-[#1a1a2e] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-purple-500/30" onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-extrabold text-[#111]">Confirmer votre enchère</h3>
-                <button onClick={() => setShowBidConfirm(false)}><X size={20} className="text-[#9CA3AF]" /></button>
+                <h3 className="text-lg font-extrabold text-white">Confirmer votre enchère</h3>
+                <button onClick={() => setShowBidConfirm(false)}><X size={20} className="text-white/40" /></button>
               </div>
-              <div className="rounded-xl bg-purple-50 border border-purple-200 p-4 text-center mb-4">
-                <p className="text-sm text-purple-600">Votre enchère</p>
-                <p className="text-3xl font-black text-purple-700">{Number(enchereInput).toLocaleString("fr-FR")} €</p>
+              <div className="rounded-xl bg-purple-500/10 border border-purple-500/20 p-5 text-center mb-4">
+                <p className="text-xs text-purple-300/60">Votre enchère</p>
+                <p className="text-3xl font-black text-purple-300">{Number(enchereInput).toLocaleString("fr-FR")} €</p>
               </div>
-              <p className="text-sm text-[#111] font-bold mb-1">{selectedLot.titre}</p>
-              <p className="text-xs text-[#6B7280] mb-4">{selectedLot.etat}</p>
+              <p className="text-sm font-bold text-white mb-1">{selectedLot.titre}</p>
+              <p className="text-xs text-white/40 mb-4">{selectedLot.etatGeneral}</p>
+              <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 mb-4">
+                <p className="text-[10px] text-amber-400 flex items-start gap-1"><AlertTriangle size={10} className="mt-0.5 shrink-0" /> En confirmant, votre enchère est irrévocable. Si vous remportez le lot, le paiement est obligatoire sous 48h.</p>
+              </div>
               <div className="space-y-2">
-                <button className="w-full rounded-xl bg-purple-700 py-3 text-sm font-bold text-white hover:bg-purple-800"
+                <button className="w-full rounded-xl bg-purple-600 py-3 text-sm font-bold text-white hover:bg-purple-700 transition"
                   onClick={() => { setShowBidConfirm(false); setEnchereInput(""); }}>
-                  Confirmer l'enchère
+                  Confirmer l'enchère — {Number(enchereInput).toLocaleString("fr-FR")} €
                 </button>
-                <button className="w-full rounded-xl border border-[#E5E7EB] py-3 text-sm font-semibold text-[#6B7280]" onClick={() => setShowBidConfirm(false)}>
-                  Annuler
-                </button>
+                <button className="w-full rounded-xl bg-white/5 border border-white/10 py-3 text-sm font-semibold text-white/60" onClick={() => setShowBidConfirm(false)}>Annuler</button>
               </div>
             </div>
           </div>
