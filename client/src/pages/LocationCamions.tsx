@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ChevronLeft, Search, MapPin, Calendar, Truck,
+  ChevronLeft, ChevronRight, Search, MapPin, Calendar, Truck,
   Shield, Lock, Headphones, FileCheck, ChevronDown,
   Rocket, Ban, ArrowRight, Users, HardHat,
   Package, Container, Weight, Building2, Gauge
@@ -159,20 +159,40 @@ export default function LocationCamions() {
                   <span className="flex items-center gap-1"><Weight size={10} /> PTAC {v.ptac}</span>
                   <span className="flex items-center gap-1"><Package size={10} /> Charge {v.charge}</span>
                 </div>
-                <div className="mt-3 grid grid-cols-3 gap-2">
-                  <div className="rounded-lg bg-[#F5F3EF] p-2 text-center">
-                    <p className="text-[9px] text-[#6B7280] uppercase">Jour</p>
-                    <p className="text-sm font-black text-[#111]">{v.prixJour} €</p>
+                <div className="mt-3 relative">
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
+                      <p className="text-[9px] text-[#6B7280] uppercase">Jour</p>
+                      <p className="text-sm font-black text-[#111]">{v.prixJour} €</p>
+                    </div>
+                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
+                      <p className="text-[9px] text-[#6B7280] uppercase">3 Jours</p>
+                      <p className="text-sm font-black text-[#111]">{Math.round(v.prixJour * 2.7)} €</p>
+                    </div>
+                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
+                      <p className="text-[9px] text-[#6B7280] uppercase">Semaine</p>
+                      <p className="text-sm font-black text-[#111]">{v.prixSemaine} €</p>
+                    </div>
+                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
+                      <p className="text-[9px] text-[#6B7280] uppercase">2 Sem.</p>
+                      <p className="text-sm font-black text-[#111]">{Math.round(v.prixSemaine * 1.8)} €</p>
+                    </div>
+                    <div className="shrink-0 rounded-lg bg-[#333]/5 border border-[#333]/20 p-2 text-center min-w-[70px]">
+                      <p className="text-[9px] text-[#333] uppercase font-semibold">Mois</p>
+                      <p className="text-sm font-black text-[#333]">{v.prixMois} €</p>
+                    </div>
+                    <div className="shrink-0 rounded-lg bg-[#333]/10 border border-[#333]/30 p-2 text-center min-w-[70px]">
+                      <p className="text-[9px] text-[#333] uppercase font-semibold">3 Mois</p>
+                      <p className="text-sm font-black text-[#333]">{Math.round(v.prixMois * 2.7)} €</p>
+                    </div>
                   </div>
-                  <div className="rounded-lg bg-[#F5F3EF] p-2 text-center">
-                    <p className="text-[9px] text-[#6B7280] uppercase">Semaine</p>
-                    <p className="text-sm font-black text-[#111]">{v.prixSemaine} €</p>
-                  </div>
-                  <div className="rounded-lg bg-[#D4AF37]/5 border border-[#D4AF37]/20 p-2 text-center">
-                    <p className="text-[9px] text-[#D4AF37] uppercase font-semibold">Mois</p>
-                    <p className="text-sm font-black text-[#D4AF37]">{v.prixMois} €</p>
+                  <div className="absolute right-0 top-0 bottom-1 w-6 bg-gradient-to-l from-white to-transparent pointer-events-none flex items-center justify-end">
+                    <ChevronRight size={14} className="text-[#9CA3AF]" />
                   </div>
                 </div>
+                <span className="mt-3 w-full rounded-xl bg-[#333] py-3 text-sm font-bold text-white active:scale-[0.98] transition flex items-center justify-center gap-2">
+                  Voir les détails <ArrowRight size={14} />
+                </span>
               </div>
             </Link>
           ))}

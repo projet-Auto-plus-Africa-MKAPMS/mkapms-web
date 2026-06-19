@@ -269,7 +269,7 @@ export default function LocationPro() {
         </div>
         <div className="mt-3 space-y-3">
           {filteredVehicules.map((v) => (
-            <div key={v.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+            <Link key={v.id} to={`/louer/pro/vehicule/${v.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden active:scale-[0.99] transition">
               <div className="relative h-[160px]">
                 <img src={v.photo} alt={v.titre} className="w-full h-full object-cover" loading="lazy" />
                 <span className="absolute top-2 left-2 rounded-full bg-blue-800/90 px-2.5 py-0.5 text-[9px] font-bold text-white">{v.categorie}</span>
@@ -281,26 +281,42 @@ export default function LocationPro() {
                   <span className="flex items-center gap-1"><Gauge size={10} /> {v.km.toLocaleString("fr-FR")} km</span>
                   <span className="flex items-center gap-1"><Package size={10} /> {v.volume}</span>
                 </div>
-                {/* Prix */}
-                <div className="mt-3 grid grid-cols-3 gap-2">
-                  <div className="rounded-lg bg-[#F5F3EF] p-2 text-center">
-                    <p className="text-[9px] text-[#6B7280] uppercase">Jour</p>
-                    <p className="text-sm font-black text-[#111]">{v.prixJour} €</p>
+                <div className="mt-3 relative">
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
+                      <p className="text-[9px] text-[#6B7280] uppercase">Jour</p>
+                      <p className="text-sm font-black text-[#111]">{v.prixJour} €</p>
+                    </div>
+                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
+                      <p className="text-[9px] text-[#6B7280] uppercase">3 Jours</p>
+                      <p className="text-sm font-black text-[#111]">{Math.round(v.prixJour * 2.7)} €</p>
+                    </div>
+                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
+                      <p className="text-[9px] text-[#6B7280] uppercase">Semaine</p>
+                      <p className="text-sm font-black text-[#111]">{v.prixSemaine} €</p>
+                    </div>
+                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
+                      <p className="text-[9px] text-[#6B7280] uppercase">2 Sem.</p>
+                      <p className="text-sm font-black text-[#111]">{Math.round(v.prixSemaine * 1.8)} €</p>
+                    </div>
+                    <div className="shrink-0 rounded-lg bg-blue-800/5 border border-blue-800/20 p-2 text-center min-w-[70px]">
+                      <p className="text-[9px] text-blue-800 uppercase font-semibold">Mois</p>
+                      <p className="text-sm font-black text-blue-800">{v.prixMois} €</p>
+                    </div>
+                    <div className="shrink-0 rounded-lg bg-blue-800/10 border border-blue-800/30 p-2 text-center min-w-[70px]">
+                      <p className="text-[9px] text-blue-800 uppercase font-semibold">3 Mois</p>
+                      <p className="text-sm font-black text-blue-800">{Math.round(v.prixMois * 2.7)} €</p>
+                    </div>
                   </div>
-                  <div className="rounded-lg bg-[#F5F3EF] p-2 text-center">
-                    <p className="text-[9px] text-[#6B7280] uppercase">Semaine</p>
-                    <p className="text-sm font-black text-[#111]">{v.prixSemaine} €</p>
-                  </div>
-                  <div className="rounded-lg bg-blue-800/5 border border-blue-800/20 p-2 text-center">
-                    <p className="text-[9px] text-blue-800 uppercase font-semibold">Mois</p>
-                    <p className="text-sm font-black text-blue-800">{v.prixMois} €</p>
+                  <div className="absolute right-0 top-0 bottom-1 w-6 bg-gradient-to-l from-white to-transparent pointer-events-none flex items-center justify-end">
+                    <ChevronRight size={14} className="text-[#9CA3AF]" />
                   </div>
                 </div>
-                <button className="mt-3 w-full rounded-xl bg-blue-800 py-3 text-sm font-bold text-white active:scale-[0.98] transition">
-                  Réserver
-                </button>
+                <span className="mt-3 w-full rounded-xl bg-blue-800 py-3 text-sm font-bold text-white active:scale-[0.98] transition flex items-center justify-center gap-2">
+                  Voir les détails <ArrowRight size={14} />
+                </span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
