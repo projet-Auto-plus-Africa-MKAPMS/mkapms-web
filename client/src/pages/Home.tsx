@@ -24,7 +24,7 @@ const ANNONCES_OFFICIELLES = [
   { id: 9002, titre: "Renault Austral", badge: "MKA.P-MS OFFICIEL", annee: 2024, km: 5000, carburant: "Hybride", prix: 34500, ville: "Bois-en-France", photo: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=280&fit=crop" },
   { id: 9003, titre: "BMW Série 3 320d", badge: "MKA.P-MS OFFICIEL", annee: 2022, km: 25000, carburant: "Diesel", prix: 32900, ville: "Bois-en-France", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=280&fit=crop" },
   { id: 9004, titre: "Mercedes Classe A", badge: "MKA.P-MS OFFICIEL", annee: 2022, km: 18000, carburant: "Essence", prix: 29900, ville: "Bois-en-France", photo: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400&h=280&fit=crop" },
-  { id: 9050, titre: "Audi A3 Sportback", badge: "MKA.P-MS OFFICIEL", annee: 2023, km: 10000, carburant: "Essence", prix: 31200, ville: "Paris", photo: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=280&fit=crop" },
+  { id: 9050, titre: "Citroën C5 X", badge: "MKA.P-MS OFFICIEL", annee: 2023, km: 10000, carburant: "Essence", prix: 31200, ville: "Paris", photo: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=280&fit=crop" },
 ];
 
 const ANNONCES_BOOSTEES = [
@@ -62,9 +62,9 @@ const LOCATION_MIXTE = [
 const ANNONCES_PARTICULIERS = [
   { id: 9060, titre: "Citroën C4", badge: "PARTICULIER", annee: 2020, km: 45000, prix: 12900, ville: "Lyon", photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop" },
   { id: 9061, titre: "Opel Corsa", badge: "PARTICULIER", annee: 2019, km: 52000, prix: 9500, ville: "Toulouse", photo: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=400&h=280&fit=crop" },
-  { id: 9062, titre: "Ford Focus", badge: "PROFESSIONNEL", annee: 2018, km: 60000, prix: 8900, ville: "Nantes", photo: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=280&fit=crop" },
-  { id: 9063, titre: "Dacia Sandero", badge: "PRO ÉTUDIANT", annee: 2020, km: 40000, prix: 7900, ville: "Lille", photo: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=400&h=280&fit=crop" },
-  { id: 9064, titre: "Toyota RAV4", badge: "PROFESSIONNEL", annee: 2021, km: 22000, prix: 28900, ville: "Lille", photo: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=400&h=280&fit=crop" },
+  { id: 9062, titre: "Ford Focus", badge: "PARTICULIER", annee: 2018, km: 60000, prix: 8900, ville: "Nantes", photo: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=280&fit=crop" },
+  { id: 9063, titre: "Dacia Sandero", badge: "PARTICULIER", annee: 2020, km: 40000, prix: 7900, ville: "Lille", photo: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=400&h=280&fit=crop" },
+  { id: 9064, titre: "Toyota RAV4", badge: "PARTICULIER", annee: 2021, km: 22000, prix: 28900, ville: "Lille", photo: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=400&h=280&fit=crop" },
 ];
 
 /* ── PUBS LATÉRALES ── */
@@ -372,7 +372,7 @@ export default function Home() {
               SECTION 8 — PUBLICITÉ PREMIUM #1
               ═══════════════════════════════════════════════════════════════ */}
           <section className="px-4 py-3 bg-white border-t border-[#F3F4F6]">
-            <div className="rounded-xl overflow-hidden relative h-[90px] md:h-[100px] lg:h-[110px]">
+            <div className="rounded-xl overflow-hidden relative h-[110px] md:h-[120px] lg:h-[140px]">
               <span className="absolute top-2 left-2 z-10 text-[8px] font-semibold uppercase tracking-wider text-white/50">PUBLICITÉ</span>
               {ADS_CENTER.map((ad, i) => (
                 <Link key={i} to={ad.to} className={`absolute inset-0 ${ad.color} p-4 md:p-6 flex items-center justify-between transition-transform duration-700 ease-in-out`} style={{ transform: `translateX(${(i - adCenter1) * 100}%)` }}>
@@ -493,7 +493,7 @@ export default function Home() {
               SECTION 13 — PUBLICITÉ PREMIUM #2
               ═══════════════════════════════════════════════════════════════ */}
           <section className="px-4 py-3 bg-white border-t border-[#F3F4F6]">
-            <div className="rounded-xl overflow-hidden relative h-[90px] md:h-[100px] lg:h-[110px]">
+            <div className="rounded-xl overflow-hidden relative h-[110px] md:h-[120px] lg:h-[140px]">
               <span className="absolute top-2 left-2 z-10 text-[8px] font-semibold uppercase tracking-wider text-white/50">PUBLICITÉ</span>
               {ADS_CENTER.map((ad, i) => (
                 <Link key={i} to={ad.to} className={`absolute inset-0 ${ad.color} p-4 md:p-6 flex items-center justify-between transition-transform duration-700 ease-in-out`} style={{ transform: `translateX(${(i - adCenter2) * 100}%)` }}>

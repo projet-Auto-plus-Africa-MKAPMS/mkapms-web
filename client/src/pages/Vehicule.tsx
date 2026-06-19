@@ -205,7 +205,7 @@ export default function Vehicule() {
   const isLocation = v.type === "location";
   const isVtcTaxi = v.segmentLocation === "vtc_taxi";
   const tier = getVehicleTier(v);
-  const isOfficiel = tier === "officiel" || tier === "elite" || tier === "premium";
+  const isOfficiel = tier === "officiel" || tier === "premium" || tier === "elite";
   const isMkapmsStock = v.id >= 8000 && v.id <= 8005;
 
   /* Photos catégorisées pour véhicules MKA.P-MS Officiel */
@@ -220,9 +220,9 @@ export default function Vehicule() {
 
   /* Photo height classes per tier (responsive) — réduit légèrement pour MKA.P-MS */
   const photoHeightClass =
-    tier === "officiel" || tier === "elite"
+    tier === "officiel"
       ? "h-[420px] md:h-[500px] lg:h-[620px] xl:h-[720px]"
-      : tier === "premium"
+      : tier === "elite" || tier === "premium"
         ? "h-[420px] md:h-[500px] lg:h-[650px]"
         : tier === "professionnel"
           ? "h-[280px] md:h-[340px] lg:h-[380px]"
@@ -896,7 +896,7 @@ export default function Vehicule() {
      Design identique pour Pro Standard, Pro Premium, Pro Elite, Pro Vérifié
      NE s'applique PAS aux MKA.P-MS Officiel ni aux Particuliers
      ══════════════════════════════════════════════════════════════════ */
-  if ((tier === "professionnel" || tier === "particulier" || (tier === "premium" && !isMkapmsStock)) && !isLocation) {
+  if ((tier === "professionnel" || tier === "particulier" || tier === "elite" || (tier === "premium" && !isMkapmsStock)) && !isLocation) {
     const allPhotos = photos.length > 0 ? photos : (v.photoPrincipale ? [v.photoPrincipale] : []);
     const isParticulier = tier === "particulier";
     const proBadge = isParticulier ? "PARTICULIER" : v.tier === "elite" ? "PRO ELITE" : v.boosted ? "PRO PREMIUM" : "PRO";
