@@ -1222,20 +1222,6 @@ export default function Vehicule() {
           </div>
           )}
 
-          {/* PUBLICITÉ MILIEU — auto-défilante */}
-          <div className="mt-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#111] to-[#222] p-4">
-            <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37] mb-2">Publicité</p>
-            <div className="relative h-20 overflow-hidden">
-              {proAds1.map((ad, i) => (
-                <Link key={i} to="/demande-publicite" className={`absolute inset-0 flex flex-col items-center justify-center text-center transition-opacity duration-700 ${i === proAdIdx1 ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
-                  <p className="text-sm font-bold text-white">{ad.title}</p>
-                  <p className="text-[10px] text-slate-400">{ad.desc}</p>
-                  <p className="mt-1 text-[9px] font-semibold text-[#D4AF37]">En savoir plus →</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-
           {/* GARANTIES — cliquable → ouvre modal */}
           <div className="mt-6 flex items-center justify-between border-t-2 border-[#111]/40 pt-4 cursor-pointer" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}} onClick={() => setProGarantieOpen(true)}>
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><ShieldCheck size={18} className="text-red-500" /> Garanties</h2>
@@ -1302,6 +1288,20 @@ export default function Vehicule() {
               ))}
             </div>
             <p className="mt-4 text-center text-xs font-semibold text-[#D4AF37] cursor-pointer" onClick={() => navigate("/services")}>Voir tous nos services →</p>
+          </div>
+
+          {/* PUBLICITÉ — entre Services et Vendeur */}
+          <div className="mt-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#111] to-[#222] p-4">
+            <p className="text-[9px] font-semibold uppercase tracking-widest text-[#D4AF37] mb-2">Publicité</p>
+            <div className="relative h-20 overflow-hidden">
+              {proAds1.map((ad, i) => (
+                <Link key={i} to="/demande-publicite" className={`absolute inset-0 flex flex-col items-center justify-center text-center transition-opacity duration-700 ${i === proAdIdx1 ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+                  <p className="text-sm font-bold text-white">{ad.title}</p>
+                  <p className="text-[10px] text-slate-400">{ad.desc}</p>
+                  <p className="mt-1 text-[9px] font-semibold text-[#D4AF37]">En savoir plus →</p>
+                </Link>
+              ))}
+            </div>
           </div>
 
           {/* VENDEUR PRO COMPLET — plaque avec carte maps */}

@@ -474,6 +474,19 @@ export default function ProduitVtcTaxi() {
         </div>
       </div>
 
+      {/* PUBLICITÉ — entre Services et Avis */}
+      <div className="mx-4 mt-4 rounded-2xl overflow-hidden" style={{height: '110px', background: 'linear-gradient(135deg, #111 0%, #2d3436 100%)'}}>
+        <div className="flex items-center justify-between h-full px-5">
+          <div>
+            <p className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider">Publicité MKA.P-MS</p>
+            <p className="text-sm font-extrabold text-white mt-1">Assurance VTC professionnelle</p>
+            <p className="text-[10px] text-white/60 mt-0.5">RC Pro + Véhicule dès 89€/mois</p>
+            <button className="mt-2 rounded-full bg-[#D4AF37] px-4 py-1 text-[10px] font-bold text-[#111]" onClick={() => nav("/services")}>En savoir plus</button>
+          </div>
+          <div className="text-4xl">🚕</div>
+        </div>
+      </div>
+
       {/* ═══════════════════════════════════ BLOC 10 — AVIS ═══════════════════════════════════ */}
       <div className="bg-white px-4 py-5 mt-2">
         <div className="flex items-center justify-between">
@@ -498,19 +511,6 @@ export default function ProduitVtcTaxi() {
               <p className="mt-2 text-xs text-[#6B7280] leading-relaxed">{a.commentaire}</p>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* PUBLICITÉ */}
-      <div className="mx-4 mt-4 rounded-2xl overflow-hidden" style={{height: '110px', background: 'linear-gradient(135deg, #111 0%, #2d3436 100%)'}}>
-        <div className="flex items-center justify-between h-full px-5">
-          <div>
-            <p className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider">Publicité MKA.P-MS</p>
-            <p className="text-sm font-extrabold text-white mt-1">Assurance VTC professionnelle</p>
-            <p className="text-[10px] text-white/60 mt-0.5">RC Pro + Véhicule dès 89€/mois</p>
-            <button className="mt-2 rounded-full bg-[#D4AF37] px-4 py-1 text-[10px] font-bold text-[#111]" onClick={() => nav("/services")}>En savoir plus</button>
-          </div>
-          <div className="text-4xl">🚕</div>
         </div>
       </div>
 
