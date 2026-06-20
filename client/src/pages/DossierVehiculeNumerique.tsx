@@ -67,6 +67,7 @@ const PHOTOS_CAT = [
 
 export default function DossierVehiculeNumerique() {
   const [tab, setTab] = useState<DVTab>("resume");
+  const [expandedItem, setExpandedItem] = useState<number | null>(null);
   const v = DEMO_VEHICLE;
 
   const tabItems: { id: DVTab; label: string; icon: typeof Car }[] = [
@@ -184,20 +185,33 @@ export default function DossierVehiculeNumerique() {
               <Plus size={16} /> Ajouter un entretien
             </button>
             {ENTRETIENS.map((e) => (
-              <div key={e.id} className={`rounded-xl bg-white border p-3 ${e.statut === "en_retard" ? "border-red-300" : e.statut === "a_prevoir" ? "border-amber-200" : "border-[#E5E7EB]"}`}>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-[#111] flex items-center gap-2">
-                      {e.type}
-                      {e.statut === "fait" && <CheckCircle size={14} className="text-green-500" />}
-                      {e.statut === "a_prevoir" && <Clock size={14} className="text-amber-500" />}
-                      {e.statut === "en_retard" && <AlertTriangle size={14} className="text-red-500" />}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-0.5">{e.details}</p>
-                    <p className="text-[10px] text-slate-400 mt-1">{e.garage !== "-" ? `${e.garage} . ` : ""}{e.date !== "-" ? e.date : ""} . {e.km}</p>
+              <div key={e.id} className={`rounded-xl bg-white border overflow-hidden ${e.statut === "en_retard" ? "border-red-300" : e.statut === "a_prevoir" ? "border-amber-200" : "border-[#E5E7EB]"}`}>
+                <button onClick={() => setExpandedItem(expandedItem === e.id ? null : e.id)} className="w-full text-left p-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-[#111] flex items-center gap-2">
+                        {e.type}
+                        {e.statut === "fait" && <CheckCircle size={14} className="text-green-500" />}
+                        {e.statut === "a_prevoir" && <Clock size={14} className="text-amber-500" />}
+                        {e.statut === "en_retard" && <AlertTriangle size={14} className="text-red-500" />}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">{e.details}</p>
+                      <p className="text-[10px] text-slate-400 mt-1">{e.garage !== "-" ? `${e.garage} · ` : ""}{e.date !== "-" ? e.date : ""} · {e.km}</p>
+                    </div>
+                    {e.montant !== "-" && <p className="text-sm font-bold text-[#D4AF37]">{e.montant}</p>}
                   </div>
-                  {e.montant !== "-" && <p className="text-sm font-bold text-[#D4AF37]">{e.montant}</p>}
-                </div>
+                </button>
+                {expandedItem === e.id && (
+                  <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                    <div className="grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Type</span><p className="font-bold text-[#111]">{e.type}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Garage</span><p className="font-bold text-[#111]">{e.garage}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Km</span><p className="font-bold text-[#111]">{e.km}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Montant</span><p className="font-bold text-[#D4AF37]">{e.montant}</p></div>
+                    </div>
+                    <button className="w-full rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Voir facture</button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -210,15 +224,28 @@ export default function DossierVehiculeNumerique() {
               <Plus size={16} /> Ajouter une reparation
             </button>
             {REPARATIONS.map((r) => (
-              <div key={r.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-[#111]">{r.type}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{r.details}</p>
-                    <p className="text-[10px] text-slate-400 mt-1">{r.garage} . {r.date} . {r.km}</p>
+              <div key={r.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                <button onClick={() => setExpandedItem(expandedItem === r.id + 100 ? null : r.id + 100)} className="w-full text-left p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-[#111]">{r.type}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{r.details}</p>
+                      <p className="text-[10px] text-slate-400 mt-1">{r.garage} · {r.date} · {r.km}</p>
+                    </div>
+                    <p className="text-sm font-bold text-[#D4AF37]">{r.montant}</p>
                   </div>
-                  <p className="text-sm font-bold text-[#D4AF37]">{r.montant}</p>
-                </div>
+                </button>
+                {expandedItem === r.id + 100 && (
+                  <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                    <div className="grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Reparation</span><p className="font-bold text-[#111]">{r.type}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Garage</span><p className="font-bold text-[#111]">{r.garage}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Km</span><p className="font-bold text-[#111]">{r.km}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Montant</span><p className="font-bold text-[#D4AF37]">{r.montant}</p></div>
+                    </div>
+                    <button className="w-full rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Voir facture</button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

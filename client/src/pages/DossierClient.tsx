@@ -66,6 +66,7 @@ const MESSAGES_LIST = [
 
 export default function DossierClient() {
   const [tab, setTab] = useState<DossierTab>("achetes");
+  const [expandedItem, setExpandedItem] = useState<number | null>(null);
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -111,79 +112,156 @@ export default function DossierClient() {
         {/* Vehicules vendus */}
         {tab === "vendus" && VENDUS.map((v) => (
           <div key={v.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-            <div className="flex">
-              <img src={v.photo} alt={v.nom} className="w-28 h-24 object-cover shrink-0" />
-              <div className="p-3 flex-1">
-                <p className="text-sm font-bold text-[#111]">{v.nom}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{v.plaque}</p>
-                <p className="text-xs text-slate-400">Vendu le {v.date} . {v.acheteur}</p>
-                <p className="text-sm font-bold text-green-600 mt-1">{v.prix}</p>
+            <button onClick={() => setExpandedItem(expandedItem === v.id + 100 ? null : v.id + 100)} className="w-full text-left">
+              <div className="flex">
+                <img src={v.photo} alt={v.nom} className="w-28 h-24 object-cover shrink-0" />
+                <div className="p-3 flex-1">
+                  <p className="text-sm font-bold text-[#111]">{v.nom}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{v.plaque}</p>
+                  <p className="text-xs text-slate-400">Vendu le {v.date} · {v.acheteur}</p>
+                  <p className="text-sm font-bold text-green-600 mt-1">{v.prix}</p>
+                </div>
               </div>
-            </div>
+            </button>
+            {expandedItem === v.id + 100 && (
+              <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Plaque</span><p className="font-bold text-[#111]">{v.plaque}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Prix vente</span><p className="font-bold text-green-600">{v.prix}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Acheteur</span><p className="font-bold text-[#111]">{v.acheteur}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Date</span><p className="font-bold text-[#111]">{v.date}</p></div>
+                </div>
+                <div className="flex gap-2">
+                  <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Facture</button>
+                  <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Historique</button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
 
         {/* Devis */}
         {tab === "devis" && DEVIS_LIST.map((d) => (
-          <div key={d.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-[#111]">{d.type}</p>
-                <p className="text-xs text-slate-500">{d.garage} . {d.vehicule}</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">{d.date}</p>
+          <div key={d.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+            <button onClick={() => setExpandedItem(expandedItem === d.id + 200 ? null : d.id + 200)} className="w-full text-left p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-[#111]">{d.type}</p>
+                  <p className="text-xs text-slate-500">{d.garage} · {d.vehicule}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{d.date}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-[#D4AF37]">{d.montant}</p>
+                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${d.statut === "Accepte" ? "bg-green-50 text-green-700" : d.statut === "Termine" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{d.statut}</span>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-[#D4AF37]">{d.montant}</p>
-                <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${d.statut === "Accepte" ? "bg-green-50 text-green-700" : d.statut === "Termine" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{d.statut}</span>
+            </button>
+            {expandedItem === d.id + 200 && (
+              <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Garage</span><p className="font-bold text-[#111]">{d.garage}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Vehicule</span><p className="font-bold text-[#111]">{d.vehicule}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Type</span><p className="font-bold text-[#111]">{d.type}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Montant</span><p className="font-bold text-[#D4AF37]">{d.montant}</p></div>
+                </div>
+                <div className="flex gap-2">
+                  <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Voir devis</button>
+                  <button className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white">Accepter</button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ))}
 
         {/* Reservations */}
         {tab === "reservations" && RESERVATIONS.map((r) => (
-          <div key={r.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-[#111]">{r.vehicule}</p>
-                <p className="text-xs text-slate-500">{r.type} . {r.vendeur}</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">Acompte: {r.acompte} . {r.date}</p>
+          <div key={r.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+            <button onClick={() => setExpandedItem(expandedItem === r.id + 300 ? null : r.id + 300)} className="w-full text-left p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-[#111]">{r.vehicule}</p>
+                  <p className="text-xs text-slate-500">{r.type} · {r.vendeur}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Acompte: {r.acompte} · {r.date}</p>
+                </div>
+                <span className="rounded-full px-2 py-0.5 text-[9px] font-bold bg-green-50 text-green-700">{r.statut}</span>
               </div>
-              <span className="rounded-full px-2 py-0.5 text-[9px] font-bold bg-green-50 text-green-700">{r.statut}</span>
-            </div>
+            </button>
+            {expandedItem === r.id + 300 && (
+              <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Vehicule</span><p className="font-bold text-[#111]">{r.vehicule}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Type</span><p className="font-bold text-[#111]">{r.type}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Vendeur</span><p className="font-bold text-[#111]">{r.vendeur}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Acompte</span><p className="font-bold text-[#D4AF37]">{r.acompte}</p></div>
+                </div>
+                <div className="flex gap-2">
+                  <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Details</button>
+                  <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Contacter</button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
 
         {/* Locations */}
         {tab === "locations" && LOCATIONS_LIST.map((l) => (
-          <div key={l.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-[#111]">{l.vehicule}</p>
-                <p className="text-xs text-slate-500">{l.agence}</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">{l.duree}</p>
+          <div key={l.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+            <button onClick={() => setExpandedItem(expandedItem === l.id + 400 ? null : l.id + 400)} className="w-full text-left p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-[#111]">{l.vehicule}</p>
+                  <p className="text-xs text-slate-500">{l.agence}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{l.duree}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-[#D4AF37]">{l.prix}</p>
+                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${l.statut === "En cours" ? "bg-green-50 text-green-700" : "bg-slate-100 text-slate-600"}`}>{l.statut}</span>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-[#D4AF37]">{l.prix}</p>
-                <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${l.statut === "En cours" ? "bg-green-50 text-green-700" : "bg-slate-100 text-slate-600"}`}>{l.statut}</span>
+            </button>
+            {expandedItem === l.id + 400 && (
+              <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Vehicule</span><p className="font-bold text-[#111]">{l.vehicule}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Agence</span><p className="font-bold text-[#111]">{l.agence}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Duree</span><p className="font-bold text-[#111]">{l.duree}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Prix</span><p className="font-bold text-[#D4AF37]">{l.prix}</p></div>
+                </div>
+                <div className="flex gap-2">
+                  <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Contrat</button>
+                  <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Prolonger</button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ))}
 
         {/* Paiements */}
         {tab === "paiements" && PAIEMENTS.map((p) => (
-          <div key={p.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-[#111]">{p.objet}</p>
-                <p className="text-xs text-slate-500">{p.methode} . {p.date}</p>
+          <div key={p.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+            <button onClick={() => setExpandedItem(expandedItem === p.id + 500 ? null : p.id + 500)} className="w-full text-left p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-[#111]">{p.objet}</p>
+                  <p className="text-xs text-slate-500">{p.methode} · {p.date}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-[#111]">{p.montant}</p>
+                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${p.statut === "Paye" ? "bg-green-50 text-green-700" : p.statut === "Actif" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{p.statut}</span>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-[#111]">{p.montant}</p>
-                <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${p.statut === "Paye" ? "bg-green-50 text-green-700" : p.statut === "Actif" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{p.statut}</span>
+            </button>
+            {expandedItem === p.id + 500 && (
+              <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Objet</span><p className="font-bold text-[#111]">{p.objet}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Methode</span><p className="font-bold text-[#111]">{p.methode}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Montant</span><p className="font-bold text-[#D4AF37]">{p.montant}</p></div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Date</span><p className="font-bold text-[#111]">{p.date}</p></div>
+                </div>
+                <button className="w-full rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Telecharger facture</button>
               </div>
-            </div>
+            )}
           </div>
         ))}
 

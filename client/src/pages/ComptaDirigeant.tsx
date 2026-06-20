@@ -18,6 +18,7 @@ type CompTab = "ca" | "finances" | "employes" | "alertes";
 export default function ComptaDirigeant() {
   const [tab, setTab] = useState<CompTab>("ca");
   const [periode, setPeriode] = useState<"jour" | "semaine" | "mois" | "annee">("mois");
+  const [expandedUnivers, setExpandedUnivers] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -74,28 +75,41 @@ export default function ComptaDirigeant() {
               { univers: "Publicite", icon: Megaphone, ca: "13 000 EUR", pct: "-3.2%", up: false, color: "text-orange-600", bg: "bg-orange-50", transactions: 34, barWidth: "18%" },
             ].map((u) => {
               const Icon = u.icon;
+              const isExp = expandedUnivers === u.univers;
               return (
-                <div key={u.univers} className="rounded-xl bg-white border border-[#E5E7EB] p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`h-10 w-10 rounded-lg ${u.bg} grid place-items-center`}>
-                        <Icon size={18} className={u.color} />
+                <div key={u.univers} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpandedUnivers(isExp ? null : u.univers)} className="w-full text-left p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`h-10 w-10 rounded-lg ${u.bg} grid place-items-center`}>
+                          <Icon size={18} className={u.color} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-[#111]">{u.univers}</p>
+                          <p className="text-[10px] text-slate-400">{u.transactions} transactions</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-bold text-[#111]">{u.univers}</p>
-                        <p className="text-[10px] text-slate-400">{u.transactions} transactions</p>
+                      <div className="text-right">
+                        <p className="text-base font-black text-[#111]">{u.ca}</p>
+                        <p className={`text-[10px] font-bold flex items-center gap-0.5 justify-end ${u.up ? "text-green-600" : "text-red-500"}`}>
+                          {u.up ? <TrendingUp size={10} /> : <TrendingDown size={10} />} {u.pct}
+                        </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-base font-black text-[#111]">{u.ca}</p>
-                      <p className={`text-[10px] font-bold flex items-center gap-0.5 justify-end ${u.up ? "text-green-600" : "text-red-500"}`}>
-                        {u.up ? <TrendingUp size={10} /> : <TrendingDown size={10} />} {u.pct}
-                      </p>
+                    <div className="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
+                      <div className={`h-full rounded-full ${u.color.replace("text-", "bg-")}`} style={{ width: u.barWidth }} />
                     </div>
-                  </div>
-                  <div className="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
-                    <div className={`h-full rounded-full ${u.color.replace("text-", "bg-")}`} style={{ width: u.barWidth }} />
-                  </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-4 pb-4 border-t border-[#E5E7EB] pt-3 space-y-2">
+                      <div className="grid grid-cols-3 gap-2 text-[10px]">
+                        <div className="rounded-lg bg-[#F5F3EF] p-2 text-center"><span className="text-slate-400">Transactions</span><p className="font-bold text-[#111]">{u.transactions}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2 text-center"><span className="text-slate-400">Evolution</span><p className={`font-bold ${u.up ? "text-green-600" : "text-red-500"}`}>{u.pct}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2 text-center"><span className="text-slate-400">CA total</span><p className="font-bold text-[#D4AF37]">{u.ca}</p></div>
+                      </div>
+                      <button className="w-full rounded-lg bg-[#111] py-2 text-[10px] font-bold text-[#D4AF37]">Voir les details {u.univers}</button>
+                    </div>
+                  )}
                 </div>
               );
             })}
