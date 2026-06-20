@@ -4,14 +4,91 @@ import {
   ChevronLeft, Search, Car, CheckCircle, Cog, Settings,
   Disc, Thermometer, Wind, Fuel, Gauge, Zap, Shield,
   CircuitBoard, Battery, Lightbulb, LifeBuoy,
-  ChevronDown, ChevronRight, Download, Eye, List, Image as ImageIcon
+  ChevronDown, ChevronRight, Download, Eye, List, Image as ImageIcon,
+  Home, Wrench, Clock, Database, BookOpen, ShoppingCart, Info
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════
    CATALOGUE TECHNIQUE MKA.P-MS — Version 2027
-   Type AutoData — Recherche plaque/VIN. Tous véhicules, tous systèmes.
-   Accordéons par catégorie. Mode Texte + Mode Image (schémas éclatés).
+   Type AutoData / EPC — Recherche plaque/VIN. Tous véhicules, tous systèmes.
+   Navigation pro, multi-véhicules, données techniques, schémas éclatés.
    ══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Multi-vehicle demo database ─── */
+interface VehicleInfo {
+  marque: string; modele: string; version: string; annee: string;
+  codeMoteur: string; cylindree: string; puissance: string;
+  coupleMax: string; norme: string; transmission: string;
+  architecture: string; injection: string; poids: string;
+  ptac: string; dimensions: string; empattement: string;
+  reservoir: string; carburant: string; extra?: string;
+}
+
+const VEHICLE_DB: Record<string, VehicleInfo> = {
+  "AB-123-CD": {
+    marque: "BMW", modele: "X5 (E70)", version: "3.0d xDrive",
+    annee: "2023", codeMoteur: "N57D30A", cylindree: "2 993 cm³",
+    puissance: "258 ch / 190 kW", coupleMax: "560 Nm à 1 500 tr/min",
+    norme: "Euro 6d", transmission: "BVA 8 rapports ZF",
+    architecture: "6 cylindres en ligne turbo", injection: "Common Rail haute pression",
+    poids: "2 145 kg", ptac: "2 790 kg", dimensions: "4 886 x 1 938 x 1 762 mm",
+    empattement: "2 933 mm", reservoir: "85 litres", carburant: "Diesel",
+  },
+  "EF-456-GH": {
+    marque: "Peugeot", modele: "308 GTi", version: "1.6 THP 270 S&S",
+    annee: "2024", codeMoteur: "EP6CDTX", cylindree: "1 598 cm³",
+    puissance: "270 ch / 200 kW", coupleMax: "330 Nm à 1 900 tr/min",
+    norme: "Euro 6d-ISC-FCM", transmission: "BVM 6 rapports",
+    architecture: "4 cylindres en ligne turbo", injection: "Directe haute pression",
+    poids: "1 205 kg", ptac: "1 700 kg", dimensions: "4 253 x 1 804 x 1 461 mm",
+    empattement: "2 620 mm", reservoir: "53 litres", carburant: "Essence",
+  },
+  "IJ-789-KL": {
+    marque: "Mercedes-Benz", modele: "Classe C (W206)", version: "220d 9G-Tronic",
+    annee: "2024", codeMoteur: "OM654", cylindree: "1 993 cm³",
+    puissance: "200 ch / 147 kW", coupleMax: "440 Nm à 1 800 tr/min",
+    norme: "Euro 6d", transmission: "BVA 9 rapports 9G-Tronic",
+    architecture: "4 cylindres en ligne turbo", injection: "Common Rail",
+    poids: "1 710 kg", ptac: "2 205 kg", dimensions: "4 751 x 1 820 x 1 437 mm",
+    empattement: "2 865 mm", reservoir: "66 litres", carburant: "Diesel",
+  },
+  "MN-012-OP": {
+    marque: "Renault", modele: "Mégane RS", version: "1.8 TCe 300 Trophy",
+    annee: "2023", codeMoteur: "M5Pt", cylindree: "1 798 cm³",
+    puissance: "300 ch / 221 kW", coupleMax: "420 Nm à 3 200 tr/min",
+    norme: "Euro 6d-Full", transmission: "EDC 6 rapports double embrayage",
+    architecture: "4 cylindres en ligne turbo", injection: "Directe + indirecte",
+    poids: "1 426 kg", ptac: "1 880 kg", dimensions: "4 364 x 1 874 x 1 431 mm",
+    empattement: "2 669 mm", reservoir: "50 litres", carburant: "Essence",
+  },
+};
+
+const DEFAULT_VEHICLE: VehicleInfo = {
+  marque: "Peugeot", modele: "3008 GT", version: "1.6 PureTech 225 Hybrid4 EAT8",
+  annee: "2024", codeMoteur: "EP6FADTX", cylindree: "1 598 cm³",
+  puissance: "225 ch / 165 kW", coupleMax: "300 Nm à 3 000 tr/min",
+  norme: "Euro 6d-ISC-FCM", transmission: "BVA 8 rapports EAT8",
+  architecture: "4 cylindres en ligne", injection: "Directe haute pression",
+  poids: "1 880 kg", ptac: "2 280 kg", dimensions: "4 447 x 1 841 x 1 620 mm",
+  empattement: "2 675 mm", reservoir: "53 litres", carburant: "Essence",
+  extra: "Batterie hybride 13.2 kWh",
+};
+
+function lookupVehicle(plate: string): VehicleInfo {
+  const clean = plate.trim().toUpperCase().replace(/\s+/g, "-");
+  return VEHICLE_DB[clean] || DEFAULT_VEHICLE;
+}
+
+type NavTab = "accueil" | "vehicule" | "pieces" | "donnees" | "schemas" | "temps";
+
+const NAV_TABS: { id: NavTab; label: string; icon: React.ElementType }[] = [
+  { id: "accueil", label: "Accueil", icon: Home },
+  { id: "vehicule", label: "Véhicule", icon: Car },
+  { id: "pieces", label: "Pièces", icon: Wrench },
+  { id: "donnees", label: "Données tech", icon: Database },
+  { id: "schemas", label: "Schémas", icon: ImageIcon },
+  { id: "temps", label: "Temps", icon: Clock },
+];
 
 interface SystemDef {
   id: string;
@@ -741,11 +818,11 @@ function ExplodedDiagram({ pieces, systemLabel, systemId, selectedPiece, onSelec
 
       {/* Footer — vehicle info bar */}
       <div className="bg-[#f0f2f5] border-t border-[#c8ccd4] px-4 py-2 flex flex-wrap items-center gap-4 text-[9px] text-[#1a2744]">
-        <span className="flex items-center gap-1"><Fuel size={10} /> <b>Carburant</b> Essence</span>
-        <span className="flex items-center gap-1"><Settings size={10} /> <b>Cylindree</b> 1 598 cm³</span>
-        <span className="flex items-center gap-1"><Gauge size={10} /> <b>Puissance</b> 225 ch</span>
-        <span className="flex items-center gap-1"><Cog size={10} /> <b>Code moteur</b> EP6FADTX</span>
-        <span className="ml-auto text-[8px] text-slate-400">MKA.P-MS AutoData V.2027</span>
+        <span className="flex items-center gap-1"><Fuel size={10} /> <b>Carburant</b></span>
+        <span className="flex items-center gap-1"><Settings size={10} /> <b>Cylindree</b></span>
+        <span className="flex items-center gap-1"><Gauge size={10} /> <b>Puissance</b></span>
+        <span className="flex items-center gap-1"><Cog size={10} /> <b>Code moteur</b></span>
+        <span className="ml-auto text-[8px] text-[#D4AF37] font-bold">MKA.P-MS AutoData V.2027</span>
       </div>
     </div>
   );
@@ -758,8 +835,19 @@ export default function CatalogueTechnique() {
   const [selectedSystem, setSelectedSystem] = useState("moteur");
   const [viewMode, setViewMode] = useState<"texte" | "image">("texte");
   const [selectedPiece, setSelectedPiece] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<NavTab>("accueil");
+  const [vehicle, setVehicle] = useState<VehicleInfo>(DEFAULT_VEHICLE);
 
-  const doSearch = () => { if (plaque.trim().length >= 3) { setFound(true); setOpenCat("Mecanique"); setSelectedSystem("moteur"); } };
+  const doSearch = () => {
+    if (plaque.trim().length >= 3) {
+      const v = lookupVehicle(plaque);
+      setVehicle(v);
+      setFound(true);
+      setOpenCat("Mecanique");
+      setSelectedSystem("moteur");
+      setActiveTab("vehicule");
+    }
+  };
   const data = getSystemData(selectedSystem);
   const currentSys = SYSTEMS_ALL.find(s => s.id === selectedSystem);
 
@@ -815,41 +903,294 @@ export default function CatalogueTechnique() {
 
       {found && (
         <div className="px-4 mt-3 space-y-3">
-          {/* Véhicule identifié */}
-          <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <CheckCircle size={16} className="text-green-400" />
-              <span className="text-sm font-bold text-green-400">Véhicule identifié automatiquement</span>
-            </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-              {[
-                ["Marque", "Peugeot"], ["Modèle", "3008 GT"], ["Version", "1.6 PureTech 225 Hybrid4 EAT8"],
-                ["Année", "2024"], ["Code moteur", "EP6FADTX"], ["Cylindrée", "1 598 cm³"],
-                ["Puissance", "225 ch / 165 kW"], ["Couple max", "300 Nm à 3 000 tr/min"], ["Norme", "Euro 6d-ISC-FCM"],
-                ["Transmission", "BVA 8 rapports EAT8"], ["Architecture", "4 cylindres en ligne"], ["Injection", "Directe haute pression"],
-                ["Poids à vide", "1 880 kg"], ["PTAC", "2 280 kg"], ["Dimensions", "4 447 x 1 841 x 1 620 mm"],
-                ["Empattement", "2 675 mm"], ["Réservoir", "53 litres"], ["Batterie hybride", "13.2 kWh"],
-              ].map(([l, v]) => (
-                <div key={l} className="flex justify-between py-1 border-b border-white/5">
-                  <span className="text-white/40">{l}</span>
-                  <span className="font-bold text-white text-right">{v}</span>
-                </div>
-              ))}
+          {/* ═══ PRO NAVIGATION BAR ═══ */}
+          <div className="rounded-xl bg-[#1a2744] overflow-hidden">
+            <div className="flex items-center overflow-x-auto scrollbar-hide">
+              {NAV_TABS.map(tab => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold whitespace-nowrap border-b-2 transition ${isActive ? "bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]" : "text-white/60 border-transparent hover:text-white hover:bg-white/5"}`}
+                  >
+                    <Icon size={13} /> {tab.label}
+                  </button>
+                );
+              })}
+              <div className="ml-auto pr-3 flex items-center gap-1 shrink-0">
+                <span className="text-[9px] text-white/30 font-mono">{vehicle.marque} {vehicle.modele}</span>
+              </div>
             </div>
           </div>
 
-          {/* Toggle mode Texte / Image */}
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#111]">Mode d'affichage :</span>
-            <div className="flex rounded-xl border border-[#E5E7EB] overflow-hidden">
-              <button onClick={() => setViewMode("texte")} className={`flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold transition ${viewMode === "texte" ? "bg-[#111] text-[#D4AF37]" : "bg-white text-[#6B7280]"}`}>
-                <List size={10} /> Texte
-              </button>
-              <button onClick={() => setViewMode("image")} className={`flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold transition ${viewMode === "image" ? "bg-[#111] text-[#D4AF37]" : "bg-white text-[#6B7280]"}`}>
-                <ImageIcon size={10} /> Image
-              </button>
+          {/* ═══ VEHICLE IDENTIFICATION CARD ═══ */}
+          {(activeTab === "accueil" || activeTab === "vehicule") && (
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <CheckCircle size={16} className="text-green-400" />
+                <span className="text-sm font-bold text-green-400">Véhicule identifié automatiquement</span>
+                <span className="ml-auto text-[9px] text-white/30 font-mono">{plaque}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                {([
+                  ["Marque", vehicle.marque], ["Modèle", vehicle.modele], ["Version", vehicle.version],
+                  ["Année", vehicle.annee], ["Code moteur", vehicle.codeMoteur], ["Cylindrée", vehicle.cylindree],
+                  ["Puissance", vehicle.puissance], ["Couple max", vehicle.coupleMax], ["Norme", vehicle.norme],
+                  ["Transmission", vehicle.transmission], ["Architecture", vehicle.architecture], ["Injection", vehicle.injection],
+                  ["Poids à vide", vehicle.poids], ["PTAC", vehicle.ptac], ["Dimensions", vehicle.dimensions],
+                  ["Empattement", vehicle.empattement], ["Réservoir", vehicle.reservoir], ["Carburant", vehicle.carburant],
+                  ...(vehicle.extra ? [["Info", vehicle.extra]] : []),
+                ] as [string, string][]).map(([l, v]) => (
+                  <div key={l} className="flex justify-between py-1 border-b border-white/5">
+                    <span className="text-white/40">{l}</span>
+                    <span className="font-bold text-white text-right">{v}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* ═══ TAB: DONNÉES TECHNIQUES ═══ */}
+          {activeTab === "donnees" && (
+            <div className="space-y-3">
+              {/* Specs moteur */}
+              <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                <div className="bg-[#1a2744] px-4 py-2">
+                  <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-1.5"><Info size={12} /> Spécifications moteur — {vehicle.marque} {vehicle.modele}</h3>
+                </div>
+                <div className="p-3 grid grid-cols-2 gap-2">
+                  {([
+                    ["Code moteur", vehicle.codeMoteur, Cog], ["Cylindrée", vehicle.cylindree, Settings],
+                    ["Architecture", vehicle.architecture, Cog], ["Puissance", vehicle.puissance, Gauge],
+                    ["Couple max", vehicle.coupleMax, Wrench], ["Injection", vehicle.injection, Fuel],
+                    ["Norme antipollution", vehicle.norme, Shield], ["Transmission", vehicle.transmission, Settings],
+                  ] as [string, string, React.ElementType][]).map(([label, val, Icon]) => (
+                    <div key={label} className="rounded-lg bg-[#f8f9fb] border border-[#e8ecf1] p-2.5">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Icon size={11} className="text-[#1a2744]" />
+                        <span className="text-[9px] text-slate-400 uppercase font-bold">{label}</span>
+                      </div>
+                      <p className="text-xs font-bold text-[#1a2744]">{val}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Couples de serrage principaux */}
+              <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                <div className="bg-[#1a2744] px-4 py-2 flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-1.5"><Wrench size={12} /> Couples de serrage — tous systèmes</h3>
+                  <button className="text-[10px] text-white/40 flex items-center gap-1"><Download size={10} /> PDF</button>
+                </div>
+                <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-[#e8ecf1] sticky top-0">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-[10px] font-bold text-[#1a2744]">Système</th>
+                        <th className="px-3 py-2 text-left text-[10px] font-bold text-[#1a2744]">Pièce</th>
+                        <th className="px-3 py-2 text-left text-[10px] font-bold text-[#1a2744]">Couple</th>
+                        <th className="px-3 py-2 text-left text-[10px] font-bold text-[#1a2744]">Outil</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {["moteur", "distribution", "freinage", "embrayage", "suspension"].map(sysId => {
+                        const sysData = getSystemData(sysId);
+                        const sysLabel = SYSTEMS_ALL.find(s => s.id === sysId)?.label || sysId;
+                        return sysData.coupleSerrage.slice(0, 4).map((c, ci) => (
+                          <tr key={`${sysId}-${ci}`} className="border-b border-[#e8ecf1] hover:bg-[#f0f2f5]">
+                            {ci === 0 && <td className="px-3 py-1.5 font-bold text-[#1a2744]" rowSpan={Math.min(4, sysData.coupleSerrage.length)}>{sysLabel}</td>}
+                            <td className="px-3 py-1.5 text-slate-600">{c.piece}</td>
+                            <td className="px-3 py-1.5 font-bold text-[#c0392b]">{c.valeur}</td>
+                            <td className="px-3 py-1.5 text-slate-400">{c.outil}</td>
+                          </tr>
+                        ));
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Intervalles de maintenance */}
+              <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                <div className="bg-[#1a2744] px-4 py-2">
+                  <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-1.5"><Clock size={12} /> Intervalles de maintenance</h3>
+                </div>
+                <div className="p-3">
+                  <table className="w-full text-xs">
+                    <thead className="bg-[#e8ecf1]">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-[10px] font-bold text-[#1a2744]">Opération</th>
+                        <th className="px-3 py-2 text-left text-[10px] font-bold text-[#1a2744]">Intervalle km</th>
+                        <th className="px-3 py-2 text-left text-[10px] font-bold text-[#1a2744]">Intervalle temps</th>
+                        <th className="px-3 py-2 text-left text-[10px] font-bold text-[#1a2744]">Coût estimé</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        ["Vidange moteur + filtre", "15 000 km", "12 mois", "80 — 120 €"],
+                        ["Filtre à air", "30 000 km", "24 mois", "20 — 40 €"],
+                        ["Filtre habitacle", "15 000 km", "12 mois", "15 — 30 €"],
+                        ["Plaquettes frein AV", "30 000 km", "Selon usure", "120 — 200 €"],
+                        ["Disques frein AV", "60 000 km", "Selon usure", "200 — 350 €"],
+                        ["Courroie distribution", "120 000 km", "6 ans", "500 — 900 €"],
+                        ["Courroie accessoire", "80 000 km", "4 ans", "100 — 180 €"],
+                        ["Liquide de frein", "40 000 km", "24 mois", "50 — 80 €"],
+                        ["Bougies allumage", "60 000 km", "4 ans", "40 — 80 €"],
+                        ["Liquide refroidissement", "120 000 km", "5 ans", "60 — 100 €"],
+                        ["Huile boîte manuelle", "100 000 km", "—", "40 — 70 €"],
+                        ["Vidange BVA (si auto)", "60 000 km", "4 ans", "200 — 400 €"],
+                      ].map(([op, km, temps, cout], i) => (
+                        <tr key={i} className="border-b border-[#e8ecf1] hover:bg-[#f0f2f5]">
+                          <td className="px-3 py-2 text-slate-700 font-medium">{op}</td>
+                          <td className="px-3 py-2 font-bold text-[#1a2744]">{km}</td>
+                          <td className="px-3 py-2 text-slate-500">{temps}</td>
+                          <td className="px-3 py-2 font-bold text-[#D4AF37]">{cout}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Capacités fluides */}
+              <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                <div className="bg-[#1a2744] px-4 py-2">
+                  <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-1.5"><Fuel size={12} /> Capacités fluides & lubrifiants</h3>
+                </div>
+                <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    ["Huile moteur", "4.25 L", "0W-30 (ACEA C2/C3)", "#2ecc71"],
+                    ["Liquide refroidissement", "6.5 L", "Type D (REVKOGEL)", "#3498db"],
+                    ["Huile boîte manuelle", "1.9 L", "75W-80 (API GL-4+)", "#e67e22"],
+                    ["Huile BVA (si EAT8)", "7.0 L", "ATF Esso LT 71141", "#9b59b6"],
+                    ["Liquide de frein", "0.5 L", "DOT 4 ESP", "#e74c3c"],
+                    ["Liquide direction", "1.0 L", "ATF Dexron III", "#f39c12"],
+                    ["Réfrigérant clim", "450 g", "R1234yf", "#1abc9c"],
+                    ["Lave-glace", "3.5 L", "Hiver -20°C", "#34495e"],
+                  ].map(([label, qte, spec, color], i) => (
+                    <div key={i} className="rounded-lg border border-[#e8ecf1] p-3 flex items-center gap-3 hover:bg-[#f8f9fb] transition">
+                      <div className="shrink-0 h-8 w-8 rounded-full flex items-center justify-center" style={{ background: `${color}20` }}>
+                        <Fuel size={14} style={{ color }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-bold text-[#1a2744]">{label}</p>
+                        <p className="text-[9px] text-slate-400">{spec}</p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-black text-[#1a2744]">{qte}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══ TAB: TEMPS BARÉMÉS ═══ */}
+          {activeTab === "temps" && (
+            <div className="space-y-3">
+              <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                <div className="bg-[#1a2744] px-4 py-2">
+                  <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-1.5"><Clock size={12} /> Temps barémés — {vehicle.marque} {vehicle.modele}</h3>
+                </div>
+                <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-[#e8ecf1] sticky top-0">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-[10px] font-bold text-[#1a2744]">Système</th>
+                        <th className="px-3 py-2 text-left text-[10px] font-bold text-[#1a2744]">Opération</th>
+                        <th className="px-3 py-2 text-left text-[10px] font-bold text-[#1a2744]">Temps</th>
+                        <th className="px-3 py-2 text-left text-[10px] font-bold text-[#1a2744]">Difficulté</th>
+                        <th className="px-3 py-2 text-left text-[10px] font-bold text-[#1a2744]">Outil spécial</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {["moteur", "distribution", "embrayage", "boite", "freinage", "suspension", "injection", "climatisation", "batterie"].map(sysId => {
+                        const sysData = getSystemData(sysId);
+                        const sysLabel = SYSTEMS_ALL.find(s => s.id === sysId)?.label || sysId;
+                        return sysData.tempsBaremes.map((t, ti) => (
+                          <tr key={`${sysId}-${ti}`} className="border-b border-[#e8ecf1] hover:bg-[#f0f2f5]">
+                            {ti === 0 && <td className="px-3 py-1.5 font-bold text-[#1a2744]" rowSpan={sysData.tempsBaremes.length}>{sysLabel}</td>}
+                            <td className="px-3 py-1.5 text-slate-600">{t.operation}</td>
+                            <td className="px-3 py-1.5 font-bold text-[#1a2744]">{t.temps}</td>
+                            <td className="px-3 py-1.5"><span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${t.difficulte === "Expert" ? "bg-red-50 text-red-600" : t.difficulte === "Avancé" ? "bg-orange-50 text-orange-600" : t.difficulte === "Moyen" ? "bg-amber-50 text-amber-600" : "bg-green-50 text-green-600"}`}>{t.difficulte}</span></td>
+                            <td className="px-3 py-1.5 text-slate-400">{t.outilSpecial || "—"}</td>
+                          </tr>
+                        ));
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══ TAB: PIÈCES (grid vue) ═══ */}
+          {activeTab === "pieces" && (
+            <div className="space-y-3">
+              {/* System selector for pieces */}
+              <div className="flex flex-wrap gap-1.5">
+                {SYSTEMS_ALL.filter(s => DEMO_DATA[s.id]).map(s => {
+                  const Icon = s.icon;
+                  return (
+                    <button key={s.id} onClick={() => { setSelectedSystem(s.id); setSelectedPiece(null); }}
+                      className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-[10px] font-bold transition ${selectedSystem === s.id ? "bg-[#D4AF37] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:bg-slate-50"}`}
+                    >
+                      <Icon size={10} className={selectedSystem === s.id ? "text-white" : s.color} /> {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Pieces grid */}
+              <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                <div className="bg-[#1a2744] px-4 py-2 flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-1.5"><ShoppingCart size={12} /> Pièces — {currentSys?.label}</h3>
+                  <span className="text-[9px] text-white/40">{data.pieces.length} références</span>
+                </div>
+                <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {data.pieces.map((p, i) => (
+                    <button key={i} onClick={() => setSelectedPiece(selectedPiece === i ? null : i)} className={`rounded-lg border p-2.5 text-left transition hover:shadow-md ${selectedPiece === i ? "border-[#D4AF37] bg-[#D4AF37]/5 ring-1 ring-[#D4AF37]" : p.dispo ? "border-green-200 bg-green-50/30 hover:border-green-400" : "border-red-200 bg-red-50/30 hover:border-red-400"}`}>
+                      <div className="flex items-center gap-1 mb-1">
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-[#c0392b] text-[9px] font-bold text-white">{i + 1}</span>
+                        <p className="text-[10px] font-bold text-[#111] leading-tight flex-1">{p.nom}</p>
+                      </div>
+                      <p className="text-[8px] text-slate-400 truncate font-mono">{p.ref}</p>
+                      <div className="mt-1.5 flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#D4AF37]">{p.prix}</span>
+                        <span className={`text-[8px] font-bold ${p.dispo ? "text-green-600" : "text-red-500"}`}>{p.dispo ? "En stock" : "Cmd"}</span>
+                      </div>
+                      {selectedPiece === i && (
+                        <div className="mt-2 pt-2 border-t border-[#E5E7EB] space-y-1">
+                          <p className="text-[9px] text-slate-500">Réf: {p.ref}</p>
+                          <button className="w-full rounded-lg bg-[#c0392b] py-1.5 text-[9px] font-bold text-white hover:bg-[#a93226] transition flex items-center justify-center gap-1"><ShoppingCart size={10} /> Ajouter au panier</button>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══ TAB: SCHÉMAS / ACCUEIL / VÉHICULE — show accordion + diagram ═══ */}
+          {(activeTab === "schemas" || activeTab === "accueil" || activeTab === "vehicule") && (<>
+
+          {/* Toggle mode Texte / Image */}
+          {(activeTab === "schemas" || activeTab === "vehicule") && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[#111]">Mode d'affichage :</span>
+              <div className="flex rounded-xl border border-[#E5E7EB] overflow-hidden">
+                <button onClick={() => setViewMode("texte")} className={`flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold transition ${viewMode === "texte" ? "bg-[#111] text-[#D4AF37]" : "bg-white text-[#6B7280]"}`}>
+                  <List size={10} /> Texte
+                </button>
+                <button onClick={() => setViewMode("image")} className={`flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold transition ${viewMode === "image" ? "bg-[#111] text-[#D4AF37]" : "bg-white text-[#6B7280]"}`}>
+                  <ImageIcon size={10} /> Image
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Accordéons catégories */}
           <div className="space-y-2">
@@ -1017,15 +1358,50 @@ export default function CatalogueTechnique() {
               </div>
             </>
           )}
+
+          </>)}
+
+          {/* ═══ BOTTOM VEHICLE INFO BAR ═══ */}
+          <div className="rounded-xl bg-[#1a2744] px-4 py-2.5 flex flex-wrap items-center gap-4 text-[9px] text-white/80">
+            <span className="flex items-center gap-1"><Car size={10} className="text-[#D4AF37]" /> <b>{vehicle.marque}</b> {vehicle.modele}</span>
+            <span className="flex items-center gap-1"><Fuel size={10} /> {vehicle.carburant}</span>
+            <span className="flex items-center gap-1"><Settings size={10} /> {vehicle.cylindree}</span>
+            <span className="flex items-center gap-1"><Gauge size={10} /> {vehicle.puissance}</span>
+            <span className="flex items-center gap-1"><Cog size={10} /> {vehicle.codeMoteur}</span>
+            <span className="ml-auto text-[8px] text-[#D4AF37] font-bold">MKA.P-MS AutoData V.2027</span>
+          </div>
         </div>
       )}
 
       {!found && (
-        <div className="px-4 mt-12 text-center">
-          <Car size={48} className="mx-auto text-[#D4AF37] opacity-30" />
-          <h2 className="mt-4 text-lg font-bold text-[#111]">Catalogue Technique MKA.P-MS 2027</h2>
-          <p className="mt-2 text-sm text-[#6B7280] max-w-sm mx-auto">Entrez la plaque ou le VIN de n'importe quel véhicule. Le catalogue charge automatiquement toutes les informations techniques, couples de serrage, temps barémés et références pièces.</p>
-          <div className="mt-6 grid grid-cols-2 gap-2 max-w-xs mx-auto text-xs">
+        <div className="px-4 mt-8 space-y-4">
+          <div className="text-center">
+            <Car size={48} className="mx-auto text-[#D4AF37] opacity-30" />
+            <h2 className="mt-4 text-lg font-bold text-[#111]">Catalogue Technique MKA.P-MS 2027</h2>
+            <p className="mt-2 text-sm text-[#6B7280] max-w-sm mx-auto">Entrez la plaque ou le VIN de n'importe quel véhicule. Le catalogue charge automatiquement toutes les informations techniques, couples de serrage, temps barémés et références pièces.</p>
+          </div>
+
+          {/* Test plates */}
+          <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
+            <h3 className="text-xs font-bold text-[#111] mb-2">Plaques de test disponibles :</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                ["AB-123-CD", "BMW X5 3.0d xDrive"],
+                ["EF-456-GH", "Peugeot 308 GTi"],
+                ["IJ-789-KL", "Mercedes Classe C 220d"],
+                ["MN-012-OP", "Renault Mégane RS Trophy"],
+              ] as [string, string][]).map(([p, desc]) => (
+                <button key={p} onClick={() => { setPlaque(p); const v = lookupVehicle(p); setVehicle(v); setFound(true); setOpenCat("Mecanique"); setSelectedSystem("moteur"); setActiveTab("vehicule"); }}
+                  className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-left hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 transition"
+                >
+                  <span className="shrink-0 text-[10px] font-bold text-white bg-blue-600 px-1.5 py-0.5 rounded font-mono">{p}</span>
+                  <span className="text-[10px] text-slate-600 font-medium">{desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 max-w-sm mx-auto text-xs">
             {["Tous véhicules", "Anciens & récents", "Motos & quads", "Utilitaires & camions", "26 systèmes", "Outils spéciaux", "Mode texte", "Mode image (schémas)"].map((t) => (
               <div key={t} className="flex items-center gap-1 rounded-lg bg-white border border-[#E5E7EB] px-3 py-2">
                 <CheckCircle size={12} className="text-green-500" />
@@ -1033,9 +1409,11 @@ export default function CatalogueTechnique() {
               </div>
             ))}
           </div>
-          <div className="mt-4 rounded-xl bg-[#111] px-4 py-2 inline-flex items-center gap-2">
-            <Eye size={14} className="text-[#D4AF37]" />
-            <span className="text-xs text-white/80">2 modes : <b className="text-[#D4AF37]">Texte</b> (données techniques) + <b className="text-[#D4AF37]">Image</b> (schémas éclatés numérotés)</span>
+          <div className="text-center">
+            <div className="rounded-xl bg-[#111] px-4 py-2 inline-flex items-center gap-2">
+              <Eye size={14} className="text-[#D4AF37]" />
+              <span className="text-xs text-white/80">6 onglets : <b className="text-[#D4AF37]">Véhicule · Pièces · Données tech · Schémas · Temps</b></span>
+            </div>
           </div>
         </div>
       )}
