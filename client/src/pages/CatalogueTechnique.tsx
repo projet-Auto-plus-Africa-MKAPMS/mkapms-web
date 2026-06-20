@@ -837,6 +837,7 @@ export default function CatalogueTechnique() {
   const [selectedPiece, setSelectedPiece] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<NavTab>("accueil");
   const [vehicle, setVehicle] = useState<VehicleInfo>(DEFAULT_VEHICLE);
+  const [isAbonne, setIsAbonne] = useState(true);
 
   const doSearch = () => {
     if (plaque.trim().length >= 3) {
@@ -872,12 +873,38 @@ export default function CatalogueTechnique() {
             <h1 className="text-xl font-black text-white flex items-center gap-2"><Search size={20} className="text-[#D4AF37]" /> Catalogue Technique</h1>
             <p className="mt-0.5 text-sm text-white/60">MKA.P-MS AutoData — Version 2027</p>
           </div>
-          <div className="text-right">
+          <div className="text-right space-y-1">
             <span className="text-[9px] font-bold text-[#D4AF37] bg-[#D4AF37]/10 border border-[#D4AF37]/30 px-2 py-1 rounded-full">V.2027</span>
+            <button onClick={() => setIsAbonne(!isAbonne)} className={`block ml-auto mt-1 text-[8px] font-bold px-2 py-0.5 rounded-full ${isAbonne ? "bg-green-500/20 text-green-300" : "bg-red-500/20 text-red-300"}`}>
+              {isAbonne ? "Mode Admin" : "Mode Client"}
+            </button>
           </div>
         </div>
       </div>
 
+      {!isAbonne && (
+        <div className="px-4 mt-4">
+          <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] border border-[#D4AF37]/30 p-6 text-center">
+            <div className="h-16 w-16 mx-auto rounded-full bg-[#D4AF37]/10 flex items-center justify-center mb-4">
+              <Shield size={32} className="text-[#D4AF37]" />
+            </div>
+            <h3 className="text-lg font-black text-white mb-2">AutoData Premium</h3>
+            <p className="text-sm text-white/60 mb-4">Acces reserve aux abonnes Atelier Pro + AutoData</p>
+            <div className="space-y-2 text-left max-w-sm mx-auto mb-4">
+              {["Schemas eclates interactifs", "Donnees techniques completes", "Couples de serrage", "Temps baremes", "References pieces constructeur"].map(f => (
+                <div key={f} className="flex items-center gap-2 text-xs text-white/70">
+                  <CheckCircle size={12} className="text-[#D4AF37]" />
+                  <span>{f}</span>
+                </div>
+              ))}
+            </div>
+            <Link to="/compte" className="inline-block rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-white">Souscrire a l'abonnement AutoData</Link>
+            <p className="mt-3 text-[10px] text-white/40">A partir de 49 EUR/mois — Essai gratuit 7 jours</p>
+          </div>
+        </div>
+      )}
+
+      {isAbonne && <>
       {/* Recherche */}
       <div className="px-4 mt-4">
         <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
@@ -1417,6 +1444,7 @@ export default function CatalogueTechnique() {
           </div>
         </div>
       )}
+      </>}
     </div>
   );
 }

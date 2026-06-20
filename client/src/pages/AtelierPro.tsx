@@ -206,6 +206,15 @@ export default function AtelierPro() {
   const [selectedFacture, setSelectedFacture] = useState<number | null>(null);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const [selectedVehAtelier, setSelectedVehAtelier] = useState<number | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [statusPanel, setStatusPanel] = useState<number | null>(null);
+  const [suiviStatuts, setSuiviStatuts] = useState<Record<number, string>>({});
+  const [planningStatuts, setPlanningStatuts] = useState<Record<number, string>>({});
+  const [devisStatuts, setDevisStatuts] = useState<Record<number, string>>({});
+  const [factureStatuts, setFactureStatuts] = useState<Record<number, string>>({});
+  const [stockQtes, setStockQtes] = useState<Record<number, number>>({});
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const alertesStock = STOCK_MAGASIN.filter((s) => s.alerteRupture).length;
 
@@ -321,10 +330,25 @@ export default function AtelierPro() {
                         <p className="font-bold text-[#111] mt-0.5">{v.travaux}</p>
                       </div>
                       <div className="flex gap-2">
-                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-2 text-[10px] font-bold text-white text-center">Changer statut</button>
-                        <button className="flex-1 rounded-lg bg-blue-500 py-2 text-[10px] font-bold text-white text-center">Notifier client</button>
+                        <button onClick={(e) => { e.stopPropagation(); setStatusPanel(statusPanel === v.id ? null : v.id); }} className="flex-1 rounded-lg bg-[#D4AF37] py-2 text-[10px] font-bold text-white text-center">Changer statut</button>
+                        <button onClick={(e) => { e.stopPropagation(); showToast(`Notification envoyee a ${v.client} (${v.tel})`); }} className="flex-1 rounded-lg bg-blue-500 py-2 text-[10px] font-bold text-white text-center">Notifier client</button>
                         <a href={`tel:${v.tel}`} className="flex-1 rounded-lg bg-green-500 py-2 text-[10px] font-bold text-white text-center">Appeler</a>
                       </div>
+                      {statusPanel === v.id && (
+                        <div className="mt-2 rounded-lg bg-white border border-[#E5E7EB] p-2 space-y-1">
+                          <p className="text-[9px] font-bold text-slate-400 mb-1">Choisir un nouveau statut :</p>
+                          {STATUTS_INTERVENTION.map((s) => {
+                            const cur = suiviStatuts[v.id] || v.statut;
+                            return (
+                              <button key={s.id} onClick={(e) => { e.stopPropagation(); setSuiviStatuts(prev => ({ ...prev, [v.id]: s.id })); setStatusPanel(null); showToast(`Statut ${v.vehicule} → ${s.label}`); }}
+                                className={`w-full flex items-center gap-2 rounded-lg px-2 py-1.5 text-[10px] font-bold transition ${cur === s.id ? `${s.bgLight} ${s.textColor} ring-1 ring-current` : "hover:bg-slate-50 text-slate-600"}`}
+                              >
+                                <span className={`h-2.5 w-2.5 rounded-full ${s.color}`} /> {s.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -369,9 +393,9 @@ export default function AtelierPro() {
                         <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Duree estimee</span><p className="font-bold text-[#111]">{s.duree}</p></div>
                       </div>
                       <div className="flex gap-2">
-                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Modifier RDV</button>
-                        <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Demarrer</button>
-                        <button className="flex-1 rounded-lg bg-red-50 py-1.5 text-[10px] font-bold text-red-600">Annuler</button>
+                        <button onClick={(e) => { e.stopPropagation(); showToast(`RDV ${s.heure} — ${s.vehicule} : modification enregistree`); }} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Modifier RDV</button>
+                        <button onClick={(e) => { e.stopPropagation(); setPlanningStatuts(prev => ({ ...prev, [s.id]: "en_cours" })); showToast(`${s.vehicule} — intervention demarree`); }} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Demarrer</button>
+                        <button onClick={(e) => { e.stopPropagation(); setPlanningStatuts(prev => ({ ...prev, [s.id]: "annule" })); showToast(`RDV ${s.heure} — ${s.vehicule} : annule`); }} className="flex-1 rounded-lg bg-red-50 py-1.5 text-[10px] font-bold text-red-600">Annuler</button>
                       </div>
                     </div>
                   )}
@@ -465,9 +489,9 @@ export default function AtelierPro() {
 
                   {/* Actions */}
                   <div className="mt-2 flex gap-1.5">
-                    <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white text-center">Modifier</button>
-                    <button className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600 text-center">Photos</button>
-                    <button className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600 text-center">PDF</button>
+                    <button onClick={() => showToast(`Ordre ${o.ref} — modification en cours`)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white text-center">Modifier</button>
+                    <button onClick={() => showToast(`${o.photosReception} photos reception — ${o.vehicule}`)} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600 text-center">Photos</button>
+                    <button onClick={() => showToast(`PDF ordre ${o.ref} — telechargement`)} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600 text-center">PDF</button>
                   </div>
                 </div>
               </div>
@@ -495,37 +519,37 @@ export default function AtelierPro() {
             </div>
 
             {/* Fiches employes */}
-            {EMPLOYES.map((e) => {
-              const isExp = selectedEmploye === e.id;
+            {EMPLOYES.map((emp) => {
+              const isExp = selectedEmploye === emp.id;
               return (
-                <div key={e.id} className={`rounded-xl bg-white border overflow-hidden ${e.statut === "actif" ? "border-green-200" : e.statut === "pause" ? "border-amber-200" : "border-red-200"}`}>
-                  <button onClick={() => setSelectedEmploye(isExp ? null : e.id)} className="w-full text-left p-4">
+                <div key={emp.id} className={`rounded-xl bg-white border overflow-hidden ${emp.statut === "actif" ? "border-green-200" : emp.statut === "pause" ? "border-amber-200" : "border-red-200"}`}>
+                  <button onClick={() => setSelectedEmploye(isExp ? null : emp.id)} className="w-full text-left p-4">
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-sm font-bold text-[#111] flex items-center gap-2">
-                          {e.nom}
-                          <span className={`rounded-full px-2 py-0.5 text-[8px] font-bold ${e.statut === "actif" ? "bg-green-50 text-green-700" : e.statut === "pause" ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>
-                            {e.statut === "actif" ? "Actif" : e.statut === "pause" ? "Pause" : "Absent"}
+                          {emp.nom}
+                          <span className={`rounded-full px-2 py-0.5 text-[8px] font-bold ${emp.statut === "actif" ? "bg-green-50 text-green-700" : emp.statut === "pause" ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>
+                            {emp.statut === "actif" ? "Actif" : emp.statut === "pause" ? "Pause" : "Absent"}
                           </span>
                         </p>
-                        <p className="text-xs text-slate-500">{e.role} — {e.specialite}</p>
+                        <p className="text-xs text-slate-500">{emp.role} — {emp.specialite}</p>
                       </div>
                       <div className="text-right">
                         <div className="flex items-center gap-1">
                           <BarChart3 size={12} className="text-[#D4AF37]" />
-                          <span className={`text-sm font-bold ${e.productivite >= 90 ? "text-green-600" : e.productivite >= 75 ? "text-amber-600" : "text-red-600"}`}>{e.productivite}%</span>
+                          <span className={`text-sm font-bold ${emp.productivite >= 90 ? "text-green-600" : emp.productivite >= 75 ? "text-amber-600" : "text-red-600"}`}>{emp.productivite}%</span>
                         </div>
                         <p className="text-[9px] text-slate-400">productivite</p>
                       </div>
                     </div>
 
                     {/* Vehicule actuel */}
-                    {e.vehiculeActuel && (
+                    {emp.vehiculeActuel && (
                       <div className="mt-2 rounded-lg bg-green-50 p-2 flex items-center gap-2">
                         <Car size={14} className="text-green-600" />
                         <div>
-                          <p className="text-xs font-bold text-green-700">{e.vehiculeActuel} ({e.plaqueActuel})</p>
-                          <p className="text-[10px] text-green-600">{e.tacheActuelle}</p>
+                          <p className="text-xs font-bold text-green-700">{emp.vehiculeActuel} ({emp.plaqueActuel})</p>
+                          <p className="text-[10px] text-green-600">{emp.tacheActuelle}</p>
                         </div>
                       </div>
                     )}
@@ -533,19 +557,19 @@ export default function AtelierPro() {
                     {/* Stats */}
                     <div className="mt-2 grid grid-cols-4 gap-2 text-center text-[10px]">
                       <div className="rounded-lg bg-[#F5F3EF] p-1.5">
-                        <p className="font-bold text-[#111]">{e.vehiculesJour}</p>
+                        <p className="font-bold text-[#111]">{emp.vehiculesJour}</p>
                         <p className="text-slate-400">Vehicules/j</p>
                       </div>
                       <div className="rounded-lg bg-[#F5F3EF] p-1.5">
-                        <p className="font-bold text-[#111]">{e.vehiculesSemaine}</p>
+                        <p className="font-bold text-[#111]">{emp.vehiculesSemaine}</p>
                         <p className="text-slate-400">Vehicules/sem</p>
                       </div>
                       <div className="rounded-lg bg-[#F5F3EF] p-1.5">
-                        <p className="font-bold text-[#111]">{e.heuresJour}</p>
+                        <p className="font-bold text-[#111]">{emp.heuresJour}</p>
                         <p className="text-slate-400">Heures/j</p>
                       </div>
                       <div className="rounded-lg bg-[#F5F3EF] p-1.5">
-                        <p className="font-bold text-[#111]">{e.heuresSemaine}</p>
+                        <p className="font-bold text-[#111]">{emp.heuresSemaine}</p>
                         <p className="text-slate-400">Heures/sem</p>
                       </div>
                     </div>
@@ -555,21 +579,21 @@ export default function AtelierPro() {
                   {isExp && (
                     <div className="px-4 pb-4 border-t border-[#E5E7EB] pt-3 space-y-2">
                       <div className="grid grid-cols-2 gap-2 text-[10px]">
-                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Role</span><p className="font-bold text-[#111]">{e.role}</p></div>
-                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Specialite</span><p className="font-bold text-[#111]">{e.specialite}</p></div>
-                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Productivite</span><p className="font-bold text-[#111]">{e.productivite}%</p></div>
-                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Statut</span><p className="font-bold text-[#111]">{e.statut}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Role</span><p className="font-bold text-[#111]">{emp.role}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Specialite</span><p className="font-bold text-[#111]">{emp.specialite}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Productivite</span><p className="font-bold text-[#111]">{emp.productivite}%</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Statut</span><p className="font-bold text-[#111]">{emp.statut}</p></div>
                       </div>
-                      {e.vehiculeActuel && (
+                      {emp.vehiculeActuel && (
                         <div className="rounded-lg bg-green-50 border border-green-200 p-2 text-[10px]">
-                          <p className="font-bold text-green-700">En cours : {e.vehiculeActuel} ({e.plaqueActuel})</p>
-                          <p className="text-green-600">{e.tacheActuelle}</p>
+                          <p className="font-bold text-green-700">En cours : {emp.vehiculeActuel} ({emp.plaqueActuel})</p>
+                          <p className="text-green-600">{emp.tacheActuelle}</p>
                         </div>
                       )}
                       <div className="flex gap-2">
-                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Modifier</button>
-                        <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Historique</button>
-                        <button className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">Planning</button>
+                        <button onClick={(ev) => { ev.stopPropagation(); showToast(`Employe ${emp.nom} \u2014 fiche en modification`); }} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Modifier</button>
+                        <button onClick={(e) => { e.stopPropagation(); showToast(`Historique interventions charge`); }} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Historique</button>
+                        <button onClick={(e) => { e.stopPropagation(); setTab("planning"); showToast("Planning atelier ouvert"); }} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">Planning</button>
                       </div>
                     </div>
                   )}
@@ -602,7 +626,7 @@ export default function AtelierPro() {
                     <span className="text-red-700 font-semibold">{s.nom} ({s.ref})</span>
                     <div className="flex items-center gap-2">
                       <span className="text-red-500 font-bold">Stock: {s.qteActuelle} / Min: {s.qteMinimum}</span>
-                      <button className="rounded bg-red-500 px-2 py-0.5 text-[9px] font-bold text-white">Commander</button>
+                      <button onClick={() => showToast(`Commande ${s.nom} envoyee a ${s.fournisseur}`)} className="rounded bg-red-500 px-2 py-0.5 text-[9px] font-bold text-white">Commander</button>
                     </div>
                   </div>
                 ))}
@@ -648,9 +672,9 @@ export default function AtelierPro() {
                         <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Dernier mouvement</span><p className="font-bold text-[#111]">{s.dernierMouvement}</p></div>
                       </div>
                       <div className="flex gap-2">
-                        <button className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><ArrowDown size={10} /> Entree</button>
-                        <button className="flex-1 rounded-lg bg-red-500 py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><ArrowUp size={10} /> Sortie</button>
-                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Commander</button>
+                        <button onClick={(e) => { e.stopPropagation(); setStockQtes(prev => ({ ...prev, [s.id]: (prev[s.id] ?? s.qteActuelle) + 1 })); showToast(`${s.nom} — +1 entree (total: ${(stockQtes[s.id] ?? s.qteActuelle) + 1})`); }} className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><ArrowDown size={10} /> Entree</button>
+                        <button onClick={(e) => { e.stopPropagation(); const cur = stockQtes[s.id] ?? s.qteActuelle; if (cur > 0) { setStockQtes(prev => ({ ...prev, [s.id]: cur - 1 })); showToast(`${s.nom} — -1 sortie (total: ${cur - 1})`); } else { showToast(`${s.nom} — stock a zero !`); } }} className="flex-1 rounded-lg bg-red-500 py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><ArrowUp size={10} /> Sortie</button>
+                        <button onClick={(e) => { e.stopPropagation(); showToast(`Commande ${s.nom} envoyee a ${s.fournisseur}`); }} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Commander</button>
                       </div>
                     </div>
                   )}
@@ -697,10 +721,10 @@ export default function AtelierPro() {
                         <div className="col-span-2 rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Objet</span><p className="font-bold text-[#111]">{d.objet}</p></div>
                       </div>
                       <div className="flex gap-2">
-                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Modifier</button>
-                        <button className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white">Accepter</button>
-                        <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Envoyer</button>
-                        <button className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">PDF</button>
+                        <button onClick={(e) => { e.stopPropagation(); showToast(`Devis ${d.ref} — modification en cours`); }} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Modifier</button>
+                        <button onClick={(e) => { e.stopPropagation(); setDevisStatuts(prev => ({ ...prev, [d.id]: "accepte" })); showToast(`Devis ${d.ref} accepte !`); }} className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white">Accepter</button>
+                        <button onClick={(e) => { e.stopPropagation(); showToast(`Devis ${d.ref} envoye a ${d.client}`); }} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Envoyer</button>
+                        <button onClick={(e) => { e.stopPropagation(); showToast(`PDF devis ${d.ref} — telechargement`); }} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">PDF</button>
                       </div>
                     </div>
                   )}
@@ -739,9 +763,9 @@ export default function AtelierPro() {
                         <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Statut</span><p className={`font-bold ${f.statut === "payee" ? "text-green-700" : "text-amber-700"}`}>{f.statut === "payee" ? "Payee" : "En attente"}</p></div>
                       </div>
                       <div className="flex gap-2">
-                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Download size={10} /> Telecharger PDF</button>
-                        <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Relancer paiement</button>
-                        <button className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">Dupliquer</button>
+                        <button onClick={(e) => { e.stopPropagation(); showToast(`Facture ${f.ref} — PDF telecharge`); }} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Download size={10} /> Telecharger PDF</button>
+                        <button onClick={(e) => { e.stopPropagation(); showToast(`Relance paiement envoyee a ${f.client}`); }} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Relancer paiement</button>
+                        <button onClick={(e) => { e.stopPropagation(); setFactureStatuts(prev => ({ ...prev, [f.id]: "dupliquee" })); showToast(`Facture ${f.ref} dupliquee`); }} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">Dupliquer</button>
                       </div>
                     </div>
                   )}
@@ -783,8 +807,8 @@ export default function AtelierPro() {
                       </div>
                       <div className="flex gap-2">
                         <a href={`tel:${c.tel}`} className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white text-center">Appeler</a>
-                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Historique</button>
-                        <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Nouveau devis</button>
+                        <button onClick={(e) => { e.stopPropagation(); showToast(`Historique ${c.nom} — ${c.visites} visites, CA ${c.total}`); }} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Historique</button>
+                        <button onClick={(e) => { e.stopPropagation(); setTab("devis"); showToast(`Nouveau devis pour ${c.nom}`); }} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Nouveau devis</button>
                       </div>
                     </div>
                   )}
@@ -829,8 +853,8 @@ export default function AtelierPro() {
                       </div>
                       <div className="flex gap-2">
                         <Link to="/catalogue-technique" className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white text-center">Catalogue technique</Link>
-                        <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Historique</button>
-                        <button className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white">Nouveau devis</button>
+                        <button onClick={(e) => { e.stopPropagation(); showToast(`Historique ${v.marque} ${v.modele} (${v.plaque}) — derniere visite ${v.derniereVisite}`); }} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Historique</button>
+                        <button onClick={(e) => { e.stopPropagation(); setTab("devis"); showToast(`Nouveau devis pour ${v.marque} ${v.modele}`); }} className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white">Nouveau devis</button>
                       </div>
                     </div>
                   )}
@@ -860,6 +884,17 @@ export default function AtelierPro() {
           </div>
         )}
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%] animate-[fadeIn_0.3s_ease] pointer-events-auto">
+          <div className="rounded-xl bg-[#111] px-4 py-3 text-xs font-bold text-white shadow-xl flex items-center gap-2">
+            <CheckCircle size={14} className="text-green-400 shrink-0" />
+            <span>{toast}</span>
+            <button onClick={() => setToast(null)} className="ml-auto text-white/40 hover:text-white">&times;</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

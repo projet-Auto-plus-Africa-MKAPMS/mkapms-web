@@ -309,7 +309,7 @@ export default function Home() {
                 </button>
               </div>
               <div className="mt-2 flex justify-end">
-                <Link to="/acheter" className="rounded-full bg-[#D4AF37] px-4 py-1.5 text-[10px] font-bold text-white hover:bg-[#c9a430] transition">SIMULER</Link>
+                <button onClick={doSearch} className="rounded-full bg-[#D4AF37] px-4 py-1.5 text-[10px] font-bold text-white hover:bg-[#c9a430] transition">SIMULER</button>
               </div>
             </div>
           </section>
