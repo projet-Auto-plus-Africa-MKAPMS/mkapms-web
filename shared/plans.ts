@@ -18,7 +18,10 @@ export type PlanCategory =
   | "franchise"
   | "encheres"
   | "comptabilite"
-  | "carrosserie";
+  | "carrosserie"
+  | "atelier_pro"
+  | "autodata"
+  | "publicite";
 
 export interface PlanQuotas {
   maxAnnonces: number | null; // null = illimité
@@ -179,7 +182,7 @@ export const PRO_PLANS: Plan[] = [
     label: "Pro Max",
     audience: "pro",
     category: "pro_vente",
-    priceEur: 199,
+    priceEur: 249,
     recurring: true,
     overageEur: 22,
     features: [
@@ -306,7 +309,7 @@ export const LOCATION_PLANS: Plan[] = [
   { code: "loc_premium", label: "Location Premium", audience: "pro", category: "location", priceEur: 69.99, recurring: true, highlight: true, features: ["30 véhicules actifs", "30 photos", "2 vidéos", "Priorité recherche", "Statistiques"], quotas: { maxAnnonces: 30, maxPhotos: 30, maxVideos: 2 } },
   { code: "loc_elite", label: "Location Elite", audience: "pro", category: "location", priceEur: 99.99, recurring: true, features: ["50 véhicules actifs", "40 photos", "3 vidéos", "Gestion d'équipe"], quotas: { maxAnnonces: 50, maxPhotos: 40, maxVideos: 3 } },
   { code: "loc_max", label: "Location Max", audience: "pro", category: "location", priceEur: 159.99, recurring: true, features: ["120 véhicules actifs", "56 photos", "5 vidéos", "Multi-utilisateurs"], quotas: { maxAnnonces: 120, maxPhotos: 56, maxVideos: 5 } },
-  { code: "loc_ultimate", label: "Location Ultimate", audience: "pro", category: "location", priceEur: 199.99, recurring: true, commissionPct: 3, features: ["250 véhicules actifs", "Photos illimitées", "8 vidéos", "Multi-agences", "Commission réduite (grandes flottes)"], quotas: { maxAnnonces: 250, maxPhotos: null, maxVideos: 8 } },
+  { code: "loc_ultimate", label: "Location Ultimate", audience: "pro", category: "location", priceEur: 249.99, recurring: true, commissionPct: 3, features: ["250 véhicules actifs", "Photos illimitées", "8 vidéos", "Multi-agences", "Commission réduite (grandes flottes)"], quotas: { maxAnnonces: 250, maxPhotos: null, maxVideos: 8 } },
 ];
 
 // VTC / TAXI — paliers (grille VERROUILLÉE, Partie A §1). Commission 3 %.
@@ -314,7 +317,7 @@ export const VTC_TAXI_PLANS: Plan[] = [
   { code: "vtc_start", label: "VTC/TAXI Start", audience: "pro", category: "vtc_taxi", priceEur: 49.99, recurring: true, features: ["Jusqu'à 5 véhicules", "Gestion chauffeurs", "Réservations"], quotas: q(5) },
   { code: "vtc_premium", label: "VTC/TAXI Premium", audience: "pro", category: "vtc_taxi", priceEur: 99.99, recurring: true, highlight: true, features: ["Jusqu'à 20 véhicules", "Tout Start", "Flotte étendue"], quotas: q(20) },
   { code: "vtc_elite", label: "VTC/TAXI Elite", audience: "pro", category: "vtc_taxi", priceEur: 159.99, recurring: true, features: ["Jusqu'à 50 véhicules", "Tout Premium", "Priorité"], quotas: q(50) },
-  { code: "vtc_max", label: "VTC/TAXI Max", audience: "pro", category: "vtc_taxi", priceEur: 199.99, recurring: true, commissionPct: 3, features: ["Jusqu'à 120 véhicules", "Tout Elite", "Multi-sociétés"], quotas: q(120) },
+  { code: "vtc_max", label: "VTC / Taxi Max", audience: "pro", category: "vtc_taxi", priceEur: 249.99, recurring: true, commissionPct: 3, features: ["Jusqu'à 120 véhicules", "Tout Elite", "Multi-sociétés"], quotas: q(120) },
 ];
 
 // Pièces Auto — Boutique + Gestion Stock (parcours §6, prix communiqués).
@@ -631,6 +634,164 @@ export const CARROSSERIE_PLANS: Plan[] = [
   },
 ];
 
+// Atelier Pro — gestion atelier (indépendant de AutoData)
+export const ATELIER_PRO_PLANS: Plan[] = [
+  {
+    code: "atelier_start", label: "Atelier Start", audience: "pro", category: "atelier_pro",
+    priceEur: 9.9, recurring: true,
+    features: [
+      "Agenda atelier",
+      "Devis",
+      "Ordres de réparation",
+      "Réception véhicule",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "atelier_premium", label: "Atelier Premium", audience: "pro", category: "atelier_pro",
+    priceEur: 29.9, recurring: true, highlight: true,
+    features: [
+      "Tout Start inclus",
+      "Gestion employés",
+      "Suivi intervention temps réel",
+      "Facturation automatique",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "atelier_elite", label: "Atelier Elite", audience: "pro", category: "atelier_pro",
+    priceEur: 49.9, recurring: true,
+    features: [
+      "Tout Premium inclus",
+      "Gestion stock magasin",
+      "Commande fournisseurs",
+      "Alertes rupture de stock",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "atelier_ultimate", label: "Atelier Ultimate", audience: "pro", category: "atelier_pro",
+    priceEur: 79.9, recurring: true,
+    features: [
+      "Tout Elite inclus",
+      "Productivité employés",
+      "Reporting avancé",
+      "Automatisation avancée",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+];
+
+// Catalogue Technique / AutoData — données techniques véhicules (indépendant de Atelier)
+export const AUTODATA_PLANS: Plan[] = [
+  {
+    code: "autodata_basic", label: "AutoData Basic", audience: "pro", category: "autodata",
+    priceEur: 9.9, recurring: true,
+    features: [
+      "Recherche par plaque",
+      "Recherche par VIN",
+      "Informations véhicule",
+      "Capacités huile",
+      "Capacités liquides",
+      "Couples de serrage principaux",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "autodata_premium", label: "AutoData Premium", audience: "pro", category: "autodata",
+    priceEur: 29.9, recurring: true, highlight: true,
+    features: [
+      "Tout Basic inclus",
+      "Schémas techniques",
+      "Temps barémés",
+      "Références constructeur",
+      "Outils spécifiques par intervention",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "autodata_pro", label: "AutoData Pro", audience: "pro", category: "autodata",
+    priceEur: 49.9, recurring: true,
+    features: [
+      "Tout Premium inclus",
+      "Catalogue complet tous systèmes",
+      "Véhicules légers + Utilitaires",
+      "Motos + Quads",
+      "Camions",
+      "Support prioritaire",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+];
+
+// Pack Complet Atelier + AutoData (tarif préférentiel)
+export const PACK_ATELIER_AUTODATA: Plan = {
+  code: "pack_atelier_autodata", label: "Pack Atelier Pro + AutoData", audience: "pro", category: "atelier_pro",
+  priceEur: 79.9, recurring: true,
+  features: [
+    "Atelier Ultimate complet",
+    "AutoData Pro complet",
+    "Tarif préférentiel (129,80 € → 79,90 €)",
+    "Économie de 49,90 €/mois",
+  ],
+  quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+};
+
+// Publicités — espaces publicitaires sur la plateforme
+export interface AdPlacement {
+  code: string;
+  label: string;
+  emplacement: string;
+  priceEur: number;
+  recurring: boolean;
+}
+
+export const AD_PLACEMENTS: AdPlacement[] = [
+  { code: "ad_accueil_haut", label: "Bannière Accueil Haut", emplacement: "Page d'accueil — position haute", priceEur: 99, recurring: true },
+  { code: "ad_accueil_milieu", label: "Bannière Accueil Milieu", emplacement: "Page d'accueil — position milieu", priceEur: 69, recurring: true },
+  { code: "ad_accueil_bas", label: "Bannière Accueil Bas", emplacement: "Page d'accueil — position basse", priceEur: 49, recurring: true },
+  { code: "ad_recherche", label: "Résultats Recherche", emplacement: "Pages de résultats de recherche", priceEur: 79, recurring: true },
+  { code: "ad_produit", label: "Page Produit", emplacement: "Pages détail d'un véhicule", priceEur: 39, recurring: true },
+  { code: "ad_sidebar", label: "Sidebar", emplacement: "Barre latérale (toutes pages)", priceEur: 29, recurring: true },
+  { code: "ad_liste", label: "Insertion Liste", emplacement: "Dans les listes d'annonces", priceEur: 19, recurring: true },
+];
+
+export const AD_PACKS: Plan[] = [
+  {
+    code: "ad_pack_bronze", label: "Pack Bronze", audience: "pro", category: "publicite",
+    priceEur: 99, recurring: true,
+    features: [
+      "3 emplacements publicitaires au choix",
+      "Statistiques de vues",
+      "Durée 30 jours",
+    ],
+    quotas: { maxAnnonces: 3, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "ad_pack_silver", label: "Pack Silver", audience: "pro", category: "publicite",
+    priceEur: 199, recurring: true, highlight: true,
+    features: [
+      "5 emplacements publicitaires au choix",
+      "Statistiques détaillées (vues, clics)",
+      "Priorité d'affichage",
+      "Durée 30 jours",
+    ],
+    quotas: { maxAnnonces: 5, maxPhotos: null, maxVideos: null },
+  },
+  {
+    code: "ad_pack_gold", label: "Pack Gold", audience: "pro", category: "publicite",
+    priceEur: 349, recurring: true,
+    features: [
+      "Tous les emplacements",
+      "Priorité maximale d'affichage",
+      "Statistiques détaillées + export",
+      "Durée 30 jours",
+      "Support publicitaire dédié",
+    ],
+    quotas: { maxAnnonces: null, maxPhotos: null, maxVideos: null },
+  },
+];
+
 export const ALL_PLANS: Plan[] = [
   ...PARTICULIER_PLANS,
   ...PRO_PLANS,
@@ -645,6 +806,10 @@ export const ALL_PLANS: Plan[] = [
   ...ENCHERES_PLANS,
   ...COMPTABILITE_PLANS,
   ...CARROSSERIE_PLANS,
+  ...ATELIER_PRO_PLANS,
+  PACK_ATELIER_AUTODATA,
+  ...AUTODATA_PLANS,
+  ...AD_PACKS,
   FRANCHISE_PLAN,
 ];
 
@@ -663,6 +828,9 @@ export const PLAN_CATEGORY_LABELS: Record<PlanCategory, string> = {
   encheres: "Enchères Pro",
   comptabilite: "Comptabilité",
   carrosserie: "Carrosserie Pro",
+  atelier_pro: "Atelier Pro",
+  autodata: "Catalogue Technique / AutoData",
+  publicite: "Publicité",
 };
 
 export function getPlansByCategory(category: PlanCategory): Plan[] {

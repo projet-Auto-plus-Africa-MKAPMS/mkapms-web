@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, CreditCard, Car, Home, Wrench, Truck, Package, Check, Star, Crown, Shield, Globe, MapPin, Zap, Gavel, Paintbrush, Settings, BarChart3 } from "lucide-react";
+import { ChevronLeft, CreditCard, Car, Home, Wrench, Truck, Package, Check, Star, Crown, Shield, Globe, MapPin, Zap, Gavel, Paintbrush, Settings, BarChart3, BookOpen, Megaphone } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════
    ABONNEMENTS DÉFINITIFS MKA.P-MS V1
    SEO Google + Géolocalisation mondiale intégrés dans tous les plans Pro
    ══════════════════════════════════════════════════════════════════════════ */
 
-type Tab = "vente" | "location" | "garage" | "encheres" | "carrosserie" | "atelier" | "comptabilite" | "depannage" | "pieces";
+type Tab = "vente" | "location" | "garage" | "encheres" | "carrosserie" | "atelier" | "autodata" | "comptabilite" | "depannage" | "pieces" | "publicite";
 
 const PLANS = {
   vente: [
@@ -93,21 +93,36 @@ const PLANS = {
     ]},
   ],
   atelier: [
-    { nom: "Atelier Start", prix: "39 €/mois", badge: "", color: "#6B7280", features: [
-      "Planning atelier", "Ordres de réparation", "Devis", "2 mécaniciens", "50 dossiers/mois",
+    { nom: "Atelier Start", prix: "9,90 €/mois", badge: "", color: "#6B7280", features: [
+      "Agenda atelier", "Devis", "Ordres de réparation", "Réception véhicule",
       "─── Atelier ───", "Suivi intervention basique", "Gestion clients",
     ]},
-    { nom: "Atelier Pro", prix: "89 €/mois", badge: "PRO", color: "#3B82F6", features: [
-      "Tout Start", "Catalogue technique AutoData", "Suivi temps réel", "Stock magasin", "10 mécaniciens", "Notifications client", "Badge bleu PRO",
-      "─── Atelier Pro ───", "Couples de serrage", "Temps barémés", "Pièces cliquables", "Gestion employés",
+    { nom: "Atelier Premium", prix: "29,90 €/mois", badge: "PREMIUM", color: "#D4AF37", features: [
+      "Tout Start inclus", "Gestion employés", "Suivi intervention temps réel", "Facturation automatique", "Notifications client",
+      "─── Atelier Premium ───", "Planning avancé", "Gestion équipe",
     ]},
-    { nom: "Atelier Premium", prix: "149 €/mois", badge: "PREMIUM", color: "#D4AF37", features: [
-      "Tout Pro", "Stock avancé + alertes rupture", "Commande fournisseur auto", "Multi-ateliers", "Employés illimités", "Productivité employés", "Badge or PREMIUM",
-      "─── Atelier Premium ───", "Inventaire complet", "Rapports performance", "Intégration comptabilité",
+    { nom: "Atelier Elite", prix: "49,90 €/mois", badge: "ELITE", color: "#3B82F6", features: [
+      "Tout Premium inclus", "Gestion stock magasin", "Commande fournisseurs", "Alertes rupture de stock",
+      "─── Atelier Elite ───", "Inventaire complet", "Rapports performance",
     ]},
-    { nom: "Atelier Elite", prix: "249 €/mois", badge: "ELITE", color: "#111", features: [
-      "Tout Premium", "API catalogue complet", "Réseau multi-sites", "Flottes entreprises", "Badge noir/or ELITE", "Gestionnaire dédié",
-      "─── Atelier Elite ───", "Priorité nationale", "Formation équipe", "Support 24/7",
+    { nom: "Atelier Ultimate", prix: "79,90 €/mois", badge: "ULTIMATE", color: "#111", features: [
+      "Tout Elite inclus", "Productivité employés", "Reporting avancé", "Automatisation avancée",
+      "─── Atelier Ultimate ───", "Multi-ateliers", "Support prioritaire",
+    ]},
+    { nom: "Pack Atelier + AutoData", prix: "79,90 €/mois", badge: "PACK", color: "#D4AF37", features: [
+      "Atelier Ultimate complet", "AutoData Pro complet", "Tarif préférentiel (129,80 € → 79,90 €)", "Économie de 49,90 €/mois",
+      "─── Pack Complet ───", "Tous les outils atelier + catalogue technique",
+    ]},
+  ],
+  autodata: [
+    { nom: "AutoData Basic", prix: "9,90 €/mois", badge: "", color: "#6B7280", features: [
+      "Recherche par plaque", "Recherche par VIN", "Informations véhicule", "Capacités huile", "Capacités liquides", "Couples de serrage principaux",
+    ]},
+    { nom: "AutoData Premium", prix: "29,90 €/mois", badge: "PREMIUM", color: "#D4AF37", features: [
+      "Tout Basic inclus", "Schémas techniques", "Temps barémés", "Références constructeur", "Outils spécifiques par intervention",
+    ]},
+    { nom: "AutoData Pro", prix: "49,90 €/mois", badge: "PRO", color: "#111", features: [
+      "Tout Premium inclus", "Catalogue complet tous systèmes", "Véhicules légers + Utilitaires", "Motos + Quads", "Camions", "Support prioritaire",
     ]},
   ],
   comptabilite: [
@@ -148,6 +163,38 @@ const PLANS = {
       "─── SEO Elite + Géo ───", "SEO Google Elite", "Priorité nationale", "Visibilité maximale",
     ]},
   ],
+  publicite: [
+    { nom: "Insertion Liste", prix: "19 €/mois", badge: "", color: "#6B7280", features: [
+      "Publicité dans les listes d'annonces", "Visible par tous les visiteurs", "Statistiques basiques",
+    ]},
+    { nom: "Sidebar", prix: "29 €/mois", badge: "", color: "#6B7280", features: [
+      "Barre latérale (toutes pages)", "Visible sur desktop et mobile", "Statistiques de vues",
+    ]},
+    { nom: "Page Produit", prix: "39 €/mois", badge: "", color: "#6B7280", features: [
+      "Publicité sur les pages détail véhicule", "Audience ciblée", "Statistiques clics",
+    ]},
+    { nom: "Bannière Accueil Bas", prix: "49 €/mois", badge: "", color: "#3B82F6", features: [
+      "Page d'accueil — position basse", "Grande visibilité", "Statistiques complètes",
+    ]},
+    { nom: "Bannière Accueil Milieu", prix: "69 €/mois", badge: "PREMIUM", color: "#D4AF37", features: [
+      "Page d'accueil — position milieu", "Visibilité maximale", "Statistiques détaillées",
+    ]},
+    { nom: "Résultats Recherche", prix: "79 €/mois", badge: "PREMIUM", color: "#D4AF37", features: [
+      "Visible dans les résultats de recherche", "Audience ciblée par recherche", "Statistiques de clics",
+    ]},
+    { nom: "Bannière Accueil Haut", prix: "99 €/mois", badge: "ELITE", color: "#111", features: [
+      "Page d'accueil — position haute", "Visibilité maximale", "Statistiques complètes + export",
+    ]},
+    { nom: "Pack Bronze", prix: "99 €/mois", badge: "PACK", color: "#CD7F32", features: [
+      "3 emplacements au choix", "Statistiques de vues", "Durée 30 jours",
+    ]},
+    { nom: "Pack Silver", prix: "199 €/mois", badge: "PACK", color: "#C0C0C0", features: [
+      "5 emplacements au choix", "Statistiques détaillées (vues, clics)", "Priorité d'affichage", "Durée 30 jours",
+    ]},
+    { nom: "Pack Gold", prix: "349 €/mois", badge: "PACK", color: "#D4AF37", features: [
+      "Tous les emplacements", "Priorité maximale d'affichage", "Statistiques détaillées + export", "Support publicitaire dédié", "Durée 30 jours",
+    ]},
+  ],
 };
 
 const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
@@ -157,9 +204,11 @@ const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: "encheres", label: "Enchères", icon: Gavel },
   { key: "carrosserie", label: "Carrosserie", icon: Paintbrush },
   { key: "atelier", label: "Atelier Pro", icon: Settings },
+  { key: "autodata", label: "AutoData", icon: BookOpen },
   { key: "comptabilite", label: "Comptabilité", icon: BarChart3 },
   { key: "depannage", label: "Dépannage", icon: Truck },
   { key: "pieces", label: "Pièces", icon: Package },
+  { key: "publicite", label: "Publicité", icon: Megaphone },
 ];
 
 export default function AbonnementsDefinitifs() {
