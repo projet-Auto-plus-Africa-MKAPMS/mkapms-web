@@ -315,29 +315,6 @@ export default function Home() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
-              SECTION 4B — VIDÉO PROMOTIONNELLE MKA.P-MS
-              ═══════════════════════════════════════════════════════════════ */}
-          <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">
-            <div className="flex items-center gap-2 mb-3">
-              <Play size={14} className="text-[#D4AF37]" />
-              <h2 className="text-sm md:text-base font-bold text-[#111]">MKA.P-MS — LA MARKETPLACE AUTOMOBILE</h2>
-            </div>
-            <div className="rounded-2xl overflow-hidden bg-black shadow-lg">
-              <video
-                className="w-full h-[200px] md:h-[320px] lg:h-[420px] 2xl:h-[480px] object-cover"
-                controls
-                autoPlay
-                muted
-                loop
-                playsInline
-                poster="https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=400&fit=crop"
-              >
-                <source src="/videos/MKAPMS_VIDEO2_Formule1_16x9.mp4" type="video/mp4" />
-              </video>
-            </div>
-          </section>
-
-          {/* ═══════════════════════════════════════════════════════════════
               SECTION 5 — VÉHICULES MKA.P-MS OFFICIELS
               ═══════════════════════════════════════════════════════════════ */}
           <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">

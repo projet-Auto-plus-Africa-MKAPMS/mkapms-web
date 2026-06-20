@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Upload, CheckCircle } from "lucide-react";
+import { ArrowLeft, Upload, CheckCircle, X, Film, Image as ImageIcon } from "lucide-react";
 
 const TYPES_ACTIVITE = [
   { value: "garage", label: "Garage / Réparation automobile" },
@@ -42,9 +42,28 @@ export default function DemandePublicite() {
   const [duree, setDuree] = useState("");
   const [lien, setLien] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [contentType, setContentType] = useState<"photo" | "video" | "lien">("photo");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Champs dynamiques selon le type
   const [sousType, setSousType] = useState("");
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadedFile(file);
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+  };
+
+  const removeFile = () => {
+    setUploadedFile(null);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleSubmit = () => {
     setSubmitted(true);
@@ -216,34 +235,71 @@ export default function DemandePublicite() {
           <div>
             <label className="text-sm font-bold text-slate-700">Type de contenu publicitaire *</label>
             <div className="mt-2 flex gap-2">
-              <button type="button" onClick={() => setLien("")} className={`flex-1 rounded-xl border-2 p-3 text-center text-sm font-bold transition ${!lien ? "border-[#D4AF37] bg-[#FFFDF5] text-[#B8960C]" : "border-slate-200 text-slate-500"}`}>
-                📷 Image / Photo
+              <button type="button" onClick={() => { setContentType("photo"); setLien(""); }} className={`flex-1 rounded-xl border-2 p-3 text-center text-xs font-bold transition flex flex-col items-center gap-1 ${contentType === "photo" ? "border-[#D4AF37] bg-[#FFFDF5] text-[#B8960C]" : "border-slate-200 text-slate-500"}`}>
+                <ImageIcon size={18} /> Image / Photo
               </button>
-              <button type="button" onClick={() => setLien("https://")} className={`flex-1 rounded-xl border-2 p-3 text-center text-sm font-bold transition ${lien ? "border-[#D4AF37] bg-[#FFFDF5] text-[#B8960C]" : "border-slate-200 text-slate-500"}`}>
-                🔗 Lien du site
+              <button type="button" onClick={() => { setContentType("video"); setLien(""); }} className={`flex-1 rounded-xl border-2 p-3 text-center text-xs font-bold transition flex flex-col items-center gap-1 ${contentType === "video" ? "border-[#D4AF37] bg-[#FFFDF5] text-[#B8960C]" : "border-slate-200 text-slate-500"}`}>
+                <Film size={18} /> Vidéo
+              </button>
+              <button type="button" onClick={() => { setContentType("lien"); setLien("https://"); removeFile(); }} className={`flex-1 rounded-xl border-2 p-3 text-center text-xs font-bold transition flex flex-col items-center gap-1 ${contentType === "lien" ? "border-[#D4AF37] bg-[#FFFDF5] text-[#B8960C]" : "border-slate-200 text-slate-500"}`}>
+                <Upload size={18} /> Lien du site
               </button>
             </div>
           </div>
 
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept={contentType === "video" ? "video/mp4,video/webm,video/quicktime,video/*" : "image/jpeg,image/png,image/webp,image/gif,image/*"}
+            onChange={handleFileChange}
+          />
+
           {/* Si lien */}
-          {lien && (
+          {contentType === "lien" && (
             <div>
               <label className="text-sm font-bold text-slate-700">Lien de votre site / page *</label>
               <input value={lien} onChange={(e) => setLien(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="https://www.votresite.fr" />
             </div>
           )}
 
-          {/* Si photo */}
-          {!lien && (
+          {/* Si photo ou vidéo */}
+          {(contentType === "photo" || contentType === "video") && (
             <div>
-              <label className="text-sm font-bold text-slate-700">Image / Visuel de la publicité *</label>
-              <div className="mt-1 flex h-40 w-full cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-[#D4AF37]/50 bg-[#FFFDF5] hover:border-[#D4AF37]">
-                <div className="flex flex-col items-center gap-2 text-[#B8960C]">
-                  <Upload size={28} />
-                  <span className="text-sm font-bold">Cliquez pour uploader votre visuel</span>
-                  <span className="text-[10px] text-slate-400">JPG, PNG — max 5 Mo · Format recommandé : 600×400px</span>
+              <label className="text-sm font-bold text-slate-700">
+                {contentType === "video" ? "Vidéo publicitaire *" : "Image / Visuel de la publicité *"}
+              </label>
+
+              {/* Preview if file uploaded */}
+              {uploadedFile && previewUrl ? (
+                <div className="mt-1 relative rounded-xl border-2 border-[#D4AF37] bg-[#FFFDF5] overflow-hidden">
+                  {contentType === "video" ? (
+                    <video src={previewUrl} controls className="w-full h-48 object-cover rounded-xl" />
+                  ) : (
+                    <img src={previewUrl} alt="Aperçu" className="w-full h-48 object-cover rounded-xl" />
+                  )}
+                  <div className="p-2 flex items-center justify-between">
+                    <p className="text-xs text-slate-600 truncate flex-1">{uploadedFile.name} ({(uploadedFile.size / 1024 / 1024).toFixed(1)} Mo)</p>
+                    <button onClick={removeFile} className="flex items-center gap-1 rounded-lg bg-red-50 px-2 py-1 text-[10px] font-bold text-red-600 hover:bg-red-100"><X size={12} /> Supprimer</button>
+                  </div>
+                  <button onClick={() => fileInputRef.current?.click()} className="w-full py-2 text-xs font-bold text-[#D4AF37] hover:bg-[#D4AF37]/5 border-t border-[#D4AF37]/20">Changer le fichier</button>
                 </div>
-              </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-1 flex h-40 w-full cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-[#D4AF37]/50 bg-[#FFFDF5] hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 transition"
+                >
+                  <div className="flex flex-col items-center gap-2 text-[#B8960C]">
+                    {contentType === "video" ? <Film size={28} /> : <Upload size={28} />}
+                    <span className="text-sm font-bold">Cliquez pour uploader {contentType === "video" ? "votre vidéo" : "votre visuel"}</span>
+                    <span className="text-[10px] text-slate-400">
+                      {contentType === "video" ? "MP4, WebM, MOV — max 50 Mo" : "JPG, PNG, WebP — max 5 Mo · Format recommandé : 600×400px"}
+                    </span>
+                  </div>
+                </button>
+              )}
             </div>
           )}
 
