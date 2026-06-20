@@ -58,6 +58,7 @@ const AtelierPro = lazy(() => import("./pages/AtelierPro"));
 const CatalogueTechniqueStandalone = lazy(() => import("./pages/CatalogueTechnique"));
 const ComptaDirigeant = lazy(() => import("./pages/ComptaDirigeant"));
 const SuiviVehicule = lazy(() => import("./pages/SuiviVehicule"));
+const JournalActivite = lazy(() => import("./pages/JournalActivite"));
 const EtatVehicule = lazy(() => import("./pages/EtatVehicule"));
 const RenouvellementLocation = lazy(() => import("./pages/RenouvellementLocation"));
 const RemplacementVehicule = lazy(() => import("./pages/RemplacementVehicule"));
@@ -850,6 +851,7 @@ export default function App() {
             <Route path="/catalogue-technique" element={<U name="Catalogue Technique"><CatalogueTechniqueStandalone /></U>} />
             <Route path="/compta-dirigeant" element={<U name="Comptabilit\u00e9"><ComptaDirigeant /></U>} />
             <Route path="/suivi-vehicule" element={<U name="Suivi v\u00e9hicule"><SuiviVehicule /></U>} />
+            <Route path="/journal-activite" element={<U name="Journal"><JournalActivite /></U>} />
             <Route path="/compte/validation" element={<U name="Validation"><Validation /></U>} />
             <Route path="/compte/*" element={<U name="Mon compte"><Compte /></U>} />
             <Route path="/admin/*" element={<U name="Back-office"><Admin /></U>} />

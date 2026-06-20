@@ -222,6 +222,35 @@ export default function Admin() {
         })()}
       </section>
 
+      {/* Modules & Services — accès rapide */}
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Modules & Services</h2>
+        <p className="text-xs text-slate-500">Acc&egrave;s rapide aux modules de la plateforme</p>
+        <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-5">
+          {[
+            { label: "Atelier Pro", to: "/atelier-pro", emoji: "\ud83d\udee0\ufe0f", desc: "Planning, suivi, employ\u00e9s, stock" },
+            { label: "Catalogue Technique", to: "/catalogue-technique", emoji: "\ud83d\udcd6", desc: "AutoData \u2014 sch\u00e9mas, couples, temps" },
+            { label: "Comptabilit\u00e9", to: "/compta-dirigeant", emoji: "\ud83d\udcb9", desc: "CA, finances, employ\u00e9s, alertes" },
+            { label: "Suivi V\u00e9hicule", to: "/suivi-vehicule", emoji: "\ud83d\udccd", desc: "Suivi r\u00e9paration temps r\u00e9el" },
+            { label: "Ench\u00e8res Pro", to: "/encheres", emoji: "\ud83d\udd28", desc: "Espace ench\u00e8res professionnel" },
+            { label: "Favoris", to: "/favoris", emoji: "\u2764\ufe0f", desc: "V\u00e9hicules, garages, locations" },
+            { label: "Comparateur", to: "/comparateur", emoji: "\ud83d\udd0d", desc: "Comparer 2-4 v\u00e9hicules" },
+            { label: "Dossier Client", to: "/dossier-client", emoji: "\ud83d\udcc1", desc: "Historique client centralis\u00e9" },
+            { label: "Dossier V\u00e9hicule", to: "/dossier-vehicule-numerique", emoji: "\ud83d\udcdd", desc: "Carnet entretien num\u00e9rique" },
+            { label: "Notifications", to: "/notifications", emoji: "\ud83d\udd14", desc: "Centre de notifications" },
+            { label: "Historique", to: "/historique-consultations", emoji: "\ud83d\udd70\ufe0f", desc: "Derni\u00e8res consultations" },
+            { label: "Abonnements", to: "/abonnements", emoji: "\ud83d\udcb3", desc: "Gestion des abonnements" },
+            { label: "Journal d'activit\u00e9", to: "/journal-activite", emoji: "\ud83d\udcdc", desc: "Qui a fait quoi et quand" },
+          ].map((s) => (
+            <Link key={s.to} to={s.to} className="group flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+              <span className="text-2xl">{s.emoji}</span>
+              <span className="text-xs font-bold text-[#111]">{s.label}</span>
+              <span className="text-[10px] text-slate-500 leading-tight">{s.desc}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* Partie 22 — Centre de performance (KPI par univers) */}
       <section className="mt-10">
         <h2 className="text-lg font-bold text-slate-800">Centre de performance <span className="text-xs font-normal text-gold-dark">(KPI par univers)</span></h2>
