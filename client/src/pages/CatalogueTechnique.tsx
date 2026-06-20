@@ -322,60 +322,109 @@ function getSystemData(sysId: string): SystemData {
 }
 
 /* ─── SVG Exploded Diagram (Mode Image) ─── */
-function ExplodedDiagram({ pieces, systemLabel, selectedPiece, onSelect }: { pieces: PieceData[]; systemLabel: string; selectedPiece: number | null; onSelect: (i: number) => void }) {
+const SYSTEM_IMAGES: Record<string, string> = {
+  moteur: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop",
+  distribution: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&h=600&fit=crop",
+  embrayage: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=600&fit=crop",
+  boite: "https://images.unsplash.com/photo-1615811361523-6bd03d7748e7?w=800&h=600&fit=crop",
+  freinage: "https://images.unsplash.com/photo-1558618047-f4b511e3e5e2?w=800&h=600&fit=crop",
+  direction: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=600&fit=crop",
+  suspension: "https://images.unsplash.com/photo-1600712242805-5f78671b24da?w=800&h=600&fit=crop",
+  refroidissement: "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=800&h=600&fit=crop",
+  echappement: "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=800&h=600&fit=crop",
+  alimentation: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=600&fit=crop",
+  turbo: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&h=600&fit=crop",
+  injection: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop",
+  allumage: "https://images.unsplash.com/photo-1558618047-f4b511e3e5e2?w=800&h=600&fit=crop",
+  abs_esp: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=600&fit=crop",
+  airbags: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=600&fit=crop",
+  climatisation: "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=800&h=600&fit=crop",
+  tableau_bord: "https://images.unsplash.com/photo-1600712242805-5f78671b24da?w=800&h=600&fit=crop",
+  capteurs: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&h=600&fit=crop",
+  calculateurs: "https://images.unsplash.com/photo-1615811361523-6bd03d7748e7?w=800&h=600&fit=crop",
+  multiplexage: "https://images.unsplash.com/photo-1558618047-f4b511e3e5e2?w=800&h=600&fit=crop",
+  diagnostic: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop",
+  batterie: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&h=600&fit=crop",
+  alternateur: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=600&fit=crop",
+  demarreur: "https://images.unsplash.com/photo-1615811361523-6bd03d7748e7?w=800&h=600&fit=crop",
+  eclairage: "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=800&h=600&fit=crop",
+  fusibles: "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=800&h=600&fit=crop",
+  cablage: "https://images.unsplash.com/photo-1600712242805-5f78671b24da?w=800&h=600&fit=crop",
+  dimensions: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=600&fit=crop",
+  poids: "https://images.unsplash.com/photo-1558618047-f4b511e3e5e2?w=800&h=600&fit=crop",
+  vitrage: "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=800&h=600&fit=crop",
+  ouvrants: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=600&fit=crop",
+};
+
+function ExplodedDiagram({ pieces, systemLabel, systemId, selectedPiece, onSelect }: { pieces: PieceData[]; systemLabel: string; systemId: string; selectedPiece: number | null; onSelect: (i: number) => void }) {
+  const [zoom, setZoom] = useState(1);
+  const imgSrc = SYSTEM_IMAGES[systemId] || SYSTEM_IMAGES.moteur;
+
   return (
     <div className="rounded-xl bg-white border-2 border-[#D4AF37]/30 overflow-hidden">
       <div className="bg-gradient-to-r from-[#111] to-[#1a1a2e] px-3 py-2 flex items-center justify-between">
         <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-1.5"><ImageIcon size={12} /> Schéma éclaté — {systemLabel}</h3>
-        <span className="text-[9px] text-white/40">MKA.P-MS AutoData 2027</span>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setZoom(Math.max(0.5, zoom - 0.25))} className="h-5 w-5 rounded bg-white/10 text-white text-xs font-bold flex items-center justify-center hover:bg-white/20">−</button>
+          <span className="text-[9px] text-white/60">{Math.round(zoom * 100)}%</span>
+          <button onClick={() => setZoom(Math.min(3, zoom + 0.25))} className="h-5 w-5 rounded bg-white/10 text-white text-xs font-bold flex items-center justify-center hover:bg-white/20">+</button>
+          <button onClick={() => setZoom(1)} className="text-[8px] text-white/40 hover:text-white/80 ml-1">Reset</button>
+        </div>
       </div>
-      <div className="relative bg-gradient-to-br from-blue-50 to-slate-100 min-h-[320px] p-2">
-        {/* Central system illustration (SVG placeholder) */}
-        <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full opacity-10 pointer-events-none">
-          <rect x="25" y="20" width="50" height="60" rx="5" fill="#111" />
-          <circle cx="50" cy="50" r="15" fill="none" stroke="#D4AF37" strokeWidth="1" />
-          <circle cx="50" cy="50" r="8" fill="none" stroke="#D4AF37" strokeWidth="0.5" />
-        </svg>
+      <div className="relative overflow-auto" style={{ maxHeight: "400px" }}>
+        <div className="relative min-h-[350px]" style={{ transform: `scale(${zoom})`, transformOrigin: "top left", width: `${100 / zoom}%` }}>
+          {/* Background image of the system */}
+          <img src={imgSrc} alt={`Schéma ${systemLabel}`} className="w-full h-[350px] object-cover" />
 
-        {/* Parts with numbered positions and leader lines */}
-        {pieces.map((p, i) => {
-          const isSelected = selectedPiece === i;
-          const posX = p.pos?.x ?? (20 + (i * 15) % 70);
-          const posY = p.pos?.y ?? (20 + (i * 12) % 65);
-          return (
-            <button
-              key={i}
-              onClick={() => onSelect(i)}
-              className={`absolute transition-all duration-200 z-10 group ${isSelected ? "scale-125 z-20" : "hover:scale-110"}`}
-              style={{ left: `${posX}%`, top: `${posY}%`, transform: "translate(-50%, -50%)" }}
-            >
-              {/* Numbered circle */}
-              <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[9px] font-black border-2 shadow-lg ${isSelected ? "bg-[#D4AF37] text-white border-[#D4AF37] ring-2 ring-[#D4AF37]/30" : p.dispo ? "bg-white text-[#111] border-green-400 group-hover:border-[#D4AF37]" : "bg-white text-[#111] border-red-400 group-hover:border-[#D4AF37]"}`}>
-                {i + 1}
-              </div>
-              {/* Label on hover/select */}
-              {isSelected && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-8 bg-[#111] text-white rounded-lg px-2 py-1.5 shadow-xl min-w-[140px] z-30">
-                  <p className="text-[9px] font-bold text-[#D4AF37]">{p.nom}</p>
-                  <p className="text-[8px] text-white/60">{p.ref}</p>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-[9px] font-bold text-white">{p.prix}</span>
-                    <span className={`text-[8px] font-bold ${p.dispo ? "text-green-400" : "text-red-400"}`}>{p.dispo ? "En stock" : "Commande"}</span>
-                  </div>
+          {/* SVG overlay for leader lines */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+            {pieces.map((p, i) => {
+              const posX = p.pos?.x ?? (20 + (i * 15) % 70);
+              const posY = p.pos?.y ?? (20 + (i * 12) % 65);
+              return (
+                <line key={i} x1="50" y1="50" x2={posX} y2={posY} stroke="#D4AF37" strokeWidth="0.15" strokeDasharray="0.5,0.5" opacity="0.4" />
+              );
+            })}
+          </svg>
+
+          {/* Parts with numbered positions */}
+          {pieces.map((p, i) => {
+            const isSelected = selectedPiece === i;
+            const posX = p.pos?.x ?? (20 + (i * 15) % 70);
+            const posY = p.pos?.y ?? (20 + (i * 12) % 65);
+            return (
+              <button
+                key={i}
+                onClick={() => onSelect(i)}
+                className={`absolute transition-all duration-200 z-10 group ${isSelected ? "scale-125 z-20" : "hover:scale-110"}`}
+                style={{ left: `${posX}%`, top: `${posY}%`, transform: "translate(-50%, -50%)" }}
+              >
+                <div className={`h-7 w-7 rounded-full flex items-center justify-center text-[9px] font-black border-2 shadow-lg ${isSelected ? "bg-[#D4AF37] text-white border-[#D4AF37] ring-4 ring-[#D4AF37]/30" : p.dispo ? "bg-white text-[#111] border-green-400 group-hover:border-[#D4AF37]" : "bg-white text-[#111] border-red-400 group-hover:border-[#D4AF37]"}`}>
+                  {i + 1}
                 </div>
-              )}
-            </button>
-          );
-        })}
+                {isSelected && (
+                  <div className="absolute left-1/2 -translate-x-1/2 top-9 bg-[#111] text-white rounded-lg px-2.5 py-2 shadow-xl min-w-[160px] z-30 border border-[#D4AF37]/30">
+                    <p className="text-[10px] font-bold text-[#D4AF37]">{p.nom}</p>
+                    <p className="text-[8px] text-white/60 mt-0.5">{p.ref}</p>
+                    <div className="flex items-center justify-between mt-1.5 pt-1 border-t border-white/10">
+                      <span className="text-[10px] font-bold text-white">{p.prix}</span>
+                      <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${p.dispo ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>{p.dispo ? "En stock" : "Commande"}</span>
+                    </div>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-        {/* Legend */}
-        <div className="absolute bottom-2 left-2 right-2 bg-white/90 backdrop-blur rounded-lg p-2 border border-[#E5E7EB]">
-          <div className="flex items-center gap-3 text-[8px]">
-            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full border-2 border-green-400"></span> En stock</span>
-            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full border-2 border-red-400"></span> Sur commande</span>
-            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-[#D4AF37]"></span> Sélectionné</span>
-            <span className="ml-auto text-slate-400">Cliquez sur un numéro pour voir les détails</span>
-          </div>
+      {/* Legend */}
+      <div className="px-3 py-2 bg-[#F5F3EF] border-t border-[#E5E7EB]">
+        <div className="flex items-center gap-3 text-[8px]">
+          <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full border-2 border-green-400"></span> En stock</span>
+          <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full border-2 border-red-400"></span> Sur commande</span>
+          <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-[#D4AF37]"></span> Sélectionné</span>
+          <span className="ml-auto text-slate-400">Utilisez +/− pour zoomer · Cliquez un numéro</span>
         </div>
       </div>
 
@@ -566,6 +615,7 @@ export default function CatalogueTechnique() {
             <ExplodedDiagram
               pieces={data.pieces}
               systemLabel={currentSys?.label || ""}
+              systemId={selectedSystem}
               selectedPiece={selectedPiece}
               onSelect={(i) => setSelectedPiece(selectedPiece === i ? null : i)}
             />

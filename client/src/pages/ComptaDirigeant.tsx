@@ -19,6 +19,9 @@ export default function ComptaDirigeant() {
   const [tab, setTab] = useState<CompTab>("ca");
   const [periode, setPeriode] = useState<"jour" | "semaine" | "mois" | "annee">("mois");
   const [expandedUnivers, setExpandedUnivers] = useState<string | null>(null);
+  const [expandedFinance, setExpandedFinance] = useState<string | null>(null);
+  const [expandedEmploye, setExpandedEmploye] = useState<number | null>(null);
+  const [expandedAlerte, setExpandedAlerte] = useState<number | null>(null);
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -129,75 +132,119 @@ export default function ComptaDirigeant() {
         {/* ━━━━━ SUIVI FINANCIER ━━━━━ */}
         {tab === "finances" && (
           <div className="space-y-3">
-            {/* Cartes resume */}
+            {/* Cartes resume — grid 2 cols, expandable */}
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: "Paiements recus", montant: "198 450 EUR", icon: ArrowDown, color: "text-green-600", bg: "bg-green-50" },
-                { label: "Paiements en attente", montant: "42 300 EUR", icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-                { label: "Remboursements", montant: "3 800 EUR", icon: ArrowUp, color: "text-red-500", bg: "bg-red-50" },
-                { label: "Abonnements actifs", montant: "24 680 EUR/mois", icon: CreditCard, color: "text-blue-600", bg: "bg-blue-50" },
+                { id: "recus", label: "Paiements recus", montant: "198 450 EUR", icon: ArrowDown, color: "text-green-600", bg: "bg-green-50", detail: "48 transactions ce mois · Moyenne 4 134 EUR", pct: "+12% vs mois dernier" },
+                { id: "attente", label: "Paiements en attente", montant: "42 300 EUR", icon: Clock, color: "text-amber-600", bg: "bg-amber-50", detail: "6 transactions en cours · Max 28 500 EUR", pct: "Delai moyen 3.2 jours" },
+                { id: "rembours", label: "Remboursements", montant: "3 800 EUR", icon: ArrowUp, color: "text-red-500", bg: "bg-red-50", detail: "4 remboursements traites · Taux 1.9%", pct: "-0.3% vs mois dernier" },
+                { id: "abos", label: "Abonnements actifs", montant: "24 680 EUR/mois", icon: CreditCard, color: "text-blue-600", bg: "bg-blue-50", detail: "312 abonnes actifs · 8 nouveaux", pct: "+5% ce mois" },
               ].map((c) => {
                 const Icon = c.icon;
+                const isExp = expandedFinance === c.id;
                 return (
-                  <div key={c.label} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
-                    <div className={`h-8 w-8 rounded-lg ${c.bg} grid place-items-center mb-2`}>
-                      <Icon size={14} className={c.color} />
-                    </div>
-                    <p className="text-[10px] text-slate-400">{c.label}</p>
-                    <p className="text-sm font-black text-[#111]">{c.montant}</p>
+                  <div key={c.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                    <button onClick={() => setExpandedFinance(isExp ? null : c.id)} className="w-full text-left p-3">
+                      <div className={`h-8 w-8 rounded-lg ${c.bg} grid place-items-center mb-2`}>
+                        <Icon size={14} className={c.color} />
+                      </div>
+                      <p className="text-[10px] text-slate-400">{c.label}</p>
+                      <p className="text-sm font-black text-[#111]">{c.montant}</p>
+                    </button>
+                    {isExp && (
+                      <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-1">
+                        <p className="text-[10px] text-slate-500">{c.detail}</p>
+                        <p className={`text-[10px] font-bold ${c.color}`}>{c.pct}</p>
+                        <button className="w-full mt-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Voir details</button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
 
-            {/* Derniers paiements */}
+            {/* Derniers paiements — expandable */}
             <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
               <div className="bg-[#111] px-3 py-2"><h3 className="text-xs font-bold text-[#D4AF37]">Derniers paiements</h3></div>
               {[
-                { objet: "Vente Peugeot 3008 GT", montant: "+28 500 EUR", date: "09/06/2025", statut: "Recu", type: "vente" },
-                { objet: "Location Mercedes E Break", montant: "+1 350 EUR", date: "08/06/2025", statut: "Recu", type: "location" },
-                { objet: "Abonnement Pro Premium x12", montant: "+1 068 EUR", date: "07/06/2025", statut: "Recu", type: "abo" },
-                { objet: "Devis Garage Auto Express", montant: "+389 EUR", date: "06/06/2025", statut: "En attente", type: "garage" },
-                { objet: "Boost Premium Annonce #142", montant: "+29 EUR", date: "06/06/2025", statut: "Recu", type: "pub" },
-                { objet: "Remboursement reservation", montant: "-50 EUR", date: "05/06/2025", statut: "Traite", type: "remb" },
-              ].map((p, i) => (
-                <div key={i} className="flex items-center justify-between px-3 py-2.5 border-b border-[#F3F4F6] last:border-0">
-                  <div>
-                    <p className="text-xs font-bold text-[#111]">{p.objet}</p>
-                    <p className="text-[10px] text-slate-400">{p.date}</p>
+                { objet: "Vente Peugeot 3008 GT", montant: "+28 500 EUR", date: "09/06/2025", statut: "Recu", type: "vente", client: "Martin D.", ref: "FA-2025-0412" },
+                { objet: "Location Mercedes E Break", montant: "+1 350 EUR", date: "08/06/2025", statut: "Recu", type: "location", client: "Sophie L.", ref: "FA-2025-0411" },
+                { objet: "Abonnement Pro Premium x12", montant: "+1 068 EUR", date: "07/06/2025", statut: "Recu", type: "abo", client: "Garage Auto 93", ref: "AB-2025-0089" },
+                { objet: "Devis Garage Auto Express", montant: "+389 EUR", date: "06/06/2025", statut: "En attente", type: "garage", client: "Auto Express", ref: "DV-2025-0156" },
+                { objet: "Boost Premium Annonce #142", montant: "+29 EUR", date: "06/06/2025", statut: "Recu", type: "pub", client: "Pierre K.", ref: "PUB-2025-0042" },
+                { objet: "Remboursement reservation", montant: "-50 EUR", date: "05/06/2025", statut: "Traite", type: "remb", client: "Ahmed M.", ref: "RB-2025-0008" },
+              ].map((p, i) => {
+                const isExp = expandedFinance === `paiement_${i}`;
+                return (
+                  <div key={i} className="border-b border-[#F3F4F6] last:border-0">
+                    <button onClick={() => setExpandedFinance(isExp ? null : `paiement_${i}`)} className="w-full flex items-center justify-between px-3 py-2.5 text-left">
+                      <div>
+                        <p className="text-xs font-bold text-[#111]">{p.objet}</p>
+                        <p className="text-[10px] text-slate-400">{p.date}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-sm font-bold ${p.montant.startsWith("-") ? "text-red-500" : "text-green-600"}`}>{p.montant}</p>
+                        <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold ${p.statut === "Recu" ? "bg-green-50 text-green-700" : p.statut === "En attente" ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>{p.statut}</span>
+                      </div>
+                    </button>
+                    {isExp && (
+                      <div className="px-3 pb-3 pt-1 border-t border-[#F3F4F6]">
+                        <div className="grid grid-cols-2 gap-2 text-[10px]">
+                          <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Client</span><p className="font-bold text-[#111]">{p.client}</p></div>
+                          <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Reference</span><p className="font-bold text-[#111]">{p.ref}</p></div>
+                          <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Type</span><p className="font-bold text-[#111]">{p.type}</p></div>
+                          <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Montant</span><p className="font-bold text-[#D4AF37]">{p.montant}</p></div>
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                          <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Voir facture</button>
+                          <button className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Telecharger</button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-bold ${p.montant.startsWith("-") ? "text-red-500" : "text-green-600"}`}>{p.montant}</p>
-                    <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold ${p.statut === "Recu" ? "bg-green-50 text-green-700" : p.statut === "En attente" ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>{p.statut}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            {/* Abonnements actifs */}
+            {/* Abonnements actifs — expandable */}
             <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
               <div className="bg-[#111] px-3 py-2 flex items-center justify-between">
                 <h3 className="text-xs font-bold text-[#D4AF37]">Abonnements actifs</h3>
                 <span className="text-[10px] text-white/50">312 abonnes</span>
               </div>
               {[
-                { plan: "Pro Vente Premium", abonnes: 45, revenu: "4 005 EUR/mois" },
-                { plan: "Pro Vente Elite", abonnes: 12, revenu: "2 148 EUR/mois" },
-                { plan: "Location Pro", abonnes: 67, revenu: "5 963 EUR/mois" },
-                { plan: "Garage Pro Premium", abonnes: 34, revenu: "3 026 EUR/mois" },
-                { plan: "Atelier Pro", abonnes: 28, revenu: "2 492 EUR/mois" },
-                { plan: "Encheres Pro", abonnes: 15, revenu: "735 EUR/mois" },
-                { plan: "Comptabilite Pro", abonnes: 22, revenu: "1 298 EUR/mois" },
-                { plan: "Carrosserie Pro", abonnes: 18, revenu: "1 062 EUR/mois" },
-              ].map((a, i) => (
-                <div key={i} className="flex items-center justify-between px-3 py-2 border-b border-[#F3F4F6] last:border-0">
-                  <div>
-                    <p className="text-xs font-bold text-[#111]">{a.plan}</p>
-                    <p className="text-[10px] text-slate-400">{a.abonnes} abonnes</p>
+                { plan: "Pro Vente Premium", abonnes: 45, revenu: "4 005 EUR/mois", taux: "99%", dernier: "09/06/2025" },
+                { plan: "Pro Vente Elite", abonnes: 12, revenu: "2 148 EUR/mois", taux: "100%", dernier: "08/06/2025" },
+                { plan: "Location Pro", abonnes: 67, revenu: "5 963 EUR/mois", taux: "97%", dernier: "09/06/2025" },
+                { plan: "Garage Pro Premium", abonnes: 34, revenu: "3 026 EUR/mois", taux: "98%", dernier: "07/06/2025" },
+                { plan: "Atelier Pro", abonnes: 28, revenu: "2 492 EUR/mois", taux: "100%", dernier: "06/06/2025" },
+                { plan: "Encheres Pro", abonnes: 15, revenu: "735 EUR/mois", taux: "93%", dernier: "08/06/2025" },
+                { plan: "Comptabilite Pro", abonnes: 22, revenu: "1 298 EUR/mois", taux: "95%", dernier: "07/06/2025" },
+                { plan: "Carrosserie Pro", abonnes: 18, revenu: "1 062 EUR/mois", taux: "100%", dernier: "09/06/2025" },
+              ].map((a, i) => {
+                const isExp = expandedFinance === `abo_${i}`;
+                return (
+                  <div key={i} className="border-b border-[#F3F4F6] last:border-0">
+                    <button onClick={() => setExpandedFinance(isExp ? null : `abo_${i}`)} className="w-full flex items-center justify-between px-3 py-2 text-left">
+                      <div>
+                        <p className="text-xs font-bold text-[#111]">{a.plan}</p>
+                        <p className="text-[10px] text-slate-400">{a.abonnes} abonnes</p>
+                      </div>
+                      <p className="text-xs font-bold text-[#D4AF37]">{a.revenu}</p>
+                    </button>
+                    {isExp && (
+                      <div className="px-3 pb-3 pt-1 border-t border-[#F3F4F6]">
+                        <div className="grid grid-cols-3 gap-2 text-[10px]">
+                          <div className="rounded-lg bg-[#F5F3EF] p-2 text-center"><span className="text-slate-400">Abonnes</span><p className="font-bold text-[#111]">{a.abonnes}</p></div>
+                          <div className="rounded-lg bg-[#F5F3EF] p-2 text-center"><span className="text-slate-400">Taux renouvl.</span><p className="font-bold text-green-600">{a.taux}</p></div>
+                          <div className="rounded-lg bg-[#F5F3EF] p-2 text-center"><span className="text-slate-400">Dernier</span><p className="font-bold text-[#111]">{a.dernier}</p></div>
+                        </div>
+                        <button className="w-full mt-2 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Gerer les abonnes</button>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-xs font-bold text-[#D4AF37]">{a.revenu}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -205,7 +252,7 @@ export default function ComptaDirigeant() {
         {/* ━━━━━ EMPLOYES ━━━━━ */}
         {tab === "employes" && (
           <div className="space-y-3">
-            {/* Stats globales */}
+            {/* Stats globales — grid clickable */}
             <div className="grid grid-cols-4 gap-2">
               {[
                 { label: "Total", val: "28", color: "text-[#D4AF37]" },
@@ -213,56 +260,65 @@ export default function ComptaDirigeant() {
                 { label: "Absents", val: "2", color: "text-red-500" },
                 { label: "Conges", val: "2", color: "text-blue-500" },
               ].map((s) => (
-                <div key={s.label} className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center">
+                <button key={s.label} className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center hover:shadow-md transition active:scale-[0.97]">
                   <p className={`text-lg font-black ${s.color}`}>{s.val}</p>
                   <p className="text-[9px] text-slate-400">{s.label}</p>
-                </div>
+                </button>
               ))}
             </div>
 
-            {/* Liste employes */}
+            {/* Liste employes — expandable */}
             {[
-              { nom: "Karim M.", poste: "Mecanicien senior — Atelier", heuresM: "168h", presence: "98%", taches: 34, perf: 92, statut: "present" },
-              { nom: "Youssef B.", poste: "Mecanicien — Atelier", heuresM: "155h", presence: "95%", taches: 28, perf: 85, statut: "present" },
-              { nom: "Omar L.", poste: "Mecanicien — Atelier", heuresM: "142h", presence: "90%", taches: 22, perf: 78, statut: "present" },
-              { nom: "Sarah K.", poste: "Responsable location", heuresM: "160h", presence: "97%", taches: 45, perf: 94, statut: "present" },
-              { nom: "Mohamed A.", poste: "Commercial vente", heuresM: "162h", presence: "96%", taches: 38, perf: 88, statut: "present" },
-              { nom: "Fatima B.", poste: "Comptabilite", heuresM: "158h", presence: "99%", taches: 52, perf: 96, statut: "present" },
-              { nom: "Rachid T.", poste: "Apprenti mecanicien", heuresM: "130h", presence: "88%", taches: 15, perf: 65, statut: "present" },
-              { nom: "Amina D.", poste: "Accueil / Administration", heuresM: "160h", presence: "100%", taches: 40, perf: 91, statut: "conge" },
-            ].map((e, i) => (
-              <div key={i} className={`rounded-xl bg-white border p-3 ${e.statut === "present" ? "border-[#E5E7EB]" : e.statut === "conge" ? "border-blue-200" : "border-red-200"}`}>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-[#111] flex items-center gap-2">
-                      {e.nom}
-                      <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold ${e.statut === "present" ? "bg-green-50 text-green-700" : e.statut === "conge" ? "bg-blue-50 text-blue-700" : "bg-red-50 text-red-700"}`}>
-                        {e.statut === "present" ? "Present" : e.statut === "conge" ? "Conge" : "Absent"}
-                      </span>
-                    </p>
-                    <p className="text-xs text-slate-500">{e.poste}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-bold ${e.perf >= 90 ? "text-green-600" : e.perf >= 75 ? "text-amber-600" : "text-red-500"}`}>{e.perf}%</p>
-                    <p className="text-[9px] text-slate-400">performance</p>
-                  </div>
+              { nom: "Karim M.", poste: "Mecanicien senior — Atelier", heuresM: "168h", presence: "98%", taches: 34, perf: 92, statut: "present", salaire: "2 800 EUR", anciennete: "4 ans", contact: "06 12 34 56 78" },
+              { nom: "Youssef B.", poste: "Mecanicien — Atelier", heuresM: "155h", presence: "95%", taches: 28, perf: 85, statut: "present", salaire: "2 200 EUR", anciennete: "2 ans", contact: "06 23 45 67 89" },
+              { nom: "Omar L.", poste: "Mecanicien — Atelier", heuresM: "142h", presence: "90%", taches: 22, perf: 78, statut: "present", salaire: "2 000 EUR", anciennete: "1 an", contact: "06 34 56 78 90" },
+              { nom: "Sarah K.", poste: "Responsable location", heuresM: "160h", presence: "97%", taches: 45, perf: 94, statut: "present", salaire: "3 200 EUR", anciennete: "5 ans", contact: "06 45 67 89 01" },
+              { nom: "Mohamed A.", poste: "Commercial vente", heuresM: "162h", presence: "96%", taches: 38, perf: 88, statut: "present", salaire: "2 600 EUR", anciennete: "3 ans", contact: "06 56 78 90 12" },
+              { nom: "Fatima B.", poste: "Comptabilite", heuresM: "158h", presence: "99%", taches: 52, perf: 96, statut: "present", salaire: "2 900 EUR", anciennete: "6 ans", contact: "06 67 89 01 23" },
+              { nom: "Rachid T.", poste: "Apprenti mecanicien", heuresM: "130h", presence: "88%", taches: 15, perf: 65, statut: "present", salaire: "1 200 EUR", anciennete: "6 mois", contact: "06 78 90 12 34" },
+              { nom: "Amina D.", poste: "Accueil / Administration", heuresM: "160h", presence: "100%", taches: 40, perf: 91, statut: "conge", salaire: "2 400 EUR", anciennete: "3 ans", contact: "06 89 01 23 45" },
+            ].map((e, i) => {
+              const isExp = expandedEmploye === i;
+              return (
+                <div key={i} className={`rounded-xl bg-white border overflow-hidden ${e.statut === "present" ? "border-[#E5E7EB]" : e.statut === "conge" ? "border-blue-200" : "border-red-200"}`}>
+                  <button onClick={() => setExpandedEmploye(isExp ? null : i)} className="w-full text-left p-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-[#111] flex items-center gap-2">
+                          {e.nom}
+                          <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold ${e.statut === "present" ? "bg-green-50 text-green-700" : e.statut === "conge" ? "bg-blue-50 text-blue-700" : "bg-red-50 text-red-700"}`}>
+                            {e.statut === "present" ? "Present" : e.statut === "conge" ? "Conge" : "Absent"}
+                          </span>
+                        </p>
+                        <p className="text-xs text-slate-500">{e.poste}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-sm font-bold ${e.perf >= 90 ? "text-green-600" : e.perf >= 75 ? "text-amber-600" : "text-red-500"}`}>{e.perf}%</p>
+                        <p className="text-[9px] text-slate-400">performance</p>
+                      </div>
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                      <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+                        <div className="rounded-lg bg-[#F5F3EF] p-1.5"><p className="font-bold text-[#111]">{e.heuresM}</p><p className="text-slate-400">Heures/mois</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-1.5"><p className="font-bold text-[#111]">{e.presence}</p><p className="text-slate-400">Presence</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-1.5"><p className="font-bold text-[#111]">{e.taches}</p><p className="text-slate-400">Taches/mois</p></div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+                        <div className="rounded-lg bg-[#F5F3EF] p-1.5"><p className="font-bold text-[#D4AF37]">{e.salaire}</p><p className="text-slate-400">Salaire</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-1.5"><p className="font-bold text-[#111]">{e.anciennete}</p><p className="text-slate-400">Anciennete</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-1.5"><p className="font-bold text-[#111]">{e.contact}</p><p className="text-slate-400">Telephone</p></div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Voir profil</button>
+                        <button className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Contacter</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="mt-2 grid grid-cols-3 gap-2 text-center text-[10px]">
-                  <div className="rounded-lg bg-[#F5F3EF] p-1.5">
-                    <p className="font-bold text-[#111]">{e.heuresM}</p>
-                    <p className="text-slate-400">Heures/mois</p>
-                  </div>
-                  <div className="rounded-lg bg-[#F5F3EF] p-1.5">
-                    <p className="font-bold text-[#111]">{e.presence}</p>
-                    <p className="text-slate-400">Presence</p>
-                  </div>
-                  <div className="rounded-lg bg-[#F5F3EF] p-1.5">
-                    <p className="font-bold text-[#111]">{e.taches}</p>
-                    <p className="text-slate-400">Taches/mois</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -270,28 +326,40 @@ export default function ComptaDirigeant() {
         {tab === "alertes" && (
           <div className="space-y-2">
             {[
-              { type: "urgent", titre: "Facture impayee — Garage Premium", desc: "Facture FA-2025-0310 de 1 580 EUR en attente depuis 3 jours. Client: Jean-Pierre D.", date: "Il y a 3 jours", icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50", border: "border-red-200" },
-              { type: "urgent", titre: "Abonnement expire — Pro Vente", desc: "L'abonnement Pro Premium de Garage Auto 93 a expire le 07/06. Pas de renouvellement.", date: "Il y a 2 jours", icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50", border: "border-red-200" },
-              { type: "info", titre: "Paiement recu — 28 500 EUR", desc: "Virement recu pour l'achat de la Peugeot 3008 GT par Martin D.", date: "Il y a 1 jour", icon: CheckCircle, color: "text-green-600", bg: "bg-green-50", border: "border-green-200" },
-              { type: "info", titre: "Objectif mensuel atteint — Location", desc: "Objectif de 65 000 EUR atteint pour la Location. Actuel: 68 200 EUR (+105%).", date: "Il y a 1 jour", icon: Target, color: "text-[#D4AF37]", bg: "bg-[#D4AF37]/10", border: "border-[#D4AF37]/30" },
-              { type: "warning", titre: "Anomalie financiere detectee", desc: "Double facturation detectee sur le compte de Sophie L. — 2 factures identiques de 780 EUR.", date: "Aujourd'hui", icon: Shield, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
-              { type: "info", titre: "Nouvel abonne — Atelier Pro", desc: "Garage Meca Plus (Montreuil) a souscrit a l'option Atelier Pro Premium (89 EUR/mois).", date: "Aujourd'hui", icon: UserCheck, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200" },
-              { type: "warning", titre: "Stock critique — 3 articles", desc: "Courroie distribution Gates, Amortisseur AR Monroe, Kit embrayage Valeo en rupture.", date: "Aujourd'hui", icon: AlertTriangle, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
-              { type: "info", titre: "Paiement recu — 920 EUR", desc: "CB recu pour la reparation Tesla Model 3 (pneus + geometrie) par Thomas R.", date: "Hier", icon: CheckCircle, color: "text-green-600", bg: "bg-green-50", border: "border-green-200" },
+              { type: "urgent", titre: "Facture impayee — Garage Premium", desc: "Facture FA-2025-0310 de 1 580 EUR en attente depuis 3 jours. Client: Jean-Pierre D.", date: "Il y a 3 jours", icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50", border: "border-red-200", action: "Relancer le client", detail: "Montant: 1 580 EUR · Echeance: 06/06/2025 · 2eme relance envoyee" },
+              { type: "urgent", titre: "Abonnement expire — Pro Vente", desc: "L'abonnement Pro Premium de Garage Auto 93 a expire le 07/06. Pas de renouvellement.", date: "Il y a 2 jours", icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50", border: "border-red-200", action: "Contacter le client", detail: "Plan: Pro Premium (89 EUR/mois) · Derniere connexion: 05/06/2025" },
+              { type: "info", titre: "Paiement recu — 28 500 EUR", desc: "Virement recu pour l'achat de la Peugeot 3008 GT par Martin D.", date: "Il y a 1 jour", icon: CheckCircle, color: "text-green-600", bg: "bg-green-50", border: "border-green-200", action: "Voir la transaction", detail: "Ref: FA-2025-0412 · Methode: Virement SEPA · Delai: 2 jours" },
+              { type: "info", titre: "Objectif mensuel atteint — Location", desc: "Objectif de 65 000 EUR atteint pour la Location. Actuel: 68 200 EUR (+105%).", date: "Il y a 1 jour", icon: Target, color: "text-[#D4AF37]", bg: "bg-[#D4AF37]/10", border: "border-[#D4AF37]/30", action: "Voir le rapport", detail: "Objectif: 65 000 EUR · Realise: 68 200 EUR · +4.9% vs mois dernier" },
+              { type: "warning", titre: "Anomalie financiere detectee", desc: "Double facturation detectee sur le compte de Sophie L. — 2 factures identiques de 780 EUR.", date: "Aujourd'hui", icon: Shield, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", action: "Verifier et corriger", detail: "Client: Sophie L. · Ref doublons: FA-0389 & FA-0390 · Total: 1 560 EUR" },
+              { type: "info", titre: "Nouvel abonne — Atelier Pro", desc: "Garage Meca Plus (Montreuil) a souscrit a l'option Atelier Pro Premium (89 EUR/mois).", date: "Aujourd'hui", icon: UserCheck, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200", action: "Voir le compte", detail: "Garage Meca Plus · SIRET: 891 234 567 · Plan: Atelier Premium" },
+              { type: "warning", titre: "Stock critique — 3 articles", desc: "Courroie distribution Gates, Amortisseur AR Monroe, Kit embrayage Valeo en rupture.", date: "Aujourd'hui", icon: AlertTriangle, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", action: "Commander", detail: "3 refs en rupture · Delai reappro: 48h · Commande auto possible" },
+              { type: "info", titre: "Paiement recu — 920 EUR", desc: "CB recu pour la reparation Tesla Model 3 (pneus + geometrie) par Thomas R.", date: "Hier", icon: CheckCircle, color: "text-green-600", bg: "bg-green-50", border: "border-green-200", action: "Voir la facture", detail: "Ref: FA-2025-0410 · Methode: CB · Montant: 920 EUR" },
             ].map((a, i) => {
               const Icon = a.icon;
+              const isExp = expandedAlerte === i;
               return (
-                <div key={i} className={`rounded-xl bg-white border ${a.border} p-3`}>
-                  <div className="flex items-start gap-3">
-                    <div className={`h-9 w-9 shrink-0 rounded-lg ${a.bg} grid place-items-center`}>
-                      <Icon size={16} className={a.color} />
+                <div key={i} className={`rounded-xl bg-white border ${a.border} overflow-hidden`}>
+                  <button onClick={() => setExpandedAlerte(isExp ? null : i)} className="w-full text-left p-3">
+                    <div className="flex items-start gap-3">
+                      <div className={`h-9 w-9 shrink-0 rounded-lg ${a.bg} grid place-items-center`}>
+                        <Icon size={16} className={a.color} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-[#111]">{a.titre}</p>
+                        <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{a.desc}</p>
+                        <p className="text-[10px] text-slate-400 mt-1">{a.date}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-[#111]">{a.titre}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{a.desc}</p>
-                      <p className="text-[10px] text-slate-400 mt-1">{a.date}</p>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                      <p className="text-xs text-slate-500">{a.desc}</p>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2 text-[10px]">
+                        <p className="text-slate-500">{a.detail}</p>
+                      </div>
+                      <button className={`w-full rounded-lg py-1.5 text-[9px] font-bold text-white ${a.type === "urgent" ? "bg-red-500" : a.type === "warning" ? "bg-amber-500" : "bg-[#D4AF37]"}`}>{a.action}</button>
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             })}
