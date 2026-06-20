@@ -321,137 +321,431 @@ function getSystemData(sysId: string): SystemData {
   };
 }
 
-/* ─── SVG Exploded Diagram (Mode Image) ─── */
-const SYSTEM_IMAGES: Record<string, string> = {
-  moteur: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop",
-  distribution: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&h=600&fit=crop",
-  embrayage: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=600&fit=crop",
-  boite: "https://images.unsplash.com/photo-1615811361523-6bd03d7748e7?w=800&h=600&fit=crop",
-  freinage: "https://images.unsplash.com/photo-1558618047-f4b511e3e5e2?w=800&h=600&fit=crop",
-  direction: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=600&fit=crop",
-  suspension: "https://images.unsplash.com/photo-1600712242805-5f78671b24da?w=800&h=600&fit=crop",
-  refroidissement: "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=800&h=600&fit=crop",
-  echappement: "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=800&h=600&fit=crop",
-  alimentation: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=600&fit=crop",
-  turbo: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&h=600&fit=crop",
-  injection: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop",
-  allumage: "https://images.unsplash.com/photo-1558618047-f4b511e3e5e2?w=800&h=600&fit=crop",
-  abs_esp: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=600&fit=crop",
-  airbags: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=600&fit=crop",
-  climatisation: "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=800&h=600&fit=crop",
-  tableau_bord: "https://images.unsplash.com/photo-1600712242805-5f78671b24da?w=800&h=600&fit=crop",
-  capteurs: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&h=600&fit=crop",
-  calculateurs: "https://images.unsplash.com/photo-1615811361523-6bd03d7748e7?w=800&h=600&fit=crop",
-  multiplexage: "https://images.unsplash.com/photo-1558618047-f4b511e3e5e2?w=800&h=600&fit=crop",
-  diagnostic: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop",
-  batterie: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&h=600&fit=crop",
-  alternateur: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=600&fit=crop",
-  demarreur: "https://images.unsplash.com/photo-1615811361523-6bd03d7748e7?w=800&h=600&fit=crop",
-  eclairage: "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=800&h=600&fit=crop",
-  fusibles: "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=800&h=600&fit=crop",
-  cablage: "https://images.unsplash.com/photo-1600712242805-5f78671b24da?w=800&h=600&fit=crop",
-  dimensions: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=600&fit=crop",
-  poids: "https://images.unsplash.com/photo-1558618047-f4b511e3e5e2?w=800&h=600&fit=crop",
-  vitrage: "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=800&h=600&fit=crop",
-  ouvrants: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=600&fit=crop",
-};
+/* ─── SVG Technical Exploded Diagram (Mode Image) — Style EPC/Autodata ─── */
 
-function ExplodedDiagram({ pieces, systemLabel, systemId, selectedPiece, onSelect }: { pieces: PieceData[]; systemLabel: string; systemId: string; selectedPiece: number | null; onSelect: (i: number) => void }) {
+/* SVG technical drawings per system — pure vector schematics */
+function DistributionSVG({ highlight }: { highlight: number | null }) {
+  const hl = (n: number) => highlight === n ? "#D4AF37" : "#1a2744";
+  const hlW = (n: number) => highlight === n ? 2.5 : 1.2;
+  return (
+    <svg viewBox="0 0 500 450" className="w-full h-full">
+      {/* Pignon arbre a cames (1) */}
+      <circle cx="180" cy="80" r="38" fill="none" stroke={hl(0)} strokeWidth={hlW(0)} />
+      <circle cx="180" cy="80" r="28" fill="none" stroke={hl(0)} strokeWidth={hlW(0)} strokeDasharray="4,2" />
+      <circle cx="180" cy="80" r="8" fill="none" stroke={hl(0)} strokeWidth={hlW(0)} />
+      {/* Teeth on sprocket */}
+      {Array.from({length:18}).map((_,i)=>{const a=i*20*Math.PI/180;return <line key={i} x1={180+34*Math.cos(a)} y1={80+34*Math.sin(a)} x2={180+40*Math.cos(a)} y2={80+40*Math.sin(a)} stroke={hl(0)} strokeWidth={hlW(0)} />})}
+      <text x="180" y="32" textAnchor="middle" className="text-[11px] font-bold" fill="#c0392b">1</text>
+      <text x="225" y="55" className="text-[9px]" fill="#555">(100 Nm)</text>
+
+      {/* Galet tendeur (2) */}
+      <circle cx="100" cy="200" r="22" fill="none" stroke={hl(1)} strokeWidth={hlW(1)} />
+      <circle cx="100" cy="200" r="10" fill="none" stroke={hl(1)} strokeWidth={hlW(1)} />
+      <line x1="100" y1="178" x2="100" y2="160" stroke={hl(1)} strokeWidth={hlW(1)} />
+      <rect x="85" y="148" width="30" height="14" rx="3" fill="none" stroke={hl(1)} strokeWidth={hlW(1)} />
+      <text x="100" y="165" textAnchor="middle" className="text-[11px] font-bold" fill="#c0392b">2</text>
+      <text x="135" y="195" className="text-[9px]" fill="#555">(25 Nm)</text>
+
+      {/* Galet enrouleur (3) */}
+      <circle cx="115" cy="320" r="20" fill="none" stroke={hl(2)} strokeWidth={hlW(2)} />
+      <circle cx="115" cy="320" r="9" fill="none" stroke={hl(2)} strokeWidth={hlW(2)} />
+      <text x="115" y="355" textAnchor="middle" className="text-[11px] font-bold" fill="#c0392b">3</text>
+      <text x="148" y="315" className="text-[9px]" fill="#555">(45 Nm)</text>
+
+      {/* Pignon vilebrequin (4) */}
+      <circle cx="200" cy="390" r="30" fill="none" stroke={hl(3)} strokeWidth={hlW(3)} />
+      <circle cx="200" cy="390" r="18" fill="none" stroke={hl(3)} strokeWidth={hlW(3)} strokeDasharray="3,2" />
+      <circle cx="200" cy="390" r="6" fill="none" stroke={hl(3)} strokeWidth={hlW(3)} />
+      {Array.from({length:14}).map((_,i)=>{const a=i*25.7*Math.PI/180;return <line key={i} x1={200+26*Math.cos(a)} y1={390+26*Math.sin(a)} x2={200+32*Math.cos(a)} y2={390+32*Math.sin(a)} stroke={hl(3)} strokeWidth={hlW(3)} />})}
+      <text x="200" y="432" textAnchor="middle" className="text-[11px] font-bold" fill="#c0392b">4</text>
+      <text x="240" y="410" className="text-[9px]" fill="#555">(20 Nm)</text>
+
+      {/* Galet guide (5) */}
+      <circle cx="310" cy="280" r="18" fill="none" stroke={hl(4)} strokeWidth={hlW(4)} />
+      <circle cx="310" cy="280" r="7" fill="none" stroke={hl(4)} strokeWidth={hlW(4)} />
+      <text x="340" y="270" className="text-[11px] font-bold" fill="#c0392b">5</text>
+      <text x="335" y="300" className="text-[9px]" fill="#555">(40 Nm)</text>
+
+      {/* Support galet (6) */}
+      <rect x="280" cy="340" width="50" height="18" rx="4" fill="none" stroke={hl(5)} strokeWidth={hlW(5)} y="340" />
+      <line x1="305" y1="340" x2="305" y2="300" stroke={hl(5)} strokeWidth={hlW(5)} strokeDasharray="3,2" />
+      <text x="340" y="355" className="text-[11px] font-bold" fill="#c0392b">6</text>
+
+      {/* Pompe a eau (7) */}
+      <ellipse cx="55" cy="120" rx="30" ry="22" fill="none" stroke={hl(6)} strokeWidth={hlW(6)} />
+      <circle cx="55" cy="120" r="8" fill="none" stroke={hl(6)} strokeWidth={hlW(6)} />
+      <line x1="25" y1="120" x2="12" y2="120" stroke={hl(6)} strokeWidth={hlW(6)} />
+      <text x="12" y="110" className="text-[11px] font-bold" fill="#c0392b">7</text>
+
+      {/* Joint pompe a eau (8) */}
+      <ellipse cx="55" cy="120" rx="34" ry="26" fill="none" stroke={hl(7)} strokeWidth={hlW(7)} strokeDasharray="4,3" />
+      <text x="55" y="160" textAnchor="middle" className="text-[11px] font-bold" fill="#c0392b">8</text>
+
+      {/* Joint (9) */}
+      <path d="M85,250 Q90,240 100,242" fill="none" stroke={hl(8)} strokeWidth={hlW(8)} />
+      <circle cx="85" cy="258" r="10" fill="none" stroke={hl(8)} strokeWidth={hlW(8)} strokeDasharray="2,2" />
+      <text x="65" y="262" className="text-[11px] font-bold" fill="#c0392b">9</text>
+
+      {/* Vis M8x25 (10) */}
+      <rect x="260" y="170" width="6" height="20" rx="1" fill="none" stroke={hl(9)} strokeWidth={hlW(9)} />
+      <rect x="255" y="165" width="16" height="8" rx="2" fill="none" stroke={hl(9)} strokeWidth={hlW(9)} />
+      <text x="285" y="180" className="text-[11px] font-bold" fill="#c0392b">10</text>
+
+      {/* Courroie distribution (11) */}
+      <path d="M180,118 Q130,160 100,178" fill="none" stroke={hl(10)} strokeWidth={hlW(10) + 1} />
+      <path d="M100,222 Q108,280 115,300" fill="none" stroke={hl(10)} strokeWidth={hlW(10) + 1} />
+      <path d="M135,330 Q180,360 200,360" fill="none" stroke={hl(10)} strokeWidth={hlW(10) + 1} />
+      <path d="M220,380 Q280,350 310,298" fill="none" stroke={hl(10)} strokeWidth={hlW(10) + 1} />
+      <path d="M315,262 Q300,180 240,110" fill="none" stroke={hl(10)} strokeWidth={hlW(10) + 1} />
+      <text x="280" y="220" className="text-[11px] font-bold" fill="#c0392b">11</text>
+
+      {/* Vis M10x55 (12) */}
+      <rect x="140" y="70" width="7" height="25" rx="1" fill="none" stroke={hl(11)} strokeWidth={hlW(11)} />
+      <polygon points="137,68 152,68 148,60 141,60" fill="none" stroke={hl(11)} strokeWidth={hlW(11)} />
+      <text x="130" y="58" className="text-[11px] font-bold" fill="#c0392b">12</text>
+      <line x1="142" y1="65" x2="135" y2="58" stroke="#c0392b" strokeWidth="0.5" />
+
+      {/* Nm annotations with star */}
+      <text x="325" y="385" className="text-[9px]" fill="#555">(50 Nm)</text>
+      <text x="20" y="95" className="text-[9px]" fill="#555">(25 Nm)</text>
+    </svg>
+  );
+}
+
+function GenericSystemSVG({ pieces, highlight, systemId }: { pieces: PieceData[]; highlight: number | null; systemId: string }) {
+  const hl = (n: number) => highlight === n ? "#D4AF37" : "#1a2744";
+  const hlW = (n: number) => highlight === n ? 2.5 : 1.2;
+  const cx = 250, cy = 220;
+  return (
+    <svg viewBox="0 0 500 450" className="w-full h-full">
+      {/* Central component outline */}
+      <rect x={cx-80} y={cy-60} width="160" height="120" rx="8" fill="none" stroke="#1a2744" strokeWidth="1.5" />
+      <rect x={cx-70} y={cy-50} width="140" height="100" rx="5" fill="none" stroke="#1a2744" strokeWidth="0.8" strokeDasharray="4,3" />
+      <text x={cx} y={cy+5} textAnchor="middle" className="text-[10px] font-bold" fill="#1a2744">{SYSTEMS_ALL.find(s=>s.id===systemId)?.label || systemId}</text>
+      {/* Parts exploded around center */}
+      {pieces.map((p, i) => {
+        const angle = (i / pieces.length) * 2 * Math.PI - Math.PI / 2;
+        const r = 140 + (i % 2) * 40;
+        const px = cx + r * Math.cos(angle);
+        const py = cy + r * Math.sin(angle);
+        const edgeX = cx + 80 * Math.cos(angle);
+        const edgeY = cy + 60 * Math.sin(angle);
+        return (
+          <g key={i}>
+            {/* Leader line */}
+            <line x1={edgeX} y1={edgeY} x2={px} y2={py} stroke={hl(i)} strokeWidth={hlW(i)} strokeDasharray="3,2" />
+            {/* Part shape */}
+            <rect x={px-18} y={py-12} width="36" height="24" rx="4" fill="none" stroke={hl(i)} strokeWidth={hlW(i)} />
+            {/* Number callout */}
+            <circle cx={px+22} cy={py-16} r="10" fill={highlight === i ? "#D4AF37" : "#c0392b"} />
+            <text x={px+22} y={py-12} textAnchor="middle" className="text-[10px] font-bold" fill="white">{i + 1}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function MoteurSVG({ highlight }: { highlight: number | null }) {
+  const hl = (n: number) => highlight === n ? "#D4AF37" : "#1a2744";
+  const hlW = (n: number) => highlight === n ? 2.5 : 1.2;
+  return (
+    <svg viewBox="0 0 500 450" className="w-full h-full">
+      {/* Engine block outline */}
+      <rect x="120" y="80" width="260" height="280" rx="10" fill="none" stroke="#1a2744" strokeWidth="1.8" />
+      <rect x="135" y="95" width="230" height="250" rx="6" fill="none" stroke="#1a2744" strokeWidth="0.8" strokeDasharray="5,3" />
+
+      {/* Culasse (1) */}
+      <rect x="140" y="90" width="220" height="40" rx="4" fill="none" stroke={hl(0)} strokeWidth={hlW(0)} />
+      <line x1="180" y1="90" x2="180" y2="130" stroke={hl(0)} strokeWidth={hlW(0)} strokeDasharray="2,2" />
+      <line x1="250" y1="90" x2="250" y2="130" stroke={hl(0)} strokeWidth={hlW(0)} strokeDasharray="2,2" />
+      <line x1="320" y1="90" x2="320" y2="130" stroke={hl(0)} strokeWidth={hlW(0)} strokeDasharray="2,2" />
+      <circle cx="125" cy="70" r="11" fill={highlight===0?"#D4AF37":"#c0392b"} />
+      <text x="125" y="74" textAnchor="middle" className="text-[10px] font-bold" fill="white">1</text>
+      <line x1="135" y1="75" x2="150" y2="90" stroke="#c0392b" strokeWidth="0.8" />
+
+      {/* Bougie (2) */}
+      <rect x="195" y="55" width="6" height="40" rx="2" fill="none" stroke={hl(1)} strokeWidth={hlW(1)} />
+      <circle cx="198" cy="50" r="5" fill="none" stroke={hl(1)} strokeWidth={hlW(1)} />
+      <circle cx="170" cy="40" r="11" fill={highlight===1?"#D4AF37":"#c0392b"} />
+      <text x="170" y="44" textAnchor="middle" className="text-[10px] font-bold" fill="white">2</text>
+      <line x1="180" y1="44" x2="193" y2="50" stroke="#c0392b" strokeWidth="0.8" />
+
+      {/* Injecteur (3) */}
+      <rect x="280" y="60" width="5" height="35" rx="1" fill="none" stroke={hl(2)} strokeWidth={hlW(2)} />
+      <rect x="275" y="55" width="15" height="8" rx="2" fill="none" stroke={hl(2)} strokeWidth={hlW(2)} />
+      <circle cx="320" cy="48" r="11" fill={highlight===2?"#D4AF37":"#c0392b"} />
+      <text x="320" y="52" textAnchor="middle" className="text-[10px] font-bold" fill="white">3</text>
+      <line x1="310" y1="52" x2="290" y2="58" stroke="#c0392b" strokeWidth="0.8" />
+
+      {/* Bobine (4) */}
+      <rect x="220" y="40" width="14" height="22" rx="3" fill="none" stroke={hl(3)} strokeWidth={hlW(3)} />
+      <line x1="227" y1="62" x2="227" y2="90" stroke={hl(3)} strokeWidth={hlW(3)} strokeDasharray="2,2" />
+      <circle cx="248" cy="35" r="11" fill={highlight===3?"#D4AF37":"#c0392b"} />
+      <text x="248" y="39" textAnchor="middle" className="text-[10px] font-bold" fill="white">4</text>
+
+      {/* Filtre huile (5) */}
+      <ellipse cx="400" cy="280" rx="25" ry="15" fill="none" stroke={hl(4)} strokeWidth={hlW(4)} />
+      <line x1="380" y1="280" x2="350" y2="280" stroke={hl(4)} strokeWidth={hlW(4)} strokeDasharray="3,2" />
+      <circle cx="430" cy="262" r="11" fill={highlight===4?"#D4AF37":"#c0392b"} />
+      <text x="430" y="266" textAnchor="middle" className="text-[10px] font-bold" fill="white">5</text>
+
+      {/* Filtre air (6) */}
+      <rect x="395" y="120" width="55" height="30" rx="8" fill="none" stroke={hl(5)} strokeWidth={hlW(5)} />
+      <line x1="395" y1="135" x2="375" y2="135" stroke={hl(5)} strokeWidth={hlW(5)} strokeDasharray="3,2" />
+      <circle cx="460" cy="115" r="11" fill={highlight===5?"#D4AF37":"#c0392b"} />
+      <text x="460" y="119" textAnchor="middle" className="text-[10px] font-bold" fill="white">6</text>
+
+      {/* Kit distribution (7) */}
+      <circle cx="80" cy="200" r="25" fill="none" stroke={hl(6)} strokeWidth={hlW(6)} />
+      <circle cx="80" cy="200" r="12" fill="none" stroke={hl(6)} strokeWidth={hlW(6)} strokeDasharray="3,2" />
+      <circle cx="42" cy="180" r="11" fill={highlight===6?"#D4AF37":"#c0392b"} />
+      <text x="42" y="184" textAnchor="middle" className="text-[10px] font-bold" fill="white">7</text>
+
+      {/* Pompe eau (8) */}
+      <ellipse cx="80" cy="290" rx="22" ry="16" fill="none" stroke={hl(7)} strokeWidth={hlW(7)} />
+      <circle cx="42" cy="300" r="11" fill={highlight===7?"#D4AF37":"#c0392b"} />
+      <text x="42" y="304" textAnchor="middle" className="text-[10px] font-bold" fill="white">8</text>
+
+      {/* Thermostat (9) */}
+      <circle cx="250" cy="340" r="15" fill="none" stroke={hl(8)} strokeWidth={hlW(8)} />
+      <path d="M242,332 L258,348" stroke={hl(8)} strokeWidth={hlW(8)} />
+      <circle cx="250" cy="375" r="11" fill={highlight===8?"#D4AF37":"#c0392b"} />
+      <text x="250" y="379" textAnchor="middle" className="text-[10px] font-bold" fill="white">9</text>
+
+      {/* Turbo (10) */}
+      <circle cx="50" cy="140" r="20" fill="none" stroke={hl(9)} strokeWidth={hlW(9)} />
+      <path d="M35,128 C40,140 60,140 65,128" fill="none" stroke={hl(9)} strokeWidth={hlW(9)} />
+      <circle cx="22" cy="125" r="11" fill={highlight===9?"#D4AF37":"#c0392b"} />
+      <text x="22" y="129" textAnchor="middle" className="text-[10px] font-bold" fill="white">10</text>
+
+      {/* Joint culasse (11) */}
+      <line x1="145" y1="130" x2="355" y2="130" stroke={hl(10)} strokeWidth={hlW(10)+0.5} strokeDasharray="6,2" />
+      <circle cx="395" cy="130" r="11" fill={highlight===10?"#D4AF37":"#c0392b"} />
+      <text x="395" y="134" textAnchor="middle" className="text-[10px] font-bold" fill="white">11</text>
+
+      {/* Capteur PMH (12) */}
+      <rect x="350" y="220" width="8" height="20" rx="2" fill="none" stroke={hl(11)} strokeWidth={hlW(11)} />
+      <circle cx="358" cy="215" r="4" fill="none" stroke={hl(11)} strokeWidth={hlW(11)} />
+      <circle cx="395" cy="210" r="11" fill={highlight===11?"#D4AF37":"#c0392b"} />
+      <text x="395" y="214" textAnchor="middle" className="text-[10px] font-bold" fill="white">12</text>
+
+      {/* Courroie accessoire (13) */}
+      <path d="M100,225 Q90,260 80,280" fill="none" stroke={hl(12)} strokeWidth={hlW(12)+0.5} />
+      <circle cx="62" cy="240" r="11" fill={highlight===12?"#D4AF37":"#c0392b"} />
+      <text x="62" y="244" textAnchor="middle" className="text-[10px] font-bold" fill="white">13</text>
+
+      {/* Galet tendeur (14) */}
+      <circle cx="95" cy="350" r="14" fill="none" stroke={hl(13)} strokeWidth={hlW(13)} />
+      <circle cx="95" cy="350" r="5" fill="none" stroke={hl(13)} strokeWidth={hlW(13)} />
+      <circle cx="62" cy="365" r="11" fill={highlight===13?"#D4AF37":"#c0392b"} />
+      <text x="62" y="369" textAnchor="middle" className="text-[10px] font-bold" fill="white">14</text>
+
+      {/* Sonde lambda (15) */}
+      <rect x="370" y="330" width="7" height="30" rx="2" fill="none" stroke={hl(14)} strokeWidth={hlW(14)} />
+      <circle cx="373" cy="325" r="5" fill="none" stroke={hl(14)} strokeWidth={hlW(14)} />
+      <circle cx="410" cy="345" r="11" fill={highlight===14?"#D4AF37":"#c0392b"} />
+      <text x="410" y="349" textAnchor="middle" className="text-[10px] font-bold" fill="white">15</text>
+
+      {/* Carter huile bottom */}
+      <path d="M150,360 L350,360 L340,400 L160,400 Z" fill="none" stroke="#1a2744" strokeWidth="1.2" />
+
+      {/* Pistons inside block */}
+      {[180,250,320].map((x,i)=>(
+        <g key={i}>
+          <rect x={x-15} y="160" width="30" height="50" rx="3" fill="none" stroke="#1a2744" strokeWidth="0.6" />
+          <line x1={x-12} y1="170" x2={x+12} y2="170" stroke="#1a2744" strokeWidth="0.4" />
+          <line x1={x-12} y1="175" x2={x+12} y2="175" stroke="#1a2744" strokeWidth="0.4" />
+          <line x1={x} y1="210" x2={x} y2="300" stroke="#1a2744" strokeWidth="0.5" />
+        </g>
+      ))}
+
+      {/* Schéma reference number */}
+      <text x="470" y="430" textAnchor="end" className="text-[9px]" fill="#888">Schéma 10_001</text>
+    </svg>
+  );
+}
+
+function FreinageSVG({ highlight }: { highlight: number | null }) {
+  const hl = (n: number) => highlight === n ? "#D4AF37" : "#1a2744";
+  const hlW = (n: number) => highlight === n ? 2.5 : 1.2;
+  return (
+    <svg viewBox="0 0 500 450" className="w-full h-full">
+      {/* Disque frein (grand cercle) */}
+      <circle cx="200" cy="225" r="120" fill="none" stroke="#1a2744" strokeWidth="1.5" />
+      <circle cx="200" cy="225" r="100" fill="none" stroke="#1a2744" strokeWidth="0.8" />
+      <circle cx="200" cy="225" r="40" fill="none" stroke="#1a2744" strokeWidth="1" />
+      {/* Ventilation holes */}
+      {Array.from({length:8}).map((_,i)=>{const a=i*45*Math.PI/180;return <circle key={i} cx={200+65*Math.cos(a)} cy={225+65*Math.sin(a)} r="6" fill="none" stroke="#1a2744" strokeWidth="0.5" />})}
+      {/* Bolts */}
+      {Array.from({length:5}).map((_,i)=>{const a=(i*72-90)*Math.PI/180;return <circle key={i} cx={200+30*Math.cos(a)} cy={225+30*Math.sin(a)} r="3" fill="none" stroke="#1a2744" strokeWidth="0.6" />})}
+
+      {/* Plaquettes AV (1) */}
+      <path d="M305,180 Q330,225 305,270" fill="none" stroke={hl(0)} strokeWidth={hlW(0)+1} />
+      <path d="M315,185 Q338,225 315,265" fill="none" stroke={hl(0)} strokeWidth={hlW(0)} />
+      <circle cx="360" cy="170" r="11" fill={highlight===0?"#D4AF37":"#c0392b"} />
+      <text x="360" y="174" textAnchor="middle" className="text-[10px] font-bold" fill="white">1</text>
+      <line x1="349" y1="175" x2="320" y2="190" stroke="#c0392b" strokeWidth="0.8" />
+
+      {/* Plaquettes AR (2) */}
+      <path d="M95,185 Q70,225 95,265" fill="none" stroke={hl(1)} strokeWidth={hlW(1)+1} />
+      <circle cx="45" cy="175" r="11" fill={highlight===1?"#D4AF37":"#c0392b"} />
+      <text x="45" y="179" textAnchor="middle" className="text-[10px] font-bold" fill="white">2</text>
+
+      {/* Disque AV (3) */}
+      <circle cx="200" cy="225" r="115" fill="none" stroke={hl(2)} strokeWidth={hlW(2)} strokeDasharray="5,3" />
+      <circle cx="200" cy="85" r="11" fill={highlight===2?"#D4AF37":"#c0392b"} />
+      <text x="200" y="89" textAnchor="middle" className="text-[10px] font-bold" fill="white">3</text>
+      <line x1="200" y1="96" x2="200" y2="110" stroke="#c0392b" strokeWidth="0.8" />
+
+      {/* Disque AR (4) */}
+      <circle cx="200" cy="380" r="11" fill={highlight===3?"#D4AF37":"#c0392b"} />
+      <text x="200" y="384" textAnchor="middle" className="text-[10px] font-bold" fill="white">4</text>
+      <line x1="200" y1="369" x2="200" y2="345" stroke="#c0392b" strokeWidth="0.8" />
+
+      {/* Liquide frein (5) */}
+      <rect x="400" y="300" width="35" height="50" rx="5" fill="none" stroke={hl(4)} strokeWidth={hlW(4)} />
+      <rect x="408" y="292" width="19" height="10" rx="3" fill="none" stroke={hl(4)} strokeWidth={hlW(4)} />
+      <circle cx="417" cy="275" r="11" fill={highlight===4?"#D4AF37":"#c0392b"} />
+      <text x="417" y="279" textAnchor="middle" className="text-[10px] font-bold" fill="white">5</text>
+
+      {/* Flexible (6) */}
+      <path d="M320,225 C350,225 380,260 400,300" fill="none" stroke={hl(5)} strokeWidth={hlW(5)} />
+      <circle cx="370" cy="240" r="11" fill={highlight===5?"#D4AF37":"#c0392b"} />
+      <text x="370" y="244" textAnchor="middle" className="text-[10px] font-bold" fill="white">6</text>
+
+      {/* Etrier AV (7) */}
+      <rect x="310" y="195" width="30" height="60" rx="5" fill="none" stroke={hl(6)} strokeWidth={hlW(6)} />
+      <rect x="315" y="200" width="20" height="50" rx="3" fill="none" stroke={hl(6)} strokeWidth={hlW(6)} strokeDasharray="3,2" />
+      <circle cx="375" cy="220" r="11" fill={highlight===6?"#D4AF37":"#c0392b"} />
+      <text x="375" y="224" textAnchor="middle" className="text-[10px] font-bold" fill="white">7</text>
+
+      <text x="470" y="430" textAnchor="end" className="text-[9px]" fill="#888">Schéma 40_001</text>
+    </svg>
+  );
+}
+
+function getSystemSVG(systemId: string, pieces: PieceData[], highlight: number | null) {
+  switch (systemId) {
+    case "distribution": return <DistributionSVG highlight={highlight} />;
+    case "moteur": return <MoteurSVG highlight={highlight} />;
+    case "freinage": return <FreinageSVG highlight={highlight} />;
+    default: return <GenericSystemSVG pieces={pieces} highlight={highlight} systemId={systemId} />;
+  }
+}
+
+function ExplodedDiagram({ pieces, systemLabel, systemId, selectedPiece, onSelect, coupleSerrage }: { pieces: PieceData[]; systemLabel: string; systemId: string; selectedPiece: number | null; onSelect: (i: number) => void; coupleSerrage?: { piece: string; valeur: string; outil: string }[] }) {
   const [zoom, setZoom] = useState(1);
-  const imgSrc = SYSTEM_IMAGES[systemId] || SYSTEM_IMAGES.moteur;
+  const selectedP = selectedPiece !== null ? pieces[selectedPiece] : null;
+  const schemaNum = systemId === "distribution" ? "11_1056" : systemId === "moteur" ? "10_001" : systemId === "freinage" ? "40_001" : `${systemId.slice(0,2).toUpperCase()}_001`;
 
   return (
-    <div className="rounded-xl bg-white border-2 border-[#D4AF37]/30 overflow-hidden">
-      <div className="bg-gradient-to-r from-[#111] to-[#1a1a2e] px-3 py-2 flex items-center justify-between">
-        <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-1.5"><ImageIcon size={12} /> Schéma éclaté — {systemLabel}</h3>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setZoom(Math.max(0.5, zoom - 0.25))} className="h-5 w-5 rounded bg-white/10 text-white text-xs font-bold flex items-center justify-center hover:bg-white/20">−</button>
-          <span className="text-[9px] text-white/60">{Math.round(zoom * 100)}%</span>
-          <button onClick={() => setZoom(Math.min(3, zoom + 0.25))} className="h-5 w-5 rounded bg-white/10 text-white text-xs font-bold flex items-center justify-center hover:bg-white/20">+</button>
-          <button onClick={() => setZoom(1)} className="text-[8px] text-white/40 hover:text-white/80 ml-1">Reset</button>
-        </div>
-      </div>
-      <div className="relative overflow-auto" style={{ maxHeight: "400px" }}>
-        <div className="relative min-h-[350px]" style={{ transform: `scale(${zoom})`, transformOrigin: "top left", width: `${100 / zoom}%` }}>
-          {/* Background image of the system */}
-          <img src={imgSrc} alt={`Schéma ${systemLabel}`} className="w-full h-[350px] object-cover" />
-
-          {/* SVG overlay for leader lines */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-            {pieces.map((p, i) => {
-              const posX = p.pos?.x ?? (20 + (i * 15) % 70);
-              const posY = p.pos?.y ?? (20 + (i * 12) % 65);
-              return (
-                <line key={i} x1="50" y1="50" x2={posX} y2={posY} stroke="#D4AF37" strokeWidth="0.15" strokeDasharray="0.5,0.5" opacity="0.4" />
-              );
-            })}
-          </svg>
-
-          {/* Parts with numbered positions */}
-          {pieces.map((p, i) => {
-            const isSelected = selectedPiece === i;
-            const posX = p.pos?.x ?? (20 + (i * 15) % 70);
-            const posY = p.pos?.y ?? (20 + (i * 12) % 65);
-            return (
-              <button
-                key={i}
-                onClick={() => onSelect(i)}
-                className={`absolute transition-all duration-200 z-10 group ${isSelected ? "scale-125 z-20" : "hover:scale-110"}`}
-                style={{ left: `${posX}%`, top: `${posY}%`, transform: "translate(-50%, -50%)" }}
-              >
-                <div className={`h-7 w-7 rounded-full flex items-center justify-center text-[9px] font-black border-2 shadow-lg ${isSelected ? "bg-[#D4AF37] text-white border-[#D4AF37] ring-4 ring-[#D4AF37]/30" : p.dispo ? "bg-white text-[#111] border-green-400 group-hover:border-[#D4AF37]" : "bg-white text-[#111] border-red-400 group-hover:border-[#D4AF37]"}`}>
-                  {i + 1}
-                </div>
-                {isSelected && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-9 bg-[#111] text-white rounded-lg px-2.5 py-2 shadow-xl min-w-[160px] z-30 border border-[#D4AF37]/30">
-                    <p className="text-[10px] font-bold text-[#D4AF37]">{p.nom}</p>
-                    <p className="text-[8px] text-white/60 mt-0.5">{p.ref}</p>
-                    <div className="flex items-center justify-between mt-1.5 pt-1 border-t border-white/10">
-                      <span className="text-[10px] font-bold text-white">{p.prix}</span>
-                      <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${p.dispo ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>{p.dispo ? "En stock" : "Commande"}</span>
-                    </div>
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
+    <div className="rounded-xl bg-white border border-[#c8ccd4] overflow-hidden shadow-sm">
+      {/* Top bar — Autodata style */}
+      <div className="bg-[#1a2744] px-4 py-2 flex items-center justify-between">
+        <h3 className="text-xs font-bold text-white flex items-center gap-1.5"><ImageIcon size={12} className="text-[#D4AF37]" /> {systemLabel}</h3>
+        <span className="text-[10px] text-white/50">Schema {schemaNum}</span>
       </div>
 
-      {/* Legend */}
-      <div className="px-3 py-2 bg-[#F5F3EF] border-t border-[#E5E7EB]">
-        <div className="flex items-center gap-3 text-[8px]">
-          <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full border-2 border-green-400"></span> En stock</span>
-          <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full border-2 border-red-400"></span> Sur commande</span>
-          <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-[#D4AF37]"></span> Sélectionné</span>
-          <span className="ml-auto text-slate-400">Utilisez +/− pour zoomer · Cliquez un numéro</span>
+      {/* Main layout: SVG diagram (left) + Parts table (right) */}
+      <div className="flex flex-col lg:flex-row">
+        {/* SVG Diagram */}
+        <div className="lg:w-[55%] border-r border-[#c8ccd4] bg-[#f8f9fb]">
+          <div className="relative overflow-auto" style={{ maxHeight: "480px" }}>
+            <div style={{ transform: `scale(${zoom})`, transformOrigin: "top left", minHeight: "380px" }}>
+              {getSystemSVG(systemId, pieces, selectedPiece)}
+            </div>
+          </div>
+          {/* Zoom controls — bottom of diagram */}
+          <div className="flex items-center gap-1 px-3 py-1.5 border-t border-[#c8ccd4] bg-white">
+            <button onClick={() => setZoom(Math.max(0.5, zoom - 0.25))} className="h-7 w-7 rounded border border-[#c8ccd4] bg-white text-sm font-bold text-[#1a2744] flex items-center justify-center hover:bg-slate-50">+</button>
+            <button onClick={() => setZoom(Math.min(3, zoom + 0.25))} className="h-7 w-7 rounded border border-[#c8ccd4] bg-white text-sm font-bold text-[#1a2744] flex items-center justify-center hover:bg-slate-50">−</button>
+            <button onClick={() => setZoom(1)} className="h-7 w-7 rounded border border-[#c8ccd4] bg-white text-[10px] font-bold text-[#1a2744] flex items-center justify-center hover:bg-slate-50">↻</button>
+            <span className="text-[10px] text-slate-400 ml-1">{Math.round(zoom * 100)}%</span>
+            <span className="text-[9px] text-slate-300 ml-auto">* Nm : Couple de serrage</span>
+          </div>
+        </div>
+
+        {/* Parts table — right side */}
+        <div className="lg:w-[45%] flex flex-col">
+          <div className="bg-[#e8ecf1] px-3 py-2 border-b border-[#c8ccd4]">
+            <h4 className="text-[11px] font-bold text-[#1a2744]">{systemLabel}</h4>
+          </div>
+          <div className="flex-1 overflow-y-auto" style={{ maxHeight: "380px" }}>
+            <table className="w-full text-xs">
+              <thead className="bg-[#e8ecf1] sticky top-0">
+                <tr>
+                  <th className="px-2 py-1.5 text-left text-[10px] font-bold text-[#1a2744] border-b border-[#c8ccd4]">N°</th>
+                  <th className="px-2 py-1.5 text-left text-[10px] font-bold text-[#1a2744] border-b border-[#c8ccd4]">Reference</th>
+                  <th className="px-2 py-1.5 text-left text-[10px] font-bold text-[#1a2744] border-b border-[#c8ccd4]">Designation</th>
+                  <th className="px-2 py-1.5 text-right text-[10px] font-bold text-[#1a2744] border-b border-[#c8ccd4]">Qte</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pieces.map((p, i) => (
+                  <tr
+                    key={i}
+                    onClick={() => onSelect(i)}
+                    className={`cursor-pointer border-b border-[#e8ecf1] transition ${selectedPiece === i ? "bg-[#D4AF37]/15" : "hover:bg-[#f0f2f5]"}`}
+                  >
+                    <td className="px-2 py-2">
+                      <span className={`inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold ${selectedPiece === i ? "bg-[#D4AF37] text-white" : "bg-[#c0392b] text-white"}`}>{i + 1}</span>
+                    </td>
+                    <td className="px-2 py-2 font-mono text-[10px] text-[#1a2744]">{p.ref}</td>
+                    <td className="px-2 py-2 text-[11px] text-[#333]">{p.nom}</td>
+                    <td className="px-2 py-2 text-right text-[11px] font-bold text-[#1a2744]">1</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      {/* Parts list under diagram */}
-      <div className="border-t border-[#E5E7EB] max-h-[200px] overflow-y-auto">
-        <table className="w-full text-xs">
-          <thead className="bg-[#F5F3EF] sticky top-0">
-            <tr>
-              <th className="px-2 py-1.5 text-left text-[9px] text-slate-500">N°</th>
-              <th className="px-2 py-1.5 text-left text-[9px] text-slate-500">Pièce</th>
-              <th className="px-2 py-1.5 text-left text-[9px] text-slate-500">Réf. constructeur</th>
-              <th className="px-2 py-1.5 text-left text-[9px] text-slate-500">Prix</th>
-              <th className="px-2 py-1.5 text-left text-[9px] text-slate-500">Dispo</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pieces.map((p, i) => (
-              <tr key={i} onClick={() => onSelect(i)} className={`cursor-pointer border-b border-[#F3F4F6] transition ${selectedPiece === i ? "bg-[#D4AF37]/10" : "hover:bg-slate-50"}`}>
-                <td className="px-2 py-1.5"><span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold ${selectedPiece === i ? "bg-[#D4AF37] text-white" : "bg-slate-100 text-slate-600"}`}>{i + 1}</span></td>
-                <td className="px-2 py-1.5 font-medium text-[#111]">{p.nom}</td>
-                <td className="px-2 py-1.5 text-slate-400 font-mono text-[9px]">{p.ref}</td>
-                <td className="px-2 py-1.5 font-bold text-[#D4AF37]">{p.prix}</td>
-                <td className="px-2 py-1.5"><span className={`text-[9px] font-bold ${p.dispo ? "text-green-600" : "text-red-500"}`}>{p.dispo ? "Stock" : "Cmd"}</span></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Selected piece detail panel — bottom (like Autodata "DETAIL DE LA PIECE SELECTIONNEE") */}
+      {selectedP && (
+        <div className="border-t-2 border-[#1a2744]">
+          <div className="bg-[#e8ecf1] px-4 py-1.5">
+            <span className="text-[10px] font-bold text-[#1a2744] uppercase tracking-wide">Detail de la piece selectionnee</span>
+          </div>
+          <div className="flex items-center gap-4 px-4 py-3 bg-white">
+            {/* Part illustration placeholder */}
+            <div className="shrink-0 h-16 w-16 rounded-lg bg-[#f0f2f5] border border-[#c8ccd4] flex items-center justify-center">
+              <svg viewBox="0 0 40 40" className="w-10 h-10">
+                <circle cx="20" cy="20" r="14" fill="none" stroke="#1a2744" strokeWidth="1.5" />
+                <circle cx="20" cy="20" r="6" fill="none" stroke="#1a2744" strokeWidth="1" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-[#c0392b] text-[10px] font-bold text-white">{(selectedPiece ?? 0) + 1}</span>
+                <span className="text-xs font-bold text-[#1a2744] font-mono">{selectedP.ref}</span>
+              </div>
+              <p className="text-sm font-bold text-[#333]">{selectedP.nom}</p>
+              {coupleSerrage && (() => {
+                const cs = coupleSerrage.find(c => selectedP.nom.toLowerCase().includes(c.piece.toLowerCase().split(" ")[0]) || c.piece.toLowerCase().includes(selectedP.nom.toLowerCase().split(" ")[0]));
+                return cs ? <p className="text-[10px] text-slate-500 mt-0.5">Couple : {cs.valeur} — {cs.outil}</p> : null;
+              })()}
+            </div>
+            <div className="shrink-0 text-right">
+              <p className="text-[10px] text-slate-400 uppercase">Prix indicatif</p>
+              <p className="text-lg font-black text-[#1a2744]">{selectedP.prix} <span className="text-[10px] font-normal text-slate-400">HT</span></p>
+              <p className={`text-[10px] font-bold mt-0.5 ${selectedP.dispo ? "text-green-600" : "text-red-500"}`}>
+                {selectedP.dispo ? "● En stock" : "○ Sur commande"}
+              </p>
+              <button className="mt-1.5 rounded bg-[#c0392b] px-3 py-1 text-[10px] font-bold text-white hover:bg-[#a93226] transition">Ajouter au panier</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer — vehicle info bar */}
+      <div className="bg-[#f0f2f5] border-t border-[#c8ccd4] px-4 py-2 flex flex-wrap items-center gap-4 text-[9px] text-[#1a2744]">
+        <span className="flex items-center gap-1"><Fuel size={10} /> <b>Carburant</b> Essence</span>
+        <span className="flex items-center gap-1"><Settings size={10} /> <b>Cylindree</b> 1 598 cm³</span>
+        <span className="flex items-center gap-1"><Gauge size={10} /> <b>Puissance</b> 225 ch</span>
+        <span className="flex items-center gap-1"><Cog size={10} /> <b>Code moteur</b> EP6FADTX</span>
+        <span className="ml-auto text-[8px] text-slate-400">MKA.P-MS AutoData V.2027</span>
       </div>
     </div>
   );
@@ -610,7 +904,7 @@ export default function CatalogueTechnique() {
             </div>
           )}
 
-          {/* MODE IMAGE — Schéma éclaté */}
+          {/* MODE IMAGE — Schéma éclaté technique (style Autodata/EPC) */}
           {viewMode === "image" && (
             <ExplodedDiagram
               pieces={data.pieces}
@@ -618,6 +912,7 @@ export default function CatalogueTechnique() {
               systemId={selectedSystem}
               selectedPiece={selectedPiece}
               onSelect={(i) => setSelectedPiece(selectedPiece === i ? null : i)}
+              coupleSerrage={data.coupleSerrage}
             />
           )}
 
