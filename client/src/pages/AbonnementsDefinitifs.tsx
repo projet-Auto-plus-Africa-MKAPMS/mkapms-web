@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, CreditCard, Car, Home, Wrench, Truck, Package, Check, Star, Crown, Shield, Globe, MapPin, Zap } from "lucide-react";
+import { ChevronLeft, CreditCard, Car, Home, Wrench, Truck, Package, Check, Star, Crown, Shield, Globe, MapPin, Zap, Gavel, Paintbrush, Settings, BarChart3 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════
    ABONNEMENTS DÉFINITIFS MKA.P-MS V1
    SEO Google + Géolocalisation mondiale intégrés dans tous les plans Pro
    ══════════════════════════════════════════════════════════════════════════ */
 
-type Tab = "vente" | "location" | "garage" | "depannage" | "pieces";
+type Tab = "vente" | "location" | "garage" | "encheres" | "carrosserie" | "atelier" | "comptabilite" | "depannage" | "pieces";
 
 const PLANS = {
   vente: [
@@ -64,6 +64,66 @@ const PLANS = {
       "─── SEO Elite + Géo ───", "SEO Google Elite", "Priorité nationale", "Visibilité maximale",
     ]},
   ],
+  encheres: [
+    { nom: "Enchères Accès", prix: "19 €/mois", badge: "", color: "#6B7280", features: [
+      "Accès aux enchères publiques", "5 enchères/mois", "Alertes basiques",
+      "─── Enchères ───", "Voir lots disponibles", "Historique enchères",
+    ]},
+    { nom: "Enchères Premium", prix: "49 €/mois", badge: "PREMIUM", color: "#D4AF37", features: [
+      "Enchères illimitées", "Surenchère automatique", "Alertes temps réel", "Accès lots exclusifs", "Badge or PREMIUM",
+      "─── Enchères Premium ───", "Priorité sur les lots", "Statistiques enchères", "Notifications push",
+    ]},
+    { nom: "Enchères Elite", prix: "99 €/mois", badge: "ELITE", color: "#111", features: [
+      "Tout Premium", "Accès VIP lots MKA.P-MS", "Lots export", "Multi-comptes", "API enchères", "Badge noir/or ELITE",
+      "─── Enchères Elite ───", "Priorité maximale", "Contact direct vendeur", "Gestionnaire dédié",
+    ]},
+  ],
+  carrosserie: [
+    { nom: "Carrosserie Basic", prix: "29 €/mois", badge: "", color: "#6B7280", features: [
+      "Devis carrosserie illimités", "Photos avant/après", "2 techniciens",
+      "─── SEO + Géo ───", "Page indexée Google", "Visible géolocalisation",
+    ]},
+    { nom: "Carrosserie Premium", prix: "59 €/mois", badge: "PREMIUM", color: "#D4AF37", features: [
+      "Devis + photos HD", "Planning avancé", "Débosselage, Peinture, Marbre", "5 techniciens", "Badge or PREMIUM",
+      "─── SEO Premium + Géo ───", "SEO Google Premium", "Carte interactive", "Priorité régionale",
+    ]},
+    { nom: "Carrosserie Elite", prix: "99 €/mois", badge: "ELITE", color: "#111", features: [
+      "Multi-centres", "Techniciens illimités", "Expertise véhicules accidentés", "Badge noir/or ELITE",
+      "─── SEO Elite + Géo ───", "Priorité nationale", "Visibilité maximale",
+    ]},
+  ],
+  atelier: [
+    { nom: "Atelier Start", prix: "39 €/mois", badge: "", color: "#6B7280", features: [
+      "Planning atelier", "Ordres de réparation", "Devis", "2 mécaniciens", "50 dossiers/mois",
+      "─── Atelier ───", "Suivi intervention basique", "Gestion clients",
+    ]},
+    { nom: "Atelier Pro", prix: "89 €/mois", badge: "PRO", color: "#3B82F6", features: [
+      "Tout Start", "Catalogue technique AutoData", "Suivi temps réel", "Stock magasin", "10 mécaniciens", "Notifications client", "Badge bleu PRO",
+      "─── Atelier Pro ───", "Couples de serrage", "Temps barémés", "Pièces cliquables", "Gestion employés",
+    ]},
+    { nom: "Atelier Premium", prix: "149 €/mois", badge: "PREMIUM", color: "#D4AF37", features: [
+      "Tout Pro", "Stock avancé + alertes rupture", "Commande fournisseur auto", "Multi-ateliers", "Employés illimités", "Productivité employés", "Badge or PREMIUM",
+      "─── Atelier Premium ───", "Inventaire complet", "Rapports performance", "Intégration comptabilité",
+    ]},
+    { nom: "Atelier Elite", prix: "249 €/mois", badge: "ELITE", color: "#111", features: [
+      "Tout Premium", "API catalogue complet", "Réseau multi-sites", "Flottes entreprises", "Badge noir/or ELITE", "Gestionnaire dédié",
+      "─── Atelier Elite ───", "Priorité nationale", "Formation équipe", "Support 24/7",
+    ]},
+  ],
+  comptabilite: [
+    { nom: "Compta Start", prix: "29 €/mois", badge: "", color: "#6B7280", features: [
+      "Tableau de bord CA", "Suivi paiements", "Factures basiques", "1 utilisateur",
+      "─── Comptabilité ───", "CA par univers", "Export CSV",
+    ]},
+    { nom: "Compta Premium", prix: "59 €/mois", badge: "PREMIUM", color: "#D4AF37", features: [
+      "Tout Start", "Suivi employés", "Alertes financières", "Remboursements", "Commissions", "Abonnements actifs", "Badge or PREMIUM",
+      "─── Comptabilité Premium ───", "CA détaillé", "Objectifs", "Performance employés", "Export PDF",
+    ]},
+    { nom: "Compta Elite", prix: "99 €/mois", badge: "ELITE", color: "#111", features: [
+      "Tout Premium", "Multi-sites", "API comptable", "Intégration Sage/EBP", "Audit automatique", "Badge noir/or ELITE",
+      "─── Comptabilité Elite ───", "Rapports automatiques", "Anomalies IA", "Gestionnaire dédié",
+    ]},
+  ],
   depannage: [
     { nom: "Dépanneur Individuel", prix: "29 €/mois", badge: "", color: "#6B7280", features: [
       "Zone 50 km", "Demandes basiques", "GPS intégré",
@@ -94,6 +154,10 @@ const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: "vente", label: "Vente", icon: Car },
   { key: "location", label: "Location", icon: Home },
   { key: "garage", label: "Garage", icon: Wrench },
+  { key: "encheres", label: "Enchères", icon: Gavel },
+  { key: "carrosserie", label: "Carrosserie", icon: Paintbrush },
+  { key: "atelier", label: "Atelier Pro", icon: Settings },
+  { key: "comptabilite", label: "Comptabilité", icon: BarChart3 },
   { key: "depannage", label: "Dépannage", icon: Truck },
   { key: "pieces", label: "Pièces", icon: Package },
 ];

@@ -5,30 +5,70 @@ import {
   Clock, Settings, ShoppingBag, ChevronRight, Plus, MapPin,
   Phone, Mail, Star, CheckCircle, AlertTriangle, Eye,
   Download, Cog, CircuitBoard, Gauge, Fuel, Thermometer,
-  Wind, Zap, Disc, LifeBuoy, Battery, Lightbulb
+  Wind, Zap, Disc, LifeBuoy, Battery, Lightbulb, Truck,
+  Camera, PenTool, Package, BarChart3, ArrowDown, ArrowUp,
+  AlertCircle, Bell, UserCheck, ClipboardList, Edit3, Trash2
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════
-   MODULE ATELIER PRO + CATALOGUE TECHNIQUE
-   Planning atelier, ordres de reparation, devis, factures, clients,
-   vehicules, pieces, main-d'oeuvre, historique.
-   Catalogue technique type AutoData — tous vehicules, tous systemes.
+   MODULE ATELIER PRO COMPLET
+   Planning, ordres de reparation complets (reception/signature/photos/
+   etat carrosserie/bon sortie/restitution), suivi temps reel, employes
+   atelier, stock magasin, devis, factures, clients, vehicules, catalogue,
+   pieces — tout integre.
    ══════════════════════════════════════════════════════════════════════════ */
 
-type AtelierTab = "planning" | "ordres" | "devis" | "factures" | "clients" | "vehicules" | "catalogue" | "pieces";
+type AtelierTab = "suivi" | "planning" | "ordres" | "employes" | "stock" | "devis" | "factures" | "clients" | "vehicules" | "catalogue" | "pieces";
 
 const TABS_ATELIER: { id: AtelierTab; label: string; icon: typeof Wrench; count?: number }[] = [
+  { id: "suivi", label: "Suivi", icon: Eye },
   { id: "planning", label: "Planning", icon: Calendar },
-  { id: "ordres", label: "Ordres", icon: FileText, count: 5 },
+  { id: "ordres", label: "Ordres", icon: ClipboardList, count: 5 },
+  { id: "employes", label: "Employes", icon: Users, count: 4 },
+  { id: "stock", label: "Stock", icon: Package, count: 156 },
   { id: "devis", label: "Devis", icon: FileText, count: 3 },
   { id: "factures", label: "Factures", icon: FileText, count: 8 },
   { id: "clients", label: "Clients", icon: Users, count: 42 },
   { id: "vehicules", label: "Vehicules", icon: Car, count: 67 },
   { id: "catalogue", label: "Catalogue", icon: Search },
-  { id: "pieces", label: "Pieces", icon: ShoppingBag, count: 156 },
+  { id: "pieces", label: "Pieces", icon: ShoppingBag },
 ];
 
-/* PLANNING */
+/* ━━━━━ STATUTS INTERVENTION TEMPS REEL ━━━━━ */
+const STATUTS_INTERVENTION = [
+  { id: "recu", label: "Vehicule recu", color: "bg-blue-500", textColor: "text-blue-700", bgLight: "bg-blue-50" },
+  { id: "diagnostic", label: "Diagnostic en cours", color: "bg-purple-500", textColor: "text-purple-700", bgLight: "bg-purple-50" },
+  { id: "pieces_commandees", label: "Pieces commandees", color: "bg-amber-500", textColor: "text-amber-700", bgLight: "bg-amber-50" },
+  { id: "reparation", label: "Reparation en cours", color: "bg-orange-500", textColor: "text-orange-700", bgLight: "bg-orange-50" },
+  { id: "controle_qualite", label: "Controle qualite", color: "bg-indigo-500", textColor: "text-indigo-700", bgLight: "bg-indigo-50" },
+  { id: "pret", label: "Vehicule pret", color: "bg-green-500", textColor: "text-green-700", bgLight: "bg-green-50" },
+  { id: "livre", label: "Vehicule livre", color: "bg-slate-400", textColor: "text-slate-600", bgLight: "bg-slate-50" },
+];
+
+interface SuiviVehicule {
+  id: number;
+  vehicule: string;
+  plaque: string;
+  client: string;
+  tel: string;
+  statut: string;
+  tech: string;
+  dateEntree: string;
+  travaux: string;
+  progression: number;
+}
+
+const SUIVI_DATA: SuiviVehicule[] = [
+  { id: 1, vehicule: "Peugeot 3008 GT", plaque: "AB-123-CD", client: "Martin D.", tel: "06 12 34 56 78", statut: "reparation", tech: "Karim M.", dateEntree: "09/06/2025", travaux: "Revision complete 30k km", progression: 65 },
+  { id: 2, vehicule: "BMW Serie 3 320i", plaque: "EF-456-GH", client: "Sophie L.", tel: "06 23 45 67 89", statut: "reparation", tech: "Youssef B.", dateEntree: "09/06/2025", travaux: "Freins AV + AR complets", progression: 45 },
+  { id: 3, vehicule: "Renault Clio V", plaque: "IJ-789-KL", client: "Ahmed K.", tel: "06 34 56 78 90", statut: "diagnostic", tech: "Karim M.", dateEntree: "09/06/2025", travaux: "Voyant moteur — diagnostic OBD", progression: 20 },
+  { id: 4, vehicule: "Mercedes Classe C", plaque: "MN-012-OP", client: "Julie P.", tel: "06 45 67 89 01", statut: "pieces_commandees", tech: "Omar L.", dateEntree: "08/06/2025", travaux: "Distribution + pompe a eau", progression: 30 },
+  { id: 5, vehicule: "Tesla Model 3", plaque: "YZ-901-AB", client: "Thomas R.", tel: "06 56 78 90 12", statut: "pret", tech: "Youssef B.", dateEntree: "07/06/2025", travaux: "Pneus x4 + geometrie", progression: 100 },
+  { id: 6, vehicule: "Audi A4 40 TDI", plaque: "CD-234-EF", client: "Pierre M.", tel: "06 67 89 01 23", statut: "recu", tech: "-", dateEntree: "09/06/2025", travaux: "Embrayage complet", progression: 5 },
+  { id: 7, vehicule: "Volkswagen Golf 8", plaque: "QR-345-ST", client: "Nadia S.", tel: "06 78 90 12 34", statut: "livre", tech: "Karim M.", dateEntree: "05/06/2025", travaux: "Climatisation recharge + compresseur", progression: 100 },
+];
+
+/* ━━━━━ PLANNING ━━━━━ */
 const PLANNING_SLOTS = [
   { id: 1, heure: "08:00", vehicule: "Peugeot 3008 GT", plaque: "AB-123-CD", travail: "Revision complete", tech: "Karim M.", duree: "2h30", statut: "en_cours" },
   { id: 2, heure: "08:30", vehicule: "BMW Serie 3 320i", plaque: "EF-456-GH", travail: "Freins AV + AR", tech: "Youssef B.", duree: "3h00", statut: "en_cours" },
@@ -38,50 +78,127 @@ const PLANNING_SLOTS = [
   { id: 6, heure: "15:30", vehicule: "Citroen C3 Aircross", plaque: "UV-678-WX", travail: "Vidange + filtre", tech: "Karim M.", duree: "1h00", statut: "planifie" },
 ];
 
-/* ORDRES DE REPARATION */
-const ORDRES = [
-  { id: 1, ref: "OR-2024-0147", vehicule: "Peugeot 3008 GT", plaque: "AB-123-CD", client: "Martin D.", travaux: "Revision 30k km — vidange, filtres, bougies, liquide frein, controle general", statut: "en_cours", tech: "Karim M.", dateEntree: "09/06/2024", dateSortie: "-", montant: "389 EUR" },
-  { id: 2, ref: "OR-2024-0146", vehicule: "BMW Serie 3 320i", plaque: "EF-456-GH", client: "Sophie L.", travaux: "Plaquettes + disques AV + AR + purge circuit", statut: "en_cours", tech: "Youssef B.", dateEntree: "09/06/2024", dateSortie: "-", montant: "780 EUR" },
-  { id: 3, ref: "OR-2024-0145", vehicule: "Renault Clio V", plaque: "IJ-789-KL", client: "Ahmed K.", travaux: "Diagnostic OBD — voyant moteur allume, defaut P0300", statut: "diagnostic", tech: "Karim M.", dateEntree: "09/06/2024", dateSortie: "-", montant: "60 EUR" },
-  { id: 4, ref: "OR-2024-0144", vehicule: "Mercedes Classe C", plaque: "MN-012-OP", client: "Julie P.", travaux: "Distribution + pompe a eau + galets", statut: "attente_pieces", tech: "Omar L.", dateEntree: "08/06/2024", dateSortie: "-", montant: "1 250 EUR" },
-  { id: 5, ref: "OR-2024-0143", vehicule: "Tesla Model 3", plaque: "YZ-901-AB", client: "Thomas R.", travaux: "Pneus Michelin PS5 x4 + parallélisme", statut: "termine", tech: "Youssef B.", dateEntree: "07/06/2024", dateSortie: "08/06/2024", montant: "920 EUR" },
+/* ━━━━━ ORDRES DE REPARATION COMPLETS ━━━━━ */
+interface OrdreReparation {
+  id: number;
+  ref: string;
+  vehicule: string;
+  plaque: string;
+  vin: string;
+  client: string;
+  tel: string;
+  travaux: string;
+  statut: string;
+  tech: string;
+  dateEntree: string;
+  dateSortie: string;
+  montant: string;
+  receptionSignee: boolean;
+  photosReception: number;
+  etatCarrosserie: string;
+  bonSortie: boolean;
+  signatureRestitution: boolean;
+  remarquesReception: string;
+}
+
+const ORDRES: OrdreReparation[] = [
+  { id: 1, ref: "OR-2025-0147", vehicule: "Peugeot 3008 GT", plaque: "AB-123-CD", vin: "VF3MCYHZRML123456", client: "Martin D.", tel: "06 12 34 56 78", travaux: "Revision 30k km — vidange, filtres, bougies, liquide frein, controle general", statut: "en_cours", tech: "Karim M.", dateEntree: "09/06/2025", dateSortie: "-", montant: "389 EUR", receptionSignee: true, photosReception: 12, etatCarrosserie: "Bon etat general — micro-rayure aile AVD", bonSortie: false, signatureRestitution: false, remarquesReception: "Client signale bruit frein AR" },
+  { id: 2, ref: "OR-2025-0146", vehicule: "BMW Serie 3 320i", plaque: "EF-456-GH", vin: "WBAPK5C52BA123456", client: "Sophie L.", tel: "06 23 45 67 89", travaux: "Plaquettes + disques AV + AR + purge circuit freinage", statut: "en_cours", tech: "Youssef B.", dateEntree: "09/06/2025", dateSortie: "-", montant: "780 EUR", receptionSignee: true, photosReception: 8, etatCarrosserie: "RAS", bonSortie: false, signatureRestitution: false, remarquesReception: "" },
+  { id: 3, ref: "OR-2025-0145", vehicule: "Renault Clio V", plaque: "IJ-789-KL", vin: "VF15RFL0A67123456", client: "Ahmed K.", tel: "06 34 56 78 90", travaux: "Diagnostic OBD — voyant moteur, defaut P0300 ratee allumage", statut: "diagnostic", tech: "Karim M.", dateEntree: "09/06/2025", dateSortie: "-", montant: "60 EUR", receptionSignee: true, photosReception: 6, etatCarrosserie: "Impact pare-brise cote passager", bonSortie: false, signatureRestitution: false, remarquesReception: "Voyant allume depuis 2 jours" },
+  { id: 4, ref: "OR-2025-0144", vehicule: "Mercedes Classe C", plaque: "MN-012-OP", vin: "WDD2050012R123456", client: "Julie P.", tel: "06 45 67 89 01", travaux: "Distribution + pompe a eau + galets + liquide refroidissement", statut: "attente_pieces", tech: "Omar L.", dateEntree: "08/06/2025", dateSortie: "-", montant: "1 250 EUR", receptionSignee: true, photosReception: 10, etatCarrosserie: "Bon etat", bonSortie: false, signatureRestitution: false, remarquesReception: "Kilometrage : 89 500 km" },
+  { id: 5, ref: "OR-2025-0143", vehicule: "Tesla Model 3", plaque: "YZ-901-AB", vin: "5YJ3E1EA7KF123456", client: "Thomas R.", tel: "06 56 78 90 12", travaux: "Pneus Michelin PS5 x4 + parallelisme", statut: "termine", tech: "Youssef B.", dateEntree: "07/06/2025", dateSortie: "08/06/2025", montant: "920 EUR", receptionSignee: true, photosReception: 8, etatCarrosserie: "RAS", bonSortie: true, signatureRestitution: true, remarquesReception: "" },
 ];
 
-/* DEVIS */
+/* ━━━━━ EMPLOYES ATELIER ━━━━━ */
+interface Employe {
+  id: number;
+  nom: string;
+  role: string;
+  specialite: string;
+  vehiculesJour: number;
+  vehiculesSemaine: number;
+  heuresJour: string;
+  heuresSemaine: string;
+  productivite: number;
+  statut: "actif" | "pause" | "absent";
+  vehiculeActuel: string | null;
+  plaqueActuel: string | null;
+  tacheActuelle: string | null;
+}
+
+const EMPLOYES: Employe[] = [
+  { id: 1, nom: "Karim M.", role: "Mecanicien senior", specialite: "Moteur, Distribution, Diagnostic", vehiculesJour: 2, vehiculesSemaine: 11, heuresJour: "5h30", heuresSemaine: "38h", productivite: 92, statut: "actif", vehiculeActuel: "Peugeot 3008 GT", plaqueActuel: "AB-123-CD", tacheActuelle: "Revision 30k km" },
+  { id: 2, nom: "Youssef B.", role: "Mecanicien", specialite: "Freinage, Suspension, Pneus", vehiculesJour: 1, vehiculesSemaine: 9, heuresJour: "4h00", heuresSemaine: "35h", productivite: 85, statut: "actif", vehiculeActuel: "BMW Serie 3 320i", plaqueActuel: "EF-456-GH", tacheActuelle: "Freins AV + AR" },
+  { id: 3, nom: "Omar L.", role: "Mecanicien", specialite: "Distribution, Embrayage, Boite", vehiculesJour: 0, vehiculesSemaine: 7, heuresJour: "0h", heuresSemaine: "32h", productivite: 78, statut: "pause", vehiculeActuel: null, plaqueActuel: null, tacheActuelle: null },
+  { id: 4, nom: "Rachid T.", role: "Apprenti", specialite: "Vidange, Filtres, Pneus", vehiculesJour: 1, vehiculesSemaine: 5, heuresJour: "3h00", heuresSemaine: "28h", productivite: 65, statut: "actif", vehiculeActuel: "Citroen C3", plaqueActuel: "UV-678-WX", tacheActuelle: "Vidange + filtre" },
+];
+
+/* ━━━━━ STOCK MAGASIN ━━━━━ */
+interface StockItem {
+  id: number;
+  nom: string;
+  ref: string;
+  categorie: string;
+  qteActuelle: number;
+  qteMinimum: number;
+  prixAchat: string;
+  prixVente: string;
+  fournisseur: string;
+  dernierMouvement: string;
+  alerteRupture: boolean;
+}
+
+const STOCK_MAGASIN: StockItem[] = [
+  { id: 1, nom: "Plaquettes freins AV ATE", ref: "ATE 13.0460-7186.2", categorie: "Freinage", qteActuelle: 8, qteMinimum: 4, prixAchat: "18 EUR", prixVente: "32 EUR", fournisseur: "AD Parts", dernierMouvement: "Sortie -2 le 09/06", alerteRupture: false },
+  { id: 2, nom: "Filtre huile PSA 1.6", ref: "PSA 1109 CK", categorie: "Filtration", qteActuelle: 15, qteMinimum: 5, prixAchat: "6 EUR", prixVente: "12 EUR", fournisseur: "PSA Direct", dernierMouvement: "Sortie -1 le 09/06", alerteRupture: false },
+  { id: 3, nom: "Bougie NGK", ref: "NGK LZKR6AI-10G", categorie: "Allumage", qteActuelle: 24, qteMinimum: 8, prixAchat: "4 EUR", prixVente: "9 EUR", fournisseur: "NGK Europe", dernierMouvement: "Entree +16 le 07/06", alerteRupture: false },
+  { id: 4, nom: "Courroie distrib. Gates", ref: "Gates KP15606XS", categorie: "Distribution", qteActuelle: 2, qteMinimum: 3, prixAchat: "95 EUR", prixVente: "185 EUR", fournisseur: "Gates France", dernierMouvement: "Sortie -1 le 08/06", alerteRupture: true },
+  { id: 5, nom: "Disque frein AV Brembo", ref: "Brembo 09.B265.10", categorie: "Freinage", qteActuelle: 4, qteMinimum: 4, prixAchat: "38 EUR", prixVente: "65 EUR", fournisseur: "AD Parts", dernierMouvement: "Sortie -2 le 09/06", alerteRupture: false },
+  { id: 6, nom: "Amortisseur AR Monroe", ref: "Monroe G7387", categorie: "Suspension", qteActuelle: 1, qteMinimum: 2, prixAchat: "42 EUR", prixVente: "78 EUR", fournisseur: "Monroe France", dernierMouvement: "Sortie -1 le 06/06", alerteRupture: true },
+  { id: 7, nom: "Liquide frein DOT4 1L", ref: "TRW PFB440", categorie: "Liquides", qteActuelle: 6, qteMinimum: 4, prixAchat: "4 EUR", prixVente: "8 EUR", fournisseur: "TRW", dernierMouvement: "Sortie -1 le 09/06", alerteRupture: false },
+  { id: 8, nom: "Huile 5W30 Total 5L", ref: "Total Quartz 9000", categorie: "Lubrifiants", qteActuelle: 10, qteMinimum: 3, prixAchat: "22 EUR", prixVente: "35 EUR", fournisseur: "TotalEnergies", dernierMouvement: "Sortie -1 le 09/06", alerteRupture: false },
+  { id: 9, nom: "Kit embrayage Valeo", ref: "Valeo 826 818", categorie: "Embrayage", qteActuelle: 0, qteMinimum: 1, prixAchat: "220 EUR", prixVente: "420 EUR", fournisseur: "Valeo France", dernierMouvement: "Sortie -1 le 05/06", alerteRupture: true },
+  { id: 10, nom: "Filtre a air PSA", ref: "PSA 1444 TT", categorie: "Filtration", qteActuelle: 12, qteMinimum: 5, prixAchat: "10 EUR", prixVente: "22 EUR", fournisseur: "PSA Direct", dernierMouvement: "Entree +10 le 07/06", alerteRupture: false },
+];
+
+/* ━━━━━ DEVIS ━━━━━ */
 const DEVIS_ATELIER = [
-  { id: 1, ref: "DV-2024-0089", vehicule: "Audi A4 40 TDI", plaque: "CD-234-EF", client: "Pierre M.", objet: "Embrayage complet + volant moteur bi-masse", montant: "1 890 EUR", statut: "envoye", date: "09/06/2024" },
-  { id: 2, ref: "DV-2024-0088", vehicule: "Peugeot 308 II", plaque: "GH-567-IJ", client: "Nadia S.", objet: "Climatisation — recharge + remplacement compresseur", montant: "850 EUR", statut: "accepte", date: "08/06/2024" },
-  { id: 3, ref: "DV-2024-0087", vehicule: "Dacia Sandero", plaque: "KL-890-MN", client: "Marc T.", objet: "Revision + CT preparation", montant: "420 EUR", statut: "refuse", date: "07/06/2024" },
+  { id: 1, ref: "DV-2025-0089", vehicule: "Audi A4 40 TDI", plaque: "CD-234-EF", client: "Pierre M.", objet: "Embrayage complet + volant moteur bi-masse", montant: "1 890 EUR", statut: "envoye", date: "09/06/2025" },
+  { id: 2, ref: "DV-2025-0088", vehicule: "Peugeot 308 II", plaque: "GH-567-IJ", client: "Nadia S.", objet: "Climatisation — recharge + remplacement compresseur", montant: "850 EUR", statut: "accepte", date: "08/06/2025" },
+  { id: 3, ref: "DV-2025-0087", vehicule: "Dacia Sandero", plaque: "KL-890-MN", client: "Marc T.", objet: "Revision + CT preparation", montant: "420 EUR", statut: "refuse", date: "07/06/2025" },
 ];
 
-/* FACTURES */
+/* ━━━━━ FACTURES ━━━━━ */
 const FACTURES_ATELIER = [
-  { id: 1, ref: "FA-2024-0312", vehicule: "Tesla Model 3", client: "Thomas R.", montant: "920 EUR", date: "08/06/2024", statut: "payee" },
-  { id: 2, ref: "FA-2024-0311", vehicule: "Renault Megane", client: "Laura V.", montant: "245 EUR", date: "07/06/2024", statut: "payee" },
-  { id: 3, ref: "FA-2024-0310", vehicule: "Citroen C4", client: "Jean-Pierre D.", montant: "1 580 EUR", date: "06/06/2024", statut: "en_attente" },
-  { id: 4, ref: "FA-2024-0309", vehicule: "BMW X3", client: "Fatima B.", montant: "380 EUR", date: "05/06/2024", statut: "payee" },
+  { id: 1, ref: "FA-2025-0312", vehicule: "Tesla Model 3", client: "Thomas R.", montant: "920 EUR", date: "08/06/2025", statut: "payee" },
+  { id: 2, ref: "FA-2025-0311", vehicule: "Renault Megane", client: "Laura V.", montant: "245 EUR", date: "07/06/2025", statut: "payee" },
+  { id: 3, ref: "FA-2025-0310", vehicule: "Citroen C4", client: "Jean-Pierre D.", montant: "1 580 EUR", date: "06/06/2025", statut: "en_attente" },
+  { id: 4, ref: "FA-2025-0309", vehicule: "BMW X3", client: "Fatima B.", montant: "380 EUR", date: "05/06/2025", statut: "payee" },
 ];
 
-/* CLIENTS */
+/* ━━━━━ CLIENTS ━━━━━ */
 const CLIENTS_ATELIER = [
-  { id: 1, nom: "Martin D.", vehicules: 2, visites: 8, derniere: "09/06/2024", total: "2 450 EUR", tel: "06 12 34 56 78" },
-  { id: 2, nom: "Sophie L.", vehicules: 1, visites: 5, derniere: "09/06/2024", total: "1 890 EUR", tel: "06 23 45 67 89" },
-  { id: 3, nom: "Ahmed K.", vehicules: 3, visites: 12, derniere: "09/06/2024", total: "4 120 EUR", tel: "06 34 56 78 90" },
-  { id: 4, nom: "Julie P.", vehicules: 1, visites: 3, derniere: "08/06/2024", total: "1 680 EUR", tel: "06 45 67 89 01" },
-  { id: 5, nom: "Thomas R.", vehicules: 1, visites: 2, derniere: "08/06/2024", total: "920 EUR", tel: "06 56 78 90 12" },
+  { id: 1, nom: "Martin D.", vehicules: 2, visites: 8, derniere: "09/06/2025", total: "2 450 EUR", tel: "06 12 34 56 78" },
+  { id: 2, nom: "Sophie L.", vehicules: 1, visites: 5, derniere: "09/06/2025", total: "1 890 EUR", tel: "06 23 45 67 89" },
+  { id: 3, nom: "Ahmed K.", vehicules: 3, visites: 12, derniere: "09/06/2025", total: "4 120 EUR", tel: "06 34 56 78 90" },
+  { id: 4, nom: "Julie P.", vehicules: 1, visites: 3, derniere: "08/06/2025", total: "1 680 EUR", tel: "06 45 67 89 01" },
+  { id: 5, nom: "Thomas R.", vehicules: 1, visites: 2, derniere: "08/06/2025", total: "920 EUR", tel: "06 56 78 90 12" },
 ];
 
-/* VEHICULES ATELIER */
+/* ━━━━━ VEHICULES ATELIER ━━━━━ */
 const VEHICULES_ATELIER = [
-  { id: 1, marque: "Peugeot", modele: "3008 GT Hybrid", plaque: "AB-123-CD", vin: "VF3MCYHZRML123456", annee: 2024, km: "15 200", client: "Martin D.", derniereVisite: "09/06/2024" },
-  { id: 2, marque: "BMW", modele: "Serie 3 320i", plaque: "EF-456-GH", vin: "WBAPK5C52BA123456", annee: 2024, km: "8 200", client: "Sophie L.", derniereVisite: "09/06/2024" },
-  { id: 3, marque: "Renault", modele: "Clio V TCe 130", plaque: "IJ-789-KL", vin: "VF15RFL0A67123456", annee: 2024, km: "5 800", client: "Ahmed K.", derniereVisite: "09/06/2024" },
-  { id: 4, marque: "Mercedes", modele: "Classe C 220d", plaque: "MN-012-OP", vin: "WDD2050012R123456", annee: 2023, km: "22 400", client: "Julie P.", derniereVisite: "08/06/2024" },
+  { id: 1, marque: "Peugeot", modele: "3008 GT Hybrid", plaque: "AB-123-CD", vin: "VF3MCYHZRML123456", annee: 2024, km: "15 200", client: "Martin D.", derniereVisite: "09/06/2025" },
+  { id: 2, marque: "BMW", modele: "Serie 3 320i", plaque: "EF-456-GH", vin: "WBAPK5C52BA123456", annee: 2024, km: "8 200", client: "Sophie L.", derniereVisite: "09/06/2025" },
+  { id: 3, marque: "Renault", modele: "Clio V TCe 130", plaque: "IJ-789-KL", vin: "VF15RFL0A67123456", annee: 2024, km: "5 800", client: "Ahmed K.", derniereVisite: "09/06/2025" },
+  { id: 4, marque: "Mercedes", modele: "Classe C 220d", plaque: "MN-012-OP", vin: "WDD2050012R123456", annee: 2023, km: "22 400", client: "Julie P.", derniereVisite: "08/06/2025" },
 ];
 
 export default function AtelierPro() {
-  const [tab, setTab] = useState<AtelierTab>("planning");
-  const [searchPlaque, setSearchPlaque] = useState("");
+  const [tab, setTab] = useState<AtelierTab>("suivi");
+  const [suiviFilter, setSuiviFilter] = useState<string>("tous");
+  const [stockFilter, setStockFilter] = useState<string>("tous");
+
+  const alertesStock = STOCK_MAGASIN.filter((s) => s.alerteRupture).length;
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -89,37 +206,109 @@ export default function AtelierPro() {
       <div className="bg-[#111] px-4 pt-6 pb-5">
         <Link to="/garage-plus" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Garage Pro</Link>
         <h1 className="text-xl font-black text-white flex items-center gap-2"><Wrench size={20} className="text-[#D4AF37]" /> Atelier Pro</h1>
-        <p className="mt-0.5 text-sm text-white/60">Gestion atelier, devis, factures, catalogue technique</p>
+        <p className="mt-0.5 text-sm text-white/60">Gestion complete de l'atelier, suivi temps reel, stock, catalogue</p>
 
         {/* Stats rapides */}
-        <div className="mt-3 grid grid-cols-4 gap-2">
+        <div className="mt-3 grid grid-cols-5 gap-1.5">
           {[
-            { label: "En cours", val: "3", color: "text-green-400" },
-            { label: "Attente", val: "2", color: "text-amber-400" },
-            { label: "Termines", val: "1", color: "text-blue-400" },
-            { label: "Clients", val: "42", color: "text-[#D4AF37]" },
+            { label: "Recus", val: String(SUIVI_DATA.filter((s) => s.statut === "recu").length), color: "text-blue-400" },
+            { label: "En cours", val: String(SUIVI_DATA.filter((s) => ["diagnostic", "reparation", "pieces_commandees"].includes(s.statut)).length), color: "text-orange-400" },
+            { label: "Prets", val: String(SUIVI_DATA.filter((s) => s.statut === "pret").length), color: "text-green-400" },
+            { label: "Livres", val: String(SUIVI_DATA.filter((s) => s.statut === "livre").length), color: "text-slate-400" },
+            { label: "Alertes", val: String(alertesStock), color: "text-red-400" },
           ].map((s) => (
             <div key={s.label} className="rounded-lg bg-white/5 p-2 text-center">
               <p className={`text-lg font-black ${s.color}`}>{s.val}</p>
-              <p className="text-[9px] text-white/50">{s.label}</p>
+              <p className="text-[8px] text-white/50">{s.label}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="px-4 mt-3 flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+      <div className="px-4 mt-3 flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
         {TABS_ATELIER.map((t) => {
           const Icon = t.icon;
           return (
-            <button key={t.id} onClick={() => setTab(t.id)} className={`shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${tab === t.id ? "bg-[#111] text-[#D4AF37]" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>
-              <Icon size={12} /> {t.label} {t.count != null && <span className="text-[10px] opacity-60">({t.count})</span>}
+            <button key={t.id} onClick={() => setTab(t.id)} className={`shrink-0 flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[10px] font-semibold transition ${tab === t.id ? "bg-[#111] text-[#D4AF37]" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>
+              <Icon size={11} /> {t.label}
+              {t.id === "stock" && alertesStock > 0 && <span className="ml-0.5 h-4 min-w-4 rounded-full bg-red-500 px-1 text-[8px] font-bold text-white grid place-items-center">{alertesStock}</span>}
             </button>
           );
         })}
       </div>
 
       <div className="px-4 mt-4">
+
+        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           SUIVI INTERVENTION TEMPS REEL
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        {tab === "suivi" && (
+          <div className="space-y-3">
+            {/* Filtres statut */}
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+              <button onClick={() => setSuiviFilter("tous")} className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${suiviFilter === "tous" ? "bg-[#111] text-[#D4AF37]" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>Tous ({SUIVI_DATA.length})</button>
+              {STATUTS_INTERVENTION.map((st) => {
+                const c = SUIVI_DATA.filter((s) => s.statut === st.id).length;
+                if (c === 0) return null;
+                return (
+                  <button key={st.id} onClick={() => setSuiviFilter(st.id)} className={`shrink-0 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold ${suiviFilter === st.id ? "bg-[#111] text-[#D4AF37]" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>
+                    <span className={`h-2 w-2 rounded-full ${st.color}`} /> {st.label} ({c})
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Timeline vehicules */}
+            {(suiviFilter === "tous" ? SUIVI_DATA : SUIVI_DATA.filter((s) => s.statut === suiviFilter)).map((v) => {
+              const st = STATUTS_INTERVENTION.find((s) => s.id === v.statut)!;
+              const stepIndex = STATUTS_INTERVENTION.findIndex((s) => s.id === v.statut);
+              return (
+                <div key={v.id} className={`rounded-xl bg-white border-l-4 border ${st.color.replace("bg-", "border-")} border-r-[#E5E7EB] border-t-[#E5E7EB] border-b-[#E5E7EB] p-4`}>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-[#111]">{v.vehicule}</p>
+                      <p className="text-xs text-slate-500">{v.plaque} — {v.client}</p>
+                    </div>
+                    <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-bold ${st.bgLight} ${st.textColor}`}>{st.label}</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">{v.travaux}</p>
+
+                  {/* Barre de progression */}
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] text-slate-400">Progression</span>
+                      <span className="text-[10px] font-bold text-[#111]">{v.progression}%</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                      <div className={`h-full rounded-full ${st.color} transition-all`} style={{ width: `${v.progression}%` }} />
+                    </div>
+                  </div>
+
+                  {/* Etapes timeline */}
+                  <div className="mt-3 flex items-center gap-0.5">
+                    {STATUTS_INTERVENTION.map((s, i) => (
+                      <div key={s.id} className="flex-1 flex flex-col items-center">
+                        <div className={`h-1.5 w-full rounded-full ${i <= stepIndex ? s.color : "bg-slate-200"}`} />
+                        <span className={`mt-0.5 text-[7px] ${i <= stepIndex ? "text-[#111] font-bold" : "text-slate-300"}`}>{s.label.split(" ").pop()}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-3 flex items-center gap-2 text-[10px]">
+                    <span className="text-slate-400">Tech: {v.tech}</span>
+                    <span className="text-slate-400">Entree: {v.dateEntree}</span>
+                    <div className="flex-1" />
+                    <button className="rounded-lg bg-[#D4AF37] px-2.5 py-1 text-[10px] font-bold text-white">Changer statut</button>
+                    <button className="rounded-lg bg-[#F5F3EF] px-2.5 py-1 text-[10px] font-bold text-slate-500">Notifier client</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* ━━━━━ PLANNING ━━━━━ */}
         {tab === "planning" && (
           <div className="space-y-2">
@@ -130,7 +319,7 @@ export default function AtelierPro() {
             {PLANNING_SLOTS.map((s) => (
               <div key={s.id} className={`rounded-xl bg-white border p-3 ${s.statut === "en_cours" ? "border-green-300" : s.statut === "attente" ? "border-amber-200" : "border-[#E5E7EB]"}`}>
                 <div className="flex items-center gap-3">
-                  <div className="text-center shrink-0">
+                  <div className="text-center shrink-0 w-14">
                     <p className="text-sm font-black text-[#111]">{s.heure}</p>
                     <p className="text-[9px] text-slate-400">{s.duree}</p>
                   </div>
@@ -139,11 +328,7 @@ export default function AtelierPro() {
                     <p className="text-[11px] text-slate-500">{s.plaque} — {s.travail}</p>
                     <p className="text-[10px] text-slate-400">Tech: {s.tech}</p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                    s.statut === "en_cours" ? "bg-green-50 text-green-700" :
-                    s.statut === "attente" ? "bg-amber-50 text-amber-700" :
-                    "bg-slate-50 text-slate-600"
-                  }`}>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold ${s.statut === "en_cours" ? "bg-green-50 text-green-700" : s.statut === "attente" ? "bg-amber-50 text-amber-700" : "bg-slate-50 text-slate-600"}`}>
                     {s.statut === "en_cours" ? "En cours" : s.statut === "attente" ? "Attente" : "Planifie"}
                   </span>
                 </div>
@@ -152,36 +337,238 @@ export default function AtelierPro() {
           </div>
         )}
 
-        {/* ━━━━━ ORDRES DE REPARATION ━━━━━ */}
+        {/* ━━━━━ ORDRES DE REPARATION COMPLETS ━━━━━ */}
         {tab === "ordres" && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between mb-2">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between mb-1">
               <h2 className="text-sm font-bold text-[#111]">Ordres de reparation</h2>
               <button className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={12} /> Nouvel OR</button>
             </div>
             {ORDRES.map((o) => (
-              <div key={o.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-slate-400">{o.ref}</p>
-                    <p className="text-sm font-bold text-[#111]">{o.vehicule} <span className="text-slate-400 font-normal">({o.plaque})</span></p>
-                    <p className="text-xs text-slate-500 mt-0.5">{o.travaux}</p>
-                    <div className="mt-1 flex items-center gap-3 text-[10px] text-slate-400">
-                      <span>Client: {o.client}</span>
-                      <span>Tech: {o.tech}</span>
-                      <span>Entree: {o.dateEntree}</span>
+              <div key={o.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                {/* En-tete OR */}
+                <div className="bg-[#111] px-3 py-2 flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#D4AF37]">{o.ref}</span>
+                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                    o.statut === "en_cours" ? "bg-green-500/20 text-green-300" :
+                    o.statut === "diagnostic" ? "bg-purple-500/20 text-purple-300" :
+                    o.statut === "attente_pieces" ? "bg-amber-500/20 text-amber-300" :
+                    "bg-white/10 text-white/70"
+                  }`}>
+                    {o.statut === "en_cours" ? "En cours" : o.statut === "diagnostic" ? "Diagnostic" : o.statut === "attente_pieces" ? "Attente pieces" : "Termine"}
+                  </span>
+                </div>
+
+                <div className="p-3">
+                  {/* Vehicule + Client */}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-[#111]">{o.vehicule} <span className="text-slate-400 font-normal">({o.plaque})</span></p>
+                      <p className="text-[10px] text-slate-400">VIN: {o.vin}</p>
+                    </div>
+                    <p className="text-sm font-bold text-[#D4AF37]">{o.montant}</p>
+                  </div>
+
+                  <p className="text-xs text-slate-500 mt-1">{o.travaux}</p>
+
+                  {/* Reception */}
+                  <div className="mt-3 rounded-lg bg-[#F5F3EF] p-2.5">
+                    <h4 className="text-[10px] font-bold text-[#111] mb-1.5">Reception vehicule</h4>
+                    <div className="grid grid-cols-2 gap-1 text-[10px]">
+                      <div className="flex items-center gap-1">
+                        {o.receptionSignee ? <CheckCircle size={10} className="text-green-500" /> : <AlertCircle size={10} className="text-red-500" />}
+                        <span className="text-slate-600">Signature client: {o.receptionSignee ? "Oui" : "Non"}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Camera size={10} className="text-blue-500" />
+                        <span className="text-slate-600">Photos reception: {o.photosReception}</span>
+                      </div>
+                      <div className="col-span-2 flex items-center gap-1">
+                        <Car size={10} className="text-slate-500" />
+                        <span className="text-slate-600">Etat carrosserie: {o.etatCarrosserie}</span>
+                      </div>
+                      {o.remarquesReception && (
+                        <div className="col-span-2 flex items-center gap-1">
+                          <FileText size={10} className="text-amber-500" />
+                          <span className="text-amber-600 font-semibold">Remarque: {o.remarquesReception}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
+
+                  {/* Sortie */}
+                  <div className="mt-2 rounded-lg bg-[#F5F3EF] p-2.5">
+                    <h4 className="text-[10px] font-bold text-[#111] mb-1.5">Bon de sortie</h4>
+                    <div className="grid grid-cols-2 gap-1 text-[10px]">
+                      <div className="flex items-center gap-1">
+                        {o.bonSortie ? <CheckCircle size={10} className="text-green-500" /> : <Clock size={10} className="text-slate-400" />}
+                        <span className="text-slate-600">Bon de sortie: {o.bonSortie ? "Signe" : "En attente"}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {o.signatureRestitution ? <CheckCircle size={10} className="text-green-500" /> : <Clock size={10} className="text-slate-400" />}
+                        <span className="text-slate-600">Signature restitution: {o.signatureRestitution ? "Oui" : "Non"}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Infos bas */}
+                  <div className="mt-2 flex items-center gap-3 text-[10px] text-slate-400">
+                    <span>Client: {o.client}</span>
+                    <span>Tech: {o.tech}</span>
+                    <span>Entree: {o.dateEntree}</span>
+                    {o.dateSortie !== "-" && <span>Sortie: {o.dateSortie}</span>}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-2 flex gap-1.5">
+                    <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white text-center">Modifier</button>
+                    <button className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600 text-center">Photos</button>
+                    <button className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600 text-center">PDF</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ━━━━━ EMPLOYES ATELIER ━━━━━ */}
+        {tab === "employes" && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-sm font-bold text-[#111]">Equipe atelier</h2>
+              <button className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={12} /> Ajouter</button>
+            </div>
+
+            {/* Synthese equipe */}
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4">
+              <h3 className="text-xs font-bold text-[#D4AF37] mb-2">Synthese du jour</h3>
+              <div className="grid grid-cols-4 gap-2 text-center">
+                <div><p className="text-lg font-black text-white">{EMPLOYES.filter((e) => e.statut === "actif").length}</p><p className="text-[8px] text-white/50">Actifs</p></div>
+                <div><p className="text-lg font-black text-white">{EMPLOYES.reduce((s, e) => s + e.vehiculesJour, 0)}</p><p className="text-[8px] text-white/50">Vehicules</p></div>
+                <div><p className="text-lg font-black text-white">{Math.round(EMPLOYES.reduce((s, e) => s + e.productivite, 0) / EMPLOYES.length)}%</p><p className="text-[8px] text-white/50">Productivite</p></div>
+                <div><p className="text-lg font-black text-white">{EMPLOYES.filter((e) => e.statut === "pause").length}</p><p className="text-[8px] text-white/50">En pause</p></div>
+              </div>
+            </div>
+
+            {/* Fiches employes */}
+            {EMPLOYES.map((e) => (
+              <div key={e.id} className={`rounded-xl bg-white border p-4 ${e.statut === "actif" ? "border-green-200" : e.statut === "pause" ? "border-amber-200" : "border-red-200"}`}>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-[#111] flex items-center gap-2">
+                      {e.nom}
+                      <span className={`rounded-full px-2 py-0.5 text-[8px] font-bold ${e.statut === "actif" ? "bg-green-50 text-green-700" : e.statut === "pause" ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>
+                        {e.statut === "actif" ? "Actif" : e.statut === "pause" ? "Pause" : "Absent"}
+                      </span>
+                    </p>
+                    <p className="text-xs text-slate-500">{e.role} — {e.specialite}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center gap-1">
+                      <BarChart3 size={12} className="text-[#D4AF37]" />
+                      <span className={`text-sm font-bold ${e.productivite >= 90 ? "text-green-600" : e.productivite >= 75 ? "text-amber-600" : "text-red-600"}`}>{e.productivite}%</span>
+                    </div>
+                    <p className="text-[9px] text-slate-400">productivite</p>
+                  </div>
+                </div>
+
+                {/* Vehicule actuel */}
+                {e.vehiculeActuel && (
+                  <div className="mt-2 rounded-lg bg-green-50 p-2 flex items-center gap-2">
+                    <Car size={14} className="text-green-600" />
+                    <div>
+                      <p className="text-xs font-bold text-green-700">{e.vehiculeActuel} ({e.plaqueActuel})</p>
+                      <p className="text-[10px] text-green-600">{e.tacheActuelle}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Stats */}
+                <div className="mt-2 grid grid-cols-4 gap-2 text-center text-[10px]">
+                  <div className="rounded-lg bg-[#F5F3EF] p-1.5">
+                    <p className="font-bold text-[#111]">{e.vehiculesJour}</p>
+                    <p className="text-slate-400">Vehicules/j</p>
+                  </div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-1.5">
+                    <p className="font-bold text-[#111]">{e.vehiculesSemaine}</p>
+                    <p className="text-slate-400">Vehicules/sem</p>
+                  </div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-1.5">
+                    <p className="font-bold text-[#111]">{e.heuresJour}</p>
+                    <p className="text-slate-400">Heures/j</p>
+                  </div>
+                  <div className="rounded-lg bg-[#F5F3EF] p-1.5">
+                    <p className="font-bold text-[#111]">{e.heuresSemaine}</p>
+                    <p className="text-slate-400">Heures/sem</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ━━━━━ STOCK MAGASIN ━━━━━ */}
+        {tab === "stock" && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-sm font-bold text-[#111]">Stock magasin</h2>
+              <div className="flex gap-1.5">
+                <button className="rounded-lg bg-[#F5F3EF] px-2.5 py-1.5 text-[10px] font-bold text-slate-600 flex items-center gap-1"><Download size={10} /> Inventaire</button>
+                <button className="rounded-lg bg-[#D4AF37] px-2.5 py-1.5 text-[10px] font-bold text-white flex items-center gap-1"><Plus size={10} /> Entree stock</button>
+              </div>
+            </div>
+
+            {/* Alertes rupture */}
+            {alertesStock > 0 && (
+              <div className="rounded-xl bg-red-50 border border-red-200 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle size={14} className="text-red-500" />
+                  <span className="text-xs font-bold text-red-700">{alertesStock} alerte{alertesStock > 1 ? "s" : ""} rupture de stock</span>
+                </div>
+                {STOCK_MAGASIN.filter((s) => s.alerteRupture).map((s) => (
+                  <div key={s.id} className="flex items-center justify-between py-1 text-[10px]">
+                    <span className="text-red-700 font-semibold">{s.nom} ({s.ref})</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-red-500 font-bold">Stock: {s.qteActuelle} / Min: {s.qteMinimum}</span>
+                      <button className="rounded bg-red-500 px-2 py-0.5 text-[9px] font-bold text-white">Commander</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Filtres stock */}
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+              {["tous", "Freinage", "Filtration", "Allumage", "Distribution", "Suspension", "Liquides", "Lubrifiants", "Embrayage"].map((f) => (
+                <button key={f} onClick={() => setStockFilter(f)} className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${stockFilter === f ? "bg-[#111] text-[#D4AF37]" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>
+                  {f === "tous" ? `Tous (${STOCK_MAGASIN.length})` : f}
+                </button>
+              ))}
+            </div>
+
+            {/* Liste stock */}
+            {(stockFilter === "tous" ? STOCK_MAGASIN : STOCK_MAGASIN.filter((s) => s.categorie === stockFilter)).map((s) => (
+              <div key={s.id} className={`rounded-xl bg-white border p-3 ${s.alerteRupture ? "border-red-300" : "border-[#E5E7EB]"}`}>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-[#111]">{s.nom}</p>
+                    <p className="text-[10px] text-slate-400">{s.ref} — {s.categorie}</p>
+                    <p className="text-[10px] text-slate-400">Fournisseur: {s.fournisseur}</p>
+                    <p className="text-[10px] text-slate-400">{s.dernierMouvement}</p>
+                  </div>
                   <div className="text-right shrink-0 ml-2">
-                    <p className="text-sm font-bold text-[#D4AF37]">{o.montant}</p>
-                    <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                      o.statut === "en_cours" ? "bg-green-50 text-green-700" :
-                      o.statut === "diagnostic" ? "bg-blue-50 text-blue-700" :
-                      o.statut === "attente_pieces" ? "bg-amber-50 text-amber-700" :
-                      "bg-slate-100 text-slate-600"
-                    }`}>
-                      {o.statut === "en_cours" ? "En cours" : o.statut === "diagnostic" ? "Diagnostic" : o.statut === "attente_pieces" ? "Attente pieces" : "Termine"}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className={`text-sm font-bold ${s.alerteRupture ? "text-red-600" : s.qteActuelle <= s.qteMinimum ? "text-amber-600" : "text-green-600"}`}>{s.qteActuelle}</span>
+                      <span className="text-[10px] text-slate-400">/ min {s.qteMinimum}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] text-slate-400 mt-0.5">
+                      <span>Achat: {s.prixAchat}</span>
+                      <span>Vente: {s.prixVente}</span>
+                    </div>
+                    <div className="mt-1 flex gap-1">
+                      <button className="rounded bg-green-50 px-1.5 py-0.5 text-[9px] font-bold text-green-700 flex items-center gap-0.5"><ArrowDown size={8} /> Entree</button>
+                      <button className="rounded bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-700 flex items-center gap-0.5"><ArrowUp size={8} /> Sortie</button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -203,13 +590,13 @@ export default function AtelierPro() {
                     <p className="text-xs text-slate-400">{d.ref}</p>
                     <p className="text-sm font-bold text-[#111]">{d.vehicule} <span className="text-slate-400 font-normal">({d.plaque})</span></p>
                     <p className="text-xs text-slate-500">{d.objet}</p>
-                    <p className="text-[10px] text-slate-400">Client: {d.client} . {d.date}</p>
+                    <p className="text-[10px] text-slate-400">Client: {d.client} — {d.date}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-[#D4AF37]">{d.montant}</p>
-                    <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                      d.statut === "accepte" ? "bg-green-50 text-green-700" : d.statut === "refuse" ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700"
-                    }`}>{d.statut === "accepte" ? "Accepte" : d.statut === "refuse" ? "Refuse" : "Envoye"}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${d.statut === "accepte" ? "bg-green-50 text-green-700" : d.statut === "refuse" ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700"}`}>
+                      {d.statut === "accepte" ? "Accepte" : d.statut === "refuse" ? "Refuse" : "Envoye"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -225,7 +612,7 @@ export default function AtelierPro() {
                 <div>
                   <p className="text-xs text-slate-400">{f.ref}</p>
                   <p className="text-sm font-bold text-[#111]">{f.vehicule}</p>
-                  <p className="text-[10px] text-slate-400">{f.client} . {f.date}</p>
+                  <p className="text-[10px] text-slate-400">{f.client} — {f.date}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="text-right">
@@ -251,8 +638,8 @@ export default function AtelierPro() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-bold text-[#111]">{c.nom}</p>
-                    <p className="text-xs text-slate-500">{c.vehicules} vehicule{c.vehicules > 1 ? "s" : ""} . {c.visites} visites</p>
-                    <p className="text-[10px] text-slate-400">Derniere: {c.derniere} . Total: {c.total}</p>
+                    <p className="text-xs text-slate-500">{c.vehicules} vehicule{c.vehicules > 1 ? "s" : ""} — {c.visites} visites</p>
+                    <p className="text-[10px] text-slate-400">Derniere: {c.derniere} — Total: {c.total}</p>
                   </div>
                   <div className="flex gap-1">
                     <a href={`tel:${c.tel}`} className="rounded-lg bg-green-50 p-2"><Phone size={14} className="text-green-600" /></a>
@@ -276,8 +663,8 @@ export default function AtelierPro() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-bold text-[#111]">{v.marque} {v.modele}</p>
-                    <p className="text-xs text-slate-500">{v.plaque} . {v.annee} . {v.km} km</p>
-                    <p className="text-[10px] text-slate-400">Client: {v.client} . VIN: {v.vin.slice(0, 11)}...</p>
+                    <p className="text-xs text-slate-500">{v.plaque} — {v.annee} — {v.km} km</p>
+                    <p className="text-[10px] text-slate-400">Client: {v.client} — VIN: {v.vin.slice(0, 11)}...</p>
                   </div>
                   <div className="flex gap-1">
                     <Link to="/catalogue-technique" className="rounded-lg bg-[#D4AF37]/10 p-2"><Search size={14} className="text-[#D4AF37]" /></Link>
@@ -291,286 +678,24 @@ export default function AtelierPro() {
 
         {/* ━━━━━ CATALOGUE TECHNIQUE ━━━━━ */}
         {tab === "catalogue" && (
-          <CatalogueTechnique />
+          <div className="text-center py-8">
+            <Search size={40} className="mx-auto text-[#D4AF37]" />
+            <h3 className="mt-3 text-sm font-bold text-[#111]">Catalogue technique AutoData</h3>
+            <p className="mt-1 text-xs text-slate-500">26 systemes, couples de serrage, temps baremes, outils speciaux, pieces cliquables</p>
+            <Link to="/catalogue-technique" className="mt-4 inline-flex rounded-xl bg-[#D4AF37] px-6 py-2.5 text-sm font-bold text-white">Ouvrir le catalogue</Link>
+          </div>
         )}
 
         {/* ━━━━━ PIECES ━━━━━ */}
         {tab === "pieces" && (
-          <PiecesDetachees />
+          <div className="text-center py-8">
+            <ShoppingBag size={40} className="mx-auto text-[#D4AF37]" />
+            <h3 className="mt-3 text-sm font-bold text-[#111]">Pieces detachees</h3>
+            <p className="mt-1 text-xs text-slate-500">Recherche par reference, commande fournisseur, integration devis</p>
+            <Link to="/catalogue-technique" className="mt-4 inline-flex rounded-xl bg-[#D4AF37] px-6 py-2.5 text-sm font-bold text-white">Rechercher une piece</Link>
+          </div>
         )}
       </div>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   CATALOGUE TECHNIQUE — Type AutoData
-   Tous vehicules (anciens, recents), tous systemes (mecaniques, electroniques,
-   electriques, carrosserie). Recherche par plaque ou VIN.
-   ══════════════════════════════════════════════════════════════════════════ */
-
-function CatalogueTechnique() {
-  const [plaque, setPlaque] = useState("");
-  const [found, setFound] = useState(false);
-  const [systemTab, setSystemTab] = useState("moteur");
-
-  const doSearch = () => {
-    if (plaque.trim().length >= 3) setFound(true);
-  };
-
-  const SYSTEMS = [
-    { id: "moteur", label: "Moteur", icon: Cog, color: "text-red-500" },
-    { id: "distribution", label: "Distribution", icon: Settings, color: "text-orange-500" },
-    { id: "embrayage", label: "Embrayage", icon: Disc, color: "text-amber-600" },
-    { id: "boite", label: "Boite vitesses", icon: Settings, color: "text-yellow-600" },
-    { id: "freinage", label: "Freinage", icon: LifeBuoy, color: "text-blue-500" },
-    { id: "direction", label: "Direction", icon: LifeBuoy, color: "text-indigo-500" },
-    { id: "suspension", label: "Suspension", icon: Settings, color: "text-violet-500" },
-    { id: "refroidissement", label: "Refroidissement", icon: Thermometer, color: "text-cyan-500" },
-    { id: "echappement", label: "Echappement", icon: Wind, color: "text-slate-500" },
-    { id: "alimentation", label: "Alimentation", icon: Fuel, color: "text-green-600" },
-    { id: "turbo", label: "Turbo", icon: Gauge, color: "text-rose-500" },
-    { id: "injection", label: "Injection", icon: Zap, color: "text-purple-500" },
-    { id: "allumage", label: "Allumage", icon: Zap, color: "text-pink-500" },
-    { id: "abs_esp", label: "ABS / ESP", icon: Shield, color: "text-blue-600" },
-    { id: "airbags", label: "Airbags", icon: Shield, color: "text-red-600" },
-    { id: "climatisation", label: "Climatisation", icon: Thermometer, color: "text-sky-500" },
-    { id: "tableau_bord", label: "Tableau de bord", icon: Gauge, color: "text-emerald-500" },
-    { id: "capteurs", label: "Capteurs", icon: CircuitBoard, color: "text-teal-500" },
-    { id: "calculateurs", label: "Calculateurs", icon: CircuitBoard, color: "text-fuchsia-500" },
-    { id: "multiplexage", label: "CAN / LIN", icon: CircuitBoard, color: "text-lime-600" },
-    { id: "batterie", label: "Batterie", icon: Battery, color: "text-green-500" },
-    { id: "alternateur", label: "Alternateur", icon: Zap, color: "text-amber-500" },
-    { id: "demarreur", label: "Demarreur", icon: Zap, color: "text-orange-600" },
-    { id: "eclairage", label: "Eclairage", icon: Lightbulb, color: "text-yellow-500" },
-    { id: "fusibles", label: "Fusibles", icon: Settings, color: "text-gray-500" },
-    { id: "cablage", label: "Cablage", icon: CircuitBoard, color: "text-gray-600" },
-  ];
-
-  const DETAILS_MOTEUR = {
-    coupleSerrage: [
-      { piece: "Culasse", valeur: "40 Nm + 90° + 90°", ordre: "Depuis le centre en spirale" },
-      { piece: "Bielle", valeur: "30 Nm + 45°", ordre: "Chapeau de bielle" },
-      { piece: "Palier vilebrequin", valeur: "25 Nm + 60°", ordre: "Du centre vers l'exterieur" },
-      { piece: "Bougie allumage", valeur: "25 Nm", ordre: "-" },
-      { piece: "Injecteur", valeur: "9 Nm", ordre: "-" },
-      { piece: "Carter huile", valeur: "10 Nm", ordre: "En etoile" },
-      { piece: "Couvre-culasse", valeur: "8 Nm", ordre: "En spirale" },
-      { piece: "Collecteur admission", valeur: "20 Nm", ordre: "Du centre" },
-      { piece: "Collecteur echappement", valeur: "25 Nm", ordre: "Du centre" },
-      { piece: "Capteur pression huile", valeur: "15 Nm", ordre: "-" },
-    ],
-    tempsBaremes: [
-      { operation: "Vidange + filtre huile", temps: "0.5h", difficulte: "Facile" },
-      { operation: "Remplacement bougies (4 cyl)", temps: "0.8h", difficulte: "Facile" },
-      { operation: "Distribution complete", temps: "4.5h", difficulte: "Expert" },
-      { operation: "Joints de culasse", temps: "6.0h", difficulte: "Expert" },
-      { operation: "Remplacement turbo", temps: "3.5h", difficulte: "Avance" },
-      { operation: "Injecteurs (4 cyl)", temps: "2.0h", difficulte: "Avance" },
-      { operation: "Pompe a eau", temps: "2.5h", difficulte: "Moyen" },
-      { operation: "Courroie accessoire", temps: "0.7h", difficulte: "Facile" },
-      { operation: "Support moteur (1x)", temps: "1.5h", difficulte: "Moyen" },
-      { operation: "Joint carter huile", temps: "3.0h", difficulte: "Avance" },
-    ],
-    capacites: [
-      { type: "Huile moteur", quantite: "5.2 L", spec: "5W-30 ACEA C2" },
-      { type: "Liquide refroidissement", quantite: "7.5 L", spec: "Type D / Rose-Orange" },
-      { type: "Liquide de frein", quantite: "0.6 L", spec: "DOT 4+" },
-      { type: "Liquide direction", quantite: "1.1 L", spec: "ATF Dexron III" },
-      { type: "Reservoir carburant", quantite: "53 L", spec: "Sans plomb 95/98" },
-      { type: "Huile boite auto", quantite: "6.8 L", spec: "ATF AW-1" },
-    ],
-  };
-
-  return (
-    <div className="space-y-3">
-      {/* Recherche par plaque/VIN */}
-      <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
-        <h2 className="text-sm font-bold text-[#111] mb-3 flex items-center gap-2"><Search size={14} className="text-[#D4AF37]" /> Catalogue technique</h2>
-        <p className="text-xs text-slate-500 mb-3">Recherchez par plaque ou VIN — tous vehicules, tous systemes</p>
-        <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-              <span className="text-[9px] font-bold text-white bg-blue-600 px-1 rounded">F</span>
-            </div>
-            <input
-              type="text"
-              value={plaque}
-              onChange={(e) => setPlaque(e.target.value.toUpperCase())}
-              placeholder="AB-123-CD ou VIN"
-              className="w-full rounded-xl border border-[#E5E7EB] bg-[#F5F3EF] pl-10 pr-3 py-3 text-sm font-bold text-center tracking-widest uppercase"
-              onKeyDown={(e) => e.key === "Enter" && doSearch()}
-            />
-          </div>
-          <button onClick={doSearch} className="rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-bold text-white"><Search size={16} /></button>
-        </div>
-      </div>
-
-      {found && (
-        <>
-          {/* Fiche vehicule identifie */}
-          <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <CheckCircle size={16} className="text-green-400" />
-              <span className="text-sm font-bold text-green-400">Vehicule identifie</span>
-            </div>
-            <div className="grid grid-cols-2 gap-1 text-xs">
-              {[
-                ["Marque", "Peugeot"], ["Modele", "3008 GT"], ["Version", "1.6 PureTech 225 Hybrid4"],
-                ["Annee", "2024"], ["Motorisation", "EP6FADTX (225 ch)"], ["Cylindree", "1 598 cm3"],
-                ["Puissance", "225 ch / 165 kW"], ["Couple", "300 Nm"], ["Norme", "Euro 6d"],
-                ["Transmission", "BVA 8 EAT8"], ["Poids", "1 880 kg"], ["Dimensions", "4 447 x 1 841 x 1 620 mm"],
-              ].map(([label, val]) => (
-                <div key={label} className="flex justify-between py-1 border-b border-white/5">
-                  <span className="text-white/50">{label}</span>
-                  <span className="font-bold text-white">{val}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Systemes */}
-          <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
-            <h3 className="text-sm font-bold text-[#111] mb-3">Systemes techniques</h3>
-            <div className="flex flex-wrap gap-1.5">
-              {SYSTEMS.map((s) => {
-                const Icon = s.icon;
-                return (
-                  <button key={s.id} onClick={() => setSystemTab(s.id)} className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition ${systemTab === s.id ? "bg-[#111] text-[#D4AF37]" : "bg-[#F5F3EF] text-[#6B7280] hover:bg-[#E5E7EB]"}`}>
-                    <Icon size={10} className={systemTab === s.id ? "text-[#D4AF37]" : s.color} /> {s.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Donnees techniques du systeme selectionne */}
-          <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-            <div className="bg-[#111] px-3 py-2">
-              <h3 className="text-xs font-bold text-[#D4AF37]">Couples de serrage — {SYSTEMS.find((s) => s.id === systemTab)?.label}</h3>
-            </div>
-            {DETAILS_MOTEUR.coupleSerrage.map((c, i) => (
-              <div key={i} className="flex items-center px-3 py-2 border-b border-[#F3F4F6] last:border-0 text-xs">
-                <span className="w-[35%] text-slate-500">{c.piece}</span>
-                <span className="w-[30%] font-bold text-[#111]">{c.valeur}</span>
-                <span className="w-[35%] text-slate-400">{c.ordre}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Temps baremes */}
-          <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-            <div className="bg-[#111] px-3 py-2">
-              <h3 className="text-xs font-bold text-[#D4AF37]">Temps baremes</h3>
-            </div>
-            {DETAILS_MOTEUR.tempsBaremes.map((t, i) => (
-              <div key={i} className="flex items-center px-3 py-2 border-b border-[#F3F4F6] last:border-0 text-xs">
-                <span className="w-[45%] text-slate-500">{t.operation}</span>
-                <span className="w-[20%] font-bold text-[#111]">{t.temps}</span>
-                <span className={`w-[35%] font-bold ${t.difficulte === "Expert" ? "text-red-500" : t.difficulte === "Avance" ? "text-orange-500" : t.difficulte === "Moyen" ? "text-amber-500" : "text-green-500"}`}>{t.difficulte}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Capacites */}
-          <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-            <div className="bg-[#111] px-3 py-2">
-              <h3 className="text-xs font-bold text-[#D4AF37]">Capacites & specifications</h3>
-            </div>
-            {DETAILS_MOTEUR.capacites.map((c, i) => (
-              <div key={i} className="flex items-center px-3 py-2 border-b border-[#F3F4F6] last:border-0 text-xs">
-                <span className="w-[35%] text-slate-500">{c.type}</span>
-                <span className="w-[25%] font-bold text-[#111]">{c.quantite}</span>
-                <span className="w-[40%] text-slate-400">{c.spec}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Schema cliquable */}
-          <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
-            <h3 className="text-sm font-bold text-[#111] mb-3">Schema interactif — Moteur</h3>
-            <p className="text-xs text-slate-500 mb-3">Cliquez sur un element pour voir sa reference et commander</p>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { nom: "Bougie allumage", ref: "PSA 9806 043 880", dispo: true, prix: "12 EUR" },
-                { nom: "Filtre a huile", ref: "PSA 1109 CK", dispo: true, prix: "15 EUR" },
-                { nom: "Filtre a air", ref: "PSA 1444 TT", dispo: true, prix: "22 EUR" },
-                { nom: "Injecteur", ref: "Continental A2C59517051", dispo: false, prix: "195 EUR" },
-                { nom: "Bobine allumage", ref: "PSA 9808 653 680", dispo: true, prix: "58 EUR" },
-                { nom: "Courroie distrib.", ref: "Gates K026PK1078", dispo: true, prix: "45 EUR" },
-                { nom: "Pompe a eau", ref: "SKF VKPC 83649", dispo: true, prix: "89 EUR" },
-                { nom: "Thermostat", ref: "PSA 1336 Z7", dispo: false, prix: "42 EUR" },
-                { nom: "Capteur PMH", ref: "PSA 1920 LS", dispo: true, prix: "35 EUR" },
-                { nom: "Turbo", ref: "Garrett 784011-5005S", dispo: false, prix: "890 EUR" },
-                { nom: "Joint culasse", ref: "Elring 150.131", dispo: true, prix: "78 EUR" },
-                { nom: "Kit embrayage", ref: "Valeo 826 818", dispo: true, prix: "420 EUR" },
-              ].map((p, i) => (
-                <button key={i} className={`rounded-lg border p-2 text-left transition hover:shadow-md ${p.dispo ? "border-green-200 bg-green-50/50" : "border-red-200 bg-red-50/50"}`}>
-                  <p className="text-[10px] font-bold text-[#111] truncate">{p.nom}</p>
-                  <p className="text-[8px] text-slate-400 truncate">{p.ref}</p>
-                  <div className="mt-1 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-[#D4AF37]">{p.prix}</span>
-                    <span className={`text-[8px] font-bold ${p.dispo ? "text-green-600" : "text-red-500"}`}>{p.dispo ? "En stock" : "Commande"}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {!found && (
-        <div className="text-center py-8">
-          <Car size={40} className="mx-auto text-[#D4AF37] opacity-40" />
-          <p className="mt-3 text-sm font-semibold text-[#6B7280]">Entrez une plaque ou un VIN</p>
-          <p className="text-xs text-[#9CA3AF] mt-1">Le catalogue identifiera automatiquement le vehicule et affichera toutes les donnees techniques</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   PIECES DETACHEES — Stock, commandes, integration devis
-   ══════════════════════════════════════════════════════════════════════════ */
-
-function PiecesDetachees() {
-  const STOCK = [
-    { id: 1, nom: "Plaquettes freins AV ATE", ref: "ATE 13.0460-7186.2", qte: 8, prix: "32 EUR", categorie: "Freinage" },
-    { id: 2, nom: "Filtre huile PSA 1.6", ref: "PSA 1109 CK", qte: 15, prix: "12 EUR", categorie: "Filtration" },
-    { id: 3, nom: "Bougie NGK", ref: "NGK LZKR6AI-10G", qte: 24, prix: "9 EUR", categorie: "Allumage" },
-    { id: 4, nom: "Courroie accessoire Gates", ref: "Gates 6PK1078", qte: 3, prix: "25 EUR", categorie: "Distribution" },
-    { id: 5, nom: "Disque frein AV Brembo", ref: "Brembo 09.B265.10", qte: 4, prix: "65 EUR", categorie: "Freinage" },
-    { id: 6, nom: "Amortisseur AR Monroe", ref: "Monroe G7387", qte: 2, prix: "78 EUR", categorie: "Suspension" },
-    { id: 7, nom: "Liquide frein DOT4 1L", ref: "TRW PFB440", qte: 6, prix: "8 EUR", categorie: "Liquides" },
-    { id: 8, nom: "Huile 5W30 Total 5L", ref: "Total Quartz 9000", qte: 10, prix: "35 EUR", categorie: "Lubrifiants" },
-  ];
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-sm font-bold text-[#111]">Stock pieces</h2>
-        <button className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={12} /> Commander</button>
-      </div>
-      <div className="relative mb-2">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input type="text" placeholder="Rechercher par nom, reference..." className="w-full rounded-xl border border-[#E5E7EB] bg-white pl-9 pr-3 py-2.5 text-sm" />
-      </div>
-      {STOCK.map((p) => (
-        <div key={p.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-bold text-[#111]">{p.nom}</p>
-            <p className="text-xs text-slate-400">{p.ref} . {p.categorie}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-sm font-bold text-[#D4AF37]">{p.prix}</p>
-              <p className={`text-[10px] font-bold ${p.qte > 5 ? "text-green-600" : p.qte > 0 ? "text-amber-600" : "text-red-600"}`}>Stock: {p.qte}</p>
-            </div>
-            <button className="rounded-lg bg-[#D4AF37]/10 p-2"><Plus size={14} className="text-[#D4AF37]" /></button>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
