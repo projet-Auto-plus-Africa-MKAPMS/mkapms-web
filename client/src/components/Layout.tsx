@@ -78,6 +78,13 @@ function Header() {
           </Link>
           {user ? (
             <div className="flex items-center gap-2">
+              <Link
+                to="/compte/messages"
+                className="relative grid h-10 w-10 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-brand"
+                aria-label="Messages"
+              >
+                <MessageSquare size={18} />
+              </Link>
               <NotificationsBell />
               {isAdmin(user.role) && (
                 <Link to="/admin" className="rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#222]">

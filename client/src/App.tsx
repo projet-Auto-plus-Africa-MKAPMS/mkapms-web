@@ -51,6 +51,11 @@ const Messagerie = lazy(() => import("./pages/Messagerie"));
 const ListeAttente = lazy(() => import("./pages/ListeAttente"));
 const ReservationRecurrente = lazy(() => import("./pages/ReservationRecurrente"));
 const Comparateur = lazy(() => import("./pages/Comparateur"));
+const HistoriqueConsultationsUniv = lazy(() => import("./pages/HistoriqueConsultations"));
+const DossierClientUniv = lazy(() => import("./pages/DossierClient"));
+const DossierVehiculeNumerique = lazy(() => import("./pages/DossierVehiculeNumerique"));
+const AtelierPro = lazy(() => import("./pages/AtelierPro"));
+const CatalogueTechniqueStandalone = lazy(() => import("./pages/CatalogueTechnique"));
 const EtatVehicule = lazy(() => import("./pages/EtatVehicule"));
 const RenouvellementLocation = lazy(() => import("./pages/RenouvellementLocation"));
 const RemplacementVehicule = lazy(() => import("./pages/RemplacementVehicule"));
@@ -835,6 +840,12 @@ export default function App() {
             <Route path="/demande-publicite" element={<DemandePublicite />} />
             <Route path="/publicite/:id" element={<PubliciteDetail />} />
             <Route path="/favoris" element={<U name="Favoris"><Favoris /></U>} />
+            <Route path="/comparateur" element={<U name="Comparateur"><Comparateur /></U>} />
+            <Route path="/historique-consultations" element={<U name="Historique"><HistoriqueConsultationsUniv /></U>} />
+            <Route path="/dossier-client" element={<U name="Dossier Client"><DossierClientUniv /></U>} />
+            <Route path="/dossier-vehicule-numerique" element={<U name="Dossier V\u00e9hicule"><DossierVehiculeNumerique /></U>} />
+            <Route path="/atelier-pro" element={<U name="Atelier Pro"><AtelierPro /></U>} />
+            <Route path="/catalogue-technique" element={<U name="Catalogue Technique"><CatalogueTechniqueStandalone /></U>} />
             <Route path="/compte/validation" element={<U name="Validation"><Validation /></U>} />
             <Route path="/compte/*" element={<U name="Mon compte"><Compte /></U>} />
             <Route path="/admin/*" element={<U name="Back-office"><Admin /></U>} />
