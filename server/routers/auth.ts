@@ -24,6 +24,7 @@ function publicUser(u: typeof users.$inferSelect) {
     phone: u.phone,
     avatarUrl: u.avatarUrl,
     role: u.role,
+    staffPosition: u.staffPosition,
     reference: u.reference,
     accountType: u.accountType,
     companyName: u.companyName,

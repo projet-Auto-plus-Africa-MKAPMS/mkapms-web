@@ -565,7 +565,14 @@ export default function Admin() {
             <div className="mt-4 space-y-1">
               {staffList.data?.map((s) => (
                 <div key={s.id} className="card flex items-center justify-between p-2 text-sm">
-                  <span className="text-slate-700">{s.name} — {s.email} <span className="text-xs text-slate-400">({s.role})</span></span>
+                  <div>
+                    <span className="text-slate-700 font-medium">{s.name}</span>
+                    <span className="text-slate-400"> — {s.email}</span>
+                    <span className="ml-2 inline-flex items-center gap-1">
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${s.role === "super_admin" ? "bg-[#D4AF37]/20 text-[#D4AF37]" : s.role === "admin" ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"}`}>{s.role === "super_admin" ? "PDG" : s.role === "admin" ? "Admin" : "Employ\u00e9"}</span>
+                      {(s as any).staffPosition && <span className="px-1.5 py-0.5 rounded bg-slate-50 text-[9px] text-slate-500">{(s as any).staffPosition}</span>}
+                    </span>
+                  </div>
                   {s.role !== "super_admin" && (
                     <button className="btn-outline !py-1 !text-xs" onClick={() => { if (confirm(`Supprimer ${s.email} ?`)) deleteUser.mutate({ userId: s.id }); }}>Supprimer</button>
                   )}

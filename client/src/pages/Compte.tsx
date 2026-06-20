@@ -109,6 +109,9 @@ export default function Compte() {
           <h1 className="text-2xl font-extrabold text-slate-900">Bonjour, {user.name?.split(" ")[0]}</h1>
           <p className="text-sm text-slate-500">
             {ROLE_LABELS[(user.role as UserRole)] || user.role}
+            {(user as any).staffPosition === "pdg" && " — PDG / Fondateur"}
+            {(user as any).staffPosition === "directeur" && " — Directeur"}
+            {(user as any).staffPosition === "adjoint" && " — Adjoint de direction"}
             {user.email ? ` · ${user.email}` : ""}
           </p>
           {(user as { reference?: string | null }).reference && (
@@ -120,9 +123,40 @@ export default function Compte() {
         <div className="flex gap-2">
           {isPro(user.role) && <Link to="/garage-plus" className="btn-outline">Espace Garage+</Link>}
           {isAdmin(user.role) && <Link to="/admin" className="btn-primary">Back-office</Link>}
+          {user.role === "super_admin" && <Link to="/superadmin" className="rounded-lg bg-[#111] px-4 py-2 text-xs font-bold text-[#D4AF37] hover:bg-[#222]">Super Admin</Link>}
           <button className="btn-outline" onClick={() => { logout(); navigate("/"); }}>Déconnexion</button>
         </div>
       </div>
+
+      {/* Dashboard PDG — accès rapide à tous les modules (visible uniquement pour le PDG) */}
+      {user.role === "super_admin" && (
+        <div className="mt-4 rounded-2xl border-2 border-[#D4AF37]/30 bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5">
+          <h2 className="text-sm font-black text-[#D4AF37] mb-3">Acc&egrave;s PDG — Tous les modules</h2>
+          <div className="grid grid-cols-3 gap-2 md:grid-cols-5 lg:grid-cols-7">
+            {[
+              { label: "Super Admin", to: "/superadmin", emoji: "\ud83d\udc51" },
+              { label: "Back-office", to: "/admin", emoji: "\ud83d\udee1\ufe0f" },
+              { label: "Comptabilit\u00e9", to: "/compta-dirigeant", emoji: "\ud83d\udcb9" },
+              { label: "Atelier Pro", to: "/atelier-pro", emoji: "\ud83d\udee0\ufe0f" },
+              { label: "Catalogue", to: "/catalogue-technique", emoji: "\ud83d\udcd6" },
+              { label: "Suivi v\u00e9hicule", to: "/suivi-vehicule", emoji: "\ud83d\udccd" },
+              { label: "Ench\u00e8res Pro", to: "/encheres", emoji: "\ud83d\udd28" },
+              { label: "Journal", to: "/journal-activite", emoji: "\ud83d\udcdc" },
+              { label: "Notifications", to: "/notifications", emoji: "\ud83d\udd14" },
+              { label: "Dossier Client", to: "/dossier-client", emoji: "\ud83d\udcc1" },
+              { label: "Dossier V\u00e9hicule", to: "/dossier-vehicule-numerique", emoji: "\ud83d\udcdd" },
+              { label: "Favoris", to: "/favoris", emoji: "\u2764\ufe0f" },
+              { label: "Comparateur", to: "/comparateur", emoji: "\ud83d\udd0d" },
+              { label: "Abonnements", to: "/abonnements", emoji: "\ud83d\udcb3" },
+            ].map((m) => (
+              <Link key={m.to} to={m.to} className="flex flex-col items-center gap-1 rounded-xl bg-white/5 border border-white/10 p-2.5 text-center transition hover:bg-white/10 hover:border-[#D4AF37]/50">
+                <span className="text-lg">{m.emoji}</span>
+                <span className="text-[9px] font-bold text-white/80 leading-tight">{m.label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {isPro(user.role) && (
         <Link to="/compte/validation" className="mt-4 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
