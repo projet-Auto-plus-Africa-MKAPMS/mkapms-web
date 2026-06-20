@@ -1,11 +1,13 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Shield, Users, FileText, BarChart3, Bell, Settings, Globe, Lock, ChevronRight, Car, Home, Wrench, Truck, Package, Euro, Megaphone, Calculator, UserCheck } from "lucide-react";
 const STATS = [
-  { l: "Utilisateurs", v: "12 450", color: "#D4AF37" }, { l: "Annonces", v: "8 320", color: "#10B981" },
-  { l: "Locations", v: "1 840", color: "#3B82F6" }, { l: "Ventes", v: "3 210", color: "#8B5CF6" },
-  { l: "Garages", v: "142", color: "#F59E0B" }, { l: "Démarches", v: "2 890", color: "#EF4444" },
-  { l: "Pièces", v: "15 200", color: "#14B8A6" },
+  { l: "Utilisateurs", v: "12 450", color: "#D4AF37", to: "/superadmin/admin-utilisateurs" },
+  { l: "Annonces", v: "8 320", color: "#10B981", to: "/superadmin/admin-moderation-annonces" },
+  { l: "Locations", v: "1 840", color: "#3B82F6", to: "/superadmin/admin-abonnements" },
+  { l: "Ventes", v: "3 210", color: "#8B5CF6", to: "/superadmin/admin-paiements" },
+  { l: "Garages", v: "142", color: "#F59E0B", to: "/superadmin/admin-comptes-pro" },
+  { l: "Démarches", v: "2 890", color: "#EF4444", to: "/superadmin/admin-journal" },
+  { l: "Pièces", v: "15 200", color: "#14B8A6", to: "/superadmin/admin-abonnements" },
 ];
 const SECTIONS = [
   { title: "Services", items: [
@@ -35,7 +37,7 @@ export default function SuperAdminDashboard() {
         </div>
       </div>
       <div className="px-4 -mt-3 relative z-10 grid grid-cols-4 gap-1.5 mb-4">
-        {STATS.map(s => (<div key={s.l} className="rounded-lg bg-white border border-[#E5E7EB] p-2 text-center shadow-sm"><p className="text-sm font-black" style={{ color: s.color }}>{s.v}</p><p className="text-[7px] text-[#6B7280] leading-tight">{s.l}</p></div>))}
+        {STATS.map(s => (<Link key={s.l} to={s.to} className="rounded-lg bg-white border border-[#E5E7EB] p-2 text-center shadow-sm hover:shadow-md active:scale-95 transition"><p className="text-sm font-black" style={{ color: s.color }}>{s.v}</p><p className="text-[7px] text-[#6B7280] leading-tight">{s.l}</p></Link>))}
       </div>
       {SECTIONS.map(sec => (
         <div key={sec.title} className="px-4 mb-4">

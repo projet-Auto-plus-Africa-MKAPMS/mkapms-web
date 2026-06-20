@@ -197,6 +197,15 @@ export default function AtelierPro() {
   const [tab, setTab] = useState<AtelierTab>("suivi");
   const [suiviFilter, setSuiviFilter] = useState<string>("tous");
   const [stockFilter, setStockFilter] = useState<string>("tous");
+  const [selectedVehicle, setSelectedVehicle] = useState<number | null>(null);
+  const [selectedPlanning, setSelectedPlanning] = useState<number | null>(null);
+  const [selectedOrdre, setSelectedOrdre] = useState<number | null>(null);
+  const [selectedEmploye, setSelectedEmploye] = useState<number | null>(null);
+  const [selectedStock, setSelectedStock] = useState<number | null>(null);
+  const [selectedDevis, setSelectedDevis] = useState<number | null>(null);
+  const [selectedFacture, setSelectedFacture] = useState<number | null>(null);
+  const [selectedClient, setSelectedClient] = useState<number | null>(null);
+  const [selectedVehAtelier, setSelectedVehAtelier] = useState<number | null>(null);
 
   const alertesStock = STOCK_MAGASIN.filter((s) => s.alerteRupture).length;
 
@@ -208,19 +217,19 @@ export default function AtelierPro() {
         <h1 className="text-xl font-black text-white flex items-center gap-2"><Wrench size={20} className="text-[#D4AF37]" /> Atelier Pro</h1>
         <p className="mt-0.5 text-sm text-white/60">Gestion complete de l'atelier, suivi temps reel, stock, catalogue</p>
 
-        {/* Stats rapides */}
+        {/* Stats rapides (cliquables) */}
         <div className="mt-3 grid grid-cols-5 gap-1.5">
           {[
-            { label: "Recus", val: String(SUIVI_DATA.filter((s) => s.statut === "recu").length), color: "text-blue-400" },
-            { label: "En cours", val: String(SUIVI_DATA.filter((s) => ["diagnostic", "reparation", "pieces_commandees"].includes(s.statut)).length), color: "text-orange-400" },
-            { label: "Prets", val: String(SUIVI_DATA.filter((s) => s.statut === "pret").length), color: "text-green-400" },
-            { label: "Livres", val: String(SUIVI_DATA.filter((s) => s.statut === "livre").length), color: "text-slate-400" },
-            { label: "Alertes", val: String(alertesStock), color: "text-red-400" },
+            { label: "Recus", val: String(SUIVI_DATA.filter((s) => s.statut === "recu").length), color: "text-blue-400", filter: "recu" },
+            { label: "En cours", val: String(SUIVI_DATA.filter((s) => ["diagnostic", "reparation", "pieces_commandees"].includes(s.statut)).length), color: "text-orange-400", filter: "reparation" },
+            { label: "Prets", val: String(SUIVI_DATA.filter((s) => s.statut === "pret").length), color: "text-green-400", filter: "pret" },
+            { label: "Livres", val: String(SUIVI_DATA.filter((s) => s.statut === "livre").length), color: "text-slate-400", filter: "livre" },
+            { label: "Alertes", val: String(alertesStock), color: "text-red-400", filter: "stock_alert" },
           ].map((s) => (
-            <div key={s.label} className="rounded-lg bg-white/5 p-2 text-center">
+            <button key={s.label} onClick={() => { if (s.filter === "stock_alert") { setTab("stock"); } else { setTab("suivi"); setSuiviFilter(s.filter); } }} className="rounded-lg bg-white/5 p-2 text-center hover:bg-white/10 transition cursor-pointer">
               <p className={`text-lg font-black ${s.color}`}>{s.val}</p>
               <p className="text-[8px] text-white/50">{s.label}</p>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -263,46 +272,61 @@ export default function AtelierPro() {
             {(suiviFilter === "tous" ? SUIVI_DATA : SUIVI_DATA.filter((s) => s.statut === suiviFilter)).map((v) => {
               const st = STATUTS_INTERVENTION.find((s) => s.id === v.statut)!;
               const stepIndex = STATUTS_INTERVENTION.findIndex((s) => s.id === v.statut);
+              const isExpanded = selectedVehicle === v.id;
               return (
-                <div key={v.id} className={`rounded-xl bg-white border-l-4 border ${st.color.replace("bg-", "border-")} border-r-[#E5E7EB] border-t-[#E5E7EB] border-b-[#E5E7EB] p-4`}>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-bold text-[#111]">{v.vehicule}</p>
-                      <p className="text-xs text-slate-500">{v.plaque} — {v.client}</p>
-                    </div>
-                    <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-bold ${st.bgLight} ${st.textColor}`}>{st.label}</span>
-                  </div>
-                  <p className="text-xs text-slate-400 mt-1">{v.travaux}</p>
-
-                  {/* Barre de progression */}
-                  <div className="mt-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] text-slate-400">Progression</span>
-                      <span className="text-[10px] font-bold text-[#111]">{v.progression}%</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                      <div className={`h-full rounded-full ${st.color} transition-all`} style={{ width: `${v.progression}%` }} />
-                    </div>
-                  </div>
-
-                  {/* Etapes timeline */}
-                  <div className="mt-3 flex items-center gap-0.5">
-                    {STATUTS_INTERVENTION.map((s, i) => (
-                      <div key={s.id} className="flex-1 flex flex-col items-center">
-                        <div className={`h-1.5 w-full rounded-full ${i <= stepIndex ? s.color : "bg-slate-200"}`} />
-                        <span className={`mt-0.5 text-[7px] ${i <= stepIndex ? "text-[#111] font-bold" : "text-slate-300"}`}>{s.label.split(" ").pop()}</span>
+                <div key={v.id} className={`rounded-xl bg-white border-l-4 border ${st.color.replace("bg-", "border-")} border-r-[#E5E7EB] border-t-[#E5E7EB] border-b-[#E5E7EB] overflow-hidden transition-all`}>
+                  <button onClick={() => setSelectedVehicle(isExpanded ? null : v.id)} className="w-full text-left p-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-[#111]">{v.vehicule}</p>
+                        <p className="text-xs text-slate-500">{v.plaque} — {v.client}</p>
                       </div>
-                    ))}
-                  </div>
+                      <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-bold ${st.bgLight} ${st.textColor}`}>{st.label}</span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">{v.travaux}</p>
 
-                  {/* Actions */}
-                  <div className="mt-3 flex items-center gap-2 text-[10px]">
-                    <span className="text-slate-400">Tech: {v.tech}</span>
-                    <span className="text-slate-400">Entree: {v.dateEntree}</span>
-                    <div className="flex-1" />
-                    <button className="rounded-lg bg-[#D4AF37] px-2.5 py-1 text-[10px] font-bold text-white">Changer statut</button>
-                    <button className="rounded-lg bg-[#F5F3EF] px-2.5 py-1 text-[10px] font-bold text-slate-500">Notifier client</button>
-                  </div>
+                    {/* Barre de progression */}
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] text-slate-400">Progression</span>
+                        <span className="text-[10px] font-bold text-[#111]">{v.progression}%</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                        <div className={`h-full rounded-full ${st.color} transition-all`} style={{ width: `${v.progression}%` }} />
+                      </div>
+                    </div>
+
+                    {/* Etapes timeline */}
+                    <div className="mt-3 flex items-center gap-0.5">
+                      {STATUTS_INTERVENTION.map((s, i) => (
+                        <div key={s.id} className="flex-1 flex flex-col items-center">
+                          <div className={`h-1.5 w-full rounded-full ${i <= stepIndex ? s.color : "bg-slate-200"}`} />
+                          <span className={`mt-0.5 text-[7px] ${i <= stepIndex ? "text-[#111] font-bold" : "text-slate-300"}`}>{s.label.split(" ").pop()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </button>
+
+                  {/* Detail panel (expanded) */}
+                  {isExpanded && (
+                    <div className="px-4 pb-4 border-t border-[#E5E7EB] pt-3 space-y-3">
+                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Technicien</span><p className="font-bold text-[#111]">{v.tech}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Date entree</span><p className="font-bold text-[#111]">{v.dateEntree}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Telephone client</span><p className="font-bold text-[#111]">{v.tel}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Progression</span><p className="font-bold text-[#111]">{v.progression}%</p></div>
+                      </div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2 text-[10px]">
+                        <span className="text-slate-400">Travaux</span>
+                        <p className="font-bold text-[#111] mt-0.5">{v.travaux}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-2 text-[10px] font-bold text-white text-center">Changer statut</button>
+                        <button className="flex-1 rounded-lg bg-blue-500 py-2 text-[10px] font-bold text-white text-center">Notifier client</button>
+                        <a href={`tel:${v.tel}`} className="flex-1 rounded-lg bg-green-500 py-2 text-[10px] font-bold text-white text-center">Appeler</a>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -316,24 +340,44 @@ export default function AtelierPro() {
               <h2 className="text-sm font-bold text-[#111]">Planning du jour — Lundi 9 Juin 2025</h2>
               <button className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={12} /> RDV</button>
             </div>
-            {PLANNING_SLOTS.map((s) => (
-              <div key={s.id} className={`rounded-xl bg-white border p-3 ${s.statut === "en_cours" ? "border-green-300" : s.statut === "attente" ? "border-amber-200" : "border-[#E5E7EB]"}`}>
-                <div className="flex items-center gap-3">
-                  <div className="text-center shrink-0 w-14">
-                    <p className="text-sm font-black text-[#111]">{s.heure}</p>
-                    <p className="text-[9px] text-slate-400">{s.duree}</p>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-[#111] truncate">{s.vehicule}</p>
-                    <p className="text-[11px] text-slate-500">{s.plaque} — {s.travail}</p>
-                    <p className="text-[10px] text-slate-400">Tech: {s.tech}</p>
-                  </div>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold ${s.statut === "en_cours" ? "bg-green-50 text-green-700" : s.statut === "attente" ? "bg-amber-50 text-amber-700" : "bg-slate-50 text-slate-600"}`}>
-                    {s.statut === "en_cours" ? "En cours" : s.statut === "attente" ? "Attente" : "Planifie"}
-                  </span>
+            {PLANNING_SLOTS.map((s) => {
+              const isExp = selectedPlanning === s.id;
+              return (
+                <div key={s.id} className={`rounded-xl bg-white border overflow-hidden ${s.statut === "en_cours" ? "border-green-300" : s.statut === "attente" ? "border-amber-200" : "border-[#E5E7EB]"}`}>
+                  <button onClick={() => setSelectedPlanning(isExp ? null : s.id)} className="w-full text-left p-3">
+                    <div className="flex items-center gap-3">
+                      <div className="text-center shrink-0 w-14">
+                        <p className="text-sm font-black text-[#111]">{s.heure}</p>
+                        <p className="text-[9px] text-slate-400">{s.duree}</p>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-[#111] truncate">{s.vehicule}</p>
+                        <p className="text-[11px] text-slate-500">{s.plaque} — {s.travail}</p>
+                        <p className="text-[10px] text-slate-400">Tech: {s.tech}</p>
+                      </div>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold ${s.statut === "en_cours" ? "bg-green-50 text-green-700" : s.statut === "attente" ? "bg-amber-50 text-amber-700" : "bg-slate-50 text-slate-600"}`}>
+                        {s.statut === "en_cours" ? "En cours" : s.statut === "attente" ? "Attente" : "Planifie"}
+                      </span>
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Vehicule</span><p className="font-bold text-[#111]">{s.vehicule}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Plaque</span><p className="font-bold text-[#111]">{s.plaque}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Travail</span><p className="font-bold text-[#111]">{s.travail}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Duree estimee</span><p className="font-bold text-[#111]">{s.duree}</p></div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Modifier RDV</button>
+                        <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Demarrer</button>
+                        <button className="flex-1 rounded-lg bg-red-50 py-1.5 text-[10px] font-bold text-red-600">Annuler</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -451,59 +495,87 @@ export default function AtelierPro() {
             </div>
 
             {/* Fiches employes */}
-            {EMPLOYES.map((e) => (
-              <div key={e.id} className={`rounded-xl bg-white border p-4 ${e.statut === "actif" ? "border-green-200" : e.statut === "pause" ? "border-amber-200" : "border-red-200"}`}>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-[#111] flex items-center gap-2">
-                      {e.nom}
-                      <span className={`rounded-full px-2 py-0.5 text-[8px] font-bold ${e.statut === "actif" ? "bg-green-50 text-green-700" : e.statut === "pause" ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>
-                        {e.statut === "actif" ? "Actif" : e.statut === "pause" ? "Pause" : "Absent"}
-                      </span>
-                    </p>
-                    <p className="text-xs text-slate-500">{e.role} — {e.specialite}</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-center gap-1">
-                      <BarChart3 size={12} className="text-[#D4AF37]" />
-                      <span className={`text-sm font-bold ${e.productivite >= 90 ? "text-green-600" : e.productivite >= 75 ? "text-amber-600" : "text-red-600"}`}>{e.productivite}%</span>
+            {EMPLOYES.map((e) => {
+              const isExp = selectedEmploye === e.id;
+              return (
+                <div key={e.id} className={`rounded-xl bg-white border overflow-hidden ${e.statut === "actif" ? "border-green-200" : e.statut === "pause" ? "border-amber-200" : "border-red-200"}`}>
+                  <button onClick={() => setSelectedEmploye(isExp ? null : e.id)} className="w-full text-left p-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-[#111] flex items-center gap-2">
+                          {e.nom}
+                          <span className={`rounded-full px-2 py-0.5 text-[8px] font-bold ${e.statut === "actif" ? "bg-green-50 text-green-700" : e.statut === "pause" ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>
+                            {e.statut === "actif" ? "Actif" : e.statut === "pause" ? "Pause" : "Absent"}
+                          </span>
+                        </p>
+                        <p className="text-xs text-slate-500">{e.role} — {e.specialite}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center gap-1">
+                          <BarChart3 size={12} className="text-[#D4AF37]" />
+                          <span className={`text-sm font-bold ${e.productivite >= 90 ? "text-green-600" : e.productivite >= 75 ? "text-amber-600" : "text-red-600"}`}>{e.productivite}%</span>
+                        </div>
+                        <p className="text-[9px] text-slate-400">productivite</p>
+                      </div>
                     </div>
-                    <p className="text-[9px] text-slate-400">productivite</p>
-                  </div>
-                </div>
 
-                {/* Vehicule actuel */}
-                {e.vehiculeActuel && (
-                  <div className="mt-2 rounded-lg bg-green-50 p-2 flex items-center gap-2">
-                    <Car size={14} className="text-green-600" />
-                    <div>
-                      <p className="text-xs font-bold text-green-700">{e.vehiculeActuel} ({e.plaqueActuel})</p>
-                      <p className="text-[10px] text-green-600">{e.tacheActuelle}</p>
+                    {/* Vehicule actuel */}
+                    {e.vehiculeActuel && (
+                      <div className="mt-2 rounded-lg bg-green-50 p-2 flex items-center gap-2">
+                        <Car size={14} className="text-green-600" />
+                        <div>
+                          <p className="text-xs font-bold text-green-700">{e.vehiculeActuel} ({e.plaqueActuel})</p>
+                          <p className="text-[10px] text-green-600">{e.tacheActuelle}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Stats */}
+                    <div className="mt-2 grid grid-cols-4 gap-2 text-center text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-1.5">
+                        <p className="font-bold text-[#111]">{e.vehiculesJour}</p>
+                        <p className="text-slate-400">Vehicules/j</p>
+                      </div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-1.5">
+                        <p className="font-bold text-[#111]">{e.vehiculesSemaine}</p>
+                        <p className="text-slate-400">Vehicules/sem</p>
+                      </div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-1.5">
+                        <p className="font-bold text-[#111]">{e.heuresJour}</p>
+                        <p className="text-slate-400">Heures/j</p>
+                      </div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-1.5">
+                        <p className="font-bold text-[#111]">{e.heuresSemaine}</p>
+                        <p className="text-slate-400">Heures/sem</p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  </button>
 
-                {/* Stats */}
-                <div className="mt-2 grid grid-cols-4 gap-2 text-center text-[10px]">
-                  <div className="rounded-lg bg-[#F5F3EF] p-1.5">
-                    <p className="font-bold text-[#111]">{e.vehiculesJour}</p>
-                    <p className="text-slate-400">Vehicules/j</p>
-                  </div>
-                  <div className="rounded-lg bg-[#F5F3EF] p-1.5">
-                    <p className="font-bold text-[#111]">{e.vehiculesSemaine}</p>
-                    <p className="text-slate-400">Vehicules/sem</p>
-                  </div>
-                  <div className="rounded-lg bg-[#F5F3EF] p-1.5">
-                    <p className="font-bold text-[#111]">{e.heuresJour}</p>
-                    <p className="text-slate-400">Heures/j</p>
-                  </div>
-                  <div className="rounded-lg bg-[#F5F3EF] p-1.5">
-                    <p className="font-bold text-[#111]">{e.heuresSemaine}</p>
-                    <p className="text-slate-400">Heures/sem</p>
-                  </div>
+                  {/* Detail panel */}
+                  {isExp && (
+                    <div className="px-4 pb-4 border-t border-[#E5E7EB] pt-3 space-y-2">
+                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Role</span><p className="font-bold text-[#111]">{e.role}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Specialite</span><p className="font-bold text-[#111]">{e.specialite}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Productivite</span><p className="font-bold text-[#111]">{e.productivite}%</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Statut</span><p className="font-bold text-[#111]">{e.statut}</p></div>
+                      </div>
+                      {e.vehiculeActuel && (
+                        <div className="rounded-lg bg-green-50 border border-green-200 p-2 text-[10px]">
+                          <p className="font-bold text-green-700">En cours : {e.vehiculeActuel} ({e.plaqueActuel})</p>
+                          <p className="text-green-600">{e.tacheActuelle}</p>
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Modifier</button>
+                        <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Historique</button>
+                        <button className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">Planning</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -547,32 +619,44 @@ export default function AtelierPro() {
             </div>
 
             {/* Liste stock */}
-            {(stockFilter === "tous" ? STOCK_MAGASIN : STOCK_MAGASIN.filter((s) => s.categorie === stockFilter)).map((s) => (
-              <div key={s.id} className={`rounded-xl bg-white border p-3 ${s.alerteRupture ? "border-red-300" : "border-[#E5E7EB]"}`}>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-[#111]">{s.nom}</p>
-                    <p className="text-[10px] text-slate-400">{s.ref} — {s.categorie}</p>
-                    <p className="text-[10px] text-slate-400">Fournisseur: {s.fournisseur}</p>
-                    <p className="text-[10px] text-slate-400">{s.dernierMouvement}</p>
-                  </div>
-                  <div className="text-right shrink-0 ml-2">
-                    <div className="flex items-center gap-1">
-                      <span className={`text-sm font-bold ${s.alerteRupture ? "text-red-600" : s.qteActuelle <= s.qteMinimum ? "text-amber-600" : "text-green-600"}`}>{s.qteActuelle}</span>
-                      <span className="text-[10px] text-slate-400">/ min {s.qteMinimum}</span>
+            {(stockFilter === "tous" ? STOCK_MAGASIN : STOCK_MAGASIN.filter((s) => s.categorie === stockFilter)).map((s) => {
+              const isExp = selectedStock === s.id;
+              return (
+                <div key={s.id} className={`rounded-xl bg-white border overflow-hidden ${s.alerteRupture ? "border-red-300" : "border-[#E5E7EB]"}`}>
+                  <button onClick={() => setSelectedStock(isExp ? null : s.id)} className="w-full text-left p-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-[#111]">{s.nom}</p>
+                        <p className="text-[10px] text-slate-400">{s.ref} — {s.categorie}</p>
+                      </div>
+                      <div className="text-right shrink-0 ml-2">
+                        <div className="flex items-center gap-1">
+                          <span className={`text-sm font-bold ${s.alerteRupture ? "text-red-600" : s.qteActuelle <= s.qteMinimum ? "text-amber-600" : "text-green-600"}`}>{s.qteActuelle}</span>
+                          <span className="text-[10px] text-slate-400">/ min {s.qteMinimum}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] text-slate-400 mt-0.5">
-                      <span>Achat: {s.prixAchat}</span>
-                      <span>Vente: {s.prixVente}</span>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Reference</span><p className="font-bold text-[#111]">{s.ref}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Categorie</span><p className="font-bold text-[#111]">{s.categorie}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Prix achat</span><p className="font-bold text-[#111]">{s.prixAchat}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Prix vente</span><p className="font-bold text-[#111]">{s.prixVente}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Fournisseur</span><p className="font-bold text-[#111]">{s.fournisseur}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Dernier mouvement</span><p className="font-bold text-[#111]">{s.dernierMouvement}</p></div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><ArrowDown size={10} /> Entree</button>
+                        <button className="flex-1 rounded-lg bg-red-500 py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><ArrowUp size={10} /> Sortie</button>
+                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Commander</button>
+                      </div>
                     </div>
-                    <div className="mt-1 flex gap-1">
-                      <button className="rounded bg-green-50 px-1.5 py-0.5 text-[9px] font-bold text-green-700 flex items-center gap-0.5"><ArrowDown size={8} /> Entree</button>
-                      <button className="rounded bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-700 flex items-center gap-0.5"><ArrowUp size={8} /> Sortie</button>
-                    </div>
-                  </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -583,46 +667,87 @@ export default function AtelierPro() {
               <h2 className="text-sm font-bold text-[#111]">Devis atelier</h2>
               <button className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={12} /> Nouveau devis</button>
             </div>
-            {DEVIS_ATELIER.map((d) => (
-              <div key={d.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-slate-400">{d.ref}</p>
-                    <p className="text-sm font-bold text-[#111]">{d.vehicule} <span className="text-slate-400 font-normal">({d.plaque})</span></p>
-                    <p className="text-xs text-slate-500">{d.objet}</p>
-                    <p className="text-[10px] text-slate-400">Client: {d.client} — {d.date}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-[#D4AF37]">{d.montant}</p>
-                    <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${d.statut === "accepte" ? "bg-green-50 text-green-700" : d.statut === "refuse" ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700"}`}>
-                      {d.statut === "accepte" ? "Accepte" : d.statut === "refuse" ? "Refuse" : "Envoye"}
-                    </span>
-                  </div>
+            {DEVIS_ATELIER.map((d) => {
+              const isExp = selectedDevis === d.id;
+              return (
+                <div key={d.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setSelectedDevis(isExp ? null : d.id)} className="w-full text-left p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-slate-400">{d.ref}</p>
+                        <p className="text-sm font-bold text-[#111]">{d.vehicule} <span className="text-slate-400 font-normal">({d.plaque})</span></p>
+                        <p className="text-xs text-slate-500">{d.objet}</p>
+                        <p className="text-[10px] text-slate-400">Client: {d.client} — {d.date}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-[#D4AF37]">{d.montant}</p>
+                        <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${d.statut === "accepte" ? "bg-green-50 text-green-700" : d.statut === "refuse" ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700"}`}>
+                          {d.statut === "accepte" ? "Accepte" : d.statut === "refuse" ? "Refuse" : "Envoye"}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Vehicule</span><p className="font-bold text-[#111]">{d.vehicule}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Plaque</span><p className="font-bold text-[#111]">{d.plaque}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Client</span><p className="font-bold text-[#111]">{d.client}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Date</span><p className="font-bold text-[#111]">{d.date}</p></div>
+                        <div className="col-span-2 rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Objet</span><p className="font-bold text-[#111]">{d.objet}</p></div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Modifier</button>
+                        <button className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white">Accepter</button>
+                        <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Envoyer</button>
+                        <button className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">PDF</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
         {/* ━━━━━ FACTURES ━━━━━ */}
         {tab === "factures" && (
           <div className="space-y-2">
-            {FACTURES_ATELIER.map((f) => (
-              <div key={f.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-400">{f.ref}</p>
-                  <p className="text-sm font-bold text-[#111]">{f.vehicule}</p>
-                  <p className="text-[10px] text-slate-400">{f.client} — {f.date}</p>
+            {FACTURES_ATELIER.map((f) => {
+              const isExp = selectedFacture === f.id;
+              return (
+                <div key={f.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setSelectedFacture(isExp ? null : f.id)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-slate-400">{f.ref}</p>
+                      <p className="text-sm font-bold text-[#111]">{f.vehicule}</p>
+                      <p className="text-[10px] text-slate-400">{f.client} — {f.date}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-[#D4AF37]">{f.montant}</p>
+                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${f.statut === "payee" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{f.statut === "payee" ? "Payee" : "En attente"}</span>
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Reference</span><p className="font-bold text-[#111]">{f.ref}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Vehicule</span><p className="font-bold text-[#111]">{f.vehicule}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Client</span><p className="font-bold text-[#111]">{f.client}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Date</span><p className="font-bold text-[#111]">{f.date}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Montant</span><p className="font-bold text-[#D4AF37]">{f.montant}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Statut</span><p className={`font-bold ${f.statut === "payee" ? "text-green-700" : "text-amber-700"}`}>{f.statut === "payee" ? "Payee" : "En attente"}</p></div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Download size={10} /> Telecharger PDF</button>
+                        <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Relancer paiement</button>
+                        <button className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">Dupliquer</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-[#D4AF37]">{f.montant}</p>
-                    <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${f.statut === "payee" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{f.statut === "payee" ? "Payee" : "En attente"}</span>
-                  </div>
-                  <button className="rounded-lg bg-[#F5F3EF] p-1.5"><Download size={14} className="text-slate-500" /></button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -633,21 +758,39 @@ export default function AtelierPro() {
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input type="text" placeholder="Rechercher un client..." className="w-full rounded-xl border border-[#E5E7EB] bg-white pl-9 pr-3 py-2.5 text-sm" />
             </div>
-            {CLIENTS_ATELIER.map((c) => (
-              <div key={c.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-[#111]">{c.nom}</p>
-                    <p className="text-xs text-slate-500">{c.vehicules} vehicule{c.vehicules > 1 ? "s" : ""} — {c.visites} visites</p>
-                    <p className="text-[10px] text-slate-400">Derniere: {c.derniere} — Total: {c.total}</p>
-                  </div>
-                  <div className="flex gap-1">
-                    <a href={`tel:${c.tel}`} className="rounded-lg bg-green-50 p-2"><Phone size={14} className="text-green-600" /></a>
-                    <button className="rounded-lg bg-[#F5F3EF] p-2"><Eye size={14} className="text-slate-500" /></button>
-                  </div>
+            {CLIENTS_ATELIER.map((c) => {
+              const isExp = selectedClient === c.id;
+              return (
+                <div key={c.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setSelectedClient(isExp ? null : c.id)} className="w-full text-left p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-[#111]">{c.nom}</p>
+                        <p className="text-xs text-slate-500">{c.vehicules} vehicule{c.vehicules > 1 ? "s" : ""} — {c.visites} visites</p>
+                        <p className="text-[10px] text-slate-400">Derniere: {c.derniere} — Total: {c.total}</p>
+                      </div>
+                      <ChevronRight size={14} className={`text-slate-400 transition ${isExp ? "rotate-90" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Telephone</span><p className="font-bold text-[#111]">{c.tel}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Vehicules</span><p className="font-bold text-[#111]">{c.vehicules}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Visites total</span><p className="font-bold text-[#111]">{c.visites}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">CA total</span><p className="font-bold text-[#D4AF37]">{c.total}</p></div>
+                        <div className="col-span-2 rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Derniere visite</span><p className="font-bold text-[#111]">{c.derniere}</p></div>
+                      </div>
+                      <div className="flex gap-2">
+                        <a href={`tel:${c.tel}`} className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white text-center">Appeler</a>
+                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Historique</button>
+                        <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Nouveau devis</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -658,21 +801,42 @@ export default function AtelierPro() {
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input type="text" placeholder="Rechercher par plaque, VIN, marque..." className="w-full rounded-xl border border-[#E5E7EB] bg-white pl-9 pr-3 py-2.5 text-sm" />
             </div>
-            {VEHICULES_ATELIER.map((v) => (
-              <div key={v.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-[#111]">{v.marque} {v.modele}</p>
-                    <p className="text-xs text-slate-500">{v.plaque} — {v.annee} — {v.km} km</p>
-                    <p className="text-[10px] text-slate-400">Client: {v.client} — VIN: {v.vin.slice(0, 11)}...</p>
-                  </div>
-                  <div className="flex gap-1">
-                    <Link to="/catalogue-technique" className="rounded-lg bg-[#D4AF37]/10 p-2"><Search size={14} className="text-[#D4AF37]" /></Link>
-                    <button className="rounded-lg bg-[#F5F3EF] p-2"><Eye size={14} className="text-slate-500" /></button>
-                  </div>
+            {VEHICULES_ATELIER.map((v) => {
+              const isExp = selectedVehAtelier === v.id;
+              return (
+                <div key={v.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setSelectedVehAtelier(isExp ? null : v.id)} className="w-full text-left p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-[#111]">{v.marque} {v.modele}</p>
+                        <p className="text-xs text-slate-500">{v.plaque} — {v.annee} — {v.km} km</p>
+                        <p className="text-[10px] text-slate-400">Client: {v.client} — VIN: {v.vin.slice(0, 11)}...</p>
+                      </div>
+                      <ChevronRight size={14} className={`text-slate-400 transition ${isExp ? "rotate-90" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
+                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Marque</span><p className="font-bold text-[#111]">{v.marque}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Modele</span><p className="font-bold text-[#111]">{v.modele}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Plaque</span><p className="font-bold text-[#111]">{v.plaque}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Annee</span><p className="font-bold text-[#111]">{v.annee}</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Kilometrage</span><p className="font-bold text-[#111]">{v.km} km</p></div>
+                        <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Client</span><p className="font-bold text-[#111]">{v.client}</p></div>
+                        <div className="col-span-2 rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">VIN complet</span><p className="font-bold text-[#111]">{v.vin}</p></div>
+                        <div className="col-span-2 rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Derniere visite</span><p className="font-bold text-[#111]">{v.derniereVisite}</p></div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Link to="/catalogue-technique" className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white text-center">Catalogue technique</Link>
+                        <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Historique</button>
+                        <button className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white">Nouveau devis</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

@@ -145,6 +145,7 @@ export default function Admin() {
   const [ticketReply, setTicketReply] = useState<Record<number, string>>({});
   const [selectedAnnonce, setSelectedAnnonce] = useState<any>(null);
   const [editingAnnonce, setEditingAnnonce] = useState<any>(null);
+  const [adminTab, setAdminTab] = useState<"backoffice" | "superadmin" | "direction">("backoffice");
   const navigate = useNavigate();
 
   if (!enabled) {
@@ -177,15 +178,34 @@ export default function Admin() {
         </span>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-6">
-        {cards.map((c) => (
-          <div key={c.l} className="card p-4 text-center">
-            <div className="text-2xl font-extrabold text-noir">{c.v ?? "—"}</div>
-            <div className="text-xs text-slate-500">{c.l}</div>
-          </div>
+      {/* Onglets : Back-office / Super Admin / Administrateur Directeur */}
+      <div className="mt-4 flex gap-1 border-b border-slate-200 pb-0">
+        {([
+          { id: "backoffice" as const, label: "Back-office" },
+          { id: "superadmin" as const, label: "Super Admin" },
+          { id: "direction" as const, label: "Administrateur / Directeur" },
+        ]).map(t => (
+          <button
+            key={t.id}
+            onClick={() => setAdminTab(t.id)}
+            className={`px-4 py-2.5 text-sm font-bold rounded-t-lg transition ${adminTab === t.id ? "bg-[#111] text-[#D4AF37] border border-b-0 border-[#D4AF37]/30" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"}`}
+          >
+            {t.label}
+          </button>
         ))}
       </div>
 
+      <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-6">
+        {cards.map((c) => (
+          <button key={c.l} onClick={() => setAdminTab("backoffice")} className="card p-4 text-center cursor-pointer hover:shadow-md active:scale-[0.97] transition">
+            <div className="text-2xl font-extrabold text-noir">{c.v ?? "—"}</div>
+            <div className="text-xs text-slate-500">{c.l}</div>
+          </button>
+        ))}
+      </div>
+
+      {/* ═══════ ONGLET DIRECTION / PDG ═══════ */}
+      {adminTab === "direction" && (<>
       {/* Centre de commandement PDG (Parties 13 & 16) — tout en un écran */}
       <section className="mt-8">
         <h2 className="text-lg font-bold text-slate-800">Centre de commandement PDG <span className="text-xs font-normal text-gold-dark">(temps réel)</span></h2>
@@ -212,10 +232,10 @@ export default function Admin() {
             { l: "KYC à vérifier", v: dashboard.data?.kycEnAttente, alert: !!dashboard.data?.kycEnAttente },
             { l: "Annonces à valider", v: dashboard.data?.annoncesEnAttente, alert: !!dashboard.data?.annoncesEnAttente },
           ].map((c) => (
-            <div key={c.l} className={`card p-4 text-center ${c.alert ? "ring-1 ring-amber-300" : ""}`}>
+            <button key={c.l} onClick={() => { if (c.alert) { setAdminTab("backoffice"); } }} className={`card p-4 text-center cursor-pointer hover:shadow-md active:scale-[0.97] transition ${c.alert ? "ring-1 ring-amber-300" : ""}`}>
               <div className={`text-xl font-extrabold ${c.alert ? "text-amber-600" : "text-slate-900"}`}>{c.v ?? "—"}</div>
               <div className="text-xs text-slate-500">{c.l}</div>
-            </div>
+            </button>
           ))}
         </div>
           );
@@ -293,6 +313,10 @@ export default function Admin() {
         )}
       </section>
 
+      </>)}
+
+      {/* ═══════ ONGLET BACK-OFFICE ═══════ */}
+      {adminTab === "backoffice" && (<>
       {/* Centre de litiges (Partie 8) */}
       <section className="mt-10">
         <h2 className="text-lg font-bold text-slate-800">Centre de litiges</h2>
@@ -526,8 +550,10 @@ export default function Admin() {
         </div>
       </section>
 
-      {/* ===== Zone Direction (PDG) ===== */}
-      {direction && (
+      </>)}
+
+      {/* ═══════ ONGLET ADMINISTRATEUR / DIRECTEUR ═══════ */}
+      {adminTab === "direction" && direction && (
         <>
           {/* Demandes de suppression à approuver */}
           <section className="mt-12 border-t border-slate-200 pt-8">
@@ -628,6 +654,12 @@ export default function Admin() {
             </div>
           </section>
 
+        </>
+      )}
+
+      {/* ═══════ ONGLET SUPER ADMIN ═══════ */}
+      {adminTab === "superadmin" && direction && (
+        <>
           {/* Centre de contrôle des modules (Partie 6 §7) */}
           <section className="mt-10">
             <h2 className="text-lg font-bold text-slate-800">Centre de contrôle des modules <span className="text-xs font-normal text-gold-dark">(Super Admin)</span></h2>
