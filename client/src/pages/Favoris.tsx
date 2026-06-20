@@ -97,36 +97,30 @@ export default function Favoris() {
         })}
       </div>
 
-      {/* Liste des favoris */}
-      <div className="px-4 mt-4 space-y-3">
+      {/* Liste des favoris — grille 2 colonnes */}
+      <div className="px-4 mt-4 grid grid-cols-2 gap-2">
         {filtered.map((f) => {
           const cfg = UNIVERS_CONFIG[f.univers];
           return (
             <div key={f.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-              <div className="relative h-[150px]">
+              <div className="relative h-[100px]">
                 <img src={f.photo} alt={f.nom} className="w-full h-full object-cover" loading="lazy" />
-                <span className={`absolute top-2 left-2 rounded-full px-2.5 py-0.5 text-[9px] font-bold ${cfg.color}`}>{cfg.label}</span>
-                <button onClick={() => remove(f.id)} className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 backdrop-blur">
-                  <Heart size={16} className="text-red-500 fill-red-500" />
+                <span className={`absolute top-1.5 left-1.5 rounded-full px-2 py-0.5 text-[8px] font-bold ${cfg.color}`}>{cfg.label}</span>
+                <button onClick={() => remove(f.id)} className="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white/80 backdrop-blur">
+                  <Heart size={12} className="text-red-500 fill-red-500" />
                 </button>
               </div>
-              <div className="p-4">
-                <h3 className="text-base font-bold text-[#111]">{f.nom}</h3>
-                <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-[#6B7280]">
-                  {f.details && <span className="flex items-center gap-1"><Gauge size={10} /> {f.details}</span>}
-                  {f.ville && <span className="flex items-center gap-1"><MapPin size={10} /> {f.ville}</span>}
-                  {f.note && <span className="flex items-center gap-1"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> {f.note}</span>}
+              <div className="p-2">
+                <h3 className="text-[11px] font-bold text-[#111] truncate">{f.nom}</h3>
+                <div className="mt-0.5 flex items-center gap-1 text-[9px] text-[#6B7280]">
+                  {f.ville && <span className="flex items-center gap-0.5"><MapPin size={8} /> {f.ville}</span>}
+                  {f.note && <span className="flex items-center gap-0.5 ml-auto"><Star size={8} className="text-[#D4AF37]" fill="#D4AF37" /> {f.note}</span>}
                 </div>
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="text-lg font-black text-[#D4AF37]">{f.prix}</span>
-                  <Link to={f.to} className="rounded-xl bg-[#D4AF37] px-5 py-2.5 text-sm font-bold text-white active:scale-[0.98] transition">
-                    Voir
-                  </Link>
+                <div className="mt-1.5 flex items-center justify-between">
+                  <span className="text-xs font-black text-[#D4AF37]">{f.prix}</span>
                 </div>
-                <div className="mt-2 flex items-center justify-between">
-                  <p className="text-[10px] text-[#9CA3AF] flex items-center gap-1"><Clock size={10} /> Ajout\u00e9 {f.ajouteLe}</p>
-                  <button onClick={() => remove(f.id)} className="text-[10px] text-red-400 hover:text-red-600 flex items-center gap-1"><Trash2 size={10} /> Retirer</button>
-                </div>
+                <Link to={f.to} className="mt-1.5 block w-full rounded-lg bg-[#D4AF37] py-1.5 text-center text-[9px] font-bold text-white active:scale-[0.98]">Voir</Link>
+                <button onClick={() => remove(f.id)} className="mt-1 w-full text-center text-[9px] text-red-400 flex items-center justify-center gap-0.5"><Trash2 size={9} /> Retirer</button>
               </div>
             </div>
           );
