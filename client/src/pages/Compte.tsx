@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Camera } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
@@ -102,10 +103,37 @@ export default function Compte() {
     ...baseTabs.slice(1),
   ];
 
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
+
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setProfilePhoto(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  }
+
   return (
     <div className="container-page py-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="flex items-center gap-4">
+          {/* Photo de profil cliquable */}
+          <button
+            onClick={() => photoRef.current?.click()}
+            className="relative shrink-0 h-16 w-16 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#111] flex items-center justify-center overflow-hidden border-2 border-[#D4AF37] hover:opacity-90 transition active:scale-95 group"
+          >
+            {profilePhoto ? (
+              <img src={profilePhoto} alt="Photo profil" className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-2xl font-black text-white">{user.name?.charAt(0)?.toUpperCase() || "U"}</span>
+            )}
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+              <Camera size={18} className="text-white" />
+            </div>
+          </button>
+          <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+          <div>
           <h1 className="text-2xl font-extrabold text-slate-900">Bonjour, {user.name?.split(" ")[0]}</h1>
           <p className="text-sm text-slate-500">
             {ROLE_LABELS[(user.role as UserRole)] || user.role}
@@ -119,6 +147,7 @@ export default function Compte() {
               Réf. compte : {(user as { reference?: string | null }).reference}
             </p>
           )}
+          </div>
         </div>
         <div className="flex gap-2">
           {isPro(user.role) && <Link to="/garage-plus" className="btn-outline">Espace Garage+</Link>}
@@ -549,9 +578,40 @@ function ProfilForm() {
     city: "",
     companyName: user?.companyName || "",
   });
+  const [profilPhoto, setProfilPhoto] = useState<string | null>(null);
+  const profilPhotoRef = useRef<HTMLInputElement>(null);
   const update = trpc.auth.updateProfile.useMutation({ onSuccess: (u) => setUser(u as any) });
+
+  function handleProfilPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setProfilPhoto(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  }
+
   return (
     <div className="card max-w-lg space-y-4 p-6">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => profilPhotoRef.current?.click()}
+          className="relative shrink-0 h-20 w-20 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#111] flex items-center justify-center overflow-hidden border-2 border-[#D4AF37] hover:opacity-90 transition active:scale-95 group"
+        >
+          {profilPhoto ? (
+            <img src={profilPhoto} alt="Photo profil" className="h-full w-full object-cover" />
+          ) : (
+            <span className="text-3xl font-black text-white">{user?.name?.charAt(0)?.toUpperCase() || "U"}</span>
+          )}
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+            <Camera size={20} className="text-white" />
+          </div>
+        </button>
+        <input ref={profilPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleProfilPhoto} />
+        <div>
+          <p className="text-sm font-bold text-[#111]">Photo de profil</p>
+          <button onClick={() => profilPhotoRef.current?.click()} className="text-xs text-[#D4AF37] font-semibold hover:underline">Changer la photo</button>
+        </div>
+      </div>
       <div><label className="label">Nom</label><input className="input" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} /></div>
       <div><label className="label">Téléphone</label><input className="input" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} /></div>
       <div><label className="label">Ville</label><input className="input" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} /></div>
