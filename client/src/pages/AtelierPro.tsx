@@ -213,6 +213,9 @@ export default function AtelierPro() {
   const [devisStatuts, setDevisStatuts] = useState<Record<number, string>>({});
   const [factureStatuts, setFactureStatuts] = useState<Record<number, string>>({});
   const [stockQtes, setStockQtes] = useState<Record<number, number>>({});
+  const [showNewVehicle, setShowNewVehicle] = useState(false);
+  const [newVehForm, setNewVehForm] = useState({ plaque: "", vin: "", marque: "", modele: "", annee: "", km: "", client: "", tel: "" });
+  const [extraVehicules, setExtraVehicules] = useState<typeof VEHICULES_ATELIER>([]);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
@@ -821,11 +824,42 @@ export default function AtelierPro() {
         {/* ━━━━━ VEHICULES ━━━━━ */}
         {tab === "vehicules" && (
           <div className="space-y-2">
-            <div className="relative mb-2">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input type="text" placeholder="Rechercher par plaque, VIN, marque..." className="w-full rounded-xl border border-[#E5E7EB] bg-white pl-9 pr-3 py-2.5 text-sm" />
+            <div className="flex gap-2 mb-2">
+              <div className="relative flex-1">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input type="text" placeholder="Rechercher par plaque, VIN, marque..." className="w-full rounded-xl border border-[#E5E7EB] bg-white pl-9 pr-3 py-2.5 text-sm" />
+              </div>
+              <button onClick={() => setShowNewVehicle(!showNewVehicle)} className="shrink-0 rounded-xl bg-[#D4AF37] px-4 py-2.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={14} /> Nouveau</button>
             </div>
-            {VEHICULES_ATELIER.map((v) => {
+
+            {showNewVehicle && (
+              <div className="rounded-xl bg-white border-2 border-[#D4AF37] p-4 space-y-3">
+                <h4 className="text-sm font-bold text-[#111] flex items-center gap-2"><Car size={16} className="text-[#D4AF37]" /> Enregistrer un nouveau vehicule</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <input placeholder="Plaque (ex: AB-123-CD)" value={newVehForm.plaque} onChange={(e) => setNewVehForm({ ...newVehForm, plaque: e.target.value.toUpperCase() })} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-xs bg-[#F5F3EF]" />
+                  <input placeholder="VIN (17 caracteres)" value={newVehForm.vin} onChange={(e) => setNewVehForm({ ...newVehForm, vin: e.target.value.toUpperCase() })} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-xs bg-[#F5F3EF]" />
+                  <input placeholder="Marque" value={newVehForm.marque} onChange={(e) => setNewVehForm({ ...newVehForm, marque: e.target.value })} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-xs bg-[#F5F3EF]" />
+                  <input placeholder="Modele" value={newVehForm.modele} onChange={(e) => setNewVehForm({ ...newVehForm, modele: e.target.value })} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-xs bg-[#F5F3EF]" />
+                  <input placeholder="Annee" type="number" value={newVehForm.annee} onChange={(e) => setNewVehForm({ ...newVehForm, annee: e.target.value })} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-xs bg-[#F5F3EF]" />
+                  <input placeholder="Kilometrage" type="number" value={newVehForm.km} onChange={(e) => setNewVehForm({ ...newVehForm, km: e.target.value })} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-xs bg-[#F5F3EF]" />
+                  <input placeholder="Nom du client" value={newVehForm.client} onChange={(e) => setNewVehForm({ ...newVehForm, client: e.target.value })} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-xs bg-[#F5F3EF]" />
+                  <input placeholder="Telephone client" value={newVehForm.tel} onChange={(e) => setNewVehForm({ ...newVehForm, tel: e.target.value })} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-xs bg-[#F5F3EF]" />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => {
+                    if (!newVehForm.plaque || !newVehForm.marque || !newVehForm.modele) { showToast("Plaque, marque et modele obligatoires"); return; }
+                    const nv = { id: 100 + extraVehicules.length, plaque: newVehForm.plaque, marque: newVehForm.marque, modele: newVehForm.modele, annee: newVehForm.annee || "2024", km: newVehForm.km || "0", vin: newVehForm.vin || "VIN-" + newVehForm.plaque, client: newVehForm.client || "—", derniereVisite: "Nouveau" };
+                    setExtraVehicules([nv, ...extraVehicules]);
+                    setNewVehForm({ plaque: "", vin: "", marque: "", modele: "", annee: "", km: "", client: "", tel: "" });
+                    setShowNewVehicle(false);
+                    showToast(`${newVehForm.marque} ${newVehForm.modele} (${newVehForm.plaque}) enregistre avec succes !`);
+                  }} className="flex-1 rounded-lg bg-[#D4AF37] py-2 text-xs font-bold text-white">Enregistrer le vehicule</button>
+                  <button onClick={() => setShowNewVehicle(false)} className="rounded-lg bg-slate-200 px-4 py-2 text-xs font-bold text-slate-600">Annuler</button>
+                </div>
+              </div>
+            )}
+
+            {[...extraVehicules, ...VEHICULES_ATELIER].map((v) => {
               const isExp = selectedVehAtelier === v.id;
               return (
                 <div key={v.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">

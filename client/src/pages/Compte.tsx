@@ -38,6 +38,7 @@ const ALL_SERVICES = [
   { label: "Moto & Scooter", to: "/acheter?type=moto", emoji: "\ud83c\udfcd\ufe0f", desc: "V\u00e9hicules deux roues" },
   { label: "Journal d'activit\u00e9", to: "/journal-activite", emoji: "\ud83d\udcdc", desc: "Historique de toutes vos actions" },
   { label: "Abonnements", to: "/abonnements", emoji: "\ud83c\udfe6", desc: "Abonnements et tarifs" },
+  { label: "MKA.P-MS Rewards", to: "/rewards", emoji: "\u2b50", desc: "Points fidelite, niveaux, recompenses" },
   { label: "Support", to: "/aide", emoji: "\ud83d\udcde", desc: "Aide et assistance 7j/7" },
 ];
 

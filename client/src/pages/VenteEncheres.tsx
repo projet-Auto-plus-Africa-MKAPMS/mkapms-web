@@ -278,8 +278,12 @@ export default function VenteEncheres() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
   const [mode, setMode] = useState<"landing" | "lots" | "detail" | "mes_encheres" | "remportes" | "conditions" | "prochaines" | "photos" | "vehicule_detail">("landing");
   const [selectedLotId, setSelectedLotId] = useState<number | null>(null);
+  const [watchList, setWatchList] = useState<number[]>([]);
 
   /* Filtres */
   const [filterCat, setFilterCat] = useState("");
@@ -322,12 +326,16 @@ export default function VenteEncheres() {
     });
   }, [filterCat, filterMarque, filterEnergie, filterRoulant, filterPrixMax]);
 
+  const ToastEl = toast ? (
+    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] rounded-xl bg-purple-600 px-6 py-3 text-sm font-bold text-white shadow-2xl animate-pulse max-w-sm text-center">{toast}</div>
+  ) : null;
+
   /* ════════════════════════════════════════════════════════════
      PAGE D'ACCUEIL — MKA.P-MS Enchères Pro
      ════════════════════════════════════════════════════════════ */
   if (mode === "landing") {
     return (
-      <div className="min-h-screen bg-[#0a0a14]">
+      <div className="min-h-screen bg-[#0a0a14]">{ToastEl}
         {/* HERO */}
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-[#1a0f3c] via-[#0d0820] to-[#0a0a14]" />
@@ -431,7 +439,7 @@ export default function VenteEncheres() {
      ════════════════════════════════════════════════════════════ */
   if (mode === "conditions") {
     return (
-      <div className="min-h-screen bg-[#0a0a14] pb-24">
+      <div className="min-h-screen bg-[#0a0a14] pb-24">{ToastEl}
         <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
           <button onClick={() => setMode("landing")} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
           <h1 className="text-xl font-black text-white flex items-center gap-2"><FileText size={20} className="text-purple-400" /> Conditions d'accès</h1>
@@ -462,7 +470,7 @@ export default function VenteEncheres() {
      ════════════════════════════════════════════════════════════ */
   if (mode === "mes_encheres") {
     return (
-      <div className="min-h-screen bg-[#0a0a14] pb-24">
+      <div className="min-h-screen bg-[#0a0a14] pb-24">{ToastEl}
         <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
           <button onClick={() => setMode("landing")} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
           <h1 className="text-xl font-black text-white flex items-center gap-2"><Activity size={20} className="text-purple-400" /> Tableau de bord</h1>
@@ -510,7 +518,7 @@ export default function VenteEncheres() {
               <div key={e.lotId} onClick={() => setMode("remportes")} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0 cursor-pointer hover:bg-white/5 transition rounded-lg px-2">
                 <Receipt size={14} className="text-white/40" />
                 <div className="flex-1"><p className="text-xs font-bold text-white">{e.titre}</p><p className="text-[10px] text-white/40">{e.date} — {e.montant.toLocaleString("fr-FR")} €</p></div>
-                <button onClick={(ev) => { ev.stopPropagation(); }} className="text-[10px] text-purple-400 font-bold hover:text-purple-300 transition">PDF</button>
+                <button onClick={(ev) => { ev.stopPropagation(); showToast('Facture PDF telechargee'); }} className="text-[10px] text-purple-400 font-bold hover:text-purple-300 transition">PDF</button>
               </div>
             ))}
           </div>
@@ -524,7 +532,7 @@ export default function VenteEncheres() {
      ════════════════════════════════════════════════════════════ */
   if (mode === "remportes") {
     return (
-      <div className="min-h-screen bg-[#0a0a14] pb-24">
+      <div className="min-h-screen bg-[#0a0a14] pb-24">{ToastEl}
         <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
           <button onClick={() => setMode("landing")} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
           <h1 className="text-xl font-black text-white flex items-center gap-2"><Award size={20} className="text-[#D4AF37]" /> Véhicules remportés</h1>
@@ -544,16 +552,16 @@ export default function VenteEncheres() {
                 <div className="mt-3 flex items-center justify-between">
                   <p className="text-lg font-black text-[#D4AF37]">{e.montant.toLocaleString("fr-FR")} €</p>
                   <div className="flex gap-2">
-                    <button className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white">Facture</button>
-                    <button className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white">Documents</button>
+                    <button onClick={() => showToast('Facture PDF telechargee')} className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-white/20 transition">Facture</button>
+                    <button onClick={() => showToast('Documents du lot telecharges')} className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-white/20 transition">Documents</button>
                   </div>
                 </div>
                 {e.statut === "paye" && (
                   <div className="mt-3 rounded-xl bg-blue-500/10 border border-blue-500/20 p-3">
                     <p className="text-xs text-blue-400">Retrait disponible · Contactez-nous pour programmer l'enlèvement.</p>
                     <div className="mt-2 flex gap-2">
-                      <button className="rounded-lg bg-blue-600 px-3 py-1.5 text-[10px] font-bold text-white">Programmer retrait</button>
-                      <button className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white">Demander livraison</button>
+                      <button onClick={() => showToast('Demande de retrait envoyee — nous vous contacterons sous 24h')} className="rounded-lg bg-blue-600 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-blue-700 transition">Programmer retrait</button>
+                      <button onClick={() => showToast('Demande de livraison envoyee — devis transport sous 24h')} className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-white/20 transition">Demander livraison</button>
                     </div>
                   </div>
                 )}
@@ -570,7 +578,7 @@ export default function VenteEncheres() {
      ════════════════════════════════════════════════════════════ */
   if (mode === "prochaines") {
     return (
-      <div className="min-h-screen bg-[#0a0a14] pb-24">
+      <div className="min-h-screen bg-[#0a0a14] pb-24">{ToastEl}
         <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
           <button onClick={() => setMode("landing")} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
           <h1 className="text-xl font-black text-white flex items-center gap-2"><Calendar size={20} className="text-blue-400" /> Prochaines ventes</h1>
@@ -593,7 +601,7 @@ export default function VenteEncheres() {
                 <span className="text-white/60">{v.lots} lots</span>
                 <span className="text-white/60">{v.vehicules} véhicules</span>
               </div>
-              <button className="mt-3 rounded-xl bg-purple-600 px-4 py-2 text-xs font-bold text-white">S'inscrire à la vente</button>
+              <button onClick={() => showToast('Inscription confirmee — vous serez notifie le jour de la vente')} className="mt-3 rounded-xl bg-purple-600 px-4 py-2 text-xs font-bold text-white hover:bg-purple-700 transition">S'inscrire a la vente</button>
             </div>
           ))}
         </div>
@@ -606,7 +614,7 @@ export default function VenteEncheres() {
      ════════════════════════════════════════════════════════════ */
   if (mode === "lots") {
     return (
-      <div className="min-h-screen bg-[#0a0a14] pb-24">
+      <div className="min-h-screen bg-[#0a0a14] pb-24">{ToastEl}
         <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
           <button onClick={() => { setMode("landing"); setFilterCat(""); }} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
           <div className="flex items-center gap-2">
@@ -708,7 +716,7 @@ export default function VenteEncheres() {
     const nextBid = selectedLot.offreActuelle + selectedLot.palier;
 
     return (
-      <div className="min-h-screen bg-[#0a0a14] pb-24">
+      <div className="min-h-screen bg-[#0a0a14] pb-24">{ToastEl}
         {/* Header */}
         <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
           <button onClick={() => setMode("lots")} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
@@ -767,8 +775,8 @@ export default function VenteEncheres() {
                   </button>
                 </div>
                 <div className="flex gap-2">
-                  <button className="flex-1 rounded-xl bg-white/5 border border-white/10 py-2.5 text-[10px] font-bold text-white/60 flex items-center justify-center gap-1"><Bookmark size={12} /> Ajouter à ma liste</button>
-                  <button className="flex-1 rounded-xl bg-white/5 border border-white/10 py-2.5 text-[10px] font-bold text-white/60 flex items-center justify-center gap-1"><FileText size={12} /> Voir rapport complet</button>
+                  <button onClick={() => { if (selectedLot) { setWatchList(prev => prev.includes(selectedLot.id) ? prev.filter(x => x !== selectedLot.id) : [...prev, selectedLot.id]); showToast(watchList.includes(selectedLot.id) ? 'Retiree de votre liste' : 'Ajoutee a votre liste de suivi'); } }} className={`flex-1 rounded-xl py-2.5 text-[10px] font-bold flex items-center justify-center gap-1 ${selectedLot && watchList.includes(selectedLot.id) ? 'bg-purple-600 text-white' : 'bg-white/5 border border-white/10 text-white/60'}`}><Bookmark size={12} /> {selectedLot && watchList.includes(selectedLot.id) ? 'Dans ma liste' : 'Ajouter a ma liste'}</button>
+                  <button onClick={() => showToast('Rapport PDF genere — telechargement en cours')} className="flex-1 rounded-xl bg-white/5 border border-white/10 py-2.5 text-[10px] font-bold text-white/60 flex items-center justify-center gap-1"><FileText size={12} /> Voir rapport complet</button>
                 </div>
               </div>
             ) : (
@@ -967,7 +975,7 @@ export default function VenteEncheres() {
               </div>
               <div className="space-y-2">
                 <button className="w-full rounded-xl bg-purple-600 py-3 text-sm font-bold text-white hover:bg-purple-700 transition"
-                  onClick={() => { setShowBidConfirm(false); setEnchereInput(""); }}>
+                  onClick={() => { setShowBidConfirm(false); showToast(`Enchere de ${Number(enchereInput).toLocaleString('fr-FR')} EUR confirmee !`); setEnchereInput(""); }}>
                   Confirmer l'enchère — {Number(enchereInput).toLocaleString("fr-FR")} €
                 </button>
                 <button className="w-full rounded-xl bg-white/5 border border-white/10 py-3 text-sm font-semibold text-white/60" onClick={() => setShowBidConfirm(false)}>Annuler</button>
@@ -997,7 +1005,7 @@ export default function VenteEncheres() {
     const allPhotosCount = Object.values(selectedLot.photosCategories).reduce((s, arr) => s + arr.length, 0);
 
     return (
-      <div className="min-h-screen bg-[#0a0a14] pb-24">
+      <div className="min-h-screen bg-[#0a0a14] pb-24">{ToastEl}
         <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
           <button onClick={() => { setMode("detail"); setPhotoIdx(0); }} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</button>
           <h1 className="text-xl font-black text-white flex items-center gap-2"><Camera size={20} className="text-purple-400" /> Photos professionnelles</h1>
@@ -1063,7 +1071,7 @@ export default function VenteEncheres() {
     if (!v) { setMode("detail"); return null; }
 
     return (
-      <div className="min-h-screen bg-[#0a0a14] pb-24">
+      <div className="min-h-screen bg-[#0a0a14] pb-24">{ToastEl}
         <div className="bg-gradient-to-r from-[#1a0f3c] to-[#0d0820] px-4 pt-6 pb-5">
           <button onClick={() => setMode("detail")} className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour au lot</button>
           <h1 className="text-xl font-black text-white">{v.marque} {v.modele}</h1>

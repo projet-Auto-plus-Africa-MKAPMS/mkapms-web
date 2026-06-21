@@ -568,6 +568,19 @@ export default function Home() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
+              MKA.P-MS REWARDS BANNER
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-6 bg-gradient-to-r from-[#D4AF37] to-[#B8960C]">
+            <div className="max-w-3xl mx-auto flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+              <div className="flex-1">
+                <h3 className="text-lg font-black text-white">MKA.P-MS REWARDS</h3>
+                <p className="text-xs text-white/80 mt-1">Gagnez des points a chaque action. Echangez-les contre des boosts, des photos, des abonnements Premium.</p>
+              </div>
+              <Link to="/rewards" className="shrink-0 rounded-xl bg-white px-6 py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#F5F3EF] transition">Decouvrir mes points</Link>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
               SECTION 16 — FOOTER (dans Layout, mais on ajoute newsletter + liens)
               ═══════════════════════════════════════════════════════════════ */}
           <footer className="bg-[#111] text-white">
