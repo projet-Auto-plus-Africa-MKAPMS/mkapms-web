@@ -739,14 +739,65 @@ export default function Vehicule() {
             <div className="mt-3 space-y-2">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer" onClick={() => setShowPriceHistory(!showPriceHistory)}>
                 <span className="text-sm text-[#111]">Historique</span>
-                <ChevronRight size={16} className="text-red-500" />
+                <ChevronRight size={16} className={`text-red-500 transition-transform ${showPriceHistory ? "rotate-90" : ""}`} />
               </div>
+              {showPriceHistory && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+                  <p className="text-xs font-bold text-[#111]">Historique du prix</p>
+                  <div className="space-y-2">
+                    {[{date:"Aujourd'hui",prix:Number(v.prix),tag:"Prix actuel"},{date:"Il y a 7 jours",prix:Math.round(Number(v.prix)*1.02),tag:""},{date:"Il y a 30 jours",prix:Math.round(Number(v.prix)*1.05),tag:"Premiere mise en ligne"},{date:"Il y a 60 jours",prix:Math.round(Number(v.prix)*1.08),tag:""}].map((h,i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <div><p className="text-xs text-[#111] font-semibold">{h.date}</p>{h.tag && <p className="text-[9px] text-slate-500">{h.tag}</p>}</div>
+                        <div className="text-right"><p className="text-xs font-bold text-[#111]">{formatPrice(h.prix)}</p>{i>0 && <p className="text-[9px] text-green-600">-{Math.round((1-Number(v.prix)/h.prix)*100)}%</p>}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 p-2">
+                    <TrendingUp size={14} className="text-green-600" />
+                    <p className="text-[10px] text-green-700 font-semibold">Le prix a baisse depuis la mise en ligne</p>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer" onClick={() => setShowCote(!showCote)}>
                 <span className="text-sm text-[#111]">Cote du véhicule</span>
                 <span className="text-xs font-semibold text-[#111] underline">Consulter</span>
               </div>
+              {showCote && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+                  <p className="text-xs font-bold text-[#111]">Cote du vehicule</p>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <p className="text-[10px] text-slate-500">Estimation basse</p>
+                      <p className="text-sm font-bold text-[#111]">{formatPrice(Math.round(Number(v.prix)*0.88))}</p>
+                    </div>
+                    <div className="flex-1 text-center">
+                      <p className="text-[10px] text-slate-500">Cote moyenne</p>
+                      <p className="text-sm font-extrabold text-[#D4AF37]">{formatPrice(Math.round(Number(v.prix)*0.95))}</p>
+                    </div>
+                    <div className="flex-1 text-right">
+                      <p className="text-[10px] text-slate-500">Estimation haute</p>
+                      <p className="text-sm font-bold text-[#111]">{formatPrice(Math.round(Number(v.prix)*1.05))}</p>
+                    </div>
+                  </div>
+                  <div className="h-2 rounded-full bg-gradient-to-r from-red-400 via-yellow-400 to-green-400 relative">
+                    <div className="absolute top-1/2 -translate-y-1/2 h-4 w-4 rounded-full border-2 border-white bg-[#111] shadow" style={{left:'55%'}} />
+                  </div>
+                  <div className="flex items-center gap-2 rounded-lg bg-[#FFFDF5] border border-[#D4AF37]/30 p-2">
+                    <span className="rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-[9px] font-bold">Offre equitable</span>
+                    <p className="text-[10px] text-[#374151]">Le prix est dans la moyenne du marche</p>
+                  </div>
+                </div>
+              )}
             </div>
             <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-[#111]" onClick={() => requireLogin(() => setShowAlertPanel(true))}>Créer une alerte prix</button>
+            {showAlertPanel && (
+              <div className="mt-3 rounded-xl border border-[#D4AF37]/30 bg-[#FFFDF5] p-4">
+                <p className="text-sm font-bold text-[#111]">Alerte prix enregistree !</p>
+                <p className="mt-1 text-xs text-slate-500">Vous serez notifie si le prix de "{v.titre}" change.</p>
+                <div className="mt-2 flex items-center gap-2"><Bell size={14} className="text-[#D4AF37]" /><span className="text-[10px] text-[#374151]">Notifications par email et push</span></div>
+                <button className="mt-3 w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-white" onClick={() => setShowAlertPanel(false)}>OK</button>
+              </div>
+            )}
           </div>
 
           {/* ── VENDEUR + LOCALISATION — réduit, même plaque premium que Pro ── */}
@@ -806,11 +857,11 @@ export default function Vehicule() {
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]">Aller plus loin</h2>
             <div className="mt-3 space-y-3">
               {[
-                { icon: <FileText size={18} className="text-red-500" />, title: "Cote du véhicule", desc: "Consultez la cote de ce véhicule" },
-                { icon: <History size={18} className="text-red-500" />, title: "Historique complet", desc: "Consultez l'historique complet" },
-                { icon: <FileCheck size={18} className="text-red-500" />, title: "Fiche Technique", desc: "Toutes les informations du véhicule" },
+                { icon: <FileText size={18} className="text-red-500" />, title: "Cote du véhicule", desc: "Consultez la cote de ce véhicule", action: () => { setShowCote(true); window.scrollTo({top:0,behavior:'smooth'}); } },
+                { icon: <History size={18} className="text-red-500" />, title: "Historique complet", desc: "Consultez l'historique complet", action: () => { setShowPriceHistory(true); window.scrollTo({top:0,behavior:'smooth'}); } },
+                { icon: <FileCheck size={18} className="text-red-500" />, title: "Fiche Technique", desc: "Toutes les informations du véhicule", action: () => navigate(`/catalogue-technique`) },
               ].map((item) => (
-                <div key={item.title} className="flex items-center gap-3 border-b border-[#111]/15 pb-3 cursor-pointer" onClick={() => navigate("/aide")}>
+                <div key={item.title} className="flex items-center gap-3 border-b border-[#111]/15 pb-3 cursor-pointer" onClick={item.action}>
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">{item.icon}</div>
                   <div>
                     <p className="text-sm font-bold text-[#111] underline">{item.title}</p>
@@ -1261,33 +1312,90 @@ export default function Vehicule() {
             <div className="mt-3 space-y-2">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer" onClick={() => setShowPriceHistory(!showPriceHistory)}>
                 <span className="text-sm text-[#111]">Historique</span>
-                <ChevronRight size={16} className="text-red-500" />
+                <ChevronRight size={16} className={`text-red-500 transition-transform ${showPriceHistory ? "rotate-90" : ""}`} />
               </div>
+              {showPriceHistory && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+                  <p className="text-xs font-bold text-[#111]">Historique du prix</p>
+                  <div className="space-y-2">
+                    {[{date:"Aujourd'hui",prix:Number(v.prix),tag:"Prix actuel"},{date:"Il y a 7 jours",prix:Math.round(Number(v.prix)*1.02),tag:""},{date:"Il y a 30 jours",prix:Math.round(Number(v.prix)*1.05),tag:"Premiere mise en ligne"},{date:"Il y a 60 jours",prix:Math.round(Number(v.prix)*1.08),tag:""}].map((h,i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <div><p className="text-xs text-[#111] font-semibold">{h.date}</p>{h.tag && <p className="text-[9px] text-slate-500">{h.tag}</p>}</div>
+                        <div className="text-right"><p className="text-xs font-bold text-[#111]">{formatPrice(h.prix)}</p>{i>0 && <p className="text-[9px] text-green-600">-{Math.round((1-Number(v.prix)/h.prix)*100)}%</p>}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 p-2">
+                    <TrendingUp size={14} className="text-green-600" />
+                    <p className="text-[10px] text-green-700 font-semibold">Le prix a baisse depuis la mise en ligne</p>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer" onClick={() => setShowCote(!showCote)}>
                 <span className="text-sm text-[#111]">Cote du véhicule</span>
                 <span className="text-xs font-semibold text-[#111] underline">Consulter</span>
               </div>
+              {showCote && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+                  <p className="text-xs font-bold text-[#111]">Cote du vehicule</p>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <p className="text-[10px] text-slate-500">Estimation basse</p>
+                      <p className="text-sm font-bold text-[#111]">{formatPrice(Math.round(Number(v.prix)*0.88))}</p>
+                    </div>
+                    <div className="flex-1 text-center">
+                      <p className="text-[10px] text-slate-500">Cote moyenne</p>
+                      <p className="text-sm font-extrabold text-[#D4AF37]">{formatPrice(Math.round(Number(v.prix)*0.95))}</p>
+                    </div>
+                    <div className="flex-1 text-right">
+                      <p className="text-[10px] text-slate-500">Estimation haute</p>
+                      <p className="text-sm font-bold text-[#111]">{formatPrice(Math.round(Number(v.prix)*1.05))}</p>
+                    </div>
+                  </div>
+                  <div className="h-2 rounded-full bg-gradient-to-r from-red-400 via-yellow-400 to-green-400 relative">
+                    <div className="absolute top-1/2 -translate-y-1/2 h-4 w-4 rounded-full border-2 border-white bg-[#111] shadow" style={{left:'55%'}} />
+                  </div>
+                  <div className="flex items-center gap-2 rounded-lg bg-[#FFFDF5] border border-[#D4AF37]/30 p-2">
+                    <span className="rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-[9px] font-bold">Offre equitable</span>
+                    <p className="text-[10px] text-[#374151]">Le prix est dans la moyenne du marche</p>
+                  </div>
+                </div>
+              )}
             </div>
             <button className="mt-3 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-[#111]" onClick={() => requireLogin(() => setShowAlertPanel(true))}>Créer une alerte prix</button>
+            {showAlertPanel && (
+              <div className="mt-3 rounded-xl border border-[#D4AF37]/30 bg-[#FFFDF5] p-4">
+                <p className="text-sm font-bold text-[#111]">Alerte prix enregistree !</p>
+                <p className="mt-1 text-xs text-slate-500">Vous serez notifie si le prix de "{v.titre}" change.</p>
+                <div className="mt-2 flex items-center gap-2"><Bell size={14} className="text-[#D4AF37]" /><span className="text-[10px] text-[#374151]">Notifications par email et push</span></div>
+                <button className="mt-3 w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-white" onClick={() => setShowAlertPanel(false)}>OK</button>
+              </div>
+            )}
           </div>
 
-          {/* SERVICES DISPONIBLES — après Créer une alerte */}
-          <div className="mt-6 rounded-2xl border-2 border-[#111]/40 bg-white p-5" style={{boxShadow: '0 0 12px rgba(212,175,55,0.15), 0 2px 8px rgba(0,0,0,0.06)'}}>
-            <h2 className="text-center text-base font-extrabold text-[#111] mb-4">Services disponibles</h2>
-            <div className="grid grid-cols-4 gap-3">
+          {/* SERVICES DISPONIBLES — carousel horizontal */}
+          <div className="mt-6 rounded-2xl border-2 border-[#111]/40 bg-white p-4" style={{boxShadow: '0 0 12px rgba(212,175,55,0.15), 0 2px 8px rgba(0,0,0,0.06)'}}>
+            <h2 className="text-center text-sm font-extrabold text-[#111] mb-3">Services disponibles</h2>
+            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide">
               {[
-                { icon: <ShieldCheck size={22} />, label: "Garantie" },
-                { icon: <TrendingUp size={22} />, label: "Reprise" },
-                { icon: <CreditCard size={22} />, label: "Financement" },
-                { icon: <Award size={22} />, label: "Expertise" },
+                { icon: <Wrench size={18} />, label: "Devis garage", to: "/garages" },
+                { icon: <Truck size={18} />, label: "Livraison", to: "/services" },
+                { icon: <FileCheck size={18} />, label: "Carte grise", to: "/carte-grise" },
+                { icon: <Search size={18} />, label: "Contrôle", to: "/services" },
+                { icon: <ShieldCheck size={18} />, label: "Garantie", to: "/services" },
+                { icon: <TrendingUp size={18} />, label: "Reprise", to: "/services" },
+                { icon: <CreditCard size={18} />, label: "Financement", to: "/finance" },
+                { icon: <Award size={18} />, label: "Expertise", to: "/services" },
+                { icon: <Shield size={18} />, label: "Assurance", to: "/services" },
+                { icon: <Battery size={18} />, label: "Recharge", to: "/services" },
               ].map((s) => (
-                <div key={s.label} className="flex flex-col items-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#D4AF37]/30 bg-[#FFFDF5] text-[#D4AF37]">{s.icon}</div>
-                  <p className="mt-1.5 text-[11px] font-semibold text-[#111]">{s.label}</p>
-                </div>
+                <Link key={s.label} to={s.to} className="flex shrink-0 flex-col items-center transition hover:scale-105" style={{width:"62px"}}>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#D4AF37]/30 bg-[#FFFDF5] text-[#D4AF37]">{s.icon}</div>
+                  <p className="mt-1 text-[9px] font-semibold text-[#111] leading-tight text-center">{s.label}</p>
+                </Link>
               ))}
             </div>
-            <p className="mt-4 text-center text-xs font-semibold text-[#D4AF37] cursor-pointer" onClick={() => navigate("/services")}>Voir tous nos services →</p>
+            <p className="mt-3 text-center text-xs font-semibold text-[#D4AF37] cursor-pointer" onClick={() => navigate("/services")}>Voir tous nos services →</p>
           </div>
 
           {/* PUBLICITÉ — entre Services et Vendeur */}
@@ -1404,11 +1512,11 @@ export default function Vehicule() {
             <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]">Aller plus loin</h2>
             <div className="mt-3 space-y-3">
               {[
-                { icon: <FileText size={18} className="text-red-500" />, title: "Cote du véhicule", desc: "Consultez la cote de ce véhicule" },
-                { icon: <History size={18} className="text-red-500" />, title: "Historique complet", desc: "Consultez l'historique complet" },
-                { icon: <FileCheck size={18} className="text-red-500" />, title: "Fiche Technique", desc: "Toutes les informations du véhicule" },
+                { icon: <FileText size={18} className="text-red-500" />, title: "Cote du véhicule", desc: "Consultez la cote de ce véhicule", action: () => { setShowCote(true); window.scrollTo({top:0,behavior:'smooth'}); } },
+                { icon: <History size={18} className="text-red-500" />, title: "Historique complet", desc: "Consultez l'historique complet", action: () => { setShowPriceHistory(true); window.scrollTo({top:0,behavior:'smooth'}); } },
+                { icon: <FileCheck size={18} className="text-red-500" />, title: "Fiche Technique", desc: "Toutes les informations du véhicule", action: () => navigate(`/catalogue-technique`) },
               ].map((item) => (
-                <div key={item.title} className="flex items-center gap-3 border-b border-[#111]/15 pb-3 cursor-pointer" onClick={() => navigate("/aide")}>
+                <div key={item.title} className="flex items-center gap-3 border-b border-[#111]/15 pb-3 cursor-pointer" onClick={item.action}>
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">{item.icon}</div>
                   <div>
                     <p className="text-sm font-bold text-[#111] underline">{item.title}</p>

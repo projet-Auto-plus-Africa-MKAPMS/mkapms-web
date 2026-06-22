@@ -42,9 +42,9 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB max
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB max (vidéos incluses)
   fileFilter: (_req, file, cb) => {
-    const allowed = /\.(jpg|jpeg|png|gif|webp|heic|pdf|doc|docx|xls|xlsx)$/i;
+    const allowed = /\.(jpg|jpeg|png|gif|webp|heic|pdf|doc|docx|xls|xlsx|mp4|mov|webm|avi|mkv)$/i;
     if (allowed.test(path.extname(file.originalname))) cb(null, true);
     else cb(new Error("Type de fichier non autorisé"));
   },
