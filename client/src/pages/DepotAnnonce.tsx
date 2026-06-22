@@ -1,30 +1,37 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ChevronLeft, ChevronRight, ChevronDown, PlusCircle, Car, Bike, Truck,
   Camera, Check, Upload, FileText, Search, Sparkles, Bot, Star, Video, X,
-  Loader2, Shield, Zap, Eye, AlertTriangle, Info,
+  Loader2, Shield, Zap, Eye, AlertTriangle, Info, Clock, Award, MapPin,
+  Phone, Mail, User, Calendar, Gauge, Fuel, Key, Globe, Leaf, Hash, CircleDot,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import FileUpload from "../components/FileUpload";
 
 /* ══════════════════════════════════════════════════════════════════════════
-   DEPOT D'ANNONCE — Style La Centrale professionnel
-   6 etapes: Immatriculation > Caracteristiques > Equipements > Photos > Coordonnees > Publication
-   Cascading dropdowns, radio buttons, equipment tabs, photo categories
+   DEPOT D'ANNONCE — MKA.P-MS Ultra Pro (depasse La Centrale)
+   7 etapes: Immatriculation > Caracteristiques > Equipements > Photos > Description > Coordonnees > Publication
+   4 niveaux cascading: Marque > Modele > Motorisation > Version > Finition
+   Validation temps reel, VIN verification, barre de progression, estimation prix
    ══════════════════════════════════════════════════════════════════════════ */
 
 const TYPES = [
-  { id: "voiture", label: "Voiture", icon: Car, color: "bg-[#D4AF37]" },
-  { id: "moto", label: "Moto / Scooter / Quad", icon: Bike, color: "bg-red-600" },
-  { id: "utilitaire", label: "Utilitaire", icon: Truck, color: "bg-orange-600" },
-  { id: "camion", label: "Camion", icon: Truck, color: "bg-gray-700" },
-  { id: "vtc", label: "Vehicule VTC", icon: Car, color: "bg-[#111]" },
+  { id: "voiture", label: "Voiture", icon: Car, color: "bg-[#D4AF37]", desc: "Berline, SUV, Citadine, Break..." },
+  { id: "moto", label: "Moto / Scooter / Quad", icon: Bike, color: "bg-red-600", desc: "Roadster, Sportive, Trail, Scooter..." },
+  { id: "utilitaire", label: "Utilitaire", icon: Truck, color: "bg-orange-600", desc: "Fourgon, Camionnette, Pick-up..." },
+  { id: "camion", label: "Camion", icon: Truck, color: "bg-gray-700", desc: "Poids lourd, Semi-remorque..." },
+  { id: "vtc", label: "Vehicule VTC", icon: Car, color: "bg-[#111]", desc: "Berline confort, Van..." },
+];
+
+/* ── Categories vehicule ── */
+const CATEGORIES_VOITURE = [
+  "Berline","Break","Cabriolet","Citadine","Coupe","Monospace","Pick-up","SUV","4x4","Crossover","Compact","Familiale",
 ];
 
 /* ── Marques ── */
 const MARQUES_VOITURE = [
-  "Abarth","Alfa Romeo","Audi","BMW","Citroën","Cupra","Dacia","DS","Fiat","Ford","Honda","Hyundai",
+  "Abarth","Alfa Romeo","Audi","BMW","Citroen","Cupra","Dacia","DS","Fiat","Ford","Honda","Hyundai",
   "Jaguar","Jeep","Kia","Land Rover","Lexus","Mazda","Mercedes","Mini","Mitsubishi","Nissan","Opel",
   "Peugeot","Porsche","Renault","Seat","Skoda","Smart","Subaru","Suzuki","Tesla","Toyota","Volkswagen","Volvo",
 ];
@@ -34,11 +41,11 @@ const MARQUES_MOTO = [
   "Peugeot","Piaggio","Royal Enfield","Suzuki","SYM","Triumph","Vespa","Yamaha","Zero",
 ];
 
-/* ── Modeles par marque (demo) ── */
+/* ── Modeles par marque ── */
 const MODELES: Record<string, string[]> = {
   Peugeot: ["108","208","308","408","508","2008","3008","5008","Partner","Rifter","Expert","Boxer","e-208","e-308","e-2008","e-3008"],
   Renault: ["Clio","Captur","Megane","Austral","Arkana","Scenic","Espace","Kangoo","Trafic","Master","Twingo","Zoe","Megane E-Tech"],
-  "Citroën": ["C1","C3","C3 Aircross","C4","C4 X","C5 X","C5 Aircross","Berlingo","SpaceTourer","Jumpy","Jumper","Ami","e-C4"],
+  "Citroen": ["C1","C3","C3 Aircross","C4","C4 X","C5 X","C5 Aircross","Berlingo","SpaceTourer","Jumpy","Jumper","Ami","e-C4"],
   BMW: ["Serie 1","Serie 2","Serie 3","Serie 4","Serie 5","Serie 7","X1","X2","X3","X4","X5","X6","X7","iX","iX3","i4","i7","Z4","M3","M4"],
   Mercedes: ["Classe A","Classe B","Classe C","Classe E","Classe S","CLA","CLS","GLA","GLB","GLC","GLE","GLS","EQA","EQB","EQC","EQE","EQS","AMG GT"],
   Audi: ["A1","A3","A4","A5","A6","A7","A8","Q2","Q3","Q4 e-tron","Q5","Q7","Q8","e-tron","TT","RS3","RS4","RS5","RS6"],
@@ -67,7 +74,7 @@ const MODELES: Record<string, string[]> = {
   Suzuki: ["Swift","Ignis","Vitara","S-Cross","Jimny","Across","Swace"],
 };
 
-/* ── Motorisations par marque/modele (demo cascading) ── */
+/* ── Motorisations ── */
 const MOTORISATIONS: Record<string, string[]> = {
   "Peugeot_308": ["1.2 PureTech 110","1.2 PureTech 130","1.2 PureTech 130 EAT8","1.5 BlueHDi 130","1.5 BlueHDi 130 EAT8","1.6 PureTech 180 EAT8","1.6 Hybrid 180 e-EAT8","1.6 Hybrid 225 e-EAT8"],
   "Peugeot_3008": ["1.2 PureTech 130","1.2 PureTech 130 EAT8","1.5 BlueHDi 130","1.5 BlueHDi 130 EAT8","1.6 PureTech 180 EAT8","1.6 Hybrid 180 e-EAT8","1.6 Hybrid 225 e-EAT8","1.6 Hybrid4 300 e-EAT8"],
@@ -86,7 +93,7 @@ const MOTORISATIONS: Record<string, string[]> = {
   "default": ["1.0","1.2","1.4","1.5","1.6","1.8","2.0","2.2","2.5","3.0","Electrique","Hybride"],
 };
 
-/* ── Versions / Finitions ── */
+/* ── Versions ── */
 const VERSIONS: Record<string, string[]> = {
   "Peugeot_308_1.2 PureTech 130": ["Active Pack","Allure","Allure Pack","GT","GT Pack"],
   "Peugeot_308_1.5 BlueHDi 130": ["Active Pack","Allure","Allure Pack","GT","GT Pack"],
@@ -104,74 +111,95 @@ const VERSIONS: Record<string, string[]> = {
   "default": ["Standard","Confort","Sport","Luxe","Premium"],
 };
 
+/* ── Finitions (4eme niveau cascading) ── */
+const FINITIONS: Record<string, string[]> = {
+  "Peugeot_308_GT": ["GT","GT Pack","GT Pack EAT8"],
+  "Peugeot_308_Allure": ["Allure","Allure Pack","Allure Business"],
+  "BMW_Serie 3_M Sport": ["M Sport","M Sport Pro","M Sport Edition"],
+  "default": ["Standard","Pack","Premium","Business","Edition speciale"],
+};
+
 /* ── Couleurs ── */
 const COULEURS_EXT = ["Noir","Blanc","Gris","Argent","Bleu","Rouge","Vert","Marron","Beige","Orange","Jaune","Violet","Bordeaux","Anthracite"];
 const COULEURS_INT = ["Noir","Beige","Gris","Marron","Blanc","Rouge","Bleu"];
-const TYPES_PEINTURE = ["Opaque","Metallis\u00e9e","Nacr\u00e9e","Mat"];
+const TYPES_PEINTURE = ["Opaque","Metallisee","Nacree","Mat"];
 const MATIERES_SIEGES = ["Tissu","Cuir","Cuir / Alcantara","Alcantara","Simili cuir","Velours"];
-const ETATS = ["Neuf","Excellent","Tr\u00e8s bon","Bon","Correct","A r\u00e9viser"];
-const REPARATIONS = ["Aucune","Carrosserie","M\u00e9canique","Peinture","Int\u00e9rieur","Electricit\u00e9"];
+const ETATS = ["Neuf","Excellent","Tres bon","Bon etat","Correct","A reviser","Accidente"];
+const EMISSIONS = ["EURO 1","EURO 2","EURO 3","EURO 4","EURO 5","EURO 6","EURO 6d","EURO 6d-TEMP","EURO 7"];
 
 /* ── Moto specifics ── */
 const CATEGORIES_MOTO = [
-  "Roadster","Sportive","Trail","Adventure","Custom","Cruiser","Touring","Naked","Caf\u00e9 Racer",
-  "Scrambler","Enduro","Supermotard","Cross","Trial","Scooter","Scooter GT","125 cm\u00b3","50 cm\u00b3","Electrique","3 roues","Quad",
+  "Roadster","Sportive","Trail","Adventure","Custom","Cruiser","Touring","Naked","Cafe Racer",
+  "Scrambler","Enduro","Supermotard","Cross","Trial","Scooter","Scooter GT","125 cm3","50 cm3","Electrique","3 roues","Quad",
 ];
 const CYLINDREES_MOTO = ["50","125","250","300","400","500","600","650","700","750","800","900","1000","1100","1200","1300+"];
-const PERMIS_MOTO = ["AM (50 cm\u00b3)","A1 (125 cm\u00b3)","A2 (\u2264 35 kW)","A (toutes)"];
+const PERMIS_MOTO = ["AM (50 cm3)","A1 (125 cm3)","A2 (35 kW max)","A (toutes)"];
 
-/* ── Equipements par categorie ── */
+/* ── Equipements par categorie (enrichi + Antivol) ── */
 const EQUIP_CATEGORIES = [
-  { key: "exterieur", label: "Ext\u00e9rieur", items: [
-    "Jantes alliage","Barres de toit","Pack carrosserie","Vitres surteint\u00e9es","R\u00e9troviseurs \u00e9lectriques",
-    "R\u00e9troviseurs rabattables","Antibrouillards","Feux LED","Feux x\u00e9non","Feux adaptatifs",
-    "Phares directionnels","Becquet","Attelage","Protection bas de caisse","Aileron","Peinture m\u00e9tallis\u00e9e",
+  { key: "exterieur", label: "Exterieur", items: [
+    "Jantes alliage","Jantes alliage 17\"","Jantes alliage 18\"","Jantes alliage 19\"","Barres de toit","Pack carrosserie",
+    "Vitres surteintees","Retroviseurs electriques","Retroviseurs rabattables","Retroviseurs rabattables electriquement",
+    "Retroviseurs degivrants","Antibrouillards","Feux LED","Feux Full LED","Feux xenon","Feux adaptatifs",
+    "Phares directionnels","Becquet","Attelage","Aileron","Peinture metallisee",
+    "Rampes de pavillon alu","Rampes de pavillon noires","Sorties echappement chromees",
+    "Stickers decoratifs","Suspension magnetique","Suspension pneumatique","Suspension sport",
+    "PSM","Radar de recul",
   ]},
-  { key: "interieur", label: "Int\u00e9rieur", items: [
-    "Si\u00e8ges chauffants","Si\u00e8ges \u00e9lectriques","Si\u00e8ges massants","Si\u00e8ges ventil\u00e9s",
-    "Banquette rabattable","Volant cuir","Volant chauffant","Volant multifonction",
-    "Accoudoir central","Eclairage ambiance","Toit ouvrant","Toit panoramique",
-    "R\u00e9troviseur int\u00e9rieur jour/nuit","Palette au volant","P\u00e9dalier alu",
+  { key: "interieur", label: "Interieur", items: [
+    "Sieges chauffants","Sieges electriques","Sieges massants","Sieges ventiles","Sieges sport",
+    "Banquette rabattable 1/3 - 2/3","Volant cuir","Volant chauffant","Volant multifonction",
+    "Accoudoir central","Eclairage ambiance","Eclairage ambiance multicolore","Toit ouvrant","Toit panoramique",
+    "Retroviseur interieur jour/nuit auto","Palette au volant","Pedalier alu",
+    "Ciel de toit noir","Sellerie cuir","Sellerie Alcantara","Plancher coffre reversible",
   ]},
   { key: "confort", label: "Confort", items: [
-    "Climatisation automatique","Climatisation bi-zone","Climatisation tri-zone",
-    "R\u00e9gulateur de vitesse","R\u00e9gulateur adaptatif","Limiteur de vitesse",
-    "D\u00e9marrage sans cl\u00e9","Fermeture centralis\u00e9e","Ouverture mains libres",
-    "Hayon \u00e9lectrique","Vitres \u00e9lectriques AV/AR","Direction assist\u00e9e",
-    "Suspension pilot\u00e9e","Aide au stationnement AV","Aide au stationnement AR",
+    "Climatisation manuelle","Climatisation automatique","Climatisation bi-zone","Climatisation tri-zone",
+    "Regulateur de vitesse","Regulateur adaptatif ACC","Limiteur de vitesse",
+    "Demarrage sans cle","Fermeture centralisee","Ouverture mains libres",
+    "Hayon electrique","Vitres electriques AV/AR","Direction assistee variable",
+    "Aide au stationnement AV","Aide au stationnement AR","Park Assist automatique",
+    "Boite automatique","Volant reglable en profondeur","Accoudoir AR",
   ]},
-  { key: "securite", label: "S\u00e9curit\u00e9", items: [
-    "ABS","ESP","Airbags frontaux","Airbags lat\u00e9raux","Airbags rideaux",
-    "Contr\u00f4le de traction","ISOFIX","Alerte franchissement de ligne","Freinage d'urgence automatique",
-    "Cam\u00e9ra de recul","Cam\u00e9ra 360\u00b0","Radar de recul","Surveillance angle mort",
-    "Alerte fatigue","R\u00e9gulateur de distance","D\u00e9tection panneaux",
+  { key: "securite", label: "Securite", items: [
+    "ABS","ESP","ASR","Airbags frontaux","Airbags lateraux","Airbags rideaux","Airbag genoux",
+    "Controle de traction","ISOFIX","Alerte franchissement de ligne","Freinage urgence automatique",
+    "Camera de recul","Camera 360","Radar de recul avant","Radar de recul arriere",
+    "Surveillance angle mort","Alerte fatigue","Regulateur de distance","Detection panneaux",
+    "Aide au maintien de voie","Feux de route automatiques",
   ]},
-  { key: "multimedia", label: "Multim\u00e9dia", items: [
-    "GPS int\u00e9gr\u00e9","Apple CarPlay","Android Auto","Bluetooth","Ecran tactile",
-    "Ecran tactile > 10\"","Affichage t\u00eate haute","Sono premium","Sono Bose","Sono Harman Kardon",
-    "Sono Bang & Olufsen","Charge sans fil","Prises USB","Port AUX","DAB+",
+  { key: "antivol", label: "Antivol", items: [
+    "Alarme","Alarme volumetrique","Antivol de roues","Gravage des vitres",
+    "Systeme anti-demarrage","Traceur GPS","Verrou de direction renforce",
+    "Serrure renforcee","Camera de surveillance","Bloque-volant",
+  ]},
+  { key: "multimedia", label: "Multimedia", items: [
+    "GPS integre","Apple CarPlay","Android Auto","Apple CarPlay sans fil","Android Auto sans fil",
+    "Bluetooth","Ecran tactile 7\"","Ecran tactile 10\"","Ecran tactile 12\"","Affichage tete haute",
+    "Sono premium","Sono Bose","Sono Harman Kardon","Sono Bang & Olufsen","Sono Focal",
+    "Charge sans fil Qi","Prises USB-C","Port AUX","DAB+","Commandes vocales",
   ]},
   { key: "autres", label: "Autres", items: [
-    "Alarme","Antivol de roues","Trousse de secours","Roue de secours",
-    "Kit crevaison","Extincteur","Triangle","Gilet","Cric","Housse de si\u00e8ge",
+    "Roue de secours","Kit crevaison","Extincteur","Triangle","Gilet fluorescent",
+    "Cric","Housse de siege","Tapis de sol","Filet de coffre","Cache-bagages",
   ]},
 ];
 
 /* ── Photo categories ── */
 const PHOTO_CATS_VOITURE = [
-  { key: "ext", label: "Ext\u00e9rieures", slots: ["Face avant","3/4 avant gauche","Profil gauche","3/4 arri\u00e8re gauche","Face arri\u00e8re","3/4 arri\u00e8re droit","Profil droit","3/4 avant droit"] },
-  { key: "int", label: "Int\u00e9rieures", slots: ["Tableau de bord","Compteur / i-cockpit","Ecran multimédia","Si\u00e8ges avant","Si\u00e8ges arri\u00e8re","Console centrale","Volant","Ciel de toit"] },
-  { key: "coffre", label: "Coffre", slots: ["Coffre ouvert","Coffre charg\u00e9","Plancher coffre"] },
-  { key: "moteur", label: "Moteur", slots: ["Compartiment moteur","D\u00e9tail moteur"] },
-  { key: "roues", label: "Pneus / Jantes", slots: ["Roue avant gauche","Roue arri\u00e8re gauche","Roue avant droite","Roue arri\u00e8re droite"] },
-  { key: "defauts", label: "D\u00e9fauts / Imperfections", slots: ["D\u00e9faut 1","D\u00e9faut 2","D\u00e9faut 3"] },
+  { key: "ext", label: "Exterieures", slots: ["Face avant","3/4 avant gauche","Profil gauche","3/4 arriere gauche","Face arriere","3/4 arriere droit","Profil droit","3/4 avant droit"] },
+  { key: "int", label: "Interieures", slots: ["Tableau de bord","Compteur / i-cockpit","Ecran multimedia","Sieges avant","Sieges arriere","Console centrale","Volant","Ciel de toit"] },
+  { key: "coffre", label: "Coffre", slots: ["Coffre ouvert","Coffre charge","Plancher coffre"] },
+  { key: "moteur", label: "Moteur", slots: ["Compartiment moteur","Detail moteur"] },
+  { key: "roues", label: "Pneus / Jantes", slots: ["Roue avant gauche","Roue arriere gauche","Roue avant droite","Roue arriere droite"] },
+  { key: "defauts", label: "Defauts / Imperfections", slots: ["Defaut 1","Defaut 2","Defaut 3","Defaut 4"] },
 ];
 
 const PHOTO_CATS_MOTO = [
-  { key: "ext", label: "Ext\u00e9rieures", slots: ["Face avant","Profil gauche","Face arri\u00e8re","Profil droit","Vue plongeante"] },
-  { key: "details", label: "D\u00e9tails", slots: ["Tableau de bord / Compteur","Moteur","Pot d'\u00e9chappement","R\u00e9servoir","Selle"] },
-  { key: "roues", label: "Pneus", slots: ["Roue avant","Roue arri\u00e8re"] },
-  { key: "defauts", label: "D\u00e9fauts", slots: ["D\u00e9faut 1","D\u00e9faut 2"] },
+  { key: "ext", label: "Exterieures", slots: ["Face avant","Profil gauche","Face arriere","Profil droit","Vue plongeante"] },
+  { key: "details", label: "Details", slots: ["Tableau de bord / Compteur","Moteur","Pot echappement","Reservoir","Selle"] },
+  { key: "roues", label: "Pneus", slots: ["Roue avant","Roue arriere"] },
+  { key: "defauts", label: "Defauts", slots: ["Defaut 1","Defaut 2"] },
 ];
 
 /* ══════════════════════════════════════════════════════════════════════════ */
@@ -184,36 +212,36 @@ export default function DepotAnnonce() {
   const [plaqueFound, setPlaqueFound] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [equipTab, setEquipTab] = useState("exterieur");
+  const [equipSearch, setEquipSearch] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Form state
   const [form, setForm] = useState({
     plaque: "", vin: "",
     marque: "", modele: "", annee: "", motorisation: "", version: "", finition: "",
-    energie: "", categorieMoto: "", cylindree: "", permis: "",
+    categorie: "", energie: "", categorieMoto: "", cylindree: "", cylindreeCcm: "", permis: "",
     kilometrage: "", prix: "", couleurExt: "", couleurInt: "", typePeinture: "", matiereSieges: "",
-    portes: "5", places: "5", puissanceCv: "", puissanceFiscale: "",
-    etat: "", reparations: "", boite: "manuelle", premierMain: "oui",
-    description: "",
+    portes: "", places: "", puissanceCv: "", puissanceFiscale: "",
+    etat: "", reparations: "", boite: "", premierMain: "",
+    nbProprietaires: "", paysOrigine: "FR", classeEnvironnementale: "", emissionsCo2: "", nbCles: "2",
+    dateProchaineCT: "",
+    description: "", pointsForts: "",
     contactNom: "", contactEmail: "", contactTelephone: "", contactVille: "", contactCodePostal: "",
   });
   const [selectedEquip, setSelectedEquip] = useState<Record<string, string[]>>({
-    exterieur: [], interieur: [], confort: [], securite: [], multimedia: [], autres: [],
+    exterieur: [], interieur: [], confort: [], securite: [], antivol: [], multimedia: [], autres: [],
   });
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
   const [videoUrls, setVideoUrls] = useState<string[]>([]);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3500); };
-  const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: string, v: string) => { setForm((f) => ({ ...f, [k]: v })); setErrors(e => { const n = {...e}; delete n[k]; return n; }); };
 
   const isMoto = selectedType === "moto";
   const marques = isMoto ? MARQUES_MOTO : MARQUES_VOITURE;
   const photoCats = isMoto ? PHOTO_CATS_MOTO : PHOTO_CATS_VOITURE;
-  const accent = isMoto ? "bg-red-600" : "bg-[#D4AF37]";
-  const accentText = isMoto ? "text-red-600" : "text-[#D4AF37]";
-  const accentBorder = isMoto ? "border-red-600" : "border-[#D4AF37]";
-  const accentBg = isMoto ? "bg-red-50" : "bg-[#FFFDF5]";
 
-  // Cascading logic
+  // Cascading logic (4 niveaux)
   const availableModeles = form.marque ? (MODELES[form.marque] || ["Autre"]) : [];
   const motoKey = `${form.marque}_${form.modele}`;
   const availableMotorisations = form.marque && form.modele
@@ -223,6 +251,19 @@ export default function DepotAnnonce() {
   const availableVersions = form.motorisation
     ? (VERSIONS[versionKey] || VERSIONS["default"] || [])
     : [];
+  const finitionKey = `${form.marque}_${form.modele}_${form.version}`;
+  const availableFinitions = form.version
+    ? (FINITIONS[finitionKey] || FINITIONS["default"] || [])
+    : [];
+
+  // Equipment search filter
+  const filteredEquipItems = useMemo(() => {
+    const cat = EQUIP_CATEGORIES.find(c => c.key === equipTab);
+    if (!cat) return [];
+    if (!equipSearch.trim()) return cat.items;
+    const q = equipSearch.toLowerCase();
+    return cat.items.filter(item => item.toLowerCase().includes(q));
+  }, [equipTab, equipSearch]);
 
   // Plate lookup
   const utils = trpc.useUtils();
@@ -256,7 +297,6 @@ export default function DepotAnnonce() {
   // Create annonce mutation
   const create = trpc.annonces.create.useMutation({
     onSuccess: () => {
-      setStep(5);
       showToast("Annonce publiee avec succes !");
     },
     onError: (err) => {
@@ -264,15 +304,31 @@ export default function DepotAnnonce() {
     },
   });
 
+  function validateStep(s: number): boolean {
+    const newErrors: Record<string, string> = {};
+    if (s === 0) {
+      if (!form.marque) newErrors.marque = "Ce champ est obligatoire";
+      if (!form.modele) newErrors.modele = "Ce champ est obligatoire";
+    } else if (s === 1) {
+      if (!form.kilometrage) newErrors.kilometrage = "Ce champ est obligatoire";
+      if (!form.prix) newErrors.prix = "Ce champ est obligatoire";
+      if (!form.couleurExt) newErrors.couleurExt = "Ce champ est obligatoire";
+      if (!form.etat) newErrors.etat = "Ce champ est obligatoire";
+    } else if (s === 5) {
+      if (!form.contactVille) newErrors.contactVille = "Ce champ est obligatoire";
+      if (!form.contactTelephone) newErrors.contactTelephone = "Ce champ est obligatoire";
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
+      showToast("Veuillez remplir tous les champs obligatoires");
+      return false;
+    }
+    return true;
+  }
+
   function handlePublish() {
-    if (!form.marque || !form.modele) {
-      showToast("Marque et modele obligatoires");
-      return;
-    }
-    if (!form.prix) {
-      showToast("Le prix est obligatoire");
-      return;
-    }
+    if (!form.marque || !form.modele) { showToast("Marque et modele obligatoires"); return; }
+    if (!form.prix) { showToast("Le prix est obligatoire"); return; }
     const allPhotos = Object.values(photoUrls).filter(Boolean);
     const allEquip = Object.values(selectedEquip).flat();
     const confortItems = selectedEquip.confort || [];
@@ -302,7 +358,7 @@ export default function DepotAnnonce() {
       photos: allPhotos,
       equipements: allEquip,
       sellerie: form.matiereSieges || undefined,
-      cylindree: form.cylindree || undefined,
+      cylindree: form.cylindree || form.cylindreeCcm || undefined,
       confort: confortItems,
       securite: securiteItems,
       multimedia: multimediaItems,
@@ -310,23 +366,31 @@ export default function DepotAnnonce() {
     });
   }
 
+  // Progress percentage
+  const ETAPES = ["Immatriculation","Caracteristiques","Equipements","Photos","Description","Coordonnees","Publication"];
+  const progress = ((step) / (ETAPES.length - 1)) * 100;
+
   // ── Type selection screen ──
   if (!selectedType) {
     return (
       <div className="min-h-screen bg-[#F5F3EF] pb-24">
         <div className="bg-[#111] px-4 pt-6 pb-5">
-          <Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</Link>
-          <h1 className="text-xl font-black text-white flex items-center gap-2"><PlusCircle size={20} className="text-[#D4AF37]" /> Deposer une annonce</h1>
-          <p className="mt-1 text-sm text-white/60">Vendez votre vehicule sur MKA.P-MS</p>
+          <Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-3"><ChevronLeft size={14} /> Retour</Link>
+          <h1 className="text-xl font-black text-white flex items-center gap-2"><PlusCircle size={22} className="text-[#D4AF37]" /> Deposer une annonce</h1>
+          <p className="mt-1 text-sm text-white/60">Vendez votre vehicule sur MKA.P-MS — simple, rapide, efficace</p>
         </div>
         <div className="px-4 mt-6">
-          <h2 className="text-base font-bold text-[#111]">Que souhaitez-vous vendre ?</h2>
-          <div className="mt-4 space-y-2">
+          <h2 className="text-base font-bold text-[#111] mb-1">Que souhaitez-vous vendre ?</h2>
+          <p className="text-xs text-[#6B7280] mb-4">Selectionnez le type de vehicule</p>
+          <div className="space-y-2.5">
             {TYPES.map((t) => { const Icon = t.icon; return (
-              <button key={t.id} onClick={() => { setSelectedType(t.id); setStep(0); setPlaqueFound(false); }} className="w-full flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-4 active:scale-[0.99] transition">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.color}`}><Icon size={18} className="text-white" /></div>
-                <span className="flex-1 text-sm font-bold text-[#111] text-left">{t.label}</span>
-                <ChevronRight size={16} className="text-red-500" />
+              <button key={t.id} onClick={() => { setSelectedType(t.id); setStep(0); setPlaqueFound(false); }} className="w-full flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-4 active:scale-[0.99] transition hover:border-[#D4AF37] hover:shadow-sm">
+                <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${t.color}`}><Icon size={20} className="text-white" /></div>
+                <div className="flex-1 text-left">
+                  <span className="text-sm font-bold text-[#111]">{t.label}</span>
+                  <p className="text-[10px] text-[#9CA3AF] mt-0.5">{t.desc}</p>
+                </div>
+                <ChevronRight size={16} className="text-[#D4AF37]" />
               </button>
             ); })}
           </div>
@@ -335,38 +399,67 @@ export default function DepotAnnonce() {
     );
   }
 
-  const ETAPES = ["Immatriculation", "Caracteristiques", "Equipements", "Photos", "Coordonnees", "Publication"];
+  /* ── Helper: dropdown field with validation ── */
+  function SelectField({ label, value, onChange, options, required, placeholder, errorKey }: {
+    label: string; value: string; onChange: (v: string) => void; options: string[]; required?: boolean; placeholder?: string; errorKey?: string;
+  }) {
+    const hasError = errorKey && errors[errorKey];
+    return (
+      <div>
+        <label className="block text-sm font-semibold text-[#111] mb-1.5">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
+        <div className="relative">
+          <select value={value} onChange={(e) => onChange(e.target.value)} className={`w-full appearance-none rounded-xl border px-4 py-3 text-sm pr-10 transition ${
+            hasError ? "border-red-400 bg-red-50" : value ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-[#E5E7EB] bg-white hover:border-[#D4AF37]/50"
+          }`}>
+            <option value="">{placeholder || "Choisir..."}</option>
+            {options.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+          <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+        </div>
+        {hasError && <p className="text-xs text-red-500 mt-1">{errors[errorKey!]}</p>}
+      </div>
+    );
+  }
 
-  /* ── Helper: dropdown field ── */
-  function SelectField({ label, value, onChange, options, required, placeholder }: {
-    label: string; value: string; onChange: (v: string) => void; options: string[]; required?: boolean; placeholder?: string;
+  /* ── Helper: radio group (vertical circles like La Centrale) ── */
+  function RadioGroup({ label, value, onChange, options, vertical, required }: {
+    label: string; value: string; onChange: (v: string) => void; options: string[]; vertical?: boolean; required?: boolean;
   }) {
     return (
       <div>
-        <label className="text-xs font-semibold text-[#374151]">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
-        <div className="relative mt-1">
-          <select value={value} onChange={(e) => onChange(e.target.value)} className={`w-full appearance-none rounded-lg border px-3 py-2.5 text-sm pr-8 ${value ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-[#E5E7EB] bg-white"}`}>
-            <option value="">{placeholder || "Choisir"}</option>
-            {options.map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
-          <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+        <label className="block text-sm font-semibold text-[#111] mb-2">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
+        <div className={vertical ? "space-y-2.5" : "flex flex-wrap gap-2.5"}>
+          {options.map(o => (
+            <button key={o} onClick={() => onChange(o)} className={`flex items-center gap-3 ${vertical ? "w-full" : ""} text-left`}>
+              <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${
+                value === o ? "border-[#E53E3E]" : "border-[#D1D5DB]"
+              }`}>
+                {value === o && <div className="h-2.5 w-2.5 rounded-full bg-[#E53E3E]" />}
+              </div>
+              <span className={`text-sm ${value === o ? "font-semibold text-[#111]" : "text-[#374151]"}`}>{o}</span>
+            </button>
+          ))}
         </div>
       </div>
     );
   }
 
-  /* ── Helper: radio group ── */
-  function RadioGroup({ label, value, onChange, options }: {
-    label: string; value: string; onChange: (v: string) => void; options: string[];
+  /* ── Helper: input field ── */
+  function InputField({ label, value, onChange, placeholder, suffix, type, required, errorKey }: {
+    label: string; value: string; onChange: (v: string) => void; placeholder?: string; suffix?: string; type?: string; required?: boolean; errorKey?: string;
   }) {
+    const hasError = errorKey && errors[errorKey];
     return (
       <div>
-        <label className="text-xs font-semibold text-[#374151]">{label}</label>
-        <div className="mt-1.5 flex flex-wrap gap-2">
-          {options.map(o => (
-            <button key={o} onClick={() => onChange(o)} className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${value === o ? `${accent} text-white ${accentBorder} border-transparent` : "border-[#E5E7EB] bg-white text-[#374151] hover:border-[#D4AF37]"}`}>{o}</button>
-          ))}
+        <label className="block text-sm font-semibold text-[#111] mb-1.5">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
+        <div className="relative">
+          <input value={value} onChange={(e) => onChange(e.target.value)} type={type || "text"} placeholder={placeholder}
+            className={`w-full rounded-xl border px-4 py-3 text-sm transition ${suffix ? "pr-12" : ""} ${
+              hasError ? "border-red-400 bg-red-50" : value ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-[#E5E7EB] bg-white hover:border-[#D4AF37]/50"
+            }`} />
+          {suffix && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-[#9CA3AF]">{suffix}</span>}
         </div>
+        {hasError && <p className="text-xs text-red-500 mt-1">{errors[errorKey!]}</p>}
       </div>
     );
   }
@@ -374,24 +467,31 @@ export default function DepotAnnonce() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       {/* Header */}
-      <div className={`px-4 pt-6 pb-5 ${isMoto ? "bg-red-600" : "bg-[#111]"}`}>
+      <div className={`px-4 pt-6 pb-4 ${isMoto ? "bg-red-600" : "bg-[#111]"}`}>
         <button onClick={() => { if (step > 0) setStep(step - 1); else setSelectedType(null); }} className="flex items-center gap-1 text-sm text-white/60 mb-2">
-          <ChevronLeft size={14} /> {step === 0 ? "Changer de type" : "Retour"}
+          <ChevronLeft size={14} /> {step === 0 ? "Changer de type" : "Etape precedente"}
         </button>
-        <h1 className="text-xl font-black text-white flex items-center gap-2">
+        <h1 className="text-lg font-black text-white flex items-center gap-2">
           {isMoto ? <Bike size={20} /> : <Car size={20} />}
           Deposer : {TYPES.find((t) => t.id === selectedType)?.label}
         </h1>
       </div>
 
-      {/* Breadcrumb Steps */}
-      <div className="px-4 mt-4 flex gap-1 overflow-x-auto">
+      {/* Progress bar */}
+      <div className="h-1 bg-[#E5E7EB]">
+        <div className="h-full bg-[#E53E3E] transition-all duration-500" style={{ width: `${progress}%` }} />
+      </div>
+
+      {/* Breadcrumb Steps — scrollable like La Centrale */}
+      <div className="px-4 py-3 flex gap-2 overflow-x-auto bg-white border-b border-[#E5E7EB]">
         {ETAPES.map((e, i) => (
-          <button key={i} onClick={() => { if (i < step) setStep(i); }} className={`shrink-0 flex items-center gap-1 rounded-full px-3 py-1.5 text-[10px] font-bold transition ${
-            i === step ? `${accent} text-white` : i < step ? `${accentBg} ${accentText} border ${accentBorder}` : "bg-white text-[#9CA3AF] border border-[#E5E7EB]"
-          }`}>
-            {i < step && <Check size={10} />}
-            <span>{i + 1}. {e}</span>
+          <button key={i} onClick={() => { if (i < step) setStep(i); }}
+            className={`shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition border ${
+              i === step ? "bg-blue-50 text-blue-700 border-blue-200" : i < step ? "bg-green-50 text-green-700 border-green-200" : "bg-white text-[#9CA3AF] border-[#E5E7EB]"
+            }`}>
+            {i < step ? <Check size={12} className="text-green-500" /> : i === step ? <CircleDot size={12} /> : null}
+            <span>{e}</span>
+            {i < ETAPES.length - 1 && <ChevronRight size={10} className="text-[#D1D5DB] ml-0.5" />}
           </button>
         ))}
       </div>
@@ -400,59 +500,76 @@ export default function DepotAnnonce() {
          STEP 0: IMMATRICULATION
          ═══════════════════════════════════════════════════════════════════ */}
       {step === 0 && (
-        <div className="mx-4 mt-4 space-y-3">
-          <div className="flex gap-2">
+        <div className="px-4 mt-5 space-y-4">
+          {/* Mode selector */}
+          <div className="flex gap-2 rounded-xl bg-white border border-[#E5E7EB] p-1.5">
             {(["plaque", "vin", "manuel"] as const).map(m => (
-              <button key={m} onClick={() => { setPlaqueMode(m); setPlaqueFound(false); }} className={`flex-1 py-2 rounded-xl text-[10px] font-bold border ${plaqueMode === m ? `${accent} text-white border-transparent` : "bg-white text-[#6B7280] border-[#E5E7EB]"}`}>
-                {m === "plaque" ? "Plaque" : m === "vin" ? "VIN" : "Manuel"}
+              <button key={m} onClick={() => { setPlaqueMode(m); setPlaqueFound(false); }}
+                className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition ${
+                  plaqueMode === m ? "bg-[#111] text-white shadow-sm" : "text-[#6B7280] hover:bg-[#F5F3EF]"
+                }`}>
+                {m === "plaque" ? "Plaque" : m === "vin" ? "N° VIN" : "Saisie manuelle"}
               </button>
             ))}
           </div>
 
           {plaqueMode === "plaque" && (
-            <div className="rounded-xl bg-white border border-[#E5E7EB] p-4 shadow-sm">
-              <p className="text-xs text-[#6B7280] mb-2">Plaque d'immatriculation</p>
+            <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
+              <p className="text-sm font-semibold text-[#111] mb-1">Plaque d'immatriculation</p>
+              <p className="text-xs text-[#9CA3AF] mb-3">Identifiez votre vehicule automatiquement</p>
               <div className="flex gap-2">
-                <input value={form.plaque} onChange={(e) => set("plaque", e.target.value.toUpperCase())} placeholder="AA-123-BB" className="flex-1 rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm font-bold text-center uppercase tracking-wider" onKeyDown={(e) => { if (e.key === "Enter") lookupPlate(); }} />
-                <button onClick={lookupPlate} disabled={plateLoading} className={`px-5 rounded-lg text-white text-xs font-bold ${accent} flex items-center gap-1`}>
-                  {plateLoading ? <Loader2 size={16} className="animate-spin" /> : <><Search size={14} /> Rechercher</>}
+                <div className="flex-1 flex items-center gap-2 rounded-xl border-2 border-[#1E3A8A] bg-white px-3 py-2.5">
+                  <div className="flex h-7 w-6 items-center justify-center rounded bg-[#1E3A8A]"><span className="text-[8px] font-bold text-white">F</span></div>
+                  <input value={form.plaque} onChange={(e) => set("plaque", e.target.value.toUpperCase())} placeholder="AA-123-BB" className="flex-1 text-center text-base font-black uppercase tracking-wider outline-none" onKeyDown={(e) => { if (e.key === "Enter") lookupPlate(); }} />
+                </div>
+                <button onClick={lookupPlate} disabled={plateLoading} className="px-5 rounded-xl bg-[#111] text-white text-xs font-bold flex items-center gap-1.5 hover:bg-[#333] transition disabled:opacity-50">
+                  {plateLoading ? <Loader2 size={16} className="animate-spin" /> : <><Search size={14} /> OK</>}
                 </button>
               </div>
             </div>
           )}
 
           {plaqueMode === "vin" && (
-            <div className="rounded-xl bg-white border border-[#E5E7EB] p-4 shadow-sm">
-              <p className="text-xs text-[#6B7280] mb-2">Numero VIN (17 caracteres)</p>
+            <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
+              <p className="text-sm font-semibold text-[#111] mb-1">Numero VIN</p>
+              <p className="text-xs text-[#9CA3AF] mb-3">17 caracteres — visible sur carte grise (case E)</p>
               <div className="flex gap-2">
-                <input value={form.vin} onChange={(e) => set("vin", e.target.value.toUpperCase())} placeholder="VF1XXXXXXXXX12345" className="flex-1 rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-xs font-mono" onKeyDown={(e) => { if (e.key === "Enter") lookupPlate(); }} />
-                <button onClick={lookupPlate} disabled={plateLoading} className={`px-5 rounded-lg text-white text-xs font-bold ${accent}`}>
+                <input value={form.vin} onChange={(e) => set("vin", e.target.value.toUpperCase())} placeholder="VF1XXXXXXXXX12345" className="flex-1 rounded-xl border border-[#E5E7EB] px-4 py-3 text-xs font-mono tracking-wider" onKeyDown={(e) => { if (e.key === "Enter") lookupPlate(); }} />
+                <button onClick={lookupPlate} disabled={plateLoading} className="px-5 rounded-xl bg-[#111] text-white text-xs font-bold disabled:opacity-50">
                   {plateLoading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
                 </button>
               </div>
             </div>
           )}
 
-          {/* Manuel / Post-lookup: cascading dropdowns */}
+          {/* Post-lookup or Manuel: cascading dropdowns */}
           {(plaqueMode === "manuel" || plaqueFound) && (
-            <div className="rounded-xl bg-white border border-[#E5E7EB] p-4 shadow-sm space-y-3">
+            <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 shadow-sm space-y-4">
               {plaqueFound && (
-                <div className="flex items-center gap-2 mb-1">
-                  <Check size={14} className="text-green-500" />
-                  <span className="text-xs font-bold text-green-700">Vehicule identifie — completez ou corrigez les informations</span>
+                <div className="flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 p-3 mb-2">
+                  <Check size={16} className="text-green-600 shrink-0" />
+                  <div>
+                    <span className="text-xs font-bold text-green-800">Vehicule identifie</span>
+                    <p className="text-[10px] text-green-700 mt-0.5">Completez ou corrigez les informations ci-dessous</p>
+                  </div>
                 </div>
               )}
 
               {/* Marque */}
-              <SelectField label="Marque" value={form.marque} onChange={(v) => { set("marque", v); set("modele", ""); set("motorisation", ""); set("version", ""); set("finition", ""); }} options={marques} required placeholder="Selectionnez la marque" />
+              <SelectField label="Marque" value={form.marque} onChange={(v) => { set("marque", v); set("modele", ""); set("motorisation", ""); set("version", ""); set("finition", ""); }} options={marques} required placeholder="Selectionnez la marque" errorKey="marque" />
 
               {/* Modele — cascading */}
               {form.marque && (
-                <SelectField label="Modele" value={form.modele} onChange={(v) => { set("modele", v); set("motorisation", ""); set("version", ""); set("finition", ""); }} options={availableModeles} required placeholder="Selectionnez le modele" />
+                <SelectField label="Modele" value={form.modele} onChange={(v) => { set("modele", v); set("motorisation", ""); set("version", ""); set("finition", ""); }} options={availableModeles} required placeholder="Selectionnez le modele" errorKey="modele" />
+              )}
+
+              {/* Categorie */}
+              {form.modele && !isMoto && (
+                <SelectField label="Categorie" value={form.categorie} onChange={(v) => set("categorie", v)} options={CATEGORIES_VOITURE} placeholder="Selectionnez la categorie" />
               )}
 
               {/* Moto-specific */}
-              {isMoto && (
+              {isMoto && form.modele && (
                 <>
                   <SelectField label="Categorie moto" value={form.categorieMoto} onChange={(v) => set("categorieMoto", v)} options={CATEGORIES_MOTO} />
                   <SelectField label="Cylindree" value={form.cylindree} onChange={(v) => set("cylindree", v)} options={CYLINDREES_MOTO} />
@@ -462,28 +579,34 @@ export default function DepotAnnonce() {
 
               {/* Motorisation — cascading */}
               {form.modele && !isMoto && (
-                <SelectField label="Motorisation" value={form.motorisation} onChange={(v) => { set("motorisation", v); set("version", ""); set("finition", ""); }} options={availableMotorisations} placeholder="Selectionnez la motorisation" />
+                <SelectField label="Motorisation" value={form.motorisation} onChange={(v) => { set("motorisation", v); set("version", ""); set("finition", ""); }} options={availableMotorisations} required placeholder="Selectionnez la motorisation" />
               )}
 
-              {/* Version / Finition — cascading */}
+              {/* Version — cascading */}
               {form.motorisation && !isMoto && (
-                <SelectField label="Version / Finition" value={form.version} onChange={(v) => set("version", v)} options={availableVersions} placeholder="Selectionnez la version" />
+                <SelectField label="Version" value={form.version} onChange={(v) => { set("version", v); set("finition", ""); }} options={availableVersions} required placeholder="Selectionnez la version" />
               )}
 
-              {/* Annee */}
-              <div>
-                <label className="text-xs font-semibold text-[#374151]">Annee<span className="text-red-500 ml-0.5">*</span></label>
-                <input value={form.annee} onChange={(e) => set("annee", e.target.value)} type="number" placeholder="2024" className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm" min="1970" max="2026" />
+              {/* Finition — cascading (4eme niveau) */}
+              {form.version && !isMoto && (
+                <SelectField label="Finition" value={form.finition} onChange={(v) => set("finition", v)} options={availableFinitions} placeholder="Selectionnez la finition" />
+              )}
+
+              {/* Annee + Energie side by side */}
+              <div className="grid grid-cols-2 gap-3">
+                <InputField label="Annee" value={form.annee} onChange={(v) => set("annee", v)} placeholder="2024" type="number" required />
+                <SelectField label="Energie" value={form.energie} onChange={(v) => set("energie", v)} options={isMoto ? ["Essence","Electrique","Hybride"] : ["Essence","Diesel","Hybride","Hybride rechargeable","Electrique","GPL","GNV","Hydrogene","E85"]} required />
               </div>
 
-              {/* Energie */}
-              <SelectField label="Energie" value={form.energie} onChange={(v) => set("energie", v)} options={isMoto ? ["Essence","Electrique","Hybride"] : ["Essence","Diesel","Hybride","Electrique","GPL","GNV","Hydrogene"]} required />
+              {/* Boite de vitesse — Radio vertical */}
+              {!isMoto && (
+                <RadioGroup label="Boite de vitesse" value={form.boite} onChange={(v) => set("boite", v)} options={["AUTOMATIQUE","MANUELLE","SEMI-AUTOMATIQUE"]} vertical />
+              )}
 
               <button onClick={() => {
-                if (!form.marque) { showToast("Selectionnez une marque"); return; }
-                if (!form.modele) { showToast("Selectionnez un modele"); return; }
+                if (!validateStep(0)) return;
                 setStep(1);
-              }} className={`w-full py-3 rounded-xl text-white text-sm font-bold ${accent} flex items-center justify-center gap-2`}>
+              }} className="w-full py-3.5 rounded-xl bg-[#111] text-white text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#333] transition active:scale-[0.99]">
                 Continuer <ChevronRight size={16} />
               </button>
             </div>
@@ -495,85 +618,110 @@ export default function DepotAnnonce() {
          STEP 1: CARACTERISTIQUES
          ═══════════════════════════════════════════════════════════════════ */}
       {step === 1 && (
-        <div className="mx-4 mt-4 space-y-4">
+        <div className="px-4 mt-5 space-y-4">
           {/* Vehicle ID bar */}
-          <div className={`rounded-xl p-3 ${accentBg} border ${accentBorder}`}>
-            <p className="text-xs font-bold text-[#111]">{form.marque} {form.modele} {form.motorisation} {form.annee && `(${form.annee})`}</p>
+          <div className="rounded-xl bg-[#FFFDF5] border border-[#D4AF37]/30 p-3 flex items-center gap-3">
+            <Car size={16} className="text-[#D4AF37] shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-[#111]">{form.marque} {form.modele} {form.motorisation}</p>
+              <p className="text-[10px] text-[#6B7280]">{form.annee && `${form.annee} · `}{form.energie} · {form.boite || "—"}</p>
+            </div>
           </div>
 
-          <div className="rounded-xl bg-white border border-[#E5E7EB] p-4 space-y-4">
-            <h3 className="text-sm font-bold text-[#111] flex items-center gap-2"><Info size={14} className={accentText} /> Caracteristiques du vehicule</h3>
+          <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 space-y-5">
+            {/* Puissance fiscale — Radio vertical */}
+            {!isMoto && (
+              <RadioGroup label="Puissance fiscale" value={form.puissanceFiscale} onChange={(v) => set("puissanceFiscale", v)} options={["4","5","6","7","8","9","10","11","12","13","14","15+"]} required />
+            )}
 
-            {/* Etat */}
-            <SelectField label="Etat du vehicule" value={form.etat} onChange={(v) => set("etat", v)} options={ETATS} required />
+            {/* Nombre de portes */}
+            {!isMoto && (
+              <RadioGroup label="Nombre de portes" value={form.portes} onChange={(v) => set("portes", v)} options={["2","3","5"]} />
+            )}
 
-            {/* Reparations */}
-            <SelectField label="Reparations effectuees" value={form.reparations} onChange={(v) => set("reparations", v)} options={REPARATIONS} />
+            {/* Premiere main */}
+            <RadioGroup label="Premiere main" value={form.premierMain} onChange={(v) => set("premierMain", v)} options={["Oui","Non"]} required />
 
             {/* Kilometrage */}
-            <div>
-              <label className="text-xs font-semibold text-[#374151]">Kilometrage<span className="text-red-500 ml-0.5">*</span></label>
-              <div className="relative mt-1">
-                <input value={form.kilometrage} onChange={(e) => set("kilometrage", e.target.value)} type="text" placeholder="45 000" className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm pr-12" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#9CA3AF]">km</span>
-              </div>
+            <InputField label="Kilometrage" value={form.kilometrage} onChange={(v) => set("kilometrage", v)} placeholder="Indiquez un kilometrage" suffix="km" required errorKey="kilometrage" />
+
+            {/* Etat */}
+            <SelectField label="Etat du vehicule" value={form.etat} onChange={(v) => set("etat", v)} options={ETATS} required placeholder="Choisissez un etat" errorKey="etat" />
+
+            {/* Reparations */}
+            <SelectField label="Reparations effectuees" value={form.reparations} onChange={(v) => set("reparations", v)} options={["Aucune","Direction","Distribution","Radiateur","Embrayage","Freins","Carrosserie","Peinture","Mecanique","Electricite","Interieur","Autre"]} placeholder="Selectionnez les reparations" />
+
+            {/* Couleur exterieure */}
+            <SelectField label="Couleur exterieure" value={form.couleurExt} onChange={(v) => set("couleurExt", v)} options={COULEURS_EXT} required placeholder="Choisissez une couleur" errorKey="couleurExt" />
+
+            {/* Type de peinture */}
+            <SelectField label="Type de peinture" value={form.typePeinture} onChange={(v) => set("typePeinture", v)} options={TYPES_PEINTURE} placeholder="Choisissez un type" />
+
+            {/* Couleur interieure */}
+            <SelectField label="Couleur interieure" value={form.couleurInt} onChange={(v) => set("couleurInt", v)} options={COULEURS_INT} required placeholder="Choisissez une couleur" />
+
+            {/* Matiere des sieges */}
+            <SelectField label="Matiere des sieges" value={form.matiereSieges} onChange={(v) => set("matiereSieges", v)} options={MATIERES_SIEGES} placeholder="Choisissez une matiere" />
+          </div>
+
+          {/* Infos complementaires */}
+          <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 space-y-4">
+            <h3 className="text-sm font-bold text-[#111] flex items-center gap-2"><Info size={14} className="text-[#D4AF37]" /> Informations complementaires</h3>
+
+            <div className="grid grid-cols-2 gap-3">
+              <InputField label="Puissance DIN" value={form.puissanceCv} onChange={(v) => set("puissanceCv", v)} placeholder="130" suffix="ch" />
+              <InputField label="Cylindree" value={form.cylindreeCcm} onChange={(v) => set("cylindreeCcm", v)} placeholder="1242" suffix="ccm" />
             </div>
 
-            {/* Prix */}
-            <div>
-              <label className="text-xs font-semibold text-[#374151]">Prix<span className="text-red-500 ml-0.5">*</span></label>
-              <div className="relative mt-1">
-                <input value={form.prix} onChange={(e) => set("prix", e.target.value)} type="text" placeholder="25 000" className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm pr-8" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#9CA3AF]">EUR</span>
-              </div>
+            <div className="grid grid-cols-2 gap-3">
+              <SelectField label="Nb proprietaires" value={form.nbProprietaires} onChange={(v) => set("nbProprietaires", v)} options={["1","2","3","4","5+"]} />
+              <SelectField label="Nb de cles" value={form.nbCles} onChange={(v) => set("nbCles", v)} options={["1","2","3"]} />
             </div>
 
             {!isMoto && (
-              <>
-                {/* Boite de vitesse — Radio */}
-                <RadioGroup label="Boite de vitesse" value={form.boite} onChange={(v) => set("boite", v)} options={["manuelle","automatique","semi-auto"]} />
-
-                {/* Puissance fiscale — Radio */}
-                <RadioGroup label="Puissance fiscale (CV)" value={form.puissanceFiscale} onChange={(v) => set("puissanceFiscale", v)} options={["4","5","6","7","8","9","10","11","12","13+"]} />
-
-                {/* Nombre de portes — Radio */}
-                <RadioGroup label="Nombre de portes" value={form.portes} onChange={(v) => set("portes", v)} options={["2","3","4","5"]} />
-
-                {/* Premiere main — Radio */}
-                <RadioGroup label="Premiere main" value={form.premierMain} onChange={(v) => set("premierMain", v)} options={["oui","non"]} />
-              </>
+              <RadioGroup label="Nombre de places" value={form.places} onChange={(v) => set("places", v)} options={["2","4","5","6","7","8","9"]} />
             )}
 
-            {/* Puissance DIN */}
-            <div>
-              <label className="text-xs font-semibold text-[#374151]">Puissance DIN</label>
-              <div className="relative mt-1">
-                <input value={form.puissanceCv} onChange={(e) => set("puissanceCv", e.target.value)} type="text" placeholder="130" className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm pr-8" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#9CA3AF]">ch</span>
+            <SelectField label="Pays d'origine" value={form.paysOrigine} onChange={(v) => set("paysOrigine", v)} options={["FR","DE","BE","IT","ES","NL","LU","CH","UK","US","JP","Autre"]} />
+
+            <SelectField label="Classe environnementale" value={form.classeEnvironnementale} onChange={(v) => set("classeEnvironnementale", v)} options={EMISSIONS} />
+
+            <InputField label="Emissions CO2" value={form.emissionsCo2} onChange={(v) => set("emissionsCo2", v)} placeholder="142" suffix="g/km" />
+
+            <InputField label="Date prochain CT" value={form.dateProchaineCT} onChange={(v) => set("dateProchaineCT", v)} placeholder="01/2026" />
+
+            {/* VIN Verification badge */}
+            {(form.plaque || form.vin) && (
+              <div className="rounded-xl bg-[#F5F3EF] border border-[#E5E7EB] p-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-[#111]">Identifiant VIN</span>
+                  <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full"><Shield size={10} /> Vendeur verifie</span>
+                </div>
+                <p className="text-[10px] text-[#6B7280] mt-1">Ajoutez votre VIN pour confirmer que vous etes le proprietaire et obtenir un badge "Vendeur verifie"</p>
+                {!form.vin && (
+                  <input value={form.vin} onChange={(e) => set("vin", e.target.value.toUpperCase())} placeholder="VF1XXXXXXXXX12345" className="mt-2 w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-xs font-mono" />
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Prix */}
+          <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 space-y-3">
+            <h3 className="text-sm font-bold text-[#111] flex items-center gap-2"><Gauge size={14} className="text-[#D4AF37]" /> Prix de vente</h3>
+            <InputField label="Prix" value={form.prix} onChange={(v) => set("prix", v)} placeholder="25 000" suffix="EUR" required errorKey="prix" />
+            <div className="rounded-lg bg-[#FFFDF5] border border-[#D4AF37]/20 p-3 flex items-start gap-2">
+              <Sparkles size={14} className="text-[#D4AF37] shrink-0 mt-0.5" />
+              <div>
+                <p className="text-[10px] font-semibold text-[#111]">Estimation marche MKA.P-MS</p>
+                <p className="text-[9px] text-[#6B7280]">Notre IA analysera votre prix par rapport au marche apres publication</p>
               </div>
             </div>
+          </div>
 
-            {/* Couleurs */}
-            <SelectField label="Couleur exterieure" value={form.couleurExt} onChange={(v) => set("couleurExt", v)} options={COULEURS_EXT} />
-            <SelectField label="Type de peinture" value={form.typePeinture} onChange={(v) => set("typePeinture", v)} options={TYPES_PEINTURE} />
-            <SelectField label="Couleur interieure" value={form.couleurInt} onChange={(v) => set("couleurInt", v)} options={COULEURS_INT} />
-            <SelectField label="Matiere des sieges" value={form.matiereSieges} onChange={(v) => set("matiereSieges", v)} options={MATIERES_SIEGES} />
-
-            {/* Places */}
-            {!isMoto && <RadioGroup label="Nombre de places" value={form.places} onChange={(v) => set("places", v)} options={["2","4","5","6","7","8","9"]} />}
-
-            {/* Description */}
-            <div>
-              <label className="text-xs font-semibold text-[#374151]">Description</label>
-              <textarea value={form.description} onChange={(e) => set("description", e.target.value)} placeholder={isMoto ? "Decrivez votre moto : entretien, modifications, etat, historique..." : "Decrivez votre vehicule : historique, entretien, options, etat..."} className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm h-24 resize-none" />
-              <div className="flex items-center gap-2 mt-1.5 rounded-lg bg-[#D4AF37]/10 p-2">
-                <Sparkles size={12} className="text-[#D4AF37]" />
-                <span className="text-[9px] text-[#374151]">L'IA ameliorera automatiquement votre description</span>
-              </div>
-            </div>
-
-            <button onClick={() => setStep(2)} className={`w-full py-3 rounded-xl text-white text-sm font-bold ${accent} flex items-center justify-center gap-2`}>
-              Suivant — Equipements <ChevronRight size={16} />
+          <div className="flex gap-3">
+            <button onClick={() => setStep(0)} className="flex-1 py-3.5 rounded-xl border border-[#E5E7EB] text-sm font-bold text-[#374151] hover:bg-[#F5F3EF] transition">Retour</button>
+            <button onClick={() => { if (!validateStep(1)) return; setStep(2); }} className="flex-1 py-3.5 rounded-xl bg-[#111] text-white text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#333] transition">
+              Equipements <ChevronRight size={16} />
             </button>
           </div>
         </div>
@@ -583,20 +731,28 @@ export default function DepotAnnonce() {
          STEP 2: EQUIPEMENTS
          ═══════════════════════════════════════════════════════════════════ */}
       {step === 2 && (
-        <div className="mx-4 mt-4 space-y-4">
-          <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
-            <h3 className="text-sm font-bold text-[#111] mb-3 flex items-center gap-2"><Shield size={14} className={accentText} /> Equipements</h3>
+        <div className="px-4 mt-5 space-y-4">
+          <div className="rounded-xl bg-white border border-[#E5E7EB] p-5">
+            <h3 className="text-base font-bold text-[#111] mb-1">Vos equipements de serie</h3>
+            <p className="text-xs text-[#9CA3AF] mb-4">Selectionnez les equipements presents sur votre vehicule</p>
 
-            {/* Category tabs */}
-            <div className="flex gap-1 overflow-x-auto pb-2 -mx-1 px-1">
+            {/* Search bar */}
+            <div className="relative mb-4">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+              <input value={equipSearch} onChange={(e) => setEquipSearch(e.target.value)} placeholder="Ex : Feux arrieres, Bluetooth, ..." className="w-full rounded-xl border border-[#E5E7EB] pl-9 pr-4 py-3 text-sm hover:border-[#D4AF37]/50 transition" />
+            </div>
+
+            {/* Category tabs — horizontal scroll like La Centrale */}
+            <div className="flex gap-2 overflow-x-auto pb-3 -mx-1 px-1">
               {EQUIP_CATEGORIES.map(cat => {
                 const count = (selectedEquip[cat.key] || []).length;
+                const isActive = equipTab === cat.key;
                 return (
-                  <button key={cat.key} onClick={() => setEquipTab(cat.key)}
-                    className={`shrink-0 rounded-lg px-3 py-2 text-[10px] font-bold border transition ${
-                      equipTab === cat.key
-                        ? `${accent} text-white border-transparent`
-                        : "bg-white text-[#374151] border-[#E5E7EB] hover:border-[#D4AF37]"
+                  <button key={cat.key} onClick={() => { setEquipTab(cat.key); setEquipSearch(""); }}
+                    className={`shrink-0 rounded-full px-4 py-2.5 text-xs font-bold border transition ${
+                      isActive
+                        ? "bg-[#111] text-white border-[#111]"
+                        : "bg-white text-[#374151] border-[#E5E7EB] hover:border-[#111]"
                     }`}>
                     {cat.label}{count > 0 && ` (${count})`}
                   </button>
@@ -604,44 +760,43 @@ export default function DepotAnnonce() {
               })}
             </div>
 
-            {/* Checkboxes for active tab */}
-            {EQUIP_CATEGORIES.filter(c => c.key === equipTab).map(cat => (
-              <div key={cat.key} className="mt-3 grid grid-cols-1 gap-1.5">
-                {cat.items.map(item => {
-                  const checked = (selectedEquip[cat.key] || []).includes(item);
-                  return (
-                    <button key={item} onClick={() => {
-                      setSelectedEquip(prev => {
-                        const arr = prev[cat.key] || [];
-                        return { ...prev, [cat.key]: checked ? arr.filter(x => x !== item) : [...arr, item] };
-                      });
-                    }} className={`flex items-center gap-2.5 rounded-lg border px-3 py-2 text-left transition ${
-                      checked ? `${accentBg} ${accentBorder} border` : "border-[#E5E7EB] bg-white hover:border-[#D4AF37]/50"
+            {/* Checkbox list — La Centrale style (text left, checkbox right) */}
+            <div className="mt-2 divide-y divide-[#F3F4F6] max-h-[400px] overflow-y-auto">
+              {filteredEquipItems.map(item => {
+                const checked = (selectedEquip[equipTab] || []).includes(item);
+                return (
+                  <button key={item} onClick={() => {
+                    setSelectedEquip(prev => {
+                      const arr = prev[equipTab] || [];
+                      return { ...prev, [equipTab]: checked ? arr.filter(x => x !== item) : [...arr, item] };
+                    });
+                  }} className="w-full flex items-center justify-between py-3 px-1 text-left hover:bg-[#F9FAFB] transition">
+                    <span className={`text-sm ${checked ? "font-semibold text-[#111]" : "text-[#374151]"}`}>{item}</span>
+                    <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition ${
+                      checked ? "bg-[#111] border-[#111]" : "border-[#D1D5DB] bg-white"
                     }`}>
-                      <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${
-                        checked ? `${accent} border-transparent` : "border-[#D1D5DB] bg-white"
-                      }`}>
-                        {checked && <Check size={12} className="text-white" />}
-                      </div>
-                      <span className={`text-xs ${checked ? "font-semibold text-[#111]" : "text-[#374151]"}`}>{item}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
+                      {checked && <Check size={12} className="text-white" />}
+                    </div>
+                  </button>
+                );
+              })}
+              {filteredEquipItems.length === 0 && (
+                <p className="py-6 text-center text-sm text-[#9CA3AF]">Aucun equipement trouve</p>
+              )}
+            </div>
 
             {/* Total count */}
-            <div className="mt-3 flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-2">
-              <Check size={12} className="text-green-500" />
-              <span className="text-[10px] text-[#374151]">
-                {Object.values(selectedEquip).flat().length} equipement(s) selectionne(s)
+            <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-3">
+              <Check size={14} className="text-green-500" />
+              <span className="text-xs text-[#374151] font-medium">
+                {Object.values(selectedEquip).flat().length} equipement(s) selectionne(s) au total
               </span>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <button onClick={() => setStep(1)} className="flex-1 py-3 rounded-xl border border-[#E5E7EB] text-sm font-bold text-[#374151]">Retour</button>
-            <button onClick={() => setStep(3)} className={`flex-1 py-3 rounded-xl text-white text-sm font-bold ${accent} flex items-center justify-center gap-2`}>
+          <div className="flex gap-3">
+            <button onClick={() => setStep(1)} className="flex-1 py-3.5 rounded-xl border border-[#E5E7EB] text-sm font-bold text-[#374151] hover:bg-[#F5F3EF] transition">Retour</button>
+            <button onClick={() => setStep(3)} className="flex-1 py-3.5 rounded-xl bg-[#111] text-white text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#333] transition">
               Photos <ChevronRight size={16} />
             </button>
           </div>
@@ -652,15 +807,21 @@ export default function DepotAnnonce() {
          STEP 3: PHOTOS
          ═══════════════════════════════════════════════════════════════════ */}
       {step === 3 && (
-        <div className="mx-4 mt-4 space-y-4">
+        <div className="px-4 mt-5 space-y-4">
+          <div className="rounded-xl bg-[#FFFDF5] border border-[#D4AF37]/30 p-3 flex items-start gap-2">
+            <Camera size={14} className="text-[#D4AF37] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-[#111]">Photos de qualite = vente rapide</p>
+              <p className="text-[10px] text-[#6B7280]">Les annonces avec 10+ photos se vendent 3x plus vite</p>
+            </div>
+          </div>
+
           {photoCats.map(cat => (
             <div key={cat.key} className="rounded-xl bg-white border border-[#E5E7EB] p-4">
-              <h3 className="text-sm font-bold text-[#111] mb-1 flex items-center gap-2">
-                <Camera size={14} className={accentText} /> {cat.label}
-              </h3>
-              <p className="text-[9px] text-[#9CA3AF] mb-3">Cliquez sur un emplacement pour ajouter une photo</p>
+              <h3 className="text-sm font-bold text-[#111] mb-0.5">{cat.label}</h3>
+              <p className="text-[10px] text-[#9CA3AF] mb-3">Cliquez sur un emplacement pour telecharger une photo</p>
 
-              {/* Compact inline slots */}
+              {/* Compact inline slots — small clickable boxes */}
               <div className="grid grid-cols-4 gap-2">
                 {cat.slots.map(slot => {
                   const slotKey = `${cat.key}_${slot}`;
@@ -670,8 +831,8 @@ export default function DepotAnnonce() {
                       <div className="relative w-full aspect-square">
                         {url ? (
                           <div className="relative w-full h-full">
-                            <img src={url} alt={slot} className="w-full h-full rounded-lg object-cover" />
-                            <button onClick={(e) => { e.stopPropagation(); setPhotoUrls(p => { const n = { ...p }; delete n[slotKey]; return n; }); }} className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-[10px] shadow">
+                            <img src={url} alt={slot} className="w-full h-full rounded-lg object-cover border border-green-300" />
+                            <button onClick={(e) => { e.stopPropagation(); setPhotoUrls(p => { const n = { ...p }; delete n[slotKey]; return n; }); }} className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow">
                               <X size={10} />
                             </button>
                           </div>
@@ -697,8 +858,8 @@ export default function DepotAnnonce() {
 
           {/* Videos */}
           <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
-            <h3 className="text-sm font-bold text-[#111] mb-1 flex items-center gap-2"><Video size={14} className={accentText} /> Videos (optionnel)</h3>
-            <p className="text-[9px] text-[#9CA3AF] mb-3">MP4, WebM, MOV — max 50 MB</p>
+            <h3 className="text-sm font-bold text-[#111] mb-0.5 flex items-center gap-2"><Video size={14} className="text-[#D4AF37]" /> Videos (optionnel)</h3>
+            <p className="text-[10px] text-[#9CA3AF] mb-3">MP4, WebM, MOV — max 50 MB par video</p>
             <FileUpload
               label={`Ajouter une video (${videoUrls.length}/5)`}
               accept="video/*"
@@ -710,24 +871,58 @@ export default function DepotAnnonce() {
               <div className="mt-2 space-y-1.5">
                 {videoUrls.map((url, i) => (
                   <div key={i} className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] p-2">
-                    <Video size={12} className={accentText} />
+                    <Video size={12} className="text-[#D4AF37]" />
                     <span className="flex-1 text-xs text-[#111] truncate">Video {i + 1}</span>
-                    <button onClick={() => setVideoUrls(v => v.filter((_, j) => j !== i))} className="text-red-500"><X size={14} /></button>
+                    <button onClick={() => setVideoUrls(v => v.filter((_, j) => j !== i))} className="text-red-500 hover:text-red-700"><X size={14} /></button>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Photo counter */}
-          <div className="flex items-center gap-2 rounded-lg bg-[#D4AF37]/10 p-2">
-            <Star size={12} className="text-[#D4AF37]" />
-            <span className="text-[9px] text-[#374151]">{Object.keys(photoUrls).length} photo(s) · {videoUrls.length} video(s) — Score qualite calcule automatiquement</span>
+          {/* Counter */}
+          <div className="flex items-center gap-2 rounded-xl bg-white border border-[#E5E7EB] p-3">
+            <Star size={14} className="text-[#D4AF37]" />
+            <span className="text-xs text-[#374151] font-medium">{Object.keys(photoUrls).length} photo(s) · {videoUrls.length} video(s)</span>
+            <span className="ml-auto text-[10px] font-bold text-[#D4AF37]">Score qualite calcule auto</span>
           </div>
 
-          <div className="flex gap-2">
-            <button onClick={() => setStep(2)} className="flex-1 py-3 rounded-xl border border-[#E5E7EB] text-sm font-bold text-[#374151]">Retour</button>
-            <button onClick={() => setStep(4)} className={`flex-1 py-3 rounded-xl text-white text-sm font-bold ${accent} flex items-center justify-center gap-2`}>
+          <div className="flex gap-3">
+            <button onClick={() => setStep(2)} className="flex-1 py-3.5 rounded-xl border border-[#E5E7EB] text-sm font-bold text-[#374151] hover:bg-[#F5F3EF] transition">Retour</button>
+            <button onClick={() => setStep(4)} className="flex-1 py-3.5 rounded-xl bg-[#111] text-white text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#333] transition">
+              Description <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════
+         STEP 4: DESCRIPTION & POINTS FORTS
+         ═══════════════════════════════════════════════════════════════════ */}
+      {step === 4 && (
+        <div className="px-4 mt-5 space-y-4">
+          <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 space-y-4">
+            <h3 className="text-sm font-bold text-[#111]">Commentaire vendeur</h3>
+            <p className="text-xs text-[#9CA3AF]">Decrivez votre vehicule de maniere detaillee pour attirer plus d'acheteurs</p>
+
+            <div>
+              <label className="block text-sm font-semibold text-[#111] mb-1.5">Description</label>
+              <textarea value={form.description} onChange={(e) => set("description", e.target.value)} placeholder={isMoto ? "Decrivez votre moto : entretien, modifications, etat general, historique, raison de la vente..." : "Decrivez votre vehicule : historique complet, entretien suivi, options, etat general, raison de la vente..."} className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm h-32 resize-none hover:border-[#D4AF37]/50 transition" />
+              <div className="flex items-center gap-2 mt-2 rounded-lg bg-[#FFFDF5] border border-[#D4AF37]/20 p-2.5">
+                <Sparkles size={12} className="text-[#D4AF37]" />
+                <span className="text-[10px] text-[#374151]">L'IA ameliorera automatiquement votre description apres publication</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-[#111] mb-1.5">Points forts du vehicule</label>
+              <textarea value={form.pointsForts} onChange={(e) => set("pointsForts", e.target.value)} placeholder="Ex: Entretien suivi chez le concessionnaire, jamais accidente, CT vierge, pneus neufs, faible kilometrage..." className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm h-20 resize-none hover:border-[#D4AF37]/50 transition" />
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <button onClick={() => setStep(3)} className="flex-1 py-3.5 rounded-xl border border-[#E5E7EB] text-sm font-bold text-[#374151] hover:bg-[#F5F3EF] transition">Retour</button>
+            <button onClick={() => setStep(5)} className="flex-1 py-3.5 rounded-xl bg-[#111] text-white text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#333] transition">
               Coordonnees <ChevronRight size={16} />
             </button>
           </div>
@@ -735,144 +930,147 @@ export default function DepotAnnonce() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════
-         STEP 4: COORDONNEES
+         STEP 5: COORDONNEES
          ═══════════════════════════════════════════════════════════════════ */}
-      {step === 4 && (
-        <div className="mx-4 mt-4 space-y-4">
-          <div className="rounded-xl bg-white border border-[#E5E7EB] p-4 space-y-3">
-            <h3 className="text-sm font-bold text-[#111] flex items-center gap-2"><FileText size={14} className={accentText} /> Vos coordonnees</h3>
-            <p className="text-[9px] text-[#9CA3AF]">Ces informations seront affichees sur votre annonce</p>
+      {step === 5 && (
+        <div className="px-4 mt-5 space-y-4">
+          <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 space-y-4">
+            <h3 className="text-sm font-bold text-[#111] flex items-center gap-2"><MapPin size={14} className="text-[#D4AF37]" /> Vos coordonnees</h3>
+            <p className="text-xs text-[#9CA3AF]">Ces informations seront affichees sur votre annonce</p>
 
-            <div>
-              <label className="text-xs font-semibold text-[#374151]">Nom / Societe</label>
-              <input value={form.contactNom} onChange={(e) => set("contactNom", e.target.value)} placeholder="Jean Dupont" className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-[#374151]">Email</label>
-              <input value={form.contactEmail} onChange={(e) => set("contactEmail", e.target.value)} type="email" placeholder="contact@exemple.com" className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-[#374151]">Telephone<span className="text-red-500 ml-0.5">*</span></label>
-              <input value={form.contactTelephone} onChange={(e) => set("contactTelephone", e.target.value)} type="tel" placeholder="06 12 34 56 78" className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm" />
-            </div>
+            <InputField label="Nom / Societe" value={form.contactNom} onChange={(v) => set("contactNom", v)} placeholder="Jean Dupont" />
+            <InputField label="Adresse e-mail" value={form.contactEmail} onChange={(v) => set("contactEmail", v)} placeholder="contact@exemple.com" type="email" />
+            <InputField label="Telephone" value={form.contactTelephone} onChange={(v) => set("contactTelephone", v)} placeholder="06 12 34 56 78" type="tel" required errorKey="contactTelephone" />
+
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-[#374151]">Ville<span className="text-red-500 ml-0.5">*</span></label>
-                <input value={form.contactVille} onChange={(e) => set("contactVille", e.target.value)} placeholder="Paris" className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-[#374151]">Code postal</label>
-                <input value={form.contactCodePostal} onChange={(e) => set("contactCodePostal", e.target.value)} placeholder="75001" className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm" />
-              </div>
+              <InputField label="Ville" value={form.contactVille} onChange={(v) => set("contactVille", v)} placeholder="Paris" required errorKey="contactVille" />
+              <InputField label="Code postal" value={form.contactCodePostal} onChange={(v) => set("contactCodePostal", v)} placeholder="75001" />
+            </div>
+
+            <div className="rounded-lg bg-[#F5F3EF] p-3 text-[10px] text-[#6B7280]">
+              Les donnees que vous renseignez dans ce formulaire sont traitees par MKA.P-MS en qualite de responsable de traitement. <span className="text-[#D4AF37] font-semibold cursor-pointer">Voir plus</span>
             </div>
           </div>
 
           {/* Summary */}
           <div className="rounded-xl bg-[#F5F3EF] border border-[#E5E7EB] p-4 space-y-2">
-            <p className="text-xs font-bold text-[#111] uppercase">Resume de votre annonce</p>
-            <div className="space-y-1">
-              <div className="flex justify-between"><span className="text-[10px] text-[#6B7280]">Vehicule</span><span className="text-[10px] font-bold text-[#111]">{form.marque} {form.modele} {form.motorisation}</span></div>
-              <div className="flex justify-between"><span className="text-[10px] text-[#6B7280]">Annee</span><span className="text-[10px] font-bold text-[#111]">{form.annee || "—"}</span></div>
-              <div className="flex justify-between"><span className="text-[10px] text-[#6B7280]">Kilometrage</span><span className="text-[10px] font-bold text-[#111]">{form.kilometrage || "—"} km</span></div>
-              <div className="flex justify-between"><span className="text-[10px] text-[#6B7280]">Prix</span><span className="text-[10px] font-bold text-[#111]">{form.prix || "—"} EUR</span></div>
-              <div className="flex justify-between"><span className="text-[10px] text-[#6B7280]">Boite</span><span className="text-[10px] font-bold text-[#111]">{form.boite}</span></div>
-              <div className="flex justify-between"><span className="text-[10px] text-[#6B7280]">Photos</span><span className="text-[10px] font-bold text-[#111]">{Object.keys(photoUrls).length}</span></div>
-              <div className="flex justify-between"><span className="text-[10px] text-[#6B7280]">Equipements</span><span className="text-[10px] font-bold text-[#111]">{Object.values(selectedEquip).flat().length}</span></div>
+            <p className="text-xs font-bold text-[#111] uppercase tracking-wide">Resume de votre annonce</p>
+            <div className="space-y-1.5">
+              <div className="flex justify-between"><span className="text-xs text-[#6B7280]">Vehicule</span><span className="text-xs font-bold text-[#111]">{form.marque} {form.modele} {form.motorisation}</span></div>
+              <div className="flex justify-between"><span className="text-xs text-[#6B7280]">Annee</span><span className="text-xs font-bold text-[#111]">{form.annee || "—"}</span></div>
+              <div className="flex justify-between"><span className="text-xs text-[#6B7280]">Kilometrage</span><span className="text-xs font-bold text-[#111]">{form.kilometrage || "—"} km</span></div>
+              <div className="flex justify-between"><span className="text-xs text-[#6B7280]">Prix</span><span className="text-xs font-bold text-[#D4AF37]">{form.prix || "—"} EUR</span></div>
+              <div className="flex justify-between"><span className="text-xs text-[#6B7280]">Boite</span><span className="text-xs font-bold text-[#111]">{form.boite || "—"}</span></div>
+              <div className="flex justify-between"><span className="text-xs text-[#6B7280]">Photos</span><span className="text-xs font-bold text-[#111]">{Object.keys(photoUrls).length}</span></div>
+              <div className="flex justify-between"><span className="text-xs text-[#6B7280]">Equipements</span><span className="text-xs font-bold text-[#111]">{Object.values(selectedEquip).flat().length}</span></div>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <button onClick={() => setStep(3)} className="flex-1 py-3 rounded-xl border border-[#E5E7EB] text-sm font-bold text-[#374151]">Retour</button>
+          <div className="flex gap-3">
+            <button onClick={() => setStep(4)} className="flex-1 py-3.5 rounded-xl border border-[#E5E7EB] text-sm font-bold text-[#374151] hover:bg-[#F5F3EF] transition">Retour</button>
             <button onClick={() => {
-              if (!form.contactVille) { showToast("La ville est obligatoire"); return; }
-              setStep(5);
-            }} className={`flex-1 py-3 rounded-xl text-white text-sm font-bold ${accent} flex items-center justify-center gap-2`}>
-              Publier <ChevronRight size={16} />
+              if (!validateStep(5)) return;
+              setStep(6);
+            }} className="flex-1 py-3.5 rounded-xl bg-[#111] text-white text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#333] transition">
+              Publication <ChevronRight size={16} />
             </button>
           </div>
         </div>
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════
-         STEP 5: PUBLICATION
+         STEP 6: PUBLICATION
          ═══════════════════════════════════════════════════════════════════ */}
-      {step === 5 && !create.isSuccess && (
-        <div className="mx-4 mt-4 space-y-4">
+      {step === 6 && !create.isSuccess && (
+        <div className="px-4 mt-5 space-y-4">
           {/* IA Verification */}
-          <div className="rounded-xl bg-white border border-[#E5E7EB] p-4 text-center">
-            <Bot size={28} className={`mx-auto ${accentText}`} />
-            <h3 className="text-base font-bold text-[#111] mt-2">Verification IA</h3>
+          <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 text-center">
+            <Bot size={32} className="mx-auto text-[#D4AF37]" />
+            <h3 className="text-base font-bold text-[#111] mt-2">Verification IA en cours</h3>
             <p className="text-xs text-[#6B7280] mt-1">Analyse automatique de votre annonce</p>
-            <div className="mt-3 space-y-1.5 text-left">
+            <div className="mt-4 space-y-2 text-left">
               {[
-                ["Coherence prix", true],
-                ["Qualite photos", true],
-                ["Doublons", true],
-                ["Detection fraude", true],
-                ["Score qualite", true],
-              ].map(([s, done]) => (
-                <div key={s as string} className="flex items-center gap-2 text-xs">
-                  <span className="h-2 w-2 rounded-full bg-green-500" />
-                  <span className="font-semibold text-[#111]">{s as string}</span>
-                  <Check size={12} className="text-green-500 ml-auto" />
+                ["Coherence du prix par rapport au marche", true],
+                ["Qualite des photos", true],
+                ["Verification doublons", true],
+                ["Detection tentatives de fraude", true],
+                ["Score qualite global", true],
+              ].map(([s]) => (
+                <div key={s as string} className="flex items-center gap-3 text-sm py-1.5">
+                  <div className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse" />
+                  <span className="font-medium text-[#111] flex-1">{s as string}</span>
+                  <Check size={14} className="text-green-500" />
                 </div>
               ))}
             </div>
-            <div className="mt-3 rounded-lg bg-green-50 border border-green-200 p-2">
-              <p className="text-xs font-bold text-green-700">Score qualite : 85/100</p>
+            <div className="mt-4 rounded-xl bg-green-50 border border-green-200 p-3">
+              <p className="text-sm font-bold text-green-700">Score qualite : 85/100</p>
+              <p className="text-[10px] text-green-600 mt-0.5">Votre annonce est bien complete !</p>
             </div>
           </div>
 
           {/* Final summary */}
-          <div className="rounded-xl bg-[#F5F3EF] border border-[#E5E7EB] p-4 space-y-2">
-            <p className="text-xs font-bold text-[#111] uppercase">Resume final</p>
-            <p className="text-sm font-bold text-[#111]">{form.marque} {form.modele} {form.motorisation} {form.version && `— ${form.version}`}</p>
-            {form.annee && <p className="text-xs text-[#374151]">Annee : {form.annee}</p>}
-            {form.prix && <p className="text-xs text-[#374151]">Prix : <strong>{form.prix} EUR</strong></p>}
-            {form.kilometrage && <p className="text-xs text-[#374151]">Kilometrage : {form.kilometrage} km</p>}
-            <p className="text-xs text-[#374151]">Photos : {Object.keys(photoUrls).length} · Videos : {videoUrls.length} · Equipements : {Object.values(selectedEquip).flat().length}</p>
-            {form.contactVille && <p className="text-xs text-[#374151]">Localisation : {form.contactVille} {form.contactCodePostal}</p>}
+          <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 space-y-3">
+            <p className="text-sm font-bold text-[#111]">Resume final</p>
+            <p className="text-base font-black text-[#111]">{form.marque} {form.modele} {form.motorisation} {form.version && `— ${form.version}`}</p>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {form.annee && <div className="flex items-center gap-1.5"><Calendar size={12} className="text-[#9CA3AF]" /><span>{form.annee}</span></div>}
+              {form.prix && <div className="flex items-center gap-1.5 font-bold text-[#D4AF37]"><span>{form.prix} EUR</span></div>}
+              {form.kilometrage && <div className="flex items-center gap-1.5"><Gauge size={12} className="text-[#9CA3AF]" /><span>{form.kilometrage} km</span></div>}
+              {form.energie && <div className="flex items-center gap-1.5"><Fuel size={12} className="text-[#9CA3AF]" /><span>{form.energie}</span></div>}
+            </div>
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              <span className="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{Object.keys(photoUrls).length} photos</span>
+              <span className="text-[10px] font-bold bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">{Object.values(selectedEquip).flat().length} equipements</span>
+              {videoUrls.length > 0 && <span className="text-[10px] font-bold bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full">{videoUrls.length} video(s)</span>}
+            </div>
+            {form.contactVille && <p className="text-xs text-[#6B7280] flex items-center gap-1"><MapPin size={12} /> {form.contactVille} {form.contactCodePostal}</p>}
           </div>
 
           <button
             onClick={handlePublish}
             disabled={create.isPending}
-            className={`w-full rounded-xl py-3.5 text-sm font-bold text-white ${accent} disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98]`}
+            className="w-full rounded-xl py-4 text-sm font-bold text-white bg-[#E53E3E] hover:bg-[#C53030] disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-lg shadow-red-200"
           >
-            {create.isPending ? <><Loader2 size={16} className="animate-spin" /> Publication en cours...</> : <><Upload size={16} /> Publier l'annonce</>}
+            {create.isPending ? <><Loader2 size={16} className="animate-spin" /> Publication en cours...</> : <><Upload size={16} /> Publier mon annonce</>}
           </button>
           {create.error && <p className="text-xs text-red-600 font-semibold text-center">{create.error.message}</p>}
         </div>
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════
-         STEP 5 (success): PUBLICATION REUSSIE
+         STEP 6 (success): PUBLICATION REUSSIE
          ═══════════════════════════════════════════════════════════════════ */}
-      {step === 5 && create.isSuccess && (
-        <div className="mx-4 mt-4 rounded-xl bg-green-50 border border-green-200 p-6 text-center space-y-3">
-          <Check size={40} className="mx-auto text-green-600" />
-          <h3 className="text-lg font-bold text-green-800">Annonce publiee !</h3>
-          <p className="text-xs text-green-700">Votre {isMoto ? "moto" : "vehicule"} est maintenant visible sur MKA.P-MS.</p>
-          <div className="flex gap-2 justify-center">
-            <span className="text-[9px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">VERIFIE</span>
-            <span className="text-[9px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">PUBLIEE</span>
-          </div>
-          <div className="flex gap-2 mt-4">
-            <Link to="/acheter" className={`flex-1 inline-block rounded-xl px-4 py-3 text-sm font-bold text-white text-center ${accent}`}>Voir mes annonces</Link>
-            <button onClick={() => {
-              setSelectedType(null); setStep(0); setPlaqueFound(false);
-              setForm({ plaque: "", vin: "", marque: "", modele: "", annee: "", motorisation: "", version: "", finition: "", energie: "", categorieMoto: "", cylindree: "", permis: "", kilometrage: "", prix: "", couleurExt: "", couleurInt: "", typePeinture: "", matiereSieges: "", portes: "5", places: "5", puissanceCv: "", puissanceFiscale: "", etat: "", reparations: "", boite: "manuelle", premierMain: "oui", description: "", contactNom: "", contactEmail: "", contactTelephone: "", contactVille: "", contactCodePostal: "" });
-              setSelectedEquip({ exterieur: [], interieur: [], confort: [], securite: [], multimedia: [], autres: [] });
-              setPhotoUrls({}); setVideoUrls([]);
-            }} className="flex-1 rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm font-bold text-[#374151]">Nouvelle annonce</button>
+      {step === 6 && create.isSuccess && (
+        <div className="px-4 mt-5">
+          <div className="rounded-2xl bg-green-50 border border-green-200 p-6 text-center space-y-4">
+            <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-green-100">
+              <Check size={32} className="text-green-600" />
+            </div>
+            <h3 className="text-lg font-black text-green-800">Annonce publiee avec succes !</h3>
+            <p className="text-sm text-green-700">Votre {isMoto ? "moto" : "vehicule"} est maintenant visible sur MKA.P-MS.</p>
+            <div className="flex gap-2 justify-center">
+              <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-3 py-1 rounded-full">VERIFIEE</span>
+              <span className="text-[10px] font-bold bg-green-100 text-green-700 px-3 py-1 rounded-full">PUBLIEE</span>
+              {(form.plaque || form.vin) && <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-3 py-1 rounded-full">VENDEUR VERIFIE</span>}
+            </div>
+            <div className="flex gap-2 mt-4">
+              <Link to="/acheter" className="flex-1 inline-block rounded-xl px-4 py-3.5 text-sm font-bold text-white text-center bg-[#111] hover:bg-[#333] transition">Voir mes annonces</Link>
+              <button onClick={() => {
+                setSelectedType(null); setStep(0); setPlaqueFound(false);
+                setForm({ plaque: "", vin: "", marque: "", modele: "", annee: "", motorisation: "", version: "", finition: "", categorie: "", energie: "", categorieMoto: "", cylindree: "", cylindreeCcm: "", permis: "", kilometrage: "", prix: "", couleurExt: "", couleurInt: "", typePeinture: "", matiereSieges: "", portes: "", places: "", puissanceCv: "", puissanceFiscale: "", etat: "", reparations: "", boite: "", premierMain: "", nbProprietaires: "", paysOrigine: "FR", classeEnvironnementale: "", emissionsCo2: "", nbCles: "2", dateProchaineCT: "", description: "", pointsForts: "", contactNom: "", contactEmail: "", contactTelephone: "", contactVille: "", contactCodePostal: "" });
+                setSelectedEquip({ exterieur: [], interieur: [], confort: [], securite: [], antivol: [], multimedia: [], autres: [] });
+                setPhotoUrls({}); setVideoUrls([]);
+              }} className="flex-1 rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-sm font-bold text-[#374151] hover:bg-[#F5F3EF] transition">Nouvelle annonce</button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%]">
-          <div className="rounded-xl bg-[#111] px-4 py-3 text-xs font-bold text-white shadow-xl flex items-center gap-2">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%] animate-in slide-in-from-bottom-4">
+          <div className="rounded-xl bg-[#111] px-4 py-3 text-xs font-bold text-white shadow-2xl flex items-center gap-2">
             <Check size={14} className="text-green-400 shrink-0" />
             <span>{toast}</span>
           </div>
