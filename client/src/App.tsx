@@ -158,6 +158,7 @@ const ImportAfrica = lazy(() => import("./pages/ImportAfrica"));
 const Historique = lazy(() => import("./pages/Historique"));
 const Wallet = lazy(() => import("./pages/Wallet"));
 const CarteMondiale = lazy(() => import("./pages/CarteMondiale"));
+const GlobalCountryEngine = lazy(() => import("./pages/GlobalCountryEngine"));
 const DepotVente = lazy(() => import("./pages/DepotVente"));
 const VOInterne = lazy(() => import("./pages/VOInterne"));
 const Comptabilite = lazy(() => import("./pages/Comptabilite"));
@@ -856,6 +857,7 @@ export default function App() {
             <Route path="/suivi-vehicule" element={<U name="Suivi v\u00e9hicule"><SuiviVehicule /></U>} />
             <Route path="/journal-activite" element={<U name="Journal"><JournalActivite /></U>} />
             <Route path="/mk-direction" element={<AccesPDG />} />
+            <Route path="/mk-global-engine" element={<U name="Global Country Engine"><GlobalCountryEngine /></U>} />
             <Route path="/compte/validation" element={<U name="Validation"><Validation /></U>} />
             <Route path="/compte/*" element={<U name="Mon compte"><Compte /></U>} />
             <Route path="/admin/*" element={<U name="Back-office"><Admin /></U>} />

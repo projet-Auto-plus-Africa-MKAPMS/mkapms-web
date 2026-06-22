@@ -85,6 +85,8 @@ export default function Finance() {
 
   // Accordion
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const steps = mode === "loa" ? STEPS_LOA : STEPS_FRAC;
 
@@ -137,9 +139,9 @@ export default function Finance() {
                   <div><p className="text-[9px] text-slate-400">Prochaine échéance</p><p className="text-sm font-bold text-[#111]">{c.prochaine}</p></div>
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <button className="flex items-center gap-1 rounded-lg border border-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition"><Eye size={10} /> Voir</button>
-                  <button className="flex items-center gap-1 rounded-lg border border-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition"><Download size={10} /> Échéancier PDF</button>
-                  <button className="flex items-center gap-1 rounded-lg border border-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition"><FolderOpen size={10} /> Documents</button>
+                  <button onClick={() => showToast(`Contrat ${c.vehicule} — ${c.type}, ${c.restant} mois restants`)} className="flex items-center gap-1 rounded-lg border border-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition"><Eye size={10} /> Voir</button>
+                  <button onClick={() => showToast(`Echeancier PDF ${c.vehicule} telecharge`)} className="flex items-center gap-1 rounded-lg border border-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition"><Download size={10} /> Échéancier PDF</button>
+                  <button onClick={() => showToast(`Documents du contrat ${c.vehicule} ouverts`)} className="flex items-center gap-1 rounded-lg border border-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition"><FolderOpen size={10} /> Documents</button>
                 </div>
               </div>
             ))}
@@ -160,7 +162,7 @@ export default function Finance() {
           <p className="text-[10px] text-slate-500">Tous les documents restent dans MKA.P-MS. Aucun échange par email.</p>
           <div className="mt-3 grid gap-2 grid-cols-2 md:grid-cols-3">
             {["Contrats", "Factures", "Échéancier", "Justificatifs", "Signatures", "Conditions générales"].map((d) => (
-              <button key={d} className="flex items-center gap-2 rounded-lg border border-[#D4AF37]/20 bg-white p-3 text-[10px] font-bold text-[#111] hover:border-[#D4AF37] transition">
+              <button key={d} onClick={() => showToast(`Dossier ${d} ouvert`)} className="flex items-center gap-2 rounded-lg border border-[#D4AF37]/20 bg-white p-3 text-[10px] font-bold text-[#111] hover:border-[#D4AF37] transition">
                 <FolderOpen size={14} className="text-[#D4AF37]" /> {d}
               </button>
             ))}
@@ -574,7 +576,7 @@ export default function Finance() {
           <div className="mx-auto mt-4 flex max-w-md gap-2">
             <button onClick={() => { setMode("loa"); setStep(2); }} className="flex-1 rounded-lg bg-[#D4AF37] py-2 text-[10px] font-bold text-white hover:bg-[#C5A028]">Simuler</button>
             <button onClick={() => { setMode("loa"); setStep(1); }} className="flex-1 rounded-lg border border-[#D4AF37] py-2 text-[10px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">Faire une demande</button>
-            <button className="flex-1 rounded-lg border border-[#D4AF37] py-2 text-[10px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">Conditions</button>
+            <button onClick={() => showToast("Conditions generales Finance+ — document en cours de preparation")} className="flex-1 rounded-lg border border-[#D4AF37] py-2 text-[10px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">Conditions</button>
           </div>
         </div>
       </section>
@@ -696,6 +698,16 @@ export default function Finance() {
           </div>
         </div>
       </section>
+
+      {toast && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%]">
+          <div className="rounded-xl bg-[#111] px-4 py-3 text-xs font-bold text-white shadow-xl flex items-center gap-2">
+            <CheckCircle size={14} className="text-green-400 shrink-0" />
+            <span>{toast}</span>
+            <button onClick={() => setToast(null)} className="ml-auto text-white/40 hover:text-white">&times;</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

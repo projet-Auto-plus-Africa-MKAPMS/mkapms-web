@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Upload, CheckCircle, X, Film, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Upload, CheckCircle, X, Film, Image as ImageIcon, Loader2 } from "lucide-react";
+import { getToken } from "../lib/auth";
 
 const TYPES_ACTIVITE = [
   { value: "garage", label: "Garage / Réparation automobile" },
@@ -45,28 +46,69 @@ export default function DemandePublicite() {
   const [contentType, setContentType] = useState<"photo" | "video" | "lien">("photo");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   // Champs dynamiques selon le type
   const [sousType, setSousType] = useState("");
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadedFile(file);
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
+    // Upload to server
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("files", file);
+      const token = getToken();
+      const resp = await fetch("/api/upload", {
+        method: "POST",
+        headers: token ? { authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.files?.[0]?.url) {
+          setUploadedUrl(data.files[0].url);
+          showToast("Fichier uploadé avec succès");
+        }
+      } else {
+        showToast("Erreur upload — réessayez");
+      }
+    } catch {
+      showToast("Erreur upload — réessayez");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const removeFile = () => {
     setUploadedFile(null);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
+    setUploadedUrl(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSubmit = () => {
-    setSubmitted(true);
+    if (!type || !societe || !nom) { showToast("Remplissez tous les champs obligatoires"); return; }
+    if (!emplacement || !duree) { showToast("Choisissez un emplacement et une durée"); return; }
+    if ((contentType === "photo" || contentType === "video") && !uploadedFile) { showToast("Ajoutez votre visuel ou vidéo"); return; }
+    if (contentType === "lien" && !lien) { showToast("Ajoutez le lien de votre site"); return; }
+    setSubmitting(true);
+    // Simulate backend processing
+    setTimeout(() => {
+      setSubmitting(false);
+      setSubmitted(true);
+      showToast("Demande de publicité envoyée !");
+    }, 1500);
   };
 
   if (submitted) {
@@ -319,7 +361,18 @@ export default function DemandePublicite() {
 
           <div className="flex gap-2">
             <button onClick={() => setStep(2)} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-bold text-slate-600">← Retour</button>
-            <button onClick={handleSubmit} className="flex-1 rounded-xl bg-[#B8960C] py-3 text-sm font-bold text-white hover:bg-[#9a7d0a]">Envoyer la demande</button>
+            <button onClick={handleSubmit} disabled={submitting || uploading} className="flex-1 rounded-xl bg-[#B8960C] py-3 text-sm font-bold text-white hover:bg-[#9a7d0a] disabled:opacity-50 flex items-center justify-center gap-2">
+              {submitting ? <><Loader2 size={14} className="animate-spin" /> Envoi en cours...</> : "Envoyer la demande"}
+            </button>
+          </div>
+        </div>
+      )}
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%]">
+          <div className="rounded-xl bg-[#111] px-4 py-3 text-xs font-bold text-white shadow-xl flex items-center gap-2">
+            <CheckCircle size={14} className="text-green-400 shrink-0" />
+            <span>{toast}</span>
           </div>
         </div>
       )}

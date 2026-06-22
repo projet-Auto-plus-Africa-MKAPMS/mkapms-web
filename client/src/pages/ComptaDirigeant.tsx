@@ -22,6 +22,8 @@ export default function ComptaDirigeant() {
   const [expandedFinance, setExpandedFinance] = useState<string | null>(null);
   const [expandedEmploye, setExpandedEmploye] = useState<number | null>(null);
   const [expandedAlerte, setExpandedAlerte] = useState<number | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -110,7 +112,7 @@ export default function ComptaDirigeant() {
                         <div className="rounded-lg bg-[#F5F3EF] p-2 text-center"><span className="text-slate-400">Evolution</span><p className={`font-bold ${u.up ? "text-green-600" : "text-red-500"}`}>{u.pct}</p></div>
                         <div className="rounded-lg bg-[#F5F3EF] p-2 text-center"><span className="text-slate-400">CA total</span><p className="font-bold text-[#D4AF37]">{u.ca}</p></div>
                       </div>
-                      <button className="w-full rounded-lg bg-[#111] py-2 text-[10px] font-bold text-[#D4AF37]">Voir les details {u.univers}</button>
+                      <button onClick={() => showToast(`Details ${u.univers} — ${u.transactions} transactions, CA: ${u.ca}`)} className="w-full rounded-lg bg-[#111] py-2 text-[10px] font-bold text-[#D4AF37]">Voir les details {u.univers}</button>
                     </div>
                   )}
                 </div>
@@ -155,7 +157,7 @@ export default function ComptaDirigeant() {
                       <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-1">
                         <p className="text-[10px] text-slate-500">{c.detail}</p>
                         <p className={`text-[10px] font-bold ${c.color}`}>{c.pct}</p>
-                        <button className="w-full mt-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Voir details</button>
+                        <button onClick={() => showToast(`Details financiers — ${c.label}: ${c.montant} (${c.pct})`)} className="w-full mt-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Voir details</button>
                       </div>
                     )}
                   </div>
@@ -196,8 +198,8 @@ export default function ComptaDirigeant() {
                           <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Montant</span><p className="font-bold text-[#D4AF37]">{p.montant}</p></div>
                         </div>
                         <div className="flex gap-2 mt-2">
-                          <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Voir facture</button>
-                          <button className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Telecharger</button>
+                          <button onClick={() => showToast(`Facture ${p.ref} ouverte — ${p.montant}`)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Voir facture</button>
+                          <button onClick={() => showToast(`PDF ${p.ref} telecharge`)} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Telecharger</button>
                         </div>
                       </div>
                     )}
@@ -239,7 +241,7 @@ export default function ComptaDirigeant() {
                           <div className="rounded-lg bg-[#F5F3EF] p-2 text-center"><span className="text-slate-400">Taux renouvl.</span><p className="font-bold text-green-600">{a.taux}</p></div>
                           <div className="rounded-lg bg-[#F5F3EF] p-2 text-center"><span className="text-slate-400">Dernier</span><p className="font-bold text-[#111]">{a.dernier}</p></div>
                         </div>
-                        <button className="w-full mt-2 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Gerer les abonnes</button>
+                        <button onClick={() => showToast(`Gestion abonnes ${a.plan} — ${a.abonnes} abonnes actifs`)} className="w-full mt-2 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Gerer les abonnes</button>
                       </div>
                     )}
                   </div>
@@ -260,7 +262,7 @@ export default function ComptaDirigeant() {
                 { label: "Absents", val: "2", color: "text-red-500" },
                 { label: "Conges", val: "2", color: "text-blue-500" },
               ].map((s) => (
-                <button key={s.label} className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center hover:shadow-md transition active:scale-[0.97]">
+                <button key={s.label} onClick={() => showToast(`${s.label}: ${s.val} employes`)} className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center hover:shadow-md transition active:scale-[0.97]">
                   <p className={`text-lg font-black ${s.color}`}>{s.val}</p>
                   <p className="text-[9px] text-slate-400">{s.label}</p>
                 </button>
@@ -311,8 +313,8 @@ export default function ComptaDirigeant() {
                         <div className="rounded-lg bg-[#F5F3EF] p-1.5"><p className="font-bold text-[#111]">{e.contact}</p><p className="text-slate-400">Telephone</p></div>
                       </div>
                       <div className="flex gap-2">
-                        <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Voir profil</button>
-                        <button className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Contacter</button>
+                        <button onClick={() => showToast(`Profil ${e.nom} ouvert — ${e.poste}`)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Voir profil</button>
+                        <button onClick={() => { window.location.href = `tel:${e.contact.replace(/ /g, '')}`; }} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Contacter</button>
                       </div>
                     </div>
                   )}
@@ -357,7 +359,7 @@ export default function ComptaDirigeant() {
                       <div className="rounded-lg bg-[#F5F3EF] p-2 text-[10px]">
                         <p className="text-slate-500">{a.detail}</p>
                       </div>
-                      <button className={`w-full rounded-lg py-1.5 text-[9px] font-bold text-white ${a.type === "urgent" ? "bg-red-500" : a.type === "warning" ? "bg-amber-500" : "bg-[#D4AF37]"}`}>{a.action}</button>
+                      <button onClick={() => showToast(`${a.action} — ${a.titre}`)} className={`w-full rounded-lg py-1.5 text-[9px] font-bold text-white ${a.type === "urgent" ? "bg-red-500" : a.type === "warning" ? "bg-amber-500" : "bg-[#D4AF37]"}`}>{a.action}</button>
                     </div>
                   )}
                 </div>
@@ -366,6 +368,16 @@ export default function ComptaDirigeant() {
           </div>
         )}
       </div>
+
+      {toast && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%]">
+          <div className="rounded-xl bg-[#111] px-4 py-3 text-xs font-bold text-white shadow-xl flex items-center gap-2">
+            <CheckCircle size={14} className="text-green-400 shrink-0" />
+            <span>{toast}</span>
+            <button onClick={() => setToast(null)} className="ml-auto text-white/40 hover:text-white">&times;</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

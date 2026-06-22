@@ -1303,8 +1303,8 @@ export default function Admin() {
                   </div>
                   {d.status === "en_attente" && (
                     <div className="mt-3 flex gap-2">
-                      <button className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700">Approuver</button>
-                      <button className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700">Refuser</button>
+                      <button onClick={() => alert(`Publicite ${d.entreprise} approuvee`)} className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700">Approuver</button>
+                      <button onClick={() => alert(`Publicite ${d.entreprise} refusee`)} className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700">Refuser</button>
                     </div>
                   )}
                 </div>

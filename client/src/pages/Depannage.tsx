@@ -62,6 +62,8 @@ export default function Depannage() {
   // Notation
   const [showRating, setShowRating] = useState(false);
   const [ratings, setRatings] = useState({ ponctualite: 0, professionnalisme: 0, accueil: 0, qualite: 0 });
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const handleGPS = () => {
     setGpsLoading(true);
@@ -159,7 +161,7 @@ export default function Depannage() {
                 <a href="tel:0145678900" className="flex items-center gap-1.5 rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-white">
                   <Phone size={12} /> Appeler
                 </a>
-                <button className="flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white">
+                <button onClick={() => showToast("Message envoye au depanneur")} className="flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white">
                   <MessageSquare size={12} /> Message
                 </button>
               </div>
@@ -191,7 +193,7 @@ export default function Depannage() {
                   );
                 })}
               </div>
-              <button className="mt-4 w-full rounded-lg bg-green-600 py-2.5 text-sm font-bold text-white hover:bg-green-700">
+              <button onClick={() => { showToast("Merci pour votre avis ! Note moyenne: " + (Object.values(ratings).reduce((a,b) => a+b, 0) / 4).toFixed(1) + "/5"); setShowRating(false); }} className="mt-4 w-full rounded-lg bg-green-600 py-2.5 text-sm font-bold text-white hover:bg-green-700">
                 Envoyer mon avis
               </button>
             </div>
@@ -201,6 +203,14 @@ export default function Depannage() {
             Retour à l'accueil dépannage
           </button>
         </div>
+        {toast && (
+          <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%]">
+            <div className="rounded-xl bg-[#111] px-4 py-3 text-xs font-bold text-white shadow-xl flex items-center gap-2">
+              <CheckCircle size={14} className="text-green-400 shrink-0" />
+              <span>{toast}</span>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
