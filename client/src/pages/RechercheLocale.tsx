@@ -86,7 +86,7 @@ export default function RechercheLocale() {
         <h2 className="text-sm font-bold text-[#111]">{ANNONCES_LOCALES.length} annonces à {villeNom}</h2>
         <div className="mt-3 space-y-2">
           {ANNONCES_LOCALES.map(a => (
-            <div key={a.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden shadow-sm">
+            <Link key={a.id} to={`/vehicule/${a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden shadow-sm active:scale-[0.98] transition">
               <div className="flex">
                 <img src={a.photo} alt={a.nom} className="w-[120px] h-[90px] object-cover" loading="lazy" />
                 <div className="flex-1 p-2.5">
@@ -95,7 +95,7 @@ export default function RechercheLocale() {
                   <p className="mt-1 text-sm font-black text-[#D4AF37]">{a.prix.toLocaleString("fr-FR")} {paysInfo?.devise || "€"}</p>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

@@ -82,7 +82,7 @@ export default function AdminVente() {
                     <div className="rounded-lg bg-[#F5F3EF] p-1.5 text-center"><Car size={10} className="mx-auto text-[#D4AF37] mb-0.5" /><p className="font-bold text-[#111]">{a.vendeur}</p><p className="text-[7px] text-[#6B7280]">vendeur</p></div>
                   </div>
                   <div className="flex gap-1.5">
-                    <Link to={`/acheter/${a.id}`} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white active:scale-[0.97]"><Eye size={12} /> Voir</Link>
+                    <Link to={`/vehicule/${a.id}`} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white active:scale-[0.97]"><Eye size={12} /> Voir</Link>
                     {a.statut === "suspendue" ? (
                       <button onClick={() => setConfirm({ id: a.id, action: "publier" })} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-green-500 py-1.5 text-[9px] font-bold text-white active:scale-[0.97]"><CheckCircle size={12} /> Publier</button>
                     ) : (
