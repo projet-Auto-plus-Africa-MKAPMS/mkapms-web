@@ -21,7 +21,7 @@ const SECTIONS = [
   { title: "Gestion", items: [
     { label: "Finance", icon: Euro, to: "/superadmin/admin-paiements", desc: "Paiements, commissions, CA" },
     { label: "Publicité", icon: Megaphone, to: "/superadmin/admin-moderation-annonces", desc: "Espaces, campagnes, tarifs" },
-    { label: "Comptabilité", icon: Calculator, to: "/superadmin/admin-paiements", desc: "Revenus, dépenses, résultat" },
+    { label: "Comptabilité", icon: Calculator, to: "/superadmin/comptabilite-complete", desc: "Revenus, dépenses, résultat" },
     { label: "Employés", icon: Users, to: "/superadmin/admin-employes", desc: "Rôles, droits, planning" },
     { label: "Utilisateurs", icon: UserCheck, to: "/superadmin/admin-utilisateurs", desc: "Comptes, validation, badges" },
     { label: "Sécurité", icon: Shield, to: "/superadmin/admin-securite", desc: "2FA, journal, sauvegardes" },
