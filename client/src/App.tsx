@@ -312,21 +312,27 @@ const AdminBadges = lazy(() => import("./pages/superadmin/AdminBadges"));
 const AdminCarteMoniale = lazy(() => import("./pages/superadmin/AdminCarteMoniale"));
 const AdminCommissions = lazy(() => import("./pages/superadmin/AdminCommissions"));
 const AdminComptesPro = lazy(() => import("./pages/superadmin/AdminComptesPro"));
+const AdminDemarches = lazy(() => import("./pages/superadmin/AdminDemarches"));
+const AdminDepannage = lazy(() => import("./pages/superadmin/AdminDepannage"));
 const AdminEmployes = lazy(() => import("./pages/superadmin/AdminEmployes"));
 const AdminFraude = lazy(() => import("./pages/superadmin/AdminFraude"));
+const AdminGarage = lazy(() => import("./pages/superadmin/AdminGarage"));
 const AdminGeneral = lazy(() => import("./pages/superadmin/AdminGeneral"));
 const AdminJournal = lazy(() => import("./pages/superadmin/AdminJournal"));
 const AdminLitiges = lazy(() => import("./pages/superadmin/AdminLitiges"));
+const AdminLocation = lazy(() => import("./pages/superadmin/AdminLocation"));
 const AdminModerationAnnonces = lazy(() => import("./pages/superadmin/AdminModerationAnnonces"));
 const AdminModerationAvis = lazy(() => import("./pages/superadmin/AdminModerationAvis"));
 const AdminObjectif = lazy(() => import("./pages/superadmin/AdminObjectif"));
 const AdminPaiements = lazy(() => import("./pages/superadmin/AdminPaiements"));
+const AdminPieces = lazy(() => import("./pages/superadmin/AdminPieces"));
 const AdminSEO = lazy(() => import("./pages/superadmin/AdminSEO"));
 const AdminSauvegardes = lazy(() => import("./pages/superadmin/AdminSauvegardes"));
 const AdminSecurite = lazy(() => import("./pages/superadmin/AdminSecurite"));
 const AdminStatistiques = lazy(() => import("./pages/superadmin/AdminStatistiques"));
 const AdminSupport = lazy(() => import("./pages/superadmin/AdminSupport"));
 const AdminUtilisateurs = lazy(() => import("./pages/superadmin/AdminUtilisateurs"));
+const AdminVente = lazy(() => import("./pages/superadmin/AdminVente"));
 const AdminValidationDocs = lazy(() => import("./pages/superadmin/AdminValidationDocs"));
 const CentreRH = lazy(() => import("./pages/superadmin/CentreRH"));
 const CentreTickets = lazy(() => import("./pages/superadmin/CentreTickets"));
@@ -1003,21 +1009,27 @@ export default function App() {
             <Route path="/superadmin/admin-carte-moniale" element={<U name="Super Admin"><AdminCarteMoniale /></U>} />
             <Route path="/superadmin/admin-commissions" element={<U name="Super Admin"><AdminCommissions /></U>} />
             <Route path="/superadmin/admin-comptes-pro" element={<U name="Super Admin"><AdminComptesPro /></U>} />
+            <Route path="/superadmin/admin-demarches" element={<U name="Super Admin"><AdminDemarches /></U>} />
+            <Route path="/superadmin/admin-depannage" element={<U name="Super Admin"><AdminDepannage /></U>} />
             <Route path="/superadmin/admin-employes" element={<U name="Super Admin"><AdminEmployes /></U>} />
             <Route path="/superadmin/admin-fraude" element={<U name="Super Admin"><AdminFraude /></U>} />
+            <Route path="/superadmin/admin-garage" element={<U name="Super Admin"><AdminGarage /></U>} />
             <Route path="/superadmin/admin-general" element={<U name="Super Admin"><AdminGeneral /></U>} />
             <Route path="/superadmin/admin-journal" element={<U name="Super Admin"><AdminJournal /></U>} />
             <Route path="/superadmin/admin-litiges" element={<U name="Super Admin"><AdminLitiges /></U>} />
+            <Route path="/superadmin/admin-location" element={<U name="Super Admin"><AdminLocation /></U>} />
             <Route path="/superadmin/admin-moderation-annonces" element={<U name="Super Admin"><AdminModerationAnnonces /></U>} />
             <Route path="/superadmin/admin-moderation-avis" element={<U name="Super Admin"><AdminModerationAvis /></U>} />
             <Route path="/superadmin/admin-objectif" element={<U name="Super Admin"><AdminObjectif /></U>} />
             <Route path="/superadmin/admin-paiements" element={<U name="Super Admin"><AdminPaiements /></U>} />
+            <Route path="/superadmin/admin-pieces" element={<U name="Super Admin"><AdminPieces /></U>} />
             <Route path="/superadmin/admin-s-e-o" element={<U name="Super Admin"><AdminSEO /></U>} />
             <Route path="/superadmin/admin-sauvegardes" element={<U name="Super Admin"><AdminSauvegardes /></U>} />
             <Route path="/superadmin/admin-securite" element={<U name="Super Admin"><AdminSecurite /></U>} />
             <Route path="/superadmin/admin-statistiques" element={<U name="Super Admin"><AdminStatistiques /></U>} />
             <Route path="/superadmin/admin-support" element={<U name="Super Admin"><AdminSupport /></U>} />
             <Route path="/superadmin/admin-utilisateurs" element={<U name="Super Admin"><AdminUtilisateurs /></U>} />
+            <Route path="/superadmin/admin-vente" element={<U name="Super Admin"><AdminVente /></U>} />
             <Route path="/superadmin/admin-validation-docs" element={<U name="Super Admin"><AdminValidationDocs /></U>} />
             <Route path="/superadmin/centre-r-h" element={<U name="Super Admin"><CentreRH /></U>} />
             <Route path="/superadmin/centre-tickets" element={<U name="Super Admin"><CentreTickets /></U>} />

@@ -11,12 +11,12 @@ const STATS = [
 ];
 const SECTIONS = [
   { title: "Services", items: [
-    { label: "Vente", icon: Car, to: "/superadmin/utilisateurs", desc: "Annonces, réservations, clients" },
-    { label: "Location", icon: Home, to: "/superadmin/utilisateurs", desc: "Contrats, cautions, véhicules" },
-    { label: "Garage", icon: Wrench, to: "/superadmin/utilisateurs", desc: "Planning, mécaniciens, devis" },
-    { label: "Dépannage", icon: Truck, to: "/superadmin/utilisateurs", desc: "Interventions, dépanneurs" },
-    { label: "Pièces", icon: Package, to: "/superadmin/utilisateurs", desc: "Stock, commandes, vendeurs" },
-    { label: "Démarches", icon: FileText, to: "/superadmin/utilisateurs", desc: "CG, cessions, dossiers" },
+    { label: "Vente", icon: Car, to: "/superadmin/admin-vente", desc: "Annonces, réservations, clients" },
+    { label: "Location", icon: Home, to: "/superadmin/admin-location", desc: "Contrats, cautions, véhicules" },
+    { label: "Garage", icon: Wrench, to: "/superadmin/admin-garage", desc: "Planning, mécaniciens, devis" },
+    { label: "Dépannage", icon: Truck, to: "/superadmin/admin-depannage", desc: "Interventions, dépanneurs" },
+    { label: "Pièces", icon: Package, to: "/superadmin/admin-pieces", desc: "Stock, commandes, vendeurs" },
+    { label: "Démarches", icon: FileText, to: "/superadmin/admin-demarches", desc: "CG, cessions, dossiers" },
   ]},
   { title: "Gestion", items: [
     { label: "Finance", icon: Euro, to: "/superadmin/admin-paiements", desc: "Paiements, commissions, CA" },
