@@ -16,6 +16,7 @@ export default function AdminComptesPro() {
   const [profilModal, setProfilModal] = useState<number | null>(null);
   const [docsModal, setDocsModal] = useState<number | null>(null);
   const [editModal, setEditModal] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<{ nom: string; email: string; tel: string; adresse: string; plan: string }>({ nom: "", email: "", tel: "", adresse: "", plan: "" });
   const [confirmAction, setConfirmAction] = useState<{ id: number; action: string } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -86,7 +87,7 @@ export default function AdminComptesPro() {
                   <div className="flex gap-1.5 mt-2">
                     <button onClick={() => setProfilModal(p.id)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white active:scale-[0.97]">Voir profil</button>
                     <button onClick={() => setDocsModal(p.id)} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37] active:scale-[0.97]">Documents</button>
-                    <button onClick={() => setEditModal(p.id)} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[9px] font-bold text-white active:scale-[0.97]">Modifier</button>
+                    <button onClick={() => { setEditForm({ nom: p.nom, email: p.email, tel: p.tel, adresse: p.adresse, plan: p.plan }); setEditModal(p.id); }} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[9px] font-bold text-white active:scale-[0.97]">Modifier</button>
                   </div>
                   <div className="flex gap-1.5 mt-1.5">
                     {!p.verifie && <button onClick={() => setConfirmAction({ id: p.id, action: "verifier" })} className="flex-1 rounded-lg bg-green-500 py-1.5 text-[9px] font-bold text-white active:scale-[0.97]">Verifier</button>}
@@ -167,16 +168,16 @@ export default function AdminComptesPro() {
               <button onClick={() => setEditModal(null)} className="p-1 rounded-full hover:bg-gray-100"><X size={18} /></button>
             </div>
             <div className="p-4 space-y-3">
-              {[
-                { label: "Nom", field: "nom" as const, value: editPro.nom },
-                { label: "Email", field: "email" as const, value: editPro.email },
-                { label: "Telephone", field: "tel" as const, value: editPro.tel },
-                { label: "Adresse", field: "adresse" as const, value: editPro.adresse },
-                { label: "Plan", field: "plan" as const, value: editPro.plan },
-              ].map((f) => (
-                <div key={f.label}><label className="text-[10px] font-bold text-[#6B7280]">{f.label}</label><input defaultValue={f.value} className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" onBlur={(e) => setData((prev) => prev.map((p) => p.id === editPro.id ? { ...p, [f.field]: e.target.value } : p))} /></div>
+              {([
+                { label: "Nom", field: "nom" as const },
+                { label: "Email", field: "email" as const },
+                { label: "Telephone", field: "tel" as const },
+                { label: "Adresse", field: "adresse" as const },
+                { label: "Plan", field: "plan" as const },
+              ] as const).map((f) => (
+                <div key={f.label}><label className="text-[10px] font-bold text-[#6B7280]">{f.label}</label><input value={editForm[f.field]} onChange={(e) => setEditForm((prev) => ({ ...prev, [f.field]: e.target.value }))} className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" /></div>
               ))}
-              <button onClick={() => { setEditModal(null); showToast("Modifications enregistrees"); }} className="w-full rounded-xl bg-[#D4AF37] py-2.5 text-sm font-bold text-white active:scale-[0.97]">Enregistrer</button>
+              <button onClick={() => { setData((prev) => prev.map((p) => p.id === editPro.id ? { ...p, ...editForm } : p)); setEditModal(null); showToast("Modifications enregistrees"); }} className="w-full rounded-xl bg-[#D4AF37] py-2.5 text-sm font-bold text-white active:scale-[0.97]">Enregistrer</button>
             </div>
           </div>
         </div>
