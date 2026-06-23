@@ -123,6 +123,7 @@ export const annoncePhotos = pgTable("annonce_photos", {
   annonceId: integer("annonce_id").notNull(),
   url: text("url").notNull(),
   ordre: integer("ordre").notNull().default(0),
+  categorie: varchar("categorie", { length: 32 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

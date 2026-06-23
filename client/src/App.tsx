@@ -96,6 +96,7 @@ const EstimationAuto = lazy(() => import("./pages/EstimationAuto"));
 const HistoriqueVehiculeVente = lazy(() => import("./pages/HistoriqueVehiculeVente"));
 const RepriseVehicule = lazy(() => import("./pages/RepriseVehicule"));
 const DepotAnnonce = lazy(() => import("./pages/DepotAnnonce"));
+const MesAnnonces = lazy(() => import("./pages/MesAnnonces"));
 const EspaceProVente = lazy(() => import("./pages/EspaceProVente"));
 // Inscriptions
 const InscriptionParticulier = lazy(() => import("./pages/InscriptionParticulier"));
@@ -758,6 +759,7 @@ export default function App() {
             <Route path="/acheter/historique-vehicule" element={<U name="Historique v\u00e9hicule"><HistoriqueVehiculeVente /></U>} />
             <Route path="/acheter/reprise" element={<U name="Reprise"><RepriseVehicule /></U>} />
             <Route path="/acheter/depot-annonce" element={<U name="D\u00e9p\u00f4t annonce"><DepotAnnonce /></U>} />
+            <Route path="/acheter/mes-annonces" element={<U name="Mes annonces"><MesAnnonces /></U>} />
             <Route path="/acheter/espace-pro" element={<U name="Espace Pro Vente"><EspaceProVente /></U>} />
             {/* Inscriptions */}
             <Route path="/inscription" element={<U name="Inscription"><InscriptionParticulier /></U>} />

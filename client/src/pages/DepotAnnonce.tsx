@@ -329,7 +329,13 @@ export default function DepotAnnonce() {
   function handlePublish() {
     if (!form.marque || !form.modele) { showToast("Marque et modele obligatoires"); return; }
     if (!form.prix) { showToast("Le prix est obligatoire"); return; }
-    const allPhotos = Object.values(photoUrls).filter(Boolean);
+    const allPhotos = Object.entries(photoUrls)
+      .filter(([, url]) => Boolean(url))
+      .map(([key, url]) => {
+        const catKey = key.split("_")[0]; // ext, int, coffre, moteur, roues, defauts, details
+        const catMap: Record<string, string> = { ext: "exterieur", int: "interieur", coffre: "coffre", moteur: "moteur", roues: "roues", defauts: "autres", details: "autres" };
+        return { url, categorie: catMap[catKey] || "autres" };
+      });
     const allEquip = Object.values(selectedEquip).flat();
     const confortItems = selectedEquip.confort || [];
     const securiteItems = selectedEquip.securite || [];

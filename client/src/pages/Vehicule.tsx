@@ -63,15 +63,20 @@ import { computeTrustScore, TRUST_LEVEL_LABEL } from "@shared/trust";
 import { computeBadges } from "@shared/badges";
 import { BadgeChip } from "../components/VehicleCard";
 
-/* ── Catégories photo pour véhicules MKA.P-MS Officiel ── */
-type PhotoCategory = "exterieur" | "sieges" | "coffre" | "tableau_de_bord" | "roues" | "autres";
+/* ── Catégories photo pour galerie (tous véhicules) ── */
+type PhotoCategory = "exterieur" | "interieur" | "sieges" | "coffre" | "tableau_de_bord" | "moteur" | "roues" | "documents" | "autres" | "video360" | "video";
 const PHOTO_CATEGORIES: { key: PhotoCategory; label: string }[] = [
   { key: "exterieur", label: "Extérieur" },
+  { key: "interieur", label: "Intérieur" },
   { key: "sieges", label: "Sièges" },
-  { key: "coffre", label: "Coffre" },
   { key: "tableau_de_bord", label: "Tableau de bord" },
+  { key: "coffre", label: "Coffre" },
+  { key: "moteur", label: "Moteur" },
   { key: "roues", label: "Roues" },
+  { key: "documents", label: "Documents" },
   { key: "autres", label: "Autres" },
+  { key: "video360", label: "Vidéo 360°" },
+  { key: "video", label: "Vidéo" },
 ];
 
 /* ── Véhicules démo (IDs >= 8000) ── */
@@ -236,18 +241,25 @@ export default function Vehicule() {
 
   if (!v) return <div className="container-page py-16 text-slate-500">Véhicule introuvable.</div>;
 
-  const photos = v.photos?.length ? v.photos.map((p: any) => p.url) : (v.photoPrincipale ? [v.photoPrincipale] : []);
+  const photosRaw: { url: string; categorie?: string }[] = v.photos?.length ? v.photos.map((p: any) => ({ url: p.url, categorie: p.categorie || null })) : (v.photoPrincipale ? [{ url: v.photoPrincipale, categorie: null }] : []);
+  const photos = photosRaw.map((p) => p.url);
   const isLocation = v.type === "location";
   const isVtcTaxi = v.segmentLocation === "vtc_taxi";
   const tier = getVehicleTier(v);
   const isOfficiel = tier === "officiel" || tier === "premium" || tier === "elite";
   const isMkapmsStock = v.id >= 8000 && v.id <= 8005;
 
-  /* Photos catégorisées pour véhicules MKA.P-MS Officiel */
+  /* Photos catégorisées — fonctionne pour MKA.P-MS stock ET annonces particulier/pro */
   const hasPhotoCategories = isMkapmsStock && v.photoCategories;
-  const categoryPhotos = hasPhotoCategories ? (v.photoCategories[photoCat] || []) as string[] : [];
-  const activeCatPhotos = hasPhotoCategories ? categoryPhotos : photos;
-  const activeCatIdx = hasPhotoCategories ? Math.min(photoIdx, Math.max(0, activeCatPhotos.length - 1)) : photoIdx;
+  // For user annonces: filter photosRaw by selected category
+  const userAnnonceHasCategories = !isMkapmsStock && photosRaw.some((p) => p.categorie);
+  const categoryPhotos = hasPhotoCategories
+    ? (v.photoCategories[photoCat] || []) as string[]
+    : userAnnonceHasCategories
+      ? photosRaw.filter((p) => p.categorie === photoCat).map((p) => p.url)
+      : [];
+  const activeCatPhotos = (hasPhotoCategories || userAnnonceHasCategories) ? categoryPhotos : photos;
+  const activeCatIdx = (hasPhotoCategories || userAnnonceHasCategories) ? Math.min(photoIdx, Math.max(0, activeCatPhotos.length - 1)) : photoIdx;
   const allCategoryPhotos = hasPhotoCategories
     ? Object.values(v.photoCategories as Record<string, string[]>).flat()
     : photos;
@@ -1660,19 +1672,40 @@ export default function Vehicule() {
         {/* ===== 1. PHOTOS ===== */}
         <section className="min-w-0 lg:col-start-1 lg:row-start-1">
           <div className={`card overflow-hidden ${isOfficiel ? "border-[#D4AF37]/40 shadow-lg" : ""}`}>
-            <div
+            {/* ── Category tabs (scroll horizontal) ── */}
+          {(hasPhotoCategories || userAnnonceHasCategories || photos.length > 0) && (
+            <div className="flex gap-2 overflow-x-auto px-2 py-2 scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+              {PHOTO_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.key}
+                  onClick={() => { setPhotoCat(cat.key); setPhotoIdx(0); }}
+                  className={`flex-shrink-0 rounded-full px-4 py-1.5 text-sm font-medium border transition whitespace-nowrap ${
+                    photoCat === cat.key
+                      ? "border-red-500 text-red-600 bg-red-50"
+                      : "border-slate-200 text-slate-600 bg-white hover:border-slate-400"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div
               className={`relative w-full ${photoHeightClass} bg-slate-100 cursor-pointer`}
-              onClick={() => { if (hasPhotoCategories) { setLightboxIdx(photoIdx); setLightboxOpen(true); } }}
+              onClick={() => { setLightboxIdx(activeCatIdx); setLightboxOpen(true); }}
             >
-              {/* MKA.P-MS: toutes les photos dans l'ordre, non filtrées */}
-              {(hasPhotoCategories ? allCategoryPhotos : photos).length ? (
-                <img src={(hasPhotoCategories ? allCategoryPhotos : photos)[photoIdx] || ""} alt={v.titre} className="h-full w-full object-cover" />
+              {/* Photos filtrées par catégorie sélectionnée */}
+              {activeCatPhotos.length ? (
+                <img src={activeCatPhotos[activeCatIdx] || ""} alt={v.titre} className="h-full w-full object-cover" />
+              ) : photos.length ? (
+                <img src={photos[photoIdx] || ""} alt={v.titre} className="h-full w-full object-cover" />
               ) : (
                 <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
               )}
 
               {/* Flèches gauche/droite */}
-              {(hasPhotoCategories ? allCategoryPhotos.length : photos.length) > 1 && (
+              {(activeCatPhotos.length > 1 || (!userAnnonceHasCategories && !hasPhotoCategories && photos.length > 1)) && (
                 <>
                   <button
                     onClick={(e) => { e.stopPropagation(); setPhotoIdx((i) => Math.max(0, i - 1)); }}
@@ -1681,7 +1714,11 @@ export default function Vehicule() {
                     <ChevronLeft size={22} />
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); setPhotoIdx((i) => Math.min((hasPhotoCategories ? allCategoryPhotos.length : photos.length) - 1, i + 1)); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const max = (hasPhotoCategories || userAnnonceHasCategories) ? activeCatPhotos.length - 1 : photos.length - 1;
+                      setPhotoIdx((i) => Math.min(max, i + 1));
+                    }}
                     className="absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition"
                   >
                     <ChevronRight size={22} />
@@ -1690,9 +1727,9 @@ export default function Vehicule() {
               )}
 
               {/* Compteur photos */}
-              {(hasPhotoCategories ? allCategoryPhotos.length : photos.length) > 1 && (
+              {((hasPhotoCategories || userAnnonceHasCategories) ? activeCatPhotos.length : photos.length) > 1 && (
                 <span className="badge absolute bottom-3 right-3 bg-noir/70 text-white">
-                  {photoIdx + 1} / {hasPhotoCategories ? allCategoryPhotos.length : photos.length}
+                  {((hasPhotoCategories || userAnnonceHasCategories) ? activeCatIdx : photoIdx) + 1} / {(hasPhotoCategories || userAnnonceHasCategories) ? activeCatPhotos.length : photos.length}
                 </span>
               )}
 
@@ -1710,22 +1747,26 @@ export default function Vehicule() {
                 ) : null;
               })()}
             </div>
-            {/* Galerie miniatures — uniquement pour NON-MKA.P-MS */}
-            {!hasPhotoCategories && photos.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto p-3">
-                {photos.slice(0, typeof window !== "undefined" && window.innerWidth >= 1024 ? 12 : 6).map((p: string, i: number) => (
-                  <button
-                    key={i}
-                    onClick={() => setPhotoIdx(i)}
-                    className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg ring-offset-1 ${
-                      i === photoIdx ? "ring-2 ring-gold" : "ring-1 ring-slate-200"
-                    }`}
-                  >
-                    <img src={p} alt="" className="h-full w-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Galerie miniatures */}
+            {(() => {
+              const thumbPhotos = (hasPhotoCategories || userAnnonceHasCategories) ? activeCatPhotos : photos;
+              const thumbIdx = (hasPhotoCategories || userAnnonceHasCategories) ? activeCatIdx : photoIdx;
+              return thumbPhotos.length > 1 ? (
+                <div className="flex gap-2 overflow-x-auto p-3">
+                  {thumbPhotos.slice(0, typeof window !== "undefined" && window.innerWidth >= 1024 ? 12 : 6).map((p: string, i: number) => (
+                    <button
+                      key={i}
+                      onClick={() => setPhotoIdx(i)}
+                      className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg ring-offset-1 ${
+                        i === thumbIdx ? "ring-2 ring-gold" : "ring-1 ring-slate-200"
+                      }`}
+                    >
+                      <img src={p} alt="" className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              ) : null;
+            })()}
           </div>
         </section>
 
@@ -2616,16 +2657,40 @@ export default function Vehicule() {
         </div>
       )}
 
-      {/* ── LIGHTBOX plein écran — MKA.P-MS Officiel : catégories visibles ici ── */}
-      {hasPhotoCategories && lightboxOpen && (() => {
-        const catPhotos = (v.photoCategories[photoCat] || []) as string[];
+      {/* ── LIGHTBOX simple pour annonces SANS catégories ── */}
+      {!hasPhotoCategories && !userAnnonceHasCategories && lightboxOpen && photos.length > 0 && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => setLightboxOpen(false)}>
+          <div className="flex justify-end px-4" style={{ paddingTop: "max(3rem, calc(env(safe-area-inset-top, 1rem) + 2rem))" }}>
+            <button onClick={() => setLightboxOpen(false)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 text-lg font-bold">✕</button>
+          </div>
+          <div className="relative flex flex-1 items-center justify-center px-4 pb-8" onClick={(e) => e.stopPropagation()}>
+            <img src={photos[lightboxIdx] || ""} alt="" className="max-h-[65vh] w-full rounded-xl object-contain" />
+            {photos.length > 1 && (
+              <>
+                <button onClick={() => setLightboxIdx((i) => Math.max(0, i - 1))} className="absolute left-2 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"><ChevronLeft size={28} /></button>
+                <button onClick={() => setLightboxIdx((i) => Math.min(photos.length - 1, i + 1))} className="absolute right-2 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"><ChevronRight size={28} /></button>
+              </>
+            )}
+            <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs text-white">{lightboxIdx + 1} / {photos.length}</span>
+          </div>
+        </div>
+      )}
+
+      {/* ── LIGHTBOX plein écran — avec catégories (MKA.P-MS + annonces utilisateur) ── */}
+      {(hasPhotoCategories || userAnnonceHasCategories) && lightboxOpen && (() => {
+        const catPhotos = hasPhotoCategories
+          ? (v.photoCategories[photoCat] || []) as string[]
+          : photosRaw.filter((p) => p.categorie === photoCat).map((p) => p.url);
         const lbIdx = Math.min(lightboxIdx, Math.max(0, catPhotos.length - 1));
         return (
           <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => setLightboxOpen(false)}>
             {/* Header lightbox — descendu sous la barre d'état */}
             <div className="flex items-center justify-between px-4 pb-3" style={{ paddingTop: "max(5rem, calc(env(safe-area-inset-top, 2rem) + 3rem))" }} onClick={(e) => e.stopPropagation()}>
               <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                {PHOTO_CATEGORIES.filter((c) => (v.photoCategories[c.key] || []).length > 0).map((c) => (
+                {PHOTO_CATEGORIES.filter((c) => {
+                  if (hasPhotoCategories) return (v.photoCategories[c.key] || []).length > 0;
+                  return photosRaw.some((p) => p.categorie === c.key);
+                }).map((c) => (
                   <button
                     key={c.key}
                     onClick={() => { setPhotoCat(c.key); setLightboxIdx(0); }}

@@ -120,6 +120,13 @@
       "when": 1781380000000,
       "tag": "0016_annonce_details_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1781390000000,
+      "tag": "0017_photo_categorie",
+      "breakpoints": true
     }
   ]
 }

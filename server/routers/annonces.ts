@@ -533,7 +533,10 @@ export const annoncesRouter = router({
         codePostal: z.string().optional(),
         pays: z.string().default("FR"),
         contactTelephone: z.string().optional(),
-        photos: z.array(z.string()).default([]),
+        photos: z.array(z.union([
+          z.string(),
+          z.object({ url: z.string(), categorie: z.string().optional() }),
+        ])).default([]),
         pointsForts: z.array(z.string()).default([]),
         equipements: z.array(z.string()).default([]),
         imperfections: z.array(z.string()).default([]),
@@ -603,11 +606,15 @@ export const annoncesRouter = router({
 
       if (photos.length) {
         await db.insert(annoncePhotos).values(
-          photos.slice(0, 30).map((url, i) => ({
-            annonceId: created.id,
-            url,
-            ordre: i,
-          })),
+          photos.slice(0, 30).map((p, i) => {
+            const isObj = typeof p === "object" && p !== null;
+            return {
+              annonceId: created.id,
+              url: isObj ? (p as { url: string }).url : (p as string),
+              categorie: isObj ? (p as { categorie?: string }).categorie || null : null,
+              ordre: i,
+            };
+          }),
         );
       }
 
@@ -634,8 +641,49 @@ export const annoncesRouter = router({
       return { ...created, overageBilled, quota };
     }),
 
+  myList: protectedProcedure
+    .query(async ({ ctx }) => {
+      const rows = await db.select().from(annonces).where(eq(annonces.ownerId, ctx.user.uid)).orderBy(sql`${annonces.createdAt} DESC`);
+      const ids = rows.map((r) => r.id);
+      const photos = ids.length
+        ? await db.select().from(annoncePhotos).where(sql`${annoncePhotos.annonceId} in (${sql.join(ids, sql`, `)})`)
+        : [];
+      const photoMap = new Map<number, string>();
+      for (const p of photos) {
+        if (!photoMap.has(p.annonceId!)) photoMap.set(p.annonceId!, p.url);
+      }
+      return rows.map((r) => ({ ...r, photoPrincipale: photoMap.get(r.id) ?? null }));
+    }),
+
+  update: protectedProcedure
+    .input(z.object({
+      id: z.number(),
+      prix: z.number().optional(),
+      description: z.string().optional(),
+      kilometrage: z.number().optional(),
+      ville: z.string().optional(),
+      status: z.enum(["publiee", "reservee", "vendue", "archivee"]).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const [a] = await db.select().from(annonces).where(eq(annonces.id, input.id)).limit(1);
+      if (!a || a.ownerId !== ctx.user.uid) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      const { id, ...updates } = input;
+      const filtered = Object.fromEntries(Object.entries(updates).filter(([, v]) => v !== undefined));
+      if (Object.keys(filtered).length > 0) {
+        await db.update(annonces).set(filtered).where(eq(annonces.id, id));
+      }
+      return { ok: true };
+    }),
+
   remove: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({
+      id: z.number(),
+      reason: z.string().optional(),
+      soldOnPlatform: z.boolean().optional(),
+      soldPrice: z.number().optional(),
+    }))
     .mutation(async ({ ctx, input }) => {
       const [a] = await db.select().from(annonces).where(eq(annonces.id, input.id)).limit(1);
       if (!a || a.ownerId !== ctx.user.uid) {
