@@ -8,6 +8,7 @@ import {
   X, Edit3, Trash2, Ban, Phone, Mail, MapPin, Briefcase,
   ShieldCheck, Star, Receipt, Search, Filter, Printer, Send
 } from "lucide-react";
+import { DocumentView, buildFactureData } from "../components/DocumentPDF";
 
 /* ══════════════════════════════════════════════════════════════════════════
    COMPTABILITE MKA.P-MS — TABLEAU DE BORD DIRIGEANT
@@ -148,6 +149,7 @@ export default function ComptaDirigeant() {
   const [modalEmploye, setModalEmploye] = useState<Employe | null>(null);
   const [modalEditEmploye, setModalEditEmploye] = useState<Employe | null>(null);
   const [modalAlerte, setModalAlerte] = useState<Alerte | null>(null);
+  const [viewFactureAlerte, setViewFactureAlerte] = useState<Alerte | null>(null);
   const [modalFinanceCard, setModalFinanceCard] = useState<{ label: string; montant: string; detail: string; pct: string; color: string } | null>(null);
   const [editSalaire, setEditSalaire] = useState("");
   const [editPoste, setEditPoste] = useState("");
@@ -514,29 +516,12 @@ export default function ComptaDirigeant() {
         </Overlay>
       )}
 
-      {/* -------- Transaction Detail Modal -------- */}
+      {/* -------- Transaction Detail — PDF visuel -------- */}
       {modalTransaction && (
-        <Overlay onClose={() => setModalTransaction(null)}>
-          <div className="p-5 pt-10">
-            <h2 className="text-lg font-black text-[#111] mb-1">{modalTransaction.objet}</h2>
-            <p className="text-xs text-slate-500 mb-4">Ref: {modalTransaction.ref}</p>
-
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Montant</p><p className={`text-lg font-black ${modalTransaction.montant.startsWith("-") ? "text-red-500" : "text-green-600"}`}>{modalTransaction.montant}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Date</p><p className="text-lg font-black text-[#111]">{modalTransaction.date}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Client</p><p className="text-sm font-bold text-[#111]">{modalTransaction.client}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Statut</p><p className={`text-sm font-bold ${modalTransaction.statut === "Recu" ? "text-green-600" : "text-amber-600"}`}>{modalTransaction.statut}</p></div>
-            </div>
-
-            <div className="flex gap-2">
-              <button onClick={() => { showToast(`Facture ${modalTransaction.ref} imprimee`); setModalTransaction(null); }} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97] transition"><Printer size={14} /> Imprimer facture</button>
-              <button onClick={() => { showToast(`PDF ${modalTransaction.ref} telecharge`); setModalTransaction(null); }} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97] transition"><Download size={14} /> Telecharger PDF</button>
-            </div>
-            {modalTransaction.statut === "En attente" && (
-              <button onClick={() => { showToast(`Relance envoyee a ${modalTransaction.client}`); setModalTransaction(null); }} className="w-full mt-2 rounded-xl bg-amber-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97] transition"><Send size={14} /> Relancer le paiement</button>
-            )}
-          </div>
-        </Overlay>
+        <DocumentView
+          doc={buildFactureData({ ref: modalTransaction.ref, objet: modalTransaction.objet, client: modalTransaction.client, montant: modalTransaction.montant, date: modalTransaction.date, statut: modalTransaction.statut, type: "Transaction" })}
+          onClose={() => setModalTransaction(null)}
+        />
       )}
 
       {/* -------- Commission Detail Modal -------- */}
@@ -601,32 +586,12 @@ export default function ComptaDirigeant() {
         </Overlay>
       )}
 
-      {/* -------- Paiement Detail Modal -------- */}
+      {/* -------- Paiement Detail — PDF visuel -------- */}
       {modalPaiement && (
-        <Overlay onClose={() => setModalPaiement(null)}>
-          <div className="p-5 pt-10">
-            <h2 className="text-lg font-black text-[#111] mb-1">{modalPaiement.objet}</h2>
-            <p className="text-xs text-slate-500 mb-4">Ref: {modalPaiement.ref}</p>
-
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Montant</p><p className={`text-lg font-black ${modalPaiement.montant.startsWith("-") ? "text-red-500" : "text-green-600"}`}>{modalPaiement.montant}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Date</p><p className="text-sm font-black text-[#111]">{modalPaiement.date}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Client</p><p className="text-sm font-bold text-[#111]">{modalPaiement.client}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Statut</p><p className={`text-sm font-bold ${modalPaiement.statut === "Recu" ? "text-green-600" : modalPaiement.statut === "En attente" ? "text-amber-600" : "text-blue-600"}`}>{modalPaiement.statut}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Methode</p><p className="text-sm font-bold text-[#111]">{modalPaiement.methode}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Type</p><p className="text-sm font-bold text-[#111] capitalize">{modalPaiement.type}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3 col-span-2"><p className="text-[10px] text-slate-400">Delai de traitement</p><p className="text-sm font-bold text-[#111]">{modalPaiement.delai}</p></div>
-            </div>
-
-            <div className="flex gap-2">
-              <button onClick={() => { showToast(`Facture ${modalPaiement.ref} imprimee`); setModalPaiement(null); }} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97] transition"><Printer size={14} /> Imprimer</button>
-              <button onClick={() => { showToast(`PDF ${modalPaiement.ref} telecharge`); setModalPaiement(null); }} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97] transition"><Download size={14} /> PDF</button>
-            </div>
-            {modalPaiement.statut === "En attente" && (
-              <button onClick={() => { showToast(`Relance envoyee a ${modalPaiement.client}`); setModalPaiement(null); }} className="w-full mt-2 rounded-xl bg-amber-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97] transition"><Send size={14} /> Relancer le paiement</button>
-            )}
-          </div>
-        </Overlay>
+        <DocumentView
+          doc={buildFactureData({ ref: modalPaiement.ref, objet: modalPaiement.objet, client: modalPaiement.client, montant: modalPaiement.montant, date: modalPaiement.date, statut: modalPaiement.statut, type: modalPaiement.type })}
+          onClose={() => setModalPaiement(null)}
+        />
       )}
 
       {/* -------- Abonnes Management Modal -------- */}
@@ -809,7 +774,7 @@ export default function ComptaDirigeant() {
                 </>
               )}
               {modalAlerte.action.includes("facture") && (
-                <button onClick={() => { showToast("Facture ouverte"); setModalAlerte(null); }} className="w-full rounded-xl bg-green-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97] transition"><Receipt size={14} /> Voir la facture</button>
+                <button onClick={() => { setViewFactureAlerte(modalAlerte); setModalAlerte(null); }} className="w-full rounded-xl bg-green-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97] transition"><Receipt size={14} /> Voir la facture</button>
               )}
               <button onClick={() => { showToast("Alerte marquee comme traitee"); setModalAlerte(null); }} className="w-full rounded-xl bg-white border border-[#E5E7EB] py-2 text-xs font-bold text-slate-500 flex items-center justify-center gap-1 active:scale-[0.97] transition"><CheckCircle size={14} /> Marquer comme traitee</button>
             </div>
@@ -817,6 +782,12 @@ export default function ComptaDirigeant() {
         </Overlay>
       )}
 
+      {viewFactureAlerte && (
+        <DocumentView
+          doc={buildFactureData({ ref: viewFactureAlerte.ref || "FA-ALERTE", objet: viewFactureAlerte.titre, client: viewFactureAlerte.client || "Client MKA.P-MS", montant: viewFactureAlerte.montant || "0 EUR", date: viewFactureAlerte.date, statut: "Paye", type: "Comptabilite" })}
+          onClose={() => setViewFactureAlerte(null)}
+        />
+      )}
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] max-w-sm w-[90%]">

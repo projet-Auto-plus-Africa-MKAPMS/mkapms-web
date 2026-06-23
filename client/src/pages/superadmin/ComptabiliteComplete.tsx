@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ChevronLeft, Calculator, TrendingUp, TrendingDown, Euro, BarChart3,
-  X, Eye, Download, Edit3, Printer, CheckCircle, Search
+  X, Eye, Download, Edit3, Printer, CheckCircle, Search, FileText
 } from "lucide-react";
+import { DocumentView, buildFactureData, buildDevisData } from "../../components/DocumentPDF";
 
 const REVENUS = [
   { source: "Vente", montant: "45 200 €", pct: "+12%", transactions: 34, moyenne: "1 329 €", derniere: "09/06/2025" },
@@ -280,25 +281,12 @@ export default function ComptabiliteComplete() {
         </Overlay>
       )}
 
-      {/* Facture Detail */}
+      {/* Facture Detail — PDF visuel */}
       {modalFacture && (
-        <Overlay onClose={() => setModalFacture(null)}>
-          <div className="p-5 pt-10">
-            <h2 className="text-lg font-black text-[#111] mb-1">{modalFacture.objet}</h2>
-            <p className="text-xs text-slate-500 mb-4">Ref: {modalFacture.ref}</p>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Montant</p><p className={`text-lg font-black ${modalFacture.montant.startsWith("-") ? "text-red-500" : "text-green-600"}`}>{modalFacture.montant}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Date</p><p className="text-sm font-black text-[#111]">{modalFacture.date}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Client</p><p className="text-sm font-bold text-[#111]">{modalFacture.client}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Statut</p><p className={`text-sm font-bold ${modalFacture.statut === "Payée" ? "text-green-600" : modalFacture.statut === "En attente" ? "text-amber-600" : "text-blue-600"}`}>{modalFacture.statut}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3 col-span-2"><p className="text-[10px] text-slate-400">Type</p><p className="text-sm font-bold text-[#111]">{modalFacture.type}</p></div>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => { showToast(`Facture ${modalFacture.ref} imprimée`); setModalFacture(null); }} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97] transition"><Printer size={14} /> Imprimer</button>
-              <button onClick={() => { showToast(`PDF ${modalFacture.ref} téléchargé`); setModalFacture(null); }} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97] transition"><Download size={14} /> PDF</button>
-            </div>
-          </div>
-        </Overlay>
+        <DocumentView
+          doc={modalFacture.ref.startsWith("DV") ? buildDevisData({ type: modalFacture.objet, montant: modalFacture.montant, date: modalFacture.date, client: modalFacture.client, ref: modalFacture.ref }) : buildFactureData(modalFacture)}
+          onClose={() => setModalFacture(null)}
+        />
       )}
 
       {/* Toast */}

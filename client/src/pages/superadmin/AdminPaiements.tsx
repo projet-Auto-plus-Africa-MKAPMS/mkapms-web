@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, Euro, ArrowDown, ArrowUp, AlertCircle, ChevronDown, Check, Clock } from "lucide-react";
+import { DocumentView, buildFactureData } from "../../components/DocumentPDF";
 
 const PAIEMENTS = [
   { id: 1, ref: "PAY-20250609-001", client: "Garage Auto 93", montant: "89 EUR", type: "abonnement", statut: "reussi", date: "09/06/2025 14:32", methode: "Carte bancaire", plan: "Pro Premium" },
@@ -14,6 +15,7 @@ const PAIEMENTS = [
 export default function AdminPaiements() {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [filter, setFilter] = useState<string>("tous");
+  const [viewFacture, setViewFacture] = useState<typeof PAIEMENTS[0] | null>(null);
 
   const filtered = filter === "tous" ? PAIEMENTS : PAIEMENTS.filter((p) => p.statut === filter);
 
@@ -79,9 +81,9 @@ export default function AdminPaiements() {
                     <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Plan</span><p className="font-bold text-[#D4AF37]">{p.plan}</p></div>
                   </div>
                   <div className="flex gap-2 mt-2">
-                    <button className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Voir details</button>
+                    <button onClick={() => setViewFacture(p)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Voir details</button>
                     {p.statut === "echoue" && <button className="flex-1 rounded-lg bg-red-50 py-1.5 text-[9px] font-bold text-red-600">Relancer</button>}
-                    {p.statut === "reussi" && <button className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Facture</button>}
+                    {p.statut === "reussi" && <button onClick={() => setViewFacture(p)} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Facture</button>}
                   </div>
                 </div>
               )}
@@ -89,6 +91,12 @@ export default function AdminPaiements() {
           );
         })}
       </div>
+      {viewFacture && (
+        <DocumentView
+          doc={buildFactureData({ ref: viewFacture.ref, objet: `${viewFacture.type} — ${viewFacture.plan}`, client: viewFacture.client, montant: viewFacture.montant, date: viewFacture.date, statut: viewFacture.statut === "reussi" ? "Paye" : viewFacture.statut, type: "Paiement" })}
+          onClose={() => setViewFacture(null)}
+        />
+      )}
     </div>
   );
 }

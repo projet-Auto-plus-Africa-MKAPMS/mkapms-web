@@ -5,6 +5,7 @@ import {
   Key, CreditCard, Heart, MessageSquare, Clock,
   Download, Eye, Wrench, X, CheckCircle, Printer, Phone, Mail
 } from "lucide-react";
+import { DocumentView, buildDevisData, buildFactureData, buildContratData } from "../components/DocumentPDF";
 
 type DossierTab = "achetes" | "vendus" | "devis" | "reservations" | "locations" | "paiements" | "favoris" | "messages";
 
@@ -103,6 +104,7 @@ export default function DossierClient() {
   const [modalLocation, setModalLocation] = useState<typeof LOCATIONS_LIST[0] | null>(null);
   const [modalPaiement, setModalPaiement] = useState<typeof PAIEMENTS[0] | null>(null);
   const [modalMessage, setModalMessage] = useState<typeof MESSAGES_LIST[0] | null>(null);
+  const [viewFactureVente, setViewFactureVente] = useState<typeof VENDUS[0] | null>(null);
 
   const Overlay = ({ children, onClose }: { children: React.ReactNode; onClose: () => void }) => (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
@@ -178,7 +180,7 @@ export default function DossierClient() {
                   <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Date</span><p className="font-bold text-[#111]">{v.date}</p></div>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => showToast("Facture de vente téléchargée")} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Download size={10} /> Facture</button>
+                  <button onClick={() => setViewFactureVente(v)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Download size={10} /> Facture</button>
                   <Link to={`/vehicule/${v.id}`} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Eye size={10} /> Voir fiche</Link>
                 </div>
               </div>
@@ -370,25 +372,12 @@ export default function DossierClient() {
         </Overlay>
       )}
 
-      {/* Devis detail */}
+      {/* Devis detail — PDF visuel */}
       {modalDevis && (
-        <Overlay onClose={() => setModalDevis(null)}>
-          <div className="p-5 pt-10">
-            <h2 className="text-lg font-black text-[#111]">{modalDevis.type}</h2>
-            <p className="text-xs text-slate-500 mb-4">{modalDevis.garage} · {modalDevis.vehicule}</p>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Montant</p><p className="text-lg font-black text-[#D4AF37]">{modalDevis.montant}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Date</p><p className="text-sm font-black text-[#111]">{modalDevis.date}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Statut</p><p className={`text-sm font-black ${modalDevis.statut === "Accepte" ? "text-green-600" : modalDevis.statut === "Termine" ? "text-blue-600" : "text-amber-600"}`}>{modalDevis.statut}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Véhicule</p><p className="text-sm font-bold text-[#111]">{modalDevis.vehicule}</p></div>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => { window.location.href = `tel:${modalDevis.tel}`; }} className="flex-1 rounded-xl bg-green-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Phone size={14} /> Appeler</button>
-              <button onClick={() => { window.location.href = `mailto:${modalDevis.email}`; }} className="flex-1 rounded-xl bg-blue-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Mail size={14} /> Email</button>
-              <button onClick={() => { showToast("Devis téléchargé"); setModalDevis(null); }} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> PDF</button>
-            </div>
-          </div>
-        </Overlay>
+        <DocumentView
+          doc={buildDevisData({ type: modalDevis.type, garage: modalDevis.garage, montant: modalDevis.montant, date: modalDevis.date, vehicule: modalDevis.vehicule, client: modalDevis.garage, ref: `DV-${modalDevis.id}` })}
+          onClose={() => setModalDevis(null)}
+        />
       )}
 
       {/* Reservation detail */}
@@ -411,46 +400,20 @@ export default function DossierClient() {
         </Overlay>
       )}
 
-      {/* Location detail */}
+      {/* Location detail — Contrat PDF visuel */}
       {modalLocation && (
-        <Overlay onClose={() => setModalLocation(null)}>
-          <div className="p-5 pt-10">
-            <h2 className="text-lg font-black text-[#111]">{modalLocation.vehicule}</h2>
-            <p className="text-xs text-slate-500 mb-4">Location {modalLocation.ref}</p>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Agence</p><p className="text-sm font-bold text-[#111]">{modalLocation.agence}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Durée</p><p className="text-xs font-bold text-[#111]">{modalLocation.duree}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Prix</p><p className="text-lg font-black text-[#D4AF37]">{modalLocation.prix}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Statut</p><p className={`text-sm font-bold ${modalLocation.statut === "En cours" ? "text-green-600" : "text-slate-600"}`}>{modalLocation.statut}</p></div>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => { showToast("Contrat de location téléchargé"); setModalLocation(null); }} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> Contrat</button>
-              {modalLocation.statut === "En cours" && (
-                <button onClick={() => { showToast("Demande de prolongation envoyée"); setModalLocation(null); }} className="flex-1 rounded-xl bg-blue-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Clock size={14} /> Prolonger</button>
-              )}
-            </div>
-          </div>
-        </Overlay>
+        <DocumentView
+          doc={buildContratData({ vehicule: modalLocation.vehicule, client: "Titulaire du contrat", type: "Location", duree: modalLocation.duree, prix: modalLocation.prix, ref: modalLocation.ref, agence: modalLocation.agence })}
+          onClose={() => setModalLocation(null)}
+        />
       )}
 
-      {/* Paiement detail */}
+      {/* Paiement detail — Facture PDF visuel */}
       {modalPaiement && (
-        <Overlay onClose={() => setModalPaiement(null)}>
-          <div className="p-5 pt-10">
-            <h2 className="text-lg font-black text-[#111]">{modalPaiement.objet}</h2>
-            <p className="text-xs text-slate-500 mb-4">Réf: {modalPaiement.ref}</p>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Montant</p><p className="text-lg font-black text-[#111]">{modalPaiement.montant}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Méthode</p><p className="text-sm font-bold text-[#111]">{modalPaiement.methode}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Date</p><p className="text-sm font-bold text-[#111]">{modalPaiement.date}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Statut</p><p className={`text-sm font-bold ${modalPaiement.statut === "Paye" ? "text-green-600" : modalPaiement.statut === "Actif" ? "text-blue-600" : "text-amber-600"}`}>{modalPaiement.statut}</p></div>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => { showToast(`Facture ${modalPaiement.ref} téléchargée`); setModalPaiement(null); }} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> Facture</button>
-              <button onClick={() => { showToast(`Facture ${modalPaiement.ref} imprimée`); setModalPaiement(null); }} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Printer size={14} /> Imprimer</button>
-            </div>
-          </div>
-        </Overlay>
+        <DocumentView
+          doc={buildFactureData({ ref: modalPaiement.ref, objet: modalPaiement.objet, client: "Client MKA.P-MS", montant: modalPaiement.montant, date: modalPaiement.date, statut: modalPaiement.statut, type: "Paiement" })}
+          onClose={() => setModalPaiement(null)}
+        />
       )}
 
       {/* Message detail */}
@@ -474,6 +437,14 @@ export default function DossierClient() {
             </div>
           </div>
         </Overlay>
+      )}
+
+      {/* Facture de vente — PDF visuel */}
+      {viewFactureVente && (
+        <DocumentView
+          doc={buildFactureData({ ref: `FA-VENTE-${viewFactureVente.id}`, objet: `Vente ${viewFactureVente.nom}`, client: viewFactureVente.acheteur, montant: viewFactureVente.prix, date: viewFactureVente.date, statut: "Paye", type: "Vente" })}
+          onClose={() => setViewFactureVente(null)}
+        />
       )}
 
       {/* Toast */}

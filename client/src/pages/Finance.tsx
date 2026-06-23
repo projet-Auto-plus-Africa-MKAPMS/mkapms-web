@@ -4,8 +4,9 @@ import {
   Calculator, FileText, CheckCircle, ArrowRight, Shield, Clock, CreditCard,
   Car, Truck, AlertTriangle, Star, ChevronDown, ChevronRight, Users,
   Bell, FolderOpen, Download, Eye, Wallet, Calendar, TrendingUp, Lock,
-  Bike, MapPin, Zap,
+  Bike, MapPin, Zap, X,
 } from "lucide-react";
+import { DocumentView, buildContratData, buildFactureData } from "../components/DocumentPDF";
 
 /* ═══ TYPES ═══ */
 type VehiculeType = "voiture" | "utilitaire" | "moto" | "scooter" | "vtc" | "taxi";
@@ -87,6 +88,8 @@ export default function Finance() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+  const [viewContrat, setViewContrat] = useState<typeof DEMO_CONTRATS[0] | null>(null);
+  const [viewDocType, setViewDocType] = useState<string | null>(null);
 
   const steps = mode === "loa" ? STEPS_LOA : STEPS_FRAC;
 
@@ -139,9 +142,9 @@ export default function Finance() {
                   <div><p className="text-[9px] text-slate-400">Prochaine échéance</p><p className="text-sm font-bold text-[#111]">{c.prochaine}</p></div>
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <button onClick={() => showToast(`Contrat ${c.vehicule} — ${c.type}, ${c.restant} mois restants`)} className="flex items-center gap-1 rounded-lg border border-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition"><Eye size={10} /> Voir</button>
-                  <button onClick={() => showToast(`Echeancier PDF ${c.vehicule} telecharge`)} className="flex items-center gap-1 rounded-lg border border-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition"><Download size={10} /> Échéancier PDF</button>
-                  <button onClick={() => showToast(`Documents du contrat ${c.vehicule} ouverts`)} className="flex items-center gap-1 rounded-lg border border-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition"><FolderOpen size={10} /> Documents</button>
+                  <button onClick={() => setViewContrat(c)} className="flex items-center gap-1 rounded-lg border border-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition"><Eye size={10} /> Voir</button>
+                  <button onClick={() => setViewContrat(c)} className="flex items-center gap-1 rounded-lg border border-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition"><Download size={10} /> Echeancier PDF</button>
+                  <button onClick={() => setViewContrat(c)} className="flex items-center gap-1 rounded-lg border border-[#D4AF37] px-3 py-1.5 text-[9px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition"><FolderOpen size={10} /> Documents</button>
                 </div>
               </div>
             ))}
@@ -161,8 +164,8 @@ export default function Finance() {
           <h2 className="mt-6 text-sm font-extrabold text-[#111]">Centre de documents Finance+</h2>
           <p className="text-[10px] text-slate-500">Tous les documents restent dans MKA.P-MS. Aucun échange par email.</p>
           <div className="mt-3 grid gap-2 grid-cols-2 md:grid-cols-3">
-            {["Contrats", "Factures", "Échéancier", "Justificatifs", "Signatures", "Conditions générales"].map((d) => (
-              <button key={d} onClick={() => showToast(`Dossier ${d} ouvert`)} className="flex items-center gap-2 rounded-lg border border-[#D4AF37]/20 bg-white p-3 text-[10px] font-bold text-[#111] hover:border-[#D4AF37] transition">
+            {["Contrats", "Factures", "Echeancier", "Justificatifs", "Signatures", "Conditions generales"].map((d) => (
+              <button key={d} onClick={() => setViewDocType(d)} className="flex items-center gap-2 rounded-lg border border-[#D4AF37]/20 bg-white p-3 text-[10px] font-bold text-[#111] hover:border-[#D4AF37] transition">
                 <FolderOpen size={14} className="text-[#D4AF37]" /> {d}
               </button>
             ))}
@@ -707,6 +710,24 @@ export default function Finance() {
             <button onClick={() => setToast(null)} className="ml-auto text-white/40 hover:text-white">&times;</button>
           </div>
         </div>
+      )}
+
+      {/* Contrat PDF visuel */}
+      {viewContrat && (
+        <DocumentView
+          doc={buildContratData({ vehicule: viewContrat.vehicule, client: "Titulaire du contrat", type: viewContrat.type, duree: `${viewContrat.duree} mois`, prix: `${viewContrat.total} EUR`, ref: `CTR-${viewContrat.id}` })}
+          onClose={() => setViewContrat(null)}
+        />
+      )}
+
+      {/* Document type viewer */}
+      {viewDocType && (
+        <DocumentView
+          doc={viewDocType === "Contrats" || viewDocType === "Signatures"
+            ? buildContratData({ vehicule: "Peugeot 208 1.2 PureTech", client: "Titulaire du contrat", type: "LOA", duree: "48 mois", prix: "14 352 EUR", ref: "CTR-LOA-2026" })
+            : buildFactureData({ ref: `FA-${viewDocType.toUpperCase().slice(0, 3)}-001`, objet: `${viewDocType} Finance+`, client: "Client MKA.P-MS", montant: "+14 352 EUR", date: new Date().toLocaleDateString("fr-FR"), statut: "Payee", type: viewDocType })}
+          onClose={() => setViewDocType(null)}
+        />
       )}
     </div>
   );

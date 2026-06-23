@@ -4,6 +4,7 @@ import {
   ChevronLeft, History, Car, Calendar, FileText, Download,
   Euro, Shield, Check, ChevronDown, Eye, Filter
 } from "lucide-react";
+import { DocumentView, buildContratData, buildFactureData } from "../components/DocumentPDF";
 
 /* ══════════════════════════════════════════════════════════════════════════
    HISTORIQUE DE LOCATION
@@ -20,6 +21,8 @@ const LOCATIONS = [
 export default function HistoriqueLocation() {
   const [filter, setFilter] = useState("tous");
   const [openId, setOpenId] = useState<number | null>(null);
+  const [viewContrat, setViewContrat] = useState<typeof LOCATIONS[0] | null>(null);
+  const [viewFacture, setViewFacture] = useState<typeof LOCATIONS[0] | null>(null);
   const filtered = filter === "tous" ? LOCATIONS : LOCATIONS.filter((l) => l.statut === filter);
 
   return (
@@ -86,15 +89,27 @@ export default function HistoriqueLocation() {
                   <span className={`text-xs font-bold ${l.cautionStatut === "restituee" ? "text-green-600" : "text-amber-600"}`}>{l.caution} € — {l.cautionStatut === "restituee" ? "Restituée" : "Bloquée"}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <button className="rounded-lg bg-[#D4AF37]/10 py-2.5 text-[10px] font-bold text-[#D4AF37] flex flex-col items-center gap-0.5"><FileText size={14} /> Contrat</button>
-                  <button className="rounded-lg bg-[#D4AF37]/10 py-2.5 text-[10px] font-bold text-[#D4AF37] flex flex-col items-center gap-0.5"><Euro size={14} /> Facture</button>
-                  <button className="rounded-lg bg-[#D4AF37]/10 py-2.5 text-[10px] font-bold text-[#D4AF37] flex flex-col items-center gap-0.5"><Download size={14} /> PDF</button>
+                  <button onClick={() => setViewContrat(l)} className="rounded-lg bg-[#D4AF37]/10 py-2.5 text-[10px] font-bold text-[#D4AF37] flex flex-col items-center gap-0.5"><FileText size={14} /> Contrat</button>
+                  <button onClick={() => setViewFacture(l)} className="rounded-lg bg-[#D4AF37]/10 py-2.5 text-[10px] font-bold text-[#D4AF37] flex flex-col items-center gap-0.5"><Euro size={14} /> Facture</button>
+                  <button onClick={() => setViewFacture(l)} className="rounded-lg bg-[#D4AF37]/10 py-2.5 text-[10px] font-bold text-[#D4AF37] flex flex-col items-center gap-0.5"><Download size={14} /> PDF</button>
                 </div>
               </div>
             )}
           </div>
         ))}
       </div>
+      {viewContrat && (
+        <DocumentView
+          doc={buildContratData({ vehicule: viewContrat.vehicule, client: "Locataire MKA.P-MS", type: "Location", duree: `Du ${viewContrat.debut} au ${viewContrat.fin} (${viewContrat.duree} jours)`, prix: `${viewContrat.montant.toLocaleString("fr-FR")} EUR`, ref: viewContrat.ref })}
+          onClose={() => setViewContrat(null)}
+        />
+      )}
+      {viewFacture && (
+        <DocumentView
+          doc={buildFactureData({ ref: `FA-${viewFacture.ref}`, objet: `Location ${viewFacture.vehicule}`, client: "Locataire MKA.P-MS", montant: `${viewFacture.montant.toLocaleString("fr-FR")} EUR`, date: viewFacture.debut, statut: viewFacture.statut === "en_cours" ? "En cours" : "Paye", type: "Location" })}
+          onClose={() => setViewFacture(null)}
+        />
+      )}
     </div>
   );
 }

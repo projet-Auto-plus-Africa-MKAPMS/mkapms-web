@@ -9,6 +9,7 @@ import {
   Camera, PenTool, Package, BarChart3, ArrowDown, ArrowUp,
   AlertCircle, Bell, UserCheck, ClipboardList, Edit3, Trash2
 } from "lucide-react";
+import { DocumentView, buildDevisData, buildFactureData } from "../components/DocumentPDF";
 
 /* ══════════════════════════════════════════════════════════════════════════
    MODULE ATELIER PRO COMPLET
@@ -216,6 +217,9 @@ export default function AtelierPro() {
   const [showNewVehicle, setShowNewVehicle] = useState(false);
   const [newVehForm, setNewVehForm] = useState({ plaque: "", vin: "", marque: "", modele: "", annee: "", km: "", client: "", tel: "" });
   const [extraVehicules, setExtraVehicules] = useState<typeof VEHICULES_ATELIER>([]);
+  const [viewDevisPDF, setViewDevisPDF] = useState<typeof DEVIS_ATELIER[0] | null>(null);
+  const [viewFacturePDF, setViewFacturePDF] = useState<typeof FACTURES_ATELIER[0] | null>(null);
+  const [viewOrdrePDF, setViewOrdrePDF] = useState<OrdreReparation | null>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
@@ -494,7 +498,7 @@ export default function AtelierPro() {
                   <div className="mt-2 flex gap-1.5">
                     <button onClick={() => showToast(`Ordre ${o.ref} — modification en cours`)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white text-center">Modifier</button>
                     <button onClick={() => showToast(`${o.photosReception} photos reception — ${o.vehicule}`)} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600 text-center">Photos</button>
-                    <button onClick={() => showToast(`PDF ordre ${o.ref} — telechargement`)} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600 text-center">PDF</button>
+                    <button onClick={() => setViewOrdrePDF(o)} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600 text-center">PDF</button>
                   </div>
                 </div>
               </div>
@@ -727,7 +731,7 @@ export default function AtelierPro() {
                         <button onClick={(e) => { e.stopPropagation(); showToast(`Devis ${d.ref} — modification en cours`); }} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Modifier</button>
                         <button onClick={(e) => { e.stopPropagation(); setDevisStatuts(prev => ({ ...prev, [d.id]: "accepte" })); showToast(`Devis ${d.ref} accepte !`); }} className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white">Accepter</button>
                         <button onClick={(e) => { e.stopPropagation(); showToast(`Devis ${d.ref} envoye a ${d.client}`); }} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Envoyer</button>
-                        <button onClick={(e) => { e.stopPropagation(); showToast(`PDF devis ${d.ref} — telechargement`); }} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">PDF</button>
+                        <button onClick={(e) => { e.stopPropagation(); setViewDevisPDF(d); }} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">PDF</button>
                       </div>
                     </div>
                   )}
@@ -766,7 +770,7 @@ export default function AtelierPro() {
                         <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Statut</span><p className={`font-bold ${f.statut === "payee" ? "text-green-700" : "text-amber-700"}`}>{f.statut === "payee" ? "Payee" : "En attente"}</p></div>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={(e) => { e.stopPropagation(); showToast(`Facture ${f.ref} — PDF telecharge`); }} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Download size={10} /> Telecharger PDF</button>
+                        <button onClick={(e) => { e.stopPropagation(); setViewFacturePDF(f); }} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Download size={10} /> Voir PDF</button>
                         <button onClick={(e) => { e.stopPropagation(); showToast(`Relance paiement envoyee a ${f.client}`); }} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Relancer paiement</button>
                         <button onClick={(e) => { e.stopPropagation(); setFactureStatuts(prev => ({ ...prev, [f.id]: "dupliquee" })); showToast(`Facture ${f.ref} dupliquee`); }} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">Dupliquer</button>
                       </div>
@@ -919,6 +923,24 @@ export default function AtelierPro() {
         )}
       </div>
 
+      {viewDevisPDF && (
+        <DocumentView
+          doc={buildDevisData({ type: "Reparation", garage: "Atelier Pro MKA.P-MS", montant: viewDevisPDF.montant, date: viewDevisPDF.date, vehicule: viewDevisPDF.vehicule, client: viewDevisPDF.client, ref: viewDevisPDF.ref })}
+          onClose={() => setViewDevisPDF(null)}
+        />
+      )}
+      {viewFacturePDF && (
+        <DocumentView
+          doc={buildFactureData({ ref: viewFacturePDF.ref, objet: `Reparation ${viewFacturePDF.vehicule}`, client: viewFacturePDF.client, montant: viewFacturePDF.montant, date: viewFacturePDF.date, statut: viewFacturePDF.statut === "payee" ? "Paye" : "En attente", type: "Atelier" })}
+          onClose={() => setViewFacturePDF(null)}
+        />
+      )}
+      {viewOrdrePDF && (
+        <DocumentView
+          doc={buildDevisData({ type: "Ordre de Reparation", garage: "Atelier Pro MKA.P-MS", montant: viewOrdrePDF.montant, date: viewOrdrePDF.dateEntree, vehicule: `${viewOrdrePDF.vehicule} — ${viewOrdrePDF.plaque}`, client: viewOrdrePDF.client, ref: viewOrdrePDF.ref })}
+          onClose={() => setViewOrdrePDF(null)}
+        />
+      )}
       {/* Toast notification */}
       {toast && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%] animate-[fadeIn_0.3s_ease] pointer-events-auto">

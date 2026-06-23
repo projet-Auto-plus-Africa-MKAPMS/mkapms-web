@@ -11,6 +11,7 @@ import {
   Receipt, ClipboardList, History, Award, TrendingUp, Activity,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
+import { DocumentView, buildFactureData } from "../components/DocumentPDF";
 
 /* ═══════════════════════════════════════════════════════════
    ACHETEURS AUTORISÉS
@@ -282,6 +283,7 @@ export default function VenteEncheres() {
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const [mode, setMode] = useState<"landing" | "lots" | "detail" | "mes_encheres" | "remportes" | "conditions" | "prochaines" | "photos" | "vehicule_detail">("landing");
+  const [viewFactureEnchere, setViewFactureEnchere] = useState<EnchereRemportee | null>(null);
   const [selectedLotId, setSelectedLotId] = useState<number | null>(null);
   const [watchList, setWatchList] = useState<number[]>([]);
 
@@ -518,7 +520,7 @@ export default function VenteEncheres() {
               <div key={e.lotId} onClick={() => setMode("remportes")} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0 cursor-pointer hover:bg-white/5 transition rounded-lg px-2">
                 <Receipt size={14} className="text-white/40" />
                 <div className="flex-1"><p className="text-xs font-bold text-white">{e.titre}</p><p className="text-[10px] text-white/40">{e.date} — {e.montant.toLocaleString("fr-FR")} €</p></div>
-                <button onClick={(ev) => { ev.stopPropagation(); showToast('Facture PDF telechargee'); }} className="text-[10px] text-purple-400 font-bold hover:text-purple-300 transition">PDF</button>
+                <button onClick={(ev) => { ev.stopPropagation(); setViewFactureEnchere(e); }} className="text-[10px] text-purple-400 font-bold hover:text-purple-300 transition">PDF</button>
               </div>
             ))}
           </div>
@@ -552,7 +554,7 @@ export default function VenteEncheres() {
                 <div className="mt-3 flex items-center justify-between">
                   <p className="text-lg font-black text-[#D4AF37]">{e.montant.toLocaleString("fr-FR")} €</p>
                   <div className="flex gap-2">
-                    <button onClick={() => showToast('Facture PDF telechargee')} className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-white/20 transition">Facture</button>
+                    <button onClick={() => setViewFactureEnchere(e)} className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-white/20 transition">Facture</button>
                     <button onClick={() => showToast('Documents du lot telecharges')} className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-white/20 transition">Documents</button>
                   </div>
                 </div>
@@ -1136,6 +1138,16 @@ export default function VenteEncheres() {
           </div>
         </div>
       </div>
+    );
+  }
+
+  /* Document viewer for factures encheres - rendered as portal-style overlay */
+  if (viewFactureEnchere) {
+    return (
+      <DocumentView
+        doc={buildFactureData({ ref: `FA-ENCH-${viewFactureEnchere.lotId}`, objet: viewFactureEnchere.titre, client: "Acheteur MKA.P-MS", montant: `${viewFactureEnchere.montant.toLocaleString("fr-FR")} EUR`, date: viewFactureEnchere.date, statut: viewFactureEnchere.statut === "paye" ? "Paye" : "En attente", type: "Enchere" })}
+        onClose={() => setViewFactureEnchere(null)}
+      />
     );
   }
 

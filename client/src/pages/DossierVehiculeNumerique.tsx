@@ -5,6 +5,7 @@ import {
   Wrench, Shield, Fuel, Gauge, Eye, Clock, CheckCircle,
   AlertTriangle, Download, ChevronRight, Search, Settings
 } from "lucide-react";
+import { DocumentView, buildFactureData } from "../components/DocumentPDF";
 
 /* ══════════════════════════════════════════════════════════════════════════
    DOSSIER VEHICULE NUMERIQUE — Carnet de sante du vehicule
@@ -68,6 +69,7 @@ const PHOTOS_CAT = [
 export default function DossierVehiculeNumerique() {
   const [tab, setTab] = useState<DVTab>("resume");
   const [expandedItem, setExpandedItem] = useState<number | null>(null);
+  const [viewFactureDV, setViewFactureDV] = useState<{ ref: string; objet: string; montant: string; date: string; garage: string } | null>(null);
   const v = DEMO_VEHICLE;
 
   const tabItems: { id: DVTab; label: string; icon: typeof Car }[] = [
@@ -209,7 +211,7 @@ export default function DossierVehiculeNumerique() {
                       <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Km</span><p className="font-bold text-[#111]">{e.km}</p></div>
                       <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Montant</span><p className="font-bold text-[#D4AF37]">{e.montant}</p></div>
                     </div>
-                    <button className="w-full rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Voir facture</button>
+                    <button onClick={() => setViewFactureDV({ ref: `FAC-ENT-${e.id}`, objet: e.type, montant: e.montant, date: e.date, garage: e.garage })} className="w-full rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Voir facture</button>
                   </div>
                 )}
               </div>
@@ -243,7 +245,7 @@ export default function DossierVehiculeNumerique() {
                       <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Km</span><p className="font-bold text-[#111]">{r.km}</p></div>
                       <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Montant</span><p className="font-bold text-[#D4AF37]">{r.montant}</p></div>
                     </div>
-                    <button className="w-full rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Voir facture</button>
+                    <button onClick={() => setViewFactureDV({ ref: `FAC-REP-${r.id}`, objet: r.type, montant: r.montant, date: r.date, garage: r.garage })} className="w-full rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Voir facture</button>
                   </div>
                 )}
               </div>
@@ -289,7 +291,7 @@ export default function DossierVehiculeNumerique() {
                 </div>
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-bold text-[#D4AF37]">{f.montant}</p>
-                  <button className="rounded-lg bg-[#F5F3EF] p-1.5"><Download size={14} className="text-slate-500" /></button>
+                  <button onClick={() => setViewFactureDV({ ref: f.ref, objet: f.objet, montant: f.montant, date: f.date, garage: f.garage })} className="rounded-lg bg-[#F5F3EF] p-1.5"><Download size={14} className="text-slate-500" /></button>
                 </div>
               </div>
             ))}
@@ -316,6 +318,12 @@ export default function DossierVehiculeNumerique() {
           </div>
         )}
       </div>
+      {viewFactureDV && (
+        <DocumentView
+          doc={buildFactureData({ ref: viewFactureDV.ref, objet: viewFactureDV.objet, client: `${v.marque} ${v.modele} — ${v.plaque}`, montant: viewFactureDV.montant, date: viewFactureDV.date, statut: "Paye", type: "Entretien" })}
+          onClose={() => setViewFactureDV(null)}
+        />
+      )}
     </div>
   );
 }

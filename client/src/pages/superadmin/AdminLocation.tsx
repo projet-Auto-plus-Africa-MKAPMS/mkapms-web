@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, Home, ChevronDown, Eye, Edit3, Trash2, CheckCircle, Ban, AlertTriangle, Search, Calendar, MapPin, User } from "lucide-react";
+import { DocumentView, buildContratData } from "../../components/DocumentPDF";
 
 const LOCATIONS = [
   { id: 1, vehicule: "Renault Clio V", client: "Martin D.", debut: "10/06/2026", fin: "17/06/2026", prix: 280, ville: "Paris", statut: "en_cours", photo: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=200&h=120&fit=crop" },
@@ -19,6 +20,7 @@ export default function AdminLocation() {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [confirm, setConfirm] = useState<{ id: number; action: "supprimer" | "annuler" } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [viewContrat, setViewContrat] = useState<typeof LOCATIONS[0] | null>(null);
 
   const filtered = data.filter((l) => l.vehicule.toLowerCase().includes(search.toLowerCase()) || l.client.toLowerCase().includes(search.toLowerCase()));
 
@@ -73,7 +75,7 @@ export default function AdminLocation() {
                     <div className="rounded-lg bg-[#F5F3EF] p-1.5 flex items-center gap-1"><User size={10} className="text-[#D4AF37]" /><div><p className="text-[7px] text-[#6B7280]">Client</p><p className="font-bold text-[#111]">{l.client}</p></div></div>
                   </div>
                   <div className="flex gap-1.5">
-                    <button onClick={() => setExpanded(null)} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white active:scale-[0.97]"><Eye size={12} /> Details</button>
+                    <button onClick={() => setViewContrat(l)} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white active:scale-[0.97]"><Eye size={12} /> Contrat PDF</button>
                     {l.statut !== "annulee" && l.statut !== "terminee" && (
                       <button onClick={() => setConfirm({ id: l.id, action: "annuler" })} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-amber-500 py-1.5 text-[9px] font-bold text-white active:scale-[0.97]"><Ban size={12} /> Annuler</button>
                     )}
@@ -99,6 +101,12 @@ export default function AdminLocation() {
             </div>
           </div>
         </div>
+      )}
+      {viewContrat && (
+        <DocumentView
+          doc={buildContratData({ vehicule: viewContrat.vehicule, client: viewContrat.client, type: "Location", duree: `Du ${viewContrat.debut} au ${viewContrat.fin}`, prix: `${viewContrat.prix} EUR`, ref: `LOC-${viewContrat.id}` })}
+          onClose={() => setViewContrat(null)}
+        />
       )}
     </div>
   );
