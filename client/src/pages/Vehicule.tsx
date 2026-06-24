@@ -64,8 +64,9 @@ import { computeBadges } from "@shared/badges";
 import { BadgeChip } from "../components/VehicleCard";
 
 /* ── Catégories photo pour galerie (tous véhicules) ── */
-type PhotoCategory = "exterieur" | "interieur" | "sieges" | "coffre" | "tableau_de_bord" | "moteur" | "roues" | "documents" | "autres" | "video360" | "video";
+type PhotoCategory = "toutes" | "exterieur" | "interieur" | "sieges" | "coffre" | "tableau_de_bord" | "moteur" | "roues" | "documents" | "autres" | "video360" | "video";
 const PHOTO_CATEGORIES: { key: PhotoCategory; label: string }[] = [
+  { key: "toutes", label: "Toutes" },
   { key: "exterieur", label: "Extérieur" },
   { key: "interieur", label: "Intérieur" },
   { key: "sieges", label: "Sièges" },
@@ -175,7 +176,7 @@ export default function Vehicule() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [photoIdx, setPhotoIdx] = useState(0);
-  const [photoCat, setPhotoCat] = useState<PhotoCategory>("exterieur");
+  const [photoCat, setPhotoCat] = useState<PhotoCategory>("toutes");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState(0);
   const [descTab, setDescTab] = useState<string>("description");
@@ -251,15 +252,17 @@ export default function Vehicule() {
 
   /* Photos catégorisées — fonctionne pour MKA.P-MS stock ET annonces particulier/pro */
   const hasPhotoCategories = isMkapmsStock && v.photoCategories;
-  // For user annonces: filter photosRaw by selected category
   const userAnnonceHasCategories = !isMkapmsStock && photosRaw.some((p) => p.categorie);
-  const categoryPhotos = hasPhotoCategories
-    ? (v.photoCategories[photoCat] || []) as string[]
-    : userAnnonceHasCategories
-      ? photosRaw.filter((p) => p.categorie === photoCat).map((p) => p.url)
-      : [];
-  const activeCatPhotos = (hasPhotoCategories || userAnnonceHasCategories) ? categoryPhotos : photos;
-  const activeCatIdx = (hasPhotoCategories || userAnnonceHasCategories) ? Math.min(photoIdx, Math.max(0, activeCatPhotos.length - 1)) : photoIdx;
+  const isAllPhotos = photoCat === "toutes";
+  const categoryPhotos = isAllPhotos
+    ? photos
+    : hasPhotoCategories
+      ? (v.photoCategories[photoCat] || []) as string[]
+      : userAnnonceHasCategories
+        ? photosRaw.filter((p) => p.categorie === photoCat).map((p) => p.url)
+        : [];
+  const activeCatPhotos = isAllPhotos ? photos : ((hasPhotoCategories || userAnnonceHasCategories) ? categoryPhotos : photos);
+  const activeCatIdx = Math.min(photoIdx, Math.max(0, activeCatPhotos.length - 1));
   const allCategoryPhotos = hasPhotoCategories
     ? Object.values(v.photoCategories as Record<string, string[]>).flat()
     : photos;
@@ -999,6 +1002,7 @@ export default function Vehicule() {
     const isParticulier = tier === "particulier";
     const proBadge = isParticulier ? "PARTICULIER" : v.tier === "elite" ? "PRO ELITE" : v.boosted ? "PRO PREMIUM" : "PRO";
     const proPhotoCategories = [
+      { key: "toutes", label: "Toutes" },
       { key: "exterieur", label: "Extérieur" },
       { key: "interieur", label: "Intérieur" },
       { key: "sieges", label: "Sièges" },
@@ -1155,13 +1159,6 @@ export default function Vehicule() {
           </a>
           )}
 
-          {/* Flèches */}
-          {activeCatPhotos.length > 1 && (
-            <>
-              <button onClick={(e) => { e.stopPropagation(); setPhotoIdx((i) => Math.max(0, i - 1)); }} className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow"><ChevronLeft size={22} /></button>
-              <button onClick={(e) => { e.stopPropagation(); setPhotoIdx((i) => Math.min(activeCatPhotos.length - 1, i + 1)); }} className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow"><ChevronRight size={22} /></button>
-            </>
-          )}
         </div>
 
         {/* ===== CARTE INFO (overlap sur la photo, style Le Bon Coin) ===== */}
