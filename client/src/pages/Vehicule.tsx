@@ -1002,9 +1002,10 @@ export default function Vehicule() {
       { key: "exterieur", label: "Extérieur" },
       { key: "interieur", label: "Intérieur" },
       { key: "sieges", label: "Sièges" },
-      { key: "tableau", label: "Tableau de bord" },
+      { key: "tableau_de_bord", label: "Tableau de bord" },
       { key: "coffre", label: "Coffre" },
       { key: "moteur", label: "Moteur" },
+      { key: "roues", label: "Roues" },
       { key: "documents", label: "Documents" },
       { key: "autres", label: "Autres" },
       { key: "video360", label: "Vidéo 360°" },
@@ -1040,13 +1041,13 @@ export default function Vehicule() {
           {/* Header galerie — bien descendu pour éviter la zone notch */}
           <div className="flex items-center justify-between border-b px-4 py-4 pt-14">
             <button onClick={() => setProGalleryOpen(false)} className="text-[#111] p-2"><ChevronLeft size={28} /></button>
-            <span className="text-sm font-bold text-[#111]">{photoIdx + 1}/{allPhotos.length}</span>
+            <span className="text-sm font-bold text-[#111]">{activeCatPhotos.length > 0 ? `${activeCatIdx + 1}/${activeCatPhotos.length}` : "0"}</span>
             <div className="w-10" />
           </div>
           {/* Catégories — bien descendues */}
           <div className="flex gap-2 overflow-x-auto border-b px-4 py-4">
             {proPhotoCategories.map((cat) => (
-              <button key={cat.key} onClick={() => setProGalleryCat(cat.key)} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${proGalleryCat === cat.key ? "border-red-500 text-red-500" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
+              <button key={cat.key} onClick={() => { setPhotoCat(cat.key as PhotoCategory); setPhotoIdx(0); }} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${photoCat === cat.key ? "border-red-500 text-red-500" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
                 {cat.label}
               </button>
             ))}
@@ -1058,14 +1059,14 @@ export default function Vehicule() {
               const startX = (e.currentTarget as any)._touchX;
               const endX = e.changedTouches[0].clientX;
               const diff = startX - endX;
-              if (diff > 50) setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1));
+              if (diff > 50) setPhotoIdx((i) => Math.min(activeCatPhotos.length - 1, i + 1));
               if (diff < -50) setPhotoIdx((i) => Math.max(0, i - 1));
             }}
           >
-            {allPhotos.length > 0 ? (
-              <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="max-w-full object-contain" style={{maxHeight: '55vh'}} />
+            {activeCatPhotos.length > 0 ? (
+              <img src={activeCatPhotos[activeCatIdx] || ""} alt={v.titre} className="max-w-full object-contain" style={{maxHeight: '55vh'}} />
             ) : (
-              <p className="text-slate-400">Aucune photo</p>
+              <p className="text-slate-400">Aucune photo dans cette catégorie</p>
             )}
           </div>
           {/* Info en bas */}
@@ -1090,6 +1091,23 @@ export default function Vehicule() {
 
     return (
       <div className="pb-24 md:pb-20">
+        {/* ===== ONGLETS CATÉGORIES PHOTOS (scroll horizontal) ===== */}
+        <div className="flex gap-2 overflow-x-auto px-3 py-2 bg-white" style={{ WebkitOverflowScrolling: "touch" }}>
+          {proPhotoCategories.map((cat) => (
+            <button
+              key={cat.key}
+              onClick={() => { setPhotoCat(cat.key as PhotoCategory); setPhotoIdx(0); }}
+              className={`flex-shrink-0 rounded-full px-4 py-1.5 text-sm font-medium border transition whitespace-nowrap ${
+                photoCat === cat.key
+                  ? "border-red-500 text-red-600 bg-red-50"
+                  : "border-slate-200 text-slate-600 bg-white hover:border-slate-400"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
         {/* ===== PHOTO PRINCIPALE (pleine largeur, clic → galerie, swipe gauche/droite) ===== */}
         <div className="relative w-full h-[55vh] md:h-[58vh] lg:h-[62vh] bg-slate-100 cursor-pointer"
           onClick={() => setProGalleryOpen(true)}
@@ -1099,14 +1117,14 @@ export default function Vehicule() {
             const endX = e.changedTouches[0].clientX;
             const diff = startX - endX;
             if (Math.abs(diff) > 50) { e.preventDefault(); }
-            if (diff > 50) setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1));
+            if (diff > 50) setPhotoIdx((i) => Math.min(activeCatPhotos.length - 1, i + 1));
             if (diff < -50) setPhotoIdx((i) => Math.max(0, i - 1));
           }}
         >
-          {allPhotos.length > 0 ? (
-            <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="h-full w-full object-cover" />
+          {activeCatPhotos.length > 0 ? (
+            <img src={activeCatPhotos[activeCatIdx] || ""} alt={v.titre} className="h-full w-full object-cover" />
           ) : (
-            <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
+            <div className="grid h-full place-items-center text-slate-400">Aucune photo dans cette catégorie</div>
           )}
 
           {/* Header overlay: retour + partage + favori */}
@@ -1126,7 +1144,7 @@ export default function Vehicule() {
 
           {/* Badge PRO + Compteur — bas gauche (plus haut car carte overlap) */}
           <div className="absolute bottom-16 left-4 flex items-center gap-2">
-            <span className="rounded-md bg-white/90 px-2 py-1 text-xs font-bold text-[#111]">{photoIdx + 1}/{allPhotos.length}</span>
+            <span className="rounded-md bg-white/90 px-2 py-1 text-xs font-bold text-[#111]">{activeCatPhotos.length > 0 ? `${activeCatIdx + 1}/${activeCatPhotos.length}` : "0"}</span>
             <span className="rounded-md bg-white/90 px-2 py-1 text-xs font-bold text-[#111]">{proBadge}</span>
           </div>
 
@@ -1138,10 +1156,10 @@ export default function Vehicule() {
           )}
 
           {/* Flèches */}
-          {allPhotos.length > 1 && (
+          {activeCatPhotos.length > 1 && (
             <>
               <button onClick={(e) => { e.stopPropagation(); setPhotoIdx((i) => Math.max(0, i - 1)); }} className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow"><ChevronLeft size={22} /></button>
-              <button onClick={(e) => { e.stopPropagation(); setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1)); }} className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow"><ChevronRight size={22} /></button>
+              <button onClick={(e) => { e.stopPropagation(); setPhotoIdx((i) => Math.min(activeCatPhotos.length - 1, i + 1)); }} className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow"><ChevronRight size={22} /></button>
             </>
           )}
         </div>
