@@ -1025,34 +1025,35 @@ export default function Vendre() {
           </div>
 
           {photoCatsRef.map(cat => (
-            <div key={cat.key} className="rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-sm">
-              <h3 className="text-sm font-bold text-[#111] uppercase tracking-wider mb-0.5">{cat.label}</h3>
-              <p className="text-[10px] text-[#9CA3AF] mb-3">Cliquez sur un emplacement pour télécharger une photo</p>
-              <div className="grid grid-cols-4 gap-2">
+            <div key={cat.key} className="rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm">
+              <h3 className="text-xs font-bold text-[#111] mb-2">{cat.label}</h3>
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5">
                 {cat.slots.map(slot => {
                   const slotKey = `${cat.key}_${slot}`;
                   const url = photoUrls[slotKey];
                   return (
                     <div key={slot} className="flex flex-col items-center">
-                      <div className="relative w-full aspect-square">
+                      <div className="relative w-full" style={{ paddingBottom: "100%" }}>
                         {url ? (
-                          <div className="relative w-full h-full">
-                            <img src={url} alt={slot} className="w-full h-full rounded-lg object-cover border-2 border-green-400" />
-                            <button onClick={(e) => { e.stopPropagation(); setPhotoUrls(p => { const n = { ...p }; delete n[slotKey]; return n; }); }} className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow-md">
-                              <X size={10} />
+                          <div className="absolute inset-0">
+                            <img src={url} alt={slot} className="w-full h-full rounded object-cover border border-green-400" />
+                            <button onClick={(e) => { e.stopPropagation(); setPhotoUrls(p => { const n = { ...p }; delete n[slotKey]; return n; }); }} className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white">
+                              <X size={8} />
                             </button>
                           </div>
                         ) : (
-                          <FileUpload
-                            label=""
-                            accept="image/*"
-                            multiple={false}
-                            maxFiles={1}
-                            onUploaded={(files) => { if (files[0]) setPhotoUrls(p => ({ ...p, [slotKey]: files[0].url })); }}
-                          />
+                          <div className="absolute inset-0">
+                            <FileUpload
+                              label=""
+                              accept="image/*"
+                              multiple={false}
+                              maxFiles={1}
+                              onUploaded={(files) => { if (files[0]) setPhotoUrls(p => ({ ...p, [slotKey]: files[0].url })); }}
+                            />
+                          </div>
                         )}
                       </div>
-                      <p className="mt-1 text-[8px] text-[#6B7280] text-center leading-tight truncate w-full">{slot}</p>
+                      <p className="mt-0.5 text-[7px] text-[#9CA3AF] text-center leading-tight truncate w-full">{slot}</p>
                     </div>
                   );
                 })}
