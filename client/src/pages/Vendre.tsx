@@ -188,20 +188,25 @@ const SELLERIES = ["Tissu", "Cuir", "Cuir partiel", "Alcantara", "Simili cuir", 
 const CLASSES_EMISSION = ["EURO 1", "EURO 2", "EURO 3", "EURO 4", "EURO 5", "EURO 6", "EURO 6d", "EURO 6d-TEMP", "EURO 7"];
 const CRITAIRS = ["Crit'Air 0 (électrique)", "Crit'Air 1", "Crit'Air 2", "Crit'Air 3", "Crit'Air 4", "Crit'Air 5"];
 
-/* ── Photo categories par type ── */
+/* ── Photo categories (1 case par catégorie, aligné avec page produit) ── */
 const PHOTO_CATS_AUTO = [
-  { key: "ext", label: "Extérieures", slots: ["Face avant", "3/4 avant gauche", "Profil gauche", "3/4 arrière gauche", "Face arrière", "3/4 arrière droit", "Profil droit", "3/4 avant droit"] },
-  { key: "int", label: "Intérieures", slots: ["Tableau de bord", "Compteur", "Écran multimédia", "Sièges avant", "Sièges arrière", "Console centrale", "Volant", "Ciel de toit"] },
-  { key: "coffre", label: "Coffre", slots: ["Coffre ouvert", "Coffre chargé", "Plancher coffre"] },
-  { key: "moteur", label: "Moteur", slots: ["Moteur", "Compartiment moteur"] },
-  { key: "roues", label: "Roues & Pneus", slots: ["Roue avant gauche", "Roue arrière gauche", "Roue avant droite", "Roue arrière droite"] },
-  { key: "defauts", label: "Défauts / Imperfections", slots: ["Défaut 1", "Défaut 2", "Défaut 3", "Défaut 4"] },
+  { key: "exterieur", label: "Extérieur" },
+  { key: "interieur", label: "Intérieur" },
+  { key: "sieges", label: "Sièges" },
+  { key: "tableau_de_bord", label: "Tableau de bord" },
+  { key: "coffre", label: "Coffre" },
+  { key: "moteur", label: "Moteur" },
+  { key: "roues", label: "Roues" },
+  { key: "documents", label: "Documents" },
+  { key: "autres", label: "Autres" },
 ];
 const PHOTO_CATS_MOTO_V = [
-  { key: "ext", label: "Extérieures", slots: ["Face avant", "Profil gauche", "Face arrière", "Profil droit", "Vue plongeante"] },
-  { key: "details", label: "Détails", slots: ["Tableau de bord", "Moteur", "Pot échappement", "Réservoir", "Selle"] },
-  { key: "roues", label: "Pneus", slots: ["Roue avant", "Roue arrière"] },
-  { key: "defauts", label: "Défauts", slots: ["Défaut 1", "Défaut 2"] },
+  { key: "exterieur", label: "Extérieur" },
+  { key: "interieur", label: "Intérieur" },
+  { key: "moteur", label: "Moteur" },
+  { key: "roues", label: "Roues" },
+  { key: "documents", label: "Documents" },
+  { key: "autres", label: "Autres" },
 ];
 
 export default function Vendre() {
@@ -236,7 +241,7 @@ export default function Vendre() {
     critair: "",
   });
   const [photos, setPhotos] = useState<string[]>([]);
-  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string[]>>({});
   const [videos360, setVideos360] = useState<string[]>([]);
   const [videosNormales, setVideosNormales] = useState<string[]>([]);
   const [selectedEquipements, setSelectedEquipements] = useState<string[]>([]);
@@ -257,9 +262,10 @@ export default function Vendre() {
   const marquesRef = famille === "moto" ? MARQUES_MOTO : MARQUES_AUTO;
   const categoriesRef = famille === "moto" ? CATEGORIES_MOTO : CATEGORIES_AUTO;
   const photoCatsRef = famille === "moto" ? PHOTO_CATS_MOTO_V : PHOTO_CATS_AUTO;
+  const totalPhotos = useMemo(() => Object.values(photoUrls).reduce((acc, arr) => acc + arr.length, 0), [photoUrls]);
 
   // Derive flat photos array from categorized photoUrls
-  const allPhotos = useMemo(() => Object.values(photoUrls), [photoUrls]);
+  const allPhotos = useMemo(() => Object.values(photoUrls).flat(), [photoUrls]);
 
   function set<K extends keyof typeof form>(k: K, val: string) {
     setForm((f) => ({ ...f, [k]: val }));
@@ -1024,59 +1030,57 @@ export default function Vendre() {
             </div>
           </div>
 
-          {photoCatsRef.map(cat => (
-            <div key={cat.key} className="rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm">
-              <h3 className="text-xs font-bold text-[#D4AF37] uppercase tracking-wide mb-2">{cat.label}</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {cat.slots.map(slot => {
-                  const slotKey = `${cat.key}_${slot}`;
-                  const url = photoUrls[slotKey];
-                  return (
-                    <div key={slot} className="relative aspect-square rounded-lg border-2 border-dashed border-[#D1D5DB] bg-[#FAFAFA] flex flex-col items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-[#FFFDF5] transition overflow-hidden"
-                      onClick={() => {
-                        if (url) return;
-                        const inp = document.createElement("input");
-                        inp.type = "file";
-                        inp.accept = "image/*";
-                        inp.onchange = async (ev) => {
-                          const file = (ev.target as HTMLInputElement).files?.[0];
-                          if (!file) return;
-                          const fd = new FormData();
-                          fd.append("files", file);
-                          try {
-                            const token = localStorage.getItem("token");
-                            const resp = await fetch("/api/upload", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, body: fd });
-                            if (resp.ok) { const data = await resp.json(); if (data.files?.[0]) setPhotoUrls(p => ({ ...p, [slotKey]: data.files[0].url })); }
-                          } catch {}
-                        };
-                        inp.click();
-                      }}
-                    >
-                      {url ? (
-                        <>
-                          <img src={url} alt={slot} className="absolute inset-0 w-full h-full object-cover" />
-                          <button onClick={(e) => { e.stopPropagation(); setPhotoUrls(p => { const n = { ...p }; delete n[slotKey]; return n; }); }} className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow z-10">
-                            <X size={10} />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <Camera size={16} className="text-[#D4AF37] mb-1" />
-                          <span className="text-[9px] font-medium text-[#6B7280] text-center leading-tight px-1">{slot}</span>
-                        </>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+          <div className="grid grid-cols-3 gap-3">
+            {photoCatsRef.map(cat => {
+              const catPhotos = photoUrls[cat.key] || [];
+              return (
+                <div key={cat.key} className="relative aspect-square rounded-xl border-2 border-dashed border-[#D1D5DB] bg-[#FAFAFA] flex flex-col items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-[#FFFDF5] transition overflow-hidden"
+                  onClick={() => {
+                    const inp = document.createElement("input");
+                    inp.type = "file";
+                    inp.accept = "image/*";
+                    inp.multiple = true;
+                    inp.onchange = async (ev) => {
+                      const files = (ev.target as HTMLInputElement).files;
+                      if (!files?.length) return;
+                      const fd = new FormData();
+                      for (let i = 0; i < files.length; i++) fd.append("files", files[i]);
+                      try {
+                        const token = localStorage.getItem("token");
+                        const resp = await fetch("/api/upload", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, body: fd });
+                        if (resp.ok) { const data = await resp.json(); const urls = (data.files || []).map((f: any) => f.url); setPhotoUrls(p => ({ ...p, [cat.key]: [...(p[cat.key] || []), ...urls] })); }
+                      } catch {}
+                    };
+                    inp.click();
+                  }}
+                >
+                  {catPhotos.length > 0 ? (
+                    <>
+                      <img src={catPhotos[0]} alt={cat.label} className="absolute inset-0 w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center">
+                        <span className="text-white text-xs font-bold">{catPhotos.length} photo{catPhotos.length > 1 ? "s" : ""}</span>
+                        <span className="text-white/80 text-[9px] mt-0.5">{cat.label}</span>
+                      </div>
+                      <button onClick={(e) => { e.stopPropagation(); setPhotoUrls(p => { const n = { ...p }; delete n[cat.key]; return n; }); }} className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow z-10">
+                        <X size={10} />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Camera size={20} className="text-[#D4AF37] mb-1" />
+                      <span className="text-[10px] font-semibold text-[#374151] text-center leading-tight px-1">{cat.label}</span>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
           {/* Compteur photos */}
           <div className="flex items-center gap-2 rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm">
             <Camera size={14} className="text-[#D4AF37]" />
-            <span className="text-xs text-[#374151] font-medium">{Object.keys(photoUrls).length} photo(s) ajoutée(s)</span>
-            <span className="ml-auto text-[10px] font-bold text-[#D4AF37]">{Object.keys(photoUrls).length >= 10 ? "Excellent !" : Object.keys(photoUrls).length >= 5 ? "Bon score" : "Ajoutez plus de photos"}</span>
+            <span className="text-xs text-[#374151] font-medium">{totalPhotos} photo(s) ajoutée(s)</span>
+            <span className="ml-auto text-[10px] font-bold text-[#D4AF37]">{totalPhotos >= 10 ? "Excellent !" : totalPhotos >= 5 ? "Bon score" : "Ajoutez plus de photos"}</span>
           </div>
 
           {/* ── Vidéos ── */}
