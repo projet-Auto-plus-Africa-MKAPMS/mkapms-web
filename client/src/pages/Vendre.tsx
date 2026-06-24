@@ -1026,34 +1026,45 @@ export default function Vendre() {
 
           {photoCatsRef.map(cat => (
             <div key={cat.key} className="rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm">
-              <h3 className="text-xs font-bold text-[#111] mb-2">{cat.label}</h3>
-              <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5">
+              <h3 className="text-xs font-bold text-[#D4AF37] uppercase tracking-wide mb-2">{cat.label}</h3>
+              <div className="grid grid-cols-3 gap-2">
                 {cat.slots.map(slot => {
                   const slotKey = `${cat.key}_${slot}`;
                   const url = photoUrls[slotKey];
                   return (
-                    <div key={slot} className="flex flex-col items-center">
-                      <div className="relative w-full" style={{ paddingBottom: "100%" }}>
-                        {url ? (
-                          <div className="absolute inset-0">
-                            <img src={url} alt={slot} className="w-full h-full rounded object-cover border border-green-400" />
-                            <button onClick={(e) => { e.stopPropagation(); setPhotoUrls(p => { const n = { ...p }; delete n[slotKey]; return n; }); }} className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white">
-                              <X size={8} />
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="absolute inset-0">
-                            <FileUpload
-                              label=""
-                              accept="image/*"
-                              multiple={false}
-                              maxFiles={1}
-                              onUploaded={(files) => { if (files[0]) setPhotoUrls(p => ({ ...p, [slotKey]: files[0].url })); }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <p className="mt-0.5 text-[7px] text-[#9CA3AF] text-center leading-tight truncate w-full">{slot}</p>
+                    <div key={slot} className="relative aspect-square rounded-lg border-2 border-dashed border-[#D1D5DB] bg-[#FAFAFA] flex flex-col items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-[#FFFDF5] transition overflow-hidden"
+                      onClick={() => {
+                        if (url) return;
+                        const inp = document.createElement("input");
+                        inp.type = "file";
+                        inp.accept = "image/*";
+                        inp.onchange = async (ev) => {
+                          const file = (ev.target as HTMLInputElement).files?.[0];
+                          if (!file) return;
+                          const fd = new FormData();
+                          fd.append("files", file);
+                          try {
+                            const token = localStorage.getItem("token");
+                            const resp = await fetch("/api/upload", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, body: fd });
+                            if (resp.ok) { const data = await resp.json(); if (data.files?.[0]) setPhotoUrls(p => ({ ...p, [slotKey]: data.files[0].url })); }
+                          } catch {}
+                        };
+                        inp.click();
+                      }}
+                    >
+                      {url ? (
+                        <>
+                          <img src={url} alt={slot} className="absolute inset-0 w-full h-full object-cover" />
+                          <button onClick={(e) => { e.stopPropagation(); setPhotoUrls(p => { const n = { ...p }; delete n[slotKey]; return n; }); }} className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow z-10">
+                            <X size={10} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <Camera size={16} className="text-[#D4AF37] mb-1" />
+                          <span className="text-[9px] font-medium text-[#6B7280] text-center leading-tight px-1">{slot}</span>
+                        </>
+                      )}
                     </div>
                   );
                 })}
