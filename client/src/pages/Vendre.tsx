@@ -6,7 +6,7 @@ import {
   Headphones, FileText, ArrowLeft, ArrowRight, Info, X, Video,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
-import { useAuth } from "../lib/auth";
+import { useAuth, getToken } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
 import FileUpload from "../components/FileUpload";
 
@@ -1046,7 +1046,7 @@ export default function Vendre() {
                       const fd = new FormData();
                       for (let i = 0; i < files.length; i++) fd.append("files", files[i]);
                       try {
-                        const token = localStorage.getItem("token");
+                        const token = getToken();
                         const resp = await fetch("/api/upload", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, body: fd });
                         if (resp.ok) { const data = await resp.json(); const urls = (data.files || []).map((f: any) => f.url); setPhotoUrls(p => ({ ...p, [cat.key]: [...(p[cat.key] || []), ...urls] })); }
                       } catch {}
