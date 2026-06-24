@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Search, Camera, CheckCircle, Shield, Eye, Zap, Lock,
   ChevronRight, ChevronDown, Upload, Star, Car, Bike, Truck, Bus,
-  Headphones, FileText, ArrowLeft, ArrowRight, Info,
+  Headphones, FileText, ArrowLeft, ArrowRight, Info, X, Video,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -188,6 +188,22 @@ const SELLERIES = ["Tissu", "Cuir", "Cuir partiel", "Alcantara", "Simili cuir", 
 const CLASSES_EMISSION = ["EURO 1", "EURO 2", "EURO 3", "EURO 4", "EURO 5", "EURO 6", "EURO 6d", "EURO 6d-TEMP", "EURO 7"];
 const CRITAIRS = ["Crit'Air 0 (électrique)", "Crit'Air 1", "Crit'Air 2", "Crit'Air 3", "Crit'Air 4", "Crit'Air 5"];
 
+/* ── Photo categories par type ── */
+const PHOTO_CATS_AUTO = [
+  { key: "ext", label: "Extérieures", slots: ["Face avant", "3/4 avant gauche", "Profil gauche", "3/4 arrière gauche", "Face arrière", "3/4 arrière droit", "Profil droit", "3/4 avant droit"] },
+  { key: "int", label: "Intérieures", slots: ["Tableau de bord", "Compteur", "Écran multimédia", "Sièges avant", "Sièges arrière", "Console centrale", "Volant", "Ciel de toit"] },
+  { key: "coffre", label: "Coffre", slots: ["Coffre ouvert", "Coffre chargé", "Plancher coffre"] },
+  { key: "moteur", label: "Moteur", slots: ["Moteur", "Compartiment moteur"] },
+  { key: "roues", label: "Roues & Pneus", slots: ["Roue avant gauche", "Roue arrière gauche", "Roue avant droite", "Roue arrière droite"] },
+  { key: "defauts", label: "Défauts / Imperfections", slots: ["Défaut 1", "Défaut 2", "Défaut 3", "Défaut 4"] },
+];
+const PHOTO_CATS_MOTO_V = [
+  { key: "ext", label: "Extérieures", slots: ["Face avant", "Profil gauche", "Face arrière", "Profil droit", "Vue plongeante"] },
+  { key: "details", label: "Détails", slots: ["Tableau de bord", "Moteur", "Pot échappement", "Réservoir", "Selle"] },
+  { key: "roues", label: "Pneus", slots: ["Roue avant", "Roue arrière"] },
+  { key: "defauts", label: "Défauts", slots: ["Défaut 1", "Défaut 2"] },
+];
+
 export default function Vendre() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -220,6 +236,7 @@ export default function Vendre() {
     critair: "",
   });
   const [photos, setPhotos] = useState<string[]>([]);
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
   const [videos360, setVideos360] = useState<string[]>([]);
   const [videosNormales, setVideosNormales] = useState<string[]>([]);
   const [selectedEquipements, setSelectedEquipements] = useState<string[]>([]);
@@ -239,6 +256,10 @@ export default function Vendre() {
   const equipRef = famille === "moto" ? EQUIPEMENTS_MOTO : EQUIPEMENTS_AUTO;
   const marquesRef = famille === "moto" ? MARQUES_MOTO : MARQUES_AUTO;
   const categoriesRef = famille === "moto" ? CATEGORIES_MOTO : CATEGORIES_AUTO;
+  const photoCatsRef = famille === "moto" ? PHOTO_CATS_MOTO_V : PHOTO_CATS_AUTO;
+
+  // Derive flat photos array from categorized photoUrls
+  const allPhotos = useMemo(() => Object.values(photoUrls), [photoUrls]);
 
   function set<K extends keyof typeof form>(k: K, val: string) {
     setForm((f) => ({ ...f, [k]: val }));
@@ -332,7 +353,7 @@ export default function Vendre() {
       codePostal: form.codePostal || undefined,
       contactTelephone: form.contactTelephone || undefined,
       description: form.description || undefined,
-      photos,
+      photos: allPhotos.length > 0 ? allPhotos : photos,
       couleur: form.couleur || undefined,
       portes: form.portes ? Number(form.portes) : undefined,
       places: form.places ? Number(form.places) : undefined,
@@ -994,31 +1015,56 @@ export default function Vendre() {
             )}
           </div>
 
-          {/* ── Photos ── */}
-          <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
-            <h3 className="text-sm font-bold text-[#111] uppercase tracking-wider mb-1">Photos du véhicule</h3>
-            <p className="text-xs text-[#9CA3AF] mb-4">Ajoutez jusqu'à {maxPhotos} photos. Plus de photos = plus de visibilité !</p>
-            <FileUpload
-              label={`Ajouter des photos (${photos.length}/${maxPhotos})`}
-              accept="image/*"
-              multiple
-              maxFiles={maxPhotos - photos.length}
-              onUploaded={onFilesUploaded}
-              iaAnalysis
-            />
-            {photos.length > 0 && (
-              <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
-                {photos.map((p, i) => (
-                  <div key={i} className="relative">
-                    <img src={p} alt="" className="aspect-square w-full rounded-xl object-cover border border-[#E5E7EB]" />
-                    <button
-                      onClick={() => setPhotos((arr) => arr.filter((_, j) => j !== i))}
-                      className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-xs text-white hover:bg-red-600"
-                    >×</button>
-                  </div>
-                ))}
+          {/* ── Photos par catégorie ── */}
+          <div className="rounded-2xl bg-[#FFFDF5] border border-[#D4AF37]/30 p-4 flex items-start gap-2 shadow-sm">
+            <Camera size={16} className="text-[#D4AF37] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-[#111]">Photos de qualité = vente rapide</p>
+              <p className="text-[10px] text-[#6B7280]">Les annonces avec 10+ photos se vendent 3x plus vite. Cliquez sur chaque emplacement.</p>
+            </div>
+          </div>
+
+          {photoCatsRef.map(cat => (
+            <div key={cat.key} className="rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-sm">
+              <h3 className="text-sm font-bold text-[#111] uppercase tracking-wider mb-0.5">{cat.label}</h3>
+              <p className="text-[10px] text-[#9CA3AF] mb-3">Cliquez sur un emplacement pour télécharger une photo</p>
+              <div className="grid grid-cols-4 gap-2">
+                {cat.slots.map(slot => {
+                  const slotKey = `${cat.key}_${slot}`;
+                  const url = photoUrls[slotKey];
+                  return (
+                    <div key={slot} className="flex flex-col items-center">
+                      <div className="relative w-full aspect-square">
+                        {url ? (
+                          <div className="relative w-full h-full">
+                            <img src={url} alt={slot} className="w-full h-full rounded-lg object-cover border-2 border-green-400" />
+                            <button onClick={(e) => { e.stopPropagation(); setPhotoUrls(p => { const n = { ...p }; delete n[slotKey]; return n; }); }} className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow-md">
+                              <X size={10} />
+                            </button>
+                          </div>
+                        ) : (
+                          <FileUpload
+                            label=""
+                            accept="image/*"
+                            multiple={false}
+                            maxFiles={1}
+                            onUploaded={(files) => { if (files[0]) setPhotoUrls(p => ({ ...p, [slotKey]: files[0].url })); }}
+                          />
+                        )}
+                      </div>
+                      <p className="mt-1 text-[8px] text-[#6B7280] text-center leading-tight truncate w-full">{slot}</p>
+                    </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
+          ))}
+
+          {/* Compteur photos */}
+          <div className="flex items-center gap-2 rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm">
+            <Camera size={14} className="text-[#D4AF37]" />
+            <span className="text-xs text-[#374151] font-medium">{Object.keys(photoUrls).length} photo(s) ajoutée(s)</span>
+            <span className="ml-auto text-[10px] font-bold text-[#D4AF37]">{Object.keys(photoUrls).length >= 10 ? "Excellent !" : Object.keys(photoUrls).length >= 5 ? "Bon score" : "Ajoutez plus de photos"}</span>
           </div>
 
           {/* ── Vidéos ── */}
@@ -1145,9 +1191,9 @@ export default function Vendre() {
                   </div>
                 </div>
               )}
-              {photos.length > 0 && (
+              {allPhotos.length > 0 && (
                 <div className="flex gap-2 overflow-x-auto pt-2 border-t border-[#E5E7EB]">
-                  {photos.map((p, i) => (
+                  {allPhotos.map((p, i) => (
                     <img key={i} src={p} alt="" className="h-16 w-16 rounded-lg object-cover border border-[#E5E7EB] shrink-0" />
                   ))}
                 </div>
