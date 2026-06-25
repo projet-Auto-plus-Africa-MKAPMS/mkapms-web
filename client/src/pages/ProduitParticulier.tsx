@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  ChevronLeft, ChevronRight, Heart, Star, Check, Fuel, Settings2,
+  ChevronLeft, Heart, Star, Check, Fuel, Settings2,
   Zap, Users, DoorOpen, Gauge, Calendar, Shield, Clock, Lock,
   ChevronDown, MapPin, Headphones, FileCheck, Navigation,
   CreditCard, Car, Baby, Eye
@@ -12,6 +12,21 @@ import {
    Rassurer le client. Vacances, week-end, remplacement.
    ══════════════════════════════════════════════════════════════════════════ */
 
+/* ── Photo categories (identique au système vente) ── */
+type PhotoCategory = "toutes" | "exterieur" | "interieur" | "sieges" | "tableau_de_bord" | "coffre" | "moteur" | "roues" | "documents" | "autres";
+const PHOTO_CATEGORIES: { key: PhotoCategory; label: string }[] = [
+  { key: "toutes", label: "Toutes" },
+  { key: "exterieur", label: "Extérieur" },
+  { key: "interieur", label: "Intérieur" },
+  { key: "sieges", label: "Sièges" },
+  { key: "tableau_de_bord", label: "Tableau de bord" },
+  { key: "coffre", label: "Coffre" },
+  { key: "moteur", label: "Moteur" },
+  { key: "roues", label: "Roues" },
+  { key: "documents", label: "Documents" },
+  { key: "autres", label: "Autres" },
+];
+
 const VEHICLE = {
   titre: "Peugeot 3008 GT",
   sousTitre: "SUV | 2024 | Hybride | Automatique",
@@ -19,20 +34,18 @@ const VEHICLE = {
   note: 4.7, nbAvis: 86,
   annee: 2024, km: 8000, carburant: "Hybride", transmission: "Automatique",
   puissance: "225 ch", places: 5, portes: 5, consommation: "1.4 L/100km", critair: 1,
+  photoCategories: {
+    exterieur: ["https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&h=500&fit=crop", "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&h=500&fit=crop", "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&h=500&fit=crop"],
+    interieur: ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=500&fit=crop", "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&h=500&fit=crop"],
+    sieges: ["https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=500&fit=crop"],
+    tableau_de_bord: ["https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=800&h=500&fit=crop"],
+    coffre: ["https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=500&fit=crop"],
+    moteur: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&h=500&fit=crop"],
+    roues: ["https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=500&fit=crop"],
+    documents: [],
+    autres: [],
+  },
 };
-
-const GALLERY = [
-  "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=500&fit=crop",
-];
 
 const EQUIPEMENTS = ["GPS", "Caméra de recul", "Climatisation auto", "Régulateur adaptatif", "Apple CarPlay / Android Auto", "Bluetooth", "Sièges chauffants", "Grand coffre 591L", "Toit panoramique"];
 
@@ -80,11 +93,14 @@ const SIMILAIRES = [
 
 export default function ProduitParticulier() {
   const nav = useNavigate();
+  const [photoCat, setPhotoCat] = useState<PhotoCategory>("toutes");
   const [photoIdx, setPhotoIdx] = useState(0);
   const [fav, setFav] = useState(false);
   const [showAllChars, setShowAllChars] = useState(false);
   const [showAllEquip, setShowAllEquip] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [showPrices, setShowPrices] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   const today = new Date();
   const nextWeek = new Date(today); nextWeek.setDate(today.getDate() + 7);
@@ -98,13 +114,73 @@ export default function ProduitParticulier() {
   }, [dateDebut, dateFin]);
   const total = nbJours <= 6 ? nbJours * VEHICLE.prixJour : nbJours <= 29 ? Math.ceil(nbJours / 7) * VEHICLE.prixSemaine : Math.ceil(nbJours / 30) * VEHICLE.prixMois;
 
-  const prevPhoto = useCallback(() => setPhotoIdx((i) => (i === 0 ? GALLERY.length - 1 : i - 1)), []);
-  const nextPhoto = useCallback(() => setPhotoIdx((i) => (i === GALLERY.length - 1 ? 0 : i + 1)), []);
+  /* ── Photos catégorisées ── */
+  const allPhotos = useMemo(() => {
+    const all = Object.values(VEHICLE.photoCategories).flat();
+    return [...new Set(all)].filter(Boolean);
+  }, []);
+
+  const activeCatPhotos = useMemo(() => {
+    if (photoCat === "toutes") return allPhotos;
+    return VEHICLE.photoCategories[photoCat] || [];
+  }, [photoCat, allPhotos]);
+
+  const safeIdx = Math.min(photoIdx, Math.max(0, activeCatPhotos.length - 1));
+
+  /* ── Prix calculés (6 paliers) ── */
+  const PRICE_TIERS = [
+    { label: "Jour", value: VEHICLE.prixJour },
+    { label: "3 Jours", value: Math.round(VEHICLE.prixJour * 2.7) },
+    { label: "Semaine", value: VEHICLE.prixSemaine },
+    { label: "2 Sem.", value: Math.round(VEHICLE.prixSemaine * 1.8) },
+    { label: "Mois", value: VEHICLE.prixMois },
+    { label: "3 Mois", value: Math.round(VEHICLE.prixMois * 2.7) },
+  ];
+
   const resvRef = useRef<HTMLDivElement>(null);
   const scrollToResv = () => resvRef.current?.scrollIntoView({ behavior: "smooth" });
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-5xl mx-auto">
+
+      {/* ═══════════════════════ GALERIE PLEIN ÉCRAN ═══════════════════════ */}
+      {galleryOpen && (
+        <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+          <div className="flex items-center justify-between border-b px-4 py-4 pt-14">
+            <button onClick={() => setGalleryOpen(false)} className="text-[#111] p-2"><ChevronLeft size={28} /></button>
+            <span className="text-sm font-bold text-[#111]">{activeCatPhotos.length > 0 ? `${safeIdx + 1}/${activeCatPhotos.length}` : "0"}</span>
+            <div className="w-10" />
+          </div>
+          <div className="flex gap-2 overflow-x-auto border-b px-4 py-3">
+            {PHOTO_CATEGORIES.map((cat) => (
+              <button key={cat.key} onClick={() => { setPhotoCat(cat.key); setPhotoIdx(0); }}
+                className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${photoCat === cat.key ? "border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/10" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
+                {cat.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex-1 flex items-center justify-center bg-white px-2 relative overflow-hidden"
+            onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+              const startX = (e.currentTarget as any)._touchX;
+              const endX = e.changedTouches[0].clientX;
+              const diff = startX - endX;
+              if (diff > 50) setPhotoIdx((i) => Math.min(activeCatPhotos.length - 1, i + 1));
+              if (diff < -50) setPhotoIdx((i) => Math.max(0, i - 1));
+            }}
+          >
+            {activeCatPhotos.length > 0 ? (
+              <img src={activeCatPhotos[safeIdx]} alt={VEHICLE.titre} className="max-w-full object-contain" style={{maxHeight: '55vh'}} />
+            ) : (
+              <p className="text-slate-400">Aucune photo dans cette catégorie</p>
+            )}
+          </div>
+          <div className="border-t px-4 py-3">
+            <p className="text-lg font-extrabold text-[#111]">{VEHICLE.titre}</p>
+            <p className="text-sm text-[#D4AF37] font-bold mt-1">{VEHICLE.prixJour} € / jour · {VEHICLE.prixMois} € / mois</p>
+          </div>
+        </div>
+      )}
 
       {/* BLOC 1 — PHOTOS */}
       <div className="relative">
@@ -116,21 +192,36 @@ export default function ProduitParticulier() {
             <Heart size={18} className={fav ? "fill-red-500 text-red-500" : "text-[#111]"} />
           </button>
         </div>
-        <div className="relative">
-          <img src={GALLERY[photoIdx]} alt={VEHICLE.titre} className="w-full h-[280px] md:h-[380px] lg:h-[450px] object-cover" />
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white"><Car size={12} /> PARTICULIER</span>
-          <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs font-bold text-white">{photoIdx + 1} / {GALLERY.length}</div>
-          <button onClick={prevPhoto} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 backdrop-blur flex items-center justify-center"><ChevronLeft size={18} /></button>
-          <button onClick={nextPhoto} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 backdrop-blur flex items-center justify-center"><ChevronRight size={18} /></button>
+        {/* Onglets catégories photos */}
+        <div className="flex gap-2 overflow-x-auto px-3 py-2 bg-white" style={{ WebkitOverflowScrolling: "touch" }}>
+          {PHOTO_CATEGORIES.map((cat) => (
+            <button key={cat.key} onClick={() => { setPhotoCat(cat.key); setPhotoIdx(0); }}
+              className={`shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition whitespace-nowrap ${
+                photoCat === cat.key
+                  ? "border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/10"
+                  : "border-slate-200 text-slate-600 bg-white hover:border-slate-400"
+              }`}>
+              {cat.label}
+            </button>
+          ))}
         </div>
-        <div className="bg-white px-4 pt-2 pb-2">
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {GALLERY.slice(0, 8).map((img, i) => (
-              <button key={i} onClick={() => setPhotoIdx(i)} className={`w-14 h-10 shrink-0 rounded-md overflow-hidden border-2 ${photoIdx === i ? "border-[#D4AF37]" : "border-transparent opacity-70"}`}>
-                <img src={img} alt="" className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
+        <div className="relative cursor-pointer" onClick={() => setGalleryOpen(true)}
+          onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
+          onTouchEnd={(e) => {
+            const startX = (e.currentTarget as any)._touchX;
+            const endX = e.changedTouches[0].clientX;
+            const diff = startX - endX;
+            if (diff > 50) setPhotoIdx((i) => Math.min(activeCatPhotos.length - 1, i + 1));
+            if (diff < -50) setPhotoIdx((i) => Math.max(0, i - 1));
+          }}
+        >
+          {activeCatPhotos.length > 0 ? (
+            <img src={activeCatPhotos[safeIdx]} alt={VEHICLE.titre} className="w-full h-[280px] md:h-[380px] lg:h-[450px] object-cover" />
+          ) : (
+            <div className="w-full h-[280px] md:h-[380px] lg:h-[450px] bg-slate-100 grid place-items-center text-slate-400">Aucune photo dans cette catégorie</div>
+          )}
+          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white"><Car size={12} /> PARTICULIER</span>
+          <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs font-bold text-white">{activeCatPhotos.length > 0 ? `${safeIdx + 1}/${activeCatPhotos.length}` : "0"}</div>
         </div>
       </div>
 
@@ -143,21 +234,36 @@ export default function ProduitParticulier() {
           <span className="text-sm font-bold">{VEHICLE.note}</span>
           <span className="text-xs text-[#6B7280]">({VEHICLE.nbAvis} avis)</span>
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <div className="rounded-lg bg-[#D4AF37]/5 border border-[#D4AF37]/20 p-2.5 text-center">
-            <p className="text-[9px] text-[#D4AF37] uppercase font-bold">Jour</p>
-            <p className="text-base font-black text-[#111]">{VEHICLE.prixJour} €</p>
-          </div>
-          <div className="rounded-lg bg-[#F5F3EF] p-2.5 text-center">
-            <p className="text-[9px] text-[#6B7280] uppercase">Semaine</p>
-            <p className="text-base font-black text-[#111]">{VEHICLE.prixSemaine} €</p>
-          </div>
-          <div className="rounded-lg bg-[#F5F3EF] p-2.5 text-center">
-            <p className="text-[9px] text-[#6B7280] uppercase">Mois</p>
-            <p className="text-base font-black text-[#111]">{VEHICLE.prixMois} €</p>
-          </div>
+        {/* Tarifs — cliquable / expandable */}
+        <div className="mt-4 rounded-2xl bg-white border border-[#E5E7EB] overflow-hidden">
+          <button
+            onClick={() => setShowPrices(!showPrices)}
+            className="w-full bg-[#D4AF37] px-4 py-2.5 flex items-center justify-between"
+          >
+            <h2 className="text-sm font-bold text-white">Tarifs de location</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-white/80">À partir de {VEHICLE.prixJour} €/jour</span>
+              <ChevronDown size={16} className={`text-white transition ${showPrices ? "rotate-180" : ""}`} />
+            </div>
+          </button>
+          {showPrices && (
+            <div className="p-4">
+              <div className="grid grid-cols-3 gap-2">
+                {PRICE_TIERS.map((tier, i) => (
+                  <button key={tier.label}
+                    className={`rounded-lg p-3 text-center transition hover:scale-[1.03] active:scale-[0.97] ${
+                      i >= 4 ? "bg-[#D4AF37]/10 border border-[#D4AF37]/30" : "bg-[#F5F3EF]"
+                    }`}
+                  >
+                    <p className={`text-[10px] uppercase ${i >= 4 ? "text-[#D4AF37] font-semibold" : "text-[#6B7280]"}`}>{tier.label}</p>
+                    <p className={`text-lg font-black ${i >= 4 ? "text-[#D4AF37]" : "text-[#111]"}`}>{tier.value} €</p>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-[#6B7280]">200 km/jour inclus · Assurance tous risques incluse</p>
+            </div>
+          )}
         </div>
-        <p className="mt-2 text-xs text-[#6B7280]">200 km/jour inclus · Assurance tous risques incluse</p>
       </div>
 
       {/* BLOC 3 — RÉSERVATION */}

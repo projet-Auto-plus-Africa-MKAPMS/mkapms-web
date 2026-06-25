@@ -14,6 +14,21 @@ import {
    mensualité, kilométrage, conditions, revenus estimés, dossier.
    ══════════════════════════════════════════════════════════════════════════ */
 
+/* ── Photo categories (identique au système vente) ── */
+type PhotoCategory = "toutes" | "exterieur" | "interieur" | "sieges" | "tableau_de_bord" | "coffre" | "moteur" | "roues" | "documents" | "autres";
+const PHOTO_CATEGORIES: { key: PhotoCategory; label: string }[] = [
+  { key: "toutes", label: "Toutes" },
+  { key: "exterieur", label: "Extérieur" },
+  { key: "interieur", label: "Intérieur" },
+  { key: "sieges", label: "Sièges" },
+  { key: "tableau_de_bord", label: "Tableau de bord" },
+  { key: "coffre", label: "Coffre" },
+  { key: "moteur", label: "Moteur" },
+  { key: "roues", label: "Roues" },
+  { key: "documents", label: "Documents" },
+  { key: "autres", label: "Autres" },
+];
+
 const VEHICLE = {
   id: 9201,
   titre: "Mercedes Classe E Break",
@@ -35,35 +50,18 @@ const VEHICLE = {
   consommation: "5.2 L/100km",
   critair: 2,
   badges: ["VTC agréé", "Entretien inclus", "Confort Premium"],
+  photoCategories: {
+    exterieur: ["https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&h=500&fit=crop", "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=500&fit=crop", "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=500&fit=crop", "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&h=500&fit=crop"],
+    interieur: ["https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=500&fit=crop", "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=500&fit=crop", "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&h=500&fit=crop"],
+    sieges: ["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&h=500&fit=crop", "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?w=800&h=500&fit=crop"],
+    tableau_de_bord: ["https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&h=500&fit=crop"],
+    coffre: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=500&fit=crop"],
+    moteur: ["https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&h=500&fit=crop"],
+    roues: ["https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&h=500&fit=crop", "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=800&h=500&fit=crop"],
+    documents: ["https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&h=500&fit=crop"],
+    autres: ["https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=500&fit=crop", "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=500&fit=crop", "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800&h=500&fit=crop"],
+  },
 };
-
-const GALLERY = [
-  "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1563720223185-11003d516935?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1504215680853-026ed2a45def?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=800&h=500&fit=crop",
-];
 
 const EQUIPEMENTS = [
   "Sièges en cuir", "GPS Grand écran", "Caméra de recul", "Climatisation automatique",
@@ -135,12 +133,15 @@ const KM_OPTIONS = [
 
 export default function ProduitVtcTaxi() {
   const nav = useNavigate();
+  const [photoCat, setPhotoCat] = useState<PhotoCategory>("toutes");
   const [photoIdx, setPhotoIdx] = useState(0);
   const [fav, setFav] = useState(false);
   const [showAllChars, setShowAllChars] = useState(false);
   const [showAllEquip, setShowAllEquip] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [docType, setDocType] = useState<"vtc" | "taxi">("vtc");
+  const [showPrices, setShowPrices] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   const [step, setStep] = useState(1);
   const today = new Date();
@@ -158,13 +159,73 @@ export default function ProduitVtcTaxi() {
   const mensualite = VEHICLE.prixMois + KM_OPTIONS[kmChoice].extra * 30;
   const acompte = 500;
 
-  const prevPhoto = useCallback(() => setPhotoIdx((i) => (i === 0 ? GALLERY.length - 1 : i - 1)), []);
-  const nextPhoto = useCallback(() => setPhotoIdx((i) => (i === GALLERY.length - 1 ? 0 : i + 1)), []);
+  /* ── Photos catégorisées ── */
+  const allPhotos = useMemo(() => {
+    const all = Object.values(VEHICLE.photoCategories).flat();
+    return [...new Set(all)].filter(Boolean);
+  }, []);
+
+  const activeCatPhotos = useMemo(() => {
+    if (photoCat === "toutes") return allPhotos;
+    return VEHICLE.photoCategories[photoCat] || [];
+  }, [photoCat, allPhotos]);
+
+  const safeIdx = Math.min(photoIdx, Math.max(0, activeCatPhotos.length - 1));
+
+  /* ── Prix calculés (6 paliers) ── */
+  const PRICE_TIERS = [
+    { label: "Jour", value: VEHICLE.prixJour },
+    { label: "3 Jours", value: Math.round(VEHICLE.prixJour * 2.7) },
+    { label: "Semaine", value: VEHICLE.prixSemaine },
+    { label: "2 Sem.", value: Math.round(VEHICLE.prixSemaine * 1.8) },
+    { label: "Mois", value: VEHICLE.prixMois },
+    { label: "3 Mois", value: Math.round(VEHICLE.prixMois * 2.7) },
+  ];
+
   const resvRef = useRef<HTMLDivElement>(null);
   const scrollToResv = () => resvRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-5xl mx-auto">
+
+      {/* ═══════════════════════ GALERIE PLEIN ÉCRAN ═══════════════════════ */}
+      {galleryOpen && (
+        <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+          <div className="flex items-center justify-between border-b px-4 py-4 pt-14">
+            <button onClick={() => setGalleryOpen(false)} className="text-[#111] p-2"><ChevronLeft size={28} /></button>
+            <span className="text-sm font-bold text-[#111]">{activeCatPhotos.length > 0 ? `${safeIdx + 1}/${activeCatPhotos.length}` : "0"}</span>
+            <div className="w-10" />
+          </div>
+          <div className="flex gap-2 overflow-x-auto border-b px-4 py-3">
+            {PHOTO_CATEGORIES.map((cat) => (
+              <button key={cat.key} onClick={() => { setPhotoCat(cat.key); setPhotoIdx(0); }}
+                className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${photoCat === cat.key ? "border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/10" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
+                {cat.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex-1 flex items-center justify-center bg-white px-2 relative overflow-hidden"
+            onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+              const startX = (e.currentTarget as any)._touchX;
+              const endX = e.changedTouches[0].clientX;
+              const diff = startX - endX;
+              if (diff > 50) setPhotoIdx((i) => Math.min(activeCatPhotos.length - 1, i + 1));
+              if (diff < -50) setPhotoIdx((i) => Math.max(0, i - 1));
+            }}
+          >
+            {activeCatPhotos.length > 0 ? (
+              <img src={activeCatPhotos[safeIdx]} alt={VEHICLE.titre} className="max-w-full object-contain" style={{maxHeight: '55vh'}} />
+            ) : (
+              <p className="text-slate-400">Aucune photo dans cette catégorie</p>
+            )}
+          </div>
+          <div className="border-t px-4 py-3">
+            <p className="text-lg font-extrabold text-[#111]">{VEHICLE.titre}</p>
+            <p className="text-sm text-[#D4AF37] font-bold mt-1">{VEHICLE.prixJour} € / jour · {VEHICLE.prixMois} € / mois</p>
+          </div>
+        </div>
+      )}
 
       {/* ═══════════════════════════════════ BLOC 1 — PHOTOS ═══════════════════════════════════ */}
       <div className="relative">
@@ -176,23 +237,38 @@ export default function ProduitVtcTaxi() {
             <Heart size={18} className={fav ? "fill-red-500 text-red-500" : "text-[#111]"} />
           </button>
         </div>
-        <div className="relative">
-          <img src={GALLERY[photoIdx]} alt={VEHICLE.titre} className="w-full h-[280px] md:h-[380px] lg:h-[450px] object-cover" />
+        {/* Onglets catégories photos */}
+        <div className="flex gap-2 overflow-x-auto px-3 py-2 bg-white" style={{ WebkitOverflowScrolling: "touch" }}>
+          {PHOTO_CATEGORIES.map((cat) => (
+            <button key={cat.key} onClick={() => { setPhotoCat(cat.key); setPhotoIdx(0); }}
+              className={`shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition whitespace-nowrap ${
+                photoCat === cat.key
+                  ? "border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/10"
+                  : "border-slate-200 text-slate-600 bg-white hover:border-slate-400"
+              }`}>
+              {cat.label}
+            </button>
+          ))}
+        </div>
+        <div className="relative cursor-pointer" onClick={() => setGalleryOpen(true)}
+          onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
+          onTouchEnd={(e) => {
+            const startX = (e.currentTarget as any)._touchX;
+            const endX = e.changedTouches[0].clientX;
+            const diff = startX - endX;
+            if (diff > 50) setPhotoIdx((i) => Math.min(activeCatPhotos.length - 1, i + 1));
+            if (diff < -50) setPhotoIdx((i) => Math.max(0, i - 1));
+          }}
+        >
+          {activeCatPhotos.length > 0 ? (
+            <img src={activeCatPhotos[safeIdx]} alt={VEHICLE.titre} className="w-full h-[280px] md:h-[380px] lg:h-[450px] object-cover" />
+          ) : (
+            <div className="w-full h-[280px] md:h-[380px] lg:h-[450px] bg-slate-100 grid place-items-center text-slate-400">Aucune photo dans cette catégorie</div>
+          )}
           <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-[#111]/90 px-3 py-1.5 text-xs font-bold text-[#D4AF37] border border-[#D4AF37]/60 backdrop-blur">
             <Shield size={12} /> VTC & TAXI
           </span>
-          <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs font-bold text-white">{photoIdx + 1} / {GALLERY.length}</div>
-          <button onClick={prevPhoto} className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-white/70 backdrop-blur"><ChevronLeft size={18} /></button>
-          <button onClick={nextPhoto} className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-full bg-white/70 backdrop-blur"><ChevronRight size={18} /></button>
-        </div>
-        <div className="bg-white px-4 pt-2 pb-2">
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-            {GALLERY.slice(0, 8).map((img, i) => (
-              <button key={i} onClick={() => setPhotoIdx(i)} className={`w-14 h-10 shrink-0 rounded-md overflow-hidden border-2 transition ${photoIdx === i ? "border-[#D4AF37]" : "border-transparent opacity-70"}`}>
-                <img src={img} alt="" className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
+          <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs font-bold text-white">{activeCatPhotos.length > 0 ? `${safeIdx + 1}/${activeCatPhotos.length}` : "0"}</div>
         </div>
       </div>
 
@@ -212,24 +288,38 @@ export default function ProduitVtcTaxi() {
             </span>
           ))}
         </div>
-        {/* Prix — Mensualité mise en avant */}
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <div className="rounded-lg bg-[#F5F3EF] p-2.5 text-center">
-            <p className="text-[9px] text-[#6B7280] uppercase">Jour</p>
-            <p className="text-base font-black text-[#111]">{VEHICLE.prixJour} €</p>
-          </div>
-          <div className="rounded-lg bg-[#F5F3EF] p-2.5 text-center">
-            <p className="text-[9px] text-[#6B7280] uppercase">Semaine</p>
-            <p className="text-base font-black text-[#111]">{VEHICLE.prixSemaine} €</p>
-          </div>
-          <div className="rounded-lg bg-[#111] p-2.5 text-center border-2 border-[#D4AF37]">
-            <p className="text-[9px] text-[#D4AF37] uppercase font-bold">Mensualité</p>
-            <p className="text-base font-black text-white">{VEHICLE.prixMois} €</p>
-          </div>
-        </div>
-        <div className="mt-2 flex items-center gap-3 text-xs">
-          <span className="font-semibold text-[#D4AF37]">{VEHICLE.kmInclus} km/jour inclus</span>
-          <span className="text-[#6B7280]">{VEHICLE.kmSup} €/km supp.</span>
+        {/* Tarifs — cliquable / expandable */}
+        <div className="mt-4 rounded-2xl bg-white border border-[#E5E7EB] overflow-hidden">
+          <button
+            onClick={() => setShowPrices(!showPrices)}
+            className="w-full bg-[#D4AF37] px-4 py-2.5 flex items-center justify-between"
+          >
+            <h2 className="text-sm font-bold text-white">Tarifs de location</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-white/80">À partir de {VEHICLE.prixJour} €/jour</span>
+              <ChevronDown size={16} className={`text-white transition ${showPrices ? "rotate-180" : ""}`} />
+            </div>
+          </button>
+          {showPrices && (
+            <div className="p-4">
+              <div className="grid grid-cols-3 gap-2">
+                {PRICE_TIERS.map((tier, i) => (
+                  <button key={tier.label}
+                    className={`rounded-lg p-3 text-center transition hover:scale-[1.03] active:scale-[0.97] ${
+                      i >= 4 ? "bg-[#D4AF37]/10 border border-[#D4AF37]/30" : "bg-[#F5F3EF]"
+                    }`}
+                  >
+                    <p className={`text-[10px] uppercase ${i >= 4 ? "text-[#D4AF37] font-semibold" : "text-[#6B7280]"}`}>{tier.label}</p>
+                    <p className={`text-lg font-black ${i >= 4 ? "text-[#D4AF37]" : "text-[#111]"}`}>{tier.value} €</p>
+                  </button>
+                ))}
+              </div>
+              <div className="mt-2 flex items-center gap-3 text-xs">
+                <span className="font-semibold text-[#D4AF37]">{VEHICLE.kmInclus} km/jour inclus</span>
+                <span className="text-[#6B7280]">{VEHICLE.kmSup} €/km supp.</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
