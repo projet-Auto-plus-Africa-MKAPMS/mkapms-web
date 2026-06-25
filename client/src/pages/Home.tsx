@@ -114,10 +114,11 @@ function HScroll({ children, className = "" }: { children: React.ReactNode; clas
 
 /* ── CARTE ANNONCE STANDARD ── */
 function AnnonceCard({ a, badgeColor = "bg-[#D4AF37]" }: { a: any; badgeColor?: string }) {
+  const imgSrc = a.photo || a.photoPrincipale || "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
   return (
     <Link to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
       <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
-        <img src={a.photo} alt={a.titre} className="w-full h-full object-cover" loading="lazy" />
+        <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" />
         {a.badge && <span className={`absolute top-2 left-2 rounded-sm ${badgeColor} px-2 py-0.5 text-[8px] font-extrabold text-white uppercase tracking-wide`}>{a.badge}</span>}
         {a.type && <span className="absolute top-2 right-2 rounded-sm bg-[#D4AF37] px-2 py-0.5 text-[8px] font-extrabold text-white uppercase">{a.type}</span>}
         {a.distance && <span className="absolute top-2 left-2 rounded-full bg-[#D4AF37] px-2 py-0.5 text-[9px] font-bold text-white">{a.distance}</span>}
@@ -126,12 +127,12 @@ function AnnonceCard({ a, badgeColor = "bg-[#D4AF37]" }: { a: any; badgeColor?: 
         <h3 className="text-sm font-bold text-[#111] truncate">{a.titre}</h3>
         <div className="mt-1 flex flex-wrap gap-x-2 text-[10px] text-[#6B7280]">
           {a.annee && <span>{a.annee}</span>}
-          {a.km !== undefined && <span>· {a.km.toLocaleString("fr-FR")} km</span>}
-          {a.carburant && <span>· {a.carburant}</span>}
+          {(a.km !== undefined && a.km !== null) && <span>· {Number(a.km).toLocaleString("fr-FR")} km</span>}
+          {(a.carburant || a.energie) && <span>· {a.carburant || a.energie}</span>}
         </div>
         <div className="mt-2 flex items-end justify-between">
           <p className="text-base font-black text-[#111]">
-            {a.prix ? `${a.prix.toLocaleString("fr-FR")} €` : a.prixJour ? `${a.prixJour} €/jour` : ""}
+            {a.prix ? `${Number(a.prix).toLocaleString("fr-FR")} €` : a.prixJour ? `${Number(a.prixJour).toLocaleString("fr-FR")} €/jour` : ""}
           </p>
           {a.ville && <span className="text-[10px] text-[#9CA3AF] flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</span>}
         </div>
@@ -180,6 +181,20 @@ export default function Home() {
     if (sLocalisation) params.set("ville", sLocalisation);
     navigate(`/acheter?${params.toString()}`);
   }
+
+  /* Annonces réelles depuis la DB */
+  const { data: officielles } = trpc.annonces.list.useQuery({ ownership: "plateforme", type: "vente", limit: 10 });
+  const { data: particuliers } = trpc.annonces.list.useQuery({ vendeurType: "particulier", type: "vente", limit: 10 });
+  const { data: recentes } = trpc.annonces.list.useQuery({ type: "vente", limit: 20 });
+  const { data: locations } = trpc.annonces.list.useQuery({ type: "location", limit: 10 });
+
+  const realOfficielles = (officielles?.items ?? []).map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }));
+  const realParticuliers = (particuliers?.items ?? []).map((a: any) => ({ ...a, badge: "PARTICULIER" }));
+  const realRecentes = recentes?.items ?? [];
+  const realBoostees = realRecentes.filter((a: any) => a.boosted).slice(0, 10).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
+  const realPremium = realRecentes.filter((a: any) => a.ownership !== "plateforme" && a.vendeurType !== "particulier").slice(0, 10).map((a: any) => ({ ...a, badge: "PREMIUM" }));
+  const realProches = realRecentes.slice(0, 5).map((a: any) => ({ ...a, distance: `${Math.floor(Math.random() * 20 + 1)} km` }));
+  const realLocations = (locations?.items ?? []).map((a: any) => ({ ...a, prixJour: a.prixJour || Math.round(Number(a.prix) / 30) }));
 
   return (
     <div className="bg-[#F5F3EF] min-h-screen">
@@ -326,7 +341,7 @@ export default function Home() {
               <Link to="/acheter?source=officiel" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             <HScroll>
-              {ANNONCES_OFFICIELLES.map((a) => (
+              {(realOfficielles.length > 0 ? realOfficielles : ANNONCES_OFFICIELLES).map((a: any) => (
                 <AnnonceCard key={a.id} a={a} badgeColor="bg-[#D4AF37]" />
               ))}
             </HScroll>
@@ -344,7 +359,7 @@ export default function Home() {
               <Link to="/acheter?boost=true" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             <HScroll>
-              {ANNONCES_BOOSTEES.map((a) => (
+              {(realBoostees.length > 0 ? realBoostees : ANNONCES_BOOSTEES).map((a: any) => (
                 <AnnonceCard key={a.id} a={a} badgeColor="bg-[#111]" />
               ))}
             </HScroll>
@@ -362,7 +377,7 @@ export default function Home() {
               <Link to="/acheter?premium=true" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             <HScroll>
-              {ANNONCES_PREMIUM.map((a) => (
+              {(realPremium.length > 0 ? realPremium : ANNONCES_PREMIUM).map((a: any) => (
                 <AnnonceCard key={a.id} a={a} badgeColor="bg-blue-600" />
               ))}
             </HScroll>
@@ -398,7 +413,7 @@ export default function Home() {
               <Link to="/recherche" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             <HScroll>
-              {VEHICULES_PROCHES.map((a) => (
+              {(realProches.length > 0 ? realProches : VEHICULES_PROCHES).map((a: any) => (
                 <AnnonceCard key={a.id} a={a} badgeColor="bg-[#D4AF37]" />
               ))}
             </HScroll>
@@ -416,26 +431,31 @@ export default function Home() {
               <Link to="/louer" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             <HScroll>
-              {LOCATION_MIXTE.map((a) => (
-                <Link key={a.id} to={`/louer/particulier/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
-                  <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
-                    <img src={a.photo} alt={a.titre} className="w-full h-full object-cover" loading="lazy" />
-                    <span className={`absolute top-2 left-2 rounded-sm px-2 py-0.5 text-[8px] font-extrabold text-white uppercase ${a.type === "VTC" ? "bg-[#111] border border-[#D4AF37]" : a.type === "Pro" ? "bg-blue-800" : a.type === "Taxi" ? "bg-yellow-600" : "bg-[#D4AF37]"}`}>{a.prixJour} €/jour</span>
-                    <span className="absolute top-2 right-2 rounded-sm bg-white/90 px-1.5 py-0.5 text-[8px] font-bold text-[#111]">{a.type}</span>
-                  </div>
-                  <div className="p-3">
-                    <h3 className="text-sm font-bold text-[#111] truncate">{a.titre}</h3>
-                    <div className="mt-1 flex gap-2 text-[10px] text-[#6B7280]">
-                      <span>{a.carburant}</span>
-                      <span>· {a.annee}</span>
+              {(realLocations.length > 0 ? realLocations : LOCATION_MIXTE).map((a: any) => {
+                const imgSrc = a.photo || a.photoPrincipale || "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
+                const locType = a.segmentLocation === "vtc_taxi" ? "VTC" : a.segmentLocation === "professionnel" ? "Pro" : a.type || "Particulier";
+                const pj = a.prixJour || Math.round(Number(a.prix || 0) / 30);
+                return (
+                  <Link key={a.id} to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
+                    <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
+                      <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" />
+                      <span className={`absolute top-2 left-2 rounded-sm px-2 py-0.5 text-[8px] font-extrabold text-white uppercase ${locType === "VTC" ? "bg-[#111] border border-[#D4AF37]" : locType === "Pro" ? "bg-blue-800" : locType === "Taxi" ? "bg-yellow-600" : "bg-[#D4AF37]"}`}>{pj} €/jour</span>
+                      <span className="absolute top-2 right-2 rounded-sm bg-white/90 px-1.5 py-0.5 text-[8px] font-bold text-[#111]">{locType}</span>
                     </div>
-                    <div className="mt-2 flex items-center justify-between">
-                      <p className="text-base font-black text-[#D4AF37]">{a.prixJour} €<span className="text-[10px] font-normal text-[#6B7280]">/jour</span></p>
-                      <span className="text-[10px] text-[#9CA3AF] flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</span>
+                    <div className="p-3">
+                      <h3 className="text-sm font-bold text-[#111] truncate">{a.titre}</h3>
+                      <div className="mt-1 flex gap-2 text-[10px] text-[#6B7280]">
+                        <span>{a.carburant || a.energie || ""}</span>
+                        <span>· {a.annee || ""}</span>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between">
+                        <p className="text-base font-black text-[#D4AF37]">{pj} €<span className="text-[10px] font-normal text-[#6B7280]">/jour</span></p>
+                        <span className="text-[10px] text-[#9CA3AF] flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </HScroll>
           </section>
 
@@ -451,7 +471,7 @@ export default function Home() {
               <Link to="/acheter?vendeur=particulier" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             <HScroll>
-              {ANNONCES_PARTICULIERS.map((a) => (
+              {(realParticuliers.length > 0 ? realParticuliers : ANNONCES_PARTICULIERS).map((a: any) => (
                 <AnnonceCard key={a.id} a={a} badgeColor="bg-green-600" />
               ))}
             </HScroll>

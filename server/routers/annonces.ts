@@ -89,6 +89,7 @@ export const annoncesRouter = router({
         categorie: categorieEnum.optional(),
         famille: z.enum(["auto", "moto"]).optional(),
         vendeurType: z.enum(["particulier", "professionnel", "concession"]).optional(),
+        ownership: z.enum(["client", "plateforme", "partenaire"]).optional(),
         prixMax: z.number().optional(),
         ville: z.string().optional(),
         segmentLocation: z.enum(["particulier", "professionnel", "vtc_taxi"]).optional(),
@@ -102,6 +103,7 @@ export const annoncesRouter = router({
       if (input.categorie) conds.push(eq(annonces.categorie, input.categorie));
       if (input.famille) conds.push(eq(annonces.famille, input.famille));
       if (input.vendeurType) conds.push(eq(annonces.vendeurType, input.vendeurType));
+      if (input.ownership) conds.push(eq(annonces.ownership, input.ownership));
       if (input.segmentLocation) conds.push(eq(annonces.segmentLocation, input.segmentLocation));
       if (input.prixMax) conds.push(lte(annonces.prix, String(input.prixMax)));
       if (input.ville) conds.push(ilike(annonces.ville, `%${input.ville}%`));
@@ -582,6 +584,7 @@ export const annoncesRouter = router({
           pays: rest.pays,
           contactTelephone: rest.contactTelephone,
           vendeurType: ctx.user.role === "user" ? "particulier" : "professionnel",
+          ownership: (ctx.user.role === "admin" || ctx.user.role === "super_admin") ? "plateforme" : "client",
           status: "publiee",
           publishedAt: new Date(),
           sellerie: rest.sellerie,
