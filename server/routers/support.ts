@@ -1,9 +1,11 @@
 import { z } from "zod";
-import { router, publicProcedure } from "../trpc.js";
+import { desc, eq } from "drizzle-orm";
+import { router, publicProcedure, protectedProcedure, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { supportTickets } from "../schema.js";
+import { supportTickets, notifications } from "../schema.js";
+import { logAction, clientMeta } from "../audit.js";
 
-// Centre d'aide / contact (§11.4)
+// Centre d'aide / contact + messagerie support (§11.4)
 export const supportRouter = router({
   submit: publicProcedure
     .input(
@@ -27,6 +29,61 @@ export const supportRouter = router({
         })
         .returning();
       return { id: t.id };
+    }),
+
+  // Historique des messages de l'utilisateur connecté (messagerie support).
+  myTickets: protectedProcedure.query(async ({ ctx }) => {
+    return db
+      .select()
+      .from(supportTickets)
+      .where(eq(supportTickets.userId, ctx.user.uid))
+      .orderBy(desc(supportTickets.createdAt));
+  }),
+
+  // Réponse de la Direction à un message (back-office). Notifie le client.
+  respond: adminProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        response: z.string().min(1),
+        status: z.enum(["ouvert", "en_cours", "resolu", "ferme"]).default("resolu"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [t] = await db
+        .update(supportTickets)
+        .set({
+          response: input.response,
+          respondedAt: new Date(),
+          status: input.status,
+          assignedTo: ctx.user.uid,
+          updatedAt: new Date(),
+        })
+        .where(eq(supportTickets.id, input.id))
+        .returning();
+      if (t?.userId) {
+        await db.insert(notifications).values({
+          userId: t.userId,
+          type: "support",
+          title: "Réponse du support MKA.P-MS",
+          body: `« ${t.sujet} » — ${input.response.slice(0, 80)}`,
+          url: "/compte",
+        });
+      }
+      await logAction(ctx.user.uid, "support.respond", "support_ticket", input.id, { status: input.status }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+
+  // Mise à jour du statut sans réponse (back-office).
+  setStatus: adminProcedure
+    .input(z.object({ id: z.number(), status: z.enum(["ouvert", "en_cours", "resolu", "ferme"]) }))
+    .mutation(async ({ ctx, input }) => {
+      await db
+        .update(supportTickets)
+        .set({ status: input.status, updatedAt: new Date() })
+        .where(eq(supportTickets.id, input.id));
+      await logAction(ctx.user.uid, "support.status", "support_ticket", input.id, { status: input.status }, clientMeta(ctx.req));
+      return { ok: true };
     }),
 
   faq: publicProcedure.query(() => [

@@ -1,0 +1,1301 @@
+// Routers transverses Parties 7-18 : litiges, partenaires, entrepôts, pays,
+// fidélité, coffre-fort numérique, dossier véhicule.
+// Base unique : tout est relié aux mêmes users / logs / paiements.
+import { z } from "zod";
+import { desc, eq, sql } from "drizzle-orm";
+import { router, publicProcedure, protectedProcedure, adminProcedure, directionProcedure } from "../trpc.js";
+import { db } from "../db.js";
+import {
+  disputes,
+  disputeEvidence,
+  partners,
+  warehouses,
+  warehouseMovements,
+  countryConfigs,
+  users,
+  notifications,
+  loyaltyAccounts,
+  loyaltyTransactions,
+  userDocuments,
+  vehicleDossiers,
+  vehicleDossierEvents,
+  subsidiaries,
+  sites,
+  franchises,
+  platformSettings,
+  monitoringEvents,
+  backupLogs,
+  annonces,
+  insurancePolicies,
+  labExperiments,
+  purchaseOrders,
+  purchaseOrderItems,
+  goodsReceipts,
+  suppliers,
+  hrRecords,
+  hrLeaves,
+  hrEvaluations,
+  qualityRatings,
+  mediaAssets,
+  campaigns,
+  partnerApiKeys,
+  payments,
+  lavageStations,
+  lavageBookings,
+  kartingCenters,
+  kartingEvents,
+  kartingRegistrations,
+  kartingFleet,
+  formations,
+  formationEnrollments,
+  modules,
+} from "../schema.js";
+import { logAction, clientMeta } from "../audit.js";
+import { makeReference } from "../reference.js";
+import { randomBytes, createHash } from "node:crypto";
+
+// ===================== PARTIE 18 — FIDÉLITÉ (Points MKA) =====================
+// Paliers : seuil de points pour chaque niveau.
+export const LOYALTY_TIERS = [
+  { tier: "bronze" as const, min: 0 },
+  { tier: "silver" as const, min: 500 },
+  { tier: "gold" as const, min: 2000 },
+  { tier: "platinum" as const, min: 5000 },
+  { tier: "elite" as const, min: 15000 },
+];
+
+export function tierForPoints(points: number): "bronze" | "silver" | "gold" | "platinum" | "elite" {
+  let current: "bronze" | "silver" | "gold" | "platinum" | "elite" = "bronze";
+  for (const t of LOYALTY_TIERS) if (points >= t.min) current = t.tier;
+  return current;
+}
+
+// Attribue des points (best-effort, ne bloque jamais l'action métier).
+export async function awardPoints(
+  userId: number,
+  points: number,
+  reason: string,
+  refType?: string,
+  refId?: number,
+): Promise<void> {
+  if (!userId || !points) return;
+  try {
+    await db.insert(loyaltyTransactions).values({ userId, points, reason, refType: refType ?? null, refId: refId ?? null });
+    await db
+      .insert(loyaltyAccounts)
+      .values({ userId, points, tier: tierForPoints(points) })
+      .onConflictDoUpdate({
+        target: loyaltyAccounts.userId,
+        set: {
+          points: sql`${loyaltyAccounts.points} + ${points}`,
+          updatedAt: new Date(),
+        },
+      });
+    // Resynchronise le palier après cumul.
+    const [acc] = await db.select().from(loyaltyAccounts).where(eq(loyaltyAccounts.userId, userId)).limit(1);
+    if (acc) {
+      const t = tierForPoints(acc.points);
+      if (t !== acc.tier) await db.update(loyaltyAccounts).set({ tier: t }).where(eq(loyaltyAccounts.userId, userId));
+    }
+  } catch (err) {
+    console.error("[loyalty] award échec:", (err as Error).message);
+  }
+}
+
+// ===================== PARTIE 8 — CENTRE DE LITIGES =====================
+export const disputesRouter = router({
+  // Mes litiges (utilisateur connecté).
+  mine: protectedProcedure.query(async ({ ctx }) => {
+    return db
+      .select()
+      .from(disputes)
+      .where(eq(disputes.openedBy, ctx.user.uid))
+      .orderBy(desc(disputes.createdAt));
+  }),
+
+  open: protectedProcedure
+    .input(
+      z.object({
+        univers: z.enum(["vente", "location", "livraison", "pieces", "garage", "autre"]).default("autre"),
+        category: z.string().min(2).max(64),
+        description: z.string().min(5).max(2000),
+        againstUserId: z.number().optional(),
+        refType: z.string().max(32).optional(),
+        refId: z.number().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [d] = await db
+        .insert(disputes)
+        .values({
+          openedBy: ctx.user.uid,
+          againstUserId: input.againstUserId ?? null,
+          univers: input.univers,
+          category: input.category,
+          description: input.description,
+          refType: input.refType ?? null,
+          refId: input.refId ?? null,
+        })
+        .returning();
+      const reference = makeReference("L", d.id);
+      await db.update(disputes).set({ reference }).where(eq(disputes.id, d.id));
+      await logAction(ctx.user.uid, "dispute.open", "dispute", d.id, { univers: input.univers }, clientMeta(ctx.req));
+      return { ...d, reference };
+    }),
+
+  addEvidence: protectedProcedure
+    .input(
+      z.object({
+        disputeId: z.number(),
+        kind: z.enum(["text", "photo", "document"]).default("text"),
+        content: z.string().min(1).max(2000),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [d] = await db.select().from(disputes).where(eq(disputes.id, input.disputeId)).limit(1);
+      if (!d) throw new Error("Litige introuvable");
+      await db.insert(disputeEvidence).values({
+        disputeId: input.disputeId,
+        userId: ctx.user.uid,
+        kind: input.kind,
+        content: input.content,
+      });
+      return { ok: true };
+    }),
+
+  evidence: protectedProcedure
+    .input(z.object({ disputeId: z.number() }))
+    .query(async ({ input }) => {
+      return db
+        .select()
+        .from(disputeEvidence)
+        .where(eq(disputeEvidence.disputeId, input.disputeId))
+        .orderBy(disputeEvidence.createdAt);
+    }),
+
+  // --- Back-office ---
+  listAll: adminProcedure
+    .input(z.object({ status: z.string().optional() }).optional())
+    .query(async ({ input }) => {
+      const rows = await db
+        .select({
+          id: disputes.id,
+          reference: disputes.reference,
+          openedBy: disputes.openedBy,
+          againstUserId: disputes.againstUserId,
+          univers: disputes.univers,
+          category: disputes.category,
+          description: disputes.description,
+          status: disputes.status,
+          resolution: disputes.resolution,
+          amountRefunded: disputes.amountRefunded,
+          createdAt: disputes.createdAt,
+          openerEmail: users.email,
+        })
+        .from(disputes)
+        .leftJoin(users, eq(users.id, disputes.openedBy))
+        .orderBy(desc(disputes.createdAt));
+      if (input?.status) return rows.filter((r) => r.status === input.status);
+      return rows;
+    }),
+
+  decide: adminProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        status: z.enum(["en_analyse", "resolu", "rembourse", "clos"]),
+        resolution: z.string().max(2000).optional(),
+        amountRefunded: z.number().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [d] = await db.select().from(disputes).where(eq(disputes.id, input.id)).limit(1);
+      if (!d) throw new Error("Litige introuvable");
+      await db
+        .update(disputes)
+        .set({
+          status: input.status,
+          resolution: input.resolution ?? d.resolution,
+          amountRefunded: input.amountRefunded != null ? String(input.amountRefunded) : d.amountRefunded,
+          decidedBy: ctx.user.uid,
+          decidedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(disputes.id, input.id));
+      await db.insert(notifications).values({
+        userId: d.openedBy,
+        type: "dispute",
+        title: `Litige ${d.reference ?? d.id} mis à jour`,
+        body: `Nouveau statut : ${input.status}${input.resolution ? ` — ${input.resolution.slice(0, 80)}` : ""}`,
+        url: "/compte",
+      });
+      await logAction(ctx.user.uid, `dispute.${input.status}`, "dispute", input.id, undefined, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+});
+
+// ===================== PARTIE 15 — PARTENARIATS =====================
+export const partnersRouter = router({
+  list: adminProcedure.query(async () => {
+    return db.select().from(partners).orderBy(desc(partners.createdAt));
+  }),
+
+  create: directionProcedure
+    .input(
+      z.object({
+        name: z.string().min(2).max(160),
+        type: z.enum([
+          "fournisseur_vehicules", "fournisseur_pieces", "transporteur", "garage",
+          "vtc", "depanneur", "lavage", "karting", "autre",
+        ]).default("autre"),
+        country: z.string().max(4).optional(),
+        contactEmail: z.string().email().optional(),
+        contactPhone: z.string().max(32).optional(),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [p] = await db.insert(partners).values({
+        name: input.name,
+        type: input.type,
+        country: input.country ?? null,
+        contactEmail: input.contactEmail ?? null,
+        contactPhone: input.contactPhone ?? null,
+        notes: input.notes ?? null,
+      }).returning();
+      await logAction(ctx.user.uid, "partner.create", "partner", p.id, { name: p.name }, clientMeta(ctx.req));
+      return p;
+    }),
+
+  setActive: directionProcedure
+    .input(z.object({ id: z.number(), active: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(partners).set({ active: input.active, updatedAt: new Date() }).where(eq(partners.id, input.id));
+      await logAction(ctx.user.uid, "partner.set_active", "partner", input.id, { active: input.active }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+
+  rate: directionProcedure
+    .input(z.object({ id: z.number(), rating: z.number().min(0).max(5) }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(partners).set({ rating: String(input.rating), updatedAt: new Date() }).where(eq(partners.id, input.id));
+      await logAction(ctx.user.uid, "partner.rate", "partner", input.id, { rating: input.rating }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+
+  remove: directionProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.delete(partners).where(eq(partners.id, input.id));
+      await logAction(ctx.user.uid, "partner.delete", "partner", input.id, undefined, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+});
+
+// ===================== PARTIE 10 — MULTI-ENTREPÔTS =====================
+export const warehousesRouter = router({
+  list: adminProcedure.query(async () => {
+    return db.select().from(warehouses).orderBy(desc(warehouses.createdAt));
+  }),
+
+  create: directionProcedure
+    .input(
+      z.object({
+        nom: z.string().min(2).max(160),
+        countryCode: z.string().max(4).default("FR"),
+        ville: z.string().max(96).optional(),
+        adresse: z.string().max(500).optional(),
+        responsable: z.string().max(160).optional(),
+        type: z.enum(["vehicules", "pieces", "mixte"]).default("mixte"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [w] = await db.insert(warehouses).values({
+        nom: input.nom,
+        countryCode: input.countryCode.toUpperCase(),
+        ville: input.ville ?? null,
+        adresse: input.adresse ?? null,
+        responsable: input.responsable ?? null,
+        type: input.type,
+      }).returning();
+      await logAction(ctx.user.uid, "warehouse.create", "warehouse", w.id, { nom: w.nom }, clientMeta(ctx.req));
+      return w;
+    }),
+
+  setActive: directionProcedure
+    .input(z.object({ id: z.number(), active: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(warehouses).set({ active: input.active }).where(eq(warehouses.id, input.id));
+      await logAction(ctx.user.uid, "warehouse.set_active", "warehouse", input.id, { active: input.active }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+
+  movements: adminProcedure
+    .input(z.object({ warehouseId: z.number(), limit: z.number().default(50) }))
+    .query(async ({ input }) => {
+      return db
+        .select()
+        .from(warehouseMovements)
+        .where(eq(warehouseMovements.warehouseId, input.warehouseId))
+        .orderBy(desc(warehouseMovements.createdAt))
+        .limit(input.limit);
+    }),
+
+  addMovement: adminProcedure
+    .input(
+      z.object({
+        warehouseId: z.number(),
+        kind: z.enum(["entree", "sortie"]).default("entree"),
+        itemType: z.string().max(32).default("vehicule"),
+        itemRef: z.string().max(128).optional(),
+        quantity: z.number().min(1).default(1),
+        note: z.string().max(500).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await db.insert(warehouseMovements).values({
+        warehouseId: input.warehouseId,
+        kind: input.kind,
+        itemType: input.itemType,
+        itemRef: input.itemRef ?? null,
+        quantity: input.quantity,
+        note: input.note ?? null,
+        createdBy: ctx.user.uid,
+      });
+      await logAction(ctx.user.uid, `warehouse.${input.kind}`, "warehouse", input.warehouseId, { itemRef: input.itemRef }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+});
+
+// ===================== PARTIE 14 — PLAN AFRIQUE (config pays) =====================
+export const countriesRouter = router({
+  // Liste publique des pays actifs (pour l'auto-localisation devise/langue).
+  listActive: publicProcedure.query(async () => {
+    return db.select().from(countryConfigs).where(eq(countryConfigs.active, true)).orderBy(countryConfigs.name);
+  }),
+
+  listAll: adminProcedure.query(async () => {
+    return db.select().from(countryConfigs).orderBy(countryConfigs.name);
+  }),
+
+  upsert: directionProcedure
+    .input(
+      z.object({
+        code: z.string().min(2).max(4),
+        name: z.string().min(2).max(96),
+        currency: z.string().min(3).max(4).default("EUR"),
+        importRules: z.string().max(2000).optional(),
+        customsRules: z.string().max(2000).optional(),
+        taxes: z.string().max(2000).optional(),
+        active: z.boolean().default(false),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const code = input.code.toUpperCase();
+      const [existing] = await db.select().from(countryConfigs).where(eq(countryConfigs.code, code)).limit(1);
+      if (existing) {
+        await db.update(countryConfigs).set({
+          name: input.name,
+          currency: input.currency,
+          importRules: input.importRules ?? existing.importRules,
+          customsRules: input.customsRules ?? existing.customsRules,
+          taxes: input.taxes ?? existing.taxes,
+          active: input.active,
+        }).where(eq(countryConfigs.code, code));
+      } else {
+        await db.insert(countryConfigs).values({
+          code,
+          name: input.name,
+          currency: input.currency,
+          importRules: input.importRules ?? null,
+          customsRules: input.customsRules ?? null,
+          taxes: input.taxes ?? null,
+          active: input.active,
+        });
+      }
+      await logAction(ctx.user.uid, "country.upsert", "country", null, { code }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+
+  // Active / désactive un pays en un clic (Partie 19 — expansion).
+  setActive: directionProcedure
+    .input(z.object({ code: z.string().min(2).max(4), active: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const code = input.code.toUpperCase();
+      await db.update(countryConfigs).set({ active: input.active }).where(eq(countryConfigs.code, code));
+      await logAction(ctx.user.uid, "country.setActive", "country", null, { code, active: input.active }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+
+  // Partie 19 §4 — objectifs / stats par pays (utilisateurs, annonces, abonnements).
+  stats: adminProcedure.query(async () => {
+    const usersByCountry = await db
+      .select({ code: sql<string>`coalesce(${users.country}, 'NA')`, c: sql<number>`count(*)::int` })
+      .from(users)
+      .groupBy(sql`coalesce(${users.country}, 'NA')`);
+    const annoncesByCountry = await db
+      .select({ code: sql<string>`coalesce(${annonces.pays}, 'NA')`, c: sql<number>`count(*)::int` })
+      .from(annonces)
+      .groupBy(sql`coalesce(${annonces.pays}, 'NA')`);
+    const countries = await db.select().from(countryConfigs).orderBy(countryConfigs.name);
+    const uMap = new Map(usersByCountry.map((r) => [r.code, r.c]));
+    const aMap = new Map(annoncesByCountry.map((r) => [r.code, r.c]));
+    return countries.map((c) => ({
+      code: c.code,
+      name: c.name,
+      active: c.active,
+      currency: c.currency,
+      users: uMap.get(c.code) ?? 0,
+      annonces: aMap.get(c.code) ?? 0,
+    }));
+  }),
+});
+
+// ===================== PARTIE 19 — GOUVERNANCE (filiales, sites, franchises) =====================
+export const governanceRouter = router({
+  // ---- Filiales ----
+  listSubsidiaries: adminProcedure.query(async () => {
+    return db.select().from(subsidiaries).orderBy(desc(subsidiaries.createdAt));
+  }),
+  createSubsidiary: directionProcedure
+    .input(
+      z.object({
+        name: z.string().min(2).max(160),
+        countryCode: z.string().min(2).max(4),
+        city: z.string().max(96).optional(),
+        managerId: z.number().optional(),
+        budget: z.number().optional(),
+        currency: z.string().min(3).max(4).default("EUR"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [s] = await db.insert(subsidiaries).values({
+        name: input.name,
+        countryCode: input.countryCode.toUpperCase(),
+        city: input.city ?? null,
+        managerId: input.managerId ?? null,
+        budget: input.budget != null ? String(input.budget) : null,
+        currency: input.currency,
+      }).returning();
+      await logAction(ctx.user.uid, "subsidiary.create", "subsidiary", s.id, { name: input.name }, clientMeta(ctx.req));
+      return s;
+    }),
+  setSubsidiaryActive: directionProcedure
+    .input(z.object({ id: z.number(), active: z.boolean() }))
+    .mutation(async ({ input }) => {
+      await db.update(subsidiaries).set({ active: input.active }).where(eq(subsidiaries.id, input.id));
+      return { ok: true };
+    }),
+
+  // ---- Sites locaux ----
+  listSites: adminProcedure.query(async () => {
+    return db.select().from(sites).orderBy(desc(sites.createdAt));
+  }),
+  createSite: directionProcedure
+    .input(
+      z.object({
+        subsidiaryId: z.number().optional(),
+        type: z.enum(["agence", "entrepot", "garage", "karting", "lavage", "autre"]).default("agence"),
+        name: z.string().min(2).max(160),
+        countryCode: z.string().min(2).max(4),
+        city: z.string().max(96).optional(),
+        address: z.string().max(500).optional(),
+        lat: z.number().optional(),
+        lng: z.number().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [s] = await db.insert(sites).values({
+        subsidiaryId: input.subsidiaryId ?? null,
+        type: input.type,
+        name: input.name,
+        countryCode: input.countryCode.toUpperCase(),
+        city: input.city ?? null,
+        address: input.address ?? null,
+        lat: input.lat != null ? String(input.lat) : null,
+        lng: input.lng != null ? String(input.lng) : null,
+      }).returning();
+      await logAction(ctx.user.uid, "site.create", "site", s.id, { name: input.name, type: input.type }, clientMeta(ctx.req));
+      return s;
+    }),
+
+  // ---- Franchises ----
+  listFranchises: adminProcedure.query(async () => {
+    return db.select().from(franchises).orderBy(desc(franchises.createdAt));
+  }),
+  createFranchise: directionProcedure
+    .input(
+      z.object({
+        name: z.string().min(2).max(160),
+        type: z.enum(["garage", "lavage", "karting", "agence", "autre"]).default("garage"),
+        countryCode: z.string().min(2).max(4),
+        zone: z.string().max(160).optional(),
+        ownerId: z.number().optional(),
+        redevance: z.number().optional(),
+        currency: z.string().min(3).max(4).default("EUR"),
+        contractStart: z.string().optional(),
+        contractEnd: z.string().optional(),
+        status: z.enum(["prospect", "active", "suspendue", "resiliee"]).default("prospect"),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [f] = await db.insert(franchises).values({
+        name: input.name,
+        type: input.type,
+        countryCode: input.countryCode.toUpperCase(),
+        zone: input.zone ?? null,
+        ownerId: input.ownerId ?? null,
+        redevance: input.redevance != null ? String(input.redevance) : null,
+        currency: input.currency,
+        contractStart: input.contractStart ? new Date(input.contractStart) : null,
+        contractEnd: input.contractEnd ? new Date(input.contractEnd) : null,
+        status: input.status,
+        notes: input.notes ?? null,
+      }).returning();
+      await logAction(ctx.user.uid, "franchise.create", "franchise", f.id, { name: input.name }, clientMeta(ctx.req));
+      return f;
+    }),
+  setFranchiseStatus: directionProcedure
+    .input(z.object({ id: z.number(), status: z.enum(["prospect", "active", "suspendue", "resiliee"]) }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(franchises).set({ status: input.status }).where(eq(franchises.id, input.id));
+      await logAction(ctx.user.uid, "franchise.status", "franchise", input.id, { status: input.status }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+
+  // Partie 19 §5 — données pour la carte mondiale (sites géolocalisés).
+  mapData: publicProcedure.query(async () => {
+    const activeSites = await db.select().from(sites).where(eq(sites.active, true));
+    return activeSites
+      .filter((s) => s.lat != null && s.lng != null)
+      .map((s) => ({ id: s.id, type: s.type, name: s.name, city: s.city, countryCode: s.countryCode, lat: Number(s.lat), lng: Number(s.lng) }));
+  }),
+});
+
+// ===================== PARTIE 20 — CONTINUITÉ & SÉCURITÉ =====================
+export const MAINTENANCE_KEY = "maintenance_mode";
+
+export const platformRouter = router({
+  // État public : la plateforme est-elle en maintenance ?
+  status: publicProcedure.query(async () => {
+    const [m] = await db.select().from(platformSettings).where(eq(platformSettings.key, MAINTENANCE_KEY)).limit(1);
+    return { maintenance: m?.value === "on", updatedAt: m?.updatedAt ?? null };
+  }),
+
+  setMaintenance: directionProcedure
+    .input(z.object({ on: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await db
+        .insert(platformSettings)
+        .values({ key: MAINTENANCE_KEY, value: input.on ? "on" : "off" })
+        .onConflictDoUpdate({ target: platformSettings.key, set: { value: input.on ? "on" : "off", updatedAt: new Date() } });
+      await logAction(ctx.user.uid, "platform.maintenance", "platform", null, { on: input.on }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+
+  // Surveillance : derniers événements (erreurs, paiements, API, serveurs).
+  monitoring: adminProcedure.query(async () => {
+    const events = await db.select().from(monitoringEvents).orderBy(desc(monitoringEvents.createdAt)).limit(50);
+    const [crit] = await db.select({ c: sql<number>`count(*)::int` }).from(monitoringEvents).where(sql`${monitoringEvents.severity} in ('error','critical') and ${monitoringEvents.resolved} = false`);
+    return { events, criticalOpen: Number(crit?.c ?? 0) };
+  }),
+
+  resolveEvent: directionProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      await db.update(monitoringEvents).set({ resolved: true }).where(eq(monitoringEvents.id, input.id));
+      return { ok: true };
+    }),
+
+  // Historique des sauvegardes (Railway gère le backup managé Postgres).
+  backups: adminProcedure.query(async () => {
+    return db.select().from(backupLogs).orderBy(desc(backupLogs.createdAt)).limit(30);
+  }),
+
+  // Enregistre une sauvegarde (déclenchée par un job/cron ou manuellement).
+  logBackup: directionProcedure
+    .input(z.object({ type: z.string().max(32).default("database"), status: z.enum(["success", "failed", "running"]).default("success"), location: z.string().max(500).optional(), note: z.string().max(500).optional() }))
+    .mutation(async ({ input }) => {
+      const [b] = await db.insert(backupLogs).values({ type: input.type, status: input.status, location: input.location ?? null, note: input.note ?? null }).returning();
+      return b;
+    }),
+});
+
+// Helper : journalise un événement de surveillance (best-effort).
+export async function logMonitoring(
+  source: string,
+  severity: "info" | "warning" | "error" | "critical",
+  message: string,
+  meta?: string,
+): Promise<void> {
+  try {
+    await db.insert(monitoringEvents).values({ source, severity, message, meta: meta ?? null });
+  } catch (err) {
+    console.error("[monitoring] log échec:", (err as Error).message);
+  }
+}
+
+// ===================== PARTIE 18 — FIDÉLITÉ (router) =====================
+export const loyaltyRouter = router({
+  me: protectedProcedure.query(async ({ ctx }) => {
+    const [acc] = await db.select().from(loyaltyAccounts).where(eq(loyaltyAccounts.userId, ctx.user.uid)).limit(1);
+    const points = acc?.points ?? 0;
+    const tier = acc?.tier ?? "bronze";
+    const tx = await db
+      .select()
+      .from(loyaltyTransactions)
+      .where(eq(loyaltyTransactions.userId, ctx.user.uid))
+      .orderBy(desc(loyaltyTransactions.createdAt))
+      .limit(20);
+    // Points manquants pour le palier suivant.
+    const next = LOYALTY_TIERS.find((t) => t.min > points);
+    return { points, tier, nextTier: next?.tier ?? null, pointsToNext: next ? next.min - points : 0, transactions: tx };
+  }),
+
+  // Attribution manuelle (Direction) — bonus, geste commercial…
+  award: directionProcedure
+    .input(z.object({ userId: z.number(), points: z.number(), reason: z.string().min(2).max(128) }))
+    .mutation(async ({ ctx, input }) => {
+      await awardPoints(input.userId, input.points, input.reason, "manuel", ctx.user.uid);
+      await logAction(ctx.user.uid, "loyalty.award", "user", input.userId, { points: input.points }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+});
+
+// ===================== PREMIUM 1 — COFFRE-FORT NUMÉRIQUE =====================
+export const documentsRouter = router({
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return db
+      .select()
+      .from(userDocuments)
+      .where(eq(userDocuments.userId, ctx.user.uid))
+      .orderBy(desc(userDocuments.createdAt));
+  }),
+
+  add: protectedProcedure
+    .input(
+      z.object({
+        category: z.enum(["carte_grise", "facture", "controle_technique", "contrat", "assurance", "autre"]).default("autre"),
+        title: z.string().min(1).max(255),
+        fileUrl: z.string().url(),
+        fileName: z.string().max(255).optional(),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [d] = await db.insert(userDocuments).values({
+        userId: ctx.user.uid,
+        category: input.category,
+        title: input.title,
+        fileUrl: input.fileUrl,
+        fileName: input.fileName ?? null,
+        notes: input.notes ?? null,
+      }).returning();
+      return d;
+    }),
+
+  remove: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.delete(userDocuments).where(sql`${userDocuments.id} = ${input.id} and ${userDocuments.userId} = ${ctx.user.uid}`);
+      return { ok: true };
+    }),
+});
+
+// ===================== PREMIUM 2 — DOSSIER VÉHICULE INTELLIGENT =====================
+export const dossiersRouter = router({
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return db.select().from(vehicleDossiers).where(eq(vehicleDossiers.userId, ctx.user.uid)).orderBy(desc(vehicleDossiers.createdAt));
+  }),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        marque: z.string().max(96).optional(),
+        modele: z.string().max(96).optional(),
+        immatriculation: z.string().max(32).optional(),
+        vin: z.string().max(32).optional(),
+        annee: z.number().optional(),
+        kilometrage: z.number().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [d] = await db.insert(vehicleDossiers).values({ userId: ctx.user.uid, ...input }).returning();
+      return d;
+    }),
+
+  events: protectedProcedure
+    .input(z.object({ dossierId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const [d] = await db.select().from(vehicleDossiers).where(eq(vehicleDossiers.id, input.dossierId)).limit(1);
+      if (!d || d.userId !== ctx.user.uid) return [];
+      return db
+        .select()
+        .from(vehicleDossierEvents)
+        .where(eq(vehicleDossierEvents.dossierId, input.dossierId))
+        .orderBy(desc(vehicleDossierEvents.createdAt));
+    }),
+
+  addEvent: protectedProcedure
+    .input(
+      z.object({
+        dossierId: z.number(),
+        type: z.enum(["achat", "entretien", "reparation", "controle_technique", "sinistre", "photo", "vente", "autre"]).default("autre"),
+        title: z.string().min(1).max(160),
+        description: z.string().max(2000).optional(),
+        amount: z.number().optional(),
+        eventDate: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [d] = await db.select().from(vehicleDossiers).where(eq(vehicleDossiers.id, input.dossierId)).limit(1);
+      if (!d || d.userId !== ctx.user.uid) throw new Error("Dossier introuvable");
+      await db.insert(vehicleDossierEvents).values({
+        dossierId: input.dossierId,
+        type: input.type,
+        title: input.title,
+        description: input.description ?? null,
+        amount: input.amount != null ? String(input.amount) : null,
+        eventDate: input.eventDate ? new Date(input.eventDate) : null,
+      });
+      return { ok: true };
+    }),
+
+  remove: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.delete(vehicleDossiers).where(sql`${vehicleDossiers.id} = ${input.id} and ${vehicleDossiers.userId} = ${ctx.user.uid}`);
+      return { ok: true };
+    }),
+});
+
+// ===================== PARTIE 21 — ASSURANCES (polices par univers) =====================
+export const insuranceRouter = router({
+  list: adminProcedure.query(async () => {
+    return db.select().from(insurancePolicies).orderBy(desc(insurancePolicies.createdAt));
+  }),
+  create: directionProcedure
+    .input(
+      z.object({
+        type: z.enum(["location", "transport", "garage", "vtc", "livraison", "autre"]).default("autre"),
+        compagnie: z.string().min(2).max(160),
+        numeroPolice: z.string().max(96).optional(),
+        countryCode: z.string().max(4).optional(),
+        primeMensuelle: z.number().optional(),
+        currency: z.string().min(3).max(4).default("EUR"),
+        dateDebut: z.string().optional(),
+        dateFin: z.string().optional(),
+        documentUrl: z.string().url().optional(),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [p] = await db.insert(insurancePolicies).values({
+        type: input.type,
+        compagnie: input.compagnie,
+        numeroPolice: input.numeroPolice ?? null,
+        countryCode: input.countryCode ? input.countryCode.toUpperCase() : null,
+        primeMensuelle: input.primeMensuelle != null ? String(input.primeMensuelle) : null,
+        currency: input.currency,
+        dateDebut: input.dateDebut ? new Date(input.dateDebut) : null,
+        dateFin: input.dateFin ? new Date(input.dateFin) : null,
+        documentUrl: input.documentUrl ?? null,
+        notes: input.notes ?? null,
+      }).returning();
+      await logAction(ctx.user.uid, "insurance.create", "insurance", p.id, { type: input.type }, clientMeta(ctx.req));
+      return p;
+    }),
+  setStatus: directionProcedure
+    .input(z.object({ id: z.number(), status: z.enum(["active", "expiree", "suspendue"]) }))
+    .mutation(async ({ input }) => {
+      await db.update(insurancePolicies).set({ status: input.status }).where(eq(insurancePolicies.id, input.id));
+      return { ok: true };
+    }),
+});
+
+// ===================== PARTIE 23 — MKA.P-MS LAB (feature flags / expériences) =====================
+export const labRouter = router({
+  // Lecture publique des expériences ACTIVES (pour piloter le front sans casser le coeur).
+  activeFlags: publicProcedure.query(async () => {
+    const rows = await db.select().from(labExperiments).where(eq(labExperiments.status, "actif"));
+    return rows.map((r) => ({ key: r.key, name: r.name, config: r.config }));
+  }),
+  list: adminProcedure.query(async () => {
+    return db.select().from(labExperiments).orderBy(desc(labExperiments.createdAt));
+  }),
+  create: directionProcedure
+    .input(
+      z.object({
+        key: z.string().min(2).max(64).regex(/^[a-z0-9_]+$/, "min., chiffres, _ uniquement"),
+        name: z.string().min(2).max(160),
+        category: z.enum(["offre", "page", "service", "paiement", "ia", "autre"]).default("autre"),
+        description: z.string().max(2000).optional(),
+        config: z.string().max(4000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [e] = await db.insert(labExperiments).values({
+        key: input.key,
+        name: input.name,
+        category: input.category,
+        description: input.description ?? null,
+        config: input.config ?? null,
+        createdBy: ctx.user.uid,
+      }).returning();
+      await logAction(ctx.user.uid, "lab.create", "experiment", e.id, { key: input.key }, clientMeta(ctx.req));
+      return e;
+    }),
+  // Le Super Admin peut activer / tester / désactiver sans toucher au système principal.
+  setStatus: directionProcedure
+    .input(z.object({ id: z.number(), status: z.enum(["brouillon", "test", "actif", "desactive"]) }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(labExperiments).set({ status: input.status, updatedAt: new Date() }).where(eq(labExperiments.id, input.id));
+      await logAction(ctx.user.uid, "lab.status", "experiment", input.id, { status: input.status }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+});
+
+// ===================== PARTIE 24 — ACHAT / APPROVISIONNEMENT =====================
+export const procurementRouter = router({
+  listSuppliers: adminProcedure.query(async () => {
+    return db.select().from(suppliers).orderBy(desc(suppliers.createdAt));
+  }),
+  listOrders: adminProcedure.query(async () => {
+    return db.select().from(purchaseOrders).orderBy(desc(purchaseOrders.createdAt));
+  }),
+  createOrder: directionProcedure
+    .input(
+      z.object({
+        supplierId: z.number().optional(),
+        category: z.enum(["vehicule", "piece", "materiel", "autre"]).default("vehicule"),
+        total: z.number().default(0),
+        currency: z.string().min(3).max(4).default("EUR"),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [o] = await db.insert(purchaseOrders).values({
+        supplierId: input.supplierId ?? null,
+        category: input.category,
+        total: String(input.total),
+        currency: input.currency,
+        notes: input.notes ?? null,
+        createdBy: ctx.user.uid,
+      }).returning();
+      const reference = makeReference("PO", o.id);
+      await db.update(purchaseOrders).set({ reference }).where(eq(purchaseOrders.id, o.id));
+      await logAction(ctx.user.uid, "purchase.create", "purchase_order", o.id, { category: input.category }, clientMeta(ctx.req));
+      return { ...o, reference };
+    }),
+  setOrderStatus: directionProcedure
+    .input(z.object({ id: z.number(), status: z.enum(["brouillon", "envoye", "confirme", "recu_partiel", "recu", "annule"]) }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(purchaseOrders).set({ status: input.status }).where(eq(purchaseOrders.id, input.id));
+      await logAction(ctx.user.uid, "purchase.status", "purchase_order", input.id, { status: input.status }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+  // Réception + contrôle qualité.
+  receive: directionProcedure
+    .input(z.object({ orderId: z.number(), status: z.enum(["en_attente", "conforme", "non_conforme", "partiel"]).default("conforme"), qualityNote: z.string().max(2000).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const [r] = await db.insert(goodsReceipts).values({ orderId: input.orderId, status: input.status, qualityNote: input.qualityNote ?? null, receivedBy: ctx.user.uid }).returning();
+      if (input.status === "conforme") await db.update(purchaseOrders).set({ status: "recu" }).where(eq(purchaseOrders.id, input.orderId));
+      await logAction(ctx.user.uid, "purchase.receive", "purchase_order", input.orderId, { status: input.status }, clientMeta(ctx.req));
+      return r;
+    }),
+  receipts: adminProcedure.query(async () => {
+    return db.select().from(goodsReceipts).orderBy(desc(goodsReceipts.createdAt)).limit(50);
+  }),
+});
+
+// ===================== PARTIE 25 — RH =====================
+export const hrRouter = router({
+  records: adminProcedure.query(async () => {
+    return db.select().from(hrRecords);
+  }),
+  upsertRecord: directionProcedure
+    .input(
+      z.object({
+        userId: z.number(),
+        poste: z.string().max(128).optional(),
+        contractType: z.enum(["cdi", "cdd", "stage", "freelance", "autre"]).default("cdi"),
+        salaire: z.number().optional(),
+        currency: z.string().min(3).max(4).default("EUR"),
+        dateEmbauche: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await db
+        .insert(hrRecords)
+        .values({
+          userId: input.userId,
+          poste: input.poste ?? null,
+          contractType: input.contractType,
+          salaire: input.salaire != null ? String(input.salaire) : null,
+          currency: input.currency,
+          dateEmbauche: input.dateEmbauche ? new Date(input.dateEmbauche) : null,
+        })
+        .onConflictDoUpdate({
+          target: hrRecords.userId,
+          set: {
+            poste: input.poste ?? null,
+            contractType: input.contractType,
+            salaire: input.salaire != null ? String(input.salaire) : null,
+            currency: input.currency,
+            dateEmbauche: input.dateEmbauche ? new Date(input.dateEmbauche) : null,
+            updatedAt: new Date(),
+          },
+        });
+      await logAction(ctx.user.uid, "hr.record", "user", input.userId, { poste: input.poste }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+  leaves: adminProcedure.query(async () => {
+    return db.select().from(hrLeaves).orderBy(desc(hrLeaves.createdAt)).limit(100);
+  }),
+  createLeave: directionProcedure
+    .input(z.object({ userId: z.number(), type: z.enum(["conge", "absence", "maladie", "formation"]).default("conge"), startDate: z.string().optional(), endDate: z.string().optional(), reason: z.string().max(1000).optional() }))
+    .mutation(async ({ input }) => {
+      const [l] = await db.insert(hrLeaves).values({ userId: input.userId, type: input.type, startDate: input.startDate ? new Date(input.startDate) : null, endDate: input.endDate ? new Date(input.endDate) : null, reason: input.reason ?? null }).returning();
+      return l;
+    }),
+  decideLeave: directionProcedure
+    .input(z.object({ id: z.number(), status: z.enum(["demande", "approuve", "refuse"]) }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(hrLeaves).set({ status: input.status }).where(eq(hrLeaves.id, input.id));
+      await logAction(ctx.user.uid, "hr.leave", "leave", input.id, { status: input.status }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+  evaluations: adminProcedure.query(async () => {
+    return db.select().from(hrEvaluations).orderBy(desc(hrEvaluations.createdAt)).limit(100);
+  }),
+  createEvaluation: directionProcedure
+    .input(z.object({ userId: z.number(), score: z.number().min(0).max(100).optional(), objectifs: z.string().max(2000).optional(), commentaire: z.string().max(2000).optional(), prime: z.number().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const [e] = await db.insert(hrEvaluations).values({ userId: input.userId, score: input.score ?? null, objectifs: input.objectifs ?? null, commentaire: input.commentaire ?? null, prime: input.prime != null ? String(input.prime) : null, evaluatedBy: ctx.user.uid }).returning();
+      return e;
+    }),
+});
+
+// ===================== PARTIE 26 — QUALITÉ (notation interne) =====================
+export const qualityRouter = router({
+  list: adminProcedure.query(async () => {
+    return db.select().from(qualityRatings).orderBy(desc(qualityRatings.updatedAt));
+  }),
+  rate: directionProcedure
+    .input(
+      z.object({
+        targetType: z.enum(["garage", "vendeur", "livreur", "vtc", "partenaire"]),
+        targetId: z.number(),
+        grade: z.enum(["A+", "A", "B", "C", "D"]).default("B"),
+        note: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [r] = await db.insert(qualityRatings).values({ targetType: input.targetType, targetId: input.targetId, grade: input.grade, note: input.note ?? null, ratedBy: ctx.user.uid }).returning();
+      await logAction(ctx.user.uid, "quality.rate", input.targetType, input.targetId, { grade: input.grade }, clientMeta(ctx.req));
+      return r;
+    }),
+});
+
+// ===================== PARTIE 27 — MODE INVESTISSEURS (lecture seule) =====================
+export const investorRouter = router({
+  overview: adminProcedure.query(async () => {
+    const num = (v: unknown) => Number(v ?? 0);
+    const [usersTotal] = await db.select({ c: sql<number>`count(*)::int` }).from(users);
+    const [annoncesTotal] = await db.select({ c: sql<number>`count(*)::int` }).from(annonces);
+    const [revenueTotal] = await db.select({ v: sql<number>`coalesce(sum(${payments.amount}),0)` }).from(payments).where(sql`${payments.status} = 'paid'`);
+    // Croissance des revenus sur 6 mois.
+    const monthly: Array<{ mois: string; revenu: number; nouveauxComptes: number }> = [];
+    for (let i = 5; i >= 0; i--) {
+      const start = new Date(); start.setMonth(start.getMonth() - i, 1); start.setHours(0, 0, 0, 0);
+      const end = new Date(start); end.setMonth(end.getMonth() + 1);
+      const [rev] = await db.select({ v: sql<number>`coalesce(sum(${payments.amount}),0)` }).from(payments).where(sql`${payments.status} = 'paid' and ${payments.createdAt} >= ${start} and ${payments.createdAt} < ${end}`);
+      const [acc] = await db.select({ c: sql<number>`count(*)::int` }).from(users).where(sql`${users.createdAt} >= ${start} and ${users.createdAt} < ${end}`);
+      monthly.push({ mois: start.toISOString().slice(0, 7), revenu: num(rev?.v), nouveauxComptes: num(acc?.c) });
+    }
+    // Valorisation indicative : multiple x4 du revenu annualisé (purement informatif).
+    const annualized = monthly.reduce((s, m) => s + m.revenu, 0) * 2;
+    return {
+      utilisateurs: num(usersTotal?.c),
+      annonces: num(annoncesTotal?.c),
+      revenuTotal: num(revenueTotal?.v),
+      croissance: monthly,
+      valorisationIndicative: Math.round(annualized * 4),
+    };
+  }),
+});
+
+// ===================== PARTIE 28 — CENTRE MÉDIAS =====================
+export const mediaRouter = router({
+  list: adminProcedure.query(async () => {
+    return db.select().from(mediaAssets).orderBy(desc(mediaAssets.createdAt));
+  }),
+  campaigns: adminProcedure.query(async () => {
+    return db.select().from(campaigns).orderBy(desc(campaigns.createdAt));
+  }),
+  add: directionProcedure
+    .input(
+      z.object({
+        type: z.enum(["video", "photo", "social", "campagne", "autre"]).default("photo"),
+        title: z.string().min(1).max(200),
+        url: z.string().url().optional(),
+        channel: z.string().max(64).optional(),
+        campaignId: z.number().optional(),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [m] = await db.insert(mediaAssets).values({ type: input.type, title: input.title, url: input.url ?? null, channel: input.channel ?? null, campaignId: input.campaignId ?? null, notes: input.notes ?? null, createdBy: ctx.user.uid }).returning();
+      await logAction(ctx.user.uid, "media.add", "media", m.id, { type: input.type }, clientMeta(ctx.req));
+      return m;
+    }),
+  remove: directionProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      await db.delete(mediaAssets).where(eq(mediaAssets.id, input.id));
+      return { ok: true };
+    }),
+});
+
+// ===================== PARTIE 29 — API PARTENAIRES (clés + portée) =====================
+export const partnerApiRouter = router({
+  list: adminProcedure.query(async () => {
+    const rows = await db.select().from(partnerApiKeys).orderBy(desc(partnerApiKeys.createdAt));
+    // Ne jamais renvoyer le hash.
+    return rows.map(({ keyHash: _hash, ...rest }) => rest);
+  }),
+  // Génère une clé : la valeur en clair n'est montrée qu'une seule fois.
+  create: directionProcedure
+    .input(z.object({ name: z.string().min(2).max(160), partnerId: z.number().optional(), scopes: z.string().max(255).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const raw = randomBytes(24).toString("hex");
+      const prefix = `mka_${raw.slice(0, 6)}`;
+      const fullKey = `${prefix}.${raw}`;
+      const keyHash = createHash("sha256").update(fullKey).digest("hex");
+      const [k] = await db.insert(partnerApiKeys).values({ name: input.name, partnerId: input.partnerId ?? null, scopes: input.scopes ?? null, keyPrefix: prefix, keyHash, createdBy: ctx.user.uid }).returning();
+      await logAction(ctx.user.uid, "api.key.create", "api_key", k.id, { name: input.name }, clientMeta(ctx.req));
+      return { id: k.id, name: k.name, keyPrefix: k.keyPrefix, apiKey: fullKey, scopes: k.scopes };
+    }),
+  setActive: directionProcedure
+    .input(z.object({ id: z.number(), active: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(partnerApiKeys).set({ active: input.active }).where(eq(partnerApiKeys.id, input.id));
+      await logAction(ctx.user.uid, "api.key.status", "api_key", input.id, { active: input.active }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+});
+
+// ===================== LAVAGE AUTO (Partie 15) — complet, masqué au public =====================
+// Référencé sur la carte de la plateforme (côté Direction), pas visible aux clients pour le moment.
+export const lavageRouter = router({
+  listStations: adminProcedure.query(async () => {
+    return db.select().from(lavageStations).orderBy(desc(lavageStations.createdAt));
+  }),
+  createStation: directionProcedure
+    .input(
+      z.object({
+        nom: z.string().min(2).max(160),
+        type: z.string().max(64).optional(),
+        adresse: z.string().max(500).optional(),
+        countryCode: z.string().min(2).max(4).optional(),
+        lat: z.number().optional(),
+        lng: z.number().optional(),
+        partenaire: z.boolean().default(false),
+        active: z.boolean().default(false),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [s] = await db.insert(lavageStations).values({
+        nom: input.nom,
+        type: input.type ?? null,
+        adresse: input.adresse ?? null,
+        countryCode: input.countryCode?.toUpperCase() ?? null,
+        lat: input.lat != null ? String(input.lat) : null,
+        lng: input.lng != null ? String(input.lng) : null,
+        partenaire: input.partenaire,
+        active: input.active,
+      }).returning();
+      await logAction(ctx.user.uid, "lavage.station.create", "lavage_station", s.id, { nom: input.nom }, clientMeta(ctx.req));
+      return s;
+    }),
+  setStationActive: directionProcedure
+    .input(z.object({ id: z.number(), active: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(lavageStations).set({ active: input.active }).where(eq(lavageStations.id, input.id));
+      await logAction(ctx.user.uid, "lavage.station.status", "lavage_station", input.id, { active: input.active }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+  bookings: adminProcedure.query(async () => {
+    return db.select().from(lavageBookings).orderBy(desc(lavageBookings.createdAt)).limit(100);
+  }),
+});
+
+// ===================== KARTING (Partie 16) — complet, masqué au public =====================
+export const kartingRouter = router({
+  listCenters: adminProcedure.query(async () => {
+    return db.select().from(kartingCenters).orderBy(desc(kartingCenters.createdAt));
+  }),
+  createCenter: directionProcedure
+    .input(
+      z.object({
+        nom: z.string().min(2).max(160),
+        countryCode: z.string().min(2).max(4).optional(),
+        ville: z.string().max(96).optional(),
+        adresse: z.string().max(500).optional(),
+        lat: z.number().optional(),
+        lng: z.number().optional(),
+        partenaire: z.boolean().default(false),
+        active: z.boolean().default(false),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [c] = await db.insert(kartingCenters).values({
+        nom: input.nom,
+        countryCode: input.countryCode?.toUpperCase() ?? null,
+        ville: input.ville ?? null,
+        adresse: input.adresse ?? null,
+        lat: input.lat != null ? String(input.lat) : null,
+        lng: input.lng != null ? String(input.lng) : null,
+        partenaire: input.partenaire,
+        active: input.active,
+      }).returning();
+      await logAction(ctx.user.uid, "karting.center.create", "karting_center", c.id, { nom: input.nom }, clientMeta(ctx.req));
+      return c;
+    }),
+  setCenterActive: directionProcedure
+    .input(z.object({ id: z.number(), active: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(kartingCenters).set({ active: input.active }).where(eq(kartingCenters.id, input.id));
+      await logAction(ctx.user.uid, "karting.center.status", "karting_center", input.id, { active: input.active }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+  listEvents: adminProcedure.query(async () => {
+    return db.select().from(kartingEvents).orderBy(desc(kartingEvents.createdAt)).limit(100);
+  }),
+  createEvent: directionProcedure
+    .input(z.object({ centerId: z.number().optional(), titre: z.string().min(2).max(160), type: z.string().max(64).optional(), dateEvent: z.string().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const [e] = await db.insert(kartingEvents).values({ centerId: input.centerId ?? null, titre: input.titre, type: input.type ?? null, dateEvent: input.dateEvent ?? null }).returning();
+      await logAction(ctx.user.uid, "karting.event.create", "karting_event", e.id, { titre: input.titre }, clientMeta(ctx.req));
+      return e;
+    }),
+  registrations: adminProcedure.query(async () => {
+    return db.select().from(kartingRegistrations).orderBy(desc(kartingRegistrations.createdAt)).limit(100);
+  }),
+  // --- Featuring : flotte de karts MKA.P-MS (vitrine marque + fabrication maison) ---
+  listFleet: adminProcedure.query(async () => {
+    return db.select().from(kartingFleet).orderBy(desc(kartingFleet.createdAt));
+  }),
+  addKart: directionProcedure
+    .input(
+      z.object({
+        centerId: z.number().optional(),
+        modele: z.string().min(1).max(160),
+        marque: z.string().max(96).default("MKA.P-MS"),
+        fabricationMaison: z.boolean().default(true),
+        numeroSerie: z.string().max(64).optional(),
+        puissance: z.string().max(48).optional(),
+        statut: z.enum(["operationnel", "maintenance", "vitrine", "prototype"]).default("operationnel"),
+        photoUrl: z.string().url().optional(),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [k] = await db.insert(kartingFleet).values({
+        centerId: input.centerId ?? null,
+        modele: input.modele,
+        marque: input.marque,
+        fabricationMaison: input.fabricationMaison,
+        numeroSerie: input.numeroSerie ?? null,
+        puissance: input.puissance ?? null,
+        statut: input.statut,
+        photoUrl: input.photoUrl ?? null,
+        notes: input.notes ?? null,
+      }).returning();
+      await logAction(ctx.user.uid, "karting.kart.add", "karting_kart", k.id, { modele: input.modele, maison: input.fabricationMaison }, clientMeta(ctx.req));
+      return k;
+    }),
+  setKartStatus: directionProcedure
+    .input(z.object({ id: z.number(), statut: z.enum(["operationnel", "maintenance", "vitrine", "prototype"]) }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(kartingFleet).set({ statut: input.statut }).where(eq(kartingFleet.id, input.id));
+      await logAction(ctx.user.uid, "karting.kart.status", "karting_kart", input.id, { statut: input.statut }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+});
+
+// ===================== FORMATION (Partie 17) — complet, masqué au public =====================
+export const formationRouter = router({
+  list: adminProcedure.query(async () => {
+    return db.select().from(formations).orderBy(desc(formations.createdAt));
+  }),
+  create: directionProcedure
+    .input(
+      z.object({
+        titre: z.string().min(2).max(160),
+        categorie: z.string().max(64).optional(),
+        description: z.string().max(2000).optional(),
+        videoUrl: z.string().url().optional(),
+        certifiante: z.boolean().default(false),
+        active: z.boolean().default(false),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [f] = await db.insert(formations).values({
+        titre: input.titre,
+        categorie: input.categorie ?? null,
+        description: input.description ?? null,
+        videoUrl: input.videoUrl ?? null,
+        certifiante: input.certifiante,
+        active: input.active,
+      }).returning();
+      await logAction(ctx.user.uid, "formation.create", "formation", f.id, { titre: input.titre }, clientMeta(ctx.req));
+      return f;
+    }),
+  setActive: directionProcedure
+    .input(z.object({ id: z.number(), active: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(formations).set({ active: input.active }).where(eq(formations.id, input.id));
+      await logAction(ctx.user.uid, "formation.status", "formation", input.id, { active: input.active }, clientMeta(ctx.req));
+      return { ok: true };
+    }),
+  enrollments: adminProcedure.query(async () => {
+    return db.select().from(formationEnrollments).orderBy(desc(formationEnrollments.createdAt)).limit(100);
+  }),
+});
+
+// ===================== CARTE PLATEFORME (Direction) =====================
+// Vue complète pour la Direction : sites + lavage + karting référencés sur la carte,
+// même si ces univers sont masqués au public. Le client ne voit PAS cette carte.
+export const platformMapRouter = router({
+  // Carte complète (Direction) — inclut karting & lavage, non visibles aux clients.
+  full: adminProcedure.query(async () => {
+    const pts: Array<{ category: string; id: number; name: string; countryCode: string | null; city: string | null; lat: number; lng: number; publicVisible: boolean }> = [];
+    const geoSites = await db.select().from(sites).where(eq(sites.active, true));
+    for (const s of geoSites) if (s.lat != null && s.lng != null) pts.push({ category: s.type, id: s.id, name: s.name, countryCode: s.countryCode, city: s.city, lat: Number(s.lat), lng: Number(s.lng), publicVisible: true });
+    const lav = await db.select().from(lavageStations).where(eq(lavageStations.active, true));
+    for (const l of lav) if (l.lat != null && l.lng != null) pts.push({ category: "lavage", id: l.id, name: l.nom, countryCode: l.countryCode, city: null, lat: Number(l.lat), lng: Number(l.lng), publicVisible: false });
+    const kar = await db.select().from(kartingCenters).where(eq(kartingCenters.active, true));
+    for (const k of kar) if (k.lat != null && k.lng != null) pts.push({ category: "karting", id: k.id, name: k.nom, countryCode: k.countryCode, city: k.ville, lat: Number(k.lat), lng: Number(k.lng), publicVisible: false });
+    return pts;
+  }),
+  // Carte publique (clients) — exclut les univers masqués (karting/lavage tant qu'ils ne sont pas activés publiquement).
+  publicMap: publicProcedure.query(async () => {
+    const pts: Array<{ category: string; id: number; name: string; countryCode: string | null; city: string | null; lat: number; lng: number }> = [];
+    const geoSites = await db.select().from(sites).where(eq(sites.active, true));
+    for (const s of geoSites) if (s.lat != null && s.lng != null) pts.push({ category: s.type, id: s.id, name: s.name, countryCode: s.countryCode, city: s.city, lat: Number(s.lat), lng: Number(s.lng) });
+    // Karting/Lavage uniquement si leur module est explicitement actif + visible public.
+    const mods = await db.select().from(modules);
+    const isPublic = (code: string) => mods.some((m) => m.code === code && m.status === "active" && m.visiblePublic);
+    if (isPublic("lavage")) {
+      const lav = await db.select().from(lavageStations).where(eq(lavageStations.active, true));
+      for (const l of lav) if (l.lat != null && l.lng != null) pts.push({ category: "lavage", id: l.id, name: l.nom, countryCode: l.countryCode, city: null, lat: Number(l.lat), lng: Number(l.lng) });
+    }
+    if (isPublic("karting")) {
+      const kar = await db.select().from(kartingCenters).where(eq(kartingCenters.active, true));
+      for (const k of kar) if (k.lat != null && k.lng != null) pts.push({ category: "karting", id: k.id, name: k.nom, countryCode: k.countryCode, city: k.ville, lat: Number(k.lat), lng: Number(k.lng) });
+    }
+    return pts;
+  }),
+});

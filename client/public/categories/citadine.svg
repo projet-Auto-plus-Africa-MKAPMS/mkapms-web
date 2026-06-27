@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <defs>
+    <linearGradient id="bodyC" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8e8e8"/>
+      <stop offset="100%" stop-color="#c0c0c0"/>
+    </linearGradient>
+    <linearGradient id="glassC" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a8d8ea"/>
+      <stop offset="100%" stop-color="#6bb7d4"/>
+    </linearGradient>
+  </defs>
+  <!-- Body -->
+  <path d="M70,130 L80,130 L85,100 Q90,72 130,65 L200,60 Q230,58 250,65 L270,75 Q290,85 300,100 L310,130 L330,130 L330,140 L60,140 L60,130 Z" fill="url(#bodyC)" stroke="#999" stroke-width="1.5"/>
+  <!-- Roof/cabin -->
+  <path d="M130,65 Q140,42 175,38 L230,38 Q260,40 270,55 L270,75" fill="url(#bodyC)" stroke="#999" stroke-width="1.5"/>
+  <!-- Windows -->
+  <path d="M140,62 Q148,44 178,42 L205,42 L205,62 Z" fill="url(#glassC)" stroke="#7ab" stroke-width="1"/>
+  <path d="M210,42 L245,42 Q260,44 265,58 L265,72 L210,62 Z" fill="url(#glassC)" stroke="#7ab" stroke-width="1"/>
+  <!-- Headlight -->
+  <ellipse cx="85" cy="112" rx="8" ry="6" fill="#fff8dc" stroke="#ccc" stroke-width="1"/>
+  <!-- Taillight -->
+  <rect x="318" y="108" width="8" height="12" rx="2" fill="#e33" stroke="#c22" stroke-width="0.5"/>
+  <!-- Door line -->
+  <line x1="205" y1="62" x2="205" y2="130" stroke="#aaa" stroke-width="1"/>
+  <!-- Door handle -->
+  <rect x="215" y="95" width="14" height="4" rx="2" fill="#bbb"/>
+  <!-- Bumpers -->
+  <path d="M60,130 Q55,130 55,135 L55,142 L75,142 L75,140 L60,140 Z" fill="#888"/>
+  <path d="M330,130 Q340,130 340,135 L340,142 L320,142 L320,140 L330,140 Z" fill="#888"/>
+  <!-- Wheels -->
+  <circle cx="115" cy="142" r="22" fill="#333"/>
+  <circle cx="115" cy="142" r="14" fill="#666"/>
+  <circle cx="115" cy="142" r="8" fill="#999"/>
+  <circle cx="115" cy="142" r="3" fill="#bbb"/>
+  <circle cx="290" cy="142" r="22" fill="#333"/>
+  <circle cx="290" cy="142" r="14" fill="#666"/>
+  <circle cx="290" cy="142" r="8" fill="#999"/>
+  <circle cx="290" cy="142" r="3" fill="#bbb"/>
+  <!-- Wheel spokes -->
+  <line x1="115" y1="128" x2="115" y2="156" stroke="#888" stroke-width="1.5"/>
+  <line x1="101" y1="142" x2="129" y2="142" stroke="#888" stroke-width="1.5"/>
+  <line x1="290" y1="128" x2="290" y2="156" stroke="#888" stroke-width="1.5"/>
+  <line x1="276" y1="142" x2="304" y2="142" stroke="#888" stroke-width="1.5"/>
+  <!-- Ground shadow -->
+  <ellipse cx="200" cy="168" rx="150" ry="6" fill="rgba(0,0,0,0.08)"/>
+</svg>

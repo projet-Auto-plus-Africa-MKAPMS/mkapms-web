@@ -33,6 +33,8 @@ export const annonceOptionTypeEnum = pgEnum("annonce_option_type", ["annonce_urg
 export const annonceStatusEnum = pgEnum("annonce_status", ["brouillon", "en_validation", "publiee", "vendue", "louee", "expiree", "refusee", "archivee"]);
 export const annonceTypeEnum = pgEnum("annonce_type", ["vente", "location"]);
 export const annonceVendeurTypeEnum = pgEnum("annonce_vendeur_type", ["particulier", "professionnel", "concession"]);
+// Partie 11 — flotte : propriété du véhicule (plateforme / partenaire / client).
+export const annonceOwnershipEnum = pgEnum("annonce_ownership", ["client", "plateforme", "partenaire"]);
 export const availabilityEnum = pgEnum("availability", ["available", "soon", "sold"]);
 export const bookingStatusEnum = pgEnum("booking_status", ["pending", "accepted", "rejected", "cancelled", "completed"]);
 export const bookingTypeEnum = pgEnum("booking_type", ["test_drive", "rental", "purchase_visit"]);
@@ -121,11 +123,13 @@ export const annoncePhotos = pgTable("annonce_photos", {
   annonceId: integer("annonce_id").notNull(),
   url: text("url").notNull(),
   ordre: integer("ordre").notNull().default(0),
+  categorie: varchar("categorie", { length: 32 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const annonces = pgTable("annonces", {
   id: serial("id").primaryKey(),
+  reference: varchar("reference", { length: 24 }).unique(), // réf unique annonce (ex: MKA-A-000123)
   ownerId: integer("owner_id").notNull(),
   type: annonceTypeEnum("type").notNull().default("vente"),
   status: annonceStatusEnum("status").notNull().default("publiee"),
@@ -179,6 +183,25 @@ export const annonces = pgTable("annonces", {
   miseAvantAccueil: boolean("mise_avant_accueil").notNull().default(false),
   miseAvantAccueilUntil: timestamp("mise_avant_accueil_until"),
   photosQuota: integer("photos_quota").notNull().default(4),
+  // Label qualité « Sélection MKA.P-MS » — certifié par la Direction (PDG).
+  selectionMka: boolean("selection_mka").notNull().default(false),
+  selectionMkaBy: integer("selection_mka_by"),
+  selectionMkaAt: timestamp("selection_mka_at"),
+  // Partie 11 — flotte MKA.P-MS.
+  ownership: annonceOwnershipEnum("ownership").notNull().default("client"),
+  // Détails véhicule — reliés au formulaire d'ajout
+  pointsForts: jsonb("points_forts").default("[]"),
+  equipements: jsonb("equipements").default("[]"),
+  imperfections: jsonb("imperfections").default("[]"),
+  sellerie: varchar("sellerie", { length: 64 }),
+  cylindree: varchar("cylindree", { length: 64 }),
+  consommation: varchar("consommation", { length: 64 }),
+  classeEmission: varchar("classe_emission", { length: 32 }),
+  confort: jsonb("confort").default("[]"),
+  multimedia: jsonb("multimedia").default("[]"),
+  securite: jsonb("securite").default("[]"),
+  videos360: jsonb("videos_360").default("[]"),
+  videosNormales: jsonb("videos_normales").default("[]"),
 });
 
 export const auditLogs = pgTable("audit_logs", {
@@ -188,6 +211,9 @@ export const auditLogs = pgTable("audit_logs", {
   entityType: varchar("entity_type", { length: 64 }),
   entityId: bigint("entity_id", { mode: "number" }),
   metadata: jsonb("metadata"),
+  // Partie 7 — traçabilité : appareil + adresse IP de l'auteur.
+  ipAddress: varchar("ip_address", { length: 64 }),
+  userAgent: varchar("user_agent", { length: 255 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -304,6 +330,7 @@ export const devisGarageRequests = pgTable("devis_garage_requests", {
   codePostal: varchar("code_postal", { length: 16 }),
   pays: varchar("pays", { length: 4 }).default("FR"),
   photos: text("photos"),
+  devisType: varchar("devis_type", { length: 32 }).default("main_oeuvre"),
   status: devisGarageStatusEnum("status").notNull().default("nouveau"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -316,6 +343,8 @@ export const devisItems = pgTable("devis_items", {
   quantite: numeric("quantite", { precision: 10, scale: 2 }).notNull().default("1"),
   prixUnitaireHt: numeric("prix_unitaire_ht", { precision: 12, scale: 2 }).notNull(),
   ordre: integer("ordre").notNull().default(0),
+  type: varchar("type", { length: 16 }).notNull().default("main_oeuvre"),
+  catalogId: integer("catalog_id"),
 });
 
 export const factures = pgTable("factures", {
@@ -564,6 +593,194 @@ export const pieces = pgTable("pieces", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// ===== BOUTIQUE PIÈCES AUTO PROFESSIONNELLE (Mini-ERP) =====
+
+export const partsShopTypeEnum = pgEnum("parts_shop_type", [
+  "magasin_pieces", "casse_auto", "grossiste", "distributeur", "centre_auto", "garage_vendeur",
+]);
+export const partsConditionEnum = pgEnum("parts_condition", [
+  "neuf", "occasion", "reconditionne", "echange_standard",
+]);
+export const partsOrderStatusEnum = pgEnum("parts_order_status", [
+  "panier", "confirme", "preparation", "expedie", "livre", "termine", "annule",
+]);
+export const partsInvoiceTypeEnum = pgEnum("parts_invoice_type", [
+  "devis", "bon_commande", "facture", "avoir", "recu",
+]);
+export const partsInvoiceStatusEnum = pgEnum("parts_invoice_status", [
+  "brouillon", "emis", "paye", "annule",
+]);
+
+export const partsShops = pgTable("parts_shops", {
+  id: serial("id").primaryKey(),
+  ownerId: integer("owner_id").notNull(),
+  nom: varchar("nom", { length: 255 }).notNull(),
+  type: partsShopTypeEnum("type").notNull().default("magasin_pieces"),
+  description: text("description"),
+  adresse: text("adresse"),
+  ville: varchar("ville", { length: 128 }),
+  codePostal: varchar("code_postal", { length: 16 }),
+  countryCode: varchar("country_code", { length: 4 }).default("FR"),
+  telephone: varchar("telephone", { length: 32 }),
+  email: varchar("email", { length: 255 }),
+  siret: varchar("siret", { length: 32 }),
+  logoUrl: text("logo_url"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const partsSites = pgTable("parts_sites", {
+  id: serial("id").primaryKey(),
+  shopId: integer("shop_id").notNull(),
+  nom: varchar("nom", { length: 255 }).notNull(),
+  type: varchar("type", { length: 32 }).notNull().default("entrepot"),
+  adresse: text("adresse"),
+  ville: varchar("ville", { length: 128 }),
+  codePostal: varchar("code_postal", { length: 16 }),
+  countryCode: varchar("country_code", { length: 4 }).default("FR"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const partsCatalog = pgTable("parts_catalog", {
+  id: serial("id").primaryKey(),
+  shopId: integer("shop_id").notNull(),
+  nom: varchar("nom", { length: 255 }).notNull(),
+  description: text("description"),
+  referenceInterne: varchar("reference_interne", { length: 64 }).notNull(),
+  referenceOem: varchar("reference_oem", { length: 64 }),
+  referenceEquipementier: varchar("reference_equipementier", { length: 64 }),
+  codeBarre: varchar("code_barre", { length: 64 }),
+  categorie: varchar("categorie", { length: 128 }),
+  sousCategorie: varchar("sous_categorie", { length: 128 }),
+  marquePiece: varchar("marque_piece", { length: 128 }),
+  etat: varchar("etat", { length: 16 }),
+  condition: partsConditionEnum("condition").notNull().default("neuf"),
+  fournisseurId: integer("fournisseur_id"),
+  prixHt: numeric("prix_ht", { precision: 12, scale: 2 }).notNull(),
+  prixTtc: numeric("prix_ttc", { precision: 12, scale: 2 }),
+  tvaRate: numeric("tva_rate", { precision: 5, scale: 2 }).notNull().default("20"),
+  currency: varchar("currency", { length: 4 }).notNull().default("EUR"),
+  poidsKg: numeric("poids_kg", { precision: 8, scale: 3 }),
+  longueurCm: numeric("longueur_cm", { precision: 8, scale: 2 }),
+  largeurCm: numeric("largeur_cm", { precision: 8, scale: 2 }),
+  hauteurCm: numeric("hauteur_cm", { precision: 8, scale: 2 }),
+  photoUrl: text("photo_url"),
+  photos: text("photos"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const partsCompatibility = pgTable("parts_compatibility", {
+  id: serial("id").primaryKey(),
+  catalogId: integer("catalog_id").notNull(),
+  marque: varchar("marque", { length: 64 }).notNull(),
+  modele: varchar("modele", { length: 128 }),
+  moteur: varchar("moteur", { length: 64 }),
+  anneeDebut: integer("annee_debut"),
+  anneeFin: integer("annee_fin"),
+});
+
+export const partsStock = pgTable("parts_stock", {
+  id: serial("id").primaryKey(),
+  catalogId: integer("catalog_id").notNull(),
+  siteId: integer("site_id"),
+  quantite: integer("quantite").notNull().default(0),
+  quantiteReservee: integer("quantite_reservee").notNull().default(0),
+  seuilMin: integer("seuil_min").notNull().default(2),
+  entrepot: varchar("entrepot", { length: 128 }),
+  rayon: varchar("rayon", { length: 64 }),
+  etagere: varchar("etagere", { length: 64 }),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const partsOrders = pgTable("parts_orders", {
+  id: serial("id").primaryKey(),
+  reference: varchar("reference", { length: 32 }),
+  shopId: integer("shop_id").notNull(),
+  buyerId: integer("buyer_id").notNull(),
+  status: partsOrderStatusEnum("status").notNull().default("panier"),
+  totalHt: numeric("total_ht", { precision: 12, scale: 2 }),
+  totalTtc: numeric("total_ttc", { precision: 12, scale: 2 }),
+  // Livraison
+  modeRetrait: varchar("mode_retrait", { length: 16 }).notNull().default("livraison"),
+  livraisonType: varchar("livraison_type", { length: 32 }),
+  livraisonTarif: numeric("livraison_tarif", { precision: 10, scale: 2 }),
+  // Suivi colis
+  numeroColis: varchar("numero_colis", { length: 64 }),
+  trackingUrl: text("tracking_url"),
+  estimatedDelivery: timestamp("estimated_delivery"),
+  deliveredAt: timestamp("delivered_at"),
+  // Devis link
+  devisId: integer("devis_id"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const partsOrderItems = pgTable("parts_order_items", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").notNull(),
+  catalogId: integer("catalog_id").notNull(),
+  quantite: integer("quantite").notNull(),
+  prixUnitaireHt: numeric("prix_unitaire_ht", { precision: 12, scale: 2 }).notNull(),
+  totalHt: numeric("total_ht", { precision: 12, scale: 2 }),
+});
+
+export const partsInvoices = pgTable("parts_invoices", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id"),
+  shopId: integer("shop_id").notNull(),
+  buyerId: integer("buyer_id"),
+  type: partsInvoiceTypeEnum("type").notNull(),
+  reference: varchar("reference", { length: 32 }),
+  totalHt: numeric("total_ht", { precision: 12, scale: 2 }),
+  totalTva: numeric("total_tva", { precision: 12, scale: 2 }),
+  totalTtc: numeric("total_ttc", { precision: 12, scale: 2 }),
+  status: partsInvoiceStatusEnum("status").notNull().default("brouillon"),
+  pdfUrl: text("pdf_url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== SUIVI DE COMMANDE (étapes détaillées) =====
+export const partsOrderTracking = pgTable("parts_order_tracking", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").notNull(),
+  status: varchar("status", { length: 32 }).notNull(),
+  label: varchar("label", { length: 255 }).notNull(),
+  detail: text("detail"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== SUIVI UNIVERSEL DES SERVICES =====
+export const serviceTracking = pgTable("service_tracking", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  serviceType: varchar("service_type", { length: 32 }).notNull(),
+  serviceId: integer("service_id").notNull(),
+  reference: varchar("reference", { length: 64 }),
+  titre: varchar("titre", { length: 255 }).notNull(),
+  status: varchar("status", { length: 32 }).notNull(),
+  statusLabel: varchar("status_label", { length: 128 }).notNull(),
+  detail: text("detail"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ===== TARIFS LIVRAISON =====
+export const deliveryPricing = pgTable("delivery_pricing", {
+  id: serial("id").primaryKey(),
+  vehicleType: varchar("vehicle_type", { length: 32 }).notNull(),
+  label: varchar("label", { length: 64 }).notNull(),
+  poidsMaxKg: numeric("poids_max_kg", { precision: 8, scale: 2 }).notNull(),
+  dimensionMaxCm: numeric("dimension_max_cm", { precision: 8, scale: 2 }).notNull(),
+  prixBase: numeric("prix_base", { precision: 10, scale: 2 }).notNull(),
+  prixParKm: numeric("prix_par_km", { precision: 6, scale: 2 }).notNull().default("0.50"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const plateLookups = pgTable("plate_lookups", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   type: plateLookupTypeEnum("type").notNull(),
@@ -788,6 +1005,7 @@ export const userDocuments = pgTable("user_documents", {
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
+  reference: varchar("reference", { length: 24 }).unique(), // réf unique compte (ex: MKA-U-000123)
   email: varchar("email", { length: 255 }).notNull(),
   passwordHash: text("password_hash"),
   googleId: varchar("google_id", { length: 255 }),
@@ -881,3 +1099,26 @@ export const vehicules = pgTable("vehicules", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+// ===== MODULES FÉDÉRÉS (structure modulaire — Plan A→Z) =====
+// Chaque univers est défini dans son propre fichier (indépendant, désactivable).
+// Re-export ici pour que Drizzle (schema unique) prenne tout en compte.
+export * from "./modules/core"; // RBAC configurable, registre modules, i18n
+export * from "./modules/pieces"; // Univers Pièces Auto
+export * from "./modules/livraison"; // Univers Livraison
+export * from "./modules/depannage"; // Univers Dépannage
+export * from "./modules/transport"; // Univers VTC / TAXI
+export * from "./modules/importafrica"; // Univers Import Africa+
+export * from "./modules/wallet"; // Wallet professionnel
+export * from "./modules/contracts"; // Contrats intelligents
+export * from "./modules/installments"; // Paiement fractionné
+export * from "./modules/marketing"; // Marketing / QR codes
+export * from "./modules/history"; // Historique véhicule + suggestions/signalements
+export * from "./modules/operations"; // Litiges, partenaires, entrepôts, pays (Parties 7-15)
+export * from "./modules/future"; // Lavage, Karting, Formation, Financement (futurs)
+export * from "./modules/depotvente"; // Dépôt-Vente MKA.P-MS
+export * from "./modules/vo"; // VO Interne MKA.P-MS (cycle complet véhicule d'occasion)
+export * from "./modules/comptabilite"; // Comptabilité interne + Cabinets comptables externes
+export * from "./modules/cartegrise"; // Démarches Carte Grise / SIV
+export * from "./modules/pro"; // Amélioration Pro (VTC, Location, GPS, Documents, Livraison pièces)
+export * from "./modules/financeplus"; // Finance+ (LOA, Paiement fractionné, Suivi véhicules)

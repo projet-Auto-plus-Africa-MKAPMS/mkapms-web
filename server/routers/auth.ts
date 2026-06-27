@@ -4,6 +4,9 @@ import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { users } from "../schema.js";
+import { getProfile } from "@shared/profiles.js";
+import { makeReference } from "../reference.js";
+import { logAction, clientMeta } from "../audit.js";
 import {
   signToken,
   hashPassword,
@@ -21,6 +24,8 @@ function publicUser(u: typeof users.$inferSelect) {
     phone: u.phone,
     avatarUrl: u.avatarUrl,
     role: u.role,
+    staffPosition: u.staffPosition,
+    reference: u.reference,
     accountType: u.accountType,
     companyName: u.companyName,
     city: u.city,
@@ -39,6 +44,10 @@ export const authRouter = router({
         name: z.string().min(1),
         phone: z.string().optional(),
         accountType: z.enum(["particulier", "professionnel"]).default("particulier"),
+        // Profil d'inscription (parcours §1-§7) : détermine rôle + documents.
+        profileType: z
+          .enum(["particulier", "pro_vente", "garage", "location", "vtc_taxi", "pieces", "livraison"])
+          .optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -50,6 +59,9 @@ export const authRouter = router({
       if (existing.length) {
         throw new TRPCError({ code: "CONFLICT", message: "Email déjà utilisé" });
       }
+      const profile = input.profileType ? getProfile(input.profileType) : undefined;
+      const accountType = profile?.accountType ?? input.accountType;
+      const role = profile?.role ?? (accountType === "professionnel" ? "pro" : "user");
       const passwordHash = await hashPassword(input.password);
       const [created] = await db
         .insert(users)
@@ -58,32 +70,43 @@ export const authRouter = router({
           passwordHash,
           name: input.name,
           phone: input.phone,
-          accountType: input.accountType,
-          role: input.accountType === "professionnel" ? "pro" : "user",
+          accountType,
+          role,
         })
         .returning();
+      const reference = makeReference("U", created.id);
+      await db.update(users).set({ reference }).where(eq(users.id, created.id));
+      created.reference = reference;
       const token = signToken({ uid: created.id, role: created.role, email: created.email });
-      return { token, user: publicUser(created) };
+      return { token, user: publicUser(created), profileType: input.profileType ?? "particulier" };
     }),
 
   login: publicProcedure
     .input(z.object({ email: z.string().email(), password: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const [u] = await db
         .select()
         .from(users)
         .where(eq(users.email, input.email.toLowerCase()))
         .limit(1);
       if (!u || !u.passwordHash) {
+        await logAction(u?.id ?? null, "auth.login_failed", "user", u?.id ?? null, { email: input.email }, clientMeta(ctx.req));
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Identifiants invalides" });
       }
       const ok = await comparePassword(input.password, u.passwordHash);
       if (!ok) {
+        await logAction(u.id, "auth.login_failed", "user", u.id, undefined, clientMeta(ctx.req));
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Identifiants invalides" });
       }
       const token = signToken({ uid: u.id, role: u.role, email: u.email });
+      await logAction(u.id, "auth.login", "user", u.id, undefined, clientMeta(ctx.req));
       return { token, user: publicUser(u) };
     }),
+
+  logout: protectedProcedure.mutation(async ({ ctx }) => {
+    await logAction(ctx.user.uid, "auth.logout", "user", ctx.user.uid, undefined, clientMeta(ctx.req));
+    return { ok: true };
+  }),
 
   googleLogin: publicProcedure
     .input(z.object({ idToken: z.string() }))
@@ -109,6 +132,9 @@ export const authRouter = router({
             role: "user",
           })
           .returning();
+        const reference = makeReference("U", u.id);
+        await db.update(users).set({ reference }).where(eq(users.id, u.id));
+        u.reference = reference;
       } else if (!u.googleId) {
         await db
           .update(users)

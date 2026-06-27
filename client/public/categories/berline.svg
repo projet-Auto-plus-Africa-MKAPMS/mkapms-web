@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <defs>
+    <linearGradient id="bodyB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2c2c2c"/>
+      <stop offset="100%" stop-color="#1a1a1a"/>
+    </linearGradient>
+    <linearGradient id="glassB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8ec8e0"/>
+      <stop offset="100%" stop-color="#5a9ab5"/>
+    </linearGradient>
+  </defs>
+  <!-- Body -->
+  <path d="M55,128 L65,128 L70,100 Q78,78 110,68 L190,58 Q240,55 280,60 L310,72 Q330,82 340,100 L348,128 L360,128 L360,138 L45,138 L45,128 Z" fill="url(#bodyB)" stroke="#444" stroke-width="1.5"/>
+  <!-- Roof -->
+  <path d="M140,68 Q150,38 190,34 L255,34 Q285,36 300,55 L310,72" fill="url(#bodyB)" stroke="#444" stroke-width="1.5"/>
+  <!-- Windows -->
+  <path d="M148,65 Q155,40 192,38 L225,38 L225,62 Z" fill="url(#glassB)" stroke="#4a8a9f" stroke-width="1"/>
+  <path d="M230,38 L270,38 Q290,40 300,58 L300,70 L230,62 Z" fill="url(#glassB)" stroke="#4a8a9f" stroke-width="1"/>
+  <!-- Headlight -->
+  <path d="M60,105 Q55,102 55,110 Q55,118 60,115 L72,112 L72,108 Z" fill="#fff8dc" stroke="#666" stroke-width="0.5"/>
+  <!-- Taillight -->
+  <rect x="350" y="105" width="10" height="14" rx="2" fill="#e33" stroke="#c22" stroke-width="0.5"/>
+  <!-- Chrome strip -->
+  <line x1="70" y1="112" x2="345" y2="112" stroke="#666" stroke-width="1.5"/>
+  <!-- Door lines -->
+  <line x1="195" y1="62" x2="195" y2="128" stroke="#333" stroke-width="1"/>
+  <line x1="265" y1="60" x2="265" y2="128" stroke="#333" stroke-width="1"/>
+  <!-- Door handles -->
+  <rect x="205" y="92" width="16" height="4" rx="2" fill="#555"/>
+  <rect x="275" y="90" width="16" height="4" rx="2" fill="#555"/>
+  <!-- Bumpers -->
+  <path d="M45,128 Q38,128 38,133 L38,140 L58,140 L58,138 L45,138 Z" fill="#222"/>
+  <path d="M360,128 Q368,128 368,133 L368,140 L348,140 L348,138 L360,138 Z" fill="#222"/>
+  <!-- Wheels -->
+  <circle cx="110" cy="140" r="24" fill="#1a1a1a"/>
+  <circle cx="110" cy="140" r="16" fill="#333"/>
+  <circle cx="110" cy="140" r="10" fill="#555"/>
+  <circle cx="110" cy="140" r="4" fill="#888"/>
+  <circle cx="310" cy="140" r="24" fill="#1a1a1a"/>
+  <circle cx="310" cy="140" r="16" fill="#333"/>
+  <circle cx="310" cy="140" r="10" fill="#555"/>
+  <circle cx="310" cy="140" r="4" fill="#888"/>
+  <!-- Spokes -->
+  <line x1="110" y1="124" x2="110" y2="156" stroke="#666" stroke-width="1.5"/>
+  <line x1="94" y1="140" x2="126" y2="140" stroke="#666" stroke-width="1.5"/>
+  <line x1="310" y1="124" x2="310" y2="156" stroke="#666" stroke-width="1.5"/>
+  <line x1="294" y1="140" x2="326" y2="140" stroke="#666" stroke-width="1.5"/>
+  <!-- Shadow -->
+  <ellipse cx="210" cy="168" rx="160" ry="6" fill="rgba(0,0,0,0.1)"/>
+</svg>

@@ -5,6 +5,7 @@ import { db } from "./db.js";
 import { payments, subscriptions, bookings, annonces, users } from "./schema.js";
 import { getStripe } from "./lib/stripe.js";
 import { getPlan } from "@shared/plans.js";
+import { awardPoints } from "./routers/operations.js";
 import { env } from "./env.js";
 
 // Webhook Stripe — monté AVANT express.json() avec express.raw().
@@ -44,6 +45,9 @@ export async function handleStripeWebhook(req: Request, res: Response) {
               updatedAt: new Date(),
             })
             .where(eq(payments.id, paymentId));
+          // Partie 18 — fidélité : 1 point MKA par euro payé.
+          const amount = session.amount_total ? Math.round(session.amount_total / 100) : 0;
+          if (userId && amount > 0) await awardPoints(userId, amount, "paiement", "payment", paymentId);
         }
         if (userId && session.customer) {
           await db

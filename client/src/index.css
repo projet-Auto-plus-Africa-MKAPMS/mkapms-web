@@ -10,8 +10,15 @@ html,
 body {
   margin: 0;
   font-family: "Inter", system-ui, sans-serif;
-  background: #f6f8fb;
-  color: #0f172a;
+  /* Fond blanc partout (identité premium MKA.P-MS) */
+  background: #ffffff;
+  color: #1f2937;
+  overflow-x: hidden;
+  max-width: 100vw;
+  touch-action: pan-x pan-y;
+  -ms-touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 * {
@@ -28,27 +35,154 @@ a {
     @apply mx-auto w-full max-w-6xl px-4;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition;
   }
+  /* Générique noir luxe */
   .btn-primary {
     @apply btn bg-brand text-white hover:bg-brand-dark;
   }
   .btn-outline {
     @apply btn border border-slate-300 bg-white text-slate-700 hover:border-brand hover:text-brand;
   }
+  /* Premium or */
   .btn-gold {
-    @apply btn bg-brand-gold text-slate-900 hover:brightness-95;
+    @apply btn bg-gold text-noir hover:bg-gold-dark;
+  }
+  /* Mapping d'action standardisé (page véhicule & produits) */
+  .btn-acheter {
+    @apply btn bg-success text-white hover:bg-success-dark;
+  }
+  .btn-reserver {
+    @apply btn bg-gold text-noir hover:bg-gold-dark;
+  }
+  .btn-message {
+    @apply btn bg-info text-white hover:brightness-95;
+  }
+  .btn-appeler {
+    @apply btn bg-success-dark text-white hover:brightness-95;
+  }
+  .btn-whatsapp {
+    @apply btn bg-whatsapp text-white hover:brightness-95;
+  }
+  .btn-signaler {
+    @apply btn border border-danger/40 bg-white text-danger hover:bg-danger/5;
   }
   .card {
     @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
   }
   .input {
-    @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20;
+    @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/25;
   }
   .label {
     @apply mb-1 block text-sm font-medium text-slate-700;
   }
   .badge {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+  .badge-premium {
+    @apply badge bg-gold-soft text-gold-dark;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Hide scrollbar for horizontal carousels */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* FAQ summary markers — red arrows */
+details > summary::marker,
+details > summary::-webkit-details-marker {
+  color: #ef4444;
+}
+
+/* Carousel card responsive widths: 2 cards phone / 3 tablet / 4 desktop / 6 ultra-wide */
+.carousel-card {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  width: calc(50% - 8px); /* 2 cards on phone */
+}
+@media (min-width: 768px) {
+  .carousel-card { width: calc(33.333% - 10px); } /* 3 cards on tablet */
+}
+@media (min-width: 1024px) {
+  .carousel-card { width: calc(25% - 12px); } /* 4 cards on desktop */
+}
+@media (min-width: 1920px) {
+  .carousel-card { width: calc(16.666% - 13px); } /* 6 cards on ultra-wide */
+}
+
+/* PWA standalone mode — espace sous la barre de statut iOS */
+@media all and (display-mode: standalone) {
+  header {
+    padding-top: 12px;
+  }
+
+  /* ── Homepage hero compact pour mode application ── */
+  .home-hero-text {
+    padding-top: 2px !important;
+  }
+  .home-hero-title {
+    font-size: 14px !important;
+    margin-top: 1px !important;
+  }
+  .home-hero-sep {
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
+  }
+  .home-hero-sep > div:first-child,
+  .home-hero-sep > div:last-child {
+    width: 24px !important;
+  }
+  .home-hero-sep > div:nth-child(2) {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  .home-hero-sep > div:nth-child(2) span {
+    font-size: 8px !important;
+  }
+  .home-hero-desc {
+    font-size: 8px !important;
+    margin-bottom: 0 !important;
+  }
+  .home-carousel-img {
+    aspect-ratio: 2.5 / 1 !important;
+  }
+  .home-action-card {
+    padding: 4px 2px 6px !important;
+    gap: 1px !important;
+    border-radius: 10px !important;
+  }
+  .home-action-icon {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  .home-action-icon svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+  .home-actions {
+    gap: 4px !important;
+    padding-bottom: 4px !important;
+  }
+  .home-badges {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+  }
+  .home-badge-icon {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  .home-badge-icon svg {
+    width: 12px !important;
+    height: 12px !important;
   }
 }
