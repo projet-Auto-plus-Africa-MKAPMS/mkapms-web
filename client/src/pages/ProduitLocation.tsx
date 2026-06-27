@@ -144,7 +144,7 @@ export default function ProduitLocation() {
     return (
       <div className="fixed inset-0 z-[100] bg-white flex flex-col">
         <div className="flex items-center justify-between border-b px-4 py-4 pt-14">
-          <button onClick={() => setGalleryOpen(false)} className="text-[#111] p-2"><ChevronLeft size={28} /></button>
+          <button onClick={() => { setGalleryOpen(false); setPhotoCat("toutes"); setPhotoIdx(0); }} className="text-[#111] p-2"><ChevronLeft size={28} /></button>
           <span className="text-sm font-bold text-[#111]">{activeCatPhotos.length > 0 ? `${safeIdx + 1}/${activeCatPhotos.length}` : "0"}</span>
           <div className="w-10" />
         </div>
@@ -183,19 +183,7 @@ export default function ProduitLocation() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-[120px] max-w-5xl mx-auto">
 
-      {/* ONGLETS CATÉGORIES PHOTOS */}
-      <div className="flex gap-2 overflow-x-auto px-3 py-2 bg-white" style={{ WebkitOverflowScrolling: "touch" }}>
-        {PHOTO_CATEGORIES.map((cat) => (
-          <button key={cat.key} onClick={() => { setPhotoCat(cat.key); setPhotoIdx(0); }}
-            className={`shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition whitespace-nowrap ${
-              photoCat === cat.key
-                ? "border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/10"
-                : "border-slate-200 text-slate-600 bg-white hover:border-slate-400"
-            }`}>
-            {cat.label}
-          </button>
-        ))}
-      </div>
+
 
       {/* GALERIE */}
       <div className="relative cursor-pointer" onClick={() => setGalleryOpen(true)}>

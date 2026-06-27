@@ -373,7 +373,7 @@ export default function Vehicule() {
         <div className="fixed inset-0 z-[100] bg-white flex flex-col">
           {/* Header galerie — bien descendu pour éviter la zone notch */}
           <div className="flex items-center justify-between border-b px-4 py-4 pt-14">
-            <button onClick={() => setProGalleryOpen(false)} className="text-[#111] p-2"><ChevronLeft size={28} /></button>
+            <button onClick={() => { setProGalleryOpen(false); setPhotoCat("toutes" as PhotoCategory); setPhotoIdx(0); }} className="text-[#111] p-2"><ChevronLeft size={28} /></button>
             <span className="text-sm font-bold text-[#111]">{photoIdx + 1}/{allPhotos.length}</span>
             <div className="w-10" />
           </div>
@@ -964,7 +964,7 @@ export default function Vehicule() {
           const catPhotos = (v.photoCategories[photoCat] || []) as string[];
           const lbIdx = Math.min(lightboxIdx, Math.max(0, catPhotos.length - 1));
           return (
-            <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => setLightboxOpen(false)}>
+            <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => { setLightboxOpen(false); setPhotoCat("toutes" as PhotoCategory); setPhotoIdx(0); }}>
               {/* Onglets catégories — descendus sous la barre d'état */}
               <div className="flex items-center justify-between px-4 pb-3" style={{ paddingTop: "max(5rem, calc(env(safe-area-inset-top, 2rem) + 3rem))" }} onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-2 overflow-x-auto scrollbar-hide">
@@ -972,7 +972,7 @@ export default function Vehicule() {
                     <button key={c.key} onClick={() => { setPhotoCat(c.key); setLightboxIdx(0); }} className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${photoCat === c.key ? "bg-[#D4AF37] text-black" : "border border-white/30 text-white/70 hover:border-[#D4AF37] hover:text-white"}`}>{c.label}</button>
                   ))}
                 </div>
-                <button onClick={() => setLightboxOpen(false)} className="ml-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 text-lg font-bold">✕</button>
+                <button onClick={() => { setLightboxOpen(false); setPhotoCat("toutes" as PhotoCategory); setPhotoIdx(0); }} className="ml-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 text-lg font-bold">✕</button>
               </div>
               {/* Photo lightbox — légèrement plus petite que plein écran */}
               <div className="relative flex flex-1 items-center justify-center px-4 pb-8" onClick={(e) => e.stopPropagation()}>
@@ -1044,7 +1044,7 @@ export default function Vehicule() {
         <div className="fixed inset-0 z-[100] bg-white flex flex-col">
           {/* Header galerie — bien descendu pour éviter la zone notch */}
           <div className="flex items-center justify-between border-b px-4 py-4 pt-14">
-            <button onClick={() => setProGalleryOpen(false)} className="text-[#111] p-2"><ChevronLeft size={28} /></button>
+            <button onClick={() => { setProGalleryOpen(false); setPhotoCat("toutes" as PhotoCategory); setPhotoIdx(0); }} className="text-[#111] p-2"><ChevronLeft size={28} /></button>
             <span className="text-sm font-bold text-[#111]">{activeCatPhotos.length > 0 ? `${activeCatIdx + 1}/${activeCatPhotos.length}` : "0"}</span>
             <div className="w-10" />
           </div>
@@ -1095,23 +1095,6 @@ export default function Vehicule() {
 
     return (
       <div className="pb-24 md:pb-20">
-        {/* ===== ONGLETS CATÉGORIES PHOTOS (scroll horizontal) ===== */}
-        <div className="flex gap-2 overflow-x-auto px-3 py-2 bg-white" style={{ WebkitOverflowScrolling: "touch" }}>
-          {proPhotoCategories.map((cat) => (
-            <button
-              key={cat.key}
-              onClick={() => { setPhotoCat(cat.key as PhotoCategory); setPhotoIdx(0); }}
-              className={`flex-shrink-0 rounded-full px-4 py-1.5 text-sm font-medium border transition whitespace-nowrap ${
-                photoCat === cat.key
-                  ? "border-red-500 text-red-600 bg-red-50"
-                  : "border-slate-200 text-slate-600 bg-white hover:border-slate-400"
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-
         {/* ===== PHOTO PRINCIPALE (pleine largeur, clic → galerie, swipe gauche/droite) ===== */}
         <div className="relative w-full h-[55vh] md:h-[58vh] lg:h-[62vh] bg-slate-100 cursor-pointer"
           onClick={() => setProGalleryOpen(true)}
@@ -1687,25 +1670,6 @@ export default function Vehicule() {
         {/* ===== 1. PHOTOS ===== */}
         <section className="min-w-0 lg:col-start-1 lg:row-start-1">
           <div className={`card overflow-hidden ${isOfficiel ? "border-[#D4AF37]/40 shadow-lg" : ""}`}>
-            {/* ── Category tabs (scroll horizontal) ── */}
-          {(hasPhotoCategories || userAnnonceHasCategories || photos.length > 0) && (
-            <div className="flex gap-2 overflow-x-auto px-2 py-2 scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
-              {PHOTO_CATEGORIES.map((cat) => (
-                <button
-                  key={cat.key}
-                  onClick={() => { setPhotoCat(cat.key); setPhotoIdx(0); }}
-                  className={`flex-shrink-0 rounded-full px-4 py-1.5 text-sm font-medium border transition whitespace-nowrap ${
-                    photoCat === cat.key
-                      ? "border-red-500 text-red-600 bg-red-50"
-                      : "border-slate-200 text-slate-600 bg-white hover:border-slate-400"
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-          )}
-
           <div
               className={`relative w-full ${photoHeightClass} bg-slate-100 cursor-pointer`}
               onClick={() => { setLightboxIdx(activeCatIdx); setLightboxOpen(true); }}
@@ -2674,9 +2638,9 @@ export default function Vehicule() {
 
       {/* ── LIGHTBOX simple pour annonces SANS catégories ── */}
       {!hasPhotoCategories && !userAnnonceHasCategories && lightboxOpen && photos.length > 0 && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => setLightboxOpen(false)}>
+        <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => { setLightboxOpen(false); setPhotoCat("toutes" as PhotoCategory); setPhotoIdx(0); }}>
           <div className="flex justify-end px-4" style={{ paddingTop: "max(3rem, calc(env(safe-area-inset-top, 1rem) + 2rem))" }}>
-            <button onClick={() => setLightboxOpen(false)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 text-lg font-bold">✕</button>
+            <button onClick={() => { setLightboxOpen(false); setPhotoCat("toutes" as PhotoCategory); setPhotoIdx(0); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 text-lg font-bold">✕</button>
           </div>
           <div className="relative flex flex-1 items-center justify-center px-4 pb-8" onClick={(e) => e.stopPropagation()}>
             <img src={photos[lightboxIdx] || ""} alt="" className="max-h-[65vh] w-full rounded-xl object-contain" />
@@ -2698,7 +2662,7 @@ export default function Vehicule() {
           : photosRaw.filter((p) => p.categorie === photoCat).map((p) => p.url);
         const lbIdx = Math.min(lightboxIdx, Math.max(0, catPhotos.length - 1));
         return (
-          <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => setLightboxOpen(false)}>
+          <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => { setLightboxOpen(false); setPhotoCat("toutes" as PhotoCategory); setPhotoIdx(0); }}>
             {/* Header lightbox — descendu sous la barre d'état */}
             <div className="flex items-center justify-between px-4 pb-3" style={{ paddingTop: "max(5rem, calc(env(safe-area-inset-top, 2rem) + 3rem))" }} onClick={(e) => e.stopPropagation()}>
               <div className="flex gap-2 overflow-x-auto scrollbar-hide">
@@ -2719,7 +2683,7 @@ export default function Vehicule() {
                   </button>
                 ))}
               </div>
-              <button onClick={() => setLightboxOpen(false)} className="ml-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 text-lg font-bold">✕</button>
+              <button onClick={() => { setLightboxOpen(false); setPhotoCat("toutes" as PhotoCategory); setPhotoIdx(0); }} className="ml-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 text-lg font-bold">✕</button>
             </div>
 
             {/* Photo principale lightbox — légèrement plus petite */}
