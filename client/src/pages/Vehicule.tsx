@@ -229,12 +229,17 @@ export default function Vehicule() {
     },
   });
 
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportSent, setReportSent] = useState(false);
+
   useEffect(() => {
     if (annonceId) incView.mutate({ id: annonceId });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [annonceId]);
 
-  if (!isDemo && q.isLoading) return <div className="container-page py-16 text-slate-500">Chargement…</div>;
+  if (!isDemo && (q.isLoading || (q.isFetching && !q.data))) return <div className="container-page py-16 text-slate-500">Chargement…</div>;
+  if (!isDemo && q.isError) return <div className="container-page py-16 text-center text-slate-500">Erreur de chargement. <button className="underline text-[#B8960C] ml-2" onClick={() => q.refetch()}>Réessayer</button></div>;
 
   const demoV = isDemo ? DEMO_VEHICLES[annonceId] : null;
   const realV = !isDemo ? q.data : null;
@@ -290,7 +295,7 @@ export default function Vehicule() {
     vendeurProfessionnel: v.vendeurType === "professionnel" || v.vendeurType === "concession",
     rating: v.vendeur ? Number(v.vendeur.rating || 0) : 0,
     reviewCount: v.vendeur?.reviewCount ?? 0,
-    photosCount: v.photos.length,
+    photosCount: v.photos?.length ?? photos.length,
     hasDescription: !!v.description && v.description.length > 20,
     hasLocalisation: !!(v.ville || v.codePostal),
     hasContact: !!v.contactTelephone,
@@ -306,10 +311,6 @@ export default function Vehicule() {
   const whatsapp = `https://wa.me/${(v.contactTelephone || "").replace(/\D/g, "")}?text=${encodeURIComponent(
     `Bonjour, je suis intéressé par l'annonce "${v.titre}" (réf #${v.id}) sur MKA.P-MS.`,
   )}`;
-  const [showReport, setShowReport] = useState(false);
-  const [reportReason, setReportReason] = useState("");
-  const [reportSent, setReportSent] = useState(false);
-
   function requireLogin(action: () => void) {
     if (!user) return navigate("/connexion");
     action();

@@ -159,10 +159,11 @@ function StatusTimeline({ status, onStepClick }: { status: string; onStepClick?:
    PAGE PRINCIPALE
    ═══════════════════════════════════════════════════════════ */
 export default function VOInterne() {
-  const { user } = useAuth();
+  const { user, isSessionLoading } = useAuth();
   const [tab, setTab] = useState<"liste" | "nouveau" | "stats">("liste");
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
+  if (isSessionLoading) return <div className="p-8 text-center text-[#6B7280]">Chargement...</div>;
   if (!user) return <div className="p-8 text-center text-[#6B7280]">Connectez-vous pour accéder au module VO.</div>;
 
   if (selectedId) {

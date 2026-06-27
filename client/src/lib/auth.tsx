@@ -26,36 +26,44 @@ export interface SessionUser {
 interface AuthCtx {
   user: SessionUser | null;
   token: string | null;
+  isSessionLoading: boolean;
   login: (token: string, user: SessionUser) => void;
   logout: () => void;
   setUser: (u: SessionUser | null) => void;
+  setSessionLoaded: () => void;
 }
 
 const Ctx = createContext<AuthCtx>({
   user: null,
   token: null,
+  isSessionLoading: true,
   login: () => {},
   logout: () => {},
   setUser: () => {},
+  setSessionLoaded: () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setTok] = useState<string | null>(getToken());
   const [user, setUser] = useState<SessionUser | null>(null);
+  const [isSessionLoading, setIsSessionLoading] = useState<boolean>(!!getToken());
 
   useEffect(() => {
     const t = getToken();
     if (t) setTok(t);
+    else setIsSessionLoading(false);
   }, []);
 
   const value = useMemo<AuthCtx>(
     () => ({
       user,
       token,
+      isSessionLoading,
       login: (t, u) => {
         setToken(t);
         setTok(t);
         setUser(u);
+        setIsSessionLoading(false);
       },
       logout: () => {
         // Partie 7 — journalise la déconnexion (best-effort, ne bloque pas).
@@ -70,10 +78,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setToken(null);
         setTok(null);
         setUser(null);
+        setIsSessionLoading(false);
       },
       setUser,
+      setSessionLoaded: () => setIsSessionLoading(false),
     }),
-    [user, token],
+    [user, token, isSessionLoading],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

@@ -46,7 +46,7 @@ const TIER_LABELS: Record<string, string> = { bronze: "Bronze", silver: "Silver"
 
 export default function Compte() {
   const { format: formatPrice } = useCurrency();
-  const { user, logout } = useAuth();
+  const { user, logout, isSessionLoading } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("annonces");
 
@@ -71,6 +71,9 @@ export default function Compte() {
   const [doc, setDoc] = useState({ category: "carte_grise", title: "", fileUrl: "" });
   const [dossier, setDossier] = useState({ marque: "", modele: "", immatriculation: "" });
 
+  if (isSessionLoading) {
+    return <div className="container-page py-16 text-center text-slate-500">Chargement...</div>;
+  }
   if (!user) {
     return (
       <div className="container-page py-16 text-center">

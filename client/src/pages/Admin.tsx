@@ -6,7 +6,7 @@ import { isAdmin, isDirection } from "@shared/roles";
 import { Eye, Pencil, Trash2, Pause, Play, ChevronDown, ChevronUp, X } from "lucide-react";
 
 export default function Admin() {
-  const { user } = useAuth();
+  const { user, isSessionLoading } = useAuth();
   const enabled = !!user && isAdmin(user.role);
   const direction = !!user && isDirection(user.role);
 
@@ -148,6 +148,9 @@ export default function Admin() {
   const [adminTab, setAdminTab] = useState<"backoffice" | "superadmin" | "direction">("backoffice");
   const navigate = useNavigate();
 
+  if (isSessionLoading) {
+    return <div className="container-page py-16 text-center text-slate-500">Chargement...</div>;
+  }
   if (!enabled) {
     return (
       <div className="container-page py-16 text-center">

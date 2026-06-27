@@ -692,11 +692,19 @@ function PageLoader() {
 }
 
 function SessionLoader() {
-  const { token, setUser } = useAuth();
+  const { token, setUser, setSessionLoaded } = useAuth();
   const me = trpc.auth.me.useQuery(undefined, { enabled: !!token });
   useEffect(() => {
-    if (me.data) setUser(me.data as any);
-  }, [me.data, setUser]);
+    if (me.data) {
+      setUser(me.data as any);
+      setSessionLoaded();
+    }
+  }, [me.data, setUser, setSessionLoaded]);
+  useEffect(() => {
+    if (me.isError || (me.isFetched && !me.data)) {
+      setSessionLoaded();
+    }
+  }, [me.isError, me.isFetched, me.data, setSessionLoaded]);
   return null;
 }
 
