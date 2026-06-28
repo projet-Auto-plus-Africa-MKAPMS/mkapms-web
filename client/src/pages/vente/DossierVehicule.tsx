@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, FileText, Camera, Euro, Wrench, Car, Check, Upload, ChevronDown } from "lucide-react";
+import { ChevronLeft, FileText, Camera, Euro, Wrench, Car, Check, Upload, ChevronDown, Eye } from "lucide-react";
+import { DocumentView, buildFactureData } from "../../components/DocumentPDF";
 const DOCS = [
   { label: "Facture achat", statut: "valide" }, { label: "Carte grise", statut: "valide" },
   { label: "Contrôle technique", statut: "valide" }, { label: "Factures réparations", statut: "valide" },
@@ -7,6 +9,7 @@ const DOCS = [
   { label: "Photos avant travaux", statut: "valide" }, { label: "Photos après travaux", statut: "en_attente" },
 ];
 export default function DossierVehicule() {
+  const [modalDoc, setModalDoc] = useState<any>(null);
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-blue-800 px-4 pt-6 pb-5">
@@ -23,10 +26,19 @@ export default function DossierVehicule() {
             <FileText size={14} className={d.statut === "valide" ? "text-green-600" : "text-amber-500"} />
             <span className="flex-1 text-sm text-[#111]">{d.label}</span>
             <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${d.statut === "valide" ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>{d.statut === "valide" ? "Validé" : "En attente"}</span>
+            {d.statut === "valide" && (
+              <button 
+                onClick={() => setModalDoc(buildFactureData({ ref: "VO-DOC", client: "Dossier Véhicule", montant: "Document", date: "15/03/2026", statut: d.label }))}
+                className="h-7 w-7 rounded-lg hover:bg-blue-50 flex items-center justify-center text-blue-600"
+              >
+                <Eye size={12} />
+              </button>
+            )}
             {d.statut === "en_attente" && <Upload size={12} className="text-red-500" />}
           </div>
         ))}
       </div>
+      {modalDoc && <DocumentView doc={modalDoc} onClose={() => setModalDoc(null)} />}
     </div>
   );
 }

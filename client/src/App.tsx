@@ -779,11 +779,16 @@ export default function App() {
             <Route path="/inscription" element={<U name="Inscription"><InscriptionParticulier /></U>} />
             <Route path="/tableau-de-bord" element={<U name="Mon espace"><TableauBordParticulier /></U>} />
             <Route path="/acheter/inscription-pro" element={<U name="Inscription Pro"><InscriptionProVente /></U>} />
-            <Route path="/vente/tableau-de-bord-pro" element={<U name="Dashboard Pro"><TableauBordProVente /></U>} />
+            <Route path="/vente" element={<U name="Tableau de bord Vente"><TableauBordProVente /></U>} />
             {/* Vente operations */}
             <Route path="/vente/stock" element={<U name="Stock VO"><GestionStockVO /></U>} />
-            <Route path="/vente/dossier-vehicule" element={<U name="Dossier v\u00e9hicule"><DossierVehicule /></U>} />
-            <Route path="/vente/workflow" element={<U name="Workflow VO"><WorkflowAchatVO /></U>} />
+            <Route path="/vente/dossier-vehicule/:id?" element={<U name="Dossier véhicule"><DossierVehicule /></U>} />
+            <Route path="/vente/workflow/:id?" element={<U name="Workflow VO"><WorkflowAchatVO /></U>} />
+            <Route path="/vente/mes-annonces" element={<U name="Mes Annonces"><MesAnnonces /></U>} />
+            <Route path="/vente/factures" element={<U name="Factures"><Comptabilite /></U>} />
+            <Route path="/vente/abonnements" element={<U name="Abonnements"><Abonnements /></U>} />
+            <Route path="/vente/documents-societe" element={<U name="Documents"><CentreDocuments /></U>} />
+            <Route path="/vente/statistiques" element={<U name="Statistiques"><CentrePerformances /></U>} />
             <Route path="/vente/transport" element={<U name="Transport"><CentreTransport /></U>} />
             <Route path="/vente/diagnostic" element={<U name="Diagnostic"><CentreDiagnostic /></U>} />
             <Route path="/vente/reparations" element={<U name="R\u00e9parations"><CentreReparations /></U>} />

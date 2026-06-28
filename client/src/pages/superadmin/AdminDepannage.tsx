@@ -44,8 +44,8 @@ export default function AdminDepannage() {
               {isExp && (
                 <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
                   <div className="grid grid-cols-2 gap-2 text-[10px]">
-                    <div className="rounded-lg bg-[#F5F3EF] p-1.5 flex items-center gap-1"><MapPin size={10} className="text-[#D4AF37]" /><p className="font-bold text-[#111] text-[9px]">{i.lieu}</p></div>
-                    <div className="rounded-lg bg-[#F5F3EF] p-1.5 flex items-center gap-1"><Phone size={10} className="text-[#D4AF37]" /><p className="font-bold text-[#111] text-[9px]">{i.tel}</p></div>
+                    <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.lieu)}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-[#F5F3EF] p-1.5 flex items-center gap-1 active:bg-[#E5E7EB] transition"><MapPin size={10} className="text-[#D4AF37]" /><p className="font-bold text-[#111] text-[9px]">{i.lieu}</p></a>
+                    <a href={`tel:${i.tel.replace(/ /g, "")}`} className="rounded-lg bg-[#F5F3EF] p-1.5 flex items-center gap-1 active:bg-[#E5E7EB] transition"><Phone size={10} className="text-[#D4AF37]" /><p className="font-bold text-[#111] text-[9px]">{i.tel}</p></a>
                   </div>
                   <p className="text-[9px] text-[#6B7280]">Depanneur : <span className="font-bold text-[#111]">{i.depanneur}</span></p>
                   <div className="flex gap-1.5">

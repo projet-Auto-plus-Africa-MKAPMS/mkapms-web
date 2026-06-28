@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Camera } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Camera, CheckCircle2 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
@@ -48,7 +48,21 @@ export default function Compte() {
   const { format: formatPrice } = useCurrency();
   const { user, logout, isSessionLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [tab, setTab] = useState<Tab>("annonces");
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("success") === "1") {
+      setTab("abonnements");
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+    }
+    if (params.get("tab")) {
+      setTab(params.get("tab") as Tab);
+    }
+  }, [location]);
 
   const mineAnnonces = trpc.annonces.mine.useQuery(undefined, { enabled: !!user && tab === "annonces" });
   const favoris = trpc.favoris.mine.useQuery(undefined, { enabled: !!user && tab === "favoris" });
@@ -119,7 +133,18 @@ export default function Compte() {
   }
 
   return (
-    <div className="container-page py-8">
+    <div className="container-page py-8 relative">
+      {showSuccess && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-md animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-3 rounded-2xl bg-green-600 p-4 text-white shadow-2xl">
+            <CheckCircle2 className="h-6 w-6 shrink-0" />
+            <div>
+              <p className="text-sm font-black">Paiement réussi !</p>
+              <p className="text-[10px] opacity-90">Votre service est activé. Merci de votre confiance.</p>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           {/* Photo de profil cliquable */}

@@ -315,12 +315,21 @@ export default function ComptaDirigeant() {
 
             {/* Derniers paiements */}
             <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-              <div className="bg-[#111] px-3 py-2 flex items-center justify-between">
-                <h3 className="text-xs font-bold text-[#D4AF37]">Derniers paiements</h3>
-                <button onClick={() => showToast("Export PDF genere")} className="text-[9px] text-white/50 flex items-center gap-1"><Download size={10} /> Export</button>
-              </div>
-              {PAIEMENTS.map((p, i) => (
-                <button key={i} onClick={() => setModalPaiement(p)} className="w-full flex items-center justify-between px-3 py-2.5 text-left border-b border-[#F3F4F6] last:border-0 active:bg-[#F5F3EF] transition">
+	              <div className="bg-[#111] px-3 py-2 flex items-center justify-between">
+	                <h3 className="text-xs font-bold text-[#D4AF37]">Derniers paiements</h3>
+	                <button 
+                    onClick={() => setModalDoc(buildFactureData({ ref: "REP-VENTE-2025", client: "Direction MKA", montant: "Rapport Global", date: "09/06/2025", statut: "Généré" }))}
+                    className="text-[9px] text-white/50 flex items-center gap-1 hover:text-white"
+                  >
+                    <Eye size={10} /> Voir Rapport
+                  </button>
+	              </div>
+	              {PAIEMENTS.map((p, i) => (
+	                <button 
+                    key={i} 
+                    onClick={() => setModalDoc(buildFactureData({ ref: p.ref, client: p.client, montant: p.montant, date: p.date, statut: p.statut === "Recu" ? "Payée" : "En attente" }))}
+                    className="w-full flex items-center justify-between px-3 py-2.5 text-left border-b border-[#F3F4F6] last:border-0 active:bg-[#F5F3EF] transition"
+                  >
                   <div>
                     <p className="text-xs font-bold text-[#111]">{p.objet}</p>
                     <p className="text-[10px] text-slate-400">{p.client} · {p.date}</p>
@@ -765,7 +774,7 @@ export default function ComptaDirigeant() {
                 </>
               )}
               {modalAlerte.action.includes("compte") && (
-                <button onClick={() => { showToast(`Profil ${modalAlerte.client} ouvert`); setModalAlerte(null); }} className="w-full rounded-xl bg-blue-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97] transition"><Eye size={14} /> Voir le profil complet</button>
+                <Link to={`/dossier-client/${modalAlerte.client}`} onClick={() => setModalAlerte(null)} className="w-full rounded-xl bg-blue-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97] transition"><Eye size={14} /> Voir le profil complet</Link>
               )}
               {modalAlerte.action.includes("Commander") && (
                 <>
@@ -788,16 +797,17 @@ export default function ComptaDirigeant() {
           onClose={() => setViewFactureAlerte(null)}
         />
       )}
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] max-w-sm w-[90%]">
-          <div className="rounded-xl bg-[#111] px-4 py-3 text-xs font-bold text-white shadow-xl flex items-center gap-2">
-            <CheckCircle size={14} className="text-green-400 shrink-0" />
-            <span>{toast}</span>
-            <button onClick={() => setToast(null)} className="ml-auto text-white/40 hover:text-white">&times;</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+	      {/* Toast */}
+	      {toast && (
+	        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] max-w-sm w-[90%]">
+	          <div className="rounded-xl bg-[#111] px-4 py-3 text-xs font-bold text-white shadow-xl flex items-center gap-2">
+	            <CheckCircle size={14} className="text-green-400 shrink-0" />
+	            <span>{toast}</span>
+	            <button onClick={() => setToast(null)} className="ml-auto text-white/40 hover:text-white">&times;</button>
+	          </div>
+	        </div>
+	      )}
+	      {modalDoc && <DocumentView doc={modalDoc} onClose={() => setModalDoc(null)} />}
+	    </div>
+	  );
+	}

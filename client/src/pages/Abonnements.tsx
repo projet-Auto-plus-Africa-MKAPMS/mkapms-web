@@ -39,9 +39,16 @@ export default function Abonnements() {
     const byRole: Record<string, PlanCategory> = {
       garage: "garage",
       vtc_taxi: "vtc_taxi",
+      vtc: "vtc_taxi",
       delivery: "livraison",
       pro: "pro_vente",
+      pro_vente: "pro_vente",
       user: "particulier",
+      particulier: "particulier",
+      compta: "comptabilite",
+      carrosserie: "carrosserie",
+      encheres: "encheres",
+      pieces: "pieces",
     };
     const target = byRole[user.role];
     if (target) setTab(target);

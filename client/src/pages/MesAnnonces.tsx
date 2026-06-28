@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Edit3, Trash2, Eye, X, Car } from "lucide-react";
+import { ChevronLeft, Edit3, Trash2, Eye, X, Car, FileText } from "lucide-react";
 import { trpc } from "../lib/trpc";
+import { DocumentView, buildFactureData } from "../components/DocumentPDF";
 
 export default function MesAnnonces() {
   const list = trpc.annonces.myList.useQuery();
@@ -9,6 +10,7 @@ export default function MesAnnonces() {
   const removeMut = trpc.annonces.remove.useMutation({ onSuccess: () => list.refetch() });
 
   const [editId, setEditId] = useState<number | null>(null);
+  const [modalDoc, setModalDoc] = useState<any>(null);
   const [editPrix, setEditPrix] = useState("");
   const [editKm, setEditKm] = useState("");
   const [editDesc, setEditDesc] = useState("");
@@ -107,6 +109,12 @@ export default function MesAnnonces() {
               <Link to={`/acheter/${a.id}`} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
                 <Eye size={14} /> Voir
               </Link>
+              <button 
+                onClick={() => setModalDoc(buildFactureData({ ref: `ANN-${a.id}`, client: "Propriétaire", montant: `${a.prix} €`, date: "En ligne", statut: "Annonce Active" }))}
+                className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-green-600 hover:bg-green-50 transition border-l border-slate-100"
+              >
+                <FileText size={14} /> Fiche
+              </button>
               <button onClick={() => openEdit(a)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 transition border-l border-slate-100">
                 <Edit3 size={14} /> Modifier
               </button>
@@ -211,6 +219,7 @@ export default function MesAnnonces() {
           </div>
         </div>
       )}
+      {modalDoc && <DocumentView doc={modalDoc} onClose={() => setModalDoc(null)} />}
     </div>
   );
 }

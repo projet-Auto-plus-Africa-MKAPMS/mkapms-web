@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { Eye, FileText, Download } from "lucide-react";
+import { DocumentView, buildFactureData } from "../components/DocumentPDF";
 
 const TYPE_LABELS: Record<string, string> = {
   achat_vehicule: "Achat véhicule",
@@ -23,6 +25,7 @@ const TYPE_LABELS: Record<string, string> = {
 export default function Comptabilite() {
   const { user } = useAuth();
   const [tab, setTab] = useState<"dashboard" | "ecritures" | "rapports">("dashboard");
+  const [modalDoc, setModalDoc] = useState<any>(null);
 
   /* Accessible à tous les utilisateurs (connectés ou non) */
 
@@ -40,8 +43,9 @@ export default function Comptabilite() {
       </div>
 
       {tab === "dashboard" && <Dashboard />}
-      {tab === "ecritures" && <Ecritures />}
-      {tab === "rapports" && <Rapports />}
+      {tab === "ecritures" && <Ecritures setModalDoc={setModalDoc} />}
+      {tab === "rapports" && <Rapports setModalDoc={setModalDoc} />}
+      {modalDoc && <DocumentView doc={modalDoc} onClose={() => setModalDoc(null)} />}
     </div>
   );
 }
@@ -73,7 +77,7 @@ function Dashboard() {
   );
 }
 
-function Ecritures() {
+function Ecritures({ setModalDoc }: { setModalDoc: (doc: any) => void }) {
   const { data: ecritures, isLoading } = trpc.comptabilite.ecritures.useQuery({});
   if (isLoading) return <div className="py-8 text-center text-[#6B7280]">Chargement...</div>;
   if (!ecritures?.length) return <div className="py-8 text-center text-[#6B7280]">Aucune écriture comptable.</div>;
@@ -91,6 +95,7 @@ function Ecritures() {
             <th className="px-3 py-2">TTC</th>
             <th className="px-3 py-2">Sens</th>
             <th className="px-3 py-2">Statut</th>
+            <th className="px-3 py-2 text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -112,6 +117,15 @@ function Ecritures() {
                   {e.statut}
                 </span>
               </td>
+              <td className="px-3 py-2 text-right">
+                <button 
+                  onClick={() => setModalDoc(buildFactureData({ ref: `FAC-${e.id}`, client: e.label, montant: `${e.montantTTC} €`, date: new Date(e.dateEcriture).toLocaleDateString("fr-FR"), statut: e.statut === "valide" ? "Payée" : "À régler" }))}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                  title="Voir la facture"
+                >
+                  <Eye size={14} />
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -120,7 +134,7 @@ function Ecritures() {
   );
 }
 
-function Rapports() {
+function Rapports({ setModalDoc }: { setModalDoc: (doc: any) => void }) {
   const { data: rapports, isLoading } = trpc.comptabilite.rapports.useQuery();
   if (isLoading) return <div className="py-8 text-center text-[#6B7280]">Chargement...</div>;
   if (!rapports?.length) return <div className="py-8 text-center text-[#6B7280]">Aucun rapport généré. Utilisez le back-office pour générer un rapport mensuel ou trimestriel.</div>;
@@ -130,8 +144,21 @@ function Rapports() {
       {rapports.map((r) => (
         <div key={r.id} className="rounded-xl border border-[#E5E7EB] bg-white p-5">
           <div className="mb-2 flex items-center justify-between">
-            <h3 className="font-bold text-[#111]">Rapport {r.type} — {r.periode}</h3>
-            <span className="text-xs text-[#9CA3AF]">{new Date(r.createdAt).toLocaleDateString("fr-FR")}</span>
+            <div>
+              <h3 className="font-bold text-[#111]">Rapport {r.type} — {r.periode}</h3>
+              <span className="text-xs text-[#9CA3AF]">{new Date(r.createdAt).toLocaleDateString("fr-FR")}</span>
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setModalDoc(buildFactureData({ ref: `REP-${r.id}`, client: "Direction MKA", montant: "Rapport", date: r.periode, statut: "Généré" }))}
+                className="flex items-center gap-1.5 rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-50 transition"
+              >
+                <Eye size={14} /> Aperçu
+              </button>
+              <button className="flex items-center gap-1.5 rounded-lg bg-[#F5F3EF] px-3 py-1.5 text-xs font-bold text-[#111] hover:bg-[#E5E7EB] transition">
+                <Download size={14} /> PDF
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
             <div><span className="text-[#6B7280]">Achats :</span> {Number(r.totalAchats ?? 0).toLocaleString()} €</div>

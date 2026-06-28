@@ -400,7 +400,7 @@ export default function AtelierPro() {
                         <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Duree estimee</span><p className="font-bold text-[#111]">{s.duree}</p></div>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={(e) => { e.stopPropagation(); showToast(`RDV ${s.heure} — ${s.vehicule} : modification enregistree`); }} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Modifier RDV</button>
+                        <Link to={`/atelier/rdv/${s.id}`} onClick={(e) => e.stopPropagation()} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white text-center">Modifier RDV</Link>
                         <button onClick={(e) => { e.stopPropagation(); setPlanningStatuts(prev => ({ ...prev, [s.id]: "en_cours" })); showToast(`${s.vehicule} — intervention demarree`); }} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Demarrer</button>
                         <button onClick={(e) => { e.stopPropagation(); setPlanningStatuts(prev => ({ ...prev, [s.id]: "annule" })); showToast(`RDV ${s.heure} — ${s.vehicule} : annule`); }} className="flex-1 rounded-lg bg-red-50 py-1.5 text-[10px] font-bold text-red-600">Annuler</button>
                       </div>
@@ -731,7 +731,7 @@ export default function AtelierPro() {
                         <button onClick={(e) => { e.stopPropagation(); showToast(`Devis ${d.ref} — modification en cours`); }} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white">Modifier</button>
                         <button onClick={(e) => { e.stopPropagation(); setDevisStatuts(prev => ({ ...prev, [d.id]: "accepte" })); showToast(`Devis ${d.ref} accepte !`); }} className="flex-1 rounded-lg bg-green-500 py-1.5 text-[10px] font-bold text-white">Accepter</button>
                         <button onClick={(e) => { e.stopPropagation(); showToast(`Devis ${d.ref} envoye a ${d.client}`); }} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Envoyer</button>
-                        <button onClick={(e) => { e.stopPropagation(); setViewDevisPDF(d); }} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">PDF</button>
+                        <button onClick={(e) => { e.stopPropagation(); setModalDoc(buildDevisData({ ref: d.ref, type: d.objet, client: d.client, montant: d.montant, date: d.date, vehicule: d.vehicule })); }} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">PDF</button>
                       </div>
                     </div>
                   )}
@@ -770,7 +770,7 @@ export default function AtelierPro() {
                         <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Statut</span><p className={`font-bold ${f.statut === "payee" ? "text-green-700" : "text-amber-700"}`}>{f.statut === "payee" ? "Payee" : "En attente"}</p></div>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={(e) => { e.stopPropagation(); setViewFacturePDF(f); }} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Download size={10} /> Voir PDF</button>
+                        <button onClick={(e) => { e.stopPropagation(); setModalDoc(buildFactureData({ ref: f.ref, objet: `Prestation Atelier — ${f.vehicule}`, client: f.client, montant: f.montant, date: f.date, statut: f.statut, type: "Facture" })); }} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Download size={10} /> Voir PDF</button>
                         <button onClick={(e) => { e.stopPropagation(); showToast(`Relance paiement envoyee a ${f.client}`); }} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white">Relancer paiement</button>
                         <button onClick={(e) => { e.stopPropagation(); setFactureStatuts(prev => ({ ...prev, [f.id]: "dupliquee" })); showToast(`Facture ${f.ref} dupliquee`); }} className="flex-1 rounded-lg bg-[#F5F3EF] py-1.5 text-[10px] font-bold text-slate-600">Dupliquer</button>
                       </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Package, Search, Filter, Check, Clock, Truck, Wrench, Camera, Tag, Archive, ChevronDown } from "lucide-react";
+import { ChevronLeft, Package, Search, Filter, Check, Clock, Truck, Wrench, Camera, Tag, Archive, ChevronDown, Eye, FileText } from "lucide-react";
+import { DocumentView, buildContratData } from "../../components/DocumentPDF";
 
 const STATUTS = [
   { id: "achat_prevu", label: "Achat prévu", color: "bg-gray-400" },
@@ -27,12 +28,14 @@ const VEHICULES = [
 
 export default function GestionStockVO() {
   const [filterStatut, setFilterStatut] = useState("tous");
+  const [selectedVeh, setSelectedVeh] = useState<number | null>(null);
+  const [modalDoc, setModalDoc] = useState<any>(null);
   const filtered = filterStatut === "tous" ? VEHICULES : VEHICULES.filter((v) => v.statut === filterStatut);
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-blue-800 px-4 pt-6 pb-5">
-        <Link to="/vente/tableau-de-bord-pro" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Tableau de bord</Link>
+        <Link to="/vente" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Tableau de bord</Link>
         <h1 className="text-xl font-black text-white flex items-center gap-2"><Package size={20} /> Gestion Stock VO</h1>
         <p className="mt-1 text-sm text-white/80">{VEHICULES.length} véhicules · 13 statuts horodatés</p>
       </div>
@@ -52,20 +55,44 @@ export default function GestionStockVO() {
         {filtered.map((v) => {
           const s = STATUTS.find((st) => st.id === v.statut)!;
           return (
-            <div key={v.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center gap-3">
-              <img src={v.photo} alt="" className="w-16 h-11 rounded-lg object-cover" />
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-[#111] truncate">{v.nom}</h3>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[8px] font-bold text-white ${s.color}`}>{s.label}</span>
-                  <span className="text-[8px] text-[#9CA3AF]">{v.date}</span>
+            <div key={v.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden shadow-sm">
+              <button onClick={() => setSelectedVeh(selectedVeh === v.id ? null : v.id)} className="w-full p-3 flex items-center gap-3 text-left">
+                <img src={v.photo} alt="" className="w-16 h-11 rounded-lg object-cover" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-bold text-[#111] truncate">{v.nom}</h3>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[8px] font-bold text-white ${s.color}`}>{s.label}</span>
+                    <span className="text-[8px] text-[#9CA3AF]">{v.date}</span>
+                  </div>
                 </div>
-              </div>
-              <span className="text-sm font-black text-blue-800">{v.prix.toLocaleString("fr-FR")} €</span>
+                <div className="text-right">
+                  <span className="text-sm font-black text-blue-800">{v.prix.toLocaleString("fr-FR")} €</span>
+                  <ChevronDown size={14} className={`text-slate-400 transition ml-auto mt-1 ${selectedVeh === v.id ? "rotate-180" : ""}`} />
+                </div>
+              </button>
+              {selectedVeh === v.id && (
+                <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-3 bg-slate-50/50 space-y-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    <Link to={`/vente/workflow/${v.id}`} className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-[#E5E7EB] active:scale-[0.97] transition">
+                      <Clock size={16} className="text-blue-600" />
+                      <span className="text-[9px] font-bold text-[#111]">Workflow</span>
+                    </Link>
+                    <button onClick={() => setModalDoc(buildContratData({ vehicule: v.nom, client: "Acheteur Potentiel", type: "Vente", prix: `${v.prix} €`, ref: `VO-${v.id}` }))} className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-[#E5E7EB] active:scale-[0.97] transition">
+                      <FileText size={16} className="text-amber-600" />
+                      <span className="text-[9px] font-bold text-[#111]">Bon de Commande</span>
+                    </button>
+                    <Link to={`/vehicule/${v.id}`} className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-[#E5E7EB] active:scale-[0.97] transition">
+                      <Eye size={16} className="text-green-600" />
+                      <span className="text-[9px] font-bold text-[#111]">Voir Annonce</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
+      {modalDoc && <DocumentView doc={modalDoc} onClose={() => setModalDoc(null)} />}
     </div>
   );
 }

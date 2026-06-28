@@ -119,10 +119,10 @@ export default function AdminUtilisateurs() {
                     <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Inscrit le</span><p className="font-bold text-[#111]">{u.inscrit}</p></div>
                   </div>
                   {u.badge && <span className="mt-2 inline-block rounded-full bg-[#D4AF37]/10 px-2.5 py-0.5 text-[9px] font-bold text-[#D4AF37]">{u.badge}</span>}
-                  <div className="flex gap-2 mt-2">
-                    <button onClick={() => setProfilModal(u.id)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white active:scale-[0.97] transition">Voir profil</button>
-                    <button onClick={() => { setContactModal(u.id); setMsgText(""); setMsgSent(false); }} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37] active:scale-[0.97] transition">Contacter</button>
-                  </div>
+	                  <div className="flex gap-2 mt-2">
+	                    <button onClick={() => setProfilModal(u.id)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white text-center active:scale-[0.97] transition">Voir profil</button>
+	                    <button onClick={() => setContactModal(u.id)} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37] text-center active:scale-[0.97] transition">Contacter</button>
+	                  </div>
                 </div>
               )}
             </div>

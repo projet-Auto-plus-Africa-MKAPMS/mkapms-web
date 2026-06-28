@@ -8,18 +8,18 @@ import { ChevronLeft, Building2, Package, FileText, MessageSquare, Calendar, Eur
    ══════════════════════════════════════════════════════════════════════════ */
 
 const STATS = [
-  { label: "Stock", value: "24", color: "text-blue-600" },
-  { label: "Actives", value: "18", color: "text-green-600" },
-  { label: "Réservées", value: "3", color: "text-amber-600" },
-  { label: "Vendues", value: "142", color: "text-[#D4AF37]" },
+  { label: "Stock", value: "24", color: "text-blue-600", to: "/vente/stock" },
+  { label: "Actives", value: "18", color: "text-green-600", to: "/vente/mes-annonces" },
+  { label: "Réservées", value: "3", color: "text-amber-600", to: "/vente/reservations" },
+  { label: "Vendues", value: "142", color: "text-[#D4AF37]", to: "/vente/mes-annonces" },
 ];
 
 const MENU = [
   { label: "Mes annonces", icon: FileText, to: "/vente/mes-annonces", count: 18, color: "bg-blue-600" },
   { label: "Stock véhicules", icon: Package, to: "/vente/stock", count: 24, color: "bg-indigo-600" },
-  { label: "Brouillons", icon: FileText, to: "/vente/brouillons", count: 2, color: "bg-gray-500" },
-  { label: "Annonces refusées", icon: AlertCircle, to: "/vente/refusees", count: 1, color: "bg-red-500" },
-  { label: "Annonces vendues", icon: Tag, to: "/vente/vendues", count: 142, color: "bg-green-600" },
+  { label: "Brouillons", icon: FileText, to: "/vente/mes-annonces", count: 2, color: "bg-gray-500" },
+  { label: "Annonces refusées", icon: AlertCircle, to: "/vente/mes-annonces", count: 1, color: "bg-red-500" },
+  { label: "Annonces vendues", icon: Tag, to: "/vente/mes-annonces", count: 142, color: "bg-green-600" },
   { label: "Messages clients", icon: MessageSquare, to: "/messagerie", count: 5, color: "bg-purple-600" },
   { label: "Réservations", icon: Calendar, to: "/vente/reservations", count: 3, color: "bg-amber-600" },
   { label: "Abonnements", icon: Star, to: "/vente/abonnements", count: null, color: "bg-[#D4AF37]" },
@@ -50,10 +50,10 @@ export default function TableauBordProVente() {
       {/* Stats */}
       <div className="px-4 -mt-3 relative z-10 grid grid-cols-4 gap-2">
         {STATS.map((s) => (
-          <div key={s.label} className="rounded-xl bg-white border border-[#E5E7EB] p-2.5 text-center">
+          <Link key={s.label} to={s.to} className="rounded-xl bg-white border border-[#E5E7EB] p-2.5 text-center active:scale-[0.97] transition">
             <p className={`text-lg font-black ${s.color}`}>{s.value}</p>
             <p className="text-[8px] text-[#6B7280]">{s.label}</p>
-          </div>
+          </Link>
         ))}
       </div>
 
