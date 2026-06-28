@@ -93,6 +93,9 @@ export const annoncesRouter = router({
         prixMax: z.number().optional(),
         ville: z.string().optional(),
         segmentLocation: z.enum(["particulier", "professionnel", "vtc_taxi"]).optional(),
+        boosted: z.boolean().optional(),
+        selectionMka: z.boolean().optional(),
+        miseAvantAccueil: z.boolean().optional(),
         limit: z.number().min(1).max(100).default(24),
         offset: z.number().min(0).default(0),
       }),
@@ -105,6 +108,9 @@ export const annoncesRouter = router({
       if (input.vendeurType) conds.push(eq(annonces.vendeurType, input.vendeurType));
       if (input.ownership) conds.push(eq(annonces.ownership, input.ownership));
       if (input.segmentLocation) conds.push(eq(annonces.segmentLocation, input.segmentLocation));
+      if (input.boosted !== undefined) conds.push(eq(annonces.boosted, input.boosted));
+      if (input.selectionMka !== undefined) conds.push(eq(annonces.selectionMka, input.selectionMka));
+      if (input.miseAvantAccueil !== undefined) conds.push(eq(annonces.miseAvantAccueil, input.miseAvantAccueil));
       if (input.prixMax) conds.push(lte(annonces.prix, String(input.prixMax)));
       if (input.ville) conds.push(ilike(annonces.ville, `%${input.ville}%`));
       if (input.q) {

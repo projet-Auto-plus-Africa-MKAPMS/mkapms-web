@@ -8,7 +8,7 @@ import { isAdmin, isPro, ROLE_LABELS } from "@shared/roles";
 import type { UserRole } from "@shared/roles";
 import FileUpload from "../components/FileUpload";
 
-type Tab = "annonces" | "toutes-annonces" | "publicites" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil";
+type Tab = "annonces" | "toutes-annonces" | "publicites" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil" | "notifications";
 
 const DEMO_RAPPORTS = [
   { id: 1, plaque: "AB-123-CD", vinPartiel: "VF1KR****567890", type: "Rapport Complet", prix: "7,99 \u20ac", date: "28/05/2024", statut: "Disponible" },
@@ -100,16 +100,17 @@ export default function Compte() {
   const baseTabs: [Tab, string][] = [
     ["annonces", "Mes annonces"],
     ["favoris", "Favoris"],
-    ["recherches", "Mes alertes"],
+    ["recherches", "Recherches"],
     ["reservations", "Réservations"],
-    ["devis", "Mes devis"],
+    ["devis", "Devis Garage"],
     ["abonnements", "Abonnements"],
-    ["litiges", "Mes litiges"],
-    ["fidelite", "Fidélité"],
+    ["litiges", "Litiges"],
+    ["fidelite", "Rewards"],
     ["coffre", "Coffre-fort"],
-    ["vehicules", "Mes véhicules"],
-    ["rapports", "Mes rapports"],
-    ["services", "Tous les services"],
+    ["vehicules", "Dossier V\u00e9hicules"],
+    ["rapports", "Rapports Historique"],
+    ["notifications", "Notifications"],
+    ["services", "Services"],
     ["profil", "Profil"],
   ];
   const adminTabs: [Tab, string][] = isAdmin(user.role)
@@ -181,7 +182,7 @@ export default function Compte() {
         <div className="flex gap-2">
           {isPro(user.role) && <Link to="/garage-plus" className="btn-outline">Espace Garage+</Link>}
           {isAdmin(user.role) && <Link to="/admin" className="btn-primary">Back-office</Link>}
-          {user.role === "super_admin" && <Link to="/superadmin" className="rounded-lg bg-[#111] px-4 py-2 text-xs font-bold text-[#D4AF37] hover:bg-[#222]">Super Admin</Link>}
+          {user.role === "super_admin" && <Link to="/admin" className="rounded-lg bg-[#111] px-4 py-2 text-xs font-bold text-[#D4AF37] hover:bg-[#222]">Super Admin</Link>}
           <button className="btn-outline" onClick={() => { logout(); navigate("/"); }}>Déconnexion</button>
         </div>
       </div>
@@ -192,7 +193,7 @@ export default function Compte() {
           <h2 className="text-sm font-black text-[#D4AF37] mb-3">Acc&egrave;s PDG — Tous les modules</h2>
           <div className="grid grid-cols-3 gap-2 md:grid-cols-5 lg:grid-cols-7">
             {[
-              { label: "Super Admin", to: "/superadmin", emoji: "\ud83d\udc51" },
+              { label: "Super Admin", to: "/admin", emoji: "\ud83d\udc51" },
               { label: "Back-office", to: "/admin", emoji: "\ud83d\udee1\ufe0f" },
               { label: "Comptabilit\u00e9", to: "/compta-dirigeant", emoji: "\ud83d\udcb9" },
               { label: "Atelier Pro", to: "/atelier-pro", emoji: "\ud83d\udee0\ufe0f" },
@@ -538,6 +539,17 @@ export default function Compte() {
               </div>
             ))}
             {dossiers.data?.length === 0 && <p className="text-sm text-slate-500">Aucun véhicule dans votre carnet.</p>}
+          </div>
+        )}
+        {tab === "notifications" && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-black text-[#111] flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-[#D4AF37]" /> Notifications
+            </h2>
+            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 text-center">
+              <p className="text-sm font-bold text-[#111] mb-4">Accédez à votre centre de notifications complet.</p>
+              <Link to="/notifications" className="inline-block rounded-xl bg-[#D4AF37] px-6 py-3 text-xs font-bold text-white">Ouvrir les notifications</Link>
+            </div>
           </div>
         )}
         {tab === "rapports" && (

@@ -14,13 +14,20 @@ export default function AdminVente() {
   const moderate = trpc.admin.moderateAnnonce.useMutation({ onSuccess: () => utils.admin.annoncesAll.invalidate() });
   const deleteAnnonce = trpc.admin.deleteAnnonce.useMutation({ onSuccess: () => utils.admin.annoncesAll.invalidate() });
 
+  const [statusFilter, setStatusFilter] = useState<string>("tous");
   const annonces = data?.items ?? [];
-  const filtered = annonces.filter((a: any) =>
-    (a.titre ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    (a.marque ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    (a.modele ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    (a.ville ?? "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = annonces.filter((a: any) => {
+    const matchesSearch = (a.titre ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (a.marque ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (a.modele ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (a.ville ?? "").toLowerCase().includes(search.toLowerCase());
+    
+    if (statusFilter === "tous") return matchesSearch;
+    if (statusFilter === "publiee") return matchesSearch && a.status === "publiee";
+    if (statusFilter === "vendue") return matchesSearch && a.status === "vendue";
+    if (statusFilter === "archivee") return matchesSearch && (a.status === "archivee" || a.status === "expiree" || a.status === "refusee");
+    return matchesSearch;
+  });
 
   function doAction() {
     if (!confirm) return;
@@ -51,11 +58,14 @@ export default function AdminVente() {
 
       <div className="px-4 mt-4 grid grid-cols-3 gap-2">
         {[
-          { l: "Publiées", v: String(annonces.filter((a: any) => a.status === "publiee").length), c: "text-green-500" },
-          { l: "Vendues", v: String(annonces.filter((a: any) => a.status === "vendue").length), c: "text-blue-500" },
-          { l: "Archivées", v: String(annonces.filter((a: any) => a.status === "archivee" || a.status === "expiree" || a.status === "refusee").length), c: "text-red-500" },
+          { id: "publiee", l: "Publiées", v: String(annonces.filter((a: any) => a.status === "publiee").length), c: "text-green-500" },
+          { id: "vendue", l: "Vendues", v: String(annonces.filter((a: any) => a.status === "vendue").length), c: "text-blue-500" },
+          { id: "archivee", l: "Archivées", v: String(annonces.filter((a: any) => a.status === "archivee" || a.status === "expiree" || a.status === "refusee").length), c: "text-red-500" },
         ].map((s) => (
-          <div key={s.l} className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center"><p className={`text-lg font-black ${s.c}`}>{s.v}</p><p className="text-[9px] text-[#6B7280]">{s.l}</p></div>
+          <button key={s.l} onClick={() => setStatusFilter(statusFilter === s.id ? "tous" : s.id)} className={`rounded-xl bg-white border p-3 text-center transition active:scale-[0.97] ${statusFilter === s.id ? "border-[#D4AF37] ring-1 ring-[#D4AF37]" : "border-[#E5E7EB]"}`}>
+            <p className={`text-lg font-black ${s.c}`}>{s.v}</p>
+            <p className="text-[9px] text-[#6B7280]">{s.l}</p>
+          </button>
         ))}
       </div>
 

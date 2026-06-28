@@ -25,55 +25,87 @@ export default function AdminPieces() {
   function removePiece(id: number) { setData((p) => p.filter((x) => x.id !== id)); setToast("Piece supprimee"); setTimeout(() => setToast(null), 2000); }
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-[#111] px-4 pt-6 pb-5">
-        <Link to="/superadmin" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Super Admin</Link>
-        <h1 className="text-xl font-black text-white flex items-center gap-2"><Package size={20} className="text-[#D4AF37]" /> Gestion Pieces</h1>
-        <p className="mt-1 text-xs text-white/50">{data.length} references · {data.reduce((a, p) => a + p.stock, 0)} en stock</p>
+    <div className="min-h-screen bg-[#0A0A0A] pb-24">
+      <div className="bg-[#111] px-4 pt-6 pb-5 border-b border-white/5">
+        <Link to="/superadmin" className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-white/40 mb-3 hover:text-[#D4AF37] transition-colors"><ChevronLeft size={12} /> Super Admin</Link>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-black text-white flex items-center gap-2 tracking-tighter italic">GESTION PIÈCES</h1>
+            <p className="mt-1 text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest opacity-80">{data.length} RÉFÉRENCES · {data.reduce((a, p) => a + p.stock, 0)} UNITÉS</p>
+          </div>
+          <div className="h-12 w-12 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20 shadow-lg shadow-[#D4AF37]/5">
+            <Package size={24} className="text-[#D4AF37]" />
+          </div>
+        </div>
       </div>
       {toast && <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] rounded-xl bg-green-600 text-white px-5 py-2.5 text-sm font-bold shadow-lg flex items-center gap-2"><CheckCircle size={16} /> {toast}</div>}
-      <div className="px-4 mt-3"><div className="flex items-center gap-2 rounded-xl bg-white border border-[#E5E7EB] px-3 py-2.5"><Search size={14} className="text-[#6B7280]" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher une piece..." className="flex-1 text-sm outline-none" /></div></div>
+      <div className="px-4 mt-4">
+        <div className="flex items-center gap-3 rounded-2xl bg-white/5 border border-white/10 px-4 py-3.5 focus-within:border-[#D4AF37]/50 transition-all">
+          <Search size={16} className="text-white/30" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Référence ou nom de pièce..." className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/20 font-medium" />
+        </div>
+      </div>
 
       {/* Alertes rupture */}
       {data.filter((p) => p.stock <= p.seuil).length > 0 && (
-        <div className="px-4 mt-3">
-          <div className="rounded-xl bg-red-50 border border-red-200 p-3">
-            <p className="text-xs font-bold text-red-700 flex items-center gap-1 mb-1"><AlertTriangle size={12} /> Alertes stock ({data.filter((p) => p.stock <= p.seuil).length})</p>
-            {data.filter((p) => p.stock <= p.seuil).map((p) => (
-              <p key={p.id} className="text-[10px] text-red-600">{p.nom} — <span className="font-bold">{p.stock}</span> restant(s)</p>
-            ))}
+        <div className="px-4 mt-4">
+          <div className="rounded-2xl bg-red-500/10 border border-red-500/20 p-4">
+            <p className="text-[10px] font-black text-red-400 uppercase tracking-widest flex items-center gap-2 mb-2"><AlertTriangle size={14} /> ALERTES RUPTURE ({data.filter((p) => p.stock <= p.seuil).length})</p>
+            <div className="space-y-1">
+              {data.filter((p) => p.stock <= p.seuil).map((p) => (
+                <p key={p.id} className="text-xs text-red-300/80 font-medium">{p.nom} — <span className="text-white font-black">{p.stock}</span> restant(s)</p>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
-      <div className="px-4 mt-3 space-y-2">
+      <div className="px-4 mt-4 space-y-3">
         {filtered.map((p) => {
           const isExp = expanded === p.id;
           const low = p.stock <= p.seuil;
           return (
-            <div key={p.id} className={`rounded-xl bg-white border overflow-hidden ${low ? "border-red-300" : "border-[#E5E7EB]"}`}>
-              <button onClick={() => setExpanded(isExp ? null : p.id)} className="w-full text-left p-3 flex items-center gap-3">
-                <div className={`h-9 w-9 rounded-full grid place-items-center shrink-0 ${low ? "bg-red-50" : "bg-[#D4AF37]/10"}`}><Package size={16} className={low ? "text-red-500" : "text-[#D4AF37]"} /></div>
+            <div key={p.id} className={`rounded-3xl border transition-all duration-300 ${isExp ? "bg-white/10 border-[#D4AF37]/30 shadow-2xl shadow-[#D4AF37]/5" : "bg-white/5 border-white/10"}`}>
+              <button onClick={() => setExpanded(isExp ? null : p.id)} className="w-full text-left p-4 flex items-center gap-4">
+                <div className={`h-11 w-11 rounded-2xl flex items-center justify-center transition-colors ${low ? "bg-red-500/20 text-red-400 border border-red-500/30" : isExp ? "bg-[#D4AF37] text-white" : "bg-white/5 text-[#D4AF37] border border-white/5"}`}>
+                  <Package size={20} />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[#111] truncate">{p.nom}</p>
-                  <p className="text-[9px] text-[#6B7280]">{p.ref} · {p.categorie}</p>
+                  <p className="text-sm font-black text-white tracking-tight">{p.nom}</p>
+                  <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-0.5">{p.ref} • {p.categorie}</p>
                 </div>
-                <div className="text-right">
-                  <p className={`text-sm font-black ${low ? "text-red-500" : "text-green-600"}`}>{p.stock}</p>
-                  <p className="text-[7px] text-[#6B7280]">{p.prix} EUR</p>
+                <div className="text-right flex items-center gap-3">
+                  <div className="hidden sm:block">
+                    <p className={`text-lg font-black tracking-tighter ${low ? "text-red-400" : "text-green-400"}`}>{p.stock}</p>
+                    <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest">{p.prix} €</p>
+                  </div>
+                  <ChevronDown size={14} className={`text-white/20 transition-transform duration-300 ${isExp ? "rotate-180 text-[#D4AF37]" : ""}`} />
                 </div>
-                <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
               </button>
               {isExp && (
-                <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2">
-                  <div className="grid grid-cols-2 gap-2 text-[10px] mb-2">
-                    <div className="rounded-lg bg-[#F5F3EF] p-1.5"><p className="text-[7px] text-[#6B7280]">Fournisseur</p><p className="font-bold text-[#111]">{p.fournisseur}</p></div>
-                    <div className="rounded-lg bg-[#F5F3EF] p-1.5"><p className="text-[7px] text-[#6B7280]">Seuil alerte</p><p className="font-bold text-[#111]">{p.seuil}</p></div>
+                <div className="px-4 pb-4 border-t border-white/5 pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="rounded-2xl bg-white/5 p-3 border border-white/5">
+                      <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Fournisseur</span>
+                      <p className="text-xs font-black text-white mt-1">{p.fournisseur}</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/5 p-3 border border-white/5">
+                      <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Seuil Alerte</span>
+                      <p className="text-xs font-black text-red-400 mt-1">{p.seuil} unités</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/5 p-3 border border-white/5 sm:hidden">
+                      <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Prix Unitaire</span>
+                      <p className="text-xs font-black text-[#D4AF37] mt-1">{p.prix} €</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/5 p-3 border border-white/5 sm:hidden">
+                      <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Stock Actuel</span>
+                      <p className={`text-xs font-black mt-1 ${low ? "text-red-400" : "text-green-400"}`}>{p.stock}</p>
+                    </div>
                   </div>
-                  <div className="flex gap-1.5">
-                    <button onClick={() => addStock(p.id)} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-green-500 py-1.5 text-[9px] font-bold text-white active:scale-[0.97]"><Plus size={12} /> Entree</button>
-                    <button onClick={() => removeStock(p.id)} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-amber-500 py-1.5 text-[9px] font-bold text-white active:scale-[0.97]"><Minus size={12} /> Sortie</button>
-                    <button onClick={() => removePiece(p.id)} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-red-500 py-1.5 text-[9px] font-bold text-white active:scale-[0.97]"><Trash2 size={12} /> Supprimer</button>
+                  <div className="flex gap-2">
+                    <button onClick={() => addStock(p.id)} className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-green-500/10 py-3 text-[10px] font-black uppercase text-green-400 hover:bg-green-500 hover:text-white transition-all"><Plus size={14} /> Entrée</button>
+                    <button onClick={() => removeStock(p.id)} className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-amber-500/10 py-3 text-[10px] font-black uppercase text-amber-400 hover:bg-amber-500 hover:text-white transition-all"><Minus size={14} /> Sortie</button>
+                    <button onClick={() => removePiece(p.id)} className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-red-500/10 py-3 text-[10px] font-black uppercase text-red-400 hover:bg-red-500 hover:text-white transition-all"><Trash2 size={14} /> Suppr.</button>
                   </div>
                 </div>
               )}

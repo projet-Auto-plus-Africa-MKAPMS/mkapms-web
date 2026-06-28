@@ -25,6 +25,11 @@ export default function AdminEmployes() {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [profilModal, setProfilModal] = useState<number | null>(null);
   const [planningModal, setPlanningModal] = useState<number | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editedEmp, setEditedEmp] = useState<any>(null);
+  const [editPlanning, setEditPlanning] = useState(false);
+  const [newTache, setNewTache] = useState({ debut: "08:00", fin: "12:00", tache: "" });
+  const [selectedDay, setSelectedDay] = useState("Lun");
 
   const emp = profilModal ? EMPLOYES.find((e) => e.id === profilModal) : null;
   const planEmp = planningModal ? EMPLOYES.find((e) => e.id === planningModal) : null;
@@ -104,26 +109,76 @@ export default function AdminEmployes() {
             </div>
 
             <div className="p-5 space-y-4">
-              {/* Infos contact */}
-              <div>
-                <h3 className="text-xs font-bold text-[#6B7280] uppercase mb-2">Contact</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-2.5"><Mail size={14} className="text-[#D4AF37] shrink-0" /><span className="text-xs font-semibold text-[#111]">{emp.email}</span></div>
-                  <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-2.5"><Phone size={14} className="text-[#D4AF37] shrink-0" /><span className="text-xs font-semibold text-[#111]">{emp.tel}</span></div>
-                  <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-2.5"><MapPin size={14} className="text-[#D4AF37] shrink-0" /><span className="text-xs font-semibold text-[#111]">{emp.adresse}</span></div>
+              {editMode ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-[#6B7280] uppercase">Nom complet</label>
+                    <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-2.5 text-xs font-semibold" value={editedEmp?.nom} onChange={(e) => setEditedEmp({ ...editedEmp, nom: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-[#6B7280] uppercase">Poste</label>
+                    <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-2.5 text-xs font-semibold" value={editedEmp?.poste} onChange={(e) => setEditedEmp({ ...editedEmp, poste: e.target.value })} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-[#6B7280] uppercase">Email</label>
+                      <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-2.5 text-xs font-semibold" value={editedEmp?.email} onChange={(e) => setEditedEmp({ ...editedEmp, email: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-[#6B7280] uppercase">Téléphone</label>
+                      <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-2.5 text-xs font-semibold" value={editedEmp?.tel} onChange={(e) => setEditedEmp({ ...editedEmp, tel: e.target.value })} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-[#6B7280] uppercase">Adresse</label>
+                    <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-2.5 text-xs font-semibold" value={editedEmp?.adresse} onChange={(e) => setEditedEmp({ ...editedEmp, adresse: e.target.value })} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-[#6B7280] uppercase">Service</label>
+                      <select className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-2.5 text-xs font-semibold" value={editedEmp?.service} onChange={(e) => setEditedEmp({ ...editedEmp, service: e.target.value })}>
+                        <option>Atelier</option><option>Support</option><option>Finance</option><option>Tech</option><option>Direction</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-[#6B7280] uppercase">Statut</label>
+                      <select className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-2.5 text-xs font-semibold" value={editedEmp?.statut} onChange={(e) => setEditedEmp({ ...editedEmp, statut: e.target.value })}>
+                        <option value="actif">Actif</option><option value="conge">Congé</option><option value="absent">Absent</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <button onClick={() => setEditMode(false)} className="flex-1 rounded-lg border border-[#E5E7EB] py-2.5 text-xs font-bold text-[#6B7280]">Annuler</button>
+                    <button onClick={() => { setProfilModal(null); setEditMode(false); }} className="flex-1 rounded-lg bg-[#D4AF37] py-2.5 text-xs font-bold text-white">Enregistrer</button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <>
+                  {/* Infos contact */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-xs font-bold text-[#6B7280] uppercase">Contact</h3>
+                      <button onClick={() => { setEditedEmp(emp); setEditMode(true); }} className="text-[10px] font-bold text-[#D4AF37] underline">Modifier</button>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-2.5"><Mail size={14} className="text-[#D4AF37] shrink-0" /><span className="text-xs font-semibold text-[#111]">{emp.email}</span></div>
+                      <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-2.5"><Phone size={14} className="text-[#D4AF37] shrink-0" /><span className="text-xs font-semibold text-[#111]">{emp.tel}</span></div>
+                      <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-2.5"><MapPin size={14} className="text-[#D4AF37] shrink-0" /><span className="text-xs font-semibold text-[#111]">{emp.adresse}</span></div>
+                    </div>
+                  </div>
 
-              {/* Infos emploi */}
-              <div>
-                <h3 className="text-xs font-bold text-[#6B7280] uppercase mb-2">Emploi</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded-lg bg-[#F5F3EF] p-2.5"><p className="text-[9px] text-[#6B7280]">Service</p><p className="text-xs font-bold text-[#111]">{emp.service}</p></div>
-                  <div className="rounded-lg bg-[#F5F3EF] p-2.5"><p className="text-[9px] text-[#6B7280]">Contrat</p><p className="text-xs font-bold text-[#111]">{emp.contrat}</p></div>
-                  <div className="rounded-lg bg-[#F5F3EF] p-2.5"><p className="text-[9px] text-[#6B7280]">Date embauche</p><p className="text-xs font-bold text-[#111]">{emp.dateEmbauche}</p></div>
-                  <div className="rounded-lg bg-[#F5F3EF] p-2.5"><p className="text-[9px] text-[#6B7280]">Ancienneté</p><p className="text-xs font-bold text-[#111]">{emp.anciennete}</p></div>
-                </div>
-              </div>
+                  {/* Infos emploi */}
+                  <div>
+                    <h3 className="text-xs font-bold text-[#6B7280] uppercase mb-2">Emploi</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2.5"><p className="text-[9px] text-[#6B7280]">Service</p><p className="text-xs font-bold text-[#111]">{emp.service}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2.5"><p className="text-[9px] text-[#6B7280]">Contrat</p><p className="text-xs font-bold text-[#111]">{emp.contrat}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2.5"><p className="text-[9px] text-[#6B7280]">Date embauche</p><p className="text-xs font-bold text-[#111]">{emp.dateEmbauche}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2.5"><p className="text-[9px] text-[#6B7280]">Ancienneté</p><p className="text-xs font-bold text-[#111]">{emp.anciennete}</p></div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Performance */}
               <div>
@@ -176,12 +231,35 @@ export default function AdminEmployes() {
             </div>
 
             <div className="p-4 space-y-3">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-bold text-[#6B7280] uppercase">Calendrier hebdomadaire</h3>
+                <button onClick={() => setEditPlanning(!editPlanning)} className="text-[10px] font-bold text-[#D4AF37] underline">{editPlanning ? "Terminer" : "Modifier le planning"}</button>
+              </div>
+
+              {editPlanning && (
+                <div className="mb-4 rounded-xl bg-[#F5F3EF] p-3 border border-[#D4AF37]/20">
+                  <p className="text-[10px] font-bold text-[#111] mb-2 uppercase">Ajouter une mission</p>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <select className="rounded-lg border border-[#E5E7EB] bg-white p-2 text-[10px] font-semibold" value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)}>
+                      {JOURS.map(j => <option key={j} value={j}>{j}</option>)}
+                    </select>
+                    <input className="rounded-lg border border-[#E5E7EB] bg-white p-2 text-[10px] font-semibold" placeholder="Tâche..." value={newTache.tache} onChange={(e) => setNewTache({...newTache, tache: e.target.value})} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <input type="time" className="rounded-lg border border-[#E5E7EB] bg-white p-2 text-[10px] font-semibold" value={newTache.debut} onChange={(e) => setNewTache({...newTache, debut: e.target.value})} />
+                    <input type="time" className="rounded-lg border border-[#E5E7EB] bg-white p-2 text-[10px] font-semibold" value={newTache.fin} onChange={(e) => setNewTache({...newTache, fin: e.target.value})} />
+                  </div>
+                  <button onClick={() => { setNewTache({ debut: "08:00", fin: "12:00", tache: "" }); }} className="w-full rounded-lg bg-[#D4AF37] py-2 text-[10px] font-bold text-white">Ajouter au planning</button>
+                </div>
+              )}
+
               {JOURS.map((jour) => {
                 const taches = planning[jour] || [];
                 return (
                   <div key={jour} className="rounded-xl border border-[#E5E7EB] overflow-hidden">
-                    <div className={`px-3 py-2 text-xs font-bold ${taches.length > 0 ? "bg-[#D4AF37]/10 text-[#D4AF37]" : "bg-slate-50 text-slate-400"}`}>
-                      {jour}{taches.length === 0 && " — Repos"}
+                    <div className={`px-3 py-2 text-xs font-bold flex justify-between items-center ${taches.length > 0 ? "bg-[#D4AF37]/10 text-[#D4AF37]" : "bg-slate-50 text-slate-400"}`}>
+                      <span>{jour}{taches.length === 0 && " — Repos"}</span>
+                      {editPlanning && taches.length > 0 && <span className="text-[8px] underline">Effacer</span>}
                     </div>
                     {taches.length > 0 && (
                       <div className="divide-y divide-[#E5E7EB]">
@@ -193,7 +271,11 @@ export default function AdminEmployes() {
                             <div className="flex-1 min-w-0">
                               <p className="text-[11px] font-semibold text-[#111] truncate">{t.tache}</p>
                             </div>
-                            <Briefcase size={12} className="text-[#9CA3AF] shrink-0" />
+                            {editPlanning ? (
+                              <button className="h-6 w-6 rounded-full bg-red-50 flex items-center justify-center text-red-500"><X size={10} /></button>
+                            ) : (
+                              <Briefcase size={12} className="text-[#9CA3AF] shrink-0" />
+                            )}
                           </div>
                         ))}
                       </div>

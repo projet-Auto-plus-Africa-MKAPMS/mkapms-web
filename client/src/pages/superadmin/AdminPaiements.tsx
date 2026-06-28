@@ -16,6 +16,7 @@ export default function AdminPaiements() {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [filter, setFilter] = useState<string>("tous");
   const [viewFacture, setViewFacture] = useState<typeof PAIEMENTS[0] | null>(null);
+  const [selectedPaiement, setSelectedPaiement] = useState<typeof PAIEMENTS[0] | null>(null);
 
   const filtered = filter === "tous" ? PAIEMENTS : PAIEMENTS.filter((p) => p.statut === filter);
 
@@ -29,14 +30,14 @@ export default function AdminPaiements() {
       {/* Stats grille */}
       <div className="px-4 mt-4 grid grid-cols-2 gap-2">
         {[
-          { l: "CA du jour", v: "4 230 EUR", icon: ArrowDown, c: "text-green-500", bg: "bg-green-50" },
-          { l: "CA du mois", v: "198 450 EUR", icon: Euro, c: "text-[#D4AF37]", bg: "bg-[#D4AF37]/10" },
-          { l: "Echoues", v: "3", icon: AlertCircle, c: "text-red-500", bg: "bg-red-50" },
-          { l: "En attente", v: "7", icon: Clock, c: "text-amber-500", bg: "bg-amber-50" },
+          { id: "reussi", l: "CA du jour", v: "4 230 EUR", icon: ArrowDown, c: "text-green-500", bg: "bg-green-50" },
+          { id: "reussi", l: "CA du mois", v: "198 450 EUR", icon: Euro, c: "text-[#D4AF37]", bg: "bg-[#D4AF37]/10" },
+          { id: "echoue", l: "Echoues", v: "3", icon: AlertCircle, c: "text-red-500", bg: "bg-red-50" },
+          { id: "rembourse", l: "En attente", v: "7", icon: Clock, c: "text-amber-500", bg: "bg-amber-50" },
         ].map((s) => {
           const Icon = s.icon;
           return (
-            <button key={s.l} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center gap-3 active:scale-[0.97]">
+            <button key={s.l} onClick={() => setFilter(s.id)} className={`rounded-xl bg-white border p-3 flex items-center gap-3 active:scale-[0.97] ${filter === s.id ? "border-[#D4AF37] ring-1 ring-[#D4AF37]" : "border-[#E5E7EB]"}`}>
               <div className={`h-9 w-9 rounded-lg ${s.bg} grid place-items-center`}><Icon size={16} className={s.c} /></div>
               <div className="text-left"><p className="text-[10px] text-[#6B7280]">{s.l}</p><p className={`text-sm font-black ${s.c}`}>{s.v}</p></div>
             </button>
@@ -81,9 +82,10 @@ export default function AdminPaiements() {
                     <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Plan</span><p className="font-bold text-[#D4AF37]">{p.plan}</p></div>
                   </div>
                   <div className="flex gap-2 mt-2">
-                    <button onClick={() => setViewFacture(p)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Voir details</button>
-                    {p.statut === "echoue" && <button className="flex-1 rounded-lg bg-red-50 py-1.5 text-[9px] font-bold text-red-600">Relancer</button>}
-                    {p.statut === "reussi" && <button onClick={() => setViewFacture(p)} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37]">Facture</button>}
+	                    <button onClick={() => setSelectedPaiement(p)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white active:scale-[0.97]">Voir details</button>
+	                    {p.statut === "echoue" && <button className="flex-1 rounded-lg bg-red-50 py-1.5 text-[9px] font-bold text-red-600 active:scale-[0.97]">Relancer</button>}
+	                    {p.statut === "reussi" && <button onClick={() => setViewFacture(p)} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37] active:scale-[0.97]">Facture</button>}
+	                    {p.statut === "rembourse" && <button onClick={() => setSelectedPaiement(p)} className="flex-1 rounded-lg bg-slate-100 py-1.5 text-[9px] font-bold text-slate-600 active:scale-[0.97]">Historique</button>}
                   </div>
                 </div>
               )}
@@ -96,6 +98,58 @@ export default function AdminPaiements() {
           doc={buildFactureData({ ref: viewFacture.ref, objet: `${viewFacture.type} — ${viewFacture.plan}`, client: viewFacture.client, montant: viewFacture.montant, date: viewFacture.date, statut: viewFacture.statut === "reussi" ? "Paye" : viewFacture.statut, type: "Paiement" })}
           onClose={() => setViewFacture(null)}
         />
+      )}
+
+      {selectedPaiement && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 p-4" onClick={() => setSelectedPaiement(null)}>
+          <div className="w-full max-w-sm rounded-t-3xl bg-white p-6 animate-in slide-in-from-bottom" onClick={(e) => e.stopPropagation()}>
+            <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto mb-4" />
+            <div className="flex items-center gap-4 mb-6">
+              <div className={`h-14 w-14 rounded-2xl grid place-items-center ${selectedPaiement.statut === "reussi" ? "bg-green-50" : selectedPaiement.statut === "echoue" ? "bg-red-50" : "bg-amber-50"}`}>
+                <Euro size={28} className={selectedPaiement.statut === "reussi" ? "text-green-600" : selectedPaiement.statut === "echoue" ? "text-red-500" : "text-amber-500"} />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-[#111]">{selectedPaiement.client}</h3>
+                <p className="text-xs text-[#6B7280]">{selectedPaiement.ref}</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 mb-8">
+              <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                <span className="text-xs text-[#6B7280]">Montant</span>
+                <span className="text-sm font-black text-[#D4AF37]">{selectedPaiement.montant}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                <span className="text-xs text-[#6B7280]">Date & Heure</span>
+                <span className="text-sm font-bold text-[#111]">{selectedPaiement.date}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                <span className="text-xs text-[#6B7280]">Statut</span>
+                <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${selectedPaiement.statut === "reussi" ? "bg-green-50 text-green-700" : selectedPaiement.statut === "echoue" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}>
+                  {selectedPaiement.statut.toUpperCase()}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                <span className="text-xs text-[#6B7280]">Mode de paiement</span>
+                <span className="text-sm font-bold text-[#111]">{selectedPaiement.methode}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                <span className="text-xs text-[#6B7280]">Offre / Plan</span>
+                <span className="text-sm font-bold text-[#111]">{selectedPaiement.plan}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setSelectedPaiement(null)} className="flex-1 rounded-xl border border-[#E5E7EB] py-3 text-xs font-bold text-[#6B7280]">Fermer</button>
+              {selectedPaiement.statut === "reussi" && (
+                <button onClick={() => { setViewFacture(selectedPaiement); setSelectedPaiement(null); }} className="flex-1 rounded-xl bg-[#111] py-3 text-xs font-bold text-[#D4AF37]">Telecharger Facture</button>
+              )}
+              {selectedPaiement.statut === "rembourse" && (
+                <button onClick={() => { setViewFacture({...selectedPaiement, statut: "Remboursé"}); setSelectedPaiement(null); }} className="flex-1 rounded-xl bg-[#D4AF37] py-3 text-xs font-bold text-white">Preuve Remboursement</button>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

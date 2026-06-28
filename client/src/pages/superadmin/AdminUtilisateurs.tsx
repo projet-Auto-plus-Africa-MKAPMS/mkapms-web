@@ -27,6 +27,7 @@ export default function AdminUtilisateurs() {
   const [msgSent, setMsgSent] = useState(false);
   const [actionDone, setActionDone] = useState<string | null>(null);
   const [usersState, setUsersState] = useState(USERS);
+  const [editedUser, setEditedUser] = useState<any>(null);
 
   const filtered = usersState.filter((u) => u.nom.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()));
 
@@ -58,11 +59,18 @@ export default function AdminUtilisateurs() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-[#111] px-4 pt-6 pb-5">
-        <Link to="/superadmin" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Super Admin</Link>
-        <h1 className="text-xl font-black text-white flex items-center gap-2"><Users size={20} className="text-[#D4AF37]" /> Utilisateurs</h1>
-        <p className="mt-1 text-xs text-white/50">{usersState.filter((u) => u.statut === "actif").length} comptes actifs</p>
+    <div className="min-h-screen bg-[#0A0A0A] pb-24">
+      <div className="bg-[#111] px-4 pt-6 pb-5 border-b border-white/5">
+        <Link to="/superadmin" className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-white/40 mb-3 hover:text-[#D4AF37] transition-colors"><ChevronLeft size={12} /> Super Admin</Link>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-black text-white flex items-center gap-2 tracking-tighter italic">UTILISATEURS</h1>
+            <p className="mt-1 text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest opacity-80">{usersState.filter((u) => u.statut === "actif").length} COMPTES ACTIFS</p>
+          </div>
+          <div className="h-12 w-12 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20 shadow-lg shadow-[#D4AF37]/5">
+            <Users size={24} className="text-[#D4AF37]" />
+          </div>
+        </div>
       </div>
 
       {/* Toast */}
@@ -72,57 +80,79 @@ export default function AdminUtilisateurs() {
         </div>
       )}
 
-      <div className="px-4 mt-4 grid grid-cols-4 gap-2">
+      <div className="px-4 mt-6 grid grid-cols-4 gap-2">
         {[
           { l: "Total", v: String(usersState.length), c: "text-[#D4AF37]" },
-          { l: "Pros", v: String(usersState.filter((u) => u.role !== "particulier").length), c: "text-blue-500" },
-          { l: "Nouveaux", v: "+89", c: "text-green-500" },
-          { l: "Suspendus", v: String(usersState.filter((u) => u.statut === "suspendu").length), c: "text-red-500" },
+          { l: "Pros", v: String(usersState.filter((u) => u.role !== "particulier").length), c: "text-blue-400" },
+          { l: "Nouveaux", v: "+89", c: "text-green-400" },
+          { l: "Suspendus", v: String(usersState.filter((u) => u.statut === "suspendu").length), c: "text-red-400" },
         ].map((s) => (
-          <button key={s.l} className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center active:scale-[0.97]">
-            <p className={`text-lg font-black ${s.c}`}>{s.v}</p>
-            <p className="text-[9px] text-[#6B7280]">{s.l}</p>
+          <button key={s.l} className="rounded-2xl bg-white/5 border border-white/10 p-3 text-center active:scale-[0.97] transition-all hover:border-[#D4AF37]/30">
+            <p className={`text-xl font-black ${s.c} tracking-tighter`}>{s.v}</p>
+            <p className="text-[8px] font-bold text-white/40 uppercase tracking-widest mt-1">{s.l}</p>
           </button>
         ))}
       </div>
 
-      <div className="px-4 mt-3">
-        <div className="flex items-center gap-2 rounded-xl bg-white border border-[#E5E7EB] px-3 py-2.5">
-          <Search size={14} className="text-[#6B7280]" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un utilisateur..." className="flex-1 text-sm outline-none" />
+      <div className="px-4 mt-4">
+        <div className="flex items-center gap-3 rounded-2xl bg-white/5 border border-white/10 px-4 py-3.5 focus-within:border-[#D4AF37]/50 transition-all">
+          <Search size={16} className="text-white/30" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher par nom ou email..." className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/20 font-medium" />
         </div>
       </div>
 
-      <div className="px-4 mt-3 space-y-2">
+      <div className="px-4 mt-4 space-y-3">
         {filtered.map((u) => {
           const isExp = expanded === u.id;
           const Icon = ROLE_ICONS[u.role] || Users;
           return (
-            <div key={u.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-              <button onClick={() => setExpanded(isExp ? null : u.id)} className="w-full text-left p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-full bg-[#D4AF37]/10 grid place-items-center shrink-0"><Icon size={16} className="text-[#D4AF37]" /></div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-[#111] truncate">{u.nom}</p>
-                  <p className="text-[10px] text-[#6B7280]">{u.email}</p>
+            <div key={u.id} className={`rounded-3xl border transition-all duration-300 ${isExp ? "bg-white/10 border-[#D4AF37]/30 shadow-2xl shadow-[#D4AF37]/5" : "bg-white/5 border-white/10"}`}>
+              <button onClick={() => setExpanded(isExp ? null : u.id)} className="w-full text-left p-4 flex items-center gap-4">
+                <div className={`h-11 w-11 rounded-2xl flex items-center justify-center transition-colors ${isExp ? "bg-[#D4AF37] text-white" : "bg-white/5 text-[#D4AF37] border border-white/5"}`}>
+                  <Icon size={20} />
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`rounded-full px-2 py-0.5 text-[8px] font-bold ${u.statut === "actif" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>{u.statut}</span>
-                  <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-black text-white tracking-tight">{u.nom}</p>
+                  <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-0.5">{u.email}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`rounded-full px-3 py-1 text-[8px] font-black uppercase tracking-tighter ${u.statut === "actif" ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"}`}>
+                    {u.statut}
+                  </span>
+                  <ChevronDown size={14} className={`text-white/20 transition-transform duration-300 ${isExp ? "rotate-180 text-[#D4AF37]" : ""}`} />
                 </div>
               </button>
               {isExp && (
-                <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2">
-                  <div className="grid grid-cols-2 gap-2 text-[10px]">
-                    <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Role</span><p className="font-bold text-[#111]">{u.role}</p></div>
-                    <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Ville</span><p className="font-bold text-[#111]">{u.ville}</p></div>
-                    <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Annonces</span><p className="font-bold text-[#D4AF37]">{u.annonces}</p></div>
-                    <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Inscrit le</span><p className="font-bold text-[#111]">{u.inscrit}</p></div>
+                <div className="px-4 pb-4 border-t border-white/5 pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl bg-white/5 p-3 border border-white/5">
+                      <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Rôle</span>
+                      <p className="text-xs font-black text-white mt-1">{ROLE_LABELS[u.role] || u.role}</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/5 p-3 border border-white/5">
+                      <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Ville</span>
+                      <p className="text-xs font-black text-white mt-1">{u.ville}</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/5 p-3 border border-white/5">
+                      <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Annonces</span>
+                      <p className="text-xs font-black text-[#D4AF37] mt-1">{u.annonces}</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/5 p-3 border border-white/5">
+                      <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Inscrit le</span>
+                      <p className="text-xs font-black text-white mt-1">{u.inscrit}</p>
+                    </div>
                   </div>
-                  {u.badge && <span className="mt-2 inline-block rounded-full bg-[#D4AF37]/10 px-2.5 py-0.5 text-[9px] font-bold text-[#D4AF37]">{u.badge}</span>}
-	                  <div className="flex gap-2 mt-2">
-	                    <button onClick={() => setProfilModal(u.id)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white text-center active:scale-[0.97] transition">Voir profil</button>
-	                    <button onClick={() => setContactModal(u.id)} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37] text-center active:scale-[0.97] transition">Contacter</button>
-	                  </div>
+                  {u.badge && (
+                    <div className="mt-4 flex justify-center">
+                      <span className="rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-4 py-1.5 text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">
+                        ⭐ {u.badge}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex gap-3 mt-4">
+                    <button onClick={() => setProfilModal(u.id)} className="flex-1 rounded-2xl bg-[#D4AF37] py-3 text-[10px] font-black text-white uppercase tracking-widest shadow-lg shadow-[#D4AF37]/20 active:scale-95 transition-all">Détails Profil</button>
+                    <button onClick={() => setContactModal(u.id)} className="flex-1 rounded-2xl bg-white/5 border border-white/10 py-3 text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/10 active:scale-95 transition-all">Contacter</button>
+                  </div>
                 </div>
               )}
             </div>
@@ -150,15 +180,59 @@ export default function AdminUtilisateurs() {
             </div>
 
             <div className="p-5 space-y-4">
-              {/* Contact */}
-              <div>
-                <h3 className="text-xs font-bold text-[#6B7280] uppercase mb-2">Contact</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-2.5"><Mail size={14} className="text-[#D4AF37] shrink-0" /><span className="text-xs font-semibold text-[#111]">{profUser.email}</span></div>
-                  <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-2.5"><Phone size={14} className="text-[#D4AF37] shrink-0" /><span className="text-xs font-semibold text-[#111]">{profUser.tel}</span></div>
-                  <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-2.5"><MapPin size={14} className="text-[#D4AF37] shrink-0" /><span className="text-xs font-semibold text-[#111]">{profUser.adresse}</span></div>
+              {/* Formulaire de modification */}
+              {editModal === profUser.id ? (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-[#6B7280] uppercase mb-2">Modifier le profil</h3>
+                  <div>
+                    <label className="text-[10px] font-bold text-[#6B7280] uppercase">Nom / Enseigne</label>
+                    <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-2.5 text-xs font-semibold" value={editedUser?.nom} onChange={(e) => setEditedUser({ ...editedUser, nom: e.target.value })} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-[#6B7280] uppercase">Email</label>
+                      <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-2.5 text-xs font-semibold" value={editedUser?.email} onChange={(e) => setEditedUser({ ...editedUser, email: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-[#6B7280] uppercase">Téléphone</label>
+                      <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-2.5 text-xs font-semibold" value={editedUser?.tel} onChange={(e) => setEditedUser({ ...editedUser, tel: e.target.value })} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-[#6B7280] uppercase">Adresse</label>
+                    <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-2.5 text-xs font-semibold" value={editedUser?.adresse} onChange={(e) => setEditedUser({ ...editedUser, adresse: e.target.value })} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-[#6B7280] uppercase">Ville</label>
+                      <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-2.5 text-xs font-semibold" value={editedUser?.ville} onChange={(e) => setEditedUser({ ...editedUser, ville: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-[#6B7280] uppercase">Badge</label>
+                      <input className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-2.5 text-xs font-semibold" value={editedUser?.badge} onChange={(e) => setEditedUser({ ...editedUser, badge: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <button onClick={() => setEditModal(null)} className="flex-1 rounded-lg border border-[#E5E7EB] py-2.5 text-xs font-bold text-[#6B7280]">Annuler</button>
+                    <button onClick={() => { setUsersState(prev => prev.map(u => u.id === editedUser.id ? editedUser : u)); setEditModal(null); setActionDone("Profil mis à jour"); setTimeout(() => setActionDone(null), 2000); }} className="flex-1 rounded-lg bg-[#D4AF37] py-2.5 text-xs font-bold text-white">Enregistrer</button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <>
+                  {/* Contact */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-xs font-bold text-[#6B7280] uppercase">Contact</h3>
+                      <button onClick={() => { setEditedUser(profUser); setEditModal(profUser.id); }} className="text-[10px] font-bold text-[#D4AF37] underline">Modifier</button>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-2.5"><Mail size={14} className="text-[#D4AF37] shrink-0" /><span className="text-xs font-semibold text-[#111]">{profUser.email}</span></div>
+                      <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-2.5"><Phone size={14} className="text-[#D4AF37] shrink-0" /><span className="text-xs font-semibold text-[#111]">{profUser.tel}</span></div>
+                      <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] p-2.5"><MapPin size={14} className="text-[#D4AF37] shrink-0" /><span className="text-xs font-semibold text-[#111]">{profUser.adresse}</span></div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Statistiques */}
               <div>

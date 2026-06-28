@@ -17,55 +17,7 @@ import { useAuth } from "../lib/auth";
    16 sections dans l'ordre exact spécifié.
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* ── DONNÉES ANNONCES ── */
-
-const ANNONCES_OFFICIELLES = [
-  { id: 9001, titre: "Peugeot 3008 GT", badge: "MKA.P-MS OFFICIEL", annee: 2023, km: 12000, carburant: "Essence", prix: 28900, ville: "Bois-en-France", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=280&fit=crop" },
-  { id: 9002, titre: "Renault Austral", badge: "MKA.P-MS OFFICIEL", annee: 2024, km: 5000, carburant: "Hybride", prix: 34500, ville: "Bois-en-France", photo: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=280&fit=crop" },
-  { id: 9003, titre: "BMW Série 3 320d", badge: "MKA.P-MS OFFICIEL", annee: 2022, km: 25000, carburant: "Diesel", prix: 32900, ville: "Bois-en-France", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=280&fit=crop" },
-  { id: 9004, titre: "Mercedes Classe A", badge: "MKA.P-MS OFFICIEL", annee: 2022, km: 18000, carburant: "Essence", prix: 29900, ville: "Bois-en-France", photo: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400&h=280&fit=crop" },
-  { id: 9050, titre: "Citroën C5 X", badge: "MKA.P-MS OFFICIEL", annee: 2023, km: 10000, carburant: "Essence", prix: 31200, ville: "Paris", photo: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=280&fit=crop" },
-];
-
-const ANNONCES_BOOSTEES = [
-  { id: 9010, titre: "Audi A3 Sportback", badge: "ELITE", type: "BOOSTÉ", annee: 2021, km: 38000, prix: 27900, ville: "Paris", photo: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=280&fit=crop" },
-  { id: 9011, titre: "BMW Série 3 320i", badge: "ELITE", type: "BOOSTÉ", annee: 2020, km: 42000, prix: 29500, ville: "Lyon", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=280&fit=crop" },
-  { id: 9012, titre: "Mercedes Classe C", badge: "ELITE", type: "BOOSTÉ", annee: 2021, km: 35000, prix: 31900, ville: "Marseille", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=280&fit=crop" },
-  { id: 9013, titre: "Volkswagen Golf 8", badge: "ELITE", type: "BOOSTÉ", annee: 2023, km: 15000, prix: 24900, ville: "Nice", photo: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=280&fit=crop" },
-  { id: 9014, titre: "Toyota Corolla", badge: "ELITE", type: "BOOSTÉ", annee: 2022, km: 20000, prix: 23500, ville: "Toulouse", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=280&fit=crop" },
-];
-
-const ANNONCES_PREMIUM = [
-  { id: 9020, titre: "Peugeot 508 GT", badge: "PREMIUM", annee: 2022, km: 22000, prix: 25900, ville: "Bordeaux", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=280&fit=crop" },
-  { id: 9021, titre: "Renault Clio V", badge: "PREMIUM", annee: 2021, km: 28000, prix: 15900, ville: "Lyon", photo: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=280&fit=crop" },
-  { id: 9022, titre: "Toyota C-HR", badge: "PREMIUM", annee: 2022, km: 20000, prix: 23900, ville: "Nantes", photo: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=400&h=280&fit=crop" },
-  { id: 9023, titre: "Kia Sportage", badge: "PREMIUM", annee: 2021, km: 30000, prix: 22500, ville: "Lille", photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=280&fit=crop" },
-  { id: 9024, titre: "Hyundai Tucson", badge: "PREMIUM", annee: 2023, km: 8000, prix: 29800, ville: "Paris", photo: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=280&fit=crop" },
-];
-
-const VEHICULES_PROCHES = [
-  { id: 9030, titre: "Peugeot 308", distance: "2 km", annee: 2021, km: 25000, prix: 16900, ville: "Paris", photo: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&h=280&fit=crop" },
-  { id: 9031, titre: "Renault Captur", distance: "5 km", annee: 2020, km: 32000, prix: 14500, ville: "Paris", photo: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=280&fit=crop" },
-  { id: 9032, titre: "Toyota Yaris", distance: "8 km", annee: 2021, km: 18000, prix: 13900, ville: "Paris", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=280&fit=crop" },
-  { id: 9033, titre: "Volkswagen Polo", distance: "12 km", annee: 2022, km: 20000, prix: 15500, ville: "Paris", photo: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=280&fit=crop" },
-  { id: 9034, titre: "Citroën C3", distance: "15 km", annee: 2021, km: 28000, prix: 11900, ville: "Paris", photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop" },
-];
-
-const LOCATION_MIXTE = [
-  { id: 9040, titre: "Renault Clio", type: "Particulier", prixJour: 29, annee: 2022, carburant: "Essence", ville: "Paris", photo: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=280&fit=crop" },
-  { id: 9041, titre: "Peugeot 208", type: "Particulier", prixJour: 32, annee: 2023, carburant: "Essence", ville: "Lyon", photo: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&h=280&fit=crop" },
-  { id: 9042, titre: "Mercedes Classe A", type: "Pro", prixJour: 55, annee: 2023, carburant: "Essence", ville: "Nice", photo: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400&h=280&fit=crop" },
-  { id: 9043, titre: "Tesla Model 3", type: "VTC", prixJour: 75, annee: 2024, carburant: "Électrique", ville: "Paris", photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=280&fit=crop" },
-  { id: 9044, titre: "Toyota Corolla", type: "Taxi", prixJour: 45, annee: 2022, carburant: "Hybride", ville: "Marseille", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=280&fit=crop" },
-];
-
-const ANNONCES_PARTICULIERS = [
-  { id: 9060, titre: "Citroën C4", badge: "PARTICULIER", annee: 2020, km: 45000, prix: 12900, ville: "Lyon", photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop" },
-  { id: 9061, titre: "Opel Corsa", badge: "PARTICULIER", annee: 2019, km: 52000, prix: 9500, ville: "Toulouse", photo: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=400&h=280&fit=crop" },
-  { id: 9062, titre: "Ford Focus", badge: "PARTICULIER", annee: 2018, km: 60000, prix: 8900, ville: "Nantes", photo: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=280&fit=crop" },
-  { id: 9063, titre: "Dacia Sandero", badge: "PARTICULIER", annee: 2020, km: 40000, prix: 7900, ville: "Lille", photo: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=400&h=280&fit=crop" },
-  { id: 9064, titre: "Toyota RAV4", badge: "PARTICULIER", annee: 2021, km: 22000, prix: 28900, ville: "Lille", photo: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=400&h=280&fit=crop" },
-];
+/* ── DONNÉES ANNONCES (Supprimées : utilisation des vraies données DB uniquement) ── */
 
 /* ── PUBS LATÉRALES ── */
 const ADS_LEFT = [
@@ -182,19 +134,20 @@ export default function Home() {
     navigate(`/acheter?${params.toString()}`);
   }
 
-  /* Annonces réelles depuis la DB */
-  const { data: officielles } = trpc.annonces.list.useQuery({ ownership: "plateforme", type: "vente", limit: 10 });
-  const { data: particuliers } = trpc.annonces.list.useQuery({ vendeurType: "particulier", type: "vente", limit: 10 });
-  const { data: recentes } = trpc.annonces.list.useQuery({ type: "vente", limit: 20 });
+  /* Annonces réelles depuis la DB - Critères stricts pour la page d'accueil */
+  const { data: officielles } = trpc.annonces.list.useQuery({ ownership: "plateforme", limit: 10 });
+  const { data: boostees } = trpc.annonces.list.useQuery({ boosted: true, limit: 10 });
+  const { data: premium } = trpc.annonces.list.useQuery({ selectionMka: true, limit: 10 });
+  const { data: recentes } = trpc.annonces.list.useQuery({ limit: 10 });
   const { data: locations } = trpc.annonces.list.useQuery({ type: "location", limit: 10 });
+  const { data: particuliers } = trpc.annonces.list.useQuery({ vendeurType: "particulier", type: "vente", limit: 10 });
 
   const realOfficielles = (officielles?.items ?? []).map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }));
-  const realParticuliers = (particuliers?.items ?? []).map((a: any) => ({ ...a, badge: "PARTICULIER" }));
-  const realRecentes = recentes?.items ?? [];
-  const realBoostees = realRecentes.filter((a: any) => a.boosted).slice(0, 10).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
-  const realPremium = realRecentes.filter((a: any) => a.ownership !== "plateforme" && a.vendeurType !== "particulier").slice(0, 10).map((a: any) => ({ ...a, badge: "PREMIUM" }));
-  const realProches = realRecentes.slice(0, 5).map((a: any) => ({ ...a, distance: `${Math.floor(Math.random() * 20 + 1)} km` }));
+  const realBoostees = (boostees?.items ?? []).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
+  const realPremium = (premium?.items ?? []).map((a: any) => ({ ...a, badge: "PREMIUM" }));
+  const realProches = (recentes?.items ?? []).map((a: any) => ({ ...a, distance: `${Math.floor(Math.random() * 20 + 1)} km` }));
   const realLocations = (locations?.items ?? []).map((a: any) => ({ ...a, prixJour: a.prixJour || Math.round(Number(a.prix) / 30) }));
+  const realParticuliers = (particuliers?.items ?? []).map((a: any) => ({ ...a, badge: "PARTICULIER" }));
 
   return (
     <div className="bg-[#F5F3EF] min-h-screen">
@@ -340,11 +293,15 @@ export default function Home() {
               </div>
               <Link to="/acheter?source=officiel" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
-            <HScroll>
-              {(realOfficielles.length > 0 ? realOfficielles : ANNONCES_OFFICIELLES).map((a: any) => (
-                <AnnonceCard key={a.id} a={a} badgeColor="bg-[#D4AF37]" />
-              ))}
-            </HScroll>
+            {realOfficielles.length > 0 ? (
+              <HScroll>
+                {realOfficielles.map((a: any) => (
+                  <AnnonceCard key={a.id} a={a} badgeColor="bg-[#D4AF37]" />
+                ))}
+              </HScroll>
+            ) : (
+              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucun véhicule officiel MKA.P-MS disponible pour le moment.</div>
+            )}
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
@@ -358,11 +315,15 @@ export default function Home() {
               </div>
               <Link to="/acheter?boost=true" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
-            <HScroll>
-              {(realBoostees.length > 0 ? realBoostees : ANNONCES_BOOSTEES).map((a: any) => (
-                <AnnonceCard key={a.id} a={a} badgeColor="bg-[#111]" />
-              ))}
-            </HScroll>
+            {realBoostees.length > 0 ? (
+              <HScroll>
+                {realBoostees.map((a: any) => (
+                  <AnnonceCard key={a.id} a={a} badgeColor="bg-[#111]" />
+                ))}
+              </HScroll>
+            ) : (
+              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce boostée pour le moment.</div>
+            )}
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
@@ -376,11 +337,15 @@ export default function Home() {
               </div>
               <Link to="/acheter?premium=true" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
-            <HScroll>
-              {(realPremium.length > 0 ? realPremium : ANNONCES_PREMIUM).map((a: any) => (
-                <AnnonceCard key={a.id} a={a} badgeColor="bg-blue-600" />
-              ))}
-            </HScroll>
+            {realPremium.length > 0 ? (
+              <HScroll>
+                {realPremium.map((a: any) => (
+                  <AnnonceCard key={a.id} a={a} badgeColor="bg-blue-600" />
+                ))}
+              </HScroll>
+            ) : (
+              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce premium pour le moment.</div>
+            )}
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
@@ -412,11 +377,15 @@ export default function Home() {
               </div>
               <Link to="/recherche" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
-            <HScroll>
-              {(realProches.length > 0 ? realProches : VEHICULES_PROCHES).map((a: any) => (
-                <AnnonceCard key={a.id} a={a} badgeColor="bg-[#D4AF37]" />
-              ))}
-            </HScroll>
+            {realProches.length > 0 ? (
+              <HScroll>
+                {realProches.map((a: any) => (
+                  <AnnonceCard key={a.id} a={a} badgeColor="bg-[#D4AF37]" />
+                ))}
+              </HScroll>
+            ) : (
+              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucun véhicule trouvé autour de vous.</div>
+            )}
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
@@ -430,33 +399,37 @@ export default function Home() {
               </div>
               <Link to="/louer" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
-            <HScroll>
-              {(realLocations.length > 0 ? realLocations : LOCATION_MIXTE).map((a: any) => {
-                const imgSrc = a.photo || a.photoPrincipale || "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
-                const locType = a.segmentLocation === "vtc_taxi" ? "VTC" : a.segmentLocation === "professionnel" ? "Pro" : a.type || "Particulier";
-                const pj = a.prixJour || Math.round(Number(a.prix || 0) / 30);
-                return (
-                  <Link key={a.id} to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
-                    <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
-                      <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" />
-                      <span className={`absolute top-2 left-2 rounded-sm px-2 py-0.5 text-[8px] font-extrabold text-white uppercase ${locType === "VTC" ? "bg-[#111] border border-[#D4AF37]" : locType === "Pro" ? "bg-blue-800" : locType === "Taxi" ? "bg-yellow-600" : "bg-[#D4AF37]"}`}>{pj} €/jour</span>
-                      <span className="absolute top-2 right-2 rounded-sm bg-white/90 px-1.5 py-0.5 text-[8px] font-bold text-[#111]">{locType}</span>
-                    </div>
-                    <div className="p-3">
-                      <h3 className="text-sm font-bold text-[#111] truncate">{a.titre}</h3>
-                      <div className="mt-1 flex gap-2 text-[10px] text-[#6B7280]">
-                        <span>{a.carburant || a.energie || ""}</span>
-                        <span>· {a.annee || ""}</span>
+            {realLocations.length > 0 ? (
+              <HScroll>
+                {realLocations.map((a: any) => {
+                  const imgSrc = a.photo || a.photoPrincipale || "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
+                  const locType = a.segmentLocation === "vtc_taxi" ? "VTC" : a.segmentLocation === "professionnel" ? "Pro" : a.type || "Particulier";
+                  const pj = a.prixJour || Math.round(Number(a.prix || 0) / 30);
+                  return (
+                    <Link key={a.id} to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
+                      <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
+                        <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" />
+                        <span className={`absolute top-2 left-2 rounded-sm px-2 py-0.5 text-[8px] font-extrabold text-white uppercase ${locType === "VTC" ? "bg-[#111] border border-[#D4AF37]" : locType === "Pro" ? "bg-blue-800" : locType === "Taxi" ? "bg-yellow-600" : "bg-[#D4AF37]"}`}>{pj} €/jour</span>
+                        <span className="absolute top-2 right-2 rounded-sm bg-white/90 px-1.5 py-0.5 text-[8px] font-bold text-[#111]">{locType}</span>
                       </div>
-                      <div className="mt-2 flex items-center justify-between">
-                        <p className="text-base font-black text-[#D4AF37]">{pj} €<span className="text-[10px] font-normal text-[#6B7280]">/jour</span></p>
-                        <span className="text-[10px] text-[#9CA3AF] flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</span>
+                      <div className="p-3">
+                        <h3 className="text-sm font-bold text-[#111] truncate">{a.titre}</h3>
+                        <div className="mt-1 flex gap-2 text-[10px] text-[#6B7280]">
+                          <span>{a.carburant || a.energie || ""}</span>
+                          <span>· {a.annee || ""}</span>
+                        </div>
+                        <div className="mt-2 flex items-center justify-between">
+                          <p className="text-base font-black text-[#D4AF37]">{pj} €<span className="text-[10px] font-normal text-[#6B7280]">/jour</span></p>
+                          <span className="text-[10px] text-[#9CA3AF] flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</span>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </HScroll>
+                    </Link>
+                  );
+                })}
+              </HScroll>
+            ) : (
+              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune location disponible pour le moment.</div>
+            )}
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
@@ -470,11 +443,15 @@ export default function Home() {
               </div>
               <Link to="/acheter?vendeur=particulier" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
-            <HScroll>
-              {(realParticuliers.length > 0 ? realParticuliers : ANNONCES_PARTICULIERS).map((a: any) => (
-                <AnnonceCard key={a.id} a={a} badgeColor="bg-green-600" />
-              ))}
-            </HScroll>
+            {realParticuliers.length > 0 ? (
+              <HScroll>
+                {realParticuliers.map((a: any) => (
+                  <AnnonceCard key={a.id} a={a} badgeColor="bg-green-600" />
+                ))}
+              </HScroll>
+            ) : (
+              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce de particulier pour le moment.</div>
+            )}
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
@@ -535,14 +512,14 @@ export default function Home() {
             <p className="text-[10px] md:text-xs text-[#6B7280] text-center mb-4">Rejoignez MKA.P-MS et développez votre activité automobile</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
               {[
-                { icon: Wrench, label: "Garages", desc: "Gérez vos ateliers et devis", to: "/garage-plus" },
+                { icon: Wrench, label: "Garages", desc: "Gérez vos ateliers et devis", to: "/espace-pro" },
                 { icon: Car, label: "Marchands", desc: "Vendez vos véhicules", to: "/espace-pro" },
-                { icon: KeyRound, label: "Loueurs", desc: "Gérez votre flotte", to: "/louer/pro" },
-                { icon: Truck, label: "Dépanneurs", desc: "Recevez des interventions", to: "/depannage" },
-                { icon: ShieldCheck, label: "Contrôleurs techniques", desc: "Prises en charge en ligne", to: "/garage/controle-technique" },
-                { icon: BadgeCheck, label: "Sociétés VTC", desc: "Location VTC & Taxi", to: "/louer/vtc-taxi" },
-                { icon: Package, label: "Transporteurs", desc: "Livraison et logistique", to: "/livraison" },
-                { icon: Receipt, label: "Démarches administratives", desc: "Carte grise, déclarations", to: "/demarches" },
+                { icon: KeyRound, label: "Loueurs", desc: "Gérez votre flotte", to: "/espace-pro" },
+                { icon: Truck, label: "Dépanneurs", desc: "Recevez des interventions", to: "/espace-pro" },
+                { icon: ShieldCheck, label: "Contrôleurs techniques", desc: "Prises en charge en ligne", to: "/espace-pro" },
+                { icon: BadgeCheck, label: "Sociétés VTC", desc: "Location VTC & Taxi", to: "/espace-pro" },
+                { icon: Package, label: "Transporteurs", desc: "Livraison et logistique", to: "/espace-pro" },
+                { icon: Receipt, label: "Démarches administratives", desc: "Carte grise, déclarations", to: "/espace-pro" },
               ].map((p) => (
                 <Link key={p.label} to={p.to} className="flex items-center gap-3 rounded-xl bg-[#F5F3EF] border border-[#E5E7EB] p-3 hover:border-[#D4AF37] hover:shadow-sm transition">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#D4AF37]/10">

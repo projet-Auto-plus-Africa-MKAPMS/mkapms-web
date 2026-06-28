@@ -27,24 +27,24 @@ interface Notification {
 
 const NOTIFS: Notification[] = [
   // Vente
-  { id: 1, category: "vente", titre: "Nouveau message", desc: "Un acheteur interesse par votre Peugeot 3008 GT vous a envoye un message.", date: "Il y a 5 min", lu: false, url: "/compte/messages" },
-  { id: 2, category: "vente", titre: "Nouvelle offre", desc: "Offre de 27 500 EUR recue sur votre Peugeot 3008 GT.", date: "Il y a 30 min", lu: false, url: "/compte" },
+  { id: 1, category: "vente", titre: "Nouveau message", desc: "Un acheteur interesse par votre Peugeot 3008 GT vous a envoye un message.", date: "Il y a 5 min", lu: false, url: "/compte?tab=annonces" },
+  { id: 2, category: "vente", titre: "Nouvelle offre", desc: "Offre de 27 500 EUR recue sur votre Peugeot 3008 GT.", date: "Il y a 30 min", lu: false, url: "/compte?tab=annonces" },
   { id: 3, category: "vente", titre: "Annonce validee", desc: "Votre annonce 'BMW Serie 3 320i' a ete validee et est maintenant en ligne.", date: "Il y a 2h", lu: false, url: "/vehicule/3" },
-  { id: 4, category: "vente", titre: "Annonce expiree", desc: "Votre annonce 'Citroen C3 Aircross' a expire. Renouvelez-la pour continuer.", date: "Hier", lu: true, url: "/compte" },
+  { id: 4, category: "vente", titre: "Annonce expiree", desc: "Votre annonce 'Citroen C3 Aircross' a expire. Renouvelez-la pour continuer.", date: "Hier", lu: true, url: "/compte?tab=annonces" },
   { id: 5, category: "vente", titre: "Annonce boostee", desc: "Votre boost Premium 30j sur 'Peugeot 3008 GT' est actif.", date: "Il y a 2 jours", lu: true, url: "/vehicule/1" },
 
   // Location
-  { id: 6, category: "location", titre: "Reservation recue", desc: "Nouvelle reservation pour Mercedes Classe E Break du 20/06 au 25/06.", date: "Il y a 1h", lu: false, url: "/compte" },
-  { id: 7, category: "location", titre: "Reservation confirmee", desc: "Votre reservation Renault Clio V du 01/07 au 07/07 est confirmee.", date: "Il y a 3h", lu: false, url: "/compte" },
-  { id: 8, category: "location", titre: "Reservation annulee", desc: "La reservation #R-2024-0089 a ete annulee par le client.", date: "Hier", lu: true, url: "/compte" },
-  { id: 9, category: "location", titre: "Paiement recu", desc: "Paiement de 1 350 EUR recu pour la location Mercedes Classe E Break.", date: "Il y a 2 jours", lu: true, url: "/compte" },
+  { id: 6, category: "location", titre: "Reservation recue", desc: "Nouvelle reservation pour Mercedes Classe E Break du 20/06 au 25/06.", date: "Il y a 1h", lu: false, url: "/compte?tab=reservations" },
+  { id: 7, category: "location", titre: "Reservation confirmee", desc: "Votre reservation Renault Clio V du 01/07 au 07/07 est confirmee.", date: "Il y a 3h", lu: false, url: "/compte?tab=reservations" },
+  { id: 8, category: "location", titre: "Reservation annulee", desc: "La reservation #R-2024-0089 a ete annulee par le client.", date: "Hier", lu: true, url: "/compte?tab=reservations" },
+  { id: 9, category: "location", titre: "Paiement recu", desc: "Paiement de 1 350 EUR recu pour la location Mercedes Classe E Break.", date: "Il y a 2 jours", lu: true, url: "/comptabilite?tab=ecritures" },
 
   // Garage
-  { id: 10, category: "garage", titre: "Nouveau devis", desc: "Devis revision complete pour Peugeot 3008 GT — 350 EUR.", date: "Il y a 2h", lu: false, url: "/reparer" },
-  { id: 11, category: "garage", titre: "Devis accepte", desc: "Le client a accepte votre devis #D-2024-0542.", date: "Hier", lu: true, url: "/reparer" },
-  { id: 12, category: "garage", titre: "Vehicule arrive", desc: "Le vehicule AB-123-CD est arrive a l'atelier.", date: "Hier", lu: true, url: "/garage-plus" },
-  { id: 13, category: "garage", titre: "Reparation terminee", desc: "La revision de la Peugeot 3008 GT est terminee.", date: "Il y a 3 jours", lu: true, url: "/garage-plus" },
-  { id: 14, category: "garage", titre: "Vehicule pret", desc: "Le vehicule AB-123-CD est pret a etre recupere.", date: "Il y a 3 jours", lu: true, url: "/garage-plus" },
+  { id: 10, category: "garage", titre: "Nouveau devis", desc: "Devis revision complete pour Peugeot 3008 GT — 350 EUR.", date: "Il y a 2h", lu: false, url: "/compte?tab=devis" },
+  { id: 11, category: "garage", titre: "Devis accepte", desc: "Le client a accepte votre devis #D-2024-0542.", date: "Hier", lu: true, url: "/compte?tab=devis" },
+  { id: 12, category: "garage", titre: "Vehicule arrive", desc: "Le vehicule AB-123-CD est arrive a l'atelier.", date: "Hier", lu: true, url: "/suivi-vehicule" },
+  { id: 13, category: "garage", titre: "Reparation terminee", desc: "La revision de la Peugeot 3008 GT est terminee.", date: "Il y a 3 jours", lu: true, url: "/suivi-vehicule" },
+  { id: 14, category: "garage", titre: "Vehicule pret", desc: "Le vehicule AB-123-CD est pret a etre recupere.", date: "Il y a 3 jours", lu: true, url: "/suivi-vehicule" },
 
   // Encheres
   { id: 15, category: "encheres", titre: "Nouvelle enchere", desc: "Lot #127 — Nouvelle enchere ouverte: Peugeot 208 + Citroen C3.", date: "Il y a 4h", lu: false, url: "/encheres" },
@@ -53,13 +53,13 @@ const NOTIFS: Notification[] = [
   { id: 18, category: "encheres", titre: "Enchere perdue", desc: "Vous n'avez pas remporte le Lot #098. Le lot est parti a 5 600 EUR.", date: "Il y a 5 jours", lu: true, url: "/encheres" },
 
   // Compte
-  { id: 19, category: "compte", titre: "Validation documents", desc: "Votre piece d'identite a ete validee avec succes.", date: "Il y a 1 jour", lu: true, url: "/compte" },
+  { id: 19, category: "compte", titre: "Validation documents", desc: "Votre piece d'identite a ete validee avec succes.", date: "Il y a 1 jour", lu: true, url: "/compte?tab=coffre" },
   { id: 20, category: "compte", titre: "Changement abonnement", desc: "Votre abonnement a ete mis a niveau vers Pro Premium (89 EUR/mois).", date: "Il y a 3 jours", lu: true, url: "/abonnements" },
-  { id: 21, category: "compte", titre: "Facture disponible", desc: "Votre facture n'2024-0042 est disponible au telechargement.", date: "Il y a 5 jours", lu: true, url: "/compte" },
-
+  { id: 21, category: "compte", titre: "Facture disponible", desc: "Votre facture n'2024-0042 est disponible au telechargement.", date: "Il y a 5 jours", lu: true, url: "/comptabilite?tab=ecritures" },
+  
   // Paiement
-  { id: 22, category: "paiement", titre: "Paiement confirme", desc: "Votre paiement de 89 EUR pour l'abonnement Pro Premium a ete confirme.", date: "Il y a 3 jours", lu: true, url: "/compte" },
-  { id: 23, category: "paiement", titre: "Remboursement traite", desc: "Un remboursement de 50 EUR a ete effectue sur votre compte.", date: "Il y a 7 jours", lu: true, url: "/compte" },
+  { id: 22, category: "paiement", titre: "Paiement confirme", desc: "Votre paiement de 89 EUR pour l'abonnement Pro Premium a ete confirme.", date: "Il y a 3 jours", lu: true, url: "/comptabilite?tab=ecritures" },
+  { id: 23, category: "paiement", titre: "Remboursement traite", desc: "Un remboursement de 50 EUR a ete effectue sur votre compte.", date: "Il y a 7 jours", lu: true, url: "/comptabilite?tab=ecritures" },
 ];
 
 const CATEGORY_CONFIG: Record<NotifCategory, { label: string; icon: typeof Bell; color: string }> = {

@@ -785,7 +785,7 @@ export default function App() {
             <Route path="/vente/dossier-vehicule/:id?" element={<U name="Dossier véhicule"><DossierVehicule /></U>} />
             <Route path="/vente/workflow/:id?" element={<U name="Workflow VO"><WorkflowAchatVO /></U>} />
             <Route path="/vente/mes-annonces" element={<U name="Mes Annonces"><MesAnnonces /></U>} />
-            <Route path="/vente/factures" element={<U name="Factures"><Comptabilite /></U>} />
+            <Route path="/comptabilite" element={<U name="Factures"><Comptabilite /></U>} />
             <Route path="/vente/abonnements" element={<U name="Abonnements"><Abonnements /></U>} />
             <Route path="/vente/documents-societe" element={<U name="Documents"><CentreDocuments /></U>} />
             <Route path="/vente/statistiques" element={<U name="Statistiques"><CentrePerformances /></U>} />
