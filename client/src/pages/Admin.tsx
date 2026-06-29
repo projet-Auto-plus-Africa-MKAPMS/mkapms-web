@@ -77,24 +77,24 @@ export default function Admin() {
       <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0A0A0A]/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#B8962E] flex items-center justify-center shadow-lg shadow-[#D4AF37]/20">
-                <Layout size={20} className="text-black" />
-              </div>
-              <div>
-                <h1 className="text-sm font-black uppercase tracking-tighter text-white">Espace Gestion</h1>
-                <p className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest opacity-80">MKA.P-MS Administration</p>
-              </div>
-            </div>
-            <div className="flex-1 flex justify-center">
-              <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10">
-                <button onClick={() => changeTab("backoffice")} className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminTab === "backoffice" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/40 hover:text-white"}`}>Back-office</button>
-                <button onClick={() => changeTab("superadmin")} className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminTab === "superadmin" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/40 hover:text-white"}`}>Super Admin</button>
-                {direction && (
-                  <button onClick={() => changeTab("direction")} className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminTab === "direction" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/40 hover:text-white"}`}>Direction</button>
-                )}
-              </div>
-            </div>
+	            <div className="flex items-center justify-between w-full gap-4">
+	              <div className="flex items-center gap-3 shrink-0">
+	                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#B8962E] flex items-center justify-center shadow-lg shadow-[#D4AF37]/20">
+	                  <Layout size={20} className="text-black" />
+	                </div>
+	                <div>
+	                  <h1 className="text-sm font-black uppercase tracking-tighter text-white">Espace Gestion</h1>
+	                  <p className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest opacity-80">MKA.P-MS Administration</p>
+	                </div>
+	              </div>
+	              <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10 overflow-x-auto no-scrollbar">
+	                <button onClick={() => changeTab("backoffice")} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "backoffice" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/40 hover:text-white"}`}>Back-office</button>
+	                <button onClick={() => changeTab("superadmin")} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "superadmin" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/40 hover:text-white"}`}>Super Admin</button>
+	                {direction && (
+	                  <button onClick={() => changeTab("direction")} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "direction" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/40 hover:text-white"}`}>Direction</button>
+	                )}
+	              </div>
+	            </div>
           </div>
         </div>
       </header>
