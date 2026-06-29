@@ -149,6 +149,13 @@ export default function Admin() {
 	                  { label: "RH & Recrutement", to: "/superadmin/admin-utilisateurs", emoji: "👥" },
 	                  { label: "Publicité & Marketing", to: "/superadmin/admin-paiements", emoji: "📢" },
 	                  { label: "API Partenaires", to: "/superadmin/admin-utilisateurs", emoji: "🔗" },
+	                  { label: "Gestion Multi-Pays", to: "/international/multi-pays", emoji: "🌍" },
+	                  { label: "Moteur de Règles", to: "/global-country-engine", emoji: "⚙️" },
+	                  { label: "Vente par Pays", to: "/conformite/vente-pays", emoji: "💰" },
+	                  { label: "Location par Pays", to: "/conformite/location-pays", emoji: "🏠" },
+	                  { label: "Import Africa", to: "/import-africa", emoji: "🚢" },
+	                  { label: "Carte Mondiale", to: "/superadmin/admin-carte-moniale", emoji: "🗺️" },
+	                  { label: "Flux Temps Réel", to: "/superadmin/admin-paiements", emoji: "📊" },
 	                ].map((s) => (
                   <Link key={s.to} to={s.to} className="group flex flex-col items-center gap-3 rounded-2xl border border-white/5 bg-[#1A1A1A] p-5 text-center transition-all hover:border-[#D4AF37]">
                     <div className="text-2xl">{s.emoji}</div>
