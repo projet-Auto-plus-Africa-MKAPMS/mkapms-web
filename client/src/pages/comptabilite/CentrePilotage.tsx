@@ -9,7 +9,14 @@ import {
   Truck, Fuel, Bolt, PieChart, Activity, UserCheck,
   Cog, Link2, Server, Lock, UserCircle, HardDrive, Search,
   RefreshCw, Database,
-  FolderOpen, Archive, Lightbulb, Layout
+  FolderOpen, Archive, Lightbulb, Layout,
+  Rocket, Handshake, DollarSign, Bookmark, Globe2, Smartphone,
+  GraduationCap, MessageSquare, ClipboardCheck, Scale, BookOpen, Hash,
+  Leaf, Star, FileCheck, ShieldCheck, LineChart, Heart,
+  Gift, Cpu, Palette, Gauge,
+  Plug, ShoppingCart, PackageOpen, Factory, Banknote,
+  Umbrella, Navigation, Building, Code2, Monitor, Wifi, HardDriveDownload,
+  Radar, Compass
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -24,7 +31,16 @@ type MainTab = "accueil" | "performance" | "pays" | "agences" | "franchises" |
   "alertes" | "journal" | "ia" | "parametres" | "conseil" |
   "automatisation" | "api" | "surveillance" | "securite" | "clients" |
   "professionnels" | "documents" | "sauvegarde" | "analyse_strat" |
-  "croissance" | "executif" | "innovation";
+  "croissance" | "executif" | "innovation" |
+  "rd" | "centre_innovation" | "investisseurs" | "partenariats" | "marques" |
+  "propriete_ip" | "expansion" | "applications" | "domaines" | "licences" |
+  "formation" | "communication" | "audits" | "gouvernance" |
+  "esg" | "qualite" | "conformite" | "continuite" | "observation" |
+  "experience" | "rewards" | "ia_centre" | "personnalisation" | "indicateurs" |
+  "connecteurs" | "marketplaces" | "fournisseurs" | "constructeurs" |
+  "partenaires_fin" | "assurances" | "transporteurs" | "administrations" |
+  "api_internes" | "developpeurs" | "apps_connectees" | "objets_connectes" |
+  "donnees" | "supervision" | "vision";
 
 interface KPI { label: string; value: string; color: string; icon: typeof Euro; path?: string; }
 
@@ -61,6 +77,45 @@ const TABS: { id: MainTab; label: string; icon: typeof Crown }[] = [
   { id: "croissance", label: "Croissance", icon: Globe },
   { id: "executif", label: "Tableau Executif", icon: Layout },
   { id: "innovation", label: "Innovation & R&D", icon: Lightbulb },
+  { id: "rd", label: "Centre R&D", icon: Rocket },
+  { id: "centre_innovation", label: "Centre Innovation", icon: Lightbulb },
+  { id: "investisseurs", label: "Investisseurs", icon: DollarSign },
+  { id: "partenariats", label: "Partenariats", icon: Handshake },
+  { id: "marques", label: "Marques", icon: Bookmark },
+  { id: "propriete_ip", label: "Propriete IP", icon: Shield },
+  { id: "expansion", label: "Expansion", icon: Globe2 },
+  { id: "applications", label: "Applications", icon: Smartphone },
+  { id: "domaines", label: "Domaines", icon: Globe },
+  { id: "licences", label: "Licences", icon: Key },
+  { id: "formation", label: "Formation", icon: GraduationCap },
+  { id: "communication", label: "Communication", icon: MessageSquare },
+  { id: "audits", label: "Audits", icon: ClipboardCheck },
+  { id: "gouvernance", label: "Gouvernance", icon: Scale },
+  { id: "esg", label: "ESG & Durable", icon: Leaf },
+  { id: "qualite", label: "Qualite", icon: Star },
+  { id: "conformite", label: "Conformite", icon: FileCheck },
+  { id: "continuite", label: "Continuite", icon: ShieldCheck },
+  { id: "observation", label: "Observation Marche", icon: LineChart },
+  { id: "experience", label: "Experience Client", icon: Heart },
+  { id: "rewards", label: "Rewards", icon: Gift },
+  { id: "ia_centre", label: "IA MKA Centre", icon: Cpu },
+  { id: "personnalisation", label: "Personnalisation", icon: Palette },
+  { id: "indicateurs", label: "Indicateurs Exec.", icon: Gauge },
+  { id: "connecteurs", label: "Connecteurs", icon: Plug },
+  { id: "marketplaces", label: "Marketplaces", icon: ShoppingCart },
+  { id: "fournisseurs", label: "Fournisseurs", icon: PackageOpen },
+  { id: "constructeurs", label: "Constructeurs", icon: Factory },
+  { id: "partenaires_fin", label: "Partenaires Fin.", icon: Banknote },
+  { id: "assurances", label: "Assurances", icon: Umbrella },
+  { id: "transporteurs", label: "Transporteurs", icon: Navigation },
+  { id: "administrations", label: "Administrations", icon: Building },
+  { id: "api_internes", label: "API Internes", icon: Code2 },
+  { id: "developpeurs", label: "Developpeurs", icon: Code2 },
+  { id: "apps_connectees", label: "Apps Connectees", icon: Monitor },
+  { id: "objets_connectes", label: "Objets Connectes", icon: Wifi },
+  { id: "donnees", label: "Donnees", icon: HardDriveDownload },
+  { id: "supervision", label: "Supervision", icon: Radar },
+  { id: "vision", label: "Vision MKA", icon: Compass },
 ];
 
 /* ---------- static data ---------- */
@@ -251,6 +306,265 @@ const INNOVATION_PROJETS = [
   { nom: "Vehicule inspection 360°", statut: "Idee", phase: "Recherche", debut: "—", equipe: "Innovation", priorite: "Basse", avancement: 5 },
   { nom: "Blockchain certificat vehicule", statut: "Etude", phase: "Faisabilite", debut: "01/06/2026", equipe: "Tech", priorite: "Moyenne", avancement: 15 },
   { nom: "Prediction prix marche auto", statut: "Prototype", phase: "R&D", debut: "15/04/2026", equipe: "Data", priorite: "Moyenne", avancement: 35 },
+];
+
+/* ---------- Partie 4 data (42-55) ---------- */
+const RD_PROJETS = [
+  { nom: "IA Detection fraude v2", categorie: "Intelligence artificielle", responsable: "Karim B.", budget: "45 000 EUR", priorite: "Haute", avancement: 55, cible: "Q4 2026", validation: "Approuve" },
+  { nom: "App Garage+ standalone", categorie: "Applications mobiles", responsable: "Ahmed T.", budget: "80 000 EUR", priorite: "Haute", avancement: 25, cible: "Q1 2027", validation: "En attente" },
+  { nom: "Moteur de recommandation", categorie: "Intelligence artificielle", responsable: "Data Team", budget: "35 000 EUR", priorite: "Moyenne", avancement: 15, cible: "Q2 2027", validation: "Approuve" },
+  { nom: "Inspection vehicule AR", categorie: "Objets connectes", responsable: "Innovation", budget: "120 000 EUR", priorite: "Basse", avancement: 5, cible: "2028", validation: "Planifie" },
+  { nom: "Dashboard Electric+ v2", categorie: "Electric+", responsable: "Awa S.", budget: "20 000 EUR", priorite: "Moyenne", avancement: 40, cible: "Q3 2026", validation: "Approuve" },
+  { nom: "API Marketplace externe", categorie: "Outils internes", responsable: "Tech", budget: "15 000 EUR", priorite: "Haute", avancement: 60, cible: "Q3 2026", validation: "Approuve" },
+];
+
+const IDEES_INNOVATION = [
+  { titre: "Livraison par drone", auteur: "Moussa K. (PDG)", date: "01/06/2026", impact: "Eleve", cout: "200 000 EUR", difficulte: "Haute", priorite: "Basse", decision: "Report 2028" },
+  { titre: "Assurance integree MKA", auteur: "Awa S. (Dir.)", date: "15/05/2026", impact: "Eleve", cout: "50 000 EUR", difficulte: "Moyenne", priorite: "Haute", decision: "Approuve" },
+  { titre: "Abonnement famille", auteur: "Client via feedback", date: "20/05/2026", impact: "Moyen", cout: "5 000 EUR", difficulte: "Basse", priorite: "Moyenne", decision: "En etude" },
+  { titre: "Mode sombre app", auteur: "Ahmed T. (Dev)", date: "10/06/2026", impact: "Faible", cout: "2 000 EUR", difficulte: "Basse", priorite: "Basse", decision: "Planifie" },
+  { titre: "Chatbot vocal", auteur: "Partenaire Google", date: "05/06/2026", impact: "Moyen", cout: "30 000 EUR", difficulte: "Haute", priorite: "Moyenne", decision: "En etude" },
+];
+
+const INVESTISSEURS_DATA = [
+  { nom: "Serie Pre-Seed", montant: "150 000 EUR", date: "01/01/2025", investisseur: "Fondateur", participation: "100%", statut: "Realise" },
+  { nom: "Serie Seed (prevue)", montant: "500 000 EUR", date: "Q4 2026", investisseur: "A definir", participation: "15-20%", statut: "Planifie" },
+  { nom: "Serie A (prevue)", montant: "2 000 000 EUR", date: "2027", investisseur: "A definir", participation: "20-25%", statut: "Vision" },
+];
+
+const PARTENAIRES_DATA = [
+  { nom: "TecDoc", type: "Fournisseur catalogue", responsable: "Tech", ca: "—", contrat: "01/01/2026 - 31/12/2026", niveau: "Gold" },
+  { nom: "Stripe", type: "Paiement", responsable: "Finance", ca: "Commission 2.9%", contrat: "Illimite", niveau: "Platinum" },
+  { nom: "Railway", type: "Hebergement", responsable: "Tech", ca: "~200 EUR/mois", contrat: "Mensuel", niveau: "Standard" },
+  { nom: "Google Cloud", type: "Technologie", responsable: "Tech", ca: "~150 EUR/mois", contrat: "Pay-as-you-go", niveau: "Standard" },
+  { nom: "Bosch Car Service", type: "Reseau de garages", responsable: "Direction", ca: "Partenariat", contrat: "En negociation", niveau: "En attente" },
+  { nom: "AXA Assurance", type: "Assurance", responsable: "Direction", ca: "A definir", contrat: "En discussion", niveau: "En attente" },
+];
+
+const MARQUES_DATA = [
+  { nom: "MKA.P-MS", logo: "Enregistre", pays: "France, CI, Senegal", depot: "INPI 2024", renouvellement: "2034", statut: "Actif", responsable: "Moussa K." },
+  { nom: "Garage+", logo: "Enregistre", pays: "France", depot: "INPI 2025", renouvellement: "2035", statut: "Actif", responsable: "Moussa K." },
+  { nom: "Finance+", logo: "Enregistre", pays: "France", depot: "INPI 2025", renouvellement: "2035", statut: "Actif", responsable: "Moussa K." },
+  { nom: "Electric+", logo: "En cours", pays: "France", depot: "INPI 2026", renouvellement: "—", statut: "En depot", responsable: "Moussa K." },
+  { nom: "Rewards MKA", logo: "Planifie", pays: "—", depot: "—", renouvellement: "—", statut: "Planifie", responsable: "A definir" },
+  { nom: "Encheres Pro", logo: "Enregistre", pays: "France", depot: "INPI 2025", renouvellement: "2035", statut: "Actif", responsable: "Moussa K." },
+  { nom: "Atelier Pro", logo: "Enregistre", pays: "France", depot: "INPI 2025", renouvellement: "2035", statut: "Actif", responsable: "Moussa K." },
+];
+
+const PROPRIETE_IP = [
+  { actif: "Marque MKA.P-MS", type: "Marque", depot: "INPI", expiration: "2034", statut: "Protege" },
+  { actif: "Logo MKA.P-MS", type: "Design", depot: "INPI", expiration: "2034", statut: "Protege" },
+  { actif: "mkapms.com", type: "Nom de domaine", depot: "Registrar", expiration: "15/06/2027", statut: "Actif" },
+  { actif: "Code source plateforme", type: "Logiciel", depot: "GitHub (prive)", expiration: "—", statut: "Protege" },
+  { actif: "Base de donnees utilisateurs", type: "Base de donnees", depot: "Interne", expiration: "—", statut: "RGPD" },
+  { actif: "Brevet inspection AR (futur)", type: "Brevet", depot: "A deposer", expiration: "—", statut: "Planifie" },
+];
+
+const EXPANSION_DATA = [
+  { pays: "Guinee", etude: "Completee", budget: "25 000 EUR", planning: "Q4 2026", recrutement: "2 postes", partenaires: "1 local", reglementation: "TVA 18%", fiscalite: "IS 25%", langues: "Francais", paiement: "Orange Money", ouverture: "01/12/2026" },
+  { pays: "Mali", etude: "En cours", budget: "20 000 EUR", planning: "Q1 2027", recrutement: "1 poste", partenaires: "En recherche", reglementation: "TVA 18%", fiscalite: "IS 30%", langues: "Francais", paiement: "Mobile Money", ouverture: "01/03/2027" },
+  { pays: "Belgique", etude: "Planifiee", budget: "40 000 EUR", planning: "Q2 2027", recrutement: "3 postes", partenaires: "0", reglementation: "TVA 21%", fiscalite: "IS 25%", langues: "FR/NL", paiement: "Stripe, Bancontact", ouverture: "01/06/2027" },
+  { pays: "Suisse", etude: "Analyse", budget: "60 000 EUR", planning: "2028", recrutement: "A definir", partenaires: "0", reglementation: "TVA 7.7%", fiscalite: "Variable", langues: "FR/DE/IT", paiement: "Stripe, TWINT", ouverture: "2028" },
+];
+
+const APPS_DATA = [
+  { nom: "App Particuliers", version: "1.0.0", utilisateurs: "26 025", mises_a_jour: 12, bugs: 3, note: "4.6/5", telechargements: "28 400" },
+  { nom: "App Professionnels", version: "1.0.0", utilisateurs: "1 225", mises_a_jour: 8, bugs: 1, note: "4.7/5", telechargements: "1 890" },
+  { nom: "App Garage+", version: "0.9-beta", utilisateurs: "37", mises_a_jour: 4, bugs: 5, note: "4.2/5", telechargements: "120" },
+  { nom: "App Electric+", version: "Planifiee", utilisateurs: "—", mises_a_jour: 0, bugs: 0, note: "—", telechargements: "—" },
+  { nom: "App Finance+", version: "Planifiee", utilisateurs: "—", mises_a_jour: 0, bugs: 0, note: "—", telechargements: "—" },
+  { nom: "App Direction", version: "0.5-alpha", utilisateurs: "3", mises_a_jour: 2, bugs: 2, note: "—", telechargements: "3" },
+];
+
+const DOMAINES_DATA = [
+  { domaine: "mkapms.com", registrar: "Namecheap", expiration: "15/06/2027", dns: "Cloudflare", ssl: "Let's Encrypt (auto)", redirections: 2, statut: "Actif" },
+  { domaine: "mkapms.fr", registrar: "OVH", expiration: "01/03/2027", dns: "OVH", ssl: "Actif", redirections: 1, statut: "Actif" },
+  { domaine: "mkapms.pro", registrar: "Namecheap", expiration: "15/06/2027", dns: "Cloudflare", ssl: "Actif", redirections: 1, statut: "Actif" },
+  { domaine: "mkapms.site", registrar: "Namecheap", expiration: "15/06/2027", dns: "Cloudflare", ssl: "—", redirections: 0, statut: "Reserve" },
+  { domaine: "mkapms.ci", registrar: "A reserver", expiration: "—", dns: "—", ssl: "—", redirections: 0, statut: "Planifie" },
+  { domaine: "mkapms.sn", registrar: "A reserver", expiration: "—", dns: "—", ssl: "—", redirections: 0, statut: "Planifie" },
+];
+
+const LICENCES_DATA = [
+  { logiciel: "Railway (Hebergement)", cout: "~200 EUR/mois", renouvellement: "Mensuel", responsable: "Tech", utilisation: "Production" },
+  { logiciel: "Stripe (Paiement)", cout: "Commission 2.9%", renouvellement: "—", responsable: "Finance", utilisation: "Production" },
+  { logiciel: "Google Maps API", cout: "~50 EUR/mois", renouvellement: "Pay-as-you-go", responsable: "Tech", utilisation: "Production" },
+  { logiciel: "SendGrid (Emails)", cout: "~30 EUR/mois", renouvellement: "Mensuel", responsable: "Tech", utilisation: "Production" },
+  { logiciel: "TecDoc API", cout: "~100 EUR/mois", renouvellement: "Annuel", responsable: "Tech", utilisation: "Production" },
+  { logiciel: "GitHub (Pro)", cout: "~20 EUR/mois", renouvellement: "Mensuel", responsable: "Tech", utilisation: "Developpement" },
+];
+
+const FORMATIONS_DATA = [
+  { titre: "Onboarding nouvel employe", type: "Guide", acces: "Tous", duree: "2h", completions: 76 },
+  { titre: "Utilisation Garage+", type: "Tutoriel video", acces: "Garages", duree: "45min", completions: 32 },
+  { titre: "Gestion des encheres", type: "Procedure", acces: "Equipe Encheres", duree: "1h", completions: 8 },
+  { titre: "RGPD et donnees personnelles", type: "Certification", acces: "Tous", duree: "3h", completions: 45 },
+  { titre: "Service client MKA", type: "Formation", acces: "Support", duree: "4h", completions: 12 },
+  { titre: "Comptabilite plateforme", type: "Guide", acces: "Comptabilite", duree: "2h30", completions: 5 },
+];
+
+const COMMUNICATIONS_DATA = [
+  { titre: "Lancement Electric+ Cote d'Ivoire", type: "Annonce", departement: "Tous", date: "09/06/2026", statut: "Diffuse" },
+  { titre: "Reunion strategie Q3 2026", type: "Reunion", departement: "Direction", date: "15/06/2026", statut: "Planifie" },
+  { titre: "Mise a jour CGV v3.2", type: "Note de service", departement: "Juridique", date: "01/06/2026", statut: "Diffuse" },
+  { titre: "Formation securite informatique", type: "Evenement", departement: "Tech", date: "20/06/2026", statut: "Planifie" },
+  { titre: "Objectifs commerciaux Juillet", type: "Note de service", departement: "Commercial", date: "28/06/2026", statut: "Brouillon" },
+];
+
+const AUDITS_DATA = [
+  { titre: "Audit financier annuel 2025", type: "Financier", date: "15/01/2026", statut: "Termine", recommandations: 3, actions: 3, validation: "PDG" },
+  { titre: "Audit RGPD", type: "RGPD", date: "01/03/2026", statut: "Termine", recommandations: 5, actions: 4, validation: "DPO" },
+  { titre: "Audit securite informatique", type: "Informatique", date: "15/04/2026", statut: "En cours", recommandations: 8, actions: 2, validation: "En attente" },
+  { titre: "Audit qualite services", type: "Qualite", date: "01/05/2026", statut: "Planifie", recommandations: 0, actions: 0, validation: "—" },
+  { titre: "Audit juridique international", type: "Juridique", date: "Q3 2026", statut: "Planifie", recommandations: 0, actions: 0, validation: "—" },
+];
+
+const GOUVERNANCE_DATA = [
+  { decision: "Lancement Garage+ franchise", date: "01/03/2026", type: "Expansion", statut: "Approuve", responsable: "PDG" },
+  { decision: "Levee de fonds Seed Q4 2026", date: "15/04/2026", type: "Investissement", statut: "En preparation", responsable: "PDG" },
+  { decision: "Expansion Tunisie", date: "01/05/2026", type: "International", statut: "Approuve", responsable: "Direction" },
+  { decision: "Recrutement 10 postes Q3", date: "01/06/2026", type: "RH", statut: "Valide", responsable: "DRH" },
+  { decision: "Budget marketing +30%", date: "15/06/2026", type: "Budget", statut: "En discussion", responsable: "PDG" },
+];
+
+/* ---------- Partie 5 data (56-65) ---------- */
+const ESG_DATA = [
+  { indicateur: "Emissions CO2 evitees", valeur: "12.5 tonnes", objectif: "20 tonnes", progression: 62 },
+  { indicateur: "Vehicules electriques promus", valeur: "89", objectif: "150", progression: 59 },
+  { indicateur: "Pieces reutilisees", valeur: "1 245", objectif: "2 000", progression: 62 },
+  { indicateur: "Consommation serveurs (green)", valeur: "78%", objectif: "100%", progression: 78 },
+  { indicateur: "Score ESG global", valeur: "B+", objectif: "A", progression: 72 },
+];
+
+const QUALITE_DATA = [
+  { service: "Vente", satisfaction: "4.7/5", reclamations: 3, tempsTraitement: "24h", objectif: "4.8/5" },
+  { service: "Location", satisfaction: "4.5/5", reclamations: 7, tempsTraitement: "12h", objectif: "4.7/5" },
+  { service: "Garage+", satisfaction: "4.8/5", reclamations: 1, tempsTraitement: "48h", objectif: "4.9/5" },
+  { service: "Carrosserie", satisfaction: "4.4/5", reclamations: 2, tempsTraitement: "72h", objectif: "4.6/5" },
+  { service: "Pieces auto", satisfaction: "4.6/5", reclamations: 5, tempsTraitement: "6h", objectif: "4.7/5" },
+  { service: "Electric+", satisfaction: "4.3/5", reclamations: 4, tempsTraitement: "2h", objectif: "4.5/5" },
+  { service: "Finance+", satisfaction: "4.2/5", reclamations: 8, tempsTraitement: "48h", objectif: "4.5/5" },
+  { service: "Depannage", satisfaction: "4.9/5", reclamations: 0, tempsTraitement: "30min", objectif: "4.9/5" },
+];
+
+const CONFORMITE_DATA = [
+  { regle: "RGPD", pays: "Europe", statut: "Conforme", dernierAudit: "01/03/2026", prochainAudit: "01/03/2027" },
+  { regle: "KYC Professionnels", pays: "Tous", statut: "Conforme", dernierAudit: "15/04/2026", prochainAudit: "15/04/2027" },
+  { regle: "TVA multi-pays", pays: "France, CI, Senegal", statut: "Conforme", dernierAudit: "01/01/2026", prochainAudit: "01/01/2027" },
+  { regle: "Protection consommateurs", pays: "France", statut: "Conforme", dernierAudit: "15/02/2026", prochainAudit: "15/02/2027" },
+  { regle: "Normes automobiles", pays: "France", statut: "En cours", dernierAudit: "—", prochainAudit: "Q3 2026" },
+  { regle: "Lutte anti-fraude", pays: "Tous", statut: "Conforme", dernierAudit: "01/05/2026", prochainAudit: "01/11/2026" },
+];
+
+const OBSERVATION_MARCHE = [
+  { indicateur: "Prix moyen vehicule occasion", valeur: "14 800 EUR", tendance: "+3.2%", direction: "up" },
+  { indicateur: "Marque la plus recherchee", valeur: "Peugeot", tendance: "Stable", direction: "stable" },
+  { indicateur: "Modele le plus recherche", valeur: "308 SW", tendance: "+12%", direction: "up" },
+  { indicateur: "Segment en croissance", valeur: "SUV Electrique", tendance: "+45%", direction: "up" },
+  { indicateur: "Pays le plus dynamique", valeur: "Cote d'Ivoire", tendance: "+28%", direction: "up" },
+  { indicateur: "Prix moyen location/jour", valeur: "42 EUR", tendance: "-1.5%", direction: "down" },
+];
+
+const EXPERIENCE_CLIENT = [
+  { metrique: "Temps moyen sur plateforme", valeur: "8min 32s", evolution: "+12%" },
+  { metrique: "Taux de conversion achat", valeur: "3.8%", evolution: "+0.4%" },
+  { metrique: "Taux de conversion location", valeur: "5.2%", evolution: "+0.8%" },
+  { metrique: "Taux d'abandon panier", valeur: "22%", evolution: "-3%" },
+  { metrique: "NPS (Net Promoter Score)", valeur: "72", evolution: "+5" },
+  { metrique: "Taux de fidelite (retour 90j)", valeur: "45%", evolution: "+8%" },
+  { metrique: "Satisfaction globale", valeur: "4.7/5", evolution: "+0.2" },
+];
+
+const REWARDS_DATA = [
+  { niveau: "Bronze", membres: 18500, points_distribues: "185 000", points_utilises: "42 000", offres: 3 },
+  { niveau: "Silver", membres: 5200, points_distribues: "312 000", points_utilises: "128 000", offres: 5 },
+  { niveau: "Gold", membres: 1800, points_distribues: "540 000", points_utilises: "310 000", offres: 8 },
+  { niveau: "Platinum", membres: 450, points_distribues: "675 000", points_utilises: "520 000", offres: 12 },
+];
+
+const PERSONNALISATION_PAYS = [
+  { pays: "France", devise: "EUR", langue: "Francais", tva: "20%", paiements: "Stripe, CB, Virement", services: "Tous" },
+  { pays: "Cote d'Ivoire", devise: "XOF", langue: "Francais", tva: "18%", paiements: "Orange Money, Wave, Virement", services: "Tous sauf Finance+" },
+  { pays: "Senegal", devise: "XOF", langue: "Francais", tva: "18%", paiements: "Orange Money, Wave", services: "Tous sauf Finance+" },
+  { pays: "Maroc", devise: "MAD", langue: "Francais/Arabe", tva: "20%", paiements: "CMI, Virement", services: "Vente, Location, Garage" },
+  { pays: "Cameroun", devise: "XAF", langue: "Francais", tva: "19.25%", paiements: "MTN MoMo, Orange Money", services: "Vente, Location" },
+];
+
+/* ---------- Partie 6 data (66-80) ---------- */
+const CONNECTEURS_DATA = [
+  { nom: "Stripe", categorie: "Paiements", statut: "actif", derniere_sync: "09/06/2026 18:05" },
+  { nom: "Railway", categorie: "Hebergement", statut: "actif", derniere_sync: "09/06/2026 18:00" },
+  { nom: "Google Maps", categorie: "Geolocalisation", statut: "actif", derniere_sync: "09/06/2026 17:30" },
+  { nom: "TecDoc", categorie: "Constructeurs", statut: "actif", derniere_sync: "08/06/2026 22:00" },
+  { nom: "AXA Assurance", categorie: "Assurances", statut: "desactive", derniere_sync: "—" },
+  { nom: "La Poste", categorie: "Transporteurs", statut: "desactive", derniere_sync: "—" },
+  { nom: "ANTS (Immat.)", categorie: "Administrations", statut: "planifie", derniere_sync: "—" },
+  { nom: "BNP Paribas API", categorie: "Banques", statut: "planifie", derniere_sync: "—" },
+];
+
+const MARKETPLACES_DATA = [
+  { nom: "LeBonCoin", statut: "planifie", annonces_sync: 0, prix_sync: false, stock_sync: false },
+  { nom: "AutoScout24", statut: "planifie", annonces_sync: 0, prix_sync: false, stock_sync: false },
+  { nom: "La Centrale", statut: "planifie", annonces_sync: 0, prix_sync: false, stock_sync: false },
+  { nom: "MKA.P-MS Interne", statut: "actif", annonces_sync: 1245, prix_sync: true, stock_sync: true },
+];
+
+const FOURNISSEURS_DATA = [
+  { nom: "TecDoc / TecAlliance", categorie: "Pieces auto", contrat: "Actif", delai: "24-72h", performance: 95 },
+  { nom: "Bosch Car Parts", categorie: "Pieces auto", contrat: "Actif", delai: "48h", performance: 92 },
+  { nom: "Michelin", categorie: "Pneus", contrat: "En negociation", delai: "72h", performance: 0 },
+  { nom: "Wurth", categorie: "Outillage", contrat: "Actif", delai: "24h", performance: 97 },
+  { nom: "Axial", categorie: "Carrosserie", contrat: "Planifie", delai: "—", performance: 0 },
+];
+
+const CONSTRUCTEURS_DATA = [
+  { marque: "Peugeot", modeles: 45, generations: 120, motorisations: 380, references: "12 500", integration: "TecDoc" },
+  { marque: "Renault", modeles: 42, generations: 110, motorisations: 350, references: "11 800", integration: "TecDoc" },
+  { marque: "Citroen", modeles: 35, generations: 90, motorisations: 280, references: "9 200", integration: "TecDoc" },
+  { marque: "BMW", modeles: 38, generations: 95, motorisations: 310, references: "10 500", integration: "TecDoc" },
+  { marque: "Mercedes", modeles: 40, generations: 100, motorisations: 340, references: "11 200", integration: "TecDoc" },
+  { marque: "Toyota", modeles: 30, generations: 75, motorisations: 220, references: "8 900", integration: "TecDoc" },
+];
+
+const PARTENAIRES_FIN_DATA = [
+  { nom: "Cetelem (BNP)", produit: "Credit auto", taux: "3.9% - 7.2%", commission: "1.5%", pays: "France", statut: "Planifie" },
+  { nom: "Cofidis", produit: "Credit conso", taux: "4.5% - 9.8%", commission: "2%", pays: "France", statut: "Planifie" },
+  { nom: "Franfinance", produit: "LOA / LLD", taux: "Variable", commission: "1.8%", pays: "France", statut: "Planifie" },
+];
+
+const ASSURANCES_DATA = [
+  { nom: "AXA", services: "Auto, Garantie mecanique, Assistance", pays: "France", statut: "En discussion" },
+  { nom: "Allianz", services: "Auto, Extension garantie", pays: "Europe", statut: "Planifie" },
+  { nom: "NSIA", services: "Auto, Assistance", pays: "Cote d'Ivoire, Senegal", statut: "En discussion" },
+];
+
+const TRANSPORTEURS_DATA = [
+  { nom: "Allo Colis", type: "Livraison locale", disponibilite: "Lun-Sam", delai: "24-48h", tarif: "A partir de 15 EUR", qualite: "4.5/5" },
+  { nom: "Convoyage Express", type: "Porte-voitures", disponibilite: "7j/7", delai: "3-5 jours", tarif: "A partir de 350 EUR", qualite: "4.7/5" },
+  { nom: "DHL Express", type: "International", disponibilite: "7j/7", delai: "5-10 jours", tarif: "Variable", qualite: "4.3/5" },
+  { nom: "Transporteur local CI", type: "Livraison Afrique", disponibilite: "Lun-Ven", delai: "3-7 jours", tarif: "Variable", qualite: "4.0/5" },
+];
+
+const API_INTERNES_DATA = [
+  { nom: "API Annonces", version: "v2.1", securite: "JWT + Rate limiting", requetes_jour: 45000, uptime: "99.98%" },
+  { nom: "API Paiements", version: "v1.3", securite: "JWT + Webhook verify", requetes_jour: 8500, uptime: "99.99%" },
+  { nom: "API Utilisateurs", version: "v2.0", securite: "JWT + 2FA", requetes_jour: 22000, uptime: "99.97%" },
+  { nom: "API Garage+", version: "v1.0", securite: "JWT", requetes_jour: 3200, uptime: "99.95%" },
+  { nom: "API Admin", version: "v1.5", securite: "JWT + IP whitelist", requetes_jour: 1200, uptime: "99.99%" },
+];
+
+const DEV_DATA = [
+  { env: "Production", version: "v2.8.4", dernier_deploy: "09/06/2026 16:30", statut: "stable", bugs_ouverts: 3 },
+  { env: "Staging", version: "v2.9.0-rc1", dernier_deploy: "09/06/2026 18:00", statut: "test", bugs_ouverts: 7 },
+  { env: "Development", version: "v2.9.0-dev", dernier_deploy: "09/06/2026 18:15", statut: "dev", bugs_ouverts: 12 },
+];
+
+const OBJETS_CONNECTES_DATA = [
+  { type: "Bornes Electric+", deployes: 12, actifs: 10, en_panne: 2, pays: "France, CI" },
+  { type: "Balises GPS vehicules", deployes: 0, actifs: 0, en_panne: 0, pays: "Planifie" },
+  { type: "Boitiers telematiques", deployes: 0, actifs: 0, en_panne: 0, pays: "Planifie" },
+  { type: "Lecteurs OBD Garage+", deployes: 5, actifs: 5, en_panne: 0, pays: "France" },
+  { type: "Capteurs atelier", deployes: 0, actifs: 0, en_panne: 0, pays: "Planifie" },
 ];
 
 /* ================================================================ */
@@ -1306,6 +1620,1171 @@ export default function CentrePilotage() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* ═══════ PARTIE 4 — Vision Strategique & Gouvernance (42-55) ═══════ */}
+
+        {/* 42. CENTRE R&D */}
+        {tab === "rd" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Projets actifs" value={String(RD_PROJETS.length)} color="text-[#D4AF37]" onClick={() => showToast("Projets R&D actifs")} />
+              <StatCard label="Budget total" value="315K EUR" color="text-green-600" onClick={() => navigate("/comptabilite/paiements")} />
+              <StatCard label="Approuves" value={String(RD_PROJETS.filter(p => p.validation === "Approuve").length)} color="text-blue-600" onClick={() => showToast("Projets approuves par la Direction")} />
+            </div>
+            {RD_PROJETS.map((p, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={p.nom} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Rocket size={14} className="text-[#D4AF37]" />
+                      <div><p className="text-sm font-bold text-[#111]">{p.nom}</p><p className="text-[10px] text-[#6B7280]">{p.categorie} · {p.responsable}</p></div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-12 h-2 rounded-full bg-[#E5E7EB]"><div className="h-2 rounded-full bg-[#D4AF37]" style={{ width: `${p.avancement}%` }} /></div>
+                      <span className="text-[10px] font-bold text-[#D4AF37]">{p.avancement}%</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-3 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Budget</span><p className="font-bold">{p.budget}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Cible</span><p className="font-bold">{p.cible}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Validation</span><p className={`font-bold ${p.validation === "Approuve" ? "text-green-600" : "text-amber-600"}`}>{p.validation}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 43. CENTRE INNOVATION */}
+        {tab === "centre_innovation" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Idees soumises" value={String(IDEES_INNOVATION.length)} color="text-[#D4AF37]" />
+              <StatCard label="Approuvees" value={String(IDEES_INNOVATION.filter(i => i.decision === "Approuve").length)} color="text-green-600" />
+              <StatCard label="En etude" value={String(IDEES_INNOVATION.filter(i => i.decision === "En etude").length)} color="text-amber-600" />
+            </div>
+            {IDEES_INNOVATION.map((idee, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={idee.titre} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div><p className="text-sm font-bold text-[#111]">{idee.titre}</p><p className="text-[10px] text-[#6B7280]">{idee.auteur} · {idee.date}</p></div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold ${idee.decision === "Approuve" ? "text-green-600" : idee.decision === "En etude" ? "text-amber-600" : "text-[#6B7280]"}`}>{idee.decision}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-3 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Impact</span><p className="font-bold">{idee.impact}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Cout</span><p className="font-bold">{idee.cout}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Difficulte</span><p className={`font-bold ${idee.difficulte === "Haute" ? "text-red-600" : idee.difficulte === "Moyenne" ? "text-amber-600" : "text-green-600"}`}>{idee.difficulte}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 44. INVESTISSEURS */}
+        {tab === "investisseurs" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">
+              <p className="text-[10px] text-white/50 uppercase">Valorisation estimee</p>
+              <p className="text-2xl font-black text-[#D4AF37]">1 200 000 EUR</p>
+              <p className="text-[10px] text-white/40">Basee sur CA annuel x multiplicateur SaaS</p>
+            </div>
+            <SectionCard title="Historique & Previsions" icon={DollarSign}>
+              <div className="divide-y divide-[#E5E7EB]">
+                {INVESTISSEURS_DATA.map(inv => (
+                  <button key={inv.nom} onClick={() => showToast(`Details: ${inv.nom}`)} className="w-full text-left p-3 flex justify-between items-center">
+                    <div><p className="text-sm font-bold text-[#111]">{inv.nom}</p><p className="text-[10px] text-[#6B7280]">{inv.investisseur} · {inv.date}</p></div>
+                    <div className="text-right"><p className="text-sm font-bold text-[#D4AF37]">{inv.montant}</p><p className={`text-[10px] ${inv.statut === "Realise" ? "text-green-600" : "text-amber-600"}`}>{inv.statut}</p></div>
+                  </button>
+                ))}
+              </div>
+            </SectionCard>
+          </div>
+        )}
+
+        {/* 45. PARTENARIATS */}
+        {tab === "partenariats" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Partenaires actifs" value={String(PARTENAIRES_DATA.filter(p => p.niveau !== "En attente").length)} color="text-green-600" />
+              <StatCard label="En negociation" value={String(PARTENAIRES_DATA.filter(p => p.niveau === "En attente").length)} color="text-amber-600" />
+              <StatCard label="Total" value={String(PARTENAIRES_DATA.length)} color="text-[#D4AF37]" />
+            </div>
+            {PARTENAIRES_DATA.map((p, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={p.nom} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div><p className="text-sm font-bold text-[#111]">{p.nom}</p><p className="text-[10px] text-[#6B7280]">{p.type} · {p.responsable}</p></div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.niveau === "Platinum" ? "bg-[#D4AF37]/10 text-[#D4AF37]" : p.niveau === "Gold" ? "bg-amber-50 text-amber-600" : p.niveau === "En attente" ? "bg-gray-100 text-[#6B7280]" : "bg-blue-50 text-blue-600"}`}>{p.niveau}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">CA genere</span><p className="font-bold">{p.ca}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Contrat</span><p className="font-bold">{p.contrat}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 46. MARQUES */}
+        {tab === "marques" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Marques deposees" value={String(MARQUES_DATA.filter(m => m.statut === "Actif").length)} color="text-green-600" />
+              <StatCard label="En depot" value={String(MARQUES_DATA.filter(m => m.statut === "En depot").length)} color="text-amber-600" />
+              <StatCard label="Total" value={String(MARQUES_DATA.length)} color="text-[#D4AF37]" />
+            </div>
+            {MARQUES_DATA.map((m, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={m.nom} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><Bookmark size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{m.nom}</p><p className="text-[10px] text-[#6B7280]">{m.depot} · {m.pays}</p></div></div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold ${m.statut === "Actif" ? "text-green-600" : m.statut === "En depot" ? "text-amber-600" : "text-[#6B7280]"}`}>{m.statut}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-3 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Logo</span><p className="font-bold">{m.logo}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Renouvellement</span><p className="font-bold">{m.renouvellement}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Responsable</span><p className="font-bold">{m.responsable}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 47. PROPRIETE INTELLECTUELLE */}
+        {tab === "propriete_ip" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <StatCard label="Actifs proteges" value={String(PROPRIETE_IP.filter(p => p.statut === "Protege" || p.statut === "Actif").length)} color="text-green-600" />
+              <StatCard label="Total actifs IP" value={String(PROPRIETE_IP.length)} color="text-[#D4AF37]" />
+            </div>
+            {PROPRIETE_IP.map((p, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={p.actif} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div><p className="text-sm font-bold text-[#111]">{p.actif}</p><p className="text-[10px] text-[#6B7280]">{p.type} · {p.depot}</p></div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold ${p.statut === "Protege" || p.statut === "Actif" ? "text-green-600" : p.statut === "RGPD" ? "text-blue-600" : "text-amber-600"}`}>{p.statut}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Expiration</span><p className="font-bold">{p.expiration || "—"}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 48. EXPANSION */}
+        {tab === "expansion" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">
+              <p className="text-[10px] text-white/50 uppercase">Expansion mondiale</p>
+              <p className="text-2xl font-black text-[#D4AF37]">{EXPANSION_DATA.length} pays en preparation</p>
+              <p className="text-[10px] text-white/40">+ 8 pays deja actifs</p>
+            </div>
+            {EXPANSION_DATA.map((p, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={p.pays} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><Globe2 size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{p.pays}</p><p className="text-[10px] text-[#6B7280]">{p.etude} · Ouverture: {p.ouverture}</p></div></div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-[#D4AF37]">{p.budget}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-3 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Recrutement</span><p className="font-bold">{p.recrutement}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Fiscalite</span><p className="font-bold">{p.fiscalite}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Paiement</span><p className="font-bold">{p.paiement}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Reglementation</span><p className="font-bold">{p.reglementation}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Langues</span><p className="font-bold">{p.langues}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Partenaires</span><p className="font-bold">{p.partenaires}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 49. APPLICATIONS */}
+        {tab === "applications" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Apps actives" value={String(APPS_DATA.filter(a => a.version !== "Planifiee").length)} color="text-green-600" />
+              <StatCard label="Planifiees" value={String(APPS_DATA.filter(a => a.version === "Planifiee").length)} color="text-amber-600" />
+              <StatCard label="Total" value={String(APPS_DATA.length)} color="text-[#D4AF37]" />
+            </div>
+            {APPS_DATA.map((a, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={a.nom} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><Smartphone size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{a.nom}</p><p className="text-[10px] text-[#6B7280]">v{a.version} · {a.utilisateurs} utilisateurs</p></div></div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-[#D4AF37]">{a.note}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-3 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">MAJ</span><p className="font-bold">{a.mises_a_jour}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Bugs</span><p className={`font-bold ${a.bugs > 3 ? "text-red-600" : "text-green-600"}`}>{a.bugs}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">DL</span><p className="font-bold">{a.telechargements}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 50. DOMAINES */}
+        {tab === "domaines" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Actifs" value={String(DOMAINES_DATA.filter(d => d.statut === "Actif").length)} color="text-green-600" />
+              <StatCard label="Reserves" value={String(DOMAINES_DATA.filter(d => d.statut === "Reserve").length)} color="text-blue-600" />
+              <StatCard label="Planifies" value={String(DOMAINES_DATA.filter(d => d.statut === "Planifie").length)} color="text-amber-600" />
+            </div>
+            {DOMAINES_DATA.map((d, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={d.domaine} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div><p className="text-sm font-bold text-[#111]">{d.domaine}</p><p className="text-[10px] text-[#6B7280]">{d.registrar} · Exp: {d.expiration}</p></div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold ${d.statut === "Actif" ? "text-green-600" : d.statut === "Reserve" ? "text-blue-600" : "text-amber-600"}`}>{d.statut}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-3 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">DNS</span><p className="font-bold">{d.dns}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">SSL</span><p className="font-bold">{d.ssl}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Redirections</span><p className="font-bold">{d.redirections}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 51. LICENCES */}
+        {tab === "licences" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <StatCard label="Licences actives" value={String(LICENCES_DATA.length)} color="text-green-600" />
+              <StatCard label="Cout mensuel estime" value="~600 EUR" color="text-[#D4AF37]" onClick={() => navigate("/comptabilite/depenses")} />
+            </div>
+            {LICENCES_DATA.map((l, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={l.logiciel} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div><p className="text-sm font-bold text-[#111]">{l.logiciel}</p><p className="text-[10px] text-[#6B7280]">{l.responsable} · {l.utilisation}</p></div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-[#D4AF37]">{l.cout}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Renouvellement</span><p className="font-bold">{l.renouvellement}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 52. FORMATION */}
+        {tab === "formation" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Formations" value={String(FORMATIONS_DATA.length)} color="text-[#D4AF37]" />
+              <StatCard label="Completions" value={String(FORMATIONS_DATA.reduce((s, f) => s + f.completions, 0))} color="text-green-600" />
+              <StatCard label="Types" value="4" color="text-blue-600" />
+            </div>
+            {FORMATIONS_DATA.map((f, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={f.titre} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><GraduationCap size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{f.titre}</p><p className="text-[10px] text-[#6B7280]">{f.type} · {f.duree}</p></div></div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-green-600">{f.completions} completions</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Acces</span><p className="font-bold">{f.acces}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 53. COMMUNICATION */}
+        {tab === "communication" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Diffusees" value={String(COMMUNICATIONS_DATA.filter(c => c.statut === "Diffuse").length)} color="text-green-600" />
+              <StatCard label="Planifiees" value={String(COMMUNICATIONS_DATA.filter(c => c.statut === "Planifie").length)} color="text-amber-600" />
+              <StatCard label="Brouillons" value={String(COMMUNICATIONS_DATA.filter(c => c.statut === "Brouillon").length)} color="text-[#6B7280]" />
+            </div>
+            {COMMUNICATIONS_DATA.map((c, i) => (
+              <div key={c.titre} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
+                <div className="flex items-center justify-between">
+                  <div><p className="text-sm font-bold text-[#111]">{c.titre}</p><p className="text-[10px] text-[#6B7280]">{c.type} · {c.departement} · {c.date}</p></div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.statut === "Diffuse" ? "bg-green-50 text-green-600" : c.statut === "Planifie" ? "bg-amber-50 text-amber-600" : "bg-gray-100 text-[#6B7280]"}`}>{c.statut}</span>
+                </div>
+              </div>
+            ))}
+            <button onClick={() => showToast("Nouvelle communication creee")} className="w-full rounded-xl bg-[#111] py-2 text-[10px] font-bold text-[#D4AF37] flex items-center justify-center gap-1"><MessageSquare size={10} /> Nouvelle communication</button>
+          </div>
+        )}
+
+        {/* 54. AUDITS */}
+        {tab === "audits" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Termines" value={String(AUDITS_DATA.filter(a => a.statut === "Termine").length)} color="text-green-600" />
+              <StatCard label="En cours" value={String(AUDITS_DATA.filter(a => a.statut === "En cours").length)} color="text-amber-600" />
+              <StatCard label="Planifies" value={String(AUDITS_DATA.filter(a => a.statut === "Planifie").length)} color="text-blue-600" />
+            </div>
+            {AUDITS_DATA.map((a, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={a.titre} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><ClipboardCheck size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{a.titre}</p><p className="text-[10px] text-[#6B7280]">{a.type} · {a.date}</p></div></div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold ${a.statut === "Termine" ? "text-green-600" : a.statut === "En cours" ? "text-amber-600" : "text-blue-600"}`}>{a.statut}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-3 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Recommandations</span><p className="font-bold">{a.recommandations}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Actions</span><p className="font-bold">{a.actions}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Validation</span><p className="font-bold">{a.validation}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 55. GOUVERNANCE EXECUTIVE */}
+        {tab === "gouvernance" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">
+              <p className="text-[10px] text-white/50 uppercase">Gouvernance Executive</p>
+              <p className="text-lg font-black text-[#D4AF37]">Decisions strategiques du groupe</p>
+              <p className="text-[10px] text-white/40">Acces reserve PDG, DG & Conseil d&apos;Administration</p>
+            </div>
+            <SectionCard title="Objectifs strategiques" icon={Target}>
+              <div className="p-3 grid grid-cols-2 gap-2 text-[10px]">
+                <div className="rounded-lg bg-green-50 p-2"><span className="text-green-600 font-bold">1 an</span><p className="text-[#111]">8 pays actifs, 50 garages</p></div>
+                <div className="rounded-lg bg-blue-50 p-2"><span className="text-blue-600 font-bold">3 ans</span><p className="text-[#111]">15 pays, 200 garages, Serie A</p></div>
+                <div className="rounded-lg bg-amber-50 p-2"><span className="text-amber-600 font-bold">5 ans</span><p className="text-[#111]">25 pays, leader Afrique</p></div>
+                <div className="rounded-lg bg-purple-50 p-2"><span className="text-purple-600 font-bold">10 ans</span><p className="text-[#111]">50 pays, IPO envisagee</p></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Decisions recentes" icon={Scale}>
+              <div className="divide-y divide-[#E5E7EB]">
+                {GOUVERNANCE_DATA.map(g => (
+                  <button key={g.decision} onClick={() => showToast(`Decision: ${g.decision}`)} className="w-full text-left p-3 flex justify-between items-center">
+                    <div><p className="text-sm font-bold text-[#111]">{g.decision}</p><p className="text-[10px] text-[#6B7280]">{g.type} · {g.date} · {g.responsable}</p></div>
+                    <span className={`text-[10px] font-bold ${g.statut === "Approuve" || g.statut === "Valide" ? "text-green-600" : g.statut === "En preparation" ? "text-amber-600" : "text-blue-600"}`}>{g.statut}</span>
+                  </button>
+                ))}
+              </div>
+            </SectionCard>
+          </div>
+        )}
+
+        {/* ═══════ PARTIE 5 — Modules Strategiques Avances (56-65) ═══════ */}
+
+        {/* 56. ESG & DEVELOPPEMENT DURABLE */}
+        {tab === "esg" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-green-800 to-green-600 p-4 text-white">
+              <p className="text-[10px] text-white/50 uppercase">ESG & Developpement Durable</p>
+              <p className="text-2xl font-black">Score B+</p>
+              <p className="text-[10px] text-white/60">Objectif: A d&apos;ici 2027</p>
+            </div>
+            {ESG_DATA.map((e, i) => (
+              <div key={e.indicateur} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-sm font-bold text-[#111]">{e.indicateur}</p>
+                  <p className="text-sm font-bold text-green-600">{e.valeur}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-2 rounded-full bg-[#E5E7EB]"><div className="h-2 rounded-full bg-green-500" style={{ width: `${e.progression}%` }} /></div>
+                  <span className="text-[10px] font-bold text-green-600">{e.progression}%</span>
+                </div>
+                <p className="text-[10px] text-[#6B7280] mt-1">Objectif: {e.objectif}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 57. QUALITE GROUPE */}
+        {tab === "qualite" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Satisfaction moy." value="4.55/5" color="text-green-600" />
+              <StatCard label="Reclamations" value={String(QUALITE_DATA.reduce((s, q) => s + q.reclamations, 0))} color="text-red-600" />
+              <StatCard label="Services" value={String(QUALITE_DATA.length)} color="text-[#D4AF37]" />
+            </div>
+            {QUALITE_DATA.map((q, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={q.service} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div><p className="text-sm font-bold text-[#111]">{q.service}</p><p className="text-[10px] text-[#6B7280]">Objectif: {q.objectif}</p></div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-[#D4AF37]">{q.satisfaction}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Reclamations</span><p className={`font-bold ${q.reclamations > 5 ? "text-red-600" : "text-green-600"}`}>{q.reclamations}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Temps trait.</span><p className="font-bold">{q.tempsTraitement}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 58. CONFORMITE */}
+        {tab === "conformite" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <StatCard label="Conformes" value={String(CONFORMITE_DATA.filter(c => c.statut === "Conforme").length)} color="text-green-600" />
+              <StatCard label="En cours" value={String(CONFORMITE_DATA.filter(c => c.statut === "En cours").length)} color="text-amber-600" />
+            </div>
+            {CONFORMITE_DATA.map((c, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={c.regle} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><FileCheck size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{c.regle}</p><p className="text-[10px] text-[#6B7280]">{c.pays}</p></div></div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold ${c.statut === "Conforme" ? "text-green-600" : "text-amber-600"}`}>{c.statut}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Dernier audit</span><p className="font-bold">{c.dernierAudit}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Prochain audit</span><p className="font-bold">{c.prochainAudit}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 59. CONTINUITE D'ACTIVITE */}
+        {tab === "continuite" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">
+              <p className="text-[10px] text-white/50 uppercase">Plan de continuite d&apos;activite</p>
+              <p className="text-2xl font-black text-green-400">Operationnel</p>
+              <p className="text-[10px] text-white/40">Derniere verification: 09/06/2026</p>
+            </div>
+            <SectionCard title="Sauvegardes" icon={Database}>
+              <div className="p-3 space-y-2 text-[10px]">
+                <div className="flex justify-between"><span>Sauvegarde auto quotidienne</span><span className="text-green-600 font-bold">Actif</span></div>
+                <div className="flex justify-between"><span>Sauvegarde hebdo complete</span><span className="text-green-600 font-bold">Actif</span></div>
+                <div className="flex justify-between"><span>Serveur de secours</span><span className="text-green-600 font-bold">Pret</span></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Tests de restauration" icon={RefreshCw}>
+              <div className="p-3 space-y-2 text-[10px]">
+                <div className="flex justify-between"><span>Dernier test complet</span><span className="font-bold">02/06/2026 — Succes</span></div>
+                <div className="flex justify-between"><span>Temps de restauration</span><span className="font-bold">18min 12s</span></div>
+                <div className="flex justify-between"><span>Prochain test planifie</span><span className="font-bold">01/07/2026</span></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Gestion de crise" icon={AlertTriangle}>
+              <div className="p-3 space-y-2 text-[10px]">
+                <div className="flex justify-between"><span>Responsable crise</span><span className="font-bold">Moussa K. (PDG)</span></div>
+                <div className="flex justify-between"><span>Equipe d&apos;astreinte</span><span className="font-bold">3 personnes</span></div>
+                <div className="flex justify-between"><span>Temps de reaction max</span><span className="font-bold">15 min</span></div>
+              </div>
+            </SectionCard>
+          </div>
+        )}
+
+        {/* 60. OBSERVATION DU MARCHE */}
+        {tab === "observation" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">
+              <p className="text-[10px] text-white/50 uppercase">Observation du marche automobile</p>
+              <p className="text-lg font-black text-[#D4AF37]">Analyse en temps reel</p>
+              <p className="text-[10px] text-white/40">Mise a jour: 09/06/2026</p>
+            </div>
+            {OBSERVATION_MARCHE.map(o => (
+              <div key={o.indicateur} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex justify-between items-center">
+                <div><p className="text-sm font-bold text-[#111]">{o.indicateur}</p><p className="text-lg font-black text-[#D4AF37]">{o.valeur}</p></div>
+                <div className="text-right">
+                  <p className={`text-sm font-bold ${o.direction === "up" ? "text-green-600" : o.direction === "down" ? "text-red-600" : "text-[#6B7280]"}`}>
+                    {o.direction === "up" ? "▲" : o.direction === "down" ? "▼" : "●"} {o.tendance}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 61. EXPERIENCE CLIENT */}
+        {tab === "experience" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="NPS" value="72" color="text-green-600" />
+              <StatCard label="Satisfaction" value="4.7/5" color="text-[#D4AF37]" />
+              <StatCard label="Fidelite 90j" value="45%" color="text-blue-600" />
+            </div>
+            {EXPERIENCE_CLIENT.map(e => (
+              <div key={e.metrique} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex justify-between items-center">
+                <p className="text-sm font-bold text-[#111]">{e.metrique}</p>
+                <div className="text-right">
+                  <p className="text-lg font-black text-[#D4AF37]">{e.valeur}</p>
+                  <p className="text-[10px] font-bold text-green-600">{e.evolution}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 62. REWARDS */}
+        {tab === "rewards" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <StatCard label="Membres total" value={String(REWARDS_DATA.reduce((s, r) => s + r.membres, 0).toLocaleString())} color="text-[#D4AF37]" />
+              <StatCard label="Points distribues" value="1.71M" color="text-green-600" />
+            </div>
+            {REWARDS_DATA.map((r, i) => {
+              const isExp = expanded === i;
+              const colors: Record<string, string> = { Bronze: "text-amber-700", Silver: "text-gray-500", Gold: "text-[#D4AF37]", Platinum: "text-purple-600" };
+              return (
+                <div key={r.niveau} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><Gift size={14} className={colors[r.niveau] || "text-[#D4AF37]"} /><div><p className={`text-sm font-bold ${colors[r.niveau] || "text-[#111]"}`}>{r.niveau}</p><p className="text-[10px] text-[#6B7280]">{r.membres.toLocaleString()} membres · {r.offres} offres</p></div></div>
+                    <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Points distribues</span><p className="font-bold">{r.points_distribues}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Points utilises</span><p className="font-bold">{r.points_utilises}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 63. IA MKA CENTRE */}
+        {tab === "ia_centre" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">
+              <div className="flex items-center gap-2 mb-2"><Cpu size={18} className="text-[#D4AF37]" /><p className="text-lg font-black text-[#D4AF37]">Assistant MKA.P-MS</p></div>
+              <p className="text-[10px] text-white/60">Systeme d&apos;intelligence strategique reserve a la Direction</p>
+            </div>
+            <SectionCard title="Previsions automatiques" icon={TrendingUp}>
+              <div className="p-3 space-y-2 text-[10px]">
+                <div className="flex justify-between"><span>CA prevu Juillet 2026</span><span className="font-bold text-green-600">625 000 EUR (+6.3%)</span></div>
+                <div className="flex justify-between"><span>CA prevu Q3 2026</span><span className="font-bold text-green-600">1 850 000 EUR</span></div>
+                <div className="flex justify-between"><span>Nouveaux abonnes prevus</span><span className="font-bold">+180/mois</span></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Anomalies detectees" icon={AlertTriangle}>
+              <div className="p-3 space-y-2 text-[10px]">
+                <div className="flex justify-between"><span>Depense marketing +16% vs budget</span><span className="font-bold text-red-600">Alerte</span></div>
+                <div className="flex justify-between"><span>Taux abandon panier Location CI</span><span className="font-bold text-amber-600">Surveiller</span></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Recommandations" icon={Brain}>
+              <div className="p-3 space-y-2 text-[10px]">
+                <p className="text-[#111]">• Augmenter le budget Electric+ (+45% de croissance)</p>
+                <p className="text-[#111]">• Lancer Garage+ en Cote d&apos;Ivoire (forte demande detectee)</p>
+                <p className="text-[#111]">• Optimiser SEO sur les annonces motos (segment en hausse)</p>
+                <p className="text-[#111]">• Reduire les frais serveur (-8% possible avec cache CDN)</p>
+              </div>
+            </SectionCard>
+          </div>
+        )}
+
+        {/* 64. PERSONNALISATION */}
+        {tab === "personnalisation" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <StatCard label="Pays configures" value={String(PERSONNALISATION_PAYS.length)} color="text-green-600" />
+              <StatCard label="Devises actives" value="5" color="text-[#D4AF37]" />
+            </div>
+            {PERSONNALISATION_PAYS.map((p, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={p.pays} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><Palette size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{p.pays}</p><p className="text-[10px] text-[#6B7280]">{p.devise} · {p.langue}</p></div></div>
+                    <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">TVA</span><p className="font-bold">{p.tva}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Paiements</span><p className="font-bold">{p.paiements}</p></div>
+                      <div className="col-span-2 rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Services actifs</span><p className="font-bold">{p.services}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 65. INDICATEURS EXECUTIFS */}
+        {tab === "indicateurs" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">
+              <p className="text-[10px] text-white/50 uppercase">Indicateurs Executifs</p>
+              <p className="text-lg font-black text-[#D4AF37]">100 KPI en temps reel</p>
+              <p className="text-[10px] text-white/40">Derniere MAJ: 09/06/2026 18:15</p>
+            </div>
+            <SectionCard title="Financiers" icon={Euro}>
+              <div className="p-3 space-y-1 text-[10px]">
+                <div className="flex justify-between"><span>CA mondial mensuel</span><button onClick={() => navigate("/comptabilite/revenus")} className="font-bold text-[#D4AF37]">588 150 EUR</button></div>
+                <div className="flex justify-between"><span>Benefice net</span><button onClick={() => navigate("/comptabilite/revenus")} className="font-bold text-green-600">185 200 EUR</button></div>
+                <div className="flex justify-between"><span>Tresorerie</span><button onClick={() => navigate("/comptabilite/paiements")} className="font-bold text-green-600">342 800 EUR</button></div>
+                <div className="flex justify-between"><span>Marge moyenne</span><span className="font-bold">31.5%</span></div>
+                <div className="flex justify-between"><span>TVA collectee</span><button onClick={() => navigate("/comptabilite/tva")} className="font-bold text-[#D4AF37]">23 940 EUR</button></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Clients & Activite" icon={Users}>
+              <div className="p-3 space-y-1 text-[10px]">
+                <div className="flex justify-between"><span>Utilisateurs totaux</span><span className="font-bold">27 250</span></div>
+                <div className="flex justify-between"><span>Nouveaux ce mois</span><span className="font-bold text-green-600">+1 245</span></div>
+                <div className="flex justify-between"><span>Abonnements actifs</span><button onClick={() => navigate("/comptabilite/abonnements")} className="font-bold text-[#D4AF37]">1 225</button></div>
+                <div className="flex justify-between"><span>Taux satisfaction</span><span className="font-bold">4.7/5</span></div>
+                <div className="flex justify-between"><span>NPS</span><span className="font-bold text-green-600">72</span></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Operations" icon={Activity}>
+              <div className="p-3 space-y-1 text-[10px]">
+                <div className="flex justify-between"><span>Vehicules vendus (mois)</span><span className="font-bold">47</span></div>
+                <div className="flex justify-between"><span>Vehicules loues (mois)</span><span className="font-bold">156</span></div>
+                <div className="flex justify-between"><span>Pieces vendues</span><span className="font-bold">456</span></div>
+                <div className="flex justify-between"><span>Sante serveurs</span><span className="font-bold text-green-600">99.98%</span></div>
+                <div className="flex justify-between"><span>Pays actifs</span><span className="font-bold">8</span></div>
+                <div className="flex justify-between"><span>Employes</span><span className="font-bold">76</span></div>
+                <div className="flex justify-between"><span>Objectifs atteints</span><span className="font-bold">8/12</span></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Croissance" icon={TrendingUp}>
+              <div className="p-3 space-y-1 text-[10px]">
+                <div className="flex justify-between"><span>Croissance CA mensuel</span><span className="font-bold text-green-600">+14.8%</span></div>
+                <div className="flex justify-between"><span>Croissance abonnements</span><span className="font-bold text-green-600">+19.8%</span></div>
+                <div className="flex justify-between"><span>Meilleur service (croissance)</span><span className="font-bold">Electric+ (+45.2%)</span></div>
+                <div className="flex justify-between"><span>Expansion internationale</span><span className="font-bold">5 pays en preparation</span></div>
+                <div className="flex justify-between"><span>Rentabilite globale</span><span className="font-bold text-green-600">89%</span></div>
+              </div>
+            </SectionCard>
+          </div>
+        )}
+
+        {/* ═══════ PARTIE 6 — Connecteurs Strategiques & Ecosysteme Mondial (66-80) ═══════ */}
+
+        {/* 66. CONNECTEURS */}
+        {tab === "connecteurs" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Actifs" value={String(CONNECTEURS_DATA.filter(c => c.statut === "actif").length)} color="text-green-600" />
+              <StatCard label="Desactives" value={String(CONNECTEURS_DATA.filter(c => c.statut === "desactive").length)} color="text-red-600" />
+              <StatCard label="Planifies" value={String(CONNECTEURS_DATA.filter(c => c.statut === "planifie").length)} color="text-amber-600" />
+            </div>
+            {CONNECTEURS_DATA.map((c, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={c.nom} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><Plug size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{c.nom}</p><p className="text-[10px] text-[#6B7280]">{c.categorie}</p></div></div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.statut === "actif" ? "bg-green-50 text-green-600" : c.statut === "desactive" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600"}`}>{c.statut}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 text-[10px] space-y-2">
+                      <div className="flex justify-between"><span className="text-[#6B7280]">Derniere sync</span><span className="font-bold">{c.derniere_sync}</span></div>
+                      <button onClick={() => showToast(`Connecteur ${c.nom} ${c.statut === "actif" ? "desactive" : "active"}`)} className="w-full rounded-lg bg-[#111] py-1.5 text-[10px] font-bold text-[#D4AF37]">{c.statut === "actif" ? "Desactiver" : "Activer"}</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 67. MARKETPLACES */}
+        {tab === "marketplaces" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <StatCard label="Actives" value={String(MARKETPLACES_DATA.filter(m => m.statut === "actif").length)} color="text-green-600" />
+              <StatCard label="Planifiees" value={String(MARKETPLACES_DATA.filter(m => m.statut === "planifie").length)} color="text-amber-600" />
+            </div>
+            {MARKETPLACES_DATA.map((m, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={m.nom} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><ShoppingCart size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{m.nom}</p><p className="text-[10px] text-[#6B7280]">{m.annonces_sync} annonces sync</p></div></div>
+                    <span className={`text-[10px] font-bold ${m.statut === "actif" ? "text-green-600" : "text-amber-600"}`}>{m.statut}</span>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-3 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Prix sync</span><p className={`font-bold ${m.prix_sync ? "text-green-600" : "text-red-600"}`}>{m.prix_sync ? "Oui" : "Non"}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Stock sync</span><p className={`font-bold ${m.stock_sync ? "text-green-600" : "text-red-600"}`}>{m.stock_sync ? "Oui" : "Non"}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Annonces</span><p className="font-bold">{m.annonces_sync}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 68. FOURNISSEURS */}
+        {tab === "fournisseurs" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Actifs" value={String(FOURNISSEURS_DATA.filter(f => f.contrat === "Actif").length)} color="text-green-600" />
+              <StatCard label="Negociation" value={String(FOURNISSEURS_DATA.filter(f => f.contrat === "En negociation").length)} color="text-amber-600" />
+              <StatCard label="Total" value={String(FOURNISSEURS_DATA.length)} color="text-[#D4AF37]" />
+            </div>
+            {FOURNISSEURS_DATA.map((f, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={f.nom} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div><p className="text-sm font-bold text-[#111]">{f.nom}</p><p className="text-[10px] text-[#6B7280]">{f.categorie} · Delai: {f.delai}</p></div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold ${f.contrat === "Actif" ? "text-green-600" : "text-amber-600"}`}>{f.contrat}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && f.performance > 0 && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 text-[10px]">
+                      <div className="flex items-center gap-2"><span className="text-[#6B7280]">Performance</span><div className="flex-1 h-2 rounded-full bg-[#E5E7EB]"><div className="h-2 rounded-full bg-green-500" style={{ width: `${f.performance}%` }} /></div><span className="font-bold text-green-600">{f.performance}%</span></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 69. CONSTRUCTEURS */}
+        {tab === "constructeurs" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <StatCard label="Marques referencees" value={String(CONSTRUCTEURS_DATA.length)} color="text-[#D4AF37]" />
+              <StatCard label="References totales" value="64 100" color="text-green-600" />
+            </div>
+            {CONSTRUCTEURS_DATA.map((c, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={c.marque} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><Factory size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{c.marque}</p><p className="text-[10px] text-[#6B7280]">{c.modeles} modeles · {c.references} refs</p></div></div>
+                    <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-3 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Generations</span><p className="font-bold">{c.generations}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Motorisations</span><p className="font-bold">{c.motorisations}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Integration</span><p className="font-bold">{c.integration}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 70. PARTENAIRES FINANCIERS */}
+        {tab === "partenaires_fin" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">
+              <p className="text-[10px] text-white/50 uppercase">Partenaires financiers</p>
+              <p className="text-lg font-black text-[#D4AF37]">{PARTENAIRES_FIN_DATA.length} partenaires</p>
+              <p className="text-[10px] text-white/40">Credit auto, LOA, LLD</p>
+            </div>
+            {PARTENAIRES_FIN_DATA.map((p, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={p.nom} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div><p className="text-sm font-bold text-[#111]">{p.nom}</p><p className="text-[10px] text-[#6B7280]">{p.produit} · {p.pays}</p></div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-amber-600">{p.statut}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Taux</span><p className="font-bold">{p.taux}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Commission</span><p className="font-bold">{p.commission}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 71. ASSURANCES */}
+        {tab === "assurances" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <StatCard label="En discussion" value={String(ASSURANCES_DATA.filter(a => a.statut === "En discussion").length)} color="text-amber-600" />
+              <StatCard label="Planifies" value={String(ASSURANCES_DATA.filter(a => a.statut === "Planifie").length)} color="text-blue-600" />
+            </div>
+            {ASSURANCES_DATA.map((a, i) => (
+              <div key={a.nom} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2"><Umbrella size={14} className="text-[#D4AF37]" /><p className="text-sm font-bold text-[#111]">{a.nom}</p></div>
+                  <span className={`text-[10px] font-bold ${a.statut === "En discussion" ? "text-amber-600" : "text-blue-600"}`}>{a.statut}</span>
+                </div>
+                <p className="text-[10px] text-[#6B7280]">{a.services}</p>
+                <p className="text-[10px] text-[#6B7280] mt-1">Pays: {a.pays}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 72. TRANSPORTEURS */}
+        {tab === "transporteurs" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <StatCard label="Transporteurs" value={String(TRANSPORTEURS_DATA.length)} color="text-[#D4AF37]" />
+              <StatCard label="Note moyenne" value="4.4/5" color="text-green-600" />
+            </div>
+            {TRANSPORTEURS_DATA.map((t, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={t.nom} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><Navigation size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{t.nom}</p><p className="text-[10px] text-[#6B7280]">{t.type}</p></div></div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-[#D4AF37]">{t.qualite}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-3 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Disponibilite</span><p className="font-bold">{t.disponibilite}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Delai</span><p className="font-bold">{t.delai}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Tarif</span><p className="font-bold">{t.tarif}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 73. ADMINISTRATIONS */}
+        {tab === "administrations" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">
+              <p className="text-[10px] text-white/50 uppercase">Connexions administratives</p>
+              <p className="text-lg font-black text-[#D4AF37]">Services publics par pays</p>
+              <p className="text-[10px] text-white/40">Activees selon reglementation locale</p>
+            </div>
+            {[
+              { pays: "France", services: ["ANTS (Immatriculations)", "SIV (Cartes grises)", "Controle technique", "URSSAF"], statut: "Planifie" },
+              { pays: "Cote d'Ivoire", services: ["Immatriculations (DGTTC)", "Permis de conduire", "Douanes"], statut: "Planifie" },
+              { pays: "Senegal", services: ["DTT (Transport)", "Direction Impots", "Douanes"], statut: "Planifie" },
+            ].map((p, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={p.pays} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><Building size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{p.pays}</p><p className="text-[10px] text-[#6B7280]">{p.services.length} services</p></div></div>
+                    <span className="text-[10px] font-bold text-amber-600">{p.statut}</span>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 text-[10px] space-y-1">
+                      {p.services.map(s => <p key={s} className="text-[#111]">• {s}</p>)}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 74. API INTERNES */}
+        {tab === "api_internes" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="APIs actives" value={String(API_INTERNES_DATA.length)} color="text-green-600" />
+              <StatCard label="Requetes/jour" value={String(API_INTERNES_DATA.reduce((s, a) => s + a.requetes_jour, 0).toLocaleString())} color="text-[#D4AF37]" />
+              <StatCard label="Uptime moyen" value="99.98%" color="text-green-600" />
+            </div>
+            {API_INTERNES_DATA.map((a, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={a.nom} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><Code2 size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{a.nom}</p><p className="text-[10px] text-[#6B7280]">{a.version} · {a.uptime} uptime</p></div></div>
+                    <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Securite</span><p className="font-bold">{a.securite}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Requetes/jour</span><p className="font-bold">{a.requetes_jour.toLocaleString()}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 75. DEVELOPPEURS */}
+        {tab === "developpeurs" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">
+              <p className="text-[10px] text-white/50 uppercase">Centre des developpeurs</p>
+              <p className="text-lg font-black text-[#D4AF37]">Gestion technique</p>
+            </div>
+            {DEV_DATA.map((d, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={d.env} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><Code2 size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{d.env}</p><p className="text-[10px] text-[#6B7280]">{d.version} · Deploy: {d.dernier_deploy}</p></div></div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${d.statut === "stable" ? "bg-green-50 text-green-600" : d.statut === "test" ? "bg-amber-50 text-amber-600" : "bg-blue-50 text-blue-600"}`}>{d.statut}</span>
+                      <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 text-[10px]">
+                      <div className="flex justify-between"><span className="text-[#6B7280]">Bugs ouverts</span><span className={`font-bold ${d.bugs_ouverts > 5 ? "text-red-600" : "text-green-600"}`}>{d.bugs_ouverts}</span></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <SectionCard title="Roadmap technique" icon={Target}>
+              <div className="p-3 space-y-2 text-[10px]">
+                <div className="flex justify-between"><span>v2.9 — Centre Pilotage P4-P6</span><span className="font-bold text-green-600">En cours</span></div>
+                <div className="flex justify-between"><span>v3.0 — App Mobile native</span><span className="font-bold text-amber-600">Q4 2026</span></div>
+                <div className="flex justify-between"><span>v3.1 — API Marketplace</span><span className="font-bold text-blue-600">Q1 2027</span></div>
+                <div className="flex justify-between"><span>v3.2 — IA Assistant avance</span><span className="font-bold text-blue-600">Q2 2027</span></div>
+              </div>
+            </SectionCard>
+          </div>
+        )}
+
+        {/* 76. APPS CONNECTEES */}
+        {tab === "apps_connectees" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Apps actives" value={String(APPS_DATA.filter(a => a.version !== "Planifiee").length)} color="text-green-600" />
+              <StatCard label="Utilisateurs" value="27 288" color="text-[#D4AF37]" />
+              <StatCard label="Incidents" value="0" color="text-green-600" />
+            </div>
+            {APPS_DATA.map((a, i) => (
+              <div key={a.nom + "_conn"} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center justify-between">
+                <div className="flex items-center gap-2"><Monitor size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{a.nom}</p><p className="text-[10px] text-[#6B7280]">v{a.version} · {a.utilisateurs} users · {a.note}</p></div></div>
+                <span className={`text-[10px] font-bold ${a.version !== "Planifiee" ? "text-green-600" : "text-amber-600"}`}>{a.version !== "Planifiee" ? "Actif" : "Planifie"}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 77. OBJETS CONNECTES */}
+        {tab === "objets_connectes" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <StatCard label="Deployes" value={String(OBJETS_CONNECTES_DATA.reduce((s, o) => s + o.deployes, 0))} color="text-[#D4AF37]" />
+              <StatCard label="Actifs" value={String(OBJETS_CONNECTES_DATA.reduce((s, o) => s + o.actifs, 0))} color="text-green-600" />
+              <StatCard label="En panne" value={String(OBJETS_CONNECTES_DATA.reduce((s, o) => s + o.en_panne, 0))} color="text-red-600" />
+            </div>
+            {OBJETS_CONNECTES_DATA.map((o, i) => {
+              const isExp = expanded === i;
+              return (
+                <div key={o.type} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <button onClick={() => setExpanded(isExp ? null : i)} className="w-full text-left p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2"><Wifi size={14} className="text-[#D4AF37]" /><div><p className="text-sm font-bold text-[#111]">{o.type}</p><p className="text-[10px] text-[#6B7280]">{o.deployes} deployes · {o.pays}</p></div></div>
+                    <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
+                  </button>
+                  {isExp && (
+                    <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-3 gap-2 text-[10px]">
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Deployes</span><p className="font-bold">{o.deployes}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Actifs</span><p className="font-bold text-green-600">{o.actifs}</p></div>
+                      <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">En panne</span><p className={`font-bold ${o.en_panne > 0 ? "text-red-600" : "text-green-600"}`}>{o.en_panne}</p></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 78. DONNEES */}
+        {tab === "donnees" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">
+              <p className="text-[10px] text-white/50 uppercase">Centre des donnees</p>
+              <p className="text-2xl font-black text-[#D4AF37]">28.5 GB</p>
+              <p className="text-[10px] text-white/40">Donnees totales plateforme</p>
+            </div>
+            <SectionCard title="Sauvegardes" icon={Database}>
+              <div className="p-3 space-y-1 text-[10px]">
+                <div className="flex justify-between"><span>Derniere sauvegarde</span><span className="font-bold text-green-600">09/06/2026 03:00</span></div>
+                <div className="flex justify-between"><span>Taille</span><span className="font-bold">2.8 GB</span></div>
+                <div className="flex justify-between"><span>Frequence</span><span className="font-bold">Quotidienne + hebdomadaire</span></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Qualite des donnees" icon={CheckCircle}>
+              <div className="p-3 space-y-1 text-[10px]">
+                <div className="flex justify-between"><span>Doublons detectes</span><span className="font-bold text-amber-600">23</span></div>
+                <div className="flex justify-between"><span>Donnees obsoletes</span><span className="font-bold text-amber-600">156 fiches</span></div>
+                <div className="flex justify-between"><span>Score qualite</span><span className="font-bold text-green-600">94%</span></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Securite & Conservation" icon={Shield}>
+              <div className="p-3 space-y-1 text-[10px]">
+                <div className="flex justify-between"><span>Chiffrement</span><span className="font-bold text-green-600">AES-256</span></div>
+                <div className="flex justify-between"><span>Conservation</span><span className="font-bold">10 ans (legal)</span></div>
+                <div className="flex justify-between"><span>Archivage auto</span><span className="font-bold text-green-600">Actif</span></div>
+              </div>
+            </SectionCard>
+          </div>
+        )}
+
+        {/* 79. SUPERVISION MONDIALE */}
+        {tab === "supervision" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">
+              <div className="flex items-center gap-2 mb-2"><Radar size={18} className="text-[#D4AF37]" /><p className="text-lg font-black text-[#D4AF37]">Supervision mondiale</p></div>
+              <p className="text-[10px] text-white/60">Vue temps reel de l&apos;ecosysteme MKA.P-MS</p>
+            </div>
+            <SectionCard title="Utilisateurs en ligne" icon={Users}>
+              <div className="p-3 space-y-1 text-[10px]">
+                <div className="flex justify-between"><span>Utilisateurs connectes</span><span className="font-bold text-green-600">342</span></div>
+                <div className="flex justify-between"><span>France</span><span className="font-bold">189</span></div>
+                <div className="flex justify-between"><span>Cote d&apos;Ivoire</span><span className="font-bold">78</span></div>
+                <div className="flex justify-between"><span>Senegal</span><span className="font-bold">45</span></div>
+                <div className="flex justify-between"><span>Autres pays</span><span className="font-bold">30</span></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Transactions en cours" icon={Euro}>
+              <div className="p-3 space-y-1 text-[10px]">
+                <div className="flex justify-between"><span>Paiements en attente</span><button onClick={() => navigate("/comptabilite/paiements")} className="font-bold text-amber-600">12</button></div>
+                <div className="flex justify-between"><span>Encheres actives</span><span className="font-bold">3</span></div>
+                <div className="flex justify-between"><span>Locations en cours</span><span className="font-bold">156</span></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Incidents" icon={AlertTriangle}>
+              <div className="p-3 space-y-1 text-[10px]">
+                <div className="flex justify-between"><span>Incidents actifs</span><span className="font-bold text-green-600">0</span></div>
+                <div className="flex justify-between"><span>Derniere alerte</span><span className="font-bold">08/06/2026 — Resolu</span></div>
+                <div className="flex justify-between"><span>Serveurs</span><span className="font-bold text-green-600">100% operationnels</span></div>
+              </div>
+            </SectionCard>
+          </div>
+        )}
+
+        {/* 80. VISION MKA.P-MS */}
+        {tab === "vision" && (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#B8860B] p-4 text-white">
+              <div className="flex items-center gap-2 mb-2"><Compass size={18} className="text-white" /><p className="text-lg font-black">Vision MKA.P-MS</p></div>
+              <p className="text-[10px] text-white/80">Reserve au fondateur — Grandes orientations strategiques</p>
+            </div>
+            <SectionCard title="Mission" icon={Target}>
+              <div className="p-3 text-[10px] text-[#111]">
+                <p>Devenir la plateforme automobile de reference en Afrique et dans le monde, en offrant un ecosysteme complet pour l&apos;achat, la vente, la location, l&apos;entretien et le financement automobile.</p>
+              </div>
+            </SectionCard>
+            <SectionCard title="Feuille de route" icon={Compass}>
+              <div className="p-3 space-y-2 text-[10px]">
+                <div className="rounded-lg bg-green-50 p-2"><span className="text-green-700 font-bold">2026 — Phase de lancement</span><p className="text-[#111]">8 pays, 50 garages, 27 000+ utilisateurs, modules complets</p></div>
+                <div className="rounded-lg bg-blue-50 p-2"><span className="text-blue-700 font-bold">2027 — Phase de croissance</span><p className="text-[#111]">15 pays, 200 garages, App mobile, Serie A, API Marketplace</p></div>
+                <div className="rounded-lg bg-amber-50 p-2"><span className="text-amber-700 font-bold">2028-2030 — Phase d&apos;expansion</span><p className="text-[#111]">25 pays, leader Afrique, IA avancee, objets connectes, ERP</p></div>
+                <div className="rounded-lg bg-purple-50 p-2"><span className="text-purple-700 font-bold">2030-2035 — Phase internationale</span><p className="text-[#111]">50 pays, IPO envisagee, ecosystem mondial automobile</p></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Priorites actuelles" icon={Star}>
+              <div className="p-3 space-y-1 text-[10px]">
+                <p className="text-[#111]">1. Finaliser modules comptabilite et pilotage</p>
+                <p className="text-[#111]">2. Expansion Tunisie et Congo (Q3 2026)</p>
+                <p className="text-[#111]">3. App mobile native iOS/Android</p>
+                <p className="text-[#111]">4. Partenariats garages et assurances</p>
+                <p className="text-[#111]">5. Preparation levee de fonds Seed</p>
+              </div>
+            </SectionCard>
+            <SectionCard title="Projets confidentiels" icon={Lock}>
+              <div className="p-3 space-y-1 text-[10px]">
+                <div className="flex justify-between"><span>Acquisition reseau garages</span><span className="font-bold text-amber-600">Negociation</span></div>
+                <div className="flex justify-between"><span>Partenariat constructeur</span><span className="font-bold text-blue-600">Analyse</span></div>
+                <div className="flex justify-between"><span>Vehicule MKA.P-MS (concept)</span><span className="font-bold text-purple-600">Vision 2030</span></div>
+              </div>
+            </SectionCard>
           </div>
         )}
       </div>
