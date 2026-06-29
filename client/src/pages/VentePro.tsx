@@ -25,6 +25,11 @@ const CATEGORIES_PRO = [
   { label: "Breaks", modeles: "508 SW, Passat, A4 Avant", photo: "/categories/pro_break.jpg" },
   { label: "Utilitaires", modeles: "Kangoo, Berlingo, Trafic", photo: "/categories/pro_utilitaire.jpg" },
   { label: "Premium", modeles: "Classe E, Série 5, A6", photo: "/categories/pro_premium.jpg" },
+  { label: "Hybrides", modeles: "530e, 308 PHEV, A4 TFSI e", photo: "/categories/pro_hybride.jpg" },
+  { label: "Électriques", modeles: "Model 3, e-208, Mégane E-Tech", photo: "/categories/pro_electrique_vente.jpg" },
+  { label: "Monospaces", modeles: "Scenic, Touran, Espace", photo: "/categories/pro_monospace.jpg" },
+  { label: "Familiales", modeles: "3008, RAV4, Tiguan, C5 X", photo: "/categories/pro_familiale.jpg" },
+  { label: "Cabriolets", modeles: "Z4, SLK, Boxster", photo: "/categories/pro_cabriolet.jpg" },
 ];
 
 const FILTRES_PRO = [

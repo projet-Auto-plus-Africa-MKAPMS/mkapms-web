@@ -7,6 +7,14 @@ const CATEGORIES = [
   { label: "Poids lourds", desc: "19t+ porteurs", photo: "/categories/camion_poids_lourd.jpg" },
   { label: "Plateaux", desc: "Matériel & engins", photo: "/categories/camion_plateau.jpg" },
   { label: "Fourgons", desc: "7.5t → 12t", photo: "/categories/camion_fourgon.jpg" },
+  { label: "Électriques", desc: "Camions zéro émission", photo: "/categories/camion_electrique.jpg" },
+  { label: "Ampliroll / Polybenne", desc: "Bennes amovibles", photo: "/categories/camion_ampliroll.jpg" },
+  { label: "Grue auxiliaire", desc: "Chargement intégré", photo: "/categories/camion_grue_auxiliaire.jpg" },
+  { label: "Benne TP", desc: "Travaux publics", photo: "/categories/camion_benne_tp.jpg" },
+  { label: "Bâchés", desc: "Transport couvert", photo: "/categories/camion_bache.jpg" },
+  { label: "Semi-remorques", desc: "Tracteurs routiers", photo: "/categories/camion_semiremorque.jpg" },
+  { label: "Citernes", desc: "Liquides & carburants", photo: "/categories/camion_citerne.jpg" },
+  { label: "Malaxeurs / Bétonnières", desc: "Béton & matériaux", photo: "/categories/camion_malaxeur.jpg" },
 ];
 const ANNONCES = [
   { id: 1, nom: "Iveco Daily Benne 35C14", annee: 2022, km: 55000, prix: 28500, ptac: "3.5 t", photo: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&h=260&fit=crop" },

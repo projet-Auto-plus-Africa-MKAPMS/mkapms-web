@@ -7,7 +7,12 @@ const CATEGORIES = [
   { label: "Trafic / Vivaro", desc: "Fourgons moyens", photo: "/categories/util_fourgon_moyen.jpg" },
   { label: "Master / Boxer", desc: "Grands fourgons", photo: "/categories/util_grand_fourgon.jpg" },
   { label: "Plateau", desc: "Transport matériel", photo: "/categories/util_plateau.jpg" },
-  { label: "Béné / Coffre", desc: "Stockage", photo: "/categories/util_benne.jpg" },
+  { label: "Béne / Coffre", desc: "Stockage", photo: "/categories/util_benne.jpg" },
+  { label: "Pick-up / 4x4", desc: "Hilux, Ranger, L200", photo: "/categories/util_pickup.jpg" },
+  { label: "Électriques", desc: "Kangoo E-Tech, Berlingo Électrique", photo: "/categories/util_electrique.jpg" },
+  { label: "Bâchés", desc: "Transport matériel couvert", photo: "/categories/util_bache.jpg" },
+  { label: "Avec hayon", desc: "Chargement facilité", photo: "/categories/util_hayon.jpg" },
+  { label: "Isothermes", desc: "Transport alimentaire", photo: "/categories/util_isotherme.jpg" },
 ];
 
 const ANNONCES = [

@@ -6,6 +6,9 @@ const CATEGORIES_VTC = [
   { label: "Hybrides", desc: "Camry, 530e, E 300e", photo: "/categories/vtc_hybride.jpg" },
   { label: "Minivans", desc: "Classe V, Multivan, Staria", photo: "/categories/vtc_minivan.jpg" },
   { label: "SUV Premium", desc: "GLC, X3, Q5", photo: "/categories/vtc_suv_premium.jpg" },
+  { label: "Taxi classique", desc: "Prius, Camry, 508", photo: "/categories/vtc_taxi_classique.jpg" },
+  { label: "Taxi électrique", desc: "Model 3, ZOE, Ioniq 6", photo: "/categories/vtc_taxi_electrique.jpg" },
+  { label: "Berline affaires", desc: "Classe E, Série 5, A6", photo: "/categories/vtc_berline_affaires.jpg" },
 ];
 
 const ANNONCES = [

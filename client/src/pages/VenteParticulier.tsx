@@ -23,6 +23,9 @@ const CATEGORIES = [
   { label: "Électriques", modeles: "ZOE, e-208, Spring, Leaf", photo: "/categories/electrique.jpg" },
   { label: "Familiales", modeles: "3008, RAV4, Tiguan, C5 X", photo: "/categories/familiale.jpg" },
   { label: "Premium", modeles: "Classe C, Série 3, A4, XC40", photo: "/categories/premium.jpg" },
+  { label: "7 places", modeles: "5008, Touran, Sharan, Galaxy", photo: "/categories/vente_7places.jpg" },
+  { label: "Sportives / Coupés", modeles: "911, M3, TT, RC", photo: "/categories/vente_sportive.jpg" },
+  { label: "Pick-up / 4x4", modeles: "Hilux, Ranger, L200, Duster", photo: "/categories/vente_pickup.jpg" },
 ];
 
 const ANNONCES = [

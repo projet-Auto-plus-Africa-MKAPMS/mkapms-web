@@ -18,6 +18,9 @@ const CATEGORIES_OFFICIEL = [
   { label: "Cabriolets", desc: "SLK, Z4, Boxster", photo: "/categories/cabriolet.jpg" },
   { label: "Électriques", desc: "Tesla Model 3, ZOE, e-208", photo: "/categories/electrique.jpg" },
   { label: "Monospaces", desc: "Scenic, Touran, Espace", photo: "/categories/monospace.jpg" },
+  { label: "7 places", desc: "5008, Tiguan Allspace, Tarraco", photo: "/categories/mkapms_7places_vente.jpg" },
+  { label: "Sportives / Coupés", desc: "911, M4, TT RS, RC", photo: "/categories/mkapms_sportive_vente.jpg" },
+  { label: "Pick-up / 4x4", desc: "Hilux, Ranger, L200", photo: "/categories/mkapms_pickup_vente.jpg" },
 ];
 
 const ANNONCES = [
