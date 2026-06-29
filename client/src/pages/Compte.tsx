@@ -29,7 +29,7 @@ const ALL_SERVICES = [
   { label: "Dossier Client", to: "/dossier-client", emoji: "\ud83d\udcc1", desc: "Tout votre historique centralis\u00e9" },
   { label: "Dossier V\u00e9hicule", to: "/dossier-vehicule-numerique", emoji: "\ud83d\udcdd", desc: "Carnet num\u00e9rique entretien, CT, factures" },
   { label: "Notifications", to: "/notifications", emoji: "\ud83d\udd14", desc: "Centre de notifications unifi\u00e9" },
-  { label: "Comptabilit\u00e9", to: "/compta-dirigeant", emoji: "\ud83d\udcb9", desc: "Tableau de bord dirigeant CA, finances" },
+  { label: "Comptabilit\u00e9", to: "/superadmin/comptabilite-complete", emoji: "\ud83d\udcb9", desc: "Tableau de bord dirigeant CA, finances" },
   { label: "D\u00e9pannage", to: "/depannage", emoji: "\ud83d\ude91", desc: "Assistance routi\u00e8re 24h/24, 7j/7" },
   { label: "Carte Grise", to: "/carte-grise", emoji: "\ud83d\udcc4", desc: "D\u00e9marches carte grise en ligne" },
   { label: "Livraison", to: "/livraison", emoji: "\ud83d\ude9a", desc: "Livraison France & Afrique" },
@@ -179,10 +179,9 @@ export default function Compte() {
           )}
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {isPro(user.role) && <Link to="/garage-plus" className="btn-outline">Espace Garage+</Link>}
-          {isAdmin(user.role) && <Link to="/admin" className="btn-primary">Back-office</Link>}
-          {user.role === "super_admin" && <Link to="/admin" className="rounded-lg bg-[#111] px-4 py-2 text-xs font-bold text-[#D4AF37] hover:bg-[#222]">Super Admin</Link>}
+          {isAdmin(user.role) && <Link to="/admin" className="btn-primary">Espace Gestion</Link>}
           <button className="btn-outline" onClick={() => { logout(); navigate("/"); }}>Déconnexion</button>
         </div>
       </div>
@@ -193,13 +192,12 @@ export default function Compte() {
           <h2 className="text-sm font-black text-[#D4AF37] mb-3">Acc&egrave;s PDG — Tous les modules</h2>
           <div className="grid grid-cols-3 gap-2 md:grid-cols-5 lg:grid-cols-7">
             {[
-              { label: "Super Admin", to: "/admin", emoji: "\ud83d\udc51" },
-              { label: "Back-office", to: "/admin", emoji: "\ud83d\udee1\ufe0f" },
-              { label: "Comptabilit\u00e9", to: "/compta-dirigeant", emoji: "\ud83d\udcb9" },
+              { label: "Espace Gestion", to: "/admin", emoji: "\ud83d\udc51" },
+              { label: "Comptabilit\u00e9", to: "/superadmin/comptabilite-complete", emoji: "\ud83d\udcb9" },
               { label: "Atelier Pro", to: "/atelier-pro", emoji: "\ud83d\udee0\ufe0f" },
               { label: "Catalogue", to: "/catalogue-technique", emoji: "\ud83d\udcd6" },
               { label: "Suivi v\u00e9hicule", to: "/suivi-vehicule", emoji: "\ud83d\udccd" },
-              { label: "Ench\u00e8res Pro", to: "/encheres", emoji: "\ud83d\udd28" },
+              { label: "Ench\u00e8res Pro", to: "/acheter/encheres", emoji: "\ud83d\udd28" },
               { label: "Journal", to: "/journal-activite", emoji: "\ud83d\udcdc" },
               { label: "Notifications", to: "/notifications", emoji: "\ud83d\udd14" },
               { label: "Dossier Client", to: "/dossier-client", emoji: "\ud83d\udcc1" },
