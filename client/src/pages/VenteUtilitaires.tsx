@@ -3,11 +3,11 @@ import { Link } from "react-router-dom";
 import { ChevronLeft, Search, Truck, Heart, Star, ChevronDown } from "lucide-react";
 
 const CATEGORIES = [
-  { label: "Kangoo / Berlingo", desc: "Petits fourgons", photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=300&h=200&fit=crop" },
-  { label: "Trafic / Vivaro", desc: "Fourgons moyens", photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=300&h=200&fit=crop" },
-  { label: "Master / Boxer", desc: "Grands fourgons", photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=300&h=200&fit=crop" },
-  { label: "Plateau", desc: "Transport matériel", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=300&h=200&fit=crop" },
-  { label: "Béné / Coffre", desc: "Stockage", photo: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=300&h=200&fit=crop" },
+  { label: "Kangoo / Berlingo", desc: "Petits fourgons", photo: "/categories/util_petit_fourgon.jpg" },
+  { label: "Trafic / Vivaro", desc: "Fourgons moyens", photo: "/categories/util_fourgon_moyen.jpg" },
+  { label: "Master / Boxer", desc: "Grands fourgons", photo: "/categories/util_grand_fourgon.jpg" },
+  { label: "Plateau", desc: "Transport matériel", photo: "/categories/util_plateau.jpg" },
+  { label: "Béné / Coffre", desc: "Stockage", photo: "/categories/util_benne.jpg" },
 ];
 
 const ANNONCES = [

@@ -19,12 +19,12 @@ const ANNONCES = [
 ];
 
 const CATEGORIES_PRO = [
-  { label: "Berlines", modeles: "Série 3, Classe C, A4, 508", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=300&h=200&fit=crop" },
-  { label: "SUV & 4x4", modeles: "X3, GLC, Q5, 3008", photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=300&h=200&fit=crop" },
-  { label: "Citadines", modeles: "208, Clio, Polo, A1", photo: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=300&h=200&fit=crop" },
-  { label: "Breaks", modeles: "508 SW, Passat, A4 Avant", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=300&h=200&fit=crop" },
-  { label: "Utilitaires", modeles: "Kangoo, Berlingo, Trafic", photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=300&h=200&fit=crop" },
-  { label: "Premium", modeles: "Classe E, Série 5, A6", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=300&h=200&fit=crop" },
+  { label: "Berlines", modeles: "Série 3, Classe C, A4, 508", photo: "/categories/berline.jpg" },
+  { label: "SUV & 4x4", modeles: "X3, GLC, Q5, 3008", photo: "/categories/suv.jpg" },
+  { label: "Citadines", modeles: "208, Clio, Polo, A1", photo: "/categories/citadine.jpg" },
+  { label: "Breaks", modeles: "508 SW, Passat, A4 Avant", photo: "/categories/pro_break.jpg" },
+  { label: "Utilitaires", modeles: "Kangoo, Berlingo, Trafic", photo: "/categories/pro_utilitaire.jpg" },
+  { label: "Premium", modeles: "Classe E, Série 5, A6", photo: "/categories/pro_premium.jpg" },
 ];
 
 const FILTRES_PRO = [

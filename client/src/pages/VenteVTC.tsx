@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import { ChevronLeft, Search, Car, Heart, Star, Calculator, TrendingUp, Fuel, Euro } from "lucide-react";
 const CATEGORIES_VTC = [
-  { label: "Berlines Premium", desc: "Classe E, Série 5, A6", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=300&h=200&fit=crop" },
-  { label: "Électriques", desc: "Tesla, EQS, e-tron", photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=300&h=200&fit=crop" },
-  { label: "Hybrides", desc: "Camry, 530e, E 300e", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=300&h=200&fit=crop" },
-  { label: "Minivans", desc: "Classe V, Multivan, Staria", photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=300&h=200&fit=crop" },
-  { label: "SUV Premium", desc: "GLC, X3, Q5", photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=300&h=200&fit=crop" },
+  { label: "Berlines Premium", desc: "Classe E, Série 5, A6", photo: "/categories/vtc_berline_premium.jpg" },
+  { label: "Électriques", desc: "Tesla, EQS, e-tron", photo: "/categories/vtc_electrique.jpg" },
+  { label: "Hybrides", desc: "Camry, 530e, E 300e", photo: "/categories/vtc_hybride.jpg" },
+  { label: "Minivans", desc: "Classe V, Multivan, Staria", photo: "/categories/vtc_minivan.jpg" },
+  { label: "SUV Premium", desc: "GLC, X3, Q5", photo: "/categories/vtc_suv_premium.jpg" },
 ];
 
 const ANNONCES = [
