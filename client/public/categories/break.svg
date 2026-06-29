@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <defs>
+    <linearGradient id="bodyBr" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a4a3a"/>
+      <stop offset="100%" stop-color="#1a2a1a"/>
+    </linearGradient>
+    <linearGradient id="glassBr" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8ec8e0"/>
+      <stop offset="100%" stop-color="#5a9ab5"/>
+    </linearGradient>
+  </defs>
+  <!-- Body - long estate/wagon shape -->
+  <path d="M50,128 L60,128 L65,100 Q72,78 110,68 L200,58 Q270,55 320,60 L345,72 Q360,82 365,100 L368,128 L375,128 L375,138 L40,138 L40,128 Z" fill="url(#bodyBr)" stroke="#2a3a2a" stroke-width="1.5"/>
+  <!-- Roof - long and flat at the back -->
+  <path d="M138,68 Q148,38 188,34 L255,34 Q310,34 340,52 L345,72" fill="url(#bodyBr)" stroke="#2a3a2a" stroke-width="1.5"/>
+  <!-- Front window -->
+  <path d="M146,65 Q153,40 190,38 L222,38 L222,62 Z" fill="url(#glassBr)" stroke="#4a8a9f" stroke-width="1"/>
+  <!-- Rear window - large estate rear -->
+  <path d="M228,38 L310,38 Q330,40 338,58 L338,70 L228,62 Z" fill="url(#glassBr)" stroke="#4a8a9f" stroke-width="1"/>
+  <!-- Small quarter window -->
+  <path d="M342,52 Q346,46 348,52 L348,62 L342,66 Z" fill="url(#glassBr)" stroke="#4a8a9f" stroke-width="0.8"/>
+  <!-- Headlight -->
+  <path d="M55,105 Q48,102 48,110 Q48,118 55,115 L68,112 L68,107 Z" fill="#fff8dc" stroke="#666" stroke-width="0.5"/>
+  <!-- Taillight - tall estate style -->
+  <rect x="368" y="98" width="8" height="22" rx="2" fill="#e33" stroke="#c22" stroke-width="0.5"/>
+  <!-- Door lines -->
+  <line x1="222" y1="62" x2="222" y2="128" stroke="#1a2a1a" stroke-width="1"/>
+  <line x1="285" y1="58" x2="285" y2="128" stroke="#1a2a1a" stroke-width="1"/>
+  <!-- Door handles -->
+  <rect x="232" y="92" width="16" height="4" rx="2" fill="#3a4a3a"/>
+  <rect x="295" y="90" width="16" height="4" rx="2" fill="#3a4a3a"/>
+  <!-- Roof rack -->
+  <line x1="155" y1="34" x2="335" y2="34" stroke="#5a6a5a" stroke-width="2.5"/>
+  <rect x="175" y="30" width="5" height="5" rx="1" fill="#3a4a3a"/>
+  <rect x="280" y="30" width="5" height="5" rx="1" fill="#3a4a3a"/>
+  <!-- Bumpers -->
+  <path d="M40,128 Q32,128 32,133 L32,140 L55,140 L55,138 L40,138 Z" fill="#1a2a1a"/>
+  <path d="M375,128 Q383,128 383,133 L383,140 L360,140 L360,138 L375,138 Z" fill="#1a2a1a"/>
+  <!-- Wheels -->
+  <circle cx="110" cy="140" r="24" fill="#1a1a1a"/>
+  <circle cx="110" cy="140" r="16" fill="#333"/>
+  <circle cx="110" cy="140" r="10" fill="#555"/>
+  <circle cx="110" cy="140" r="4" fill="#888"/>
+  <circle cx="320" cy="140" r="24" fill="#1a1a1a"/>
+  <circle cx="320" cy="140" r="16" fill="#333"/>
+  <circle cx="320" cy="140" r="10" fill="#555"/>
+  <circle cx="320" cy="140" r="4" fill="#888"/>
+  <!-- Spokes -->
+  <line x1="110" y1="124" x2="110" y2="156" stroke="#666" stroke-width="1.5"/>
+  <line x1="94" y1="140" x2="126" y2="140" stroke="#666" stroke-width="1.5"/>
+  <line x1="320" y1="124" x2="320" y2="156" stroke="#666" stroke-width="1.5"/>
+  <line x1="304" y1="140" x2="336" y2="140" stroke="#666" stroke-width="1.5"/>
+  <!-- Shadow -->
+  <ellipse cx="210" cy="168" rx="168" ry="6" fill="rgba(0,0,0,0.1)"/>
+</svg>

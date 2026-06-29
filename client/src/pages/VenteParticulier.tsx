@@ -13,12 +13,12 @@ import {
    ══════════════════════════════════════════════════════════════════════════ */
 
 const CATEGORIES = [
-  { label: "Citadines", modeles: "Clio, 208, Corsa, Yaris", photo: "https://cdn.pixabay.com/photo/2012/05/29/00/43/car-49278_1280.jpg" },
-  { label: "Berlines", modeles: "Série 3, Classe C, A4", photo: "https://cdn.pixabay.com/photo/2016/04/01/12/16/car-1300629_1280.png" },
-  { label: "SUV & 4x4", modeles: "3008, Tiguan, X3, GLC", photo: "https://cdn.pixabay.com/photo/2017/03/27/14/56/auto-2179220_1280.png" },
-  { label: "Monospaces", modeles: "Scenic, Touran, Espace", photo: "https://cdn.pixabay.com/photo/2013/07/12/17/47/van-152135_1280.png" },
-  { label: "Breaks", modeles: "508 SW, Passat SW, Série 3 Touring", photo: "https://cdn.pixabay.com/photo/2013/07/12/17/47/station-wagon-152134_1280.png" },
-  { label: "Cabriolets", modeles: "SLK, Z4, Boxster", photo: "https://cdn.pixabay.com/photo/2013/07/12/17/47/convertible-152133_1280.png" },
+  { label: "Citadines", modeles: "Clio, 208, Corsa, Yaris", photo: "/categories/citadine.jpg" },
+  { label: "Berlines", modeles: "Série 3, Classe C, A4", photo: "/categories/berline.jpg" },
+  { label: "SUV & 4x4", modeles: "3008, Tiguan, X3, GLC", photo: "/categories/suv.jpg" },
+  { label: "Monospaces", modeles: "Scenic, Touran, Espace", photo: "/categories/monospace.jpg" },
+  { label: "Breaks", modeles: "508 SW, Passat SW, Série 3 Touring", photo: "/categories/break.jpg" },
+  { label: "Cabriolets", modeles: "SLK, Z4, Boxster", photo: "/categories/cabriolet.jpg" },
 ];
 
 const ANNONCES = [

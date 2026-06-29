@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <defs>
+    <linearGradient id="bodyM" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4a5a6a"/>
+      <stop offset="100%" stop-color="#2a3a4a"/>
+    </linearGradient>
+    <linearGradient id="glassM" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a0d0e8"/>
+      <stop offset="100%" stop-color="#6aaccc"/>
+    </linearGradient>
+  </defs>
+  <!-- Body - tall and boxy minivan shape -->
+  <path d="M45,125 L55,125 L58,85 Q62,60 100,52 L200,46 Q270,44 310,52 L330,65 Q348,80 352,100 L355,125 L370,125 L370,138 L35,138 L35,125 Z" fill="url(#bodyM)" stroke="#2a3a4a" stroke-width="1.5"/>
+  <!-- Roof - very tall and flat -->
+  <path d="M100,52 Q105,28 140,24 L290,24 Q318,26 325,48 L330,65" fill="url(#bodyM)" stroke="#2a3a4a" stroke-width="1.5"/>
+  <!-- Front window -->
+  <path d="M108,50 Q112,30 142,28 L175,28 L175,48 Z" fill="url(#glassM)" stroke="#5a8a9f" stroke-width="1"/>
+  <!-- Middle window -->
+  <path d="M180,28 L230,28 L230,48 L180,48 Z" fill="url(#glassM)" stroke="#5a8a9f" stroke-width="1"/>
+  <!-- Rear window -->
+  <path d="M235,28 L285,28 Q308,30 318,50 L318,62 L235,48 Z" fill="url(#glassM)" stroke="#5a8a9f" stroke-width="1"/>
+  <!-- Headlight -->
+  <path d="M52,98 Q45,95 45,105 Q45,112 52,110 L65,108 L65,100 Z" fill="#fff8dc" stroke="#666" stroke-width="0.5"/>
+  <!-- Taillight -->
+  <rect x="356" y="95" width="10" height="20" rx="2" fill="#e33" stroke="#c22" stroke-width="0.5"/>
+  <!-- Door lines -->
+  <line x1="178" y1="48" x2="178" y2="125" stroke="#2a3a4a" stroke-width="1"/>
+  <line x1="232" y1="48" x2="232" y2="125" stroke="#2a3a4a" stroke-width="1"/>
+  <!-- Door handles -->
+  <rect x="188" y="85" width="16" height="4" rx="2" fill="#4a5a6a"/>
+  <rect x="242" y="85" width="16" height="4" rx="2" fill="#4a5a6a"/>
+  <!-- Bumpers -->
+  <path d="M35,125 Q27,125 27,130 L27,140 L52,140 L52,138 L35,138 Z" fill="#2a3a4a"/>
+  <path d="M370,125 Q378,125 378,130 L378,140 L355,140 L355,138 L370,138 Z" fill="#2a3a4a"/>
+  <!-- Wheels -->
+  <circle cx="95" cy="140" r="26" fill="#1a1a1a"/>
+  <circle cx="95" cy="140" r="18" fill="#333"/>
+  <circle cx="95" cy="140" r="11" fill="#555"/>
+  <circle cx="95" cy="140" r="4" fill="#888"/>
+  <circle cx="315" cy="140" r="26" fill="#1a1a1a"/>
+  <circle cx="315" cy="140" r="18" fill="#333"/>
+  <circle cx="315" cy="140" r="11" fill="#555"/>
+  <circle cx="315" cy="140" r="4" fill="#888"/>
+  <!-- Spokes -->
+  <line x1="95" y1="122" x2="95" y2="158" stroke="#666" stroke-width="1.5"/>
+  <line x1="77" y1="140" x2="113" y2="140" stroke="#666" stroke-width="1.5"/>
+  <line x1="315" y1="122" x2="315" y2="158" stroke="#666" stroke-width="1.5"/>
+  <line x1="297" y1="140" x2="333" y2="140" stroke="#666" stroke-width="1.5"/>
+  <!-- Shadow -->
+  <ellipse cx="205" cy="170" rx="165" ry="7" fill="rgba(0,0,0,0.1)"/>
+</svg>
