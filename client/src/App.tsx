@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 import Layout from "./components/Layout";
 import { useAuth } from "./lib/auth";
@@ -782,6 +782,7 @@ export default function App() {
             <Route path="/acheter/vtc-taxi" element={<U name="Vente VTC"><VenteVTC /></U>} />
             <Route path="/acheter/promotions" element={<U name="Promotions"><VentePromotions /></U>} />
             <Route path="/acheter/encheres" element={<U name="Ench\u00e8res"><VenteEncheres /></U>} />
+            <Route path="/encheres" element={<Navigate to="/acheter/encheres" replace />} />
             <Route path="/acheter/estimation" element={<U name="Estimation"><EstimationAuto /></U>} />
             <Route path="/acheter/historique-vehicule" element={<U name="Historique v\u00e9hicule"><HistoriqueVehiculeVente /></U>} />
             <Route path="/acheter/reprise" element={<U name="Reprise"><RepriseVehicule /></U>} />
