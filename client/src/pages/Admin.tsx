@@ -76,13 +76,13 @@ export default function Admin() {
                 <p className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest opacity-80">MKA.P-MS Administration</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10 overflow-x-auto no-scrollbar">
-              <button onClick={() => changeTab("backoffice")} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "backoffice" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/40 hover:text-white"}`}>Back-office</button>
+            <div className="flex items-center gap-3 bg-white/5 p-1.5 rounded-2xl border border-white/10 overflow-x-auto no-scrollbar">
+              <button onClick={() => changeTab("backoffice")} className={`px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "backoffice" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/50 hover:text-white hover:bg-white/5"}`}>Back-office</button>
               {isSuperAdmin && (
-                <button onClick={() => changeTab("superadmin")} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "superadmin" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/40 hover:text-white"}`}>Super Admin</button>
+                <button onClick={() => changeTab("superadmin")} className={`px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "superadmin" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/50 hover:text-white hover:bg-white/5"}`}>Super Admin</button>
               )}
               {direction && (
-                <button onClick={() => changeTab("direction")} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "direction" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/40 hover:text-white"}`}>Direction</button>
+                <button onClick={() => changeTab("direction")} className={`px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "direction" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/50 hover:text-white hover:bg-white/5"}`}>Administrateur</button>
               )}
             </div>
           </div>
@@ -170,7 +170,7 @@ export default function Admin() {
             <section>
               <h2 className="text-lg font-black text-white uppercase tracking-tight mb-6 flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-[#D4AF37]" />
-                Centre de Commandement PDG
+                Tableau de Bord Administrateur
               </h2>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
                 {[
