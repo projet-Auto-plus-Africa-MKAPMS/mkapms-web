@@ -12,10 +12,13 @@ import {
    ══════════════════════════════════════════════════════════════════════════ */
 
 const CATEGORIES = [
-  { titre: "8 places", modeles: ["Caravelle", "V-Class"], photo: "/categories/loc_cover_minibus.jpg", count: 5 },
-  { titre: "9 places", modeles: ["Sprinter", "Transporter"], photo: "/categories/vtc_minivan.jpg", count: 6 },
-  { titre: "12-17 places", modeles: ["Sprinter 17pl", "Master 12pl"], photo: "/categories/loc_cover_minibus.jpg", count: 4 },
-  { titre: "Minibus Premium", modeles: ["V-Class VIP", "Sprinter Tourer"], photo: "/categories/vtc_minivan.jpg", count: 3 },
+  { titre: "7 places", modeles: ["Sharan", "Espace", "Galaxy"], photo: "/categories/minibus_7pl.jpg", count: 8 },
+  { titre: "8 places", modeles: ["Caravelle", "V-Class", "Multivan"], photo: "/categories/minibus_8pl.jpg", count: 12 },
+  { titre: "9 places", modeles: ["Sprinter", "Transporter", "Transit"], photo: "/categories/minibus_9pl.jpg", count: 10 },
+  { titre: "12 places", modeles: ["Master 12pl", "Daily 12pl", "Boxer 12pl"], photo: "/categories/minibus_12pl.jpg", count: 7 },
+  { titre: "17 places", modeles: ["Sprinter 17pl", "Master 17pl", "Transit 17pl"], photo: "/categories/minibus_17pl.jpg", count: 5 },
+  { titre: "Minibus Premium", modeles: ["V-Class VIP", "Sprinter Tourer", "Caravelle Highline"], photo: "/categories/minibus_premium.jpg", count: 6 },
+  { titre: "Minibus Électrique", modeles: ["ID.Buzz", "e-Sprinter", "e-Transit"], photo: "/categories/minibus_electrique.jpg", count: 4 },
 ];
 
 const VEHICULES = [

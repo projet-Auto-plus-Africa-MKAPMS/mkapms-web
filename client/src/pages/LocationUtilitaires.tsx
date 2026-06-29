@@ -17,6 +17,12 @@ const CATEGORIES = [
   { titre: "Grand volume", modeles: ["Master", "Boxer", "Ducato", "Sprinter"], photo: "/categories/util_grand_fourgon.jpg", count: 6 },
   { titre: "Camionnettes plateau", modeles: ["L200", "Hilux", "Navara"], photo: "/categories/utilitaire_benne.jpg", count: 5 },
   { titre: "Frigorifiques", modeles: ["Berlingo Frigo", "Trafic Frigo"], photo: "/categories/utilitaire_frigo.jpg", count: 4 },
+  { titre: "Bennes", modeles: ["Trafic Benne", "Transit Benne", "Master Benne"], photo: "/categories/utilitaire_benne_loc.jpg", count: 6 },
+  { titre: "Pick-up / 4x4", modeles: ["Hilux", "Ranger", "Amarok", "L200"], photo: "/categories/utilitaire_pickup.jpg", count: 7 },
+  { titre: "Électriques", modeles: ["e-Kangoo", "e-Berlingo", "e-Partner", "e-Transit"], photo: "/categories/utilitaire_electrique.jpg", count: 5 },
+  { titre: "Bâchés", modeles: ["Trafic Bâché", "Master Bâché", "Transit Bâché"], photo: "/categories/utilitaire_bache.jpg", count: 4 },
+  { titre: "Avec hayon", modeles: ["Master Hayon", "Boxer Hayon", "Sprinter Hayon"], photo: "/categories/utilitaire_hayon.jpg", count: 5 },
+  { titre: "Isothermes", modeles: ["Berlingo Isotherme", "Trafic Isotherme", "Partner Isotherme"], photo: "/categories/utilitaire_isotherme.jpg", count: 3 },
 ];
 
 const VEHICULES = [
@@ -30,6 +36,19 @@ const VEHICULES = [
   { id: 5008, titre: "Fiat Ducato L4H3", annee: 2024, volume: "17 m³", charge: "1600 kg", prixJour: 90, prixSemaine: 540, prixMois: 1800, photo: "/categories/util_grand_fourgon.jpg", categorie: "Grand volume" },
   { id: 5009, titre: "Mitsubishi L200", annee: 2023, volume: "Plateau", charge: "1050 kg", prixJour: 65, prixSemaine: 390, prixMois: 1300, photo: "/categories/utilitaire_benne.jpg", categorie: "Plateau" },
   { id: 5010, titre: "Renault Trafic Frigo", annee: 2024, volume: "5.2 m³", charge: "1000 kg", prixJour: 75, prixSemaine: 450, prixMois: 1500, photo: "/categories/utilitaire_frigo.jpg", categorie: "Frigorifique" },
+  { id: 5011, titre: "Renault Trafic Benne", annee: 2024, volume: "Benne", charge: "1200 kg", prixJour: 70, prixSemaine: 420, prixMois: 1400, photo: "/categories/utilitaire_benne_loc.jpg", categorie: "Benne" },
+  { id: 5012, titre: "Ford Transit Benne", annee: 2023, volume: "Benne", charge: "1300 kg", prixJour: 72, prixSemaine: 432, prixMois: 1450, photo: "/categories/utilitaire_benne_loc.jpg", categorie: "Benne" },
+  { id: 5013, titre: "Toyota Hilux Pick-up", annee: 2024, volume: "Plateau", charge: "1000 kg", prixJour: 68, prixSemaine: 408, prixMois: 1350, photo: "/categories/utilitaire_pickup.jpg", categorie: "Pick-up / 4x4" },
+  { id: 5014, titre: "Ford Ranger 4x4", annee: 2024, volume: "Plateau", charge: "1050 kg", prixJour: 70, prixSemaine: 420, prixMois: 1400, photo: "/categories/utilitaire_pickup.jpg", categorie: "Pick-up / 4x4" },
+  { id: 5015, titre: "Renault Kangoo E-Tech", annee: 2024, volume: "3.3 m³", charge: "600 kg", prixJour: 45, prixSemaine: 270, prixMois: 950, photo: "/categories/utilitaire_electrique.jpg", categorie: "Électrique" },
+  { id: 5016, titre: "Citroën Berlingo Electric", annee: 2024, volume: "3.7 m³", charge: "650 kg", prixJour: 48, prixSemaine: 288, prixMois: 980, photo: "/categories/utilitaire_electrique.jpg", categorie: "Électrique" },
+  { id: 5017, titre: "Ford e-Transit Custom", annee: 2024, volume: "5.8 m³", charge: "1000 kg", prixJour: 75, prixSemaine: 450, prixMois: 1550, photo: "/categories/utilitaire_electrique.jpg", categorie: "Électrique" },
+  { id: 5018, titre: "Renault Master Bâché", annee: 2023, volume: "12 m³", charge: "1400 kg", prixJour: 80, prixSemaine: 480, prixMois: 1600, photo: "/categories/utilitaire_bache.jpg", categorie: "Bâché" },
+  { id: 5019, titre: "Ford Transit Bâché", annee: 2024, volume: "10 m³", charge: "1300 kg", prixJour: 78, prixSemaine: 468, prixMois: 1550, photo: "/categories/utilitaire_bache.jpg", categorie: "Bâché" },
+  { id: 5020, titre: "Renault Master Hayon", annee: 2024, volume: "13 m³", charge: "1500 kg", prixJour: 90, prixSemaine: 540, prixMois: 1800, photo: "/categories/utilitaire_hayon.jpg", categorie: "Avec hayon" },
+  { id: 5021, titre: "Mercedes Sprinter Hayon", annee: 2023, volume: "11 m³", charge: "1400 kg", prixJour: 95, prixSemaine: 570, prixMois: 1900, photo: "/categories/utilitaire_hayon.jpg", categorie: "Avec hayon" },
+  { id: 5022, titre: "Citroën Berlingo Isotherme", annee: 2024, volume: "3.3 m³", charge: "600 kg", prixJour: 50, prixSemaine: 300, prixMois: 1050, photo: "/categories/utilitaire_isotherme.jpg", categorie: "Isotherme" },
+  { id: 5023, titre: "Renault Trafic Isotherme", annee: 2024, volume: "5.0 m³", charge: "1000 kg", prixJour: 65, prixSemaine: 390, prixMois: 1300, photo: "/categories/utilitaire_isotherme.jpg", categorie: "Isotherme" },
 ];
 
 const SERVICES = [

@@ -11,10 +11,10 @@ import {
    ══════════════════════════════════════════════════════════════════════════ */
 
 const VEHICULES_LOA = [
-  { id: 1, nom: "Mercedes Classe E Break 220d", prixAchat: 45000, apport: 5000, duree: 48, mensualite: 650, valeurResiduelle: 18000, photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop", km: "20 000 km/an" },
-  { id: 2, nom: "BMW Série 5 530e", prixAchat: 58000, apport: 8000, duree: 48, mensualite: 820, valeurResiduelle: 23000, photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=260&fit=crop", km: "20 000 km/an" },
-  { id: 3, nom: "Tesla Model 3 Long Range", prixAchat: 44000, apport: 5000, duree: 48, mensualite: 590, valeurResiduelle: 17000, photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=260&fit=crop", km: "25 000 km/an" },
-  { id: 4, nom: "Peugeot 3008 GT Hybrid", prixAchat: 38000, apport: 4000, duree: 48, mensualite: 480, valeurResiduelle: 15000, photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=260&fit=crop", km: "15 000 km/an" },
+  { id: 1, nom: "Mercedes Classe E Break 220d", prixAchat: 45000, apport: 5000, duree: 48, mensualite: 650, valeurResiduelle: 18000, photo: "/categories/loc_berline.jpg", km: "20 000 km/an" },
+  { id: 2, nom: "BMW Série 5 530e", prixAchat: 58000, apport: 8000, duree: 48, mensualite: 820, valeurResiduelle: 23000, photo: "/categories/pro_premium.jpg", km: "20 000 km/an" },
+  { id: 3, nom: "Tesla Model 3 Long Range", prixAchat: 44000, apport: 5000, duree: 48, mensualite: 590, valeurResiduelle: 17000, photo: "/categories/electrique.jpg", km: "25 000 km/an" },
+  { id: 4, nom: "Peugeot 3008 GT Hybrid", prixAchat: 38000, apport: 4000, duree: 48, mensualite: 480, valeurResiduelle: 15000, photo: "/categories/loc_suv.jpg", km: "15 000 km/an" },
 ];
 
 const CONDITIONS = [

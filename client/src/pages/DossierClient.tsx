@@ -21,7 +21,7 @@ const TABS: { id: DossierTab; label: string; icon: typeof Car; count: number }[]
 ];
 
 const ACHETES = [
-  { id: 1, nom: "Peugeot 3008 GT Hybrid", prix: "28 500 EUR", date: "15/03/2024", vendeur: "Pro Vente Paris", plaque: "AB-123-CD", km: "15 000 km", photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=300&h=200&fit=crop",
+  { id: 1, nom: "Peugeot 3008 GT Hybrid", prix: "28 500 EUR", date: "15/03/2024", vendeur: "Pro Vente Paris", plaque: "AB-123-CD", km: "15 000 km", photo: "/categories/loc_suv.jpg",
     historique: [
       { date: "15/03/2024", event: "Achat sur MKA.P-MS", detail: "Achat auprès de Pro Vente Paris — 28 500 EUR" },
       { date: "20/03/2024", event: "Carte grise mise à jour", detail: "Nouvelle immatriculation AB-123-CD" },
@@ -40,7 +40,7 @@ const ACHETES = [
       { date: "15/08/2024", type: "Changement plaquettes", garage: "Garage Premium", montant: "280 EUR", statut: "Planifié" },
     ],
   },
-  { id: 2, nom: "Renault Clio V TCe", prix: "18 500 EUR", date: "10/01/2024", vendeur: "Particulier", plaque: "EF-456-GH", km: "5 000 km", photo: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=300&h=200&fit=crop",
+  { id: 2, nom: "Renault Clio V TCe", prix: "18 500 EUR", date: "10/01/2024", vendeur: "Particulier", plaque: "EF-456-GH", km: "5 000 km", photo: "/categories/loc_citadine.jpg",
     historique: [
       { date: "10/01/2024", event: "Achat sur MKA.P-MS", detail: "Achat auprès d'un particulier — 18 500 EUR" },
       { date: "15/01/2024", event: "Carte grise mise à jour", detail: "Nouvelle immatriculation EF-456-GH" },
@@ -56,7 +56,7 @@ const ACHETES = [
 ];
 
 const VENDUS = [
-  { id: 1, nom: "Citroen C3 Aircross", prix: "14 200 EUR", date: "05/02/2024", acheteur: "Particulier via MKA.P-MS", plaque: "IJ-789-KL", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=300&h=200&fit=crop" },
+  { id: 1, nom: "Citroen C3 Aircross", prix: "14 200 EUR", date: "05/02/2024", acheteur: "Particulier via MKA.P-MS", plaque: "IJ-789-KL", photo: "/categories/loc_suv.jpg" },
 ];
 
 const DEVIS_LIST = [

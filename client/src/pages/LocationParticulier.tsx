@@ -61,15 +61,36 @@ const CATEGORIES = [
     titre: "Minibus",
     modeles: ["8 places", "9 places"],
     desc: "Petits groupes et familles.",
-    photo: "/categories/loc_cabriolet.jpg",
+    photo: "/categories/loc_cover_minibus.jpg",
     count: 4,
   },
   {
     titre: "Véhicules Premium",
     modeles: ["Audi", "BMW", "Mercedes", "Lexus"],
     desc: "Luxe et prestige.",
-    photo: "/categories/loc_berline.jpg",
+    photo: "/categories/pro_premium.jpg",
     count: 10,
+  },
+  {
+    titre: "Cabriolets",
+    modeles: ["Golf Cabriolet", "Audi A3 Cabriolet", "Mini Cabriolet"],
+    desc: "Plaisir et grand air.",
+    photo: "/categories/loc_cabriolet.jpg",
+    count: 5,
+  },
+  {
+    titre: "Électriques",
+    modeles: ["Tesla Model 3", "Peugeot e-208", "Renault Zoe"],
+    desc: "Zéro émission, 100% électrique.",
+    photo: "/categories/electrique.jpg",
+    count: 8,
+  },
+  {
+    titre: "Hybrides",
+    modeles: ["Toyota Yaris", "Peugeot 3008", "Lexus UX"],
+    desc: "Économique et écologique.",
+    photo: "/categories/hybride.jpg",
+    count: 9,
   },
 ];
 
@@ -84,6 +105,12 @@ const VEHICULES = [
   { id: 8, titre: "Mercedes Classe C 200", annee: 2023, boite: "Automatique", carburant: "Essence", places: 5, prixJour: 65, prixSemaine: 390, prixMois: 1300, photo: "/categories/vtc_berline_premium.jpg", categorie: "Premium" },
   { id: 9, titre: "Audi A4 Avant", annee: 2024, boite: "Automatique", carburant: "Diesel", places: 5, prixJour: 62, prixSemaine: 372, prixMois: 1250, photo: "/categories/pro_premium.jpg", categorie: "Premium" },
   { id: 10, titre: "Toyota Yaris Hybride", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 30, prixSemaine: 180, prixMois: 620, photo: "/categories/loc_citadine.jpg", categorie: "Citadine" },
+  { id: 11, titre: "Audi A3 Cabriolet", annee: 2023, boite: "Automatique", carburant: "Essence", places: 4, prixJour: 65, prixSemaine: 390, prixMois: 1300, photo: "/categories/loc_cabriolet.jpg", categorie: "Cabriolet" },
+  { id: 12, titre: "Mini Cabriolet Cooper", annee: 2024, boite: "Manuelle", carburant: "Essence", places: 4, prixJour: 58, prixSemaine: 348, prixMois: 1150, photo: "/categories/loc_cabriolet.jpg", categorie: "Cabriolet" },
+  { id: 13, titre: "Tesla Model 3 Standard", annee: 2024, boite: "Automatique", carburant: "Électrique", places: 5, prixJour: 70, prixSemaine: 420, prixMois: 1400, photo: "/categories/electrique.jpg", categorie: "Électrique" },
+  { id: 14, titre: "Peugeot e-208", annee: 2024, boite: "Automatique", carburant: "Électrique", places: 5, prixJour: 42, prixSemaine: 252, prixMois: 880, photo: "/categories/electrique.jpg", categorie: "Électrique" },
+  { id: 15, titre: "Toyota Yaris Cross Hybride", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 38, prixSemaine: 228, prixMois: 800, photo: "/categories/hybride.jpg", categorie: "Hybride" },
+  { id: 16, titre: "Lexus UX 250h", annee: 2023, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 72, prixSemaine: 432, prixMois: 1450, photo: "/categories/hybride.jpg", categorie: "Hybride" },
 ];
 
 const DESTINATIONS = [

@@ -184,7 +184,7 @@ const GARAGES = [
   {
     id: 1, nom: "Garage AutoPlus", adresse: "12 Rue de la République, 92000 Nanterre",
     note: 4.8, avis: 128, tel: "01 42 00 00 01", distance: "1.2 km",
-    photo: "https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=400&q=80",
+    photo: "/categories/loc_berline.jpg",
     services: ["Révision et entretien", "Freinage", "Pneumatiques", "Climatisation", "Diagnostic électronique"],
     horaires: "Ouvert · Ferme à 18h30", certifie: true, garantie: "Garantie constructeur préservée",
     prixMin: 180,
@@ -192,7 +192,7 @@ const GARAGES = [
   {
     id: 2, nom: "Speedy Service", adresse: "45 Avenue Jean Jaurès, 92100 Boulogne",
     note: 4.6, avis: 96, tel: "01 46 00 00 02", distance: "2.1 km",
-    photo: "https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=400&q=80",
+    photo: "/categories/loc_suv.jpg",
     services: ["Freinage", "Pneus", "Révision", "Échappement", "Batterie"],
     horaires: "Ouvert · Ferme à 19h00", certifie: true, garantie: "Pièces garanties 24 mois",
     prixMin: 160,
@@ -200,7 +200,7 @@ const GARAGES = [
   {
     id: 3, nom: "Techni Auto", adresse: "8 Boulevard de la Défense, 92400 Courbevoie",
     note: 4.7, avis: 75, tel: "01 47 00 00 03", distance: "2.8 km",
-    photo: "https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=80",
+    photo: "/categories/util_grand_fourgon.jpg",
     services: ["Diagnostic avancé", "Électricité", "Moteur", "Turbo", "Boîte de vitesse"],
     horaires: "Ouvert · Ferme à 18h00", certifie: true, garantie: "Garantie 12 mois pièces et main-d'œuvre",
     prixMin: 190,
@@ -208,7 +208,7 @@ const GARAGES = [
   {
     id: 4, nom: "MécaPro Express", adresse: "22 Rue de Sèvres, 92310 Sèvres",
     note: 4.5, avis: 62, tel: "01 45 00 00 04", distance: "4.5 km",
-    photo: "https://images.unsplash.com/photo-1632823471565-1ecdf5c6da20?w=400&q=80",
+    photo: "/categories/loc_citadine.jpg",
     services: ["Révision", "Freinage", "Suspension", "Carrosserie", "Climatisation"],
     horaires: "Ouvert · Ferme à 18h00", certifie: false, garantie: "Pièces garanties 12 mois",
     prixMin: 150,
@@ -216,7 +216,7 @@ const GARAGES = [
   {
     id: 5, nom: "Garage du Pont", adresse: "3 Rue du Commerce, 75015 Paris",
     note: 4.9, avis: 204, tel: "01 48 00 00 05", distance: "5.2 km",
-    photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&q=80",
+    photo: "/categories/pro_premium.jpg",
     services: ["Toutes marques", "Véhicules premium", "Hybrides & Électriques", "Diagnostic", "Entretien"],
     horaires: "Ouvert · Ferme à 19h30", certifie: true, garantie: "Garantie constructeur préservée",
     prixMin: 200,
@@ -372,7 +372,7 @@ export default function Devis() {
         {/* HERO */}
         <div className="relative overflow-hidden bg-gradient-to-br from-[#111] via-[#1a1a1a] to-[#2d2d2d]">
           <div className="absolute inset-0 opacity-25">
-            <img src="https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=1200&q=80" alt="" className="h-full w-full object-cover" />
+            <img src="/categories/loc_berline.jpg" alt="" className="h-full w-full object-cover" />
           </div>
           <div className="relative px-4 py-10 md:py-16 md:px-8 max-w-6xl mx-auto">
             <div className="md:flex md:items-center md:justify-between md:gap-12">
@@ -674,7 +674,7 @@ export default function Devis() {
               </div>
 
               <div className="rounded-xl overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=80" alt="Véhicule" className="w-full h-40 object-cover rounded-xl" />
+                <img src="/categories/loc_berline.jpg" alt="Véhicule" className="w-full h-40 object-cover rounded-xl" />
               </div>
             </div>
           </div>
@@ -924,7 +924,7 @@ export default function Devis() {
             {/* Carte */}
             <div className="rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm h-72 md:h-auto">
               <img
-                src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&h=400&fit=crop"
+                src="/categories/loc_suv.jpg"
                 alt="Carte garages"
                 className="w-full h-full object-cover"
               />
