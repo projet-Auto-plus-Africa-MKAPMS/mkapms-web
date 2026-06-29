@@ -134,43 +134,20 @@ export default function Home() {
     navigate(`/acheter?${params.toString()}`);
   }
 
-  /* Annonces réelles depuis la DB - Critères assouplis pour remplir la page d'accueil */
-  const { data: officielles } = trpc.annonces.list.useQuery({ limit: 10 }); // Affiche les plus récentes en attendant les badges
-  const { data: boostees } = trpc.annonces.list.useQuery({ limit: 10 }); // Affiche les plus récentes en attendant les badges
-  const { data: premium } = trpc.annonces.list.useQuery({ limit: 10 }); // Affiche les plus récentes en attendant les badges
+  /* Annonces réelles depuis la DB - Critères stricts pour la page d'accueil */
+  const { data: officielles } = trpc.annonces.list.useQuery({ ownership: "plateforme", limit: 10 });
+  const { data: boostees } = trpc.annonces.list.useQuery({ boosted: true, limit: 10 });
+  const { data: premium } = trpc.annonces.list.useQuery({ selectionMka: true, limit: 10 });
   const { data: recentes } = trpc.annonces.list.useQuery({ limit: 10 });
   const { data: locations } = trpc.annonces.list.useQuery({ type: "location", limit: 10 });
   const { data: particuliers } = trpc.annonces.list.useQuery({ vendeurType: "particulier", type: "vente", limit: 10 });
-  const { data: motos } = trpc.annonces.list.useQuery({ famille: "moto", limit: 10 });
 
-  // Logique intelligente : si une section est vide, on prend les annonces récentes pour remplir la page d'accueil
-  const allRecent = recentes?.items ?? [];
-  
-  const realOfficielles = (officielles?.items && officielles.items.length > 0) 
-    ? officielles.items.map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }))
-    : allRecent.slice(0, 5).map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }));
-
-  const realBoostees = (boostees?.items && boostees.items.length > 0)
-    ? boostees.items.map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }))
-    : allRecent.slice(2, 7).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
-
-  const realPremium = (premium?.items && premium.items.length > 0)
-    ? premium.items.map((a: any) => ({ ...a, badge: "PREMIUM" }))
-    : allRecent.slice(4, 9).map((a: any) => ({ ...a, badge: "PREMIUM" }));
-
-  const realProches = allRecent.map((a: any) => ({ ...a, distance: `${Math.floor(Math.random() * 20 + 1)} km` }));
-  
-  const realLocations = (locations?.items && locations.items.length > 0)
-    ? locations.items.map((a: any) => ({ ...a, prixJour: a.prixJour || Math.round(Number(a.prix) / 30) }))
-    : [];
-
-  const realParticuliers = (particuliers?.items && particuliers.items.length > 0)
-    ? particuliers.items.map((a: any) => ({ ...a, badge: "PARTICULIER" }))
-    : allRecent.filter((a: any) => a.vendeurType === "particulier").map((a: any) => ({ ...a, badge: "PARTICULIER" }));
-
-  const realMotos = (motos?.items && motos.items.length > 0)
-    ? motos.items.map((a: any) => ({ ...a, badge: "MOTO" }))
-    : allRecent.filter((a: any) => a.famille === "moto").map((a: any) => ({ ...a, badge: "MOTO" }));
+  const realOfficielles = (officielles?.items ?? []).map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }));
+  const realBoostees = (boostees?.items ?? []).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
+  const realPremium = (premium?.items ?? []).map((a: any) => ({ ...a, badge: "PREMIUM" }));
+  const realProches = (recentes?.items ?? []).map((a: any) => ({ ...a, distance: `${Math.floor(Math.random() * 20 + 1)} km` }));
+  const realLocations = (locations?.items ?? []).map((a: any) => ({ ...a, prixJour: a.prixJour || Math.round(Number(a.prix) / 30) }));
+  const realParticuliers = (particuliers?.items ?? []).map((a: any) => ({ ...a, badge: "PARTICULIER" }));
 
   return (
     <div className="bg-[#F5F3EF] min-h-screen">
@@ -474,28 +451,6 @@ export default function Home() {
               </HScroll>
             ) : (
               <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce de particulier pour le moment.</div>
-            )}
-          </section>
-
-          {/* ═══════════════════════════════════════════════════════════════
-              SECTION 11.5 — MOTOS & DEUX-ROUES
-              ═══════════════════════════════════════════════════════════════ */}
-          <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Zap size={14} className="text-[#D4AF37]" />
-                <h2 className="text-sm md:text-base font-bold text-[#111]">MOTOS & DEUX-ROUES</h2>
-              </div>
-              <Link to="/acheter?famille=moto" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
-            </div>
-            {realMotos.length > 0 ? (
-              <HScroll>
-                {realMotos.map((a: any) => (
-                  <AnnonceCard key={a.id} a={a} badgeColor="bg-orange-500" />
-                ))}
-              </HScroll>
-            ) : (
-              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune moto disponible pour le moment.</div>
             )}
           </section>
 
