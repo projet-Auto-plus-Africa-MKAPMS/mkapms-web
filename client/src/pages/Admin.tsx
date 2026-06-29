@@ -8,8 +8,13 @@ import { Eye, Pencil, Trash2, Pause, Play, ChevronDown, ChevronUp, X, Car, Wrenc
 export default function Admin() {
   const { user, isSessionLoading } = useAuth();
   const enabled = !!user && isAdmin(user.role);
-  const direction = !!user && isDirection(user.role);
+  // isAdmin = employee + admin + super_admin
+  // isAdministrateur = admin + super_admin (directeur et PDG)
+  // isSuperAdmin = super_admin uniquement (PDG)
+  const isAdministrateur = !!user && (user.role === "admin" || user.role === "super_admin");
   const isSuperAdmin = !!user && user.role === "super_admin";
+  // direction reste pour compatibilité avec les queries existantes
+  const direction = isAdministrateur;
 
   const stats = trpc.admin.stats.useQuery(undefined, { enabled });
   const dashboard = trpc.admin.dashboard.useQuery(undefined, { enabled });
@@ -48,8 +53,10 @@ export default function Admin() {
   const [selectedAnnonce, setSelectedAnnonce] = useState<any>(null);
   const [adminTab, setAdminTab] = useState<"backoffice" | "superadmin" | "direction">(() => {
     const saved = localStorage.getItem("mka_admin_tab");
-    if (saved === "superadmin" && !isSuperAdmin) return "backoffice";
-    if (saved === "direction" && !direction) return "backoffice";
+    // Super Admin uniquement pour le PDG
+    if (saved === "superadmin" && !isSuperAdmin) return isAdministrateur ? "direction" : "backoffice";
+    // Administrateur pour admin + super_admin
+    if (saved === "direction" && !isAdministrateur) return "backoffice";
     return (saved as any) || "backoffice";
   });
   const navigate = useNavigate();
@@ -78,11 +85,11 @@ export default function Admin() {
             </div>
             <div className="flex items-center gap-3 bg-white/5 p-1.5 rounded-2xl border border-white/10 overflow-x-auto no-scrollbar">
               <button onClick={() => changeTab("backoffice")} className={`px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "backoffice" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/50 hover:text-white hover:bg-white/5"}`}>Back-office</button>
+              {isAdministrateur && (
+                <button onClick={() => changeTab("direction")} className={`px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "direction" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/50 hover:text-white hover:bg-white/5"}`}>Administrateur</button>
+              )}
               {isSuperAdmin && (
                 <button onClick={() => changeTab("superadmin")} className={`px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "superadmin" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/50 hover:text-white hover:bg-white/5"}`}>Super Admin</button>
-              )}
-              {direction && (
-                <button onClick={() => changeTab("direction")} className={`px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "direction" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/50 hover:text-white hover:bg-white/5"}`}>Administrateur</button>
               )}
             </div>
           </div>
