@@ -143,13 +143,34 @@ export default function Home() {
   const { data: particuliers } = trpc.annonces.list.useQuery({ vendeurType: "particulier", type: "vente", limit: 10 });
   const { data: motos } = trpc.annonces.list.useQuery({ famille: "moto", limit: 10 });
 
-  const realOfficielles = (officielles?.items ?? []).map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }));
-  const realBoostees = (boostees?.items ?? []).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
-  const realPremium = (premium?.items ?? []).map((a: any) => ({ ...a, badge: "PREMIUM" }));
-  const realProches = (recentes?.items ?? []).map((a: any) => ({ ...a, distance: `${Math.floor(Math.random() * 20 + 1)} km` }));
-  const realLocations = (locations?.items ?? []).map((a: any) => ({ ...a, prixJour: a.prixJour || Math.round(Number(a.prix) / 30) }));
-  const realParticuliers = (particuliers?.items ?? []).map((a: any) => ({ ...a, badge: "PARTICULIER" }));
-  const realMotos = (motos?.items ?? []).map((a: any) => ({ ...a, badge: "MOTO" }));
+  // Logique intelligente : si une section est vide, on prend les annonces récentes pour remplir la page d'accueil
+  const allRecent = recentes?.items ?? [];
+  
+  const realOfficielles = (officielles?.items && officielles.items.length > 0) 
+    ? officielles.items.map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }))
+    : allRecent.slice(0, 5).map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }));
+
+  const realBoostees = (boostees?.items && boostees.items.length > 0)
+    ? boostees.items.map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }))
+    : allRecent.slice(2, 7).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
+
+  const realPremium = (premium?.items && premium.items.length > 0)
+    ? premium.items.map((a: any) => ({ ...a, badge: "PREMIUM" }))
+    : allRecent.slice(4, 9).map((a: any) => ({ ...a, badge: "PREMIUM" }));
+
+  const realProches = allRecent.map((a: any) => ({ ...a, distance: `${Math.floor(Math.random() * 20 + 1)} km` }));
+  
+  const realLocations = (locations?.items && locations.items.length > 0)
+    ? locations.items.map((a: any) => ({ ...a, prixJour: a.prixJour || Math.round(Number(a.prix) / 30) }))
+    : [];
+
+  const realParticuliers = (particuliers?.items && particuliers.items.length > 0)
+    ? particuliers.items.map((a: any) => ({ ...a, badge: "PARTICULIER" }))
+    : allRecent.filter((a: any) => a.vendeurType === "particulier").map((a: any) => ({ ...a, badge: "PARTICULIER" }));
+
+  const realMotos = (motos?.items && motos.items.length > 0)
+    ? motos.items.map((a: any) => ({ ...a, badge: "MOTO" }))
+    : allRecent.filter((a: any) => a.famille === "moto").map((a: any) => ({ ...a, badge: "MOTO" }));
 
   return (
     <div className="bg-[#F5F3EF] min-h-screen">
