@@ -678,6 +678,16 @@ const PublicationAnnonce = lazy(() => import("./pages/depot-annonce/PublicationA
 const ScoreQualiteAnnonce = lazy(() => import("./pages/depot-annonce/ScoreQualiteAnnonce"));
 const TableauBordAnnonceur = lazy(() => import("./pages/depot-annonce/TableauBordAnnonceur"));
 const VideosAnnonce = lazy(() => import("./pages/depot-annonce/VideosAnnonce"));
+// Module Comptabilité complet
+const ComptaTVA = lazy(() => import("./pages/comptabilite/TVA"));
+const ComptaAnalytique = lazy(() => import("./pages/comptabilite/ComptaAnalytique"));
+const ComptaPaiements = lazy(() => import("./pages/comptabilite/Paiements"));
+const ComptaFacturation = lazy(() => import("./pages/comptabilite/FacturationAvancee"));
+const ComptaAbonnements = lazy(() => import("./pages/comptabilite/AbonnementsCompta"));
+const ComptaPublicites = lazy(() => import("./pages/comptabilite/PublicitesRevenu"));
+const CentrePilotage = lazy(() => import("./pages/comptabilite/CentrePilotage"));
+const ComptaAlertes = lazy(() => import("./pages/comptabilite/Alertes"));
+const ComptaRapports = lazy(() => import("./pages/comptabilite/Rapports"));
 
 // Chaque univers est isolé : un crash dans l'un n'affecte pas les autres.
 function U({ name, children }: { name: string; children: React.ReactNode }) {
@@ -878,6 +888,15 @@ export default function App() {
             <Route path="/catalogue-technique" element={<U name="Catalogue Technique"><CatalogueTechniqueStandalone /></U>} />
             <Route path="/rewards" element={<U name="Rewards"><Rewards /></U>} />
             <Route path="/compta-dirigeant" element={<U name="Comptabilit\u00e9"><ComptaDirigeant /></U>} />
+            <Route path="/comptabilite/tva" element={<U name="Comptabilit\u00e9"><ComptaTVA /></U>} />
+            <Route path="/comptabilite/analytique" element={<U name="Comptabilit\u00e9"><ComptaAnalytique /></U>} />
+            <Route path="/comptabilite/paiements" element={<U name="Comptabilit\u00e9"><ComptaPaiements /></U>} />
+            <Route path="/comptabilite/facturation" element={<U name="Comptabilit\u00e9"><ComptaFacturation /></U>} />
+            <Route path="/comptabilite/abonnements" element={<U name="Comptabilit\u00e9"><ComptaAbonnements /></U>} />
+            <Route path="/comptabilite/publicites" element={<U name="Comptabilit\u00e9"><ComptaPublicites /></U>} />
+            <Route path="/comptabilite/centre-pilotage" element={<U name="Centre de Pilotage"><CentrePilotage /></U>} />
+            <Route path="/comptabilite/alertes" element={<U name="Comptabilit\u00e9"><ComptaAlertes /></U>} />
+            <Route path="/comptabilite/rapports" element={<U name="Comptabilit\u00e9"><ComptaRapports /></U>} />
             <Route path="/suivi-vehicule" element={<U name="Suivi v\u00e9hicule"><SuiviVehicule /></U>} />
             <Route path="/journal-activite" element={<U name="Journal"><JournalActivite /></U>} />
             <Route path="/mk-direction" element={<AccesPDG />} />
