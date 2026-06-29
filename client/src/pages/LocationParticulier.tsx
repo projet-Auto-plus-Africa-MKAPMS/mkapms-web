@@ -19,71 +19,71 @@ const CATEGORIES = [
     titre: "Citadines",
     modeles: ["Clio", "208", "Corsa", "Yaris"],
     desc: "Idéal ville et petits trajets.",
-    photo: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=400&h=240&fit=crop",
+    photo: "/categories/loc_citadine.jpg",
     count: 18,
   },
   {
     titre: "Berlines",
     modeles: ["Série 3", "Classe C", "A4"],
     desc: "Confort et longs trajets.",
-    photo: "https://images.unsplash.com/photo-1590316536591-92ba019a7b50?w=400&h=240&fit=crop",
+    photo: "/categories/loc_berline.jpg",
     count: 14,
   },
   {
     titre: "SUV & 4x4",
     modeles: ["3008", "Tiguan", "X3", "GLC"],
     desc: "Famille et vacances.",
-    photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=240&fit=crop",
+    photo: "/categories/loc_suv.jpg",
     count: 16,
   },
   {
     titre: "Familiales",
     modeles: ["508 SW", "Passat SW", "Talisman Estate"],
     desc: "Grand coffre.",
-    photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=240&fit=crop",
+    photo: "/categories/loc_break.jpg",
     count: 8,
   },
   {
     titre: "Monospaces",
     modeles: ["Scenic", "Touran", "Espace"],
     desc: "Familles nombreuses.",
-    photo: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=400&h=240&fit=crop",
+    photo: "/categories/loc_monospace.jpg",
     count: 6,
   },
   {
     titre: "7 Places",
     modeles: ["Grand C4", "Sharan", "Galaxy"],
     desc: "Pour voyages et groupes.",
-    photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=240&fit=crop",
+    photo: "/categories/loc_monospace.jpg",
     count: 5,
   },
   {
     titre: "Minibus",
     modeles: ["8 places", "9 places"],
     desc: "Petits groupes et familles.",
-    photo: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=240&fit=crop",
+    photo: "/categories/loc_cabriolet.jpg",
     count: 4,
   },
   {
     titre: "Véhicules Premium",
     modeles: ["Audi", "BMW", "Mercedes", "Lexus"],
     desc: "Luxe et prestige.",
-    photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=240&fit=crop",
+    photo: "/categories/loc_berline.jpg",
     count: 10,
   },
 ];
 
 const VEHICULES = [
-  { id: 1, titre: "Renault Clio V", annee: 2024, boite: "Manuelle", carburant: "Essence", places: 5, prixJour: 28, prixSemaine: 168, prixMois: 580, photo: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=400&h=260&fit=crop", categorie: "Citadine" },
-  { id: 2, titre: "Peugeot 208 GT", annee: 2024, boite: "Automatique", carburant: "Essence", places: 5, prixJour: 32, prixSemaine: 192, prixMois: 650, photo: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&h=260&fit=crop", categorie: "Citadine" },
-  { id: 3, titre: "BMW Série 3 320d", annee: 2023, boite: "Automatique", carburant: "Diesel", places: 5, prixJour: 55, prixSemaine: 330, prixMois: 1100, photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=260&fit=crop", categorie: "Berline" },
-  { id: 4, titre: "Peugeot 3008 GT", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 52, prixSemaine: 312, prixMois: 1050, photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=260&fit=crop", categorie: "SUV" },
-  { id: 5, titre: "Volkswagen Tiguan", annee: 2023, boite: "Automatique", carburant: "Diesel", places: 5, prixJour: 58, prixSemaine: 348, prixMois: 1150, photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop", categorie: "SUV" },
-  { id: 6, titre: "Peugeot 508 SW", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 48, prixSemaine: 288, prixMois: 950, photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", categorie: "Familiale" },
-  { id: 7, titre: "Renault Scenic E-Tech", annee: 2024, boite: "Automatique", carburant: "Électrique", places: 5, prixJour: 55, prixSemaine: 330, prixMois: 1100, photo: "https://images.unsplash.com/photo-1568844293986-8d0400f4745b?w=400&h=260&fit=crop", categorie: "Monospace" },
-  { id: 8, titre: "Mercedes Classe C 200", annee: 2023, boite: "Automatique", carburant: "Essence", places: 5, prixJour: 65, prixSemaine: 390, prixMois: 1300, photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop", categorie: "Premium" },
-  { id: 9, titre: "Audi A4 Avant", annee: 2024, boite: "Automatique", carburant: "Diesel", places: 5, prixJour: 62, prixSemaine: 372, prixMois: 1250, photo: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=260&fit=crop", categorie: "Premium" },
-  { id: 10, titre: "Toyota Yaris Hybride", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 30, prixSemaine: 180, prixMois: 620, photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=260&fit=crop", categorie: "Citadine" },
+  { id: 1, titre: "Renault Clio V", annee: 2024, boite: "Manuelle", carburant: "Essence", places: 5, prixJour: 28, prixSemaine: 168, prixMois: 580, photo: "/categories/loc_citadine.jpg", categorie: "Citadine" },
+  { id: 2, titre: "Peugeot 208 GT", annee: 2024, boite: "Automatique", carburant: "Essence", places: 5, prixJour: 32, prixSemaine: 192, prixMois: 650, photo: "/categories/loc_citadine.jpg", categorie: "Citadine" },
+  { id: 3, titre: "BMW Série 3 320d", annee: 2023, boite: "Automatique", carburant: "Diesel", places: 5, prixJour: 55, prixSemaine: 330, prixMois: 1100, photo: "/categories/loc_berline.jpg", categorie: "Berline" },
+  { id: 4, titre: "Peugeot 3008 GT", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 52, prixSemaine: 312, prixMois: 1050, photo: "/categories/loc_suv.jpg", categorie: "SUV" },
+  { id: 5, titre: "Volkswagen Tiguan", annee: 2023, boite: "Automatique", carburant: "Diesel", places: 5, prixJour: 58, prixSemaine: 348, prixMois: 1150, photo: "/categories/loc_suv.jpg", categorie: "SUV" },
+  { id: 6, titre: "Peugeot 508 SW", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 48, prixSemaine: 288, prixMois: 950, photo: "/categories/loc_break.jpg", categorie: "Familiale" },
+  { id: 7, titre: "Renault Scenic E-Tech", annee: 2024, boite: "Automatique", carburant: "Électrique", places: 5, prixJour: 55, prixSemaine: 330, prixMois: 1100, photo: "/categories/loc_monospace.jpg", categorie: "Monospace" },
+  { id: 8, titre: "Mercedes Classe C 200", annee: 2023, boite: "Automatique", carburant: "Essence", places: 5, prixJour: 65, prixSemaine: 390, prixMois: 1300, photo: "/categories/vtc_berline_premium.jpg", categorie: "Premium" },
+  { id: 9, titre: "Audi A4 Avant", annee: 2024, boite: "Automatique", carburant: "Diesel", places: 5, prixJour: 62, prixSemaine: 372, prixMois: 1250, photo: "/categories/pro_premium.jpg", categorie: "Premium" },
+  { id: 10, titre: "Toyota Yaris Hybride", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 30, prixSemaine: 180, prixMois: 620, photo: "/categories/loc_citadine.jpg", categorie: "Citadine" },
 ];
 
 const DESTINATIONS = [
@@ -138,7 +138,7 @@ export default function LocationParticulier() {
           ═══════════════════════════════════════════════════════════════════ */}
       <div className="relative overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=420&fit=crop"
+          src="/categories/loc_cover_particulier.jpg"
           alt="Location particulier"
           className="w-full h-[240px] md:h-[320px] lg:h-[400px] object-cover"
         />
