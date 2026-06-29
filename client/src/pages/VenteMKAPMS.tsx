@@ -8,11 +8,16 @@ import { ChevronLeft, Star, Shield, Award, Check, History, CreditCard, Truck, Ch
    ══════════════════════════════════════════════════════════════════════════ */
 
 const CATEGORIES_OFFICIEL = [
-  { label: "Berlines", desc: "308 GT, Classe C, Série 3", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=300&h=200&fit=crop" },
-  { label: "SUV & 4x4", desc: "GLA, X1, Austral, C5 X", photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=300&h=200&fit=crop" },
-  { label: "Hybrides", desc: "Austral E-Tech, Model Y", photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=300&h=200&fit=crop" },
-  { label: "Premium", desc: "Mercedes, BMW, Audi", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=300&h=200&fit=crop" },
-  { label: "Familiales", desc: "C5 X, 3008, RAV4", photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=300&h=200&fit=crop" },
+  { label: "Berlines", desc: "308 GT, Classe C, Série 3", photo: "/categories/berline.jpg" },
+  { label: "SUV & 4x4", desc: "GLA, X1, Austral, C5 X", photo: "/categories/suv.jpg" },
+  { label: "Hybrides", desc: "Austral E-Tech, Model Y", photo: "/categories/hybride.jpg" },
+  { label: "Premium", desc: "Mercedes, BMW, Audi", photo: "/categories/premium.jpg" },
+  { label: "Familiales", desc: "C5 X, 3008, RAV4", photo: "/categories/familiale.jpg" },
+  { label: "Citadines", desc: "208, Clio, Polo, A1", photo: "/categories/citadine.jpg" },
+  { label: "Breaks", desc: "508 SW, Passat SW, A4 Avant", photo: "/categories/break.jpg" },
+  { label: "Cabriolets", desc: "SLK, Z4, Boxster", photo: "/categories/cabriolet.jpg" },
+  { label: "Électriques", desc: "Tesla Model 3, ZOE, e-208", photo: "/categories/electrique.jpg" },
+  { label: "Monospaces", desc: "Scenic, Touran, Espace", photo: "/categories/monospace.jpg" },
 ];
 
 const ANNONCES = [
