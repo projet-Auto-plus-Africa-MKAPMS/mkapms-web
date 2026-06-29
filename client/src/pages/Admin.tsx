@@ -721,7 +721,7 @@ export default function Admin() {
                 <option value="fournisseur_pieces">Fournisseur pièces</option>
                 <option value="transporteur">Transporteur</option>
                 <option value="garage">Garage partenaire</option>
-                <option value="vtc">Société VTC</option>
+                <option value="vtc">Société VTC & Taxi</option>
                 <option value="depanneur">Dépanneur</option>
                 <option value="lavage">Lavage auto</option>
                 <option value="karting">Karting</option>
@@ -878,7 +878,7 @@ export default function Admin() {
             <p className="text-xs text-slate-500">Polices par univers : location, transport, garage, VTC, livraison. (Contrats & archivage légal gérés par le moteur de contrats.)</p>
             <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (insurance.compagnie) createInsurance.mutate({ type: insurance.type as "location", compagnie: insurance.compagnie, numeroPolice: insurance.numeroPolice || undefined }); }}>
               <select className="input max-w-[150px]" value={insurance.type} onChange={(e) => setInsurance({ ...insurance, type: e.target.value })}>
-                <option value="location">Location</option><option value="transport">Transport</option><option value="garage">Garage</option><option value="vtc">VTC</option><option value="livraison">Livraison</option><option value="autre">Autre</option>
+                <option value="location">Location</option><option value="transport">Transport</option><option value="garage">Garage</option><option value="vtc">VTC & Taxi</option><option value="livraison">Livraison</option><option value="autre">Autre</option>
               </select>
               <input className="input max-w-xs" placeholder="Compagnie" value={insurance.compagnie} onChange={(e) => setInsurance({ ...insurance, compagnie: e.target.value })} />
               <input className="input max-w-[160px]" placeholder="N° police" value={insurance.numeroPolice} onChange={(e) => setInsurance({ ...insurance, numeroPolice: e.target.value })} />
@@ -1020,7 +1020,7 @@ export default function Admin() {
             <p className="text-xs text-slate-500">Notation interne A+→D (invisible au public) : garages, vendeurs, livreurs, VTC, partenaires.</p>
             <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (quality.targetId) rateQuality.mutate({ targetType: quality.targetType as "garage", targetId: Number(quality.targetId), grade: quality.grade as "B", note: quality.note || undefined }); }}>
               <select className="input max-w-[140px]" value={quality.targetType} onChange={(e) => setQuality({ ...quality, targetType: e.target.value })}>
-                <option value="garage">Garage</option><option value="vendeur">Vendeur</option><option value="livreur">Livreur</option><option value="vtc">VTC</option><option value="partenaire">Partenaire</option>
+                <option value="garage">Garage</option><option value="vendeur">Vendeur</option><option value="livreur">Livreur</option><option value="vtc">VTC & Taxi</option><option value="partenaire">Partenaire</option>
               </select>
               <input className="input max-w-[110px]" type="number" placeholder="ID cible" value={quality.targetId} onChange={(e) => setQuality({ ...quality, targetId: e.target.value })} />
               <select className="input max-w-[90px]" value={quality.grade} onChange={(e) => setQuality({ ...quality, grade: e.target.value })}>

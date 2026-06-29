@@ -21,7 +21,7 @@ const TYPES = [
   { id: "moto", label: "Moto / Scooter / Quad", icon: Bike, color: "bg-red-600", desc: "Roadster, Sportive, Trail, Scooter..." },
   { id: "utilitaire", label: "Utilitaire", icon: Truck, color: "bg-orange-600", desc: "Fourgon, Camionnette, Pick-up..." },
   { id: "camion", label: "Camion", icon: Truck, color: "bg-gray-700", desc: "Poids lourd, Semi-remorque..." },
-  { id: "vtc", label: "Vehicule VTC", icon: Car, color: "bg-[#111]", desc: "Berline confort, Van..." },
+  { id: "vtc", label: "Véhicule VTC & Taxi", icon: Car, color: "bg-[#111]", desc: "Berline confort, Van..." },
 ];
 
 /* ── Catégories véhicule ── */

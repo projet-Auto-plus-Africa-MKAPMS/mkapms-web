@@ -8,7 +8,7 @@ const TYPES = [
   { label: "Vente camion", icon: Bus, color: "#3B82F6", to: "/depot-annonce/identification-vehicule" },
   { label: "Location particulier", icon: Home, color: "#10B981", to: "/depot-annonce/identification-vehicule" },
   { label: "Location professionnel", icon: Home, color: "#14B8A6", to: "/depot-annonce/identification-vehicule" },
-  { label: "Location VTC", icon: Car, color: "#D4AF37", to: "/depot-annonce/identification-vehicule" },
+  { label: "Location VTC & Taxi", icon: Car, color: "#D4AF37", to: "/depot-annonce/identification-vehicule" },
   { label: "Location Taxi", icon: Car, color: "#6366F1", to: "/depot-annonce/identification-vehicule" },
   { label: "Vente pièces détachées", icon: Package, color: "#EC4899", to: "/depot-annonce/identification-vehicule" },
 ];
