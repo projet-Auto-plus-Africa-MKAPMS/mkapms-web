@@ -7,8 +7,9 @@ import { Eye, Pencil, Trash2, Pause, Play, ChevronDown, ChevronUp, X, Car, Wrenc
 
 export default function Admin() {
   const { user, isSessionLoading } = useAuth();
-  const enabled = true; // Forcé pour debug
-  const direction = true; // Forcé pour debug
+  const enabled = !!user && isAdmin(user.role);
+  const direction = !!user && isDirection(user.role);
+  const isSuperAdmin = !!user && user.role === "super_admin";
 
   const stats = trpc.admin.stats.useQuery(undefined, { enabled });
   const dashboard = trpc.admin.dashboard.useQuery(undefined, { enabled });
@@ -47,6 +48,8 @@ export default function Admin() {
   const [selectedAnnonce, setSelectedAnnonce] = useState<any>(null);
   const [adminTab, setAdminTab] = useState<"backoffice" | "superadmin" | "direction">(() => {
     const saved = localStorage.getItem("mka_admin_tab");
+    if (saved === "superadmin" && !isSuperAdmin) return "backoffice";
+    if (saved === "direction" && !direction) return "backoffice";
     return (saved as any) || "backoffice";
   });
   const navigate = useNavigate();
@@ -75,7 +78,9 @@ export default function Admin() {
             </div>
             <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10 overflow-x-auto no-scrollbar">
               <button onClick={() => changeTab("backoffice")} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "backoffice" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/40 hover:text-white"}`}>Back-office</button>
-              <button onClick={() => changeTab("superadmin")} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "superadmin" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/40 hover:text-white"}`}>Super Admin</button>
+              {isSuperAdmin && (
+                <button onClick={() => changeTab("superadmin")} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "superadmin" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/40 hover:text-white"}`}>Super Admin</button>
+              )}
               {direction && (
                 <button onClick={() => changeTab("direction")} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${adminTab === "direction" ? "bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20" : "text-white/40 hover:text-white"}`}>Direction</button>
               )}
@@ -86,7 +91,7 @@ export default function Admin() {
 
       <main className="container mx-auto px-4 py-8">
         {/* ═══════ ONGLET SUPER ADMIN ═══════ */}
-        {adminTab === "superadmin" && (
+        {adminTab === "superadmin" && isSuperAdmin && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <section>
               <h2 className="text-lg font-black text-white uppercase tracking-tight mb-6 flex items-center gap-2">
@@ -122,25 +127,32 @@ export default function Admin() {
                   { label: "Atelier Pro", to: "/atelier-pro", emoji: "🛠️" },
                   { label: "Comptabilité", to: "/superadmin/comptabilite-complete", emoji: "💹" },
                   { label: "Suivi Véhicule", to: "/suivi-vehicule", emoji: "📍" },
-                  { label: "Enchères Pro", to: "/encheres", emoji: "🔨" },
+                  { label: "Enchères Pro", to: "/acheter/encheres", emoji: "🔨" },
                   { label: "Dossier Client", to: "/dossier-client", emoji: "📁" },
                   { label: "Dossier Véhicule", to: "/dossier-vehicule-numerique", emoji: "📝" },
                   { label: "Notifications", to: "/notifications", emoji: "🔔" },
                   { label: "Abonnements", to: "/superadmin/admin-abonnements", emoji: "💳" },
-                  { label: "Atelier Mécanique", to: "/atelier-pro", emoji: "🔧" },
-                  { label: "Enchères Pro", to: "/encheres", emoji: "⚖️" },
+                  { label: "Validation Documents", to: "/superadmin/admin-validation-docs", emoji: "⚖️" },
                   { label: "Logistique & Transport", to: "/livraison", emoji: "🚚" },
-                  { label: "Centre de Documents", to: "/dossier-client", emoji: "📄" },
-                  { label: "RH & Recrutement", to: "/superadmin/admin-utilisateurs", emoji: "👥" },
-                  { label: "Publicité & Marketing", to: "/superadmin/admin-paiements", emoji: "📢" },
-                  { label: "API Partenaires", to: "/superadmin/admin-utilisateurs", emoji: "🔗" },
+                  { label: "RH & Collaborateurs", to: "/superadmin/centre-r-h", emoji: "👥" },
+                  { label: "Gestion Employés", to: "/superadmin/admin-employes", emoji: "👤" },
+                  { label: "Commissions", to: "/superadmin/admin-commissions", emoji: "💰" },
+                  { label: "Anti-Fraude", to: "/superadmin/admin-fraude", emoji: "🛡️" },
+                  { label: "Journal d’Audit", to: "/superadmin/admin-journal", emoji: "📚" },
+                  { label: "Dépannage", to: "/superadmin/admin-depannage", emoji: "🚗" },
+                  { label: "Location", to: "/superadmin/admin-location", emoji: "🌠" },
+                  { label: "Avis Clients", to: "/superadmin/admin-moderation-avis", emoji: "⭐" },
+                  { label: "Badges & Certif.", to: "/superadmin/admin-badges", emoji: "🏅" },
+                  { label: "Comptes Pro", to: "/superadmin/admin-comptes-pro", emoji: "🏢" },
+                  { label: "Démarches Admin", to: "/superadmin/admin-demarches", emoji: "📎" },
                   { label: "Gestion Multi-Pays", to: "/international/multi-pays", emoji: "🌍" },
-                  { label: "Moteur de Règles", to: "/global-country-engine", emoji: "⚙️" },
-                  { label: "Vente par Pays", to: "/conformite/vente-pays", emoji: "💰" },
+                  { label: "Moteur de Règles", to: "/mk-global-engine", emoji: "⚙️" },
+                  { label: "Vente par Pays", to: "/conformite/vente-pays", emoji: "💵" },
                   { label: "Location par Pays", to: "/conformite/location-pays", emoji: "🏠" },
                   { label: "Import Africa", to: "/import-africa", emoji: "🚢" },
                   { label: "Carte Mondiale", to: "/superadmin/admin-carte-moniale", emoji: "🗺️" },
-                  { label: "Flux Temps Réel", to: "/superadmin/admin-paiements", emoji: "📊" },
+                  { label: "Tickets Support", to: "/superadmin/centre-tickets", emoji: "💬" },
+                  { label: "Tableau Général", to: "/superadmin/admin-general", emoji: "📊" },
                 ].map((s) => (
                   <Link key={s.to} to={s.to} className="group flex flex-col items-center gap-3 rounded-2xl border border-white/5 bg-[#1A1A1A] p-5 text-center transition-all hover:border-[#D4AF37]">
                     <div className="text-2xl">{s.emoji}</div>
@@ -217,7 +229,7 @@ export default function Admin() {
         )}
 
         {/* ═══════ ONGLET BACK-OFFICE ═══════ */}
-        {adminTab === "backoffice" && (
+        {adminTab === "backoffice" && enabled && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid gap-8 lg:grid-cols-2">
               {/* Litiges */}
