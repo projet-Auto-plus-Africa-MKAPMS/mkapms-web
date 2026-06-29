@@ -15,6 +15,17 @@ import {
 
 const UNIVERS = [
   {
+    id: "mkapms",
+    titre: "Véhicules Officiels MKA.P-MS",
+    desc: "Sélectionnés, inspectés et garantis directement par MKA.P-MS.",
+    bouton: "Voir les véhicules officiels",
+    badge: "MKA.P-MS OFFICIEL",
+    badgeColor: "bg-[#111] text-[#D4AF37] border-[#D4AF37]",
+    photo: "/categories/cover_mkapms.jpg",
+    icon: Star,
+    to: "/louer/mkapms",
+  },
+  {
     id: "vtc-taxi",
     titre: "Location VTC & Taxi",
     desc: "Pour chauffeurs, taxis, sociétés et indépendants.",

@@ -44,6 +44,7 @@ const ProduitParticulier = lazy(() => import("./pages/ProduitParticulier"));
 const LocationUtilitaires = lazy(() => import("./pages/LocationUtilitaires"));
 const LocationCamions = lazy(() => import("./pages/LocationCamions"));
 const LocationMinibus = lazy(() => import("./pages/LocationMinibus"));
+const LocationMKAPMS = lazy(() => import("./pages/LocationMKAPMS"));
 const ProduitLocation = lazy(() => import("./pages/ProduitLocation"));
 const CentreDocuments = lazy(() => import("./pages/CentreDocuments"));
 const Notifications = lazy(() => import("./pages/Notifications"));
@@ -731,6 +732,8 @@ export default function App() {
             <Route path="/louer/utilitaires" element={<U name="Utilitaires"><LocationUtilitaires /></U>} />
             <Route path="/louer/camions" element={<U name="Camions"><LocationCamions /></U>} />
             <Route path="/louer/minibus" element={<U name="Minibus"><LocationMinibus /></U>} />
+            <Route path="/louer/mkapms" element={<U name="Véhicules MKA.P-MS"><LocationMKAPMS /></U>} />
+            <Route path="/louer/mkapms/vehicule/:id" element={<U name="Produit MKA.P-MS"><ProduitLocation /></U>} />
             <Route path="/louer/liste-attente" element={<U name="Liste d'attente"><ListeAttente /></U>} />
             <Route path="/louer/reservations-recurrentes" element={<U name="Réservations récurrentes"><ReservationRecurrente /></U>} />
             <Route path="/louer/comparateur" element={<U name="Comparateur"><Comparateur /></U>} />
