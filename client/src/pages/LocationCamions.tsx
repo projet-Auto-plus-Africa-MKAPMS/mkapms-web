@@ -26,6 +26,10 @@ const CATEGORIES = [
   { titre: "Nacelles", modeles: ["12m", "20m", "30m"], photo: "/categories/engin_nacelle.jpg", count: 3 },
   { titre: "Chariots élévateurs", modeles: ["2t", "3t", "5t"], photo: "/categories/engin_chariot.jpg", count: 4 },
   { titre: "Mini-pelles / Pelleteuses", modeles: ["1,5t", "3t", "6t"], photo: "/categories/engin_pelleteuse.jpg", count: 5 },
+  { titre: "Électriques", modeles: ["Volvo FH Electric", "Mercedes eActros", "DAF XE"], photo: "/categories/camion_electrique.jpg", count: 3 },
+  { titre: "Ampliroll / Polybenne", modeles: ["Ampliroll 12t", "Polybenne 19t"], photo: "/categories/camion_ampliroll.jpg", count: 4 },
+  { titre: "Grue auxiliaire", modeles: ["Grue 5t", "Grue 10t", "Grue 20t"], photo: "/categories/camion_grue_auxiliaire.jpg", count: 3 },
+  { titre: "Benne TP", modeles: ["Benne TP 8x4", "Benne TP 6x4"], photo: "/categories/camion_benne_tp.jpg", count: 4 },
 ];
 
 const VEHICULES = [

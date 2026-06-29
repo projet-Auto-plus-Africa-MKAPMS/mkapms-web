@@ -83,6 +83,27 @@ const CATEGORIES = [
     photo: "/categories/monospace.jpg",
     count: 4,
   },
+  {
+    titre: "7 places",
+    modeles: ["5008", "Touran", "Sharan", "Galaxy"],
+    desc: "Espace maximal, toute la famille.",
+    photo: "/categories/mkapms_7places.jpg",
+    count: 5,
+  },
+  {
+    titre: "Sportives / Coupés",
+    modeles: ["911", "M4", "TT", "RC"],
+    desc: "Sensations et prestige certifiés.",
+    photo: "/categories/mkapms_sportive.jpg",
+    count: 4,
+  },
+  {
+    titre: "4x4 tout-terrain",
+    modeles: ["Defender", "Land Cruiser", "G-Class"],
+    desc: "Aventure et robustesse premium.",
+    photo: "/categories/mkapms_4x4.jpg",
+    count: 3,
+  },
 ];
 
 const VEHICULES = [

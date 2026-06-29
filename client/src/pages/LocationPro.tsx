@@ -71,6 +71,41 @@ const CATEGORIES_PRO = [
     icon: Bus,
     count: 6,
   },
+  {
+    titre: "Électriques",
+    modeles: ["Kangoo E-Tech", "Berlingo Electric", "e-Transit"],
+    photo: "/categories/pro_electrique.jpg",
+    icon: Truck,
+    count: 5,
+  },
+  {
+    titre: "Pick-up / 4x4",
+    modeles: ["Hilux", "Ranger", "L200"],
+    photo: "/categories/pro_pickup.jpg",
+    icon: Truck,
+    count: 4,
+  },
+  {
+    titre: "Bâchés",
+    modeles: ["Bâché ridelles", "Tautliner"],
+    photo: "/categories/pro_bache.jpg",
+    icon: Package,
+    count: 4,
+  },
+  {
+    titre: "Avec hayon",
+    modeles: ["Hayon 500 kg", "Hayon 1000 kg"],
+    photo: "/categories/pro_hayon.jpg",
+    icon: Package,
+    count: 5,
+  },
+  {
+    titre: "Isothermes",
+    modeles: ["Isotherme léger", "Isotherme lourd"],
+    photo: "/categories/pro_isotherme.jpg",
+    icon: Snowflake,
+    count: 3,
+  },
 ];
 
 const VEHICULES_PRO = [

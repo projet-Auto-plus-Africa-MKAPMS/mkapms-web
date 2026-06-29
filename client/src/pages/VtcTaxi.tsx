@@ -64,6 +64,27 @@ const CATEGORIES = [
     photo: "/categories/pro_premium.jpg",
     count: 4,
   },
+  {
+    titre: "Taxi classique",
+    modeles: ["Prius", "508", "Camry", "Passat"],
+    desc: "Taxi agréé, tarif réglementé.",
+    photo: "/categories/vtc_taxi_classique.jpg",
+    count: 12,
+  },
+  {
+    titre: "Taxi électrique",
+    modeles: ["Model 3", "BYD Han", "ZOE"],
+    desc: "Taxi zéro émission, éco-responsable.",
+    photo: "/categories/vtc_taxi_electrique.jpg",
+    count: 6,
+  },
+  {
+    titre: "Minivan VTC",
+    modeles: ["Classe V", "Caravelle", "Multivan"],
+    desc: "Transport groupe jusqu'à 8 personnes.",
+    photo: "/categories/vtc_minivan.jpg",
+    count: 5,
+  },
 ];
 
 const VEHICULES = [
