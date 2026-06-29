@@ -140,9 +140,16 @@ export default function Admin() {
                   { label: "Enchères Pro", to: "/encheres", emoji: "🔨" },
                   { label: "Dossier Client", to: "/dossier-client", emoji: "📁" },
                   { label: "Dossier Véhicule", to: "/dossier-vehicule-numerique", emoji: "📝" },
-                  { label: "Notifications", to: "/notifications", emoji: "🔔" },
-                  { label: "Abonnements", to: "/superadmin/admin-abonnements", emoji: "💳" },
-                ].map((s) => (
+	                  { label: "Notifications", to: "/notifications", emoji: "🔔" },
+	                  { label: "Abonnements", to: "/superadmin/admin-abonnements", emoji: "💳" },
+	                  { label: "Atelier Mécanique", to: "/atelier-pro", emoji: "🔧" },
+	                  { label: "Enchères Pro", to: "/encheres", emoji: "⚖️" },
+	                  { label: "Logistique & Transport", to: "/livraison", emoji: "🚚" },
+	                  { label: "Centre de Documents", to: "/dossier-client", emoji: "📄" },
+	                  { label: "RH & Recrutement", to: "/superadmin/admin-utilisateurs", emoji: "👥" },
+	                  { label: "Publicité & Marketing", to: "/superadmin/admin-paiements", emoji: "📢" },
+	                  { label: "API Partenaires", to: "/superadmin/admin-utilisateurs", emoji: "🔗" },
+	                ].map((s) => (
                   <Link key={s.to} to={s.to} className="group flex flex-col items-center gap-3 rounded-2xl border border-white/5 bg-[#1A1A1A] p-5 text-center transition-all hover:border-[#D4AF37]">
                     <div className="text-2xl">{s.emoji}</div>
                     <span className="text-[10px] font-black text-white uppercase tracking-widest group-hover:text-[#D4AF37]">{s.label}</span>
@@ -168,8 +175,10 @@ export default function Admin() {
                   { l: "CA du mois", v: eur(dashboard.data?.caMois), icon: <TrendingUp size={18} />, path: "/superadmin/comptabilite-complete" },
                   { l: "Bénéfice", v: eur(dashboard.data?.beneficeEstime), icon: <ShieldCheck size={18} />, path: "/superadmin/comptabilite-complete" },
                   { l: "Commissions", v: eur(dashboard.data?.commissionsMois), icon: <CreditCard size={18} />, path: "/superadmin/comptabilite-complete" },
-                  { l: "Litiges", v: dashboard.data?.litigesOuverts, icon: <ShieldAlert size={18} />, path: "/superadmin/admin-litiges", alert: !!dashboard.data?.litigesOuverts },
-                ].map((c) => (
+	                  { l: "Litiges", v: dashboard.data?.litigesOuverts, icon: <ShieldAlert size={18} />, path: "/superadmin/admin-litiges", alert: !!dashboard.data?.litigesOuverts },
+	                  { l: "Stock MKA", v: stats.data?.annonces, icon: <Package size={18} />, path: "/superadmin/admin-moderation-annonces" },
+	                  { l: "Réseau Garages", v: stats.data?.garages, icon: <MapPin size={18} />, path: "/superadmin/admin-garage" },
+	                ].map((c) => (
                   <button key={c.l} onClick={() => navigate(c.path)} className={`flex flex-col items-center justify-center rounded-2xl bg-[#1A1A1A] p-5 border border-white/5 hover:border-[#D4AF37] transition-all ${c.alert ? "ring-1 ring-red-500/50" : ""}`}>
                     <div className={`mb-2 ${c.alert ? "text-red-500" : "text-[#D4AF37]"}`}>{c.icon}</div>
                     <div className="text-sm font-black text-white">{c.v ?? "—"}</div>
