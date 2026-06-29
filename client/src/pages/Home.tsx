@@ -134,10 +134,10 @@ export default function Home() {
     navigate(`/acheter?${params.toString()}`);
   }
 
-  /* Annonces réelles depuis la DB - Critères stricts pour la page d'accueil */
-  const { data: officielles } = trpc.annonces.list.useQuery({ ownership: "plateforme", limit: 10 });
-  const { data: boostees } = trpc.annonces.list.useQuery({ boosted: true, limit: 10 });
-  const { data: premium } = trpc.annonces.list.useQuery({ selectionMka: true, limit: 10 });
+  /* Annonces réelles depuis la DB - Critères assouplis pour remplir la page d'accueil */
+  const { data: officielles } = trpc.annonces.list.useQuery({ limit: 10 }); // Affiche les plus récentes en attendant les badges
+  const { data: boostees } = trpc.annonces.list.useQuery({ limit: 10 }); // Affiche les plus récentes en attendant les badges
+  const { data: premium } = trpc.annonces.list.useQuery({ limit: 10 }); // Affiche les plus récentes en attendant les badges
   const { data: recentes } = trpc.annonces.list.useQuery({ limit: 10 });
   const { data: locations } = trpc.annonces.list.useQuery({ type: "location", limit: 10 });
   const { data: particuliers } = trpc.annonces.list.useQuery({ vendeurType: "particulier", type: "vente", limit: 10 });
