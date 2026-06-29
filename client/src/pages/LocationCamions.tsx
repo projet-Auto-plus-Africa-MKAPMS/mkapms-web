@@ -16,7 +16,16 @@ const CATEGORIES = [
   { titre: "Bennes", modeles: ["Simple", "Double cabine", "Tri-benne"], photo: "/categories/camion_benne.jpg", count: 5 },
   { titre: "Plateaux", modeles: ["Porte-voiture", "Plateau ridelles"], photo: "/categories/camion_plateau.jpg", count: 4 },
   { titre: "Semi-remorques", modeles: ["Tautliner", "Bâché", "Citerne"], photo: "/categories/camion_semiremorque.jpg", count: 3 },
-  { titre: "Engins de chantier", modeles: ["Mini-pelle", "Chariot", "Nacelle"], photo: "/categories/camion_benne.jpg", count: 6 },
+  { titre: "Frigorifiques", modeles: ["7,5t frigo", "12t frigo", "19t frigo"], photo: "/categories/camion_frigo.jpg", count: 4 },
+  { titre: "Porte-voitures", modeles: ["2 niveaux", "3 niveaux", "Semi"], photo: "/categories/camion_porte_voitures.jpg", count: 3 },
+  { titre: "Citernes", modeles: ["Carburant", "Eau", "Alimentaire"], photo: "/categories/camion_citerne.jpg", count: 3 },
+  { titre: "Malaxeurs / Toupies", modeles: ["6m³", "8m³", "10m³"], photo: "/categories/camion_malaxeur.jpg", count: 2 },
+  { titre: "Bâchés", modeles: ["Tautliner", "Mega", "Jumbo"], photo: "/categories/camion_bache.jpg", count: 4 },
+  { titre: "Fourgons lourds", modeles: ["7,5t caisse", "12t caisse", "19t caisse"], photo: "/categories/camion_fourgon_lourd.jpg", count: 5 },
+  { titre: "Grues mobiles", modeles: ["25t", "50t", "100t"], photo: "/categories/engin_grue.jpg", count: 2 },
+  { titre: "Nacelles", modeles: ["12m", "20m", "30m"], photo: "/categories/engin_nacelle.jpg", count: 3 },
+  { titre: "Chariots élévateurs", modeles: ["2t", "3t", "5t"], photo: "/categories/engin_chariot.jpg", count: 4 },
+  { titre: "Mini-pelles / Pelleteuses", modeles: ["1,5t", "3t", "6t"], photo: "/categories/engin_pelleteuse.jpg", count: 5 },
 ];
 
 const VEHICULES = [
