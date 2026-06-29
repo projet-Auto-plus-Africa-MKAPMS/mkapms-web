@@ -403,7 +403,7 @@ export default function Home() {
               <HScroll>
                 {realLocations.map((a: any) => {
                   const imgSrc = a.photo || a.photoPrincipale || "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
-                  const locType = a.segmentLocation === "vtc_taxi" ? "VTC" : a.segmentLocation === "professionnel" ? "Pro" : a.type || "Particulier";
+                  const locType = a.segmentLocation === "vtc_taxi" ? "VTC & Taxi" : a.segmentLocation === "professionnel" ? "Pro" : a.type || "Particulier";
                   const pj = a.prixJour || Math.round(Number(a.prix || 0) / 30);
                   return (
                     <Link key={a.id} to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
@@ -463,7 +463,7 @@ export default function Home() {
             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-w-4xl mx-auto">
               {[
                 { icon: Car, label: "Achat / Vente", desc: "Véhicules neufs et d'occasion", to: "/acheter", color: "text-[#D4AF37]" },
-                { icon: KeyRound, label: "Location", desc: "Particulier, Pro, VTC, Taxi", to: "/louer", color: "text-blue-600" },
+                { icon: KeyRound, label: "Location", desc: "Particulier, Pro, VTC & Taxi", to: "/louer", color: "text-blue-600" },
                 { icon: Wrench, label: "Garage", desc: "Réparation et entretien", to: "/garages", color: "text-orange-600" },
                 { icon: Truck, label: "Dépannage", desc: "Assistance 24h/24 7j/7", to: "/depannage", color: "text-red-600" },
                 { icon: ShieldCheck, label: "Contrôle Technique", desc: "Prise en charge et suivi", to: "/garage/controle-technique", color: "text-green-600" },
@@ -473,7 +473,7 @@ export default function Home() {
                 { icon: History, label: "Historique Véhicule", desc: "Rapports officiels & Analyse IA", to: "/historique", color: "text-indigo-600" },
                 { icon: Cog, label: "Pièces Auto", desc: "Pièces d'origine au meilleur prix", to: "/pieces", color: "text-gray-700" },
                 { icon: Shield, label: "Assurance", desc: "Assurance auto compétitive", to: "/demarches", color: "text-sky-600" },
-                { icon: BadgeCheck, label: "VTC / Taxi", desc: "Solutions professionnelles VTC", to: "/louer/vtc-taxi", color: "text-[#111]" },
+                { icon: BadgeCheck, label: "VTC / Taxi", desc: "Solutions professionnelles VTC & Taxi", to: "/louer/vtc-taxi", color: "text-[#111]" },
               ].map((s) => (
                 <Link key={s.label} to={s.to} className="flex flex-col items-center text-center rounded-xl bg-white border border-[#E5E7EB] p-3 hover:border-[#D4AF37] hover:shadow-md transition group">
                   <div className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full bg-[#F5F3EF] group-hover:bg-[#D4AF37]/10 transition">
@@ -517,7 +517,7 @@ export default function Home() {
                 { icon: KeyRound, label: "Loueurs", desc: "Gérez votre flotte", to: "/espace-pro" },
                 { icon: Truck, label: "Dépanneurs", desc: "Recevez des interventions", to: "/espace-pro" },
                 { icon: ShieldCheck, label: "Contrôleurs techniques", desc: "Prises en charge en ligne", to: "/espace-pro" },
-                { icon: BadgeCheck, label: "Sociétés VTC", desc: "Location VTC & Taxi", to: "/espace-pro" },
+                { icon: BadgeCheck, label: "Sociétés VTC & Taxi", desc: "Location VTC & Taxi", to: "/espace-pro" },
                 { icon: Package, label: "Transporteurs", desc: "Livraison et logistique", to: "/espace-pro" },
                 { icon: Receipt, label: "Démarches administratives", desc: "Carte grise, déclarations", to: "/espace-pro" },
               ].map((p) => (

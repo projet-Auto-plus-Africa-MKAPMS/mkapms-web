@@ -102,7 +102,7 @@ const VEHICULES_POPULAIRES = [
 ];
 
 const FAQ_DATA = [
-  { q: "Comment réserver un véhicule ?", a: "Choisissez votre univers (VTC, Particulier, Pro…), sélectionnez un véhicule, remplissez vos dates, ajoutez vos options, payez en ligne. Vous recevez votre confirmation immédiatement par email." },
+  { q: "Comment réserver un véhicule ?", a: "Choisissez votre univers (VTC & Taxi, Particulier, Pro…), sélectionnez un véhicule, remplissez vos dates, ajoutez vos options, payez en ligne. Vous recevez votre confirmation immédiatement par email." },
   { q: "Quels documents fournir ?", a: "Pièce d'identité en cours de validité, permis de conduire (minimum 2 ans), justificatif de domicile de moins de 3 mois. Pour les pros : Kbis ou carte VTC/licence taxi." },
   { q: "Comment fonctionne la caution ?", a: "Une empreinte bancaire est prise lors de la réservation (non débitée). Elle est libérée sous 7 jours ouvrés après restitution du véhicule en bon état." },
   { q: "Peut-on annuler une réservation ?", a: "Annulation gratuite jusqu'à 48h avant la prise en charge. Entre 48h et 24h : 50% du montant. Moins de 24h : montant total." },
@@ -284,7 +284,7 @@ export default function Louer() {
         </div>
         <div className="px-4 py-4 space-y-0">
           {[
-            { n: "1", title: "Choisissez votre univers", desc: "VTC, Particulier, Pro, Utilitaire…" },
+            { n: "1", title: "Choisissez votre univers", desc: "VTC & Taxi, Particulier, Pro, Utilitaire…" },
             { n: "2", title: "Sélectionnez votre véhicule", desc: "Parcourez les offres et trouvez le véhicule adapté." },
             { n: "3", title: "Envoyez vos documents", desc: "Pièce d'identité, permis, justificatifs — tout se fait en ligne." },
             { n: "4", title: "Payez en ligne", desc: "Paiement sécurisé par CB, Apple Pay, Google Pay." },
