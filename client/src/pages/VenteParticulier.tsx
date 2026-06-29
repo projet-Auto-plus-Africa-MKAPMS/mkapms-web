@@ -19,6 +19,10 @@ const CATEGORIES = [
   { label: "Monospaces", modeles: "Scenic, Touran, Espace", photo: "/categories/monospace.jpg" },
   { label: "Breaks", modeles: "508 SW, Passat SW, Série 3 Touring", photo: "/categories/break.jpg" },
   { label: "Cabriolets", modeles: "SLK, Z4, Boxster", photo: "/categories/cabriolet.jpg" },
+  { label: "Hybrides", modeles: "Prius, Clio E-Tech, 308 PHEV", photo: "/categories/hybride.jpg" },
+  { label: "Électriques", modeles: "ZOE, e-208, Spring, Leaf", photo: "/categories/electrique.jpg" },
+  { label: "Familiales", modeles: "3008, RAV4, Tiguan, C5 X", photo: "/categories/familiale.jpg" },
+  { label: "Premium", modeles: "Classe C, Série 3, A4, XC40", photo: "/categories/premium.jpg" },
 ];
 
 const ANNONCES = [
