@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  ShieldCheck, CheckCircle, Star, ArrowRight, ChevronDown,
-  Car, AlertTriangle, Search, FileText, Award, Lock, Clock, Headphones,
-  Globe, Zap, Eye, Users, Wrench, BarChart3, CreditCard, Download,
-  MessageSquare, FolderOpen, X, Loader2, RefreshCw, History,
-  ChevronLeft, Sparkles, TrendingUp, Shield, BadgeCheck,
+  ShieldCheck, CheckCircle, Star, ArrowRight, Car, AlertTriangle,
+  Search, FileText, Award, Lock, Clock, Headphones, Globe, Zap, Eye,
+  Users, Wrench, BarChart3, CreditCard, Download, MessageSquare,
+  FolderOpen, Loader2, History, ChevronLeft, Sparkles, BadgeCheck,
+  Printer, Share2, Bell, X, ChevronRight,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -102,6 +102,12 @@ const PIEGES = [
   { icon: AlertTriangle, label: "Importation à risque", color: "text-red-600", bg: "bg-red-50 border-red-100" },
 ];
 
+const CAR_IMAGES = [
+  "/hero/car_hero_1.jpg",
+  "/hero/car_hero_2.jpg",
+  "/hero/car_hero_3.jpg",
+];
+
 function scoreLabel(s: number) {
   if (s >= 85) return { label: "Excellent", color: "text-green-600", border: "border-green-400", bg: "bg-green-50", ring: "ring-green-400", glow: "shadow-green-200" };
   if (s >= 70) return { label: "Bon", color: "text-blue-600", border: "border-blue-400", bg: "bg-blue-50", ring: "ring-blue-400", glow: "shadow-blue-200" };
@@ -109,67 +115,263 @@ function scoreLabel(s: number) {
   return { label: "Vigilance", color: "text-red-600", border: "border-red-400", bg: "bg-red-50", ring: "ring-red-400", glow: "shadow-red-200" };
 }
 
-/* ─── TYPES ─── */
 type SearchMode = "plate" | "vin" | "foreign";
 type VehicleType = "voiture" | "moto" | "scooter" | "utilitaire" | "camion";
 type RapportType = "express" | "complet" | "premium";
-type PaymentMethod = "cb" | "apple" | "google" | "wallet";
-type ReportStatus = "paiement_recu" | "en_generation" | "disponible" | "incomplet" | "indisponible" | "erreur";
+type PaymentMethod = "cb" | "apple" | "google";
+type ReportStatus = "paiement_recu" | "en_generation" | "disponible";
 
-/* step: 0=landing, 1=saisie, 2=résumé, 3=choix rapport, 4=paiement, 5=génération, 6=réception */
+/* ─── MODAL EXEMPLE COMPLET ─── */
+function ModalExempleComplet({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-t-3xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-base font-extrabold text-[#111]">Exemple de rapport complet</h3>
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition">
+            <X size={14} />
+          </button>
+        </div>
+        <div className="space-y-3 max-h-[70vh] overflow-y-auto">
+          <div className="rounded-xl bg-[#F8F9FA] p-3">
+            <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Identité véhicule</p>
+            <p className="text-sm font-extrabold text-[#111]">RENAULT CLIO IV — 1.5 dCi 90 cv</p>
+            <p className="text-xs text-slate-500">2019 · Voiture · AA-123-BB</p>
+          </div>
+          {[
+            { label: "Score de confiance", value: "92/100 — Excellent", green: true },
+            { label: "Accidents", value: "Aucun accident déclaré" },
+            { label: "Kilométrage", value: "128 450 km — Cohérent" },
+            { label: "Vol", value: "Aucun vol déclaré" },
+            { label: "Gage / Opposition", value: "Aucun gage enregistré" },
+            { label: "Entretien", value: "12 entretiens trouvés" },
+            { label: "Propriétaires", value: "2 propriétaires" },
+            { label: "Importation", value: "Non importé" },
+            { label: "Contrôle technique", value: "Valide jusqu'au 12/2025" },
+            { label: "Analyse IA", value: "Faible risque d'achat" },
+            { label: "Estimation marché", value: "8 500 — 10 200 €" },
+            { label: "Recommandation", value: "✅ Achat recommandé" },
+          ].map((r) => (
+            <div key={r.label} className="flex items-center justify-between rounded-xl bg-[#F8F9FA] px-3 py-2.5">
+              <span className="text-xs text-slate-500">{r.label}</span>
+              <span className={`text-xs font-bold ${r.green ? "text-green-600" : "text-[#111]"}`}>{r.value}</span>
+            </div>
+          ))}
+          <p className="text-[9px] text-slate-400 italic text-center">Exemple fictif à titre illustratif. Les données réelles varient selon le véhicule.</p>
+        </div>
+        <button onClick={onClose} className="mt-4 w-full rounded-2xl bg-[#D4AF37] py-3 text-sm font-bold text-white hover:bg-[#C5A028] transition">
+          Fermer
+        </button>
+      </div>
+    </div>
+  );
+}
 
+/* ─── MODAL PARTAGE ─── */
+function ModalPartage({ searchVal, onClose }: { searchVal: string; onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const url = `${window.location.origin}/historique?ref=${searchVal}`;
+  function copyLink() {
+    navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+  }
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-t-3xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-base font-extrabold text-[#111]">Partager ce rapport</h3>
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition"><X size={14} /></button>
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] px-3 py-2.5">
+            <span className="flex-1 truncate text-xs text-slate-500">{url}</span>
+            <button onClick={copyLink} className={`rounded-lg px-3 py-1.5 text-[10px] font-bold transition ${copied ? "bg-green-100 text-green-700" : "bg-[#D4AF37] text-white hover:bg-[#C5A028]"}`}>
+              {copied ? "Copié !" : "Copier"}
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: "WhatsApp", color: "bg-green-500", href: `https://wa.me/?text=${encodeURIComponent("Rapport véhicule MKA.P-MS : " + url)}` },
+              { label: "SMS", color: "bg-blue-500", href: `sms:?body=${encodeURIComponent("Rapport véhicule MKA.P-MS : " + url)}` },
+              { label: "Email", color: "bg-slate-700", href: `mailto:?subject=Rapport%20véhicule&body=${encodeURIComponent(url)}` },
+            ].map((s) => (
+              <a key={s.label} href={s.href} target="_blank" rel="noreferrer"
+                className={`flex items-center justify-center rounded-xl py-3 text-xs font-bold text-white transition hover:opacity-90 ${s.color}`}>
+                {s.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── MODAL NOTIFICATIONS ─── */
+function ModalNotifications({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-t-3xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-base font-extrabold text-[#111]">Notifications</h3>
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition"><X size={14} /></button>
+        </div>
+        <div className="space-y-3">
+          {[
+            { title: "Rapport disponible", desc: "Votre rapport historique est prêt à être consulté.", time: "Il y a 2 min", dot: "bg-green-500" },
+            { title: "Paiement confirmé", desc: "Votre paiement de 4,99 € a été accepté.", time: "Il y a 3 min", dot: "bg-blue-500" },
+            { title: "Analyse IA terminée", desc: "L'analyse intelligente de votre véhicule est complète.", time: "Il y a 5 min", dot: "bg-purple-500" },
+          ].map((n) => (
+            <div key={n.title} className="flex items-start gap-3 rounded-xl bg-[#F8F9FA] p-3">
+              <div className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${n.dot}`} />
+              <div className="flex-1">
+                <p className="text-xs font-bold text-[#111]">{n.title}</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">{n.desc}</p>
+                <p className="text-[9px] text-slate-400 mt-1">{n.time}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button onClick={onClose} className="mt-4 w-full rounded-2xl bg-[#111] py-3 text-sm font-bold text-white hover:bg-[#222] transition">
+          Fermer
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── MODAL AJOUTER À ANNONCE ─── */
+function ModalAjouterAnnonce({ searchVal, onClose }: { searchVal: string; onClose: () => void }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const annonces = [
+    { id: "ann1", label: "Renault Clio IV — AA-123-BB", year: "2019" },
+    { id: "ann2", label: "Peugeot 308 — BC-456-DE", year: "2021" },
+    { id: "ann3", label: "Volkswagen Golf — EF-789-GH", year: "2020" },
+  ];
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-t-3xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-base font-extrabold text-[#111]">Ajouter à mon annonce</h3>
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition"><X size={14} /></button>
+        </div>
+        <p className="text-xs text-slate-500 mb-3">Sélectionnez l'annonce à laquelle vous souhaitez attacher ce rapport.</p>
+        <div className="space-y-2">
+          {annonces.map((a) => (
+            <button key={a.id} onClick={() => setSelected(a.id)}
+              className={`flex w-full items-center gap-3 rounded-xl border-2 p-3 text-left transition ${selected === a.id ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-[#E5E7EB] hover:border-[#D4AF37]/30"}`}>
+              <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${selected === a.id ? "bg-[#D4AF37]/10" : "bg-slate-100"}`}>
+                <Car size={14} className={selected === a.id ? "text-[#D4AF37]" : "text-slate-400"} />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-bold text-[#111]">{a.label}</p>
+                <p className="text-[9px] text-slate-400">{a.year}</p>
+              </div>
+              {selected === a.id && <CheckCircle size={14} className="text-[#D4AF37]" />}
+            </button>
+          ))}
+        </div>
+        <button disabled={!selected}
+          className="mt-4 w-full rounded-2xl bg-[#D4AF37] py-3 text-sm font-bold text-white hover:bg-[#C5A028] disabled:opacity-40 transition">
+          Confirmer l'ajout
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── MODAL CENTRE DOCUMENTS ─── */
+function ModalCentreDocuments({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate();
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-t-3xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-base font-extrabold text-[#111]">Centre de documents</h3>
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition"><X size={14} /></button>
+        </div>
+        <div className="space-y-2">
+          {[
+            { label: "Véhicules → Historiques", sub: "Tous vos rapports historiques", path: "/compte/documents/historiques" },
+            { label: "Véhicules → Contrôles techniques", sub: "Vos contrôles techniques", path: "/compte/documents/ct" },
+            { label: "Factures & Reçus", sub: "Vos factures de rapports", path: "/compte/documents/factures" },
+            { label: "Documents administratifs", sub: "Cartes grises, assurances…", path: "/compte/documents/admin" },
+          ].map((d) => (
+            <button key={d.label} onClick={() => { navigate(d.path); onClose(); }}
+              className="flex w-full items-center gap-3 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] p-3 text-left hover:border-[#D4AF37]/30 hover:bg-white transition">
+              <FolderOpen size={16} className="text-orange-500 shrink-0" />
+              <div>
+                <p className="text-xs font-bold text-[#111]">{d.label}</p>
+                <p className="text-[9px] text-slate-400">{d.sub}</p>
+              </div>
+              <ChevronRight size={12} className="ml-auto text-slate-400" />
+            </button>
+          ))}
+        </div>
+        <button onClick={onClose} className="mt-4 w-full rounded-2xl bg-[#111] py-3 text-sm font-bold text-white hover:bg-[#222] transition">
+          Fermer
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   COMPOSANT PRINCIPAL
+═══════════════════════════════════════════════════════ */
 export default function Historique() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
+  const [carIndex, setCarIndex] = useState(0);
 
-  /* Step 1 — Saisie */
+  /* Step 1 */
   const [searchMode, setSearchMode] = useState<SearchMode>("plate");
   const [plaque, setPlaque] = useState("");
   const [vin, setVin] = useState("");
   const [vehicleType, setVehicleType] = useState<VehicleType>("voiture");
   const [country, setCountry] = useState("France");
 
-  /* Step 2 — Résumé détecté */
+  /* Step 2 */
   const [detected, setDetected] = useState<{ marque: string; modele: string; annee: string } | null>(null);
 
-  /* Step 3 — Choix rapport */
+  /* Step 3 */
   const [selectedRapport, setSelectedRapport] = useState<RapportType | null>(null);
 
-  /* Step 4 — Paiement */
+  /* Step 4 */
   const [payMethod, setPayMethod] = useState<PaymentMethod>("cb");
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState(false);
 
-  /* Step 5/6 — Résultat */
+  /* Step 5/6 */
   const [reportStatus, setReportStatus] = useState<ReportStatus>("paiement_recu");
   const [reportScore, setReportScore] = useState(92);
 
-  /* Login check */
+  /* Modals */
   const [showLogin, setShowLogin] = useState(false);
+  const [showExemple, setShowExemple] = useState(false);
+  const [showPartage, setShowPartage] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showAnnonce, setShowAnnonce] = useState(false);
+  const [showCentreDoc, setShowCentreDoc] = useState(false);
 
-  /* Doublon */
   const [hasDuplicate, setHasDuplicate] = useState(false);
 
   const req = trpc.historique.requestReport.useMutation();
 
+  /* Carousel auto */
+  useEffect(() => {
+    const t = setInterval(() => setCarIndex((i) => (i + 1) % CAR_IMAGES.length), 4000);
+    return () => clearInterval(t);
+  }, []);
+
   function handleVerify() {
     const val = searchMode === "vin" ? vin : plaque;
     if (!val) return;
-
-    if (!user) {
-      setShowLogin(true);
-      return;
-    }
-
-    /* Simulate detection */
+    if (!user) { setShowLogin(true); return; }
     setDetected({ marque: "Renault", modele: "Clio IV", annee: "2019" });
     setHasDuplicate(Math.random() > 0.8);
     setStep(1);
   }
-
-  function goToResume() { setStep(2); }
-  function chooseRapport(id: RapportType) { setSelectedRapport(id); setStep(3); }
-  function goToPaiement() { setStep(4); }
 
   function simulatePayment() {
     setPaying(true);
@@ -190,16 +392,44 @@ export default function Historique() {
     }, 2000);
   }
 
+  function downloadPDF() {
+    const content = `RAPPORT HISTORIQUE VÉHICULE - MKA.P-MS\n\nVéhicule : ${detected?.marque} ${detected?.modele} ${detected?.annee}\nImmatriculation : ${plaque || vin}\nType rapport : ${rapportInfo?.label}\nScore : ${reportScore}/100\nDate : ${new Date().toLocaleDateString("fr-FR")}\n\nDonnées :\n- Accidents : Aucun accident déclaré\n- Kilométrage : 128 450 km — Cohérent\n- Vol : Aucun vol déclaré\n- Gage : Aucun gage enregistré\n- Entretien : 12 entretiens trouvés\n- Propriétaires : 2 propriétaires\n- Importation : Non importé\n- Contrôle technique : Valide jusqu'au 12/2025\n\nCe rapport a été généré par MKA.P-MS — La Marketplace Automobile.`;
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `rapport_historique_${(plaque || vin).replace(/\s/g, "_")}_${new Date().toISOString().split("T")[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadFacture() {
+    const content = `FACTURE MKA.P-MS\n\nDate : ${new Date().toLocaleDateString("fr-FR")}\nNuméro facture : FAC-${Date.now()}\n\nClient : ${user?.email || "Utilisateur MKA.P-MS"}\n\nDésignation : Rapport Historique Véhicule — ${rapportInfo?.label}\nVéhicule : ${plaque || vin}\n\nMontant HT : ${((rapportInfo?.prix || 0) / 1.2).toFixed(2)} €\nTVA 20% : ${((rapportInfo?.prix || 0) * 0.2 / 1.2).toFixed(2)} €\nTotal TTC : ${rapportInfo?.prixLabel} €\n\nMKA.P-MS — La Marketplace Automobile\nwww.mkapms.com`;
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `facture_mkapms_${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const rapportInfo = RAPPORTS.find((r) => r.id === selectedRapport);
   const sc = scoreLabel(reportScore);
   const searchVal = searchMode === "vin" ? vin : plaque;
+
+  /* ═══ MODALS ═══ */
+  if (showExemple) return <ModalExempleComplet onClose={() => setShowExemple(false)} />;
+  if (showPartage) return <ModalPartage searchVal={searchVal} onClose={() => setShowPartage(false)} />;
+  if (showNotifications) return <ModalNotifications onClose={() => setShowNotifications(false)} />;
+  if (showAnnonce) return <ModalAjouterAnnonce searchVal={searchVal} onClose={() => setShowAnnonce(false)} />;
+  if (showCentreDoc) return <ModalCentreDocuments onClose={() => setShowCentreDoc(false)} />;
 
   /* ═══ LOGIN MODAL ═══ */
   if (showLogin) {
     return (
       <div className="min-h-screen bg-[#F5F3EF] flex items-center justify-center p-4">
         <div className="w-full max-w-sm rounded-3xl bg-white shadow-2xl overflow-hidden">
-          {/* Header noir */}
           <div className="bg-gradient-to-br from-[#111] to-[#1a1a1a] p-8 text-center relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(212,175,55,0.15)_0%,_transparent_70%)]" />
             <div className="relative">
@@ -207,15 +437,14 @@ export default function Historique() {
                 <ShieldCheck size={28} className="text-[#D4AF37]" />
               </div>
               <h2 className="text-xl font-extrabold text-white">Connexion requise</h2>
-              <p className="mt-2 text-sm text-white/50">Un compte MKA.P-MS est obligatoire pour acheter un rapport historique véhicule.</p>
+              <p className="mt-2 text-sm text-white/50">Un compte MKA.P-MS est obligatoire pour acheter un rapport.</p>
               {searchVal && (
                 <div className="mt-4 rounded-xl bg-white/10 px-4 py-2.5 text-xs text-white/70">
-                  Votre recherche <strong className="text-[#D4AF37]">{searchVal}</strong> sera conservée après connexion.
+                  Votre recherche <strong className="text-[#D4AF37]">{searchVal}</strong> sera conservée.
                 </div>
               )}
             </div>
           </div>
-          {/* Actions */}
           <div className="p-6 space-y-3">
             <Link to="/auth?redirect=/historique" className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white hover:bg-[#C5A028] transition">
               <Users size={16} /> Se connecter
@@ -223,9 +452,7 @@ export default function Historique() {
             <Link to="/auth?mode=register&redirect=/historique" className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-[#111] py-3.5 text-sm font-bold text-[#111] hover:bg-[#111] hover:text-white transition">
               Créer un compte
             </Link>
-            <button onClick={() => setShowLogin(false)} className="w-full text-xs text-slate-400 hover:text-slate-600 py-2 transition">
-              ← Retour
-            </button>
+            <button onClick={() => setShowLogin(false)} className="w-full text-xs text-slate-400 hover:text-slate-600 py-2 transition">← Retour</button>
           </div>
         </div>
       </div>
@@ -236,7 +463,6 @@ export default function Historique() {
   if (step === 6) {
     return (
       <div className="min-h-screen bg-[#F5F3EF] pb-24">
-        {/* Header succès */}
         <div className="bg-gradient-to-br from-[#111] to-[#1a1a1a] px-4 pt-6 pb-8 relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(212,175,55,0.1)_0%,_transparent_60%)]" />
           <div className="relative">
@@ -256,9 +482,8 @@ export default function Historique() {
         </div>
 
         <div className="px-4 -mt-4 space-y-4 relative z-10">
-          {/* Score + résumé */}
+          {/* Identité + score + données */}
           <div className="rounded-2xl bg-white shadow-sm border border-[#E5E7EB] overflow-hidden">
-            {/* Identité véhicule */}
             <div className="p-4 border-b border-[#F5F5F5]">
               <div className="flex items-start justify-between">
                 <div>
@@ -274,11 +499,8 @@ export default function Historique() {
                 </span>
               </div>
             </div>
-
-            {/* Score + données */}
             <div className="p-4">
               <div className="flex items-start gap-4">
-                {/* Score circulaire */}
                 <div className="flex flex-col items-center shrink-0">
                   <p className="text-[8px] font-semibold uppercase tracking-wide text-slate-400 mb-2">Score MKA.P-MS</p>
                   <div className={`relative flex h-20 w-20 items-center justify-center rounded-full border-[4px] ${sc.border} shadow-lg ${sc.glow}`}>
@@ -292,18 +514,16 @@ export default function Historique() {
                     {reportScore >= 85 ? "Faible risque" : reportScore >= 70 ? "Risque modéré" : reportScore >= 50 ? "Vérifications recommandées" : "Risque élevé"}
                   </p>
                 </div>
-
-                {/* Données */}
                 <div className="flex-1 space-y-2">
                   {[
-                    { label: "Accidents", value: "Aucun accident déclaré", ok: true },
-                    { label: "Kilométrage", value: "128 450 km — Cohérent", ok: true },
-                    { label: "Vol", value: "Aucun vol déclaré", ok: true },
-                    { label: "Gage", value: "Aucun gage enregistré", ok: true },
-                    { label: "Entretien", value: "12 entretiens trouvés", ok: true },
-                    { label: "Propriétaires", value: "2 propriétaires", ok: true },
-                    { label: "Importation", value: "Non importé", ok: true },
-                    { label: "Contrôle technique", value: "Valide jusqu'au 12/2025", ok: true },
+                    { label: "Accidents", value: "Aucun accident déclaré" },
+                    { label: "Kilométrage", value: "128 450 km — Cohérent" },
+                    { label: "Vol", value: "Aucun vol déclaré" },
+                    { label: "Gage", value: "Aucun gage enregistré" },
+                    { label: "Entretien", value: "12 entretiens trouvés" },
+                    { label: "Propriétaires", value: "2 propriétaires" },
+                    { label: "Importation", value: "Non importé" },
+                    { label: "Contrôle technique", value: "Valide jusqu'au 12/2025" },
                   ].map((r) => (
                     <div key={r.label} className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5 text-[10px] text-slate-600">
@@ -315,15 +535,11 @@ export default function Historique() {
                   {selectedRapport === "premium" && (
                     <>
                       <div className="flex items-center justify-between pt-1 border-t border-[#F5F5F5]">
-                        <span className="flex items-center gap-1.5 text-[10px] text-slate-600">
-                          <Zap size={10} className="text-purple-500 shrink-0" /> Analyse IA
-                        </span>
+                        <span className="flex items-center gap-1.5 text-[10px] text-slate-600"><Zap size={10} className="text-purple-500 shrink-0" /> Analyse IA</span>
                         <span className="text-[10px] font-semibold text-green-600">Faible risque</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-1.5 text-[10px] text-slate-600">
-                          <BarChart3 size={10} className="text-blue-500 shrink-0" /> Estimation marché
-                        </span>
+                        <span className="flex items-center gap-1.5 text-[10px] text-slate-600"><BarChart3 size={10} className="text-blue-500 shrink-0" /> Estimation marché</span>
                         <span className="text-[10px] font-semibold text-[#111]">8 500 — 10 200 €</span>
                       </div>
                     </>
@@ -335,39 +551,47 @@ export default function Historique() {
             </div>
           </div>
 
-          {/* Actions rapides */}
+          {/* 6 actions cliquables */}
           <div className="grid grid-cols-3 gap-2">
             {[
-              { icon: Eye, label: "Voir le rapport", color: "text-[#D4AF37]" },
-              { icon: Download, label: "Télécharger PDF", color: "text-blue-500" },
-              { icon: FileText, label: "Imprimer", color: "text-slate-500", action: () => window.print() },
-              { icon: ArrowRight, label: "Partager", color: "text-green-500" },
-              { icon: MessageSquare, label: "Notifications", color: "text-purple-500" },
-              { icon: FolderOpen, label: "Centre documents", color: "text-orange-500" },
+              { icon: Eye, label: "Voir le rapport", color: "text-[#D4AF37]", action: () => navigate("/compte/rapports") },
+              { icon: Download, label: "Télécharger PDF", color: "text-blue-500", action: downloadPDF },
+              { icon: Printer, label: "Imprimer", color: "text-slate-500", action: () => window.print() },
+              { icon: Share2, label: "Partager", color: "text-green-500", action: () => setShowPartage(true) },
+              { icon: Bell, label: "Notifications", color: "text-purple-500", action: () => setShowNotifications(true) },
+              { icon: FolderOpen, label: "Centre documents", color: "text-orange-500", action: () => setShowCentreDoc(true) },
             ].map((a) => (
-              <button key={a.label} onClick={a.action} className="flex flex-col items-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white p-3 text-center hover:border-[#D4AF37] hover:shadow-sm transition active:scale-95">
+              <button key={a.label} onClick={a.action}
+                className="flex flex-col items-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white p-3 text-center hover:border-[#D4AF37] hover:shadow-sm transition active:scale-95">
                 <a.icon size={18} className={a.color} />
                 <span className="text-[9px] font-bold text-[#111] leading-tight">{a.label}</span>
               </button>
             ))}
           </div>
 
-          {/* Rapport disponible dans la plateforme */}
+          {/* Rapport dans la plateforme */}
           <div className="rounded-2xl bg-blue-50 border border-blue-100 p-4">
             <h4 className="text-xs font-bold text-blue-800 flex items-center gap-2">
               <BadgeCheck size={14} className="text-blue-500" /> Votre rapport est disponible dans la plateforme
             </h4>
             <div className="mt-3 space-y-2">
               {[
-                "Espace utilisateur → Mes rapports historiques",
-                "Notifications MKA.P-MS (notification envoyée dans la plateforme)",
-                "Centre documents → Véhicules → Historiques",
-                "Rapport disponible en texte et en PDF",
-                "Facture et reçu dans votre espace",
+                { label: "Espace utilisateur → Mes rapports historiques", path: "/compte/rapports" },
+                { label: "Notifications MKA.P-MS (notification envoyée dans la plateforme)", path: null },
+                { label: "Centre documents → Véhicules → Historiques", path: "/compte/documents/historiques" },
+                { label: "Rapport disponible en texte et en PDF", path: null },
+                { label: "Facture et reçu dans votre espace", path: "/compte/documents/factures" },
               ].map((item) => (
-                <p key={item} className="flex items-start gap-2 text-[10px] text-blue-700">
-                  <CheckCircle size={10} className="text-blue-500 mt-0.5 shrink-0" /> {item}
-                </p>
+                item.path ? (
+                  <button key={item.label} onClick={() => navigate(item.path!)}
+                    className="flex items-start gap-2 text-[10px] text-blue-700 hover:text-blue-900 hover:underline w-full text-left transition">
+                    <CheckCircle size={10} className="text-blue-500 mt-0.5 shrink-0" /> {item.label}
+                  </button>
+                ) : (
+                  <p key={item.label} className="flex items-start gap-2 text-[10px] text-blue-700">
+                    <CheckCircle size={10} className="text-blue-500 mt-0.5 shrink-0" /> {item.label}
+                  </p>
+                )
               ))}
             </div>
             <p className="mt-3 text-[9px] text-blue-600 font-semibold">Tout se passe directement dans MKA.P-MS. Aucun envoi par email.</p>
@@ -379,7 +603,8 @@ export default function Historique() {
               <Lock size={12} className="text-[#D4AF37]" /> Confidentialité
             </h4>
             <p className="mt-2 text-[10px] text-slate-500">Ce rapport est privé. Visible uniquement par vous et les admins autorisés en cas de litige.</p>
-            <button className="mt-3 flex items-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2.5 text-[10px] font-bold text-white hover:bg-[#C5A028] transition">
+            <button onClick={() => setShowAnnonce(true)}
+              className="mt-3 flex items-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2.5 text-[10px] font-bold text-white hover:bg-[#C5A028] transition">
               <FileText size={12} /> Ajouter ce rapport à mon annonce
             </button>
           </div>
@@ -394,31 +619,39 @@ export default function Historique() {
                 { label: "Prix payé", value: `${rapportInfo?.prixLabel} €` },
                 { label: "Date", value: new Date().toLocaleDateString("fr-FR") },
                 { label: "Statut", value: "Disponible", green: true },
-                { label: "Facture", value: "Télécharger", gold: true },
               ].map((d) => (
                 <div key={d.label} className="rounded-xl bg-[#F8F9FA] p-2.5">
                   <p className="text-[8px] text-slate-400">{d.label}</p>
-                  <p className={`text-[10px] font-bold mt-0.5 ${d.green ? "text-green-600" : d.gold ? "text-[#D4AF37] cursor-pointer" : "text-[#111]"}`}>{d.value}</p>
+                  <p className={`text-[10px] font-bold mt-0.5 ${d.green ? "text-green-600" : "text-[#111]"}`}>{d.value}</p>
                 </div>
               ))}
+              {/* Facture cliquable */}
+              <div className="rounded-xl bg-[#F8F9FA] p-2.5">
+                <p className="text-[8px] text-slate-400">Facture</p>
+                <button onClick={downloadFacture} className="text-[10px] font-bold mt-0.5 text-[#D4AF37] hover:underline transition">
+                  Télécharger
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* CTA */}
+          {/* CTA bas */}
           <div className="flex gap-3 pb-4">
-            <button onClick={() => { setStep(0); setSelectedRapport(null); }} className="flex-1 rounded-2xl border-2 border-[#111] py-3.5 text-sm font-bold text-[#111] hover:bg-[#111] hover:text-white transition">
+            <button onClick={() => { setStep(0); setSelectedRapport(null); setPlaque(""); setVin(""); }}
+              className="flex-1 rounded-2xl border-2 border-[#111] py-3.5 text-sm font-bold text-[#111] hover:bg-[#111] hover:text-white transition">
               Nouveau rapport
             </button>
-            <Link to="/compte" className="flex-1 rounded-2xl bg-[#D4AF37] py-3.5 text-center text-sm font-bold text-white hover:bg-[#C5A028] transition">
+            <button onClick={() => navigate("/compte/rapports")}
+              className="flex-1 rounded-2xl bg-[#D4AF37] py-3.5 text-center text-sm font-bold text-white hover:bg-[#C5A028] transition">
               Mes rapports
-            </Link>
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  /* ═══ STEP 5 — GÉNÉRATION EN COURS ═══ */
+  /* ═══ STEP 5 — GÉNÉRATION ═══ */
   if (step === 5) {
     const steps = [
       { label: "Paiement reçu", done: true },
@@ -443,13 +676,7 @@ export default function Historique() {
             {steps.map((s, i) => (
               <div key={i} className="flex items-center gap-3">
                 <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${s.done ? "bg-green-100" : i === steps.findIndex(x => !x.done) ? "bg-[#D4AF37]/10" : "bg-slate-100"}`}>
-                  {s.done ? (
-                    <CheckCircle size={14} className="text-green-500" />
-                  ) : i === steps.findIndex(x => !x.done) ? (
-                    <Loader2 size={14} className="text-[#D4AF37] animate-spin" />
-                  ) : (
-                    <div className="h-2 w-2 rounded-full bg-slate-300" />
-                  )}
+                  {s.done ? <CheckCircle size={14} className="text-green-500" /> : i === steps.findIndex(x => !x.done) ? <Loader2 size={14} className="text-[#D4AF37] animate-spin" /> : <div className="h-2 w-2 rounded-full bg-slate-300" />}
                 </div>
                 <span className={`text-xs ${s.done ? "text-[#111] font-semibold" : "text-slate-400"}`}>{s.label}</span>
               </div>
@@ -468,13 +695,12 @@ export default function Historique() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(212,175,55,0.1)_0%,_transparent_60%)]" />
           <div className="relative">
             <button onClick={() => setStep(3)} className="flex items-center gap-1 text-xs text-white/50 hover:text-white mb-4 transition">
-              <ChevronLeft size={14} /> Retour au choix du rapport
+              <ChevronLeft size={14} /> Retour
             </button>
             <h2 className="text-xl font-extrabold text-white">Paiement</h2>
             <p className="mt-1 text-sm text-white/50">Rapport {rapportInfo?.label} — <strong className="text-[#D4AF37]">{rapportInfo?.prixLabel} €</strong></p>
           </div>
         </div>
-
         <div className="px-4 -mt-4 space-y-4 relative z-10">
           <div className="rounded-2xl bg-white border border-[#E5E7EB] shadow-sm p-4">
             <h3 className="text-sm font-bold text-[#111] mb-3">Mode de paiement</h3>
@@ -498,8 +724,6 @@ export default function Historique() {
               ))}
             </div>
           </div>
-
-          {/* Récapitulatif */}
           <div className="rounded-2xl bg-white border border-[#E5E7EB] shadow-sm p-4">
             <h3 className="text-sm font-bold text-[#111] mb-3">Récapitulatif</h3>
             <div className="space-y-2">
@@ -513,22 +737,15 @@ export default function Historique() {
               </div>
             </div>
           </div>
-
           {payError && (
             <div className="rounded-xl bg-red-50 border border-red-200 p-3 flex items-center gap-2 text-xs text-red-700">
-              <AlertTriangle size={14} className="text-red-500 shrink-0" />
-              Paiement échoué. Veuillez réessayer.
+              <AlertTriangle size={14} className="text-red-500 shrink-0" /> Paiement échoué. Veuillez réessayer.
             </div>
           )}
-
-          <button
-            onClick={simulatePayment}
-            disabled={paying}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] py-4 text-sm font-bold text-white hover:bg-[#C5A028] disabled:opacity-50 transition shadow-lg shadow-[#D4AF37]/20"
-          >
+          <button onClick={simulatePayment} disabled={paying}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] py-4 text-sm font-bold text-white hover:bg-[#C5A028] disabled:opacity-50 transition shadow-lg shadow-[#D4AF37]/20">
             {paying ? <><Loader2 size={16} className="animate-spin" /> Traitement en cours…</> : <><Lock size={14} /> Payer {rapportInfo?.prixLabel} €</>}
           </button>
-
           <div className="flex items-center justify-center gap-2 text-[9px] text-slate-400">
             <Lock size={8} /> Paiement sécurisé via Stripe — SSL 256 bits
           </div>
@@ -537,7 +754,7 @@ export default function Historique() {
     );
   }
 
-  /* ═══ STEP 3 — CHOIX DU RAPPORT ═══ */
+  /* ═══ STEP 3 — CHOIX RAPPORT ═══ */
   if (step === 3) {
     return (
       <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -545,19 +762,17 @@ export default function Historique() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(212,175,55,0.1)_0%,_transparent_60%)]" />
           <div className="relative">
             <button onClick={() => setStep(2)} className="flex items-center gap-1 text-xs text-white/50 hover:text-white mb-4 transition">
-              <ChevronLeft size={14} /> Retour au résumé
+              <ChevronLeft size={14} /> Retour
             </button>
             <h2 className="text-xl font-extrabold text-white">Choisissez votre rapport</h2>
             <p className="mt-1 text-sm text-white/50">Des informations claires pour une décision en toute confiance.</p>
           </div>
         </div>
-
         <div className="px-4 -mt-4 space-y-3 relative z-10">
           {RAPPORTS.map((r) => {
             const Icon = r.icon;
-            const isSelected = selectedRapport === r.id;
             return (
-              <div key={r.id} className={`relative rounded-2xl bg-white overflow-hidden transition ${r.popular ? "border-2 border-[#D4AF37] shadow-lg shadow-[#D4AF37]/10" : "border border-[#E5E7EB]"} ${isSelected ? "ring-2 ring-[#D4AF37]" : ""}`}>
+              <div key={r.id} className={`relative rounded-2xl bg-white overflow-hidden transition ${r.popular ? "border-2 border-[#D4AF37] shadow-lg shadow-[#D4AF37]/10" : "border border-[#E5E7EB]"}`}>
                 {r.popular && (
                   <div className="bg-[#D4AF37] px-4 py-1.5 text-center">
                     <span className="text-[9px] font-extrabold uppercase tracking-widest text-white">⭐ Le plus populaire</span>
@@ -586,18 +801,14 @@ export default function Historique() {
                       </div>
                     ))}
                   </div>
-                  <button
-                    onClick={() => { setSelectedRapport(r.id); goToPaiement(); }}
-                    className={`mt-4 w-full rounded-xl py-3 text-xs font-bold transition ${r.popular ? "bg-[#D4AF37] text-white hover:bg-[#C5A028] shadow-md shadow-[#D4AF37]/20" : r.btnClass}`}
-                  >
+                  <button onClick={() => { setSelectedRapport(r.id); setStep(4); }}
+                    className={`mt-4 w-full rounded-xl py-3 text-xs font-bold transition ${r.popular ? "bg-[#D4AF37] text-white hover:bg-[#C5A028] shadow-md shadow-[#D4AF37]/20" : r.btnClass}`}>
                     CHOISIR CE RAPPORT →
                   </button>
                 </div>
               </div>
             );
           })}
-
-          {/* Packs Pro */}
           {user && (
             <div className="rounded-2xl bg-white border border-[#E5E7EB] p-4">
               <div className="flex items-center gap-2 mb-1">
@@ -631,7 +842,7 @@ export default function Historique() {
     );
   }
 
-  /* ═══ STEP 2 — RÉSUMÉ AVANT PAIEMENT ═══ */
+  /* ═══ STEP 2 — RÉSUMÉ ═══ */
   if (step === 2) {
     return (
       <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -639,16 +850,14 @@ export default function Historique() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(212,175,55,0.1)_0%,_transparent_60%)]" />
           <div className="relative">
             <button onClick={() => setStep(1)} className="flex items-center gap-1 text-xs text-white/50 hover:text-white mb-4 transition">
-              <ChevronLeft size={14} /> Retour à la saisie
+              <ChevronLeft size={14} /> Retour
             </button>
             <h2 className="text-xl font-extrabold text-white">Résumé du véhicule</h2>
             <p className="mt-1 text-sm text-white/50">Aperçu avant paiement — données sensibles masquées.</p>
           </div>
         </div>
-
         <div className="px-4 -mt-4 space-y-4 relative z-10">
           <div className="rounded-2xl bg-white border border-[#E5E7EB] shadow-sm overflow-hidden">
-            {/* Véhicule détecté */}
             {detected && (
               <div className="bg-gradient-to-r from-[#D4AF37]/10 to-transparent border-b border-[#E5E7EB] p-4">
                 <div className="flex items-center gap-3">
@@ -663,7 +872,6 @@ export default function Historique() {
                 </div>
               </div>
             )}
-            {/* Données */}
             <div className="p-4 space-y-2">
               {[
                 { label: "Plaque / VIN", value: searchVal },
@@ -678,16 +886,12 @@ export default function Historique() {
               ))}
             </div>
           </div>
-
           <div className="rounded-xl bg-green-50 border border-green-200 p-3 flex items-center gap-2">
             <CheckCircle size={14} className="text-green-500 shrink-0" />
             <p className="text-xs font-semibold text-green-700">Rapport disponible immédiatement après paiement.</p>
           </div>
-
-          <button
-            onClick={() => setStep(3)}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] py-4 text-sm font-bold text-white hover:bg-[#C5A028] transition shadow-lg shadow-[#D4AF37]/20"
-          >
+          <button onClick={() => setStep(3)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] py-4 text-sm font-bold text-white hover:bg-[#C5A028] transition shadow-lg shadow-[#D4AF37]/20">
             Choisir mon rapport <ArrowRight size={14} />
           </button>
         </div>
@@ -695,7 +899,7 @@ export default function Historique() {
     );
   }
 
-  /* ═══ STEP 1 — SAISIE VÉHICULE ═══ */
+  /* ═══ STEP 1 — SAISIE ═══ */
   if (step === 1) {
     return (
       <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -709,9 +913,7 @@ export default function Historique() {
             <p className="mt-1 text-sm text-white/50">Complétez les informations pour générer votre rapport.</p>
           </div>
         </div>
-
         <div className="px-4 -mt-4 space-y-4 relative z-10">
-          {/* Doublon warning */}
           {hasDuplicate && (
             <div className="rounded-2xl bg-orange-50 border border-orange-200 p-4">
               <div className="flex items-start gap-2">
@@ -719,16 +921,14 @@ export default function Historique() {
                 <div>
                   <p className="text-xs font-bold text-orange-800">Un rapport récent existe déjà pour ce véhicule.</p>
                   <div className="mt-2 flex gap-2">
-                    <button className="rounded-xl bg-orange-500 px-3 py-2 text-[10px] font-bold text-white">Voir le rapport</button>
+                    <button onClick={() => navigate("/compte/rapports")} className="rounded-xl bg-orange-500 px-3 py-2 text-[10px] font-bold text-white">Voir le rapport</button>
                     <button onClick={() => setHasDuplicate(false)} className="rounded-xl border border-orange-300 px-3 py-2 text-[10px] font-bold text-orange-700">Acheter un nouveau rapport</button>
                   </div>
                 </div>
               </div>
             </div>
           )}
-
           <div className="rounded-2xl bg-white border border-[#E5E7EB] shadow-sm p-4 space-y-4">
-            {/* Mode de recherche */}
             <div>
               <label className="text-xs font-bold text-[#111] uppercase tracking-wide">Mode de recherche</label>
               <div className="mt-2 flex gap-2">
@@ -740,35 +940,25 @@ export default function Historique() {
                 ))}
               </div>
             </div>
-
-            {/* Champ saisie */}
             <div>
               <label className="text-xs font-bold text-[#111]">{searchMode === "vin" ? "Numéro VIN" : "Immatriculation"}</label>
               {searchMode === "plate" ? (
                 <div className="mt-2 flex items-center gap-2 rounded-xl border-2 border-[#D4AF37] bg-white px-3 py-3">
                   <span className="flex h-8 w-6 items-center justify-center rounded-sm bg-blue-700 text-[9px] font-bold text-white">F</span>
-                  <input
-                    className="flex-1 bg-transparent text-center text-lg font-extrabold text-[#111] outline-none placeholder-slate-300 tracking-widest"
-                    placeholder="AA - 123 - BB"
-                    value={plaque}
-                    onChange={(e) => setPlaque(e.target.value.toUpperCase())}
-                  />
+                  <input className="flex-1 bg-transparent text-center text-lg font-extrabold text-[#111] outline-none placeholder-slate-300 tracking-widest"
+                    placeholder="AA - 123 - BB" value={plaque} onChange={(e) => setPlaque(e.target.value.toUpperCase())} />
                   <div className="flex flex-col items-center">
                     <span className="text-[8px]">🇪🇺</span>
                     <span className="rounded bg-blue-700 px-1 text-[7px] font-bold text-white">75</span>
                   </div>
                 </div>
               ) : (
-                <input
-                  className="mt-2 w-full rounded-xl border-2 border-[#E5E7EB] focus:border-[#D4AF37] px-4 py-3 text-sm text-[#111] outline-none transition font-mono tracking-wider"
+                <input className="mt-2 w-full rounded-xl border-2 border-[#E5E7EB] focus:border-[#D4AF37] px-4 py-3 text-sm text-[#111] outline-none transition font-mono tracking-wider"
                   value={searchMode === "vin" ? vin : plaque}
                   onChange={(e) => searchMode === "vin" ? setVin(e.target.value.toUpperCase()) : setPlaque(e.target.value.toUpperCase())}
-                  placeholder={searchMode === "vin" ? "Ex: VF1KR1234567890" : "Ex: AB-123-CD"}
-                />
+                  placeholder={searchMode === "vin" ? "Ex: VF1KR1234567890" : "Ex: AB-123-CD"} />
               )}
             </div>
-
-            {/* Pays étranger */}
             {searchMode === "foreign" && (
               <div>
                 <label className="text-xs font-bold text-[#111]">Pays d'immatriculation</label>
@@ -777,8 +967,6 @@ export default function Historique() {
                 </select>
               </div>
             )}
-
-            {/* Type de véhicule */}
             <div>
               <label className="text-xs font-bold text-[#111] uppercase tracking-wide">Type de véhicule</label>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -790,8 +978,6 @@ export default function Historique() {
                 ))}
               </div>
             </div>
-
-            {/* Véhicule détecté */}
             {detected && (
               <div className="rounded-xl bg-green-50 border border-green-200 p-3 flex items-center gap-2">
                 <CheckCircle size={14} className="text-green-500 shrink-0" />
@@ -802,11 +988,8 @@ export default function Historique() {
               </div>
             )}
           </div>
-
-          <button
-            onClick={goToResume}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] py-4 text-sm font-bold text-white hover:bg-[#C5A028] transition shadow-lg shadow-[#D4AF37]/20"
-          >
+          <button onClick={() => setStep(2)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] py-4 text-sm font-bold text-white hover:bg-[#C5A028] transition shadow-lg shadow-[#D4AF37]/20">
             Continuer <ArrowRight size={14} />
           </button>
         </div>
@@ -815,110 +998,83 @@ export default function Historique() {
   }
 
   /* ═══════════════════════════════════════════════════════
-     STEP 0 — LANDING PAGE PREMIUM
+     STEP 0 — LANDING PAGE PREMIUM AMÉLIORÉE
   ═══════════════════════════════════════════════════════ */
   return (
     <div className="min-h-screen bg-white">
 
-      {/* ── HERO ── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0D0D0D] via-[#111111] to-[#1A1A1A]">
+      {/* ── HERO avec voiture IA en fond ── */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#0D0D0D] via-[#111111] to-[#1A1A1A] min-h-[520px]">
+        {/* Image voiture en fond */}
+        <div className="absolute inset-0">
+          {CAR_IMAGES.map((src, i) => (
+            <div key={i} className={`absolute inset-0 transition-opacity duration-1000 ${i === carIndex ? "opacity-30" : "opacity-0"}`}>
+              <img src={src} alt="" className="h-full w-full object-cover object-center" />
+            </div>
+          ))}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D0D] via-[#0D0D0D]/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0D0D0D]/80 via-transparent to-transparent" />
+        </div>
         {/* Reflets or */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(212,175,55,0.12)_0%,_transparent_55%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(212,175,55,0.06)_0%,_transparent_50%)]" />
-        {/* Grille subtile */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(212,175,55,1) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(212,175,55,0.08)_0%,_transparent_55%)]" />
 
         <div className="container-page relative py-10 lg:py-14">
-          {/* Breadcrumb */}
           <Link to="/" className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] text-white/50 hover:text-white transition">
             <ChevronLeft size={10} /> Accueil
           </Link>
 
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-            {/* Titre + stats */}
-            <div className="max-w-lg">
-              {/* Badge */}
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-4 py-1.5">
-                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[#D4AF37]">
-                  <span className="text-[7px] font-bold text-white">IA</span>
-                </div>
-                <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider">Rapports officiels & Analyse IA</span>
+          {/* Badge */}
+          <div className="mb-5 flex justify-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-4 py-1.5">
+              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[#D4AF37]">
+                <span className="text-[7px] font-bold text-white">IA</span>
               </div>
+              <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider">Rapports officiels & Analyse IA</span>
+            </div>
+          </div>
 
-              <h1 className="text-3xl font-extrabold leading-tight text-white sm:text-4xl">
-                Vérifiez l'historique<br />de votre futur<br /><span className="italic text-[#D4AF37]">véhicule</span>
-              </h1>
-              <p className="mt-3 text-sm text-white/50 leading-relaxed">Évitez les mauvaises surprises et achetez en toute confiance grâce à nos rapports officiels.</p>
+          {/* Titre centré */}
+          <div className="text-center max-w-2xl mx-auto">
+            <h1 className="text-4xl font-extrabold leading-tight text-white sm:text-5xl">
+              Vérifiez l'historique<br />de votre futur<br /><span className="italic text-[#D4AF37]">véhicule</span>
+            </h1>
+            <p className="mt-4 text-sm text-white/60 leading-relaxed max-w-md mx-auto">
+              Évitez les mauvaises surprises et achetez en toute confiance grâce à nos rapports officiels.
+            </p>
 
-              {/* Stats */}
-              <div className="mt-6 flex flex-wrap gap-3">
-                <div className="rounded-xl border border-[#D4AF37]/20 bg-[#D4AF37]/5 px-4 py-2.5">
-                  <div className="flex items-center gap-1.5">
-                    <Star size={12} className="text-[#D4AF37]" fill="#D4AF37" />
-                    <span className="text-base font-extrabold text-white">+ 537 842</span>
-                  </div>
-                  <p className="text-[8px] text-white/40 mt-0.5">rapports générés ce mois-ci</p>
+            {/* Stats centrées */}
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <div className="rounded-xl border border-[#D4AF37]/20 bg-[#D4AF37]/5 px-4 py-2.5">
+                <div className="flex items-center gap-1.5 justify-center">
+                  <Star size={12} className="text-[#D4AF37]" fill="#D4AF37" />
+                  <span className="text-base font-extrabold text-white">+ 537 842</span>
                 </div>
-                <div className="rounded-xl border border-[#D4AF37]/20 bg-[#D4AF37]/5 px-4 py-2.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-base font-extrabold text-white">4,8</span>
-                    <span className="text-[#D4AF37] text-sm">/5</span>
-                  </div>
-                  <p className="text-[8px] text-white/40 mt-0.5">basé sur 12 684 avis ★★★★★</p>
+                <p className="text-[8px] text-white/40 mt-0.5">rapports générés ce mois-ci</p>
+              </div>
+              <div className="rounded-xl border border-[#D4AF37]/20 bg-[#D4AF37]/5 px-4 py-2.5">
+                <div className="flex items-center gap-1.5 justify-center">
+                  <span className="text-base font-extrabold text-white">4,8</span>
+                  <span className="text-[#D4AF37] text-sm">/5</span>
                 </div>
-                <div className="rounded-xl border border-[#D4AF37]/20 bg-[#D4AF37]/5 px-4 py-2.5">
-                  <p className="text-[10px] font-bold text-[#D4AF37]">Garantie satisfait</p>
-                  <p className="text-[8px] text-white/40 mt-0.5">ou remboursé sous 14 jours</p>
-                </div>
+                <p className="text-[8px] text-white/40 mt-0.5">basé sur 12 684 avis ★★★★★</p>
+              </div>
+              <div className="rounded-xl border border-[#D4AF37]/20 bg-[#D4AF37]/5 px-4 py-2.5">
+                <p className="text-[10px] font-bold text-[#D4AF37]">Garantie satisfait</p>
+                <p className="text-[8px] text-white/40 mt-0.5">ou remboursé sous 14 jours</p>
               </div>
             </div>
 
-            {/* Silhouette voiture + Score flottant */}
-            <div className="relative flex items-center justify-center lg:w-[45%]">
-              <div className="relative w-full">
-                <svg viewBox="0 0 600 250" className="w-full opacity-80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <linearGradient id="carGrad" x1="0" y1="0" x2="600" y2="250">
-                      <stop offset="0%" stopColor="#2A2A2A" />
-                      <stop offset="50%" stopColor="#1A1A1A" />
-                      <stop offset="100%" stopColor="#0D0D0D" />
-                    </linearGradient>
-                    <linearGradient id="goldReflect" x1="100" y1="120" x2="500" y2="120">
-                      <stop offset="0%" stopColor="transparent" />
-                      <stop offset="40%" stopColor="#D4AF37" stopOpacity="0.15" />
-                      <stop offset="60%" stopColor="#D4AF37" stopOpacity="0.1" />
-                      <stop offset="100%" stopColor="transparent" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M80 180 Q80 130 160 110 L240 90 Q300 70 380 75 L460 85 Q520 95 540 130 L550 160 Q555 175 540 180 Z" fill="url(#carGrad)" stroke="#D4AF37" strokeWidth="0.5" strokeOpacity="0.3" />
-                  <path d="M100 170 Q200 140 350 135 Q450 132 530 155" stroke="url(#goldReflect)" strokeWidth="2" fill="none" />
-                  <path d="M200 108 L260 88 Q310 76 360 80 L400 86 L380 108 Z" fill="#222" stroke="#D4AF37" strokeWidth="0.3" strokeOpacity="0.4" />
-                  <circle cx="175" cy="185" r="28" fill="#111" stroke="#333" strokeWidth="3" />
-                  <circle cx="175" cy="185" r="12" fill="#222" stroke="#D4AF37" strokeWidth="1" strokeOpacity="0.5" />
-                  <circle cx="455" cy="185" r="28" fill="#111" stroke="#333" strokeWidth="3" />
-                  <circle cx="455" cy="185" r="12" fill="#222" stroke="#D4AF37" strokeWidth="1" strokeOpacity="0.5" />
-                  <ellipse cx="545" cy="155" rx="8" ry="12" fill="#D4AF37" opacity="0.6" />
-                  <rect x="78" y="155" width="6" height="18" rx="2" fill="#CC3333" opacity="0.7" />
-                  <ellipse cx="315" cy="220" rx="250" ry="15" fill="#D4AF37" opacity="0.03" />
-                </svg>
-                {/* Score flottant */}
-                <div className="absolute right-0 top-0 rounded-2xl border border-[#D4AF37]/30 bg-[#111]/90 px-5 py-4 text-center backdrop-blur-sm shadow-xl">
-                  <p className="text-[8px] font-semibold uppercase tracking-widest text-white/40">Score de confiance</p>
-                  <div className="mx-auto mt-2 flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-green-400 shadow-lg shadow-green-400/20">
-                    <div className="text-center">
-                      <span className="text-xl font-extrabold text-white">92</span>
-                      <p className="text-[7px] text-white/40">/100</p>
-                    </div>
-                  </div>
-                  <p className="mt-2 text-xs font-extrabold text-green-400">Excellent</p>
-                  <p className="mt-0.5 text-[8px] text-white/40 leading-tight">Faible risque<br />d'achat</p>
-                </div>
-              </div>
+            {/* Indicateurs carousel */}
+            <div className="mt-4 flex justify-center gap-1.5">
+              {CAR_IMAGES.map((_, i) => (
+                <button key={i} onClick={() => setCarIndex(i)}
+                  className={`h-1.5 rounded-full transition-all ${i === carIndex ? "w-6 bg-[#D4AF37]" : "w-1.5 bg-white/20"}`} />
+              ))}
             </div>
           </div>
 
           {/* Avantages rapides */}
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             {[
               { icon: CheckCircle, label: "Données officielles", sub: "Sources sécurisées" },
               { icon: Lock, label: "Paiement 100% sécurisé", sub: "Stripe & SSL 256 bits" },
@@ -939,65 +1095,74 @@ export default function Historique() {
       {/* ── ZONE DE RECHERCHE ── */}
       <section className="bg-white py-6 border-b border-[#F5F5F5]">
         <div className="container-page">
-          <div className="rounded-2xl border-2 border-[#E5E7EB] bg-white p-5 shadow-sm hover:border-[#D4AF37]/30 transition">
-            {/* Onglets mode */}
+          <div className="rounded-2xl border-2 border-[#E5E7EB] bg-white p-5 shadow-sm hover:border-[#D4AF37]/30 transition max-w-2xl mx-auto">
+            {/* Onglets mode — FONCTIONNELS */}
             <div className="flex gap-2 mb-4">
               {([
-                { id: "plate", label: "Par plaque" },
-                { id: "vin", label: "Par VIN" },
-                { id: "foreign", label: "Immatriculation étrangère" },
-              ] as const).map((t) => (
-                <button key={t.id} onClick={() => setSearchMode(t.id as SearchMode)}
+                { id: "plate" as const, label: "Par plaque" },
+                { id: "vin" as const, label: "Par VIN" },
+                { id: "foreign" as const, label: "Immatriculation étrangère" },
+              ]).map((t) => (
+                <button key={t.id} onClick={() => setSearchMode(t.id)}
                   className={`rounded-xl px-4 py-2 text-[10px] font-bold transition ${searchMode === t.id ? "bg-[#D4AF37] text-white shadow-md shadow-[#D4AF37]/20" : "border border-[#E5E7EB] text-[#111] hover:border-[#D4AF37]/30"}`}>
                   {t.label}
                 </button>
               ))}
             </div>
 
-            {/* Champs saisie côte à côte */}
-            <div className="flex flex-wrap items-stretch gap-3">
-              {/* Plaque */}
-              <div className="flex items-center gap-2 rounded-xl border-2 border-[#D4AF37] bg-white px-3 py-2.5 min-w-[180px]">
-                <span className="flex h-9 w-7 items-center justify-center rounded-sm bg-blue-700 text-[9px] font-bold text-white shrink-0">F</span>
-                <input
-                  className="w-full bg-transparent text-center text-lg font-extrabold text-[#111] outline-none placeholder-slate-300 tracking-widest"
-                  placeholder="AA - 123 - BB"
-                  value={plaque}
-                  onChange={(e) => setPlaque(e.target.value.toUpperCase())}
-                />
-                <div className="flex flex-col items-center shrink-0">
-                  <span className="text-[8px]">🇪🇺</span>
-                  <span className="rounded bg-blue-700 px-1 text-[7px] font-bold text-white">75</span>
+            {/* Champs côte à côte — plaque ET VIN */}
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch gap-3">
+                {/* Champ plaque */}
+                <div className={`flex items-center gap-2 rounded-xl border-2 bg-white px-3 py-2.5 flex-1 transition ${searchMode === "plate" || searchMode === "foreign" ? "border-[#D4AF37]" : "border-[#E5E7EB]"}`}>
+                  <span className="flex h-9 w-7 items-center justify-center rounded-sm bg-blue-700 text-[9px] font-bold text-white shrink-0">F</span>
+                  <input
+                    className="w-full bg-transparent text-center text-base font-extrabold text-[#111] outline-none placeholder-slate-300 tracking-widest"
+                    placeholder="AA - 123 - BB"
+                    value={plaque}
+                    onChange={(e) => { setPlaque(e.target.value.toUpperCase()); setSearchMode("plate"); }}
+                  />
+                  <div className="flex flex-col items-center shrink-0">
+                    <span className="text-[8px]">🇪🇺</span>
+                    <span className="rounded bg-blue-700 px-1 text-[7px] font-bold text-white">75</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center text-xs font-bold text-slate-300 sm:self-center">ou</div>
+
+                {/* Champ VIN */}
+                <div className={`flex items-center gap-2 rounded-xl border-2 bg-white px-3 py-2.5 flex-1 transition focus-within:border-[#D4AF37] ${searchMode === "vin" ? "border-[#D4AF37]" : "border-[#E5E7EB]"}`}>
+                  <div className="flex h-9 w-8 items-center justify-center rounded-sm bg-slate-100 shrink-0">
+                    <span className="text-[8px] font-bold text-slate-400">VIN</span>
+                  </div>
+                  <input
+                    className="w-full bg-transparent text-sm text-[#111] outline-none placeholder-slate-300 font-mono tracking-wider"
+                    placeholder="Numéro VIN (17 caractères)"
+                    value={vin}
+                    onChange={(e) => { setVin(e.target.value.toUpperCase()); setSearchMode("vin"); }}
+                  />
                 </div>
               </div>
 
-              <div className="flex items-center text-xs font-bold text-slate-300 self-center">ou</div>
+              {/* Pays étranger */}
+              {searchMode === "foreign" && (
+                <select className="w-full rounded-xl border-2 border-[#E5E7EB] focus:border-[#D4AF37] px-4 py-3 text-sm outline-none transition" value={country} onChange={(e) => setCountry(e.target.value)}>
+                  <option>France</option><option>Belgique</option><option>Allemagne</option><option>Espagne</option><option>Italie</option><option>Autre</option>
+                </select>
+              )}
 
-              {/* VIN */}
-              <div className="flex items-center gap-2 rounded-xl border-2 border-[#E5E7EB] focus-within:border-[#D4AF37] bg-white px-3 py-2.5 flex-1 min-w-[180px] transition">
-                <div className="flex h-9 w-7 items-center justify-center rounded-sm bg-slate-100 shrink-0">
-                  <span className="text-[8px] font-bold text-slate-400">VIN</span>
-                </div>
-                <input
-                  className="w-full bg-transparent text-sm text-[#111] outline-none placeholder-slate-300 font-mono tracking-wider"
-                  placeholder="Entrez le numéro VIN (17 caractères)"
-                  value={vin}
-                  onChange={(e) => setVin(e.target.value.toUpperCase())}
-                />
-              </div>
-
-              {/* Bouton */}
+              {/* Bouton centré en bas */}
               <button
                 onClick={handleVerify}
                 disabled={!plaque && !vin}
-                className="flex items-center gap-2 rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-white hover:bg-[#C5A028] disabled:opacity-40 transition shadow-lg shadow-[#D4AF37]/20 whitespace-nowrap"
+                className="mx-auto flex items-center gap-2 rounded-xl bg-[#D4AF37] px-8 py-3.5 text-sm font-bold text-white hover:bg-[#C5A028] disabled:opacity-40 transition shadow-lg shadow-[#D4AF37]/20 whitespace-nowrap"
               >
                 <Search size={16} /> VÉRIFIER L'HISTORIQUE
               </button>
             </div>
 
             {/* Garanties */}
-            <div className="mt-4 flex flex-wrap gap-4 text-[9px] text-slate-400">
+            <div className="mt-4 flex flex-wrap justify-center gap-4 text-[9px] text-slate-400">
               <span className="flex items-center gap-1"><CheckCircle size={9} className="text-green-500" /> Rapport instantané en quelques secondes</span>
               <span className="flex items-center gap-1"><CheckCircle size={9} className="text-green-500" /> Paiement 100% sécurisé</span>
               <span className="flex items-center gap-1"><CheckCircle size={9} className="text-green-500" /> Données officielles et vérifiées</span>
@@ -1018,7 +1183,6 @@ export default function Historique() {
               <CheckCircle size={10} className="text-green-500" /> Garantie satisfait ou remboursé 14 jours
             </span>
           </div>
-
           <div className="grid gap-4 md:grid-cols-3">
             {RAPPORTS.map((r) => {
               const Icon = r.icon;
@@ -1051,7 +1215,7 @@ export default function Historique() {
                       ))}
                     </div>
                     <button
-                      onClick={() => { handleVerify(); chooseRapport(r.id); }}
+                      onClick={() => { setSelectedRapport(r.id); handleVerify(); }}
                       className={`mt-5 w-full rounded-xl py-3 text-xs font-bold transition ${r.popular ? "bg-[#D4AF37] text-white hover:bg-[#C5A028] shadow-md shadow-[#D4AF37]/20" : r.btnClass}`}
                     >
                       CHOISIR CE RAPPORT →
@@ -1156,7 +1320,9 @@ export default function Historique() {
                   ))}
                 </div>
               </div>
-              <button className="mt-4 flex items-center gap-2 rounded-xl border border-[#D4AF37] px-4 py-2.5 text-[10px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition">
+              {/* Bouton VOIR UN EXEMPLE COMPLET — cliquable */}
+              <button onClick={() => setShowExemple(true)}
+                className="mt-4 flex items-center gap-2 rounded-xl border border-[#D4AF37] px-4 py-2.5 text-[10px] font-bold text-[#111] hover:bg-[#D4AF37] hover:text-white transition w-full justify-center">
                 VOIR UN EXEMPLE COMPLET <ArrowRight size={10} />
               </button>
             </div>
@@ -1187,7 +1353,6 @@ export default function Historique() {
               {/* Analyse IA */}
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0D0D0D] via-[#111111] to-[#1A1A1A] p-5 shadow-xl">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(212,175,55,0.12)_0%,_transparent_60%)]" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(212,175,55,0.06)_0%,_transparent_50%)]" />
                 <div className="relative">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#D4AF37]/20 border border-[#D4AF37]/30">
