@@ -54,13 +54,13 @@ The "Voir tout" links from Home.tsx use `/acheter?categorieAnnonce=officielle` b
 
 ## Auth / Dev Mode
 
-Without a backend, use the temporary `_devRole` URL parameter to inject user roles:
-- `?_devRole=admin` - Admin user (shows admin selector, defaults to officielle)
-- `?_devRole=employee` - Employee (shows admin selector)
-- `?_devRole=user` - Regular user (hides admin selector)
-- `?_devRole=pro` - Professional user
+The `_devRole` URL parameter injection was **removed** from `auth.tsx` (it was temporary dev code). To test role-dependent features without a backend:
 
-This is implemented in `client/src/lib/auth.tsx` as a dev-only feature. It must be reverted before production deployment.
+1. **Code inspection** — verify component logic, CSS classes, and conditional rendering
+2. **Browser console** — use `window.location.href` for SPA navigation (React Router caches routes; clicking the address bar may not trigger a fresh navigation)
+3. **Temporary re-addition** — if needed, temporarily add role injection back to `auth.tsx` for testing, then remove before committing
+
+**Important SPA navigation tip:** When testing redirects, use `window.location.href = '...'` via browser console instead of typing in the address bar. The SPA may cache the previous route and not re-render when you type a URL that maps to the same React Router component.
 
 ## Test Procedure
 
@@ -91,12 +91,13 @@ This is implemented in `client/src/lib/auth.tsx` as a dev-only feature. It must 
 4. Find "ANNONCES PARTICULIERS" section
 5. Verify "Voir tout" link href contains `categorieAnnonce=particulier`
 
-## Known Issues
-- `/acheter` renders VenteGenerale which ignores categorieAnnonce URL params
-- `useState` initializer for auto-detection runs before async auth loads (should be useEffect)
-- `onBehalfOfEmail` is collected in UI but never sent in mutation payload
-- Rechercher filter is on `/rechercher` route, NOT `/recherche` (easy to confuse)
-- The Rechercher page has an inner scrollable container (`overflow-y-auto`); regular page scroll may not reach the "Type d'annonce" section - use JavaScript `scrollIntoView` or click within the filter panel area
+## Known Issues (Updated)
+- **FIXED:** `/acheter?categorieAnnonce=X` now redirects to the correct sub-route (e.g. `/acheter/mkapms-officiel`). VenteGenerale uses `<Navigate>` when param is present.
+- **FIXED:** `useState` initializer replaced with `useEffect([isAdmin, isPro])` for proper async auth timing.
+- `onBehalfOfEmail` is collected in UI but not sent in mutation payload (needs backend user-lookup API).
+- Rechercher filter is on `/rechercher` route, NOT `/recherche` (easy to confuse).
+- The Rechercher page has an inner scrollable container (`overflow-y-auto`); use JavaScript `scrollIntoView` or click within the filter panel area.
+- **Enchère detail page requires pro auth** — the "Enchérir" button is behind `isPro` check. Without pro credentials, you'll see "Réservé aux professionnels validés" lock message instead. To test the button layout, either use pro credentials or verify via code inspection.
 
 ## Design Colors
 - Officielle: `#D4AF37` (gold)

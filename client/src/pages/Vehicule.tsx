@@ -59,6 +59,8 @@ import { computeTrustScore, TRUST_LEVEL_LABEL } from "@shared/trust";
 import { computeBadges } from "@shared/badges";
 import { BadgeChip } from "../components/VehicleCard";
 
+const PHOTO_FALLBACK = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=600&fit=crop";
+
 /* ── Catégories photo pour galerie (tous véhicules) ── */
 type PhotoCategory = "toutes" | "exterieur" | "interieur" | "sieges" | "coffre" | "tableau_de_bord" | "moteur" | "roues" | "documents" | "autres" | "video360" | "video";
 const PHOTO_CATEGORIES: { key: PhotoCategory; label: string }[] = [
@@ -394,7 +396,7 @@ export default function Vehicule() {
             }}
           >
             {allPhotos.length > 0 ? (
-              <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="max-w-full object-contain" style={{maxHeight: '55vh'}} />
+              <img src={allPhotos[photoIdx] || PHOTO_FALLBACK} alt={v.titre} className="max-w-full object-contain" style={{maxHeight: '55vh'}} onError={(e) => { (e.target as HTMLImageElement).src = PHOTO_FALLBACK; }} />
             ) : (
               <p className="text-slate-400">Aucune photo</p>
             )}
@@ -973,7 +975,7 @@ export default function Vehicule() {
               </div>
               {/* Photo lightbox — légèrement plus petite que plein écran */}
               <div className="relative flex flex-1 items-center justify-center px-4 pb-8" onClick={(e) => e.stopPropagation()}>
-                {catPhotos.length > 0 ? <img src={catPhotos[lbIdx]} alt="" className="max-h-[65vh] w-full rounded-xl object-contain" /> : <p className="text-white/60">Aucune photo dans cette catégorie</p>}
+                {catPhotos.length > 0 ? <img src={catPhotos[lbIdx] || PHOTO_FALLBACK} alt="" className="max-h-[65vh] w-full rounded-xl object-contain" onError={(e) => { (e.target as HTMLImageElement).src = PHOTO_FALLBACK; }} /> : <p className="text-white/60">Aucune photo dans cette catégorie</p>}
                 {catPhotos.length > 1 && (
                   <>
                     <button onClick={() => setLightboxIdx((i) => Math.max(0, i - 1))} className="absolute left-2 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"><ChevronLeft size={28} /></button>
@@ -1473,7 +1475,7 @@ export default function Vehicule() {
                   if (!sim) return null;
                   return (
                     <Link key={id} to={`/vehicule/${id}`} className="w-36 shrink-0 overflow-hidden rounded-xl border border-slate-200">
-                      <img src={sim.photoPrincipale} alt={sim.titre} className="h-24 w-full object-cover" />
+                      <img src={sim.photoPrincipale || PHOTO_FALLBACK} alt={sim.titre} className="h-24 w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = PHOTO_FALLBACK; }} />
                       <div className="p-2">
                         <p className="text-[10px] font-bold text-[#111] truncate">{sim.titre}</p>
                         <p className="text-xs font-extrabold text-[#111]">{formatPrice(Number(sim.prix))}</p>
@@ -1547,7 +1549,7 @@ export default function Vehicule() {
                 return (
                   <Link key={id} to={`/vehicule/${id}`} className="w-48 shrink-0 overflow-hidden rounded-xl border border-slate-200 hover:border-[#D4AF37] transition">
                     <div className="relative">
-                      <img src={sim.photoPrincipale} alt={sim.titre} className="h-44 w-full object-cover" />
+                      <img src={sim.photoPrincipale || PHOTO_FALLBACK} alt={sim.titre} className="h-44 w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = PHOTO_FALLBACK; }} />
                       <button className="absolute top-2 right-2 text-slate-400 hover:text-red-500"><Heart size={16} /></button>
                     </div>
                     <div className="p-3">
@@ -1673,9 +1675,9 @@ export default function Vehicule() {
             >
               {/* Photos filtrées par catégorie sélectionnée */}
               {activeCatPhotos.length ? (
-                <img src={activeCatPhotos[activeCatIdx] || ""} alt={v.titre} className="h-full w-full object-cover" />
+                <img src={activeCatPhotos[activeCatIdx] || PHOTO_FALLBACK} alt={v.titre} className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = PHOTO_FALLBACK; }} />
               ) : photos.length ? (
-                <img src={photos[photoIdx] || ""} alt={v.titre} className="h-full w-full object-cover" />
+                <img src={photos[photoIdx] || PHOTO_FALLBACK} alt={v.titre} className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = PHOTO_FALLBACK; }} />
               ) : (
                 <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
               )}
@@ -2640,7 +2642,7 @@ export default function Vehicule() {
             <button onClick={() => { setLightboxOpen(false); setPhotoCat("toutes" as PhotoCategory); setPhotoIdx(0); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 text-lg font-bold">✕</button>
           </div>
           <div className="relative flex flex-1 items-center justify-center px-4 pb-8" onClick={(e) => e.stopPropagation()}>
-            <img src={photos[lightboxIdx] || ""} alt="" className="max-h-[65vh] w-full rounded-xl object-contain" />
+            <img src={photos[lightboxIdx] || PHOTO_FALLBACK} alt="" className="max-h-[65vh] w-full rounded-xl object-contain" onError={(e) => { (e.target as HTMLImageElement).src = PHOTO_FALLBACK; }} />
             {photos.length > 1 && (
               <>
                 <button onClick={() => setLightboxIdx((i) => Math.max(0, i - 1))} className="absolute left-2 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"><ChevronLeft size={28} /></button>

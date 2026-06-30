@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Star, Shield, Award, Check, History, CreditCard, Truck, ChevronDown, Heart, Calculator, Phone } from "lucide-react";
+import { ChevronLeft, Star, Shield, Award, Check, History, CreditCard, Truck, ChevronDown, Heart, Calculator, Phone, MapPin } from "lucide-react";
+import { trpc } from "../lib/trpc";
 
 /* ══════════════════════════════════════════════════════════════════════════
    VENTE MKA.P-MS OFFICIELLE — Univers Premium
@@ -23,12 +24,12 @@ const CATEGORIES_OFFICIEL = [
   { label: "Pick-up / 4x4", desc: "Hilux, Ranger, L200", photo: "/categories/mkapms_pickup_vente.jpg" },
 ];
 
-const ANNONCES = [
-  { vehiculeId: 8001, nom: "Peugeot 308 GT", annee: 2023, km: 12000, prix: 26900, garantie: "24 mois", finance: "380 €/mois", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Historique complet", "Finance+", "Livraison gratuite"] },
-  { vehiculeId: 8002, nom: "Renault Austral Iconic", annee: 2024, km: 5000, prix: 34500, garantie: "24 mois", finance: "490 €/mois", photo: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Historique complet", "Finance+", "Garantie MKA.P-MS"] },
-  { vehiculeId: 8003, nom: "Citroën C5 X Shine", annee: 2023, km: 18000, prix: 31900, garantie: "24 mois", finance: "450 €/mois", photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Suspension hydraulique", "Finance+", "Livraison gratuite"] },
-  { vehiculeId: 8004, nom: "Mercedes GLA 200 AMG Line", annee: 2022, km: 22000, prix: 38900, garantie: "24 mois", finance: "550 €/mois", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop", badges: ["Pack AMG Line", "Historique complet", "Finance+", "Garantie MKA.P-MS"] },
-  { vehiculeId: 8005, nom: "BMW X1 sDrive18i xLine", annee: 2023, km: 15000, prix: 35500, garantie: "24 mois", finance: "500 €/mois", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=260&fit=crop", badges: ["État impeccable", "Historique complet", "Finance+", "Livraison gratuite"] },
+const DEMO_ANNONCES = [
+  { vehiculeId: 8001, nom: "Peugeot 308 GT", annee: 2023, km: 12000, prix: 26900, garantie: "24 mois", finance: "380 €/mois", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Historique complet", "Finance+", "Livraison gratuite"], ville: "Paris" },
+  { vehiculeId: 8002, nom: "Renault Austral Iconic", annee: 2024, km: 5000, prix: 34500, garantie: "24 mois", finance: "490 €/mois", photo: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Historique complet", "Finance+", "Garantie MKA.P-MS"], ville: "Lyon" },
+  { vehiculeId: 8003, nom: "Citroën C5 X Shine", annee: 2023, km: 18000, prix: 31900, garantie: "24 mois", finance: "450 €/mois", photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Suspension hydraulique", "Finance+", "Livraison gratuite"], ville: "Marseille" },
+  { vehiculeId: 8004, nom: "Mercedes GLA 200 AMG Line", annee: 2022, km: 22000, prix: 38900, garantie: "24 mois", finance: "550 €/mois", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop", badges: ["Pack AMG Line", "Historique complet", "Finance+", "Garantie MKA.P-MS"], ville: "Bordeaux" },
+  { vehiculeId: 8005, nom: "BMW X1 sDrive18i xLine", annee: 2023, km: 15000, prix: 35500, garantie: "24 mois", finance: "500 €/mois", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=260&fit=crop", badges: ["État impeccable", "Historique complet", "Finance+", "Livraison gratuite"], ville: "Toulouse" },
 ];
 
 const AVANTAGES = [
@@ -40,8 +41,27 @@ const AVANTAGES = [
   { label: "Conseiller dédié", desc: "Un conseiller vous accompagne", icon: Phone },
 ];
 
+const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
+
 export default function VenteMKAPMS() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { data: realData, isLoading } = trpc.annonces.list.useQuery({ categorieAnnonce: "officielle", limit: 30 });
+
+  const realAnnonces = (realData?.items ?? []).map((a: any) => ({
+    vehiculeId: a.id,
+    nom: a.titre || `${a.marque} ${a.modele}`,
+    annee: a.annee,
+    km: a.kilometrage ?? 0,
+    prix: Number(a.prix) || 0,
+    garantie: "24 mois",
+    finance: `${Math.round((Number(a.prix) || 0) / 72)} €/mois`,
+    photo: a.photoPrincipale || PLACEHOLDER_IMG,
+    ville: a.ville,
+    badges: ["Contrôle 200 pts", "Historique complet", "Finance+", "Garantie MKA.P-MS"],
+  }));
+
+  const annonces = realAnnonces.length > 0 ? realAnnonces : DEMO_ANNONCES;
+
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-[#111] px-4 pt-6 pb-5">
@@ -76,23 +96,28 @@ export default function VenteMKAPMS() {
 
       {/* Annonces */}
       <div className="px-4 mt-6">
-        <h2 className="text-base font-bold text-[#111]">Véhicules disponibles</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold text-[#111]">Véhicules disponibles</h2>
+          {realData && <span className="text-[10px] text-[#6B7280]">{realData.total} véhicule{realData.total > 1 ? "s" : ""}</span>}
+        </div>
+        {isLoading && <div className="py-8 text-center text-[#6B7280] text-sm">Chargement des véhicules...</div>}
         <div className="mt-3 space-y-3">
-          {ANNONCES.map((a) => (
+          {annonces.map((a) => (
             <Link key={a.vehiculeId} to={`/vehicule/${a.vehiculeId}`} className="block rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden shadow-sm hover:shadow-lg transition">
               <div className="relative h-[150px]">
-                <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
+                <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }} />
                 <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span>
                 <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-2.5 py-0.5 text-[9px] font-bold text-white"><Star size={10} fill="white" /> Certifié</span>
               </div>
               <div className="p-4">
                 <h3 className="text-sm font-bold text-[#111]">{a.nom}</h3>
-                <p className="text-[10px] text-[#6B7280] mt-0.5">{a.annee} · {a.km.toLocaleString("fr-FR")} km · Garantie {a.garantie}</p>
+                <p className="text-[10px] text-[#6B7280] mt-0.5">{a.annee} · {(a.km ?? 0).toLocaleString("fr-FR")} km · Garantie {a.garantie}</p>
+                {a.ville && <p className="text-[10px] text-[#6B7280] mt-0.5 flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</p>}
                 <div className="mt-2 flex flex-wrap gap-1">
                   {a.badges.map((b) => (<span key={b} className="inline-flex items-center gap-0.5 rounded-full bg-green-50 px-1.5 py-0.5 text-[8px] font-semibold text-green-700"><Check size={8} /> {b}</span>))}
                 </div>
                 <div className="mt-3 flex items-center justify-between">
-                  <div><span className="text-xl font-black text-[#D4AF37]">{a.prix.toLocaleString("fr-FR")} €</span><p className="text-[10px] text-[#6B7280]">ou {a.finance}</p></div>
+                  <div><span className="text-xl font-black text-[#D4AF37]">{(a.prix ?? 0).toLocaleString("fr-FR")} €</span><p className="text-[10px] text-[#6B7280]">ou {a.finance}</p></div>
                   <span className="rounded-xl bg-[#D4AF37] px-5 py-2.5 text-sm font-bold text-white">Voir</span>
                 </div>
               </div>
