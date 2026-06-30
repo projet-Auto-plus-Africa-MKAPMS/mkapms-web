@@ -111,7 +111,7 @@ export default function Rechercher() {
     if (codePostal) p.set("ville", codePostal);
     if (mainTab === "moto") p.set("famille", "moto");
     if (mainTab === "utilitaire") p.set("categorie", "utilitaire");
-    if (vendeurType) p.set("vendeurType", vendeurType);
+    if (vendeurType) p.set("categorieAnnonce", vendeurType);
     navigate(`/acheter?${p.toString()}`);
   }
 
@@ -318,14 +318,19 @@ export default function Rechercher() {
           </div>
         </div>
 
-        {/* ── Type de vendeur ── */}
+        {/* ── Type d'annonce ── */}
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
-          <h3 className="text-sm font-bold text-[#111]">Type de vendeur</h3>
-          <div className="mt-3 flex gap-3">
-            {["Particulier", "Professionnel"].map(v => (
-              <button key={v} onClick={() => setVendeurType(vendeurType === v.toLowerCase() ? "" : v.toLowerCase())}
-                className={`flex-1 rounded-lg border py-2.5 text-sm font-medium transition ${vendeurType === v.toLowerCase() ? "border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
-                {v}
+          <h3 className="text-sm font-bold text-[#111]">Type d'annonce</h3>
+          <div className="mt-3 flex gap-2">
+            {[
+              { label: "Officiel MKA.P-MS", value: "officielle", color: "#D4AF37" },
+              { label: "Professionnel", value: "professionnelle", color: "#3B82F6" },
+              { label: "Particulier", value: "particulier", color: "#22C55E" },
+            ].map(v => (
+              <button key={v.value} onClick={() => setVendeurType(vendeurType === v.value ? "" : v.value)}
+                className={`flex-1 rounded-lg border py-2.5 text-xs font-medium transition ${vendeurType === v.value ? `border-[${v.color}] bg-[${v.color}]/10 text-[${v.color}]` : "border-slate-200 text-slate-600 hover:border-slate-400"}`}
+                style={vendeurType === v.value ? { borderColor: v.color, backgroundColor: v.color + "1A", color: v.color } : {}}>
+                {v.label}
               </button>
             ))}
           </div>

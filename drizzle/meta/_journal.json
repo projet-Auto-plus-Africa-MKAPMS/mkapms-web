@@ -127,6 +127,13 @@
       "when": 1781390000000,
       "tag": "0017_photo_categorie",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1782852600000,
+      "tag": "0018_categorie_annonce",
+      "breakpoints": true
     }
   ]
 }

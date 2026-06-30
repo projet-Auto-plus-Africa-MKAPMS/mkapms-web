@@ -135,12 +135,12 @@ export default function Home() {
   }
 
   /* Annonces réelles depuis la DB - Critères stricts pour la page d'accueil */
-  const { data: officielles } = trpc.annonces.list.useQuery({ ownership: "plateforme", limit: 10 });
+  const { data: officielles } = trpc.annonces.list.useQuery({ categorieAnnonce: "officielle", limit: 10 });
   const { data: boostees } = trpc.annonces.list.useQuery({ boosted: true, limit: 10 });
   const { data: premium } = trpc.annonces.list.useQuery({ selectionMka: true, limit: 10 });
   const { data: recentes } = trpc.annonces.list.useQuery({ limit: 10 });
   const { data: locations } = trpc.annonces.list.useQuery({ type: "location", limit: 10 });
-  const { data: particuliers } = trpc.annonces.list.useQuery({ vendeurType: "particulier", type: "vente", limit: 10 });
+  const { data: particuliers } = trpc.annonces.list.useQuery({ categorieAnnonce: "particulier", type: "vente", limit: 10 });
 
   const realOfficielles = (officielles?.items ?? []).map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }));
   const realBoostees = (boostees?.items ?? []).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
@@ -291,7 +291,7 @@ export default function Home() {
                 <h2 className="text-sm md:text-base font-bold text-[#111]">MKA.P-MS OFFICIEL</h2>
                 <span className="rounded-sm bg-[#D4AF37] px-2 py-0.5 text-[8px] font-extrabold text-white uppercase">STOCK OFFICIEL</span>
               </div>
-              <Link to="/acheter?source=officiel" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
+              <Link to="/acheter?categorieAnnonce=officielle" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             {realOfficielles.length > 0 ? (
               <HScroll>
@@ -441,7 +441,7 @@ export default function Home() {
                 <Users size={14} className="text-[#D4AF37]" />
                 <h2 className="text-sm md:text-base font-bold text-[#111]">ANNONCES PARTICULIERS</h2>
               </div>
-              <Link to="/acheter?vendeur=particulier" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
+              <Link to="/acheter?categorieAnnonce=particulier" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             {realParticuliers.length > 0 ? (
               <HScroll>
