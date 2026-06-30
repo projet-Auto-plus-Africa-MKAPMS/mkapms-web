@@ -269,7 +269,7 @@ export default function Home() {
                 <h2 className="text-sm md:text-base font-bold text-[#111]">Rechercher un véhicule</h2>
               </div>
               <p className="text-[10px] text-[#6B7280] mb-3">Voitures, motos, utilitaires — trouvez votre véhicule idéal</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
                 <select value={sCategorie} onChange={(e) => setSCategorie(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
                   <option value="">Toutes catégories</option>
                   <option>Citadine</option><option>Berline</option><option>SUV</option><option>Coupé</option><option>Break</option><option>Utilitaire</option><option>Moto</option>
@@ -289,12 +289,15 @@ export default function Home() {
                   <option value="">Localisation</option>
                   <option>Paris</option><option>Lyon</option><option>Marseille</option><option>Toulouse</option><option>Bordeaux</option><option>Nantes</option><option>Lille</option><option>Nice</option>
                 </select>
-                <button onClick={doSearch} className="rounded-lg bg-[#111] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#333] transition flex items-center justify-center gap-1">
-                  <Search size={14} /> Rechercher
-                </button>
               </div>
-              <div className="mt-2 flex justify-end">
-                <button onClick={doSearch} className="rounded-full bg-[#D4AF37] px-4 py-1.5 text-[10px] font-bold text-white hover:bg-[#c9a430] transition">SIMULER</button>
+              {/* Boutons Rechercher et Simuler — séparés et bien visibles */}
+              <div className="mt-3 flex flex-col sm:flex-row gap-2">
+                <button onClick={doSearch} className="flex-1 rounded-xl bg-[#111] px-5 py-3 text-sm font-bold text-white hover:bg-[#333] transition flex items-center justify-center gap-2">
+                  <Search size={16} /> Rechercher
+                </button>
+                <button onClick={() => navigate("/estimation")} className="flex-1 rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-bold text-white hover:bg-[#c9a430] transition flex items-center justify-center gap-2">
+                  <Star size={16} /> Simuler / Estimer
+                </button>
               </div>
             </div>
           </section>
