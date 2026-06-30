@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Shield, CarFront, Users, Truck, HardHat, Bus, ChevronLeft, ChevronRight, Star, Clock,
@@ -120,8 +120,27 @@ const TYPE_VEHICULE = [
   "Camion",
 ];
 
+const HERO_PHOTOS = [
+  "/categories/loc_cover_vtc_taxi.jpg",
+  "/categories/loc_cover_particulier.jpg",
+  "/categories/loc_cover_pro.jpg",
+  "/categories/loc_cover_utilitaires.jpg",
+];
+
+const STATS_LOC = [
+  { val: "+85 000", label: "véhicules disponibles" },
+  { val: "4,9/5", label: "satisfaction client" },
+  { val: "100%", label: "paiement sécurisé" },
+];
+
 export default function Louer() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [heroIdx, setHeroIdx] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setHeroIdx((i) => (i + 1) % HERO_PHOTOS.length), 4000);
+    return () => clearInterval(t);
+  }, []);
   const [lieu, setLieu] = useState("");
   const [dateDebut, setDateDebut] = useState("");
   const [dateRetour, setDateRetour] = useState("");
@@ -131,27 +150,55 @@ export default function Louer() {
     <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
 
       {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 1 — TITRE PRINCIPAL
+          SECTION 1 — HERO PREMIUM
           ═══════════════════════════════════════════════════════════════════ */}
-      <div className="relative overflow-hidden bg-[#111] px-4 pt-6 pb-10">
-        <div className="absolute inset-0 opacity-15">
-          <img
-            src="/categories/loc_cover_vtc_taxi.jpg"
-            alt=""
-            className="h-full w-full object-cover"
-          />
+      <div className="relative overflow-hidden bg-[#111] px-4 pt-6 pb-12">
+        {/* Fond carousel */}
+        <div className="absolute inset-0">
+          {HERO_PHOTOS.map((src, i) => (
+            <img
+              key={i}
+              src={src}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000"
+              style={{ opacity: i === heroIdx ? 0.18 : 0 }}
+            />
+          ))}
         </div>
+        {/* Bouton retour */}
         <Link to="/" className="absolute top-4 left-4 z-20 flex items-center justify-center w-9 h-9 rounded-full bg-white/20 backdrop-blur">
           <ChevronLeft size={20} className="text-white" />
         </Link>
-        <div className="relative z-10">
-          <h1 className="text-[22px] font-black text-white leading-tight">
+        {/* Badge */}
+        <div className="relative z-10 flex justify-center mb-3">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-1.5 text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider">
+            <CarFront size={12} /> Location de véhicules
+          </span>
+        </div>
+        {/* Titre centré */}
+        <div className="relative z-10 text-center">
+          <h1 className="text-[26px] md:text-3xl font-black text-white leading-tight">
             Location de véhicules<br />
             <span className="text-[#D4AF37]">MKA.P-MS</span>
           </h1>
-          <p className="mt-2 text-sm text-white/70 leading-relaxed">
+          <p className="mt-2 text-sm text-white/70 leading-relaxed max-w-sm mx-auto">
             Choisissez votre besoin et accédez à l'univers adapté.
           </p>
+        </div>
+        {/* Stats */}
+        <div className="relative z-10 mt-5 flex items-center justify-center gap-3 flex-wrap">
+          {STATS_LOC.map((s) => (
+            <div key={s.val} className="flex flex-col items-center rounded-xl bg-white/10 backdrop-blur px-4 py-2 border border-white/10">
+              <span className="text-base font-black text-[#D4AF37]">{s.val}</span>
+              <span className="text-[9px] text-white/60 mt-0.5">{s.label}</span>
+            </div>
+          ))}
+        </div>
+        {/* Indicateurs carousel */}
+        <div className="relative z-10 flex justify-center gap-1.5 mt-4">
+          {HERO_PHOTOS.map((_, i) => (
+            <button key={i} onClick={() => setHeroIdx(i)} className={`h-1.5 rounded-full transition-all ${i === heroIdx ? "w-6 bg-[#D4AF37]" : "w-1.5 bg-white/30"}`} />
+          ))}
         </div>
       </div>
 
@@ -442,14 +489,19 @@ export default function Louer() {
       </div>
 
       {/* ── Besoin d'aide ── */}
-      <div className="mx-4 mt-6 mb-6 rounded-2xl bg-white border border-[#E5E7EB] p-4 flex items-center gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#D4AF37]/10">
-          <Headphones size={20} className="text-[#D4AF37]" />
+      <div className="mx-4 mt-6 mb-6 rounded-2xl bg-[#111] p-5 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4AF37]/20 mx-auto mb-3">
+          <Headphones size={22} className="text-[#D4AF37]" />
         </div>
-        <div>
-          <h3 className="text-sm font-bold text-[#111]">Besoin d'aide ?</h3>
-          <p className="text-xs text-[#6B7280]">Chat en ligne ou 09 70 70 50 50</p>
-          <p className="text-[10px] text-[#6B7280]">7j/7 de 8h à 20h</p>
+        <h3 className="text-sm font-bold text-white">Besoin d'aide ?</h3>
+        <p className="text-xs text-white/60 mt-1">09 70 70 50 50 · 7j/7 de 8h à 20h</p>
+        <div className="mt-3 flex justify-center gap-3">
+          <a href="tel:0970705050" className="rounded-xl bg-[#D4AF37] px-5 py-2.5 text-xs font-bold text-white">
+            Appeler
+          </a>
+          <Link to="/messages" className="rounded-xl bg-white/10 border border-white/20 px-5 py-2.5 text-xs font-bold text-white">
+            Messagerie
+          </Link>
         </div>
       </div>
 
