@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search, Camera, CheckCircle, Shield, Eye, Zap, Lock,
@@ -263,12 +263,11 @@ export default function Vendre() {
   const isAdmin = user?.role === "admin" || user?.role === "super_admin";
   const isEmployee = isAdmin || user?.role === "employee";
 
-  // Auto-set categorieAnnonce based on user role
-  useState(() => {
+  useEffect(() => {
     if (isAdmin) setCategorieAnnonce("officielle");
     else if (isPro) setCategorieAnnonce("professionnelle");
     else setCategorieAnnonce("particulier");
-  });
+  }, [isAdmin, isPro]);
 
   const equipRef = famille === "moto" ? EQUIPEMENTS_MOTO : EQUIPEMENTS_AUTO;
   const marquesRef = famille === "moto" ? MARQUES_MOTO : MARQUES_AUTO;
