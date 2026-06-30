@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search, Camera, CheckCircle, Shield, Eye, Zap, Lock,
@@ -385,23 +385,56 @@ export default function Vendre() {
   if (mode === "landing") {
     return (
       <div className="min-h-screen bg-[#F5F3EF]">
-        {/* ── HERO ── */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#111] via-[#1a1a1a] to-[#2d2d2d]">
-          <div className="absolute inset-0 opacity-30">
-            <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1200&q=80" alt="" className="h-full w-full object-cover" />
-          </div>
-          <div className="relative px-4 py-10 md:py-16 md:px-8 max-w-6xl mx-auto">
-            <div className="md:flex md:items-center md:justify-between md:gap-12">
-              <div className="md:max-w-xl">
-                <h1 className="text-3xl md:text-5xl font-black text-white leading-tight">
+        {/* ── HERO PREMIUM ── */}
+        {(() => {
+          const HERO_PHOTOS_VENDRE = [
+            "/categories/cover_mkapms.jpg",
+            "/categories/cover_particulier.jpg",
+            "/categories/cover_pro.jpg",
+            "/categories/cover_moto.jpg",
+          ];
+          const [heroIdxV, setHeroIdxV] = useState(0);
+          useEffect(() => {
+            const t = setInterval(() => setHeroIdxV((i) => (i + 1) % HERO_PHOTOS_VENDRE.length), 4000);
+            return () => clearInterval(t);
+          }, []);
+          const STATS_VENDRE = [
+            { val: "+120 000", label: "acheteurs actifs" },
+            { val: "100%", label: "gratuit particuliers" },
+            { val: "4,8/5", label: "satisfaction vendeurs" },
+          ];
+          return (
+            <div className="relative overflow-hidden bg-[#111] px-4 pt-6 pb-12">
+              {/* Fond carousel */}
+              <div className="absolute inset-0">
+                {HERO_PHOTOS_VENDRE.map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000"
+                    style={{ opacity: i === heroIdxV ? 0.18 : 0 }}
+                  />
+                ))}
+              </div>
+              {/* Badge */}
+              <div className="relative z-10 flex justify-center mb-3">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-1.5 text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider">
+                  <Upload size={12} /> Vendre votre véhicule
+                </span>
+              </div>
+              {/* Titre centré */}
+              <div className="relative z-10 text-center">
+                <h1 className="text-[26px] md:text-5xl font-black text-white leading-tight">
                   VENDEZ FACILEMENT<br />VOTRE <span className="text-[#D4AF37]">VÉHICULE</span>
                 </h1>
-                <p className="mt-3 text-sm md:text-base text-white/70 max-w-md">
+                <p className="mt-3 text-sm text-white/70 max-w-sm mx-auto">
                   Des milliers d'acheteurs vous font déjà confiance.<br />
                   Déposez votre annonce en quelques minutes et vendez au meilleur prix.
                 </p>
               </div>
-              <div className="mt-6 md:mt-0 space-y-2">
+              {/* Avantages */}
+              <div className="relative z-10 mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5">
                 {[
                   { icon: CheckCircle, text: "100% Gratuit pour les particuliers" },
                   { icon: Zap, text: "Publication rapide" },
@@ -409,15 +442,30 @@ export default function Vendre() {
                   { icon: Lock, text: "Messagerie sécurisée" },
                   { icon: Shield, text: "Paiement sécurisé" },
                 ].map((b) => (
-                  <div key={b.text} className="flex items-center gap-2">
-                    <b.icon size={16} className="text-[#D4AF37] shrink-0" />
-                    <span className="text-sm text-white/90">{b.text}</span>
+                  <div key={b.text} className="flex items-center gap-1.5">
+                    <b.icon size={13} className="text-[#D4AF37] shrink-0" />
+                    <span className="text-xs text-white/90">{b.text}</span>
                   </div>
                 ))}
               </div>
+              {/* Stats */}
+              <div className="relative z-10 mt-5 flex items-center justify-center gap-3 flex-wrap">
+                {STATS_VENDRE.map((s) => (
+                  <div key={s.val} className="flex flex-col items-center rounded-xl bg-white/10 backdrop-blur px-4 py-2 border border-white/10">
+                    <span className="text-base font-black text-[#D4AF37]">{s.val}</span>
+                    <span className="text-[9px] text-white/60 mt-0.5">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Indicateurs carousel */}
+              <div className="relative z-10 flex justify-center gap-1.5 mt-4">
+                {HERO_PHOTOS_VENDRE.map((_, i) => (
+                  <button key={i} onClick={() => setHeroIdxV(i)} className={`h-1.5 rounded-full transition-all ${i === heroIdxV ? "w-6 bg-[#D4AF37]" : "w-1.5 bg-white/30"}`} />
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* ── DEUX CARTES : Déposer / Estimer ── */}
         <div className="px-4 md:px-8 max-w-6xl mx-auto -mt-6 relative z-10">
