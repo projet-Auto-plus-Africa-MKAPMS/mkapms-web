@@ -244,6 +244,22 @@ export default function Home() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
+              SECTION 3B — BARRE DE RECHERCHE UNIVERSELLE
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="bg-white px-4 py-3 border-t border-[#F3F4F6]">
+            <div className="max-w-2xl mx-auto">
+              <div
+                onClick={() => navigate("/recherche-universelle")}
+                className="flex items-center gap-2 rounded-xl border-2 border-[#D4AF37]/30 bg-[#F5F3EF] px-4 py-3 cursor-pointer hover:border-[#D4AF37] hover:shadow-md transition"
+              >
+                <Search size={16} className="text-[#D4AF37] shrink-0" />
+                <span className="text-sm text-slate-400 flex-1">Vehicule, garage, piece, service, aide...</span>
+                <Sparkles size={14} className="text-[#D4AF37] shrink-0" />
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
               SECTION 4 — RECHERCHE AVANCÉE
               ═══════════════════════════════════════════════════════════════ */}
           <section className="bg-white px-4 pb-4">

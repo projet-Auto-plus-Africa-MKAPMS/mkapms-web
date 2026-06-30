@@ -184,6 +184,7 @@ const GarageAuto = lazy(() => import("./pages/GarageAuto"));
 const SEOAbonnements = lazy(() => import("./pages/SEOAbonnements"));
 const RechercheGeolocalisee = lazy(() => import("./pages/RechercheGeolocalisee"));
 const RechercheLocale = lazy(() => import("./pages/RechercheLocale"));
+const RechercheUniverselle = lazy(() => import("./pages/RechercheUniverselle"));
 // Garage
 const AssistanceRoutiere = lazy(() => import("./pages/garage/AssistanceRoutiere"));
 const BoutiquePieces = lazy(() => import("./pages/garage/BoutiquePieces"));
@@ -915,6 +916,7 @@ export default function App() {
             <Route path="/garage-auto" element={<U name="Garage"><GarageAuto /></U>} />
             <Route path="/seo-abonnements" element={<U name="SEO"><SEOAbonnements /></U>} />
             <Route path="/recherche" element={<U name="Recherche"><RechercheGeolocalisee /></U>} />
+            <Route path="/recherche-universelle" element={<U name="Recherche universelle"><RechercheUniverselle /></U>} />
             <Route path="/:pays/:ville/:modele?" element={<U name="Recherche Locale"><RechercheLocale /></U>} />
             {/* Garage */}
             <Route path="/garage/assistance-routiere" element={<U name="Garage"><AssistanceRoutiere /></U>} />
