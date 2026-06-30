@@ -252,7 +252,7 @@ export default function Admin() {
             { label: "Catalogue Technique", to: "/catalogue-technique", emoji: "\ud83d\udcd6", desc: "AutoData \u2014 sch\u00e9mas, couples, temps" },
             { label: "Comptabilit\u00e9", to: "/compta-dirigeant", emoji: "\ud83d\udcb9", desc: "CA, finances, employ\u00e9s, alertes" },
             { label: "Suivi V\u00e9hicule", to: "/suivi-vehicule", emoji: "\ud83d\udccd", desc: "Suivi r\u00e9paration temps r\u00e9el" },
-            { label: "Ench\u00e8res Pro", to: "/encheres", emoji: "\ud83d\udd28", desc: "Espace ench\u00e8res professionnel" },
+            { label: "Ench\u00e8res Pro", to: "/acheter/encheres", emoji: "\ud83d\udd28", desc: "Espace ench\u00e8res professionnel" },
             { label: "Favoris", to: "/favoris", emoji: "\u2764\ufe0f", desc: "V\u00e9hicules, garages, locations" },
             { label: "Comparateur", to: "/comparateur", emoji: "\ud83d\udd0d", desc: "Comparer 2-4 v\u00e9hicules" },
             { label: "Dossier Client", to: "/dossier-client", emoji: "\ud83d\udcc1", desc: "Historique client centralis\u00e9" },

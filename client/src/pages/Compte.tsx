@@ -199,7 +199,7 @@ export default function Compte() {
               { label: "Atelier Pro", to: "/atelier-pro", emoji: "\ud83d\udee0\ufe0f" },
               { label: "Catalogue", to: "/catalogue-technique", emoji: "\ud83d\udcd6" },
               { label: "Suivi v\u00e9hicule", to: "/suivi-vehicule", emoji: "\ud83d\udccd" },
-              { label: "Ench\u00e8res Pro", to: "/encheres", emoji: "\ud83d\udd28" },
+              { label: "Ench\u00e8res Pro", to: "/acheter/encheres", emoji: "\ud83d\udd28" },
               { label: "Journal", to: "/journal-activite", emoji: "\ud83d\udcdc" },
               { label: "Notifications", to: "/notifications", emoji: "\ud83d\udd14" },
               { label: "Dossier Client", to: "/dossier-client", emoji: "\ud83d\udcc1" },

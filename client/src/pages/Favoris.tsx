@@ -41,8 +41,8 @@ const FAVORIS_DATA: FavItem[] = [
   // Carrosseries
   { id: 8, nom: "Carrosserie Saint-Denis", univers: "carrosserie", prix: "Devis gratuit", photo: "https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=400&h=260&fit=crop", to: "/carrosserie", ajouteLe: "Il y a 3 jours", note: 4.7, details: "Peinture \u00b7 D\u00e9bosselage \u00b7 Marbre", ville: "Saint-Denis" },
   // Enchères
-  { id: 9, nom: "Lot #127 \u2014 Peugeot 208 + Citro\u00ebn C3", univers: "enchere", prix: "\u00c0 partir de 4 500 \u20ac", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", to: "/encheres", ajouteLe: "Il y a 1 jour", details: "Lot pro \u00b7 2 v\u00e9hicules \u00b7 Reprise", ville: "Rungis" },
-  { id: 10, nom: "Lot #134 \u2014 Renault Trafic", univers: "enchere", prix: "\u00c0 partir de 6 200 \u20ac", photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=260&fit=crop", to: "/encheres", ajouteLe: "Il y a 2 jours", details: "Flotte location \u00b7 1 v\u00e9hicule \u00b7 Amorti", ville: "Gennevilliers" },
+  { id: 9, nom: "Lot #127 \u2014 Peugeot 208 + Citro\u00ebn C3", univers: "enchere", prix: "\u00c0 partir de 4 500 \u20ac", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", to: "/acheter/encheres", ajouteLe: "Il y a 1 jour", details: "Lot pro \u00b7 2 v\u00e9hicules \u00b7 Reprise", ville: "Rungis" },
+  { id: 10, nom: "Lot #134 \u2014 Renault Trafic", univers: "enchere", prix: "\u00c0 partir de 6 200 \u20ac", photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=260&fit=crop", to: "/acheter/encheres", ajouteLe: "Il y a 2 jours", details: "Flotte location \u00b7 1 v\u00e9hicule \u00b7 Amorti", ville: "Gennevilliers" },
   // Pièces
   { id: 11, nom: "Kit freins ATE C\u00e9ramique", univers: "piece", prix: "189 \u20ac", photo: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=260&fit=crop", to: "/pieces", ajouteLe: "Il y a 6 jours", details: "Freinage \u00b7 Compatible BMW S\u00e9rie 3", ville: "Stock France" },
 ];
