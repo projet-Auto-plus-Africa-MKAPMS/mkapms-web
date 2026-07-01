@@ -560,16 +560,38 @@ export default function Garages() {
     { src: "/videos/garage/garage_carrosserie.mp4", label: "Carrosserie" },
   ];
   const [heroVidIdx, setHeroVidIdx] = useState(0);
+  const [heroProgress, setHeroProgress] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startProgress = () => {
+    setHeroProgress(0);
+    if (progressRef.current) clearInterval(progressRef.current);
+    progressRef.current = setInterval(() => {
+      setHeroProgress((p) => {
+        if (p >= 100) {
+          clearInterval(progressRef.current!);
+          return 100;
+        }
+        return p + 100 / 80; // 8s = 80 ticks de 100ms
+      });
+    }, 100);
+  };
+
   useEffect(() => {
-    const t = setInterval(() => setHeroVidIdx((i) => (i + 1) % HERO_VIDEOS.length), 8000);
-    return () => clearInterval(t);
+    const t = setInterval(() => {
+      setHeroVidIdx((i) => (i + 1) % HERO_VIDEOS.length);
+    }, 8000);
+    startProgress();
+    return () => { clearInterval(t); if (progressRef.current) clearInterval(progressRef.current); };
   }, []);
+
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.load();
       videoRef.current.play().catch(() => {});
     }
+    startProgress();
   }, [heroVidIdx]);
 
   return (
@@ -585,9 +607,9 @@ export default function Garages() {
           muted
           playsInline
           loop
-          className="absolute inset-0 h-full w-full object-cover opacity-40"
+          className="absolute inset-0 h-full w-full object-cover opacity-70"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#111]/60 via-transparent to-[#111]/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#111]/30 via-[#111]/10 to-[#111]/50" />
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-1.5 text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider mb-3">
             <Wrench size={12} /> Réparation & Entretien
@@ -610,11 +632,28 @@ export default function Garages() {
               </div>
             ))}
           </div>
-          <div className="flex justify-center gap-3 mt-4">
+          <div className="flex justify-center gap-2 mt-4">
             {HERO_VIDEOS.map((v, i) => (
-              <button key={i} onClick={() => setHeroVidIdx(i)} className={`flex flex-col items-center gap-0.5 transition-all ${i === heroVidIdx ? "opacity-100" : "opacity-40 hover:opacity-70"}`}>
-                <div className={`h-1 rounded-full transition-all ${i === heroVidIdx ? "w-8 bg-[#D4AF37]" : "w-4 bg-white/50"}`} />
-                <span className="text-[8px] text-white/60">{v.label}</span>
+              <button
+                key={i}
+                onClick={() => { setHeroVidIdx(i); }}
+                className={`flex flex-col items-center gap-1 transition-all duration-300 ${i === heroVidIdx ? 'opacity-100' : 'opacity-35 hover:opacity-60'}`}
+              >
+                {/* Barre de progression animée */}
+                <div className="relative h-[3px] rounded-full overflow-hidden" style={{ width: i === heroVidIdx ? 40 : 20, background: 'rgba(255,255,255,0.25)', transition: 'width 0.3s' }}>
+                  {i === heroVidIdx && (
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full"
+                      style={{
+                        width: `${heroProgress}%`,
+                        background: 'linear-gradient(90deg, #D4AF37, #F5D76E)',
+                        boxShadow: '0 0 6px #D4AF37',
+                        transition: 'width 0.1s linear',
+                      }}
+                    />
+                  )}
+                </div>
+                <span className={`text-[8px] font-semibold tracking-wide ${i === heroVidIdx ? 'text-[#D4AF37]' : 'text-white/50'}`}>{v.label}</span>
               </button>
             ))}
           </div>
