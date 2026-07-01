@@ -142,10 +142,12 @@ export default function Home() {
   const { data: recentes } = trpc.annonces.list.useQuery({ limit: 10 });
   const { data: locations } = trpc.annonces.list.useQuery({ type: "location", limit: 10 });
   const { data: particuliers } = trpc.annonces.list.useQuery({ categorieAnnonce: "particulier", type: "vente", limit: 10 });
+  const { data: professionnelles } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", limit: 10 });
 
   const realOfficielles = (officielles?.items ?? []).map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }));
   const realBoostees = (boostees?.items ?? []).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
   const realPremium = (premium?.items ?? []).map((a: any) => ({ ...a, badge: "PREMIUM" }));
+  const realPro = (professionnelles?.items ?? []).map((a: any) => ({ ...a, badge: "PRO" }));
   const realProches = (recentes?.items ?? []).map((a: any) => ({ ...a, distance: `${Math.floor(Math.random() * 20 + 1)} km` }));
   const realLocations = (locations?.items ?? []).map((a: any) => ({ ...a, prixJour: a.prixJour || Math.round(Number(a.prix) / 30) }));
   const realParticuliers = (particuliers?.items ?? []).map((a: any) => ({ ...a, badge: "PARTICULIER" }));
@@ -365,6 +367,29 @@ export default function Home() {
               </HScroll>
             ) : (
               <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce premium pour le moment.</div>
+            )}
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 7B — ANNONCES PRO
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Building2 size={14} className="text-blue-600" />
+                <h2 className="text-sm md:text-base font-bold text-[#111]">ANNONCES PRO</h2>
+                <span className="rounded-sm bg-blue-600 px-2 py-0.5 text-[8px] font-extrabold text-white uppercase">PROFESSIONNEL</span>
+              </div>
+              <Link to="/acheter?categorieAnnonce=professionnelle" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
+            </div>
+            {realPro.length > 0 ? (
+              <HScroll>
+                {realPro.map((a: any) => (
+                  <AnnonceCard key={a.id} a={a} badgeColor="bg-blue-600" />
+                ))}
+              </HScroll>
+            ) : (
+              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce professionnelle pour le moment.</div>
             )}
           </section>
 
