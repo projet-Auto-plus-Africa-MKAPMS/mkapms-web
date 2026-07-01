@@ -568,10 +568,12 @@ export const annoncesRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { photos, pointsForts, equipements, imperfections, confort, multimedia, securite, videos360, videosNormales, categorieAnnonce: inputCatAnnonce, onBehalfOfUserId, ...rest } = input;
 
-      // Déterminer la catégorie d'annonce
-      const isAdminUser = ctx.user.role === "admin" || ctx.user.role === "super_admin";
-      const isEmployee = isAdminUser || ctx.user.role === "employee";
-      const isProUser = ctx.user.role === "pro" || ctx.user.role === "garage" || ctx.user.role === "society";
+      // Déterminer la catégorie d'annonce (vérifier le rôle actuel en DB, pas seulement le JWT)
+      const [dbUser] = await db.select({ role: users.role, staffPosition: users.staffPosition, accountType: users.accountType }).from(users).where(eq(users.id, ctx.user.uid)).limit(1);
+      const effectiveRole = dbUser?.role || ctx.user.role;
+      const isAdminUser = effectiveRole === "admin" || effectiveRole === "super_admin";
+      const isEmployee = isAdminUser || effectiveRole === "employee";
+      const isProUser = effectiveRole === "pro" || effectiveRole === "garage" || effectiveRole === "society";
       let categorieAnnonce: "officielle" | "professionnelle" | "particulier";
       if (isEmployee && inputCatAnnonce) {
         categorieAnnonce = inputCatAnnonce;

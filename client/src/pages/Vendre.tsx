@@ -291,6 +291,13 @@ export default function Vendre() {
   const [imperfections, setImperfections] = useState<string[]>([]);
   const [impInput, setImpInput] = useState("");
   const [openEqCats, setOpenEqCats] = useState<string[]>([]);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  /* Catégorie d'annonce (admin/employee only) */
+  const isAdminOrEmployee = user?.role === "admin" || user?.role === "super_admin" || user?.role === "employee";
+  const [categorieAnnonce, setCategorieAnnonce] = useState<"officielle" | "professionnelle" | "particulier">(
+    isAdminOrEmployee ? "officielle" : (user?.accountType === "professionnel" ? "professionnelle" : "particulier")
+  );
 
   /* Estimation */
   const [estim, setEstim] = useState<{ low: number; mid: number; high: number; method: string; sampleSize: number } | null>(null);
@@ -417,6 +424,7 @@ export default function Vendre() {
       securite: secuList,
       videos360,
       videosNormales,
+      categorieAnnonce: isAdminOrEmployee ? categorieAnnonce : undefined,
     });
   }
 
@@ -677,6 +685,18 @@ export default function Vendre() {
           <div className="mt-6 grid md:grid-cols-2 gap-6">
             {/* Côté gauche — Formulaire */}
             <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
+              {/* Sélecteur catégorie annonce (admin/employee only) */}
+              {isAdminOrEmployee && (
+                <div className="mb-4 rounded-xl border-2 border-[#D4AF37]/30 bg-[#FFFBEB] p-3">
+                  <label className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider mb-2 block">Publier en tant que</label>
+                  <div className="flex gap-2">
+                    <button onClick={() => setCategorieAnnonce("officielle")} className={`flex-1 rounded-lg border-2 p-2 text-center text-xs font-bold transition ${categorieAnnonce === "officielle" ? "border-[#D4AF37] bg-[#D4AF37] text-white" : "border-[#E5E7EB] bg-white text-[#6B7280]"}`}>Officielle MKA.P-MS</button>
+                    <button onClick={() => setCategorieAnnonce("professionnelle")} className={`flex-1 rounded-lg border-2 p-2 text-center text-xs font-bold transition ${categorieAnnonce === "professionnelle" ? "border-blue-500 bg-blue-500 text-white" : "border-[#E5E7EB] bg-white text-[#6B7280]"}`}>Professionnelle</button>
+                    <button onClick={() => setCategorieAnnonce("particulier")} className={`flex-1 rounded-lg border-2 p-2 text-center text-xs font-bold transition ${categorieAnnonce === "particulier" ? "border-green-500 bg-green-500 text-white" : "border-[#E5E7EB] bg-white text-[#6B7280]"}`}>Particulier</button>
+                  </div>
+                </div>
+              )}
+
               {/* Choix type */}
               {isPro && (
                 <div className="mb-4 flex gap-2">
@@ -1112,10 +1132,12 @@ export default function Vendre() {
                       const fd = new FormData();
                       for (let i = 0; i < files.length; i++) fd.append("files", files[i]);
                       try {
+                        setUploadError(null);
                         const token = getToken();
                         const resp = await fetch("/api/upload", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, body: fd });
                         if (resp.ok) { const data = await resp.json(); const urls = (data.files || []).map((f: any) => f.url); setPhotoUrls(p => ({ ...p, [cat.key]: [...(p[cat.key] || []), ...urls] })); }
-                      } catch {}
+                        else { const err = await resp.json().catch(() => ({})); setUploadError(err.error || "Erreur lors de l'upload des photos"); }
+                      } catch (e: any) { setUploadError(e.message || "Erreur réseau lors de l'upload"); }
                     };
                     inp.click();
                   }}
@@ -1141,6 +1163,13 @@ export default function Vendre() {
               );
             })}
           </div>
+
+          {/* Erreur upload */}
+          {uploadError && (
+            <div className="rounded-xl bg-red-50 border border-red-200 p-3">
+              <p className="text-xs text-red-700 font-medium">{uploadError}</p>
+            </div>
+          )}
 
           {/* Compteur photos */}
           <div className="flex items-center gap-2 rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm">
