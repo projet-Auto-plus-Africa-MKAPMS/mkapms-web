@@ -993,13 +993,12 @@ export default function Vehicule() {
 
   /* ══════════════════════════════════════════════════════════════════
      PAGE PRO — layout dédié vendeurs professionnels (vente uniquement)
-     Design identique pour Pro Standard, Pro Premium, Pro Elite, Pro Vérifié
-     NE s'applique PAS aux MKA.P-MS Officiel ni aux Particuliers
+     Design identique pour Pro Standard, Pro Premium, Pro Elite, Pro Vérifié, Officiel (annonces réelles)
      ══════════════════════════════════════════════════════════════════ */
-  if ((tier === "professionnel" || tier === "particulier" || tier === "elite" || (tier === "premium" && !isMkapmsStock)) && !isLocation) {
+  if ((tier === "professionnel" || tier === "particulier" || tier === "elite" || tier === "officiel" || (tier === "premium" && !isMkapmsStock)) && !isLocation) {
     const allPhotos = photos.length > 0 ? photos : (v.photoPrincipale ? [v.photoPrincipale] : []);
     const isParticulier = tier === "particulier";
-    const proBadge = isParticulier ? "PARTICULIER" : v.tier === "elite" ? "PRO ELITE" : v.boosted ? "PRO PREMIUM" : "PRO";
+    const proBadge = isParticulier ? "PARTICULIER" : tier === "officiel" ? "MKA.P-MS OFFICIEL" : v.tier === "elite" ? "PRO ELITE" : v.boosted ? "PRO PREMIUM" : "PRO";
     const proPhotoCategories = [
       { key: "toutes", label: "Toutes" },
       { key: "exterieur", label: "Extérieur" },

@@ -30,7 +30,8 @@ app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), handl
 app.use(express.json({ limit: "5mb" }));
 
 // ─── UPLOAD FICHIERS (photos, PDF, documents) ───────────────
-const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
+// Utiliser UPLOADS_DIR env var pour Railway volume persistant (/data/uploads)
+const UPLOADS_DIR = process.env.UPLOADS_DIR || path.resolve(process.cwd(), "uploads");
 mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const storage = multer.diskStorage({
