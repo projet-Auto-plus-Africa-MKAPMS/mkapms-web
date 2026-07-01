@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { Link } from "react-router-dom";
+import { HandshakeIcon, Camera, Search, Globe, BadgeCheck, TrendingUp } from "lucide-react";
 
 const STEPS = [
   { key: "demande", label: "Demande", icon: "📋" },
@@ -58,61 +59,189 @@ export default function DepotVente() {
   const { user } = useAuth();
   const [tab, setTab] = useState<"info" | "form" | "mes">(user ? "form" : "info");
 
-  return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="mb-2 text-3xl font-bold text-[#111]">Dépôt-Vente MKA.P-MS</h1>
-      <p className="mb-6 text-[#6B7280]">
-        Confiez votre véhicule, on s'occupe de tout : photos, annonce, négociation, vente. Commission automatique.
-      </p>
+  // ── HERO VIDÉO CAROUSEL ──
+  const HERO_VIDEOS = [
+    { src: "/videos/depot-vente/depot_confier.mp4", label: "Confier" },
+    { src: "/videos/depot-vente/depot_expertise.mp4", label: "Expertise" },
+    { src: "/videos/depot-vente/depot_photos.mp4", label: "Photos" },
+    { src: "/videos/depot-vente/depot_annonce.mp4", label: "Annonce" },
+    { src: "/videos/depot-vente/depot_vente_finale.mp4", label: "Vente" },
+  ];
+  const [heroVidIdx, setHeroVidIdx] = useState(0);
+  const [heroProgress, setHeroProgress] = useState(0);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
-      <div className="mb-6 flex gap-2 border-b border-[#E5E7EB]">
-        <button onClick={() => setTab("info")} className={`px-4 py-2 text-sm font-medium ${tab === "info" ? "border-b-2 border-[#D4AF37] text-[#D4AF37]" : "text-[#6B7280]"}`}>
-          Comment ça marche
-        </button>
-        {user && (
-          <>
-            <button onClick={() => setTab("form")} className={`px-4 py-2 text-sm font-medium ${tab === "form" ? "border-b-2 border-[#D4AF37] text-[#D4AF37]" : "text-[#6B7280]"}`}>
-              Déposer un véhicule
-            </button>
-            <button onClick={() => setTab("mes")} className={`px-4 py-2 text-sm font-medium ${tab === "mes" ? "border-b-2 border-[#D4AF37] text-[#D4AF37]" : "text-[#6B7280]"}`}>
-              Mes dépôts
-            </button>
-          </>
-        )}
+  const startProgress = () => {
+    setHeroProgress(0);
+    if (progressRef.current) clearInterval(progressRef.current);
+    progressRef.current = setInterval(() => {
+      setHeroProgress((p) => {
+        if (p >= 100) { clearInterval(progressRef.current!); return 100; }
+        return p + 100 / 80;
+      });
+    }, 100);
+  };
+
+  // Avancer automatiquement toutes les 8s
+  useEffect(() => {
+    const t = setInterval(() => {
+      setHeroVidIdx((i) => (i + 1) % HERO_VIDEOS.length);
+    }, 8000);
+    startProgress();
+    return () => { clearInterval(t); if (progressRef.current) clearInterval(progressRef.current); };
+  }, []);
+
+  // Quand l'index change : mettre en pause toutes les autres vidéos, jouer la nouvelle
+  useEffect(() => {
+    videoRefs.current.forEach((v, i) => {
+      if (!v) return;
+      if (i === heroVidIdx) {
+        v.currentTime = 0;
+        v.play().catch(() => {});
+      } else {
+        v.pause();
+      }
+    });
+    startProgress();
+  }, [heroVidIdx]);
+
+  return (
+    <div className="min-h-screen bg-[#F5F3EF]">
+
+      {/* ── HERO VIDÉO PREMIUM ── */}
+      <div className="relative overflow-hidden bg-[#111]" style={{ height: 320 }}>
+        {HERO_VIDEOS.map((v, i) => (
+          <video
+            key={v.src}
+            ref={(el) => { videoRefs.current[i] = el; }}
+            src={v.src}
+            autoPlay={i === 0}
+            muted
+            playsInline
+            loop
+            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
+            style={{ opacity: i === heroVidIdx ? 0.7 : 0, zIndex: i === heroVidIdx ? 1 : 0 }}
+          />
+        ))}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#111]/30 via-[#111]/10 to-[#111]/50" />
+        <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-1.5 text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider mb-3">
+            <HandshakeIcon size={12} /> Dépôt-Vente
+          </span>
+          <h1 className="text-[26px] md:text-4xl font-black text-white leading-tight">
+            Vendez sans effort avec <span className="text-[#D4AF37]">MKA.P-MS</span>
+          </h1>
+          <p className="mt-2 text-sm text-white/70 max-w-sm">
+            Confiez votre véhicule, on s'occupe de tout : photos, annonce, négociation, vente.
+          </p>
+          <div className="mt-4 flex items-center justify-center gap-3 flex-wrap">
+            {[
+              { val: "5%", label: "commission seulement" },
+              { val: "48h", label: "mise en ligne" },
+              { val: "100%", label: "prise en charge" },
+            ].map((s) => (
+              <div key={s.val} className="flex flex-col items-center rounded-xl bg-white/10 backdrop-blur px-4 py-2 border border-white/10">
+                <span className="text-base font-black text-[#D4AF37]">{s.val}</span>
+                <span className="text-[9px] text-white/60 mt-0.5">{s.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-center gap-2 mt-4">
+            {HERO_VIDEOS.map((v, i) => (
+              <button
+                key={i}
+                onClick={() => { setHeroVidIdx(i); }}
+                className={`flex flex-col items-center gap-1 transition-all duration-300 ${i === heroVidIdx ? 'opacity-100' : 'opacity-35 hover:opacity-60'}`}
+              >
+                {/* Barre de progression animée or */}
+                <div className="relative h-[3px] rounded-full overflow-hidden" style={{ width: i === heroVidIdx ? 40 : 20, background: 'rgba(255,255,255,0.25)', transition: 'width 0.3s' }}>
+                  {i === heroVidIdx && (
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full"
+                      style={{
+                        width: `${heroProgress}%`,
+                        background: 'linear-gradient(90deg, #D4AF37, #F5D76E)',
+                        boxShadow: '0 0 6px #D4AF37',
+                        transition: 'width 0.1s linear',
+                      }}
+                    />
+                  )}
+                </div>
+                <span className={`text-[8px] font-semibold tracking-wide ${i === heroVidIdx ? 'text-[#D4AF37]' : 'text-white/50'}`}>{v.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {tab === "info" && <InfoTab loggedIn={!!user} onStart={() => setTab("form")} />}
-      {tab === "form" && user && <FormTab />}
-      {tab === "mes" && user && <MesDepots />}
+      {/* ── CONTENU PRINCIPAL ── */}
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <div className="mb-6 flex gap-2 border-b border-[#E5E7EB]">
+          <button onClick={() => setTab("info")} className={`px-4 py-2 text-sm font-medium ${tab === "info" ? "border-b-2 border-[#D4AF37] text-[#D4AF37]" : "text-[#6B7280]"}`}>
+            Comment ça marche
+          </button>
+          {user && (
+            <>
+              <button onClick={() => setTab("form")} className={`px-4 py-2 text-sm font-medium ${tab === "form" ? "border-b-2 border-[#D4AF37] text-[#D4AF37]" : "text-[#6B7280]"}`}>
+                Déposer un véhicule
+              </button>
+              <button onClick={() => setTab("mes")} className={`px-4 py-2 text-sm font-medium ${tab === "mes" ? "border-b-2 border-[#D4AF37] text-[#D4AF37]" : "text-[#6B7280]"}`}>
+                Mes dépôts
+              </button>
+            </>
+          )}
+        </div>
+
+        {tab === "info" && <InfoTab loggedIn={!!user} onStart={() => setTab("form")} />}
+        {tab === "form" && user && <FormTab />}
+        {tab === "mes" && user && <MesDepots />}
+      </div>
     </div>
   );
 }
 
 function InfoTab({ loggedIn, onStart }: { loggedIn: boolean; onStart: () => void }) {
   const steps = [
-    { num: 1, title: "Vous nous confiez votre véhicule", desc: "Remplissez le formulaire avec les détails de votre véhicule." },
-    { num: 2, title: "Expertise gratuite", desc: "Notre équipe évalue votre véhicule et propose un prix juste." },
-    { num: 3, title: "Photos professionnelles", desc: "Séance photo pro pour mettre en valeur votre véhicule." },
-    { num: 4, title: "Annonce en ligne", desc: "Votre véhicule est publié sur MKA.P-MS et diffusé à des milliers d'acheteurs." },
-    { num: 5, title: "Négociation et vente", desc: "On gère les appels, visites et négociations pour vous." },
-    { num: 6, title: "Paiement sécurisé", desc: "Une fois vendu, vous recevez votre paiement (moins la commission)." },
+    { num: 1, title: "Vous nous confiez votre véhicule", desc: "Remplissez le formulaire avec les détails de votre véhicule.", icon: <HandshakeIcon size={18} /> },
+    { num: 2, title: "Expertise gratuite", desc: "Notre équipe évalue votre véhicule et propose un prix juste.", icon: <Search size={18} /> },
+    { num: 3, title: "Photos professionnelles", desc: "Séance photo pro pour mettre en valeur votre véhicule.", icon: <Camera size={18} /> },
+    { num: 4, title: "Annonce en ligne", desc: "Votre véhicule est publié sur MKA.P-MS et diffusé à des milliers d'acheteurs.", icon: <Globe size={18} /> },
+    { num: 5, title: "Négociation et vente", desc: "On gère les appels, visites et négociations pour vous.", icon: <TrendingUp size={18} /> },
+    { num: 6, title: "Paiement sécurisé", desc: "Une fois vendu, vous recevez votre paiement (moins la commission).", icon: <BadgeCheck size={18} /> },
   ];
   return (
     <div>
-      <div className="mb-8 rounded-xl bg-gradient-to-r from-[#111] to-[#333] p-8 text-white">
-        <h2 className="mb-2 text-2xl font-bold">Vendez sans effort</h2>
-        <p className="mb-4 text-[#D4D4D4]">Pas de stress, pas de démarches. MKA.P-MS vend votre véhicule pour vous.</p>
-        <div className="inline-block rounded-lg bg-[#D4AF37] px-3 py-1 text-sm font-semibold text-[#111]">Commission : à partir de 5%</div>
-      </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {steps.map((s) => (
-          <div key={s.num} className="rounded-lg border border-[#E5E7EB] bg-white p-5">
-            <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37] text-sm font-bold text-white">{s.num}</div>
+          <div key={s.num} className="rounded-lg border border-[#E5E7EB] bg-white p-5 hover:border-[#D4AF37]/40 transition-colors">
+            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-[#D4AF37]/10 text-[#D4AF37]">{s.icon}</div>
+            <div className="mb-1 flex items-center gap-2">
+              <span className="text-xs font-bold text-[#D4AF37]">Étape {s.num}</span>
+            </div>
             <h3 className="mb-1 font-semibold text-[#111]">{s.title}</h3>
             <p className="text-sm text-[#6B7280]">{s.desc}</p>
           </div>
         ))}
       </div>
+
+      {/* Avantages */}
+      <div className="mt-8 rounded-xl bg-[#111] p-6 text-white">
+        <h2 className="mb-4 text-lg font-bold text-center">Pourquoi choisir le Dépôt-Vente MKA.P-MS ?</h2>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {[
+            { title: "Zéro stress", desc: "On s'occupe de tout, de A à Z" },
+            { title: "Commission dès 5%", desc: "Parmi les plus bas du marché" },
+            { title: "Réseau national", desc: "Milliers d'acheteurs potentiels" },
+          ].map((a) => (
+            <div key={a.title} className="rounded-lg bg-white/5 border border-white/10 p-4 text-center">
+              <div className="mb-1 font-bold text-[#D4AF37]">{a.title}</div>
+              <div className="text-xs text-white/60">{a.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="mt-8 text-center">
         {loggedIn ? (
           <button onClick={onStart} className="rounded-lg bg-[#D4AF37] px-8 py-3 font-semibold text-white hover:bg-[#C5A028]">
