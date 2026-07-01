@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import {
   ChevronLeft, Search, Truck, Shield, Tag, Gavel,
   Calculator, History, ArrowRightLeft, PlusCircle, Building2,
@@ -40,6 +40,12 @@ const FAQ_VENTE = [
   { q: "Comment vendre mon véhicule ?", r: "Déposez votre annonce gratuitement ou utilisez notre service de reprise pour une vente rapide et sécurisée." },
 ];
 
+const CATEGORIE_REDIRECT: Record<string, string> = {
+  officielle: "/acheter/mkapms-officiel",
+  professionnelle: "/acheter/professionnel",
+  particulier: "/acheter/particulier",
+};
+
 const STATS = [
   { val: "+120 000", label: "véhicules disponibles" },
   { val: "4,8/5", label: "satisfaction client" },
@@ -58,8 +64,13 @@ const HERO_PHOTOS = [
   "/categories/cover_particulier.jpg",
   "/categories/cover_pro.jpg",
 ];
-
 export default function VenteGenerale() {
+  const [sp] = useSearchParams();
+  const cat = sp.get("categorieAnnonce");
+  if (cat && CATEGORIE_REDIRECT[cat]) {
+    return <Navigate to={CATEGORIE_REDIRECT[cat]} replace />;
+  }
+
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [heroIdx, setHeroIdx] = useState(0);
   const [budget, setBudget] = useState("");

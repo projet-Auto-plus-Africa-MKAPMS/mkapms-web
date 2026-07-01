@@ -7,9 +7,9 @@ import VehicleCard from "../components/VehicleCard";
 
 const VENDEURS = [
   { value: "", label: "Tous" },
+  { value: "officielle", label: "Officiel MKA.P-MS" },
+  { value: "professionnelle", label: "Professionnel" },
   { value: "particulier", label: "Particulier" },
-  { value: "professionnel", label: "Professionnel" },
-  { value: "concession", label: "MKA.P-MS Officiel" },
 ];
 const TYPES = [
   { value: "", label: "Tous" },
@@ -36,7 +36,7 @@ const ZONES = [
 export default function Acheter() {
   const [params, setParams] = useSearchParams();
   const [q, setQ] = useState(params.get("q") || "");
-  const [vendeurType, setVendeur] = useState(params.get("vendeurType") || "");
+  const [vendeurType, setVendeur] = useState(params.get("categorieAnnonce") || params.get("vendeurType") || "");
   const [categorie, setCategorie] = useState(params.get("categorie") || "");
   const [zone, setZone] = useState(params.get("zone") || "");
   const ville = params.get("ville") || undefined;
@@ -46,7 +46,7 @@ export default function Acheter() {
     () => ({
       type: "vente" as const,
       q: q || undefined,
-      vendeurType: (vendeurType || undefined) as any,
+      categorieAnnonce: (vendeurType || undefined) as any,
       categorie: (categorie || undefined) as any,
       ville: ville || (zone ? zone : undefined),
       prixMax,
@@ -63,7 +63,7 @@ export default function Acheter() {
   function enregistrerRecherche() {
     const filters = {
       q: q || undefined,
-      vendeurType: vendeurType || undefined,
+      categorieAnnonce: vendeurType || undefined,
       categorie: categorie || undefined,
       ville,
       prixMax,
@@ -82,12 +82,12 @@ export default function Acheter() {
     setParams({});
   }
 
-  // Séparer annonces par niveau : MKA.P-MS > Premium > Pro > Particulier
+  // Séparer annonces par niveau : MKA.P-MS Officiel > Premium > Pro > Particulier
   const allItems = list.data?.items || [];
-  const mkapmsItems = allItems.filter((v: any) => v.vendeurType === "concession");
-  const premiumItems = allItems.filter((v: any) => v.boosted && v.vendeurType !== "concession");
-  const proItems = allItems.filter((v: any) => v.vendeurType === "professionnel" && !v.boosted && v.vendeurType !== "concession");
-  const particulierItems = allItems.filter((v: any) => v.vendeurType === "particulier" || (!v.vendeurType && !v.boosted && v.vendeurType !== "concession"));
+  const mkapmsItems = allItems.filter((v: any) => v.categorieAnnonce === "officielle");
+  const premiumItems = allItems.filter((v: any) => v.boosted && v.categorieAnnonce !== "officielle");
+  const proItems = allItems.filter((v: any) => v.categorieAnnonce === "professionnelle" && !v.boosted);
+  const particulierItems = allItems.filter((v: any) => v.categorieAnnonce === "particulier" && !v.boosted);
 
   return (
     <div className="container-page py-8">
@@ -105,7 +105,7 @@ export default function Acheter() {
             <input className="input text-sm" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Marque, modèle…" />
           </div>
           <div>
-            <label className="label">Catégorie de vendeur</label>
+            <label className="label">Type d'annonce</label>
             <select className="input text-sm" value={vendeurType} onChange={(e) => setVendeur(e.target.value)}>
               {VENDEURS.map((v) => (
                 <option key={v.value} value={v.value}>{v.label}</option>

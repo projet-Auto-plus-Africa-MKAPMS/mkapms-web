@@ -90,6 +90,7 @@ export const annoncesRouter = router({
         famille: z.enum(["auto", "moto"]).optional(),
         vendeurType: z.enum(["particulier", "professionnel", "concession"]).optional(),
         ownership: z.enum(["client", "plateforme", "partenaire"]).optional(),
+        categorieAnnonce: z.enum(["officielle", "professionnelle", "particulier"]).optional(),
         prixMax: z.number().optional(),
         ville: z.string().optional(),
         segmentLocation: z.enum(["particulier", "professionnel", "vtc_taxi"]).optional(),
@@ -107,6 +108,7 @@ export const annoncesRouter = router({
       if (input.famille) conds.push(eq(annonces.famille, input.famille));
       if (input.vendeurType) conds.push(eq(annonces.vendeurType, input.vendeurType));
       if (input.ownership) conds.push(eq(annonces.ownership, input.ownership));
+      if (input.categorieAnnonce) conds.push(eq(annonces.categorieAnnonce, input.categorieAnnonce));
       if (input.segmentLocation) conds.push(eq(annonces.segmentLocation, input.segmentLocation));
       if (input.boosted !== undefined) conds.push(eq(annonces.boosted, input.boosted));
       if (input.selectionMka !== undefined) conds.push(eq(annonces.selectionMka, input.selectionMka));
@@ -557,14 +559,50 @@ export const annoncesRouter = router({
         securite: z.array(z.string()).default([]),
         videos360: z.array(z.string()).default([]),
         videosNormales: z.array(z.string()).default([]),
+        // Admin-only: catégorie d'annonce (officielle/professionnelle/particulier)
+        categorieAnnonce: z.enum(["officielle", "professionnelle", "particulier"]).optional(),
+        // Employé: publier au nom d'un client
+        onBehalfOfUserId: z.number().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { photos, pointsForts, equipements, imperfections, confort, multimedia, securite, videos360, videosNormales, ...rest } = input;
+      const { photos, pointsForts, equipements, imperfections, confort, multimedia, securite, videos360, videosNormales, categorieAnnonce: inputCatAnnonce, onBehalfOfUserId, ...rest } = input;
+
+      // Déterminer la catégorie d'annonce
+      const isAdminUser = ctx.user.role === "admin" || ctx.user.role === "super_admin";
+      const isEmployee = isAdminUser || ctx.user.role === "employee";
+      const isProUser = ctx.user.role === "pro" || ctx.user.role === "garage" || ctx.user.role === "society";
+      let categorieAnnonce: "officielle" | "professionnelle" | "particulier";
+      if (isEmployee && inputCatAnnonce) {
+        categorieAnnonce = inputCatAnnonce;
+      } else if (isAdminUser) {
+        categorieAnnonce = "officielle";
+      } else if (isProUser) {
+        categorieAnnonce = "professionnelle";
+      } else {
+        categorieAnnonce = "particulier";
+      }
+
+      // Déduire vendeurType et ownership depuis categorieAnnonce
+      const vendeurType = categorieAnnonce === "particulier" ? "particulier" : "professionnel";
+      const ownership = categorieAnnonce === "officielle" ? "plateforme" : "client";
+
+      // Propriétaire effectif : si un employé publie au nom d'un client
+      const effectiveOwnerId = (isEmployee && onBehalfOfUserId) ? onBehalfOfUserId : ctx.user.uid;
+      const createdByEmployeeId = (isEmployee && onBehalfOfUserId) ? ctx.user.uid : undefined;
+
+      // Contrôle automatique de cohérence
+      if (categorieAnnonce === "officielle" && !isEmployee) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Seuls les employés et la direction peuvent créer des annonces officielles MKA.P-MS" });
+      }
+      if (categorieAnnonce === "professionnelle" && !isProUser && !isEmployee) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Seuls les professionnels et la direction peuvent créer des annonces professionnelles" });
+      }
+
       const [created] = await db
         .insert(annonces)
         .values({
-          ownerId: ctx.user.uid,
+          ownerId: effectiveOwnerId,
           titre: rest.titre,
           description: rest.description,
           marque: rest.marque,
@@ -589,8 +627,11 @@ export const annoncesRouter = router({
           codePostal: rest.codePostal,
           pays: rest.pays,
           contactTelephone: rest.contactTelephone,
-          vendeurType: ctx.user.role === "user" ? "particulier" : "professionnel",
-          ownership: (ctx.user.role === "admin" || ctx.user.role === "super_admin") ? "plateforme" : "client",
+          vendeurType,
+          ownership,
+          categorieAnnonce,
+          createdByEmployeeId: createdByEmployeeId ?? null,
+          onBehalfOfUserId: onBehalfOfUserId ?? null,
           status: "publiee",
           publishedAt: new Date(),
           sellerie: rest.sellerie,
@@ -607,6 +648,15 @@ export const annoncesRouter = router({
           videosNormales: JSON.stringify(videosNormales),
         })
         .returning();
+
+      // Journal d'activité — création
+      await logAction(ctx.user.uid, "annonce.create", "annonce", created.id, {
+        categorieAnnonce,
+        titre: rest.titre,
+        marque: rest.marque,
+        modele: rest.modele,
+        onBehalfOf: onBehalfOfUserId ?? null,
+      });
 
       // Référence unique lisible (Partie 6) — générée à partir de l'id.
       const reference = makeReference("A", created.id);
@@ -672,16 +722,30 @@ export const annoncesRouter = router({
       kilometrage: z.number().optional(),
       ville: z.string().optional(),
       status: z.enum(["publiee", "reservee", "vendue", "archivee"]).optional(),
+      categorieAnnonce: z.enum(["officielle", "professionnelle", "particulier"]).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
+      const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin" || ctx.user.role === "directeur";
       const [a] = await db.select().from(annonces).where(eq(annonces.id, input.id)).limit(1);
-      if (!a || a.ownerId !== ctx.user.uid) {
+      if (!a || (a.ownerId !== ctx.user.uid && !isAdmin)) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
-      const { id, ...updates } = input;
-      const filtered = Object.fromEntries(Object.entries(updates).filter(([, v]) => v !== undefined));
+      const { id, categorieAnnonce, ...updates } = input;
+      const filtered: Record<string, unknown> = Object.fromEntries(Object.entries(updates).filter(([, v]) => v !== undefined));
+
+      // Changement de catégorie — admin uniquement
+      if (categorieAnnonce && isAdmin) {
+        filtered.categorieAnnonce = categorieAnnonce;
+        filtered.vendeurType = categorieAnnonce === "particulier" ? "particulier" : "professionnel";
+        filtered.ownership = categorieAnnonce === "officielle" ? "plateforme" : "client";
+      }
+
       if (Object.keys(filtered).length > 0) {
         await db.update(annonces).set(filtered).where(eq(annonces.id, id));
+        await logAction(ctx.user.uid, "annonce.update", "annonce", id, {
+          changes: Object.keys(filtered),
+          categorieAnnonce: categorieAnnonce ?? a.categorieAnnonce,
+        });
       }
       return { ok: true };
     }),
@@ -694,11 +758,17 @@ export const annoncesRouter = router({
       soldPrice: z.number().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
+      const isAdmin = ctx.user.role === "admin" || ctx.user.role === "super_admin" || ctx.user.role === "directeur";
       const [a] = await db.select().from(annonces).where(eq(annonces.id, input.id)).limit(1);
-      if (!a || a.ownerId !== ctx.user.uid) {
+      if (!a || (a.ownerId !== ctx.user.uid && !isAdmin)) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
       await db.update(annonces).set({ status: "archivee" }).where(eq(annonces.id, input.id));
+      await logAction(ctx.user.uid, "annonce.delete", "annonce", input.id, {
+        reason: input.reason,
+        categorieAnnonce: a.categorieAnnonce,
+        titre: a.titre,
+      });
       return { ok: true };
     }),
 });

@@ -4,6 +4,7 @@ import {
   Search, Camera, CheckCircle, Shield, Eye, Zap, Lock,
   ChevronRight, ChevronDown, Upload, Star, Car, Bike, Truck, Bus,
   Headphones, FileText, ArrowLeft, ArrowRight, Info, X, Video,
+  Crown, Building2, User as UserIcon, ClipboardList,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth, getToken } from "../lib/auth";
@@ -226,6 +227,8 @@ export default function Vendre() {
 
   /* ── Formulaire complet ── */
   const [typeAnnonce, setTypeAnnonce] = useState<"vente" | "location">("vente");
+  const [categorieAnnonce, setCategorieAnnonce] = useState<"officielle" | "professionnelle" | "particulier">("particulier");
+  const [onBehalfOfEmail, setOnBehalfOfEmail] = useState("");
   const [famille, setFamille] = useState<"auto" | "moto">("auto");
   const [form, setForm] = useState({
     titre: "", marque: "", modele: "", version: "",
@@ -257,6 +260,14 @@ export default function Vendre() {
 
   const maxPhotos = user?.accountType === "professionnel" ? 20 : 4;
   const isPro = user?.accountType === "professionnel" || user?.role === "admin" || user?.role === "directeur";
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
+  const isEmployee = isAdmin || user?.role === "employee";
+
+  useEffect(() => {
+    if (isAdmin) setCategorieAnnonce("officielle");
+    else if (isPro) setCategorieAnnonce("professionnelle");
+    else setCategorieAnnonce("particulier");
+  }, [isAdmin, isPro]);
 
   const equipRef = famille === "moto" ? EQUIPEMENTS_MOTO : EQUIPEMENTS_AUTO;
   const marquesRef = famille === "moto" ? MARQUES_MOTO : MARQUES_AUTO;
@@ -376,6 +387,7 @@ export default function Vendre() {
       securite: secuList,
       videos360,
       videosNormales,
+      categorieAnnonce: isEmployee ? categorieAnnonce : undefined,
     });
   }
 
@@ -659,6 +671,61 @@ export default function Vendre() {
           <div className="mt-6 grid md:grid-cols-2 gap-6">
             {/* Côté gauche — Formulaire */}
             <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
+              {/* Choix type d'annonce — admin/employé uniquement */}
+              {isEmployee && (
+                <div className="mb-4 rounded-xl border-2 border-[#D4AF37]/30 bg-[#FFFBEB] p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Crown size={16} className="text-[#D4AF37]" />
+                    <span className="text-xs font-bold text-[#111] uppercase tracking-wider">Type d'annonce (administration)</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCategorieAnnonce("officielle")}
+                      className={`flex-1 rounded-xl border-2 p-2.5 text-center text-xs font-bold transition flex flex-col items-center gap-1 ${categorieAnnonce === "officielle" ? "border-[#D4AF37] bg-[#D4AF37] text-white" : "border-[#E5E7EB] text-[#6B7280] bg-white"}`}
+                    >
+                      <Crown size={14} />
+                      Officielle MKA.P-MS
+                    </button>
+                    <button
+                      onClick={() => setCategorieAnnonce("professionnelle")}
+                      className={`flex-1 rounded-xl border-2 p-2.5 text-center text-xs font-bold transition flex flex-col items-center gap-1 ${categorieAnnonce === "professionnelle" ? "border-blue-500 bg-blue-500 text-white" : "border-[#E5E7EB] text-[#6B7280] bg-white"}`}
+                    >
+                      <Building2 size={14} />
+                      Professionnelle
+                    </button>
+                    <button
+                      onClick={() => setCategorieAnnonce("particulier")}
+                      className={`flex-1 rounded-xl border-2 p-2.5 text-center text-xs font-bold transition flex flex-col items-center gap-1 ${categorieAnnonce === "particulier" ? "border-green-500 bg-green-500 text-white" : "border-[#E5E7EB] text-[#6B7280] bg-white"}`}
+                    >
+                      <UserIcon size={14} />
+                      Particulier
+                    </button>
+                  </div>
+                  <p className="mt-2 text-[10px] text-[#9CA3AF]">
+                    {categorieAnnonce === "officielle" && "L'annonce apparaîtra dans « Nos véhicules » avec le badge Officiel MKA.P-MS"}
+                    {categorieAnnonce === "professionnelle" && "L'annonce apparaîtra dans l'univers professionnel avec le badge Pro"}
+                    {categorieAnnonce === "particulier" && "L'annonce apparaîtra dans l'univers particulier avec le badge Particulier"}
+                  </p>
+                </div>
+              )}
+
+              {/* Publier au nom d'un client — employé uniquement */}
+              {isEmployee && (
+                <div className="mb-4 rounded-xl border border-[#E5E7EB] bg-white p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ClipboardList size={14} className="text-[#6B7280]" />
+                    <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Publier au nom d'un client (optionnel)</span>
+                  </div>
+                  <input
+                    className="input text-xs"
+                    placeholder="Email du client propriétaire (laisser vide = annonce MKA.P-MS)"
+                    value={onBehalfOfEmail}
+                    onChange={(e) => setOnBehalfOfEmail(e.target.value)}
+                  />
+                  <p className="mt-1 text-[9px] text-[#9CA3AF]">Les messages et appels iront directement au client. Vous serez identifié comme créateur interne.</p>
+                </div>
+              )}
+
               {/* Choix type */}
               {isPro && (
                 <div className="mb-4 flex gap-2">
@@ -1230,6 +1297,23 @@ export default function Vendre() {
           <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
             <h3 className="text-sm font-bold text-[#111] uppercase tracking-wider mb-4">Récapitulatif</h3>
             <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] p-5">
+              {/* Badge catégorie */}
+              <div className="flex items-center gap-2">
+                {categorieAnnonce === "officielle" && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-3 py-1 text-[10px] font-bold text-white"><Crown size={10} /> OFFICIEL MKA.P-MS</span>
+                )}
+                {categorieAnnonce === "professionnelle" && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-blue-500 px-3 py-1 text-[10px] font-bold text-white"><Building2 size={10} /> PROFESSIONNEL</span>
+                )}
+                {categorieAnnonce === "particulier" && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-500 px-3 py-1 text-[10px] font-bold text-white"><UserIcon size={10} /> PARTICULIER</span>
+                )}
+                <span className="text-[9px] text-[#9CA3AF]">
+                  {categorieAnnonce === "officielle" && "→ Univers Officiel MKA.P-MS"}
+                  {categorieAnnonce === "professionnelle" && "→ Univers Professionnel"}
+                  {categorieAnnonce === "particulier" && "→ Univers Particulier"}
+                </span>
+              </div>
               <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
                 <span className="font-bold text-[#111] text-lg">{form.marque} {form.modele} {form.version}</span>
                 <span className="text-xl font-extrabold text-[#D4AF37]">{form.prix ? `${Number(form.prix).toLocaleString()} €` : "—"}</span>

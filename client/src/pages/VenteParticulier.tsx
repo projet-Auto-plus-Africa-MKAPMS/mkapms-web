@@ -5,6 +5,7 @@ import {
   Settings2, MapPin, ChevronDown, Heart, Shield, Euro,
   ChevronRight, HelpCircle, Phone, Filter
 } from "lucide-react";
+import { trpc } from "../lib/trpc";
 
 /* ══════════════════════════════════════════════════════════════════════════
    VENTE PARTICULIER
@@ -28,7 +29,7 @@ const CATEGORIES = [
   { label: "Pick-up / 4x4", modeles: "Hilux, Ranger, L200, Duster", photo: "/categories/vente_pickup.jpg" },
 ];
 
-const ANNONCES = [
+const DEMO_ANNONCES = [
   { id: 1, nom: "Peugeot 208 Style", annee: 2022, km: 35000, prix: 14500, carburant: "Essence", boite: "Manuelle", region: "Île-de-France", note: 4.5, photo: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=400&h=260&fit=crop", vendeur: "Particulier" },
   { id: 2, nom: "Renault Clio V Intens", annee: 2023, km: 18000, prix: 16900, carburant: "Essence", boite: "Automatique", region: "Rhône-Alpes", note: 4.7, photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop", vendeur: "Professionnel" },
   { id: 3, nom: "BMW Série 3 320d", annee: 2021, km: 62000, prix: 27500, carburant: "Diesel", boite: "Automatique", region: "PACA", note: 4.8, photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=260&fit=crop", vendeur: "Professionnel" },
@@ -44,9 +45,28 @@ const FAQ = [
   { q: "Comment vérifier un vendeur ?", r: "Chaque vendeur dispose d'un score de confiance basé sur ses transactions, avis et documents." },
 ];
 
+const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
+
 export default function VenteParticulier() {
   const [showFilters, setShowFilters] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { data: realData, isLoading } = trpc.annonces.list.useQuery({ categorieAnnonce: "particulier", type: "vente", limit: 30 });
+
+  const realAnnonces = (realData?.items ?? []).map((a: any) => ({
+    id: a.id,
+    nom: a.titre || `${a.marque} ${a.modele}`,
+    annee: a.annee,
+    km: a.kilometrage ?? 0,
+    prix: Number(a.prix) || 0,
+    carburant: a.carburant || a.energie || "",
+    boite: a.boite || "Manuelle",
+    region: a.ville || "",
+    note: 4.5,
+    photo: a.photoPrincipale || PLACEHOLDER_IMG,
+    vendeur: a.vendeurType === "professionnel" ? "Professionnel" : "Particulier",
+  }));
+
+  const annonces = realAnnonces.length > 0 ? realAnnonces : DEMO_ANNONCES;
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -93,24 +113,28 @@ export default function VenteParticulier() {
 
       {/* Annonces */}
       <div className="px-4 mt-6">
-        <h2 className="text-base font-bold text-[#111]">Annonces récentes</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold text-[#111]">Annonces récentes</h2>
+          {realData && <span className="text-[10px] text-[#6B7280]">{realData.total} annonce{realData.total > 1 ? "s" : ""}</span>}
+        </div>
+        {isLoading && <div className="py-8 text-center text-[#6B7280] text-sm">Chargement...</div>}
         <div className="mt-3 space-y-3">
-          {ANNONCES.map((a) => (
-            <Link key={a.id} to={`/vehicule/${9060 + a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
+          {annonces.map((a) => (
+            <Link key={a.id} to={`/vehicule/${a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
               <div className="relative h-[140px]">
-                <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
+                <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }} />
                 <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span>
                 <span className={`absolute top-2 left-2 rounded-full px-2 py-0.5 text-[9px] font-bold ${a.vendeur === "Professionnel" ? "bg-blue-800 text-white" : "bg-[#D4AF37] text-white"}`}>{a.vendeur}</span>
               </div>
               <div className="p-4">
                 <h3 className="text-sm font-bold text-[#111]">{a.nom}</h3>
                 <div className="mt-1 flex items-center gap-3 text-[10px] text-[#6B7280]">
-                  <span>{a.annee}</span><span>{a.km.toLocaleString("fr-FR")} km</span><span>{a.carburant}</span><span>{a.boite}</span>
+                  <span>{a.annee}</span><span>{(a.km ?? 0).toLocaleString("fr-FR")} km</span><span>{a.carburant}</span><span>{a.boite}</span>
                 </div>
-                <div className="mt-1 flex items-center gap-1 text-[10px] text-[#6B7280]"><MapPin size={10} /> {a.region}</div>
+                <div className="mt-1 flex items-center gap-1 text-[10px] text-[#6B7280]"><MapPin size={10} className="text-red-500" /> {a.region}</div>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-lg font-black text-[#D4AF37]">{a.prix.toLocaleString("fr-FR")} €</span>
-                  <span className="flex items-center gap-0.5 text-xs"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> {a.note}</span>
+                  <span className="text-lg font-black text-[#D4AF37]">{(a.prix ?? 0).toLocaleString("fr-FR")} €</span>
+                  <span className="flex items-center gap-0.5 text-xs text-[#6B7280]"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> {a.note}</span>
                 </div>
               </div>
             </Link>
@@ -120,7 +144,7 @@ export default function VenteParticulier() {
 
       {/* FAQ */}
       <div className="px-4 mt-8">
-        <h2 className="text-base font-bold text-[#111]">FAQ</h2>
+        <h2 className="text-base font-bold text-[#111]">FAQ Achat particulier</h2>
         <div className="mt-3 space-y-2">
           {FAQ.map((f, i) => (
             <div key={i} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">

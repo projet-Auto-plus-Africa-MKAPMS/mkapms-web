@@ -35,6 +35,7 @@ export const annonceTypeEnum = pgEnum("annonce_type", ["vente", "location"]);
 export const annonceVendeurTypeEnum = pgEnum("annonce_vendeur_type", ["particulier", "professionnel", "concession"]);
 // Partie 11 — flotte : propriété du véhicule (plateforme / partenaire / client).
 export const annonceOwnershipEnum = pgEnum("annonce_ownership", ["client", "plateforme", "partenaire"]);
+export const annonceCategorieAnnonceEnum = pgEnum("categorie_annonce", ["officielle", "professionnelle", "particulier"]);
 export const availabilityEnum = pgEnum("availability", ["available", "soon", "sold"]);
 export const bookingStatusEnum = pgEnum("booking_status", ["pending", "accepted", "rejected", "cancelled", "completed"]);
 export const bookingTypeEnum = pgEnum("booking_type", ["test_drive", "rental", "purchase_visit"]);
@@ -202,6 +203,12 @@ export const annonces = pgTable("annonces", {
   securite: jsonb("securite").default("[]"),
   videos360: jsonb("videos_360").default("[]"),
   videosNormales: jsonb("videos_normales").default("[]"),
+  // Catégorie d'annonce : officielle MKA.P-MS / professionnelle / particulier
+  categorieAnnonce: annonceCategorieAnnonceEnum("categorie_annonce").notNull().default("particulier"),
+  // Employé créateur interne (quand un employé publie au nom d'un client)
+  createdByEmployeeId: integer("created_by_employee_id"),
+  // Propriétaire réel (client) quand l'annonce est créée par un employé
+  onBehalfOfUserId: integer("on_behalf_of_user_id"),
 });
 
 export const auditLogs = pgTable("audit_logs", {

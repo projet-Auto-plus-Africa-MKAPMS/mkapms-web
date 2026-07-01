@@ -5,17 +5,18 @@ import {
   Check, Filter, Heart, MapPin, ChevronDown, Euro,
   Building2, Award, ChevronRight, Phone
 } from "lucide-react";
+import { trpc } from "../lib/trpc";
 
 /* ══════════════════════════════════════════════════════════════════════════
    VENTE PROFESSIONNELLE
    Garages, Marchands, Concessionnaires. TVA récupérable, garantie, historique.
    ══════════════════════════════════════════════════════════════════════════ */
 
-const ANNONCES = [
-  { id: 1, nom: "BMW X3 xDrive 20d", annee: 2023, km: 28000, prix: 38500, tva: true, garantie: "24 mois", carb: "Diesel", boite: "Auto", pro: "BMW Premium Selection Paris", note: 4.9, photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=260&fit=crop" },
-  { id: 2, nom: "Mercedes GLC 300e AMG", annee: 2023, km: 15000, prix: 52000, tva: true, garantie: "24 mois", carb: "Hybride", boite: "Auto", pro: "Star Auto Lyon", note: 4.8, photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop" },
-  { id: 3, nom: "Audi A4 Avant 40 TDI", annee: 2022, km: 45000, prix: 34900, tva: true, garantie: "12 mois", carb: "Diesel", boite: "Auto", pro: "Audi Approved Marseille", note: 4.7, photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop" },
-  { id: 4, nom: "Peugeot 5008 GT Pack", annee: 2024, km: 5000, prix: 36500, tva: false, garantie: "24 mois", carb: "Hybride", boite: "Auto", pro: "Peugeot Webstore", note: 4.6, photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop" },
+const DEMO_ANNONCES = [
+  { id: 1, nom: "BMW X3 xDrive 20d", annee: 2023, km: 28000, prix: 38500, tva: true, garantie: "24 mois", carb: "Diesel", boite: "Auto", pro: "BMW Premium Selection Paris", note: 4.9, photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=260&fit=crop", ville: "Paris" },
+  { id: 2, nom: "Mercedes GLC 300e AMG", annee: 2023, km: 15000, prix: 52000, tva: true, garantie: "24 mois", carb: "Hybride", boite: "Auto", pro: "Star Auto Lyon", note: 4.8, photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop", ville: "Lyon" },
+  { id: 3, nom: "Audi A4 Avant 40 TDI", annee: 2022, km: 45000, prix: 34900, tva: true, garantie: "12 mois", carb: "Diesel", boite: "Auto", pro: "Audi Approved Marseille", note: 4.7, photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", ville: "Marseille" },
+  { id: 4, nom: "Peugeot 5008 GT Pack", annee: 2024, km: 5000, prix: 36500, tva: false, garantie: "24 mois", carb: "Hybride", boite: "Auto", pro: "Peugeot Webstore", note: 4.6, photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop", ville: "Bordeaux" },
 ];
 
 const CATEGORIES_PRO = [
@@ -44,10 +45,31 @@ const FAQ = [
   { q: "Livraison possible ?", r: "Oui, de nombreux professionnels proposent la livraison partout en France." },
 ];
 
+const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
+
 export default function VentePro() {
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { data: realData, isLoading } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", limit: 30 });
+
+  const realAnnonces = (realData?.items ?? []).map((a: any) => ({
+    id: a.id,
+    nom: a.titre || `${a.marque} ${a.modele}`,
+    annee: a.annee,
+    km: a.kilometrage ?? 0,
+    prix: Number(a.prix) || 0,
+    tva: false,
+    garantie: "12 mois",
+    carb: a.carburant || a.energie || "",
+    boite: a.boite || "Auto",
+    pro: "Professionnel MKA.P-MS",
+    note: 4.7,
+    photo: a.photoPrincipale || PLACEHOLDER_IMG,
+    ville: a.ville || "",
+  }));
+
+  const annonces = realAnnonces.length > 0 ? realAnnonces : DEMO_ANNONCES;
 
   const toggleFilter = (f: string) => setActiveFilters((prev) => prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f]);
 
@@ -89,34 +111,44 @@ export default function VentePro() {
       </div>
 
       {/* Annonces */}
-      <div className="px-4 mt-4 space-y-3">
-        {ANNONCES.map((a) => (
-          <Link key={a.id} to={`/vehicule/${9000 + a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
-            <div className="relative h-[140px]">
-              <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
-              <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span>
-              <div className="absolute top-2 left-2 flex gap-1">
-                <span className="rounded-full bg-blue-800 px-2 py-0.5 text-[9px] font-bold text-white flex items-center gap-0.5"><Shield size={8} /> Pro vérifié</span>
-                {a.tva && <span className="rounded-full bg-green-600 px-2 py-0.5 text-[9px] font-bold text-white">TVA récup.</span>}
-              </div>
-              {a.garantie && <span className="absolute bottom-2 left-2 rounded-full bg-[#111] px-2 py-0.5 text-[9px] font-bold text-[#D4AF37]">Garantie {a.garantie}</span>}
-            </div>
-            <div className="p-4">
-              <h3 className="text-sm font-bold text-[#111]">{a.nom}</h3>
-              <div className="mt-1 flex items-center gap-3 text-[10px] text-[#6B7280]">
-                <span>{a.annee}</span><span>{a.km.toLocaleString("fr-FR")} km</span><span>{a.carb}</span><span>{a.boite}</span>
-              </div>
-              <div className="mt-1 flex items-center gap-1 text-[10px] text-[#6B7280]"><Building2 size={10} /> {a.pro}</div>
-              <div className="mt-2 flex items-center justify-between">
-                <div>
-                  <span className="text-lg font-black text-blue-800">{a.prix.toLocaleString("fr-FR")} €</span>
-                  {a.tva && <span className="text-[9px] text-green-600 ml-1 font-semibold">HT</span>}
+      <div className="px-4 mt-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold text-[#111]">Annonces professionnelles</h2>
+          {realData && <span className="text-[10px] text-[#6B7280]">{realData.total} annonce{realData.total > 1 ? "s" : ""}</span>}
+        </div>
+        {isLoading && <div className="py-8 text-center text-[#6B7280] text-sm">Chargement...</div>}
+        <div className="space-y-3">
+          {annonces.map((a) => (
+            <Link key={a.id} to={`/vehicule/${a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
+              <div className="relative h-[140px]">
+                <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }} />
+                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span>
+                <div className="absolute top-2 left-2 flex gap-1">
+                  <span className="rounded-full bg-blue-800 px-2 py-0.5 text-[9px] font-bold text-white flex items-center gap-0.5"><Shield size={8} /> Pro vérifié</span>
+                  {a.tva && <span className="rounded-full bg-green-600 px-2 py-0.5 text-[9px] font-bold text-white">TVA récup.</span>}
                 </div>
-                <span className="flex items-center gap-0.5 text-xs"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> {a.note}</span>
+                {a.garantie && <span className="absolute bottom-2 left-2 rounded-full bg-[#111] px-2 py-0.5 text-[9px] font-bold text-[#D4AF37]">Garantie {a.garantie}</span>}
               </div>
-            </div>
-          </Link>
-        ))}
+              <div className="p-4">
+                <h3 className="text-sm font-bold text-[#111]">{a.nom}</h3>
+                <div className="mt-1 flex items-center gap-3 text-[10px] text-[#6B7280]">
+                  <span>{a.annee}</span><span>{(a.km ?? 0).toLocaleString("fr-FR")} km</span><span>{a.carb}</span><span>{a.boite}</span>
+                </div>
+                <div className="mt-1 flex items-center gap-1 text-[10px] text-[#6B7280]">
+                  <Building2 size={10} /> {a.pro}
+                  {a.ville && <><span className="mx-1">·</span><MapPin size={8} className="text-red-500" /> {a.ville}</>}
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <div>
+                    <span className="text-lg font-black text-blue-800">{(a.prix ?? 0).toLocaleString("fr-FR")} €</span>
+                    {a.tva && <span className="text-[9px] text-green-600 ml-1 font-semibold">HT</span>}
+                  </div>
+                  <span className="flex items-center gap-0.5 text-xs"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> {a.note}</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* FAQ */}

@@ -84,7 +84,7 @@ export default function MesAnnonces() {
               {/* Photo */}
               <div className="h-20 w-28 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100">
                 {a.photoPrincipale ? (
-                  <img src={a.photoPrincipale} alt="" className="h-full w-full object-cover" />
+                  <img src={a.photoPrincipale} alt="" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop"; }} />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center text-slate-300"><Car size={24} /></div>
                 )}
@@ -106,7 +106,7 @@ export default function MesAnnonces() {
             </div>
             {/* Actions */}
             <div className="flex border-t border-slate-100">
-              <Link to={`/acheter/${a.id}`} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+              <Link to={`/vehicule/${a.id}`} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
                 <Eye size={14} /> Voir
               </Link>
               <button 

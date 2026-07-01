@@ -66,11 +66,12 @@ function HScroll({ children, className = "" }: { children: React.ReactNode; clas
 
 /* ── CARTE ANNONCE STANDARD ── */
 function AnnonceCard({ a, badgeColor = "bg-[#D4AF37]" }: { a: any; badgeColor?: string }) {
-  const imgSrc = a.photo || a.photoPrincipale || "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
+  const FALLBACK_IMG = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
+  const imgSrc = a.photo || a.photoPrincipale || FALLBACK_IMG;
   return (
     <Link to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
       <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
-        <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" />
+        <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }} />
         {a.badge && <span className={`absolute top-2 left-2 rounded-sm ${badgeColor} px-2 py-0.5 text-[8px] font-extrabold text-white uppercase tracking-wide`}>{a.badge}</span>}
         {a.type && <span className="absolute top-2 right-2 rounded-sm bg-[#D4AF37] px-2 py-0.5 text-[8px] font-extrabold text-white uppercase">{a.type}</span>}
         {a.distance && <span className="absolute top-2 left-2 rounded-full bg-[#D4AF37] px-2 py-0.5 text-[9px] font-bold text-white">{a.distance}</span>}
@@ -135,16 +136,18 @@ export default function Home() {
   }
 
   /* Annonces réelles depuis la DB - Critères stricts pour la page d'accueil */
-  const { data: officielles } = trpc.annonces.list.useQuery({ ownership: "plateforme", limit: 10 });
+  const { data: officielles } = trpc.annonces.list.useQuery({ categorieAnnonce: "officielle", limit: 10 });
   const { data: boostees } = trpc.annonces.list.useQuery({ boosted: true, limit: 10 });
   const { data: premium } = trpc.annonces.list.useQuery({ selectionMka: true, limit: 10 });
   const { data: recentes } = trpc.annonces.list.useQuery({ limit: 10 });
   const { data: locations } = trpc.annonces.list.useQuery({ type: "location", limit: 10 });
-  const { data: particuliers } = trpc.annonces.list.useQuery({ vendeurType: "particulier", type: "vente", limit: 10 });
+  const { data: particuliers } = trpc.annonces.list.useQuery({ categorieAnnonce: "particulier", type: "vente", limit: 10 });
+  const { data: professionnelles } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", limit: 10 });
 
   const realOfficielles = (officielles?.items ?? []).map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }));
   const realBoostees = (boostees?.items ?? []).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
   const realPremium = (premium?.items ?? []).map((a: any) => ({ ...a, badge: "PREMIUM" }));
+  const realPro = (professionnelles?.items ?? []).map((a: any) => ({ ...a, badge: "PRO" }));
   const realProches = (recentes?.items ?? []).map((a: any) => ({ ...a, distance: `${Math.floor(Math.random() * 20 + 1)} km` }));
   const realLocations = (locations?.items ?? []).map((a: any) => ({ ...a, prixJour: a.prixJour || Math.round(Number(a.prix) / 30) }));
   const realParticuliers = (particuliers?.items ?? []).map((a: any) => ({ ...a, badge: "PARTICULIER" }));
@@ -243,6 +246,22 @@ export default function Home() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
+              SECTION 3B — BARRE DE RECHERCHE UNIVERSELLE
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="bg-white px-4 py-3 border-t border-[#F3F4F6]">
+            <div className="max-w-2xl mx-auto">
+              <div
+                onClick={() => navigate("/recherche-universelle")}
+                className="flex items-center gap-2 rounded-xl border-2 border-[#D4AF37]/30 bg-[#F5F3EF] px-4 py-3 cursor-pointer hover:border-[#D4AF37] hover:shadow-md transition"
+              >
+                <Search size={16} className="text-[#D4AF37] shrink-0" />
+                <span className="text-sm text-slate-400 flex-1">Vehicule, garage, piece, service, aide...</span>
+                <Sparkles size={14} className="text-[#D4AF37] shrink-0" />
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
               SECTION 4 — RECHERCHE AVANCÉE
               ═══════════════════════════════════════════════════════════════ */}
           <section className="bg-white px-4 pb-4">
@@ -252,7 +271,7 @@ export default function Home() {
                 <h2 className="text-sm md:text-base font-bold text-[#111]">Rechercher un véhicule</h2>
               </div>
               <p className="text-[10px] text-[#6B7280] mb-3">Voitures, motos, utilitaires — trouvez votre véhicule idéal</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
                 <select value={sCategorie} onChange={(e) => setSCategorie(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
                   <option value="">Toutes catégories</option>
                   <option>Citadine</option><option>Berline</option><option>SUV</option><option>Coupé</option><option>Break</option><option>Utilitaire</option><option>Moto</option>
@@ -272,12 +291,15 @@ export default function Home() {
                   <option value="">Localisation</option>
                   <option>Paris</option><option>Lyon</option><option>Marseille</option><option>Toulouse</option><option>Bordeaux</option><option>Nantes</option><option>Lille</option><option>Nice</option>
                 </select>
-                <button onClick={doSearch} className="rounded-lg bg-[#111] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#333] transition flex items-center justify-center gap-1">
-                  <Search size={14} /> Rechercher
-                </button>
               </div>
-              <div className="mt-2 flex justify-end">
-                <button onClick={doSearch} className="rounded-full bg-[#D4AF37] px-4 py-1.5 text-[10px] font-bold text-white hover:bg-[#c9a430] transition">SIMULER</button>
+              {/* Boutons Rechercher et Simuler — séparés et bien visibles */}
+              <div className="mt-3 flex flex-col sm:flex-row gap-2">
+                <button onClick={doSearch} className="flex-1 rounded-xl bg-[#111] px-5 py-3 text-sm font-bold text-white hover:bg-[#333] transition flex items-center justify-center gap-2">
+                  <Search size={16} /> Rechercher
+                </button>
+                <button onClick={() => navigate("/estimation")} className="flex-1 rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-bold text-white hover:bg-[#c9a430] transition flex items-center justify-center gap-2">
+                  <Star size={16} /> Simuler / Estimer
+                </button>
               </div>
             </div>
           </section>
@@ -291,7 +313,7 @@ export default function Home() {
                 <h2 className="text-sm md:text-base font-bold text-[#111]">MKA.P-MS OFFICIEL</h2>
                 <span className="rounded-sm bg-[#D4AF37] px-2 py-0.5 text-[8px] font-extrabold text-white uppercase">STOCK OFFICIEL</span>
               </div>
-              <Link to="/acheter?source=officiel" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
+              <Link to="/acheter?categorieAnnonce=officielle" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             {realOfficielles.length > 0 ? (
               <HScroll>
@@ -345,6 +367,29 @@ export default function Home() {
               </HScroll>
             ) : (
               <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce premium pour le moment.</div>
+            )}
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 7B — ANNONCES PRO
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Building2 size={14} className="text-blue-600" />
+                <h2 className="text-sm md:text-base font-bold text-[#111]">ANNONCES PRO</h2>
+                <span className="rounded-sm bg-blue-600 px-2 py-0.5 text-[8px] font-extrabold text-white uppercase">PROFESSIONNEL</span>
+              </div>
+              <Link to="/acheter?categorieAnnonce=professionnelle" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
+            </div>
+            {realPro.length > 0 ? (
+              <HScroll>
+                {realPro.map((a: any) => (
+                  <AnnonceCard key={a.id} a={a} badgeColor="bg-blue-600" />
+                ))}
+              </HScroll>
+            ) : (
+              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce professionnelle pour le moment.</div>
             )}
           </section>
 
@@ -408,7 +453,7 @@ export default function Home() {
                   return (
                     <Link key={a.id} to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
                       <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
-                        <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" />
+                        <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop"; }} />
                         <span className={`absolute top-2 left-2 rounded-sm px-2 py-0.5 text-[8px] font-extrabold text-white uppercase ${locType === "VTC" ? "bg-[#111] border border-[#D4AF37]" : locType === "Pro" ? "bg-blue-800" : locType === "Taxi" ? "bg-yellow-600" : "bg-[#D4AF37]"}`}>{pj} €/jour</span>
                         <span className="absolute top-2 right-2 rounded-sm bg-white/90 px-1.5 py-0.5 text-[8px] font-bold text-[#111]">{locType}</span>
                       </div>
@@ -441,7 +486,7 @@ export default function Home() {
                 <Users size={14} className="text-[#D4AF37]" />
                 <h2 className="text-sm md:text-base font-bold text-[#111]">ANNONCES PARTICULIERS</h2>
               </div>
-              <Link to="/acheter?vendeur=particulier" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
+              <Link to="/acheter?categorieAnnonce=particulier" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
             </div>
             {realParticuliers.length > 0 ? (
               <HScroll>

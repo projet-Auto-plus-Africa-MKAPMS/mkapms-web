@@ -96,7 +96,7 @@ export default function AdminVente() {
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className={`rounded-full px-2 py-0.5 text-[7px] font-bold ${statusStyle(a.status)}`}>{statusLabel(a.status)}</span>
-                  <span className="text-[7px] text-[#9CA3AF]">{a.vendeurType === "particulier" ? "Particulier" : a.ownership === "plateforme" ? "MKA.P-MS" : "Pro"}</span>
+                  <span className={`rounded-full px-1.5 py-0.5 text-[7px] font-bold ${a.categorieAnnonce === "officielle" ? "bg-[#D4AF37]/10 text-[#D4AF37]" : a.categorieAnnonce === "professionnelle" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600"}`}>{a.categorieAnnonce === "officielle" ? "Officiel MKA.P-MS" : a.categorieAnnonce === "professionnelle" ? "Pro" : "Particulier"}</span>
                   <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
                 </div>
               </button>
