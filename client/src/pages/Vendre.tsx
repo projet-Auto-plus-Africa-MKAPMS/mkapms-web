@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search, Camera, CheckCircle, Shield, Eye, Zap, Lock,
@@ -218,6 +218,47 @@ export default function Vendre() {
   /* ── Mode : landing (page vitrine) vs deposit (flux 4 étapes) ── */
   const [mode, setMode] = useState<"landing" | "deposit">("landing");
   const [step, setStep] = useState(1);
+
+  /* ── HERO VIDÉO CAROUSEL ── */
+  const HERO_VIDEOS = [
+    { src: "/videos/vendre/vendre_hero1.mp4", label: "Vendre" },
+    { src: "/videos/vendre/vendre_hero2.mp4", label: "Confiance" },
+    { src: "/videos/vendre/vendre_hero3.mp4", label: "Annonce" },
+    { src: "/videos/vendre/vendre_hero4.mp4", label: "Showroom" },
+    { src: "/videos/vendre/vendre_hero5.mp4", label: "Paiement" },
+  ];
+  const [heroVidIdx, setHeroVidIdx] = useState(0);
+  const [heroProgress, setHeroProgress] = useState(0);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+
+  const startProgress = () => {
+    setHeroProgress(0);
+    if (progressRef.current) clearInterval(progressRef.current);
+    progressRef.current = setInterval(() => {
+      setHeroProgress((p) => {
+        if (p >= 100) { clearInterval(progressRef.current!); return 100; }
+        return p + 100 / 80;
+      });
+    }, 100);
+  };
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setHeroVidIdx((i) => (i + 1) % HERO_VIDEOS.length);
+    }, 8000);
+    startProgress();
+    return () => { clearInterval(t); if (progressRef.current) clearInterval(progressRef.current); };
+  }, []);
+
+  useEffect(() => {
+    videoRefs.current.forEach((v, i) => {
+      if (!v) return;
+      if (i === heroVidIdx) { v.currentTime = 0; v.play().catch(() => {}); }
+      else { v.pause(); }
+    });
+    startProgress();
+  }, [heroVidIdx]);
   const [identTab, setIdentTab] = useState<"plaque" | "vin">("plaque");
   const [plaque, setPlaque] = useState("");
   const [vin, setVin] = useState("");
@@ -385,36 +426,61 @@ export default function Vendre() {
   if (mode === "landing") {
     return (
       <div className="min-h-screen bg-[#F5F3EF]">
-        {/* ── HERO ── */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#111] via-[#1a1a1a] to-[#2d2d2d]">
-          <div className="absolute inset-0 opacity-30">
-            <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1200&q=80" alt="" className="h-full w-full object-cover" />
-          </div>
-          <div className="relative px-4 py-10 md:py-16 md:px-8 max-w-6xl mx-auto">
-            <div className="md:flex md:items-center md:justify-between md:gap-12">
-              <div className="md:max-w-xl">
-                <h1 className="text-3xl md:text-5xl font-black text-white leading-tight">
-                  VENDEZ FACILEMENT<br />VOTRE <span className="text-[#D4AF37]">VÉHICULE</span>
-                </h1>
-                <p className="mt-3 text-sm md:text-base text-white/70 max-w-md">
-                  Des milliers d'acheteurs vous font déjà confiance.<br />
-                  Déposez votre annonce en quelques minutes et vendez au meilleur prix.
-                </p>
-              </div>
-              <div className="mt-6 md:mt-0 space-y-2">
-                {[
-                  { icon: CheckCircle, text: "100% Gratuit pour les particuliers" },
-                  { icon: Zap, text: "Publication rapide" },
-                  { icon: Eye, text: "Visibilité maximale" },
-                  { icon: Lock, text: "Messagerie sécurisée" },
-                  { icon: Shield, text: "Paiement sécurisé" },
-                ].map((b) => (
-                  <div key={b.text} className="flex items-center gap-2">
-                    <b.icon size={16} className="text-[#D4AF37] shrink-0" />
-                    <span className="text-sm text-white/90">{b.text}</span>
+        {/* ── HERO VIDÉO CAROUSEL ── */}
+        <div className="relative overflow-hidden bg-[#111]" style={{ height: 340 }}>
+          {HERO_VIDEOS.map((v, i) => (
+            <video
+              key={v.src}
+              ref={(el) => { videoRefs.current[i] = el; }}
+              src={v.src}
+              autoPlay={i === 0}
+              muted
+              playsInline
+              loop
+              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
+              style={{ opacity: i === heroVidIdx ? 0.65 : 0, zIndex: i === heroVidIdx ? 1 : 0 }}
+            />
+          ))}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#111]/20 via-transparent to-[#111]/60" />
+          <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
+            <h1 className="text-[28px] md:text-5xl font-black text-white leading-tight">
+              VENDEZ FACILEMENT<br />VOTRE <span className="text-[#D4AF37]">VÉHICULE</span>
+            </h1>
+            <p className="mt-3 text-sm text-white/70 max-w-sm">
+              Des milliers d’acheteurs vous font déjà confiance.<br />
+              Déposez votre annonce en quelques minutes.
+            </p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {[
+                { icon: CheckCircle, text: "100% Gratuit" },
+                { icon: Zap, text: "Publication rapide" },
+                { icon: Eye, text: "Visibilité maximale" },
+                { icon: Shield, text: "Paiement sécurisé" },
+              ].map((b) => (
+                <div key={b.text} className="flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 border border-white/10">
+                  <b.icon size={12} className="text-[#D4AF37] shrink-0" />
+                  <span className="text-[11px] font-semibold text-white/90">{b.text}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-center gap-2 mt-5">
+              {HERO_VIDEOS.map((v, i) => (
+                <button
+                  key={i}
+                  onClick={() => setHeroVidIdx(i)}
+                  className={`flex flex-col items-center gap-1 transition-all duration-300 ${i === heroVidIdx ? 'opacity-100' : 'opacity-35 hover:opacity-60'}`}
+                >
+                  <div className="relative h-[3px] rounded-full overflow-hidden" style={{ width: i === heroVidIdx ? 40 : 20, background: 'rgba(255,255,255,0.25)', transition: 'width 0.3s' }}>
+                    {i === heroVidIdx && (
+                      <div
+                        className="absolute inset-y-0 left-0 rounded-full"
+                        style={{ width: `${heroProgress}%`, background: 'linear-gradient(90deg,#D4AF37,#F5D76E)', boxShadow: '0 0 6px #D4AF37', transition: 'width 0.1s linear' }}
+                      />
+                    )}
                   </div>
-                ))}
-              </div>
+                  <span className={`text-[8px] font-semibold tracking-wide ${i === heroVidIdx ? 'text-[#D4AF37]' : 'text-white/50'}`}>{v.label}</span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
