@@ -46,6 +46,16 @@ const ADS_CENTER = [
   { titre: "REPRISE CASH IMMÉDIATE", sous: "ESTIMATION GRATUITE EN 2 MINUTES", color: "bg-[#D4AF37]", to: "/vendre" },
 ];
 
+/* ── PUBLICITÉ SERVICES ── */
+const ADS_SERVICES = [
+  { titre: "GARAGE & RÉPARATION", sous: "TROUVEZ UN GARAGE VÉRIFIÉ PRÈS DE CHEZ VOUS", color: "bg-orange-600", to: "/garages" },
+  { titre: "DÉPANNAGE 24H/24", sous: "ASSISTANCE ROUTIÈRE PARTOUT EN FRANCE", color: "bg-red-600", to: "/depannage" },
+  { titre: "LOCATION VÉHICULE", sous: "PARTICULIER, PRO, VTC & TAXI — DÈS 29€/JOUR", color: "bg-blue-600", to: "/louer" },
+  { titre: "PIÈCES AUTO", sous: "PIÈCES D'ORIGINE — LIVRAISON EXPRESS", color: "bg-gray-800", to: "/pieces" },
+  { titre: "CARTE GRISE EN LIGNE", sous: "DÉMARCHES ADMINISTRATIVES SIMPLIFIÉES", color: "bg-purple-700", to: "/demarches" },
+  { titre: "HISTORIQUE VÉHICULE", sous: "RAPPORTS OFFICIELS — CONTRÔLE AVANT ACHAT", color: "bg-indigo-700", to: "/historique" },
+];
+
 /* ── CARROUSEL PRINCIPAL ── */
 const SLIDES = [
   { label: "Vente", img: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=400&fit=crop", desc: "Achetez et vendez en toute confiance" },
@@ -110,12 +120,14 @@ export default function Home() {
   const [adRightIdx, setAdRightIdx] = useState(0);
   const [adCenter1, setAdCenter1] = useState(0);
   const [adCenter2, setAdCenter2] = useState(3);
+  const [adServices, setAdServices] = useState(0);
   useEffect(() => {
     const t1 = setInterval(() => setAdLeftIdx((p) => (p + 1) % ADS_LEFT.length), 6000);
     const t2 = setInterval(() => setAdRightIdx((p) => (p + 1) % ADS_RIGHT.length), 7000);
     const t3 = setInterval(() => setAdCenter1((p) => (p + 1) % ADS_CENTER.length), 5000);
     const t4 = setInterval(() => setAdCenter2((p) => (p + 1) % ADS_CENTER.length), 6000);
-    return () => { clearInterval(t1); clearInterval(t2); clearInterval(t3); clearInterval(t4); };
+    const t5 = setInterval(() => setAdServices((p) => (p + 1) % ADS_SERVICES.length), 4500);
+    return () => { clearInterval(t1); clearInterval(t2); clearInterval(t3); clearInterval(t4); clearInterval(t5); };
   }, []);
 
   /* Recherche */
@@ -497,6 +509,24 @@ export default function Home() {
             ) : (
               <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce de particulier pour le moment.</div>
             )}
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 11B — PUBLICITÉ SERVICES
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-3 bg-white border-t border-[#F3F4F6]">
+            <div className="rounded-xl overflow-hidden relative h-[110px] md:h-[120px] lg:h-[140px]">
+              <span className="absolute top-2 left-2 z-10 text-[8px] font-semibold uppercase tracking-wider text-white/50">PUBLICITÉ</span>
+              {ADS_SERVICES.map((ad, i) => (
+                <Link key={i} to={ad.to} className={`absolute inset-0 ${ad.color} p-4 md:p-6 flex items-center justify-between transition-transform duration-700 ease-in-out`} style={{ transform: `translateX(${(i - adServices) * 100}%)` }}>
+                  <div className="min-w-0">
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-black text-white uppercase truncate">{ad.titre}</h3>
+                    <p className="text-xs md:text-sm text-white/70 mt-1 truncate">{ad.sous}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-[#D4AF37] px-4 py-2 text-xs md:text-sm font-bold text-white">DÉCOUVRIR</span>
+                </Link>
+              ))}
+            </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════

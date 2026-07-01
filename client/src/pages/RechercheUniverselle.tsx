@@ -95,16 +95,16 @@ const STATIC_PAGES: SearchResult[] = [
 ];
 
 // ── Onglets ──────────────────────────────────────────────────────────
-const TABS: { id: ResultCategory | "tout"; label: string; icon: typeof Car }[] = [
+const TABS: { id: ResultCategory | "tout"; label: string; icon: typeof Car; to?: string }[] = [
   { id: "tout", label: "Tout", icon: Search },
-  { id: "vehicule", label: "Vehicules", icon: Car },
-  { id: "location", label: "Location", icon: Key },
-  { id: "garage", label: "Garage", icon: Wrench },
-  { id: "carrosserie", label: "Carrosserie", icon: Paintbrush },
-  { id: "pieces", label: "Pieces", icon: Settings },
-  { id: "depannage", label: "Depannage", icon: Truck },
-  { id: "services", label: "Services", icon: Building2 },
-  { id: "aide", label: "Aide", icon: HelpCircle },
+  { id: "vehicule", label: "Vehicules", icon: Car, to: "/acheter" },
+  { id: "location", label: "Location", icon: Key, to: "/louer" },
+  { id: "garage", label: "Garage", icon: Wrench, to: "/garages" },
+  { id: "carrosserie", label: "Carrosserie", icon: Paintbrush, to: "/carrosserie" },
+  { id: "pieces", label: "Pieces", icon: Settings, to: "/pieces" },
+  { id: "depannage", label: "Depannage", icon: Truck, to: "/depannage" },
+  { id: "services", label: "Services", icon: Building2, to: "/services" },
+  { id: "aide", label: "Aide", icon: HelpCircle, to: "/aide" },
 ];
 
 // ── Suggestions populaires ───────────────────────────────────────────
@@ -299,7 +299,13 @@ export default function RechercheUniverselle() {
           return (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => {
+                if (t.to && !query) {
+                  navigate(t.to);
+                } else {
+                  setTab(t.id);
+                }
+              }}
               className={`shrink-0 flex items-center gap-1 rounded-full px-3 py-1.5 text-[10px] font-semibold transition ${
                 tab === t.id ? "bg-[#111] text-[#D4AF37]" : "bg-white text-[#6B7280] border border-[#E5E7EB]"
               }`}
