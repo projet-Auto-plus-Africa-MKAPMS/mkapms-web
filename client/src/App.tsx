@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 import Layout from "./components/Layout";
 import { useAuth } from "./lib/auth";
@@ -44,6 +44,7 @@ const ProduitParticulier = lazy(() => import("./pages/ProduitParticulier"));
 const LocationUtilitaires = lazy(() => import("./pages/LocationUtilitaires"));
 const LocationCamions = lazy(() => import("./pages/LocationCamions"));
 const LocationMinibus = lazy(() => import("./pages/LocationMinibus"));
+const LocationMKAPMS = lazy(() => import("./pages/LocationMKAPMS"));
 const ProduitLocation = lazy(() => import("./pages/ProduitLocation"));
 const CentreDocuments = lazy(() => import("./pages/CentreDocuments"));
 const Notifications = lazy(() => import("./pages/Notifications"));
@@ -183,6 +184,7 @@ const GarageAuto = lazy(() => import("./pages/GarageAuto"));
 const SEOAbonnements = lazy(() => import("./pages/SEOAbonnements"));
 const RechercheGeolocalisee = lazy(() => import("./pages/RechercheGeolocalisee"));
 const RechercheLocale = lazy(() => import("./pages/RechercheLocale"));
+const RechercheUniverselle = lazy(() => import("./pages/RechercheUniverselle"));
 // Garage
 const AssistanceRoutiere = lazy(() => import("./pages/garage/AssistanceRoutiere"));
 const BoutiquePieces = lazy(() => import("./pages/garage/BoutiquePieces"));
@@ -677,6 +679,16 @@ const PublicationAnnonce = lazy(() => import("./pages/depot-annonce/PublicationA
 const ScoreQualiteAnnonce = lazy(() => import("./pages/depot-annonce/ScoreQualiteAnnonce"));
 const TableauBordAnnonceur = lazy(() => import("./pages/depot-annonce/TableauBordAnnonceur"));
 const VideosAnnonce = lazy(() => import("./pages/depot-annonce/VideosAnnonce"));
+// Module Comptabilité complet
+const ComptaTVA = lazy(() => import("./pages/comptabilite/TVA"));
+const ComptaAnalytique = lazy(() => import("./pages/comptabilite/ComptaAnalytique"));
+const ComptaPaiements = lazy(() => import("./pages/comptabilite/Paiements"));
+const ComptaFacturation = lazy(() => import("./pages/comptabilite/FacturationAvancee"));
+const ComptaAbonnements = lazy(() => import("./pages/comptabilite/AbonnementsCompta"));
+const ComptaPublicites = lazy(() => import("./pages/comptabilite/PublicitesRevenu"));
+const CentrePilotage = lazy(() => import("./pages/comptabilite/CentrePilotage"));
+const ComptaAlertes = lazy(() => import("./pages/comptabilite/Alertes"));
+const ComptaRapports = lazy(() => import("./pages/comptabilite/Rapports"));
 
 // Chaque univers est isolé : un crash dans l'un n'affecte pas les autres.
 function U({ name, children }: { name: string; children: React.ReactNode }) {
@@ -731,6 +743,8 @@ export default function App() {
             <Route path="/louer/utilitaires" element={<U name="Utilitaires"><LocationUtilitaires /></U>} />
             <Route path="/louer/camions" element={<U name="Camions"><LocationCamions /></U>} />
             <Route path="/louer/minibus" element={<U name="Minibus"><LocationMinibus /></U>} />
+            <Route path="/louer/mkapms" element={<U name="Véhicules MKA.P-MS"><LocationMKAPMS /></U>} />
+            <Route path="/louer/mkapms/vehicule/:id" element={<U name="Produit MKA.P-MS"><ProduitLocation /></U>} />
             <Route path="/louer/liste-attente" element={<U name="Liste d'attente"><ListeAttente /></U>} />
             <Route path="/louer/reservations-recurrentes" element={<U name="Réservations récurrentes"><ReservationRecurrente /></U>} />
             <Route path="/louer/comparateur" element={<U name="Comparateur"><Comparateur /></U>} />
@@ -769,6 +783,7 @@ export default function App() {
             <Route path="/acheter/vtc-taxi" element={<U name="Vente VTC"><VenteVTC /></U>} />
             <Route path="/acheter/promotions" element={<U name="Promotions"><VentePromotions /></U>} />
             <Route path="/acheter/encheres" element={<U name="Ench\u00e8res"><VenteEncheres /></U>} />
+            <Route path="/encheres" element={<Navigate to="/acheter/encheres" replace />} />
             <Route path="/acheter/estimation" element={<U name="Estimation"><EstimationAuto /></U>} />
             <Route path="/acheter/historique-vehicule" element={<U name="Historique v\u00e9hicule"><HistoriqueVehiculeVente /></U>} />
             <Route path="/acheter/reprise" element={<U name="Reprise"><RepriseVehicule /></U>} />
@@ -875,6 +890,15 @@ export default function App() {
             <Route path="/catalogue-technique" element={<U name="Catalogue Technique"><CatalogueTechniqueStandalone /></U>} />
             <Route path="/rewards" element={<U name="Rewards"><Rewards /></U>} />
             <Route path="/compta-dirigeant" element={<U name="Comptabilit\u00e9"><ComptaDirigeant /></U>} />
+            <Route path="/comptabilite/tva" element={<U name="Comptabilit\u00e9"><ComptaTVA /></U>} />
+            <Route path="/comptabilite/analytique" element={<U name="Comptabilit\u00e9"><ComptaAnalytique /></U>} />
+            <Route path="/comptabilite/paiements" element={<U name="Comptabilit\u00e9"><ComptaPaiements /></U>} />
+            <Route path="/comptabilite/facturation" element={<U name="Comptabilit\u00e9"><ComptaFacturation /></U>} />
+            <Route path="/comptabilite/abonnements" element={<U name="Comptabilit\u00e9"><ComptaAbonnements /></U>} />
+            <Route path="/comptabilite/publicites" element={<U name="Comptabilit\u00e9"><ComptaPublicites /></U>} />
+            <Route path="/comptabilite/centre-pilotage" element={<U name="Centre de Pilotage"><CentrePilotage /></U>} />
+            <Route path="/comptabilite/alertes" element={<U name="Comptabilit\u00e9"><ComptaAlertes /></U>} />
+            <Route path="/comptabilite/rapports" element={<U name="Comptabilit\u00e9"><ComptaRapports /></U>} />
             <Route path="/suivi-vehicule" element={<U name="Suivi v\u00e9hicule"><SuiviVehicule /></U>} />
             <Route path="/journal-activite" element={<U name="Journal"><JournalActivite /></U>} />
             <Route path="/mk-direction" element={<AccesPDG />} />
@@ -892,6 +916,7 @@ export default function App() {
             <Route path="/garage-auto" element={<U name="Garage"><GarageAuto /></U>} />
             <Route path="/seo-abonnements" element={<U name="SEO"><SEOAbonnements /></U>} />
             <Route path="/recherche" element={<U name="Recherche"><RechercheGeolocalisee /></U>} />
+            <Route path="/recherche-universelle" element={<U name="Recherche universelle"><RechercheUniverselle /></U>} />
             <Route path="/:pays/:ville/:modele?" element={<U name="Recherche Locale"><RechercheLocale /></U>} />
             {/* Garage */}
             <Route path="/garage/assistance-routiere" element={<U name="Garage"><AssistanceRoutiere /></U>} />

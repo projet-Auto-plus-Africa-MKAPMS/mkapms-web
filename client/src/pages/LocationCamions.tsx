@@ -12,22 +12,35 @@ import {
    ══════════════════════════════════════════════════════════════════════════ */
 
 const CATEGORIES = [
-  { titre: "Camions porteurs", modeles: ["7,5t", "12t", "19t"], photo: "https://images.unsplash.com/photo-1586191582066-1d5e1dcea015?w=400&h=240&fit=crop", count: 8 },
-  { titre: "Bennes", modeles: ["Simple", "Double cabine", "Tri-benne"], photo: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=400&h=240&fit=crop", count: 5 },
-  { titre: "Plateaux", modeles: ["Porte-voiture", "Plateau ridelles"], photo: "https://images.unsplash.com/photo-1580894732444-8ecded7900cd?w=400&h=240&fit=crop", count: 4 },
-  { titre: "Semi-remorques", modeles: ["Tautliner", "Bâché", "Citerne"], photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=240&fit=crop", count: 3 },
-  { titre: "Engins de chantier", modeles: ["Mini-pelle", "Chariot", "Nacelle"], photo: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=400&h=240&fit=crop", count: 6 },
+  { titre: "Camions porteurs", modeles: ["7,5t", "12t", "19t"], photo: "/categories/camion_poids_lourd.jpg", count: 8 },
+  { titre: "Bennes", modeles: ["Simple", "Double cabine", "Tri-benne"], photo: "/categories/camion_benne.jpg", count: 5 },
+  { titre: "Plateaux", modeles: ["Porte-voiture", "Plateau ridelles"], photo: "/categories/camion_plateau.jpg", count: 4 },
+  { titre: "Semi-remorques", modeles: ["Tautliner", "Bâché", "Citerne"], photo: "/categories/camion_semiremorque.jpg", count: 3 },
+  { titre: "Frigorifiques", modeles: ["7,5t frigo", "12t frigo", "19t frigo"], photo: "/categories/camion_frigo.jpg", count: 4 },
+  { titre: "Porte-voitures", modeles: ["2 niveaux", "3 niveaux", "Semi"], photo: "/categories/camion_porte_voitures.jpg", count: 3 },
+  { titre: "Citernes", modeles: ["Carburant", "Eau", "Alimentaire"], photo: "/categories/camion_citerne.jpg", count: 3 },
+  { titre: "Malaxeurs / Toupies", modeles: ["6m³", "8m³", "10m³"], photo: "/categories/camion_malaxeur.jpg", count: 2 },
+  { titre: "Bâchés", modeles: ["Tautliner", "Mega", "Jumbo"], photo: "/categories/camion_bache.jpg", count: 4 },
+  { titre: "Fourgons lourds", modeles: ["7,5t caisse", "12t caisse", "19t caisse"], photo: "/categories/camion_fourgon_lourd.jpg", count: 5 },
+  { titre: "Grues mobiles", modeles: ["25t", "50t", "100t"], photo: "/categories/engin_grue.jpg", count: 2 },
+  { titre: "Nacelles", modeles: ["12m", "20m", "30m"], photo: "/categories/engin_nacelle.jpg", count: 3 },
+  { titre: "Chariots élévateurs", modeles: ["2t", "3t", "5t"], photo: "/categories/engin_chariot.jpg", count: 4 },
+  { titre: "Mini-pelles / Pelleteuses", modeles: ["1,5t", "3t", "6t"], photo: "/categories/engin_pelleteuse.jpg", count: 5 },
+  { titre: "Électriques", modeles: ["Volvo FH Electric", "Mercedes eActros", "DAF XE"], photo: "/categories/camion_electrique.jpg", count: 3 },
+  { titre: "Ampliroll / Polybenne", modeles: ["Ampliroll 12t", "Polybenne 19t"], photo: "/categories/camion_ampliroll.jpg", count: 4 },
+  { titre: "Grue auxiliaire", modeles: ["Grue 5t", "Grue 10t", "Grue 20t"], photo: "/categories/camion_grue_auxiliaire.jpg", count: 3 },
+  { titre: "Benne TP", modeles: ["Benne TP 8x4", "Benne TP 6x4"], photo: "/categories/camion_benne_tp.jpg", count: 4 },
 ];
 
 const VEHICULES = [
-  { id: 6001, titre: "DAF LF 7,5t Caisse", annee: 2023, ptac: "7.5 t", charge: "3500 kg", prixJour: 120, prixSemaine: 720, prixMois: 2800, photo: "https://images.unsplash.com/photo-1586191582066-1d5e1dcea015?w=400&h=260&fit=crop", categorie: "Porteur" },
-  { id: 6002, titre: "Iveco Eurocargo 12t", annee: 2024, ptac: "12 t", charge: "6500 kg", prixJour: 150, prixSemaine: 900, prixMois: 3500, photo: "https://images.unsplash.com/photo-1586191582066-1d5e1dcea015?w=400&h=260&fit=crop", categorie: "Porteur" },
-  { id: 6003, titre: "Mercedes Atego 19t", annee: 2023, ptac: "19 t", charge: "10000 kg", prixJour: 180, prixSemaine: 1080, prixMois: 4200, photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=260&fit=crop", categorie: "Porteur" },
-  { id: 6004, titre: "Renault D-Range Benne", annee: 2024, ptac: "12 t", charge: "6000 kg", prixJour: 160, prixSemaine: 960, prixMois: 3700, photo: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=400&h=260&fit=crop", categorie: "Benne" },
-  { id: 6005, titre: "Iveco Daily Benne DC", annee: 2023, ptac: "5 t", charge: "2500 kg", prixJour: 95, prixSemaine: 570, prixMois: 2200, photo: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=400&h=260&fit=crop", categorie: "Benne" },
-  { id: 6006, titre: "Mercedes Sprinter Plateau", annee: 2024, ptac: "5 t", charge: "2800 kg", prixJour: 90, prixSemaine: 540, prixMois: 2100, photo: "https://images.unsplash.com/photo-1580894732444-8ecded7900cd?w=400&h=260&fit=crop", categorie: "Plateau" },
-  { id: 6007, titre: "Porte-voiture 2 niveaux", annee: 2023, ptac: "7.5 t", charge: "3000 kg", prixJour: 130, prixSemaine: 780, prixMois: 3000, photo: "https://images.unsplash.com/photo-1580894732444-8ecded7900cd?w=400&h=260&fit=crop", categorie: "Plateau" },
-  { id: 6008, titre: "Mini-pelle 3 tonnes", annee: 2024, ptac: "3 t", charge: "-", prixJour: 200, prixSemaine: 1200, prixMois: 4500, photo: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=400&h=260&fit=crop", categorie: "Engin" },
+  { id: 6001, titre: "DAF LF 7,5t Caisse", annee: 2023, ptac: "7.5 t", charge: "3500 kg", prixJour: 120, prixSemaine: 720, prixMois: 2800, photo: "/categories/camion_poids_lourd.jpg", categorie: "Porteur" },
+  { id: 6002, titre: "Iveco Eurocargo 12t", annee: 2024, ptac: "12 t", charge: "6500 kg", prixJour: 150, prixSemaine: 900, prixMois: 3500, photo: "/categories/camion_poids_lourd.jpg", categorie: "Porteur" },
+  { id: 6003, titre: "Mercedes Atego 19t", annee: 2023, ptac: "19 t", charge: "10000 kg", prixJour: 180, prixSemaine: 1080, prixMois: 4200, photo: "/categories/camion_semiremorque.jpg", categorie: "Porteur" },
+  { id: 6004, titre: "Renault D-Range Benne", annee: 2024, ptac: "12 t", charge: "6000 kg", prixJour: 160, prixSemaine: 960, prixMois: 3700, photo: "/categories/camion_benne.jpg", categorie: "Benne" },
+  { id: 6005, titre: "Iveco Daily Benne DC", annee: 2023, ptac: "5 t", charge: "2500 kg", prixJour: 95, prixSemaine: 570, prixMois: 2200, photo: "/categories/camion_benne.jpg", categorie: "Benne" },
+  { id: 6006, titre: "Mercedes Sprinter Plateau", annee: 2024, ptac: "5 t", charge: "2800 kg", prixJour: 90, prixSemaine: 540, prixMois: 2100, photo: "/categories/camion_plateau.jpg", categorie: "Plateau" },
+  { id: 6007, titre: "Porte-voiture 2 niveaux", annee: 2023, ptac: "7.5 t", charge: "3000 kg", prixJour: 130, prixSemaine: 780, prixMois: 3000, photo: "/categories/camion_plateau.jpg", categorie: "Plateau" },
+  { id: 6008, titre: "Mini-pelle 3 tonnes", annee: 2024, ptac: "3 t", charge: "-", prixJour: 200, prixSemaine: 1200, prixMois: 4500, photo: "/categories/camion_benne.jpg", categorie: "Engin" },
 ];
 
 const SERVICES = [
@@ -67,7 +80,7 @@ export default function LocationCamions() {
 
       {/* BANNIÈRE */}
       <div className="relative overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&h=420&fit=crop" alt="Camions" className="w-full h-[240px] md:h-[320px] lg:h-[400px] object-cover" />
+        <img src="/categories/loc_cover_camions.jpg" alt="Camions" className="w-full h-[240px] md:h-[320px] lg:h-[400px] object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#111]/90 via-[#111]/40 to-transparent" />
         <Link to="/louer" className="absolute top-4 left-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur">
           <ChevronLeft size={20} className="text-[#111]" />

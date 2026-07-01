@@ -767,12 +767,12 @@ export default function VenteEncheres() {
 
             {isPro ? (
               <div className="space-y-3">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <div className="flex-1 flex items-center rounded-xl bg-white/5 border border-white/10 px-4 py-3">
                     <span className="text-sm font-bold text-white/40 mr-2">€</span>
-                    <input className="flex-1 text-lg font-bold text-white outline-none bg-transparent placeholder:text-white/20" placeholder={`Min. ${nextBid.toLocaleString("fr-FR")}`} value={enchereInput} onChange={(e) => setEnchereInput(e.target.value.replace(/[^\d]/g, ""))} />
+                    <input className="flex-1 text-lg font-bold text-white outline-none bg-transparent placeholder:text-white/20 min-w-0" placeholder={`Min. ${nextBid.toLocaleString("fr-FR")}`} value={enchereInput} onChange={(e) => setEnchereInput(e.target.value.replace(/[^\d]/g, ""))} />
                   </div>
-                  <button className="rounded-xl bg-purple-600 px-6 py-3 text-sm font-bold text-white hover:bg-purple-700 disabled:opacity-50 transition flex items-center gap-2" disabled={!enchereInput || Number(enchereInput) < nextBid} onClick={() => setShowBidConfirm(true)}>
+                  <button className="w-full sm:w-auto rounded-xl bg-purple-600 px-6 py-3 text-sm font-bold text-white hover:bg-purple-700 disabled:opacity-50 transition flex items-center justify-center gap-2 shrink-0" disabled={!enchereInput || Number(enchereInput) < nextBid} onClick={() => setShowBidConfirm(true)}>
                     <Gavel size={16} /> Enchérir
                   </button>
                 </div>

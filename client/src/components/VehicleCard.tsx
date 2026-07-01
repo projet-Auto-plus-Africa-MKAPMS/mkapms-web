@@ -18,6 +18,8 @@ export interface VehicleCardData {
   type: string;
   ville?: string | null;
   vendeurType?: string | null;
+  categorieAnnonce?: string | null;
+  ownership?: string | null;
   boosted?: boolean | null;
   photoPrincipale?: string | null;
   tier?: string | null;
@@ -32,10 +34,10 @@ export interface VehicleCardData {
 }
 
 function getCardTier(v: VehicleCardData): "officiel" | "elite" | "premium" | "professionnel" | "particulier" {
-  if (v.id >= 8000 && v.id <= 8005) return "officiel";
+  if (v.categorieAnnonce === "officielle" || v.ownership === "plateforme") return "officiel";
   if (v.tier === "elite") return "elite";
-  if (v.boosted && v.vendeurType === "professionnel") return "premium";
-  if (v.vendeurType === "professionnel" || v.vendeurType === "concession") return "professionnel";
+  if (v.boosted && (v.categorieAnnonce === "professionnelle" || v.vendeurType === "professionnel")) return "premium";
+  if (v.categorieAnnonce === "professionnelle" || v.vendeurType === "professionnel" || v.vendeurType === "concession") return "professionnel";
   return "particulier";
 }
 
@@ -60,11 +62,11 @@ export { BadgeChip };
 export default function VehicleCard({ v }: { v: VehicleCardData }) {
   const { format: formatPrice } = useCurrency();
   const isLocation = v.type === "location";
-  const isMkapmsStock = v.id >= 8000 && v.id <= 8005;
+  const isOfficielle = v.categorieAnnonce === "officielle" || v.ownership === "plateforme";
   const sellerLabel =
-    isMkapmsStock
+    isOfficielle
       ? "MKA.P-MS Officiel"
-      : v.vendeurType === "professionnel"
+      : v.categorieAnnonce === "professionnelle" || v.vendeurType === "professionnel"
         ? "Professionnel"
         : v.vendeurType === "concession"
           ? "Concession"
@@ -93,7 +95,7 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
     coupDeCoeur: v.coupDeCoeur,
     prixEnBaisse: v.prixEnBaisse,
     createdAt: v.createdAt,
-  }).filter((b) => !(isMkapmsStock && (b.code === "vendeur_pro" || b.code === "garage_verifie")));
+  }).filter((b) => !(isOfficielle && (b.code === "vendeur_pro" || b.code === "garage_verifie")));
 
   return (
     <Link to={`/vehicule/${v.id}`} className={`card group overflow-hidden transition hover:shadow-md ${isOfficielTier ? "border-[#D4AF37]/40 shadow-lg" : ""}`}>

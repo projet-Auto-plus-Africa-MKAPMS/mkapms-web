@@ -21,13 +21,100 @@ const TYPES = [
   { id: "moto", label: "Moto / Scooter / Quad", icon: Bike, color: "bg-red-600", desc: "Roadster, Sportive, Trail, Scooter..." },
   { id: "utilitaire", label: "Utilitaire", icon: Truck, color: "bg-orange-600", desc: "Fourgon, Camionnette, Pick-up..." },
   { id: "camion", label: "Camion", icon: Truck, color: "bg-gray-700", desc: "Poids lourd, Semi-remorque..." },
-  { id: "vtc", label: "Vehicule VTC", icon: Car, color: "bg-[#111]", desc: "Berline confort, Van..." },
+  { id: "vtc", label: "Véhicule VTC & Taxi", icon: Car, color: "bg-[#111]", desc: "Berline confort, Van..." },
 ];
 
-/* ── Categories vehicule ── */
+/* ── Catégories véhicule ── */
 const CATEGORIES_VOITURE = [
-  "Berline","Break","Cabriolet","Citadine","Coupe","Monospace","Pick-up","SUV","4x4","Crossover","Compact","Familiale",
+  "Berline","Break","Cabriolet","Citadine","Coupé","Monospace","Pick-up","SUV","4x4","Crossover","Compact","Familiale","Hybride","Électrique","Utilitaire","Premium",
 ];
+
+/* ── Détection automatique de catégorie par modèle ── */
+const AUTO_CATEGORIE: Record<string, string> = {
+  // Citadines
+  "108":"Citadine","208":"Citadine","Clio":"Citadine","Twingo":"Citadine","C1":"Citadine","C3":"Citadine",
+  "Polo":"Citadine","Fiesta":"Citadine","Sandero":"Citadine","i10":"Citadine","i20":"Citadine",
+  "Picanto":"Citadine","Micra":"Citadine","500":"Citadine","Corsa":"Citadine","Fabia":"Citadine",
+  "Ibiza":"Citadine","Mazda2":"Citadine","Aygo X":"Citadine","Yaris":"Citadine","Panda":"Citadine",
+  "Fortwo":"Citadine","Forfour":"Citadine","Mini 3 portes":"Citadine","Mini 5 portes":"Citadine",
+  "Jazz":"Citadine","Swift":"Citadine","Ignis":"Citadine","Rio":"Citadine",
+  // Berlines
+  "308":"Berline","508":"Berline","408":"Berline","Megane":"Berline","Focus":"Berline",
+  "Golf":"Berline","Astra":"Berline","Scala":"Berline","Leon":"Berline","Octavia":"Berline",
+  "Serie 1":"Berline","Serie 3":"Berline","Serie 5":"Berline","Serie 7":"Berline",
+  "Classe A":"Berline","Classe C":"Berline","Classe E":"Berline","Classe S":"Berline",
+  "A3":"Berline","A4":"Berline","A6":"Berline","A8":"Berline",
+  "Model 3":"Berline","Mazda3":"Berline","Corolla":"Berline","i30":"Berline",
+  "Ceed":"Berline","Tipo":"Berline","Superb":"Berline","XE":"Berline","XF":"Berline",
+  "S60":"Berline","S90":"Berline","IS":"Berline","ES":"Berline","Civic":"Berline",
+  // SUV
+  "3008":"SUV","5008":"SUV","2008":"SUV","Captur":"SUV","Austral":"SUV","Arkana":"SUV",
+  "C3 Aircross":"SUV","C4":"SUV","C4 X":"SUV","C5 X":"SUV","C5 Aircross":"SUV",
+  "X1":"SUV","X2":"SUV","X3":"SUV","X4":"SUV","X5":"SUV","X6":"SUV","X7":"SUV",
+  "GLA":"SUV","GLB":"SUV","GLC":"SUV","GLE":"SUV","GLS":"SUV",
+  "Q2":"SUV","Q3":"SUV","Q5":"SUV","Q7":"SUV","Q8":"SUV",
+  "T-Roc":"SUV","Tiguan":"SUV","Touareg":"SUV","T-Cross":"SUV","Taigo":"SUV",
+  "Puma":"SUV","Kuga":"SUV","Explorer":"SUV",
+  "Duster":"SUV","Sandero Stepway":"SUV","Jogger":"SUV",
+  "Kona":"SUV","Tucson":"SUV","Santa Fe":"SUV","Bayon":"SUV",
+  "Sportage":"SUV","Sorento":"SUV","Niro":"SUV","Stonic":"SUV",
+  "Juke":"SUV","Qashqai":"SUV","X-Trail":"SUV",
+  "500X":"SUV","Mokka":"SUV","Crossland":"SUV","Grandland":"SUV",
+  "XC40":"SUV","XC60":"SUV","XC90":"SUV","C40":"SUV",
+  "Kamiq":"SUV","Karoq":"SUV","Kodiaq":"SUV",
+  "Arona":"SUV","Ateca":"SUV","Tarraco":"SUV",
+  "Cayenne":"SUV","Macan":"SUV",
+  "CX-3":"SUV","CX-30":"SUV","CX-5":"SUV","CX-60":"SUV",
+  "Renegade":"SUV","Compass":"SUV","Cherokee":"SUV","Grand Cherokee":"SUV","Avenger":"SUV",
+  "Yaris Cross":"SUV","C-HR":"SUV","RAV4":"SUV",
+  "E-Pace":"SUV","F-Pace":"SUV","NX":"SUV","RX":"SUV","UX":"SUV",
+  "HR-V":"SUV","ZR-V":"SUV","CR-V":"SUV","Vitara":"SUV","S-Cross":"SUV","Across":"SUV",
+  "XCeed":"SUV","Proceed":"Coupé",
+  // 4x4
+  "Defender":"4x4","Discovery":"4x4","Discovery Sport":"4x4",
+  "Range Rover":"4x4","Range Rover Sport":"4x4","Range Rover Evoque":"4x4","Range Rover Velar":"4x4",
+  "Wrangler":"4x4","Gladiator":"4x4","Land Cruiser":"4x4","Highlander":"4x4","Jimny":"4x4",
+  // Breaks
+  "V60":"Break","V90":"Break","Passat":"Break","Swace":"Break",
+  // Cabriolets
+  "Z4":"Cabriolet","718 Boxster":"Cabriolet","MX-5":"Cabriolet","Mini Cabriolet":"Cabriolet","F-Type":"Cabriolet",
+  // Monospaces
+  "Scenic":"Monospace","Espace":"Monospace","Kangoo":"Monospace",
+  "Berlingo":"Monospace","SpaceTourer":"Monospace","Rifter":"Monospace",
+  // Coupés
+  "Serie 2":"Coupé","Serie 4":"Coupé","CLA":"Coupé","CLS":"Coupé",
+  "A5":"Coupé","A7":"Coupé","TT":"Coupé","RS3":"Coupé","RS4":"Coupé","RS5":"Coupé","RS6":"Coupé",
+  "911":"Coupé","Panamera":"Coupé","718 Cayman":"Coupé",
+  "Arteon":"Coupé","Supra":"Coupé","GR86":"Coupé","LC":"Coupé",
+  "Mustang":"Coupé","M3":"Coupé","M4":"Coupé","AMG GT":"Coupé",
+  // Pick-up
+  "Ranger":"Pick-up","Hilux":"Pick-up","Navara":"Pick-up",
+  // Électriques
+  "Zoe":"Électrique","Spring":"Électrique","Megane E-Tech":"Électrique",
+  "e-208":"Électrique","e-2008":"Électrique","e-308":"Électrique","e-3008":"Électrique",
+  "Ami":"Électrique","e-C4":"Électrique",
+  "Model Y":"Électrique","Model S":"Électrique","Model X":"Électrique",
+  "ID.3":"Électrique","ID.4":"Électrique","ID.5":"Électrique","ID.Buzz":"Électrique",
+  "Ioniq 5":"Électrique","Ioniq 6":"Électrique","EV6":"Électrique","EV9":"Électrique",
+  "Ariya":"Électrique","Leaf":"Électrique",
+  "500e":"Électrique","600e":"Électrique",
+  "iX3":"Électrique","iX":"Électrique","i4":"Électrique","i7":"Électrique",
+  "EQA":"Électrique","EQB":"Électrique","EQC":"Électrique","EQE":"Électrique","EQS":"Électrique",
+  "Q4 e-tron":"Électrique","e-tron":"Électrique",
+  "bZ4X":"Électrique","MX-30":"Électrique","EX30":"Électrique","EX90":"Électrique",
+  "Enyaq":"Électrique","#1":"Électrique","Mini Cooper SE":"Électrique",
+  "RZ":"Électrique","I-Pace":"Électrique","LBX":"Électrique","Honda e":"Électrique","e:Ny1":"Électrique",
+  "Taycan":"Électrique",
+  // Utilitaires
+  "Partner":"Utilitaire","Expert":"Utilitaire","Boxer":"Utilitaire",
+  "Trafic":"Utilitaire","Master":"Utilitaire",
+  "Jumpy":"Utilitaire","Jumper":"Utilitaire",
+  "Transit":"Utilitaire","Transit Custom":"Utilitaire","Tourneo":"Utilitaire",
+  "Transporter":"Utilitaire","Caddy":"Utilitaire",
+  "Vivaro":"Utilitaire","Movano":"Utilitaire","Combo":"Utilitaire",
+  "Doblo":"Utilitaire","Ducato":"Utilitaire","Scudo":"Utilitaire",
+  "Primastar":"Utilitaire","Townstar":"Utilitaire","Proace":"Utilitaire",
+};
 
 /* ── Marques ── */
 const MARQUES_VOITURE = [
@@ -566,7 +653,7 @@ export default function DepotAnnonce() {
 
               {/* Modele — cascading */}
               {form.marque && (
-                <SelectField label="Modele" value={form.modele} onChange={(v) => { set("modele", v); set("motorisation", ""); set("version", ""); set("finition", ""); }} options={availableModeles} required placeholder="Selectionnez le modele" errorKey="modele" />
+                <SelectField label="Modele" value={form.modele} onChange={(v) => { set("modele", v); set("motorisation", ""); set("version", ""); set("finition", ""); const autoCat = AUTO_CATEGORIE[v]; if (autoCat) set("categorie", autoCat); }} options={availableModeles} required placeholder="Selectionnez le modele" errorKey="modele" />
               )}
 
               {/* Categorie */}

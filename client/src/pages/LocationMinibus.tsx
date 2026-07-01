@@ -12,21 +12,24 @@ import {
    ══════════════════════════════════════════════════════════════════════════ */
 
 const CATEGORIES = [
-  { titre: "8 places", modeles: ["Caravelle", "V-Class"], photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=240&fit=crop", count: 5 },
-  { titre: "9 places", modeles: ["Sprinter", "Transporter"], photo: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=240&fit=crop", count: 6 },
-  { titre: "12-17 places", modeles: ["Sprinter 17pl", "Master 12pl"], photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=240&fit=crop", count: 4 },
-  { titre: "Minibus Premium", modeles: ["V-Class VIP", "Sprinter Tourer"], photo: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=240&fit=crop", count: 3 },
+  { titre: "7 places", modeles: ["Sharan", "Espace", "Galaxy"], photo: "/categories/minibus_7pl.jpg", count: 8 },
+  { titre: "8 places", modeles: ["Caravelle", "V-Class", "Multivan"], photo: "/categories/minibus_8pl.jpg", count: 12 },
+  { titre: "9 places", modeles: ["Sprinter", "Transporter", "Transit"], photo: "/categories/minibus_9pl.jpg", count: 10 },
+  { titre: "12 places", modeles: ["Master 12pl", "Daily 12pl", "Boxer 12pl"], photo: "/categories/minibus_12pl.jpg", count: 7 },
+  { titre: "17 places", modeles: ["Sprinter 17pl", "Master 17pl", "Transit 17pl"], photo: "/categories/minibus_17pl.jpg", count: 5 },
+  { titre: "Minibus Premium", modeles: ["V-Class VIP", "Sprinter Tourer", "Caravelle Highline"], photo: "/categories/minibus_premium.jpg", count: 6 },
+  { titre: "Minibus Électrique", modeles: ["ID.Buzz", "e-Sprinter", "e-Transit"], photo: "/categories/minibus_electrique.jpg", count: 4 },
 ];
 
 const VEHICULES = [
-  { id: 7001, titre: "Volkswagen Caravelle 8pl", annee: 2024, places: 8, boite: "Automatique", prixJour: 95, prixSemaine: 570, prixMois: 2200, photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=260&fit=crop", categorie: "8 places" },
-  { id: 7002, titre: "Mercedes Classe V 8pl", annee: 2024, places: 8, boite: "Automatique", prixJour: 120, prixSemaine: 720, prixMois: 2800, photo: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=260&fit=crop", categorie: "8 places Premium" },
-  { id: 7003, titre: "Mercedes Sprinter 9pl", annee: 2024, places: 9, boite: "Automatique", prixJour: 110, prixSemaine: 660, prixMois: 2500, photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=260&fit=crop", categorie: "9 places" },
-  { id: 7004, titre: "Volkswagen Transporter 9pl", annee: 2023, places: 9, boite: "Manuelle", prixJour: 90, prixSemaine: 540, prixMois: 2100, photo: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=260&fit=crop", categorie: "9 places" },
-  { id: 7005, titre: "Ford Transit 9pl", annee: 2024, places: 9, boite: "Manuelle", prixJour: 85, prixSemaine: 510, prixMois: 1950, photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=260&fit=crop", categorie: "9 places" },
-  { id: 7006, titre: "Renault Master 12pl", annee: 2023, places: 12, boite: "Manuelle", prixJour: 130, prixSemaine: 780, prixMois: 3000, photo: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=260&fit=crop", categorie: "12-17 places" },
-  { id: 7007, titre: "Mercedes Sprinter 17pl", annee: 2024, places: 17, boite: "Automatique", prixJour: 160, prixSemaine: 960, prixMois: 3700, photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=260&fit=crop", categorie: "12-17 places" },
-  { id: 7008, titre: "Mercedes V-Class VIP", annee: 2024, places: 7, boite: "Automatique", prixJour: 180, prixSemaine: 1080, prixMois: 4200, photo: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=260&fit=crop", categorie: "Premium" },
+  { id: 7001, titre: "Volkswagen Caravelle 8pl", annee: 2024, places: 8, boite: "Automatique", prixJour: 95, prixSemaine: 570, prixMois: 2200, photo: "/categories/loc_cover_minibus.jpg", categorie: "8 places" },
+  { id: 7002, titre: "Mercedes Classe V 8pl", annee: 2024, places: 8, boite: "Automatique", prixJour: 120, prixSemaine: 720, prixMois: 2800, photo: "/categories/vtc_minivan.jpg", categorie: "8 places Premium" },
+  { id: 7003, titre: "Mercedes Sprinter 9pl", annee: 2024, places: 9, boite: "Automatique", prixJour: 110, prixSemaine: 660, prixMois: 2500, photo: "/categories/loc_cover_minibus.jpg", categorie: "9 places" },
+  { id: 7004, titre: "Volkswagen Transporter 9pl", annee: 2023, places: 9, boite: "Manuelle", prixJour: 90, prixSemaine: 540, prixMois: 2100, photo: "/categories/vtc_minivan.jpg", categorie: "9 places" },
+  { id: 7005, titre: "Ford Transit 9pl", annee: 2024, places: 9, boite: "Manuelle", prixJour: 85, prixSemaine: 510, prixMois: 1950, photo: "/categories/loc_cover_minibus.jpg", categorie: "9 places" },
+  { id: 7006, titre: "Renault Master 12pl", annee: 2023, places: 12, boite: "Manuelle", prixJour: 130, prixSemaine: 780, prixMois: 3000, photo: "/categories/vtc_minivan.jpg", categorie: "12-17 places" },
+  { id: 7007, titre: "Mercedes Sprinter 17pl", annee: 2024, places: 17, boite: "Automatique", prixJour: 160, prixSemaine: 960, prixMois: 3700, photo: "/categories/loc_cover_minibus.jpg", categorie: "12-17 places" },
+  { id: 7008, titre: "Mercedes V-Class VIP", annee: 2024, places: 7, boite: "Automatique", prixJour: 180, prixSemaine: 1080, prixMois: 4200, photo: "/categories/vtc_minivan.jpg", categorie: "Premium" },
 ];
 
 const OCCASIONS = [
@@ -75,7 +78,7 @@ export default function LocationMinibus() {
 
       {/* BANNIÈRE */}
       <div className="relative overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=800&h=420&fit=crop" alt="Minibus" className="w-full h-[240px] md:h-[320px] lg:h-[400px] object-cover" />
+        <img src="/categories/loc_cover_minibus.jpg" alt="Minibus" className="w-full h-[240px] md:h-[320px] lg:h-[400px] object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#111]/90 via-[#111]/40 to-transparent" />
         <Link to="/louer" className="absolute top-4 left-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur">
           <ChevronLeft size={20} className="text-[#111]" />

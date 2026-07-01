@@ -17,7 +17,7 @@ const VEHICLE_TYPES: { id: VehiculeType; label: string; icon: typeof Car }[] = [
   { id: "utilitaire", label: "Utilitaire", icon: Truck },
   { id: "moto", label: "Moto", icon: Bike },
   { id: "scooter", label: "Scooter", icon: Bike },
-  { id: "vtc", label: "Véhicule VTC", icon: Car },
+  { id: "vtc", label: "Véhicule VTC & Taxi", icon: Car },
   { id: "taxi", label: "Véhicule Taxi", icon: Car },
 ];
 

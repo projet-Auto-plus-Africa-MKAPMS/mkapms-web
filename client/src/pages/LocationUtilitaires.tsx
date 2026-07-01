@@ -12,24 +12,43 @@ import {
    ══════════════════════════════════════════════════════════════════════════ */
 
 const CATEGORIES = [
-  { titre: "Utilitaires légers", modeles: ["Kangoo", "Berlingo", "Partner", "Caddy"], photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=400&h=240&fit=crop", count: 12 },
-  { titre: "Fourgons", modeles: ["Trafic", "Vivaro", "Transit Custom"], photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=240&fit=crop", count: 8 },
-  { titre: "Grand volume", modeles: ["Master", "Boxer", "Ducato", "Sprinter"], photo: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=240&fit=crop", count: 6 },
-  { titre: "Camionnettes plateau", modeles: ["L200", "Hilux", "Navara"], photo: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=400&h=240&fit=crop", count: 5 },
-  { titre: "Frigorifiques", modeles: ["Berlingo Frigo", "Trafic Frigo"], photo: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=240&fit=crop", count: 4 },
+  { titre: "Utilitaires légers", modeles: ["Kangoo", "Berlingo", "Partner", "Caddy"], photo: "/categories/util_petit_fourgon.jpg", count: 12 },
+  { titre: "Fourgons", modeles: ["Trafic", "Vivaro", "Transit Custom"], photo: "/categories/util_fourgon_moyen.jpg", count: 8 },
+  { titre: "Grand volume", modeles: ["Master", "Boxer", "Ducato", "Sprinter"], photo: "/categories/util_grand_fourgon.jpg", count: 6 },
+  { titre: "Camionnettes plateau", modeles: ["L200", "Hilux", "Navara"], photo: "/categories/utilitaire_benne.jpg", count: 5 },
+  { titre: "Frigorifiques", modeles: ["Berlingo Frigo", "Trafic Frigo"], photo: "/categories/utilitaire_frigo.jpg", count: 4 },
+  { titre: "Bennes", modeles: ["Trafic Benne", "Transit Benne", "Master Benne"], photo: "/categories/utilitaire_benne_loc.jpg", count: 6 },
+  { titre: "Pick-up / 4x4", modeles: ["Hilux", "Ranger", "Amarok", "L200"], photo: "/categories/utilitaire_pickup.jpg", count: 7 },
+  { titre: "Électriques", modeles: ["e-Kangoo", "e-Berlingo", "e-Partner", "e-Transit"], photo: "/categories/utilitaire_electrique.jpg", count: 5 },
+  { titre: "Bâchés", modeles: ["Trafic Bâché", "Master Bâché", "Transit Bâché"], photo: "/categories/utilitaire_bache.jpg", count: 4 },
+  { titre: "Avec hayon", modeles: ["Master Hayon", "Boxer Hayon", "Sprinter Hayon"], photo: "/categories/utilitaire_hayon.jpg", count: 5 },
+  { titre: "Isothermes", modeles: ["Berlingo Isotherme", "Trafic Isotherme", "Partner Isotherme"], photo: "/categories/utilitaire_isotherme.jpg", count: 3 },
 ];
 
 const VEHICULES = [
-  { id: 5001, titre: "Renault Kangoo Van", annee: 2024, volume: "3.3 m³", charge: "650 kg", prixJour: 35, prixSemaine: 210, prixMois: 750, photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=400&h=260&fit=crop", categorie: "Utilitaire léger" },
-  { id: 5002, titre: "Citroën Berlingo Van", annee: 2023, volume: "3.7 m³", charge: "700 kg", prixJour: 38, prixSemaine: 228, prixMois: 800, photo: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=260&fit=crop", categorie: "Utilitaire léger" },
-  { id: 5003, titre: "Peugeot Partner Van", annee: 2024, volume: "3.8 m³", charge: "750 kg", prixJour: 38, prixSemaine: 228, prixMois: 790, photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=400&h=260&fit=crop", categorie: "Utilitaire léger" },
-  { id: 5004, titre: "Renault Trafic L2H1", annee: 2024, volume: "5.8 m³", charge: "1200 kg", prixJour: 55, prixSemaine: 330, prixMois: 1100, photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=260&fit=crop", categorie: "Fourgon" },
-  { id: 5005, titre: "Ford Transit Custom", annee: 2023, volume: "6.0 m³", charge: "1300 kg", prixJour: 58, prixSemaine: 348, prixMois: 1150, photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=260&fit=crop", categorie: "Fourgon" },
-  { id: 5006, titre: "Renault Master L3H2", annee: 2024, volume: "13 m³", charge: "1500 kg", prixJour: 75, prixSemaine: 450, prixMois: 1500, photo: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=260&fit=crop", categorie: "Grand volume" },
-  { id: 5007, titre: "Mercedes Sprinter 314", annee: 2023, volume: "11 m³", charge: "1400 kg", prixJour: 85, prixSemaine: 510, prixMois: 1700, photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=260&fit=crop", categorie: "Grand volume" },
-  { id: 5008, titre: "Fiat Ducato L4H3", annee: 2024, volume: "17 m³", charge: "1600 kg", prixJour: 90, prixSemaine: 540, prixMois: 1800, photo: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=260&fit=crop", categorie: "Grand volume" },
-  { id: 5009, titre: "Mitsubishi L200", annee: 2023, volume: "Plateau", charge: "1050 kg", prixJour: 65, prixSemaine: 390, prixMois: 1300, photo: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=400&h=260&fit=crop", categorie: "Plateau" },
-  { id: 5010, titre: "Renault Trafic Frigo", annee: 2024, volume: "5.2 m³", charge: "1000 kg", prixJour: 75, prixSemaine: 450, prixMois: 1500, photo: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=260&fit=crop", categorie: "Frigorifique" },
+  { id: 5001, titre: "Renault Kangoo Van", annee: 2024, volume: "3.3 m³", charge: "650 kg", prixJour: 35, prixSemaine: 210, prixMois: 750, photo: "/categories/util_petit_fourgon.jpg", categorie: "Utilitaire léger" },
+  { id: 5002, titre: "Citroën Berlingo Van", annee: 2023, volume: "3.7 m³", charge: "700 kg", prixJour: 38, prixSemaine: 228, prixMois: 800, photo: "/categories/util_grand_fourgon.jpg", categorie: "Utilitaire léger" },
+  { id: 5003, titre: "Peugeot Partner Van", annee: 2024, volume: "3.8 m³", charge: "750 kg", prixJour: 38, prixSemaine: 228, prixMois: 790, photo: "/categories/util_petit_fourgon.jpg", categorie: "Utilitaire léger" },
+  { id: 5004, titre: "Renault Trafic L2H1", annee: 2024, volume: "5.8 m³", charge: "1200 kg", prixJour: 55, prixSemaine: 330, prixMois: 1100, photo: "/categories/util_fourgon_moyen.jpg", categorie: "Fourgon" },
+  { id: 5005, titre: "Ford Transit Custom", annee: 2023, volume: "6.0 m³", charge: "1300 kg", prixJour: 58, prixSemaine: 348, prixMois: 1150, photo: "/categories/util_fourgon_moyen.jpg", categorie: "Fourgon" },
+  { id: 5006, titre: "Renault Master L3H2", annee: 2024, volume: "13 m³", charge: "1500 kg", prixJour: 75, prixSemaine: 450, prixMois: 1500, photo: "/categories/util_grand_fourgon.jpg", categorie: "Grand volume" },
+  { id: 5007, titre: "Mercedes Sprinter 314", annee: 2023, volume: "11 m³", charge: "1400 kg", prixJour: 85, prixSemaine: 510, prixMois: 1700, photo: "/categories/util_fourgon_moyen.jpg", categorie: "Grand volume" },
+  { id: 5008, titre: "Fiat Ducato L4H3", annee: 2024, volume: "17 m³", charge: "1600 kg", prixJour: 90, prixSemaine: 540, prixMois: 1800, photo: "/categories/util_grand_fourgon.jpg", categorie: "Grand volume" },
+  { id: 5009, titre: "Mitsubishi L200", annee: 2023, volume: "Plateau", charge: "1050 kg", prixJour: 65, prixSemaine: 390, prixMois: 1300, photo: "/categories/utilitaire_benne.jpg", categorie: "Plateau" },
+  { id: 5010, titre: "Renault Trafic Frigo", annee: 2024, volume: "5.2 m³", charge: "1000 kg", prixJour: 75, prixSemaine: 450, prixMois: 1500, photo: "/categories/utilitaire_frigo.jpg", categorie: "Frigorifique" },
+  { id: 5011, titre: "Renault Trafic Benne", annee: 2024, volume: "Benne", charge: "1200 kg", prixJour: 70, prixSemaine: 420, prixMois: 1400, photo: "/categories/utilitaire_benne_loc.jpg", categorie: "Benne" },
+  { id: 5012, titre: "Ford Transit Benne", annee: 2023, volume: "Benne", charge: "1300 kg", prixJour: 72, prixSemaine: 432, prixMois: 1450, photo: "/categories/utilitaire_benne_loc.jpg", categorie: "Benne" },
+  { id: 5013, titre: "Toyota Hilux Pick-up", annee: 2024, volume: "Plateau", charge: "1000 kg", prixJour: 68, prixSemaine: 408, prixMois: 1350, photo: "/categories/utilitaire_pickup.jpg", categorie: "Pick-up / 4x4" },
+  { id: 5014, titre: "Ford Ranger 4x4", annee: 2024, volume: "Plateau", charge: "1050 kg", prixJour: 70, prixSemaine: 420, prixMois: 1400, photo: "/categories/utilitaire_pickup.jpg", categorie: "Pick-up / 4x4" },
+  { id: 5015, titre: "Renault Kangoo E-Tech", annee: 2024, volume: "3.3 m³", charge: "600 kg", prixJour: 45, prixSemaine: 270, prixMois: 950, photo: "/categories/utilitaire_electrique.jpg", categorie: "Électrique" },
+  { id: 5016, titre: "Citroën Berlingo Electric", annee: 2024, volume: "3.7 m³", charge: "650 kg", prixJour: 48, prixSemaine: 288, prixMois: 980, photo: "/categories/utilitaire_electrique.jpg", categorie: "Électrique" },
+  { id: 5017, titre: "Ford e-Transit Custom", annee: 2024, volume: "5.8 m³", charge: "1000 kg", prixJour: 75, prixSemaine: 450, prixMois: 1550, photo: "/categories/utilitaire_electrique.jpg", categorie: "Électrique" },
+  { id: 5018, titre: "Renault Master Bâché", annee: 2023, volume: "12 m³", charge: "1400 kg", prixJour: 80, prixSemaine: 480, prixMois: 1600, photo: "/categories/utilitaire_bache.jpg", categorie: "Bâché" },
+  { id: 5019, titre: "Ford Transit Bâché", annee: 2024, volume: "10 m³", charge: "1300 kg", prixJour: 78, prixSemaine: 468, prixMois: 1550, photo: "/categories/utilitaire_bache.jpg", categorie: "Bâché" },
+  { id: 5020, titre: "Renault Master Hayon", annee: 2024, volume: "13 m³", charge: "1500 kg", prixJour: 90, prixSemaine: 540, prixMois: 1800, photo: "/categories/utilitaire_hayon.jpg", categorie: "Avec hayon" },
+  { id: 5021, titre: "Mercedes Sprinter Hayon", annee: 2023, volume: "11 m³", charge: "1400 kg", prixJour: 95, prixSemaine: 570, prixMois: 1900, photo: "/categories/utilitaire_hayon.jpg", categorie: "Avec hayon" },
+  { id: 5022, titre: "Citroën Berlingo Isotherme", annee: 2024, volume: "3.3 m³", charge: "600 kg", prixJour: 50, prixSemaine: 300, prixMois: 1050, photo: "/categories/utilitaire_isotherme.jpg", categorie: "Isotherme" },
+  { id: 5023, titre: "Renault Trafic Isotherme", annee: 2024, volume: "5.0 m³", charge: "1000 kg", prixJour: 65, prixSemaine: 390, prixMois: 1300, photo: "/categories/utilitaire_isotherme.jpg", categorie: "Isotherme" },
 ];
 
 const SERVICES = [
@@ -74,7 +93,7 @@ export default function LocationUtilitaires() {
 
       {/* BANNIÈRE */}
       <div className="relative overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=800&h=420&fit=crop" alt="Utilitaires" className="w-full h-[240px] md:h-[320px] lg:h-[400px] object-cover" />
+        <img src="/categories/loc_cover_utilitaires.jpg" alt="Utilitaires" className="w-full h-[240px] md:h-[320px] lg:h-[400px] object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#111]/90 via-[#111]/40 to-transparent" />
         <Link to="/louer" className="absolute top-4 left-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur">
           <ChevronLeft size={20} className="text-[#111]" />

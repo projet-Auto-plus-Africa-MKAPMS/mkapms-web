@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <defs>
+    <linearGradient id="bodyCab" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6a2a2a"/>
+      <stop offset="100%" stop-color="#3a1010"/>
+    </linearGradient>
+    <linearGradient id="glassCab" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a0d0e8"/>
+      <stop offset="100%" stop-color="#6aaccc"/>
+    </linearGradient>
+  </defs>
+  <!-- Body - low and sporty convertible -->
+  <path d="M55,130 L65,130 L70,108 Q78,88 115,78 L200,70 Q260,68 295,75 L320,85 Q338,95 342,108 L348,130 L360,130 L360,140 L45,140 L45,130 Z" fill="url(#bodyCab)" stroke="#3a1010" stroke-width="1.5"/>
+  <!-- Open top - windshield only, no roof -->
+  <path d="M155,78 Q160,58 190,55 L230,55 L230,72 Z" fill="url(#glassCab)" stroke="#4a8a9f" stroke-width="1"/>
+  <!-- Windshield frame -->
+  <path d="M152,78 Q158,54 192,52 L232,52 L235,72" fill="none" stroke="#3a1010" stroke-width="2"/>
+  <!-- Interior visible (open top) -->
+  <path d="M235,70 L295,75 L295,108 L235,108 Z" fill="#2a1a1a" stroke="#1a0a0a" stroke-width="0.5"/>
+  <path d="M155,78 L235,70 L235,108 L155,108 Z" fill="#2a1a1a" stroke="#1a0a0a" stroke-width="0.5"/>
+  <!-- Seats visible -->
+  <rect x="170" y="88" width="28" height="18" rx="4" fill="#4a2a2a"/>
+  <rect x="245" y="88" width="28" height="18" rx="4" fill="#4a2a2a"/>
+  <!-- Headrest -->
+  <rect x="178" y="82" width="12" height="8" rx="3" fill="#5a3a3a"/>
+  <rect x="253" y="82" width="12" height="8" rx="3" fill="#5a3a3a"/>
+  <!-- Headlight -->
+  <path d="M60,108 Q53,105 53,113 Q53,120 60,117 L72,114 L72,110 Z" fill="#fff8dc" stroke="#666" stroke-width="0.5"/>
+  <!-- Taillight -->
+  <rect x="350" y="108" width="10" height="14" rx="2" fill="#e33" stroke="#c22" stroke-width="0.5"/>
+  <!-- Chrome strip -->
+  <line x1="70" y1="115" x2="345" y2="115" stroke="#666" stroke-width="1.5"/>
+  <!-- Door line -->
+  <line x1="235" y1="70" x2="235" y2="130" stroke="#3a1010" stroke-width="1"/>
+  <!-- Door handle -->
+  <rect x="245" y="100" width="16" height="4" rx="2" fill="#5a2a2a"/>
+  <!-- Bumpers -->
+  <path d="M45,130 Q37,130 37,135 L37,142 L58,142 L58,140 L45,140 Z" fill="#2a1010"/>
+  <path d="M360,130 Q368,130 368,135 L368,142 L348,142 L348,140 L360,140 Z" fill="#2a1010"/>
+  <!-- Wheels - sporty low profile -->
+  <circle cx="112" cy="142" r="24" fill="#1a1a1a"/>
+  <circle cx="112" cy="142" r="17" fill="#333"/>
+  <circle cx="112" cy="142" r="11" fill="#555"/>
+  <circle cx="112" cy="142" r="4" fill="#888"/>
+  <circle cx="308" cy="142" r="24" fill="#1a1a1a"/>
+  <circle cx="308" cy="142" r="17" fill="#333"/>
+  <circle cx="308" cy="142" r="11" fill="#555"/>
+  <circle cx="308" cy="142" r="4" fill="#888"/>
+  <!-- Spokes -->
+  <line x1="112" y1="126" x2="112" y2="158" stroke="#666" stroke-width="1.5"/>
+  <line x1="96" y1="142" x2="128" y2="142" stroke="#666" stroke-width="1.5"/>
+  <line x1="308" y1="126" x2="308" y2="158" stroke="#666" stroke-width="1.5"/>
+  <line x1="292" y1="142" x2="324" y2="142" stroke="#666" stroke-width="1.5"/>
+  <!-- Shadow -->
+  <ellipse cx="210" cy="170" rx="160" ry="6" fill="rgba(0,0,0,0.1)"/>
+</svg>

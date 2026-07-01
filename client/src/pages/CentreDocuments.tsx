@@ -29,7 +29,7 @@ const CATEGORIES = [
   { id: "vente", label: "Vente", icon: Car },
   { id: "location", label: "Location", icon: CreditCard },
   { id: "garage", label: "Garage", icon: Wrench },
-  { id: "vtc", label: "VTC/Taxi", icon: Shield },
+  { id: "vtc", label: "VTC & Taxi", icon: Shield },
   { id: "admin", label: "Admin", icon: Briefcase },
 ];
 

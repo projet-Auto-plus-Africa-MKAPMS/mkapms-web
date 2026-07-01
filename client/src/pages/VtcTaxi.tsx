@@ -16,53 +16,88 @@ import {
 
 const CATEGORIES = [
   {
-    titre: "Berlines VTC",
-    modeles: ["Classe E", "Série 5", "A6", "Superb"],
-    desc: "Confort premium pour vos clients.",
-    photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=240&fit=crop",
-    count: 14,
+    titre: "Berlines",
+    modeles: ["Classe E", "Série 5", "A6", "Camry", "508", "Passat"],
+    desc: "Berlines confort pour VTC & Taxi.",
+    photo: "/categories/vtc_berline_premium.jpg",
+    count: 24,
   },
   {
-    titre: "Berlines Taxi",
-    modeles: ["Camry", "Prius", "508", "Passat"],
-    desc: "Fiables et économiques.",
-    photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=240&fit=crop",
-    count: 10,
-  },
-  {
-    titre: "SUV & Vans VTC",
-    modeles: ["Classe V", "GLC", "X5", "Q7"],
+    titre: "SUV & Vans",
+    modeles: ["Classe V", "GLC", "X5", "Q7", "Touareg"],
     desc: "Transport groupe et premium.",
-    photo: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400&h=240&fit=crop",
+    photo: "/categories/vtc_suv_premium.jpg",
     count: 8,
   },
   {
-    titre: "Électriques VTC",
-    modeles: ["Model 3", "Model Y", "EQE", "ID.4"],
+    titre: "Électriques",
+    modeles: ["Model 3", "Model Y", "EQE", "ID.4", "ZOE"],
     desc: "Zéro émission, confort maximal.",
-    photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=240&fit=crop",
+    photo: "/categories/vtc_electrique.jpg",
     count: 6,
   },
   {
     titre: "Hybrides",
-    modeles: ["Camry Hybrid", "530e", "A4 TFSI e"],
+    modeles: ["Camry Hybrid", "530e", "A4 TFSI e", "Prius"],
     desc: "Économie et écologie.",
-    photo: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=240&fit=crop",
+    photo: "/categories/vtc_hybride.jpg",
     count: 9,
+  },
+  {
+    titre: "Breaks",
+    modeles: ["508 SW", "Passat SW", "A4 Avant", "Superb Combi"],
+    desc: "Coffre spacieux, idéal bagages.",
+    photo: "/categories/loc_break.jpg",
+    count: 7,
+  },
+  {
+    titre: "Monospaces",
+    modeles: ["Scenic", "Touran", "Espace", "Galaxy"],
+    desc: "Confort famille et groupes.",
+    photo: "/categories/loc_monospace.jpg",
+    count: 5,
+  },
+  {
+    titre: "Berlines Premium",
+    modeles: ["Classe S", "7 Series", "A8", "Panamera"],
+    desc: "Haut de gamme, standing maximal.",
+    photo: "/categories/pro_premium.jpg",
+    count: 4,
+  },
+  {
+    titre: "Taxi classique",
+    modeles: ["Prius", "508", "Camry", "Passat"],
+    desc: "Taxi agréé, tarif réglementé.",
+    photo: "/categories/vtc_taxi_classique.jpg",
+    count: 12,
+  },
+  {
+    titre: "Taxi électrique",
+    modeles: ["Model 3", "BYD Han", "ZOE"],
+    desc: "Taxi zéro émission, éco-responsable.",
+    photo: "/categories/vtc_taxi_electrique.jpg",
+    count: 6,
+  },
+  {
+    titre: "Minivan VTC",
+    modeles: ["Classe V", "Caravelle", "Multivan"],
+    desc: "Transport groupe jusqu'à 8 personnes.",
+    photo: "/categories/vtc_minivan.jpg",
+    count: 5,
   },
 ];
 
 const VEHICULES = [
-  { id: 9201, titre: "Mercedes Classe E Break", annee: 2024, boite: "Automatique", carburant: "Diesel", places: 5, prixJour: 63, prixSemaine: 380, prixMois: 1350, photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop", categorie: "Berline VTC", badge: "VTC agréé" },
-  { id: 9202, titre: "Tesla Model 3 Long Range", annee: 2024, boite: "Automatique", carburant: "Électrique", places: 5, prixJour: 75, prixSemaine: 450, prixMois: 1500, photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=260&fit=crop", categorie: "Électrique VTC", badge: "Électrique" },
-  { id: 9203, titre: "Toyota Camry Hybride", annee: 2023, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 52, prixSemaine: 312, prixMois: 1100, photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop", categorie: "Berline Taxi", badge: "Taxi" },
-  { id: 9204, titre: "BMW Série 5 530e", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 78, prixSemaine: 468, prixMois: 1600, photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=260&fit=crop", categorie: "Berline VTC", badge: "VTC Premium" },
-  { id: 9205, titre: "Peugeot 508 GT", annee: 2024, boite: "Automatique", carburant: "Diesel", places: 5, prixJour: 48, prixSemaine: 288, prixMois: 980, photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", categorie: "Berline Taxi", badge: "Taxi" },
-  { id: 9206, titre: "Mercedes Classe V 250d", annee: 2024, boite: "Automatique", carburant: "Diesel", places: 7, prixJour: 95, prixSemaine: 570, prixMois: 1900, photo: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400&h=260&fit=crop", categorie: "SUV & Van VTC", badge: "VTC Premium" },
-  { id: 9207, titre: "Volkswagen ID.4 Pro", annee: 2024, boite: "Automatique", carburant: "Électrique", places: 5, prixJour: 65, prixSemaine: 390, prixMois: 1300, photo: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=260&fit=crop", categorie: "Électrique VTC", badge: "Électrique" },
-  { id: 9208, titre: "Skoda Superb Combi", annee: 2023, boite: "Automatique", carburant: "Diesel", places: 5, prixJour: 50, prixSemaine: 300, prixMois: 1050, photo: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=260&fit=crop", categorie: "Berline VTC", badge: "VTC agréé" },
-  { id: 9209, titre: "Audi A6 50 TFSI e", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 82, prixSemaine: 492, prixMois: 1650, photo: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=260&fit=crop", categorie: "Hybride", badge: "VTC Premium" },
-  { id: 9210, titre: "Toyota Prius+", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 45, prixSemaine: 270, prixMois: 920, photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=260&fit=crop", categorie: "Hybride", badge: "Taxi" },
+  { id: 9201, titre: "Mercedes Classe E Break", annee: 2024, boite: "Automatique", carburant: "Diesel", places: 5, prixJour: 63, prixSemaine: 380, prixMois: 1350, photo: "/categories/vtc_berline_premium.jpg", categorie: "Berline VTC", badge: "VTC agréé" },
+  { id: 9202, titre: "Tesla Model 3 Long Range", annee: 2024, boite: "Automatique", carburant: "Électrique", places: 5, prixJour: 75, prixSemaine: 450, prixMois: 1500, photo: "/categories/vtc_electrique.jpg", categorie: "Électrique VTC", badge: "Électrique" },
+  { id: 9203, titre: "Toyota Camry Hybride", annee: 2023, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 52, prixSemaine: 312, prixMois: 1100, photo: "/categories/loc_berline.jpg", categorie: "Berline Taxi", badge: "Taxi" },
+  { id: 9204, titre: "BMW Série 5 530e", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 78, prixSemaine: 468, prixMois: 1600, photo: "/categories/vtc_berline_premium.jpg", categorie: "Berline VTC", badge: "VTC Premium" },
+  { id: 9205, titre: "Peugeot 508 GT", annee: 2024, boite: "Automatique", carburant: "Diesel", places: 5, prixJour: 48, prixSemaine: 288, prixMois: 980, photo: "/categories/loc_berline.jpg", categorie: "Berline Taxi", badge: "Taxi" },
+  { id: 9206, titre: "Mercedes Classe V 250d", annee: 2024, boite: "Automatique", carburant: "Diesel", places: 7, prixJour: 95, prixSemaine: 570, prixMois: 1900, photo: "/categories/vtc_suv_premium.jpg", categorie: "SUV & Van VTC", badge: "VTC Premium" },
+  { id: 9207, titre: "Volkswagen ID.4 Pro", annee: 2024, boite: "Automatique", carburant: "Électrique", places: 5, prixJour: 65, prixSemaine: 390, prixMois: 1300, photo: "/categories/vtc_hybride.jpg", categorie: "Électrique VTC", badge: "Électrique" },
+  { id: 9208, titre: "Skoda Superb Combi", annee: 2023, boite: "Automatique", carburant: "Diesel", places: 5, prixJour: 50, prixSemaine: 300, prixMois: 1050, photo: "/categories/vtc_berline_premium.jpg", categorie: "Berline VTC", badge: "VTC agréé" },
+  { id: 9209, titre: "Audi A6 50 TFSI e", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 82, prixSemaine: 492, prixMois: 1650, photo: "/categories/vtc_hybride.jpg", categorie: "Hybride", badge: "VTC Premium" },
+  { id: 9210, titre: "Toyota Prius+", annee: 2024, boite: "Automatique", carburant: "Hybride", places: 5, prixJour: 45, prixSemaine: 270, prixMois: 920, photo: "/categories/vtc_hybride.jpg", categorie: "Hybride", badge: "Taxi" },
 ];
 
 const SERVICES = [
@@ -114,7 +149,7 @@ export default function VtcTaxi() {
       {/* BANNIÈRE */}
       <div className="relative overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&h=420&fit=crop"
+          src="/categories/loc_cover_vtc_taxi.jpg"
           alt="Location VTC Taxi"
           className="w-full h-[240px] md:h-[320px] lg:h-[400px] object-cover"
         />

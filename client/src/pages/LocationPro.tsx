@@ -18,70 +18,105 @@ const CATEGORIES_PRO = [
   {
     titre: "Utilitaires légers",
     modeles: ["Kangoo", "Berlingo", "Partner", "Caddy"],
-    photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=400&h=240&fit=crop",
+    photo: "/categories/util_petit_fourgon.jpg",
     icon: Truck,
     count: 12,
   },
   {
     titre: "Fourgons",
     modeles: ["Trafic", "Vivaro", "Transit", "Sprinter"],
-    photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=240&fit=crop",
+    photo: "/categories/util_fourgon_moyen.jpg",
     icon: Package,
     count: 8,
   },
   {
     titre: "Camionnettes grand volume",
     modeles: ["Master", "Boxer", "Ducato"],
-    photo: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=240&fit=crop",
+    photo: "/categories/util_grand_fourgon.jpg",
     icon: Container,
     count: 6,
   },
   {
     titre: "Camions",
     modeles: ["7,5 tonnes", "12 tonnes", "19 tonnes"],
-    photo: "https://images.unsplash.com/photo-1586191582066-1d5e1dcea015?w=400&h=240&fit=crop",
+    photo: "/categories/camion_poids_lourd.jpg",
     icon: Truck,
     count: 5,
   },
   {
     titre: "Bennes",
     modeles: ["Benne simple", "Benne double cabine"],
-    photo: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=400&h=240&fit=crop",
+    photo: "/categories/utilitaire_benne.jpg",
     icon: SquareStack,
     count: 4,
   },
   {
     titre: "Plateaux",
     modeles: ["Porte-voiture", "Dépannage"],
-    photo: "https://images.unsplash.com/photo-1580894732444-8ecded7900cd?w=400&h=240&fit=crop",
+    photo: "/categories/camion_plateau.jpg",
     icon: CarFront,
     count: 3,
   },
   {
     titre: "Frigorifiques",
     modeles: ["Transport alimentaire", "Produits sensibles"],
-    photo: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=240&fit=crop",
+    photo: "/categories/utilitaire_frigo.jpg",
     icon: Snowflake,
     count: 4,
   },
   {
     titre: "Minibus",
     modeles: ["7 places", "9 places", "17 places"],
-    photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=240&fit=crop",
+    photo: "/categories/loc_cover_minibus.jpg",
     icon: Bus,
     count: 6,
+  },
+  {
+    titre: "Électriques",
+    modeles: ["Kangoo E-Tech", "Berlingo Electric", "e-Transit"],
+    photo: "/categories/pro_electrique.jpg",
+    icon: Truck,
+    count: 5,
+  },
+  {
+    titre: "Pick-up / 4x4",
+    modeles: ["Hilux", "Ranger", "L200"],
+    photo: "/categories/pro_pickup.jpg",
+    icon: Truck,
+    count: 4,
+  },
+  {
+    titre: "Bâchés",
+    modeles: ["Bâché ridelles", "Tautliner"],
+    photo: "/categories/pro_bache.jpg",
+    icon: Package,
+    count: 4,
+  },
+  {
+    titre: "Avec hayon",
+    modeles: ["Hayon 500 kg", "Hayon 1000 kg"],
+    photo: "/categories/pro_hayon.jpg",
+    icon: Package,
+    count: 5,
+  },
+  {
+    titre: "Isothermes",
+    modeles: ["Isotherme léger", "Isotherme lourd"],
+    photo: "/categories/pro_isotherme.jpg",
+    icon: Snowflake,
+    count: 3,
   },
 ];
 
 const VEHICULES_PRO = [
-  { id: 1, titre: "Renault Kangoo Van", annee: 2024, km: 8000, volume: "3.3 m³", prixJour: 35, prixSemaine: 210, prixMois: 750, photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=400&h=260&fit=crop", categorie: "Utilitaire léger" },
-  { id: 2, titre: "Citroën Berlingo Van", annee: 2023, km: 15000, volume: "3.7 m³", prixJour: 38, prixSemaine: 228, prixMois: 800, photo: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=260&fit=crop", categorie: "Utilitaire léger" },
-  { id: 3, titre: "Renault Trafic L2H1", annee: 2024, km: 5000, volume: "5.8 m³", prixJour: 55, prixSemaine: 330, prixMois: 1100, photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=260&fit=crop", categorie: "Fourgon" },
-  { id: 4, titre: "Ford Transit Custom", annee: 2023, km: 22000, volume: "6.0 m³", prixJour: 58, prixSemaine: 348, prixMois: 1150, photo: "https://images.unsplash.com/photo-1586191582066-1d5e1dcea015?w=400&h=260&fit=crop", categorie: "Fourgon" },
-  { id: 5, titre: "Renault Master L3H2", annee: 2024, km: 3000, volume: "13 m³", prixJour: 75, prixSemaine: 450, prixMois: 1500, photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=400&h=260&fit=crop", categorie: "Grand volume" },
-  { id: 6, titre: "Mercedes Sprinter 314", annee: 2023, km: 18000, volume: "11 m³", prixJour: 85, prixSemaine: 510, prixMois: 1700, photo: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=260&fit=crop", categorie: "Fourgon" },
-  { id: 7, titre: "Iveco Daily 35S16", annee: 2022, km: 30000, volume: "16 m³", prixJour: 95, prixSemaine: 570, prixMois: 1900, photo: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=400&h=260&fit=crop", categorie: "Grand volume" },
-  { id: 8, titre: "Mercedes Sprinter 9 pl.", annee: 2024, km: 8000, volume: "9 places", prixJour: 120, prixSemaine: 720, prixMois: 2400, photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=260&fit=crop", categorie: "Minibus" },
+  { id: 1, titre: "Renault Kangoo Van", annee: 2024, km: 8000, volume: "3.3 m³", prixJour: 35, prixSemaine: 210, prixMois: 750, photo: "/categories/util_petit_fourgon.jpg", categorie: "Utilitaire léger" },
+  { id: 2, titre: "Citroën Berlingo Van", annee: 2023, km: 15000, volume: "3.7 m³", prixJour: 38, prixSemaine: 228, prixMois: 800, photo: "/categories/util_grand_fourgon.jpg", categorie: "Utilitaire léger" },
+  { id: 3, titre: "Renault Trafic L2H1", annee: 2024, km: 5000, volume: "5.8 m³", prixJour: 55, prixSemaine: 330, prixMois: 1100, photo: "/categories/util_fourgon_moyen.jpg", categorie: "Fourgon" },
+  { id: 4, titre: "Ford Transit Custom", annee: 2023, km: 22000, volume: "6.0 m³", prixJour: 58, prixSemaine: 348, prixMois: 1150, photo: "/categories/camion_poids_lourd.jpg", categorie: "Fourgon" },
+  { id: 5, titre: "Renault Master L3H2", annee: 2024, km: 3000, volume: "13 m³", prixJour: 75, prixSemaine: 450, prixMois: 1500, photo: "/categories/util_petit_fourgon.jpg", categorie: "Grand volume" },
+  { id: 6, titre: "Mercedes Sprinter 314", annee: 2023, km: 18000, volume: "11 m³", prixJour: 85, prixSemaine: 510, prixMois: 1700, photo: "/categories/util_grand_fourgon.jpg", categorie: "Fourgon" },
+  { id: 7, titre: "Iveco Daily 35S16", annee: 2022, km: 30000, volume: "16 m³", prixJour: 95, prixSemaine: 570, prixMois: 1900, photo: "/categories/utilitaire_benne.jpg", categorie: "Grand volume" },
+  { id: 8, titre: "Mercedes Sprinter 9 pl.", annee: 2024, km: 8000, volume: "9 places", prixJour: 120, prixSemaine: 720, prixMois: 2400, photo: "/categories/loc_cover_minibus.jpg", categorie: "Minibus" },
 ];
 
 const SERVICES = [
@@ -126,7 +161,7 @@ export default function LocationPro() {
           ═══════════════════════════════════════════════════════════════════ */}
       <div className="relative overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&h=420&fit=crop"
+          src="/categories/loc_cover_pro.jpg"
           alt="Location professionnelle"
           className="w-full h-[240px] md:h-[320px] lg:h-[400px] object-cover"
         />

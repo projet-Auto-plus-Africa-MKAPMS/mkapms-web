@@ -34,6 +34,26 @@ export default function Messagerie() {
   const [activeConv, setActiveConv] = useState(CONVERSATIONS[0]);
   const [search, setSearch] = useState("");
   const [message, setMessage] = useState("");
+  const [localMessages, setLocalMessages] = useState(MESSAGES);
+
+  function sendMessage() {
+    if (!message.trim()) return;
+    setLocalMessages((prev) => [
+      ...prev,
+      { id: prev.length + 1, envoyeur: "moi", contenu: message.trim(), heure: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }), type: "texte" },
+    ]);
+    setMessage("");
+  }
+
+  function handleDownloadPdf(filename: string) {
+    const blob = new Blob([`Document ${filename} — MKA.P-MS`], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   const filteredConvs = CONVERSATIONS.filter((c) =>
     c.nom.toLowerCase().includes(search.toLowerCase())
@@ -66,21 +86,21 @@ export default function Messagerie() {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-          {MESSAGES.map((m) => {
+          {localMessages.map((m) => {
             const isMoi = m.envoyeur === "moi";
             return (
               <div key={m.id} className={`flex ${isMoi ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${isMoi ? "bg-[#D4AF37] text-white rounded-br-sm" : "bg-white text-[#111] border border-[#E5E7EB] rounded-bl-sm"}`}>
                   {m.type === "pdf" ? (
-                    <div className="flex items-center gap-2">
+                    <button onClick={() => handleDownloadPdf(m.contenu)} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition">
                       <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${isMoi ? "bg-white/20" : "bg-red-50"}`}>
                         <FileText size={14} className={isMoi ? "text-white" : "text-red-500"} />
                       </div>
-                      <div>
+                      <div className="text-left">
                         <p className="text-xs font-semibold">{m.contenu}</p>
                         <p className={`text-[10px] ${isMoi ? "text-white/70" : "text-[#6B7280]"}`}>PDF · Télécharger</p>
                       </div>
-                    </div>
+                    </button>
                   ) : (
                     <p className="text-sm leading-relaxed">{m.contenu}</p>
                   )}
@@ -103,10 +123,10 @@ export default function Messagerie() {
             <Image size={16} className="text-[#6B7280]" />
           </button>
           <div className="flex-1 flex items-center rounded-full bg-[#F5F3EF] px-3 py-2">
-            <input type="text" placeholder="Écrire un message…" value={message} onChange={(e) => setMessage(e.target.value)} className="w-full bg-transparent text-sm outline-none" />
+            <input type="text" placeholder="Écrire un message…" value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} className="w-full bg-transparent text-sm outline-none" />
           </div>
           {message ? (
-            <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#D4AF37]">
+            <button onClick={sendMessage} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#D4AF37] hover:bg-[#C4A030] active:scale-95 transition">
               <Send size={14} className="text-white" />
             </button>
           ) : (

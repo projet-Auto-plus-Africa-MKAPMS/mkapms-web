@@ -307,7 +307,7 @@ function BottomNav() {
   const loc = useLocation();
   const items = [
     { to: "/", label: "Accueil", icon: Home },
-    { to: "/acheter", label: "Rechercher", icon: Search },
+    { to: "/recherche-universelle", label: "Rechercher", icon: Search },
     { to: "/favoris", label: "Favoris", icon: Heart },
     { to: "/vendre", label: "Publier", icon: PlusCircle },
     { to: "/compte/messages", label: "Messages", icon: MessageSquare },
