@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Star, BadgeCheck, Search, Wrench, ShoppingCart, Calendar, Bell, ChevronRight, Check, Building2, Minus, Plus, FileText } from "lucide-react";
 import { trpc } from "../lib/trpc";
@@ -552,8 +552,121 @@ export default function Garages() {
   // ═══════════════════════════════════════
   // MODE GARAGES (page principale)
   // ═══════════════════════════════════════
+
+  // ── HERO VIDÉO CAROUSEL ──
+  const HERO_VIDEOS = [
+    { src: "/videos/garage/garage_voiture_complete.mp4", label: "Véhicule" },
+    { src: "/videos/garage/garage_moteur.mp4", label: "Moteur" },
+    { src: "/videos/garage/garage_suspension.mp4", label: "Suspension" },
+    { src: "/videos/garage/garage_freins.mp4", label: "Freinage" },
+    { src: "/videos/garage/garage_carrosserie.mp4", label: "Carrosserie" },
+  ];
+  const [heroVidIdx, setHeroVidIdx] = useState(0);
+  const [heroProgress, setHeroProgress] = useState(0);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+
+  const startProgress = () => {
+    setHeroProgress(0);
+    if (progressRef.current) clearInterval(progressRef.current);
+    progressRef.current = setInterval(() => {
+      setHeroProgress((p) => {
+        if (p >= 100) { clearInterval(progressRef.current!); return 100; }
+        return p + 100 / 80;
+      });
+    }, 100);
+  };
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setHeroVidIdx((i) => (i + 1) % HERO_VIDEOS.length);
+    }, 8000);
+    startProgress();
+    return () => { clearInterval(t); if (progressRef.current) clearInterval(progressRef.current); };
+  }, []);
+
+  useEffect(() => {
+    videoRefs.current.forEach((v, i) => {
+      if (!v) return;
+      if (i === heroVidIdx) {
+        v.currentTime = 0;
+        v.play().catch(() => {});
+      } else {
+        v.pause();
+      }
+    });
+    startProgress();
+  }, [heroVidIdx]);
+
   return (
-    <div className="container-page py-8">
+    <div className="min-h-screen bg-[#F5F3EF]">
+
+      {/* ── HERO VIDÉO PREMIUM ── */}
+      <div className="relative overflow-hidden bg-[#111]" style={{ height: 320 }}>
+        {HERO_VIDEOS.map((v, i) => (
+          <video
+            key={v.src}
+            ref={(el) => { videoRefs.current[i] = el; }}
+            src={v.src}
+            autoPlay={i === 0}
+            muted
+            playsInline
+            loop
+            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
+            style={{ opacity: i === heroVidIdx ? 0.7 : 0, zIndex: i === heroVidIdx ? 1 : 0 }}
+          />
+        ))}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#111]/30 via-[#111]/10 to-[#111]/50" />
+        <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-1.5 text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider mb-3">
+            <Wrench size={12} /> Réparation &amp; Entretien
+          </span>
+          <h1 className="text-[26px] md:text-4xl font-black text-white leading-tight">
+            Réseau de réparation <span className="text-[#D4AF37]">MKA.P-MS</span>
+          </h1>
+          <p className="mt-2 text-sm text-white/70 max-w-sm">
+            Garages certifiés, devis instantané, catalogue complet de pièces.
+          </p>
+          <div className="mt-4 flex items-center justify-center gap-3 flex-wrap">
+            {[
+              { val: list.data ? `${list.data.total}` : "...", label: "garages certifiés" },
+              { val: "4,8/5", label: "satisfaction client" },
+              { val: "2 min", label: "devis instantané" },
+            ].map((s) => (
+              <div key={s.val} className="flex flex-col items-center rounded-xl bg-white/10 backdrop-blur px-4 py-2 border border-white/10">
+                <span className="text-base font-black text-[#D4AF37]">{s.val}</span>
+                <span className="text-[9px] text-white/60 mt-0.5">{s.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-center gap-2 mt-4">
+            {HERO_VIDEOS.map((v, i) => (
+              <button
+                key={i}
+                onClick={() => { setHeroVidIdx(i); }}
+                className={`flex flex-col items-center gap-1 transition-all duration-300 ${i === heroVidIdx ? 'opacity-100' : 'opacity-35 hover:opacity-60'}`}
+              >
+                <div className="relative h-[3px] rounded-full overflow-hidden" style={{ width: i === heroVidIdx ? 40 : 20, background: 'rgba(255,255,255,0.25)', transition: 'width 0.3s' }}>
+                  {i === heroVidIdx && (
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full"
+                      style={{
+                        width: `${heroProgress}%`,
+                        background: 'linear-gradient(90deg, #D4AF37, #F5D76E)',
+                        boxShadow: '0 0 6px #D4AF37',
+                        transition: 'width 0.1s linear',
+                      }}
+                    />
+                  )}
+                </div>
+                <span className={`text-[8px] font-semibold tracking-wide ${i === heroVidIdx ? 'text-[#D4AF37]' : 'text-white/50'}`}>{v.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="container-page py-8">
       <h1 className="text-2xl font-extrabold text-slate-900">Réseau de réparation MKA.P-MS</h1>
       <p className="mt-1 text-sm text-slate-500">
         {list.data ? `${list.data.total} garage(s)` : "Chargement…"} — certifiés MKA.P-MS.
@@ -624,6 +737,7 @@ export default function Garages() {
           <p className="col-span-full py-12 text-center text-slate-500">Aucun garage trouvé.</p>
         )}
       </div>
+    </div>
     </div>
   );
 }
