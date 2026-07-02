@@ -252,7 +252,7 @@ export default function Vehicule() {
   const isVtcTaxi = v.segmentLocation === "vtc_taxi";
   const tier = getVehicleTier(v);
   const isOfficiel = tier === "officiel" || tier === "premium" || tier === "elite";
-  const isMkapmsStock = v.id >= 8000 && v.id <= 8005;
+  const isMkapmsStock = (v.id >= 8000 && v.id <= 8005) || v.categorieAnnonce === "officielle" || v.ownership === "plateforme";
 
   /* Photos catégorisées — fonctionne pour MKA.P-MS stock ET annonces particulier/pro */
   const hasPhotoCategories = isMkapmsStock && v.photoCategories;

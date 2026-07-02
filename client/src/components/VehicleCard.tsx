@@ -29,10 +29,12 @@ export interface VehicleCardData {
   coupDeCoeur?: boolean | null;
   prixEnBaisse?: boolean | null;
   segmentLocation?: string | null;
+  categorieAnnonce?: string | null;
+  ownership?: string | null;
 }
 
 function getCardTier(v: VehicleCardData): "officiel" | "elite" | "premium" | "professionnel" | "particulier" {
-  if (v.id >= 8000 && v.id <= 8005) return "officiel";
+  if ((v.id >= 8000 && v.id <= 8005) || v.categorieAnnonce === "officielle" || v.ownership === "plateforme") return "officiel";
   if (v.tier === "elite") return "elite";
   if (v.boosted && v.vendeurType === "professionnel") return "premium";
   if (v.vendeurType === "professionnel" || v.vendeurType === "concession") return "professionnel";
@@ -60,7 +62,7 @@ export { BadgeChip };
 export default function VehicleCard({ v }: { v: VehicleCardData }) {
   const { format: formatPrice } = useCurrency();
   const isLocation = v.type === "location";
-  const isMkapmsStock = v.id >= 8000 && v.id <= 8005;
+  const isMkapmsStock = (v.id >= 8000 && v.id <= 8005) || v.categorieAnnonce === "officielle" || v.ownership === "plateforme";
   const sellerLabel =
     isMkapmsStock
       ? "MKA.P-MS Officiel"
