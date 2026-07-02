@@ -150,37 +150,38 @@ export default function VenteGenerale() {
           <p className="mt-2 text-sm text-white/70 leading-relaxed max-w-sm mx-auto text-center">
             Choisissez votre univers et trouvez le véhicule adapté à votre besoin.
           </p>
-          <div className="mt-4 flex items-center justify-center gap-3 flex-wrap">
+          <div className="mt-4 flex items-center justify-center gap-2 flex-nowrap w-full px-2">
             {STATS.map((s) => (
-              <div key={s.val} className="flex flex-col items-center rounded-xl bg-white/10 backdrop-blur px-4 py-2 border border-white/10">
-                <span className="text-base font-black text-[#D4AF37]">{s.val}</span>
-                <span className="text-[9px] text-white/60 mt-0.5">{s.label}</span>
+              <div key={s.val} className="flex flex-col items-center rounded-xl bg-white/10 backdrop-blur px-3 py-2 border border-white/10 flex-1 min-w-0">
+                <span className="text-sm font-black text-[#D4AF37] whitespace-nowrap">{s.val}</span>
+                <span className="text-[9px] text-white/60 mt-0.5 text-center leading-tight">{s.label}</span>
               </div>
             ))}
           </div>
         </div>
-        {/* Indicateurs barre de progression */}
-        <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center gap-1.5 px-4">
-          {HERO_VIDEOS.map((v, i) => (
-            <button
-              key={i}
-              onClick={() => setHeroIdx(i)}
-              className="relative h-[3px] rounded-full overflow-hidden bg-white/30 flex-1 max-w-[60px]"
-              title={v.label}
-            >
-              <div
-                className="absolute left-0 top-0 h-full bg-[#D4AF37] transition-none"
-                style={{ width: i === heroIdx ? `${heroProgress}%` : i < heroIdx ? "100%" : "0%" }}
-              />
-            </button>
-          ))}
-        </div>
+      </div>
+
+      {/* Indicateurs barre de progression — hors du hero, visibles */}
+      <div className="flex justify-center gap-1.5 px-6 py-2 bg-[#F5F3EF]">
+        {HERO_VIDEOS.map((v, i) => (
+          <button
+            key={i}
+            onClick={() => setHeroIdx(i)}
+            className="relative h-[4px] rounded-full overflow-hidden bg-[#D4AF37]/20 flex-1 max-w-[70px]"
+            title={v.label}
+          >
+            <div
+              className="absolute left-0 top-0 h-full bg-[#D4AF37] transition-none"
+              style={{ width: i === heroIdx ? `${heroProgress}%` : i < heroIdx ? "100%" : "0%" }}
+            />
+          </button>
+        ))}
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
           SECTION 2 — BARRE DE RECHERCHE RAPIDE
           ═══════════════════════════════════════════════════════════════════ */}
-      <div className="mx-4 -mt-6 relative z-10 rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-md">
+      <div className="mx-4 -mt-2 relative z-10 rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-md">
         <div className="space-y-3">
           {/* Recherche texte */}
           <div className="flex items-center gap-2 rounded-xl border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
