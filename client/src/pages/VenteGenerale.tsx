@@ -188,7 +188,6 @@ export default function VenteGenerale() {
             </div>
           </div>
         </div>
-      </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
           SECTION 2 — BARRE DE RECHERCHE RAPIDE

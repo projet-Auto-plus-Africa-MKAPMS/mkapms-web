@@ -103,7 +103,6 @@ function Ecritures({ setModalDoc }: { setModalDoc: (doc: any) => void }) {
   const typeFilter = searchParams.get("type");
   const statutFilter = searchParams.get("statut");
   const { data: ecritures, isLoading } = trpc.comptabilite.ecritures.useQuery({
-    sens: sensFilter || undefined,
     type: typeFilter || undefined,
     statut: statutFilter || undefined,
   });
@@ -115,7 +114,7 @@ function Ecritures({ setModalDoc }: { setModalDoc: (doc: any) => void }) {
       {ecritures.map((e) => (
         <button 
           key={e.id} 
-          onClick={() => setModalDoc(buildFactureData({ ref: `FAC-${e.id}`, client: e.label, montant: `${e.montantTTC} €`, date: new Date(e.dateEcriture).toLocaleDateString("fr-FR"), statut: e.statut === "valide" ? "Payée" : "À régler" }))}
+          onClick={() => setModalDoc(buildFactureData({ ref: `FAC-${e.id}`, objet: e.label, client: e.label, montant: `${e.montantTTC} €`, date: new Date(e.dateEcriture).toLocaleDateString("fr-FR"), statut: e.statut === "valide" ? "Payée" : "À régler", type: "Facture" }))}
           className="w-full rounded-xl bg-white border border-[#E5E7EB] p-4 text-left active:scale-[0.98] transition-all flex items-center gap-3"
         >
           <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${e.sens === "credit" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}`}>
@@ -156,14 +155,14 @@ function Rapports({ setModalDoc }: { setModalDoc: (doc: any) => void }) {
             </div>
             <div className="flex gap-2">
               <button 
-                onClick={() => setModalDoc(buildFactureData({ ref: `REP-${r.id}`, client: "Direction MKA", montant: "Rapport", date: r.periode, statut: "Généré" }))}
+                onClick={() => setModalDoc(buildFactureData({ ref: `REP-${r.id}`, objet: `Rapport ${r.type}`, client: "Direction MKA", montant: "Rapport", date: r.periode, statut: "Généré", type: "Rapport" }))}
                 className="flex items-center gap-1.5 rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-50 transition"
               >
                 <Eye size={14} /> Aperçu
               </button>
               <button 
                 onClick={() => {
-                  const docData = buildFactureData({ ref: `REP-${r.id}`, client: "Direction MKA", montant: "Rapport", date: r.periode, statut: "Généré" });
+                  const docData = buildFactureData({ ref: `REP-${r.id}`, objet: `Rapport ${r.type}`, client: "Direction MKA", montant: "Rapport", date: r.periode, statut: "Généré", type: "Rapport" });
                   // Logic to trigger PDF download (e.g., open in new tab or use a dedicated download function)
                   // For now, we'll just log it to console or open in a new tab for demonstration
                   console.log("Télécharger PDF pour le rapport:", docData);

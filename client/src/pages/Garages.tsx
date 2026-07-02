@@ -148,12 +148,12 @@ export default function Garages() {
   const [pieceSearch, setPieceSearch] = useState("");
   const [catFilter, setCatFilter] = useState("");
   const [selectedPieces, setSelectedPieces] = useState<{ ref: string; nom: string; prix: number; qty: number; categorie: string }[]>([]);
-  const [selectedGarage, setSelectedGarage] = useState<string | null>(null);
+  const [selectedGarage, setSelectedGarage] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedCreneau, setSelectedCreneau] = useState("");
 
   const create = trpc.devis.create.useMutation({ onSuccess: () => setStep(7) });
-  const lookupPlate = trpc.annonces.lookupPlate.useMutation();
+  const utils = trpc.useUtils();
 
   function set<K extends keyof typeof f>(k: K, v: string) { setF((o) => ({ ...o, [k]: v })); }
 
@@ -162,7 +162,7 @@ export default function Garages() {
     if (!qp) return;
     setPlateLoading(true);
     try {
-      const r = await lookupPlate.mutateAsync({ q: qp });
+      const r = await utils.annonces.lookupPlate.fetch({ type: f.vin.trim() ? "vin" : "plaque", query: qp });
       if (r) {
         if (r.marque) set("vehiculeMarque", r.marque);
         if (r.modele) set("vehiculeModele", r.modele);

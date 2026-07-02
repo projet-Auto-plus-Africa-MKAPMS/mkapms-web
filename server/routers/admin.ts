@@ -539,6 +539,14 @@ export const adminRouter = router({
       return { ok: true };
     }),
 
+  // Suppression d'annonce par admin/direction
+  deleteAnnonce: adminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.delete(annonces).where(eq(annonces.id, input.id));
+      await logAction(ctx.user.uid, "annonce.delete", "annonce", input.id);
+      return { ok: true };
+    }),
   // Réservé direction : changement de rôle (§10.1)
   setUserRole: directionProcedure
     .input(

@@ -268,7 +268,7 @@ export default function Compte() {
                     {(a as { reference?: string | null }).reference ? `${(a as { reference?: string | null }).reference} · ` : ""}
                     {a.status} · {formatPrice(Number(a.prix))}
                   </p>
-                  <p className="text-[10px] text-slate-300 mt-0.5">Vendeur ID: {a.userId}</p>
+                  <p className="text-[10px] text-slate-300 mt-0.5">Vendeur ID: {(a as { userId?: number; vendeurId?: number }).userId ?? (a as { userId?: number; vendeurId?: number }).vendeurId ?? "—"}</p>
                 </div>
                 <span className="text-xs text-slate-400">→</span>
               </Link>

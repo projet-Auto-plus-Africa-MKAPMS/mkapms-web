@@ -386,7 +386,7 @@ export default function Historique() {
           setReportStatus("disponible");
           setReportScore(Math.floor(Math.random() * 40) + 60);
           setStep(6);
-          req.mutate({ searchType: searchMode, searchValue: plaque || vin });
+          req.mutate({ searchType: searchMode as "vin" | "plate", searchValue: plaque || vin });
         }, 2000);
       }, 1500);
     }, 2000);

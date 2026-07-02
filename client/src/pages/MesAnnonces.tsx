@@ -110,7 +110,7 @@ export default function MesAnnonces() {
                 <Eye size={14} /> Voir
               </Link>
               <button 
-                onClick={() => setModalDoc(buildFactureData({ ref: `ANN-${a.id}`, client: "Propriétaire", montant: `${a.prix} €`, date: "En ligne", statut: "Annonce Active" }))}
+                onClick={() => setModalDoc(buildFactureData({ ref: `ANN-${a.id}`, objet: a.titre || "Annonce", client: "Propriétaire", montant: `${a.prix} €`, date: "En ligne", statut: "Annonce Active", type: "Annonce" }))}
                 className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-green-600 hover:bg-green-50 transition border-l border-slate-100"
               >
                 <FileText size={14} /> Fiche

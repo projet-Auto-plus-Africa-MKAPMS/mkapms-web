@@ -151,10 +151,10 @@ export const voRouter = router({
       if (!v) throw new Error("Véhicule VO introuvable");
       const updates: Record<string, unknown> = { status: input.status, updatedAt: new Date() };
       if (input.status === "vendu") updates.dateVente = new Date();
-      await db.update(voVehicules).set(updates).where(eq(voVehicules.id, input.id));
+      await db.update(voVehicules).set(updates as any).where(eq(voVehicules.id, input.id));
       await db.insert(voEtapes).values({
         vehiculeId: input.id,
-        status: input.status,
+        status: input.status as any,
         statusLabel: VO_STATUS_LABELS[input.status] ?? input.status,
         responsable: input.responsable,
         commentaire: input.commentaire,

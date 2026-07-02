@@ -304,7 +304,7 @@ export default function Devis() {
           carburant: r.carburant || "",
           boite: r.boite || "",
           puissance: r.puissance ? String(r.puissance) : "",
-          portes: r.portes ? String(r.portes) : "",
+          portes: (r as { portes?: number | null }).portes ? String((r as { portes?: number | null }).portes) : "",
         });
         setStep(3);
       }
