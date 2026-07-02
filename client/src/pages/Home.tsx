@@ -65,6 +65,8 @@ const HOME_SERVICE_VIDEOS = [
   { src: "/videos/home/home_reparer.mp4", label: "Réparer", sub: "Mon véhicule", to: "/garages", icon: "🔧" },
   { src: "/videos/home/home_finance.mp4", label: "Finance+", sub: "Financement auto", to: "/finance", icon: "💳" },
   { src: "/videos/home/home_services.mp4", label: "Services", sub: "Livraison, CT, démarches", to: "/demarches", icon: "⚙️" },
+  { src: "/videos/home/home_livraison.mp4", label: "Livraison", sub: "Moto, utilitaire, fourgon", to: "/livraison", icon: "📦" },
+  { src: "/videos/home/home_depannage.mp4", label: "Dépannage", sub: "Remorquage & intervention", to: "/depannage", icon: "🚨" },
 ];
 
 /* ── COMPOSANT SCROLL HORIZONTAL ── */
@@ -316,68 +318,6 @@ export default function Home() {
             </div>
           </section>
 
-          {/* ═══════════════════════════════════════════════════════════════
-              SECTION 3C — VIDÉOS SERVICES PREMIUM
-              ═══════════════════════════════════════════════════════════════ */}
-          <section className="bg-[#111] px-4 py-4">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-[9px] uppercase tracking-widest text-[#D4AF37] font-semibold">MKA.P-MS</p>
-                <h2 className="text-sm font-black text-white">Nos univers</h2>
-              </div>
-              <span className="text-[9px] text-white/40 uppercase tracking-wide">Appuyez pour explorer</span>
-            </div>
-            {/* Carousel horizontal 8 emplacements, 6 vidéos */}
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide scroll-smooth">
-              {HOME_SERVICE_VIDEOS.map((sv, i) => (
-                <Link
-                  key={i}
-                  to={sv.to}
-                  className="shrink-0 relative rounded-2xl overflow-hidden cursor-pointer group"
-                  style={{ width: 140, height: 200 }}
-                  onMouseEnter={() => setSvcVidIdx(i)}
-                  onTouchStart={() => setSvcVidIdx(i)}
-                >
-                  <video
-                    ref={(el) => { svcVideoRefs.current[i] = el; }}
-                    src={sv.src}
-                    muted
-                    playsInline
-                    loop
-                    preload="auto"
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  {/* Overlay dégradé */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  {/* Badge actif */}
-                  {i === svcVidIdx && (
-                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
-                  )}
-                  {/* Label en bas */}
-                  <div className="absolute bottom-0 left-0 right-0 p-3">
-                    <p className="text-base leading-none mb-0.5">{sv.icon}</p>
-                    <p className="text-xs font-black text-white uppercase leading-tight">{sv.label}</p>
-                    <p className="text-[9px] text-white/60 mt-0.5">{sv.sub}</p>
-                    <div className="mt-1.5 flex items-center gap-1">
-                      <Play size={8} className="text-[#D4AF37]" />
-                      <span className="text-[8px] text-[#D4AF37] font-semibold">Explorer</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-              {/* Emplacements 7 et 8 — prochainement */}
-              {[0, 1].map((_, i) => (
-                <div
-                  key={`empty-${i}`}
-                  className="shrink-0 relative rounded-2xl overflow-hidden bg-white/5 border border-white/10 flex flex-col items-center justify-center"
-                  style={{ width: 140, height: 200 }}
-                >
-                  <Sparkles size={20} className="text-[#D4AF37]/40 mb-2" />
-                  <p className="text-[9px] text-white/30 uppercase tracking-wide text-center px-2">Prochainement</p>
-                </div>
-              ))}
-            </div>
-          </section>
 
           {/* ═══════════════════════════════════════════════════════════════
               SECTION 3B — BARRE DE RECHERCHE UNIVERSELLE
@@ -502,6 +442,54 @@ export default function Home() {
             ) : (
               <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce premium pour le moment.</div>
             )}
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 7C — VIDÉOS SERVICES PREMIUM (NOS UNIVERS)
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="bg-white px-4 py-4 border-t border-[#F3F4F6]">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-[9px] uppercase tracking-widest text-[#D4AF37] font-semibold">MKA.P-MS</p>
+                <h2 className="text-sm font-black text-[#111]">Nos univers</h2>
+              </div>
+              <span className="text-[9px] text-[#6B7280] uppercase tracking-wide">Appuyez pour explorer</span>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide scroll-smooth">
+              {HOME_SERVICE_VIDEOS.map((sv, i) => (
+                <Link
+                  key={i}
+                  to={sv.to}
+                  className="shrink-0 relative rounded-2xl overflow-hidden cursor-pointer group"
+                  style={{ width: 140, height: 200 }}
+                  onMouseEnter={() => setSvcVidIdx(i)}
+                  onTouchStart={() => setSvcVidIdx(i)}
+                >
+                  <video
+                    ref={(el) => { svcVideoRefs.current[i] = el; }}
+                    src={sv.src}
+                    muted
+                    playsInline
+                    loop
+                    preload="auto"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  {i === svcVidIdx && (
+                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="text-base leading-none mb-0.5">{sv.icon}</p>
+                    <p className="text-xs font-black text-white uppercase leading-tight">{sv.label}</p>
+                    <p className="text-[9px] text-white/60 mt-0.5">{sv.sub}</p>
+                    <div className="mt-1.5 flex items-center gap-1">
+                      <Play size={8} className="text-[#D4AF37]" />
+                      <span className="text-[8px] text-[#D4AF37] font-semibold">Explorer</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
