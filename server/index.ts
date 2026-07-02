@@ -45,9 +45,11 @@ const upload = multer({
   storage,
   limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB max (vidéos incluses)
   fileFilter: (_req, file, cb) => {
-    const allowed = /\.(jpg|jpeg|png|gif|webp|heic|pdf|doc|docx|xls|xlsx|mp4|mov|webm|avi|mkv)$/i;
-    if (allowed.test(path.extname(file.originalname))) cb(null, true);
-    else cb(new Error("Type de fichier non autorisé"));
+    const allowedExt = /\.(jpg|jpeg|png|gif|webp|heic|heif|pdf|doc|docx|xls|xlsx|mp4|mov|webm|avi|mkv|3gp|m4v)$/i;
+    const allowedMime = /^(image|video|application\/pdf|application\/msword|application\/vnd)/i;
+    const ext = path.extname(file.originalname);
+    if (allowedExt.test(ext) || allowedMime.test(file.mimetype)) cb(null, true);
+    else cb(new Error(`Type de fichier non autorisé: ${file.originalname} (${file.mimetype})`));
   },
 });
 
@@ -55,20 +57,28 @@ const upload = multer({
 app.use("/uploads", express.static(UPLOADS_DIR));
 
 // Endpoint upload (authentifié, multi-fichiers)
-app.post("/api/upload", upload.array("files", 20), (req, res) => {
-  const token = req.headers.authorization?.replace("Bearer ", "") || req.cookies?.token;
-  if (!token || !verifyToken(token)) {
-    return res.status(401).json({ error: "Connexion requise" });
-  }
-  const files = req.files as Express.Multer.File[];
-  if (!files?.length) return res.status(400).json({ error: "Aucun fichier" });
-  const urls = files.map((f) => ({
-    url: `/uploads/${f.filename}`,
-    originalName: f.originalname,
-    size: f.size,
-    mimeType: f.mimetype,
-  }));
-  return res.json({ files: urls });
+app.post("/api/upload", (req, res) => {
+  upload.array("files", 20)(req, res, (err) => {
+    if (err) {
+      const msg = err instanceof multer.MulterError
+        ? (err.code === "LIMIT_FILE_SIZE" ? "Fichier trop volumineux (max 50 MB)" : `Erreur upload: ${err.message}`)
+        : (err.message || "Erreur lors de l'upload");
+      return res.status(400).json({ error: msg });
+    }
+    const token = req.headers.authorization?.replace("Bearer ", "") || req.cookies?.token;
+    if (!token || !verifyToken(token)) {
+      return res.status(401).json({ error: "Connexion requise — veuillez vous reconnecter" });
+    }
+    const files = req.files as Express.Multer.File[];
+    if (!files?.length) return res.status(400).json({ error: "Aucun fichier reçu" });
+    const urls = files.map((f) => ({
+      url: `/uploads/${f.filename}`,
+      originalName: f.originalname,
+      size: f.size,
+      mimeType: f.mimetype,
+    }));
+    return res.json({ files: urls });
+  });
 });
 
 app.get("/api/health", (_req, res) => {
