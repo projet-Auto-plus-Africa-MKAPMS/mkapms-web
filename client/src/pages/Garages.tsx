@@ -220,7 +220,7 @@ export default function Garages() {
   const garageItems = list.data?.items || [];
   const selectedGarageObj = garageItems.find((g) => g.id === selectedGarage);
 
-  // ── HERO VIDÉO CAROUSEL (hooks déclarés ici, avant tout return conditionnel) ──
+  // Hero vidéo carousel (hooks doivent être avant les early returns)
   const HERO_VIDEOS = [
     { src: "/videos/garage/garage_voiture_complete.mp4", label: "Véhicule" },
     { src: "/videos/garage/garage_moteur.mp4", label: "Moteur" },
@@ -255,8 +255,12 @@ export default function Garages() {
   useEffect(() => {
     videoRefs.current.forEach((v, i) => {
       if (!v) return;
-      if (i === heroVidIdx) { v.currentTime = 0; v.play().catch(() => {}); }
-      else { v.pause(); }
+      if (i === heroVidIdx) {
+        v.currentTime = 0;
+        v.play().catch(() => {});
+      } else {
+        v.pause();
+      }
     });
     startProgress();
   }, [heroVidIdx]);
@@ -593,6 +597,52 @@ export default function Garages() {
   // ═══════════════════════════════════════
   // MODE GARAGES (page principale)
   // ═══════════════════════════════════════
+
+  // ── HERO VIDÉO CAROUSEL ──
+  const HERO_VIDEOS = [
+    { src: "/videos/garage/garage_voiture_complete.mp4", label: "Véhicule" },
+    { src: "/videos/garage/garage_moteur.mp4", label: "Moteur" },
+    { src: "/videos/garage/garage_suspension.mp4", label: "Suspension" },
+    { src: "/videos/garage/garage_freins.mp4", label: "Freinage" },
+    { src: "/videos/garage/garage_carrosserie.mp4", label: "Carrosserie" },
+  ];
+  const [heroVidIdx, setHeroVidIdx] = useState(0);
+  const [heroProgress, setHeroProgress] = useState(0);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+
+  const startProgress = () => {
+    setHeroProgress(0);
+    if (progressRef.current) clearInterval(progressRef.current);
+    progressRef.current = setInterval(() => {
+      setHeroProgress((p) => {
+        if (p >= 100) { clearInterval(progressRef.current!); return 100; }
+        return p + 100 / 80;
+      });
+    }, 100);
+  };
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setHeroVidIdx((i) => (i + 1) % HERO_VIDEOS.length);
+    }, 8000);
+    startProgress();
+    return () => { clearInterval(t); if (progressRef.current) clearInterval(progressRef.current); };
+  }, []);
+
+  useEffect(() => {
+    videoRefs.current.forEach((v, i) => {
+      if (!v) return;
+      if (i === heroVidIdx) {
+        v.currentTime = 0;
+        v.play().catch(() => {});
+      } else {
+        v.pause();
+      }
+    });
+    startProgress();
+  }, [heroVidIdx]);
+
   return (
     <div className="min-h-screen bg-[#F5F3EF]">
 
@@ -607,14 +657,14 @@ export default function Garages() {
             muted
             playsInline
             loop
-            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
+            className="absolute inset-0 h-full w-full object-cover opacity-70 transition-opacity duration-700"
             style={{ opacity: i === heroVidIdx ? 0.7 : 0, zIndex: i === heroVidIdx ? 1 : 0 }}
           />
         ))}
         <div className="absolute inset-0 bg-gradient-to-b from-[#111]/30 via-[#111]/10 to-[#111]/50" />
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-1.5 text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider mb-3">
-            <Wrench size={12} /> Réparation &amp; Entretien
+            <Wrench size={12} /> Réparation & Entretien
           </span>
           <h1 className="text-[26px] md:text-4xl font-black text-white leading-tight">
             Réseau de réparation <span className="text-[#D4AF37]">MKA.P-MS</span>
@@ -662,7 +712,6 @@ export default function Garages() {
       </div>
 
       <div className="container-page py-8">
-      <h1 className="text-2xl font-extrabold text-slate-900">Réseau de réparation MKA.P-MS</h1>
       <p className="mt-1 text-sm text-slate-500">
         {list.data ? `${list.data.total} garage(s)` : "Chargement…"} — certifiés MKA.P-MS.
       </p>
@@ -731,6 +780,7 @@ export default function Garages() {
         {list.data && list.data.items.length === 0 && (
           <p className="col-span-full py-12 text-center text-slate-500">Aucun garage trouvé.</p>
         )}
+      </div>
       </div>
     </div>
     </div>
