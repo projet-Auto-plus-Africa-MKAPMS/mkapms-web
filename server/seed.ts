@@ -321,7 +321,7 @@ export async function seedStructure() {
 async function main() {
   await seedStructure();
 
-  // Compte direction (PDG)
+  // Compte direction (PDG) — toujours garantir le rôle super_admin
   const adminEmail = "mka.garageauto@gmail.com";
   const existing = await db.select().from(users).where(eq(users.email, adminEmail)).limit(1);
   let adminId: number;
@@ -342,6 +342,19 @@ async function main() {
     console.log("[seed] compte direction créé:", adminEmail);
   } else {
     adminId = existing[0].id;
+    // Toujours forcer le rôle super_admin + staffPosition pdg pour le compte direction
+    if (existing[0].role !== "super_admin" || existing[0].staffPosition !== "pdg") {
+      await db.update(users).set({ role: "super_admin", accountType: "professionnel", staffPosition: "pdg" }).where(eq(users.id, adminId));
+      console.log("[seed] compte direction mis à jour → super_admin:", adminEmail);
+    }
+  }
+
+  // Corriger les annonces du PDG qui ont été mal catégorisées (pro au lieu d'officielle)
+  const fixedCount = await db.update(annonces)
+    .set({ categorieAnnonce: "officielle", vendeurType: "professionnel", ownership: "plateforme" })
+    .where(sql`${annonces.ownerId} = ${adminId} AND ${annonces.categorieAnnonce} != 'officielle'`);
+  if (fixedCount.rowCount && fixedCount.rowCount > 0) {
+    console.log(`[seed] ${fixedCount.rowCount} annonce(s) du PDG corrigée(s) → officielle`);
   }
 
   // Compte Directeur (Admin Employé)

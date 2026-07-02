@@ -253,6 +253,13 @@ export default function Vendre() {
   const [imperfections, setImperfections] = useState<string[]>([]);
   const [impInput, setImpInput] = useState("");
   const [openEqCats, setOpenEqCats] = useState<string[]>([]);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  /* Catégorie d'annonce (admin/employee only) */
+  const isAdminOrEmployee = user?.role === "admin" || user?.role === "super_admin" || user?.role === "employee";
+  const [categorieAnnonce, setCategorieAnnonce] = useState<"officielle" | "professionnelle" | "particulier">(
+    isAdminOrEmployee ? "officielle" : (user?.accountType === "professionnel" ? "professionnelle" : "particulier")
+  );
 
   /* Estimation */
   const [estim, setEstim] = useState<{ low: number; mid: number; high: number; method: string; sampleSize: number } | null>(null);
@@ -400,7 +407,7 @@ export default function Vendre() {
       securite: secuList,
       videos360,
       videosNormales,
-      categorieAnnonce: isEmployee ? categorieAnnonce : undefined,
+      categorieAnnonce: isAdminOrEmployee ? categorieAnnonce : undefined,
     });
   }
 
@@ -673,58 +680,15 @@ export default function Vendre() {
           <div className="mt-6 grid md:grid-cols-2 gap-6">
             {/* Côté gauche — Formulaire */}
             <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
-              {/* Choix type d'annonce — admin/employé uniquement */}
-              {isEmployee && (
-                <div className="mb-4 rounded-xl border-2 border-[#D4AF37]/30 bg-[#FFFBEB] p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Crown size={16} className="text-[#D4AF37]" />
-                    <span className="text-xs font-bold text-[#111] uppercase tracking-wider">Type d'annonce (administration)</span>
-                  </div>
+              {/* Sélecteur catégorie annonce (admin/employee only) */}
+              {isAdminOrEmployee && (
+                <div className="mb-4 rounded-xl border-2 border-[#D4AF37]/30 bg-[#FFFBEB] p-3">
+                  <label className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider mb-2 block">Publier en tant que</label>
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => setCategorieAnnonce("officielle")}
-                      className={`flex-1 rounded-xl border-2 p-2.5 text-center text-xs font-bold transition flex flex-col items-center gap-1 ${categorieAnnonce === "officielle" ? "border-[#D4AF37] bg-[#D4AF37] text-white" : "border-[#E5E7EB] text-[#6B7280] bg-white"}`}
-                    >
-                      <Crown size={14} />
-                      Officielle MKA.P-MS
-                    </button>
-                    <button
-                      onClick={() => setCategorieAnnonce("professionnelle")}
-                      className={`flex-1 rounded-xl border-2 p-2.5 text-center text-xs font-bold transition flex flex-col items-center gap-1 ${categorieAnnonce === "professionnelle" ? "border-blue-500 bg-blue-500 text-white" : "border-[#E5E7EB] text-[#6B7280] bg-white"}`}
-                    >
-                      <Building2 size={14} />
-                      Professionnelle
-                    </button>
-                    <button
-                      onClick={() => setCategorieAnnonce("particulier")}
-                      className={`flex-1 rounded-xl border-2 p-2.5 text-center text-xs font-bold transition flex flex-col items-center gap-1 ${categorieAnnonce === "particulier" ? "border-green-500 bg-green-500 text-white" : "border-[#E5E7EB] text-[#6B7280] bg-white"}`}
-                    >
-                      <UserIcon size={14} />
-                      Particulier
-                    </button>
+                    <button onClick={() => setCategorieAnnonce("officielle")} className={`flex-1 rounded-lg border-2 p-2 text-center text-xs font-bold transition ${categorieAnnonce === "officielle" ? "border-[#D4AF37] bg-[#D4AF37] text-white" : "border-[#E5E7EB] bg-white text-[#6B7280]"}`}>Officielle MKA.P-MS</button>
+                    <button onClick={() => setCategorieAnnonce("professionnelle")} className={`flex-1 rounded-lg border-2 p-2 text-center text-xs font-bold transition ${categorieAnnonce === "professionnelle" ? "border-blue-500 bg-blue-500 text-white" : "border-[#E5E7EB] bg-white text-[#6B7280]"}`}>Professionnelle</button>
+                    <button onClick={() => setCategorieAnnonce("particulier")} className={`flex-1 rounded-lg border-2 p-2 text-center text-xs font-bold transition ${categorieAnnonce === "particulier" ? "border-green-500 bg-green-500 text-white" : "border-[#E5E7EB] bg-white text-[#6B7280]"}`}>Particulier</button>
                   </div>
-                  <p className="mt-2 text-[10px] text-[#9CA3AF]">
-                    {categorieAnnonce === "officielle" && "L'annonce apparaîtra dans « Nos véhicules » avec le badge Officiel MKA.P-MS"}
-                    {categorieAnnonce === "professionnelle" && "L'annonce apparaîtra dans l'univers professionnel avec le badge Pro"}
-                    {categorieAnnonce === "particulier" && "L'annonce apparaîtra dans l'univers particulier avec le badge Particulier"}
-                  </p>
-                </div>
-              )}
-
-              {/* Publier au nom d'un client — employé uniquement */}
-              {isEmployee && (
-                <div className="mb-4 rounded-xl border border-[#E5E7EB] bg-white p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <ClipboardList size={14} className="text-[#6B7280]" />
-                    <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Publier au nom d'un client (optionnel)</span>
-                  </div>
-                  <input
-                    className="input text-xs"
-                    placeholder="Email du client propriétaire (laisser vide = annonce MKA.P-MS)"
-                    value={onBehalfOfEmail}
-                    onChange={(e) => setOnBehalfOfEmail(e.target.value)}
-                  />
-                  <p className="mt-1 text-[9px] text-[#9CA3AF]">Les messages et appels iront directement au client. Vous serez identifié comme créateur interne.</p>
                 </div>
               )}
 
@@ -1163,10 +1127,12 @@ export default function Vendre() {
                       const fd = new FormData();
                       for (let i = 0; i < files.length; i++) fd.append("files", files[i]);
                       try {
+                        setUploadError(null);
                         const token = getToken();
                         const resp = await fetch("/api/upload", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, body: fd });
                         if (resp.ok) { const data = await resp.json(); const urls = (data.files || []).map((f: any) => f.url); setPhotoUrls(p => ({ ...p, [cat.key]: [...(p[cat.key] || []), ...urls] })); }
-                      } catch {}
+                        else { const err = await resp.json().catch(() => ({})); setUploadError(err.error || "Erreur lors de l'upload des photos"); }
+                      } catch (e: any) { setUploadError(e.message || "Erreur réseau lors de l'upload"); }
                     };
                     inp.click();
                   }}
@@ -1192,6 +1158,13 @@ export default function Vendre() {
               );
             })}
           </div>
+
+          {/* Erreur upload */}
+          {uploadError && (
+            <div className="rounded-xl bg-red-50 border border-red-200 p-3">
+              <p className="text-xs text-red-700 font-medium">{uploadError}</p>
+            </div>
+          )}
 
           {/* Compteur photos */}
           <div className="flex items-center gap-2 rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm">
