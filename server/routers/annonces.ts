@@ -576,8 +576,10 @@ export const annoncesRouter = router({
       const isProUser = currentRole === "pro" || currentRole === "garage" || currentRole === "society";
       let categorieAnnonce: "officielle" | "professionnelle" | "particulier";
       if (isEmployee && inputCatAnnonce) {
+        // L'employé/admin peut choisir explicitement la catégorie
         categorieAnnonce = inputCatAnnonce;
-      } else if (isAdminUser) {
+      } else if (isEmployee) {
+        // Tout rôle interne (super_admin, admin, employee) → officielle par défaut
         categorieAnnonce = "officielle";
       } else if (isProUser) {
         categorieAnnonce = "professionnelle";

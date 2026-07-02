@@ -71,8 +71,9 @@ app.post("/api/upload", (req, res) => {
     }
     const files = req.files as Express.Multer.File[];
     if (!files?.length) return res.status(400).json({ error: "Aucun fichier reçu" });
+    const baseUrl = env.PUBLIC_URL?.replace(/\/$/, "") || "";
     const urls = files.map((f) => ({
-      url: `/uploads/${f.filename}`,
+      url: baseUrl ? `${baseUrl}/uploads/${f.filename}` : `/uploads/${f.filename}`,
       originalName: f.originalname,
       size: f.size,
       mimeType: f.mimetype,
