@@ -1068,7 +1068,35 @@ export default function Admin() {
           <section className="mt-10">
             <h2 className="text-lg font-bold text-slate-800">Centre Médias <span className="text-xs font-normal text-gold-dark">(Direction)</span></h2>
             <p className="text-xs text-slate-500">Vidéos, photos, réseaux sociaux, influenceurs/ambassadeurs.</p>
-            <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (media.title) addMedia.mutate({ type: media.type as "photo", title: media.title, url: media.url || undefined, channel: media.channel || undefined }); }}>
+
+            {/* ── Sous-section : Vidéos Page d'Accueil ── */}
+            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <h3 className="text-sm font-bold text-amber-800 mb-1">Vidéos Page d'Accueil <span className="ml-2 rounded bg-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-900">HOMEPAGE</span></h3>
+              <p className="text-xs text-amber-700 mb-3">Ces vidéos apparaissent dans le carousel de la page d'accueil (section "Nos univers"). Canal = <code className="bg-amber-100 px-1 rounded">homepage</code>. Ajoutez une URL de vidéo (chemin /videos/home/xxx.mp4 ou URL externe).</p>
+              <div className="space-y-1 mb-3">
+                {mediaList.data?.filter((m) => m.channel === "homepage").map((m) => (
+                  <div key={m.id} className="flex items-center justify-between rounded-lg bg-white border border-amber-200 px-3 py-2 text-sm">
+                    <div>
+                      <span className="font-semibold text-slate-800">{m.title}</span>
+                      {m.url && <span className="ml-2 text-[10px] text-slate-400 font-mono truncate max-w-[200px] inline-block align-middle">{m.url}</span>}
+                    </div>
+                    <button className="btn-outline !py-0.5 !text-xs !border-red-400 !text-red-500" onClick={() => removeMedia.mutate({ id: m.id })}>Suppr.</button>
+                  </div>
+                ))}
+                {(mediaList.data?.filter((m) => m.channel === "homepage").length === 0) && (
+                  <p className="text-xs text-amber-600">Aucune vidéo homepage enregistrée. Les vidéos intégrées par défaut (/videos/home/*.mp4) sont actives.</p>
+                )}
+              </div>
+              <form className="flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (media.title) addMedia.mutate({ type: "video", title: media.title, url: media.url || undefined, channel: "homepage" }); }}>
+                <input className="input max-w-xs" placeholder="Titre (ex: Acheter)" value={media.title} onChange={(e) => setMedia({ ...media, title: e.target.value })} />
+                <input className="input max-w-[260px]" placeholder="URL vidéo (/videos/home/xxx.mp4)" value={media.url} onChange={(e) => setMedia({ ...media, url: e.target.value })} />
+                <button className="btn-primary !text-sm">Ajouter vidéo homepage</button>
+              </form>
+            </div>
+
+            {/* ── Tous les médias ── */}
+            <h3 className="mt-5 text-sm font-bold text-slate-700">Tous les médias</h3>
+            <form className="mt-2 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (media.title) addMedia.mutate({ type: media.type as "photo", title: media.title, url: media.url || undefined, channel: media.channel || undefined }); }}>
               <select className="input max-w-[120px]" value={media.type} onChange={(e) => setMedia({ ...media, type: e.target.value })}>
                 <option value="photo">Photo</option><option value="video">Vidéo</option><option value="social">Réseau social</option><option value="campagne">Campagne</option><option value="autre">Autre</option>
               </select>
