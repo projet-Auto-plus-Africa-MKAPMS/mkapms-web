@@ -220,24 +220,31 @@ export default function Louer() {
             </div>
           ))}
         </div>
-      </div>
-      {/* Indicateurs vidéo — hors du cadre de recherche */}
-      <div className="flex justify-center gap-1.5 py-2 bg-[#F5F3EF]">
-        {HERO_VIDEOS.map((v, i) => (
-          <button
-            key={i}
-            onClick={() => { setHeroVidIdx(i); setHeroProgress(0); }}
-            className="flex flex-col items-center gap-0.5"
-          >
-            <div className="h-1 w-10 rounded-full bg-white/30 overflow-hidden">
-              <div
-                className="h-full bg-[#D4AF37] rounded-full transition-none"
-                style={{ width: i === heroVidIdx ? `${heroProgress}%` : i < heroVidIdx ? '100%' : '0%' }}
-              />
-            </div>
-            <span className="text-[8px] text-[#6B7280]">{v.label}</span>
-          </button>
-        ))}
+        {/* Indicateurs vidéo — dans le hero, en bas */}
+        <div className="relative z-20 mt-4 px-4">
+          <div className="flex gap-1.5 justify-center mb-1">
+            {HERO_VIDEOS.map((v, i) => (
+              <button
+                key={i}
+                onClick={() => { setHeroVidIdx(i); setHeroProgress(0); }}
+                className="relative h-[3px] rounded-full overflow-hidden bg-white/30 flex-1 max-w-[60px]"
+                title={v.label}
+              >
+                <div
+                  className="absolute left-0 top-0 h-full bg-[#D4AF37] transition-none"
+                  style={{ width: i === heroVidIdx ? `${heroProgress}%` : i < heroVidIdx ? '100%' : '0%' }}
+                />
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-1.5 justify-center">
+            {HERO_VIDEOS.map((v, i) => (
+              <span key={i} className={`flex-1 max-w-[60px] text-center text-[8px] font-semibold truncate ${
+                i === heroVidIdx ? 'text-[#D4AF37]' : 'text-white/40'
+              }`}>{v.label}</span>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════

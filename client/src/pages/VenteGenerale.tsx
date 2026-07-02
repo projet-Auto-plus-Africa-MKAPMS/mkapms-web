@@ -158,24 +158,32 @@ export default function VenteGenerale() {
               </div>
             ))}
           </div>
+          {/* Indicateurs barre de progression — dans le hero, en bas */}
+          <div className="absolute bottom-3 left-0 right-0 z-20 px-4">
+            <div className="flex gap-1.5 justify-center mb-1">
+              {HERO_VIDEOS.map((v, i) => (
+                <button
+                  key={i}
+                  onClick={() => setHeroIdx(i)}
+                  className="relative h-[3px] rounded-full overflow-hidden bg-white/30 flex-1 max-w-[60px]"
+                  title={v.label}
+                >
+                  <div
+                    className="absolute left-0 top-0 h-full bg-[#D4AF37] transition-none"
+                    style={{ width: i === heroIdx ? `${heroProgress}%` : i < heroIdx ? "100%" : "0%" }}
+                  />
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1.5 justify-center">
+              {HERO_VIDEOS.map((v, i) => (
+                <span key={i} className={`flex-1 max-w-[60px] text-center text-[8px] font-semibold truncate ${
+                  i === heroIdx ? "text-[#D4AF37]" : "text-white/40"
+                }`}>{v.label}</span>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* Indicateurs barre de progression — hors du hero, visibles */}
-      <div className="flex justify-center gap-1.5 px-6 py-2 bg-[#F5F3EF]">
-        {HERO_VIDEOS.map((v, i) => (
-          <button
-            key={i}
-            onClick={() => setHeroIdx(i)}
-            className="relative h-[4px] rounded-full overflow-hidden bg-[#D4AF37]/20 flex-1 max-w-[70px]"
-            title={v.label}
-          >
-            <div
-              className="absolute left-0 top-0 h-full bg-[#D4AF37] transition-none"
-              style={{ width: i === heroIdx ? `${heroProgress}%` : i < heroIdx ? "100%" : "0%" }}
-            />
-          </button>
-        ))}
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
