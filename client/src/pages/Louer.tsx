@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   Shield, CarFront, Users, Truck, HardHat, Bus, ChevronLeft, ChevronRight, Star, Clock,
@@ -120,11 +120,12 @@ const TYPE_VEHICULE = [
   "Camion",
 ];
 
-const HERO_PHOTOS = [
-  "/categories/loc_cover_vtc_taxi.jpg",
-  "/categories/loc_cover_particulier.jpg",
-  "/categories/loc_cover_pro.jpg",
-  "/categories/loc_cover_utilitaires.jpg",
+const HERO_VIDEOS = [
+  { src: "/videos/location/loc_hero1.mp4", label: "Flotte" },
+  { src: "/videos/location/loc_hero2.mp4", label: "Remise" },
+  { src: "/videos/location/loc_hero3.mp4", label: "Route" },
+  { src: "/videos/location/loc_hero4.mp4", label: "Réservation" },
+  { src: "/videos/location/loc_hero5.mp4", label: "Retour" },
 ];
 
 const STATS_LOC = [
@@ -135,12 +136,33 @@ const STATS_LOC = [
 
 export default function Louer() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [heroIdx, setHeroIdx] = useState(0);
+  const [heroVidIdx, setHeroVidIdx] = useState(0);
+  const [heroProgress, setHeroProgress] = useState(0);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   useEffect(() => {
-    const t = setInterval(() => setHeroIdx((i) => (i + 1) % HERO_PHOTOS.length), 4000);
-    return () => clearInterval(t);
-  }, []);
+    if (progressRef.current) clearInterval(progressRef.current);
+    setHeroProgress(0);
+    progressRef.current = setInterval(() => {
+      setHeroProgress((p) => {
+        if (p >= 100) {
+          setHeroVidIdx((i) => (i + 1) % HERO_VIDEOS.length);
+          return 0;
+        }
+        return p + 100 / 80;
+      });
+    }, 100);
+    return () => { if (progressRef.current) clearInterval(progressRef.current); };
+  }, [heroVidIdx]);
+
+  useEffect(() => {
+    videoRefs.current.forEach((v, i) => {
+      if (!v) return;
+      if (i === heroVidIdx) { v.currentTime = 0; v.play().catch(() => {}); }
+      else { v.pause(); }
+    });
+  }, [heroVidIdx]);
   const [lieu, setLieu] = useState("");
   const [dateDebut, setDateDebut] = useState("");
   const [dateRetour, setDateRetour] = useState("");
@@ -150,21 +172,25 @@ export default function Louer() {
     <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
 
       {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 1 — HERO PREMIUM
+          SECTION 1 — HERO PREMIUM VIDÉO CAROUSEL
           ═══════════════════════════════════════════════════════════════════ */}
       <div className="relative overflow-hidden bg-[#111] px-4 pt-6 pb-12">
-        {/* Fond carousel */}
-        <div className="absolute inset-0">
-          {HERO_PHOTOS.map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000"
-              style={{ opacity: i === heroIdx ? 0.18 : 0 }}
-            />
-          ))}
-        </div>
+        {/* Vidéos préchargées */}
+        {HERO_VIDEOS.map((v, i) => (
+          <video
+            key={i}
+            ref={(el) => { videoRefs.current[i] = el; }}
+            src={v.src}
+            muted
+            playsInline
+            loop
+            preload="auto"
+            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
+            style={{ opacity: i === heroVidIdx ? 1 : 0 }}
+          />
+        ))}
+        {/* Overlay sombre */}
+        <div className="absolute inset-0 bg-black/55" />
         {/* Bouton retour */}
         <Link to="/" className="absolute top-4 left-4 z-20 flex items-center justify-center w-9 h-9 rounded-full bg-white/20 backdrop-blur">
           <ChevronLeft size={20} className="text-white" />
@@ -185,21 +211,33 @@ export default function Louer() {
             Choisissez votre besoin et accédez à l'univers adapté.
           </p>
         </div>
-        {/* Stats */}
-        <div className="relative z-10 mt-5 flex items-center justify-center gap-3 flex-wrap">
+        {/* Stats côte à côte */}
+        <div className="relative z-10 mt-5 flex items-center justify-center gap-2 flex-nowrap">
           {STATS_LOC.map((s) => (
-            <div key={s.val} className="flex flex-col items-center rounded-xl bg-white/10 backdrop-blur px-4 py-2 border border-white/10">
-              <span className="text-base font-black text-[#D4AF37]">{s.val}</span>
-              <span className="text-[9px] text-white/60 mt-0.5">{s.label}</span>
+            <div key={s.val} className="flex flex-col items-center rounded-xl bg-white/10 backdrop-blur px-3 py-2 border border-white/10 min-w-0">
+              <span className="text-sm font-black text-[#D4AF37] whitespace-nowrap">{s.val}</span>
+              <span className="text-[9px] text-white/60 mt-0.5 whitespace-nowrap">{s.label}</span>
             </div>
           ))}
         </div>
-        {/* Indicateurs carousel */}
-        <div className="relative z-10 flex justify-center gap-1.5 mt-4">
-          {HERO_PHOTOS.map((_, i) => (
-            <button key={i} onClick={() => setHeroIdx(i)} className={`h-1.5 rounded-full transition-all ${i === heroIdx ? "w-6 bg-[#D4AF37]" : "w-1.5 bg-white/30"}`} />
-          ))}
-        </div>
+      </div>
+      {/* Indicateurs vidéo — hors du cadre de recherche */}
+      <div className="flex justify-center gap-1.5 py-2 bg-[#F5F3EF]">
+        {HERO_VIDEOS.map((v, i) => (
+          <button
+            key={i}
+            onClick={() => { setHeroVidIdx(i); setHeroProgress(0); }}
+            className="flex flex-col items-center gap-0.5"
+          >
+            <div className="h-1 w-10 rounded-full bg-white/30 overflow-hidden">
+              <div
+                className="h-full bg-[#D4AF37] rounded-full transition-none"
+                style={{ width: i === heroVidIdx ? `${heroProgress}%` : i < heroVidIdx ? '100%' : '0%' }}
+              />
+            </div>
+            <span className="text-[8px] text-[#6B7280]">{v.label}</span>
+          </button>
+        ))}
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
