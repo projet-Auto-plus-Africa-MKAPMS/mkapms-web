@@ -171,6 +171,7 @@ export default function Home() {
   const [sModele, setSModele] = useState("");
   const [sPrix, setSPrix] = useState("");
   const [sLocalisation, setSLocalisation] = useState("");
+  const [sAnnee, setSAnnee] = useState("");
 
   function doSearch() {
     const params = new URLSearchParams();
@@ -179,6 +180,7 @@ export default function Home() {
     if (sModele) params.set("modele", sModele);
     if (sPrix) params.set("prixMax", sPrix);
     if (sLocalisation) params.set("ville", sLocalisation);
+    if (sAnnee) params.set("annee", sAnnee);
     navigate(`/acheter?${params.toString()}`);
   }
 
@@ -336,43 +338,85 @@ export default function Home() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
-              SECTION 4 — RECHERCHE AVANCÉE
+              SECTION 4 — RECHERCHE AVANCÉE PREMIUM
               ═══════════════════════════════════════════════════════════════ */}
           <section className="bg-white px-4 pb-4">
-            <div className="max-w-3xl mx-auto rounded-2xl border border-[#E5E7EB] bg-[#FAFAF8] p-4 shadow-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <Search size={18} className="text-[#D4AF37]" />
-                <h2 className="text-sm md:text-base font-bold text-[#111]">Rechercher un véhicule</h2>
+            <div className="max-w-3xl mx-auto rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#FAFAF8] to-white p-4 shadow-md">
+              {/* En-tête premium */}
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                    <Search size={15} className="text-[#D4AF37]" />
+                  </div>
+                  <h2 className="text-sm font-extrabold text-[#111] tracking-tight">Rechercher un véhicule</h2>
+                </div>
+                <span className="text-[9px] font-bold text-[#D4AF37] uppercase tracking-wider border border-[#D4AF37]/30 rounded-full px-2 py-0.5">Mondial</span>
               </div>
-              <p className="text-[10px] text-[#6B7280] mb-3">Voitures, motos, utilitaires — trouvez votre véhicule idéal</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-                <select value={sCategorie} onChange={(e) => setSCategorie(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
-                  <option value="">Toutes catégories</option>
-                  <option>Citadine</option><option>Berline</option><option>SUV</option><option>Coupé</option><option>Break</option><option>Utilitaire</option><option>Moto</option>
-                </select>
-                <select value={sMarque} onChange={(e) => setSMarque(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
-                  <option value="">Marque</option>
-                  <option>Peugeot</option><option>Renault</option><option>Citroën</option><option>BMW</option><option>Mercedes</option><option>Audi</option><option>Volkswagen</option><option>Toyota</option><option>Ford</option><option>Fiat</option>
-                </select>
-                <select value={sModele} onChange={(e) => setSModele(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
-                  <option value="">Modèle</option>
-                </select>
-                <select value={sPrix} onChange={(e) => setSPrix(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
-                  <option value="">Prix max</option>
-                  <option value="5000">5 000 €</option><option value="10000">10 000 €</option><option value="15000">15 000 €</option><option value="20000">20 000 €</option><option value="30000">30 000 €</option><option value="50000">50 000 €</option>
-                </select>
-                <select value={sLocalisation} onChange={(e) => setSLocalisation(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
-                  <option value="">Localisation</option>
-                  <option>Paris</option><option>Lyon</option><option>Marseille</option><option>Toulouse</option><option>Bordeaux</option><option>Nantes</option><option>Lille</option><option>Nice</option>
-                </select>
+              <p className="text-[10px] text-[#9CA3AF] mb-3 pl-10">Voitures · Motos · Utilitaires · Partout dans le monde</p>
+              {/* Grille 6 filtres premium */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {/* Filtre 1 — Catégorie */}
+                <div className="relative">
+                  <select value={sCategorie} onChange={(e) => setSCategorie(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
+                    <option value="">Catégorie</option>
+                    <option>Citadine</option><option>Berline</option><option>SUV / 4x4</option><option>Coupé</option><option>Break</option><option>Cabriolet</option><option>Monospace</option><option>Utilitaire</option><option>Camion</option><option>Moto</option><option>Scooter</option>
+                  </select>
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">🚗</span>
+                </div>
+                {/* Filtre 2 — Marque */}
+                <div className="relative">
+                  <select value={sMarque} onChange={(e) => setSMarque(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
+                    <option value="">Marque</option>
+                    <option>Peugeot</option><option>Renault</option><option>Citroën</option><option>BMW</option><option>Mercedes</option><option>Audi</option><option>Volkswagen</option><option>Toyota</option><option>Ford</option><option>Fiat</option><option>Hyundai</option><option>Kia</option><option>Nissan</option><option>Honda</option><option>Mazda</option><option>Volvo</option><option>Tesla</option><option>Dacia</option><option>Seat</option><option>Skoda</option>
+                  </select>
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">🏷️</span>
+                </div>
+                {/* Filtre 3 — Modèle */}
+                <div className="relative">
+                  <select value={sModele} onChange={(e) => setSModele(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
+                    <option value="">Modèle</option>
+                  </select>
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">🔍</span>
+                </div>
+                {/* Filtre 4 — Année */}
+                <div className="relative">
+                  <select value={sAnnee} onChange={(e) => setSAnnee(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
+                    <option value="">Année</option>
+                    {Array.from({ length: new Date().getFullYear() - 1989 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">📅</span>
+                </div>
+                {/* Filtre 5 — Prix max */}
+                <div className="relative">
+                  <select value={sPrix} onChange={(e) => setSPrix(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
+                    <option value="">Budget max</option>
+                    <option value="3000">3 000 €</option><option value="5000">5 000 €</option><option value="8000">8 000 €</option><option value="10000">10 000 €</option><option value="15000">15 000 €</option><option value="20000">20 000 €</option><option value="30000">30 000 €</option><option value="50000">50 000 €</option><option value="80000">80 000 €</option><option value="100000">100 000 €</option>
+                  </select>
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">💶</span>
+                </div>
+                {/* Filtre 6 — Localisation mondiale (champ libre) */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={sLocalisation}
+                    onChange={(e) => setSLocalisation(e.target.value)}
+                    placeholder="Ville, pays..."
+                    className="w-full rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition font-medium placeholder:text-[#9CA3AF]"
+                  />
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">📍</span>
+                </div>
               </div>
-              {/* Boutons Rechercher et Simuler — séparés et bien visibles */}
-              <div className="mt-3 flex flex-col sm:flex-row gap-2">
-                <button onClick={doSearch} className="flex-1 rounded-xl bg-[#111] px-5 py-3 text-sm font-bold text-white hover:bg-[#333] transition flex items-center justify-center gap-2">
-                  <Search size={16} /> Rechercher
+              {/* Séparateur fin doré */}
+              <div className="my-3 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
+              {/* Boutons Rechercher et Simuler */}
+              <div className="flex gap-2">
+                <button onClick={doSearch} className="flex-1 rounded-xl bg-[#111] px-5 py-3 text-sm font-bold text-white hover:bg-[#333] active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-sm">
+                  <Search size={15} /> Rechercher
                 </button>
-                <button onClick={() => navigate("/estimation")} className="flex-1 rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-bold text-white hover:bg-[#c9a430] transition flex items-center justify-center gap-2">
-                  <Star size={16} /> Simuler / Estimer
+                <button onClick={() => navigate("/acheter/estimation")} className="flex-1 rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-bold text-white hover:bg-[#c9a430] active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-sm">
+                  <Star size={15} /> Simuler / Estimer
                 </button>
               </div>
             </div>
