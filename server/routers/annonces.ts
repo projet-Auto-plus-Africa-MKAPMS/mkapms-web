@@ -568,14 +568,18 @@ export const annoncesRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { photos, pointsForts, equipements, imperfections, confort, multimedia, securite, videos360, videosNormales, categorieAnnonce: inputCatAnnonce, onBehalfOfUserId, ...rest } = input;
 
-      // Déterminer la catégorie d'annonce
-      const isAdminUser = ctx.user.role === "admin" || ctx.user.role === "super_admin";
-      const isEmployee = isAdminUser || ctx.user.role === "employee";
-      const isProUser = ctx.user.role === "pro" || ctx.user.role === "garage" || ctx.user.role === "society";
+      // Déterminer la catégorie d'annonce — vérifier le rôle ACTUEL en DB (le JWT peut être périmé)
+      const [freshUser] = await db.select({ role: users.role, staffPosition: users.staffPosition }).from(users).where(eq(users.id, ctx.user.uid)).limit(1);
+      const currentRole = freshUser?.role || ctx.user.role;
+      const isAdminUser = currentRole === "admin" || currentRole === "super_admin";
+      const isEmployee = isAdminUser || currentRole === "employee";
+      const isProUser = currentRole === "pro" || currentRole === "garage" || currentRole === "society";
       let categorieAnnonce: "officielle" | "professionnelle" | "particulier";
       if (isEmployee && inputCatAnnonce) {
+        // L'employé/admin peut choisir explicitement la catégorie
         categorieAnnonce = inputCatAnnonce;
-      } else if (isAdminUser) {
+      } else if (isEmployee) {
+        // Tout rôle interne (super_admin, admin, employee) → officielle par défaut
         categorieAnnonce = "officielle";
       } else if (isProUser) {
         categorieAnnonce = "professionnelle";

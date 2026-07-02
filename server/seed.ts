@@ -315,13 +315,31 @@ export async function seedStructure() {
     await db.insert(livraisonPiecesRules).values(r).onConflictDoNothing();
   }
 
+  // ─── Compte direction (PDG) — toujours garantir le rôle super_admin ───
+  const adminEmail = "mka.garageauto@gmail.com";
+  const existingAdmin = await db.select().from(users).where(eq(users.email, adminEmail)).limit(1);
+  if (existingAdmin.length) {
+    const adm = existingAdmin[0];
+    if (adm.role !== "super_admin" || adm.staffPosition !== "pdg") {
+      await db.update(users).set({ role: "super_admin", accountType: "professionnel", staffPosition: "pdg" }).where(eq(users.id, adm.id));
+      console.log("[seed] compte direction mis à jour → super_admin:", adminEmail);
+    }
+    // Corriger les annonces du PDG qui ont été mal catégorisées
+    const fixedCount = await db.update(annonces)
+      .set({ categorieAnnonce: "officielle", vendeurType: "professionnel", ownership: "plateforme" })
+      .where(sql`${annonces.ownerId} = ${adm.id} AND ${annonces.categorieAnnonce} != 'officielle'`);
+    if (fixedCount.rowCount && fixedCount.rowCount > 0) {
+      console.log(`[seed] ${fixedCount.rowCount} annonce(s) du PDG corrigée(s) → officielle`);
+    }
+  }
+
   console.log(`[seed] structure initialisée (${WORLD_COUNTRIES.length} pays, ${CURRENCIES_SEED.length + WORLD_CURRENCIES.length} devises, abonnements CG + packs, pièces interdites moto)`);
 }
 
 async function main() {
   await seedStructure();
 
-  // Compte direction (PDG)
+  // Compte direction (PDG) — toujours garantir le rôle super_admin
   const adminEmail = "mka.garageauto@gmail.com";
   const existing = await db.select().from(users).where(eq(users.email, adminEmail)).limit(1);
   let adminId: number;
@@ -342,6 +360,19 @@ async function main() {
     console.log("[seed] compte direction créé:", adminEmail);
   } else {
     adminId = existing[0].id;
+    // Toujours forcer le rôle super_admin + staffPosition pdg pour le compte direction
+    if (existing[0].role !== "super_admin" || existing[0].staffPosition !== "pdg") {
+      await db.update(users).set({ role: "super_admin", accountType: "professionnel", staffPosition: "pdg" }).where(eq(users.id, adminId));
+      console.log("[seed] compte direction mis à jour → super_admin:", adminEmail);
+    }
+  }
+
+  // Corriger les annonces du PDG qui ont été mal catégorisées (pro au lieu d'officielle)
+  const fixedCount = await db.update(annonces)
+    .set({ categorieAnnonce: "officielle", vendeurType: "professionnel", ownership: "plateforme" })
+    .where(sql`${annonces.ownerId} = ${adminId} AND ${annonces.categorieAnnonce} != 'officielle'`);
+  if (fixedCount.rowCount && fixedCount.rowCount > 0) {
+    console.log(`[seed] ${fixedCount.rowCount} annonce(s) du PDG corrigée(s) → officielle`);
   }
 
   // Compte Directeur (Admin Employé)

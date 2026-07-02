@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useRef } from "react";
 import {
   Search, Tag, KeyRound, Wrench, Car, Star, ArrowRight, ShieldCheck,
   Users, Gauge, Heart, ChevronRight, ChevronLeft, ChevronDown,
@@ -56,13 +57,24 @@ const ADS_SERVICES = [
   { titre: "HISTORIQUE VÉHICULE", sous: "RAPPORTS OFFICIELS — CONTRÔLE AVANT ACHAT", color: "bg-indigo-700", to: "/historique" },
 ];
 
-/* ── CARROUSEL PRINCIPAL ── */
-const SLIDES = [
-  { label: "Vente", img: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&h=400&fit=crop", desc: "Achetez et vendez en toute confiance" },
-  { label: "Location", img: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=400&fit=crop", desc: "Louez le véhicule idéal" },
-  { label: "Garage", img: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=400&fit=crop", desc: "Réparation et entretien par des experts" },
-  { label: "Finance+", img: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=400&fit=crop", desc: "Financement et leasing sur mesure" },
-  { label: "Partenaires", img: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=800&h=400&fit=crop", desc: "Rejoignez notre réseau de professionnels" },
+/* ── CARROUSEL PRINCIPAL VIDÉO ── */
+const HOME_HERO_VIDEOS = [
+  { src: "/videos/home/home_acheter.mp4", label: "Acheter" },
+  { src: "/videos/home/home_vendre.mp4", label: "Vendre" },
+  { src: "/videos/home/home_louer.mp4", label: "Louer" },
+  { src: "/videos/home/home_reparer.mp4", label: "Réparer" },
+  { src: "/videos/home/home_finance.mp4", label: "Finance+" },
+  { src: "/videos/home/home_services.mp4", label: "Services" },
+];
+
+/* ── VIDÉOS SERVICES PAGE D'ACCUEIL ── */
+const HOME_SERVICE_VIDEOS = [
+  { src: "/videos/home/home_acheter.mp4", label: "Acheter", sub: "Un véhicule", to: "/acheter", icon: "🚗" },
+  { src: "/videos/home/home_vendre.mp4", label: "Vendre", sub: "Mon véhicule", to: "/vendre", icon: "🏷️" },
+  { src: "/videos/home/home_louer.mp4", label: "Louer", sub: "Un véhicule", to: "/louer", icon: "🔑" },
+  { src: "/videos/home/home_reparer.mp4", label: "Réparer", sub: "Mon véhicule", to: "/garages", icon: "🔧" },
+  { src: "/videos/home/home_finance.mp4", label: "Finance+", sub: "Financement auto", to: "/finance", icon: "💳" },
+  { src: "/videos/home/home_services.mp4", label: "Services", sub: "Livraison, CT, démarches", to: "/demarches", icon: "⚙️" },
 ];
 
 /* ── COMPOSANT SCROLL HORIZONTAL ── */
@@ -108,12 +120,45 @@ export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  /* Carrousel principal */
-  const [slideIdx, setSlideIdx] = useState(0);
+  /* Carrousel principal vidéo */
+  const [heroVidIdx, setHeroVidIdx] = useState(0);
+  const [heroProgress, setHeroProgress] = useState(0);
+  const heroProgressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const heroVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+
   useEffect(() => {
-    const t = setInterval(() => setSlideIdx((p) => (p + 1) % SLIDES.length), 8000);
-    return () => clearInterval(t);
-  }, []);
+    if (heroProgressRef.current) clearInterval(heroProgressRef.current);
+    setHeroProgress(0);
+    heroProgressRef.current = setInterval(() => {
+      setHeroProgress((p) => {
+        if (p >= 100) {
+          setHeroVidIdx((i) => (i + 1) % HOME_HERO_VIDEOS.length);
+          return 0;
+        }
+        return p + 100 / 80;
+      });
+    }, 100);
+    return () => { if (heroProgressRef.current) clearInterval(heroProgressRef.current); };
+  }, [heroVidIdx]);
+
+  useEffect(() => {
+    heroVideoRefs.current.forEach((v, i) => {
+      if (!v) return;
+      if (i === heroVidIdx) { v.currentTime = 0; v.play().catch(() => {}); }
+      else { v.pause(); }
+    });
+  }, [heroVidIdx]);
+
+  /* Carrousel vidéos services */
+  const [svcVidIdx, setSvcVidIdx] = useState(0);
+  const svcVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  useEffect(() => {
+    svcVideoRefs.current.forEach((v, i) => {
+      if (!v) return;
+      if (i === svcVidIdx) { v.currentTime = 0; v.play().catch(() => {}); }
+      else { v.pause(); }
+    });
+  }, [svcVidIdx]);
 
   /* Pubs latérales rotation */
   const [adLeftIdx, setAdLeftIdx] = useState(0);
@@ -189,49 +234,75 @@ export default function Home() {
         <main className="flex-1 min-w-0">
 
           {/* ═══════════════════════════════════════════════════════════════
-              SECTION 2 — CARROUSEL PRINCIPAL (5 slides)
+              SECTION 2 — HERO PREMIUM VIDÉO CAROUSEL
               ═══════════════════════════════════════════════════════════════ */}
-          <section className="relative overflow-hidden">
-            <div className="relative h-[220px] md:h-[340px] lg:h-[420px] 2xl:h-[480px]">
-              {SLIDES.map((s, i) => (
-                <div key={i} className={`absolute inset-0 transition-opacity duration-700 ${i === slideIdx ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
-                  <img src={s.img} alt={s.label} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                </div>
-              ))}
-              {/* Contenu overlay */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 md:p-8 lg:p-12">
-                <p className="text-[10px] md:text-xs lg:text-sm font-semibold uppercase tracking-widest text-[#D4AF37]">LA MARKETPLACE AUTOMOBILE</p>
-                <h1 className="mt-1 text-xl md:text-3xl lg:text-4xl 2xl:text-5xl font-black text-white uppercase leading-tight">
-                  ACHETEZ, VENDEZ, LOUEZ, RÉPAREZ
-                </h1>
-                <p className="text-xs md:text-sm lg:text-base text-white/80 mt-1">EN TOUTE CONFIANCE, PARTOUT, À TOUT MOMENT.</p>
-                <p className="text-[10px] md:text-xs lg:text-sm text-white/60 mt-0.5">Tout l'univers automobile réuni au même endroit.</p>
-                {/* Badges confiance */}
-                <div className="mt-3 flex gap-4 md:gap-6">
-                  {[
-                    { icon: Shield, label: "100% Sécurisé", desc: "Transactions protégées" },
-                    { icon: Award, label: "Meilleurs prix", desc: "Des offres compétitives" },
-                    { icon: Headphones, label: "Support 7J/7", desc: "Une équipe à votre écoute" },
-                    { icon: CheckCircle, label: "Rapide & Facile", desc: "Publiez ou trouvez en quelques clics" },
-                  ].map((b) => (
-                    <div key={b.label} className="flex items-center gap-1.5">
-                      <b.icon size={14} className="text-[#D4AF37] shrink-0" />
-                      <div>
-                        <p className="text-[8px] md:text-[10px] font-bold text-white">{b.label}</p>
-                        <p className="text-[7px] md:text-[9px] text-white/60 hidden md:block">{b.desc}</p>
-                      </div>
+          <section className="relative overflow-hidden bg-[#111]">
+            {/* Vidéos préchargées */}
+            {HOME_HERO_VIDEOS.map((v, i) => (
+              <video
+                key={i}
+                ref={(el) => { heroVideoRefs.current[i] = el; }}
+                src={v.src}
+                muted
+                playsInline
+                loop
+                preload="auto"
+                className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
+                style={{ opacity: i === heroVidIdx ? 1 : 0 }}
+              />
+            ))}
+            {/* Overlay sombre premium */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/20" />
+            {/* Contenu overlay */}
+            <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 md:p-8 lg:p-12 h-[220px] md:h-[340px] lg:h-[420px] 2xl:h-[480px]">
+              <p className="text-[10px] md:text-xs lg:text-sm font-semibold uppercase tracking-widest text-[#D4AF37]">LA MARKETPLACE AUTOMOBILE</p>
+              <h1 className="mt-1 text-xl md:text-3xl lg:text-4xl 2xl:text-5xl font-black text-white uppercase leading-tight">
+                ACHETEZ, VENDEZ, LOUEZ, RÉPAREZ
+              </h1>
+              <p className="text-xs md:text-sm lg:text-base text-white/80 mt-1">EN TOUTE CONFIANCE, PARTOUT, À TOUT MOMENT.</p>
+              <p className="text-[10px] md:text-xs lg:text-sm text-white/60 mt-0.5">Tout l'univers automobile réuni au même endroit.</p>
+              {/* Badges confiance */}
+              <div className="mt-3 flex gap-4 md:gap-6">
+                {[
+                  { icon: Shield, label: "100% Sécurisé", desc: "Transactions protégées" },
+                  { icon: Award, label: "Meilleurs prix", desc: "Des offres compétitives" },
+                  { icon: Headphones, label: "Support 7J/7", desc: "Une équipe à votre écoute" },
+                  { icon: CheckCircle, label: "Rapide & Facile", desc: "Publiez ou trouvez en quelques clics" },
+                ].map((b) => (
+                  <div key={b.label} className="flex items-center gap-1.5">
+                    <b.icon size={14} className="text-[#D4AF37] shrink-0" />
+                    <div>
+                      <p className="text-[8px] md:text-[10px] font-bold text-white">{b.label}</p>
+                      <p className="text-[7px] md:text-[9px] text-white/60 hidden md:block">{b.desc}</p>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-
             </div>
-            {/* Points indicateurs */}
-            <div className="flex items-center justify-center gap-1.5 py-2 bg-white">
-              {SLIDES.map((_, i) => (
-                <button key={i} onClick={() => setSlideIdx(i)} className={`h-2 rounded-full transition-all ${i === slideIdx ? "w-5 bg-[#D4AF37]" : "w-2 bg-[#E5E7EB]"}`} />
-              ))}
+            {/* Indicateurs vidéo avec progression */}
+            <div className="relative z-20 bg-[#111] px-4 pb-2 pt-1">
+              <div className="flex gap-1.5 justify-center mb-1">
+                {HOME_HERO_VIDEOS.map((v, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setHeroVidIdx(i); setHeroProgress(0); }}
+                    className="relative h-[3px] rounded-full overflow-hidden bg-white/30 flex-1 max-w-[60px]"
+                    title={v.label}
+                  >
+                    <div
+                      className="absolute left-0 top-0 h-full bg-[#D4AF37] transition-none"
+                      style={{ width: i === heroVidIdx ? `${heroProgress}%` : i < heroVidIdx ? '100%' : '0%' }}
+                    />
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-1.5 justify-center">
+                {HOME_HERO_VIDEOS.map((v, i) => (
+                  <span key={i} className={`flex-1 max-w-[60px] text-center text-[8px] font-semibold truncate ${
+                    i === heroVidIdx ? 'text-[#D4AF37]' : 'text-white/40'
+                  }`}>{v.label}</span>
+                ))}
+              </div>
             </div>
           </section>
 
@@ -253,6 +324,69 @@ export default function Home() {
                   <span className="text-[10px] md:text-xs font-extrabold uppercase tracking-wide text-[#111]">{a.label}</span>
                   <span className="text-[8px] md:text-[10px] text-[#6B7280]">{a.sub}</span>
                 </Link>
+              ))}
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 3C — VIDÉOS SERVICES PREMIUM
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="bg-[#111] px-4 py-4">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-[9px] uppercase tracking-widest text-[#D4AF37] font-semibold">MKA.P-MS</p>
+                <h2 className="text-sm font-black text-white">Nos univers</h2>
+              </div>
+              <span className="text-[9px] text-white/40 uppercase tracking-wide">Appuyez pour explorer</span>
+            </div>
+            {/* Carousel horizontal 8 emplacements, 6 vidéos */}
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide scroll-smooth">
+              {HOME_SERVICE_VIDEOS.map((sv, i) => (
+                <Link
+                  key={i}
+                  to={sv.to}
+                  className="shrink-0 relative rounded-2xl overflow-hidden cursor-pointer group"
+                  style={{ width: 140, height: 200 }}
+                  onMouseEnter={() => setSvcVidIdx(i)}
+                  onTouchStart={() => setSvcVidIdx(i)}
+                >
+                  <video
+                    ref={(el) => { svcVideoRefs.current[i] = el; }}
+                    src={sv.src}
+                    muted
+                    playsInline
+                    loop
+                    preload="auto"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  {/* Overlay dégradé */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  {/* Badge actif */}
+                  {i === svcVidIdx && (
+                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
+                  )}
+                  {/* Label en bas */}
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="text-base leading-none mb-0.5">{sv.icon}</p>
+                    <p className="text-xs font-black text-white uppercase leading-tight">{sv.label}</p>
+                    <p className="text-[9px] text-white/60 mt-0.5">{sv.sub}</p>
+                    <div className="mt-1.5 flex items-center gap-1">
+                      <Play size={8} className="text-[#D4AF37]" />
+                      <span className="text-[8px] text-[#D4AF37] font-semibold">Explorer</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+              {/* Emplacements 7 et 8 — prochainement */}
+              {[0, 1].map((_, i) => (
+                <div
+                  key={`empty-${i}`}
+                  className="shrink-0 relative rounded-2xl overflow-hidden bg-white/5 border border-white/10 flex flex-col items-center justify-center"
+                  style={{ width: 140, height: 200 }}
+                >
+                  <Sparkles size={20} className="text-[#D4AF37]/40 mb-2" />
+                  <p className="text-[9px] text-white/30 uppercase tracking-wide text-center px-2">Prochainement</p>
+                </div>
               ))}
             </div>
           </section>
