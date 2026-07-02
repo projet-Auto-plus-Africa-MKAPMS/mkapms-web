@@ -44,15 +44,14 @@ import {
 type VehicleTier = "officiel" | "elite" | "premium" | "professionnel" | "particulier";
 
 function getVehicleTier(v: any): VehicleTier {
-  const id = v.id;
-  // MKA.P-MS stock officiel (8000-8005)
-  if (id >= 8000 && id <= 8005) return "officiel";
+  // Annonce officielle MKA.P-MS (catégorisation ou ownership ou IDs démo)
+  if (v.categorieAnnonce === "officielle" || v.ownership === "plateforme" || (v.id >= 8000 && v.id <= 8005)) return "officiel";
   // Elite: boosted + officiel vendeurType
   if (v.tier === "elite") return "elite";
   // Premium: boosted annonces pro
   if (v.boosted && v.vendeurType === "professionnel") return "premium";
   // Professionnel
-  if (v.vendeurType === "professionnel" || v.vendeurType === "concession") return "professionnel";
+  if (v.categorieAnnonce === "professionnelle" || v.vendeurType === "professionnel" || v.vendeurType === "concession") return "professionnel";
   return "particulier";
 }
 import { trpc } from "../lib/trpc";
