@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 
@@ -41,23 +42,25 @@ function ChoixActivite({ onSelect }: { onSelect: (a: Activity) => void }) {
   );
 }
 
-function DashboardVentePro() {
+function DashboardVentePro({ onTabChange }: { onTabChange: (tab: "documents") => void }) {
+  const navigate = useNavigate();
   const dashboard = trpc.pro.dashboard.useQuery();
   const d = dashboard.data;
   return (
     <div>
       <h2 className="mb-4 text-xl font-bold text-[#111]">Tableau de bord — Vente Pro</h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Annonces" value={d?.annonces?.total ?? 0} />
-        <StatCard label="Publiées" value={d?.annonces?.publiees ?? 0} color="text-green-600" />
-        <StatCard label="Vendues" value={d?.annonces?.vendues ?? 0} color="text-[#D4AF37]" />
-        <StatCard label="Documents" value={d?.documents?.valides ?? 0} sub={`${d?.documents?.enAttente ?? 0} en attente`} />
+        <StatCard label="Annonces" value={d?.annonces?.total ?? 0} onClick={() => navigate("/compte")} />
+        <StatCard label="Publiées" value={d?.annonces?.publiees ?? 0} color="text-green-600" onClick={() => navigate("/compte")} />
+        <StatCard label="Vendues" value={d?.annonces?.vendues ?? 0} color="text-[#D4AF37]" onClick={() => navigate("/compte")} />
+        <StatCard label="Documents" value={d?.documents?.valides ?? 0} sub={`${d?.documents?.enAttente ?? 0} en attente`} onClick={() => onTabChange("documents")} />
       </div>
     </div>
   );
 }
 
-function DashboardLocationPro() {
+function DashboardLocationPro({ onTabChange }: { onTabChange: (tab: "documents") => void }) {
+  const navigate = useNavigate();
   const dashboard = trpc.pro.dashboard.useQuery();
   const flotte = trpc.pro.locationListFlotte.useQuery();
   const contrats = trpc.pro.locationListContrats.useQuery();
@@ -66,10 +69,10 @@ function DashboardLocationPro() {
     <div>
       <h2 className="mb-4 text-xl font-bold text-[#111]">Tableau de bord — Location Pro</h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Véhicules" value={(d as any)?.flotte?.total ?? flotte.data?.length ?? 0} />
-        <StatCard label="Disponibles" value={(d as any)?.flotte?.disponibles ?? 0} color="text-green-600" />
-        <StatCard label="Loués" value={(d as any)?.flotte?.loues ?? 0} color="text-blue-600" />
-        <StatCard label="Contrats" value={(d as any)?.contrats?.total ?? contrats.data?.length ?? 0} />
+        <StatCard label="Véhicules" value={(d as any)?.flotte?.total ?? flotte.data?.length ?? 0} onClick={() => navigate("/compte")} />
+        <StatCard label="Disponibles" value={(d as any)?.flotte?.disponibles ?? 0} color="text-green-600" onClick={() => navigate("/compte")} />
+        <StatCard label="Loués" value={(d as any)?.flotte?.loues ?? 0} color="text-blue-600" onClick={() => navigate("/compte")} />
+        <StatCard label="Contrats" value={(d as any)?.contrats?.total ?? contrats.data?.length ?? 0} onClick={() => onTabChange("documents")} />
       </div>
       {flotte.data && flotte.data.length > 0 && (
         <div className="mt-6">
@@ -91,7 +94,8 @@ function DashboardLocationPro() {
   );
 }
 
-function DashboardVtcTaxi() {
+function DashboardVtcTaxi({ onTabChange }: { onTabChange: (tab: "documents") => void }) {
+  const navigate = useNavigate();
   const dashboard = trpc.pro.dashboard.useQuery();
   const societe = trpc.pro.vtcGetSociete.useQuery();
   const chauffeurs = trpc.pro.vtcListChauffeurs.useQuery();
@@ -106,10 +110,10 @@ function DashboardVtcTaxi() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Chauffeurs" value={(d as any)?.chauffeurs?.total ?? chauffeurs.data?.length ?? 0} />
-            <StatCard label="Actifs" value={(d as any)?.chauffeurs?.actifs ?? 0} color="text-green-600" />
-            <StatCard label="Véhicules" value={(d as any)?.vehicules?.total ?? vehicules.data?.length ?? 0} />
-            <StatCard label="Disponibles" value={(d as any)?.vehicules?.disponibles ?? 0} color="text-blue-600" />
+            <StatCard label="Chauffeurs" value={(d as any)?.chauffeurs?.total ?? chauffeurs.data?.length ?? 0} onClick={() => onTabChange("documents")} />
+            <StatCard label="Actifs" value={(d as any)?.chauffeurs?.actifs ?? 0} color="text-green-600" onClick={() => onTabChange("documents")} />
+            <StatCard label="Véhicules" value={(d as any)?.vehicules?.total ?? vehicules.data?.length ?? 0} onClick={() => navigate("/compte")} />
+            <StatCard label="Disponibles" value={(d as any)?.vehicules?.disponibles ?? 0} color="text-blue-600" onClick={() => navigate("/compte")} />
           </div>
           {chauffeurs.data && chauffeurs.data.length > 0 && (
             <div className="mt-6">
@@ -130,7 +134,8 @@ function DashboardVtcTaxi() {
   );
 }
 
-function DashboardGeneric({ activity }: { activity: string }) {
+function DashboardGeneric({ activity, onTabChange }: { activity: string; onTabChange: (tab: "documents") => void }) {
+  const navigate = useNavigate();
   const dashboard = trpc.pro.dashboard.useQuery();
   const d = dashboard.data;
   const label = ACTIVITIES.find((a) => a.value === activity)?.label ?? activity;
@@ -138,10 +143,10 @@ function DashboardGeneric({ activity }: { activity: string }) {
     <div>
       <h2 className="mb-4 text-xl font-bold text-[#111]">Tableau de bord — {label}</h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Annonces" value={d?.annonces?.total ?? 0} />
-        <StatCard label="Documents" value={d?.documents?.total ?? 0} />
-        <StatCard label="Validés" value={d?.documents?.valides ?? 0} color="text-green-600" />
-        <StatCard label="Expirés" value={d?.documents?.expires ?? 0} color="text-red-500" />
+        <StatCard label="Annonces" value={d?.annonces?.total ?? 0} onClick={() => navigate("/compte")} />
+        <StatCard label="Documents" value={d?.documents?.total ?? 0} onClick={() => onTabChange("documents")} />
+        <StatCard label="Validés" value={d?.documents?.valides ?? 0} color="text-green-600" onClick={() => onTabChange("documents")} />
+        <StatCard label="Expirés" value={d?.documents?.expires ?? 0} color="text-red-500" onClick={() => onTabChange("documents")} />
       </div>
     </div>
   );
@@ -171,9 +176,12 @@ function DocumentsPro() {
   );
 }
 
-function StatCard({ label, value, color, sub }: { label: string; value: number; color?: string; sub?: string }) {
+function StatCard({ label, value, color, sub, onClick }: { label: string; value: number; color?: string; sub?: string; onClick?: () => void }) {
   return (
-    <div className="rounded-xl border border-[#E5E7EB] bg-white p-4">
+    <div
+      className={`rounded-xl border border-[#E5E7EB] bg-white p-4 transition ${onClick ? "cursor-pointer hover:border-[#D4AF37] hover:shadow-md" : ""}`}
+      onClick={onClick}
+    >
       <p className="text-xs font-medium uppercase tracking-wider text-[#6B7280]">{label}</p>
       <p className={`mt-1 text-2xl font-bold ${color || "text-[#111]"}`}>{value}</p>
       {sub && <p className="mt-0.5 text-xs text-[#6B7280]">{sub}</p>}
@@ -209,6 +217,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function EspacePro() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const profile = trpc.pro.getProfile.useQuery(undefined, { enabled: !!user });
   const createProfile = trpc.pro.createProfile.useMutation({ onSuccess: () => profile.refetch() });
   const [tab, setTab] = useState<"dashboard" | "documents">("dashboard");
@@ -229,6 +238,18 @@ export default function EspacePro() {
   }
 
   const activity = profile.data.activity;
+  const activityInfo = ACTIVITIES.find((a) => a.value === activity);
+
+  const badgeRoutes: Record<string, string> = {
+    cabinet_comptable: "/comptabilite",
+    garage_plus: "/garages",
+    vente_pro: "/compte",
+    location_pro: "/louer",
+    vtc_taxi: "/compte",
+    pieces_auto: "/compte",
+    carte_grise: "/demarches/carte-grise",
+  };
+  const badgeRoute = badgeRoutes[activity] || "/compte";
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
@@ -237,12 +258,15 @@ export default function EspacePro() {
         <div>
           <h1 className="text-2xl font-extrabold text-[#111]">Espace Pro</h1>
           <p className="text-sm text-[#6B7280]">
-            {ACTIVITIES.find((a) => a.value === activity)?.label} — {profile.data.companyName || user.name}
+            {activityInfo?.label} — {profile.data.companyName || user.name}
           </p>
         </div>
-        <span className="rounded-full bg-[#D4AF37] px-3 py-1 text-xs font-bold text-white">
-          {ACTIVITIES.find((a) => a.value === activity)?.icon} {ACTIVITIES.find((a) => a.value === activity)?.label}
-        </span>
+        <button
+          onClick={() => navigate(badgeRoute)}
+          className="rounded-full bg-[#D4AF37] px-3 py-1 text-xs font-bold text-white hover:bg-[#C5A028] transition cursor-pointer"
+        >
+          {activityInfo?.icon} {activityInfo?.label}
+        </button>
       </div>
 
       {/* Tabs */}
@@ -261,10 +285,10 @@ export default function EspacePro() {
       {/* Content */}
       {tab === "dashboard" && (
         <>
-          {activity === "vente_pro" && <DashboardVentePro />}
-          {activity === "location_pro" && <DashboardLocationPro />}
-          {activity === "vtc_taxi" && <DashboardVtcTaxi />}
-          {!["vente_pro", "location_pro", "vtc_taxi"].includes(activity) && <DashboardGeneric activity={activity} />}
+          {activity === "vente_pro" && <DashboardVentePro onTabChange={setTab} />}
+          {activity === "location_pro" && <DashboardLocationPro onTabChange={setTab} />}
+          {activity === "vtc_taxi" && <DashboardVtcTaxi onTabChange={setTab} />}
+          {!["vente_pro", "location_pro", "vtc_taxi"].includes(activity) && <DashboardGeneric activity={activity} onTabChange={setTab} />}
         </>
       )}
       {tab === "documents" && <DocumentsPro />}
