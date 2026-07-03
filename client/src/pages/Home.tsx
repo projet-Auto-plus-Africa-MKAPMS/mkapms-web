@@ -141,7 +141,7 @@ export default function Home() {
     });
   }, [heroVidIdx]);
 
-  /* Carrousel vidéos services */
+  /* Carrousel vidéos services — rotation automatique toutes les 4 secondes */
   const [svcVidIdx, setSvcVidIdx] = useState(0);
   const svcVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   useEffect(() => {
@@ -151,6 +151,10 @@ export default function Home() {
       else { v.pause(); }
     });
   }, [svcVidIdx]);
+  useEffect(() => {
+    const t = setInterval(() => setSvcVidIdx((p) => (p + 1) % HOME_SERVICE_VIDEOS.length), 4000);
+    return () => clearInterval(t);
+  }, []);
 
   /* Pubs latérales rotation */
   const [adLeftIdx, setAdLeftIdx] = useState(0);
@@ -516,7 +520,8 @@ export default function Home() {
                     playsInline
                     loop
                     preload="auto"
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover object-center"
+                    style={{ minWidth: "100%", minHeight: "100%" }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   {i === svcVidIdx && (
