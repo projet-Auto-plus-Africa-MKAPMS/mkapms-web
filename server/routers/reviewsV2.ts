@@ -188,14 +188,17 @@ async function triggerWebhooks(event: string, data: Record<string, any>) {
     const events = hook.events as string[];
     if (!events.includes(event) && !events.includes("*")) continue;
     const payload = { event, timestamp: new Date().toISOString(), data };
+    const body = JSON.stringify(payload);
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (hook.secret) {
+      const { createHmac } = await import("crypto");
+      headers["X-MKA-Signature"] = createHmac("sha256", hook.secret).update(body).digest("hex");
+    }
     try {
       const resp = await fetch(hook.url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(hook.secret ? { "X-MKA-Signature": hook.secret } : {}),
-        },
-        body: JSON.stringify(payload),
+        headers,
+        body,
         signal: AbortSignal.timeout(10000),
       });
       await db.insert(reviewWebhookLogs).values({
@@ -492,8 +495,8 @@ export const reviewsV2Router = router({
       const verificationProof = verified ? `TXN-${input.transactionType}-${input.transactionId}` : null;
 
       // Détection fidélité (Point 19)
-      const [author] = await db.select({ createdAt: users.createdAt }).from(users).where(eq(users.id, authorId)).limit(1);
-      const loyaltyTier = author ? detectLoyaltyTier(author.createdAt, 0) : "new";
+      const [author] = await db.select({ createdAt: users.createdAt, reviewCount: users.reviewCount }).from(users).where(eq(users.id, authorId)).limit(1);
+      const loyaltyTier = author ? detectLoyaltyTier(author.createdAt, author.reviewCount ?? 0) : "new";
 
       const [inserted] = await db
         .insert(reviewsV2)
@@ -687,8 +690,15 @@ export const reviewsV2Router = router({
     }))
     .mutation(async ({ ctx, input }) => {
       await db.insert(reviewReports).values({ reviewId: input.reviewId, reporterId: ctx.user.uid, reason: input.reason, details: input.details });
-      await db.update(reviewsV2).set({ reportedCount: sql`${reviewsV2.reportedCount} + 1`, status: "signale" })
+      const [reported] = await db.select().from(reviewsV2).where(eq(reviewsV2.id, input.reviewId)).limit(1);
+      if (!reported) throw new Error("Avis introuvable.");
+      const newCount = (reported.reportedCount || 0) + 1;
+      const shouldHide = newCount >= 3;
+      await db.update(reviewsV2).set({ reportedCount: sql`${reviewsV2.reportedCount} + 1`, ...(shouldHide ? { status: "signale" } : {}) })
         .where(eq(reviewsV2.id, input.reviewId));
+      if (shouldHide) {
+        await recomputeAggregates(reported.targetType, reported.targetId, reported.univers);
+      }
       await recordHistory(input.reviewId, "reported", ctx.user.uid, null, { reason: input.reason });
       triggerWebhooks("review.reported", { reviewId: input.reviewId, reason: input.reason });
       return { ok: true };
@@ -705,6 +715,9 @@ export const reviewsV2Router = router({
     .mutation(async ({ ctx, input }) => {
       const [review] = await db.select().from(reviewsV2).where(eq(reviewsV2.id, input.reviewId)).limit(1);
       if (!review) throw new Error("Avis introuvable.");
+      if (review.targetType === "user" && review.targetId !== ctx.user.uid) {
+        throw new Error("Vous ne pouvez contester que les avis vous concernant.");
+      }
 
       await db.insert(reviewContestations).values({
         reviewId: input.reviewId,
@@ -714,6 +727,7 @@ export const reviewsV2Router = router({
         evidence: input.evidence ?? [],
       });
       await db.update(reviewsV2).set({ status: "conteste" }).where(eq(reviewsV2.id, input.reviewId));
+      await recomputeAggregates(review.targetType, review.targetId, review.univers);
       await recordHistory(input.reviewId, "contested", ctx.user.uid, null, { reason: input.reason });
       triggerWebhooks("review.contested", { reviewId: input.reviewId, reason: input.reason });
       return { ok: true };
@@ -909,6 +923,10 @@ export const reviewsV2Router = router({
         }
       } else {
         await db.update(reviewsV2).set({ status: "publie" }).where(eq(reviewsV2.id, contestation.reviewId));
+        const [rejectedReview] = await db.select().from(reviewsV2).where(eq(reviewsV2.id, contestation.reviewId)).limit(1);
+        if (rejectedReview) {
+          await recomputeAggregates(rejectedReview.targetType, rejectedReview.targetId, rejectedReview.univers);
+        }
       }
       return { ok: true };
     }),
