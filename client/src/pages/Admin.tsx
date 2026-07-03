@@ -32,6 +32,7 @@ export default function Admin() {
 
   const utils = trpc.useUtils();
   const moderate = trpc.admin.moderateAnnonce.useMutation({ onSuccess: () => { utils.admin.annoncesPending.invalidate(); utils.admin.annoncesAll.invalidate(); } });
+  const deleteAnnonce = trpc.admin.deleteAnnonce.useMutation({ onSuccess: () => { utils.admin.annoncesPending.invalidate(); utils.admin.annoncesAll.invalidate(); } });
   const validateGarage = trpc.admin.validateGarage.useMutation({ onSuccess: () => utils.admin.garagesPending.invalidate() });
   const validateKyc = trpc.admin.validateKyc.useMutation({ onSuccess: () => utils.admin.kycPending.invalidate() });
   const createStaff = trpc.admin.createStaff.useMutation({
@@ -402,7 +403,7 @@ export default function Admin() {
                     {(a.status === "archivee" || a.status === "refusee") && (
                       <button className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700" onClick={() => moderate.mutate({ id: a.id, action: "publiee" })}><Play size={13} /> Republier</button>
                     )}
-                    <button className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700" onClick={() => { if(confirm("Supprimer cette annonce définitivement ?")) moderate.mutate({ id: a.id, action: "archivee" }); }}><Trash2 size={13} /> Supprimer</button>
+                    <button className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700" onClick={() => { if(confirm("Supprimer cette annonce définitivement ?")) deleteAnnonce.mutate({ id: a.id }); }}><Trash2 size={13} /> Supprimer</button>
                   </div>
                 </div>
               )}
