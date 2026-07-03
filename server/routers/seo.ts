@@ -390,11 +390,15 @@ export const seoRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       if (input.id) {
+        const [existing] = await db.select({ publishedAt: seoBlogArticles.publishedAt }).from(seoBlogArticles).where(eq(seoBlogArticles.id, input.id)).limit(1);
+        const publishedAt = input.published
+          ? (existing?.publishedAt ?? new Date())
+          : null;
         await db
           .update(seoBlogArticles)
           .set({
             ...input,
-            publishedAt: input.published ? new Date() : null,
+            publishedAt,
             updatedAt: new Date(),
           })
           .where(eq(seoBlogArticles.id, input.id));
@@ -412,7 +416,7 @@ export const seoRouter = router({
     }),
 
   // Générer meta SEO automatiques pour une annonce
-  generateAnnonceSeo: protectedProcedure
+  generateAnnonceSeo: adminProcedure
     .input(z.object({ annonceId: z.number() }))
     .mutation(async ({ input }) => {
       const [annonce] = await db.select().from(annonces).where(eq(annonces.id, input.annonceId)).limit(1);
