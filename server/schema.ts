@@ -1131,3 +1131,4 @@ export * from "./modules/pro"; // Amélioration Pro (VTC, Location, GPS, Documen
 export * from "./modules/financeplus"; // Finance+ (LOA, Paiement fractionné, Suivi véhicules)
 export * from "./modules/reviews"; // Système d'avis universel multi-univers
 export * from "./modules/seo"; // SEO automatique + indexation Google
+export * from "./modules/coreEngine"; // Core Engine — moteur d'orchestration central (15 centres)
