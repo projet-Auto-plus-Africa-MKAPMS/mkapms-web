@@ -3,7 +3,7 @@
 // Module staging : connecté mais non intégré directement.
 import { z } from "zod";
 import { desc, eq, sql, and, gte, lte, or, asc } from "drizzle-orm";
-import { router, publicProcedure, protectedProcedure, adminProcedure } from "../trpc.js";
+import { router, publicProcedure, protectedProcedure, adminProcedure, directionProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import {
   serviceRecommendationRules,
@@ -33,6 +33,8 @@ import {
   expansionCountries,
   ecosystemLinks,
   orchestrationLog,
+  ceEngineLogs,
+  ceEngineHealth,
 } from "../modules/coreEngine.js";
 
 // ─── 1. MOTEUR DE SERVICES UNIVERSEL ───
@@ -559,6 +561,142 @@ const ecosystemCenter = router({
   }),
 });
 
+// ─── BETA DASHBOARD (PDG / Direction uniquement) ───
+const CENTRES = [
+  { key: "services", label: "Moteur Services Universel", table: "ce_service_rules" },
+  { key: "recommandation", label: "Recommandation Intelligent", table: "ce_recommendations" },
+  { key: "fournisseurs", label: "Fournisseurs Mondial", table: "ce_suppliers" },
+  { key: "distribution", label: "Distribution", table: "ce_distribution_depots" },
+  { key: "formation", label: "Formation", table: "ce_formation_courses" },
+  { key: "b2b", label: "Marketplace B2B", table: "ce_b2b_listings" },
+  { key: "statsIA", label: "Statistiques IA", table: "ce_ai_reports" },
+  { key: "documents", label: "Documents Mondial", table: "ce_document_vault" },
+  { key: "partenaires", label: "Partenaires Stratégiques", table: "ce_strategic_partners" },
+  { key: "openApi", label: "Open API", table: "ce_api_keys" },
+  { key: "automation", label: "IA Automatisation", table: "ce_automation_events" },
+  { key: "workflow", label: "Workflow", table: "ce_workflows" },
+  { key: "recherche", label: "Recherche Mondiale", table: "ce_search_index" },
+  { key: "expansion", label: "Expansion Mondiale", table: "ce_expansion_countries" },
+  { key: "ecosysteme", label: "Écosystème", table: "ce_ecosystem_links" },
+];
+
+const betaDashboard = router({
+  overview: directionProcedure.query(async () => {
+    const counts = await Promise.all([
+      db.select({ count: sql<number>`count(*)` }).from(serviceRecommendationRules),
+      db.select({ count: sql<number>`count(*)` }).from(recommendations),
+      db.select({ count: sql<number>`count(*)` }).from(ceSuppliers),
+      db.select({ count: sql<number>`count(*)` }).from(distributionDepots),
+      db.select({ count: sql<number>`count(*)` }).from(ceFormationCourses),
+      db.select({ count: sql<number>`count(*)` }).from(b2bListings),
+      db.select({ count: sql<number>`count(*)` }).from(aiAnalysisReports),
+      db.select({ count: sql<number>`count(*)` }).from(documentVault),
+      db.select({ count: sql<number>`count(*)` }).from(strategicPartners),
+      db.select({ count: sql<number>`count(*)` }).from(apiKeys),
+      db.select({ count: sql<number>`count(*)` }).from(automationEvents),
+      db.select({ count: sql<number>`count(*)` }).from(workflows),
+      db.select({ count: sql<number>`count(*)` }).from(searchIndex),
+      db.select({ count: sql<number>`count(*)` }).from(expansionCountries),
+      db.select({ count: sql<number>`count(*)` }).from(ecosystemLinks),
+    ]);
+    const health = await db.select().from(ceEngineHealth).orderBy(asc(ceEngineHealth.centre));
+    const recentLogs = await db.select().from(ceEngineLogs).orderBy(desc(ceEngineLogs.createdAt)).limit(50);
+    const recentOrchestration = await db.select().from(orchestrationLog).orderBy(desc(orchestrationLog.createdAt)).limit(20);
+    const [totalEvents] = await db.select({ count: sql<number>`count(*)` }).from(automationEvents);
+    const [totalActions] = await db.select({ count: sql<number>`count(*)` }).from(automationActions);
+    const [failedActions] = await db.select({ count: sql<number>`count(*)` }).from(automationActions).where(eq(automationActions.status, "echoue"));
+
+    const centres = CENTRES.map((c, i) => ({
+      ...c,
+      count: Number(counts[i][0].count),
+      health: health.find(h => h.centre === c.key) ?? null,
+    }));
+
+    return {
+      centres,
+      totalEvents: Number(totalEvents.count),
+      totalActions: Number(totalActions.count),
+      failedActions: Number(failedActions.count),
+      recentLogs,
+      recentOrchestration,
+    };
+  }),
+
+  logs: directionProcedure
+    .input(z.object({
+      centre: z.string().optional(),
+      level: z.enum(["info", "warn", "error", "debug"]).optional(),
+      limit: z.number().default(100),
+    }))
+    .query(async ({ input }) => {
+      const conditions = [];
+      if (input.centre) conditions.push(eq(ceEngineLogs.centre, input.centre));
+      if (input.level) conditions.push(eq(ceEngineLogs.level, input.level));
+      return db.select().from(ceEngineLogs)
+        .where(conditions.length ? and(...conditions) : undefined)
+        .orderBy(desc(ceEngineLogs.createdAt))
+        .limit(input.limit);
+    }),
+
+  health: directionProcedure.query(async () => {
+    return db.select().from(ceEngineHealth).orderBy(asc(ceEngineHealth.centre));
+  }),
+
+  updateHealth: adminProcedure
+    .input(z.object({
+      centre: z.string(),
+      status: z.enum(["actif", "inactif", "erreur", "maintenance"]),
+      avgResponseMs: z.number().optional(),
+      errorCount24h: z.number().optional(),
+      requestCount24h: z.number().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const existing = await db.select().from(ceEngineHealth).where(eq(ceEngineHealth.centre, input.centre)).limit(1);
+      if (existing.length) {
+        await db.update(ceEngineHealth).set({
+          status: input.status,
+          avgResponseMs: input.avgResponseMs,
+          errorCount24h: input.errorCount24h ?? 0,
+          requestCount24h: input.requestCount24h ?? 0,
+          lastCheckedAt: new Date(),
+          updatedAt: new Date(),
+        }).where(eq(ceEngineHealth.centre, input.centre));
+      } else {
+        await db.insert(ceEngineHealth).values({
+          centre: input.centre,
+          status: input.status,
+          avgResponseMs: input.avgResponseMs,
+          errorCount24h: input.errorCount24h ?? 0,
+          requestCount24h: input.requestCount24h ?? 0,
+        });
+      }
+      return { ok: true };
+    }),
+
+  writeLog: adminProcedure
+    .input(z.object({
+      centre: z.string(),
+      action: z.string(),
+      level: z.enum(["info", "warn", "error", "debug"]).default("info"),
+      message: z.string().optional(),
+      durationMs: z.number().optional(),
+      userId: z.number().optional(),
+      metadata: z.any().optional(),
+      error: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const [log] = await db.insert(ceEngineLogs).values(input).returning();
+      return log;
+    }),
+
+  communications: directionProcedure.query(async () => {
+    const links = await db.select().from(ecosystemLinks).where(eq(ecosystemLinks.active, true)).orderBy(asc(ecosystemLinks.priority));
+    const recentEvents = await db.select().from(automationEvents).orderBy(desc(automationEvents.createdAt)).limit(20);
+    const recentActions = await db.select().from(automationActions).orderBy(desc(automationActions.createdAt)).limit(20);
+    return { links, recentEvents, recentActions };
+  }),
+});
+
 // ═══ EXPORT ROUTER PRINCIPAL ═══
 export const coreEngineRouter = router({
   services: serviceEngine,
@@ -576,4 +714,5 @@ export const coreEngineRouter = router({
   search: searchCenter,
   expansion: expansionCenter,
   ecosystem: ecosystemCenter,
+  beta: betaDashboard,
 });

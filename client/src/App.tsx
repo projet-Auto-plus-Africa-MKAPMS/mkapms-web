@@ -341,6 +341,7 @@ const CentreTickets = lazy(() => import("./pages/superadmin/CentreTickets"));
 const ComptabiliteComplete = lazy(() => import("./pages/superadmin/ComptabiliteComplete"));
 const GestionEmployesMKAPMS = lazy(() => import("./pages/superadmin/GestionEmployesMKAPMS"));
 const SuperAdminDashboard = lazy(() => import("./pages/superadmin/SuperAdminDashboard"));
+const CoreEngineBeta = lazy(() => import("./pages/superadmin/CoreEngineBeta"));
 const ValidationDocumentsComplete = lazy(() => import("./pages/superadmin/ValidationDocumentsComplete"));
 // Utilisateurs
 const AbonnementsUtilisateur = lazy(() => import("./pages/utilisateurs/AbonnementsUtilisateur"));
@@ -1074,6 +1075,7 @@ export default function App() {
             <Route path="/superadmin/comptabilite-complete" element={<U name="Super Admin"><ComptabiliteComplete /></U>} />
             <Route path="/superadmin/gestion-employes-m-k-a-p-m-s" element={<U name="Super Admin"><GestionEmployesMKAPMS /></U>} />
             <Route path="/superadmin" element={<U name="Super Admin"><SuperAdminDashboard /></U>} />
+            <Route path="/superadmin/core-engine-beta" element={<U name="Super Admin"><CoreEngineBeta /></U>} />
             <Route path="/superadmin/validation-documents-complete" element={<U name="Super Admin"><ValidationDocumentsComplete /></U>} />
             {/* Utilisateurs */}
             <Route path="/utilisateurs/abonnements-utilisateur" element={<U name="Utilisateurs"><AbonnementsUtilisateur /></U>} />

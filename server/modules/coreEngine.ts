@@ -396,3 +396,34 @@ export const orchestrationLog = pgTable("ce_orchestration_log", {
   details: jsonb("details"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// ─── JOURNAL CORE ENGINE ───
+// Logs détaillés pour chaque opération du Core Engine.
+export const ceEngineLogs = pgTable("ce_engine_logs", {
+  id: serial("id").primaryKey(),
+  centre: varchar("centre", { length: 64 }).notNull(),
+  action: varchar("action", { length: 128 }).notNull(),
+  level: varchar("level", { length: 16 }).notNull().default("info"), // info, warn, error, debug
+  message: text("message"),
+  durationMs: integer("duration_ms"),
+  userId: integer("user_id"),
+  metadata: jsonb("metadata"),
+  error: text("error"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ─── SANTÉ DES CENTRES ───
+// État de chaque centre du Core Engine, mis à jour régulièrement.
+export const ceEngineHealth = pgTable("ce_engine_health", {
+  id: serial("id").primaryKey(),
+  centre: varchar("centre", { length: 64 }).notNull().unique(),
+  status: varchar("status", { length: 16 }).notNull().default("actif"), // actif, inactif, erreur, maintenance
+  lastCheckedAt: timestamp("last_checked_at").notNull().defaultNow(),
+  avgResponseMs: integer("avg_response_ms"),
+  errorCount24h: integer("error_count_24h").notNull().default(0),
+  requestCount24h: integer("request_count_24h").notNull().default(0),
+  uptime: numeric("uptime", { precision: 5, scale: 2 }).notNull().default("100"),
+  lastError: text("last_error"),
+  metadata: jsonb("metadata"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
