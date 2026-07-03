@@ -3,7 +3,10 @@ import { useEffect, lazy, Suspense } from "react";
 import Layout from "./components/Layout";
 import { useAuth } from "./lib/auth";
 import { trpc } from "./lib/trpc";
+import { useDomain } from "./lib/domain";
 import Home from "./pages/Home";
+import HomePro from "./pages/HomePro";
+import HomeSite from "./pages/HomeSite";
 import NotFound from "./pages/NotFound";
 import UniversBoundary from "./components/UniversBoundary";
 import InstallPrompt from "./components/InstallPrompt";
@@ -720,6 +723,14 @@ function SessionLoader() {
   return null;
 }
 
+/** Composant qui sélectionne la home page selon le domaine */
+function DomainHome() {
+  const { key } = useDomain();
+  if (key === "pro") return <HomePro />;
+  if (key === "site") return <HomeSite />;
+  return <Home />;
+}
+
 export default function App() {
   return (
     <>
@@ -729,7 +740,7 @@ export default function App() {
       <Layout>
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<DomainHome />} />
             <Route path="/louer" element={<U name="Location"><Louer /></U>} />
             <Route path="/louer/vtc-taxi" element={<U name="Location VTC & Taxi"><VtcTaxi /></U>} />
             <Route path="/louer/particulier" element={<U name="Location Particulier"><LocationParticulier /></U>} />
