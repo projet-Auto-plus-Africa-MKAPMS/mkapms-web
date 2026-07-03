@@ -83,14 +83,14 @@ const recommendationEngine = router({
       metadata: z.any().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      await db.insert(userBehaviorLog).values({ userId: ctx.user.id, ...input });
+      await db.insert(userBehaviorLog).values({ userId: ctx.user.uid, ...input });
       return { success: true };
     }),
   getMyRecommendations: protectedProcedure
     .input(z.object({ limit: z.number().min(1).max(50).optional() }).optional())
     .query(async ({ ctx, input }) => {
       return db.select().from(recommendations)
-        .where(and(eq(recommendations.userId, ctx.user.id), eq(recommendations.seen, false)))
+        .where(and(eq(recommendations.userId, ctx.user.uid), eq(recommendations.seen, false)))
         .orderBy(desc(recommendations.score))
         .limit(input?.limit ?? 10);
     }),
@@ -126,7 +126,7 @@ const fournisseursCenter = router({
       query: z.string().optional(),
     }))
     .query(async ({ input }) => {
-      let query = db.select().from(ceSuppliers).where(eq(ceSuppliers.active, true));
+      let query: any = db.select().from(ceSuppliers).where(eq(ceSuppliers.active, true));
       if (input.category) query = query.where(eq(ceSuppliers.category, input.category)) as any;
       if (input.country) query = query.where(eq(ceSuppliers.country, input.country)) as any;
       return query.orderBy(desc(ceSuppliers.noteMoyenne)).limit(50);
@@ -202,7 +202,7 @@ const formationCenter = router({
   listCourses: publicProcedure
     .input(z.object({ category: z.string().optional() }).optional())
     .query(async ({ input }) => {
-      let q = db.select().from(ceFormationCourses).where(eq(ceFormationCourses.active, true));
+      let q: any = db.select().from(ceFormationCourses).where(eq(ceFormationCourses.active, true));
       if (input?.category) q = q.where(eq(ceFormationCourses.category, input.category)) as any;
       return q.orderBy(asc(ceFormationCourses.ordre));
     }),
@@ -217,7 +217,7 @@ const formationCenter = router({
   enroll: protectedProcedure
     .input(z.object({ courseId: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      const [e] = await db.insert(ceFormationEnrollments).values({ userId: ctx.user.id, courseId: input.courseId }).returning();
+      const [e] = await db.insert(ceFormationEnrollments).values({ userId: ctx.user.uid, courseId: input.courseId }).returning();
       return e;
     }),
   updateProgress: protectedProcedure
@@ -251,7 +251,7 @@ const formationCenter = router({
       return c;
     }),
   myEnrollments: protectedProcedure.query(async ({ ctx }) => {
-    return db.select().from(ceFormationEnrollments).where(eq(ceFormationEnrollments.userId, ctx.user.id));
+    return db.select().from(ceFormationEnrollments).where(eq(ceFormationEnrollments.userId, ctx.user.uid));
   }),
 });
 
@@ -260,7 +260,7 @@ const b2bCenter = router({
   listListings: publicProcedure
     .input(z.object({ category: z.string().optional(), marque: z.string().optional(), country: z.string().optional(), limit: z.number().optional() }).optional())
     .query(async ({ input }) => {
-      let q = db.select().from(b2bListings).where(eq(b2bListings.active, true));
+      let q: any = db.select().from(b2bListings).where(eq(b2bListings.active, true));
       if (input?.category) q = q.where(eq(b2bListings.category, input.category)) as any;
       if (input?.country) q = q.where(eq(b2bListings.country, input.country)) as any;
       return q.orderBy(desc(b2bListings.createdAt)).limit(input?.limit ?? 50);
@@ -268,7 +268,7 @@ const b2bCenter = router({
   createListing: protectedProcedure
     .input(z.object({ sellerType: z.string(), category: z.string(), title: z.string(), description: z.string().optional(), marque: z.string().optional(), reference: z.string().optional(), prixUnitaireHT: z.string().optional(), quantiteMin: z.number().optional(), stock: z.number().optional(), delaiJours: z.number().optional(), country: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
-      const [l] = await db.insert(b2bListings).values({ ...input, sellerId: ctx.user.id }).returning();
+      const [l] = await db.insert(b2bListings).values({ ...input, sellerId: ctx.user.uid }).returning();
       return l;
     }),
   createOrder: protectedProcedure
@@ -278,14 +278,14 @@ const b2bCenter = router({
       if (!listing) return { error: "Annonce introuvable" };
       const totalHT = listing.prixUnitaireHT ? String(Number(listing.prixUnitaireHT) * input.quantity) : "0";
       const ref = `MKA-B2B-${Date.now().toString(36).toUpperCase()}`;
-      const [order] = await db.insert(b2bOrders).values({ reference: ref, buyerId: ctx.user.id, sellerId: listing.sellerId, listingId: input.listingId, quantity: input.quantity, totalHT }).returning();
+      const [order] = await db.insert(b2bOrders).values({ reference: ref, buyerId: ctx.user.uid, sellerId: listing.sellerId, listingId: input.listingId, quantity: input.quantity, totalHT }).returning();
       return order;
     }),
   myOrders: protectedProcedure.query(async ({ ctx }) => {
-    return db.select().from(b2bOrders).where(eq(b2bOrders.buyerId, ctx.user.id)).orderBy(desc(b2bOrders.createdAt));
+    return db.select().from(b2bOrders).where(eq(b2bOrders.buyerId, ctx.user.uid)).orderBy(desc(b2bOrders.createdAt));
   }),
   mySales: protectedProcedure.query(async ({ ctx }) => {
-    return db.select().from(b2bOrders).where(eq(b2bOrders.sellerId, ctx.user.id)).orderBy(desc(b2bOrders.createdAt));
+    return db.select().from(b2bOrders).where(eq(b2bOrders.sellerId, ctx.user.uid)).orderBy(desc(b2bOrders.createdAt));
   }),
 });
 
@@ -318,20 +318,20 @@ const documentsCenter = router({
   list: protectedProcedure
     .input(z.object({ ownerType: z.string().optional(), category: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {
-      let q = db.select().from(documentVault).where(eq(documentVault.ownerId, ctx.user.id));
+      let q: any = db.select().from(documentVault).where(eq(documentVault.ownerId, ctx.user.uid));
       if (input?.category) q = q.where(eq(documentVault.category, input.category)) as any;
       return q.orderBy(desc(documentVault.createdAt)).limit(100);
     }),
   upload: protectedProcedure
     .input(z.object({ ownerType: z.string(), category: z.string(), title: z.string(), fileUrl: z.string(), mimeType: z.string().optional(), sizeBytes: z.number().optional() }))
     .mutation(async ({ ctx, input }) => {
-      const [doc] = await db.insert(documentVault).values({ ...input, ownerId: ctx.user.id }).returning();
+      const [doc] = await db.insert(documentVault).values({ ...input, ownerId: ctx.user.uid }).returning();
       return doc;
     }),
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      await db.delete(documentVault).where(and(eq(documentVault.id, input.id), eq(documentVault.ownerId, ctx.user.id)));
+      await db.delete(documentVault).where(and(eq(documentVault.id, input.id), eq(documentVault.ownerId, ctx.user.uid)));
       return { success: true };
     }),
   adminList: adminProcedure
@@ -373,7 +373,7 @@ const partenairesCenter = router({
 const openApiCenter = router({
   listKeys: protectedProcedure.query(async ({ ctx }) => {
     return db.select({ id: apiKeys.id, name: apiKeys.name, keyPrefix: apiKeys.keyPrefix, scopes: apiKeys.scopes, rateLimit: apiKeys.rateLimit, active: apiKeys.active, lastUsedAt: apiKeys.lastUsedAt, createdAt: apiKeys.createdAt })
-      .from(apiKeys).where(eq(apiKeys.userId, ctx.user.id));
+      .from(apiKeys).where(eq(apiKeys.userId, ctx.user.uid));
   }),
   createKey: protectedProcedure
     .input(z.object({ name: z.string(), scopes: z.array(z.string()), rateLimit: z.number().optional() }))
@@ -381,13 +381,13 @@ const openApiCenter = router({
       const rawKey = `mka_live_${crypto.randomUUID().replace(/-/g, "")}`;
       const keyHash = rawKey; // En production : utiliser bcrypt/sha256
       const keyPrefix = rawKey.slice(0, 16);
-      const [k] = await db.insert(apiKeys).values({ userId: ctx.user.id, name: input.name, keyHash, keyPrefix, scopes: input.scopes, rateLimit: input.rateLimit ?? 1000 }).returning();
+      const [k] = await db.insert(apiKeys).values({ userId: ctx.user.uid, name: input.name, keyHash, keyPrefix, scopes: input.scopes, rateLimit: input.rateLimit ?? 1000 }).returning();
       return { id: k.id, key: rawKey, prefix: keyPrefix };
     }),
   revokeKey: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      await db.update(apiKeys).set({ active: false }).where(and(eq(apiKeys.id, input.id), eq(apiKeys.userId, ctx.user.id)));
+      await db.update(apiKeys).set({ active: false }).where(and(eq(apiKeys.id, input.id), eq(apiKeys.userId, ctx.user.uid)));
       return { success: true };
     }),
   getUsage: protectedProcedure
@@ -402,7 +402,7 @@ const automationCenter = router({
   emitEvent: protectedProcedure
     .input(z.object({ eventType: z.string(), sourceModule: z.string(), sourceId: z.number().optional(), payload: z.any().optional() }))
     .mutation(async ({ ctx, input }) => {
-      const [event] = await db.insert(automationEvents).values({ ...input, userId: ctx.user.id }).returning();
+      const [event] = await db.insert(automationEvents).values({ ...input, userId: ctx.user.uid }).returning();
       // Chercher les workflows qui correspondent à cet événement
       const matchingWorkflows = await db.select().from(workflows)
         .where(and(eq(workflows.triggerEvent, input.eventType), eq(workflows.active, true)));
@@ -442,7 +442,7 @@ const workflowCenter = router({
       actions: z.array(z.object({ type: z.string(), params: z.any(), ordre: z.number() })),
     }))
     .mutation(async ({ ctx, input }) => {
-      const [wf] = await db.insert(workflows).values({ ...input, createdBy: ctx.user.id }).returning();
+      const [wf] = await db.insert(workflows).values({ ...input, createdBy: ctx.user.uid }).returning();
       return wf;
     }),
   update: adminProcedure

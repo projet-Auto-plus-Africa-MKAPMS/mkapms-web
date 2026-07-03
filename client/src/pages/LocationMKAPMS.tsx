@@ -167,18 +167,12 @@ export default function LocationMKAPMS() {
         <Link to="/louer" className="absolute top-4 left-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur">
           <ChevronLeft size={20} className="text-[#111]" />
         </Link>
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-5">
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-5 text-center">
           <span className="inline-flex items-center gap-1 rounded-full bg-[#111] border border-[#D4AF37] px-2.5 py-1 text-[10px] font-bold text-[#D4AF37] mb-2">
             <Star size={10} /> MKA.P-MS OFFICIEL
           </span>
           <h1 className="text-2xl font-black text-white leading-tight">VÉHICULES MKA.P-MS</h1>
           <p className="mt-1 text-sm text-white/80">Sélectionnés, inspectés, garantis par MKA.P-MS.</p>
-          <button
-            onClick={() => document.getElementById("search-mkapms")?.scrollIntoView({ behavior: "smooth" })}
-            className="mt-3 rounded-xl bg-[#D4AF37] px-5 py-2.5 text-sm font-bold text-white flex items-center gap-2"
-          >
-            <Search size={14} /> Trouver un véhicule
-          </button>
         </div>
       </div>
 
