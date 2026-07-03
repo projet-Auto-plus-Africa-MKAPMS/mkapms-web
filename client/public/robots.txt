@@ -47,4 +47,4 @@ Disallow: /marketing
 Disallow: /marketing/*
 
 # Sitemap
-Sitemap: https://mkapms.com/sitemap.xml
+Sitemap: https://www.mkapms.site/api/sitemap.xml

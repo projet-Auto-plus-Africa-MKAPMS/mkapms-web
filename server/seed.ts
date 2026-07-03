@@ -18,6 +18,10 @@ import {
   cgPacks,
   livraisonPiecesInterdites,
   livraisonPiecesRules,
+  reviewUniversRegistry,
+  reviewCriteriaTemplates,
+  reviewBadgeDefinitions,
+  reviewConfig,
 } from "./schema.js";
 import { hashPassword } from "./auth.js";
 import { WORLD_COUNTRIES, WORLD_CURRENCIES, LAUNCH_ACTIVE_COUNTRIES } from "./data/world.js";
@@ -333,7 +337,128 @@ export async function seedStructure() {
     }
   }
 
-  console.log(`[seed] structure initialisée (${WORLD_COUNTRIES.length} pays, ${CURRENCIES_SEED.length + WORLD_CURRENCIES.length} devises, abonnements CG + packs, pièces interdites moto)`);
+  // ─── Système d'avis universel — seed données de référence ───
+  await seedReviewSystem();
+
+  console.log(`[seed] structure initialisée (${WORLD_COUNTRIES.length} pays, ${CURRENCIES_SEED.length + WORLD_CURRENCIES.length} devises, abonnements CG + packs, pièces interdites moto, système d'avis)`);
+}
+
+async function seedReviewSystem() {
+  // Univers enregistrés (extensible sans code)
+  const UNIVERS = [
+    { key: "vente", label: "Vente", labelEn: "Sales", icon: "car", ordre: 1 },
+    { key: "location", label: "Location", labelEn: "Rental", icon: "key", ordre: 2 },
+    { key: "garage", label: "Garage", labelEn: "Garage", icon: "wrench", ordre: 3 },
+    { key: "carrosserie", label: "Carrosserie", labelEn: "Bodywork", icon: "paintbrush", ordre: 4 },
+    { key: "pieces", label: "Pieces Auto", labelEn: "Auto Parts", icon: "cog", ordre: 5 },
+    { key: "depannage", label: "Depannage", labelEn: "Roadside Assistance", icon: "truck", ordre: 6 },
+    { key: "livraison", label: "Livraison", labelEn: "Delivery", icon: "package", ordre: 7 },
+    { key: "vtc_taxi", label: "VTC / Taxi", labelEn: "Ride", icon: "navigation", ordre: 8 },
+    { key: "encheres", label: "Encheres Pro", labelEn: "Pro Auctions", icon: "gavel", ordre: 9 },
+    { key: "finance_plus", label: "Finance+", labelEn: "Finance+", icon: "banknote", ordre: 10 },
+    { key: "electric_plus", label: "Electric+", labelEn: "Electric+", icon: "zap", ordre: 11 },
+    { key: "carte_grise", label: "Carte Grise", labelEn: "Vehicle Registration", icon: "file-text", ordre: 12 },
+    { key: "depot_annonce", label: "Depot d'annonce", labelEn: "Ad Posting", icon: "plus-circle", ordre: 13 },
+    { key: "support", label: "Support", labelEn: "Support", icon: "headphones", ordre: 14 },
+    { key: "plateforme", label: "Plateforme MKA.P-MS", labelEn: "MKA.P-MS Platform", icon: "globe", ordre: 15 },
+  ];
+  for (const u of UNIVERS) {
+    await db.insert(reviewUniversRegistry).values(u).onConflictDoNothing();
+  }
+
+  // Criteres de notation par univers
+  const CRITERIA: Array<{ univers: string; targetType: string; criteriaKey: string; criteriaLabel: string; ordre: number }> = [
+    // Vente
+    { univers: "vente", targetType: "user", criteriaKey: "qualite_annonce", criteriaLabel: "Qualite des annonces", ordre: 1 },
+    { univers: "vente", targetType: "user", criteriaKey: "disponibilite", criteriaLabel: "Disponibilite", ordre: 2 },
+    { univers: "vente", targetType: "user", criteriaKey: "transparence", criteriaLabel: "Transparence", ordre: 3 },
+    { univers: "vente", targetType: "user", criteriaKey: "service_client", criteriaLabel: "Service client", ordre: 4 },
+    // Garage
+    { univers: "garage", targetType: "user", criteriaKey: "qualite_travail", criteriaLabel: "Qualite du travail", ordre: 1 },
+    { univers: "garage", targetType: "user", criteriaKey: "delai", criteriaLabel: "Respect des delais", ordre: 2 },
+    { univers: "garage", targetType: "user", criteriaKey: "prix", criteriaLabel: "Rapport qualite/prix", ordre: 3 },
+    { univers: "garage", targetType: "user", criteriaKey: "accueil", criteriaLabel: "Accueil", ordre: 4 },
+    { univers: "garage", targetType: "user", criteriaKey: "suivi", criteriaLabel: "Suivi client", ordre: 5 },
+    // Carrosserie
+    { univers: "carrosserie", targetType: "user", criteriaKey: "qualite_finition", criteriaLabel: "Qualite de finition", ordre: 1 },
+    { univers: "carrosserie", targetType: "user", criteriaKey: "respect_delai", criteriaLabel: "Respect du delai", ordre: 2 },
+    { univers: "carrosserie", targetType: "user", criteriaKey: "transparence_devis", criteriaLabel: "Transparence du devis", ordre: 3 },
+    // Location
+    { univers: "location", targetType: "user", criteriaKey: "etat_vehicule", criteriaLabel: "Etat du vehicule", ordre: 1 },
+    { univers: "location", targetType: "user", criteriaKey: "accueil", criteriaLabel: "Accueil", ordre: 2 },
+    { univers: "location", targetType: "user", criteriaKey: "facilite_reservation", criteriaLabel: "Facilite de reservation", ordre: 3 },
+    { univers: "location", targetType: "user", criteriaKey: "restitution", criteriaLabel: "Restitution", ordre: 4 },
+    // Depannage
+    { univers: "depannage", targetType: "user", criteriaKey: "rapidite", criteriaLabel: "Rapidite", ordre: 1 },
+    { univers: "depannage", targetType: "user", criteriaKey: "professionnalisme", criteriaLabel: "Professionnalisme", ordre: 2 },
+    { univers: "depannage", targetType: "user", criteriaKey: "tarif", criteriaLabel: "Tarif", ordre: 3 },
+    // VTC/Taxi
+    { univers: "vtc_taxi", targetType: "user", criteriaKey: "ponctualite", criteriaLabel: "Ponctualite", ordre: 1 },
+    { univers: "vtc_taxi", targetType: "user", criteriaKey: "proprete_vehicule", criteriaLabel: "Proprete du vehicule", ordre: 2 },
+    { univers: "vtc_taxi", targetType: "user", criteriaKey: "confort", criteriaLabel: "Confort", ordre: 3 },
+    // Pieces
+    { univers: "pieces", targetType: "user", criteriaKey: "qualite_piece", criteriaLabel: "Qualite des pieces", ordre: 1 },
+    { univers: "pieces", targetType: "user", criteriaKey: "livraison", criteriaLabel: "Livraison", ordre: 2 },
+    { univers: "pieces", targetType: "user", criteriaKey: "service_vendeur", criteriaLabel: "Service vendeur", ordre: 3 },
+    // Plateforme
+    { univers: "plateforme", targetType: "plateforme", criteriaKey: "facilite_utilisation", criteriaLabel: "Facilite d'utilisation", ordre: 1 },
+    { univers: "plateforme", targetType: "plateforme", criteriaKey: "recherche", criteriaLabel: "Recherche", ordre: 2 },
+    { univers: "plateforme", targetType: "plateforme", criteriaKey: "paiement", criteriaLabel: "Paiement", ordre: 3 },
+    { univers: "plateforme", targetType: "plateforme", criteriaKey: "assistance", criteriaLabel: "Assistance", ordre: 4 },
+    { univers: "plateforme", targetType: "plateforme", criteriaKey: "fiabilite", criteriaLabel: "Fiabilite", ordre: 5 },
+    // Particulier
+    { univers: "vente", targetType: "particulier", criteriaKey: "serieux", criteriaLabel: "Serieux", ordre: 1 },
+    { univers: "vente", targetType: "particulier", criteriaKey: "communication", criteriaLabel: "Communication", ordre: 2 },
+    { univers: "vente", targetType: "particulier", criteriaKey: "respect_rdv", criteriaLabel: "Respect rendez-vous", ordre: 3 },
+    { univers: "vente", targetType: "particulier", criteriaKey: "exactitude_annonce", criteriaLabel: "Exactitude de l'annonce", ordre: 4 },
+  ];
+  for (const c of CRITERIA) {
+    await db.insert(reviewCriteriaTemplates).values(c).onConflictDoNothing();
+  }
+
+  // Badges qualite (Point 13)
+  const BADGES = [
+    { key: "pro_verifie", label: "Professionnel Verifie", description: "Compte professionnel avec documents verifies", icon: "shield-check", color: "#2563EB", category: "confiance", conditions: { documents_verified: true }, ordre: 1 },
+    { key: "top_vendeur", label: "Top Vendeur", description: "Note moyenne >= 4.5 avec 10+ avis verifies", icon: "star", color: "#F59E0B", category: "performance", conditions: { min_rating: 4.5, min_reviews: 10, min_verified: 5 }, ordre: 2 },
+    { key: "top_garage", label: "Top Garage", description: "Note moyenne >= 4.5 avec 10+ avis verifies", icon: "star", color: "#F59E0B", category: "performance", conditions: { min_rating: 4.5, min_reviews: 10, univers: "garage" }, ordre: 3 },
+    { key: "top_carrossier", label: "Top Carrossier", description: "Note moyenne >= 4.5 avec 10+ avis verifies", icon: "star", color: "#F59E0B", category: "performance", conditions: { min_rating: 4.5, min_reviews: 10, univers: "carrosserie" }, ordre: 4 },
+    { key: "top_loueur", label: "Top Loueur", description: "Note moyenne >= 4.5 avec 10+ avis verifies", icon: "star", color: "#F59E0B", category: "performance", conditions: { min_rating: 4.5, min_reviews: 10, univers: "location" }, ordre: 5 },
+    { key: "top_depanneur", label: "Top Depanneur", description: "Note moyenne >= 4.5 avec 10+ avis verifies", icon: "star", color: "#F59E0B", category: "performance", conditions: { min_rating: 4.5, min_reviews: 10, univers: "depannage" }, ordre: 6 },
+    { key: "service_premium", label: "Service Premium", description: "Taux de reponse >= 95% et note >= 4.0", icon: "award", color: "#8B5CF6", category: "service", conditions: { min_response_rate: 95, min_rating: 4.0 }, ordre: 7 },
+    { key: "reponse_rapide", label: "Reponse Rapide", description: "Repond a 90%+ des avis en moins de 24h", icon: "clock", color: "#10B981", category: "service", conditions: { min_response_rate: 90 }, ordre: 8 },
+    { key: "satisfaction_98", label: "Satisfaction 98%", description: "98% des avis sont 4 ou 5 etoiles", icon: "heart", color: "#EF4444", category: "performance", conditions: { min_positive_rate: 98 }, ordre: 9 },
+  ];
+  for (const b of BADGES) {
+    await db.insert(reviewBadgeDefinitions).values(b).onConflictDoNothing();
+  }
+
+  // Configuration par defaut (Point 22)
+  const CONFIG = [
+    { key: "rewards_avis_simple", value: 30, label: "Points pour avis simple", category: "recompenses" },
+    { key: "rewards_avis_photo", value: 50, label: "Points pour avis avec photo", category: "recompenses" },
+    { key: "rewards_avis_video", value: 100, label: "Points pour avis avec video", category: "recompenses" },
+    { key: "rewards_avis_reponse", value: 20, label: "Bonus reponse a une demande", category: "recompenses" },
+    { key: "rewards_helpful_5", value: 25, label: "Bonus 5+ votes utiles", category: "recompenses" },
+    { key: "penalty_faux_avis", value: -200, label: "Penalite faux avis", category: "recompenses" },
+    { key: "penalty_avis_abusif", value: -100, label: "Penalite avis abusif confirme", category: "recompenses" },
+    { key: "moderation_seuil_note", value: 3, label: "Seuil alerte note basse", category: "moderation" },
+    { key: "moderation_max_avis_jour", value: 5, label: "Max avis/jour par auteur", category: "moderation" },
+    { key: "moderation_delai_nouveau_compte_h", value: 24, label: "Delai verification nouveau compte (h)", category: "moderation" },
+    { key: "notification_avis_negatif", value: true, label: "Notifier les avis negatifs", category: "notifications" },
+    { key: "notification_baisse_note", value: true, label: "Notifier baisse de note", category: "notifications" },
+    { key: "classement_min_avis", value: 3, label: "Min avis pour classement", category: "classement" },
+    { key: "affichage_avis_par_page", value: 20, label: "Avis par page", category: "affichage" },
+    { key: "delai_avis_achat_jours", value: 3, label: "Delai demande avis apres achat (jours)", category: "criteres" },
+    { key: "delai_avis_location_jours", value: 1, label: "Delai demande avis apres location (jours)", category: "criteres" },
+    { key: "delai_avis_reparation_jours", value: 2, label: "Delai demande avis apres reparation (jours)", category: "criteres" },
+    { key: "delai_avis_depannage_jours", value: 1, label: "Delai demande avis apres depannage (jours)", category: "criteres" },
+    { key: "delai_avis_vtc_minutes", value: 30, label: "Delai demande avis apres course VTC (minutes)", category: "criteres" },
+  ];
+  for (const c of CONFIG) {
+    await db.insert(reviewConfig).values({ key: c.key, value: c.value, label: c.label, category: c.category }).onConflictDoNothing();
+  }
+
+  console.log("[seed] systeme d'avis initialise (univers, criteres, badges, config)");
 }
 
 async function main() {
