@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Shield, Users, FileText, BarChart3, Bell, Settings, Globe, Lock, ChevronRight, Car, Home, Wrench, Truck, Package, Euro, Megaphone, Calculator, UserCheck } from "lucide-react";
+import { Shield, Users, FileText, BarChart3, Bell, Settings, Globe, Lock, ChevronRight, Car, Home, Wrench, Truck, Package, Euro, Megaphone, Calculator, UserCheck, Cpu } from "lucide-react";
 const STATS = [
   { l: "Utilisateurs", v: "12 450", color: "#D4AF37", to: "/superadmin/admin-utilisateurs" },
   { l: "Annonces", v: "8 320", color: "#10B981", to: "/superadmin/admin-moderation-annonces" },
@@ -17,6 +17,9 @@ const SECTIONS = [
     { label: "Dépannage", icon: Truck, to: "/superadmin/admin-depannage", desc: "Interventions, dépanneurs" },
     { label: "Pièces", icon: Package, to: "/superadmin/admin-pieces", desc: "Stock, commandes, vendeurs" },
     { label: "Démarches", icon: FileText, to: "/superadmin/admin-demarches", desc: "CG, cessions, dossiers" },
+  ]},
+  { title: "Core Engine", items: [
+    { label: "Core Engine (Bêta)", icon: Cpu, to: "/superadmin/core-engine-beta", desc: "15 centres, santé, logs, orchestration" },
   ]},
   { title: "Gestion", items: [
     { label: "Finance", icon: Euro, to: "/superadmin/admin-paiements", desc: "Paiements, commissions, CA" },
