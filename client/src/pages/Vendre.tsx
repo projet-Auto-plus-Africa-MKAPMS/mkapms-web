@@ -1,9 +1,11 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import {
   Search, Camera, CheckCircle, Shield, Eye, Zap, Lock,
   ChevronRight, ChevronDown, Upload, Star, Car, Bike, Truck, Bus,
   Headphones, FileText, ArrowLeft, ArrowRight, Info, X, Video,
+  Crown, Building2, User as UserIcon, ClipboardList,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth, getToken } from "../lib/auth";
@@ -218,47 +220,6 @@ export default function Vendre() {
   /* ── Mode : landing (page vitrine) vs deposit (flux 4 étapes) ── */
   const [mode, setMode] = useState<"landing" | "deposit">("landing");
   const [step, setStep] = useState(1);
-
-  /* ── HERO VIDÉO CAROUSEL ── */
-  const HERO_VIDEOS = [
-    { src: "/videos/vendre/vendre_hero1.mp4", label: "Vendre" },
-    { src: "/videos/vendre/vendre_hero2.mp4", label: "Confiance" },
-    { src: "/videos/vendre/vendre_hero3.mp4", label: "Annonce" },
-    { src: "/videos/vendre/vendre_hero4.mp4", label: "Showroom" },
-    { src: "/videos/vendre/vendre_hero5.mp4", label: "Paiement" },
-  ];
-  const [heroVidIdx, setHeroVidIdx] = useState(0);
-  const [heroProgress, setHeroProgress] = useState(0);
-  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
-
-  const startProgress = () => {
-    setHeroProgress(0);
-    if (progressRef.current) clearInterval(progressRef.current);
-    progressRef.current = setInterval(() => {
-      setHeroProgress((p) => {
-        if (p >= 100) { clearInterval(progressRef.current!); return 100; }
-        return p + 100 / 80;
-      });
-    }, 100);
-  };
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      setHeroVidIdx((i) => (i + 1) % HERO_VIDEOS.length);
-    }, 8000);
-    startProgress();
-    return () => { clearInterval(t); if (progressRef.current) clearInterval(progressRef.current); };
-  }, []);
-
-  useEffect(() => {
-    videoRefs.current.forEach((v, i) => {
-      if (!v) return;
-      if (i === heroVidIdx) { v.currentTime = 0; v.play().catch(() => {}); }
-      else { v.pause(); }
-    });
-    startProgress();
-  }, [heroVidIdx]);
   const [identTab, setIdentTab] = useState<"plaque" | "vin">("plaque");
   const [plaque, setPlaque] = useState("");
   const [vin, setVin] = useState("");
@@ -267,6 +228,7 @@ export default function Vendre() {
 
   /* ── Formulaire complet ── */
   const [typeAnnonce, setTypeAnnonce] = useState<"vente" | "location">("vente");
+  const [onBehalfOfEmail, setOnBehalfOfEmail] = useState("");
   const [famille, setFamille] = useState<"auto" | "moto">("auto");
   const [form, setForm] = useState({
     titre: "", marque: "", modele: "", version: "",
@@ -292,6 +254,7 @@ export default function Vendre() {
   const [impInput, setImpInput] = useState("");
   const [openEqCats, setOpenEqCats] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadingCats, setUploadingCats] = useState<Record<string, boolean>>({});
 
   /* Catégorie d'annonce (admin/employee only) */
   const isAdminOrEmployee = user?.role === "admin" || user?.role === "super_admin" || user?.role === "employee";
@@ -305,6 +268,27 @@ export default function Vendre() {
 
   const maxPhotos = user?.accountType === "professionnel" ? 20 : 4;
   const isPro = user?.accountType === "professionnel" || user?.role === "admin" || user?.role === "directeur";
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
+  const isEmployee = isAdmin || user?.role === "employee";
+
+  useEffect(() => {
+    if (isAdmin) setCategorieAnnonce("officielle");
+    else if (isPro) setCategorieAnnonce("professionnelle");
+    else setCategorieAnnonce("particulier");
+  }, [isAdmin, isPro]);
+
+  // Hero carousel pour landing page
+  const HERO_PHOTOS_VENDRE = [
+    "/categories/cover_mkapms.jpg",
+    "/categories/cover_particulier.jpg",
+    "/categories/cover_pro.jpg",
+    "/categories/cover_moto.jpg",
+  ];
+  const [heroIdxV, setHeroIdxV] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setHeroIdxV((i) => (i + 1) % HERO_PHOTOS_VENDRE.length), 4000);
+    return () => clearInterval(t);
+  }, []);
 
   const equipRef = famille === "moto" ? EQUIPEMENTS_MOTO : EQUIPEMENTS_AUTO;
   const marquesRef = famille === "moto" ? MARQUES_MOTO : MARQUES_AUTO;
@@ -381,7 +365,7 @@ export default function Vendre() {
   }
 
   const create = trpc.annonces.create.useMutation({
-    onSuccess: (a) => navigate(`/vehicule/${a.id}`),
+    onSuccess: (a) => navigate(getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)),
   });
 
   function submit() {
@@ -434,64 +418,76 @@ export default function Vendre() {
   if (mode === "landing") {
     return (
       <div className="min-h-screen bg-[#F5F3EF]">
-        {/* ── HERO VIDÉO CAROUSEL ── */}
-        <div className="relative overflow-hidden bg-[#111]" style={{ height: 340 }}>
-          {HERO_VIDEOS.map((v, i) => (
-            <video
-              key={v.src}
-              ref={(el) => { videoRefs.current[i] = el; }}
-              src={v.src}
-              autoPlay={i === 0}
-              muted
-              playsInline
-              loop
-              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
-              style={{ opacity: i === heroVidIdx ? 0.65 : 0, zIndex: i === heroVidIdx ? 1 : 0 }}
-            />
-          ))}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#111]/20 via-transparent to-[#111]/60" />
-          <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
-            <h1 className="text-[28px] md:text-5xl font-black text-white leading-tight">
-              VENDEZ FACILEMENT<br />VOTRE <span className="text-[#D4AF37]">VÉHICULE</span>
-            </h1>
-            <p className="mt-3 text-sm text-white/70 max-w-sm">
-              Des milliers d’acheteurs vous font déjà confiance.<br />
-              Déposez votre annonce en quelques minutes.
-            </p>
-            <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {[
-                { icon: CheckCircle, text: "100% Gratuit" },
-                { icon: Zap, text: "Publication rapide" },
-                { icon: Eye, text: "Visibilité maximale" },
-                { icon: Shield, text: "Paiement sécurisé" },
-              ].map((b) => (
-                <div key={b.text} className="flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 border border-white/10">
-                  <b.icon size={12} className="text-[#D4AF37] shrink-0" />
-                  <span className="text-[11px] font-semibold text-white/90">{b.text}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-center gap-2 mt-5">
-              {HERO_VIDEOS.map((v, i) => (
-                <button
-                  key={i}
-                  onClick={() => setHeroVidIdx(i)}
-                  className={`flex flex-col items-center gap-1 transition-all duration-300 ${i === heroVidIdx ? 'opacity-100' : 'opacity-35 hover:opacity-60'}`}
-                >
-                  <div className="relative h-[3px] rounded-full overflow-hidden" style={{ width: i === heroVidIdx ? 40 : 20, background: 'rgba(255,255,255,0.25)', transition: 'width 0.3s' }}>
-                    {i === heroVidIdx && (
-                      <div
-                        className="absolute inset-y-0 left-0 rounded-full"
-                        style={{ width: `${heroProgress}%`, background: 'linear-gradient(90deg,#D4AF37,#F5D76E)', boxShadow: '0 0 6px #D4AF37', transition: 'width 0.1s linear' }}
-                      />
-                    )}
+        {/* ── HERO PREMIUM ── */}
+        {(() => {
+          const STATS_VENDRE = [
+            { val: "+120 000", label: "acheteurs actifs" },
+            { val: "100%", label: "gratuit particuliers" },
+            { val: "4,8/5", label: "satisfaction vendeurs" },
+          ];
+          return (
+            <div className="relative overflow-hidden bg-[#111] px-4 pt-6 pb-12">
+              {/* Fond carousel */}
+              <div className="absolute inset-0">
+                {HERO_PHOTOS_VENDRE.map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000"
+                    style={{ opacity: i === heroIdxV ? 0.18 : 0 }}
+                  />
+                ))}
+              </div>
+              {/* Badge */}
+              <div className="relative z-10 flex justify-center mb-3">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-1.5 text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider">
+                  <Upload size={12} /> Vendre votre véhicule
+                </span>
+              </div>
+              {/* Titre centré */}
+              <div className="relative z-10 text-center">
+                <h1 className="text-[26px] md:text-5xl font-black text-white leading-tight">
+                  VENDEZ FACILEMENT<br />VOTRE <span className="text-[#D4AF37]">VÉHICULE</span>
+                </h1>
+                <p className="mt-3 text-sm text-white/70 max-w-sm mx-auto">
+                  Des milliers d'acheteurs vous font déjà confiance.<br />
+                  Déposez votre annonce en quelques minutes et vendez au meilleur prix.
+                </p>
+              </div>
+              {/* Avantages */}
+              <div className="relative z-10 mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5">
+                {[
+                  { icon: CheckCircle, text: "100% Gratuit pour les particuliers" },
+                  { icon: Zap, text: "Publication rapide" },
+                  { icon: Eye, text: "Visibilité maximale" },
+                  { icon: Lock, text: "Messagerie sécurisée" },
+                  { icon: Shield, text: "Paiement sécurisé" },
+                ].map((b) => (
+                  <div key={b.text} className="flex items-center gap-1.5">
+                    <b.icon size={13} className="text-[#D4AF37] shrink-0" />
+                    <span className="text-xs text-white/90">{b.text}</span>
                   </div>
-                  <span className={`text-[8px] font-semibold tracking-wide ${i === heroVidIdx ? 'text-[#D4AF37]' : 'text-white/50'}`}>{v.label}</span>
-                </button>
-              ))}
+                ))}
+              </div>
+              {/* Stats */}
+              <div className="relative z-10 mt-5 flex items-center justify-center gap-3 flex-wrap">
+                {STATS_VENDRE.map((s) => (
+                  <div key={s.val} className="flex flex-col items-center rounded-xl bg-white/10 backdrop-blur px-4 py-2 border border-white/10">
+                    <span className="text-base font-black text-[#D4AF37]">{s.val}</span>
+                    <span className="text-[9px] text-white/60 mt-0.5">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Indicateurs carousel */}
+              <div className="relative z-10 flex justify-center gap-1.5 mt-4">
+                {HERO_PHOTOS_VENDRE.map((_, i) => (
+                  <button key={i} onClick={() => setHeroIdxV(i)} className={`h-1.5 rounded-full transition-all ${i === heroIdxV ? "w-6 bg-[#D4AF37]" : "w-1.5 bg-white/30"}`} />
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* ── DEUX CARTES : Déposer / Estimer ── */}
         <div className="px-4 md:px-8 max-w-6xl mx-auto -mt-6 relative z-10">
@@ -1119,9 +1115,11 @@ export default function Vendre() {
           <div className="grid grid-cols-3 gap-3">
             {photoCatsRef.map(cat => {
               const catPhotos = photoUrls[cat.key] || [];
+              const isUploading = uploadingCats[cat.key] || false;
               return (
-                <div key={cat.key} className="relative aspect-square rounded-xl border-2 border-dashed border-[#D1D5DB] bg-[#FAFAFA] flex flex-col items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-[#FFFDF5] transition overflow-hidden"
+                <div key={cat.key} className={`relative aspect-square rounded-xl border-2 border-dashed ${isUploading ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-[#D1D5DB] bg-[#FAFAFA]"} flex flex-col items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-[#FFFDF5] transition overflow-hidden`}
                   onClick={() => {
+                    if (isUploading) return;
                     const inp = document.createElement("input");
                     inp.type = "file";
                     inp.accept = "image/*";
@@ -1129,22 +1127,29 @@ export default function Vendre() {
                     inp.onchange = async (ev) => {
                       const files = (ev.target as HTMLInputElement).files;
                       if (!files?.length) return;
+                      setUploadingCats(p => ({ ...p, [cat.key]: true }));
+                      setUploadError(null);
                       const fd = new FormData();
                       for (let i = 0; i < files.length; i++) fd.append("files", files[i]);
                       try {
-                        setUploadError(null);
                         const token = getToken();
                         const resp = await fetch("/api/upload", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, body: fd });
                         if (resp.ok) { const data = await resp.json(); const urls = (data.files || []).map((f: any) => f.url); setPhotoUrls(p => ({ ...p, [cat.key]: [...(p[cat.key] || []), ...urls] })); }
                         else { const err = await resp.json().catch(() => ({})); setUploadError(err.error || "Erreur lors de l'upload des photos"); }
                       } catch (e: any) { setUploadError(e.message || "Erreur réseau lors de l'upload"); }
+                      finally { setUploadingCats(p => ({ ...p, [cat.key]: false })); }
                     };
                     inp.click();
                   }}
                 >
-                  {catPhotos.length > 0 ? (
+                  {isUploading ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <svg className="h-6 w-6 animate-spin text-[#D4AF37]" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" /><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg>
+                      <span className="text-[10px] font-semibold text-[#D4AF37]">Upload…</span>
+                    </div>
+                  ) : catPhotos.length > 0 ? (
                     <>
-                      <img src={catPhotos[0]} alt={cat.label} className="absolute inset-0 w-full h-full object-cover" />
+                      <img src={catPhotos[0]} alt={cat.label} className="absolute inset-0 w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                       <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center">
                         <span className="text-white text-xs font-bold">{catPhotos.length} photo{catPhotos.length > 1 ? "s" : ""}</span>
                         <span className="text-white/80 text-[9px] mt-0.5">{cat.label}</span>
@@ -1163,6 +1168,33 @@ export default function Vendre() {
               );
             })}
           </div>
+
+          {/* Galerie photos uploadées — détails par catégorie */}
+          {totalPhotos > 0 && (
+            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-sm space-y-3">
+              <h4 className="text-xs font-bold text-[#111] uppercase tracking-wider">Photos ajoutées ({totalPhotos})</h4>
+              {photoCatsRef.map(cat => {
+                const catPhotos = photoUrls[cat.key] || [];
+                if (catPhotos.length === 0) return null;
+                return (
+                  <div key={cat.key}>
+                    <p className="text-[10px] font-bold text-[#6B7280] mb-1">{cat.label} ({catPhotos.length})</p>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {catPhotos.map((url, i) => (
+                        <div key={i} className="relative shrink-0 h-16 w-16 rounded-lg border border-[#E5E7EB] overflow-hidden group">
+                          <img src={url} alt="" className="h-full w-full object-cover" onError={(e) => { const img = e.target as HTMLImageElement; img.style.display = "none"; img.parentElement!.classList.add("bg-slate-100"); }} />
+                          <button
+                            onClick={() => setPhotoUrls(p => ({ ...p, [cat.key]: (p[cat.key] || []).filter((_, j) => j !== i) }))}
+                            className="absolute top-0.5 right-0.5 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition"
+                          ><X size={8} /></button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Erreur upload */}
           {uploadError && (
@@ -1277,6 +1309,23 @@ export default function Vendre() {
           <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
             <h3 className="text-sm font-bold text-[#111] uppercase tracking-wider mb-4">Récapitulatif</h3>
             <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] p-5">
+              {/* Badge catégorie */}
+              <div className="flex items-center gap-2">
+                {categorieAnnonce === "officielle" && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-3 py-1 text-[10px] font-bold text-white"><Crown size={10} /> OFFICIEL MKA.P-MS</span>
+                )}
+                {categorieAnnonce === "professionnelle" && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-blue-500 px-3 py-1 text-[10px] font-bold text-white"><Building2 size={10} /> PROFESSIONNEL</span>
+                )}
+                {categorieAnnonce === "particulier" && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-500 px-3 py-1 text-[10px] font-bold text-white"><UserIcon size={10} /> PARTICULIER</span>
+                )}
+                <span className="text-[9px] text-[#9CA3AF]">
+                  {categorieAnnonce === "officielle" && "→ Univers Officiel MKA.P-MS"}
+                  {categorieAnnonce === "professionnelle" && "→ Univers Professionnel"}
+                  {categorieAnnonce === "particulier" && "→ Univers Particulier"}
+                </span>
+              </div>
               <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
                 <span className="font-bold text-[#111] text-lg">{form.marque} {form.modele} {form.version}</span>
                 <span className="text-xl font-extrabold text-[#D4AF37]">{form.prix ? `${Number(form.prix).toLocaleString()} €` : "—"}</span>
@@ -1305,7 +1354,9 @@ export default function Vendre() {
               {allPhotos.length > 0 && (
                 <div className="flex gap-2 overflow-x-auto pt-2 border-t border-[#E5E7EB]">
                   {allPhotos.map((p, i) => (
-                    <img key={i} src={p} alt="" className="h-16 w-16 rounded-lg object-cover border border-[#E5E7EB] shrink-0" />
+                    <div key={i} className="h-16 w-16 shrink-0 rounded-lg border border-[#E5E7EB] overflow-hidden bg-slate-50">
+                      <img src={p} alt="" className="h-full w-full object-cover" onError={(e) => { const img = e.target as HTMLImageElement; img.style.display = "none"; }} />
+                    </div>
                   ))}
                 </div>
               )}

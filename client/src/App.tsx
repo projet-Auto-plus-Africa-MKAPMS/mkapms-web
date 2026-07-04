@@ -3,10 +3,15 @@ import { useEffect, lazy, Suspense } from "react";
 import Layout from "./components/Layout";
 import { useAuth } from "./lib/auth";
 import { trpc } from "./lib/trpc";
+import { useDomain } from "./lib/domain";
 import Home from "./pages/Home";
+import HomePro from "./pages/HomePro";
+import HomeSite from "./pages/HomeSite";
 import NotFound from "./pages/NotFound";
 import UniversBoundary from "./components/UniversBoundary";
 import InstallPrompt from "./components/InstallPrompt";
+import CountrySelectModal from "./components/CountrySelectModal";
+import SmartRouter from "./components/SmartRouter";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -341,6 +346,7 @@ const CentreTickets = lazy(() => import("./pages/superadmin/CentreTickets"));
 const ComptabiliteComplete = lazy(() => import("./pages/superadmin/ComptabiliteComplete"));
 const GestionEmployesMKAPMS = lazy(() => import("./pages/superadmin/GestionEmployesMKAPMS"));
 const SuperAdminDashboard = lazy(() => import("./pages/superadmin/SuperAdminDashboard"));
+const CoreEngineBeta = lazy(() => import("./pages/superadmin/CoreEngineBeta"));
 const ValidationDocumentsComplete = lazy(() => import("./pages/superadmin/ValidationDocumentsComplete"));
 // Utilisateurs
 const AbonnementsUtilisateur = lazy(() => import("./pages/utilisateurs/AbonnementsUtilisateur"));
@@ -720,16 +726,26 @@ function SessionLoader() {
   return null;
 }
 
+/** Composant qui sélectionne la home page selon le domaine */
+function DomainHome() {
+  const { key } = useDomain();
+  if (key === "pro") return <HomePro />;
+  if (key === "site") return <HomeSite />;
+  return <Home />;
+}
+
 export default function App() {
   return (
     <>
       <ScrollToTop />
       <SessionLoader />
       <InstallPrompt />
+      <CountrySelectModal />
+      <SmartRouter />
       <Layout>
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<DomainHome />} />
             <Route path="/louer" element={<U name="Location"><Louer /></U>} />
             <Route path="/louer/vtc-taxi" element={<U name="Location VTC & Taxi"><VtcTaxi /></U>} />
             <Route path="/louer/particulier" element={<U name="Location Particulier"><LocationParticulier /></U>} />
@@ -852,6 +868,11 @@ export default function App() {
             <Route path="/vente/fraude" element={<U name="D\u00e9tection fraude"><CentreDetectionFraude /></U>} />
             <Route path="/vente/confiance" element={<U name="Confiance acheteur"><CentreConfianceAcheteur /></U>} />
             <Route path="/vente/parcours-acheteur" element={<U name="Parcours acheteur"><WorkflowCompletAcheteur /></U>} />
+            {/* Routes dédiées par univers — chaque annonce dans son propre espace */}
+            <Route path="/acheter/particulier/vehicule/:id" element={<U name="Vente Particulier"><Vehicule univers="particulier" /></U>} />
+            <Route path="/acheter/professionnel/vehicule/:id" element={<U name="Vente Pro"><Vehicule univers="professionnelle" /></U>} />
+            <Route path="/acheter/mkapms-officiel/vehicule/:id" element={<U name="Vente MKA.P-MS"><Vehicule univers="officielle" /></U>} />
+            {/* Fallback générique — redirige vers le bon univers une fois l'annonce chargée */}
             <Route path="/vehicule/:id" element={<U name="Vente"><Vehicule /></U>} />
             <Route path="/vendre" element={<U name="Vente"><Vendre /></U>} />
             <Route path="/devis" element={<U name="Devis"><Devis /></U>} />
@@ -1074,6 +1095,7 @@ export default function App() {
             <Route path="/superadmin/comptabilite-complete" element={<U name="Super Admin"><ComptabiliteComplete /></U>} />
             <Route path="/superadmin/gestion-employes-m-k-a-p-m-s" element={<U name="Super Admin"><GestionEmployesMKAPMS /></U>} />
             <Route path="/superadmin" element={<U name="Super Admin"><SuperAdminDashboard /></U>} />
+            <Route path="/superadmin/core-engine-beta" element={<U name="Super Admin"><CoreEngineBeta /></U>} />
             <Route path="/superadmin/validation-documents-complete" element={<U name="Super Admin"><ValidationDocumentsComplete /></U>} />
             {/* Utilisateurs */}
             <Route path="/utilisateurs/abonnements-utilisateur" element={<U name="Utilisateurs"><AbonnementsUtilisateur /></U>} />

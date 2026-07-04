@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, sql, and } from "drizzle-orm";
 import { router, adminProcedure, directionProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { hashPassword } from "../auth.js";
@@ -26,6 +26,7 @@ import {
   partsStock,
   deliveryMissions,
   annoncePhotos,
+  pubRequests,
 } from "../schema.js";
 import { sql as dsql } from "drizzle-orm";
 
@@ -536,6 +537,48 @@ export const adminRouter = router({
     .mutation(async ({ ctx, input }) => {
       await db.delete(promoCodes).where(eq(promoCodes.id, input.id));
       await logAction(ctx.user.uid, "promo.delete", "promo_code", input.id);
+      return { ok: true };
+    }),
+
+  // Suppression d'annonce par admin/direction
+  deleteAnnonce: adminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.delete(annonces).where(eq(annonces.id, input.id));
+      await logAction(ctx.user.uid, "annonce.delete", "annonce", input.id);
+      return { ok: true };
+    }),
+  // ─── GESTION PUBLICITÉS ───
+  pubRequestsList: adminProcedure.query(async () => {
+    return db.select().from(pubRequests).orderBy(desc(pubRequests.createdAt));
+  }),
+
+  pubRequestDetail: adminProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input }) => {
+      const [r] = await db.select().from(pubRequests).where(eq(pubRequests.id, input.id)).limit(1);
+      return r ?? null;
+    }),
+
+  decidePubRequest: adminProcedure
+    .input(z.object({ id: z.number(), decision: z.enum(["approuvee", "refusee"]), refusalReason: z.string().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.update(pubRequests).set({
+        status: input.decision,
+        decidedBy: ctx.user.uid,
+        decidedAt: new Date(),
+        refusalReason: input.refusalReason ?? null,
+        updatedAt: new Date(),
+      }).where(eq(pubRequests.id, input.id));
+      await logAction(ctx.user.uid, `pub.${input.decision}`, "pub_request", input.id);
+      return { ok: true };
+    }),
+
+  deletePubRequest: adminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.delete(pubRequests).where(eq(pubRequests.id, input.id));
+      await logAction(ctx.user.uid, "pub.delete", "pub_request", input.id);
       return { ok: true };
     }),
 

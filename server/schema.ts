@@ -1129,3 +1129,6 @@ export * from "./modules/comptabilite"; // Comptabilité interne + Cabinets comp
 export * from "./modules/cartegrise"; // Démarches Carte Grise / SIV
 export * from "./modules/pro"; // Amélioration Pro (VTC, Location, GPS, Documents, Livraison pièces)
 export * from "./modules/financeplus"; // Finance+ (LOA, Paiement fractionné, Suivi véhicules)
+export * from "./modules/reviews"; // Système d'avis universel multi-univers
+export * from "./modules/seo"; // SEO automatique + indexation Google
+export * from "./modules/coreEngine"; // Core Engine — moteur d'orchestration central (15 centres)

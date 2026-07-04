@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { getAnnonceUrl } from "../../lib/annonceUrl";
 import { ChevronLeft, Package, Search, Filter, Check, Clock, Truck, Wrench, Camera, Tag, Archive, ChevronDown, Eye, FileText } from "lucide-react";
 import { DocumentView, buildContratData } from "../../components/DocumentPDF";
 
@@ -81,7 +82,7 @@ export default function GestionStockVO() {
                       <FileText size={16} className="text-amber-600" />
                       <span className="text-[9px] font-bold text-[#111]">Bon de Commande</span>
                     </button>
-                    <Link to={`/vehicule/${v.id}`} className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-[#E5E7EB] active:scale-[0.97] transition">
+                    <Link to={getAnnonceUrl(v.id, (v as any).categorieAnnonce, (v as any).vendeurType)} className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-[#E5E7EB] active:scale-[0.97] transition">
                       <Eye size={16} className="text-green-600" />
                       <span className="text-[9px] font-bold text-[#111]">Voir Annonce</span>
                     </Link>

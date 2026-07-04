@@ -42,7 +42,7 @@ export default function GestionConducteurs() {
           <p className="text-xl font-black text-green-600">{CONDUCTEURS.filter((c) => c.permis === "valide" && c.identite === "valide").length}</p><p className="text-[10px] text-[#6B7280]">Validés</p>
         </div>
         <div className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center">
-          <p className="text-xl font-black text-amber-600">{CONDUCTEURS.filter((c) => c.permis === "en_attente" || c.identite === "en_attente").length}</p><p className="text-[10px] text-[#6B7280]">En attente</p>
+          <p className="text-xl font-black text-amber-600">{CONDUCTEURS.filter((c) => (c.permis as string) === "en_attente" || (c.identite as string) === "en_attente").length}</p><p className="text-[10px] text-[#6B7280]">En attente</p>
         </div>
       </div>
 

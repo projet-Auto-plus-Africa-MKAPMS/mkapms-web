@@ -141,16 +141,17 @@ export default function VenteGenerale() {
             <Car size={12} /> Achat & Vente de véhicules
           </span>
         </div>
-        {/* Titre + Stats */}
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 pt-10">
+        {/* Titre + Sous-titre + Stats — tout dans un seul bloc vertical centré */}
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 pt-10 pb-12 gap-2">
           <h1 className="text-[26px] md:text-3xl font-black text-white leading-tight text-center">
             Achat de véhicules<br />
             <span className="text-[#D4AF37]">MKA.P-MS</span>
           </h1>
-          <p className="mt-2 text-sm text-white/70 leading-relaxed max-w-sm mx-auto text-center">
+          <p className="text-sm text-white/70 leading-relaxed max-w-sm mx-auto text-center">
             Choisissez votre univers et trouvez le véhicule adapté à votre besoin.
           </p>
-          <div className="mt-4 flex items-center justify-center gap-2 flex-nowrap w-full px-2">
+          {/* Stats — dans le flux, sous le texte */}
+          <div className="flex items-center justify-center gap-2 flex-nowrap w-full mt-1">
             {STATS.map((s) => (
               <div key={s.val} className="flex flex-col items-center rounded-xl bg-white/10 backdrop-blur px-3 py-2 border border-white/10 flex-1 min-w-0">
                 <span className="text-sm font-black text-[#D4AF37] whitespace-nowrap">{s.val}</span>
@@ -158,8 +159,9 @@ export default function VenteGenerale() {
               </div>
             ))}
           </div>
-          {/* Indicateurs barre de progression — dans le hero, en bas */}
-          <div className="absolute bottom-3 left-0 right-0 z-20 px-4">
+        </div>
+        {/* Indicateurs barre de progression — dans le hero, en bas */}
+        <div className="absolute bottom-3 left-0 right-0 z-20 px-4">
             <div className="flex gap-1.5 justify-center mb-1">
               {HERO_VIDEOS.map((v, i) => (
                 <button
@@ -184,7 +186,6 @@ export default function VenteGenerale() {
             </div>
           </div>
         </div>
-      </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
           SECTION 2 — BARRE DE RECHERCHE RAPIDE

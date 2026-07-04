@@ -12,6 +12,7 @@ import {
   Bell,
 } from "lucide-react";
 import SupportWidget from "./SupportWidget";
+import DomainSelector from "./DomainSelector";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
@@ -71,6 +72,7 @@ function Header() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
+          <DomainSelector />
           <CurrencySelect />
           <SupportWidget />
           <Link to="/vendre" className="btn-gold">
@@ -106,6 +108,7 @@ function Header() {
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
+          <DomainSelector />
           <SupportWidget />
           <button aria-label="Menu" onClick={() => setOpen((o) => !o)}>
             {open ? <X /> : <Menu />}

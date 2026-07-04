@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import {
   ChevronLeft, User, Car, ShoppingCart, Tag, FileText, Calendar,
   Key, CreditCard, Heart, MessageSquare, Clock,
@@ -140,7 +141,7 @@ export default function DossierClient() {
         {/* Vehicules achetes */}
         {tab === "achetes" && ACHETES.map((v) => (
           <div key={v.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-            <Link to={`/vehicule/${v.id}`} className="flex active:bg-[#F5F3EF] transition">
+            <Link to={getAnnonceUrl(v.id, (v as any).categorieAnnonce, (v as any).vendeurType)} className="flex active:bg-[#F5F3EF] transition">
               <img src={v.photo} alt={v.nom} className="w-28 h-24 object-cover shrink-0" />
               <div className="p-3 flex-1">
                 <p className="text-sm font-bold text-[#111]">{v.nom}</p>
@@ -181,7 +182,7 @@ export default function DossierClient() {
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => setViewFactureVente(v)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Download size={10} /> Facture</button>
-                  <Link to={`/vehicule/${v.id}`} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Eye size={10} /> Voir fiche</Link>
+                  <Link to={getAnnonceUrl(v.id, (v as any).categorieAnnonce, (v as any).vendeurType)} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Eye size={10} /> Voir fiche</Link>
                 </div>
               </div>
             )}

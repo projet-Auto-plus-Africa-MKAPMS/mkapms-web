@@ -33,6 +33,9 @@ import { comptabiliteRouter, cabinetsRouter } from "./routers/comptabilite.js";
 import { carteGriseRouter } from "./routers/cartegrise.js";
 import { proRouter } from "./routers/pro.js";
 import { apiRouter } from "./routers/api.js";
+import { reviewsV2Router } from "./routers/reviewsV2.js";
+import { seoRouter } from "./routers/seo.js";
+import { coreEngineRouter } from "./routers/coreEngine.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -97,6 +100,11 @@ export const appRouter = router({
   carteGrise: carteGriseRouter,
   pro: proRouter,
   api: apiRouter,
+  // Système d'avis universel + SEO (modules indépendants)
+  reviewsV2: reviewsV2Router,
+  seo: seoRouter,
+  // Core Engine — moteur d'orchestration (staging, connecté mais non intégré)
+  coreEngine: coreEngineRouter,
 });
 
 export type AppRouter = typeof appRouter;

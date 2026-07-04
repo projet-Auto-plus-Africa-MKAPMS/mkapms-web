@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import { Camera, CheckCircle2 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -241,7 +242,7 @@ export default function Compte() {
           <div className="space-y-3">
             <Link to="/vendre" className="btn-primary inline-flex">+ Déposer une annonce</Link>
             {mineAnnonces.data?.map((a) => (
-              <Link key={a.id} to={`/vehicule/${a.id}`} className="card flex items-center justify-between p-4 hover:bg-slate-50 transition cursor-pointer">
+              <Link key={a.id} to={getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)} className="card flex items-center justify-between p-4 hover:bg-slate-50 transition cursor-pointer">
                 <div>
                   <p className="font-semibold text-slate-800">{a.titre}</p>
                   <p className="text-xs text-slate-400">
@@ -261,14 +262,14 @@ export default function Compte() {
           <div className="space-y-3">
             <p className="text-sm text-slate-500">Toutes les annonces de la plateforme (tous les utilisateurs : pro, particulier, société).</p>
             {mineAnnonces.data?.map((a) => (
-              <Link key={a.id} to={`/vehicule/${a.id}`} className="card flex items-center justify-between p-4 hover:bg-slate-50 transition cursor-pointer">
+              <Link key={a.id} to={getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)} className="card flex items-center justify-between p-4 hover:bg-slate-50 transition cursor-pointer">
                 <div>
                   <p className="font-semibold text-slate-800">{a.titre}</p>
                   <p className="text-xs text-slate-400">
                     {(a as { reference?: string | null }).reference ? `${(a as { reference?: string | null }).reference} · ` : ""}
                     {a.status} · {formatPrice(Number(a.prix))}
                   </p>
-                  <p className="text-[10px] text-slate-300 mt-0.5">Vendeur ID: {a.userId}</p>
+                  <p className="text-[10px] text-slate-300 mt-0.5">Vendeur ID: {(a as { userId?: number; vendeurId?: number }).userId ?? (a as { userId?: number; vendeurId?: number }).vendeurId ?? "—"}</p>
                 </div>
                 <span className="text-xs text-slate-400">→</span>
               </Link>
@@ -334,7 +335,7 @@ export default function Compte() {
         {tab === "favoris" && (
           <div className="grid gap-3 md:grid-cols-2">
             {favoris.data?.map((f) => (
-              <Link key={f.annonce.id} to={`/vehicule/${f.annonce.id}`} className="card p-4">
+              <Link key={f.annonce.id} to={getAnnonceUrl(f.annonce.id, (f.annonce as any).categorieAnnonce, (f.annonce as any).vendeurType)} className="card p-4">
                 <p className="font-semibold text-slate-800">{f.annonce.titre}</p>
                 <p className="text-sm text-gold-dark">{formatPrice(Number(f.annonce.prix))}</p>
               </Link>

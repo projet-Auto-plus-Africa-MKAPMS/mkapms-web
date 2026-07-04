@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE D'ACCUEIL MKA.P-MS — VERSION DÉFINITIVE V1
@@ -75,6 +76,8 @@ const HOME_SERVICE_VIDEOS = [
   { src: "/videos/home/home_reparer.mp4", label: "Réparer", sub: "Mon véhicule", to: "/garages", icon: "🔧" },
   { src: "/videos/home/home_finance.mp4", label: "Finance+", sub: "Financement auto", to: "/finance", icon: "💳" },
   { src: "/videos/home/home_services.mp4", label: "Services", sub: "Livraison, CT, démarches", to: "/demarches", icon: "⚙️" },
+  { src: "/videos/home/home_livraison.mp4", label: "Livraison", sub: "Moto, utilitaire, fourgon", to: "/livraison", icon: "📦" },
+  { src: "/videos/home/home_depannage.mp4", label: "Dépannage", sub: "Remorquage & intervention", to: "/depannage", icon: "🚨" },
 ];
 
 /* ── COMPOSANT SCROLL HORIZONTAL ── */
@@ -91,7 +94,7 @@ function AnnonceCard({ a, badgeColor = "bg-[#D4AF37]" }: { a: any; badgeColor?: 
   const FALLBACK_IMG = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
   const imgSrc = a.photo || a.photoPrincipale || FALLBACK_IMG;
   return (
-    <Link to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
+    <Link to={getAnnonceUrl(a.id, a.categorieAnnonce, a.vendeurType)} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
       <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
         <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }} />
         {a.badge && <span className={`absolute top-2 left-2 rounded-sm ${badgeColor} px-2 py-0.5 text-[8px] font-extrabold text-white uppercase tracking-wide`}>{a.badge}</span>}
@@ -149,7 +152,7 @@ export default function Home() {
     });
   }, [heroVidIdx]);
 
-  /* Carrousel vidéos services */
+  /* Carrousel vidéos services — rotation automatique toutes les 4 secondes */
   const [svcVidIdx, setSvcVidIdx] = useState(0);
   const svcVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   useEffect(() => {
@@ -159,6 +162,10 @@ export default function Home() {
       else { v.pause(); }
     });
   }, [svcVidIdx]);
+  useEffect(() => {
+    const t = setInterval(() => setSvcVidIdx((p) => (p + 1) % HOME_SERVICE_VIDEOS.length), 4000);
+    return () => clearInterval(t);
+  }, []);
 
   /* Pubs latérales rotation */
   const [adLeftIdx, setAdLeftIdx] = useState(0);
@@ -181,6 +188,7 @@ export default function Home() {
   const [sModele, setSModele] = useState("");
   const [sPrix, setSPrix] = useState("");
   const [sLocalisation, setSLocalisation] = useState("");
+  const [sAnnee, setSAnnee] = useState("");
 
   function doSearch() {
     const params = new URLSearchParams();
@@ -189,17 +197,19 @@ export default function Home() {
     if (sModele) params.set("modele", sModele);
     if (sPrix) params.set("prixMax", sPrix);
     if (sLocalisation) params.set("ville", sLocalisation);
+    if (sAnnee) params.set("annee", sAnnee);
     navigate(`/acheter?${params.toString()}`);
   }
 
-  /* Annonces réelles depuis la DB - Critères stricts pour la page d'accueil */
+  /* Annonces réelles depuis la DB — chaque section filtre correctement */
   const { data: officielles } = trpc.annonces.list.useQuery({ categorieAnnonce: "officielle", limit: 10 });
   const { data: boostees } = trpc.annonces.list.useQuery({ boosted: true, limit: 10 });
   const { data: premium } = trpc.annonces.list.useQuery({ selectionMka: true, limit: 10 });
-  const { data: recentes } = trpc.annonces.list.useQuery({ limit: 10 });
+  const { data: recentes } = trpc.annonces.list.useQuery({ type: "vente", limit: 10 });
   const { data: locations } = trpc.annonces.list.useQuery({ type: "location", limit: 10 });
   const { data: particuliers } = trpc.annonces.list.useQuery({ categorieAnnonce: "particulier", type: "vente", limit: 10 });
   const { data: professionnelles } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", limit: 10 });
+  const { data: motos } = trpc.annonces.list.useQuery({ famille: "moto", limit: 10 });
 
   const realOfficielles = (officielles?.items ?? []).map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }));
   const realBoostees = (boostees?.items ?? []).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
@@ -208,6 +218,7 @@ export default function Home() {
   const realProches = (recentes?.items ?? []).map((a: any) => ({ ...a, distance: `${Math.floor(Math.random() * 20 + 1)} km` }));
   const realLocations = (locations?.items ?? []).map((a: any) => ({ ...a, prixJour: a.prixJour || Math.round(Number(a.prix) / 30) }));
   const realParticuliers = (particuliers?.items ?? []).map((a: any) => ({ ...a, badge: "PARTICULIER" }));
+  const realMotos = (motos?.items ?? []).map((a: any) => ({ ...a, badge: "MOTO" }));
 
   return (
     <div className="bg-[#F5F3EF] min-h-screen">
@@ -328,68 +339,6 @@ export default function Home() {
             </div>
           </section>
 
-          {/* ═══════════════════════════════════════════════════════════════
-              SECTION 3C — VIDÉOS SERVICES PREMIUM
-              ═══════════════════════════════════════════════════════════════ */}
-          <section className="bg-[#111] px-4 py-4">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-[9px] uppercase tracking-widest text-[#D4AF37] font-semibold">MKA.P-MS</p>
-                <h2 className="text-sm font-black text-white">Nos univers</h2>
-              </div>
-              <span className="text-[9px] text-white/40 uppercase tracking-wide">Appuyez pour explorer</span>
-            </div>
-            {/* Carousel horizontal 8 emplacements, 6 vidéos */}
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide scroll-smooth">
-              {HOME_SERVICE_VIDEOS.map((sv, i) => (
-                <Link
-                  key={i}
-                  to={sv.to}
-                  className="shrink-0 relative rounded-2xl overflow-hidden cursor-pointer group"
-                  style={{ width: 140, height: 200 }}
-                  onMouseEnter={() => setSvcVidIdx(i)}
-                  onTouchStart={() => setSvcVidIdx(i)}
-                >
-                  <video
-                    ref={(el) => { svcVideoRefs.current[i] = el; }}
-                    src={sv.src}
-                    muted
-                    playsInline
-                    loop
-                    preload="auto"
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  {/* Overlay dégradé */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  {/* Badge actif */}
-                  {i === svcVidIdx && (
-                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
-                  )}
-                  {/* Label en bas */}
-                  <div className="absolute bottom-0 left-0 right-0 p-3">
-                    <p className="text-base leading-none mb-0.5">{sv.icon}</p>
-                    <p className="text-xs font-black text-white uppercase leading-tight">{sv.label}</p>
-                    <p className="text-[9px] text-white/60 mt-0.5">{sv.sub}</p>
-                    <div className="mt-1.5 flex items-center gap-1">
-                      <Play size={8} className="text-[#D4AF37]" />
-                      <span className="text-[8px] text-[#D4AF37] font-semibold">Explorer</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-              {/* Emplacements 7 et 8 — prochainement */}
-              {[0, 1].map((_, i) => (
-                <div
-                  key={`empty-${i}`}
-                  className="shrink-0 relative rounded-2xl overflow-hidden bg-white/5 border border-white/10 flex flex-col items-center justify-center"
-                  style={{ width: 140, height: 200 }}
-                >
-                  <Sparkles size={20} className="text-[#D4AF37]/40 mb-2" />
-                  <p className="text-[9px] text-white/30 uppercase tracking-wide text-center px-2">Prochainement</p>
-                </div>
-              ))}
-            </div>
-          </section>
 
           {/* ═══════════════════════════════════════════════════════════════
               SECTION 3B — BARRE DE RECHERCHE UNIVERSELLE
@@ -408,43 +357,85 @@ export default function Home() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
-              SECTION 4 — RECHERCHE AVANCÉE
+              SECTION 4 — RECHERCHE AVANCÉE PREMIUM
               ═══════════════════════════════════════════════════════════════ */}
           <section className="bg-white px-4 pb-4">
-            <div className="max-w-3xl mx-auto rounded-2xl border border-[#E5E7EB] bg-[#FAFAF8] p-4 shadow-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <Search size={18} className="text-[#D4AF37]" />
-                <h2 className="text-sm md:text-base font-bold text-[#111]">Rechercher un véhicule</h2>
+            <div className="max-w-3xl mx-auto rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#FAFAF8] to-white p-4 shadow-md">
+              {/* En-tête premium */}
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                    <Search size={15} className="text-[#D4AF37]" />
+                  </div>
+                  <h2 className="text-sm font-extrabold text-[#111] tracking-tight">Rechercher un véhicule</h2>
+                </div>
+                <span className="text-[9px] font-bold text-[#D4AF37] uppercase tracking-wider border border-[#D4AF37]/30 rounded-full px-2 py-0.5">Mondial</span>
               </div>
-              <p className="text-[10px] text-[#6B7280] mb-3">Voitures, motos, utilitaires — trouvez votre véhicule idéal</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-                <select value={sCategorie} onChange={(e) => setSCategorie(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
-                  <option value="">Toutes catégories</option>
-                  <option>Citadine</option><option>Berline</option><option>SUV</option><option>Coupé</option><option>Break</option><option>Utilitaire</option><option>Moto</option>
-                </select>
-                <select value={sMarque} onChange={(e) => setSMarque(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
-                  <option value="">Marque</option>
-                  <option>Peugeot</option><option>Renault</option><option>Citroën</option><option>BMW</option><option>Mercedes</option><option>Audi</option><option>Volkswagen</option><option>Toyota</option><option>Ford</option><option>Fiat</option>
-                </select>
-                <select value={sModele} onChange={(e) => setSModele(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
-                  <option value="">Modèle</option>
-                </select>
-                <select value={sPrix} onChange={(e) => setSPrix(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
-                  <option value="">Prix max</option>
-                  <option value="5000">5 000 €</option><option value="10000">10 000 €</option><option value="15000">15 000 €</option><option value="20000">20 000 €</option><option value="30000">30 000 €</option><option value="50000">50 000 €</option>
-                </select>
-                <select value={sLocalisation} onChange={(e) => setSLocalisation(e.target.value)} className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs text-[#111] outline-none">
-                  <option value="">Localisation</option>
-                  <option>Paris</option><option>Lyon</option><option>Marseille</option><option>Toulouse</option><option>Bordeaux</option><option>Nantes</option><option>Lille</option><option>Nice</option>
-                </select>
+              <p className="text-[10px] text-[#9CA3AF] mb-3 pl-10">Voitures · Motos · Utilitaires · Partout dans le monde</p>
+              {/* Grille 6 filtres premium */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {/* Filtre 1 — Catégorie */}
+                <div className="relative">
+                  <select value={sCategorie} onChange={(e) => setSCategorie(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
+                    <option value="">Catégorie</option>
+                    <option>Citadine</option><option>Berline</option><option>SUV / 4x4</option><option>Coupé</option><option>Break</option><option>Cabriolet</option><option>Monospace</option><option>Utilitaire</option><option>Camion</option><option>Moto</option><option>Scooter</option>
+                  </select>
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">🚗</span>
+                </div>
+                {/* Filtre 2 — Marque */}
+                <div className="relative">
+                  <select value={sMarque} onChange={(e) => setSMarque(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
+                    <option value="">Marque</option>
+                    <option>Peugeot</option><option>Renault</option><option>Citroën</option><option>BMW</option><option>Mercedes</option><option>Audi</option><option>Volkswagen</option><option>Toyota</option><option>Ford</option><option>Fiat</option><option>Hyundai</option><option>Kia</option><option>Nissan</option><option>Honda</option><option>Mazda</option><option>Volvo</option><option>Tesla</option><option>Dacia</option><option>Seat</option><option>Skoda</option>
+                  </select>
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">🏷️</span>
+                </div>
+                {/* Filtre 3 — Modèle */}
+                <div className="relative">
+                  <select value={sModele} onChange={(e) => setSModele(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
+                    <option value="">Modèle</option>
+                  </select>
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">🔍</span>
+                </div>
+                {/* Filtre 4 — Année */}
+                <div className="relative">
+                  <select value={sAnnee} onChange={(e) => setSAnnee(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
+                    <option value="">Année</option>
+                    {Array.from({ length: new Date().getFullYear() - 1989 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">📅</span>
+                </div>
+                {/* Filtre 5 — Prix max */}
+                <div className="relative">
+                  <select value={sPrix} onChange={(e) => setSPrix(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
+                    <option value="">Budget max</option>
+                    <option value="3000">3 000 €</option><option value="5000">5 000 €</option><option value="8000">8 000 €</option><option value="10000">10 000 €</option><option value="15000">15 000 €</option><option value="20000">20 000 €</option><option value="30000">30 000 €</option><option value="50000">50 000 €</option><option value="80000">80 000 €</option><option value="100000">100 000 €</option>
+                  </select>
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">💶</span>
+                </div>
+                {/* Filtre 6 — Localisation mondiale (champ libre) */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={sLocalisation}
+                    onChange={(e) => setSLocalisation(e.target.value)}
+                    placeholder="Ville, pays..."
+                    className="w-full rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition font-medium placeholder:text-[#9CA3AF]"
+                  />
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">📍</span>
+                </div>
               </div>
-              {/* Boutons Rechercher et Simuler — séparés et bien visibles */}
-              <div className="mt-3 flex flex-col sm:flex-row gap-2">
-                <button onClick={doSearch} className="flex-1 rounded-xl bg-[#111] px-5 py-3 text-sm font-bold text-white hover:bg-[#333] transition flex items-center justify-center gap-2">
-                  <Search size={16} /> Rechercher
+              {/* Séparateur fin doré */}
+              <div className="my-3 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
+              {/* Boutons Rechercher et Simuler */}
+              <div className="flex gap-2">
+                <button onClick={doSearch} className="flex-1 rounded-xl bg-[#111] px-5 py-3 text-sm font-bold text-white hover:bg-[#333] active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-sm">
+                  <Search size={15} /> Rechercher
                 </button>
-                <button onClick={() => navigate("/estimation")} className="flex-1 rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-bold text-white hover:bg-[#c9a430] transition flex items-center justify-center gap-2">
-                  <Star size={16} /> Simuler / Estimer
+                <button onClick={() => navigate("/acheter/estimation")} className="flex-1 rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-bold text-white hover:bg-[#c9a430] active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-sm">
+                  <Star size={15} /> Simuler / Estimer
                 </button>
               </div>
             </div>
@@ -514,6 +505,55 @@ export default function Home() {
             ) : (
               <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce premium pour le moment.</div>
             )}
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 7C — VIDÉOS SERVICES PREMIUM (NOS UNIVERS)
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="bg-white px-4 py-4 border-t border-[#F3F4F6]">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-[9px] uppercase tracking-widest text-[#D4AF37] font-semibold">MKA.P-MS</p>
+                <h2 className="text-sm font-black text-[#111]">Nos univers</h2>
+              </div>
+              <span className="text-[9px] text-[#6B7280] uppercase tracking-wide">Appuyez pour explorer</span>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide scroll-smooth">
+              {HOME_SERVICE_VIDEOS.map((sv, i) => (
+                <Link
+                  key={i}
+                  to={sv.to}
+                  className="shrink-0 relative rounded-2xl overflow-hidden cursor-pointer group"
+                  style={{ width: 140, height: 200 }}
+                  onMouseEnter={() => setSvcVidIdx(i)}
+                  onTouchStart={() => setSvcVidIdx(i)}
+                >
+                  <video
+                    ref={(el) => { svcVideoRefs.current[i] = el; }}
+                    src={sv.src}
+                    muted
+                    playsInline
+                    loop
+                    preload="auto"
+                    className="absolute inset-0 w-full h-full object-cover object-center"
+                    style={{ minWidth: "100%", minHeight: "100%" }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  {i === svcVidIdx && (
+                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="text-base leading-none mb-0.5">{sv.icon}</p>
+                    <p className="text-xs font-black text-white uppercase leading-tight">{sv.label}</p>
+                    <p className="text-[9px] text-white/60 mt-0.5">{sv.sub}</p>
+                    <div className="mt-1.5 flex items-center gap-1">
+                      <Play size={8} className="text-[#D4AF37]" />
+                      <span className="text-[8px] text-[#D4AF37] font-semibold">Explorer</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
@@ -597,7 +637,7 @@ export default function Home() {
                   const locType = a.segmentLocation === "vtc_taxi" ? "VTC & Taxi" : a.segmentLocation === "professionnel" ? "Pro" : a.type || "Particulier";
                   const pj = a.prixJour || Math.round(Number(a.prix || 0) / 30);
                   return (
-                    <Link key={a.id} to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
+                    <Link key={a.id} to={getAnnonceUrl(a.id, a.categorieAnnonce, a.vendeurType)} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
                       <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
                         <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop"; }} />
                         <span className={`absolute top-2 left-2 rounded-sm px-2 py-0.5 text-[8px] font-extrabold text-white uppercase ${locType === "VTC" ? "bg-[#111] border border-[#D4AF37]" : locType === "Pro" ? "bg-blue-800" : locType === "Taxi" ? "bg-yellow-600" : "bg-[#D4AF37]"}`}>{pj} €/jour</span>
@@ -661,6 +701,28 @@ export default function Home() {
                 </Link>
               ))}
             </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 11.5 — MOTOS & DEUX-ROUES
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Zap size={14} className="text-[#D4AF37]" />
+                <h2 className="text-sm md:text-base font-bold text-[#111]">MOTOS & DEUX-ROUES</h2>
+              </div>
+              <Link to="/acheter?famille=moto" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
+            </div>
+            {realMotos.length > 0 ? (
+              <HScroll>
+                {realMotos.map((a: any) => (
+                  <AnnonceCard key={a.id} a={a} badgeColor="bg-orange-500" />
+                ))}
+              </HScroll>
+            ) : (
+              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune moto disponible pour le moment.</div>
+            )}
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════

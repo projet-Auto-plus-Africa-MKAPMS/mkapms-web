@@ -81,7 +81,7 @@ export default function ControleDocuments() {
               {v.statut === "en_attente" && (
                 <button className="mt-3 w-full rounded-lg bg-[#D4AF37]/10 py-2 text-xs font-bold text-[#D4AF37]">Ajouter</button>
               )}
-              {v.statut === "refuse" && (
+              {(v.statut as string) === "refuse" && (
                 <button className="mt-3 w-full rounded-lg bg-red-50 py-2 text-xs font-bold text-red-600">Corriger</button>
               )}
             </div>

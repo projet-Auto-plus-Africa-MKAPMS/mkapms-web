@@ -216,10 +216,11 @@ export default function AtelierPro() {
   const [stockQtes, setStockQtes] = useState<Record<number, number>>({});
   const [showNewVehicle, setShowNewVehicle] = useState(false);
   const [newVehForm, setNewVehForm] = useState({ plaque: "", vin: "", marque: "", modele: "", annee: "", km: "", client: "", tel: "" });
-  const [extraVehicules, setExtraVehicules] = useState<typeof VEHICULES_ATELIER>([]);
+  const [extraVehicules, setExtraVehicules] = useState<Array<{id: number; marque: string; modele: string; plaque: string; vin: string; annee: number; km: string; client: string; derniereVisite: string}>>([]);
   const [viewDevisPDF, setViewDevisPDF] = useState<typeof DEVIS_ATELIER[0] | null>(null);
   const [viewFacturePDF, setViewFacturePDF] = useState<typeof FACTURES_ATELIER[0] | null>(null);
   const [viewOrdrePDF, setViewOrdrePDF] = useState<OrdreReparation | null>(null);
+  const [modalDoc, setModalDoc] = useState<import("../components/DocumentPDF").DocumentData | null>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
@@ -852,7 +853,7 @@ export default function AtelierPro() {
                 <div className="flex gap-2">
                   <button onClick={() => {
                     if (!newVehForm.plaque || !newVehForm.marque || !newVehForm.modele) { showToast("Plaque, marque et modele obligatoires"); return; }
-                    const nv = { id: 100 + extraVehicules.length, plaque: newVehForm.plaque, marque: newVehForm.marque, modele: newVehForm.modele, annee: newVehForm.annee || "2024", km: newVehForm.km || "0", vin: newVehForm.vin || "VIN-" + newVehForm.plaque, client: newVehForm.client || "—", derniereVisite: "Nouveau" };
+                    const nv = { id: 100 + extraVehicules.length, plaque: newVehForm.plaque, marque: newVehForm.marque, modele: newVehForm.modele, annee: parseInt(newVehForm.annee) || 2024, km: newVehForm.km || "0", vin: newVehForm.vin || "VIN-" + newVehForm.plaque, client: newVehForm.client || "—", derniereVisite: "Nouveau" };
                     setExtraVehicules([nv, ...extraVehicules]);
                     setNewVehForm({ plaque: "", vin: "", marque: "", modele: "", annee: "", km: "", client: "", tel: "" });
                     setShowNewVehicle(false);
@@ -940,6 +941,9 @@ export default function AtelierPro() {
           doc={buildDevisData({ type: "Ordre de Reparation", garage: "Atelier Pro MKA.P-MS", montant: viewOrdrePDF.montant, date: viewOrdrePDF.dateEntree, vehicule: `${viewOrdrePDF.vehicule} — ${viewOrdrePDF.plaque}`, client: viewOrdrePDF.client, ref: viewOrdrePDF.ref })}
           onClose={() => setViewOrdrePDF(null)}
         />
+      )}
+      {modalDoc && (
+        <DocumentView doc={modalDoc} onClose={() => setModalDoc(null)} />
       )}
       {/* Toast notification */}
       {toast && (

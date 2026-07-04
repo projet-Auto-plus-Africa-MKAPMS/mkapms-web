@@ -28,7 +28,7 @@ export default function DossierVehicule() {
             <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${d.statut === "valide" ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>{d.statut === "valide" ? "Validé" : "En attente"}</span>
             {d.statut === "valide" && (
               <button 
-                onClick={() => setModalDoc(buildFactureData({ ref: "VO-DOC", client: "Dossier Véhicule", montant: "Document", date: "15/03/2026", statut: d.label }))}
+                onClick={() => setModalDoc(buildFactureData({ ref: "VO-DOC", objet: d.label, client: "Dossier Véhicule", montant: "Document", date: "15/03/2026", statut: d.label, type: "Document" }))}
                 className="h-7 w-7 rounded-lg hover:bg-blue-50 flex items-center justify-center text-blue-600"
               >
                 <Eye size={12} />

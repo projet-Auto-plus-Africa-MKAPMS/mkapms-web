@@ -179,7 +179,7 @@ export default function EtatVehicule() {
           <div className="mt-3 rounded-lg bg-[#F5F3EF] p-3">
             <p className="text-xs text-[#6B7280]">
               {r.caution.statut === "bloquee" && "Votre caution est retenue sur votre compte. Elle sera restituée sous 7 jours ouvrés après restitution du véhicule en bon état."}
-              {r.caution.statut === "partielle" && "Une partie de votre caution a été retenue suite à des dommages constatés. Consultez le détail ci-dessous."}
+              {(r.caution.statut as string) === "partielle" && "Une partie de votre caution a été retenue suite à des dommages constatés. Consultez le détail ci-dessous."}
               {r.caution.statut === "restituee" && "Votre caution a été intégralement restituée. Le virement apparaîtra sous 3 à 5 jours ouvrés."}
             </p>
           </div>
