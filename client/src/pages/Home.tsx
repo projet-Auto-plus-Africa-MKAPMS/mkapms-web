@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE D'ACCUEIL MKA.P-MS — VERSION DÉFINITIVE V1
@@ -83,7 +84,7 @@ function AnnonceCard({ a, badgeColor = "bg-[#D4AF37]" }: { a: any; badgeColor?: 
   const FALLBACK_IMG = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
   const imgSrc = a.photo || a.photoPrincipale || FALLBACK_IMG;
   return (
-    <Link to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
+    <Link to={getAnnonceUrl(a.id, a.categorieAnnonce, a.vendeurType)} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
       <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
         <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }} />
         {a.badge && <span className={`absolute top-2 left-2 rounded-sm ${badgeColor} px-2 py-0.5 text-[8px] font-extrabold text-white uppercase tracking-wide`}>{a.badge}</span>}
@@ -622,7 +623,7 @@ export default function Home() {
                   const locType = a.segmentLocation === "vtc_taxi" ? "VTC & Taxi" : a.segmentLocation === "professionnel" ? "Pro" : a.type || "Particulier";
                   const pj = a.prixJour || Math.round(Number(a.prix || 0) / 30);
                   return (
-                    <Link key={a.id} to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
+                    <Link key={a.id} to={getAnnonceUrl(a.id, a.categorieAnnonce, a.vendeurType)} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
                       <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
                         <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop"; }} />
                         <span className={`absolute top-2 left-2 rounded-sm px-2 py-0.5 text-[8px] font-extrabold text-white uppercase ${locType === "VTC" ? "bg-[#111] border border-[#D4AF37]" : locType === "Pro" ? "bg-blue-800" : locType === "Taxi" ? "bg-yellow-600" : "bg-[#D4AF37]"}`}>{pj} €/jour</span>

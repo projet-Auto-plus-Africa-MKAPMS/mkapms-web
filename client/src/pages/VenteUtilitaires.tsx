@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import { ChevronLeft, Search, Truck, Heart, Star, ChevronDown } from "lucide-react";
 
 const CATEGORIES = [
@@ -56,7 +57,7 @@ export default function VenteUtilitaires() {
         <h2 className="text-base font-bold text-[#111]">Annonces utilitaires</h2>
         <div className="mt-3 space-y-3">
           {ANNONCES.map((a) => (
-            <Link key={a.id} to={`/vehicule/${9080 + a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
+            <Link key={a.id} to={getAnnonceUrl(9080 + a.id, null, null)} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
               <div className="relative h-[130px]">
                 <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
                 <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span>

@@ -5,6 +5,7 @@
  */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import {
   Globe, MapPin, Languages, CreditCard, ChevronRight,
   Search, Shield, Award, Headphones, CheckCircle,
@@ -257,7 +258,7 @@ export default function HomeSite() {
             {recentes.items.map((a: any) => (
               <Link
                 key={a.id}
-                to={`/vehicule/${a.id}`}
+                to={getAnnonceUrl(a.id, a.categorieAnnonce, a.vendeurType)}
                 className="shrink-0 w-[220px] rounded-xl border border-[#E5E7EB] bg-white overflow-hidden hover:shadow-lg transition group"
               >
                 <div className="h-[130px] relative overflow-hidden">

@@ -1498,7 +1498,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
                   const sim = DEMO_VEHICLES[id];
                   if (!sim) return null;
                   return (
-                    <Link key={id} to={`/vehicule/${id}`} className="w-36 shrink-0 overflow-hidden rounded-xl border border-slate-200">
+                    <Link key={id} to={getAnnonceUrl(id, sim.categorieAnnonce, sim.vendeurType)} className="w-36 shrink-0 overflow-hidden rounded-xl border border-slate-200">
                       <img src={sim.photoPrincipale} alt={sim.titre} className="h-24 w-full object-cover" />
                       <div className="p-2">
                         <p className="text-[10px] font-bold text-[#111] truncate">{sim.titre}</p>
@@ -1571,7 +1571,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
                 const sim = DEMO_VEHICLES[id];
                 if (!sim) return null;
                 return (
-                  <Link key={id} to={`/vehicule/${id}`} className="w-48 shrink-0 overflow-hidden rounded-xl border border-slate-200 hover:border-[#D4AF37] transition">
+                  <Link key={id} to={getAnnonceUrl(id, sim.categorieAnnonce, sim.vendeurType)} className="w-48 shrink-0 overflow-hidden rounded-xl border border-slate-200 hover:border-[#D4AF37] transition">
                     <div className="relative">
                       <img src={sim.photoPrincipale} alt={sim.titre} className="h-44 w-full object-cover" />
                       <button className="absolute top-2 right-2 text-slate-400 hover:text-red-500"><Heart size={16} /></button>

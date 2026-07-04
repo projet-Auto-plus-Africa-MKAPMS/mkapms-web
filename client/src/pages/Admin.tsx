@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { isAdmin, isDirection } from "@shared/roles";
@@ -395,7 +396,7 @@ export default function Admin() {
                   </div>
                   {a.description && <p className="mt-2 text-xs text-slate-500 line-clamp-3">{a.description}</p>}
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <button className="inline-flex items-center gap-1 rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800" onClick={() => navigate(`/vehicule/${a.id}`)}><Eye size={13} /> Voir</button>
+                    <button className="inline-flex items-center gap-1 rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800" onClick={() => navigate(getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType))}><Eye size={13} /> Voir</button>
                     {a.status === "publiee" && (
                       <button className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700" onClick={() => moderate.mutate({ id: a.id, action: "archivee" })}><Pause size={13} /> Mettre en pause</button>
                     )}

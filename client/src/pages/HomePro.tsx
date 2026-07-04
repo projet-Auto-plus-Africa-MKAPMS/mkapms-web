@@ -4,6 +4,7 @@
  * Même DB · Même Core Engine · Orientation professionnelle
  */
 import { Link, useNavigate } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import {
   Building2, Briefcase, Truck, Wrench, CreditCard, Settings,
   BarChart3, Users, Globe, Shield, Award, ChevronRight,
@@ -264,7 +265,7 @@ export default function HomePro() {
             {proAnnonces.items.map((a: any) => (
               <Link
                 key={a.id}
-                to={`/vehicule/${a.id}`}
+                to={getAnnonceUrl(a.id, a.categorieAnnonce, a.vendeurType)}
                 className="shrink-0 w-[220px] rounded-xl border border-white/10 bg-white/5 overflow-hidden hover:border-[#D4AF37]/50 transition group"
               >
                 <div className="h-[130px] relative overflow-hidden">

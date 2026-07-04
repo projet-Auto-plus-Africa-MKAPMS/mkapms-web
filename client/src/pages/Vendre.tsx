@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import {
   Search, Camera, CheckCircle, Shield, Eye, Zap, Lock,
   ChevronRight, ChevronDown, Upload, Star, Car, Bike, Truck, Bus,
@@ -381,7 +382,7 @@ export default function Vendre() {
   }
 
   const create = trpc.annonces.create.useMutation({
-    onSuccess: (a) => navigate(`/vehicule/${a.id}`),
+    onSuccess: (a) => navigate(getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)),
   });
 
   function submit() {
