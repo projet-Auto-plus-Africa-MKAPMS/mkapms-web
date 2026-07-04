@@ -296,8 +296,9 @@ export default function Vendre() {
   const photoCatsRef = famille === "moto" ? PHOTO_CATS_MOTO_V : PHOTO_CATS_AUTO;
   const totalPhotos = useMemo(() => Object.values(photoUrls).reduce((acc, arr) => acc + arr.length, 0), [photoUrls]);
 
-  // Derive flat photos array from categorized photoUrls
-  const allPhotos = useMemo(() => Object.values(photoUrls).flat(), [photoUrls]);
+  // Derive flat photos array from categorized photoUrls (with category info for DB)
+  const allPhotos = useMemo(() => Object.entries(photoUrls).flatMap(([cat, urls]) => urls.map(url => ({ url, categorie: cat }))), [photoUrls]);
+  const allPhotoUrls = useMemo(() => Object.values(photoUrls).flat(), [photoUrls]);
 
   function set<K extends keyof typeof form>(k: K, val: string) {
     setForm((f) => ({ ...f, [k]: val }));
@@ -1351,9 +1352,9 @@ export default function Vendre() {
                   </div>
                 </div>
               )}
-              {allPhotos.length > 0 && (
+              {allPhotoUrls.length > 0 && (
                 <div className="flex gap-2 overflow-x-auto pt-2 border-t border-[#E5E7EB]">
-                  {allPhotos.map((p, i) => (
+                  {allPhotoUrls.map((p, i) => (
                     <div key={i} className="h-16 w-16 shrink-0 rounded-lg border border-[#E5E7EB] overflow-hidden bg-slate-50">
                       <img src={p} alt="" className="h-full w-full object-cover" onError={(e) => { const img = e.target as HTMLImageElement; img.style.display = "none"; }} />
                     </div>
