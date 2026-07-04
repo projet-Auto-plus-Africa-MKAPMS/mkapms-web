@@ -3,7 +3,7 @@
 // Module staging : connecté mais non intégré directement.
 import { z } from "zod";
 import { desc, eq, sql, and, gte, lte, or, asc } from "drizzle-orm";
-import { router, publicProcedure, protectedProcedure, adminProcedure } from "../trpc.js";
+import { router, publicProcedure, protectedProcedure, adminProcedure, directionProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import {
   serviceRecommendationRules,
@@ -33,6 +33,8 @@ import {
   expansionCountries,
   ecosystemLinks,
   orchestrationLog,
+  ceEngineLogs,
+  ceEngineHealth,
 } from "../modules/coreEngine.js";
 
 // ─── 1. MOTEUR DE SERVICES UNIVERSEL ───
@@ -83,14 +85,14 @@ const recommendationEngine = router({
       metadata: z.any().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      await db.insert(userBehaviorLog).values({ userId: ctx.user.id, ...input });
+      await db.insert(userBehaviorLog).values({ userId: ctx.user.uid, ...input });
       return { success: true };
     }),
   getMyRecommendations: protectedProcedure
     .input(z.object({ limit: z.number().min(1).max(50).optional() }).optional())
     .query(async ({ ctx, input }) => {
       return db.select().from(recommendations)
-        .where(and(eq(recommendations.userId, ctx.user.id), eq(recommendations.seen, false)))
+        .where(and(eq(recommendations.userId, ctx.user.uid), eq(recommendations.seen, false)))
         .orderBy(desc(recommendations.score))
         .limit(input?.limit ?? 10);
     }),
@@ -126,7 +128,7 @@ const fournisseursCenter = router({
       query: z.string().optional(),
     }))
     .query(async ({ input }) => {
-      let query = db.select().from(ceSuppliers).where(eq(ceSuppliers.active, true));
+      let query: any = db.select().from(ceSuppliers).where(eq(ceSuppliers.active, true));
       if (input.category) query = query.where(eq(ceSuppliers.category, input.category)) as any;
       if (input.country) query = query.where(eq(ceSuppliers.country, input.country)) as any;
       return query.orderBy(desc(ceSuppliers.noteMoyenne)).limit(50);
@@ -202,7 +204,7 @@ const formationCenter = router({
   listCourses: publicProcedure
     .input(z.object({ category: z.string().optional() }).optional())
     .query(async ({ input }) => {
-      let q = db.select().from(ceFormationCourses).where(eq(ceFormationCourses.active, true));
+      let q: any = db.select().from(ceFormationCourses).where(eq(ceFormationCourses.active, true));
       if (input?.category) q = q.where(eq(ceFormationCourses.category, input.category)) as any;
       return q.orderBy(asc(ceFormationCourses.ordre));
     }),
@@ -217,7 +219,7 @@ const formationCenter = router({
   enroll: protectedProcedure
     .input(z.object({ courseId: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      const [e] = await db.insert(ceFormationEnrollments).values({ userId: ctx.user.id, courseId: input.courseId }).returning();
+      const [e] = await db.insert(ceFormationEnrollments).values({ userId: ctx.user.uid, courseId: input.courseId }).returning();
       return e;
     }),
   updateProgress: protectedProcedure
@@ -251,7 +253,7 @@ const formationCenter = router({
       return c;
     }),
   myEnrollments: protectedProcedure.query(async ({ ctx }) => {
-    return db.select().from(ceFormationEnrollments).where(eq(ceFormationEnrollments.userId, ctx.user.id));
+    return db.select().from(ceFormationEnrollments).where(eq(ceFormationEnrollments.userId, ctx.user.uid));
   }),
 });
 
@@ -260,7 +262,7 @@ const b2bCenter = router({
   listListings: publicProcedure
     .input(z.object({ category: z.string().optional(), marque: z.string().optional(), country: z.string().optional(), limit: z.number().optional() }).optional())
     .query(async ({ input }) => {
-      let q = db.select().from(b2bListings).where(eq(b2bListings.active, true));
+      let q: any = db.select().from(b2bListings).where(eq(b2bListings.active, true));
       if (input?.category) q = q.where(eq(b2bListings.category, input.category)) as any;
       if (input?.country) q = q.where(eq(b2bListings.country, input.country)) as any;
       return q.orderBy(desc(b2bListings.createdAt)).limit(input?.limit ?? 50);
@@ -268,7 +270,7 @@ const b2bCenter = router({
   createListing: protectedProcedure
     .input(z.object({ sellerType: z.string(), category: z.string(), title: z.string(), description: z.string().optional(), marque: z.string().optional(), reference: z.string().optional(), prixUnitaireHT: z.string().optional(), quantiteMin: z.number().optional(), stock: z.number().optional(), delaiJours: z.number().optional(), country: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
-      const [l] = await db.insert(b2bListings).values({ ...input, sellerId: ctx.user.id }).returning();
+      const [l] = await db.insert(b2bListings).values({ ...input, sellerId: ctx.user.uid }).returning();
       return l;
     }),
   createOrder: protectedProcedure
@@ -278,14 +280,14 @@ const b2bCenter = router({
       if (!listing) return { error: "Annonce introuvable" };
       const totalHT = listing.prixUnitaireHT ? String(Number(listing.prixUnitaireHT) * input.quantity) : "0";
       const ref = `MKA-B2B-${Date.now().toString(36).toUpperCase()}`;
-      const [order] = await db.insert(b2bOrders).values({ reference: ref, buyerId: ctx.user.id, sellerId: listing.sellerId, listingId: input.listingId, quantity: input.quantity, totalHT }).returning();
+      const [order] = await db.insert(b2bOrders).values({ reference: ref, buyerId: ctx.user.uid, sellerId: listing.sellerId, listingId: input.listingId, quantity: input.quantity, totalHT }).returning();
       return order;
     }),
   myOrders: protectedProcedure.query(async ({ ctx }) => {
-    return db.select().from(b2bOrders).where(eq(b2bOrders.buyerId, ctx.user.id)).orderBy(desc(b2bOrders.createdAt));
+    return db.select().from(b2bOrders).where(eq(b2bOrders.buyerId, ctx.user.uid)).orderBy(desc(b2bOrders.createdAt));
   }),
   mySales: protectedProcedure.query(async ({ ctx }) => {
-    return db.select().from(b2bOrders).where(eq(b2bOrders.sellerId, ctx.user.id)).orderBy(desc(b2bOrders.createdAt));
+    return db.select().from(b2bOrders).where(eq(b2bOrders.sellerId, ctx.user.uid)).orderBy(desc(b2bOrders.createdAt));
   }),
 });
 
@@ -318,20 +320,20 @@ const documentsCenter = router({
   list: protectedProcedure
     .input(z.object({ ownerType: z.string().optional(), category: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {
-      let q = db.select().from(documentVault).where(eq(documentVault.ownerId, ctx.user.id));
+      let q: any = db.select().from(documentVault).where(eq(documentVault.ownerId, ctx.user.uid));
       if (input?.category) q = q.where(eq(documentVault.category, input.category)) as any;
       return q.orderBy(desc(documentVault.createdAt)).limit(100);
     }),
   upload: protectedProcedure
     .input(z.object({ ownerType: z.string(), category: z.string(), title: z.string(), fileUrl: z.string(), mimeType: z.string().optional(), sizeBytes: z.number().optional() }))
     .mutation(async ({ ctx, input }) => {
-      const [doc] = await db.insert(documentVault).values({ ...input, ownerId: ctx.user.id }).returning();
+      const [doc] = await db.insert(documentVault).values({ ...input, ownerId: ctx.user.uid }).returning();
       return doc;
     }),
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      await db.delete(documentVault).where(and(eq(documentVault.id, input.id), eq(documentVault.ownerId, ctx.user.id)));
+      await db.delete(documentVault).where(and(eq(documentVault.id, input.id), eq(documentVault.ownerId, ctx.user.uid)));
       return { success: true };
     }),
   adminList: adminProcedure
@@ -373,7 +375,7 @@ const partenairesCenter = router({
 const openApiCenter = router({
   listKeys: protectedProcedure.query(async ({ ctx }) => {
     return db.select({ id: apiKeys.id, name: apiKeys.name, keyPrefix: apiKeys.keyPrefix, scopes: apiKeys.scopes, rateLimit: apiKeys.rateLimit, active: apiKeys.active, lastUsedAt: apiKeys.lastUsedAt, createdAt: apiKeys.createdAt })
-      .from(apiKeys).where(eq(apiKeys.userId, ctx.user.id));
+      .from(apiKeys).where(eq(apiKeys.userId, ctx.user.uid));
   }),
   createKey: protectedProcedure
     .input(z.object({ name: z.string(), scopes: z.array(z.string()), rateLimit: z.number().optional() }))
@@ -381,13 +383,13 @@ const openApiCenter = router({
       const rawKey = `mka_live_${crypto.randomUUID().replace(/-/g, "")}`;
       const keyHash = rawKey; // En production : utiliser bcrypt/sha256
       const keyPrefix = rawKey.slice(0, 16);
-      const [k] = await db.insert(apiKeys).values({ userId: ctx.user.id, name: input.name, keyHash, keyPrefix, scopes: input.scopes, rateLimit: input.rateLimit ?? 1000 }).returning();
+      const [k] = await db.insert(apiKeys).values({ userId: ctx.user.uid, name: input.name, keyHash, keyPrefix, scopes: input.scopes, rateLimit: input.rateLimit ?? 1000 }).returning();
       return { id: k.id, key: rawKey, prefix: keyPrefix };
     }),
   revokeKey: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      await db.update(apiKeys).set({ active: false }).where(and(eq(apiKeys.id, input.id), eq(apiKeys.userId, ctx.user.id)));
+      await db.update(apiKeys).set({ active: false }).where(and(eq(apiKeys.id, input.id), eq(apiKeys.userId, ctx.user.uid)));
       return { success: true };
     }),
   getUsage: protectedProcedure
@@ -402,7 +404,7 @@ const automationCenter = router({
   emitEvent: protectedProcedure
     .input(z.object({ eventType: z.string(), sourceModule: z.string(), sourceId: z.number().optional(), payload: z.any().optional() }))
     .mutation(async ({ ctx, input }) => {
-      const [event] = await db.insert(automationEvents).values({ ...input, userId: ctx.user.id }).returning();
+      const [event] = await db.insert(automationEvents).values({ ...input, userId: ctx.user.uid }).returning();
       // Chercher les workflows qui correspondent à cet événement
       const matchingWorkflows = await db.select().from(workflows)
         .where(and(eq(workflows.triggerEvent, input.eventType), eq(workflows.active, true)));
@@ -442,7 +444,7 @@ const workflowCenter = router({
       actions: z.array(z.object({ type: z.string(), params: z.any(), ordre: z.number() })),
     }))
     .mutation(async ({ ctx, input }) => {
-      const [wf] = await db.insert(workflows).values({ ...input, createdBy: ctx.user.id }).returning();
+      const [wf] = await db.insert(workflows).values({ ...input, createdBy: ctx.user.uid }).returning();
       return wf;
     }),
   update: adminProcedure
@@ -559,6 +561,142 @@ const ecosystemCenter = router({
   }),
 });
 
+// ─── BETA DASHBOARD (PDG / Direction uniquement) ───
+const CENTRES = [
+  { key: "services", label: "Moteur Services Universel", table: "ce_service_rules" },
+  { key: "recommandation", label: "Recommandation Intelligent", table: "ce_recommendations" },
+  { key: "fournisseurs", label: "Fournisseurs Mondial", table: "ce_suppliers" },
+  { key: "distribution", label: "Distribution", table: "ce_distribution_depots" },
+  { key: "formation", label: "Formation", table: "ce_formation_courses" },
+  { key: "b2b", label: "Marketplace B2B", table: "ce_b2b_listings" },
+  { key: "statsIA", label: "Statistiques IA", table: "ce_ai_reports" },
+  { key: "documents", label: "Documents Mondial", table: "ce_document_vault" },
+  { key: "partenaires", label: "Partenaires Stratégiques", table: "ce_strategic_partners" },
+  { key: "openApi", label: "Open API", table: "ce_api_keys" },
+  { key: "automation", label: "IA Automatisation", table: "ce_automation_events" },
+  { key: "workflow", label: "Workflow", table: "ce_workflows" },
+  { key: "recherche", label: "Recherche Mondiale", table: "ce_search_index" },
+  { key: "expansion", label: "Expansion Mondiale", table: "ce_expansion_countries" },
+  { key: "ecosysteme", label: "Écosystème", table: "ce_ecosystem_links" },
+];
+
+const betaDashboard = router({
+  overview: directionProcedure.query(async () => {
+    const counts = await Promise.all([
+      db.select({ count: sql<number>`count(*)` }).from(serviceRecommendationRules),
+      db.select({ count: sql<number>`count(*)` }).from(recommendations),
+      db.select({ count: sql<number>`count(*)` }).from(ceSuppliers),
+      db.select({ count: sql<number>`count(*)` }).from(distributionDepots),
+      db.select({ count: sql<number>`count(*)` }).from(ceFormationCourses),
+      db.select({ count: sql<number>`count(*)` }).from(b2bListings),
+      db.select({ count: sql<number>`count(*)` }).from(aiAnalysisReports),
+      db.select({ count: sql<number>`count(*)` }).from(documentVault),
+      db.select({ count: sql<number>`count(*)` }).from(strategicPartners),
+      db.select({ count: sql<number>`count(*)` }).from(apiKeys),
+      db.select({ count: sql<number>`count(*)` }).from(automationEvents),
+      db.select({ count: sql<number>`count(*)` }).from(workflows),
+      db.select({ count: sql<number>`count(*)` }).from(searchIndex),
+      db.select({ count: sql<number>`count(*)` }).from(expansionCountries),
+      db.select({ count: sql<number>`count(*)` }).from(ecosystemLinks),
+    ]);
+    const health = await db.select().from(ceEngineHealth).orderBy(asc(ceEngineHealth.centre));
+    const recentLogs = await db.select().from(ceEngineLogs).orderBy(desc(ceEngineLogs.createdAt)).limit(50);
+    const recentOrchestration = await db.select().from(orchestrationLog).orderBy(desc(orchestrationLog.createdAt)).limit(20);
+    const [totalEvents] = await db.select({ count: sql<number>`count(*)` }).from(automationEvents);
+    const [totalActions] = await db.select({ count: sql<number>`count(*)` }).from(automationActions);
+    const [failedActions] = await db.select({ count: sql<number>`count(*)` }).from(automationActions).where(eq(automationActions.status, "echoue"));
+
+    const centres = CENTRES.map((c, i) => ({
+      ...c,
+      count: Number(counts[i][0].count),
+      health: health.find(h => h.centre === c.key) ?? null,
+    }));
+
+    return {
+      centres,
+      totalEvents: Number(totalEvents.count),
+      totalActions: Number(totalActions.count),
+      failedActions: Number(failedActions.count),
+      recentLogs,
+      recentOrchestration,
+    };
+  }),
+
+  logs: directionProcedure
+    .input(z.object({
+      centre: z.string().optional(),
+      level: z.enum(["info", "warn", "error", "debug"]).optional(),
+      limit: z.number().default(100),
+    }))
+    .query(async ({ input }) => {
+      const conditions = [];
+      if (input.centre) conditions.push(eq(ceEngineLogs.centre, input.centre));
+      if (input.level) conditions.push(eq(ceEngineLogs.level, input.level));
+      return db.select().from(ceEngineLogs)
+        .where(conditions.length ? and(...conditions) : undefined)
+        .orderBy(desc(ceEngineLogs.createdAt))
+        .limit(input.limit);
+    }),
+
+  health: directionProcedure.query(async () => {
+    return db.select().from(ceEngineHealth).orderBy(asc(ceEngineHealth.centre));
+  }),
+
+  updateHealth: adminProcedure
+    .input(z.object({
+      centre: z.string(),
+      status: z.enum(["actif", "inactif", "erreur", "maintenance"]),
+      avgResponseMs: z.number().optional(),
+      errorCount24h: z.number().optional(),
+      requestCount24h: z.number().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const existing = await db.select().from(ceEngineHealth).where(eq(ceEngineHealth.centre, input.centre)).limit(1);
+      if (existing.length) {
+        await db.update(ceEngineHealth).set({
+          status: input.status,
+          avgResponseMs: input.avgResponseMs,
+          errorCount24h: input.errorCount24h ?? 0,
+          requestCount24h: input.requestCount24h ?? 0,
+          lastCheckedAt: new Date(),
+          updatedAt: new Date(),
+        }).where(eq(ceEngineHealth.centre, input.centre));
+      } else {
+        await db.insert(ceEngineHealth).values({
+          centre: input.centre,
+          status: input.status,
+          avgResponseMs: input.avgResponseMs,
+          errorCount24h: input.errorCount24h ?? 0,
+          requestCount24h: input.requestCount24h ?? 0,
+        });
+      }
+      return { ok: true };
+    }),
+
+  writeLog: adminProcedure
+    .input(z.object({
+      centre: z.string(),
+      action: z.string(),
+      level: z.enum(["info", "warn", "error", "debug"]).default("info"),
+      message: z.string().optional(),
+      durationMs: z.number().optional(),
+      userId: z.number().optional(),
+      metadata: z.any().optional(),
+      error: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const [log] = await db.insert(ceEngineLogs).values(input).returning();
+      return log;
+    }),
+
+  communications: directionProcedure.query(async () => {
+    const links = await db.select().from(ecosystemLinks).where(eq(ecosystemLinks.active, true)).orderBy(asc(ecosystemLinks.priority));
+    const recentEvents = await db.select().from(automationEvents).orderBy(desc(automationEvents.createdAt)).limit(20);
+    const recentActions = await db.select().from(automationActions).orderBy(desc(automationActions.createdAt)).limit(20);
+    return { links, recentEvents, recentActions };
+  }),
+});
+
 // ═══ EXPORT ROUTER PRINCIPAL ═══
 export const coreEngineRouter = router({
   services: serviceEngine,
@@ -576,4 +714,5 @@ export const coreEngineRouter = router({
   search: searchCenter,
   expansion: expansionCenter,
   ecosystem: ecosystemCenter,
+  beta: betaDashboard,
 });

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import { ChevronLeft, Star, Shield, Award, Check, History, CreditCard, Truck, ChevronDown, Heart, Calculator, Phone, MapPin } from "lucide-react";
 import { trpc } from "../lib/trpc";
 
@@ -103,7 +104,7 @@ export default function VenteMKAPMS() {
         {isLoading && <div className="py-8 text-center text-[#6B7280] text-sm">Chargement des véhicules...</div>}
         <div className="mt-3 space-y-3">
           {annonces.map((a) => (
-            <Link key={a.vehiculeId} to={`/vehicule/${a.vehiculeId}`} className="block rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden shadow-sm hover:shadow-lg transition">
+            <Link key={a.vehiculeId} to={getAnnonceUrl(a.vehiculeId, "officielle")} className="block rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden shadow-sm hover:shadow-lg transition">
               <div className="relative h-[150px]">
                 <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }} />
                 <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span>

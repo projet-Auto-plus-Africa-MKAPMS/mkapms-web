@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import { ChevronLeft, Edit3, Trash2, Eye, X, Car, FileText } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { DocumentView, buildFactureData } from "../components/DocumentPDF";
@@ -106,7 +107,7 @@ export default function MesAnnonces() {
             </div>
             {/* Actions */}
             <div className="flex border-t border-slate-100">
-              <Link to={`/vehicule/${a.id}`} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+              <Link to={getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
                 <Eye size={14} /> Voir
               </Link>
               <button 

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE D'ACCUEIL MKA.P-MS — VERSION DÉFINITIVE V1
@@ -83,7 +84,7 @@ function AnnonceCard({ a, badgeColor = "bg-[#D4AF37]" }: { a: any; badgeColor?: 
   const FALLBACK_IMG = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
   const imgSrc = a.photo || a.photoPrincipale || FALLBACK_IMG;
   return (
-    <Link to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
+    <Link to={getAnnonceUrl(a.id, a.categorieAnnonce, a.vendeurType)} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
       <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
         <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }} />
         {a.badge && <span className={`absolute top-2 left-2 rounded-sm ${badgeColor} px-2 py-0.5 text-[8px] font-extrabold text-white uppercase tracking-wide`}>{a.badge}</span>}
@@ -141,7 +142,7 @@ export default function Home() {
     });
   }, [heroVidIdx]);
 
-  /* Carrousel vidéos services */
+  /* Carrousel vidéos services — rotation automatique toutes les 4 secondes */
   const [svcVidIdx, setSvcVidIdx] = useState(0);
   const svcVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   useEffect(() => {
@@ -151,6 +152,10 @@ export default function Home() {
       else { v.pause(); }
     });
   }, [svcVidIdx]);
+  useEffect(() => {
+    const t = setInterval(() => setSvcVidIdx((p) => (p + 1) % HOME_SERVICE_VIDEOS.length), 4000);
+    return () => clearInterval(t);
+  }, []);
 
   /* Pubs latérales rotation */
   const [adLeftIdx, setAdLeftIdx] = useState(0);
@@ -184,14 +189,15 @@ export default function Home() {
     navigate(`/acheter?${params.toString()}`);
   }
 
-  /* Annonces réelles depuis la DB - Critères stricts pour la page d'accueil */
+  /* Annonces réelles depuis la DB — chaque section filtre correctement */
   const { data: officielles } = trpc.annonces.list.useQuery({ categorieAnnonce: "officielle", limit: 10 });
   const { data: boostees } = trpc.annonces.list.useQuery({ boosted: true, limit: 10 });
   const { data: premium } = trpc.annonces.list.useQuery({ selectionMka: true, limit: 10 });
-  const { data: recentes } = trpc.annonces.list.useQuery({ limit: 10 });
+  const { data: recentes } = trpc.annonces.list.useQuery({ type: "vente", limit: 10 });
   const { data: locations } = trpc.annonces.list.useQuery({ type: "location", limit: 10 });
   const { data: particuliers } = trpc.annonces.list.useQuery({ categorieAnnonce: "particulier", type: "vente", limit: 10 });
   const { data: professionnelles } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", limit: 10 });
+  const { data: motos } = trpc.annonces.list.useQuery({ famille: "moto", limit: 10 });
 
   const realOfficielles = (officielles?.items ?? []).map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }));
   const realBoostees = (boostees?.items ?? []).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
@@ -200,6 +206,7 @@ export default function Home() {
   const realProches = (recentes?.items ?? []).map((a: any) => ({ ...a, distance: `${Math.floor(Math.random() * 20 + 1)} km` }));
   const realLocations = (locations?.items ?? []).map((a: any) => ({ ...a, prixJour: a.prixJour || Math.round(Number(a.prix) / 30) }));
   const realParticuliers = (particuliers?.items ?? []).map((a: any) => ({ ...a, badge: "PARTICULIER" }));
+  const realMotos = (motos?.items ?? []).map((a: any) => ({ ...a, badge: "MOTO" }));
 
   return (
     <div className="bg-[#F5F3EF] min-h-screen">
@@ -516,7 +523,8 @@ export default function Home() {
                     playsInline
                     loop
                     preload="auto"
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover object-center"
+                    style={{ minWidth: "100%", minHeight: "100%" }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   {i === svcVidIdx && (
@@ -617,7 +625,7 @@ export default function Home() {
                   const locType = a.segmentLocation === "vtc_taxi" ? "VTC & Taxi" : a.segmentLocation === "professionnel" ? "Pro" : a.type || "Particulier";
                   const pj = a.prixJour || Math.round(Number(a.prix || 0) / 30);
                   return (
-                    <Link key={a.id} to={`/vehicule/${a.id}`} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
+                    <Link key={a.id} to={getAnnonceUrl(a.id, a.categorieAnnonce, a.vendeurType)} className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition group">
                       <div className="relative h-[130px] md:h-[150px] lg:h-[170px]">
                         <img src={imgSrc} alt={a.titre} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop"; }} />
                         <span className={`absolute top-2 left-2 rounded-sm px-2 py-0.5 text-[8px] font-extrabold text-white uppercase ${locType === "VTC" ? "bg-[#111] border border-[#D4AF37]" : locType === "Pro" ? "bg-blue-800" : locType === "Taxi" ? "bg-yellow-600" : "bg-[#D4AF37]"}`}>{pj} €/jour</span>
@@ -662,6 +670,28 @@ export default function Home() {
               </HScroll>
             ) : (
               <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce de particulier pour le moment.</div>
+            )}
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 11.5 — MOTOS & DEUX-ROUES
+              ═══════════════════════════════════════════════════════════════ */}
+          <section className="px-4 py-4 bg-white border-t border-[#F3F4F6]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Zap size={14} className="text-[#D4AF37]" />
+                <h2 className="text-sm md:text-base font-bold text-[#111]">MOTOS & DEUX-ROUES</h2>
+              </div>
+              <Link to="/acheter?famille=moto" className="text-[10px] font-semibold text-[#6B7280] hover:text-[#D4AF37] flex items-center gap-0.5">Voir tout <ArrowRight size={10} className="text-red-500" /></Link>
+            </div>
+            {realMotos.length > 0 ? (
+              <HScroll>
+                {realMotos.map((a: any) => (
+                  <AnnonceCard key={a.id} a={a} badgeColor="bg-orange-500" />
+                ))}
+              </HScroll>
+            ) : (
+              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune moto disponible pour le moment.</div>
             )}
           </section>
 

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { MapPin, Gauge, Calendar, Fuel } from "lucide-react";
 import { useCurrency } from "../lib/currency";
 import { computeBadges, type Badge } from "@shared/badges";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 
 export interface VehicleCardData {
   id: number;
@@ -98,7 +99,7 @@ export default function VehicleCard({ v }: { v: VehicleCardData }) {
   }).filter((b) => !(isMkapmsStock && (b.code === "vendeur_pro" || b.code === "garage_verifie")));
 
   return (
-    <Link to={`/vehicule/${v.id}`} className={`card group overflow-hidden transition hover:shadow-md ${isOfficielTier ? "border-[#D4AF37]/40 shadow-lg" : ""}`}>
+    <Link to={getAnnonceUrl(v.id, v.categorieAnnonce, v.vendeurType)} className={`card group overflow-hidden transition hover:shadow-md ${isOfficielTier ? "border-[#D4AF37]/40 shadow-lg" : ""}`}>
       <div className={`relative ${photoHeight} w-full overflow-hidden bg-slate-100`}>
         <img
           src={v.photoPrincipale || PLACEHOLDER}

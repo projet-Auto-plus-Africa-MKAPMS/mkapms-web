@@ -7,6 +7,7 @@ import superjson from "superjson";
 import { trpc } from "./lib/trpc";
 import { getToken, AuthProvider } from "./lib/auth";
 import { CurrencyProvider } from "./lib/currency";
+import { DomainProvider } from "./lib/domain";
 import App from "./App";
 import "./index.css";
 
@@ -39,13 +40,15 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <CurrencyProvider>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </CurrencyProvider>
-        </AuthProvider>
+        <DomainProvider>
+          <AuthProvider>
+            <CurrencyProvider>
+              <BrowserRouter>
+                <App />
+              </BrowserRouter>
+            </CurrencyProvider>
+          </AuthProvider>
+        </DomainProvider>
       </QueryClientProvider>
     </trpc.Provider>
   </React.StrictMode>,

@@ -83,6 +83,27 @@ export const ads = pgTable("ads", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Demandes de publicité — soumises par les pros, validées par Admin/Direction.
+export const pubRequests = pgTable("pub_requests", {
+  id: serial("id").primaryKey(),
+  entreprise: varchar("entreprise", { length: 200 }).notNull(),
+  type: varchar("type", { length: 100 }).notNull(),
+  emplacement: varchar("emplacement", { length: 64 }).notNull(),
+  description: text("description"),
+  contactName: varchar("contact_name", { length: 128 }),
+  contactEmail: varchar("contact_email", { length: 255 }),
+  contactPhone: varchar("contact_phone", { length: 32 }),
+  budget: varchar("budget", { length: 64 }),
+  duree: varchar("duree", { length: 64 }),
+  status: varchar("status", { length: 32 }).notNull().default("en_attente"),
+  userId: integer("user_id"),
+  decidedBy: integer("decided_by"),
+  decidedAt: timestamp("decided_at"),
+  refusalReason: text("refusal_reason"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const banners = pgTable("banners", {
   id: serial("id").primaryKey(),
   titre: varchar("titre", { length: 160 }),

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import { ChevronLeft, Search, Tag, Heart, Clock, Percent } from "lucide-react";
 const ANNONCES = [
   { id: 1, nom: "Peugeot 308 GT Line", annee: 2023, km: 18000, prixAvant: 28000, prixApres: 23500, remise: "-16%", fin: "3 jours", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop" },
@@ -17,7 +18,7 @@ export default function VentePromotions() {
       </div>
       <div className="px-4 mt-4 space-y-3">
         {ANNONCES.map((a) => (
-          <Link key={a.id} to={`/vehicule/${9110 + a.id}`} className="block rounded-xl bg-white border border-green-200 overflow-hidden hover:shadow-lg transition">
+          <Link key={a.id} to={getAnnonceUrl(9110 + a.id, null, null)} className="block rounded-xl bg-white border border-green-200 overflow-hidden hover:shadow-lg transition">
             <div className="relative h-[130px]">
               <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
               <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span>

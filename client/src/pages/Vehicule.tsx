@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
+import { getUniversBase, getUniversLabel, getCategorieFromPath } from "../lib/annonceUrl";
 import {
   Heart,
   MessageSquare,
@@ -168,11 +169,12 @@ const DEMO_VEHICLES: Record<number, any> = Object.fromEntries([
   { id: 9123, titre: "Renault Clio V — Panne moteur", marque: "Renault", modele: "Clio", annee: 2021, kilometrage: 60000, carburant: "Essence", prix: 3800, type: "vente", ville: "Marseille", vendeurType: "professionnel", description: "Renault Clio V avec panne moteur. Idéal pour pièces ou réparation.", photoPrincipale: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=800&q=80" },
 ].map((v) => [v.id, { ...v, photos: [{ url: v.photoPrincipale }], contactTelephone: "+33123456789", reference: `DEMO-${v.id}`, vendeur: { id: 999, rating: "4.5", reviewCount: 12 } }]));
 
-export default function Vehicule() {
+export default function Vehicule({ univers }: { univers?: string }) {
   const { format: formatPrice } = useCurrency();
   const { id } = useParams();
   const annonceId = Number(id);
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [photoIdx, setPhotoIdx] = useState(0);
   const [photoCat, setPhotoCat] = useState<PhotoCategory>("toutes");
@@ -245,6 +247,27 @@ export default function Vehicule() {
   const v = demoV || realV;
 
   if (!v) return <div className="container-page py-16 text-slate-500">Véhicule introuvable.</div>;
+
+  /* ── Redirection fallback ─────────────────────────────────────────────────
+   * Si on arrive sur /vehicule/:id (route générique), on redirige vers
+   * la route dédiée à l'univers de l'annonce. Cela garantit que les
+   * anciens liens et partages atterrissent au bon endroit.
+   * ─────────────────────────────────────────────────────────────────────── */
+  const isGenericRoute = location.pathname.startsWith("/vehicule/");
+  if (isGenericRoute && v) {
+    const correctBase = getUniversBase(v.categorieAnnonce);
+    const correctUrl = `${correctBase}/vehicule/${v.id}`;
+    navigate(correctUrl, { replace: true });
+    return null;
+  }
+
+  /* ── Breadcrumb de retour ─────────────────────────────────────────────────
+   * Déterminé depuis le pathname courant (prop univers ou URL).
+   * Jamais depuis navigate(-1) — toujours un lien stable.
+   * ─────────────────────────────────────────────────────────────────────── */
+  const effectiveCat = univers ?? getCategorieFromPath(location.pathname);
+  const backUrl = getUniversBase(effectiveCat);
+  const backLabel = getUniversLabel(effectiveCat);
 
   const photosRaw: { url: string; categorie?: string }[] = v.photos?.length ? v.photos.map((p: any) => ({ url: p.url, categorie: p.categorie || null })) : (v.photoPrincipale ? [{ url: v.photoPrincipale, categorie: null }] : []);
   const photos = photosRaw.map((p) => p.url);
@@ -1116,7 +1139,7 @@ export default function Vehicule() {
 
           {/* Header overlay: retour + partage + favori */}
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-            <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md" style={{border: '1.5px solid #111', boxShadow: '0 0 8px rgba(212,175,55,0.3)'}}>
+            <button onClick={(e) => { e.stopPropagation(); navigate(backUrl); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md" title={`Retour à l'univers ${backLabel}`} style={{border: '1.5px solid #111', boxShadow: '0 0 8px rgba(212,175,55,0.3)'}}>
               <ChevronLeft size={20} className="text-[#111]" />
             </button>
             <div className="flex gap-2">
@@ -1475,7 +1498,7 @@ export default function Vehicule() {
                   const sim = DEMO_VEHICLES[id];
                   if (!sim) return null;
                   return (
-                    <Link key={id} to={`/vehicule/${id}`} className="w-36 shrink-0 overflow-hidden rounded-xl border border-slate-200">
+                    <Link key={id} to={getAnnonceUrl(id, sim.categorieAnnonce, sim.vendeurType)} className="w-36 shrink-0 overflow-hidden rounded-xl border border-slate-200">
                       <img src={sim.photoPrincipale} alt={sim.titre} className="h-24 w-full object-cover" />
                       <div className="p-2">
                         <p className="text-[10px] font-bold text-[#111] truncate">{sim.titre}</p>
@@ -1548,7 +1571,7 @@ export default function Vehicule() {
                 const sim = DEMO_VEHICLES[id];
                 if (!sim) return null;
                 return (
-                  <Link key={id} to={`/vehicule/${id}`} className="w-48 shrink-0 overflow-hidden rounded-xl border border-slate-200 hover:border-[#D4AF37] transition">
+                  <Link key={id} to={getAnnonceUrl(id, sim.categorieAnnonce, sim.vendeurType)} className="w-48 shrink-0 overflow-hidden rounded-xl border border-slate-200 hover:border-[#D4AF37] transition">
                     <div className="relative">
                       <img src={sim.photoPrincipale} alt={sim.titre} className="h-44 w-full object-cover" />
                       <button className="absolute top-2 right-2 text-slate-400 hover:text-red-500"><Heart size={16} /></button>

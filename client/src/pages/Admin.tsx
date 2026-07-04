@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { isAdmin, isDirection } from "@shared/roles";
@@ -33,6 +34,9 @@ export default function Admin() {
   const utils = trpc.useUtils();
   const moderate = trpc.admin.moderateAnnonce.useMutation({ onSuccess: () => { utils.admin.annoncesPending.invalidate(); utils.admin.annoncesAll.invalidate(); } });
   const deleteAnnonce = trpc.admin.deleteAnnonce.useMutation({ onSuccess: () => { utils.admin.annoncesPending.invalidate(); utils.admin.annoncesAll.invalidate(); } });
+  const pubRequestsQ = trpc.admin.pubRequestsList.useQuery(undefined, { enabled });
+  const decidePub = trpc.admin.decidePubRequest.useMutation({ onSuccess: () => utils.admin.pubRequestsList.invalidate() });
+  const deletePub = trpc.admin.deletePubRequest.useMutation({ onSuccess: () => utils.admin.pubRequestsList.invalidate() });
   const validateGarage = trpc.admin.validateGarage.useMutation({ onSuccess: () => utils.admin.garagesPending.invalidate() });
   const validateKyc = trpc.admin.validateKyc.useMutation({ onSuccess: () => utils.admin.kycPending.invalidate() });
   const createStaff = trpc.admin.createStaff.useMutation({
@@ -146,6 +150,8 @@ export default function Admin() {
   const [ticketReply, setTicketReply] = useState<Record<number, string>>({});
   const [selectedAnnonce, setSelectedAnnonce] = useState<any>(null);
   const [editingAnnonce, setEditingAnnonce] = useState<any>(null);
+  const [selectedPubRequest, setSelectedPubRequest] = useState<any>(null);
+  const [refusalReason, setRefusalReason] = useState("");
   const [adminTab, setAdminTab] = useState<"backoffice" | "superadmin" | "direction">("backoffice");
   const navigate = useNavigate();
 
@@ -396,7 +402,7 @@ export default function Admin() {
                   </div>
                   {a.description && <p className="mt-2 text-xs text-slate-500 line-clamp-3">{a.description}</p>}
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <button className="inline-flex items-center gap-1 rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800" onClick={() => navigate(`/vehicule/${a.id}`)}><Eye size={13} /> Voir</button>
+                    <button className="inline-flex items-center gap-1 rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800" onClick={() => navigate(getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType))}><Eye size={13} /> Voir</button>
                     {a.status === "publiee" && (
                       <button className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700" onClick={() => moderate.mutate({ id: a.id, action: "archivee" })}><Pause size={13} /> Mettre en pause</button>
                     )}
@@ -1313,27 +1319,25 @@ export default function Admin() {
               ))}
             </div>
 
-            {/* Demandes de publicités */}
-            <h3 className="mt-6 text-sm font-bold text-slate-700">Demandes de publicité en attente</h3>
+            {/* Demandes de publicités — données dynamiques */}
+            <h3 className="mt-6 text-sm font-bold text-slate-700">Demandes de publicité</h3>
             <div className="mt-2 space-y-3">
-              {[
-                { id: "PUB-001", entreprise: "AutoPièces Express", type: "Vendeur de pièces", emplacement: "#1", desc: "Ouverture magasin Sarcelles — pièces neuves toutes marques", status: "en_attente" },
-                { id: "PUB-002", entreprise: "Garage Saint-Denis", type: "Réparateur / Garage", emplacement: "#1", desc: "Vidange + contrôle technique à 59€", status: "en_attente" },
-                { id: "PUB-003", entreprise: "CleanCar 95", type: "Service auto (lavage)", emplacement: "#1", desc: "Nettoyage complet intérieur/extérieur 49€", status: "approuvée" },
-              ].map((d) => (
-                <div key={d.id} className="card p-4">
+              {pubRequestsQ.isLoading && <p className="text-xs text-slate-400">Chargement…</p>}
+              {pubRequestsQ.data && pubRequestsQ.data.length === 0 && <p className="text-xs text-slate-400">Aucune demande de publicité.</p>}
+              {pubRequestsQ.data?.map((d: any) => (
+                <div key={d.id} className="card p-4 cursor-pointer hover:shadow-md transition" onClick={() => { setSelectedPubRequest(d); setRefusalReason(""); }}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-bold text-slate-800">{d.entreprise} <span className="text-xs font-normal text-slate-400">({d.id})</span></p>
+                      <p className="text-sm font-bold text-slate-800">{d.entreprise} <span className="text-xs font-normal text-slate-400">(PUB-{String(d.id).padStart(3, "0")})</span></p>
                       <p className="text-xs text-slate-500">Type : <span className="font-semibold">{d.type}</span> · Emplacement {d.emplacement}</p>
-                      <p className="mt-1 text-xs text-slate-600">{d.desc}</p>
+                      <p className="mt-1 text-xs text-slate-600 line-clamp-2">{d.description}</p>
                     </div>
-                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${d.status === "approuvée" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{d.status === "approuvée" ? "Approuvée" : "En attente"}</span>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${d.status === "approuvee" ? "bg-green-100 text-green-700" : d.status === "refusee" ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-700"}`}>{d.status === "approuvee" ? "Approuvée" : d.status === "refusee" ? "Refusée" : "En attente"}</span>
                   </div>
                   {d.status === "en_attente" && (
-                    <div className="mt-3 flex gap-2">
-                      <button className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700">Approuver</button>
-                      <button className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700">Refuser</button>
+                    <div className="mt-3 flex gap-2" onClick={(e) => e.stopPropagation()}>
+                      <button className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700" onClick={() => { if(confirm("Approuver cette demande de publicité ?")) decidePub.mutate({ id: d.id, decision: "approuvee" }); }}>Approuver</button>
+                      <button className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700" onClick={() => { setSelectedPubRequest(d); setRefusalReason(""); }}>Refuser</button>
                     </div>
                   )}
                 </div>
@@ -1342,6 +1346,117 @@ export default function Admin() {
             <p className="mt-3 text-xs text-slate-400">Publicités interdites : alcool, cigarettes, armes, contenu illicite. Filtrage par type d'activité (restaurateur, vendeur pièces, garage, etc.).</p>
           </section>
         </>
+      )}
+
+      {/* MODALE DÉTAIL DEMANDE PUBLICITÉ */}
+      {selectedPubRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setSelectedPubRequest(null)}>
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-slate-800">Demande PUB-{String(selectedPubRequest.id).padStart(3, "0")}</h2>
+              <button onClick={() => setSelectedPubRequest(null)} className="rounded-full p-1 hover:bg-slate-100"><X size={18} /></button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Entreprise</p>
+                <p className="text-sm font-bold text-slate-800">{selectedPubRequest.entreprise}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Type d'activité</p>
+                  <p className="text-sm text-slate-700">{selectedPubRequest.type}</p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Emplacement</p>
+                  <p className="text-sm text-slate-700">{selectedPubRequest.emplacement}</p>
+                </div>
+              </div>
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Description de la demande</p>
+                <p className="text-sm text-slate-700 mt-1">{selectedPubRequest.description || "—"}</p>
+              </div>
+
+              {/* Contact */}
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Coordonnées</p>
+                {selectedPubRequest.contactName && <p className="text-xs text-slate-700">Nom : <span className="font-semibold">{selectedPubRequest.contactName}</span></p>}
+                {selectedPubRequest.contactEmail && <p className="text-xs text-slate-700">Email : <span className="font-semibold">{selectedPubRequest.contactEmail}</span></p>}
+                {selectedPubRequest.contactPhone && <p className="text-xs text-slate-700">Tél : <span className="font-semibold">{selectedPubRequest.contactPhone}</span></p>}
+                {!selectedPubRequest.contactName && !selectedPubRequest.contactEmail && !selectedPubRequest.contactPhone && <p className="text-xs text-slate-400">Aucune coordonnée renseignée.</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Budget</p>
+                  <p className="text-sm text-slate-700">{selectedPubRequest.budget || "—"}</p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Durée souhaitée</p>
+                  <p className="text-sm text-slate-700">{selectedPubRequest.duree || "—"}</p>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Statut</p>
+                <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-bold ${selectedPubRequest.status === "approuvee" ? "bg-green-100 text-green-700" : selectedPubRequest.status === "refusee" ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-700"}`}>
+                  {selectedPubRequest.status === "approuvee" ? "Approuvée" : selectedPubRequest.status === "refusee" ? "Refusée" : "En attente"}
+                </span>
+              </div>
+
+              {selectedPubRequest.refusalReason && (
+                <div className="rounded-lg bg-red-50 p-3">
+                  <p className="text-[10px] font-bold text-red-400 uppercase">Motif du refus</p>
+                  <p className="text-sm text-red-700">{selectedPubRequest.refusalReason}</p>
+                </div>
+              )}
+
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Date de la demande</p>
+                <p className="text-sm text-slate-700">{selectedPubRequest.createdAt ? new Date(selectedPubRequest.createdAt).toLocaleString("fr-FR") : "—"}</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            {selectedPubRequest.status === "en_attente" && (
+              <div className="mt-5 space-y-3 border-t border-slate-100 pt-4">
+                <button
+                  className="w-full rounded-lg bg-green-600 py-2.5 text-sm font-bold text-white hover:bg-green-700"
+                  onClick={() => { decidePub.mutate({ id: selectedPubRequest.id, decision: "approuvee" }); setSelectedPubRequest(null); }}
+                >Approuver cette demande</button>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-600">Motif du refus (optionnel)</label>
+                  <textarea
+                    value={refusalReason}
+                    onChange={(e) => setRefusalReason(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-200 p-2 text-sm"
+                    rows={2}
+                    placeholder="Indiquer la raison du refus…"
+                  />
+                  <button
+                    className="mt-2 w-full rounded-lg bg-red-600 py-2.5 text-sm font-bold text-white hover:bg-red-700"
+                    onClick={() => { decidePub.mutate({ id: selectedPubRequest.id, decision: "refusee", refusalReason: refusalReason || undefined }); setSelectedPubRequest(null); }}
+                  >Refuser cette demande</button>
+                </div>
+
+                <button
+                  className="w-full rounded-lg border border-red-200 py-2 text-xs font-bold text-red-500 hover:bg-red-50"
+                  onClick={() => { if(confirm("Supprimer définitivement cette demande ?")) { deletePub.mutate({ id: selectedPubRequest.id }); setSelectedPubRequest(null); } }}
+                >Supprimer la demande</button>
+              </div>
+            )}
+
+            {selectedPubRequest.status !== "en_attente" && (
+              <div className="mt-5 border-t border-slate-100 pt-4">
+                <button
+                  className="w-full rounded-lg border border-red-200 py-2 text-xs font-bold text-red-500 hover:bg-red-50"
+                  onClick={() => { if(confirm("Supprimer définitivement cette demande ?")) { deletePub.mutate({ id: selectedPubRequest.id }); setSelectedPubRequest(null); } }}
+                >Supprimer la demande</button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

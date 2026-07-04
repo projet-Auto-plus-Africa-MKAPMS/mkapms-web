@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import { ChevronLeft, MapPin, Search, Car, Heart, Star, Shield } from "lucide-react";
 import MetaSEO, { generateBreadcrumbSchema } from "../components/MetaSEO";
 
@@ -86,7 +87,7 @@ export default function RechercheLocale() {
         <h2 className="text-sm font-bold text-[#111]">{ANNONCES_LOCALES.length} annonces à {villeNom}</h2>
         <div className="mt-3 space-y-2">
           {ANNONCES_LOCALES.map(a => (
-            <Link key={a.id} to={`/vehicule/${a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden shadow-sm active:scale-[0.98] transition">
+            <Link key={a.id} to={getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden shadow-sm active:scale-[0.98] transition">
               <div className="flex">
                 <img src={a.photo} alt={a.nom} className="w-[120px] h-[90px] object-cover" loading="lazy" />
                 <div className="flex-1 p-2.5">
