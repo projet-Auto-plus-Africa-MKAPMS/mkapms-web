@@ -293,6 +293,7 @@ export default function Vendre() {
   const [impInput, setImpInput] = useState("");
   const [openEqCats, setOpenEqCats] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadingCats, setUploadingCats] = useState<Record<string, boolean>>({});
 
   /* Catégorie d'annonce (admin/employee only) */
   const isAdminOrEmployee = user?.role === "admin" || user?.role === "super_admin" || user?.role === "employee";
@@ -1120,9 +1121,11 @@ export default function Vendre() {
           <div className="grid grid-cols-3 gap-3">
             {photoCatsRef.map(cat => {
               const catPhotos = photoUrls[cat.key] || [];
+              const isUploading = uploadingCats[cat.key] || false;
               return (
-                <div key={cat.key} className="relative aspect-square rounded-xl border-2 border-dashed border-[#D1D5DB] bg-[#FAFAFA] flex flex-col items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-[#FFFDF5] transition overflow-hidden"
+                <div key={cat.key} className={`relative aspect-square rounded-xl border-2 border-dashed ${isUploading ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-[#D1D5DB] bg-[#FAFAFA]"} flex flex-col items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-[#FFFDF5] transition overflow-hidden`}
                   onClick={() => {
+                    if (isUploading) return;
                     const inp = document.createElement("input");
                     inp.type = "file";
                     inp.accept = "image/*";
@@ -1130,22 +1133,29 @@ export default function Vendre() {
                     inp.onchange = async (ev) => {
                       const files = (ev.target as HTMLInputElement).files;
                       if (!files?.length) return;
+                      setUploadingCats(p => ({ ...p, [cat.key]: true }));
+                      setUploadError(null);
                       const fd = new FormData();
                       for (let i = 0; i < files.length; i++) fd.append("files", files[i]);
                       try {
-                        setUploadError(null);
                         const token = getToken();
                         const resp = await fetch("/api/upload", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, body: fd });
                         if (resp.ok) { const data = await resp.json(); const urls = (data.files || []).map((f: any) => f.url); setPhotoUrls(p => ({ ...p, [cat.key]: [...(p[cat.key] || []), ...urls] })); }
                         else { const err = await resp.json().catch(() => ({})); setUploadError(err.error || "Erreur lors de l'upload des photos"); }
                       } catch (e: any) { setUploadError(e.message || "Erreur réseau lors de l'upload"); }
+                      finally { setUploadingCats(p => ({ ...p, [cat.key]: false })); }
                     };
                     inp.click();
                   }}
                 >
-                  {catPhotos.length > 0 ? (
+                  {isUploading ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <svg className="h-6 w-6 animate-spin text-[#D4AF37]" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" /><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg>
+                      <span className="text-[10px] font-semibold text-[#D4AF37]">Upload…</span>
+                    </div>
+                  ) : catPhotos.length > 0 ? (
                     <>
-                      <img src={catPhotos[0]} alt={cat.label} className="absolute inset-0 w-full h-full object-cover" />
+                      <img src={catPhotos[0]} alt={cat.label} className="absolute inset-0 w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                       <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center">
                         <span className="text-white text-xs font-bold">{catPhotos.length} photo{catPhotos.length > 1 ? "s" : ""}</span>
                         <span className="text-white/80 text-[9px] mt-0.5">{cat.label}</span>
@@ -1164,6 +1174,33 @@ export default function Vendre() {
               );
             })}
           </div>
+
+          {/* Galerie photos uploadées — détails par catégorie */}
+          {totalPhotos > 0 && (
+            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-sm space-y-3">
+              <h4 className="text-xs font-bold text-[#111] uppercase tracking-wider">Photos ajoutées ({totalPhotos})</h4>
+              {photoCatsRef.map(cat => {
+                const catPhotos = photoUrls[cat.key] || [];
+                if (catPhotos.length === 0) return null;
+                return (
+                  <div key={cat.key}>
+                    <p className="text-[10px] font-bold text-[#6B7280] mb-1">{cat.label} ({catPhotos.length})</p>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {catPhotos.map((url, i) => (
+                        <div key={i} className="relative shrink-0 h-16 w-16 rounded-lg border border-[#E5E7EB] overflow-hidden group">
+                          <img src={url} alt="" className="h-full w-full object-cover" onError={(e) => { const img = e.target as HTMLImageElement; img.style.display = "none"; img.parentElement!.classList.add("bg-slate-100"); }} />
+                          <button
+                            onClick={() => setPhotoUrls(p => ({ ...p, [cat.key]: (p[cat.key] || []).filter((_, j) => j !== i) }))}
+                            className="absolute top-0.5 right-0.5 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition"
+                          ><X size={8} /></button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Erreur upload */}
           {uploadError && (
@@ -1306,7 +1343,9 @@ export default function Vendre() {
               {allPhotos.length > 0 && (
                 <div className="flex gap-2 overflow-x-auto pt-2 border-t border-[#E5E7EB]">
                   {allPhotos.map((p, i) => (
-                    <img key={i} src={p} alt="" className="h-16 w-16 rounded-lg object-cover border border-[#E5E7EB] shrink-0" />
+                    <div key={i} className="h-16 w-16 shrink-0 rounded-lg border border-[#E5E7EB] overflow-hidden bg-slate-50">
+                      <img src={p} alt="" className="h-full w-full object-cover" onError={(e) => { const img = e.target as HTMLImageElement; img.style.display = "none"; }} />
+                    </div>
                   ))}
                 </div>
               )}
