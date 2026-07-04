@@ -15,7 +15,7 @@ import { createContext } from "./trpc.js";
 import { verifyToken } from "./auth.js";
 import { handleStripeWebhook } from "./stripeWebhook.js";
 import { injectAnnonceSeo, robotsTxt, sitemapXml } from "./seo.js";
-import { domainMiddleware, domainHandler } from "./domain.js";
+import { domainMiddleware, domainHandler, domainsListHandler } from "./domain.js";
 import { env, isProd } from "./env.js";
 import { readFile } from "node:fs/promises";
 
@@ -86,6 +86,8 @@ app.post("/api/upload", (req, res) => {
 
 // Endpoint domaine — renvoie le contexte (fr/pro/site) au client React
 app.get("/api/domain", domainHandler);
+// Endpoint liste des domaines actifs (pour sélecteurs dynamiques et admin)
+app.get("/api/domains", domainsListHandler);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", service: "mkapms-web", env: env.NODE_ENV });

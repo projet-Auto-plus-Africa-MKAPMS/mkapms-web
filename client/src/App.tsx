@@ -10,6 +10,8 @@ import HomeSite from "./pages/HomeSite";
 import NotFound from "./pages/NotFound";
 import UniversBoundary from "./components/UniversBoundary";
 import InstallPrompt from "./components/InstallPrompt";
+import CountrySelectModal from "./components/CountrySelectModal";
+import SmartRouter from "./components/SmartRouter";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -737,6 +739,8 @@ export default function App() {
       <ScrollToTop />
       <SessionLoader />
       <InstallPrompt />
+      <CountrySelectModal />
+      <SmartRouter />
       <Layout>
         <Suspense fallback={<PageLoader />}>
           <Routes>
