@@ -6,8 +6,7 @@ import { fileURLToPath } from "node:url";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import multer from "multer";
-import { randomUUID } from "node:crypto";
-import { mkdirSync } from "node:fs";
+import sharp from "sharp";
 import { db } from "./db.js";
 import { seedStructure } from "./seed.js";
 import { appRouter } from "./router.js";
@@ -29,38 +28,37 @@ app.use(cookieParser());
 // Webhook Stripe : corps brut, AVANT express.json()
 app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
 
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "50mb" }));
 
 // ─── UPLOAD FICHIERS (photos, PDF, documents) ───────────────
-// Utiliser UPLOADS_DIR env var pour Railway volume persistant (/data/uploads)
-const UPLOADS_DIR = process.env.UPLOADS_DIR || path.resolve(process.cwd(), "uploads");
-mkdirSync(UPLOADS_DIR, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname) || ".bin";
-    cb(null, `${Date.now()}-${randomUUID().slice(0, 8)}${ext}`);
-  },
-});
+// Les images sont converties en JPEG via sharp, compressées, puis stockées
+// en data URI base64. Zéro dépendance au système de fichiers → les photos
+// survivent aux redéploiements Railway (plus de disparition).
+// Tous les formats mobiles (HEIC, HEIF, AVIF, WebP) sont convertis en JPEG.
 const upload = multer({
-  storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB max (vidéos incluses)
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    const allowedExt = /\.(jpg|jpeg|png|gif|webp|heic|heif|pdf|doc|docx|xls|xlsx|mp4|mov|webm|avi|mkv|3gp|m4v)$/i;
-    const allowedMime = /^(image|video|application\/pdf|application\/msword|application\/vnd)/i;
+    const allowedExt = /\.(jpg|jpeg|png|gif|webp|heic|heif|avif|pdf|doc|docx|xls|xlsx|mp4|mov|webm|avi|mkv|3gp|m4v)$/i;
+    const allowedMime = /^(image|video|application\/pdf|application\/msword|application\/vnd|application\/octet-stream)/i;
     const ext = path.extname(file.originalname);
     if (allowedExt.test(ext) || allowedMime.test(file.mimetype)) cb(null, true);
     else cb(new Error(`Type de fichier non autorisé: ${file.originalname} (${file.mimetype})`));
   },
 });
 
-// Servir les fichiers uploadés
-app.use("/uploads", express.static(UPLOADS_DIR));
+async function processImage(buffer: Buffer): Promise<string> {
+  const jpeg = await sharp(buffer)
+    .rotate() // auto-rotation EXIF (photos mobile)
+    .resize({ width: 1920, height: 1920, fit: "inside", withoutEnlargement: true })
+    .jpeg({ quality: 82, mozjpeg: true })
+    .toBuffer();
+  return `data:image/jpeg;base64,${jpeg.toString("base64")}`;
+}
 
 // Endpoint upload (authentifié, multi-fichiers)
 app.post("/api/upload", (req, res) => {
-  upload.array("files", 20)(req, res, (err) => {
+  upload.array("files", 20)(req, res, async (err) => {
     if (err) {
       const msg = err instanceof multer.MulterError
         ? (err.code === "LIMIT_FILE_SIZE" ? "Fichier trop volumineux (max 50 MB)" : `Erreur upload: ${err.message}`)
@@ -73,14 +71,24 @@ app.post("/api/upload", (req, res) => {
     }
     const files = req.files as Express.Multer.File[];
     if (!files?.length) return res.status(400).json({ error: "Aucun fichier reçu" });
-    const baseUrl = env.PUBLIC_URL?.replace(/\/$/, "") || "";
-    const urls = files.map((f) => ({
-      url: baseUrl ? `${baseUrl}/uploads/${f.filename}` : `/uploads/${f.filename}`,
-      originalName: f.originalname,
-      size: f.size,
-      mimeType: f.mimetype,
-    }));
-    return res.json({ files: urls });
+    try {
+      const results = await Promise.all(
+        files.map(async (f) => {
+          const isImage = /^image\//i.test(f.mimetype) || /\.(jpg|jpeg|png|gif|webp|heic|heif|avif)$/i.test(f.originalname);
+          if (isImage) {
+            const dataUri = await processImage(f.buffer);
+            return { url: dataUri, originalName: f.originalname, size: f.size, mimeType: "image/jpeg" };
+          }
+          // Non-image (PDF, vidéo) : base64 brut
+          const b64 = `data:${f.mimetype};base64,${f.buffer.toString("base64")}`;
+          return { url: b64, originalName: f.originalname, size: f.size, mimeType: f.mimetype };
+        }),
+      );
+      return res.json({ files: results });
+    } catch (e: any) {
+      console.error("[upload] processing error:", e.message);
+      return res.status(500).json({ error: "Erreur lors du traitement des photos. Réessayez." });
+    }
   });
 });
 
