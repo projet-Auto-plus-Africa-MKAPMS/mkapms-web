@@ -867,6 +867,11 @@ export default function App() {
             <Route path="/vente/fraude" element={<U name="D\u00e9tection fraude"><CentreDetectionFraude /></U>} />
             <Route path="/vente/confiance" element={<U name="Confiance acheteur"><CentreConfianceAcheteur /></U>} />
             <Route path="/vente/parcours-acheteur" element={<U name="Parcours acheteur"><WorkflowCompletAcheteur /></U>} />
+            {/* Routes dédiées par univers — chaque annonce dans son propre espace */}
+            <Route path="/acheter/particulier/vehicule/:id" element={<U name="Vente Particulier"><Vehicule univers="particulier" /></U>} />
+            <Route path="/acheter/professionnel/vehicule/:id" element={<U name="Vente Pro"><Vehicule univers="professionnelle" /></U>} />
+            <Route path="/acheter/mkapms-officiel/vehicule/:id" element={<U name="Vente MKA.P-MS"><Vehicule univers="officielle" /></U>} />
+            {/* Fallback générique — redirige vers le bon univers une fois l'annonce chargée */}
             <Route path="/vehicule/:id" element={<U name="Vente"><Vehicule /></U>} />
             <Route path="/vendre" element={<U name="Vente"><Vendre /></U>} />
             <Route path="/devis" element={<U name="Devis"><Devis /></U>} />

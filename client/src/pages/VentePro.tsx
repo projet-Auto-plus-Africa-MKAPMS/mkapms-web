@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { getAnnonceUrl } from "../lib/annonceUrl";
 import {
   ChevronLeft, Search, Shield, Star, FileText, Truck,
   Check, Filter, Heart, MapPin, ChevronDown, Euro,
@@ -119,7 +120,7 @@ export default function VentePro() {
         {isLoading && <div className="py-8 text-center text-[#6B7280] text-sm">Chargement...</div>}
         <div className="space-y-3">
           {annonces.map((a) => (
-            <Link key={a.id} to={`/vehicule/${a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
+            <Link key={a.id} to={getAnnonceUrl(a.id, a.categorieAnnonce, a.vendeurType)} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
               <div className="relative h-[140px]">
                 <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }} />
                 <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span>
