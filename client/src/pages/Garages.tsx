@@ -598,50 +598,7 @@ export default function Garages() {
   // MODE GARAGES (page principale)
   // ═══════════════════════════════════════
 
-  // ── HERO VIDÉO CAROUSEL ──
-  const HERO_VIDEOS = [
-    { src: "/videos/garage/garage_voiture_complete.mp4", label: "Véhicule" },
-    { src: "/videos/garage/garage_moteur.mp4", label: "Moteur" },
-    { src: "/videos/garage/garage_suspension.mp4", label: "Suspension" },
-    { src: "/videos/garage/garage_freins.mp4", label: "Freinage" },
-    { src: "/videos/garage/garage_carrosserie.mp4", label: "Carrosserie" },
-  ];
-  const [heroVidIdx, setHeroVidIdx] = useState(0);
-  const [heroProgress, setHeroProgress] = useState(0);
-  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
-
-  const startProgress = () => {
-    setHeroProgress(0);
-    if (progressRef.current) clearInterval(progressRef.current);
-    progressRef.current = setInterval(() => {
-      setHeroProgress((p) => {
-        if (p >= 100) { clearInterval(progressRef.current!); return 100; }
-        return p + 100 / 80;
-      });
-    }, 100);
-  };
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      setHeroVidIdx((i) => (i + 1) % HERO_VIDEOS.length);
-    }, 8000);
-    startProgress();
-    return () => { clearInterval(t); if (progressRef.current) clearInterval(progressRef.current); };
-  }, []);
-
-  useEffect(() => {
-    videoRefs.current.forEach((v, i) => {
-      if (!v) return;
-      if (i === heroVidIdx) {
-        v.currentTime = 0;
-        v.play().catch(() => {});
-      } else {
-        v.pause();
-      }
-    });
-    startProgress();
-  }, [heroVidIdx]);
+  // (hero vidéo carousel hooks déjà déclarés plus haut)
 
   return (
     <div className="min-h-screen bg-[#F5F3EF]">
@@ -782,7 +739,6 @@ export default function Garages() {
         )}
       </div>
       </div>
-    </div>
     </div>
   );
 }

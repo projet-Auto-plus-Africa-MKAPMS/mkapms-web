@@ -228,7 +228,6 @@ export default function Vendre() {
 
   /* ── Formulaire complet ── */
   const [typeAnnonce, setTypeAnnonce] = useState<"vente" | "location">("vente");
-  const [categorieAnnonce, setCategorieAnnonce] = useState<"officielle" | "professionnelle" | "particulier">("particulier");
   const [onBehalfOfEmail, setOnBehalfOfEmail] = useState("");
   const [famille, setFamille] = useState<"auto" | "moto">("auto");
   const [form, setForm] = useState({
