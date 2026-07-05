@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import { ALL_BRANDS_AUTO, getModelsForBrand, getVersionsForModel, getVersionSpec } from "../lib/vehicleData";
@@ -281,6 +281,33 @@ export default function Vendre() {
   useEffect(() => {
     const t = setInterval(() => setHeroIdxV((i) => (i + 1) % HERO_PHOTOS_VENDRE.length), 4000);
     return () => clearInterval(t);
+  }, []);
+
+  /* ── Recherche marque ── */
+  const [marqueSearch, setMarqueSearch] = useState("");
+  const [marqueDropdownOpen, setMarqueDropdownOpen] = useState(false);
+  const marqueDropdownRef = useRef<HTMLDivElement>(null);
+  const marqueInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (marqueDropdownRef.current && !marqueDropdownRef.current.contains(e.target as Node)) {
+        setMarqueDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  const filteredMarques = useMemo(() => {
+    if (!marqueSearch.trim()) return marquesRef;
+    const q = marqueSearch.toLowerCase().trim();
+    return marquesRef.filter((m: string) => m.toLowerCase().includes(q));
+  }, [marqueSearch, marquesRef]);
+  const selectMarque = useCallback((m: string) => {
+    set("marque", m);
+    set("modele", "");
+    set("version", "");
+    setMarqueSearch("");
+    setMarqueDropdownOpen(false);
   }, []);
 
   /* ── Listes de modèles/versions dynamiques selon marque/modèle ── */
@@ -861,12 +888,55 @@ export default function Vendre() {
               <h3 className="text-sm font-bold text-[#111] uppercase tracking-wider">Informations principales</h3>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
+                <div ref={marqueDropdownRef} className="relative">
                   <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Marque *</label>
-                  <select className="input" value={form.marque} onChange={(e) => { set("marque", e.target.value); set("modele", ""); set("version", ""); }}>
-                    <option value="">Choisir</option>
-                    {marquesRef.map((m) => <option key={m} value={m}>{m}</option>)}
-                  </select>
+                  <div
+                    className="input flex items-center cursor-pointer"
+                    onClick={() => { setMarqueDropdownOpen(!marqueDropdownOpen); setTimeout(() => marqueInputRef.current?.focus(), 50); }}
+                  >
+                    <span className={form.marque ? "text-[#111]" : "text-[#9CA3AF]"}>{form.marque || "Choisir"}</span>
+                    <ChevronDown className="ml-auto h-4 w-4 text-[#9CA3AF]" />
+                  </div>
+                  {marqueDropdownOpen && (
+                    <div className="absolute z-50 mt-1 w-full rounded-xl bg-white border border-[#E5E7EB] shadow-lg max-h-64 overflow-hidden flex flex-col">
+                      <div className="p-2 border-b border-[#E5E7EB]">
+                        <div className="flex items-center gap-2 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB] px-3 py-2">
+                          <Search className="h-4 w-4 text-[#9CA3AF]" />
+                          <input
+                            ref={marqueInputRef}
+                            type="text"
+                            value={marqueSearch}
+                            onChange={(e) => setMarqueSearch(e.target.value)}
+                            placeholder="Rechercher une marque..."
+                            className="w-full bg-transparent text-sm outline-none placeholder-[#9CA3AF]"
+                            autoFocus
+                          />
+                          {marqueSearch && (
+                            <button onClick={() => setMarqueSearch("")} className="text-[#9CA3AF] hover:text-[#374151]">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="overflow-y-auto max-h-48">
+                        {filteredMarques.length === 0 ? (
+                          <p className="p-3 text-xs text-[#9CA3AF] text-center">Aucune marque trouvée</p>
+                        ) : (
+                          filteredMarques.map((m: string) => (
+                            <button
+                              key={m}
+                              onClick={() => selectMarque(m)}
+                              className={`w-full text-left px-4 py-2 text-sm hover:bg-[#FFFBEB] hover:text-[#D4AF37] transition ${
+                                form.marque === m ? "bg-[#FFFBEB] text-[#D4AF37] font-semibold" : "text-[#374151]"
+                              }`}
+                            >
+                              {m}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Modèle *</label>
