@@ -1357,23 +1357,25 @@ export default function Vendre() {
               </div>
               <div className="sm:col-span-2">
                 <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Téléphone de contact</label>
-                {user?.phone && (
-                  <label className="flex items-center gap-2 mb-2 cursor-pointer rounded-lg bg-[#FFFBEB] border border-[#D4AF37]/30 px-3 py-2">
-                    <input
-                      type="checkbox"
-                      checked={useAccountPhone}
-                      onChange={(e) => {
-                        setUseAccountPhone(e.target.checked);
-                        if (e.target.checked && user?.phone) set("contactTelephone", user.phone);
-                        else set("contactTelephone", "");
-                      }}
-                      className="h-4 w-4 rounded border-[#D1D5DB] text-[#D4AF37] focus:ring-[#D4AF37] accent-[#D4AF37]"
-                    />
-                    <span className="text-xs font-semibold text-[#374151]">Utiliser le numéro de mon compte</span>
-                    <span className="ml-auto text-xs text-[#6B7280]">{user.phone}</span>
-                  </label>
+                <label className="flex items-center gap-2 mb-2 cursor-pointer rounded-lg bg-[#FFFBEB] border border-[#D4AF37]/30 px-3 py-2">
+                  <input
+                    type="checkbox"
+                    checked={useAccountPhone}
+                    onChange={(e) => {
+                      setUseAccountPhone(e.target.checked);
+                      if (e.target.checked && user?.phone) set("contactTelephone", user.phone);
+                      else if (!e.target.checked) set("contactTelephone", "");
+                    }}
+                    className="h-4 w-4 rounded border-[#D1D5DB] text-[#D4AF37] focus:ring-[#D4AF37] accent-[#D4AF37]"
+                  />
+                  <span className="text-xs font-semibold text-[#374151]">Utiliser le numéro de mon compte</span>
+                  {user?.phone && <span className="ml-auto text-xs text-[#6B7280]">{user.phone}</span>}
+                  {!user?.phone && <span className="ml-auto text-xs text-[#9CA3AF] italic">Aucun n° enregistré</span>}
+                </label>
+                {useAccountPhone && !user?.phone && (
+                  <p className="text-xs text-[#F59E0B] mb-2">Ajoutez un numéro de téléphone dans votre compte pour l'utiliser ici automatiquement.</p>
                 )}
-                <input className="input" value={form.contactTelephone} onChange={(e) => { set("contactTelephone", e.target.value); if (useAccountPhone) setUseAccountPhone(false); }} placeholder="+33 6 12 34 56 78" readOnly={useAccountPhone} />
+                <input className="input" value={form.contactTelephone} onChange={(e) => { set("contactTelephone", e.target.value); if (useAccountPhone) setUseAccountPhone(false); }} placeholder="+33 6 12 34 56 78" readOnly={useAccountPhone && !!user?.phone} />
               </div>
             </div>
           </div>
