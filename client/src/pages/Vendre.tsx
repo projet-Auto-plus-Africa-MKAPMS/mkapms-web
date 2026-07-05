@@ -283,6 +283,11 @@ export default function Vendre() {
     return () => clearInterval(t);
   }, []);
 
+  const equipRef = famille === "moto" ? EQUIPEMENTS_MOTO : EQUIPEMENTS_AUTO;
+  const marquesRef = famille === "moto" ? MARQUES_MOTO : MARQUES_AUTO;
+  const categoriesRef = famille === "moto" ? CATEGORIES_MOTO : CATEGORIES_AUTO;
+  const photoCatsRef = famille === "moto" ? PHOTO_CATS_MOTO_V : PHOTO_CATS_AUTO;
+
   /* ── Recherche marque ── */
   const [marqueSearch, setMarqueSearch] = useState("");
   const [marqueDropdownOpen, setMarqueDropdownOpen] = useState(false);
@@ -377,10 +382,6 @@ export default function Vendre() {
     }
   }, [useAccountPhone, user?.phone]);
 
-  const equipRef = famille === "moto" ? EQUIPEMENTS_MOTO : EQUIPEMENTS_AUTO;
-  const marquesRef = famille === "moto" ? MARQUES_MOTO : MARQUES_AUTO;
-  const categoriesRef = famille === "moto" ? CATEGORIES_MOTO : CATEGORIES_AUTO;
-  const photoCatsRef = famille === "moto" ? PHOTO_CATS_MOTO_V : PHOTO_CATS_AUTO;
   const totalPhotos = useMemo(() => Object.values(photoUrls).reduce((acc, arr) => acc + arr.length, 0), [photoUrls]);
 
   // Derive flat photos array from categorized photoUrls (with category info for DB)
