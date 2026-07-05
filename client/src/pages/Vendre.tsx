@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
+import { ALL_BRANDS_AUTO, getModelsForBrand, getVersionsForModel, getVersionSpec } from "../lib/vehicleData";
 import {
   Search, Camera, CheckCircle, Shield, Eye, Zap, Lock,
   ChevronRight, ChevronDown, Upload, Star, Car, Bike, Truck, Bus,
@@ -153,15 +154,7 @@ const EQUIPEMENTS_MOTO: Record<string, string[]> = {
   ],
 };
 
-const MARQUES_AUTO = [
-  "Renault", "Peugeot", "Citroën", "Volkswagen", "BMW", "Mercedes-Benz", "Audi",
-  "Toyota", "Nissan", "Ford", "Opel", "Fiat", "Hyundai", "Kia", "Dacia",
-  "Skoda", "Seat", "Cupra", "Volvo", "Mazda", "Honda", "Suzuki", "Mitsubishi",
-  "Jeep", "Land Rover", "Porsche", "Tesla", "Mini", "Alfa Romeo", "DS Automobiles",
-  "Jaguar", "Lexus", "Chevrolet", "Dodge", "Ferrari", "Lamborghini", "Maserati",
-  "Bentley", "Rolls-Royce", "Aston Martin", "McLaren", "Bugatti",
-  "MG", "BYD", "Lynk & Co", "Genesis", "Polestar", "Aiways", "Autre",
-];
+const MARQUES_AUTO = [...ALL_BRANDS_AUTO, "Autre"].filter((v, i, a) => a.indexOf(v) === i);
 const MARQUES_MOTO = [
   "Yamaha", "Honda", "Kawasaki", "Suzuki", "BMW", "Ducati", "KTM",
   "Triumph", "Harley-Davidson", "Indian", "Aprilia", "Piaggio", "Vespa",
@@ -289,6 +282,32 @@ export default function Vendre() {
     const t = setInterval(() => setHeroIdxV((i) => (i + 1) % HERO_PHOTOS_VENDRE.length), 4000);
     return () => clearInterval(t);
   }, []);
+
+  /* ── Listes de modèles/versions dynamiques selon marque/modèle ── */
+  const availableModels = useMemo(() => famille === "auto" && form.marque && form.marque !== "Autre" ? getModelsForBrand(form.marque) : [], [form.marque, famille]);
+  const availableVersions = useMemo(() => famille === "auto" && form.marque && form.modele ? getVersionsForModel(form.marque, form.modele) : [], [form.marque, form.modele, famille]);
+
+  /* ── Auto-fill specs quand la version change ── */
+  useEffect(() => {
+    if (famille !== "auto" || !form.marque || !form.modele || !form.version) return;
+    const spec = getVersionSpec(form.marque, form.modele, form.version);
+    if (spec) {
+      setForm(f => ({
+        ...f,
+        puissanceCv: spec.puissanceCv ? String(spec.puissanceCv) : f.puissanceCv,
+        cylindree: spec.cylindree || f.cylindree,
+        consommation: spec.consommation || f.consommation,
+      }));
+    }
+  }, [form.marque, form.modele, form.version, famille]);
+
+  /* ── Téléphone du compte ── */
+  const [useAccountPhone, setUseAccountPhone] = useState(false);
+  useEffect(() => {
+    if (useAccountPhone && user?.phone) {
+      setForm(f => ({ ...f, contactTelephone: user.phone! }));
+    }
+  }, [useAccountPhone, user?.phone]);
 
   const equipRef = famille === "moto" ? EQUIPEMENTS_MOTO : EQUIPEMENTS_AUTO;
   const marquesRef = famille === "moto" ? MARQUES_MOTO : MARQUES_AUTO;
@@ -844,20 +863,42 @@ export default function Vendre() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Marque *</label>
-                  <select className="input" value={form.marque} onChange={(e) => set("marque", e.target.value)}>
+                  <select className="input" value={form.marque} onChange={(e) => { set("marque", e.target.value); set("modele", ""); set("version", ""); }}>
                     <option value="">Choisir</option>
                     {marquesRef.map((m) => <option key={m} value={m}>{m}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Modèle *</label>
-                  <input className="input" value={form.modele} onChange={(e) => set("modele", e.target.value)} placeholder="Ex : 308, Clio..." />
+                  {famille === "auto" && availableModels.length > 0 ? (
+                    <select className="input" value={form.modele} onChange={(e) => { set("modele", e.target.value); set("version", ""); }}>
+                      <option value="">Choisir</option>
+                      {availableModels.map((m) => <option key={m} value={m}>{m}</option>)}
+                      <option value="__autre">Autre modèle</option>
+                    </select>
+                  ) : (
+                    <input className="input" value={form.modele} onChange={(e) => set("modele", e.target.value)} placeholder="Ex : 308, Clio..." />
+                  )}
+                  {form.modele === "__autre" && (
+                    <input className="input mt-2" value="" onChange={(e) => set("modele", e.target.value)} placeholder="Saisir le modèle..." autoFocus />
+                  )}
                 </div>
               </div>
 
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Version</label>
-                <input className="input" value={form.version} onChange={(e) => set("version", e.target.value)} placeholder="Ex : GT Line, RS, Active..." />
+                {famille === "auto" && availableVersions.length > 0 ? (
+                  <select className="input" value={form.version} onChange={(e) => set("version", e.target.value)}>
+                    <option value="">Choisir</option>
+                    {availableVersions.map((v) => <option key={v.name} value={v.name}>{v.name}{v.puissanceCv ? ` (${v.puissanceCv} CV)` : ""}</option>)}
+                    <option value="__autre">Autre version</option>
+                  </select>
+                ) : (
+                  <input className="input" value={form.version} onChange={(e) => set("version", e.target.value)} placeholder="Ex : GT Line, RS, Active..." />
+                )}
+                {form.version === "__autre" && (
+                  <input className="input mt-2" value="" onChange={(e) => set("version", e.target.value)} placeholder="Saisir la version..." autoFocus />
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -1000,15 +1041,30 @@ export default function Vendre() {
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Puissance (CV)</label>
-                <input className="input" type="number" value={form.puissanceCv} onChange={(e) => set("puissanceCv", e.target.value)} placeholder="130" />
+                <select className="input" value={form.puissanceCv} onChange={(e) => set("puissanceCv", e.target.value)}>
+                  <option value="">Choisir</option>
+                  {[50,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130,135,140,145,150,155,160,165,170,175,180,185,190,195,200,210,220,225,230,240,245,250,260,265,270,280,286,290,300,310,320,330,340,350,360,370,380,390,400,420,440,450,460,470,480,490,500,510,520,530,540,550,560,575,580,600,620,640,650,660,670,680,700,750,800,850,900,1000,1020].map(cv => (
+                    <option key={cv} value={cv}>{cv} CV</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Cylindrée</label>
-                <input className="input" value={form.cylindree} onChange={(e) => set("cylindree", e.target.value)} placeholder="1598 cm³" />
+                <select className="input" value={form.cylindree} onChange={(e) => set("cylindree", e.target.value)}>
+                  <option value="">Choisir</option>
+                  {["Électrique","660 cm³","799 cm³","898 cm³","999 cm³","998 cm³","1049 cm³","1124 cm³","1193 cm³","1197 cm³","1199 cm³","1242 cm³","1332 cm³","1353 cm³","1373 cm³","1395 cm³","1396 cm³","1461 cm³","1482 cm³","1490 cm³","1496 cm³","1497 cm³","1498 cm³","1499 cm³","1560 cm³","1580 cm³","1596 cm³","1598 cm³","1749 cm³","1798 cm³","1950 cm³","1968 cm³","1969 cm³","1984 cm³","1991 cm³","1993 cm³","1995 cm³","1996 cm³","1997 cm³","1998 cm³","1999 cm³","2143 cm³","2179 cm³","2360 cm³","2393 cm³","2480 cm³","2487 cm³","2488 cm³","2497 cm³","2694 cm³","2755 cm³","2891 cm³","2894 cm³","2925 cm³","2967 cm³","2979 cm³","2981 cm³","2992 cm³","2993 cm³","2995 cm³","2996 cm³","2998 cm³","2999 cm³","3283 cm³","3456 cm³","3470 cm³","3745 cm³","3799 cm³","3956 cm³","3982 cm³","3996 cm³","4395 cm³","4951 cm³","4999 cm³","5000 cm³","5204 cm³","5461 cm³","5998 cm³","6208 cm³"].map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Consommation</label>
-                <input className="input" value={form.consommation} onChange={(e) => set("consommation", e.target.value)} placeholder="5.2 L/100km" />
+                <select className="input" value={form.consommation} onChange={(e) => set("consommation", e.target.value)}>
+                  <option value="">Choisir</option>
+                  {["0.8 L/100km","0.9 L/100km","1.0 L/100km","1.1 L/100km","1.2 L/100km","1.3 L/100km","1.4 L/100km","1.5 L/100km","1.6 L/100km","1.7 L/100km","1.8 L/100km","1.9 L/100km","2.0 L/100km","2.5 L/100km","2.8 L/100km","3.0 L/100km","3.5 L/100km","3.8 L/100km","4.0 L/100km","4.1 L/100km","4.2 L/100km","4.3 L/100km","4.4 L/100km","4.5 L/100km","4.6 L/100km","4.7 L/100km","4.8 L/100km","4.9 L/100km","5.0 L/100km","5.1 L/100km","5.2 L/100km","5.3 L/100km","5.4 L/100km","5.5 L/100km","5.6 L/100km","5.7 L/100km","5.8 L/100km","5.9 L/100km","6.0 L/100km","6.1 L/100km","6.2 L/100km","6.3 L/100km","6.4 L/100km","6.5 L/100km","6.6 L/100km","6.7 L/100km","6.8 L/100km","6.9 L/100km","7.0 L/100km","7.1 L/100km","7.2 L/100km","7.5 L/100km","7.6 L/100km","7.8 L/100km","7.9 L/100km","8.0 L/100km","8.1 L/100km","8.2 L/100km","8.4 L/100km","8.5 L/100km","9.0 L/100km","9.2 L/100km","9.5 L/100km","10.0 L/100km","10.5 L/100km","11.0 L/100km","11.5 L/100km","12.0 L/100km","12.4 L/100km","12.5 L/100km","13.0 L/100km","14.0 L/100km","12.9 kWh/100km","13.0 kWh/100km","13.8 kWh/100km","13.9 kWh/100km","14.0 kWh/100km","14.3 kWh/100km","14.6 kWh/100km","14.7 kWh/100km","14.9 kWh/100km","15.0 kWh/100km","15.5 kWh/100km","15.7 kWh/100km","15.8 kWh/100km","15.9 kWh/100km","16.0 kWh/100km","16.1 kWh/100km","16.2 kWh/100km","16.3 kWh/100km","16.5 kWh/100km","16.7 kWh/100km","16.8 kWh/100km","17.0 kWh/100km","17.1 kWh/100km","17.2 kWh/100km","17.3 kWh/100km","17.5 kWh/100km","17.7 kWh/100km","17.8 kWh/100km","18.0 kWh/100km","18.1 kWh/100km","18.4 kWh/100km","18.5 kWh/100km","18.6 kWh/100km","18.7 kWh/100km","19.0 kWh/100km","19.4 kWh/100km","19.5 kWh/100km","19.6 kWh/100km","19.8 kWh/100km","20.0 kWh/100km","20.2 kWh/100km","20.6 kWh/100km","21.0 kWh/100km","21.3 kWh/100km","21.9 kWh/100km","22.0 kWh/100km","24.4 kWh/100km","26.1 kWh/100km"].map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Classe d'émission</label>
@@ -1301,7 +1357,23 @@ export default function Vendre() {
               </div>
               <div className="sm:col-span-2">
                 <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Téléphone de contact</label>
-                <input className="input" value={form.contactTelephone} onChange={(e) => set("contactTelephone", e.target.value)} placeholder="+33 6 12 34 56 78" />
+                {user?.phone && (
+                  <label className="flex items-center gap-2 mb-2 cursor-pointer rounded-lg bg-[#FFFBEB] border border-[#D4AF37]/30 px-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={useAccountPhone}
+                      onChange={(e) => {
+                        setUseAccountPhone(e.target.checked);
+                        if (e.target.checked && user?.phone) set("contactTelephone", user.phone);
+                        else set("contactTelephone", "");
+                      }}
+                      className="h-4 w-4 rounded border-[#D1D5DB] text-[#D4AF37] focus:ring-[#D4AF37] accent-[#D4AF37]"
+                    />
+                    <span className="text-xs font-semibold text-[#374151]">Utiliser le numéro de mon compte</span>
+                    <span className="ml-auto text-xs text-[#6B7280]">{user.phone}</span>
+                  </label>
+                )}
+                <input className="input" value={form.contactTelephone} onChange={(e) => { set("contactTelephone", e.target.value); if (useAccountPhone) setUseAccountPhone(false); }} placeholder="+33 6 12 34 56 78" readOnly={useAccountPhone} />
               </div>
             </div>
           </div>

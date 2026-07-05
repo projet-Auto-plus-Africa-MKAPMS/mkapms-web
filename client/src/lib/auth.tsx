@@ -17,6 +17,7 @@ export interface SessionUser {
   name: string;
   role: string;
   accountType: string;
+  phone?: string | null;
   avatarUrl?: string | null;
   companyName?: string | null;
   country?: string | null;
