@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
-import { getUniversBase, getUniversLabel, getCategorieFromPath } from "../lib/annonceUrl";
+import { getUniversBase, getUniversLabel, getCategorieFromPath, getAnnonceUrl } from "../lib/annonceUrl";
 import {
   Heart,
   MessageSquare,
