@@ -1691,6 +1691,31 @@ export default function Vehicule({ univers }: { univers?: string }) {
         {/* ===== 1. PHOTOS ===== */}
         <section className="min-w-0 lg:col-start-1 lg:row-start-1">
           <div className={`card overflow-hidden ${isOfficiel ? "border-[#D4AF37]/40 shadow-lg" : ""}`}>
+            {/* Onglets catégories photos — visible sur la page produit */}
+            {(hasPhotoCategories || userAnnonceHasCategories) && (() => {
+              const availableCats = PHOTO_CATEGORIES.filter((c) => {
+                if (c.key === "toutes") return true;
+                if (hasPhotoCategories) return (v.photoCategories[c.key] || []).length > 0;
+                return photosRaw.some((p) => p.categorie === c.key);
+              });
+              return availableCats.length > 1 ? (
+                <div className="flex gap-2 overflow-x-auto px-3 py-2 border-b border-[#E5E7EB] bg-[#FAFAFA]">
+                  {availableCats.map((c) => (
+                    <button
+                      key={c.key}
+                      onClick={() => { setPhotoCat(c.key); setPhotoIdx(0); }}
+                      className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-bold transition ${
+                        photoCat === c.key
+                          ? "bg-[#D4AF37] text-white shadow-sm"
+                          : "border border-[#E5E7EB] text-[#6B7280] hover:border-[#D4AF37] hover:text-[#D4AF37]"
+                      }`}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null;
+            })()}
           <div
               className={`relative w-full ${photoHeightClass} bg-slate-100 cursor-pointer`}
               onClick={() => { setLightboxIdx(activeCatIdx); setLightboxOpen(true); }}
