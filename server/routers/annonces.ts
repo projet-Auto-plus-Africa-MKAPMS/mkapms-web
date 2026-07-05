@@ -173,8 +173,26 @@ export const annoncesRouter = router({
       const [owner] = a.ownerId
         ? await db.select().from(users).where(eq(users.id, a.ownerId)).limit(1)
         : [];
+
+      // Corriger les champs JSONB qui auraient été double-encodés (stockés
+      // comme chaîne JSON au lieu d'un tableau). Garantit que le frontend
+      // reçoit toujours un tableau, jamais une chaîne.
+      const safeArray = (v: unknown): unknown[] => {
+        if (Array.isArray(v)) return v;
+        if (typeof v === "string") { try { const p = JSON.parse(v); if (Array.isArray(p)) return p; } catch {} }
+        return [];
+      };
+
       return {
         ...a,
+        pointsForts: safeArray(a.pointsForts),
+        equipements: safeArray(a.equipements),
+        imperfections: safeArray(a.imperfections),
+        confort: safeArray(a.confort),
+        multimedia: safeArray(a.multimedia),
+        securite: safeArray(a.securite),
+        videos360: safeArray(a.videos360),
+        videosNormales: safeArray(a.videosNormales),
         photos,
         vendeur: owner
           ? {
@@ -642,14 +660,14 @@ export const annoncesRouter = router({
           cylindree: rest.cylindree,
           consommation: rest.consommation,
           classeEmission: rest.classeEmission,
-          pointsForts: JSON.stringify(pointsForts),
-          equipements: JSON.stringify(equipements),
-          imperfections: JSON.stringify(imperfections),
-          confort: JSON.stringify(confort),
-          multimedia: JSON.stringify(multimedia),
-          securite: JSON.stringify(securite),
-          videos360: JSON.stringify(videos360),
-          videosNormales: JSON.stringify(videosNormales),
+          pointsForts: pointsForts,
+          equipements: equipements,
+          imperfections: imperfections,
+          confort: confort,
+          multimedia: multimedia,
+          securite: securite,
+          videos360: videos360,
+          videosNormales: videosNormales,
         })
         .returning();
 
