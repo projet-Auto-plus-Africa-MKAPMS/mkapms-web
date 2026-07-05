@@ -239,6 +239,12 @@ export default function Vehicule({ univers }: { univers?: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [annonceId]);
 
+  useEffect(() => {
+    const t1 = setInterval(() => setProAdIdx1((i) => (i + 1) % 5), 4000);
+    const t2 = setInterval(() => setProAdIdx2((i) => (i + 1) % 5), 5000);
+    return () => { clearInterval(t1); clearInterval(t2); };
+  }, []);
+
   if (!isDemo && (q.isLoading || (q.isFetching && !q.data))) return <div className="container-page py-16 text-slate-500">Chargement…</div>;
   if (!isDemo && q.isError) return <div className="container-page py-16 text-center text-slate-500">Erreur de chargement. <button className="underline text-[#B8960C] ml-2" onClick={() => q.refetch()}>Réessayer</button></div>;
 
@@ -1052,14 +1058,6 @@ export default function Vehicule({ univers }: { univers?: string }) {
       { title: "Dépannage 24/7", desc: "Assistance partout" },
       { title: "Expertise", desc: "Rapport détaillé" },
     ];
-
-    /* Auto-scroll pub */
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useEffect(() => {
-      const t1 = setInterval(() => setProAdIdx1((i) => (i + 1) % proAds1.length), 4000);
-      const t2 = setInterval(() => setProAdIdx2((i) => (i + 1) % proAds2.length), 5000);
-      return () => { clearInterval(t1); clearInterval(t2); };
-    }, []);
 
     /* === GALERIE PHOTO (page séparée) === */
     if (proGalleryOpen) {
