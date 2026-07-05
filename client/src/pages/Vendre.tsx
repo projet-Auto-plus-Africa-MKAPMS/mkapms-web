@@ -328,6 +328,47 @@ export default function Vendre() {
     }
   }, [form.marque, form.modele, form.version, famille]);
 
+  /* ── Ville → Code postal auto ── */
+  const [villeSuggestions, setVilleSuggestions] = useState<{nom: string; codePostal: string}[]>([]);
+  const [villeDropdownOpen, setVilleDropdownOpen] = useState(false);
+  const villeDropdownRef = useRef<HTMLDivElement>(null);
+  const villeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    function handleClickOutsideVille(e: MouseEvent) {
+      if (villeDropdownRef.current && !villeDropdownRef.current.contains(e.target as Node)) {
+        setVilleDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutsideVille);
+    return () => document.removeEventListener("mousedown", handleClickOutsideVille);
+  }, []);
+  const handleVilleChange = useCallback((val: string) => {
+    set("ville", val);
+    if (villeTimerRef.current) clearTimeout(villeTimerRef.current);
+    if (val.trim().length < 2) { setVilleSuggestions([]); setVilleDropdownOpen(false); return; }
+    villeTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(val.trim())}&fields=nom,codesPostaux&boost=population&limit=8`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const suggestions: {nom: string; codePostal: string}[] = [];
+        for (const c of data) {
+          if (c.codesPostaux && c.codesPostaux.length > 0) {
+            suggestions.push({ nom: c.nom, codePostal: c.codesPostaux[0] });
+          }
+        }
+        setVilleSuggestions(suggestions);
+        setVilleDropdownOpen(suggestions.length > 0);
+      } catch { /* ignore network errors */ }
+    }, 300);
+  }, []);
+  const selectVille = useCallback((nom: string, codePostal: string) => {
+    set("ville", nom);
+    set("codePostal", codePostal);
+    setVilleSuggestions([]);
+    setVilleDropdownOpen(false);
+  }, []);
+
   /* ── Téléphone du compte ── */
   const [useAccountPhone, setUseAccountPhone] = useState(false);
   useEffect(() => {
@@ -1417,9 +1458,29 @@ export default function Vendre() {
           <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm space-y-4">
             <h3 className="text-sm font-bold text-[#111] uppercase tracking-wider">Coordonnées</h3>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div>
+              <div ref={villeDropdownRef} className="relative">
                 <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Ville</label>
-                <input className="input" value={form.ville} onChange={(e) => set("ville", e.target.value)} placeholder="Paris" />
+                <input
+                  className="input"
+                  value={form.ville}
+                  onChange={(e) => handleVilleChange(e.target.value)}
+                  placeholder="Tapez une ville..."
+                  onFocus={() => { if (villeSuggestions.length > 0) setVilleDropdownOpen(true); }}
+                />
+                {villeDropdownOpen && villeSuggestions.length > 0 && (
+                  <div className="absolute z-50 mt-1 w-full rounded-xl bg-white border border-[#E5E7EB] shadow-lg max-h-48 overflow-y-auto">
+                    {villeSuggestions.map((s, i) => (
+                      <button
+                        key={`${s.nom}-${s.codePostal}-${i}`}
+                        onClick={() => selectVille(s.nom, s.codePostal)}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-[#FFFBEB] hover:text-[#D4AF37] transition text-[#374151] flex items-center justify-between"
+                      >
+                        <span>{s.nom}</span>
+                        <span className="text-xs text-[#9CA3AF]">{s.codePostal}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Code postal</label>
