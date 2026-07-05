@@ -328,13 +328,7 @@ export async function seedStructure() {
       await db.update(users).set({ role: "super_admin", accountType: "professionnel", staffPosition: "pdg" }).where(eq(users.id, adm.id));
       console.log("[seed] compte direction mis à jour → super_admin:", adminEmail);
     }
-    // Corriger les annonces du PDG qui ont été mal catégorisées
-    const fixedCount = await db.update(annonces)
-      .set({ categorieAnnonce: "officielle", vendeurType: "professionnel", ownership: "plateforme" })
-      .where(sql`${annonces.ownerId} = ${adm.id} AND ${annonces.categorieAnnonce} != 'officielle'`);
-    if (fixedCount.rowCount && fixedCount.rowCount > 0) {
-      console.log(`[seed] ${fixedCount.rowCount} annonce(s) du PDG corrigée(s) → officielle`);
-    }
+    // Les annonces du PDG gardent leur catégorie d'origine (particulier/pro/officielle)
   }
 
   // ─── Système d'avis universel — seed données de référence ───
@@ -492,13 +486,7 @@ async function main() {
     }
   }
 
-  // Corriger les annonces du PDG qui ont été mal catégorisées (pro au lieu d'officielle)
-  const fixedCount = await db.update(annonces)
-    .set({ categorieAnnonce: "officielle", vendeurType: "professionnel", ownership: "plateforme" })
-    .where(sql`${annonces.ownerId} = ${adminId} AND ${annonces.categorieAnnonce} != 'officielle'`);
-  if (fixedCount.rowCount && fixedCount.rowCount > 0) {
-    console.log(`[seed] ${fixedCount.rowCount} annonce(s) du PDG corrigée(s) → officielle`);
-  }
+  // Les annonces du PDG gardent leur catégorie d'origine (particulier/pro/officielle)
 
   // Compte Directeur (Admin Employé)
   const directeurEmail = "directeur@mkapms.com";
