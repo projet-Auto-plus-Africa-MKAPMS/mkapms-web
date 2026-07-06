@@ -990,14 +990,16 @@ export default function Vehicule({ univers }: { univers?: string }) {
 
         {/* LIGHTBOX plein écran */}
         {hasPhotoCategories && lightboxOpen && (() => {
-          const catPhotos = (v.photoCategories[photoCat] || []) as string[];
+          const catPhotos = photoCat === "toutes"
+            ? Object.values(v.photoCategories as Record<string, string[]>).flat()
+            : (v.photoCategories[photoCat] || []) as string[];
           const lbIdx = Math.min(lightboxIdx, Math.max(0, catPhotos.length - 1));
           return (
             <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => { setLightboxOpen(false); setPhotoCat("toutes" as PhotoCategory); setPhotoIdx(0); }}>
               {/* Onglets catégories — descendus sous la barre d'état */}
               <div className="flex items-center justify-between px-4 pb-3" style={{ paddingTop: "max(5rem, calc(env(safe-area-inset-top, 2rem) + 3rem))" }} onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                  {PHOTO_CATEGORIES.filter((c) => (v.photoCategories[c.key] || []).length > 0).map((c) => (
+                  {PHOTO_CATEGORIES.filter((c) => c.key === "toutes" || (v.photoCategories[c.key] || []).length > 0).map((c) => (
                     <button key={c.key} onClick={() => { setPhotoCat(c.key); setLightboxIdx(0); }} className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${photoCat === c.key ? "bg-[#D4AF37] text-black" : "border border-white/30 text-white/70 hover:border-[#D4AF37] hover:text-white"}`}>{c.label}</button>
                   ))}
                 </div>
@@ -2703,9 +2705,11 @@ export default function Vehicule({ univers }: { univers?: string }) {
 
       {/* ── LIGHTBOX plein écran — avec catégories (MKA.P-MS + annonces utilisateur) ── */}
       {(hasPhotoCategories || userAnnonceHasCategories) && lightboxOpen && (() => {
-        const catPhotos = hasPhotoCategories
-          ? (v.photoCategories[photoCat] || []) as string[]
-          : photosRaw.filter((p) => p.categorie === photoCat).map((p) => p.url);
+        const catPhotos = photoCat === "toutes"
+          ? photos
+          : hasPhotoCategories
+            ? (v.photoCategories[photoCat] || []) as string[]
+            : photosRaw.filter((p) => p.categorie === photoCat).map((p) => p.url);
         const lbIdx = Math.min(lightboxIdx, Math.max(0, catPhotos.length - 1));
         return (
           <div className="fixed inset-0 z-50 flex flex-col bg-black" onClick={() => { setLightboxOpen(false); setPhotoCat("toutes" as PhotoCategory); setPhotoIdx(0); }}>
@@ -2713,6 +2717,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
             <div className="flex items-center justify-between px-4 pb-3" style={{ paddingTop: "max(5rem, calc(env(safe-area-inset-top, 2rem) + 3rem))" }} onClick={(e) => e.stopPropagation()}>
               <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                 {PHOTO_CATEGORIES.filter((c) => {
+                  if (c.key === "toutes") return true;
                   if (hasPhotoCategories) return (v.photoCategories[c.key] || []).length > 0;
                   return photosRaw.some((p) => p.categorie === c.key);
                 }).map((c) => (
