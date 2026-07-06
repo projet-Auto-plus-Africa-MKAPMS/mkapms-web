@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import { ALL_BRANDS_AUTO, getModelsForBrand, getVersionsForModel, getVersionSpec } from "../lib/vehicleData";
 import {
   Search, Camera, CheckCircle, Shield, Eye, Zap, Lock,
   ChevronRight, ChevronDown, Upload, Star, Car, Bike, Truck, Bus,
   Headphones, FileText, ArrowLeft, ArrowRight, Info, X, Video,
-  Crown, Building2, User as UserIcon, ClipboardList,
+  Crown, Building2, User as UserIcon, ClipboardList, Pencil,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth, getToken } from "../lib/auth";
@@ -207,11 +207,13 @@ const PHOTO_CATS_MOTO_V = [
 export default function Vendre() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("edit") ? Number(searchParams.get("edit")) : null;
   const { format: formatPrice } = useCurrency();
   const utils = trpc.useUtils();
 
   /* ── Mode : landing (page vitrine) vs deposit (flux 4 étapes) ── */
-  const [mode, setMode] = useState<"landing" | "deposit">("landing");
+  const [mode, setMode] = useState<"landing" | "deposit">(editId ? "deposit" : "landing");
   const [step, setStep] = useState(1);
   const [identTab, setIdentTab] = useState<"plaque" | "vin">("plaque");
   const [plaque, setPlaque] = useState("");
@@ -269,6 +271,55 @@ export default function Vendre() {
     else if (isPro) setCategorieAnnonce("professionnelle");
     else setCategorieAnnonce("particulier");
   }, [isAdmin, isPro]);
+
+  /* ── Mode édition : pré-remplir le formulaire avec les données existantes ── */
+  const [editLoaded, setEditLoaded] = useState(false);
+  const editQuery = trpc.annonces.get.useQuery({ id: editId! }, { enabled: !!editId && !editLoaded });
+  useEffect(() => {
+    if (!editId || editLoaded || !editQuery.data) return;
+    const d = editQuery.data as any;
+    setForm({
+      titre: d.titre || "",
+      marque: d.marque || "",
+      modele: d.modele || "",
+      version: d.version || "",
+      annee: d.annee ? String(d.annee) : "2024",
+      kilometrage: d.kilometrage ? String(d.kilometrage) : "",
+      prix: d.prix ? String(Number(d.prix)) : "",
+      carburant: d.carburant || "essence",
+      boite: d.boite || "manuelle",
+      categorie: d.categorie || "berline",
+      ville: d.ville || "",
+      codePostal: d.codePostal || "",
+      contactTelephone: d.contactTelephone || "",
+      description: d.description || "",
+      couleur: d.couleur || "",
+      sellerie: d.sellerie || "",
+      portes: d.portes ? String(d.portes) : "5",
+      places: d.places ? String(d.places) : "5",
+      cylindree: d.cylindree || "",
+      puissanceCv: d.puissanceCv ? String(d.puissanceCv) : "",
+      consommation: d.consommation || "",
+      classeEmission: d.classeEmission || "EURO 6",
+      critair: "",
+    });
+    if (d.famille) setFamille(d.famille);
+    if (d.type) setTypeAnnonce(d.type);
+    if (d.pointsForts?.length) setPointsForts(d.pointsForts);
+    if (d.equipements?.length) setSelectedEquipements(d.equipements);
+    if (d.imperfections?.length) setImperfections(d.imperfections);
+    if (d.categorieAnnonce) setCategorieAnnonce(d.categorieAnnonce);
+    if (d.photos?.length) {
+      const grouped: Record<string, string[]> = {};
+      for (const p of d.photos) {
+        const cat = p.categorie || "autres";
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(p.url);
+      }
+      setPhotoUrls(grouped);
+    }
+    setEditLoaded(true);
+  }, [editId, editLoaded, editQuery.data]);
 
   // Hero carousel pour landing page
   const HERO_PHOTOS_VENDRE = [
@@ -459,48 +510,86 @@ export default function Vendre() {
     onSuccess: (a) => navigate(getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)),
   });
 
+  const updateMut = trpc.annonces.update.useMutation({
+    onSuccess: () => navigate(getAnnonceUrl(editId!, categorieAnnonce, categorieAnnonce === "particulier" ? "particulier" : "professionnel")),
+  });
+
   function submit() {
     const confortList = selectedEquipements.filter((e) => (equipRef["Confort"] || []).includes(e));
     const multiList = selectedEquipements.filter((e) => (equipRef["Multimédia & Connectivité"] || equipRef["Multimédia & Connectivité"] || []).includes(e));
     const secuList = selectedEquipements.filter((e) => (equipRef["Sécurité"] || []).includes(e));
     const restList = selectedEquipements.filter((e) => !confortList.includes(e) && !multiList.includes(e) && !secuList.includes(e));
 
-    create.mutate({
-      type: typeAnnonce,
-      titre: form.titre || `${form.marque} ${form.modele}`.trim(),
-      marque: form.marque,
-      modele: form.modele,
-      version: form.version || undefined,
-      annee: form.annee ? Number(form.annee) : undefined,
-      kilometrage: form.kilometrage ? Number(form.kilometrage) : undefined,
-      prix: form.prix ? Number(form.prix) : 0,
-      carburant: form.carburant,
-      boite: form.boite,
-      categorie: form.categorie as any,
-      famille: famille,
-      ville: form.ville || undefined,
-      codePostal: form.codePostal || undefined,
-      contactTelephone: form.contactTelephone || undefined,
-      description: form.description || undefined,
-      photos: allPhotos.length > 0 ? allPhotos : photos,
-      couleur: form.couleur || undefined,
-      portes: form.portes ? Number(form.portes) : undefined,
-      places: form.places ? Number(form.places) : undefined,
-      sellerie: form.sellerie || undefined,
-      cylindree: form.cylindree || undefined,
-      puissanceCv: form.puissanceCv ? Number(form.puissanceCv) : undefined,
-      consommation: form.consommation || undefined,
-      classeEmission: form.classeEmission || undefined,
-      pointsForts,
-      equipements: restList,
-      imperfections,
-      confort: confortList,
-      multimedia: multiList,
-      securite: secuList,
-      videos360,
-      videosNormales,
-      categorieAnnonce: isAdminOrEmployee ? categorieAnnonce : undefined,
-    });
+    if (editId) {
+      updateMut.mutate({
+        id: editId,
+        titre: form.titre || `${form.marque} ${form.modele}`.trim(),
+        marque: form.marque || undefined,
+        modele: form.modele || undefined,
+        version: form.version || undefined,
+        annee: form.annee ? Number(form.annee) : undefined,
+        kilometrage: form.kilometrage ? Number(form.kilometrage) : undefined,
+        prix: form.prix ? Number(form.prix) : undefined,
+        carburant: form.carburant || undefined,
+        boite: form.boite || undefined,
+        categorie: form.categorie || undefined,
+        ville: form.ville || undefined,
+        codePostal: form.codePostal || undefined,
+        contactTelephone: form.contactTelephone || undefined,
+        description: form.description || undefined,
+        photos: allPhotos.length > 0 ? allPhotos : undefined,
+        couleur: form.couleur || undefined,
+        portes: form.portes ? Number(form.portes) : undefined,
+        places: form.places ? Number(form.places) : undefined,
+        sellerie: form.sellerie || undefined,
+        cylindree: form.cylindree || undefined,
+        puissanceCv: form.puissanceCv ? Number(form.puissanceCv) : undefined,
+        consommation: form.consommation || undefined,
+        classeEmission: form.classeEmission || undefined,
+        pointsForts: pointsForts.length > 0 ? pointsForts : undefined,
+        equipements: restList.length > 0 ? restList : undefined,
+        imperfections: imperfections.length > 0 ? imperfections : undefined,
+        categorieAnnonce: isAdminOrEmployee ? categorieAnnonce : undefined,
+        status: "publiee",
+      });
+    } else {
+      create.mutate({
+        type: typeAnnonce,
+        titre: form.titre || `${form.marque} ${form.modele}`.trim(),
+        marque: form.marque,
+        modele: form.modele,
+        version: form.version || undefined,
+        annee: form.annee ? Number(form.annee) : undefined,
+        kilometrage: form.kilometrage ? Number(form.kilometrage) : undefined,
+        prix: form.prix ? Number(form.prix) : 0,
+        carburant: form.carburant,
+        boite: form.boite,
+        categorie: form.categorie as any,
+        famille: famille,
+        ville: form.ville || undefined,
+        codePostal: form.codePostal || undefined,
+        contactTelephone: form.contactTelephone || undefined,
+        description: form.description || undefined,
+        photos: allPhotos.length > 0 ? allPhotos : photos,
+        couleur: form.couleur || undefined,
+        portes: form.portes ? Number(form.portes) : undefined,
+        places: form.places ? Number(form.places) : undefined,
+        sellerie: form.sellerie || undefined,
+        cylindree: form.cylindree || undefined,
+        puissanceCv: form.puissanceCv ? Number(form.puissanceCv) : undefined,
+        consommation: form.consommation || undefined,
+        classeEmission: form.classeEmission || undefined,
+        pointsForts,
+        equipements: restList,
+        imperfections,
+        confort: confortList,
+        multimedia: multiList,
+        securite: secuList,
+        videos360,
+        videosNormales,
+        categorieAnnonce: isAdminOrEmployee ? categorieAnnonce : undefined,
+      });
+    }
   }
 
   /* ════════════════════════════════════════════════════════════
@@ -716,6 +805,15 @@ export default function Vendre() {
           </div>
         </div>
       </div>
+
+      {/* ── Bandeau mode édition ── */}
+      {editId && (
+        <div className="bg-[#FFFBEB] border-b border-[#D4AF37]/30 px-4 py-3 text-center">
+          <span className="inline-flex items-center gap-2 text-sm font-bold text-[#D4AF37]">
+            <Pencil size={14} /> Modification de l'annonce
+          </span>
+        </div>
+      )}
 
       {/* ── Stepper 4 étapes ── */}
       <div className="bg-white border-b border-[#E5E7EB] px-4 py-4">
@@ -1587,13 +1685,15 @@ export default function Vendre() {
             </button>
             <button
               onClick={submit}
-              disabled={create.isPending || !form.marque || !form.modele || !form.prix}
+              disabled={create.isPending || updateMut.isPending || !form.marque || !form.modele || !form.prix}
               className="flex-1 rounded-xl bg-[#111] py-3.5 text-sm font-bold text-white shadow-lg hover:bg-[#333] disabled:opacity-50 transition"
             >
-              {create.isPending ? "Publication en cours..." : "Publier l'annonce"}
+              {editId
+                ? (updateMut.isPending ? "Modification en cours..." : "Enregistrer les modifications")
+                : (create.isPending ? "Publication en cours..." : "Publier l'annonce")}
             </button>
           </div>
-          {create.error && <p className="text-sm text-red-600 text-center">{create.error.message}</p>}
+          {(create.error || updateMut.error) && <p className="text-sm text-red-600 text-center">{(create.error || updateMut.error)!.message}</p>}
           <p className="text-xs text-[#9CA3AF] text-center pb-6">
             Des options de mise en avant (Boost, Premium) seront proposées après la publication.
           </p>
