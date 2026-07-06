@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { Camera, CheckCircle2 } from "lucide-react";
+import { Camera, CheckCircle2, Pencil, Trash2, X } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
@@ -52,6 +52,8 @@ export default function Compte() {
   const location = useLocation();
   const [tab, setTab] = useState<Tab>("annonces");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [deleteAnnonceId, setDeleteAnnonceId] = useState<number | null>(null);
+  const [deleteReason, setDeleteReason] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -66,6 +68,7 @@ export default function Compte() {
   }, [location]);
 
   const mineAnnonces = trpc.annonces.mine.useQuery(undefined, { enabled: !!user && tab === "annonces" });
+  const removeMut = trpc.annonces.remove.useMutation({ onSuccess: () => { mineAnnonces.refetch(); setDeleteAnnonceId(null); setDeleteReason(""); } });
   const favoris = trpc.favoris.mine.useQuery(undefined, { enabled: !!user && tab === "favoris" });
   const reservations = trpc.reservations.mine.useQuery(undefined, { enabled: !!user && tab === "reservations" });
   const devis = trpc.devis.mine.useQuery(undefined, { enabled: !!user && tab === "devis" });
@@ -242,16 +245,26 @@ export default function Compte() {
           <div className="space-y-3">
             <Link to="/vendre" className="btn-primary inline-flex">+ Déposer une annonce</Link>
             {mineAnnonces.data?.map((a) => (
-              <Link key={a.id} to={getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)} className="card flex items-center justify-between p-4 hover:bg-slate-50 transition cursor-pointer">
-                <div>
-                  <p className="font-semibold text-slate-800">{a.titre}</p>
-                  <p className="text-xs text-slate-400">
-                    {(a as { reference?: string | null }).reference ? `${(a as { reference?: string | null }).reference} · ` : ""}
-                    {a.status} · {formatPrice(Number(a.prix))}
-                  </p>
+              <div key={a.id} className="card overflow-hidden">
+                <Link to={getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)} className="flex items-center justify-between p-4 hover:bg-slate-50 transition cursor-pointer">
+                  <div>
+                    <p className="font-semibold text-slate-800">{a.titre}</p>
+                    <p className="text-xs text-slate-400">
+                      {(a as { reference?: string | null }).reference ? `${(a as { reference?: string | null }).reference} · ` : ""}
+                      {a.status} · {formatPrice(Number(a.prix))}
+                    </p>
+                  </div>
+                  <span className="text-xs text-slate-400">→</span>
+                </Link>
+                <div className="flex border-t border-slate-100">
+                  <button onClick={() => navigate(`/vendre?edit=${a.id}`)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-[#D4AF37] hover:bg-amber-50 transition">
+                    <Pencil size={14} /> Modifier
+                  </button>
+                  <button onClick={() => setDeleteAnnonceId(a.id)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition border-l border-slate-100">
+                    <Trash2 size={14} /> Supprimer
+                  </button>
                 </div>
-                <span className="text-xs text-slate-400">→</span>
-              </Link>
+              </div>
             ))}
             {mineAnnonces.data?.length === 0 && <p className="text-sm text-slate-500">Aucune annonce.</p>}
           </div>
@@ -608,6 +621,43 @@ export default function Compte() {
         )}
         {tab === "profil" && <ProfilForm />}
       </div>
+
+      {/* ── Modal Supprimer annonce (avec questionnaire) ── */}
+      {deleteAnnonceId && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50" onClick={() => setDeleteAnnonceId(null)}>
+          <div className="w-full max-w-md rounded-t-2xl sm:rounded-2xl bg-white p-5 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-[#111]">Supprimer l'annonce</h2>
+              <button onClick={() => setDeleteAnnonceId(null)} className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center"><X size={16} /></button>
+            </div>
+            <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 mb-4">
+              <p className="text-xs text-amber-700">Supprimer l'annonce entraine la fin de sa publication sur MKA.P-MS et ses partenaires.</p>
+            </div>
+            <p className="text-sm font-semibold text-slate-700 mb-3">Pourquoi souhaitez-vous supprimer votre annonce ?</p>
+            <div className="space-y-2">
+              {[
+                { value: "vendu_mkapms", label: "J'ai vendu mon véhicule sur MKA.P-MS" },
+                { value: "vendu_ailleurs", label: "J'ai vendu mon véhicule sur un autre site" },
+                { value: "plus_disponible", label: "Le véhicule n'est plus disponible" },
+                { value: "autre", label: "Autre raison" },
+              ].map((opt) => (
+                <label key={opt.value} className="flex items-center gap-3 p-2.5 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                  <input type="radio" name="delete-reason" value={opt.value} checked={deleteReason === opt.value} onChange={() => setDeleteReason(opt.value)} className="accent-red-600" />
+                  <span className="text-sm text-slate-700">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-2 mt-5">
+              <button onClick={() => setDeleteAnnonceId(null)} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-semibold text-slate-600 active:scale-[0.98] transition">
+                Annuler
+              </button>
+              <button onClick={() => removeMut.mutate({ id: deleteAnnonceId, reason: deleteReason || undefined })} disabled={removeMut.isPending} className="flex-1 rounded-xl bg-red-600 py-3 text-sm font-bold text-white active:scale-[0.98] transition disabled:opacity-50">
+                {removeMut.isPending ? "Suppression..." : "Supprimer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
