@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { Camera, CheckCircle2, Pencil, Trash2, X } from "lucide-react";
+import { Camera, CheckCircle2, Pencil, Trash2, X, RefreshCw, Clock } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
@@ -69,6 +69,7 @@ export default function Compte() {
 
   const mineAnnonces = trpc.annonces.mine.useQuery(undefined, { enabled: !!user && tab === "annonces" });
   const removeMut = trpc.annonces.remove.useMutation({ onSuccess: () => { mineAnnonces.refetch(); setDeleteAnnonceId(null); setDeleteReason(""); } });
+  const prolongMut = trpc.annonces.prolong.useMutation({ onSuccess: () => mineAnnonces.refetch() });
   const favoris = trpc.favoris.mine.useQuery(undefined, { enabled: !!user && tab === "favoris" });
   const reservations = trpc.reservations.mine.useQuery(undefined, { enabled: !!user && tab === "reservations" });
   const devis = trpc.devis.mine.useQuery(undefined, { enabled: !!user && tab === "devis" });
@@ -251,14 +252,25 @@ export default function Compte() {
                     <p className="font-semibold text-slate-800">{a.titre}</p>
                     <p className="text-xs text-slate-400">
                       {(a as { reference?: string | null }).reference ? `${(a as { reference?: string | null }).reference} · ` : ""}
-                      {a.status} · {formatPrice(Number(a.prix))}
+                      {a.status === "expiree" ? "Expirée" : a.status} · {formatPrice(Number(a.prix))}
                     </p>
+                    {(a as any).expiresAt && (
+                      <p className="flex items-center gap-1 text-[10px] text-slate-400 mt-0.5">
+                        <Clock size={10} />
+                        {new Date((a as any).expiresAt) > new Date()
+                          ? `Expire le ${new Date((a as any).expiresAt).toLocaleDateString("fr-FR")}`
+                          : "Expirée"}
+                      </p>
+                    )}
                   </div>
                   <span className="text-xs text-slate-400">→</span>
                 </Link>
                 <div className="flex border-t border-slate-100">
                   <button onClick={() => navigate(`/vendre?edit=${a.id}`)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-[#D4AF37] hover:bg-amber-50 transition">
                     <Pencil size={14} /> Modifier
+                  </button>
+                  <button onClick={() => prolongMut.mutate({ id: a.id })} disabled={prolongMut.isPending} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 transition border-l border-slate-100">
+                    <RefreshCw size={14} /> Prolonger
                   </button>
                   <button onClick={() => setDeleteAnnonceId(a.id)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition border-l border-slate-100">
                     <Trash2 size={14} /> Supprimer
