@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import { ChevronLeft, Edit3, Trash2, Eye, X, Car, FileText } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { DocumentView, buildFactureData } from "../components/DocumentPDF";
 
 export default function MesAnnonces() {
+  const navigate = useNavigate();
   const list = trpc.annonces.myList.useQuery();
   const updateMut = trpc.annonces.update.useMutation({ onSuccess: () => list.refetch() });
   const removeMut = trpc.annonces.remove.useMutation({ onSuccess: () => list.refetch() });
@@ -116,7 +117,7 @@ export default function MesAnnonces() {
               >
                 <FileText size={14} /> Fiche
               </button>
-              <button onClick={() => openEdit(a)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 transition border-l border-slate-100">
+              <button onClick={() => navigate(`/vendre?edit=${a.id}`)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 transition border-l border-slate-100">
                 <Edit3 size={14} /> Modifier
               </button>
               <button onClick={() => setDeleteId(a.id)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition border-l border-slate-100">
