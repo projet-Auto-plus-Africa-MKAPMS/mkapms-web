@@ -7,6 +7,7 @@ import { annonces, annoncePhotos, users, subscriptions, savedSearches, notificat
 import { getPlan } from "@shared/plans.js";
 import { logAction } from "../audit.js";
 import { makeReference } from "../reference.js";
+import { sendEmail, emailAnnoncePubliee, emailAnnonceModifiee, emailAnnonceSupprimee, emailAnnonceProlongee } from "../services/email.js";
 
 // Alerte « recherche sauvegardée » (Partie 6) : à chaque nouvelle annonce, on
 // notifie les utilisateurs dont un filtre enregistré correspond. Jamais bloquant.
@@ -656,6 +657,7 @@ export const annoncesRouter = router({
           onBehalfOfUserId: onBehalfOfUserId ?? null,
           status: "publiee",
           publishedAt: new Date(),
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           sellerie: rest.sellerie,
           cylindree: rest.cylindree,
           consommation: rest.consommation,
@@ -719,6 +721,16 @@ export const annoncesRouter = router({
           overageEur: quota.overageEur,
         });
       }
+
+      // Email notification — publication
+      try {
+        const [owner] = await db.select().from(users).where(eq(users.id, ctx.user.uid)).limit(1);
+        if (owner?.email) {
+          const { subject, html } = emailAnnoncePubliee(created.titre || `${rest.marque} ${rest.modele}`, created.id);
+          sendEmail(owner.email, subject, html);
+        }
+      } catch (_) { /* non-bloquant */ }
+
       return { ...created, overageBilled, quota };
     }),
 
@@ -808,6 +820,16 @@ export const annoncesRouter = router({
         changes: [...Object.keys(filtered), ...(inputPhotos ? ["photos"] : [])],
         categorieAnnonce: categorieAnnonce ?? a.categorieAnnonce,
       });
+
+      // Email notification — modification
+      try {
+        const [owner] = await db.select().from(users).where(eq(users.id, a.ownerId)).limit(1);
+        if (owner?.email) {
+          const { subject, html } = emailAnnonceModifiee(a.titre || "Annonce", id);
+          sendEmail(owner.email, subject, html);
+        }
+      } catch (_) { /* non-bloquant */ }
+
       return { ok: true };
     }),
 
@@ -830,6 +852,46 @@ export const annoncesRouter = router({
         categorieAnnonce: a.categorieAnnonce,
         titre: a.titre,
       });
+
+      // Email notification — suppression
+      try {
+        const [owner] = await db.select().from(users).where(eq(users.id, a.ownerId)).limit(1);
+        if (owner?.email) {
+          const { subject, html } = emailAnnonceSupprimee(a.titre || "Annonce", input.reason || "Supprimée par le propriétaire");
+          sendEmail(owner.email, subject, html);
+        }
+      } catch (_) { /* non-bloquant */ }
+
       return { ok: true };
+    }),
+
+  // Prolonger une annonce de 30 jours supplémentaires
+  prolong: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const isAdminUser = ctx.user.role === "admin" || ctx.user.role === "super_admin" || ctx.user.role === "directeur";
+      const [a] = await db.select().from(annonces).where(eq(annonces.id, input.id)).limit(1);
+      if (!a || (a.ownerId !== ctx.user.uid && !isAdminUser)) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      // Prolonger de 30 jours à partir de maintenant (ou de la date d'expiration actuelle si encore active)
+      const baseDate = a.expiresAt && new Date(a.expiresAt) > new Date() ? new Date(a.expiresAt) : new Date();
+      const newExpires = new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+      await db.update(annonces).set({
+        expiresAt: newExpires,
+        status: "publiee",
+      }).where(eq(annonces.id, input.id));
+      await logAction(ctx.user.uid, "annonce.prolong", "annonce", input.id, { newExpiresAt: newExpires.toISOString() });
+
+      // Email notification — prolongation
+      try {
+        const [owner] = await db.select().from(users).where(eq(users.id, a.ownerId)).limit(1);
+        if (owner?.email) {
+          const { subject, html } = emailAnnonceProlongee(a.titre || "Annonce", newExpires);
+          sendEmail(owner.email, subject, html);
+        }
+      } catch (_) { /* non-bloquant */ }
+
+      return { ok: true, expiresAt: newExpires };
     }),
 });

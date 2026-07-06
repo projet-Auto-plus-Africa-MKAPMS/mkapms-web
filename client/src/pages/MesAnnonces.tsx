@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { ChevronLeft, Edit3, Trash2, Eye, X, Car, FileText } from "lucide-react";
+import { ChevronLeft, Edit3, Trash2, Eye, X, Car, FileText, RefreshCw, Clock } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { DocumentView, buildFactureData } from "../components/DocumentPDF";
 
@@ -10,6 +10,7 @@ export default function MesAnnonces() {
   const list = trpc.annonces.myList.useQuery();
   const updateMut = trpc.annonces.update.useMutation({ onSuccess: () => list.refetch() });
   const removeMut = trpc.annonces.remove.useMutation({ onSuccess: () => list.refetch() });
+  const prolongMut = trpc.annonces.prolong.useMutation({ onSuccess: () => list.refetch() });
 
   const [editId, setEditId] = useState<number | null>(null);
   const [modalDoc, setModalDoc] = useState<any>(null);
@@ -98,12 +99,21 @@ export default function MesAnnonces() {
                 <p className="text-sm font-bold text-red-600 mt-1">{a.prix?.toLocaleString("fr-FR")} &euro;</p>
                 <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                   a.status === "publiee" ? "bg-green-100 text-green-700"
+                    : a.status === "expiree" ? "bg-orange-100 text-orange-700"
                     : a.status === "reservee" ? "bg-amber-100 text-amber-700"
                     : a.status === "vendue" ? "bg-blue-100 text-blue-700"
                     : "bg-slate-100 text-slate-500"
                 }`}>
-                  {a.status === "publiee" ? "Active" : a.status === "reservee" ? "Réservée" : a.status === "vendue" ? "Vendue" : "Archivée"}
+                  {a.status === "publiee" ? "Active" : a.status === "expiree" ? "Expirée" : a.status === "reservee" ? "Réservée" : a.status === "vendue" ? "Vendue" : "Archivée"}
                 </span>
+                {(a as any).expiresAt && (
+                  <p className="mt-1 flex items-center gap-1 text-[10px] text-slate-400">
+                    <Clock size={10} />
+                    {new Date((a as any).expiresAt) > new Date()
+                      ? `Expire le ${new Date((a as any).expiresAt).toLocaleDateString("fr-FR")}`
+                      : "Expirée"}
+                  </p>
+                )}
               </div>
             </div>
             {/* Actions */}
@@ -119,6 +129,9 @@ export default function MesAnnonces() {
               </button>
               <button onClick={() => navigate(`/vendre?edit=${a.id}`)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 transition border-l border-slate-100">
                 <Edit3 size={14} /> Modifier
+              </button>
+              <button onClick={() => prolongMut.mutate({ id: a.id })} disabled={prolongMut.isPending} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 transition border-l border-slate-100">
+                <RefreshCw size={14} /> Prolonger
               </button>
               <button onClick={() => setDeleteId(a.id)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition border-l border-slate-100">
                 <Trash2 size={14} /> Supprimer
