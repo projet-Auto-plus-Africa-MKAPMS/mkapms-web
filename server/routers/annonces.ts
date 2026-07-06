@@ -739,10 +739,32 @@ export const annoncesRouter = router({
   update: protectedProcedure
     .input(z.object({
       id: z.number(),
-      prix: z.number().optional(),
-      description: z.string().optional(),
+      titre: z.string().optional(),
+      marque: z.string().optional(),
+      modele: z.string().optional(),
+      version: z.string().optional(),
+      annee: z.number().optional(),
       kilometrage: z.number().optional(),
+      prix: z.number().optional(),
+      carburant: z.string().optional(),
+      boite: z.string().optional(),
+      categorie: z.string().optional(),
+      couleur: z.string().optional(),
+      portes: z.number().optional(),
+      places: z.number().optional(),
+      puissanceCv: z.number().optional(),
+      cylindree: z.string().optional(),
+      consommation: z.string().optional(),
+      classeEmission: z.string().optional(),
+      sellerie: z.string().optional(),
+      description: z.string().optional(),
       ville: z.string().optional(),
+      codePostal: z.string().optional(),
+      contactTelephone: z.string().optional(),
+      pointsForts: z.array(z.string()).optional(),
+      equipements: z.array(z.string()).optional(),
+      imperfections: z.array(z.string()).optional(),
+      photos: z.array(z.union([z.string(), z.object({ url: z.string(), categorie: z.string().optional() })])).optional(),
       status: z.enum(["publiee", "reservee", "vendue", "archivee"]).optional(),
       categorieAnnonce: z.enum(["officielle", "professionnelle", "particulier"]).optional(),
     }))
@@ -752,7 +774,7 @@ export const annoncesRouter = router({
       if (!a || (a.ownerId !== ctx.user.uid && !isAdmin)) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
-      const { id, categorieAnnonce, ...updates } = input;
+      const { id, categorieAnnonce, photos: inputPhotos, ...updates } = input;
       const filtered: Record<string, unknown> = Object.fromEntries(Object.entries(updates).filter(([, v]) => v !== undefined));
 
       // Changement de catégorie — admin uniquement
@@ -764,11 +786,28 @@ export const annoncesRouter = router({
 
       if (Object.keys(filtered).length > 0) {
         await db.update(annonces).set(filtered).where(eq(annonces.id, id));
-        await logAction(ctx.user.uid, "annonce.update", "annonce", id, {
-          changes: Object.keys(filtered),
-          categorieAnnonce: categorieAnnonce ?? a.categorieAnnonce,
-        });
       }
+
+      // Mise à jour des photos si fournies
+      if (inputPhotos && inputPhotos.length > 0) {
+        await db.delete(annoncePhotos).where(eq(annoncePhotos.annonceId, id));
+        await db.insert(annoncePhotos).values(
+          inputPhotos.slice(0, 30).map((p, i) => {
+            const isObj = typeof p === "object" && p !== null;
+            return {
+              annonceId: id,
+              url: isObj ? (p as { url: string }).url : (p as string),
+              categorie: isObj ? (p as { categorie?: string }).categorie || null : null,
+              ordre: i,
+            };
+          }),
+        );
+      }
+
+      await logAction(ctx.user.uid, "annonce.update", "annonce", id, {
+        changes: [...Object.keys(filtered), ...(inputPhotos ? ["photos"] : [])],
+        categorieAnnonce: categorieAnnonce ?? a.categorieAnnonce,
+      });
       return { ok: true };
     }),
 

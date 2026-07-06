@@ -39,6 +39,7 @@ import {
   ChevronDown,
   ShoppingCart,
   X,
+  Pencil,
 } from "lucide-react";
 
 /* ── Classification des tiers ── */
@@ -1935,6 +1936,16 @@ export default function Vehicule({ univers }: { univers?: string }) {
                   <Flag size={13} /> Signaler
                 </button>
               </div>
+
+              {/* Bouton Modifier — visible uniquement pour le propriétaire ou admin */}
+              {user && (v.vendeur?.id === user.id || user.role === "admin" || user.role === "super_admin") && (
+                <button
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#D4AF37] py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white transition"
+                  onClick={() => navigate(`/vendre?edit=${v.id}`)}
+                >
+                  <Pencil size={16} /> Modifier l'annonce
+                </button>
+              )}
             </div>
           </div>
 
