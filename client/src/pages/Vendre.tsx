@@ -311,6 +311,7 @@ export default function Vendre() {
     set("marque", m);
     set("modele", "");
     set("version", "");
+    setVersionAutre(false);
     setMarqueSearch("");
     setMarqueDropdownOpen(false);
   }, []);
@@ -318,6 +319,7 @@ export default function Vendre() {
   /* ── Listes de modèles/versions dynamiques selon marque/modèle ── */
   const availableModels = useMemo(() => famille === "auto" && form.marque && form.marque !== "Autre" ? getModelsForBrand(form.marque) : [], [form.marque, famille]);
   const availableVersions = useMemo(() => famille === "auto" && form.marque && form.modele ? getVersionsForModel(form.marque, form.modele) : [], [form.marque, form.modele, famille]);
+  const [versionAutre, setVersionAutre] = useState(false);
 
   /* ── Auto-fill specs quand la version change ── */
   useEffect(() => {
@@ -983,7 +985,7 @@ export default function Vendre() {
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Modèle *</label>
                   {famille === "auto" && availableModels.length > 0 ? (
-                    <select className="input" value={form.modele} onChange={(e) => { set("modele", e.target.value); set("version", ""); }}>
+                    <select className="input" value={form.modele} onChange={(e) => { set("modele", e.target.value); set("version", ""); setVersionAutre(false); }}>
                       <option value="">Choisir</option>
                       {availableModels.map((m) => <option key={m} value={m}>{m}</option>)}
                       <option value="__autre">Autre modèle</option>
@@ -999,8 +1001,15 @@ export default function Vendre() {
 
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Version</label>
-                {famille === "auto" && availableVersions.length > 0 ? (
-                  <select className="input" value={form.version} onChange={(e) => set("version", e.target.value)}>
+                {famille === "auto" && availableVersions.length > 0 && !versionAutre ? (
+                  <select className="input" value={form.version} onChange={(e) => {
+                    if (e.target.value === "__autre") {
+                      setVersionAutre(true);
+                      set("version", "");
+                    } else {
+                      set("version", e.target.value);
+                    }
+                  }}>
                     <option value="">Choisir</option>
                     {availableVersions.map((v) => <option key={v.name} value={v.name}>{v.name}{v.puissanceCv ? ` (${v.puissanceCv} CV)` : ""}</option>)}
                     <option value="__autre">Autre version</option>
@@ -1008,8 +1017,8 @@ export default function Vendre() {
                 ) : (
                   <input className="input" value={form.version} onChange={(e) => set("version", e.target.value)} placeholder="Ex : GT Line, RS, Active..." />
                 )}
-                {form.version === "__autre" && (
-                  <input className="input mt-2" value="" onChange={(e) => set("version", e.target.value)} placeholder="Saisir la version..." autoFocus />
+                {versionAutre && (
+                  <button type="button" onClick={() => { setVersionAutre(false); set("version", ""); }} className="mt-1 text-xs text-[#D4AF37] hover:underline">← Revenir à la liste</button>
                 )}
               </div>
 
