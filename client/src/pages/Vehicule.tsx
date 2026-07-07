@@ -288,8 +288,8 @@ export default function Vehicule({ univers }: { univers?: string }) {
   const isOwnerOrAdmin = user && (v.ownerId === user.id || v.vendeur?.id === user.id || user.role === "admin" || user.role === "super_admin" || user.role === "directeur");
 
   /* Photos catégorisées — fonctionne pour MKA.P-MS stock ET annonces particulier/pro */
-  const hasPhotoCategories = isMkapmsStock && v.photoCategories;
-  const userAnnonceHasCategories = !isMkapmsStock && photosRaw.some((p) => p.categorie);
+  const hasPhotoCategories = isMkapmsStock && v.photoCategories && Object.keys(v.photoCategories).length > 0;
+  const userAnnonceHasCategories = !hasPhotoCategories && photosRaw.some((p) => p.categorie);
   const isAllPhotos = photoCat === "toutes";
   const categoryPhotos = isAllPhotos
     ? photos
@@ -400,20 +400,30 @@ export default function Vehicule({ univers }: { univers?: string }) {
       { key: "video_5", label: "Vidéo #5" },
     ];
 
-    /* === GALERIE PHOTO MKA.P-MS (page séparée — EXACTEMENT même système Pro/Particulier) === */
+    /* === GALERIE PHOTO MKA.P-MS (page séparée — filtrage par catégorie) === */
     if (proGalleryOpen) {
+      const galleryCatPhotos = photoCat === "toutes"
+        ? allPhotos
+        : hasPhotoCategories
+          ? (v.photoCategories[photoCat] || []) as string[]
+          : photosRaw.filter((p) => p.categorie === photoCat).map((p) => p.url);
+      const galleryIdx = Math.min(photoIdx, Math.max(0, galleryCatPhotos.length - 1));
       return (
         <div className="fixed inset-0 z-[100] bg-white flex flex-col">
           {/* Header galerie — bien descendu pour éviter la zone notch */}
           <div className="flex items-center justify-between border-b px-4 py-4 pt-14">
             <button onClick={() => { setProGalleryOpen(false); setPhotoCat("toutes" as PhotoCategory); setPhotoIdx(0); }} className="text-[#111] p-2"><ChevronLeft size={28} /></button>
-            <span className="text-sm font-bold text-[#111]">{photoIdx + 1}/{allPhotos.length}</span>
+            <span className="text-sm font-bold text-[#111]">{galleryCatPhotos.length > 0 ? `${galleryIdx + 1}/${galleryCatPhotos.length}` : "0"}</span>
             <div className="w-10" />
           </div>
-          {/* Catégories — bien descendues */}
+          {/* Catégories — uniquement celles qui ont des photos */}
           <div className="flex gap-2 overflow-x-auto border-b px-4 py-4">
-            {mkaPhotoCategories.map((cat) => (
-              <button key={cat.key} onClick={() => setProGalleryCat(cat.key)} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${proGalleryCat === cat.key ? "border-red-500 text-red-500" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
+            {[{ key: "toutes", label: "Toutes" }, ...mkaPhotoCategories].filter((c) => {
+              if (c.key === "toutes") return true;
+              if (hasPhotoCategories) return (v.photoCategories[c.key] || []).length > 0;
+              return photosRaw.some((p) => p.categorie === c.key);
+            }).map((cat) => (
+              <button key={cat.key} onClick={() => { setPhotoCat(cat.key as PhotoCategory); setPhotoIdx(0); }} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${photoCat === cat.key ? "border-red-500 text-red-500" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
                 {cat.label}
               </button>
             ))}
@@ -425,14 +435,14 @@ export default function Vehicule({ univers }: { univers?: string }) {
               const startX = (e.currentTarget as any)._touchX;
               const endX = e.changedTouches[0].clientX;
               const diff = startX - endX;
-              if (diff > 50) setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1));
+              if (diff > 50) setPhotoIdx((i) => Math.min(galleryCatPhotos.length - 1, i + 1));
               if (diff < -50) setPhotoIdx((i) => Math.max(0, i - 1));
             }}
           >
-            {allPhotos.length > 0 ? (
-              <img src={allPhotos[photoIdx] || ""} alt={v.titre} className="max-w-full object-contain" style={{maxHeight: '55vh'}} />
+            {galleryCatPhotos.length > 0 ? (
+              <img src={galleryCatPhotos[galleryIdx] || ""} alt={v.titre} className="max-w-full object-contain" style={{maxHeight: '55vh'}} />
             ) : (
-              <p className="text-slate-400">Aucune photo</p>
+              <p className="text-slate-400">Aucune photo dans cette catégorie</p>
             )}
           </div>
           {/* Info en bas */}
@@ -468,7 +478,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
                 src={allPhotos[photoIdx] || ""}
                 alt={v.titre}
                 className="h-full w-full object-cover cursor-pointer"
-                onClick={() => { setProGalleryCat("exterieur"); setProGalleryOpen(true); }}
+                onClick={() => { setPhotoCat("toutes" as PhotoCategory); setPhotoIdx(0); setProGalleryOpen(true); }}
               />
             ) : (
               <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
@@ -1115,9 +1125,13 @@ export default function Vehicule({ univers }: { univers?: string }) {
             <span className="text-sm font-bold text-[#111]">{activeCatPhotos.length > 0 ? `${activeCatIdx + 1}/${activeCatPhotos.length}` : "0"}</span>
             <div className="w-10" />
           </div>
-          {/* Catégories — bien descendues */}
+          {/* Catégories — uniquement celles qui ont des photos */}
           <div className="flex gap-2 overflow-x-auto border-b px-4 py-4">
-            {proPhotoCategories.map((cat) => (
+            {proPhotoCategories.filter((c) => {
+              if (c.key === "toutes") return true;
+              if (hasPhotoCategories) return (v.photoCategories[c.key] || []).length > 0;
+              return photosRaw.some((p) => p.categorie === c.key);
+            }).map((cat) => (
               <button key={cat.key} onClick={() => { setPhotoCat(cat.key as PhotoCategory); setPhotoIdx(0); }} className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${photoCat === cat.key ? "border-red-500 text-red-500" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
                 {cat.label}
               </button>
