@@ -8,6 +8,12 @@ import { getPlan } from "@shared/plans.js";
 import { logAction } from "../audit.js";
 import { makeReference } from "../reference.js";
 import { sendEmail, emailAnnoncePubliee, emailAnnonceModifiee, emailAnnonceSupprimee, emailAnnonceProlongee } from "../services/email.js";
+// Smart Engine — hooks (fire-and-forget, jamais bloquants)
+import { logSearch } from "../smart-engine/services/search-analytics.js";
+import { recordView } from "../smart-engine/services/user-memory.js";
+import { learnFromInput } from "../smart-engine/services/learning.js";
+import { checkDuplicates } from "../smart-engine/services/duplicate-detection.js";
+import { logActivity } from "../smart-engine/services/activity-log.js";
 
 // Alerte « recherche sauvegardée » (Partie 6) : à chaque nouvelle annonce, on
 // notifie les utilisateurs dont un filtre enregistré correspond. Jamais bloquant.
@@ -154,6 +160,14 @@ export const annoncesRouter = router({
       for (const p of photos) {
         if (!photoMap.has(p.annonceId!)) photoMap.set(p.annonceId!, p.url);
       }
+      // Smart Engine — enregistrer la recherche (fire-and-forget)
+      logSearch({
+        query: input.q,
+        filters: { type: input.type, categorie: input.categorie, categorieAnnonce: input.categorieAnnonce, ville: input.ville },
+        ville: input.ville,
+        resultCount: count,
+      }).catch(() => {});
+
       return {
         total: count,
         items: rows.map((r) => ({ ...r, photoPrincipale: photoMap.get(r.id) ?? null })),
@@ -163,9 +177,11 @@ export const annoncesRouter = router({
   // Fiche véhicule détaillée
   get: publicProcedure
     .input(z.object({ id: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const [a] = await db.select().from(annonces).where(eq(annonces.id, input.id)).limit(1);
       if (!a) throw new TRPCError({ code: "NOT_FOUND" });
+      // Smart Engine — enregistrer la vue (fire-and-forget)
+      if (ctx.user?.uid) recordView(ctx.user.uid, input.id).catch(() => {});
       const photos = await db
         .select()
         .from(annoncePhotos)
@@ -741,6 +757,12 @@ export const annoncesRouter = router({
           url: `/vehicule/${created.id}`,
         });
       } catch (_) { /* non-bloquant */ }
+
+      // Smart Engine — hooks post-création (fire-and-forget)
+      checkDuplicates(created.id).catch(() => {});
+      logActivity({ action: "annonce.created", userId: ctx.user.uid, targetType: "annonce", targetId: created.id, data: { marque: rest.marque, modele: rest.modele }, result: "success" }).catch(() => {});
+      // Apprentissage : version/finition saisies manuellement
+      if (rest.version) learnFromInput({ field: "version", marque: rest.marque, modele: rest.modele, value: rest.version, submittedBy: ctx.user.uid }).catch(() => {});
 
       return { ...created, overageBilled, quota };
     }),

@@ -72,7 +72,15 @@ const requirePro = t.middleware(({ ctx, next }) => {
   return next({ ctx: { ...ctx, user: ctx.user } });
 });
 
+const requirePdg = t.middleware(({ ctx, next }) => {
+  if (!ctx.user || ctx.user.role !== "super_admin") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Accès PDG requis" });
+  }
+  return next({ ctx: { ...ctx, user: ctx.user } });
+});
+
 export const protectedProcedure = publicProcedure.use(requireAuth);
 export const adminProcedure = publicProcedure.use(requireAdmin);
 export const directionProcedure = publicProcedure.use(requireDirection);
 export const proProcedure = publicProcedure.use(requirePro);
+export const pdgProcedure = publicProcedure.use(requirePdg);
