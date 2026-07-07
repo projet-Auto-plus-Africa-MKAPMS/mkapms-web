@@ -8,7 +8,7 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import multer from "multer";
 import sharp from "sharp";
 import { db } from "./db.js";
-import { annonces, users } from "./schema.js";
+import { annonces, users, notifications } from "./schema.js";
 import { sql, and, lt, eq } from "drizzle-orm";
 import { sendEmail, emailAnnonceExpiree } from "./services/email.js";
 import { seedStructure } from "./seed.js";
@@ -167,7 +167,7 @@ async function bootstrap() {
         .set({ status: "expiree" })
         .where(and(eq(annonces.status, "publiee"), lt(annonces.expiresAt, now)));
 
-      // Envoyer un email de notification d'expiration à chaque propriétaire
+      // Notifications expiration (email + in-app)
       for (const a of toExpire) {
         try {
           const [owner] = await db.select().from(users).where(eq(users.id, a.ownerId)).limit(1);
@@ -175,6 +175,13 @@ async function bootstrap() {
             const { subject, html } = emailAnnonceExpiree(a.titre || "Annonce", a.id);
             sendEmail(owner.email, subject, html);
           }
+          await db.insert(notifications).values({
+            userId: a.ownerId,
+            type: "annonce",
+            title: `Annonce expir\u00e9e : ${a.titre || "Annonce"}`,
+            body: "Prolongez-la depuis Mes annonces pour la remettre en ligne.",
+            url: `/compte`,
+          });
         } catch (_) { /* non-bloquant */ }
       }
       console.log(`[expireAnnonces] ${toExpire.length} annonce(s) expirée(s)`);

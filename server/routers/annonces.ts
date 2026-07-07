@@ -722,13 +722,20 @@ export const annoncesRouter = router({
         });
       }
 
-      // Email notification — publication
+      // Notifications — publication
       try {
         const [owner] = await db.select().from(users).where(eq(users.id, ctx.user.uid)).limit(1);
         if (owner?.email) {
           const { subject, html } = emailAnnoncePubliee(created.titre || `${rest.marque} ${rest.modele}`, created.id);
           sendEmail(owner.email, subject, html);
         }
+        await db.insert(notifications).values({
+          userId: ctx.user.uid,
+          type: "annonce",
+          title: `Annonce publiée : ${created.titre || `${rest.marque} ${rest.modele}`}`,
+          body: "Votre annonce est en ligne pour 30 jours.",
+          url: `/vehicule/${created.id}`,
+        });
       } catch (_) { /* non-bloquant */ }
 
       return { ...created, overageBilled, quota };
@@ -821,13 +828,20 @@ export const annoncesRouter = router({
         categorieAnnonce: categorieAnnonce ?? a.categorieAnnonce,
       });
 
-      // Email notification — modification
+      // Notifications — modification
       try {
         const [owner] = await db.select().from(users).where(eq(users.id, a.ownerId)).limit(1);
         if (owner?.email) {
           const { subject, html } = emailAnnonceModifiee(a.titre || "Annonce", id);
           sendEmail(owner.email, subject, html);
         }
+        await db.insert(notifications).values({
+          userId: a.ownerId,
+          type: "annonce",
+          title: `Annonce modifiée : ${a.titre || "Annonce"}`,
+          body: "Les modifications sont visibles immédiatement.",
+          url: `/vehicule/${id}`,
+        });
       } catch (_) { /* non-bloquant */ }
 
       return { ok: true };
@@ -853,13 +867,19 @@ export const annoncesRouter = router({
         titre: a.titre,
       });
 
-      // Email notification — suppression
+      // Notifications — suppression
       try {
         const [owner] = await db.select().from(users).where(eq(users.id, a.ownerId)).limit(1);
         if (owner?.email) {
           const { subject, html } = emailAnnonceSupprimee(a.titre || "Annonce", input.reason || "Supprimée par le propriétaire");
           sendEmail(owner.email, subject, html);
         }
+        await db.insert(notifications).values({
+          userId: a.ownerId,
+          type: "annonce",
+          title: `Annonce supprimée : ${a.titre || "Annonce"}`,
+          body: input.reason || "Supprimée par le propriétaire",
+        });
       } catch (_) { /* non-bloquant */ }
 
       return { ok: true };
@@ -883,13 +903,21 @@ export const annoncesRouter = router({
       }).where(eq(annonces.id, input.id));
       await logAction(ctx.user.uid, "annonce.prolong", "annonce", input.id, { newExpiresAt: newExpires.toISOString() });
 
-      // Email notification — prolongation
+      // Notifications — prolongation
       try {
         const [owner] = await db.select().from(users).where(eq(users.id, a.ownerId)).limit(1);
         if (owner?.email) {
           const { subject, html } = emailAnnonceProlongee(a.titre || "Annonce", newExpires);
           sendEmail(owner.email, subject, html);
         }
+        const dateStr = newExpires.toLocaleDateString("fr-FR");
+        await db.insert(notifications).values({
+          userId: a.ownerId,
+          type: "annonce",
+          title: `Annonce prolongée : ${a.titre || "Annonce"}`,
+          body: `Nouvelle expiration : ${dateStr}`,
+          url: `/vehicule/${input.id}`,
+        });
       } catch (_) { /* non-bloquant */ }
 
       return { ok: true, expiresAt: newExpires };
