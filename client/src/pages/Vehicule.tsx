@@ -40,6 +40,7 @@ import {
   ShoppingCart,
   X,
   Pencil,
+  RefreshCw,
 } from "lucide-react";
 
 /* ── Classification des tiers ── */
@@ -225,6 +226,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
   );
   const incView = trpc.annonces.incrementView.useMutation();
   const toggleFav = trpc.favoris.toggle.useMutation();
+  const prolongMut = trpc.annonces.prolong.useMutation({ onSuccess: () => alert("Annonce prolongée de 30 jours !") });
   const reserve = trpc.reservations.create.useMutation({
     onSuccess: (r) => {
       if (r.url) window.location.href = r.url;
@@ -283,6 +285,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
   const tier = getVehicleTier(v);
   const isOfficiel = tier === "officiel" || tier === "premium" || tier === "elite";
   const isMkapmsStock = (v.id >= 8000 && v.id <= 8005) || v.categorieAnnonce === "officielle" || v.ownership === "plateforme";
+  const isOwnerOrAdmin = user && (v.ownerId === user.id || v.vendeur?.id === user.id || user.role === "admin" || user.role === "super_admin" || user.role === "directeur");
 
   /* Photos catégorisées — fonctionne pour MKA.P-MS stock ET annonces particulier/pro */
   const hasPhotoCategories = isMkapmsStock && v.photoCategories;
@@ -943,6 +946,25 @@ export default function Vehicule({ univers }: { univers?: string }) {
               ))}
             </div>
           </div>
+
+          {/* ── Boutons Modifier / Prolonger — propriétaire ou admin ── */}
+          {isOwnerOrAdmin && (
+            <div className="mt-4 flex gap-3">
+              <button
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-[#D4AF37] py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white transition"
+                onClick={() => navigate(`/vendre?edit=${v.id}`)}
+              >
+                <Pencil size={16} /> Modifier
+              </button>
+              <button
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-emerald-500 py-3 text-sm font-bold text-emerald-600 hover:bg-emerald-500 hover:text-white transition"
+                onClick={() => prolongMut.mutate({ id: v.id })}
+                disabled={prolongMut.isPending}
+              >
+                <RefreshCw size={16} /> Prolonger
+              </button>
+            </div>
+          )}
 
           {/* ── FOOTER — après publicités ── */}
           <div className="mt-4 border-t-2 border-[#111]/40 pt-4 text-center space-y-2" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
@@ -1937,14 +1959,23 @@ export default function Vehicule({ univers }: { univers?: string }) {
                 </button>
               </div>
 
-              {/* Bouton Modifier — visible uniquement pour le propriétaire ou admin */}
-              {user && (v.vendeur?.id === user.id || user.role === "admin" || user.role === "super_admin") && (
-                <button
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#D4AF37] py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white transition"
-                  onClick={() => navigate(`/vendre?edit=${v.id}`)}
-                >
-                  <Pencil size={16} /> Modifier l'annonce
-                </button>
+              {/* Boutons Modifier / Prolonger — visible uniquement pour le propriétaire ou admin */}
+              {isOwnerOrAdmin && (
+                <div className="mt-3 flex gap-3">
+                  <button
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-[#D4AF37] py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white transition"
+                    onClick={() => navigate(`/vendre?edit=${v.id}`)}
+                  >
+                    <Pencil size={16} /> Modifier
+                  </button>
+                  <button
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-emerald-500 py-3 text-sm font-bold text-emerald-600 hover:bg-emerald-500 hover:text-white transition"
+                    onClick={() => prolongMut.mutate({ id: v.id })}
+                    disabled={prolongMut.isPending}
+                  >
+                    <RefreshCw size={16} /> Prolonger
+                  </button>
+                </div>
               )}
             </div>
           </div>
