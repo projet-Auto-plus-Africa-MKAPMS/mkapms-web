@@ -1,7 +1,7 @@
 /**
  * Centre de Contrôle Intelligent — Système Intelligent MKA.P-MS
  *
- * Page réservée : PDG, Directeur, Super Admin, employés autorisés.
+ * Page réservée : PDG uniquement (super_admin).
  *
  * Affiche :
  * - Recherches sans résultat
@@ -14,8 +14,9 @@
  * - Activité en temps réel
  */
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { trpc } from "../../lib/trpc";
+import { useAuth } from "../../lib/auth";
 import {
   Brain,
   ChevronLeft,
@@ -53,7 +54,13 @@ const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
 ];
 
 export default function ControlCenter() {
+  const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("dashboard");
+
+  // Accès PDG uniquement
+  if (!user || user.role !== "super_admin") {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">

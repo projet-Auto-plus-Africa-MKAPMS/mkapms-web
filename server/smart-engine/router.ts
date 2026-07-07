@@ -7,7 +7,7 @@
  * Jamais afficher : IA, ChatGPT, OpenAI, Devin, Manus, robot.
  * Seul nom visible : "Système Intelligent MKA.P-MS"
  *
- * Accès Centre de contrôle : PDG, Directeur, Super Admin, employés autorisés.
+ * Accès Centre de contrôle : PDG uniquement (super_admin).
  *
  * Le système ne peut PAS seul :
  * - supprimer un compte / une entreprise / une annonce sensible
@@ -16,7 +16,7 @@
  * Ces actions nécessitent validation humaine.
  */
 import { z } from "zod";
-import { router, publicProcedure, protectedProcedure, adminProcedure, directionProcedure } from "../trpc.js";
+import { router, publicProcedure, protectedProcedure, adminProcedure, pdgProcedure } from "../trpc.js";
 
 // Services
 import { logSearch, getSearchesWithoutResults, getTopSearches, getSearchStats } from "./services/search-analytics.js";
@@ -57,19 +57,19 @@ export const smartEngineRouter = router({
       return logSearch({ ...input, userId: ctx.user?.uid });
     }),
 
-  searchStats: directionProcedure
+  searchStats: pdgProcedure
     .input(z.object({ days: z.number().default(30) }).optional())
     .query(async ({ input }) => {
       return getSearchStats(input?.days ?? 30);
     }),
 
-  topSearches: directionProcedure
+  topSearches: pdgProcedure
     .input(z.object({ days: z.number().default(30), limit: z.number().default(20) }).optional())
     .query(async ({ input }) => {
       return getTopSearches(input?.days ?? 30, input?.limit ?? 20);
     }),
 
-  failedSearches: directionProcedure
+  failedSearches: pdgProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getSearchesWithoutResults(input?.limit ?? 50);
@@ -127,13 +127,13 @@ export const smartEngineRouter = router({
       return learnFromInput({ ...input, submittedBy: ctx.user.uid });
     }),
 
-  pendingValidations: directionProcedure
+  pendingValidations: pdgProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getPendingValidations(input?.limit ?? 50);
     }),
 
-  validateLearned: directionProcedure
+  validateLearned: pdgProcedure
     .input(z.object({ id: z.number(), approved: z.boolean() }))
     .mutation(async ({ input }) => {
       return validateLearned(input.id, input.approved);
@@ -152,13 +152,13 @@ export const smartEngineRouter = router({
       return checkDuplicates(input.annonceId);
     }),
 
-  unresolvedDuplicates: directionProcedure
+  unresolvedDuplicates: pdgProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getUnresolvedDuplicates(input?.limit ?? 50);
     }),
 
-  resolveDuplicate: directionProcedure
+  resolveDuplicate: pdgProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
       return resolveDuplicate(input.id, ctx.user.uid);
@@ -189,20 +189,20 @@ export const smartEngineRouter = router({
       return checkFraud(input);
     }),
 
-  unresolvedSuspects: directionProcedure
+  unresolvedSuspects: pdgProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getUnresolvedSuspects(input?.limit ?? 50);
     }),
 
-  resolveSuspect: directionProcedure
+  resolveSuspect: pdgProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
       return resolveSuspect(input.id, ctx.user.uid);
     }),
 
   // ── 8. Centre de contrôle — Alertes ────────────────────────────────
-  alerts: directionProcedure
+  alerts: pdgProcedure
     .input(z.object({
       category: z.string().optional(),
       severity: z.enum(["info", "warning", "critical"]).optional(),
@@ -218,7 +218,7 @@ export const smartEngineRouter = router({
       return db.select().from(smartAlerts).where(where).orderBy(desc(smartAlerts.createdAt)).limit(input?.limit ?? 50);
     }),
 
-  resolveAlert: directionProcedure
+  resolveAlert: pdgProcedure
     .input(z.object({ id: z.number(), status: z.enum(["acknowledged", "resolved", "dismissed"]) }))
     .mutation(async ({ ctx, input }) => {
       await db.update(smartAlerts).set({
@@ -229,7 +229,7 @@ export const smartEngineRouter = router({
       return { ok: true };
     }),
 
-  alertStats: directionProcedure.query(async () => {
+  alertStats: pdgProcedure.query(async () => {
     const [stats] = await db.select({
       total: sql<number>`count(*)::int`,
       open: sql<number>`count(*) filter (where ${smartAlerts.status} = 'open')::int`,
@@ -240,55 +240,55 @@ export const smartEngineRouter = router({
   }),
 
   // ── 9. Journal d'activité ──────────────────────────────────────────
-  activityLog: directionProcedure
+  activityLog: pdgProcedure
     .input(z.object({ limit: z.number().default(100), offset: z.number().default(0) }).optional())
     .query(async ({ input }) => {
       return getActivityLog(input?.limit ?? 100, input?.offset ?? 0);
     }),
 
-  activityStats: directionProcedure
+  activityStats: pdgProcedure
     .input(z.object({ days: z.number().default(30) }).optional())
     .query(async ({ input }) => {
       return getActivityStats(input?.days ?? 30);
     }),
 
-  validateActivityDecision: directionProcedure
+  validateActivityDecision: pdgProcedure
     .input(z.object({ id: z.number(), approved: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
       return validateActivity(input.id, input.approved, ctx.user.uid);
     }),
 
   // ── 10. Analyse des avis ───────────────────────────────────────────
-  analyzeReviews: directionProcedure
+  analyzeReviews: pdgProcedure
     .mutation(async () => {
       return analyzeReviews();
     }),
 
-  reviewAlerts: directionProcedure
+  reviewAlerts: pdgProcedure
     .input(z.object({ limit: z.number().default(20) }).optional())
     .query(async ({ input }) => {
       return getReviewAlerts(input?.limit ?? 20);
     }),
 
   // ── 11. Validation annonces (bon univers) ──────────────────────────
-  validateUnivers: directionProcedure
+  validateUnivers: pdgProcedure
     .mutation(async () => {
       return validateAnnonceUnivers();
     }),
 
-  misplacedAnnonces: directionProcedure
+  misplacedAnnonces: pdgProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getMisplacedAnnonces(input?.limit ?? 50);
     }),
 
   // ── 12. Validation badges ──────────────────────────────────────────
-  validateBadges: directionProcedure
+  validateBadges: pdgProcedure
     .mutation(async () => {
       return validateBadges();
     }),
 
-  badgeAlerts: directionProcedure
+  badgeAlerts: pdgProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getBadgeAlerts(input?.limit ?? 50);
@@ -308,23 +308,23 @@ export const smartEngineRouter = router({
       return reportHealthCheck(input);
     }),
 
-  healthStatus: directionProcedure.query(async () => {
+  healthStatus: pdgProcedure.query(async () => {
     return getHealthStatus();
   }),
 
-  brokenElements: directionProcedure
+  brokenElements: pdgProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getBrokenElements(input?.limit ?? 50);
     }),
 
-  registerCriticalElements: directionProcedure
+  registerCriticalElements: pdgProcedure
     .mutation(async () => {
       return registerCriticalElements();
     }),
 
   // ── Dashboard global (Centre de contrôle) ──────────────────────────
-  dashboard: directionProcedure.query(async () => {
+  dashboard: pdgProcedure.query(async () => {
     const [alertStats] = await db.select({
       totalAlerts: sql<number>`count(*)::int`,
       openAlerts: sql<number>`count(*) filter (where ${smartAlerts.status} = 'open')::int`,
