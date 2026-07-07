@@ -203,6 +203,9 @@ export const annonces = pgTable("annonces", {
   securite: jsonb("securite").default("[]"),
   videos360: jsonb("videos_360").default("[]"),
   videosNormales: jsonb("videos_normales").default("[]"),
+  // Batterie / énergie
+  typeBatterie: varchar("type_batterie", { length: 32 }),  // thermique, hybride, electrique
+  etatBatterie: integer("etat_batterie"),  // pourcentage 0-100
   // Catégorie d'annonce : officielle MKA.P-MS / professionnelle / particulier
   categorieAnnonce: annonceCategorieAnnonceEnum("categorie_annonce").notNull().default("particulier"),
   // Employé créateur interne (quand un employé publie au nom d'un client)

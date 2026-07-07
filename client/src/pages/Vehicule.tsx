@@ -718,20 +718,38 @@ export default function Vehicule({ univers }: { univers?: string }) {
           {/* ── 11-12. ÉTAT DU VÉHICULE + HISTORIQUE COMPLET ── */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {/* 11. État du véhicule — compact, contour foncé plaque */}
-            <div className="overflow-hidden rounded-xl border-2 border-[#111]" style={{boxShadow: '0 0 10px rgba(212,175,55,0.15), 0 2px 6px rgba(0,0,0,0.06)'}}>
-              <div className="bg-gradient-to-br from-emerald-50 to-white p-3 text-center">
-                <h3 className="flex items-center justify-center gap-2 text-sm font-bold text-noir"><Battery size={16} strokeWidth={2.5} /> État du véhicule</h3>
-                <p className="mt-1 text-xs font-medium text-slate-500">Batterie hybride</p>
-                <p className="mt-0.5 text-3xl font-extrabold text-emerald-600">97 %</p>
-                <p className="text-xs font-bold text-emerald-600">Excellent état</p>
-                <div className="mx-auto mt-2 flex max-w-[160px] gap-0.5">
-                  {Array.from({ length: 20 }).map((_, i) => (
-                    <div key={i} className={`h-2 flex-1 rounded-sm ${i < 19 ? "bg-emerald-500" : "bg-slate-200"}`} />
-                  ))}
+            {(() => {
+              const battPct = v.etatBatterie ?? (v.carburant === "electrique" || v.carburant === "hybride" || v.carburant === "hybride_rechargeable" ? 95 : null);
+              const battType = v.typeBatterie || (v.carburant === "electrique" ? "electrique" : v.carburant === "hybride" || v.carburant === "hybride_rechargeable" ? "hybride" : "thermique");
+              const battLabel = battType === "electrique" ? "Batterie 100% électrique" : battType === "hybride" || battType === "hybride_rechargeable" ? "Batterie hybride" : "Moteur thermique";
+              const battBars = battPct != null ? Math.round(battPct / 5) : 0;
+              const battColor = battPct != null && battPct >= 80 ? "emerald" : battPct != null && battPct >= 50 ? "yellow" : "red";
+              const battState = battPct != null && battPct >= 80 ? "Excellent état" : battPct != null && battPct >= 50 ? "Bon état" : battPct != null ? "À surveiller" : "";
+              return (
+                <div className="overflow-hidden rounded-xl border-2 border-[#111]" style={{boxShadow: '0 0 10px rgba(212,175,55,0.15), 0 2px 6px rgba(0,0,0,0.06)'}}>
+                  <div className="bg-gradient-to-br from-emerald-50 to-white p-3 text-center">
+                    <h3 className="flex items-center justify-center gap-2 text-sm font-bold text-noir"><Battery size={16} strokeWidth={2.5} /> État du véhicule</h3>
+                    <p className="mt-1 text-xs font-medium text-slate-500">{battLabel}</p>
+                    {battPct != null ? (
+                      <>
+                        <p className={`mt-0.5 text-3xl font-extrabold text-${battColor}-600`}>{battPct} %</p>
+                        <p className={`text-xs font-bold text-${battColor}-600`}>{battState}</p>
+                        <div className="mx-auto mt-2 flex max-w-[160px] gap-0.5">
+                          {Array.from({ length: 20 }).map((_, i) => (
+                            <div key={i} className={`h-2 flex-1 rounded-sm ${i < battBars ? `bg-${battColor}-500` : "bg-slate-200"}`} />
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="mt-1 text-sm text-slate-400">Non renseigné</p>
+                    )}
+                    {(battType === "electrique" || battType === "hybride" || battType === "hybride_rechargeable") && (
+                      <p className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600"><ShieldCheck size={12} strokeWidth={2.5} /> Garantie batterie disponible</p>
+                    )}
+                  </div>
                 </div>
-                <p className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600"><ShieldCheck size={12} strokeWidth={2.5} /> Garantie batterie disponible</p>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* 12. Historique complet — traits haut/bas foncés, ouverts gauche/droite */}
             <div className="border-t-2 border-b-2 border-[#111]/40 overflow-hidden" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15), 0 2px 8px rgba(212,175,55,0.15)'}}>
@@ -965,6 +983,9 @@ export default function Vehicule({ univers }: { univers?: string }) {
               </button>
             </div>
           )}
+
+          {/* ── Voir toutes les annonces officielles ── */}
+          <button className="mt-4 w-full rounded-xl border border-[#111] py-3 text-sm font-bold text-[#111]" onClick={() => navigate("/acheter/mkapms-officiel")}>Voir toutes les annonces officielles</button>
 
           {/* ── FOOTER — après publicités ── */}
           <div className="mt-4 border-t-2 border-[#111]/40 pt-4 text-center space-y-2" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
@@ -1532,7 +1553,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
                 })}
               </div>
             </div>
-            <button className="mt-3 w-full rounded-xl border border-[#111] py-3 text-sm font-bold text-[#111]" onClick={() => navigate("/pro")}>{isParticulier ? "Voir les annonces du vendeur" : "Voir toutes les annonces du pro"}</button>
+            <button className="mt-3 w-full rounded-xl border border-[#111] py-3 text-sm font-bold text-[#111]" onClick={() => navigate(isParticulier ? "/acheter/particulier" : "/acheter/professionnel")}>{isParticulier ? "Voir toutes les annonces particulier" : "Voir toutes les annonces pro"}</button>
           </div>
 
           {/* PUBLICITÉ FIN DE PAGE — auto-défilante (plus grande) */}
@@ -1612,7 +1633,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
 
           {/* FOOTER */}
           <div className="mt-6 border-t-2 border-[#111]/40 pt-4 text-center space-y-2" style={{boxShadow: '0 -2px 8px rgba(212,175,55,0.15)'}}>
-            <p className="text-xs font-semibold text-[#111] underline cursor-pointer">Signaler cette annonce</p>
+            <p className="text-xs font-semibold text-[#111] underline cursor-pointer" onClick={() => setShowReport(true)}>Signaler cette annonce</p>
             <p className="text-xs font-semibold text-[#111] underline cursor-pointer">Vos droits et obligations</p>
             <p className="text-[10px] text-slate-400">Réf. pro : {v.vendeur?.id || "97103"} | Réf. annonce : {v.reference || v.id}</p>
           </div>
@@ -1921,7 +1942,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
                   {v.contactTelephone && (
                     <a href={whatsapp} target="_blank" rel="noreferrer" className="btn-whatsapp w-full h-[56px] lg:h-[64px]">WhatsApp</a>
                   )}
-                  <button className="btn-outline w-full h-[56px] lg:h-[64px]" onClick={() => navigate("/pro")}><Building2 size={16} /> Voir société</button>
+                  <button className="btn-outline w-full h-[56px] lg:h-[64px]" onClick={() => navigate(`/vendeur/${v.vendeur?.id || v.userId || 1}`)}><Building2 size={16} /> Voir société</button>
                 </>
               ) : (
                 /* ── VENTE PARTICULIER : Appeler + Message + WhatsApp ── */
