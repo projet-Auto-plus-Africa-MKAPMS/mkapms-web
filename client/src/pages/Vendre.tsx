@@ -237,6 +237,7 @@ export default function Vendre() {
     cylindree: "", puissanceCv: "",
     consommation: "", classeEmission: "EURO 6",
     critair: "",
+    typeBatterie: "", etatBatterie: "",
   });
   const [photos, setPhotos] = useState<string[]>([]);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string[]>>({});
@@ -302,6 +303,8 @@ export default function Vendre() {
       consommation: d.consommation || "",
       classeEmission: d.classeEmission || "EURO 6",
       critair: "",
+      typeBatterie: d.typeBatterie || "",
+      etatBatterie: d.etatBatterie ? String(d.etatBatterie) : "",
     });
     if (d.famille) setFamille(d.famille);
     if (d.type) setTypeAnnonce(d.type);
@@ -549,6 +552,8 @@ export default function Vendre() {
         pointsForts: pointsForts.length > 0 ? pointsForts : undefined,
         equipements: restList.length > 0 ? restList : undefined,
         imperfections: imperfections.length > 0 ? imperfections : undefined,
+        typeBatterie: form.typeBatterie || undefined,
+        etatBatterie: form.etatBatterie ? Number(form.etatBatterie) : undefined,
         categorieAnnonce: isAdminOrEmployee ? categorieAnnonce : undefined,
         status: "publiee",
       });
@@ -587,6 +592,8 @@ export default function Vendre() {
         securite: secuList,
         videos360,
         videosNormales,
+        typeBatterie: form.typeBatterie || undefined,
+        etatBatterie: form.etatBatterie ? Number(form.etatBatterie) : undefined,
         categorieAnnonce: isAdminOrEmployee ? categorieAnnonce : undefined,
       });
     }
@@ -1151,6 +1158,25 @@ export default function Vendre() {
                   </select>
                 </div>
               </div>
+
+              {/* Batterie — visible pour hybride, électrique, hybride rechargeable */}
+              {(form.carburant === "electrique" || form.carburant === "hybride" || form.carburant === "hybride rechargeable") && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-[#6B7280]">Type de batterie</label>
+                    <select className="input" value={form.typeBatterie} onChange={(e) => set("typeBatterie", e.target.value)}>
+                      <option value="">— Choisir —</option>
+                      <option value="electrique">100% Électrique</option>
+                      <option value="hybride">Hybride</option>
+                      <option value="hybride_rechargeable">Hybride rechargeable</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-[#6B7280]">État batterie (%)</label>
+                    <input type="number" min="0" max="100" className="input" placeholder="ex: 97" value={form.etatBatterie} onChange={(e) => set("etatBatterie", e.target.value)} />
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { ChevronLeft, Star, Shield, Award, Check, History, CreditCard, Truck, ChevronDown, Heart, Calculator, Phone, MapPin } from "lucide-react";
+import { ChevronLeft, Star, Shield, Award, Check, History, CreditCard, Truck, ChevronDown, Heart, Calculator, Phone, MapPin, Search } from "lucide-react";
 import { trpc } from "../lib/trpc";
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -70,6 +70,14 @@ export default function VenteMKAPMS() {
         <div className="flex items-center gap-2 mb-2"><Star size={14} className="text-[#D4AF37]" fill="#D4AF37" /><span className="rounded-full bg-[#D4AF37] px-3 py-0.5 text-[10px] font-bold text-white">MKA.P-MS OFFICIEL</span></div>
         <h1 className="text-xl font-black text-white">Véhicules MKA.P-MS</h1>
         <p className="mt-1 text-sm text-white/60">Sélectionnés, inspectés, garantis par MKA.P-MS.</p>
+      </div>
+
+      {/* Barre de recherche */}
+      <div className="px-4 -mt-3 relative z-10 rounded-xl bg-white border border-[#E5E7EB] p-3 mx-4 shadow-sm">
+        <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5">
+          <Search size={14} className="text-[#6B7280]" />
+          <input type="text" placeholder="Marque, mod\u00e8le\u2026" className="w-full bg-transparent text-sm outline-none" />
+        </div>
       </div>
 
       {/* Avantages */}
