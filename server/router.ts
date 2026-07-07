@@ -36,6 +36,8 @@ import { apiRouter } from "./routers/api.js";
 import { reviewsV2Router } from "./routers/reviewsV2.js";
 import { seoRouter } from "./routers/seo.js";
 import { coreEngineRouter } from "./routers/coreEngine.js";
+// Smart Engine — module intelligent isolé (développé séparément, connexion contrôlée)
+import { smartEngineRouter } from "./smart-engine/router.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -105,6 +107,8 @@ export const appRouter = router({
   seo: seoRouter,
   // Core Engine — moteur d'orchestration (staging, connecté mais non intégré)
   coreEngine: coreEngineRouter,
+  // Smart Engine — Système Intelligent MKA.P-MS (isolé, connexion contrôlée)
+  smartEngine: smartEngineRouter,
 });
 
 export type AppRouter = typeof appRouter;

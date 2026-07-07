@@ -141,6 +141,13 @@
       "when": 1783462600000,
       "tag": "0019_batterie_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1783463000000,
+      "tag": "0020_smart_engine",
+      "breakpoints": true
     }
   ]
 }

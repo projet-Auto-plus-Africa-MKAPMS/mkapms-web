@@ -1135,3 +1135,4 @@ export * from "./modules/financeplus"; // Finance+ (LOA, Paiement fractionné, S
 export * from "./modules/reviews"; // Système d'avis universel multi-univers
 export * from "./modules/seo"; // SEO automatique + indexation Google
 export * from "./modules/coreEngine"; // Core Engine — moteur d'orchestration central (15 centres)
+export * from "./smart-engine/schema"; // Smart Engine — Système Intelligent MKA.P-MS (isolé)

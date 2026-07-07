@@ -1,0 +1,182 @@
+/**
+ * MKA.P-MS Smart Engine — Schema (tables isolées)
+ *
+ * Module intelligent développé séparément de la plateforme principale.
+ * Toutes les tables sont préfixées `smart_` pour éviter tout conflit.
+ *
+ * Nom visible : "Système Intelligent MKA.P-MS"
+ * Nom technique : "MKA.P-MS Smart Engine"
+ */
+import {
+  bigserial,
+  boolean,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  serial,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
+
+// ── Enums ──────────────────────────────────────────────────────────────
+export const smartAlertSeverityEnum = pgEnum("smart_alert_severity", [
+  "info",
+  "warning",
+  "critical",
+]);
+export const smartAlertStatusEnum = pgEnum("smart_alert_status", [
+  "open",
+  "acknowledged",
+  "resolved",
+  "dismissed",
+]);
+export const smartDuplicateTypeEnum = pgEnum("smart_duplicate_type", [
+  "plaque",
+  "vin",
+  "photo",
+  "description",
+  "vendeur",
+]);
+export const smartLearnedStatusEnum = pgEnum("smart_learned_status", [
+  "proposed",
+  "confirmed",
+  "rejected",
+]);
+
+// ── 1. Analyse des recherches ──────────────────────────────────────────
+export const smartSearchLogs = pgTable("smart_search_logs", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  userId: integer("user_id"),
+  sessionId: varchar("session_id", { length: 128 }),
+  query: text("query"),
+  filters: jsonb("filters").$type<Record<string, unknown>>(),
+  // Contexte géo
+  ville: varchar("ville", { length: 128 }),
+  pays: varchar("pays", { length: 64 }),
+  rayon: integer("rayon"),
+  budgetMin: integer("budget_min"),
+  budgetMax: integer("budget_max"),
+  // Résultats
+  resultCount: integer("result_count").default(0),
+  hasResults: boolean("has_results").default(true),
+  // Suivi
+  clickedAnnonceId: integer("clicked_annonce_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ── 2. Mémoire utilisateur ─────────────────────────────────────────────
+export const smartUserMemory = pgTable("smart_user_memory", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: varchar("type", { length: 32 }).notNull(), // "search" | "filter" | "view" | "alert" | "need"
+  data: jsonb("data").$type<Record<string, unknown>>().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ── 3. Recommandations ─────────────────────────────────────────────────
+export const smartRecommendations = pgTable("smart_recommendations", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: varchar("type", { length: 32 }).notNull(), // "annonce" | "garage" | "piece" | "location" | "service"
+  targetId: integer("target_id"),
+  reason: text("reason"),
+  score: integer("score").default(0),
+  seen: boolean("seen").default(false),
+  clicked: boolean("clicked").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ── 4. Apprentissage dépôt d'annonce ───────────────────────────────────
+export const smartLearnedData = pgTable("smart_learned_data", {
+  id: serial("id").primaryKey(),
+  field: varchar("field", { length: 64 }).notNull(), // "version" | "finition" | "motorisation" | "equipement" | "couleur" ...
+  marque: varchar("marque", { length: 64 }),
+  modele: varchar("modele", { length: 64 }),
+  value: varchar("value", { length: 255 }).notNull(),
+  submittedBy: integer("submitted_by"),
+  confirmations: integer("confirmations").default(1),
+  status: smartLearnedStatusEnum("status").default("proposed"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ── 5. Détection doublon annonce ───────────────────────────────────────
+export const smartDuplicates = pgTable("smart_duplicates", {
+  id: serial("id").primaryKey(),
+  annonceId: integer("annonce_id").notNull(),
+  matchedAnnonceId: integer("matched_annonce_id").notNull(),
+  type: smartDuplicateTypeEnum("type").notNull(),
+  confidence: integer("confidence").default(0), // 0-100
+  resolved: boolean("resolved").default(false),
+  resolvedBy: integer("resolved_by"),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ── 6. Reconnaissance photo (empreintes) ───────────────────────────────
+export const smartPhotoFingerprints = pgTable("smart_photo_fingerprints", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  annonceId: integer("annonce_id").notNull(),
+  photoIndex: integer("photo_index").default(0),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(), // hash perceptuel
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ── 7. Détection faux comptes ──────────────────────────────────────────
+export const smartSuspectAccounts = pgTable("smart_suspect_accounts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  reason: varchar("reason", { length: 64 }).notNull(), // "duplicate_email" | "duplicate_phone" | "same_device" | "same_ip" | "abnormal_behavior"
+  details: jsonb("details").$type<Record<string, unknown>>(),
+  severity: smartAlertSeverityEnum("severity").default("warning"),
+  resolved: boolean("resolved").default(false),
+  resolvedBy: integer("resolved_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ── 8. Centre de contrôle — alertes générales ──────────────────────────
+export const smartAlerts = pgTable("smart_alerts", {
+  id: serial("id").primaryKey(),
+  category: varchar("category", { length: 48 }).notNull(), // "doublon" | "faux_compte" | "annonce_suspecte" | "erreur" | "redirection" | "avis" | "badge"
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  severity: smartAlertSeverityEnum("severity").default("info"),
+  status: smartAlertStatusEnum("status").default("open"),
+  targetType: varchar("target_type", { length: 32 }), // "annonce" | "user" | "page" | "bouton"
+  targetId: integer("target_id"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  resolvedBy: integer("resolved_by"),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ── 9. Journal d'activité ──────────────────────────────────────────────
+export const smartActivityLog = pgTable("smart_activity_log", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  action: varchar("action", { length: 64 }).notNull(),
+  userId: integer("user_id"),
+  targetType: varchar("target_type", { length: 32 }),
+  targetId: integer("target_id"),
+  data: jsonb("data").$type<Record<string, unknown>>(),
+  result: varchar("result", { length: 32 }), // "success" | "failure" | "pending"
+  proposedDecision: text("proposed_decision"),
+  humanValidation: boolean("human_validation"),
+  validatedBy: integer("validated_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ── 13. Surveillance boutons/redirections ──────────────────────────────
+export const smartHealthChecks = pgTable("smart_health_checks", {
+  id: serial("id").primaryKey(),
+  page: varchar("page", { length: 255 }).notNull(),
+  element: varchar("element", { length: 128 }).notNull(), // "bouton_modifier" | "lien_voir_annonces" | "formulaire_depot" ...
+  elementType: varchar("element_type", { length: 32 }).notNull(), // "button" | "link" | "form" | "image"
+  status: varchar("status", { length: 16 }).default("ok"), // "ok" | "broken" | "slow" | "missing"
+  lastCheckedAt: timestamp("last_checked_at").defaultNow(),
+  errorDetails: text("error_details"),
+  suggestedFix: text("suggested_fix"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
