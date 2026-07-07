@@ -134,6 +134,13 @@
       "when": 1782852600000,
       "tag": "0018_categorie_annonce",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1783462600000,
+      "tag": "0019_batterie_columns",
+      "breakpoints": true
     }
   ]
 }
