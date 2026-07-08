@@ -201,7 +201,7 @@ function NotificationsBell() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-slate-200 bg-white shadow-xl">
+        <div className="fixed left-1/2 top-[68px] z-50 w-[calc(100vw-1.5rem)] max-w-sm -translate-x-1/2 rounded-xl border border-slate-200 bg-white shadow-xl lg:absolute lg:left-auto lg:right-0 lg:top-full lg:mt-2 lg:w-80 lg:max-w-none lg:translate-x-0">
           <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
             <span className="text-sm font-bold text-slate-800">Notifications</span>
             {count > 0 && (
