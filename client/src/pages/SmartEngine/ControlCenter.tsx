@@ -104,7 +104,7 @@ export default function ControlCenter() {
 
       {/* Content */}
       <div className="px-4">
-        {tab === "dashboard" && <DashboardTab />}
+        {tab === "dashboard" && <DashboardTab onNavigate={setTab} />}
         {tab === "recherches" && <RecherchesTab />}
         {tab === "doublons" && <DoublonsTab />}
         {tab === "suspects" && <SuspectsTab />}
@@ -123,7 +123,7 @@ export default function ControlCenter() {
 /* ═══════════════════════════════════════════════════════════
    TAB : Vue d'ensemble (Dashboard)
    ═══════════════════════════════════════════════════════════ */
-function DashboardTab() {
+function DashboardTab({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
   const { data, isLoading } = trpc.smartEngine.dashboard.useQuery();
 
   if (isLoading) return <Loading />;
@@ -132,31 +132,32 @@ function DashboardTab() {
   return (
     <div className="space-y-4">
       <h2 className="text-base font-bold text-[#111]">Vue d'ensemble — 30 derniers jours</h2>
+      <p className="text-[11px] text-[#9CA3AF]">Chaque carte est cliquable — appuyez pour voir le détail complet.</p>
 
       {/* Alertes */}
       <div className="grid grid-cols-3 gap-2">
-        <StatCard label="Alertes ouvertes" value={data.alerts.openAlerts} color="red" icon={AlertTriangle} />
-        <StatCard label="Critiques" value={data.alerts.criticalAlerts} color="red" icon={XCircle} />
-        <StatCard label="Total alertes" value={data.alerts.totalAlerts} color="gray" icon={Shield} />
+        <StatCard label="Alertes ouvertes" value={data.alerts.openAlerts} color="red" icon={AlertTriangle} onClick={() => onNavigate("avis")} />
+        <StatCard label="Critiques" value={data.alerts.criticalAlerts} color="red" icon={XCircle} onClick={() => onNavigate("avis")} />
+        <StatCard label="Total alertes" value={data.alerts.totalAlerts} color="gray" icon={Shield} onClick={() => onNavigate("journal")} />
       </div>
 
       {/* Recherches */}
       <div className="grid grid-cols-2 gap-2">
-        <StatCard label="Recherches totales" value={data.searches?.total ?? 0} color="blue" icon={Search} />
-        <StatCard label="Sans résultat" value={data.searches?.withoutResults ?? 0} color="orange" icon={XCircle} />
+        <StatCard label="Recherches totales" value={data.searches?.total ?? 0} color="blue" icon={Search} onClick={() => onNavigate("recherches")} />
+        <StatCard label="Sans résultat" value={data.searches?.withoutResults ?? 0} color="orange" icon={XCircle} onClick={() => onNavigate("recherches")} />
       </div>
 
       {/* Santé */}
       <div className="grid grid-cols-3 gap-2">
-        <StatCard label="Éléments OK" value={data.health.ok} color="green" icon={CheckCircle2} />
-        <StatCard label="Cassés" value={data.health.broken} color="red" icon={XCircle} />
-        <StatCard label="Lents" value={data.health.slow} color="yellow" icon={Clock} />
+        <StatCard label="Éléments OK" value={data.health.ok} color="green" icon={CheckCircle2} onClick={() => onNavigate("sante")} />
+        <StatCard label="Cassés" value={data.health.broken} color="red" icon={XCircle} onClick={() => onNavigate("sante")} />
+        <StatCard label="Lents" value={data.health.slow} color="yellow" icon={Clock} onClick={() => onNavigate("sante")} />
       </div>
 
       {/* Activité */}
       <div className="grid grid-cols-2 gap-2">
-        <StatCard label="Actions système" value={data.activity?.total ?? 0} color="purple" icon={Activity} />
-        <StatCard label="À valider" value={data.activity?.needsValidation ?? 0} color="orange" icon={CheckCircle2} />
+        <StatCard label="Actions système" value={data.activity?.total ?? 0} color="purple" icon={Activity} onClick={() => onNavigate("journal")} />
+        <StatCard label="À valider" value={data.activity?.needsValidation ?? 0} color="orange" icon={CheckCircle2} onClick={() => onNavigate("validations")} />
       </div>
 
       {/* Pulse temps réel */}
@@ -164,19 +165,20 @@ function DashboardTab() {
       <>
       <h3 className="text-sm font-bold text-[#111] mt-2">Pouls de la plateforme — 7 derniers jours</h3>
       <div className="grid grid-cols-3 gap-2">
-        <StatCard label="Visites pages" value={data.pulse.pageVisits ?? 0} color="blue" icon={Eye} />
-        <StatCard label="Utilisateurs uniques" value={data.pulse.uniqueUsers ?? 0} color="green" icon={Users} />
-        <StatCard label="Recherches" value={data.pulse.searches ?? 0} color="purple" icon={Search} />
-        <StatCard label="Vues annonces" value={data.pulse.annonceViews ?? 0} color="blue" icon={Eye} />
-        <StatCard label="Dépôts" value={data.pulse.deposits ?? 0} color="green" icon={CheckCircle2} />
-        <StatCard label="Modifications" value={data.pulse.modifications ?? 0} color="yellow" icon={Activity} />
+        <StatCard label="Visites pages" value={data.pulse.pageVisits ?? 0} color="blue" icon={Eye} onClick={() => onNavigate("comportement")} />
+        <StatCard label="Utilisateurs uniques" value={data.pulse.uniqueUsers ?? 0} color="green" icon={Users} onClick={() => onNavigate("comportement")} />
+        <StatCard label="Recherches" value={data.pulse.searches ?? 0} color="purple" icon={Search} onClick={() => onNavigate("recherches")} />
+        <StatCard label="Vues annonces" value={data.pulse.annonceViews ?? 0} color="blue" icon={Eye} onClick={() => onNavigate("comportement")} />
+        <StatCard label="Dépôts" value={data.pulse.deposits ?? 0} color="green" icon={CheckCircle2} onClick={() => onNavigate("comportement")} />
+        <StatCard label="Modifications" value={data.pulse.modifications ?? 0} color="yellow" icon={Activity} onClick={() => onNavigate("journal")} />
       </div>
       </>
       )}
-      <div className="rounded-xl bg-[#111] p-3">
+      <button onClick={() => onNavigate("comportement")} className="w-full text-left rounded-xl bg-[#111] p-3 transition hover:ring-2 hover:ring-[#D4AF37]/60">
         <p className="text-sm font-bold text-[#D4AF37]">Utilisateurs actifs (15 min)</p>
         <p className="text-2xl font-black text-white">{data.activeUsers ?? 0}</p>
-      </div>
+        <p className="text-[10px] text-white/40">Appuyez pour le suivi comportemental temps réel →</p>
+      </button>
 
       {/* Actions rapides */}
       <div className="space-y-2">
@@ -257,7 +259,7 @@ function RecherchesTab() {
           <h3 className="mb-2 text-sm font-bold text-red-700">Recherches sans résultat</h3>
           {failed.slice(0, 10).map((s: any) => (
             <div key={s.id} className="border-b border-red-100 py-1.5 last:border-0">
-              <p className="text-xs text-red-800">{s.query || JSON.stringify(s.filters)}</p>
+              <p className="text-xs text-red-800">{s.query?.trim() ? s.query : formatFilters(s.filters)}</p>
               <p className="text-[10px] text-red-500">{s.ville && `${s.ville} — `}{new Date(s.createdAt).toLocaleDateString("fr-FR")}</p>
             </div>
           ))}
@@ -530,7 +532,7 @@ function AvisTab() {
    Composants partagés
    ═══════════════════════════════════════════════════════════ */
 
-function StatCard({ label, value, color, icon: Icon }: { label: string; value: number; color: string; icon: typeof Brain }) {
+function StatCard({ label, value, color, icon: Icon, onClick }: { label: string; value: number; color: string; icon: typeof Brain; onClick?: () => void }) {
   const colorMap: Record<string, string> = {
     red: "bg-red-50 border-red-200 text-red-700",
     green: "bg-emerald-50 border-emerald-200 text-emerald-700",
@@ -541,15 +543,47 @@ function StatCard({ label, value, color, icon: Icon }: { label: string; value: n
     gray: "bg-slate-50 border-slate-200 text-slate-700",
   };
   const cls = colorMap[color] || colorMap.gray;
-  return (
-    <div className={`rounded-xl border p-3 ${cls}`}>
+  const inner = (
+    <>
       <div className="flex items-center gap-1.5">
         <Icon size={12} />
         <span className="text-[10px] font-semibold">{label}</span>
       </div>
       <p className="mt-1 text-xl font-black">{value}</p>
-    </div>
+    </>
   );
+  if (onClick) {
+    return (
+      <button onClick={onClick} className={`text-left rounded-xl border p-3 transition hover:ring-2 hover:ring-[#D4AF37]/60 active:scale-[0.98] ${cls}`}>
+        {inner}
+      </button>
+    );
+  }
+  return <div className={`rounded-xl border p-3 ${cls}`}>{inner}</div>;
+}
+
+const FILTER_LABELS: Record<string, string> = {
+  type: "Type",
+  categorieAnnonce: "Catégorie",
+  marque: "Marque",
+  modele: "Modèle",
+  ville: "Ville",
+  prixMin: "Prix min",
+  prixMax: "Prix max",
+  anneeMin: "Année min",
+  anneeMax: "Année max",
+  carburant: "Carburant",
+  boite: "Boîte",
+  categorie: "Catégorie",
+};
+
+function formatFilters(filters: unknown): string {
+  if (!filters || typeof filters !== "object") return "Recherche vide (aucun critère)";
+  const entries = Object.entries(filters as Record<string, unknown>).filter(
+    ([, v]) => v !== null && v !== undefined && v !== "",
+  );
+  if (entries.length === 0) return "Recherche vide (aucun critère)";
+  return entries.map(([k, v]) => `${FILTER_LABELS[k] ?? k} : ${String(v)}`).join(" · ");
 }
 
 function Loading() {
