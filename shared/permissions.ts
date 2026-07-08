@@ -100,6 +100,7 @@ const EMPLOYEE_MODULES: PermissionModule[] = [
   "catalogue_technique",
   "suivi_vehicule",
   "dossier_client",
+  "vo_interne",
   "back_office",
 ];
 

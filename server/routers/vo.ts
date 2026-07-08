@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { and, desc, eq, sql } from "drizzle-orm";
-import { router, protectedProcedure } from "../trpc.js";
+import { router, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import {
   voVehicules, voDocuments, voEtapes, voDiagnostics, voReparations, voLavage,
@@ -41,7 +41,7 @@ const VO_STATUS_LABELS: Record<string, string> = {
 // Protected = Admin/Employé/Super Admin only (trpc protectedProcedure checks auth).
 export const voRouter = router({
   // ── Créer un véhicule VO (Étape 1: Achat) ────────────────────────────
-  create: protectedProcedure
+  create: adminProcedure
     .input(z.object({
       immatriculation: z.string().optional(),
       vin: z.string().optional(),
@@ -102,7 +102,7 @@ export const voRouter = router({
     }),
 
   // ── Lister tous les VO ────────────────────────────────────────────────
-  list: protectedProcedure
+  list: adminProcedure
     .input(z.object({
       status: z.string().optional(),
       limit: z.number().min(1).max(200).default(50),
@@ -118,7 +118,7 @@ export const voRouter = router({
     }),
 
   // ── Détail d'un VO ────────────────────────────────────────────────────
-  detail: protectedProcedure
+  detail: adminProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       const [v] = await db.select().from(voVehicules).where(eq(voVehicules.id, input.id)).limit(1);
@@ -132,7 +132,7 @@ export const voRouter = router({
     }),
 
   // ── Changer le statut (avancer dans le cycle) ─────────────────────────
-  updateStatus: protectedProcedure
+  updateStatus: adminProcedure
     .input(z.object({
       id: z.number(),
       status: z.enum([
@@ -185,7 +185,7 @@ export const voRouter = router({
     }),
 
   // ── Mettre à jour les infos transport ──────────────────────────────────
-  updateTransport: protectedProcedure
+  updateTransport: adminProcedure
     .input(z.object({
       id: z.number(),
       coutTransport: z.number().optional(),
@@ -207,7 +207,7 @@ export const voRouter = router({
     }),
 
   // ── Réception du véhicule ──────────────────────────────────────────────
-  updateReception: protectedProcedure
+  updateReception: adminProcedure
     .input(z.object({
       id: z.number(),
       kilometrageReception: z.number().optional(),
@@ -222,7 +222,7 @@ export const voRouter = router({
     }),
 
   // ── Ajouter un document ────────────────────────────────────────────────
-  addDocument: protectedProcedure
+  addDocument: adminProcedure
     .input(z.object({
       vehiculeId: z.number(),
       category: z.enum([
@@ -248,7 +248,7 @@ export const voRouter = router({
     }),
 
   // ── Ajouter un diagnostic ─────────────────────────────────────────────
-  addDiagnostic: protectedProcedure
+  addDiagnostic: adminProcedure
     .input(z.object({
       vehiculeId: z.number(),
       categorie: z.string().min(1),
@@ -266,7 +266,7 @@ export const voRouter = router({
     }),
 
   // ── Ajouter une réparation ─────────────────────────────────────────────
-  addReparation: protectedProcedure
+  addReparation: adminProcedure
     .input(z.object({
       vehiculeId: z.number(),
       prestation: z.string().min(1),
@@ -318,7 +318,7 @@ export const voRouter = router({
     }),
 
   // ── Ajouter un lavage ──────────────────────────────────────────────────
-  addLavage: protectedProcedure
+  addLavage: adminProcedure
     .input(z.object({
       vehiculeId: z.number(),
       lavageInterieur: z.boolean().default(false),
@@ -359,7 +359,7 @@ export const voRouter = router({
     }),
 
   // ── Choisir la destination ─────────────────────────────────────────────
-  setDestination: protectedProcedure
+  setDestination: adminProcedure
     .input(z.object({
       id: z.number(),
       destination: z.enum(["vente", "location", "vente_directe", "export_africa", "stock_interne", "a_revoir"]),
@@ -398,7 +398,7 @@ export const voRouter = router({
     }),
 
   // ── Enregistrer une vente ──────────────────────────────────────────────
-  enregistrerVente: protectedProcedure
+  enregistrerVente: adminProcedure
     .input(z.object({
       id: z.number(),
       prixVenteEffectif: z.number(),
@@ -436,7 +436,7 @@ export const voRouter = router({
     }),
 
   // ── Stats dashboard VO ─────────────────────────────────────────────────
-  stats: protectedProcedure.query(async () => {
+  stats: adminProcedure.query(async () => {
     const all = await db.select().from(voVehicules);
     const total = all.length;
     const enStock = all.filter((v) => !["vendu", "archive", "exporte"].includes(v.status)).length;

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { canAccessModule } from "@shared/permissions";
+import AccessDenied from "../components/AccessDenied";
 import FileUpload from "../components/FileUpload";
 
 /* ═══════════════════════════════════════════════════════════
@@ -165,6 +167,8 @@ export default function VOInterne() {
 
   if (isSessionLoading) return <div className="p-8 text-center text-[#6B7280]">Chargement...</div>;
   if (!user) return <div className="p-8 text-center text-[#6B7280]">Connectez-vous pour accéder au module VO.</div>;
+  // VO Interne = données confidentielles MKA.P-MS — jamais accessible aux particuliers/pros.
+  if (!canAccessModule(user.role, "vo_interne")) return <AccessDenied module="vo_interne" />;
 
   if (selectedId) {
     return <VODetail id={selectedId} onBack={() => setSelectedId(null)} />;
