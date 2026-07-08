@@ -7,6 +7,7 @@ import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
 import { isAdmin, isPro, ROLE_LABELS } from "@shared/roles";
 import type { UserRole } from "@shared/roles";
+import { canAccessServicePath } from "@shared/permissions";
 import FileUpload from "../components/FileUpload";
 
 type Tab = "annonces" | "toutes-annonces" | "publicites" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil" | "notifications";
@@ -613,7 +614,7 @@ export default function Compte() {
             <h2 className="text-lg font-bold text-slate-900">Tous les services MKA.P-MS</h2>
             <p className="mt-1 text-sm text-slate-500">Accédez à tous nos services depuis votre compte</p>
             <div className="mt-4 grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {ALL_SERVICES.map((s) => (
+              {ALL_SERVICES.filter((s) => canAccessServicePath(user.role, s.to)).map((s) => (
                 <Link key={s.to} to={s.to} className="group flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-white p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
                   <span className="text-3xl">{s.emoji}</span>
                   <h3 className="text-xs font-bold text-[#111]">{s.label}</h3>

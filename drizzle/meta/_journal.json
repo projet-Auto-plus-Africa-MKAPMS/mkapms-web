@@ -148,6 +148,13 @@
       "when": 1783463000000,
       "tag": "0020_smart_engine",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1783500000000,
+      "tag": "0021_permission_engine",
+      "breakpoints": true
     }
   ]
 }

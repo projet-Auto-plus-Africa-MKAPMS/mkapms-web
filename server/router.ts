@@ -38,6 +38,8 @@ import { seoRouter } from "./routers/seo.js";
 import { coreEngineRouter } from "./routers/coreEngine.js";
 // Smart Engine — module intelligent isolé (développé séparément, connexion contrôlée)
 import { smartEngineRouter } from "./smart-engine/router.js";
+// Permission Engine — moteur central d'autorisation isolé (connexion contrôlée)
+import { permissionEngineRouter } from "./permission-engine/router.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -109,6 +111,8 @@ export const appRouter = router({
   coreEngine: coreEngineRouter,
   // Smart Engine — Système Intelligent MKA.P-MS (isolé, connexion contrôlée)
   smartEngine: smartEngineRouter,
+  // Permission Engine — Moteur de Permissions MKA.P-MS (isolé, connexion contrôlée)
+  permissionEngine: permissionEngineRouter,
 });
 
 export type AppRouter = typeof appRouter;
