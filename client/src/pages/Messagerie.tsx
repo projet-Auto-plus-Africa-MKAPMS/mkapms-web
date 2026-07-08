@@ -10,31 +10,18 @@ import {
    Photos, PDF, Factures, Contrats, Messages vocaux, Historique complet.
    ══════════════════════════════════════════════════════════════════════════ */
 
-const CONVERSATIONS = [
-  { id: 1, nom: "Support MKA.P-MS", avatar: "🛡️", dernier: "Votre document a été validé.", date: "14:32", nonLu: 2, type: "support" },
-  { id: 2, nom: "Agence Paris 12e", avatar: "🏢", dernier: "Le véhicule est prêt pour le retrait.", date: "Hier", nonLu: 0, type: "agence" },
-  { id: 3, nom: "Auto Premium Location", avatar: "🚗", dernier: "Facture n°2025-0042 envoyée.", date: "Lun", nonLu: 1, type: "partenaire" },
-  { id: 4, nom: "Service Carte Grise", avatar: "📋", dernier: "Votre dossier est en traitement.", date: "28/02", nonLu: 0, type: "service" },
-  { id: 5, nom: "Garage Martin", avatar: "🔧", dernier: "Devis accepté. Intervention prévue lundi.", date: "25/02", nonLu: 0, type: "garage" },
-];
+type Conversation = { id: number; nom: string; avatar: string; dernier: string; date: string; nonLu: number; type: string };
+type Msg = { id: number; envoyeur: string; contenu: string; heure: string; type: string };
 
-const MESSAGES = [
-  { id: 1, envoyeur: "support", contenu: "Bonjour ! Bienvenue sur MKA.P-MS. Comment puis-je vous aider ?", heure: "09:00", type: "texte" },
-  { id: 2, envoyeur: "moi", contenu: "Bonjour, j'ai envoyé mon permis de conduire hier. Avez-vous bien reçu ?", heure: "09:05", type: "texte" },
-  { id: 3, envoyeur: "support", contenu: "Oui, nous avons bien reçu votre permis. Il est en cours de vérification.", heure: "09:10", type: "texte" },
-  { id: 4, envoyeur: "support", contenu: "permis_conduire_scan.pdf", heure: "09:11", type: "pdf" },
-  { id: 5, envoyeur: "moi", contenu: "Merci ! Et pour la carte VTC ?", heure: "10:30", type: "texte" },
-  { id: 6, envoyeur: "support", contenu: "Votre carte VTC est également en vérification. Vous recevrez une notification dès validation.", heure: "10:35", type: "texte" },
-  { id: 7, envoyeur: "support", contenu: "Votre document a été validé. Vous pouvez maintenant procéder à la réservation.", heure: "14:32", type: "texte" },
-  { id: 8, envoyeur: "support", contenu: "facture_2025_0042.pdf", heure: "14:33", type: "pdf" },
-];
+// Aucune conversation fictive : la messagerie reste vide tant qu'il n'y a pas de vrais messages.
+const CONVERSATIONS: Conversation[] = [];
 
 export default function Messagerie() {
   const [view, setView] = useState<"list" | "chat">("list");
-  const [activeConv, setActiveConv] = useState(CONVERSATIONS[0]);
+  const [activeConv, setActiveConv] = useState<Conversation | null>(null);
   const [search, setSearch] = useState("");
   const [message, setMessage] = useState("");
-  const [localMessages, setLocalMessages] = useState(MESSAGES);
+  const [localMessages, setLocalMessages] = useState<Msg[]>([]);
 
   function sendMessage() {
     if (!message.trim()) return;
@@ -59,12 +46,12 @@ export default function Messagerie() {
     c.nom.toLowerCase().includes(search.toLowerCase())
   );
 
-  const openChat = (conv: typeof CONVERSATIONS[0]) => {
+  const openChat = (conv: Conversation) => {
     setActiveConv(conv);
     setView("chat");
   };
 
-  if (view === "chat") {
+  if (view === "chat" && activeConv) {
     return (
       <div className="min-h-screen bg-[#F5F3EF] flex flex-col">
         {/* Header chat */}
