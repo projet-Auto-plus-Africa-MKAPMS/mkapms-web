@@ -7,6 +7,7 @@ import { users } from "../schema.js";
 import { getProfile } from "@shared/profiles.js";
 import { makeReference } from "../reference.js";
 import { logAction, clientMeta } from "../audit.js";
+import { logActivity } from "../smart-engine/services/activity-log.js";
 import {
   signToken,
   hashPassword,
@@ -78,6 +79,8 @@ export const authRouter = router({
       await db.update(users).set({ reference }).where(eq(users.id, created.id));
       created.reference = reference;
       const token = signToken({ uid: created.id, role: created.role, email: created.email });
+      // Smart Engine — hook inscription (fire-and-forget)
+      logActivity({ action: "user.registered", userId: created.id, targetType: "user", targetId: created.id, data: { accountType, role }, result: "success" }).catch(() => {});
       return { token, user: publicUser(created), profileType: input.profileType ?? "particulier" };
     }),
 
@@ -100,6 +103,8 @@ export const authRouter = router({
       }
       const token = signToken({ uid: u.id, role: u.role, email: u.email });
       await logAction(u.id, "auth.login", "user", u.id, undefined, clientMeta(ctx.req));
+      // Smart Engine — hook connexion (fire-and-forget)
+      logActivity({ action: "user.login", userId: u.id, targetType: "user", targetId: u.id, data: { role: u.role }, result: "success" }).catch(() => {});
       return { token, user: publicUser(u) };
     }),
 

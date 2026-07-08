@@ -38,7 +38,7 @@ import {
   Layers,
 } from "lucide-react";
 
-type Tab = "dashboard" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis";
+type Tab = "dashboard" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
@@ -51,6 +51,7 @@ const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "journal", label: "Journal", icon: Database },
   { key: "validations", label: "Validations", icon: CheckCircle2 },
   { key: "avis", label: "Avis", icon: Eye },
+  { key: "comportement", label: "Comportement", icon: Activity },
 ];
 
 export default function ControlCenter() {
@@ -113,6 +114,7 @@ export default function ControlCenter() {
         {tab === "journal" && <JournalTab />}
         {tab === "validations" && <ValidationsTab />}
         {tab === "avis" && <AvisTab />}
+        {tab === "comportement" && <ComportementTab />}
       </div>
     </div>
   );
@@ -155,6 +157,25 @@ function DashboardTab() {
       <div className="grid grid-cols-2 gap-2">
         <StatCard label="Actions système" value={data.activity?.total ?? 0} color="purple" icon={Activity} />
         <StatCard label="À valider" value={data.activity?.needsValidation ?? 0} color="orange" icon={CheckCircle2} />
+      </div>
+
+      {/* Pulse temps réel */}
+      {data.pulse && (
+      <>
+      <h3 className="text-sm font-bold text-[#111] mt-2">Pouls de la plateforme — 7 derniers jours</h3>
+      <div className="grid grid-cols-3 gap-2">
+        <StatCard label="Visites pages" value={data.pulse.pageVisits ?? 0} color="blue" icon={Eye} />
+        <StatCard label="Utilisateurs uniques" value={data.pulse.uniqueUsers ?? 0} color="green" icon={Users} />
+        <StatCard label="Recherches" value={data.pulse.searches ?? 0} color="purple" icon={Search} />
+        <StatCard label="Vues annonces" value={data.pulse.annonceViews ?? 0} color="blue" icon={Eye} />
+        <StatCard label="Dépôts" value={data.pulse.deposits ?? 0} color="green" icon={CheckCircle2} />
+        <StatCard label="Modifications" value={data.pulse.modifications ?? 0} color="yellow" icon={Activity} />
+      </div>
+      </>
+      )}
+      <div className="rounded-xl bg-[#111] p-3">
+        <p className="text-sm font-bold text-[#D4AF37]">Utilisateurs actifs (15 min)</p>
+        <p className="text-2xl font-black text-white">{data.activeUsers ?? 0}</p>
       </div>
 
       {/* Actions rapides */}
@@ -544,6 +565,74 @@ function Empty({ msg }: { msg: string }) {
     <div className="flex flex-col items-center justify-center py-12">
       <CheckCircle2 size={32} className="text-emerald-400" />
       <p className="mt-2 text-sm text-[#6B7280]">{msg}</p>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : Comportement (suivi utilisateurs)
+   ═══════════════════════════════════════════════════════════ */
+function ComportementTab() {
+  const pageStats = trpc.smartEngine.pageStats.useQuery({ days: 30 });
+  const activeUsers = trpc.smartEngine.activeUsers.useQuery();
+  const pulse = trpc.smartEngine.platformPulse.useQuery({ days: 7 });
+
+  if (pageStats.isLoading) return <Loading />;
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-base font-bold text-[#111]">Suivi comportemental — Temps réel</h2>
+
+      {/* Utilisateurs actifs */}
+      <div className="rounded-xl bg-[#111] p-4">
+        <p className="text-sm font-bold text-[#D4AF37]">Utilisateurs actifs (15 dernières min)</p>
+        <p className="text-3xl font-black text-white mt-1">{activeUsers.data?.length ?? 0}</p>
+        {activeUsers.data && activeUsers.data.length > 0 && (
+          <div className="mt-3 space-y-1 max-h-40 overflow-y-auto">
+            {activeUsers.data.map((u: any, i: number) => (
+              <div key={i} className="flex justify-between text-xs text-white/60">
+                <span>Utilisateur #{u.userId ?? "anonyme"}</span>
+                <span>{u.actionCount} actions</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Pulse plateforme */}
+      {pulse.data && (
+      <div>
+        <h3 className="text-sm font-bold text-[#111] mb-2">Pouls plateforme — 7 jours</h3>
+        <div className="grid grid-cols-3 gap-2">
+          <StatCard label="Actions totales" value={pulse.data.totalActions ?? 0} color="purple" icon={Activity} />
+          <StatCard label="Utilisateurs uniques" value={pulse.data.uniqueUsers ?? 0} color="green" icon={Users} />
+          <StatCard label="Visites pages" value={pulse.data.pageVisits ?? 0} color="blue" icon={Eye} />
+          <StatCard label="Recherches" value={pulse.data.searches ?? 0} color="blue" icon={Search} />
+          <StatCard label="Vues annonces" value={pulse.data.annonceViews ?? 0} color="green" icon={Eye} />
+          <StatCard label="Dépôts" value={pulse.data.deposits ?? 0} color="yellow" icon={CheckCircle2} />
+        </div>
+      </div>
+      )}
+
+      {/* Pages les plus visitées */}
+      <div>
+        <h3 className="text-sm font-bold text-[#111] mb-2">Pages les plus visitées — 30 jours</h3>
+        {pageStats.data && pageStats.data.length > 0 ? (
+          <div className="space-y-1">
+            {pageStats.data.map((p: any, i: number) => (
+              <div key={i} className="flex items-center justify-between rounded-lg bg-white border border-[#E5E7EB] p-2.5">
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-[#111] truncate max-w-[200px]">{p.page}</p>
+                  <p className="text-[10px] text-[#6B7280]">{p.uniqueUsers} utilisateurs uniques</p>
+                </div>
+                <span className="text-sm font-black text-[#D4AF37]">{p.visits}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Empty msg="Aucune donnée de visite encore — le système commence à collecter" />
+        )}
+      </div>
     </div>
   );
 }

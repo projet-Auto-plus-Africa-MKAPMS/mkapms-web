@@ -31,6 +31,7 @@ import { analyzeReviews, getReviewAlerts } from "./services/review-analysis.js";
 import { validateAnnonceUnivers, getMisplacedAnnonces } from "./services/annonce-validator.js";
 import { validateBadges, getBadgeAlerts } from "./services/badge-validator.js";
 import { reportHealthCheck, getHealthStatus, getBrokenElements, registerCriticalElements } from "./services/health-monitor.js";
+import { trackPageVisit, trackUserAction, getPageStats, getUserBehaviorProfile, getActiveUsers, getPlatformPulse } from "./services/behavior-tracking.js";
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
 import { desc, eq, sql, and } from "drizzle-orm";
@@ -323,6 +324,51 @@ export const smartEngineRouter = router({
       return registerCriticalElements();
     }),
 
+  // ── 15. Suivi comportemental ─────────────────────────────────────
+  trackPage: publicProcedure
+    .input(z.object({
+      page: z.string(),
+      referrer: z.string().optional(),
+      duration: z.number().optional(),
+      device: z.string().optional(),
+      country: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return trackPageVisit({ ...input, userId: ctx.user?.uid });
+    }),
+
+  trackAction: publicProcedure
+    .input(z.object({
+      action: z.string(),
+      target: z.string().optional(),
+      metadata: z.record(z.unknown()).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return trackUserAction({ ...input, userId: ctx.user?.uid });
+    }),
+
+  pageStats: pdgProcedure
+    .input(z.object({ days: z.number().default(30) }).optional())
+    .query(async ({ input }) => {
+      return getPageStats(input?.days ?? 30);
+    }),
+
+  activeUsers: pdgProcedure.query(async () => {
+    return getActiveUsers(15);
+  }),
+
+  userBehavior: pdgProcedure
+    .input(z.object({ userId: z.number() }))
+    .query(async ({ input }) => {
+      return getUserBehaviorProfile(input.userId);
+    }),
+
+  platformPulse: pdgProcedure
+    .input(z.object({ days: z.number().default(7) }).optional())
+    .query(async ({ input }) => {
+      return getPlatformPulse(input?.days ?? 7);
+    }),
+
   // ── Dashboard global (Centre de contrôle) ──────────────────────────
   dashboard: pdgProcedure.query(async () => {
     const [alertStats] = await db.select({
@@ -334,12 +380,16 @@ export const smartEngineRouter = router({
     const searchStatsData = await getSearchStats(30);
     const activityStatsData = await getActivityStats(30);
     const healthData = await getHealthStatus();
+    const pulseData = await getPlatformPulse(7);
+    const activeUsersData = await getActiveUsers(15);
 
     return {
       alerts: alertStats,
       searches: searchStatsData,
       activity: activityStatsData,
       health: { broken: healthData.broken, slow: healthData.slow, ok: healthData.ok, total: healthData.total },
+      pulse: pulseData,
+      activeUsers: activeUsersData.length,
     };
   }),
 });

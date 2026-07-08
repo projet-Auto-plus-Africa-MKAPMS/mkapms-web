@@ -12,6 +12,7 @@ import UniversBoundary from "./components/UniversBoundary";
 import InstallPrompt from "./components/InstallPrompt";
 import CountrySelectModal from "./components/CountrySelectModal";
 import SmartRouter from "./components/SmartRouter";
+import SmartTracker from "./components/SmartTracker";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -743,6 +744,7 @@ export default function App() {
       <InstallPrompt />
       <CountrySelectModal />
       <SmartRouter />
+      <SmartTracker />
       <Layout>
         <Suspense fallback={<PageLoader />}>
           <Routes>
