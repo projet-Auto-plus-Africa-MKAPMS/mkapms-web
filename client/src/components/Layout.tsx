@@ -81,7 +81,7 @@ function Header() {
           {user ? (
             <div className="flex items-center gap-2">
               <Link
-                to="/compte/messages"
+                to="/messagerie"
                 className="relative grid h-10 w-10 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-brand"
                 aria-label="Messages"
               >
@@ -109,6 +109,7 @@ function Header() {
 
         <div className="flex items-center gap-2 md:hidden">
           <DomainSelector />
+          {user && <NotificationsBell />}
           <SupportWidget />
           <button aria-label="Menu" onClick={() => setOpen((o) => !o)}>
             {open ? <X /> : <Menu />}
@@ -313,7 +314,7 @@ function BottomNav() {
     { to: "/recherche-universelle", label: "Rechercher", icon: Search },
     { to: "/favoris", label: "Favoris", icon: Heart },
     { to: "/vendre", label: "Publier", icon: PlusCircle },
-    { to: "/compte/messages", label: "Messages", icon: MessageSquare },
+    { to: "/messagerie", label: "Messages", icon: MessageSquare },
     { to: "/compte", label: "Compte", icon: User },
   ];
   return (
