@@ -55,7 +55,7 @@ function Header() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {NAV.map((n) => (
             <NavLink
               key={n.to}
@@ -71,7 +71,7 @@ function Header() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           <DomainSelector />
           <CurrencySelect />
           <SupportWidget />
@@ -107,7 +107,7 @@ function Header() {
           )}
         </div>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 lg:hidden">
           <DomainSelector />
           {user && <NotificationsBell />}
           <SupportWidget />
@@ -118,7 +118,7 @@ function Header() {
       </div>
 
       {open && (
-        <div className="border-t border-slate-200 bg-white md:hidden">
+        <div className="border-t border-slate-200 bg-white lg:hidden">
           <div className="container-page flex flex-col py-2">
             {NAV.map((n) => (
               <Link
@@ -318,7 +318,7 @@ function BottomNav() {
     { to: "/compte", label: "Compte", icon: User },
   ];
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 border-t border-slate-200 bg-white md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+    <nav className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 border-t border-slate-200 bg-white lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       {items.map((it) => {
         const Icon = it.icon;
         const active = loc.pathname === it.to;
@@ -365,7 +365,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         marginTop: typeof window !== "undefined" && (window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true) ? "28px" : undefined,
       }} />
       <BackButton />
-      <main className="flex-1 pb-20 md:pb-0">{children}</main>
+      <main className="flex-1 pb-20 lg:pb-0">{children}</main>
       <Footer />
       <BottomNav />
     </div>
