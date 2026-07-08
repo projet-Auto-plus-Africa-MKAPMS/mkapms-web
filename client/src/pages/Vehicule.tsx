@@ -466,7 +466,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
     }
 
     return (
-      <div className="pb-40 md:pb-10">
+      <div className="pb-20 md:pb-10">
         {/* ── 2. PHOTO VÉHICULE — pleine largeur, bord à bord, comme Pro ── */}
         <div className="w-full">
           <div className="relative w-full overflow-hidden bg-slate-100" style={{ height: "clamp(350px, 58vh, 560px)" }}
@@ -1739,7 +1739,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
   }
 
   return (
-    <div className="container-page py-6 pb-32 md:pb-10">
+    <div className="container-page py-6 pb-20 md:pb-10">
       {/* Fil d'ariane */}
       <div className="mb-4 flex items-center gap-1 text-xs text-slate-400">
         <Link to="/acheter" className="hover:text-noir">Annonces</Link>

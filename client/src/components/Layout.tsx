@@ -21,10 +21,10 @@ import { useCurrency } from "../lib/currency";
 import { CURRENCIES } from "@shared/currency";
 import { trpc } from "../lib/trpc";
 
+// Navigation publique — aucune donnée interne (VO retiré : confidentiel).
 const NAV = [
   { to: "/acheter", label: "Acheter" },
   { to: "/louer", label: "Louer" },
-  { to: "/vo", label: "VO" },
   { to: "/pieces", label: "Pièces" },
   { to: "/devis", label: "Devis Garage" },
   { to: "/garages", label: "Garages" },

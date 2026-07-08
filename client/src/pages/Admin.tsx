@@ -267,12 +267,31 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Moteur de Permissions MKA.P-MS — accès PDG uniquement */}
+      {user?.role === "super_admin" && (
+      <section className="mt-6">
+        <h2 className="text-lg font-bold text-slate-800">Moteur de Permissions MKA.P-MS</h2>
+        <p className="text-xs text-slate-500">Centre de contr&ocirc;le — journal de s&eacute;curit&eacute;, acc&egrave;s refus&eacute;s, acc&egrave;s temporaires</p>
+        <Link to="/superadmin/permission-engine" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F6E1;&#xFE0F;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre de Contr&ocirc;le des Permissions</p>
+            <p className="text-xs text-white/60">Chaque tentative d'acc&egrave;s (autoris&eacute;e ou refus&eacute;e), accès temporaires 24h/7j</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Modules & Services — accès rapide */}
       <section className="mt-10">
         <h2 className="text-lg font-bold text-slate-800">Modules & Services</h2>
         <p className="text-xs text-slate-500">Acc&egrave;s rapide aux modules de la plateforme</p>
         <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-5">
           {[
+            { label: "VO Interne", to: "/vo", emoji: "\ud83d\ude97", desc: "Gestion v\u00e9hicules d'occasion (confidentiel)" },
             { label: "Atelier Pro", to: "/atelier-pro", emoji: "\ud83d\udee0\ufe0f", desc: "Planning, suivi, employ\u00e9s, stock" },
             { label: "Catalogue Technique", to: "/catalogue-technique", emoji: "\ud83d\udcd6", desc: "AutoData \u2014 sch\u00e9mas, couples, temps" },
             { label: "Comptabilit\u00e9", to: "/compta-dirigeant", emoji: "\ud83d\udcb9", desc: "CA, finances, employ\u00e9s, alertes" },

@@ -73,6 +73,22 @@ export default function Abonnements() {
         Sans engagement. Paiement sécurisé Stripe. Affichage multi-devises automatique.
       </p>
 
+      {/* Particulier → devenir professionnel (accès aux offres pro) */}
+      {(user?.role === "user" || user?.role === "particulier") && (
+        <div className="mx-auto mt-6 flex max-w-2xl flex-col items-center gap-3 rounded-2xl border-2 border-gold bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 text-center sm:flex-row sm:justify-between sm:text-left">
+          <div>
+            <p className="text-base font-bold text-gold">Vous êtes un professionnel&nbsp;?</p>
+            <p className="text-xs text-white/60">Passez en compte pro pour vendre, gérer votre stock et accéder aux outils professionnels.</p>
+          </div>
+          <button
+            onClick={() => setTab("pro_vente")}
+            className="shrink-0 rounded-xl bg-gold px-5 py-3 text-sm font-bold text-noir hover:brightness-95"
+          >
+            Devenir un pro
+          </button>
+        </div>
+      )}
+
       <div className="mt-8 flex justify-center">
         <div className="inline-flex max-w-full flex-wrap justify-center gap-2 rounded-2xl border border-slate-200 bg-white p-2">
           {TABS.map(([v, l]) => (
