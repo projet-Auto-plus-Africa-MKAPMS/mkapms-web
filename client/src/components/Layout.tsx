@@ -248,7 +248,7 @@ function Footer() {
 
   return (
     <footer className="mt-16 border-t border-slate-200 bg-white">
-      <div className="container-page py-10 md:py-12">
+      <div className="container-page pt-10 pb-4 md:pt-12 md:pb-5">
         {/* Logo + description */}
         <div className="mb-6 text-center">
           <div className="flex flex-col items-center">
@@ -298,7 +298,7 @@ function Footer() {
           </div>
         </div>
       </div>
-      <div className="border-t border-slate-100 py-4 text-center text-xs text-slate-400">
+      <div className="border-t border-slate-100 pt-3 pb-4 text-center text-xs text-slate-400">
         © {new Date().getFullYear()} {legal?.raisonSociale} — {legal?.forme}, capital{" "}
         {legal?.capital}. SIREN {legal?.siren} · TVA {legal?.tva}.
       </div>
