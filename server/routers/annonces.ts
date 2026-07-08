@@ -872,6 +872,9 @@ export const annoncesRouter = router({
         });
       } catch (_) { /* non-bloquant */ }
 
+      // Smart Engine — hook modification (fire-and-forget)
+      logActivity({ action: "annonce.modified", userId: ctx.user.uid, targetType: "annonce", targetId: id, data: { changes: Object.keys(filtered) }, result: "success" }).catch(() => {});
+
       return { ok: true };
     }),
 
@@ -910,6 +913,9 @@ export const annoncesRouter = router({
         });
       } catch (_) { /* non-bloquant */ }
 
+      // Smart Engine — hook suppression (fire-and-forget)
+      logActivity({ action: "annonce.deleted", userId: ctx.user.uid, targetType: "annonce", targetId: input.id, data: { reason: input.reason, soldOnPlatform: input.soldOnPlatform }, result: "success" }).catch(() => {});
+
       return { ok: true };
     }),
 
@@ -947,6 +953,9 @@ export const annoncesRouter = router({
           url: `/vehicule/${input.id}`,
         });
       } catch (_) { /* non-bloquant */ }
+
+      // Smart Engine — hook prolongation (fire-and-forget)
+      logActivity({ action: "annonce.prolonged", userId: ctx.user.uid, targetType: "annonce", targetId: input.id, data: { newExpiresAt: newExpires.toISOString() }, result: "success" }).catch(() => {});
 
       return { ok: true, expiresAt: newExpires };
     }),

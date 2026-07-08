@@ -249,6 +249,24 @@ export default function Admin() {
         })()}
       </section>
 
+      {/* Système Intelligent MKA.P-MS — accès PDG uniquement */}
+      {user?.role === "super_admin" && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Syst&egrave;me Intelligent MKA.P-MS</h2>
+        <p className="text-xs text-slate-500">Centre de contr&ocirc;le — 14 fonctionnalit&eacute;s actives en temps r&eacute;el</p>
+        <Link to="/superadmin/smart-engine" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F9E0;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre de Contr&ocirc;le Intelligent</p>
+            <p className="text-xs text-white/60">Recherches, doublons, fraude, sant&eacute;, apprentissage, m&eacute;moire utilisateur</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Modules & Services — accès rapide */}
       <section className="mt-10">
         <h2 className="text-lg font-bold text-slate-800">Modules & Services</h2>
@@ -667,6 +685,19 @@ export default function Admin() {
       {/* ═══════ ONGLET SUPER ADMIN ═══════ */}
       {adminTab === "superadmin" && direction && (
         <>
+          {/* Système Intelligent — accès rapide (PDG uniquement) */}
+          {user?.role === "super_admin" && (
+          <section className="mt-10">
+            <Link to="/superadmin/smart-engine" className="flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20"><span className="text-2xl">&#x1F9E0;</span></div>
+              <div className="flex-1">
+                <p className="text-base font-bold text-[#D4AF37]">Syst&egrave;me Intelligent MKA.P-MS</p>
+                <p className="text-xs text-white/60">Centre de contr&ocirc;le — recherches, doublons, fraude, sant&eacute;, apprentissage</p>
+              </div>
+              <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+            </Link>
+          </section>
+          )}
           {/* Centre de contrôle des modules (Partie 6 §7) */}
           <section className="mt-10">
             <h2 className="text-lg font-bold text-slate-800">Centre de contrôle des modules <span className="text-xs font-normal text-gold-dark">(Super Admin)</span></h2>
