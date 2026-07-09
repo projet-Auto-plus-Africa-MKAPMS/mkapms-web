@@ -7,6 +7,7 @@
 import { db } from "../../db.js";
 import { smartLearnedData } from "../schema.js";
 import { and, eq, sql, desc } from "drizzle-orm";
+import { observe } from "./knowledge-base.js";
 
 interface LearnInput {
   field: string;
@@ -17,6 +18,16 @@ interface LearnInput {
 }
 
 export async function learnFromInput(input: LearnInput) {
+  // Alimente aussi la base de connaissances officielle (domaine véhicule).
+  void observe({
+    domain: "vehicule",
+    type: input.field,
+    value: input.value,
+    parentKey: input.modele ?? input.marque,
+    source: "depot",
+    userId: input.submittedBy,
+  }).catch(() => {});
+
   // Vérifier si cette valeur existe déjà
   const conditions = [
     eq(smartLearnedData.field, input.field),

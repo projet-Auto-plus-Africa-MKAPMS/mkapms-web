@@ -35,6 +35,7 @@ import { trackPageVisit, trackUserAction, getPageStats, getUserBehaviorProfile, 
 import { teach, getConversation, getTeachingStats } from "./services/teaching.js";
 import { seedKnowledge, addKnowledge, listKnowledge, markApplied, getKnowledgeStats, KNOWLEDGE_CATEGORIES } from "./services/knowledge.js";
 import { getEnginesOverview } from "./services/connectors.js";
+import { observe, listKB, kbStats, validateKB, KB_DOMAINS } from "./services/knowledge-base.js";
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
 import { desc, eq, sql, and } from "drizzle-orm";
@@ -450,4 +451,40 @@ export const smartEngineRouter = router({
   enginesOverview: pdgProcedure.query(async () => {
     return getEnginesOverview();
   }),
+
+  // ── 17. Base de connaissances officielle (Parties 6 & 7) ───────────
+  // Apprentissage automatique : n'importe quel module peut « observer »
+  // une donnée. Best-effort, jamais bloquant.
+  kbObserve: publicProcedure
+    .input(z.object({
+      domain: z.enum(KB_DOMAINS),
+      type: z.string().min(1).max(48),
+      value: z.string().min(1).max(320),
+      parentKey: z.string().max(320).optional(),
+      attributes: z.record(z.unknown()).optional(),
+      source: z.string().max(48).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return observe({ ...input, userId: ctx.user?.uid });
+    }),
+
+  kbList: pdgProcedure
+    .input(z.object({
+      domain: z.string().optional(),
+      status: z.enum(["proposed", "confirmed", "rejected"]).optional(),
+      limit: z.number().default(200),
+    }).optional())
+    .query(async ({ input }) => {
+      return listKB(input?.domain, input?.status, input?.limit ?? 200);
+    }),
+
+  kbStats: pdgProcedure.query(async () => {
+    return kbStats();
+  }),
+
+  kbValidate: pdgProcedure
+    .input(z.object({ id: z.number(), approved: z.boolean() }))
+    .mutation(async ({ input }) => {
+      return validateKB(input.id, input.approved);
+    }),
 });

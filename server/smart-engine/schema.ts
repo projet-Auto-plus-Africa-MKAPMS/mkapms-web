@@ -215,3 +215,33 @@ export const smartKnowledge = pgTable("smart_knowledge", {
   applied: boolean("applied").default(false), // marqué comme appliqué chez nous
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// ── 17. Base de connaissances officielle MKA.P-MS (Parties 6 & 7) ───────
+// Mémoire officielle de la plateforme, alimentée automatiquement à chaque
+// action (recherche, dépôt, nouvelle version/pièce/garage/mot-clé…).
+// Chaque entrée est d'abord "proposée" ; si elle est cohérente et revient
+// plusieurs fois (observations), elle passe "confirmée". Aucune donnée n'est
+// perdue. Domaines : véhicules, pièces, pannes, utilisateurs + mots-clés.
+export const smartKbEntries = pgTable("smart_kb_entries", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  // "vehicule" | "piece" | "panne" | "utilisateur" | "recherche" | "mot_cle" | "service" | "garage"
+  domain: varchar("domain", { length: 24 }).notNull(),
+  // vehicule: marque|modele|generation|finition|motorisation|boite|carburant|option
+  // piece: reference|compatibilite|fabricant|equivalence|mot_cle
+  // panne: symptome|cause|solution
+  // utilisateur: recherche|preference|besoin
+  type: varchar("type", { length: 48 }).notNull(),
+  value: varchar("value", { length: 320 }).notNull(),
+  // Contexte hiérarchique (ex: la marque pour un modèle, le modèle pour une finition)
+  parentKey: varchar("parent_key", { length: 320 }),
+  // Données structurées additionnelles (temps moyen, difficulté, véhicules concernés…)
+  attributes: jsonb("attributes").$type<Record<string, unknown>>(),
+  // Signature unique normalisée = domain|type|parent|value (minuscule)
+  signature: varchar("signature", { length: 768 }).notNull().unique(),
+  observations: integer("observations").default(1),
+  status: smartLearnedStatusEnum("status").default("proposed"), // proposed | confirmed | rejected
+  firstSource: varchar("first_source", { length: 48 }), // "recherche" | "annonce" | "depot" | "manuel" | "systeme"
+  createdBy: integer("created_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
