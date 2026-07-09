@@ -501,6 +501,23 @@ export default function Vehicule({ univers }: { univers?: string }) {
               <div className="grid h-full place-items-center text-slate-400">Pas de photo</div>
             )}
             {/* Swipe gauche/droite — même système que Pro/Particulier */}
+            {/* Flèches gauche/droite — ORDINATEUR uniquement (mobile garde le swipe) */}
+            {allPhotos.length > 1 && (
+              <>
+                <button
+                  onClick={() => setPhotoIdx((i) => (i <= 0 ? allPhotos.length - 1 : i - 1))}
+                  aria-label="Photo précédente"
+                  className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 h-11 w-11 items-center justify-center rounded-full bg-white/90 text-[#111] shadow-lg hover:bg-white transition"
+                  style={{ zIndex: 15 }}
+                ><ChevronLeft size={24} /></button>
+                <button
+                  onClick={() => setPhotoIdx((i) => (i >= allPhotos.length - 1 ? 0 : i + 1))}
+                  aria-label="Photo suivante"
+                  className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 h-11 w-11 items-center justify-center rounded-full bg-white/90 text-[#111] shadow-lg hover:bg-white transition"
+                  style={{ zIndex: 15 }}
+                ><ChevronRight size={24} /></button>
+              </>
+            )}
             {/* Badge logo MKA.P-MS — haut gauche, compact */}
             <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-md bg-[#111]/85 px-2 py-1 backdrop-blur-sm shadow">
               <span className="flex h-5 w-5 items-center justify-center rounded bg-[#D4AF37] text-[9px] font-extrabold text-[#111]">M</span>
@@ -540,6 +557,12 @@ export default function Vehicule({ univers }: { univers?: string }) {
               <span className="text-xs font-medium text-slate-600">{v.ville || "Belloy-en-France"} · 95270</span>
             </div>
           </div>
+        </div>
+
+        {/* ORDINATEUR uniquement : Acheter + Message côte à côte, juste sous la cage d'infos (comme La Centrale). Mobile garde la barre fixe en bas. Boutons flottants Appel/WhatsApp inchangés. */}
+        <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] mt-4 hidden md:grid grid-cols-2 gap-3">
+          <button className="flex h-14 items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-base font-bold text-white transition hover:bg-[#1f2626]" onClick={primaryAction}><ShoppingCart size={18} /> Acheter</button>
+          <button className="flex h-14 items-center justify-center gap-2 rounded-xl bg-[#111] text-base font-bold text-white transition hover:bg-[#333]" onClick={messageAction}><Mail size={18} /> Message</button>
         </div>
 
         <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] space-y-5 py-5">
@@ -1212,6 +1235,24 @@ export default function Vehicule({ univers }: { univers?: string }) {
             <div className="grid h-full place-items-center text-slate-400">Aucune photo dans cette catégorie</div>
           )}
 
+          {/* Flèches gauche/droite — ORDINATEUR uniquement (mobile garde le swipe) */}
+          {activeCatPhotos.length > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); setPhotoIdx((i) => (i <= 0 ? activeCatPhotos.length - 1 : i - 1)); }}
+                aria-label="Photo précédente"
+                className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 h-11 w-11 items-center justify-center rounded-full bg-white/90 text-[#111] shadow-lg hover:bg-white transition"
+                style={{ zIndex: 15 }}
+              ><ChevronLeft size={24} /></button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setPhotoIdx((i) => (i >= activeCatPhotos.length - 1 ? 0 : i + 1)); }}
+                aria-label="Photo suivante"
+                className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 h-11 w-11 items-center justify-center rounded-full bg-white/90 text-[#111] shadow-lg hover:bg-white transition"
+                style={{ zIndex: 15 }}
+              ><ChevronRight size={24} /></button>
+            </>
+          )}
+
           {/* Header overlay: retour + partage + favori */}
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
             <button onClick={(e) => { e.stopPropagation(); navigate(backUrl); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md" title={`Retour à l'univers ${backLabel}`} style={{border: '1.5px solid #111', boxShadow: '0 0 8px rgba(212,175,55,0.3)'}}>
@@ -1268,6 +1309,16 @@ export default function Vehicule({ univers }: { univers?: string }) {
                 <p className="text-xs font-bold text-[#111] flex items-center justify-center gap-1"><MapPin size={10} className="text-red-500" /> {v.vendeur?.nom || "MKA Motors"} — {v.ville || "Lyon"}</p>
               </div>
             </div>
+          </div>
+
+          {/* ORDINATEUR uniquement : Appeler + Message côte à côte, juste sous la cage d'infos (comme La Centrale / page officielle). Mobile garde la barre fixe en bas. Bouton flottant WhatsApp (pro) inchangé. */}
+          <div className="mt-4 hidden md:grid grid-cols-2 gap-3">
+            {v.contactTelephone ? (
+              <a href={`tel:${v.contactTelephone}`} className="flex h-14 items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-base font-bold text-white transition hover:bg-[#1f2626]"><Phone size={18} /> Appeler</a>
+            ) : (
+              <button className="flex h-14 items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-base font-bold text-white transition hover:bg-[#1f2626]" onClick={messageAction}><Phone size={18} /> Appeler</button>
+            )}
+            <button className="flex h-14 items-center justify-center gap-2 rounded-xl bg-[#111] text-base font-bold text-white transition hover:bg-[#333]" onClick={messageAction}><Mail size={18} /> Message</button>
           </div>
 
           {/* BOUTON RÉSERVATION — PRO uniquement */}
@@ -1670,8 +1721,8 @@ export default function Vehicule({ univers }: { univers?: string }) {
           </div>
         </div>
 
-        {/* ===== BARRE FIXE EN BAS : Acheter + Message — FLOTTANTS (disparaissent au scroll) */}
-        <div className={`fixed left-0 right-0 border-t border-slate-200 bg-white px-4 py-2 flex gap-3 md:bottom-0 transition-all duration-300 ${scrollHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`} style={{zIndex: 35, bottom: 'calc(52px + env(safe-area-inset-bottom, 0px))'}}>
+        {/* ===== BARRE FIXE EN BAS : Appeler + Message — MOBILE UNIQUEMENT (desktop = boutons sous la cage) */}
+        <div className={`fixed left-0 right-0 border-t border-slate-200 bg-white px-4 py-2 flex gap-3 md:hidden transition-all duration-300 ${scrollHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`} style={{zIndex: 35, bottom: 'calc(52px + env(safe-area-inset-bottom, 0px))'}}>
           <button className="flex-1 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-sm font-bold text-white" onClick={() => { if (v.contactTelephone) window.location.href = `tel:${v.contactTelephone}`; }}>
             <Phone size={16} /> Appeler
           </button>
