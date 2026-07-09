@@ -245,3 +245,35 @@ export const smartKbEntries = pgTable("smart_kb_entries", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// ── 18. Auto-optimisation (Partie 8) ────────────────────────────────────
+// Le Smart Engine analyse la plateforme et PROPOSE des optimisations
+// (vitesse de recherche, classement, qualité résultats, mots-clés, filtres,
+// suggestions). Il ne modifie JAMAIS une règle métier sans validation :
+// chaque proposition reste "proposed" jusqu'à ce que le PDG l'applique ou la
+// rejette. Table isolée, additive.
+export const smartOptimizationStatusEnum = pgEnum("smart_optimization_status", [
+  "proposed",
+  "applied",
+  "rejected",
+]);
+export const smartOptimizations = pgTable("smart_optimizations", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  // "vitesse_recherche" | "classement_annonces" | "qualite_resultats"
+  // | "mots_cles" | "filtres" | "suggestions"
+  category: varchar("category", { length: 32 }).notNull(),
+  title: varchar("title", { length: 240 }).notNull(),
+  detail: text("detail"),
+  recommendation: text("recommendation"),
+  // "faible" | "moyen" | "eleve"
+  impact: varchar("impact", { length: 16 }).default("moyen"),
+  // Données factuelles qui justifient la proposition (compteurs, exemples…)
+  evidence: jsonb("evidence").$type<Record<string, unknown>>(),
+  // Signature normalisée pour éviter les doublons d'une même proposition
+  signature: varchar("signature", { length: 400 }).notNull().unique(),
+  status: smartOptimizationStatusEnum("status").default("proposed"),
+  reviewedBy: integer("reviewed_by"),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});

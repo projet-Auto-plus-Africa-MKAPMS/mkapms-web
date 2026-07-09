@@ -44,15 +44,17 @@ import {
   Cpu,
   ExternalLink,
   BookOpen,
+  Zap,
 } from "lucide-react";
 
-type Tab = "dashboard" | "apprentissage" | "connaissances" | "savoir" | "moteurs" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
   { key: "apprentissage", label: "Apprentissage privé", icon: GraduationCap },
   { key: "connaissances", label: "Connaissances externes", icon: Globe },
   { key: "savoir", label: "Base de connaissances", icon: BookOpen },
+  { key: "optimisation", label: "Auto-optimisation", icon: Zap },
   { key: "moteurs", label: "Moteurs connectés", icon: Cpu },
   { key: "recherches", label: "Recherches", icon: Search },
   { key: "doublons", label: "Doublons", icon: Layers },
@@ -120,6 +122,7 @@ export default function ControlCenter() {
         {tab === "apprentissage" && <ApprentissageTab />}
         {tab === "connaissances" && <ConnaissancesTab />}
         {tab === "savoir" && <BaseConnaissancesTab />}
+        {tab === "optimisation" && <OptimisationTab />}
         {tab === "moteurs" && <MoteursTab />}
         {tab === "recherches" && <RecherchesTab />}
         {tab === "doublons" && <DoublonsTab />}
@@ -678,6 +681,160 @@ function BaseConnaissancesTab() {
                   )}
                 </div>
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : Auto-optimisation (Partie 8)
+   Le Smart Engine PROPOSE ; le PDG applique ou rejette.
+   ═══════════════════════════════════════════════════════════ */
+const OPT_CATEGORY_LABELS: Record<string, string> = {
+  vitesse_recherche: "Vitesse recherche",
+  classement_annonces: "Classement annonces",
+  qualite_resultats: "Qualité résultats",
+  mots_cles: "Mots-clés",
+  filtres: "Filtres",
+  suggestions: "Suggestions",
+};
+
+function OptimisationTab() {
+  const [status, setStatus] = useState<string>("");
+  const stats = trpc.smartEngine.optimizationStats.useQuery();
+  const list = trpc.smartEngine.optimizationsList.useQuery({
+    status: (status || undefined) as "proposed" | "applied" | "rejected" | undefined,
+    limit: 100,
+  });
+  const utils = trpc.useUtils();
+  const refresh = () => {
+    utils.smartEngine.optimizationsList.invalidate();
+    utils.smartEngine.optimizationStats.invalidate();
+  };
+  const generate = trpc.smartEngine.optimizationsGenerate.useMutation({ onSuccess: refresh });
+  const review = trpc.smartEngine.optimizationReview.useMutation({ onSuccess: refresh });
+
+  const items = list.data ?? [];
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">Auto-optimisation</h2>
+        <span className="rounded-full bg-[#111] px-2.5 py-1 text-[10px] font-bold text-[#D4AF37]">
+          {stats.data?.total ?? 0} proposition(s)
+        </span>
+      </div>
+      <p className="text-[11px] text-[#6B7280]">
+        Le Système Intelligent analyse la plateforme et <b>propose</b> des optimisations (vitesse,
+        classement, qualité, mots-clés, filtres, suggestions). Il ne modifie <b>jamais</b> une règle
+        métier sans ton accord — toi seul appliques ou rejettes chaque proposition.
+      </p>
+
+      <div className="grid grid-cols-3 gap-2">
+        <StatCard label="Proposées" value={stats.data?.proposed ?? 0} color="orange" icon={Clock} />
+        <StatCard label="Appliquées" value={stats.data?.applied ?? 0} color="green" icon={CheckCircle2} />
+        <StatCard label="Rejetées" value={stats.data?.rejected ?? 0} color="red" icon={XCircle} />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => generate.mutate()}
+          disabled={generate.isPending}
+          className="flex items-center gap-1 rounded-xl bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40"
+        >
+          <RefreshCw size={14} className={generate.isPending ? "animate-spin" : ""} /> Analyser & proposer
+        </button>
+        {generate.data && (
+          <span className="text-[11px] text-[#6B7280]">
+            {generate.data.created} nouvelle(s) proposition(s)
+          </span>
+        )}
+      </div>
+
+      <div className="flex gap-1.5">
+        {[
+          { key: "", label: "Toutes" },
+          { key: "proposed", label: "Proposées" },
+          { key: "applied", label: "Appliquées" },
+          { key: "rejected", label: "Rejetées" },
+        ].map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setStatus(s.key)}
+            className={`rounded-lg px-2.5 py-1 text-[10px] font-semibold ${status === s.key ? "bg-[#111] text-white" : "bg-white text-[#374151] border border-[#E5E7EB]"}`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {list.isLoading ? (
+        <Loading />
+      ) : items.length === 0 ? (
+        <Empty msg="Aucune proposition. Appuie sur « Analyser & proposer » pour générer des optimisations à partir des données réelles." />
+      ) : (
+        <div className="space-y-2">
+          {items.map((o) => (
+            <div key={o.id} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="rounded-full bg-[#F5F3EF] px-2 py-0.5 text-[9px] font-bold uppercase text-[#6B7280]">
+                      {OPT_CATEGORY_LABELS[o.category] ?? o.category}
+                    </span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                        o.impact === "eleve"
+                          ? "bg-red-100 text-red-700"
+                          : o.impact === "faible"
+                          ? "bg-gray-100 text-gray-600"
+                          : "bg-orange-100 text-orange-700"
+                      }`}
+                    >
+                      Impact {o.impact}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm font-semibold text-[#111]">{o.title}</p>
+                  {o.detail && <p className="mt-0.5 text-[11px] text-[#6B7280]">{o.detail}</p>}
+                  {o.recommendation && (
+                    <p className="mt-1 rounded-lg bg-[#F5F3EF] px-2 py-1 text-[11px] text-[#374151]">
+                      💡 {o.recommendation}
+                    </p>
+                  )}
+                </div>
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                    o.status === "applied"
+                      ? "bg-green-100 text-green-700"
+                      : o.status === "rejected"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-orange-100 text-orange-700"
+                  }`}
+                >
+                  {o.status === "applied" ? "Appliquée" : o.status === "rejected" ? "Rejetée" : "Proposée"}
+                </span>
+              </div>
+              {o.status === "proposed" && (
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => review.mutate({ id: o.id, decision: "applied" })}
+                    disabled={review.isPending}
+                    className="rounded-lg bg-green-600 px-3 py-1 text-[11px] font-bold text-white disabled:opacity-40"
+                  >
+                    Appliquer
+                  </button>
+                  <button
+                    onClick={() => review.mutate({ id: o.id, decision: "rejected" })}
+                    disabled={review.isPending}
+                    className="rounded-lg border border-[#E5E7EB] px-3 py-1 text-[11px] font-semibold text-[#374151] disabled:opacity-40"
+                  >
+                    Rejeter
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
