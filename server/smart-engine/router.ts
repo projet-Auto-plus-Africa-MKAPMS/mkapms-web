@@ -34,6 +34,7 @@ import { reportHealthCheck, getHealthStatus, getBrokenElements, registerCritical
 import { trackPageVisit, trackUserAction, getPageStats, getUserBehaviorProfile, getActiveUsers, getPlatformPulse } from "./services/behavior-tracking.js";
 import { teach, getConversation, getTeachingStats } from "./services/teaching.js";
 import { seedKnowledge, addKnowledge, listKnowledge, markApplied, getKnowledgeStats, KNOWLEDGE_CATEGORIES } from "./services/knowledge.js";
+import { getEnginesOverview } from "./services/connectors.js";
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
 import { desc, eq, sql, and } from "drizzle-orm";
@@ -443,5 +444,10 @@ export const smartEngineRouter = router({
 
   seedKnowledge: pdgProcedure.mutation(async () => {
     return seedKnowledge();
+  }),
+
+  // ── Moteurs connectés (hub d'observation) ─────────────────────
+  enginesOverview: pdgProcedure.query(async () => {
+    return getEnginesOverview();
   }),
 });
