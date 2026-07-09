@@ -46,9 +46,10 @@ import {
   BookOpen,
   Zap,
   HeartPulse,
+  Boxes,
 } from "lucide-react";
 
-type Tab = "dashboard" | "etat" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "etat" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
@@ -59,6 +60,7 @@ const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "savoir", label: "Base de connaissances", icon: BookOpen },
   { key: "optimisation", label: "Auto-optimisation", icon: Zap },
   { key: "moteurs", label: "Moteurs connectés", icon: Cpu },
+  { key: "developpements", label: "Développements", icon: Boxes },
   { key: "recherches", label: "Recherches", icon: Search },
   { key: "doublons", label: "Doublons", icon: Layers },
   { key: "suspects", label: "Comptes suspects", icon: Users },
@@ -129,6 +131,7 @@ export default function ControlCenter() {
         {tab === "savoir" && <BaseConnaissancesTab />}
         {tab === "optimisation" && <OptimisationTab />}
         {tab === "moteurs" && <MoteursTab />}
+        {tab === "developpements" && <DeveloppementsTab />}
         {tab === "recherches" && <RecherchesTab />}
         {tab === "doublons" && <DoublonsTab />}
         {tab === "suspects" && <SuspectsTab />}
@@ -904,6 +907,196 @@ const OPT_CATEGORY_LABELS: Record<string, string> = {
   filtres: "Filtres",
   suggestions: "Suggestions",
 };
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : Développements (Partie 11 — apprentissage des développements)
+   ═══════════════════════════════════════════════════════════ */
+const DEV_KIND_LABELS: Record<string, string> = {
+  moteur: "Moteur",
+  table: "Table",
+  api: "API",
+  page: "Page",
+  bouton: "Bouton",
+  formulaire: "Formulaire",
+};
+const DEV_PERMISSION_LABELS: Record<string, string> = {
+  definie: "Permission définie",
+  requise: "Permission à définir",
+  publique: "Public",
+  na: "—",
+};
+
+function DeveloppementsTab() {
+  const [kind, setKind] = useState<string>("");
+  const [permission, setPermission] = useState<string>("");
+  const stats = trpc.smartEngine.devLearningStats.useQuery();
+  const list = trpc.smartEngine.devLearningList.useQuery({
+    kind: (kind || undefined) as "moteur" | "table" | "api" | "page" | "bouton" | "formulaire" | undefined,
+    permission: (permission || undefined) as "definie" | "requise" | "publique" | "na" | undefined,
+  });
+  const utils = trpc.useUtils();
+  const refresh = () => {
+    utils.smartEngine.devLearningList.invalidate();
+    utils.smartEngine.devLearningStats.invalidate();
+  };
+  const scan = trpc.smartEngine.devLearningScan.useMutation({ onSuccess: refresh });
+  const review = trpc.smartEngine.devLearningReview.useMutation({ onSuccess: refresh });
+
+  const items = list.data ?? [];
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">Apprentissage des développements</h2>
+        <span className="rounded-full bg-[#111] px-2.5 py-1 text-[10px] font-bold text-[#D4AF37]">
+          {stats.data?.total ?? 0} élément(s)
+        </span>
+      </div>
+      <p className="text-[11px] text-[#6B7280]">
+        À chaque nouveau développement (moteur, table, API, page, bouton), le Système Intelligent
+        l'<b>analyse</b>, comprend sa fonction, l'<b>ajoute à sa surveillance</b> et vérifie qu'une
+        <b> permission</b> est bien définie (Permission Engine). Détection réelle : APIs du routeur
+        vivant + tables de la base. Aucune donnée n'est modifiée — toi seul décides.
+      </p>
+
+      <div className="grid grid-cols-3 gap-2">
+        <StatCard label="APIs" value={stats.data?.parKind?.api ?? 0} color="green" icon={Cpu} />
+        <StatCard label="Tables" value={stats.data?.parKind?.table ?? 0} color="orange" icon={Database} />
+        <StatCard label="Perm. à définir" value={stats.data?.permissionsRequises ?? 0} color="red" icon={Shield} />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => scan.mutate()}
+          disabled={scan.isPending}
+          className="flex items-center gap-1 rounded-xl bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40"
+        >
+          <RefreshCw size={14} className={scan.isPending ? "animate-spin" : ""} /> Analyser les développements
+        </button>
+        {scan.data && (
+          <span className="text-[11px] text-[#6B7280]">
+            {scan.data.scanned} détecté(s) · {scan.data.created} nouveau(x)
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {[
+          { key: "", label: "Tous types" },
+          { key: "api", label: "APIs" },
+          { key: "table", label: "Tables" },
+        ].map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setKind(s.key)}
+            className={`rounded-lg px-2.5 py-1 text-[10px] font-semibold ${kind === s.key ? "bg-[#111] text-white" : "bg-white text-[#374151] border border-[#E5E7EB]"}`}
+          >
+            {s.label}
+          </button>
+        ))}
+        <span className="mx-1 self-center text-[#D1D5DB]">|</span>
+        {[
+          { key: "", label: "Toutes perm." },
+          { key: "requise", label: "À définir" },
+          { key: "definie", label: "Définies" },
+          { key: "publique", label: "Publiques" },
+        ].map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setPermission(s.key)}
+            className={`rounded-lg px-2.5 py-1 text-[10px] font-semibold ${permission === s.key ? "bg-[#111] text-white" : "bg-white text-[#374151] border border-[#E5E7EB]"}`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {list.isLoading ? (
+        <Loading />
+      ) : items.length === 0 ? (
+        <Empty msg="Aucun développement enregistré. Appuie sur « Analyser les développements » pour détecter les APIs et tables réelles." />
+      ) : (
+        <div className="space-y-2">
+          {items.map((d) => (
+            <div key={d.id} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="rounded-full bg-[#F5F3EF] px-2 py-0.5 text-[9px] font-bold uppercase text-[#6B7280]">
+                      {DEV_KIND_LABELS[d.kind] ?? d.kind}
+                    </span>
+                    {d.subtype && (
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[9px] font-bold text-gray-600">
+                        {d.subtype}
+                      </span>
+                    )}
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                        d.permission === "requise"
+                          ? "bg-red-100 text-red-700"
+                          : d.permission === "definie"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {DEV_PERMISSION_LABELS[d.permission ?? "na"] ?? d.permission}
+                    </span>
+                    {d.status === "surveille" && (
+                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[9px] font-bold text-blue-700">
+                        Sous surveillance
+                      </span>
+                    )}
+                    {d.status === "ignore" && (
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[9px] font-bold text-gray-500">
+                        Ignoré
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 break-all text-sm font-semibold text-[#111]">{d.name}</p>
+                  {d.functionGuess && (
+                    <p className="mt-0.5 text-[11px] text-[#6B7280]">{d.functionGuess}</p>
+                  )}
+                  {d.permissionModule && (
+                    <p className="mt-0.5 text-[10px] text-[#9CA3AF]">Module : {d.permissionModule}</p>
+                  )}
+                </div>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {d.status !== "surveille" && (
+                  <button
+                    onClick={() => review.mutate({ id: d.id, status: "surveille" })}
+                    disabled={review.isPending}
+                    className="rounded-lg bg-[#111] px-2.5 py-1 text-[10px] font-bold text-white disabled:opacity-40"
+                  >
+                    Mettre sous surveillance
+                  </button>
+                )}
+                {d.permission === "requise" && (
+                  <button
+                    onClick={() => review.mutate({ id: d.id, permission: "definie" })}
+                    disabled={review.isPending}
+                    className="rounded-lg bg-[#D4AF37] px-2.5 py-1 text-[10px] font-bold text-white disabled:opacity-40"
+                  >
+                    Marquer permission définie
+                  </button>
+                )}
+                {d.status !== "ignore" && (
+                  <button
+                    onClick={() => review.mutate({ id: d.id, status: "ignore" })}
+                    disabled={review.isPending}
+                    className="rounded-lg border border-[#E5E7EB] bg-white px-2.5 py-1 text-[10px] font-bold text-[#6B7280] disabled:opacity-40"
+                  >
+                    Ignorer
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function OptimisationTab() {
   const [status, setStatus] = useState<string>("");
