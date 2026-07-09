@@ -43,14 +43,16 @@ import {
   Plus,
   Cpu,
   ExternalLink,
+  BookOpen,
 } from "lucide-react";
 
-type Tab = "dashboard" | "apprentissage" | "connaissances" | "moteurs" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "apprentissage" | "connaissances" | "savoir" | "moteurs" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
   { key: "apprentissage", label: "Apprentissage privé", icon: GraduationCap },
   { key: "connaissances", label: "Connaissances externes", icon: Globe },
+  { key: "savoir", label: "Base de connaissances", icon: BookOpen },
   { key: "moteurs", label: "Moteurs connectés", icon: Cpu },
   { key: "recherches", label: "Recherches", icon: Search },
   { key: "doublons", label: "Doublons", icon: Layers },
@@ -117,6 +119,7 @@ export default function ControlCenter() {
         {tab === "dashboard" && <DashboardTab onNavigate={setTab} />}
         {tab === "apprentissage" && <ApprentissageTab />}
         {tab === "connaissances" && <ConnaissancesTab />}
+        {tab === "savoir" && <BaseConnaissancesTab />}
         {tab === "moteurs" && <MoteursTab />}
         {tab === "recherches" && <RecherchesTab />}
         {tab === "doublons" && <DoublonsTab />}
@@ -515,6 +518,166 @@ function ConnaissancesTab() {
               >
                 {k.applied ? "Marquer comme non appliqué" : "Marquer comme appliqué"}
               </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : Base de connaissances officielle (Parties 6 & 7)
+   Mémoire officielle de MKA.P-MS, alimentée automatiquement.
+   ═══════════════════════════════════════════════════════════ */
+const KB_DOMAIN_LABELS: Record<string, string> = {
+  vehicule: "Véhicules",
+  piece: "Pièces",
+  panne: "Pannes",
+  utilisateur: "Utilisateurs",
+  recherche: "Recherches",
+  mot_cle: "Mots-clés",
+  service: "Services",
+  garage: "Garages",
+};
+
+function BaseConnaissancesTab() {
+  const [domain, setDomain] = useState<string>("");
+  const [status, setStatus] = useState<string>("");
+  const stats = trpc.smartEngine.kbStats.useQuery();
+  const list = trpc.smartEngine.kbList.useQuery({
+    domain: domain || undefined,
+    status: (status || undefined) as "proposed" | "confirmed" | "rejected" | undefined,
+    limit: 200,
+  });
+  const utils = trpc.useUtils();
+  const validate = trpc.smartEngine.kbValidate.useMutation({
+    onSuccess: () => {
+      utils.smartEngine.kbList.invalidate();
+      utils.smartEngine.kbStats.invalidate();
+    },
+  });
+
+  const items = list.data ?? [];
+  const totals = stats.data?.totals;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">Base de connaissances</h2>
+        <span className="rounded-full bg-[#111] px-2.5 py-1 text-[10px] font-bold text-[#D4AF37]">
+          {totals?.total ?? 0} entrée(s)
+        </span>
+      </div>
+      <p className="text-[11px] text-[#6B7280]">
+        Mémoire officielle de MKA.P-MS. Chaque action (recherche, dépôt, nouvelle version/pièce…) est
+        observée automatiquement. Une donnée cohérente qui revient plusieurs fois passe de
+        « proposée » à « confirmée ». Aucune donnée n'est perdue — tu peux confirmer ou rejeter.
+      </p>
+
+      {/* Stats globales */}
+      <div className="grid grid-cols-4 gap-2">
+        <StatCard label="Proposées" value={totals?.proposed ?? 0} color="orange" icon={Clock} />
+        <StatCard label="Confirmées" value={totals?.confirmed ?? 0} color="green" icon={CheckCircle2} />
+        <StatCard label="Rejetées" value={totals?.rejected ?? 0} color="red" icon={XCircle} />
+        <StatCard label="Observations" value={totals?.observations ?? 0} color="blue" icon={Activity} />
+      </div>
+
+      {/* Répartition par domaine */}
+      {stats.data && stats.data.byDomain.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            onClick={() => setDomain("")}
+            className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${domain === "" ? "bg-[#D4AF37] text-white" : "bg-white text-[#374151] border border-[#E5E7EB]"}`}
+          >
+            Tous
+          </button>
+          {stats.data.byDomain.map((d) => (
+            <button
+              key={d.domain}
+              onClick={() => setDomain(d.domain)}
+              className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${domain === d.domain ? "bg-[#D4AF37] text-white" : "bg-white text-[#374151] border border-[#E5E7EB]"}`}
+            >
+              {KB_DOMAIN_LABELS[d.domain] ?? d.domain} · {d.count}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Filtre statut */}
+      <div className="flex gap-1.5">
+        {[
+          { key: "", label: "Tous statuts" },
+          { key: "proposed", label: "Proposées" },
+          { key: "confirmed", label: "Confirmées" },
+          { key: "rejected", label: "Rejetées" },
+        ].map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setStatus(s.key)}
+            className={`rounded-lg px-2.5 py-1 text-[10px] font-semibold ${status === s.key ? "bg-[#111] text-white" : "bg-white text-[#374151] border border-[#E5E7EB]"}`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {list.isLoading ? (
+        <Loading />
+      ) : items.length === 0 ? (
+        <Empty msg="Aucune connaissance pour ce filtre. La base se remplit automatiquement à chaque action." />
+      ) : (
+        <div className="space-y-2">
+          {items.map((e) => (
+            <div key={e.id} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="rounded-full bg-[#F5F3EF] px-2 py-0.5 text-[9px] font-bold uppercase text-[#6B7280]">
+                      {KB_DOMAIN_LABELS[e.domain] ?? e.domain}
+                    </span>
+                    <span className="text-[10px] text-[#9CA3AF]">{e.type}</span>
+                  </div>
+                  <p className="mt-1 truncate text-sm font-semibold text-[#111]">{e.value}</p>
+                  {e.parentKey && (
+                    <p className="text-[10px] text-[#9CA3AF]">Contexte : {e.parentKey}</p>
+                  )}
+                  <p className="mt-0.5 text-[10px] text-[#9CA3AF]">
+                    {e.observations ?? 1} observation(s) · source : {e.firstSource ?? "système"}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                      e.status === "confirmed"
+                        ? "bg-green-100 text-green-700"
+                        : e.status === "rejected"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-orange-100 text-orange-700"
+                    }`}
+                  >
+                    {e.status === "confirmed" ? "Confirmée" : e.status === "rejected" ? "Rejetée" : "Proposée"}
+                  </span>
+                  {e.status !== "confirmed" && (
+                    <button
+                      onClick={() => validate.mutate({ id: e.id, approved: true })}
+                      disabled={validate.isPending}
+                      className="rounded-lg bg-green-600 px-2 py-1 text-[10px] font-bold text-white disabled:opacity-40"
+                    >
+                      Confirmer
+                    </button>
+                  )}
+                  {e.status !== "rejected" && (
+                    <button
+                      onClick={() => validate.mutate({ id: e.id, approved: false })}
+                      disabled={validate.isPending}
+                      className="rounded-lg border border-[#E5E7EB] px-2 py-1 text-[10px] font-semibold text-[#374151] disabled:opacity-40"
+                    >
+                      Rejeter
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           ))}
         </div>

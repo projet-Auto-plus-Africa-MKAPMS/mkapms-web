@@ -5,6 +5,7 @@
 import { db } from "../../db.js";
 import { smartSearchLogs } from "../schema.js";
 import { desc, eq, sql, and, gte } from "drizzle-orm";
+import { learnFromSearch } from "./knowledge-base.js";
 
 export interface SearchLogInput {
   userId?: number;
@@ -38,6 +39,15 @@ export async function logSearch(input: SearchLogInput) {
       clickedAnnonceId: input.clickedAnnonceId ?? null,
     })
     .returning();
+
+  // Apprentissage automatique (best-effort, jamais bloquant)
+  void learnFromSearch({
+    query: input.query,
+    filters: input.filters,
+    ville: input.ville,
+    userId: input.userId,
+  }).catch(() => {});
+
   return row;
 }
 
