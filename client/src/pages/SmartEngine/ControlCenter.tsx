@@ -45,12 +45,14 @@ import {
   ExternalLink,
   BookOpen,
   Zap,
+  HeartPulse,
 } from "lucide-react";
 
-type Tab = "dashboard" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "etat" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
+  { key: "etat", label: "État plateforme", icon: HeartPulse },
   { key: "apprentissage", label: "Apprentissage privé", icon: GraduationCap },
   { key: "connaissances", label: "Connaissances externes", icon: Globe },
   { key: "savoir", label: "Base de connaissances", icon: BookOpen },
@@ -119,6 +121,7 @@ export default function ControlCenter() {
       {/* Content */}
       <div className="px-4">
         {tab === "dashboard" && <DashboardTab onNavigate={setTab} />}
+        {tab === "etat" && <EtatPlateformeTab />}
         {tab === "apprentissage" && <ApprentissageTab />}
         {tab === "connaissances" && <ConnaissancesTab />}
         {tab === "savoir" && <BaseConnaissancesTab />}
@@ -685,6 +688,69 @@ function BaseConnaissancesTab() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : État plateforme — tableau de santé temps réel (Partie 9)
+   ═══════════════════════════════════════════════════════════ */
+function EtatPlateformeTab() {
+  const health = trpc.smartEngine.platformHealth.useQuery(undefined, {
+    refetchInterval: 30000, // rafraîchissement temps réel toutes les 30s
+  });
+
+  if (health.isLoading) return <Loading />;
+  if (!health.data) return <Empty msg="État indisponible" />;
+
+  const { overall, categories, generatedAt } = health.data;
+  const dot = (level: string) =>
+    level === "red" ? "bg-red-500" : level === "yellow" ? "bg-yellow-400" : "bg-green-500";
+  const overallLabel =
+    overall === "red" ? "Attention requise" : overall === "yellow" ? "À surveiller" : "Tout va bien";
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">État de la plateforme</h2>
+        <button
+          onClick={() => health.refetch()}
+          disabled={health.isFetching}
+          className="flex items-center gap-1 rounded-full border border-[#E5E7EB] bg-white px-2.5 py-1 text-[11px] font-semibold text-[#374151]"
+        >
+          <RefreshCw size={12} className={health.isFetching ? "animate-spin" : ""} /> Actualiser
+        </button>
+      </div>
+
+      {/* Bandeau global */}
+      <div className="flex items-center gap-3 rounded-2xl bg-[#111] p-4">
+        <span className={`h-4 w-4 rounded-full ${dot(overall)} shadow-[0_0_12px] shadow-current`} />
+        <div>
+          <p className="text-sm font-bold text-white">{overallLabel}</p>
+          <p className="text-[10px] text-white/50">
+            Vue temps réel · maj {new Date(generatedAt).toLocaleTimeString("fr-FR")}
+          </p>
+        </div>
+      </div>
+
+      {/* Grille des indicateurs */}
+      <div className="grid grid-cols-2 gap-2">
+        {categories.map((c) => (
+          <div key={c.key} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+            <div className="flex items-center gap-1.5">
+              <span className={`h-2.5 w-2.5 rounded-full ${dot(c.level)}`} />
+              <span className="text-[11px] font-semibold text-[#374151]">{c.label}</span>
+            </div>
+            <p className="mt-1 text-lg font-black text-[#111]">{c.headline}</p>
+            <p className="text-[10px] leading-tight text-[#9CA3AF]">{c.detail}</p>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-[10px] text-[#9CA3AF]">
+        🟢 OK · 🟡 à surveiller · 🔴 action requise. Données réelles agrégées en lecture seule
+        (aucune modification de la plateforme).
+      </p>
     </div>
   );
 }
