@@ -199,3 +199,19 @@ export const smartTeachings = pgTable("smart_teachings", {
   isLesson: boolean("is_lesson").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// ── 16. Connaissances externes (veille / benchmark concurrents) ─────────
+// Base de connaissance alimentée hors plateforme : bonnes pratiques
+// observées chez d'autres acteurs (garages, concessionnaires, marketplaces…)
+// avec un conseil concret pour MKA.P-MS. Réservé au PDG.
+export const smartKnowledge = pgTable("smart_knowledge", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  category: varchar("category", { length: 64 }).notNull(), // "marketplace" | "garage" | "concessionnaire" | "location" | "pieces" | "general"
+  source: varchar("source", { length: 160 }), // nom de la plateforme / acteur observé
+  insight: text("insight").notNull(), // ce qui a été observé / appris
+  recommendation: text("recommendation"), // conseil concret pour MKA.P-MS
+  url: varchar("url", { length: 512 }),
+  addedBy: integer("added_by"), // PDG (null = graine système)
+  applied: boolean("applied").default(false), // marqué comme appliqué chez nous
+  createdAt: timestamp("created_at").defaultNow(),
+});
