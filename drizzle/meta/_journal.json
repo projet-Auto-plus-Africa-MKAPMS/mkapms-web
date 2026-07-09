@@ -197,6 +197,13 @@
       "when": 1783610500000,
       "tag": "0027_smart_alert_important",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1783613500000,
+      "tag": "0028_payment_type_vehicle_purchase",
+      "breakpoints": true
     }
   ]
 }
