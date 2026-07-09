@@ -48,11 +48,12 @@ import {
   HeartPulse,
 } from "lucide-react";
 
-type Tab = "dashboard" | "etat" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "etat" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
   { key: "etat", label: "État plateforme", icon: HeartPulse },
+  { key: "alertes", label: "Alertes", icon: AlertTriangle },
   { key: "apprentissage", label: "Apprentissage privé", icon: GraduationCap },
   { key: "connaissances", label: "Connaissances externes", icon: Globe },
   { key: "savoir", label: "Base de connaissances", icon: BookOpen },
@@ -122,6 +123,7 @@ export default function ControlCenter() {
       <div className="px-4">
         {tab === "dashboard" && <DashboardTab onNavigate={setTab} />}
         {tab === "etat" && <EtatPlateformeTab />}
+        {tab === "alertes" && <AlertesTab />}
         {tab === "apprentissage" && <ApprentissageTab />}
         {tab === "connaissances" && <ConnaissancesTab />}
         {tab === "savoir" && <BaseConnaissancesTab />}
@@ -158,7 +160,7 @@ function DashboardTab({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
 
       {/* Alertes */}
       <div className="grid grid-cols-3 gap-2">
-        <StatCard label="Alertes ouvertes" value={data.alerts.openAlerts} color="red" icon={AlertTriangle} onClick={() => onNavigate("avis")} />
+        <StatCard label="Alertes ouvertes" value={data.alerts.openAlerts} color="red" icon={AlertTriangle} onClick={() => onNavigate("alertes")} />
         <StatCard label="Critiques" value={data.alerts.criticalAlerts} color="red" icon={XCircle} onClick={() => onNavigate("avis")} />
         <StatCard label="Total alertes" value={data.alerts.totalAlerts} color="gray" icon={Shield} onClick={() => onNavigate("journal")} />
       </div>
@@ -750,6 +752,141 @@ function EtatPlateformeTab() {
       <p className="text-[10px] text-[#9CA3AF]">
         🟢 OK · 🟡 à surveiller · 🔴 action requise. Données réelles agrégées en lecture seule
         (aucune modification de la plateforme).
+      </p>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : Alertes à niveaux (Partie 10)
+   Le Smart Engine détecte et lève des alertes ; le PDG les traite.
+   Niveaux : 🟢 Information · 🟡 Attention · 🟠 Important · 🔴 Critique
+   ═══════════════════════════════════════════════════════════ */
+const ALERT_LEVELS: { key: string; label: string; dot: string; text: string }[] = [
+  { key: "info", label: "🟢 Information", dot: "bg-green-500", text: "text-green-700" },
+  { key: "warning", label: "🟡 Attention", dot: "bg-yellow-400", text: "text-yellow-700" },
+  { key: "important", label: "🟠 Important", dot: "bg-orange-500", text: "text-orange-700" },
+  { key: "critical", label: "🔴 Critique", dot: "bg-red-500", text: "text-red-700" },
+];
+const ALERT_LEVEL_MAP: Record<string, { label: string; dot: string; text: string }> =
+  Object.fromEntries(ALERT_LEVELS.map((l) => [l.key, l]));
+
+function AlertesTab() {
+  const utils = trpc.useUtils();
+  const [level, setLevel] = useState<string | undefined>(undefined);
+
+  const stats = trpc.smartEngine.alertLevelStats.useQuery();
+  const list = trpc.smartEngine.alerts.useQuery({
+    status: "open",
+    severity: level as "info" | "warning" | "important" | "critical" | undefined,
+    limit: 100,
+  });
+
+  const refresh = () => {
+    void utils.smartEngine.alerts.invalidate();
+    void utils.smartEngine.alertLevelStats.invalidate();
+  };
+  const scan = trpc.smartEngine.alertScan.useMutation({ onSuccess: refresh });
+  const resolve = trpc.smartEngine.resolveAlert.useMutation({ onSuccess: refresh });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">Alertes</h2>
+        <button
+          onClick={() => scan.mutate()}
+          disabled={scan.isPending}
+          className="flex items-center gap-1 rounded-full bg-[#D4AF37] px-3 py-1.5 text-[11px] font-semibold text-white disabled:opacity-60"
+        >
+          <RefreshCw size={12} className={scan.isPending ? "animate-spin" : ""} />
+          {scan.isPending ? "Analyse…" : "Analyser maintenant"}
+        </button>
+      </div>
+
+      {scan.data && (
+        <p className="text-[11px] text-[#374151]">
+          {scan.data.created > 0
+            ? `${scan.data.created} nouvelle(s) alerte(s) détectée(s).`
+            : "Aucun nouveau problème détecté."}
+        </p>
+      )}
+
+      {/* Compteurs par niveau (cliquables = filtre) */}
+      <div className="grid grid-cols-4 gap-2">
+        {ALERT_LEVELS.map((l) => {
+          const count = (stats.data?.[l.key as keyof typeof stats.data] as number) ?? 0;
+          const active = level === l.key;
+          return (
+            <button
+              key={l.key}
+              onClick={() => setLevel(active ? undefined : l.key)}
+              className={`rounded-xl border p-2 text-center transition ${
+                active ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-[#E5E7EB] bg-white"
+              }`}
+            >
+              <span className={`mx-auto mb-1 block h-2.5 w-2.5 rounded-full ${l.dot}`} />
+              <p className="text-lg font-black text-[#111]">{count}</p>
+              <p className="text-[9px] leading-tight text-[#9CA3AF]">{l.label.slice(2)}</p>
+            </button>
+          );
+        })}
+      </div>
+
+      {level && (
+        <button onClick={() => setLevel(undefined)} className="text-[11px] font-semibold text-[#D4AF37]">
+          ← Voir tous les niveaux
+        </button>
+      )}
+
+      {/* Liste des alertes ouvertes */}
+      {list.isLoading ? (
+        <Loading />
+      ) : !list.data || list.data.length === 0 ? (
+        <Empty msg="Aucune alerte ouverte 🎉" />
+      ) : (
+        <div className="space-y-2">
+          {list.data.map((a) => {
+            const lv = ALERT_LEVEL_MAP[a.severity ?? "info"] ?? ALERT_LEVEL_MAP.info;
+            return (
+              <div key={a.id} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+                <div className="flex items-start gap-2">
+                  <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${lv.dot}`} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#111]">{a.title}</p>
+                    {a.description && (
+                      <p className="mt-0.5 text-[11px] leading-snug text-[#6B7280]">{a.description}</p>
+                    )}
+                    <p className="mt-1 text-[10px] text-[#9CA3AF]">
+                      <span className={`font-semibold ${lv.text}`}>{lv.label}</span> · {a.category}
+                      {a.createdAt ? ` · ${new Date(a.createdAt).toLocaleString("fr-FR")}` : ""}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => resolve.mutate({ id: a.id, status: "resolved" })}
+                    disabled={resolve.isPending}
+                    className="rounded-full bg-[#111] px-3 py-1 text-[11px] font-semibold text-white disabled:opacity-60"
+                  >
+                    Résolu
+                  </button>
+                  <button
+                    onClick={() => resolve.mutate({ id: a.id, status: "dismissed" })}
+                    disabled={resolve.isPending}
+                    className="rounded-full border border-[#E5E7EB] px-3 py-1 text-[11px] font-semibold text-[#374151] disabled:opacity-60"
+                  >
+                    Ignorer
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <p className="text-[10px] text-[#9CA3AF]">
+        Le Système Intelligent surveille boutons, APIs, pages, redirections, annonces, images et
+        paiements, et lève une alerte de niveau adapté dès qu'un problème est détecté.
       </p>
     </div>
   );

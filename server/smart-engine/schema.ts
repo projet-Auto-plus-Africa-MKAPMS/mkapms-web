@@ -21,9 +21,12 @@ import {
 } from "drizzle-orm/pg-core";
 
 // ── Enums ──────────────────────────────────────────────────────────────
+// 4 niveaux (Partie 10) : info (🟢 Information), warning (🟡 Attention),
+// important (🟠 Important), critical (🔴 Critique).
 export const smartAlertSeverityEnum = pgEnum("smart_alert_severity", [
   "info",
   "warning",
+  "important",
   "critical",
 ]);
 export const smartAlertStatusEnum = pgEnum("smart_alert_status", [
