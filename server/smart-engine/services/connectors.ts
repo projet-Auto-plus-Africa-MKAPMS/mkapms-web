@@ -8,9 +8,10 @@
  * ajouté ici.
  */
 import { db } from "../../db.js";
-import { and, eq, gte, sql } from "drizzle-orm";
+import { gte, sql } from "drizzle-orm";
 import { smartAlerts, smartHealthChecks } from "../schema.js";
 import { permSecurityLog, permTemporaryGrants } from "../../permission-engine/schema.js";
+import { redirRules, redirLogs } from "../../redirection-engine/schema.js";
 
 export interface EngineMetric {
   label: string;
@@ -83,12 +84,33 @@ export async function getEnginesOverview(): Promise<EngineStatus[]> {
         { label: "Accès temporaires actifs", value: grantRow?.active ?? 0 },
       ],
     },
-    {
-      key: "redirection",
-      name: "Moteur de Redirection",
-      status: "prévu",
-      description: "Gestion intelligente des redirections (boutons, services). À installer et connecter.",
-      metrics: [],
-    },
+    await (async () => {
+      const [ruleRow] = await db
+        .select({
+          total: sql<number>`count(*)::int`,
+          active: sql<number>`count(*) filter (where ${redirRules.active} = true)::int`,
+          hits: sql<number>`coalesce(sum(${redirRules.hitCount}), 0)::int`,
+        })
+        .from(redirRules);
+      const [logRow] = await db
+        .select({
+          unmatched24h: sql<number>`count(*) filter (where ${redirLogs.matched} = false)::int`,
+        })
+        .from(redirLogs)
+        .where(gte(redirLogs.createdAt, since24h));
+      return {
+        key: "redirection",
+        name: "Moteur de Redirection",
+        status: "actif" as const,
+        description: "Gestion centralisée des redirections (boutons, services, routes) — plus de câblage en dur.",
+        controlPath: "/superadmin/redirection-engine",
+        metrics: [
+          { label: "Règles", value: ruleRow?.total ?? 0 },
+          { label: "Règles actives", value: ruleRow?.active ?? 0 },
+          { label: "Redirections servies", value: ruleRow?.hits ?? 0 },
+          { label: "Clés sans règle (24h)", value: logRow?.unmatched24h ?? 0 },
+        ],
+      };
+    })(),
   ];
 }
