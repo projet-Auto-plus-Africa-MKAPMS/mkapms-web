@@ -227,7 +227,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════════════════
           LAYOUT 3 COLONNES : PUB GAUCHE | CONTENU | PUB DROITE
           ═══════════════════════════════════════════════════════════════════ */}
-      <div className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto flex">
+      <div className="max-w-[1400px] xl:max-w-[1680px] 2xl:max-w-[1800px] mx-auto flex">
 
         {/* ── PUB GAUCHE (desktop seulement) ── */}
         <aside className="hidden xl:flex flex-col gap-4 w-[160px] shrink-0 pt-4 pl-2 sticky top-20 self-start h-fit">
@@ -266,12 +266,12 @@ export default function Home() {
             {/* Overlay sombre premium */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/20" />
             {/* Contenu overlay */}
-            <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 md:p-8 lg:p-12 h-[220px] md:h-[340px] lg:h-[420px] 2xl:h-[480px]">
-              <p className="text-[10px] md:text-xs lg:text-sm font-semibold uppercase tracking-widest text-[#D4AF37]">LA MARKETPLACE AUTOMOBILE</p>
-              <h1 className="mt-1 text-xl md:text-3xl lg:text-4xl 2xl:text-5xl font-black text-white uppercase leading-tight">
+            <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 md:p-8 lg:p-12 h-[220px] md:h-[340px] lg:h-[420px] xl:h-[600px] 2xl:h-[680px]">
+              <p className="text-[10px] md:text-xs lg:text-sm xl:text-base font-semibold uppercase tracking-widest text-[#D4AF37]">LA MARKETPLACE AUTOMOBILE</p>
+              <h1 className="mt-1 text-xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-black text-white uppercase leading-tight">
                 ACHETEZ, VENDEZ, LOUEZ, RÉPAREZ
               </h1>
-              <p className="text-xs md:text-sm lg:text-base text-white/80 mt-1">EN TOUTE CONFIANCE, PARTOUT, À TOUT MOMENT.</p>
+              <p className="text-xs md:text-sm lg:text-base xl:text-lg text-white/80 mt-1 xl:mt-2">EN TOUTE CONFIANCE, PARTOUT, À TOUT MOMENT.</p>
               <p className="text-[10px] md:text-xs lg:text-sm text-white/60 mt-0.5">Tout l'univers automobile réuni au même endroit.</p>
               {/* Badges confiance */}
               <div className="mt-3 flex gap-4 md:gap-6">
@@ -322,7 +322,7 @@ export default function Home() {
               SECTION 3 — UNIVERS MKA.P-MS (Acheter, Vendre, Louer, Réparer)
               ═══════════════════════════════════════════════════════════════ */}
           <section className="bg-white px-4 py-3 md:py-5">
-            <div className="grid grid-cols-4 gap-2 md:gap-4 max-w-2xl mx-auto">
+            <div className="grid grid-cols-4 gap-2 md:gap-4 max-w-2xl xl:max-w-4xl mx-auto">
               {[
                 { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
                 { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
@@ -345,7 +345,7 @@ export default function Home() {
               SECTION 3B — BARRE DE RECHERCHE UNIVERSELLE
               ═══════════════════════════════════════════════════════════════ */}
           <section className="bg-white px-4 py-3 border-t border-[#F3F4F6]">
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl xl:max-w-4xl mx-auto">
               <div
                 onClick={() => navigate("/recherche-universelle")}
                 className="flex items-center gap-2 rounded-xl border-2 border-[#D4AF37]/30 bg-[#F5F3EF] px-4 py-3 cursor-pointer hover:border-[#D4AF37] hover:shadow-md transition"
@@ -361,7 +361,7 @@ export default function Home() {
               SECTION 4 — RECHERCHE AVANCÉE PREMIUM
               ═══════════════════════════════════════════════════════════════ */}
           <section className="bg-white px-4 pb-4">
-            <div className="max-w-3xl mx-auto rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#FAFAF8] to-white p-4 shadow-md">
+            <div className="max-w-3xl xl:max-w-5xl mx-auto rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#FAFAF8] to-white p-4 xl:p-6 shadow-md">
               {/* En-tête premium */}
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
@@ -732,7 +732,7 @@ export default function Home() {
           <section className="px-4 py-6 bg-[#F5F3EF] border-t border-[#E5E7EB]">
             <h2 className="text-base md:text-lg font-black text-[#111] text-center uppercase mb-1">Nos Services</h2>
             <p className="text-[10px] md:text-xs text-[#6B7280] text-center mb-4">MKA.P-MS — L'écosystème automobile complet</p>
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-w-4xl mx-auto">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-w-4xl xl:max-w-6xl mx-auto">
               {[
                 { icon: Car, label: "Achat / Vente", desc: "Véhicules neufs et d'occasion", to: "/acheter", color: "text-[#D4AF37]" },
                 { icon: KeyRound, label: "Location", desc: "Particulier, Pro, VTC & Taxi", to: "/louer", color: "text-blue-600" },
@@ -782,7 +782,7 @@ export default function Home() {
           <section className="px-4 py-6 bg-white border-t border-[#F3F4F6]">
             <h2 className="text-base md:text-lg font-black text-[#111] text-center uppercase mb-1">Vous êtes professionnel ?</h2>
             <p className="text-[10px] md:text-xs text-[#6B7280] text-center mb-4">Rejoignez MKA.P-MS et développez votre activité automobile</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl xl:max-w-5xl mx-auto">
               {[
                 { icon: Wrench, label: "Garages", desc: "Gérez vos ateliers et devis", to: "/espace-pro" },
                 { icon: Car, label: "Marchands", desc: "Vendez vos véhicules", to: "/espace-pro" },
@@ -815,7 +815,7 @@ export default function Home() {
               SECTION 15 — SERVICES PREMIUM MKA.P-MS
               ═══════════════════════════════════════════════════════════════ */}
           <section className="px-4 py-5 bg-[#F5F3EF] border-t border-[#E5E7EB]">
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide max-w-4xl mx-auto">
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide max-w-4xl xl:max-w-6xl mx-auto">
               {[
                 { icon: CreditCard, label: "Finance+", desc: "LOA, Crédit, Paiement jusqu'à 10x", to: "/finance" },
                 { icon: History, label: "Historique véhicule", desc: "Rapports officiels & Analyse IA", to: "/historique" },
@@ -840,7 +840,7 @@ export default function Home() {
               MKA.P-MS REWARDS BANNER
               ═══════════════════════════════════════════════════════════════ */}
           <section className="px-4 py-6 bg-gradient-to-r from-[#D4AF37] to-[#B8960C]">
-            <div className="max-w-3xl mx-auto flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+            <div className="max-w-3xl xl:max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
               <div className="flex-1">
                 <h3 className="text-lg font-black text-white">MKA.P-MS REWARDS</h3>
                 <p className="text-xs text-white/80 mt-1">Gagnez des points a chaque action. Echangez-les contre des boosts, des photos, des abonnements Premium.</p>
@@ -853,7 +853,7 @@ export default function Home() {
               SECTION 16 — FOOTER (dans Layout, mais on ajoute newsletter + liens)
               ═══════════════════════════════════════════════════════════════ */}
           <footer className="bg-[#111] text-white">
-            <div className="max-w-5xl mx-auto px-4 py-8 md:py-12">
+            <div className="max-w-5xl xl:max-w-7xl 2xl:max-w-[1500px] mx-auto px-4 py-8 md:py-12">
               <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                 {/* Newsletter */}
                 <div className="col-span-2 md:col-span-1">

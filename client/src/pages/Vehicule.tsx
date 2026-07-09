@@ -526,7 +526,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
         </div>
 
         {/* Carte prix montée au-dessus de la photo — même système Pro */}
-        <div className="container-page -mt-12 relative z-10">
+        <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] -mt-12 relative z-10">
           <div className="rounded-2xl border-2 border-[#111] bg-white p-5 pb-6 text-center" style={{boxShadow: '0 0 18px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.12)'}}>
             <h1 className="text-xl font-extrabold text-[#111] md:text-2xl">{v.titre}</h1>
             {v.motorisation && <p className="mt-1 text-sm text-slate-500">{v.marque} {v.modele} {v.motorisation}</p>}
@@ -542,7 +542,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
           </div>
         </div>
 
-        <div className="container-page space-y-5 py-5">
+        <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] space-y-5 py-5">
           {/* ── 4. Favoris + Partager ── */}
           <div className="flex items-center justify-between px-2">
             <button className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-noir" onClick={() => { setIsFav(!isFav); requireLogin(() => toggleFav.mutate({ annonceId: v.id })); }}><Heart size={18} className={isFav ? "text-red-500 fill-red-500" : ""} /> {isFav ? "Favori" : "Ajouter aux favoris"}</button>
@@ -1025,7 +1025,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
 
         {/* Barre fixe mobile MKA.P-MS — décollée, disparaît au scroll */}
         <div className={`fixed inset-x-0 z-30 border-t-2 border-[#D4AF37]/30 bg-white p-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] md:hidden transition-all duration-300 ${scrollHidden ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"}`} style={{ bottom: 'calc(52px + env(safe-area-inset-bottom, 0px))' }}>
-          <div className="container-page">
+          <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px]">
             <div className="grid grid-cols-2 gap-3">
               <button className="flex h-[52px] items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-sm font-bold text-white" onClick={primaryAction}><ShoppingCart size={16} /> Acheter</button>
               <button className="flex h-[52px] items-center justify-center gap-2 rounded-xl bg-[#111] text-sm font-bold text-white" onClick={messageAction}><Mail size={16} /> Message</button>
@@ -1243,7 +1243,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
         </div>
 
         {/* ===== CARTE INFO (overlap sur la photo, style Le Bon Coin) ===== */}
-        <div className="container-page -mt-12 relative z-10">
+        <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] -mt-12 relative z-10">
           <div className="rounded-2xl border-2 border-[#111] bg-white p-5 pb-6" style={{boxShadow: '0 0 18px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.12)'}}>
             <h1 className="text-center text-xl font-extrabold text-[#111] md:text-2xl">{v.titre}</h1>
             <p className="text-center mt-1 text-xs text-slate-500">{v.ville || "Lyon"} · {v.annee || "2023"} · {v.kilometrage ? `${v.kilometrage.toLocaleString("fr-FR")} km` : ""} · {v.carburant || "Essence"}</p>
@@ -1756,7 +1756,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
   }
 
   return (
-    <div className="container-page py-6 pb-20 md:pb-10">
+    <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] py-6 pb-20 md:pb-10">
       {/* Fil d'ariane */}
       <div className="mb-4 flex items-center gap-1 text-xs text-slate-400">
         <Link to="/acheter" className="hover:text-noir">Annonces</Link>
@@ -1764,7 +1764,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
         <span className="text-slate-500">{v.marque} {v.modele}</span>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
+      <div className="grid gap-6 xl:gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         {/* ===== 1. PHOTOS ===== */}
         <section className="min-w-0 lg:col-start-1 lg:row-start-1">
           <div className={`card overflow-hidden ${isOfficiel ? "border-[#D4AF37]/40 shadow-lg" : ""}`}>
