@@ -32,6 +32,7 @@ import { validateAnnonceUnivers, getMisplacedAnnonces } from "./services/annonce
 import { validateBadges, getBadgeAlerts } from "./services/badge-validator.js";
 import { reportHealthCheck, getHealthStatus, getBrokenElements, registerCriticalElements } from "./services/health-monitor.js";
 import { trackPageVisit, trackUserAction, getPageStats, getUserBehaviorProfile, getActiveUsers, getPlatformPulse } from "./services/behavior-tracking.js";
+import { teach, getConversation, getTeachingStats } from "./services/teaching.js";
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
 import { desc, eq, sql, and } from "drizzle-orm";
@@ -391,5 +392,22 @@ export const smartEngineRouter = router({
       pulse: pulseData,
       activeUsers: activeUsersData.length,
     };
+  }),
+
+  // ── 15. Apprentissage privé PDG (chat PDG ↔ Système Intelligent) ────
+  teach: pdgProcedure
+    .input(z.object({ message: z.string().min(1).max(4000), topic: z.string().max(128).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      return teach({ authorId: ctx.user.uid, message: input.message, topic: input.topic });
+    }),
+
+  teachingConversation: pdgProcedure
+    .input(z.object({ limit: z.number().default(100) }).optional())
+    .query(async ({ input }) => {
+      return getConversation(input?.limit ?? 100);
+    }),
+
+  teachingStats: pdgProcedure.query(async () => {
+    return getTeachingStats();
   }),
 });

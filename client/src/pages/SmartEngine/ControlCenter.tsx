@@ -13,7 +13,7 @@
  * - Recommandations
  * - Activité en temps réel
  */
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
@@ -36,12 +36,15 @@ import {
   FileWarning,
   Users,
   Layers,
+  GraduationCap,
+  Send,
 } from "lucide-react";
 
-type Tab = "dashboard" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "apprentissage" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
+  { key: "apprentissage", label: "Apprentissage privé", icon: GraduationCap },
   { key: "recherches", label: "Recherches", icon: Search },
   { key: "doublons", label: "Doublons", icon: Layers },
   { key: "suspects", label: "Comptes suspects", icon: Users },
@@ -105,6 +108,7 @@ export default function ControlCenter() {
       {/* Content */}
       <div className="px-4">
         {tab === "dashboard" && <DashboardTab onNavigate={setTab} />}
+        {tab === "apprentissage" && <ApprentissageTab />}
         {tab === "recherches" && <RecherchesTab />}
         {tab === "doublons" && <DoublonsTab />}
         {tab === "suspects" && <SuspectsTab />}
@@ -215,6 +219,117 @@ function ActionBtn({ label, icon: Icon, loading, onClick }: { label: string; ico
       {loading ? <RefreshCw size={12} className="animate-spin" /> : <Icon size={12} />}
       {label}
     </button>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : Apprentissage privé (chat PDG ↔ Système Intelligent)
+   ═══════════════════════════════════════════════════════════ */
+function ApprentissageTab() {
+  const conversation = trpc.smartEngine.teachingConversation.useQuery({ limit: 200 });
+  const stats = trpc.smartEngine.teachingStats.useQuery();
+  const utils = trpc.useUtils();
+  const teach = trpc.smartEngine.teach.useMutation({
+    onSuccess: () => {
+      utils.smartEngine.teachingConversation.invalidate();
+      utils.smartEngine.teachingStats.invalidate();
+    },
+  });
+  const [text, setText] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const messages = conversation.data ?? [];
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages.length]);
+
+  function send() {
+    const msg = text.trim();
+    if (!msg || teach.isPending) return;
+    setText("");
+    teach.mutate({ message: msg });
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">Apprentissage privé</h2>
+        <span className="rounded-full bg-[#111] px-2.5 py-1 text-[10px] font-bold text-[#D4AF37]">
+          {stats.data?.lessons ?? 0} leçon(s) mémorisée(s)
+        </span>
+      </div>
+      <p className="text-[11px] text-[#6B7280]">
+        Espace confidentiel — toi seul (PDG) discutes ici avec le Système Intelligent. Écris-lui une
+        information (une affirmation) et il la mémorise ; pose une question (avec « ? ») et il répond
+        à partir de ce que tu lui as appris.
+      </p>
+
+      <div
+        ref={scrollRef}
+        className="max-h-[52vh] space-y-2 overflow-y-auto rounded-xl border border-[#E5E7EB] bg-white p-3"
+      >
+        {conversation.isLoading ? (
+          <Loading />
+        ) : messages.length === 0 ? (
+          <div className="py-8 text-center">
+            <GraduationCap size={28} className="mx-auto text-[#D4AF37]" />
+            <p className="mt-2 text-sm text-[#6B7280]">
+              Commence à lui apprendre. Exemple :<br />
+              « Un véhicule VO interne ne doit jamais être visible par un particulier. »
+            </p>
+          </div>
+        ) : (
+          messages.map((m: any) => (
+            <div key={m.id} className={`flex ${m.role === "pdg" ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${
+                  m.role === "pdg"
+                    ? "bg-[#D4AF37] text-white"
+                    : "bg-[#F5F3EF] text-[#111] border border-[#E5E7EB]"
+                }`}
+              >
+                {m.role === "system" && (
+                  <span className="mb-0.5 block text-[10px] font-bold text-[#D4AF37]">Système Intelligent</span>
+                )}
+                {m.message}
+              </div>
+            </div>
+          ))
+        )}
+        {teach.isPending && (
+          <div className="flex justify-start">
+            <div className="rounded-2xl border border-[#E5E7EB] bg-[#F5F3EF] px-3 py-2">
+              <RefreshCw size={14} className="animate-spin text-[#D4AF37]" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-end gap-2">
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              send();
+            }
+          }}
+          rows={2}
+          placeholder="Apprends-lui quelque chose, ou pose une question…"
+          className="flex-1 resize-none rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#111] focus:border-[#D4AF37] focus:outline-none"
+        />
+        <button
+          onClick={send}
+          disabled={teach.isPending || !text.trim()}
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#D4AF37] text-white transition disabled:opacity-40"
+          aria-label="Envoyer"
+        >
+          <Send size={18} />
+        </button>
+      </div>
+    </div>
   );
 }
 

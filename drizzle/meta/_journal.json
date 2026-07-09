@@ -155,6 +155,13 @@
       "when": 1783500000000,
       "tag": "0021_permission_engine",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1783510000000,
+      "tag": "0022_smart_teachings",
+      "breakpoints": true
     }
   ]
 }
