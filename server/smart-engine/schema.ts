@@ -280,3 +280,51 @@ export const smartOptimizations = pgTable("smart_optimizations", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// ── 19. Apprentissage des développements (Partie 11) ────────────────────
+// À chaque nouveau développement (moteur, table, API, page, bouton), le
+// Système Intelligent analyse la nouveauté, comprend sa fonction, l'ajoute à
+// sa surveillance et vérifie qu'une permission est bien définie (Permission
+// Engine). Détection réelle : introspection du routeur TRPC (API) et des
+// tables présentes en base. Table isolée, additive, jamais bloquante.
+export const smartDevKindEnum = pgEnum("smart_dev_kind", [
+  "moteur",
+  "table",
+  "api",
+  "page",
+  "bouton",
+  "formulaire",
+]);
+export const smartDevStatusEnum = pgEnum("smart_dev_status", [
+  "nouveau", // détecté, pas encore pris en compte par le PDG
+  "surveille", // intégré à la surveillance
+  "ignore", // écarté par le PDG
+]);
+// Permission : le Permission Engine a-t-il une règle pour cette nouveauté ?
+export const smartDevPermissionEnum = pgEnum("smart_dev_permission", [
+  "definie", // une règle de permission existe
+  "requise", // aucune règle → à créer (une fonctionnalité sans permission ne doit pas être visible)
+  "publique", // volontairement public (pas de permission nécessaire)
+  "na", // non applicable
+]);
+export const smartDevRegistry = pgTable("smart_dev_registry", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  kind: smartDevKindEnum("kind").notNull(),
+  // Nom lisible (ex: "annonces.create", "message_threads", "/paiement-vehicule")
+  name: varchar("name", { length: 255 }).notNull(),
+  // Fonction déduite automatiquement (heuristique sur le nom / type)
+  functionGuess: text("function_guess"),
+  // Sous-type utile (ex: "query" | "mutation" pour une API)
+  subtype: varchar("subtype", { length: 32 }),
+  // Module de permission rattaché (clé de shared/permissions.ts) si connu
+  permissionModule: varchar("permission_module", { length: 64 }),
+  permission: smartDevPermissionEnum("permission").default("na"),
+  status: smartDevStatusEnum("status").default("nouveau"),
+  // Signature unique normalisée = kind|name
+  signature: varchar("signature", { length: 320 }).notNull().unique(),
+  detections: integer("detections").default(1),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  acknowledgedBy: integer("acknowledged_by"),
+  firstSeenAt: timestamp("first_seen_at").defaultNow(),
+  lastSeenAt: timestamp("last_seen_at").defaultNow(),
+});

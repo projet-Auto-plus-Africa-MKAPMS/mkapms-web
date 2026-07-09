@@ -39,6 +39,7 @@ import { observe, listKB, kbStats, validateKB, KB_DOMAINS } from "./services/kno
 import { generateOptimizations, listOptimizations, optimizationStats, reviewOptimization } from "./services/auto-optimization.js";
 import { getPlatformHealth } from "./services/platform-health.js";
 import { runAlertScan, alertLevelStats } from "./services/alert-engine.js";
+import { scanDevelopments, getDevLearningStats, listDevItems, reviewDevItem } from "./services/dev-learning.js";
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
 import { desc, eq, sql, and } from "drizzle-orm";
@@ -531,4 +532,47 @@ export const smartEngineRouter = router({
   alertLevelStats: pdgProcedure.query(async () => {
     return alertLevelStats();
   }),
+
+  // ── 21. Apprentissage des développements (Partie 11) ─────────────
+  // Détecte automatiquement APIs / tables réelles, comprend leur fonction,
+  // les ajoute à la surveillance et signale les permissions manquantes.
+  devLearningScan: pdgProcedure.mutation(async () => {
+    return scanDevelopments();
+  }),
+
+  devLearningStats: pdgProcedure.query(async () => {
+    return getDevLearningStats();
+  }),
+
+  devLearningList: pdgProcedure
+    .input(
+      z
+        .object({
+          kind: z.enum(["moteur", "table", "api", "page", "bouton", "formulaire"]).optional(),
+          permission: z.enum(["definie", "requise", "publique", "na"]).optional(),
+          status: z.enum(["nouveau", "surveille", "ignore"]).optional(),
+          search: z.string().optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      return listDevItems(input ?? {});
+    }),
+
+  devLearningReview: pdgProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        status: z.enum(["nouveau", "surveille", "ignore"]).optional(),
+        permission: z.enum(["definie", "requise", "publique", "na"]).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return reviewDevItem({
+        id: input.id,
+        status: input.status,
+        permission: input.permission,
+        acknowledgedBy: ctx.user.uid,
+      });
+    }),
 });
