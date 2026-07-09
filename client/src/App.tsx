@@ -1,5 +1,5 @@
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import Layout from "./components/Layout";
 import { useAuth } from "./lib/auth";
 import { trpc } from "./lib/trpc";
@@ -732,9 +732,25 @@ function SessionLoader() {
   return null;
 }
 
-/** Composant qui sélectionne la home page selon le domaine */
+/** Composant qui sélectionne la home page selon le domaine.
+ *  Sur mobile (< lg), tous les domaines (.fr, .com, .pro, .site) affichent
+ *  la version .fr (Home) : le mobile est uniforme sur toute la plateforme.
+ *  Sur ordinateur, chaque domaine garde sa page d'accueil dédiée. */
 function DomainHome() {
   const { key } = useDomain();
+  const MOBILE_QUERY = "(max-width: 1023px)";
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia(MOBILE_QUERY).matches : false,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    setIsMobile(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  if (isMobile) return <Home />;
   if (key === "pro") return <HomePro />;
   if (key === "site") return <HomeSite />;
   return <Home />;
