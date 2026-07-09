@@ -38,13 +38,17 @@ import {
   Layers,
   GraduationCap,
   Send,
+  Globe,
+  Lightbulb,
+  Plus,
 } from "lucide-react";
 
-type Tab = "dashboard" | "apprentissage" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "apprentissage" | "connaissances" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
   { key: "apprentissage", label: "Apprentissage privé", icon: GraduationCap },
+  { key: "connaissances", label: "Connaissances externes", icon: Globe },
   { key: "recherches", label: "Recherches", icon: Search },
   { key: "doublons", label: "Doublons", icon: Layers },
   { key: "suspects", label: "Comptes suspects", icon: Users },
@@ -109,6 +113,7 @@ export default function ControlCenter() {
       <div className="px-4">
         {tab === "dashboard" && <DashboardTab onNavigate={setTab} />}
         {tab === "apprentissage" && <ApprentissageTab />}
+        {tab === "connaissances" && <ConnaissancesTab />}
         {tab === "recherches" && <RecherchesTab />}
         {tab === "doublons" && <DoublonsTab />}
         {tab === "suspects" && <SuspectsTab />}
@@ -329,6 +334,187 @@ function ApprentissageTab() {
           <Send size={18} />
         </button>
       </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : Connaissances externes (veille / benchmark)
+   ═══════════════════════════════════════════════════════════ */
+const KNOWLEDGE_CATS: { key: string; label: string }[] = [
+  { key: "marketplace", label: "Marketplace auto" },
+  { key: "concessionnaire", label: "Concessionnaire" },
+  { key: "garage", label: "Garage" },
+  { key: "location", label: "Location" },
+  { key: "pieces", label: "Pièces" },
+  { key: "general", label: "Général" },
+];
+
+function ConnaissancesTab() {
+  const list = trpc.smartEngine.knowledgeList.useQuery({ limit: 300 });
+  const stats = trpc.smartEngine.knowledgeStats.useQuery();
+  const utils = trpc.useUtils();
+  const refresh = () => {
+    utils.smartEngine.knowledgeList.invalidate();
+    utils.smartEngine.knowledgeStats.invalidate();
+  };
+  const seed = trpc.smartEngine.seedKnowledge.useMutation({ onSuccess: refresh });
+  const add = trpc.smartEngine.addKnowledge.useMutation({ onSuccess: refresh });
+  const mark = trpc.smartEngine.markKnowledgeApplied.useMutation({ onSuccess: refresh });
+
+  const [showForm, setShowForm] = useState(false);
+  const [category, setCategory] = useState("marketplace");
+  const [source, setSource] = useState("");
+  const [insight, setInsight] = useState("");
+  const [recommendation, setRecommendation] = useState("");
+  const [url, setUrl] = useState("");
+
+  const items = list.data ?? [];
+
+  function submit() {
+    if (!insight.trim() || add.isPending) return;
+    add.mutate(
+      {
+        category: category as any,
+        source: source.trim() || undefined,
+        insight: insight.trim(),
+        recommendation: recommendation.trim() || undefined,
+        url: url.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          setSource("");
+          setInsight("");
+          setRecommendation("");
+          setUrl("");
+          setShowForm(false);
+        },
+      },
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">Connaissances externes</h2>
+        <span className="rounded-full bg-[#111] px-2.5 py-1 text-[10px] font-bold text-[#D4AF37]">
+          {stats.data?.total ?? 0} connaissance(s)
+        </span>
+      </div>
+      <p className="text-[11px] text-[#6B7280]">
+        Veille : bonnes pratiques observées ailleurs (marketplaces, concessionnaires, garages…) avec un
+        conseil concret pour MKA.P-MS. Ajoute une connaissance, ou charge la base de départ du secteur.
+      </p>
+
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowForm((v) => !v)}
+          className="flex items-center gap-1 rounded-xl bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white"
+        >
+          <Plus size={14} /> Ajouter
+        </button>
+        {items.length === 0 && (
+          <button
+            onClick={() => seed.mutate()}
+            disabled={seed.isPending}
+            className="flex items-center gap-1 rounded-xl border border-[#E5E7EB] bg-white px-3 py-1.5 text-xs font-semibold text-[#374151] disabled:opacity-40"
+          >
+            <RefreshCw size={14} className={seed.isPending ? "animate-spin" : ""} /> Charger la base de départ
+          </button>
+        )}
+      </div>
+
+      {showForm && (
+        <div className="space-y-2 rounded-xl border border-[#E5E7EB] bg-white p-3">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full rounded-lg border border-[#E5E7EB] px-2 py-1.5 text-sm"
+          >
+            {KNOWLEDGE_CATS.map((c) => (
+              <option key={c.key} value={c.key}>{c.label}</option>
+            ))}
+          </select>
+          <input
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            placeholder="Source / acteur observé (optionnel)"
+            className="w-full rounded-lg border border-[#E5E7EB] px-2 py-1.5 text-sm"
+          />
+          <textarea
+            value={insight}
+            onChange={(e) => setInsight(e.target.value)}
+            rows={2}
+            placeholder="Ce qui a été observé / appris"
+            className="w-full resize-none rounded-lg border border-[#E5E7EB] px-2 py-1.5 text-sm"
+          />
+          <textarea
+            value={recommendation}
+            onChange={(e) => setRecommendation(e.target.value)}
+            rows={2}
+            placeholder="Conseil concret pour MKA.P-MS (optionnel)"
+            className="w-full resize-none rounded-lg border border-[#E5E7EB] px-2 py-1.5 text-sm"
+          />
+          <input
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="Lien (optionnel)"
+            className="w-full rounded-lg border border-[#E5E7EB] px-2 py-1.5 text-sm"
+          />
+          <button
+            onClick={submit}
+            disabled={add.isPending || !insight.trim()}
+            className="w-full rounded-lg bg-[#111] py-2 text-sm font-bold text-white disabled:opacity-40"
+          >
+            Enregistrer
+          </button>
+        </div>
+      )}
+
+      {list.isLoading ? (
+        <Loading />
+      ) : items.length === 0 ? (
+        <div className="py-8 text-center text-sm text-[#6B7280]">
+          <Globe size={28} className="mx-auto text-[#D4AF37]" />
+          <p className="mt-2">Aucune connaissance pour l'instant.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {items.map((k: any) => (
+            <div key={k.id} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="rounded-full bg-[#F5F3EF] px-2 py-0.5 text-[10px] font-bold text-[#374151]">
+                  {KNOWLEDGE_CATS.find((c) => c.key === k.category)?.label ?? k.category}
+                </span>
+                {k.applied && (
+                  <span className="flex items-center gap-1 text-[10px] font-bold text-green-600">
+                    <CheckCircle2 size={12} /> Appliqué
+                  </span>
+                )}
+              </div>
+              {k.source && <p className="mt-1 text-[11px] font-semibold text-[#6B7280]">{k.source}</p>}
+              <p className="mt-1 text-sm text-[#111]">{k.insight}</p>
+              {k.recommendation && (
+                <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-[#FFF8E1] p-2">
+                  <Lightbulb size={14} className="mt-0.5 shrink-0 text-[#D4AF37]" />
+                  <p className="text-xs text-[#7A5C00]">{k.recommendation}</p>
+                </div>
+              )}
+              {k.url && (
+                <a href={k.url} target="_blank" rel="noreferrer" className="mt-1 block text-[11px] text-blue-600 underline">
+                  {k.url}
+                </a>
+              )}
+              <button
+                onClick={() => mark.mutate({ id: k.id, applied: !k.applied })}
+                className="mt-2 text-[11px] font-semibold text-[#6B7280] underline"
+              >
+                {k.applied ? "Marquer comme non appliqué" : "Marquer comme appliqué"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

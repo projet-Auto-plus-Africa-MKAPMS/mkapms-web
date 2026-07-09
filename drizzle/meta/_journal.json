@@ -162,6 +162,13 @@
       "when": 1783510000000,
       "tag": "0022_smart_teachings",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1783511000000,
+      "tag": "0023_smart_knowledge",
+      "breakpoints": true
     }
   ]
 }

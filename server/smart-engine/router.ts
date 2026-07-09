@@ -33,6 +33,7 @@ import { validateBadges, getBadgeAlerts } from "./services/badge-validator.js";
 import { reportHealthCheck, getHealthStatus, getBrokenElements, registerCriticalElements } from "./services/health-monitor.js";
 import { trackPageVisit, trackUserAction, getPageStats, getUserBehaviorProfile, getActiveUsers, getPlatformPulse } from "./services/behavior-tracking.js";
 import { teach, getConversation, getTeachingStats } from "./services/teaching.js";
+import { seedKnowledge, addKnowledge, listKnowledge, markApplied, getKnowledgeStats, KNOWLEDGE_CATEGORIES } from "./services/knowledge.js";
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
 import { desc, eq, sql, and } from "drizzle-orm";
@@ -409,5 +410,38 @@ export const smartEngineRouter = router({
 
   teachingStats: pdgProcedure.query(async () => {
     return getTeachingStats();
+  }),
+
+  // ── 16. Connaissances externes (veille / benchmark) ────────────────
+  knowledgeList: pdgProcedure
+    .input(z.object({ category: z.string().optional(), limit: z.number().default(200) }).optional())
+    .query(async ({ input }) => {
+      return listKnowledge(input?.category, input?.limit ?? 200);
+    }),
+
+  knowledgeStats: pdgProcedure.query(async () => {
+    return getKnowledgeStats();
+  }),
+
+  addKnowledge: pdgProcedure
+    .input(z.object({
+      category: z.enum(KNOWLEDGE_CATEGORIES),
+      source: z.string().max(160).optional(),
+      insight: z.string().min(1).max(4000),
+      recommendation: z.string().max(4000).optional(),
+      url: z.string().max(512).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return addKnowledge({ ...input, addedBy: ctx.user.uid });
+    }),
+
+  markKnowledgeApplied: pdgProcedure
+    .input(z.object({ id: z.number(), applied: z.boolean() }))
+    .mutation(async ({ input }) => {
+      return markApplied(input.id, input.applied);
+    }),
+
+  seedKnowledge: pdgProcedure.mutation(async () => {
+    return seedKnowledge();
   }),
 });
