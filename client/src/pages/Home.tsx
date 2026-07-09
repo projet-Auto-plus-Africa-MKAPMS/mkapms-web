@@ -11,6 +11,7 @@ import {
   BookOpen, Cog, Sparkles, Play
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
+import { SmartLink } from "../lib/redirect";
 import { useAuth } from "../lib/auth";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 
@@ -804,9 +805,9 @@ export default function Home() {
               ))}
             </div>
             <div className="mt-4 text-center">
-              <Link to="/espace-pro" className="inline-block rounded-full bg-[#D4AF37] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#c9a430] transition">
+              <SmartLink redirKey="bouton_devenir_partenaire" fallback="/espace-pro" className="inline-block rounded-full bg-[#D4AF37] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#c9a430] transition">
                 Devenir partenaire
-              </Link>
+              </SmartLink>
             </div>
           </section>
 

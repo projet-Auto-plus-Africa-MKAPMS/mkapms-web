@@ -169,6 +169,13 @@
       "when": 1783511000000,
       "tag": "0023_smart_knowledge",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1783512500000,
+      "tag": "0024_redirection_engine",
+      "breakpoints": true
     }
   ]
 }

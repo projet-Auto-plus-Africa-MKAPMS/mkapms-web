@@ -285,6 +285,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Moteur de Redirection MKA.P-MS — accès PDG uniquement */}
+      {user?.role === "super_admin" && (
+      <section className="mt-6">
+        <h2 className="text-lg font-bold text-slate-800">Moteur de Redirection MKA.P-MS</h2>
+        <p className="text-xs text-slate-500">Centre de contr&ocirc;le — redirections centralis&eacute;es (boutons, services, routes)</p>
+        <Link to="/superadmin/redirection-engine" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F500;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre de Contr&ocirc;le des Redirections</p>
+            <p className="text-xs text-white/60">R&egrave;gles cl&eacute; &rarr; destination, cl&eacute;s sans r&egrave;gle, journal des r&eacute;solutions</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Modules & Services — accès rapide */}
       <section className="mt-10">
         <h2 className="text-lg font-bold text-slate-800">Modules & Services</h2>

@@ -1137,3 +1137,4 @@ export * from "./modules/seo"; // SEO automatique + indexation Google
 export * from "./modules/coreEngine"; // Core Engine — moteur d'orchestration central (15 centres)
 export * from "./smart-engine/schema"; // Smart Engine — Système Intelligent MKA.P-MS (isolé)
 export * from "./permission-engine/schema"; // Permission Engine — Moteur de Permissions MKA.P-MS (isolé)
+export * from "./redirection-engine/schema"; // Redirection Engine — Moteur de Redirection MKA.P-MS (isolé)

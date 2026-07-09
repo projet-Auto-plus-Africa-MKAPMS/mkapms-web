@@ -41,14 +41,17 @@ import {
   Globe,
   Lightbulb,
   Plus,
+  Cpu,
+  ExternalLink,
 } from "lucide-react";
 
-type Tab = "dashboard" | "apprentissage" | "connaissances" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "apprentissage" | "connaissances" | "moteurs" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
   { key: "apprentissage", label: "Apprentissage privé", icon: GraduationCap },
   { key: "connaissances", label: "Connaissances externes", icon: Globe },
+  { key: "moteurs", label: "Moteurs connectés", icon: Cpu },
   { key: "recherches", label: "Recherches", icon: Search },
   { key: "doublons", label: "Doublons", icon: Layers },
   { key: "suspects", label: "Comptes suspects", icon: Users },
@@ -114,6 +117,7 @@ export default function ControlCenter() {
         {tab === "dashboard" && <DashboardTab onNavigate={setTab} />}
         {tab === "apprentissage" && <ApprentissageTab />}
         {tab === "connaissances" && <ConnaissancesTab />}
+        {tab === "moteurs" && <MoteursTab />}
         {tab === "recherches" && <RecherchesTab />}
         {tab === "doublons" && <DoublonsTab />}
         {tab === "suspects" && <SuspectsTab />}
@@ -511,6 +515,71 @@ function ConnaissancesTab() {
               >
                 {k.applied ? "Marquer comme non appliqué" : "Marquer comme appliqué"}
               </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : Moteurs connectés (hub d'observation)
+   ═══════════════════════════════════════════════════════════ */
+function MoteursTab() {
+  const engines = trpc.smartEngine.enginesOverview.useQuery();
+  const list = engines.data ?? [];
+
+  return (
+    <div className="space-y-3">
+      <h2 className="text-base font-bold text-[#111]">Moteurs connectés</h2>
+      <p className="text-[11px] text-[#6B7280]">
+        Le Système Intelligent observe tous les moteurs de la plateforme depuis ce hub. Chaque nouveau
+        moteur installé y apparaîtra automatiquement.
+      </p>
+
+      {engines.isLoading ? (
+        <Loading />
+      ) : (
+        <div className="space-y-2">
+          {list.map((e: any) => (
+            <div key={e.key} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Cpu size={16} className="text-[#D4AF37]" />
+                  <span className="text-sm font-bold text-[#111]">{e.name}</span>
+                </div>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                    e.status === "actif"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-500"
+                  }`}
+                >
+                  {e.status === "actif" ? "Actif" : "Prévu"}
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] text-[#6B7280]">{e.description}</p>
+
+              {e.metrics.length > 0 && (
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {e.metrics.map((m: any, i: number) => (
+                    <div key={i} className="rounded-lg bg-[#F5F3EF] p-2">
+                      <p className="text-[10px] text-[#6B7280]">{m.label}</p>
+                      <p className="text-lg font-black text-[#111]">{m.value}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {e.controlPath && (
+                <Link
+                  to={e.controlPath}
+                  className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 underline"
+                >
+                  Ouvrir le centre de contrôle <ExternalLink size={12} />
+                </Link>
+              )}
             </div>
           ))}
         </div>

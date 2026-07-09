@@ -170,6 +170,7 @@ const GlobalCountryEngine = lazy(() => import("./pages/GlobalCountryEngine"));
 const DepotVente = lazy(() => import("./pages/DepotVente"));
 const VOInterne = lazy(() => import("./pages/VOInterne"));
 const PermissionEngineControlCenter = lazy(() => import("./pages/PermissionEngine/ControlCenter"));
+const RedirectionEngineControlCenter = lazy(() => import("./pages/RedirectionEngine/ControlCenter"));
 const Comptabilite = lazy(() => import("./pages/Comptabilite"));
 const CarteGrise = lazy(() => import("./pages/CarteGrise"));
 const Mission = lazy(() => import("./pages/Mission"));
@@ -1102,6 +1103,7 @@ export default function App() {
             <Route path="/superadmin/core-engine-beta" element={<U name="Super Admin"><CoreEngineBeta /></U>} />
             <Route path="/superadmin/smart-engine" element={<U name="Système Intelligent"><SmartEngineControlCenter /></U>} />
             <Route path="/superadmin/permission-engine" element={<U name="Moteur de Permissions"><PermissionEngineControlCenter /></U>} />
+            <Route path="/superadmin/redirection-engine" element={<U name="Moteur de Redirection"><RedirectionEngineControlCenter /></U>} />
             <Route path="/superadmin/validation-documents-complete" element={<U name="Super Admin"><ValidationDocumentsComplete /></U>} />
             {/* Utilisateurs */}
             <Route path="/utilisateurs/abonnements-utilisateur" element={<U name="Utilisateurs"><AbonnementsUtilisateur /></U>} />
