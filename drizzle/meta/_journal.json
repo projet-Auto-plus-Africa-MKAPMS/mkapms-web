@@ -176,6 +176,20 @@
       "when": 1783512500000,
       "tag": "0024_redirection_engine",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1783513500000,
+      "tag": "0025_smart_knowledge_base",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1783609600000,
+      "tag": "0026_smart_auto_optimization",
+      "breakpoints": true
     }
   ]
 }

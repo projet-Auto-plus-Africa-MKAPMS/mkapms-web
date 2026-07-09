@@ -36,6 +36,7 @@ import { teach, getConversation, getTeachingStats } from "./services/teaching.js
 import { seedKnowledge, addKnowledge, listKnowledge, markApplied, getKnowledgeStats, KNOWLEDGE_CATEGORIES } from "./services/knowledge.js";
 import { getEnginesOverview } from "./services/connectors.js";
 import { observe, listKB, kbStats, validateKB, KB_DOMAINS } from "./services/knowledge-base.js";
+import { generateOptimizations, listOptimizations, optimizationStats, reviewOptimization } from "./services/auto-optimization.js";
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
 import { desc, eq, sql, and } from "drizzle-orm";
@@ -486,5 +487,32 @@ export const smartEngineRouter = router({
     .input(z.object({ id: z.number(), approved: z.boolean() }))
     .mutation(async ({ input }) => {
       return validateKB(input.id, input.approved);
+    }),
+
+  // ── 18. Auto-optimisation (Partie 8) ─────────────────────────────
+  // Le Smart Engine PROPOSE ; le PDG applique ou rejette. Aucune règle
+  // métier n'est modifiée automatiquement.
+  optimizationsGenerate: pdgProcedure.mutation(async () => {
+    return generateOptimizations();
+  }),
+
+  optimizationsList: pdgProcedure
+    .input(z.object({
+      category: z.string().optional(),
+      status: z.enum(["proposed", "applied", "rejected"]).optional(),
+      limit: z.number().default(100),
+    }).optional())
+    .query(async ({ input }) => {
+      return listOptimizations(input?.category, input?.status, input?.limit ?? 100);
+    }),
+
+  optimizationStats: pdgProcedure.query(async () => {
+    return optimizationStats();
+  }),
+
+  optimizationReview: pdgProcedure
+    .input(z.object({ id: z.number(), decision: z.enum(["applied", "rejected"]) }))
+    .mutation(async ({ ctx, input }) => {
+      return reviewOptimization(input.id, input.decision, ctx.user.uid);
     }),
 });
