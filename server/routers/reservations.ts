@@ -87,6 +87,59 @@ export const reservationsRouter = router({
       return { bookingId: booking.id, url: session.url, configured: true };
     }),
 
+  // Achat comptant (§ bouton « Acheter ») : paiement du prix total du véhicule.
+  buyNow: protectedProcedure
+    .input(z.object({ annonceId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const [a] = await db.select().from(annonces).where(eq(annonces.id, input.annonceId)).limit(1);
+      if (!a) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const montant = Number(a.prix);
+      if (!Number.isFinite(montant) || montant <= 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Prix indisponible pour cette annonce." });
+      }
+
+      const [pay] = await db
+        .insert(payments)
+        .values({
+          userId: ctx.user.uid,
+          type: "vehicle_purchase",
+          vehicleId: input.annonceId,
+          amount: String(montant),
+          currency: a.devise || "EUR",
+          status: "pending",
+        })
+        .returning();
+
+      const stripe = getStripe();
+      if (!stripe) {
+        return { paymentId: pay.id, url: `/paiement/simulation?payment=${pay.id}`, configured: false };
+      }
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        client_reference_id: String(ctx.user.uid),
+        metadata: {
+          user_id: String(ctx.user.uid),
+          payment_id: String(pay.id),
+          payment_kind: "vehicle_purchase",
+        },
+        line_items: [
+          {
+            price_data: {
+              currency: (a.devise || "EUR").toLowerCase(),
+              product_data: { name: `Achat véhicule — ${a.titre}` },
+              unit_amount: Math.round(montant * 100),
+            },
+            quantity: 1,
+          },
+        ],
+        success_url: `${env.PUBLIC_URL}/vehicule/${input.annonceId}?achat=1`,
+        cancel_url: `${env.PUBLIC_URL}/vehicule/${input.annonceId}?canceled=1`,
+      });
+      await db.update(payments).set({ stripeSessionId: session.id }).where(eq(payments.id, pay.id));
+      return { paymentId: pay.id, url: session.url, configured: true };
+    }),
+
   mine: protectedProcedure.query(async ({ ctx }) => {
     return db
       .select()

@@ -55,6 +55,8 @@ const ProduitLocation = lazy(() => import("./pages/ProduitLocation"));
 const CentreDocuments = lazy(() => import("./pages/CentreDocuments"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Messagerie = lazy(() => import("./pages/Messagerie"));
+const PaiementVehicule = lazy(() => import("./pages/PaiementVehicule"));
+const PaiementSimulation = lazy(() => import("./pages/PaiementSimulation"));
 const ListeAttente = lazy(() => import("./pages/ListeAttente"));
 const ReservationRecurrente = lazy(() => import("./pages/ReservationRecurrente"));
 const Comparateur = lazy(() => import("./pages/Comparateur"));
@@ -775,6 +777,8 @@ export default function App() {
             <Route path="/documents" element={<U name="Documents"><CentreDocuments /></U>} />
             <Route path="/notifications" element={<U name="Notifications"><Notifications /></U>} />
             <Route path="/messagerie" element={<U name="Messagerie"><Messagerie /></U>} />
+            <Route path="/paiement-vehicule/:id" element={<U name="Paiement"><PaiementVehicule /></U>} />
+            <Route path="/paiement/simulation" element={<U name="Paiement"><PaiementSimulation /></U>} />
             <Route path="/louer/remplacement" element={<U name="Remplacement"><RemplacementVehicule /></U>} />
             <Route path="/louer/conducteurs" element={<U name="Conducteurs"><GestionConducteurs /></U>} />
             <Route path="/louer/inspection" element={<U name="Inspection"><InspectionNumerique /></U>} />

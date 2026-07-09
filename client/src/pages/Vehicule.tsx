@@ -232,6 +232,11 @@ export default function Vehicule({ univers }: { univers?: string }) {
       if (r.url) window.location.href = r.url;
     },
   });
+  // Ouvre (ou récupère) la conversation liée à cette annonce, puis va à la messagerie.
+  const openThread = trpc.messages.openThread.useMutation({
+    onSuccess: (r) => navigate(`/messagerie?thread=${r.threadId}`),
+    onError: () => navigate("/messagerie"),
+  });
 
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState("");
@@ -363,15 +368,27 @@ export default function Vehicule({ univers }: { univers?: string }) {
     ["État", v.etat],
   ];
 
+  // « Acheter » : achat comptant → page de paiement du véhicule.
   const primaryAction = () =>
     requireLogin(() => {
       if (isLocation) {
         navigate("/compte/messages");
       } else {
-        document.getElementById("reserver")?.scrollIntoView({ behavior: "smooth" });
+        navigate(`/paiement-vehicule/${annonceId}`);
       }
     });
-  const messageAction = () => requireLogin(() => navigate("/compte/messages"));
+  // « Réserver » : acompte → page de paiement en mode acompte.
+  const reserveAction = () =>
+    requireLogin(() => navigate(`/paiement-vehicule/${annonceId}?mode=acompte`));
+  // « Contacter le vendeur » : messagerie liée à cette annonce précise.
+  const messageAction = () =>
+    requireLogin(() => {
+      if (isOwnerOrAdmin) {
+        navigate("/compte/messages");
+      } else {
+        openThread.mutate({ annonceId });
+      }
+    });
 
   /* ══════════════════════════════════════════════════════════════════
      PAGE MKA.P-MS OFFICIEL — layout dédié, ordre exact de la maquette
@@ -643,7 +660,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
           {/* ── BOUTON RÉSERVER (fin et long) ── */}
           <button
             className="w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white transition hover:bg-[#333]"
-            onClick={() => requireLogin(() => document.getElementById("reserver-mkapms")?.scrollIntoView({ behavior: "smooth" }))}
+            onClick={reserveAction}
           >
             <CalendarCheck size={16} className="mr-2 inline-block text-red-500" /> Réserver ce véhicule
           </button>
@@ -1255,7 +1272,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
 
           {/* BOUTON RÉSERVATION — PRO uniquement */}
           {!isParticulier && (
-          <button className="mt-4 w-full rounded-xl bg-[#111] py-3.5 text-sm font-bold text-white shadow-lg" onClick={() => requireLogin(() => navigate("/reservation"))}>
+          <button className="mt-4 w-full rounded-xl bg-[#111] py-3.5 text-sm font-bold text-white shadow-lg" onClick={reserveAction}>
             Réserver ce véhicule
           </button>
           )}
