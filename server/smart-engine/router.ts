@@ -38,6 +38,7 @@ import { getEnginesOverview } from "./services/connectors.js";
 import { observe, listKB, kbStats, validateKB, KB_DOMAINS } from "./services/knowledge-base.js";
 import { generateOptimizations, listOptimizations, optimizationStats, reviewOptimization } from "./services/auto-optimization.js";
 import { getPlatformHealth } from "./services/platform-health.js";
+import { runAlertScan, alertLevelStats } from "./services/alert-engine.js";
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
 import { desc, eq, sql, and } from "drizzle-orm";
@@ -212,7 +213,7 @@ export const smartEngineRouter = router({
   alerts: pdgProcedure
     .input(z.object({
       category: z.string().optional(),
-      severity: z.enum(["info", "warning", "critical"]).optional(),
+      severity: z.enum(["info", "warning", "important", "critical"]).optional(),
       status: z.enum(["open", "acknowledged", "resolved", "dismissed"]).optional(),
       limit: z.number().default(50),
     }).optional())
@@ -520,5 +521,14 @@ export const smartEngineRouter = router({
   // ── 19. Tableau de santé plateforme temps réel (Partie 9) ─────────
   platformHealth: pdgProcedure.query(async () => {
     return getPlatformHealth();
+  }),
+
+  // ── 20. Système d'alerte à niveaux (Partie 10) ───────────────────
+  alertScan: pdgProcedure.mutation(async () => {
+    return runAlertScan();
+  }),
+
+  alertLevelStats: pdgProcedure.query(async () => {
+    return alertLevelStats();
   }),
 });
