@@ -180,3 +180,22 @@ export const smartHealthChecks = pgTable("smart_health_checks", {
   suggestedFix: text("suggested_fix"),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// ── 15. Apprentissage privé PDG (chat PDG ↔ Système Intelligent) ────────
+// Espace confidentiel : seul le PDG (super_admin) écrit ici. Chaque leçon
+// enseignée est mémorisée et le système peut la restituer plus tard.
+export const smartTeachingRoleEnum = pgEnum("smart_teaching_role", [
+  "pdg",
+  "system",
+]);
+
+export const smartTeachings = pgTable("smart_teachings", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  authorId: integer("author_id"), // PDG qui enseigne (null pour les réponses système)
+  role: smartTeachingRoleEnum("role").notNull(), // "pdg" = leçon enseignée, "system" = réponse du système
+  topic: varchar("topic", { length: 128 }), // sujet libre optionnel
+  message: text("message").notNull(),
+  // Marque une leçon "mémorisée" (les tours PDG contenant un vrai enseignement)
+  isLesson: boolean("is_lesson").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
