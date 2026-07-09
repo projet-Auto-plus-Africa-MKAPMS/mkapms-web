@@ -69,8 +69,8 @@ export default function Messagerie() {
     const t = threadQuery.data;
     const titre = t?.annonce?.titre;
     return (
-      <div className="min-h-screen bg-[#F5F3EF] flex flex-col">
-        <div className="bg-[#111] px-4 py-3 flex items-center gap-3">
+      <div className="fixed inset-0 z-[60] bg-[#F5F3EF] flex flex-col">
+        <div className="bg-[#111] px-4 pb-3 flex items-center gap-3" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}>
           <button onClick={backToList} className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10">
             <ChevronLeft size={18} className="text-white" />
           </button>
