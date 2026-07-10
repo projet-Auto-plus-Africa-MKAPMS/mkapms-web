@@ -484,9 +484,11 @@ export default function Vehicule({ univers }: { univers?: string }) {
 
     return (
       <div className="pb-20 md:pb-10">
+        {/* DESKTOP (lg+) : disposition 2 colonnes — photo à gauche, cage infos+boutons à droite (comme La Centrale). Mobile/tablette : inchangé (empilé). */}
+        <div className="lg:mx-auto lg:w-full lg:max-w-6xl lg:px-4 xl:max-w-[1500px] 2xl:max-w-[1680px] lg:mt-6 lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-6 lg:items-start">
         {/* ── 2. PHOTO VÉHICULE — pleine largeur, bord à bord, comme Pro ── */}
-        <div className="w-full">
-          <div className="relative w-full overflow-hidden bg-slate-100" style={{ height: "clamp(350px, 58vh, 560px)" }}
+        <div className="w-full lg:min-w-0">
+          <div className="relative w-full overflow-hidden bg-slate-100 lg:rounded-2xl" style={{ height: "clamp(350px, 58vh, 560px)" }}
             onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
             onTouchEnd={(e) => { const dx = e.changedTouches[0].clientX - ((e.currentTarget as any)._touchX || 0); if (dx < -40) setPhotoIdx((i) => Math.min(allPhotos.length - 1, i + 1)); if (dx > 40) setPhotoIdx((i) => Math.max(0, i - 1)); }}
           >
@@ -542,8 +544,10 @@ export default function Vehicule({ univers }: { univers?: string }) {
           </div>
         </div>
 
+        {/* ── COLONNE DROITE (desktop lg+) : cage infos + boutons ── */}
+        <div className="lg:min-w-0">
         {/* Carte prix montée au-dessus de la photo — même système Pro */}
-        <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] -mt-12 relative z-10">
+        <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] -mt-12 relative z-10 lg:mt-0 lg:px-0 lg:max-w-none">
           <div className="rounded-2xl border-2 border-[#111] bg-white p-5 pb-6 text-center" style={{boxShadow: '0 0 18px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.12)'}}>
             <h1 className="text-xl font-extrabold text-[#111] md:text-2xl">{v.titre}</h1>
             {v.motorisation && <p className="mt-1 text-sm text-slate-500">{v.marque} {v.modele} {v.motorisation}</p>}
@@ -560,10 +564,12 @@ export default function Vehicule({ univers }: { univers?: string }) {
         </div>
 
         {/* ORDINATEUR uniquement : Acheter + Message côte à côte, juste sous la cage d'infos (comme La Centrale). Mobile garde la barre fixe en bas. Boutons flottants Appel/WhatsApp inchangés. */}
-        <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] mt-4 hidden md:grid grid-cols-2 gap-3">
+        <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] mt-4 hidden md:grid grid-cols-2 gap-3 lg:px-0 lg:max-w-none lg:mt-4">
           <button className="flex h-14 items-center justify-center gap-2 rounded-xl bg-[#2d3436] text-base font-bold text-white transition hover:bg-[#1f2626]" onClick={primaryAction}><ShoppingCart size={18} /> Acheter</button>
           <button className="flex h-14 items-center justify-center gap-2 rounded-xl bg-[#111] text-base font-bold text-white transition hover:bg-[#333]" onClick={messageAction}><Mail size={18} /> Message</button>
         </div>
+        </div>{/* fin colonne droite (desktop) */}
+        </div>{/* fin disposition 2 colonnes (desktop) */}
 
         <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] space-y-5 py-5">
           {/* ── 4. Favoris + Partager ── */}
@@ -1216,8 +1222,10 @@ export default function Vehicule({ univers }: { univers?: string }) {
 
     return (
       <div className="pb-24 md:pb-20">
+        {/* DESKTOP (lg+) : disposition 2 colonnes — photo à gauche, cage infos+boutons à droite (comme La Centrale). Mobile/tablette : inchangé (empilé). */}
+        <div className="lg:mx-auto lg:w-full lg:max-w-6xl lg:px-4 xl:max-w-[1500px] 2xl:max-w-[1680px] lg:mt-6 lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-6 lg:items-start">
         {/* ===== PHOTO PRINCIPALE (pleine largeur, clic → galerie, swipe gauche/droite) ===== */}
-        <div className="relative w-full h-[55vh] md:h-[58vh] lg:h-[62vh] bg-slate-100 cursor-pointer"
+        <div className="relative w-full h-[55vh] md:h-[58vh] lg:h-[62vh] bg-slate-100 cursor-pointer lg:min-w-0 lg:rounded-2xl lg:overflow-hidden"
           onClick={() => setProGalleryOpen(true)}
           onTouchStart={(e) => { (e.currentTarget as any)._touchX = e.touches[0].clientX; }}
           onTouchEnd={(e) => {
@@ -1283,8 +1291,10 @@ export default function Vehicule({ univers }: { univers?: string }) {
 
         </div>
 
+        {/* ── COLONNE DROITE (desktop lg+) : cage infos + boutons ── */}
+        <div className="lg:min-w-0">
         {/* ===== CARTE INFO (overlap sur la photo, style Le Bon Coin) ===== */}
-        <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] -mt-12 relative z-10">
+        <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] -mt-12 relative z-10 lg:mt-0 lg:px-0 lg:max-w-none">
           <div className="rounded-2xl border-2 border-[#111] bg-white p-5 pb-6" style={{boxShadow: '0 0 18px rgba(212,175,55,0.35), 0 4px 20px rgba(0,0,0,0.12)'}}>
             <h1 className="text-center text-xl font-extrabold text-[#111] md:text-2xl">{v.titre}</h1>
             <p className="text-center mt-1 text-xs text-slate-500">{v.ville || "Lyon"} · {v.annee || "2023"} · {v.kilometrage ? `${v.kilometrage.toLocaleString("fr-FR")} km` : ""} · {v.carburant || "Essence"}</p>
@@ -1327,7 +1337,12 @@ export default function Vehicule({ univers }: { univers?: string }) {
             Réserver ce véhicule
           </button>
           )}
+        </div>{/* fin cage infos (colonne droite desktop) */}
+        </div>{/* fin colonne droite (desktop) */}
+        </div>{/* fin disposition 2 colonnes (desktop) */}
 
+        {/* ── Détails — pleine largeur sous les 2 colonnes (desktop) ── */}
+        <div className="container-page xl:max-w-[1500px] 2xl:max-w-[1680px] relative z-10 lg:mt-8">
           {/* POINTS FORTS — lignes séparatrices OR lumineux */}
           <div className="mt-5 border-t-2 border-b-2 border-[#111] py-4" style={{boxShadow: '0 2px 8px rgba(212,175,55,0.2), 0 -2px 8px rgba(212,175,55,0.2)'}}>
             <div className="grid grid-cols-3 gap-4 text-center">
