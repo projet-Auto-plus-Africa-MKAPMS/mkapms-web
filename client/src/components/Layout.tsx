@@ -45,17 +45,17 @@ function Header() {
           : undefined,
       }}
     >
-      <div className="container-page flex h-16 items-center justify-between gap-4">
-        <Link to="/" className="flex flex-col">
-          <span className="text-lg font-extrabold tracking-tight text-noir">
+      <div className="container-page flex h-16 items-center justify-between gap-4 lg:max-w-[1680px]">
+        <Link to="/" className="flex shrink-0 flex-col">
+          <span className="whitespace-nowrap text-lg font-extrabold tracking-tight text-noir">
             MK<span className="text-gold">A</span><span className="text-noir">.P-MS</span>
           </span>
-          <span className="-mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+          <span className="-mt-1 whitespace-nowrap text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
             La marketplace automobile
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="hidden min-w-0 items-center gap-1 lg:flex">
           {NAV.map((n) => (
             <NavLink
               key={n.to}
@@ -71,10 +71,11 @@ function Header() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden shrink-0 items-center gap-2 lg:flex">
           <DomainSelector />
           <CurrencySelect />
           <SupportWidget />
+          <NotificationsBell />
           <Link to="/vendre" className="btn-gold">
             Déposer une annonce
           </Link>
@@ -87,7 +88,6 @@ function Header() {
               >
                 <MessageSquare size={18} />
               </Link>
-              <NotificationsBell />
               {isAdmin(user.role) && (
                 <Link to="/admin" className="rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#222]">
                   Admin
@@ -164,11 +164,13 @@ function CurrencySelect() {
 function NotificationsBell() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
   const utils = trpc.useUtils();
   const unread = trpc.notifications.unreadCount.useQuery(undefined, {
     refetchInterval: 60_000,
+    enabled: !!user,
   });
-  const list = trpc.notifications.list.useQuery({ limit: 15 }, { enabled: open });
+  const list = trpc.notifications.list.useQuery({ limit: 15 }, { enabled: open && !!user });
   const markRead = trpc.notifications.markRead.useMutation();
   const markAll = trpc.notifications.markAllRead.useMutation({
     onSuccess: () => {
@@ -190,7 +192,7 @@ function NotificationsBell() {
     <div className="relative">
       <button
         aria-label="Notifications"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => (user ? setOpen((o) => !o) : navigate("/connexion"))}
         className="relative grid h-10 w-10 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-brand"
       >
         <Bell size={18} />
