@@ -801,7 +801,7 @@ export default function Vendre() {
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       {/* ── Header ── */}
       <div className="bg-white border-b border-[#E5E7EB] px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+        <div className="max-w-4xl lg:max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-lg font-extrabold tracking-tight text-noir">
               MK<span className="text-[#D4AF37]">A</span>.P-MS
@@ -824,7 +824,7 @@ export default function Vendre() {
 
       {/* ── Stepper 4 étapes ── */}
       <div className="bg-white border-b border-[#E5E7EB] px-4 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-center gap-2 md:gap-4">
+        <div className="max-w-4xl lg:max-w-3xl mx-auto flex items-center justify-center gap-2 md:gap-4">
           {STEPS.map((s, i) => {
             const done = step > s.num;
             const active = step === s.num;
@@ -849,7 +849,7 @@ export default function Vendre() {
       </div>
 
       {/* ── Retour ── */}
-      <div className="max-w-4xl mx-auto px-4 mt-4">
+      <div className="max-w-4xl lg:max-w-3xl mx-auto px-4 mt-4">
         <button
           className="flex items-center gap-1 text-sm text-[#6B7280] hover:text-[#111]"
           onClick={() => {
@@ -865,7 +865,7 @@ export default function Vendre() {
           ÉTAPE 1 — IDENTIFICATION
          ═══════════════════════════════════════ */}
       {step === 1 && (
-        <div className="max-w-4xl mx-auto px-4 mt-6">
+        <div className="max-w-4xl lg:max-w-3xl mx-auto px-4 mt-6">
           <h1 className="text-2xl font-black text-[#111] text-center">
             IDENTIFIEZ VOTRE <span className="text-[#D4AF37]">VÉHICULE</span>
           </h1>
@@ -1002,7 +1002,7 @@ export default function Vendre() {
           ÉTAPE 2 — INFORMATIONS
          ═══════════════════════════════════════ */}
       {step === 2 && (
-        <div className="max-w-4xl mx-auto px-4 mt-6">
+        <div className="max-w-4xl lg:max-w-3xl mx-auto px-4 mt-6">
           <h1 className="text-2xl font-black text-[#111] text-center">
             VOTRE VÉHICULE <span className="text-[#D4AF37]">IDENTIFIÉ</span>
           </h1>
@@ -1242,7 +1242,7 @@ export default function Vendre() {
           </div>
 
           {/* Navigation */}
-          <div className="mt-6 flex gap-3 max-w-4xl mx-auto">
+          <div className="mt-6 flex gap-3 max-w-4xl lg:max-w-3xl mx-auto">
             <button onClick={() => setStep(1)} className="rounded-xl border border-[#D1D5DB] px-6 py-3 text-sm font-medium text-[#374151] flex items-center gap-2 hover:bg-[#F3F4F6]">
               <ArrowLeft size={14} /> Retour
             </button>
@@ -1261,7 +1261,7 @@ export default function Vendre() {
           ÉTAPE 3 — DÉTAILS & PHOTOS
          ═══════════════════════════════════════ */}
       {step === 3 && (
-        <div className="max-w-4xl mx-auto px-4 mt-6 space-y-6">
+        <div className="max-w-4xl lg:max-w-3xl mx-auto px-4 mt-6 space-y-6">
           <h1 className="text-2xl font-black text-[#111] text-center">
             DÉTAILS & <span className="text-[#D4AF37]">PHOTOS</span>
           </h1>
@@ -1546,7 +1546,7 @@ export default function Vendre() {
           ÉTAPE 4 — PUBLICATION
          ═══════════════════════════════════════ */}
       {step === 4 && (
-        <div className="max-w-4xl mx-auto px-4 mt-6 space-y-6">
+        <div className="max-w-4xl lg:max-w-3xl mx-auto px-4 mt-6 space-y-6">
           <h1 className="text-2xl font-black text-[#111] text-center">
             RÉCAPITULATIF & <span className="text-[#D4AF37]">PUBLICATION</span>
           </h1>
