@@ -109,7 +109,7 @@ export default function DomainSelector() {
         title="Changer de portail"
       >
         <span className="text-base leading-none">{current.flag}</span>
-        <span className="hidden sm:inline text-xs font-semibold">{current.label}</span>
+        <span className="hidden md:inline text-xs font-semibold">{current.label}</span>
         <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
