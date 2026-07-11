@@ -528,8 +528,8 @@ export default function Vehicule({ univers }: { univers?: string }) {
                 <p className="text-[10px] font-bold text-[#D4AF37]">MKA.P-MS</p>
               </div>
             </div>
-            {/* Compteur photos — bas gauche */}
-            <div className="absolute bottom-3 left-3 flex items-center gap-2">
+            {/* Compteur photos — remonté au-dessus du chevauchement de la carte titre (-mt-12) pour rester visible */}
+            <div className="absolute bottom-16 left-3 flex items-center gap-2 z-10">
               {allPhotos.length > 0 && (
                 <span className="rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-noir shadow">{photoIdx + 1}/{allPhotos.length}</span>
               )}
