@@ -7,6 +7,7 @@ import {
   Globe, Navigation, Euro, TrendingUp, Briefcase, Calculator,
   Pen, CreditCard, Car, Package, Truck, Bus, HardHat
 } from "lucide-react";
+import { trpc } from "../lib/trpc";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE PRODUIT — LOCATION GÉNÉRIQUE
@@ -91,7 +92,51 @@ export default function ProduitLocation() {
   const [showPrices, setShowPrices] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
 
-  const v = id ? VEHICLES_DB[id] : null;
+  // Fetch de la vraie annonce si l'id est numérique (annonce réelle) ;
+  // sinon on cherche dans VEHICLES_DB (mocks 8001-8010, 7001-7009, 6001-6008…).
+  // Best-effort : jamais bloquant, fallback silencieux sur les mocks.
+  const numericId = id ? Number.parseInt(id, 10) : NaN;
+  const isRealAnnonce = Number.isFinite(numericId) && numericId > 0 && !VEHICLES_DB[id ?? ""];
+  const remote = trpc.annonces.get.useQuery(
+    { id: numericId },
+    { enabled: isRealAnnonce, retry: false },
+  );
+
+  // Construction du VEHICLE affiché : mock local prioritaire, sinon vraie annonce, sinon null.
+  const v: VehicleData | null = useMemo(() => {
+    if (id && VEHICLES_DB[id]) return VEHICLES_DB[id];
+    const r = remote.data;
+    if (!r) return null;
+    const cats: Record<string, string[]> = { exterieur: [], interieur: [], sieges: [], tableau_de_bord: [], coffre: [], moteur: [], roues: [], documents: [], autres: [] };
+    const rawPhotos = Array.isArray(r.photos) ? r.photos : [];
+    for (const p of rawPhotos as Array<{ url?: string; categorie?: string | null }>) {
+      if (!p?.url) continue;
+      const key = p.categorie && cats[p.categorie] ? p.categorie : "exterieur";
+      cats[key].push(p.url);
+    }
+    const asAny = r as unknown as Record<string, unknown>;
+    const num = (v: unknown, fb: number) => (typeof v === "number" && Number.isFinite(v) ? v : fb);
+    // Fallback tarifs si l'annonce n'a pas encore les champs prixJour/Semaine/Mois.
+    const prixJour = num(asAny.prixJour, num(asAny.prix, 45));
+    const prixSemaine = num(asAny.prixSemaine, Math.round(prixJour * 6));
+    const prixMois = num(asAny.prixMois, Math.round(prixJour * 22));
+    return {
+      titre: [r.marque, r.modele].filter(Boolean).join(" ").trim() || "Véhicule",
+      sousTitre: [r.categorie, r.annee, r.carburant, r.boiteVitesses].filter(Boolean).join(" | ") || "",
+      prixJour, prixSemaine, prixMois,
+      note: num(asAny.note, 4.5),
+      nbAvis: num(asAny.nbAvis, 0),
+      annee: num(r.annee, new Date().getFullYear()),
+      carburant: typeof r.carburant === "string" && r.carburant ? r.carburant : "Diesel",
+      transmission: typeof r.boiteVitesses === "string" && r.boiteVitesses ? r.boiteVitesses : "Manuelle",
+      puissance: typeof r.puissance === "string" && r.puissance ? r.puissance : "—",
+      places: num(r.places, 5),
+      badges: [],
+      photoCategories: cats,
+      photoPrincipale: rawPhotos[0]?.url ?? "",
+    };
+  }, [id, remote.data]);
+
   const backPath = location.pathname.includes("/pro/") ? "/louer/pro"
     : location.pathname.includes("/utilitaires/") ? "/louer/utilitaires"
     : location.pathname.includes("/camions/") ? "/louer/camions"

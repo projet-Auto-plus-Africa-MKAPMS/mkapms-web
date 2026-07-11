@@ -287,19 +287,23 @@ export default function Vehicule({ univers }: { univers?: string }) {
   const photos = photosRaw.map((p) => p.url);
   const isLocation = v.type === "location";
 
-  /* ── Redirection automatique — Location Particulier ─────────────────────
-   * Si l'annonce est de type location ET dans l'univers particulier, on
-   * redirige vers la vraie page produit location (/louer/particulier/…) qui
-   * porte le design premium (Peugeot 3008 GT). Aucune régression pour la
-   * vente : uniquement le cas isLocation + univers particulier est touché.
-   * ─────────────────────────────────────────────────────────────────────── */
-  if (
-    isLocation &&
-    !isDemo &&
-    univers === "particulier" &&
-    !location.pathname.startsWith("/louer/")
-  ) {
-    navigate(`/louer/particulier/vehicule/${v.id}`, { replace: true });
+  /* ── Redirection automatique — Location vers le bon univers ──────────────
+   * Si l'annonce est de type location, on redirige vers la vraie page produit
+   * location qui porte le design premium adapté à l'univers détecté
+   * (particulier / pro / utilitaires / camions / minibus / mkapms-officiel).
+   * Détection basée sur la catégorie du véhicule + la categorieAnnonce.
+   * ───────────────────────────────────────────────────────────────────────── */
+  if (isLocation && !isDemo && !location.pathname.startsWith("/louer/")) {
+    const cat = String((v as { categorie?: string }).categorie ?? "").toLowerCase();
+    const isOfficielle = (v as { categorieAnnonce?: string }).categorieAnnonce === "officielle";
+    const target =
+      isOfficielle ? "mkapms-officiel"
+      : cat.includes("minibus") ? "minibus"
+      : cat.includes("utilitaire") || cat.includes("camping-car") ? "utilitaires"
+      : cat.includes("camion") || cat.includes("pick-up") ? "camions"
+      : univers === "professionnelle" || (v as { categorieAnnonce?: string }).categorieAnnonce === "professionnelle" ? "pro"
+      : "particulier";
+    navigate(`/louer/${target}/vehicule/${v.id}`, { replace: true });
     return null;
   }
 

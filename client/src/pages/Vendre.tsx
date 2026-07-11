@@ -174,6 +174,42 @@ const CATEGORIES_MOTO = [
   "Quad", "Trike", "Électrique",
 ];
 
+/* ─────────────────────────────────────────────────────────────────────────
+ * DÉTECTION AUTOMATIQUE DE L'UNIVERS DE LOCATION
+ * Le vendeur ne choisit rien manuellement : on déduit le mode véhicule
+ * à partir de la categorieAnnonce (officielle/pro/particulier) et de la
+ * catégorie du véhicule choisie (Utilitaire, Camping-car, Minibus, etc.).
+ * ───────────────────────────────────────────────────────────────────────── */
+type LocationMode = "particulier" | "pro" | "utilitaires" | "camions" | "minibus" | "mkapms";
+
+function detectLocationMode(
+  categorieAnnonce: "officielle" | "professionnelle" | "particulier",
+  categorie: string | undefined | null,
+): LocationMode {
+  if (categorieAnnonce === "officielle") return "mkapms";
+  const c = (categorie ?? "").toLowerCase();
+  if (c.includes("minibus")) return "minibus";
+  if (c.includes("utilitaire") || c.includes("camping-car")) return "utilitaires";
+  if (c.includes("camion") || c.includes("pick-up")) return "camions";
+  if (categorieAnnonce === "professionnelle") return "pro";
+  return "particulier";
+}
+
+const LOCATION_MODE_CONFIG: Record<LocationMode, {
+  label: string;
+  emoji: string;
+  color: string;
+  kmDefault: number;
+  extras: Array<"assurance" | "tva" | "hayon" | "chauffeur" | "places_permis" | "entretien">;
+}> = {
+  particulier: { label: "Particulier", emoji: "👤", color: "#D4AF37", kmDefault: 200, extras: ["assurance"] },
+  pro: { label: "Pro / Entreprise", emoji: "💼", color: "#3B82F6", kmDefault: 300, extras: ["assurance", "tva"] },
+  utilitaires: { label: "Utilitaires", emoji: "🚐", color: "#F97316", kmDefault: 100, extras: ["assurance", "hayon"] },
+  camions: { label: "Camions", emoji: "🚛", color: "#DC2626", kmDefault: 150, extras: ["assurance", "chauffeur"] },
+  minibus: { label: "Minibus", emoji: "🚌", color: "#0EA5E9", kmDefault: 200, extras: ["assurance", "places_permis"] },
+  mkapms: { label: "MKAPMS Officiel", emoji: "⭐", color: "#111", kmDefault: 200, extras: ["assurance", "entretien"] },
+};
+
 const COULEURS = [
   "Noir", "Blanc", "Gris", "Argent", "Bleu", "Rouge", "Vert", "Beige",
   "Marron", "Orange", "Jaune", "Bordeaux", "Violet", "Rose", "Or", "Autre",
@@ -1600,8 +1636,29 @@ export default function Vendre() {
             </div>
 
             {/* Multi-tarifs LOCATION — additifs, uniquement si typeAnnonce=location */}
-            {typeAnnonce === "location" && (
+            {typeAnnonce === "location" && (() => {
+              // Détection automatique de l'univers de location.
+              // Le vendeur ne choisit rien manuellement : le système reconnaît
+              // le mode véhicule à partir de categorieAnnonce + form.categorie.
+              const locMode = detectLocationMode(categorieAnnonce, form.categorie);
+              const cfg = LOCATION_MODE_CONFIG[locMode];
+              return (
               <div className="rounded-2xl border-2 border-[#D4AF37]/30 bg-gradient-to-br from-[#FFFDF5] to-white p-4 space-y-4">
+                {/* Badge Mode auto-détecté */}
+                <div
+                  className="flex items-center justify-between rounded-xl px-3 py-2 text-white"
+                  style={{ background: `linear-gradient(135deg, ${cfg.color}, ${cfg.color}dd)` }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{cfg.emoji}</span>
+                    <div>
+                      <p className="text-[9px] font-bold uppercase tracking-widest opacity-80">Mode détecté</p>
+                      <p className="text-sm font-black">{cfg.label}</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest bg-white/20 rounded-full px-2 py-0.5">Auto</span>
+                </div>
+
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-[#D4AF37]"></span>
                   <p className="text-[11px] font-black uppercase tracking-widest text-[#111]">
@@ -1657,7 +1714,7 @@ export default function Vendre() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="mb-1 block text-[10px] font-bold text-[#374151] uppercase tracking-wider">Km / jour inclus</label>
-                    <input className="input text-sm font-semibold" type="number" value={form.kmInclusJour} onChange={(e) => set("kmInclusJour", e.target.value)} placeholder="200" />
+                    <input className="input text-sm font-semibold" type="number" value={form.kmInclusJour || String(cfg.kmDefault)} onChange={(e) => set("kmInclusJour", e.target.value)} placeholder={String(cfg.kmDefault)} />
                   </div>
                   <div>
                     <label className="mb-1 block text-[10px] font-bold text-[#374151] uppercase tracking-wider">Assurance TR</label>
@@ -1668,7 +1725,8 @@ export default function Vendre() {
                   </div>
                 </div>
               </div>
-            )}
+              );
+            })()}
             {estim && (
               <div className="rounded-xl border-2 border-[#D4AF37] bg-[#FFFBEB] p-4 text-center">
                 <p className="text-sm font-bold text-[#92400E]">Estimation IA MKA.P-MS</p>
