@@ -791,6 +791,10 @@ export const annoncesRouter = router({
       annee: z.number().optional(),
       kilometrage: z.number().optional(),
       prix: z.number().optional(),
+      // Multi-tarifs location — additifs (déjà supportés par create + schema DB)
+      prixJour: z.number().optional(),
+      prixSemaine: z.number().optional(),
+      prixMois: z.number().optional(),
       carburant: z.string().optional(),
       boite: z.string().optional(),
       categorie: z.string().optional(),
