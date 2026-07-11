@@ -13,6 +13,8 @@
 import { db } from "../../db.js";
 import { smartKbEntries } from "../schema.js";
 import { and, desc, eq, sql } from "drizzle-orm";
+// Renfort P8 — seuil de confirmation dynamique par domaine (fallback = KB_CONFIRM_THRESHOLD).
+import { getConfirmThreshold } from "./domain-thresholds.js";
 
 export const KB_DOMAINS = [
   "vehicule",
@@ -72,7 +74,10 @@ export async function observe(input: ObserveInput) {
 
   if (existing) {
     const newCount = (existing.observations ?? 1) + 1;
-    const promote = existing.status === "proposed" && newCount >= KB_CONFIRM_THRESHOLD;
+    // Renfort P8 — seuil dynamique par domaine (mot_cle:8, vehicule:2, ...)
+    // Le fallback est KB_CONFIRM_THRESHOLD (3), donc 100% rétro-compatible.
+    const threshold = getConfirmThreshold(existing.domain);
+    const promote = existing.status === "proposed" && newCount >= threshold;
     await db
       .update(smartKbEntries)
       .set({

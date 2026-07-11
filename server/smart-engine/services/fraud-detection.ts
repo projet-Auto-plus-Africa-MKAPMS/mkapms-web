@@ -8,6 +8,14 @@ import { users } from "../../schema.js";
 import { smartSuspectAccounts, smartAlerts } from "../schema.js";
 import { and, eq, ne, desc, sql } from "drizzle-orm";
 import { logActivity } from "./activity-log.js";
+// Renfort P4 — score de risque agrégé + normalisation email/tel + disposable.
+// Ne remplace aucune vérification existante : les enrichit.
+import {
+  normalizeEmail,
+  normalizePhone,
+  computeRiskScore,
+  isDisposableEmail,
+} from "./risk-scoring.js";
 
 interface FraudCheckInput {
   userId: number;
@@ -45,6 +53,52 @@ export async function checkFraud(input: FraudCheckInput) {
         reason: "duplicate_phone",
         details: { phone: input.phone, matchedUsers: phoneDupes.map((u) => u.id) },
         severity: "warning",
+      });
+    }
+  }
+
+  // 3. Renfort P4 — signaux avancés + score de risque agrégé.
+  // Détecte les variations qui échappent aux comparaisons exactes ci-dessus :
+  // gmail avec points/alias, numéros bruités, domaines email jetables.
+  {
+    const nEmail = normalizeEmail(input.email);
+    const nPhone = normalizePhone(input.phone);
+
+    const normalizedEmailMatches = nEmail
+      ? await db
+          .select({ id: users.id })
+          .from(users)
+          .where(and(sql`lower(${users.email}) = ${nEmail}`, ne(users.id, input.userId)))
+      : [];
+    const normalizedPhoneMatches = nPhone
+      ? await db
+          .select({ id: users.id })
+          .from(users)
+          .where(and(eq(users.phone, nPhone), ne(users.id, input.userId)))
+      : [];
+
+    const risk = computeRiskScore({
+      duplicateNormalizedEmail: normalizedEmailMatches.length > 0,
+      duplicateNormalizedPhone: normalizedPhoneMatches.length > 0,
+      disposableEmailDomain: isDisposableEmail(input.email),
+    });
+
+    if (risk.severity !== "info") {
+      // On mappe "important" (non supporté par l'enum severity actuel) sur "warning"
+      // pour rester strictement compatible avec le schéma existant.
+      const mapped: "info" | "warning" | "critical" =
+        risk.severity === "critical" ? "critical" : "warning";
+      suspects.push({
+        reason: "risk_score",
+        details: {
+          score: risk.score,
+          reasons: risk.reasons,
+          normalizedEmail: nEmail,
+          normalizedPhone: nPhone,
+          matchedEmail: normalizedEmailMatches.map((u) => u.id),
+          matchedPhone: normalizedPhoneMatches.map((u) => u.id),
+        },
+        severity: mapped,
       });
     }
   }
