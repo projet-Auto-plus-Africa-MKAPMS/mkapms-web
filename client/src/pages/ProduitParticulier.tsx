@@ -1,11 +1,12 @@
 import { useState, useRef, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ChevronLeft, Heart, Star, Check, Fuel, Settings2,
   Zap, Users, DoorOpen, Gauge, Calendar, Shield, Clock, Lock,
   ChevronDown, MapPin, Headphones, FileCheck, Navigation,
   CreditCard, Car, Baby, Eye
 } from "lucide-react";
+import { trpc } from "../lib/trpc";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE PRODUIT — LOCATION PARTICULIER
@@ -27,7 +28,10 @@ const PHOTO_CATEGORIES: { key: PhotoCategory; label: string }[] = [
   { key: "autres", label: "Autres" },
 ];
 
-const VEHICLE = {
+// ── Véhicule DÉMO (fallback pédagogique — Peugeot 3008 GT) ──
+// N'est utilisé QUE si aucun ID d'annonce n'est fourni dans l'URL,
+// ou si l'annonce fetchée n'existe pas en base. Ne pas supprimer.
+const DEMO_VEHICLE = {
   titre: "Peugeot 3008 GT",
   sousTitre: "SUV | 2024 | Hybride | Automatique",
   prixJour: 52, prixSemaine: 312, prixMois: 1050,
@@ -93,6 +97,54 @@ const SIMILAIRES = [
 
 export default function ProduitParticulier() {
   const nav = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const annonceId = id ? Number.parseInt(id, 10) : 0;
+  // Fetch de la vraie annonce si un id valide est présent dans l'URL.
+  // Si aucun id (mode démo /louer/particulier/vehicule/demo) ou id introuvable,
+  // on retombe silencieusement sur DEMO_VEHICLE — le design reste identique.
+  const remote = trpc.annonces.get.useQuery(
+    { id: annonceId },
+    { enabled: annonceId > 0, retry: false },
+  );
+
+  // Construction du VEHICLE affiché : priorité à la vraie annonce, fallback démo.
+  // Chaque champ manquant reprend la valeur DEMO_VEHICLE correspondante.
+  const VEHICLE = useMemo(() => {
+    const r = remote.data;
+    if (!r) return DEMO_VEHICLE;
+    // Regroupe les photos serveur par catégorie ; celles sans catégorie tombent en "exterieur".
+    const cats: Record<string, string[]> = { exterieur: [], interieur: [], sieges: [], tableau_de_bord: [], coffre: [], moteur: [], roues: [], documents: [], autres: [] };
+    const rawPhotos = Array.isArray(r.photos) ? r.photos : [];
+    for (const p of rawPhotos as Array<{ url?: string; categorie?: string | null }>) {
+      if (!p?.url) continue;
+      const key = p.categorie && cats[p.categorie] ? p.categorie : "exterieur";
+      cats[key].push(p.url);
+    }
+    const anyPhoto = Object.values(cats).some((a) => a.length > 0);
+    const titre = [r.marque, r.modele].filter(Boolean).join(" ").trim() || DEMO_VEHICLE.titre;
+    const sousTitre = [r.categorie, r.annee, r.carburant, r.boiteVitesses].filter(Boolean).join(" | ") || DEMO_VEHICLE.sousTitre;
+    // Tarifs location : si l'annonce contient prixJour/Semaine/Mois (schéma futur),
+    // on les utilise ; sinon on garde ceux du DEMO pour ne pas casser l'affichage.
+    const asAny = r as unknown as Record<string, unknown>;
+    const num = (v: unknown, fb: number) => (typeof v === "number" && Number.isFinite(v) ? v : fb);
+    return {
+      ...DEMO_VEHICLE,
+      titre,
+      sousTitre,
+      prixJour: num(asAny.prixJour, DEMO_VEHICLE.prixJour),
+      prixSemaine: num(asAny.prixSemaine, DEMO_VEHICLE.prixSemaine),
+      prixMois: num(asAny.prixMois, DEMO_VEHICLE.prixMois),
+      annee: num(r.annee, DEMO_VEHICLE.annee),
+      km: num(r.km, DEMO_VEHICLE.km),
+      carburant: typeof r.carburant === "string" && r.carburant ? r.carburant : DEMO_VEHICLE.carburant,
+      transmission: typeof r.boiteVitesses === "string" && r.boiteVitesses ? r.boiteVitesses : DEMO_VEHICLE.transmission,
+      puissance: typeof r.puissance === "string" && r.puissance ? r.puissance : DEMO_VEHICLE.puissance,
+      places: num(r.places, DEMO_VEHICLE.places),
+      portes: num(r.portes, DEMO_VEHICLE.portes),
+      photoCategories: anyPhoto ? cats : DEMO_VEHICLE.photoCategories,
+    };
+  }, [remote.data]);
+
   const [photoCat, setPhotoCat] = useState<PhotoCategory>("toutes");
   const [photoIdx, setPhotoIdx] = useState(0);
   const [fav, setFav] = useState(false);

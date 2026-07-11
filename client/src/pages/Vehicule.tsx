@@ -286,6 +286,23 @@ export default function Vehicule({ univers }: { univers?: string }) {
   const photosRaw: { url: string; categorie?: string }[] = v.photos?.length ? v.photos.map((p: any) => ({ url: p.url, categorie: p.categorie || null })) : (v.photoPrincipale ? [{ url: v.photoPrincipale, categorie: null }] : []);
   const photos = photosRaw.map((p) => p.url);
   const isLocation = v.type === "location";
+
+  /* ── Redirection automatique — Location Particulier ─────────────────────
+   * Si l'annonce est de type location ET dans l'univers particulier, on
+   * redirige vers la vraie page produit location (/louer/particulier/…) qui
+   * porte le design premium (Peugeot 3008 GT). Aucune régression pour la
+   * vente : uniquement le cas isLocation + univers particulier est touché.
+   * ─────────────────────────────────────────────────────────────────────── */
+  if (
+    isLocation &&
+    !isDemo &&
+    univers === "particulier" &&
+    !location.pathname.startsWith("/louer/")
+  ) {
+    navigate(`/louer/particulier/vehicule/${v.id}`, { replace: true });
+    return null;
+  }
+
   const isVtcTaxi = v.segmentLocation === "vtc_taxi";
   const tier = getVehicleTier(v);
   const isOfficiel = tier === "officiel" || tier === "premium" || tier === "elite";
