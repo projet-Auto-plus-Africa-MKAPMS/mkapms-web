@@ -107,11 +107,11 @@ function Header() {
           )}
         </div>
 
-        <div className="flex items-center gap-2 lg:hidden">
+        <div className="flex shrink-0 items-center gap-1.5 lg:hidden">
           <DomainSelector />
           {user && <NotificationsBell />}
           <SupportWidget />
-          <button aria-label="Menu" onClick={() => setOpen((o) => !o)}>
+          <button aria-label="Menu" className="shrink-0" onClick={() => setOpen((o) => !o)}>
             {open ? <X /> : <Menu />}
           </button>
         </div>
