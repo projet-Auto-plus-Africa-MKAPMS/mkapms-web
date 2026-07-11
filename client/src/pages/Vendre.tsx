@@ -228,6 +228,12 @@ export default function Vendre() {
   const [form, setForm] = useState({
     titre: "", marque: "", modele: "", version: "",
     annee: "2024", kilometrage: "", prix: "",
+    // Multi-tarifs location (utilisés uniquement si typeAnnonce === "location")
+    // Les 3 tarifs intermédiaires (3 jours, 2 semaines, 3 mois) sont
+    // calculés automatiquement côté affichage à partir de ces 3 valeurs.
+    prixJour: "", prixSemaine: "", prixMois: "",
+    kmInclusJour: "200",
+    assuranceIncluse: "1",
     carburant: "essence", boite: "manuelle",
     categorie: "berline",
     ville: "", codePostal: "", contactTelephone: "",
@@ -287,6 +293,12 @@ export default function Vendre() {
       annee: d.annee ? String(d.annee) : "2024",
       kilometrage: d.kilometrage ? String(d.kilometrage) : "",
       prix: d.prix ? String(Number(d.prix)) : "",
+      // Multi-tarifs location — pré-remplissage lors de l'édition d'une annonce location
+      prixJour: d.prixJour ? String(Number(d.prixJour)) : "",
+      prixSemaine: d.prixSemaine ? String(Number(d.prixSemaine)) : "",
+      prixMois: d.prixMois ? String(Number(d.prixMois)) : "",
+      kmInclusJour: "200",
+      assuranceIncluse: "1",
       carburant: d.carburant || "essence",
       boite: d.boite || "manuelle",
       categorie: d.categorie || "berline",
@@ -533,6 +545,10 @@ export default function Vendre() {
         annee: form.annee ? Number(form.annee) : undefined,
         kilometrage: form.kilometrage ? Number(form.kilometrage) : undefined,
         prix: form.prix ? Number(form.prix) : undefined,
+        // Multi-tarifs location — envoyés uniquement pour typeAnnonce=location
+        prixJour: typeAnnonce === "location" && form.prixJour ? Number(form.prixJour) : undefined,
+        prixSemaine: typeAnnonce === "location" && form.prixSemaine ? Number(form.prixSemaine) : undefined,
+        prixMois: typeAnnonce === "location" && form.prixMois ? Number(form.prixMois) : undefined,
         carburant: form.carburant || undefined,
         boite: form.boite || undefined,
         categorie: form.categorie || undefined,
@@ -567,6 +583,10 @@ export default function Vendre() {
         annee: form.annee ? Number(form.annee) : undefined,
         kilometrage: form.kilometrage ? Number(form.kilometrage) : undefined,
         prix: form.prix ? Number(form.prix) : 0,
+        // Multi-tarifs location — envoyés uniquement pour typeAnnonce=location
+        prixJour: typeAnnonce === "location" && form.prixJour ? Number(form.prixJour) : undefined,
+        prixSemaine: typeAnnonce === "location" && form.prixSemaine ? Number(form.prixSemaine) : undefined,
+        prixMois: typeAnnonce === "location" && form.prixMois ? Number(form.prixMois) : undefined,
         carburant: form.carburant,
         boite: form.boite,
         categorie: form.categorie as any,
@@ -1566,7 +1586,7 @@ export default function Vendre() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[#6B7280]">{typeAnnonce === "location" ? "Prix / jour (€) *" : "Prix de vente (€) *"}</label>
-                <input className="input text-lg font-bold" type="number" value={form.prix} onChange={(e) => set("prix", e.target.value)} placeholder={typeAnnonce === "location" ? "45" : "12500"} />
+                <input className="input text-lg font-bold" type="number" value={form.prix} onChange={(e) => { set("prix", e.target.value); if (typeAnnonce === "location") set("prixJour", e.target.value); }} placeholder={typeAnnonce === "location" ? "45" : "12500"} />
               </div>
               <div className="flex items-end">
                 <button
@@ -1578,6 +1598,77 @@ export default function Vendre() {
                 </button>
               </div>
             </div>
+
+            {/* Multi-tarifs LOCATION — additifs, uniquement si typeAnnonce=location */}
+            {typeAnnonce === "location" && (
+              <div className="rounded-2xl border-2 border-[#D4AF37]/30 bg-gradient-to-br from-[#FFFDF5] to-white p-4 space-y-4">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-[#D4AF37]"></span>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-[#111]">
+                    Tarifs de location — modifiables à tout moment
+                  </p>
+                </div>
+                <p className="text-[10px] text-[#6B7280] -mt-2">
+                  Renseigne les 3 tarifs de base (jour, semaine, mois). Le système calcule automatiquement les tarifs intermédiaires (3 jours, 2 semaines, 3 mois) affichés au client.
+                </p>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="mb-1 block text-[10px] font-bold text-[#374151] uppercase tracking-wider">Jour</label>
+                    <input className="input text-base font-bold" type="number" value={form.prixJour} onChange={(e) => { set("prixJour", e.target.value); set("prix", e.target.value); }} placeholder="52" />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[10px] font-bold text-[#374151] uppercase tracking-wider">Semaine</label>
+                    <input className="input text-base font-bold" type="number" value={form.prixSemaine} onChange={(e) => set("prixSemaine", e.target.value)} placeholder="312" />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[10px] font-bold text-[#374151] uppercase tracking-wider">Mois</label>
+                    <input className="input text-base font-bold" type="number" value={form.prixMois} onChange={(e) => set("prixMois", e.target.value)} placeholder="1050" />
+                  </div>
+                </div>
+
+                {/* Aperçu des tarifs intermédiaires calculés automatiquement */}
+                {(form.prixJour || form.prixSemaine || form.prixMois) && (
+                  <div className="rounded-xl bg-white border border-[#E5E7EB] p-3">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-[#9CA3AF] mb-2">Aperçu tarifs affichés au client</p>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      {(() => {
+                        const j = Number(form.prixJour) || 0;
+                        const s = Number(form.prixSemaine) || Math.round(j * 6);
+                        const m = Number(form.prixMois) || Math.round(j * 22);
+                        // Coefficients dégressifs (comme les grandes plateformes de location)
+                        const p3j = Math.round(j * 2.7); // -10% vs 3×jour
+                        const p2s = Math.round(s * 1.8); // -10% vs 2×semaine
+                        const p3m = Math.round(m * 2.7); // -10% vs 3×mois
+                        const cells: Array<[string, number]> = [
+                          ["3 jours", p3j], ["2 sem.", p2s], ["3 mois", p3m],
+                        ];
+                        return cells.map(([label, val]) => (
+                          <div key={label} className="rounded-lg bg-[#F5F3EF] py-2">
+                            <p className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">{label}</p>
+                            <p className="text-sm font-black text-[#111]">{val} €</p>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-[10px] font-bold text-[#374151] uppercase tracking-wider">Km / jour inclus</label>
+                    <input className="input text-sm font-semibold" type="number" value={form.kmInclusJour} onChange={(e) => set("kmInclusJour", e.target.value)} placeholder="200" />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[10px] font-bold text-[#374151] uppercase tracking-wider">Assurance TR</label>
+                    <select className="input text-sm font-semibold" value={form.assuranceIncluse} onChange={(e) => set("assuranceIncluse", e.target.value)}>
+                      <option value="1">Incluse</option>
+                      <option value="0">En option</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
             {estim && (
               <div className="rounded-xl border-2 border-[#D4AF37] bg-[#FFFBEB] p-4 text-center">
                 <p className="text-sm font-bold text-[#92400E]">Estimation IA MKA.P-MS</p>
