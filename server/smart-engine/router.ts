@@ -38,6 +38,9 @@ import { getEnginesOverview } from "./services/connectors.js";
 import { observe, listKB, kbStats, validateKB, KB_DOMAINS } from "./services/knowledge-base.js";
 import { generateOptimizations, listOptimizations, optimizationStats, reviewOptimization } from "./services/auto-optimization.js";
 import { getPlatformHealth } from "./services/platform-health.js";
+// Renforts (activation)
+import { assertRate, sanitizeTeachMessage } from "./services/rate-limiter.js"; // P9
+import { runRetention, retentionCounters } from "./services/retention.js"; // P7
 import { runAlertScan, alertLevelStats } from "./services/alert-engine.js";
 import { scanDevelopments, getDevLearningStats, listDevItems, reviewDevItem } from "./services/dev-learning.js";
 import { db } from "../db.js";
@@ -405,7 +408,10 @@ export const smartEngineRouter = router({
   teach: pdgProcedure
     .input(z.object({ message: z.string().min(1).max(4000), topic: z.string().max(128).optional() }))
     .mutation(async ({ ctx, input }) => {
-      return teach({ authorId: ctx.user.uid, message: input.message, topic: input.topic });
+      // Renfort P9 — anti-spam : 30 messages / minute maximum par PDG.
+      assertRate(`teach:${ctx.user.uid}`, { max: 30, windowMs: 60_000 });
+      const cleaned = sanitizeTeachMessage(input.message) ?? input.message;
+      return teach({ authorId: ctx.user.uid, message: cleaned, topic: input.topic });
     }),
 
   teachingConversation: pdgProcedure
@@ -574,5 +580,25 @@ export const smartEngineRouter = router({
         permission: input.permission,
         acknowledgedBy: ctx.user.uid,
       });
+    }),
+
+  // ── Renfort P7 — Rétention des logs Smart Engine (PDG uniquement) ────
+  // Le PDG seul décide quand purger ; aucune purge automatique.
+  retentionCounters: pdgProcedure.query(async () => {
+    return retentionCounters();
+  }),
+
+  retentionRun: pdgProcedure
+    .input(
+      z
+        .object({
+          searchLogsDays: z.number().int().min(30).optional(),
+          activityLogDays: z.number().int().min(30).optional(),
+          photoFingerprintsDays: z.number().int().min(30).optional(),
+        })
+        .optional(),
+    )
+    .mutation(async ({ input }) => {
+      return runRetention(input ?? {});
     }),
 });
