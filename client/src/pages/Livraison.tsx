@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Truck, AlertTriangle, CheckCircle } from "lucide-react";
+import { Truck, AlertTriangle, CheckCircle, Loader2, Calculator } from "lucide-react";
 import { trpc } from "../lib/trpc";
 
 export default function Livraison() {
@@ -10,6 +10,8 @@ export default function Livraison() {
   const [largeur, setLargeur] = useState(30);
   const [hauteur, setHauteur] = useState(30);
   const [heavyPart, setHeavyPart] = useState(false);
+  // La query se déclenche automatiquement, mais on garde aussi un bouton
+  // explicite pour rassurer l'utilisateur et permettre un recalcul volontaire.
   const quote = trpc.livraison.quote.useQuery(
     {
       poidsKg: poids,
@@ -22,6 +24,17 @@ export default function Livraison() {
     },
     { enabled: poids > 0 },
   );
+  const isCalculating = quote.isFetching;
+
+  function handleCalculate() {
+    // Force un recalcul en réinjectant les paramètres actuels.
+    quote.refetch();
+    // Scroll doux vers la carte estimation.
+    setTimeout(() => {
+      const el = document.getElementById("livraison-estimation");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -76,15 +89,64 @@ export default function Livraison() {
                 <span className="text-xs font-bold text-[#374151] group-hover:text-[#111]">Livraison urgente</span>
               </label>
             </div>
+
+            {/* Bouton premium — Calculer le tarif */}
+            <button
+              onClick={handleCalculate}
+              disabled={isCalculating || poids <= 0}
+              aria-label="Calculer le tarif de livraison"
+              className="w-full h-16 mt-3 rounded-2xl bg-gradient-to-br from-[#111] to-[#1f1f1f] flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest text-[#D4AF37] active:scale-[0.97] transition-all shadow-xl shadow-black/10 hover:shadow-2xl hover:shadow-[#D4AF37]/30 disabled:opacity-50 disabled:cursor-not-allowed border border-[#D4AF37]/20"
+            >
+              {isCalculating ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  Calcul en cours…
+                </>
+              ) : quote.data ? (
+                <>
+                  <Calculator size={18} />
+                  Recalculer le tarif
+                </>
+              ) : (
+                <>
+                  <Calculator size={18} />
+                  Calculer le tarif
+                </>
+              )}
+            </button>
           </div>
         </div>
 
-        <div className="rounded-3xl bg-white border border-[#E5E7EB] p-6 shadow-sm overflow-hidden relative">
+        <div id="livraison-estimation" className="rounded-3xl bg-white border border-[#E5E7EB] p-6 shadow-sm overflow-hidden relative">
           <h2 className="text-xs font-black text-[#111] uppercase tracking-widest mb-6 flex items-center gap-2">
             <div className="h-1 w-4 bg-[#D4AF37] rounded-full"></div> Estimation
           </h2>
 
-          {quote.data ? (
+          {isCalculating && !quote.data ? (
+            <div className="py-10 text-center">
+              <div className="h-20 w-20 rounded-3xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center mx-auto mb-4">
+                <Loader2 size={36} className="text-[#D4AF37] animate-spin" />
+              </div>
+              <p className="text-[10px] font-bold text-[#111] uppercase tracking-widest">
+                Calcul en cours…
+              </p>
+            </div>
+          ) : quote.isError ? (
+            <div className="py-10 text-center">
+              <div className="h-20 w-20 rounded-3xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle size={36} className="text-red-500" />
+              </div>
+              <p className="text-[11px] font-bold text-red-700 uppercase tracking-widest mb-3">
+                Erreur lors du calcul
+              </p>
+              <button
+                onClick={handleCalculate}
+                className="text-[10px] font-black text-[#D4AF37] underline uppercase tracking-widest"
+              >
+                Réessayer
+              </button>
+            </div>
+          ) : quote.data ? (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-baseline gap-2">
                 <span className="text-5xl font-black text-[#111] tracking-tighter italic">{quote.data.tarif.toLocaleString("fr-FR")}</span>
