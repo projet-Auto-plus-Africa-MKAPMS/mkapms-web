@@ -367,3 +367,47 @@ export const smartQualityAudits = pgTable("smart_quality_audits", {
   sampleSize: integer("sample_size").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// ── Partie 13 — Préproduction / Staging ─────────────────────────────────
+// Toute évolution préparée par le Système Intelligent passe par une zone de
+// PRÉPRODUCTION avant toute mise en production. Cycle : brouillon → en test →
+// en attente de validation → approuvé/rejeté → intégré. Le système ne passe
+// JAMAIS directement de la préparation à la production : l'intégration exige
+// une validation humaine (PDG/Directeur/admin). Table isolée, additive.
+export const smartStagingTypeEnum = pgEnum("smart_staging_type", [
+  "moteur",
+  "interface",
+  "formulaire",
+  "systeme",
+  "api",
+  "automatisation",
+  "correction",
+  "optimisation",
+]);
+export const smartStagingStatusEnum = pgEnum("smart_staging_status", [
+  "brouillon", // préparé, pas encore testé
+  "en_test", // en cours de tests en préproduction
+  "attente_validation", // tests OK → soumis à un humain
+  "approuve", // validé par un humain (prêt à intégrer)
+  "rejete", // refusé par un humain
+  "integre", // intégré à la production après accord
+]);
+export const smartStaging = pgTable("smart_staging", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  type: smartStagingTypeEnum("type").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  status: smartStagingStatusEnum("status").default("brouillon"),
+  // Résultat des tests de préproduction (jamais exécuté en prod).
+  testResult: text("test_result"),
+  // Point de vigilance / risque identifié avant validation.
+  riskNote: text("risk_note"),
+  // Origine (toujours "systeme" pour une proposition automatique).
+  proposedBy: varchar("proposed_by", { length: 64 }).default("systeme"),
+  // Décision humaine (obligatoire pour intégrer).
+  validatedBy: integer("validated_by"),
+  validatedAt: timestamp("validated_at"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});

@@ -48,14 +48,16 @@ import {
   HeartPulse,
   Boxes,
   Gauge,
+  Rocket,
 } from "lucide-react";
 
-type Tab = "dashboard" | "etat" | "qualite" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "etat" | "qualite" | "preprod" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
   { key: "etat", label: "État plateforme", icon: HeartPulse },
   { key: "qualite", label: "Qualité", icon: Gauge },
+  { key: "preprod", label: "Préproduction", icon: Rocket },
   { key: "alertes", label: "Alertes", icon: AlertTriangle },
   { key: "apprentissage", label: "Apprentissage privé", icon: GraduationCap },
   { key: "connaissances", label: "Connaissances externes", icon: Globe },
@@ -128,6 +130,7 @@ export default function ControlCenter() {
         {tab === "dashboard" && <DashboardTab onNavigate={setTab} />}
         {tab === "etat" && <EtatPlateformeTab />}
         {tab === "qualite" && <QualiteTab />}
+        {tab === "preprod" && <PreprodTab />}
         {tab === "alertes" && <AlertesTab />}
         {tab === "apprentissage" && <ApprentissageTab />}
         {tab === "connaissances" && <ConnaissancesTab />}
@@ -782,6 +785,122 @@ function QualiteTab() {
               )}
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : Préproduction / Staging (Partie 13)
+   Cycle : brouillon → test → attente validation → approuvé/rejeté → intégré.
+   Aucune intégration sans validation humaine.
+   ═══════════════════════════════════════════════════════════ */
+const STAGING_STATUS_META: Record<string, { label: string; dot: string; text: string }> = {
+  brouillon: { label: "Brouillon", dot: "bg-slate-400", text: "text-slate-600" },
+  en_test: { label: "En test", dot: "bg-blue-500", text: "text-blue-700" },
+  attente_validation: { label: "Attente validation", dot: "bg-orange-500", text: "text-orange-700" },
+  approuve: { label: "Approuvé", dot: "bg-green-500", text: "text-green-700" },
+  rejete: { label: "Rejeté", dot: "bg-red-500", text: "text-red-700" },
+  integre: { label: "Intégré", dot: "bg-[#D4AF37]", text: "text-[#B45309]" },
+};
+
+function PreprodTab() {
+  const stats = trpc.smartEngine.stagingStats.useQuery();
+  const list = trpc.smartEngine.stagingList.useQuery({ limit: 100 });
+  const utils = trpc.useUtils();
+  const refresh = () => {
+    utils.smartEngine.stagingList.invalidate();
+    utils.smartEngine.stagingStats.invalidate();
+  };
+  const test = trpc.smartEngine.stagingTest.useMutation({ onSuccess: refresh });
+  const review = trpc.smartEngine.stagingReview.useMutation({ onSuccess: refresh });
+
+  const items = list.data ?? [];
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">Préproduction</h2>
+        <span className="rounded-full bg-[#111] px-2.5 py-1 text-[10px] font-bold text-[#D4AF37]">
+          {stats.data?.total ?? 0} évolution(s)
+        </span>
+      </div>
+      <p className="text-[11px] text-[#6B7280]">
+        Toute évolution préparée par le Système Intelligent passe par une <b>préproduction</b> avant
+        toute mise en production : brouillon → test → attente de validation → approuvé/rejeté →
+        intégré. Le système ne passe <b>jamais</b> directement en production : l'intégration exige
+        <b> ta validation</b>.
+      </p>
+
+      <div className="grid grid-cols-3 gap-2">
+        <StatCard label="En test" value={stats.data?.en_test ?? 0} color="blue" icon={Clock} />
+        <StatCard label="À valider" value={stats.data?.attente_validation ?? 0} color="orange" icon={AlertTriangle} />
+        <StatCard label="Intégrées" value={stats.data?.integre ?? 0} color="green" icon={CheckCircle2} />
+      </div>
+
+      {list.isLoading ? (
+        <p className="text-xs text-[#6B7280]">Chargement…</p>
+      ) : items.length === 0 ? (
+        <p className="rounded-xl bg-white p-4 text-center text-xs text-[#6B7280]">
+          Aucune évolution en préproduction pour l'instant.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {items.map((it) => {
+            const meta = STAGING_STATUS_META[it.status ?? "brouillon"] ?? STAGING_STATUS_META.brouillon;
+            return (
+              <div key={it.id} className="rounded-xl bg-white p-3 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-[#111]">{it.title}</span>
+                  <span className={`flex items-center gap-1 text-[10px] font-bold ${meta.text}`}>
+                    <span className={`h-2 w-2 rounded-full ${meta.dot}`} /> {meta.label}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-[10px] uppercase tracking-wide text-[#9CA3AF]">{it.type}</p>
+                {it.description && <p className="mt-1 text-[11px] text-[#374151]">{it.description}</p>}
+                {it.testResult && (
+                  <pre className="mt-1 whitespace-pre-wrap rounded-lg bg-[#F5F3EF] p-2 text-[10px] text-[#374151]">
+                    {it.testResult}
+                  </pre>
+                )}
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {(it.status === "brouillon" || it.status === "en_test") && (
+                    <button
+                      onClick={() => test.mutate({ id: it.id })}
+                      className="rounded-lg bg-blue-600 px-2.5 py-1 text-[10px] font-semibold text-white"
+                    >
+                      Lancer les tests
+                    </button>
+                  )}
+                  {it.status === "attente_validation" && (
+                    <>
+                      <button
+                        onClick={() => review.mutate({ id: it.id, decision: "approuve" })}
+                        className="rounded-lg bg-green-600 px-2.5 py-1 text-[10px] font-semibold text-white"
+                      >
+                        Approuver
+                      </button>
+                      <button
+                        onClick={() => review.mutate({ id: it.id, decision: "rejete" })}
+                        className="rounded-lg bg-red-600 px-2.5 py-1 text-[10px] font-semibold text-white"
+                      >
+                        Rejeter
+                      </button>
+                    </>
+                  )}
+                  {it.status === "approuve" && (
+                    <button
+                      onClick={() => review.mutate({ id: it.id, decision: "integre" })}
+                      className="rounded-lg bg-[#D4AF37] px-2.5 py-1 text-[10px] font-semibold text-white"
+                    >
+                      Intégrer en production
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
