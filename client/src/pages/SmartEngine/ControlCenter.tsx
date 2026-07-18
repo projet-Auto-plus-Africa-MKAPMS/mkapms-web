@@ -47,13 +47,15 @@ import {
   Zap,
   HeartPulse,
   Boxes,
+  Gauge,
 } from "lucide-react";
 
-type Tab = "dashboard" | "etat" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "etat" | "qualite" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
   { key: "etat", label: "État plateforme", icon: HeartPulse },
+  { key: "qualite", label: "Qualité", icon: Gauge },
   { key: "alertes", label: "Alertes", icon: AlertTriangle },
   { key: "apprentissage", label: "Apprentissage privé", icon: GraduationCap },
   { key: "connaissances", label: "Connaissances externes", icon: Globe },
@@ -125,6 +127,7 @@ export default function ControlCenter() {
       <div className="px-4">
         {tab === "dashboard" && <DashboardTab onNavigate={setTab} />}
         {tab === "etat" && <EtatPlateformeTab />}
+        {tab === "qualite" && <QualiteTab />}
         {tab === "alertes" && <AlertesTab />}
         {tab === "apprentissage" && <ApprentissageTab />}
         {tab === "connaissances" && <ConnaissancesTab />}
@@ -689,6 +692,94 @@ function BaseConnaissancesTab() {
                   )}
                 </div>
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : Qualité — Moteur Qualité (Partie 12)
+   Score qualité par domaine + global. 100% lecture seule.
+   ═══════════════════════════════════════════════════════════ */
+function qualityColor(status: string): string {
+  if (status === "bon") return "text-green-600";
+  if (status === "moyen") return "text-orange-500";
+  return "text-red-500";
+}
+function qualityDot(status: string): string {
+  if (status === "bon") return "bg-green-500";
+  if (status === "moyen") return "bg-orange-500";
+  return "bg-red-500";
+}
+
+function QualiteTab() {
+  const overview = trpc.smartEngine.qualityOverview.useQuery();
+  const utils = trpc.useUtils();
+  const run = trpc.smartEngine.qualityAuditRun.useMutation({
+    onSuccess: () => utils.smartEngine.qualityOverview.invalidate(),
+  });
+
+  const data = overview.data;
+  const cats = data?.categories ?? [];
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">Moteur Qualité</h2>
+        {data?.hasData && (
+          <span className={`rounded-full bg-[#111] px-2.5 py-1 text-[10px] font-bold ${qualityColor(data.globalStatus)}`}>
+            Global {data.globalScore}/100
+          </span>
+        )}
+      </div>
+      <p className="text-[11px] text-[#6B7280]">
+        Le Système Intelligent mesure la <b>qualité réelle</b> de la plateforme (complétude des
+        annonces, photos, descriptions, prix, confiance, doublons, santé, avis). Il <b>ne modifie
+        rien</b> et ne décide jamais seul : il mesure, explique et <b>recommande</b> — toi seul
+        décides des suites.
+      </p>
+
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => run.mutate()}
+          disabled={run.isPending}
+          className="flex items-center gap-1 rounded-xl bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40"
+        >
+          <RefreshCw size={14} className={run.isPending ? "animate-spin" : ""} /> Lancer un audit qualité
+        </button>
+        {run.data && (
+          <span className="text-[11px] text-[#6B7280]">
+            Audit terminé — {run.data.results.length} domaine(s), global {run.data.globalScore}/100
+          </span>
+        )}
+      </div>
+
+      {overview.isLoading ? (
+        <p className="text-xs text-[#6B7280]">Chargement…</p>
+      ) : !data?.hasData ? (
+        <p className="rounded-xl bg-white p-4 text-center text-xs text-[#6B7280]">
+          Aucun audit encore. Clique sur « Lancer un audit qualité ».
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {cats.map((c) => (
+            <div key={c.category} className="rounded-xl bg-white p-3 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`h-2.5 w-2.5 rounded-full ${qualityDot(c.status)}`} />
+                  <span className="text-sm font-semibold text-[#111]">{c.label}</span>
+                </div>
+                <span className={`text-sm font-black ${qualityColor(c.status)}`}>{c.score}/100</span>
+              </div>
+              <p className="mt-1 text-[11px] text-[#374151]">{c.headline}</p>
+              {c.recommendation && (
+                <p className="mt-1 flex items-start gap-1 text-[11px] text-[#B45309]">
+                  <Lightbulb size={12} className="mt-0.5 shrink-0" /> {c.recommendation}
+                </p>
+              )}
             </div>
           ))}
         </div>

@@ -43,6 +43,7 @@ import { assertRate, sanitizeTeachMessage } from "./services/rate-limiter.js"; /
 import { runRetention, retentionCounters } from "./services/retention.js"; // P7
 import { runAlertScan, alertLevelStats } from "./services/alert-engine.js";
 import { scanDevelopments, getDevLearningStats, listDevItems, reviewDevItem } from "./services/dev-learning.js";
+import { runQualityAudit, getQualityOverview, listQualityAudits } from "./services/quality-engine.js"; // P12
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
 import { desc, eq, sql, and } from "drizzle-orm";
@@ -600,5 +601,41 @@ export const smartEngineRouter = router({
     )
     .mutation(async ({ input }) => {
       return runRetention(input ?? {});
+    }),
+
+  // ── 22. Moteur Qualité (Partie 12) ───────────────────────────────
+  // Mesure la qualité réelle de la plateforme (annonces, photos, prix,
+  // confiance, doublons, santé, avis). 100% lecture seule ; aucune action
+  // automatique. Le PDG lance l'audit et consulte les scores.
+  qualityAuditRun: pdgProcedure.mutation(async ({ ctx }) => {
+    return runQualityAudit(ctx.user.uid);
+  }),
+
+  qualityOverview: pdgProcedure.query(async () => {
+    return getQualityOverview();
+  }),
+
+  qualityList: pdgProcedure
+    .input(
+      z
+        .object({
+          category: z
+            .enum([
+              "annonces",
+              "photos",
+              "descriptions",
+              "prix",
+              "confiance",
+              "doublons",
+              "sante",
+              "avis",
+            ])
+            .optional(),
+          limit: z.number().default(100),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      return listQualityAudits(input?.category, input?.limit ?? 100);
     }),
 });
