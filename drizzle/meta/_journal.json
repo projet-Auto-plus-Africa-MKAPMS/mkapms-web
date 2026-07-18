@@ -225,6 +225,13 @@
       "when": 1783700200000,
       "tag": "0031_smart_preproduction",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1783700300000,
+      "tag": "0032_smart_guardrails",
+      "breakpoints": true
     }
   ]
 }

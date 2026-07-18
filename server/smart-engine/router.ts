@@ -45,6 +45,7 @@ import { runAlertScan, alertLevelStats } from "./services/alert-engine.js";
 import { scanDevelopments, getDevLearningStats, listDevItems, reviewDevItem } from "./services/dev-learning.js";
 import { runQualityAudit, getQualityOverview, listQualityAudits } from "./services/quality-engine.js"; // P12
 import { createStagingItem, runStagingTest, reviewStagingItem, listStaging, stagingStats } from "./services/preproduction.js"; // P13
+import { getGuardrailsPolicy, requestApproval, decideApproval, listApprovals, approvalStats } from "./services/guardrails.js"; // P15
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
 import { desc, eq, sql, and } from "drizzle-orm";
@@ -700,5 +701,54 @@ export const smartEngineRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       return reviewStagingItem({ id: input.id, decision: input.decision, validatorId: ctx.user.uid });
+    }),
+
+  // ── 24. Règle finale / Garde-fous (Partie 15) ────────────────────
+  // Toute action sensible est mise en file d'attente et n'est exécutée
+  // qu'après validation humaine. Le système n'exécute jamais seul.
+  guardrailsPolicy: pdgProcedure.query(async () => {
+    return getGuardrailsPolicy();
+  }),
+
+  approvalStats: pdgProcedure.query(async () => {
+    return approvalStats();
+  }),
+
+  approvalsList: pdgProcedure
+    .input(
+      z
+        .object({
+          status: z.enum(["en_attente", "approuve", "rejete", "execute"]).optional(),
+          limit: z.number().default(100),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      return listApprovals(input?.status, input?.limit ?? 100);
+    }),
+
+  approvalRequest: pdgProcedure
+    .input(
+      z.object({
+        action: z.string().min(2),
+        targetType: z.string().optional(),
+        targetId: z.number().optional(),
+        reason: z.string().optional(),
+        riskLevel: z.enum(["faible", "moyen", "eleve", "critique"]).optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      return requestApproval(input);
+    }),
+
+  approvalDecide: pdgProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        decision: z.enum(["approuve", "rejete", "execute"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return decideApproval({ id: input.id, decision: input.decision, deciderId: ctx.user.uid });
     }),
 });

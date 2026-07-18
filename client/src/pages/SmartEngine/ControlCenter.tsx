@@ -49,15 +49,17 @@ import {
   Boxes,
   Gauge,
   Rocket,
+  ShieldCheck,
 } from "lucide-react";
 
-type Tab = "dashboard" | "etat" | "qualite" | "preprod" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "etat" | "qualite" | "preprod" | "gardefous" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
   { key: "etat", label: "État plateforme", icon: HeartPulse },
   { key: "qualite", label: "Qualité", icon: Gauge },
   { key: "preprod", label: "Préproduction", icon: Rocket },
+  { key: "gardefous", label: "Garde-fous", icon: ShieldCheck },
   { key: "alertes", label: "Alertes", icon: AlertTriangle },
   { key: "apprentissage", label: "Apprentissage privé", icon: GraduationCap },
   { key: "connaissances", label: "Connaissances externes", icon: Globe },
@@ -131,6 +133,7 @@ export default function ControlCenter() {
         {tab === "etat" && <EtatPlateformeTab />}
         {tab === "qualite" && <QualiteTab />}
         {tab === "preprod" && <PreprodTab />}
+        {tab === "gardefous" && <GardeFousTab />}
         {tab === "alertes" && <AlertesTab />}
         {tab === "apprentissage" && <ApprentissageTab />}
         {tab === "connaissances" && <ConnaissancesTab />}
@@ -898,6 +901,131 @@ function PreprodTab() {
                     </button>
                   )}
                 </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : Règle finale / Garde-fous (Partie 15)
+   Charte + file d'attente des actions sensibles (validation humaine).
+   ═══════════════════════════════════════════════════════════ */
+const RISK_META: Record<string, { label: string; text: string }> = {
+  faible: { label: "Faible", text: "text-slate-600" },
+  moyen: { label: "Moyen", text: "text-yellow-700" },
+  eleve: { label: "Élevé", text: "text-orange-700" },
+  critique: { label: "Critique", text: "text-red-700" },
+};
+const APPROVAL_META: Record<string, { label: string; dot: string; text: string }> = {
+  en_attente: { label: "En attente", dot: "bg-orange-500", text: "text-orange-700" },
+  approuve: { label: "Approuvé", dot: "bg-green-500", text: "text-green-700" },
+  rejete: { label: "Rejeté", dot: "bg-red-500", text: "text-red-700" },
+  execute: { label: "Exécuté", dot: "bg-[#D4AF37]", text: "text-[#B45309]" },
+};
+
+function GardeFousTab() {
+  const policy = trpc.smartEngine.guardrailsPolicy.useQuery();
+  const stats = trpc.smartEngine.approvalStats.useQuery();
+  const list = trpc.smartEngine.approvalsList.useQuery({ limit: 100 });
+  const utils = trpc.useUtils();
+  const refresh = () => {
+    utils.smartEngine.approvalsList.invalidate();
+    utils.smartEngine.approvalStats.invalidate();
+  };
+  const decide = trpc.smartEngine.approvalDecide.useMutation({ onSuccess: refresh });
+
+  const items = list.data ?? [];
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">Règle finale — Garde-fous</h2>
+        <span className="rounded-full bg-[#111] px-2.5 py-1 text-[10px] font-bold text-[#D4AF37]">
+          {stats.data?.en_attente ?? 0} à valider
+        </span>
+      </div>
+
+      {/* Charte */}
+      {policy.data && (
+        <div className="rounded-xl bg-white p-3 shadow-sm">
+          <p className="text-[11px] font-semibold text-[#111]">{policy.data.principle}</p>
+          <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="rounded-lg bg-emerald-50 p-2">
+              <p className="text-[10px] font-bold uppercase text-emerald-700">Le système peut</p>
+              <ul className="mt-1 space-y-0.5">
+                {policy.data.canDo.map((c) => (
+                  <li key={c} className="flex items-start gap-1 text-[11px] text-[#374151]">
+                    <CheckCircle2 size={11} className="mt-0.5 shrink-0 text-emerald-600" /> {c}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-lg bg-red-50 p-2">
+              <p className="text-[10px] font-bold uppercase text-red-700">Jamais seul (validation humaine)</p>
+              <ul className="mt-1 space-y-0.5">
+                {policy.data.neverAlone.map((c) => (
+                  <li key={c} className="flex items-start gap-1 text-[11px] text-[#374151]">
+                    <XCircle size={11} className="mt-0.5 shrink-0 text-red-500" /> {c}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <p className="mt-2 text-[10px] italic text-[#6B7280]">{policy.data.finalControl}</p>
+        </div>
+      )}
+
+      {/* File d'attente des actions sensibles */}
+      <h3 className="text-sm font-bold text-[#111]">File d'attente — actions sensibles</h3>
+      {list.isLoading ? (
+        <p className="text-xs text-[#6B7280]">Chargement…</p>
+      ) : items.length === 0 ? (
+        <p className="rounded-xl bg-white p-4 text-center text-xs text-[#6B7280]">
+          Aucune action sensible en attente. Le système n'exécute rien de sensible sans ton accord.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {items.map((a) => {
+            const meta = APPROVAL_META[a.status ?? "en_attente"] ?? APPROVAL_META.en_attente;
+            const risk = RISK_META[a.riskLevel ?? "moyen"] ?? RISK_META.moyen;
+            return (
+              <div key={a.id} className="rounded-xl bg-white p-3 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-[#111]">{a.action}</span>
+                  <span className={`flex items-center gap-1 text-[10px] font-bold ${meta.text}`}>
+                    <span className={`h-2 w-2 rounded-full ${meta.dot}`} /> {meta.label}
+                  </span>
+                </div>
+                <p className={`mt-0.5 text-[10px] font-bold uppercase ${risk.text}`}>Risque : {risk.label}</p>
+                {a.reason && <p className="mt-1 text-[11px] text-[#374151]">{a.reason}</p>}
+                {a.status === "en_attente" && (
+                  <div className="mt-2 flex gap-1.5">
+                    <button
+                      onClick={() => decide.mutate({ id: a.id, decision: "approuve" })}
+                      className="rounded-lg bg-green-600 px-2.5 py-1 text-[10px] font-semibold text-white"
+                    >
+                      Approuver
+                    </button>
+                    <button
+                      onClick={() => decide.mutate({ id: a.id, decision: "rejete" })}
+                      className="rounded-lg bg-red-600 px-2.5 py-1 text-[10px] font-semibold text-white"
+                    >
+                      Rejeter
+                    </button>
+                  </div>
+                )}
+                {a.status === "approuve" && (
+                  <button
+                    onClick={() => decide.mutate({ id: a.id, decision: "execute" })}
+                    className="mt-2 rounded-lg bg-[#D4AF37] px-2.5 py-1 text-[10px] font-semibold text-white"
+                  >
+                    Marquer exécuté
+                  </button>
+                )}
               </div>
             );
           })}
