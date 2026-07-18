@@ -328,3 +328,42 @@ export const smartDevRegistry = pgTable("smart_dev_registry", {
   firstSeenAt: timestamp("first_seen_at").defaultNow(),
   lastSeenAt: timestamp("last_seen_at").defaultNow(),
 });
+
+// ── Partie 12 — Moteur Qualité (Quality Engine) ─────────────────────────
+// Le Système Intelligent évalue en continu la qualité réelle de la plateforme
+// (annonces, photos, descriptions, prix, confiance, doublons, santé, avis) et
+// produit un score par domaine + un score global. 100% lecture seule sur les
+// données existantes ; les audits sont stockés dans une table isolée `smart_`.
+// Aucune donnée existante n'est modifiée. Le PDG décide des suites à donner.
+export const smartQualityCategoryEnum = pgEnum("smart_quality_category", [
+  "annonces", // complétude des annonces (photos, description, prix)
+  "photos", // richesse photo (nombre, catégorisation)
+  "descriptions", // qualité des descriptions
+  "prix", // renseignement du prix
+  "confiance", // comptes suspects non résolus
+  "doublons", // doublons d'annonces non résolus
+  "sante", // santé technique de la plateforme
+  "avis", // signaux issus des avis
+]);
+// Statut qualité : bon (🟢), moyen (🟡), faible (🔴).
+export const smartQualityStatusEnum = pgEnum("smart_quality_status", [
+  "bon",
+  "moyen",
+  "faible",
+]);
+export const smartQualityAudits = pgTable("smart_quality_audits", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  category: smartQualityCategoryEnum("category").notNull(),
+  // Score de 0 à 100 (100 = qualité parfaite).
+  score: integer("score").notNull(),
+  status: smartQualityStatusEnum("status").notNull(),
+  // Résumé lisible affiché au PDG (ex: "82% des annonces ont ≥ 3 photos").
+  headline: text("headline").notNull(),
+  // Recommandation additive (jamais d'action automatique).
+  recommendation: text("recommendation"),
+  // Détails chiffrés (échantillon, numérateur/dénominateur, seuils…).
+  details: jsonb("details").$type<Record<string, unknown>>(),
+  // Taille de l'échantillon analysé.
+  sampleSize: integer("sample_size").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
