@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { trpc } from "../lib/trpc";
 import {
   ChevronLeft, ChevronRight, Search, MapPin, Calendar, CarFront, Truck,
   Shield, Lock, Clock, Headphones, FileCheck, ChevronDown, Star,
@@ -153,6 +154,12 @@ export default function LocationPro() {
     ? VEHICULES_PRO.filter((v) => v.categorie === selectedCat)
     : VEHICULES_PRO;
 
+  // Vraies annonces pro location — additif aux mocks (best-effort).
+  const realAnnonces = trpc.annonces.list.useQuery(
+    { type: "location", categorieAnnonce: "professionnelle", limit: 24 },
+    { retry: false },
+  );
+
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
 
@@ -293,6 +300,34 @@ export default function LocationPro() {
           </div>
         )}
       </div>
+
+      {/* Section additive — Dernières vraies annonces pro DB */}
+      {(realAnnonces.data?.length ?? 0) > 0 && (
+        <div className="px-4 mt-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-[#111]">Dernières annonces</h2>
+            <span className="text-xs font-semibold text-[#3B82F6]">{realAnnonces.data?.length} annonce{(realAnnonces.data?.length ?? 0) > 1 ? "s" : ""}</span>
+          </div>
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {realAnnonces.data?.map((a) => (
+              <Link key={a.id} to={`/louer/pro/vehicule/${a.id}`} className="block rounded-xl bg-white border border-[#3B82F6]/40 overflow-hidden active:scale-[0.99] transition hover:shadow-lg">
+                <div className="relative h-[160px] md:h-[180px] lg:h-[200px] bg-[#F5F3EF]">
+                  {a.photoPrincipale && <img src={a.photoPrincipale} alt={a.titre ?? ""} className="w-full h-full object-cover" loading="lazy" />}
+                  <span className="absolute top-2 left-2 rounded-full bg-[#3B82F6] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white">Nouveau</span>
+                </div>
+                <div className="p-3">
+                  <p className="text-sm font-bold text-[#111] truncate">{a.titre || `${a.marque ?? ""} ${a.modele ?? ""}`}</p>
+                  <p className="text-[11px] text-[#6B7280] truncate">{[a.categorie, a.annee, a.carburant].filter(Boolean).join(" · ")}</p>
+                  <p className="mt-2 text-base font-black text-[#3B82F6]">
+                    {a.prixJour ? `${Math.round(Number(a.prixJour))} €` : `${Math.round(Number(a.prix))} €`}
+                    <span className="text-[10px] font-normal text-[#6B7280]"> / jour</span>
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════
           SECTION 5 — VÉHICULES DISPONIBLES
