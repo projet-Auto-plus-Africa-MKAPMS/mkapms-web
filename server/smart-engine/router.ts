@@ -44,6 +44,7 @@ import { runRetention, retentionCounters } from "./services/retention.js"; // P7
 import { runAlertScan, alertLevelStats } from "./services/alert-engine.js";
 import { scanDevelopments, getDevLearningStats, listDevItems, reviewDevItem } from "./services/dev-learning.js";
 import { runQualityAudit, getQualityOverview, listQualityAudits } from "./services/quality-engine.js"; // P12
+import { createStagingItem, runStagingTest, reviewStagingItem, listStaging, stagingStats } from "./services/preproduction.js"; // P13
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
 import { desc, eq, sql, and } from "drizzle-orm";
@@ -637,5 +638,67 @@ export const smartEngineRouter = router({
     )
     .query(async ({ input }) => {
       return listQualityAudits(input?.category, input?.limit ?? 100);
+    }),
+
+  // ── 23. Préproduction / Staging (Partie 13) ──────────────────────
+  // Toute évolution passe par une préproduction (brouillon → test →
+  // attente validation → approuvé/rejeté → intégré). Aucune intégration
+  // sans validation humaine. PDG uniquement.
+  stagingStats: pdgProcedure.query(async () => {
+    return stagingStats();
+  }),
+
+  stagingList: pdgProcedure
+    .input(
+      z
+        .object({
+          status: z
+            .enum(["brouillon", "en_test", "attente_validation", "approuve", "rejete", "integre"])
+            .optional(),
+          limit: z.number().default(100),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      return listStaging(input?.status, input?.limit ?? 100);
+    }),
+
+  stagingCreate: pdgProcedure
+    .input(
+      z.object({
+        type: z.enum([
+          "moteur",
+          "interface",
+          "formulaire",
+          "systeme",
+          "api",
+          "automatisation",
+          "correction",
+          "optimisation",
+        ]),
+        title: z.string().min(3),
+        description: z.string().optional(),
+        riskNote: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      return createStagingItem(input);
+    }),
+
+  stagingTest: pdgProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      return runStagingTest(input.id);
+    }),
+
+  stagingReview: pdgProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        decision: z.enum(["approuve", "rejete", "integre"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return reviewStagingItem({ id: input.id, decision: input.decision, validatorId: ctx.user.uid });
     }),
 });
