@@ -411,3 +411,40 @@ export const smartStaging = pgTable("smart_staging", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// ── Partie 15 — Règle finale / Garde-fous ───────────────────────────────
+// Toute action sensible que le Système Intelligent souhaite entreprendre est
+// mise en FILE D'ATTENTE et ne peut être exécutée qu'après validation humaine
+// (PDG/Directeur/admin). Le système ne supprime jamais seul un compte/annonce,
+// ne modifie jamais seul un prix/abonnement/contrat, ne prend jamais seul une
+// décision financière et ne déploie jamais directement en production.
+export const smartRiskLevelEnum = pgEnum("smart_risk_level", [
+  "faible",
+  "moyen",
+  "eleve",
+  "critique",
+]);
+export const smartApprovalStatusEnum = pgEnum("smart_approval_status", [
+  "en_attente",
+  "approuve",
+  "rejete",
+  "execute",
+]);
+export const smartActionApprovals = pgTable("smart_action_approvals", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  // Action demandée (ex: "supprimer_annonce", "modifier_prix"…).
+  action: varchar("action", { length: 128 }).notNull(),
+  targetType: varchar("target_type", { length: 64 }),
+  targetId: integer("target_id"),
+  // Raison / justification préparée par le système.
+  reason: text("reason"),
+  riskLevel: smartRiskLevelEnum("risk_level").default("moyen"),
+  status: smartApprovalStatusEnum("status").default("en_attente"),
+  // Toujours "systeme" pour une demande automatique.
+  requestedBy: varchar("requested_by", { length: 64 }).default("systeme"),
+  // Décision humaine (obligatoire pour exécuter).
+  decidedBy: integer("decided_by"),
+  decidedAt: timestamp("decided_at"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
