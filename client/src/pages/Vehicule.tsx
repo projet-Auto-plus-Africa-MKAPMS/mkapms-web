@@ -295,9 +295,11 @@ export default function Vehicule({ univers }: { univers?: string }) {
    * ───────────────────────────────────────────────────────────────────────── */
   if (isLocation && !isDemo && !location.pathname.startsWith("/louer/")) {
     const cat = String((v as { categorie?: string }).categorie ?? "").toLowerCase();
+    const seg = (v as { segmentLocation?: string }).segmentLocation;
     const isOfficielle = (v as { categorieAnnonce?: string }).categorieAnnonce === "officielle";
     const target =
-      isOfficielle ? "mkapms-officiel"
+      seg === "vtc_taxi" ? "vtc-taxi"
+      : isOfficielle ? "mkapms"
       : cat.includes("minibus") ? "minibus"
       : cat.includes("utilitaire") || cat.includes("camping-car") ? "utilitaires"
       : cat.includes("camion") || cat.includes("pick-up") ? "camions"

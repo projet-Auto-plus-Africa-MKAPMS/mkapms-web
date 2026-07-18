@@ -180,12 +180,14 @@ const CATEGORIES_MOTO = [
  * à partir de la categorieAnnonce (officielle/pro/particulier) et de la
  * catégorie du véhicule choisie (Utilitaire, Camping-car, Minibus, etc.).
  * ───────────────────────────────────────────────────────────────────────── */
-type LocationMode = "particulier" | "pro" | "utilitaires" | "camions" | "minibus" | "mkapms";
+type LocationMode = "particulier" | "pro" | "utilitaires" | "camions" | "minibus" | "mkapms" | "vtc_taxi";
 
 function detectLocationMode(
   categorieAnnonce: "officielle" | "professionnelle" | "particulier",
   categorie: string | undefined | null,
+  segmentLocation?: string,
 ): LocationMode {
+  if (segmentLocation === "vtc_taxi") return "vtc_taxi";
   if (categorieAnnonce === "officielle") return "mkapms";
   const c = (categorie ?? "").toLowerCase();
   if (c.includes("minibus")) return "minibus";
@@ -208,6 +210,7 @@ const LOCATION_MODE_CONFIG: Record<LocationMode, {
   camions: { label: "Camions", emoji: "🚛", color: "#DC2626", kmDefault: 150, extras: ["assurance", "chauffeur"] },
   minibus: { label: "Minibus", emoji: "🚌", color: "#0EA5E9", kmDefault: 200, extras: ["assurance", "places_permis"] },
   mkapms: { label: "MKAPMS Officiel", emoji: "⭐", color: "#111", kmDefault: 200, extras: ["assurance", "entretien"] },
+  vtc_taxi: { label: "VTC / Taxi", emoji: "🚕", color: "#F59E0B", kmDefault: 400, extras: ["assurance"] },
 };
 
 const COULEURS = [
@@ -270,6 +273,9 @@ export default function Vendre() {
     prixJour: "", prixSemaine: "", prixMois: "",
     kmInclusJour: "200",
     assuranceIncluse: "1",
+    // Segment location : "particulier" | "professionnel" | "vtc_taxi"
+    // Une case à cocher VTC/Taxi côté UI active la valeur "vtc_taxi".
+    segmentLocation: "",
     carburant: "essence", boite: "manuelle",
     categorie: "berline",
     ville: "", codePostal: "", contactTelephone: "",
@@ -585,6 +591,7 @@ export default function Vendre() {
         prixJour: typeAnnonce === "location" && form.prixJour ? Number(form.prixJour) : undefined,
         prixSemaine: typeAnnonce === "location" && form.prixSemaine ? Number(form.prixSemaine) : undefined,
         prixMois: typeAnnonce === "location" && form.prixMois ? Number(form.prixMois) : undefined,
+        segmentLocation: typeAnnonce === "location" && form.segmentLocation === "vtc_taxi" ? "vtc_taxi" as const : undefined,
         carburant: form.carburant || undefined,
         boite: form.boite || undefined,
         categorie: form.categorie || undefined,
@@ -623,6 +630,7 @@ export default function Vendre() {
         prixJour: typeAnnonce === "location" && form.prixJour ? Number(form.prixJour) : undefined,
         prixSemaine: typeAnnonce === "location" && form.prixSemaine ? Number(form.prixSemaine) : undefined,
         prixMois: typeAnnonce === "location" && form.prixMois ? Number(form.prixMois) : undefined,
+        segmentLocation: typeAnnonce === "location" && form.segmentLocation === "vtc_taxi" ? "vtc_taxi" as const : undefined,
         carburant: form.carburant,
         boite: form.boite,
         categorie: form.categorie as any,
@@ -1640,10 +1648,29 @@ export default function Vendre() {
               // Détection automatique de l'univers de location.
               // Le vendeur ne choisit rien manuellement : le système reconnaît
               // le mode véhicule à partir de categorieAnnonce + form.categorie.
-              const locMode = detectLocationMode(categorieAnnonce, form.categorie);
+              const locMode = detectLocationMode(categorieAnnonce, form.categorie, form.segmentLocation);
               const cfg = LOCATION_MODE_CONFIG[locMode];
               return (
               <div className="rounded-2xl border-2 border-[#D4AF37]/30 bg-gradient-to-br from-[#FFFDF5] to-white p-4 space-y-4">
+                {/* Case à cocher VTC / Taxi — bascule le segmentLocation */}
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div
+                    className={`h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all ${form.segmentLocation === "vtc_taxi" ? "bg-[#F59E0B] border-[#F59E0B]" : "bg-white border-[#E5E7EB]"}`}
+                  >
+                    {form.segmentLocation === "vtc_taxi" && <span className="text-white text-sm font-bold">✓</span>}
+                  </div>
+                  <input
+                    type="checkbox"
+                    className="hidden"
+                    checked={form.segmentLocation === "vtc_taxi"}
+                    onChange={(e) => set("segmentLocation", e.target.checked ? "vtc_taxi" : "")}
+                  />
+                  <div>
+                    <span className="text-sm font-bold text-[#111] group-hover:text-[#F59E0B]">🚕 Véhicule VTC / Taxi</span>
+                    <p className="text-[10px] text-[#6B7280]">Coche cette case si ton véhicule est destiné à l'univers VTC & Taxi.</p>
+                  </div>
+                </label>
+
                 {/* Badge Mode auto-détecté */}
                 <div
                   className="flex items-center justify-between rounded-xl px-3 py-2 text-white"

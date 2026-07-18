@@ -574,6 +574,9 @@ export const annoncesRouter = router({
         prixJour: z.number().optional(),
         prixSemaine: z.number().optional(),
         prixMois: z.number().optional(),
+        // Segment location (VTC/Taxi, particulier, professionnel) — utilisé
+        // pour le routage vers le bon univers d'affichage.
+        segmentLocation: z.enum(["particulier", "professionnel", "vtc_taxi"]).optional(),
         ville: z.string().optional(),
         codePostal: z.string().optional(),
         pays: z.string().default("FR"),
@@ -664,6 +667,7 @@ export const annoncesRouter = router({
           prixJour: rest.prixJour != null ? String(rest.prixJour) : undefined,
           prixSemaine: rest.prixSemaine != null ? String(rest.prixSemaine) : undefined,
           prixMois: rest.prixMois != null ? String(rest.prixMois) : undefined,
+          segmentLocation: rest.segmentLocation ?? undefined,
           ville: rest.ville,
           codePostal: rest.codePostal,
           pays: rest.pays,
@@ -795,6 +799,7 @@ export const annoncesRouter = router({
       prixJour: z.number().optional(),
       prixSemaine: z.number().optional(),
       prixMois: z.number().optional(),
+      segmentLocation: z.enum(["particulier", "professionnel", "vtc_taxi"]).optional(),
       carburant: z.string().optional(),
       boite: z.string().optional(),
       categorie: z.string().optional(),

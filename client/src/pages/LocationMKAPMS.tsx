@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { trpc } from "../lib/trpc";
 import {
   ChevronLeft, Search, MapPin, Calendar, CarFront, Car,
   Shield, Lock, Headphones, FileCheck, ChevronDown, Star,
@@ -153,6 +154,12 @@ export default function LocationMKAPMS() {
     return true;
   });
 
+  // Vraies annonces officielles MKAPMS location — additif (best-effort).
+  const realAnnonces = trpc.annonces.list.useQuery(
+    { type: "location", categorieAnnonce: "officielle", limit: 24 },
+    { retry: false },
+  );
+
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
 
@@ -259,6 +266,34 @@ export default function LocationMKAPMS() {
           </button>
         ))}
       </div>
+
+      {/* Section additive — Dernières vraies annonces officielles MKAPMS */}
+      {(realAnnonces.data?.length ?? 0) > 0 && (
+        <div className="px-4 mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-bold text-[#111]">Dernières annonces</h2>
+            <span className="text-xs font-semibold text-[#D4AF37]">{realAnnonces.data?.length} annonce{(realAnnonces.data?.length ?? 0) > 1 ? "s" : ""}</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {realAnnonces.data?.map((a) => (
+              <Link key={a.id} to={`/louer/mkapms/vehicule/${a.id}`} className="block rounded-xl bg-white border border-[#111] overflow-hidden active:scale-[0.99] transition hover:shadow-lg">
+                <div className="relative h-[160px] md:h-[180px] lg:h-[200px] bg-[#F5F3EF]">
+                  {a.photoPrincipale && <img src={a.photoPrincipale} alt={a.titre ?? ""} className="w-full h-full object-cover" loading="lazy" />}
+                  <span className="absolute top-2 left-2 rounded-full bg-[#111] border border-[#D4AF37] px-2.5 py-0.5 text-[9px] font-bold text-[#D4AF37]">MKA.P-MS Officiel</span>
+                </div>
+                <div className="p-3">
+                  <p className="text-sm font-bold text-[#111] truncate">{a.titre || `${a.marque ?? ""} ${a.modele ?? ""}`}</p>
+                  <p className="text-[11px] text-[#6B7280] truncate">{[a.categorie, a.annee, a.carburant].filter(Boolean).join(" · ")}</p>
+                  <p className="mt-2 text-base font-black text-[#D4AF37]">
+                    {a.prixJour ? `${Math.round(Number(a.prixJour))} €` : `${Math.round(Number(a.prix))} €`}
+                    <span className="text-[10px] font-normal text-[#6B7280]"> / jour</span>
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* LISTE DES VÉHICULES */}
       <div className="px-4 mt-4">
