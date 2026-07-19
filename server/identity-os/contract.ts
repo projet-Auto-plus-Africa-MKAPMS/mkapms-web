@@ -70,3 +70,65 @@ export const DEFAULT_ROLES_BY_TYPE: Record<IdentityType, IdentityRole[]> = {
   admin: ["admin"],
   ai_agent: [],
 };
+
+// ────────────────────────────────────────────────────────────────────────
+// Standards MOS transversaux (règles 12, 13, 14 — v1.2)
+// ────────────────────────────────────────────────────────────────────────
+
+/** Niveaux de maturité normalisés (règle MOS #14). */
+export const MATURITY_LEVELS = [
+  "sprint_0_architecture",
+  "sprint_1_minimal",
+  "sprint_2_complete",
+  "sprint_3_automation",
+  "sprint_4_intelligence",
+  "sprint_5_optimization",
+] as const;
+export type MaturityLevel = (typeof MATURITY_LEVELS)[number];
+
+/**
+ * Feed standardisé consommé par le MOS Control Center et par les deux
+ * moteurs centraux (Intelligence & Decision + Autonomous Operations).
+ * Chaque moteur MOS DOIT retourner ce même format (règle #13).
+ */
+export interface ControlCenterFeed {
+  engine: string;              // identifiant technique stable
+  label: string;               // nom lisible
+  version: string;             // semver
+  maturityLevel: MaturityLevel;
+  health: "ok" | "degraded" | "down" | "unknown";
+  load: {
+    // Nombre d'événements traités dans les 5 dernières minutes.
+    events5m: number;
+    // Nombre d'événements sur les 24 dernières heures.
+    events24h: number;
+  };
+  performance: {
+    // Temps de réponse observé pour l'appel courant (ms).
+    lastResponseMs: number;
+  };
+  errors: {
+    // Nombre d'erreurs sur les 24 dernières heures (best-effort).
+    last24h: number;
+  };
+  lastSyncAt: string;          // ISO-8601
+  status: "active" | "read_only" | "maintenance" | "disabled" | "staging";
+}
+
+/**
+ * Payload retourné par le tableau de bord dédié d'un moteur (règle #13).
+ * Généralise le `ControlCenterFeed` en ajoutant des métriques métier
+ * spécifiques via `businessMetrics`.
+ */
+export interface EngineDashboard extends ControlCenterFeed {
+  businessMetrics: Record<string, number | string | null>;
+  recentEvents: Array<{
+    at: string;
+    action: string;
+    metadata?: Record<string, unknown>;
+  }>;
+  recentErrors: Array<{
+    at: string;
+    message: string;
+  }>;
+}

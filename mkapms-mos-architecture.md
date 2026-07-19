@@ -147,6 +147,20 @@ Chaque univers métier a son propre moteur, indépendant. Un univers peut être 
 9. **Multi-pays / multi-langue / multi-devise dès l'origine** : aucun code écrit "en dur" pour un pays ou une langue.
 10. **Propriété MKA.P-MS** : la logique métier propriétaire n'est jamais externalisée sans contrat clair (LLM tiers autorisé uniquement si les données sensibles restent locales).
 11. **Chaque moteur = produit autonome ET collaboratif** : chaque nouveau moteur doit être conçu comme un produit qui fonctionne seul, activable/désactivable/testable/déployable individuellement, mais capable de collaborer avec tous les autres via le MOS (API, événements, contrats clairs). Aucune dépendance forte. Cette règle permet de remplacer, améliorer ou faire évoluer un moteur sans reconstruire le système.
+12. **Structure standardisée obligatoire (règle PDG v1.2)** — tout moteur MOS DOIT contenir la même arborescence :
+    - `README.md` (contrat public + roadmap)
+    - `contract.ts` (types stables — surface publique)
+    - `schema.ts` (tables Drizzle isolées, préfixe unique)
+    - `service.ts` (logique métier, isolée du transport)
+    - `router.ts` (sous-router tRPC branché sur `server/router.ts`)
+    - `__tests__/` (au minimum : `contract.test.ts`, `router.test.ts`, `app-router.test.ts`)
+    - Endpoint `healthStatus()` normalisé
+    - Table `<engine>_audit_log`
+    - Bus d'événements typés (`Event` union dans `contract.ts`)
+    - Constante `VERSION` semver dans `service.ts`
+    Aucun moteur ne peut être mergé sans ces 10 éléments.
+13. **Tableau de bord dédié par moteur (règle PDG v1.2)** — chaque moteur DOIT exposer un endpoint `dashboard()` qui remonte : état du moteur, version, santé, erreurs récentes, statistiques métier, historique, événements récents, performances (P50/P95), temps de réponse. Même minimal au début. Ces tableaux se regroupent automatiquement dans le **MOS Control Center**.
+14. **Niveau de maturité obligatoire (règle PDG v1.2)** — chaque moteur porte un `maturityLevel` ∈ {`sprint_0_architecture`, `sprint_1_minimal`, `sprint_2_complete`, `sprint_3_automation`, `sprint_4_intelligence`, `sprint_5_optimization`}. Retourné par `meta()` et `dashboard()`. Permet au PDG et aux moteurs centraux de savoir où en est chaque moteur du MOS à tout instant.
 
 ---
 

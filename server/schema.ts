@@ -194,6 +194,9 @@ export const annonces = pgTable("annonces", {
   pointsForts: jsonb("points_forts").default("[]"),
   equipements: jsonb("equipements").default("[]"),
   imperfections: jsonb("imperfections").default("[]"),
+  // Garanties saisies par le vendeur (pro/officielle) au dépôt de l'annonce.
+  // Format: [{ type: string, duree?: string, statut?: string }]
+  garanties: jsonb("garanties").default("[]"),
   sellerie: varchar("sellerie", { length: 64 }),
   cylindree: varchar("cylindree", { length: 64 }),
   consommation: varchar("consommation", { length: 64 }),

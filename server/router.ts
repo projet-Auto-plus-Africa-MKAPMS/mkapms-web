@@ -45,6 +45,8 @@ import { permissionEngineRouter } from "./permission-engine/router.js";
 import { redirectionEngineRouter } from "./redirection-engine/router.js";
 import { engineRegistryRouter } from "./engine-registry/router.js";
 import { paymentEngineRouter } from "./payment-engine/router.js";
+// Identity OS — moteur d'identité universel (Sprint 1)
+import { identityRouter } from "./identity-os/router.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -122,6 +124,8 @@ export const appRouter = router({
   redirectionEngine: redirectionEngineRouter,
   engineRegistry: engineRegistryRouter,
   paymentEngine: paymentEngineRouter,
+  // Identity OS — moteur transversal fondateur (namespace `identity.*`)
+  identity: identityRouter,
 });
 
 export type AppRouter = typeof appRouter;

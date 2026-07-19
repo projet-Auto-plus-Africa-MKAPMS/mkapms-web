@@ -205,6 +205,7 @@ export const annoncesRouter = router({
         pointsForts: safeArray(a.pointsForts),
         equipements: safeArray(a.equipements),
         imperfections: safeArray(a.imperfections),
+        garanties: safeArray((a as any).garanties),
         confort: safeArray(a.confort),
         multimedia: safeArray(a.multimedia),
         securite: safeArray(a.securite),
@@ -588,6 +589,16 @@ export const annoncesRouter = router({
         pointsForts: z.array(z.string()).default([]),
         equipements: z.array(z.string()).default([]),
         imperfections: z.array(z.string()).default([]),
+        // Garanties saisies au dépôt (pro/officielle). Ignoré côté particulier.
+        garanties: z
+          .array(
+            z.object({
+              type: z.string().min(1).max(80),
+              duree: z.string().max(60).optional(),
+              statut: z.string().max(30).optional(),
+            }),
+          )
+          .default([]),
         sellerie: z.string().optional(),
         cylindree: z.string().optional(),
         consommation: z.string().optional(),
@@ -606,7 +617,7 @@ export const annoncesRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { photos, pointsForts, equipements, imperfections, confort, multimedia, securite, videos360, videosNormales, categorieAnnonce: inputCatAnnonce, onBehalfOfUserId, ...rest } = input;
+      const { photos, pointsForts, equipements, imperfections, garanties, confort, multimedia, securite, videos360, videosNormales, categorieAnnonce: inputCatAnnonce, onBehalfOfUserId, ...rest } = input;
 
       // Déterminer la catégorie d'annonce — vérifier le rôle ACTUEL en DB (le JWT peut être périmé)
       const [freshUser] = await db.select({ role: users.role, staffPosition: users.staffPosition }).from(users).where(eq(users.id, ctx.user.uid)).limit(1);
@@ -689,6 +700,8 @@ export const annoncesRouter = router({
           pointsForts: pointsForts,
           equipements: equipements,
           imperfections: imperfections,
+          // Garanties : uniquement si vendeur pro ou officielle MKA.P-MS.
+          garanties: (vendeurType === "professionnel" ? garanties : []) as any,
           confort: confort,
           multimedia: multimedia,
           securite: securite,
@@ -820,6 +833,15 @@ export const annoncesRouter = router({
       pointsForts: z.array(z.string()).optional(),
       equipements: z.array(z.string()).optional(),
       imperfections: z.array(z.string()).optional(),
+      garanties: z
+        .array(
+          z.object({
+            type: z.string().min(1).max(80),
+            duree: z.string().max(60).optional(),
+            statut: z.string().max(30).optional(),
+          }),
+        )
+        .optional(),
       photos: z.array(z.union([z.string(), z.object({ url: z.string(), categorie: z.string().optional() })])).optional(),
       status: z.enum(["publiee", "reservee", "vendue", "archivee"]).optional(),
       categorieAnnonce: z.enum(["officielle", "professionnelle", "particulier"]).optional(),

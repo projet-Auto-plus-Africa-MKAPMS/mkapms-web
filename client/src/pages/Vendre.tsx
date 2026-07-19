@@ -296,6 +296,10 @@ export default function Vendre() {
   const [pfInput, setPfInput] = useState("");
   const [imperfections, setImperfections] = useState<string[]>([]);
   const [impInput, setImpInput] = useState("");
+  // Garanties (professionnel / officiel MKA.P-MS uniquement) — cases à cocher + durée.
+  type GarantieItem = { type: string; duree?: string; statut?: string };
+  const [garanties, setGaranties] = useState<GarantieItem[]>([]);
+  const [customGarantieInput, setCustomGarantieInput] = useState("");
   const [openEqCats, setOpenEqCats] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadingCats, setUploadingCats] = useState<Record<string, boolean>>({});
@@ -365,6 +369,7 @@ export default function Vendre() {
     if (d.pointsForts?.length) setPointsForts(d.pointsForts);
     if (d.equipements?.length) setSelectedEquipements(d.equipements);
     if (d.imperfections?.length) setImperfections(d.imperfections);
+    if (Array.isArray(d.garanties) && d.garanties.length) setGaranties(d.garanties);
     if (d.categorieAnnonce) setCategorieAnnonce(d.categorieAnnonce);
     if (d.photos?.length) {
       const grouped: Record<string, string[]> = {};
@@ -611,6 +616,7 @@ export default function Vendre() {
         pointsForts: pointsForts.length > 0 ? pointsForts : undefined,
         equipements: restList.length > 0 ? restList : undefined,
         imperfections: imperfections.length > 0 ? imperfections : undefined,
+        garanties: garanties.length > 0 ? garanties : undefined,
         typeBatterie: form.typeBatterie || undefined,
         etatBatterie: form.etatBatterie ? Number(form.etatBatterie) : undefined,
         categorieAnnonce: isAdminOrEmployee ? categorieAnnonce : undefined,
@@ -651,6 +657,7 @@ export default function Vendre() {
         pointsForts,
         equipements: restList,
         imperfections,
+        garanties,
         confort: confortList,
         multimedia: multiList,
         securite: secuList,
@@ -1468,6 +1475,110 @@ export default function Vendre() {
               </div>
             )}
           </div>
+
+          {/* ── Garanties (pro / officielle MKA.P-MS uniquement) ── */}
+          {(isPro || isEmployee) && (
+            <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 shadow-sm" data-testid="garanties-section">
+              <h3 className="text-sm font-bold text-[#111] uppercase tracking-wider mb-1">Garanties (optionnel)</h3>
+              <p className="text-xs text-slate-500 mb-3">Ces garanties s'afficheront sur la fiche véhicule et rassurent l'acheteur.</p>
+
+              {/* Presets courants — cases à cocher */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {[
+                  { type: "Garantie constructeur", duree: "24 mois" },
+                  { type: "Extension de garantie", duree: "12 mois" },
+                  { type: "Garantie vices cachés", duree: "6 mois" },
+                  { type: "Garantie mécanique", duree: "12 mois" },
+                  { type: "Contrôle technique récent", duree: "" },
+                  { type: "Assistance dépannage", duree: "12 mois" },
+                ].map((preset) => {
+                  const checked = garanties.some((g) => g.type === preset.type);
+                  return (
+                    <label
+                      key={preset.type}
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer transition ${
+                        checked ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-slate-200 hover:border-[#D4AF37]/60"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-[#D4AF37]"
+                        data-testid={`garantie-checkbox-${preset.type.replace(/\s+/g, "-").toLowerCase()}`}
+                        checked={checked}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setGaranties((prev) => [
+                              ...prev,
+                              { type: preset.type, duree: preset.duree || undefined, statut: "Active" },
+                            ]);
+                          } else {
+                            setGaranties((prev) => prev.filter((g) => g.type !== preset.type));
+                          }
+                        }}
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-[#111]">{preset.type}</p>
+                        {preset.duree && (
+                          <p className="text-[10px] text-slate-500">{preset.duree}</p>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* Ajout d'une garantie personnalisée */}
+              <div className="mt-4 flex gap-2">
+                <input
+                  className="input flex-1"
+                  value={customGarantieInput}
+                  onChange={(e) => setCustomGarantieInput(e.target.value)}
+                  placeholder="Autre garantie (ex: Garantie 100 000 km)"
+                  data-testid="garantie-custom-input"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && customGarantieInput.trim()) {
+                      e.preventDefault();
+                      setGaranties((prev) => [...prev, { type: customGarantieInput.trim(), statut: "Active" }]);
+                      setCustomGarantieInput("");
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  data-testid="garantie-custom-add-btn"
+                  onClick={() => {
+                    if (customGarantieInput.trim()) {
+                      setGaranties((prev) => [...prev, { type: customGarantieInput.trim(), statut: "Active" }]);
+                      setCustomGarantieInput("");
+                    }
+                  }}
+                  className="rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-bold text-white"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Récap garanties personnalisées ajoutées */}
+              {garanties.filter((g) => !["Garantie constructeur","Extension de garantie","Garantie vices cachés","Garantie mécanique","Contrôle technique récent","Assistance dépannage"].includes(g.type)).length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5" data-testid="garanties-custom-list">
+                  {garanties
+                    .filter((g) => !["Garantie constructeur","Extension de garantie","Garantie vices cachés","Garantie mécanique","Contrôle technique récent","Assistance dépannage"].includes(g.type))
+                    .map((g, i) => (
+                      <span key={`${g.type}-${i}`} className="inline-flex items-center gap-1 rounded-full bg-[#FFFDF5] border border-[#D4AF37]/40 px-3 py-1 text-xs font-medium text-[#111]">
+                        {g.type}
+                        <button
+                          type="button"
+                          onClick={() => setGaranties((arr) => arr.filter((x) => x.type !== g.type))}
+                          className="text-red-400 ml-1"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ── Photos par catégorie ── */}
           <div className="rounded-2xl bg-[#FFFDF5] border border-[#D4AF37]/30 p-4 flex items-start gap-2 shadow-sm">
