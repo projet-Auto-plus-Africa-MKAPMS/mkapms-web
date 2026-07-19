@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ChevronLeft, Building2, Package, FileText, MessageSquare, Calendar, Euro, Users, BarChart3, Settings, Tag, Bell, ChevronRight, Shield, Star, AlertCircle, Eye, Archive } from "lucide-react";
+import VoProGate from "../components/VoProGate";
 
 /* ══════════════════════════════════════════════════════════════════════════
    7-8. TABLEAU DE BORD PRO VENTE
@@ -31,6 +32,7 @@ const MENU = [
 
 export default function TableauBordProVente() {
   return (
+    <VoProGate>
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-blue-800 px-4 pt-6 pb-5">
         <Link to="/" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Accueil</Link>
@@ -84,5 +86,6 @@ export default function TableauBordProVente() {
         <Link to="/vente/abonnements" className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-[10px] font-bold text-white">Gérer</Link>
       </div>
     </div>
+    </VoProGate>
   );
 }
