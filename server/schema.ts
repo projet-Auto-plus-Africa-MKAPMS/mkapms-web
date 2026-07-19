@@ -1139,3 +1139,4 @@ export * from "./smart-engine/schema"; // Smart Engine — Système Intelligent 
 export * from "./permission-engine/schema"; // Permission Engine — Moteur de Permissions MKA.P-MS (isolé)
 export * from "./redirection-engine/schema"; // Redirection Engine — Moteur de Redirection MKA.P-MS (isolé)
 export * from "./engine-registry/schema"; // Engine Registry — Registre central des moteurs (isolé, Phase 1)
+export * from "./payment-engine/schema"; // Payment Engine — Moteur de paiement propriétaire (isolé, Phase 2)

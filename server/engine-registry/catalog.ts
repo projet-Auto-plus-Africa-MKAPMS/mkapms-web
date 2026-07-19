@@ -67,8 +67,8 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     label: "Payment Engine",
     category: "transversal",
     dependencies: ["core", "permission"],
-    description: "Moteur de paiement (Stripe/virement) — à créer (Phase 2).",
-    state: "disabled",
+    description: "Moteur de paiement propriétaire (Stripe/virement) — en staging (Phase 2).",
+    state: "staging",
   },
   {
     name: "search",
