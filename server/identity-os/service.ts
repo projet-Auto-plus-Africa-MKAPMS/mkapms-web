@@ -16,7 +16,14 @@ import {
   identityHealthLog,
   identitySessions,
 } from "./schema.js";
-import { IDENTITY_TYPES, type IdentityType, type IdentityRole } from "./contract.js";
+import {
+  IDENTITY_TYPES,
+  type ControlCenterFeed,
+  type EngineDashboard,
+  type IdentityRole,
+  type IdentityType,
+  type MaturityLevel,
+} from "./contract.js";
 
 // ── Résolution d'identité ────────────────────────────────────────────────
 
@@ -75,8 +82,8 @@ export interface AuditInput {
   action: string;
   reason?: string;
   metadata?: Record<string, unknown>;
-  ipAddress?: string;
-  userAgent?: string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
 }
 
 /**
@@ -156,7 +163,8 @@ export interface HealthStatus {
   };
 }
 
-const IDENTITY_OS_VERSION = "0.2.0"; // Sprint 1
+const IDENTITY_OS_VERSION = "0.3.0"; // Sprint 2
+const IDENTITY_OS_MATURITY: MaturityLevel = "sprint_2_complete";
 
 /**
  * Retourne l'état de santé standardisé de l'Identity OS.
@@ -240,5 +248,106 @@ export const IDENTITY_OS_META = {
   name: "identity-os",
   label: "Identity Operating System",
   version: IDENTITY_OS_VERSION,
+  maturityLevel: IDENTITY_OS_MATURITY,
   contract: "server/identity-os/contract.ts",
 } as const;
+
+// ────────────────────────────────────────────────────────────────────────
+// Standards MOS — Dashboard + Control Center Feed (règles #12/#13/#14)
+// ────────────────────────────────────────────────────────────────────────
+
+/**
+ * Feed standardisé consommé par le MOS Control Center.
+ * Format 100 % conforme au type `ControlCenterFeed` du contrat.
+ */
+export async function controlCenterFeed(): Promise<ControlCenterFeed> {
+  const startedAt = Date.now();
+  const health = await healthStatus();
+
+  let events5m = 0;
+  let events24h = 0;
+  let errors24h = 0;
+  try {
+    const [r5] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(identityAuditLog)
+      .where(sql`${identityAuditLog.createdAt} > now() - interval '5 minutes'`);
+    events5m = Number(r5?.n ?? 0);
+    const [r24] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(identityAuditLog)
+      .where(sql`${identityAuditLog.createdAt} > now() - interval '24 hours'`);
+    events24h = Number(r24?.n ?? 0);
+    const [rErr] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(identityAuditLog)
+      .where(sql`${identityAuditLog.createdAt} > now() - interval '24 hours' AND ${identityAuditLog.action} LIKE 'identity.error%'`);
+    errors24h = Number(rErr?.n ?? 0);
+  } catch (err) {
+    console.warn("[identity-os] feed metrics degraded:", (err as Error)?.message);
+  }
+
+  return {
+    engine: IDENTITY_OS_META.name,
+    label: IDENTITY_OS_META.label,
+    version: IDENTITY_OS_META.version,
+    maturityLevel: IDENTITY_OS_META.maturityLevel,
+    health: health.status === "ok" ? "ok" : health.status,
+    load: { events5m, events24h },
+    performance: { lastResponseMs: Date.now() - startedAt },
+    errors: { last24h: errors24h },
+    lastSyncAt: new Date().toISOString(),
+    status: "active",
+  };
+}
+
+/**
+ * Tableau de bord dédié Identity OS (règle MOS #13).
+ * Reprend le feed standard et ajoute des métriques métier + historique.
+ */
+export async function dashboard(): Promise<EngineDashboard> {
+  const feed = await controlCenterFeed();
+  const health = await healthStatus();
+
+  const businessMetrics = {
+    identities_total: health.metrics.identitiesTotal,
+    identities_active: health.metrics.identitiesActive,
+    identities_suspended: health.metrics.identitiesSuspended,
+    identities_archived: health.metrics.identitiesArchived,
+    sessions_active: health.metrics.activeSessions,
+    audit_events_24h: health.metrics.auditEventsLast24h,
+  } as const;
+
+  let recentEvents: EngineDashboard["recentEvents"] = [];
+  let recentErrors: EngineDashboard["recentErrors"] = [];
+  try {
+    const rows = await db
+      .select({
+        createdAt: identityAuditLog.createdAt,
+        action: identityAuditLog.action,
+        metadata: identityAuditLog.metadata,
+      })
+      .from(identityAuditLog)
+      .orderBy(desc(identityAuditLog.createdAt))
+      .limit(20);
+    recentEvents = rows.map((r) => ({
+      at: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+      action: r.action,
+      metadata: (r.metadata as Record<string, unknown>) ?? undefined,
+    }));
+    recentErrors = rows
+      .filter((r) => r.action.startsWith("identity.error"))
+      .slice(0, 10)
+      .map((r) => ({
+        at: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+        message:
+          typeof (r.metadata as any)?.message === "string"
+            ? (r.metadata as any).message
+            : r.action,
+      }));
+  } catch (err) {
+    console.warn("[identity-os] dashboard degraded:", (err as Error)?.message);
+  }
+
+  return { ...feed, businessMetrics, recentEvents, recentErrors };
+}

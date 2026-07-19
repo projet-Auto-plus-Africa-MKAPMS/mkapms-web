@@ -1,8 +1,9 @@
 # Identity Operating System (Identity OS)
 
-**Statut** : Sprint 1 — Fondations DB + tRPC ✅ · **Version** : 0.2.0
+**Statut** : Sprint 2 — Complet (Bridge + Dashboard + Feed) ✅ · **Version** : 0.3.0
+**Maturité** : `sprint_2_complete` (règle MOS #14)
 **Rôle** : Moteur central de gestion des identités MKA.P-MS
-**Principe** : Autonome ET collaboratif (règle MOS #11)
+**Principe** : Autonome ET collaboratif (règles MOS #11/#12/#13/#14)
 
 ---
 
@@ -33,27 +34,43 @@ L'Identity OS est le **socle de tous les autres moteurs**. Il gère toutes les i
 - **Appareils** : liste des devices actifs par identité
 - **Contexte** : chaque identité connaît son pays, sa langue, ses permissions actives
 
-## 🔌 API contractuelle (Sprint 1 — livrée ✅)
+## 🔌 API contractuelle (Sprint 2 — livrée ✅ · 14 procédures)
 
 Namespace tRPC : `identity.*`
 
+**Métadonnées & santé**
 ```
-identity.meta                             → métadonnées moteur (nom, version, contrat)
+identity.meta                             → nom, version, maturité, contrat
 identity.healthStatus                     → statut normalisé (règle MOS #11)
-identity.me                               → identité courante + rôles + contexte
 identity.types                            → catalogue des 9 types + rôles par défaut
+```
+
+**Bridge auth → identity (Sprint 2 — non destructif)**
+```
+identity.login({ email, password })       → session JWT + identityId
+identity.register({ ... })                → nouvelle identité (+ user legacy)
+identity.logout()                         → journalisation
+identity.me                               → identité courante + rôles + contexte
+```
+
+**Sessions & audit**
+```
 identity.sessions.list()                  → sessions actives (multi-device)
 identity.sessions.revoke({ sessionId })   → révocation ciblée
 identity.audit.recent({ limit })          → événements audit de l'identité courante
 identity.audit.all({ limit })             → audit global (Direction)
-identity.reportEvent(...)                 → publication d'événement inter-moteurs (admin/serveur)
+identity.reportEvent(...)                 → publication d'événement inter-moteurs (serveur)
 ```
 
-**À venir Sprint 2** :
+**MOS Control Center (règles #13/#14)**
 ```
-identity.login({ email, password })       → session (bascule depuis auth.login)
-identity.register({ type, ...fields })    → nouvelle identité
-identity.loginOAuth({ provider, token })  → session OAuth
+identity.dashboard                        → tableau de bord dédié (règle MOS #13)
+identity.controlCenterFeed                → feed standard consommé par les 2 moteurs centraux
+```
+
+**À venir Sprint 3** :
+```
+identity.loginOAuth({ provider, token })  → session OAuth (bascule depuis auth.googleLogin)
 identity.upgradeType({ from, to })        → validation admin
 identity.mfa.enable / disable / verify    → multi-facteur
 identity.devices.list                     → devices connus
@@ -77,14 +94,25 @@ identity.devices.list                     → devices connus
 
 ## 🏗️ État actuel
 
-**Sprint 1 livré** — tables `identity_identities`, `identity_sessions`, `identity_audit_log`, `identity_health_log` (migration `drizzle/0034_identity_os.sql`). Router tRPC `identity.*` branché sur l'appRouter avec 9 procédures. **Zéro modification** de la table legacy `users` — l'Identity OS s'y branche via `legacy_user_id` (référence molle) pour une migration progressive sans casse.
+**Sprint 2 livré (v0.3.0, maturité `sprint_2_complete`)** :
+- Tables `identity_identities`, `identity_sessions`, `identity_audit_log`, `identity_health_log` (migration `0034`).
+- Bridge auth → identity non destructif : `identity.login`, `identity.register`, `identity.logout` en parallèle de `auth.*` legacy (toujours actif).
+- Dashboard dédié (`identity.dashboard`) et feed standard (`identity.controlCenterFeed`) pour le futur MOS Control Center.
+- 14 procédures tRPC, tests unitaires 100 % verts, aucune régression sur les 617 procédures totales de l'appRouter.
 
-## 📅 Sprints
+Méthode de migration progressive (validée PDG) :
+```
+auth.ts → Bridge (Sprint 2) → Identity OS → Validation → Migration frontend → Suppression finale
+```
+
+## 📅 Sprints (règle MOS #14)
 
 - **Sprint 0** ✅ — Squelette, contrat API, doctrine
-- **Sprint 1** ✅ (livré) — Tables `identity_*`, service, router tRPC, endpoint Health Status
-- **Sprint 2** — Bascule login/register/logout de `auth.ts` vers `identity.*`, MFA, gestion appareils
-- **Sprint 3** — Support AI Agent identity (compte machine pour agents IA)
+- **Sprint 1** ✅ — Tables `identity_*`, service, router tRPC, endpoint Health Status
+- **Sprint 2** ✅ (livré) — Bridge login/register/logout, Dashboard, Control Center Feed, MaturityLevel
+- **Sprint 3** — MFA, gestion appareils, révocation session ciblée sur token JWT, bascule OAuth Google
+- **Sprint 4** — Automatisation : détection intelligente de fraude, suggestion d'upgrade type (User → Pro)
+- **Sprint 5** — Optimisation continue : cache identités, sessions distribuées, MFA WebAuthn
 
 ## 🔒 Règles de sécurité obligatoires
 

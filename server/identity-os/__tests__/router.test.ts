@@ -13,8 +13,21 @@ import { IDENTITY_OS_META } from "../service.js";
 const procs = (identityRouter as any)._def?.procedures ?? {};
 const keys = Object.keys(procs);
 
-// Endpoints top-level attendus (Sprint 1)
-const EXPECTED_TOP = ["meta", "healthStatus", "me", "reportEvent", "types"];
+// Endpoints top-level attendus (Sprint 1 + Sprint 2)
+const EXPECTED_TOP = [
+  "meta",
+  "healthStatus",
+  "me",
+  "reportEvent",
+  "types",
+  // Sprint 2 — MOS Control Center + Dashboard (règles #13/#14)
+  "controlCenterFeed",
+  "dashboard",
+  // Sprint 2 — Bridge auth → identity (non destructif)
+  "login",
+  "register",
+  "logout",
+];
 for (const k of EXPECTED_TOP) {
   assert.ok(keys.includes(k), `router.identity doit exposer « ${k} »`);
 }
@@ -27,7 +40,12 @@ for (const sub of ["sessions.list", "sessions.revoke", "audit.recent", "audit.al
 
 // Métadonnées cohérentes
 assert.equal(IDENTITY_OS_META.name, "identity-os");
-assert.ok(IDENTITY_OS_META.version.startsWith("0."), "Version Sprint 1 = 0.x");
+assert.ok(IDENTITY_OS_META.version.startsWith("0."), "Version Sprint 2 = 0.x");
+assert.equal(
+  IDENTITY_OS_META.maturityLevel,
+  "sprint_2_complete",
+  "Maturity level Sprint 2 (règle MOS #14)",
+);
 
 console.log(`✅ identity-os/router — surface OK (${keys.length} procédures)`);
 console.log("   procs:", keys.sort().join(", "));

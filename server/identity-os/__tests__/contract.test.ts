@@ -92,4 +92,17 @@ assert.ok(
   "Le contrat pointe bien sur contract.ts",
 );
 
+// ── Règle MOS #14 — niveau de maturité obligatoire ─────────────────────
+import { MATURITY_LEVELS } from "../contract.js";
+assert.equal(MATURITY_LEVELS.length, 6, "6 niveaux de maturité MOS");
+assert.ok(
+  (MATURITY_LEVELS as readonly string[]).includes(IDENTITY_OS_META.maturityLevel),
+  "IDENTITY_OS_META.maturityLevel doit être une valeur MATURITY_LEVELS",
+);
+assert.equal(
+  IDENTITY_OS_META.maturityLevel,
+  "sprint_2_complete",
+  "Identity OS est en Sprint 2",
+);
+
 console.log("✅ identity-os/contract — 100 % OK");

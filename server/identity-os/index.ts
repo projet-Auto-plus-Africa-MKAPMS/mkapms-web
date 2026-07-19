@@ -14,6 +14,8 @@ export { identityRouter } from "./router.js";
 export * as identitySchema from "./schema.js";
 export {
   audit,
+  controlCenterFeed,
+  dashboard,
   healthStatus,
   IDENTITY_OS_META,
   listActiveSessions,
@@ -25,8 +27,12 @@ export {
   IDENTITY_TYPES,
   IDENTITY_ROLES,
   DEFAULT_ROLES_BY_TYPE,
+  MATURITY_LEVELS,
+  type ControlCenterFeed,
+  type EngineDashboard,
   type IdentityContext,
   type IdentityEvent,
   type IdentityRole,
   type IdentityType,
+  type MaturityLevel,
 } from "./contract.js";
