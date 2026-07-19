@@ -20,6 +20,11 @@ import {
   getHealthLog,
   getAdminLog,
 } from "./service.js";
+import {
+  ENGINE_CONTRACTS,
+  getContract,
+  contractSummary,
+} from "./contracts.js";
 
 const engineState = z.enum([
   "active",
@@ -68,6 +73,46 @@ export const engineRegistryRouter = router({
     .query(async ({ input }) => {
       return getAdminLog(input?.limit ?? 100);
     }),
+
+  // ── Contrats des moteurs (PR 2) ──────────────────────────────────────
+  contracts: pdgProcedure.query(async () => {
+    return contractSummary();
+  }),
+
+  allContracts: pdgProcedure.query(async () => {
+    return ENGINE_CONTRACTS;
+  }),
+
+  contract: pdgProcedure
+    .input(z.object({ id: z.string().min(1).max(64) }))
+    .query(async ({ input }) => {
+      return getContract(input.id) ?? null;
+    }),
+
+  /**
+   * Vue temps réel pour le Centre PDG : fusionne le contrat et l'état
+   * enregistré (état, santé, dernier heartbeat) de chaque moteur.
+   */
+  contractsHealth: pdgProcedure.query(async () => {
+    const engines = await listEngines();
+    const byName = new Map(engines.map((e) => [e.name, e]));
+    return ENGINE_CONTRACTS.map((c) => {
+      const row = byName.get(c.id);
+      return {
+        id: c.id,
+        publicName: c.publicName,
+        version: c.version,
+        declaredVersion: c.version,
+        registeredVersion: row?.version ?? null,
+        dependencies: c.dependencies,
+        controlCenter: c.controlCenter,
+        state: row?.state ?? "disabled",
+        health: row?.health ?? "unknown",
+        lastHeartbeat: row?.lastHeartbeat ?? null,
+        registered: !!row,
+      };
+    });
+  }),
 
   // ── Administration (PDG) ─────────────────────────────────────────────
   setState: pdgProcedure

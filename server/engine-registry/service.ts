@@ -252,6 +252,25 @@ export async function getHealthLog(name: string, limit = 50) {
     .limit(limit);
 }
 
+/**
+ * Journalise une action d'exploitation d'un moteur (démarrage, redémarrage,
+ * changement de version, dépendance manquante, erreur critique…). Additif :
+ * écrit uniquement dans engine_admin_log.
+ */
+export async function journalAdmin(
+  engineName: string,
+  action: string,
+  opts?: { fromState?: string; toState?: string; userId?: number },
+) {
+  await db.insert(engineAdminLog).values({
+    engineName,
+    action,
+    fromState: opts?.fromState ?? null,
+    toState: opts?.toState ?? null,
+    userId: opts?.userId ?? null,
+  });
+}
+
 export async function getAdminLog(limit = 100) {
   return db
     .select()
