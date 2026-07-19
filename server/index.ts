@@ -12,6 +12,7 @@ import { annonces, users, notifications } from "./schema.js";
 import { sql, and, lt, eq } from "drizzle-orm";
 import { sendEmail, emailAnnonceExpiree } from "./services/email.js";
 import { seedStructure } from "./seed.js";
+import { bootstrapEngines } from "./engine-registry/bootstrap.js";
 import { appRouter } from "./router.js";
 import { createContext } from "./trpc.js";
 import { verifyToken } from "./auth.js";
@@ -146,6 +147,15 @@ async function bootstrap() {
       } catch (err) {
         console.error("[MKA.P-MS] échec seed structure:", (err as Error).message);
       }
+    }
+    // Auto-enregistrement des moteurs (Core, Smart, Permission, Redirection…)
+    // dans le registre : vérification de contrat, dépendances et santé.
+    // Ne bloque jamais le démarrage (erreurs journalisées).
+    try {
+      await bootstrapEngines();
+      console.log("[MKA.P-MS] moteurs enregistrés dans le registre");
+    } catch (err) {
+      console.error("[MKA.P-MS] échec bootstrap moteurs:", (err as Error).message);
     }
   }
   app.listen(env.PORT, "0.0.0.0", () => {

@@ -19,4 +19,17 @@ export {
   ensureSeeded,
   publishEvent,
   heartbeat,
+  journalAdmin,
 } from "./service.js";
+export { bootstrapEngines } from "./bootstrap.js";
+export {
+  ENGINE_CONTRACTS,
+  getContract,
+  hasPermissionMatrix,
+  contractSummary,
+  type EngineContract,
+  type PermissionSurface,
+  type EngineProcedures,
+  type EngineHealthState,
+  type EngineRole,
+} from "./contracts.js";
