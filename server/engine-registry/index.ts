@@ -20,3 +20,16 @@ export {
   publishEvent,
   heartbeat,
 } from "./service.js";
+export {
+  ENGINE_CONTRACTS,
+  getContract,
+  hasPermissionMatrix,
+  contractSummary,
+} from "./contracts.js";
+export type {
+  EngineContract,
+  PermissionSurface,
+  RedirectionSurface,
+  SmartSignal,
+  EngineRole,
+} from "./contracts.js";

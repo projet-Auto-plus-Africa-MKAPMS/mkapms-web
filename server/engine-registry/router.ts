@@ -20,6 +20,7 @@ import {
   getHealthLog,
   getAdminLog,
 } from "./service.js";
+import { ENGINE_CONTRACTS, getContract, contractSummary } from "./contracts.js";
 
 const engineState = z.enum([
   "active",
@@ -68,6 +69,21 @@ export const engineRegistryRouter = router({
     .query(async ({ input }) => {
       return getAdminLog(input?.limit ?? 100);
     }),
+
+  // ── Contrats des moteurs (Permission / Redirection / Smart) ───────────
+  contracts: pdgProcedure.query(async () => {
+    return contractSummary();
+  }),
+
+  contract: pdgProcedure
+    .input(z.object({ engine: z.string().min(1).max(64) }))
+    .query(async ({ input }) => {
+      return getContract(input.engine) ?? null;
+    }),
+
+  allContracts: pdgProcedure.query(async () => {
+    return ENGINE_CONTRACTS;
+  }),
 
   // ── Administration (PDG) ─────────────────────────────────────────────
   setState: pdgProcedure
