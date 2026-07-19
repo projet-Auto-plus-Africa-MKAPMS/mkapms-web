@@ -1138,3 +1138,4 @@ export * from "./modules/coreEngine"; // Core Engine — moteur d'orchestration 
 export * from "./smart-engine/schema"; // Smart Engine — Système Intelligent MKA.P-MS (isolé)
 export * from "./permission-engine/schema"; // Permission Engine — Moteur de Permissions MKA.P-MS (isolé)
 export * from "./redirection-engine/schema"; // Redirection Engine — Moteur de Redirection MKA.P-MS (isolé)
+export * from "./engine-registry/schema"; // Engine Registry — Registre central des moteurs (isolé, Phase 1)
