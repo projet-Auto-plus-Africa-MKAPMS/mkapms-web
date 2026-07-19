@@ -974,7 +974,13 @@ export default function Vehicule({ univers }: { univers?: string }) {
                   <span className="text-xs text-slate-600">Réponse en 1h</span>
                 </div>
               </div>
-              <button className="mt-3 w-full rounded-xl bg-[#111] py-2.5 text-sm font-bold text-white" onClick={() => requireLogin(() => navigate("/compte/messages"))}>Demander un essai routier</button>
+              <button className="mt-3 w-full rounded-xl bg-[#111] py-2.5 text-sm font-bold text-white" onClick={() => requireLogin(() => {
+                // Redirige vers la messagerie avec le lien produit + message
+                // pré-rempli 'Demander un essai'. Robuste : encodeURIComponent.
+                const link = `${window.location.origin}${window.location.pathname}`;
+                const msg = `Bonjour, je souhaite demander un essai pour votre véhicule : ${v.titre || `${v.marque ?? ""} ${v.modele ?? ""}`.trim()} (Réf. ${v.reference || v.id}).\n\nLien de l'annonce : ${link}\n\nMerci de me confirmer vos disponibilités pour organiser un essai routier.`;
+                navigate(`/compte/messages?to=${v.vendeurId ?? ""}&annonce=${v.id}&subject=${encodeURIComponent("Demander un essai")}&body=${encodeURIComponent(msg)}`);
+              })}>Demander un essai routier</button>
             </div>
             {/* Localisation — carte réduite */}
             <div className="border-t border-slate-100">
@@ -1431,15 +1437,33 @@ export default function Vehicule({ univers }: { univers?: string }) {
               <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#111]"><Wrench size={18} className="text-red-500" /> Équipements & options</h2>
               <ChevronDown size={18} className={`text-red-500 transition-transform ${proEquipOpen ? 'rotate-180' : ''}`} />
             </div>
-            {proEquipOpen && (
-              <ul className="mt-3 space-y-2">
-                {(v.equipements || ["GPS / Navigation", "Sièges cuir chauffants", "Caméra de recul", "Aide au stationnement", "Apple CarPlay / Android Auto", "Climatisation automatique", "Jantes alliage 19\""]).map((eq: string) => (
-                  <li key={eq} className="flex items-center gap-2 text-sm text-slate-600">
-                    <span className="text-green-600">●</span> {eq}
-                  </li>
-                ))}
-              </ul>
-            )}
+            {proEquipOpen && (() => {
+              // Fusionne toutes les listes renseignées lors du dépôt :
+              // équipements, points forts, confort, multimédia, sécurité.
+              // Déduplique, filtre les vides, garde l'ordre d'origine.
+              const asArr = (x: unknown): string[] => Array.isArray(x) ? x.filter((s): s is string => typeof s === "string" && s.trim().length > 0) : [];
+              const all = [
+                ...asArr((v as any).equipements),
+                ...asArr((v as any).pointsForts),
+                ...asArr((v as any).confort),
+                ...asArr((v as any).multimedia),
+                ...asArr((v as any).securite),
+              ];
+              const seen = new Set<string>();
+              const uniq = all.filter((e) => { if (seen.has(e)) return false; seen.add(e); return true; });
+              if (uniq.length === 0) {
+                return <p className="mt-3 text-xs text-slate-400 italic">Aucun équipement renseigné par le vendeur.</p>;
+              }
+              return (
+                <ul className="mt-3 space-y-2">
+                  {uniq.map((eq: string) => (
+                    <li key={eq} className="flex items-center gap-2 text-sm text-slate-600">
+                      <span className="text-green-600">●</span> {eq}
+                    </li>
+                  ))}
+                </ul>
+              );
+            })()}
           </div>
 
           {/* FINANCEMENT — PRO uniquement */}
@@ -1646,7 +1670,12 @@ export default function Vehicule({ univers }: { univers?: string }) {
                 </div>
               </div>
 
-              <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => messageAction())}>Demander un essai</button>
+              <button className="mt-3 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => {
+                // Redirection messagerie avec lien produit + message pré-rempli.
+                const link = `${window.location.origin}${window.location.pathname}`;
+                const msg = `Bonjour, je souhaite demander un essai pour votre véhicule : ${v.titre || `${v.marque ?? ""} ${v.modele ?? ""}`.trim()} (Réf. ${v.reference || v.id}).\n\nLien de l'annonce : ${link}\n\nMerci de me confirmer vos disponibilités pour organiser un essai routier.`;
+                navigate(`/compte/messages?to=${v.vendeurId ?? ""}&annonce=${v.id}&subject=${encodeURIComponent("Demander un essai")}&body=${encodeURIComponent(msg)}`);
+              })}>Demander un essai</button>
             </div>
 
             <div className="mt-3 flex items-center justify-between border-b border-[#111]/20 py-2 cursor-pointer" onClick={() => navigate(`/vendeur/${v.vendeur?.id || v.userId || 1}`)}>
@@ -1808,21 +1837,36 @@ export default function Vehicule({ univers }: { univers?: string }) {
               <button onClick={() => setProGarantieOpen(false)} className="text-xl text-slate-500">✕</button>
             </div>
             <div className="p-5 space-y-4">
-              {[
-                { type: "Moteur", duree: "48 mois", statut: "Active" },
-                { type: "Boîte de vitesse", duree: "24 mois", statut: "Active" },
-                { type: "Garantie conducteur", duree: "12 mois", statut: "Active" },
-                { type: "Suspension", duree: "12 mois", statut: "Active" },
-                { type: "Électronique", duree: "24 mois", statut: "Active" },
-              ].map((g) => (
-                <div key={g.type} className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div>
-                    <p className="text-sm font-bold text-[#111]">{g.type}</p>
-                    <p className="text-xs text-slate-500">{g.duree}</p>
+              {(() => {
+                // Lecture des vraies garanties depuis l'annonce (v.garanties).
+                // Fallback : message neutre si aucune garantie renseignée.
+                // Plus de mock 'Active' partout — chaque statut reflète le dépôt.
+                const rawGaranties = (v as any).garanties;
+                const items: Array<{ type: string; duree?: string; statut?: string }> =
+                  Array.isArray(rawGaranties) && rawGaranties.length > 0
+                    ? rawGaranties.filter((g: any) => g && typeof g === "object")
+                    : [];
+                if (items.length === 0) {
+                  return (
+                    <p className="text-sm text-slate-500 italic">
+                      Aucune garantie renseignée par le vendeur lors du dépôt de l'annonce.
+                    </p>
+                  );
+                }
+                return items.map((g, idx) => (
+                  <div key={`${g.type}-${idx}`} className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div>
+                      <p className="text-sm font-bold text-[#111]">{g.type}</p>
+                      {g.duree && <p className="text-xs text-slate-500">{g.duree}</p>}
+                    </div>
+                    {g.statut && (
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${g.statut.toLowerCase() === "active" || g.statut === "oui" ? "bg-green-50 text-green-700" : "bg-slate-100 text-slate-500"}`}>
+                        {g.statut}
+                      </span>
+                    )}
                   </div>
-                  <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-bold text-green-700">{g.statut}</span>
-                </div>
-              ))}
+                ));
+              })()}
               <p className="text-xs text-slate-400 mt-4">Les garanties sont définies par le vendeur professionnel lors du dépôt de l'annonce.</p>
             </div>
           </div>
