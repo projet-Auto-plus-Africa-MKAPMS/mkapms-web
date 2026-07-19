@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../../lib/annonceUrl";
 import { ChevronLeft, Package, Search, Filter, Check, Clock, Truck, Wrench, Camera, Tag, Archive, ChevronDown, Eye, FileText } from "lucide-react";
 import { DocumentView, buildContratData } from "../../components/DocumentPDF";
+import VoProGate from "../../components/VoProGate";
 
 const STATUTS = [
   { id: "achat_prevu", label: "Achat prévu", color: "bg-gray-400" },
@@ -34,6 +35,7 @@ export default function GestionStockVO() {
   const filtered = filterStatut === "tous" ? VEHICULES : VEHICULES.filter((v) => v.statut === filterStatut);
 
   return (
+    <VoProGate>
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-blue-800 px-4 pt-6 pb-5">
         <Link to="/vente" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Tableau de bord</Link>
@@ -95,5 +97,6 @@ export default function GestionStockVO() {
       </div>
       {modalDoc && <DocumentView doc={modalDoc} onClose={() => setModalDoc(null)} />}
     </div>
+    </VoProGate>
   );
 }
