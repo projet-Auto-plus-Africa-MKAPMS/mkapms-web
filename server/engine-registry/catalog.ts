@@ -12,7 +12,7 @@
 export interface EngineSeed {
   name: string;
   label: string;
-  category: "core" | "transversal" | "univers";
+  category: "core" | "transversal" | "univers" | "service" | "sous_section";
   dependencies: string[];
   description: string;
   /** État réel dans le dépôt au moment du seed. */
@@ -197,6 +197,131 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     category: "univers",
     dependencies: ["core"],
     description: "Démarches SIV, documents, statuts, suivi.",
+    state: "active",
+  },
+  // ── Univers principaux (marketplace) ──
+  {
+    name: "achat",
+    label: "Univers Achat Engine",
+    category: "univers",
+    dependencies: ["core", "permission", "search"],
+    description: "Univers Achat : parcours acheteur, filtres, favoris, mise en relation.",
+    state: "active",
+  },
+  {
+    name: "vente",
+    label: "Univers Vente Engine",
+    category: "univers",
+    dependencies: ["core", "permission"],
+    description: "Univers Vente : dépôt d'annonce, gestion, mise en avant, transactions.",
+    state: "active",
+  },
+  {
+    name: "location",
+    label: "Univers Location Engine",
+    category: "univers",
+    dependencies: ["core", "permission"],
+    description: "Univers Location : voitures, utilitaires, camions, LOA, réservations.",
+    state: "active",
+  },
+  // ── Sous-sections univers Achat (Officiel / Pro / Particulier) ──
+  {
+    name: "achat_officiel",
+    label: "Achat Officiel Engine",
+    category: "sous_section",
+    dependencies: ["core", "achat"],
+    description: "Sous-section Achat Officiel MKA.P-MS (stock officiel).",
+    state: "staging",
+  },
+  {
+    name: "achat_pro",
+    label: "Achat Professionnel Engine",
+    category: "sous_section",
+    dependencies: ["core", "achat"],
+    description: "Sous-section Achat Professionnel (vendeurs pros).",
+    state: "staging",
+  },
+  {
+    name: "achat_particulier",
+    label: "Achat Particulier Engine",
+    category: "sous_section",
+    dependencies: ["core", "achat"],
+    description: "Sous-section Achat Particulier — isolable (location/vente à un opérateur).",
+    state: "staging",
+  },
+  // ── Sous-sections univers Vente (Officiel / Pro / Particulier) ──
+  {
+    name: "vente_officiel",
+    label: "Vente Officielle Engine",
+    category: "sous_section",
+    dependencies: ["core", "vente"],
+    description: "Sous-section Vente Officielle MKA.P-MS.",
+    state: "staging",
+  },
+  {
+    name: "vente_pro",
+    label: "Vente Professionnelle Engine",
+    category: "sous_section",
+    dependencies: ["core", "vente"],
+    description: "Sous-section Vente Professionnelle (vendeurs pros).",
+    state: "staging",
+  },
+  {
+    name: "vente_particulier",
+    label: "Vente Particulier Engine",
+    category: "sous_section",
+    dependencies: ["core", "vente"],
+    description: "Sous-section Vente Particulier — isolable.",
+    state: "staging",
+  },
+  // ── Sous-sections univers Location (Pro / Particulier) ──
+  {
+    name: "location_pro",
+    label: "Location Professionnelle Engine",
+    category: "sous_section",
+    dependencies: ["core", "location"],
+    description: "Sous-section Location Professionnelle.",
+    state: "staging",
+  },
+  {
+    name: "location_particulier",
+    label: "Location Particulier Engine",
+    category: "sous_section",
+    dependencies: ["core", "location"],
+    description: "Sous-section Location Particulier.",
+    state: "staging",
+  },
+  // ── Services dédiés ──
+  {
+    name: "controle_technique",
+    label: "Contrôle Technique Engine",
+    category: "service",
+    dependencies: ["core"],
+    description: "Prise de RDV, centres agréés, résultats, rappels d'échéance.",
+    state: "active",
+  },
+  {
+    name: "assurance",
+    label: "Assurance Engine",
+    category: "service",
+    dependencies: ["core"],
+    description: "Devis assurance, contrats, sinistres, partenaires.",
+    state: "active",
+  },
+  {
+    name: "finance",
+    label: "Financement Engine",
+    category: "service",
+    dependencies: ["core"],
+    description: "Financement / crédit / LOA, simulations, dossiers.",
+    state: "active",
+  },
+  {
+    name: "encheres",
+    label: "Enchères Engine",
+    category: "service",
+    dependencies: ["core", "payment"],
+    description: "Ventes aux enchères : lots, offres, adjudication.",
     state: "active",
   },
 ];
