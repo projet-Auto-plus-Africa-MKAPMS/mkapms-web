@@ -44,6 +44,7 @@ import { permissionEngineRouter } from "./permission-engine/router.js";
 // Redirection Engine — moteur central de redirection isolé (connexion contrôlée)
 import { redirectionEngineRouter } from "./redirection-engine/router.js";
 import { engineRegistryRouter } from "./engine-registry/router.js";
+import { paymentEngineRouter } from "./payment-engine/router.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -120,6 +121,7 @@ export const appRouter = router({
   permissionEngine: permissionEngineRouter,
   redirectionEngine: redirectionEngineRouter,
   engineRegistry: engineRegistryRouter,
+  paymentEngine: paymentEngineRouter,
 });
 
 export type AppRouter = typeof appRouter;
