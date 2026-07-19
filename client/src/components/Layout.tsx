@@ -109,7 +109,13 @@ function Header() {
 
         <div className="flex shrink-0 items-center gap-1.5 lg:hidden">
           <DomainSelector />
-          {user && <NotificationsBell />}
+          {/* Cloche notification : TOUJOURS visible (même utilisateur non connecté
+              ou chargement session en cours). Le composant gère lui-même le cas
+              non connecté en redirigeant vers /connexion au clic. Résout :
+              - Icône invisible sur mkapms.pro et mkapms.site
+              - Icône qui apparaît après 2-5s avec réseau lent (l'attente de
+                user est supprimée, l'icône est stable dès le premier rendu). */}
+          <NotificationsBell />
           <SupportWidget />
           <button aria-label="Menu" className="shrink-0" onClick={() => setOpen((o) => !o)}>
             {open ? <X /> : <Menu />}
