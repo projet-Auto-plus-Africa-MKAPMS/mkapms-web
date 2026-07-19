@@ -249,6 +249,24 @@ export default function Admin() {
         })()}
       </section>
 
+      {/* VO Interne MKA.P-MS — accès équipe (PDG, Directeur/Admin, Employés) */}
+      {isAdmin(user?.role) && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">VO Interne MKA.P-MS</h2>
+        <p className="text-xs text-slate-500">Gestion compl&egrave;te des v&eacute;hicules d'occasion de l'entreprise (16 &eacute;tapes) &mdash; acc&egrave;s r&eacute;serv&eacute; &agrave; l'&eacute;quipe.</p>
+        <Link to="/vo" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F697;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Ouvrir le VO Interne</p>
+            <p className="text-xs text-white/60">Achat &rarr; Transport &rarr; Diagnostic &rarr; R&eacute;paration &rarr; Photos &rarr; Mise en vente &rarr; Comptabilit&eacute;</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Système Intelligent MKA.P-MS — accès PDG uniquement */}
       {user?.role === "super_admin" && (
       <section className="mt-10">
