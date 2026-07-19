@@ -267,6 +267,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Registre & Contrôle des Moteurs — PDG + Directeur */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Moteurs MKA.P-MS</h2>
+        <p className="text-xs text-slate-500">Registre central &mdash; tous les moteurs connect&eacute;s au moteur principal, rang&eacute;s par importance</p>
+        <Link to="/admin/moteurs" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x2699;&#xFE0F;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Registre &amp; Contr&ocirc;le des Moteurs</p>
+            <p className="text-xs text-white/60">&Eacute;tat, sant&eacute;, version, d&eacute;pendances de chaque moteur &mdash; contr&ocirc;le PDG</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Système Intelligent MKA.P-MS — accès PDG uniquement */}
       {user?.role === "super_admin" && (
       <section className="mt-10">
