@@ -43,6 +43,7 @@ import { smartEngineRouter } from "./smart-engine/router.js";
 import { permissionEngineRouter } from "./permission-engine/router.js";
 // Redirection Engine — moteur central de redirection isolé (connexion contrôlée)
 import { redirectionEngineRouter } from "./redirection-engine/router.js";
+import { engineRegistryRouter } from "./engine-registry/router.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -118,6 +119,7 @@ export const appRouter = router({
   // Permission Engine — Moteur de Permissions MKA.P-MS (isolé, connexion contrôlée)
   permissionEngine: permissionEngineRouter,
   redirectionEngine: redirectionEngineRouter,
+  engineRegistry: engineRegistryRouter,
 });
 
 export type AppRouter = typeof appRouter;

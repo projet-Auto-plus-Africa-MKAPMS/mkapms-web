@@ -218,6 +218,13 @@
       "when": 1783700100000,
       "tag": "0030_smart_quality_engine",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1783700200000,
+      "tag": "0031_engine_registry",
+      "breakpoints": true
     }
   ]
 }
