@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Check, Upload, ShieldCheck, Building2, FileText, CreditCard, AlertTriangle, User, ChevronRight } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
+import { trpc } from "../lib/trpc";
 
 const STEPS = [
   "Identité dirigeant",
@@ -29,6 +30,12 @@ export default function InscriptionProVO() {
   const { format: formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
+
+  // Paiement de l'abonnement VO (débloque l'accès au VO Pro).
+  const checkout = trpc.abonnements.createCheckout.useMutation({
+    onSuccess: (r) => { if (r?.url) window.location.href = r.url; },
+    onError: (e) => alert(e.message),
+  });
 
   // Étape 1 — Identité dirigeant
   const [dirigeant, setDirigeant] = useState({
@@ -355,7 +362,32 @@ export default function InscriptionProVO() {
               </p>
             </div>
 
-            <Link to="/compte" className="btn-primary mt-6 inline-block">Retour à mon compte</Link>
+            {(() => {
+              const plan = VO_PLANS.find((p) => p.code === selectedPlan);
+              if (plan?.prix == null) {
+                return (
+                  <p className="mt-6 text-sm text-[#6B7280]">
+                    Offre sur demande : contactez la Direction pour finaliser votre abonnement.
+                  </p>
+                );
+              }
+              return (
+                <button
+                  onClick={() => checkout.mutate({ planCode: selectedPlan })}
+                  disabled={checkout.isPending || !user}
+                  className="btn-primary mt-6 inline-flex items-center gap-2 disabled:opacity-60"
+                >
+                  <CreditCard size={16} />
+                  {checkout.isPending ? "Redirection…" : `Payer l'abonnement (${formatPrice(plan.prix)}/mois)`}
+                </button>
+              );
+            })()}
+            {!user && (
+              <p className="mt-3 text-xs text-[#6B7280]">Connectez-vous pour finaliser le paiement.</p>
+            )}
+            <div className="mt-4">
+              <Link to="/compte" className="text-sm font-medium text-[#6B7280] hover:text-[#111]">Retour à mon compte</Link>
+            </div>
           </div>
         )}
 
