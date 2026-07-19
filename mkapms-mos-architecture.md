@@ -146,6 +146,7 @@ Chaque univers métier a son propre moteur, indépendant. Un univers peut être 
 8. **Zéro suppression sans confirmation** : les moteurs peuvent ajouter, modifier, marquer comme archivé — mais pas supprimer sans validation humaine explicite.
 9. **Multi-pays / multi-langue / multi-devise dès l'origine** : aucun code écrit "en dur" pour un pays ou une langue.
 10. **Propriété MKA.P-MS** : la logique métier propriétaire n'est jamais externalisée sans contrat clair (LLM tiers autorisé uniquement si les données sensibles restent locales).
+11. **Chaque moteur = produit autonome ET collaboratif** : chaque nouveau moteur doit être conçu comme un produit qui fonctionne seul, activable/désactivable/testable/déployable individuellement, mais capable de collaborer avec tous les autres via le MOS (API, événements, contrats clairs). Aucune dépendance forte. Cette règle permet de remplacer, améliorer ou faire évoluer un moteur sans reconstruire le système.
 
 ---
 
@@ -169,11 +170,12 @@ Chaque tâche d'un moteur est classée à l'un des 4 niveaux :
 ### 🌊 Vague 0 — Finition automobile (en cours)
 Terminer les univers automobile actuels : Particulier vente ✅ · Pro vente · Officiel vente · Location (6 sous-univers) · autres univers (Garage, Atelier, etc.).
 
-### 🌊 Vague 1 — Fondations MOS (à démarrer en parallèle)
-Les 3 moteurs fondateurs, construits ensemble :
-1. **Country Operating System**
-2. **Language Operating System**
-3. **Identity Operating System + Permission Operating System** (déjà partiellement présents)
+### Vague 1 — Fondations MOS (à démarrer en parallèle)
+Les moteurs fondateurs, dans **cet ordre exact** validé par le PDG (v1.1) :
+1. **Identity Operating System** ← *démarré*
+2. **Permission Operating System**
+3. **Country Operating System**
+4. **Language Operating System**
 
 ### 🌊 Vague 2 — Visibilité & Communication
 4. **Notification Operating System** (unification email/SMS/push/WhatsApp)
