@@ -15,6 +15,41 @@ import { learnFromInput } from "../smart-engine/services/learning.js";
 import { checkDuplicates } from "../smart-engine/services/duplicate-detection.js";
 import { logActivity } from "../smart-engine/services/activity-log.js";
 
+/**
+ * Auto-heal — si un déploiement précédent a laissé une colonne JSONB manquante
+ * (ex: `garanties` non migrée), Drizzle throw sur `select().from(annonces)`.
+ * Ce helper détecte le message d'erreur PostgreSQL et crée la colonne à la
+ * volée en JSONB DEFAULT '[]'. Idempotent. Ne perd aucune donnée. Ne cache
+ * PAS les vraies erreurs (autres que "column does not exist").
+ */
+async function selectAnnoncesResilient<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    const msg = (err as Error)?.message ?? "";
+    const match = msg.match(/column\s+"?([\w_]+)"?\s+does not exist/i)
+      ?? msg.match(/undefined column\s+"?([\w_]+)"?/i);
+    if (!match) throw err;
+    const missing = match[1];
+    // Seules les colonnes JSONB additives (safe) sont auto-créées.
+    const safe = new Set([
+      "garanties",
+      "points_forts",
+      "equipements",
+      "imperfections",
+      "confort",
+      "multimedia",
+      "securite",
+      "videos360",
+      "videos_normales",
+    ]);
+    if (!safe.has(missing)) throw err;
+    console.warn(`[annonces] auto-heal: colonne « ${missing} » manquante, ajout automatique`);
+    await db.execute(sql`ALTER TABLE annonces ADD COLUMN IF NOT EXISTS ${sql.identifier(missing)} jsonb DEFAULT '[]'::jsonb`);
+    return fn();
+  }
+}
+
 // Alerte « recherche sauvegardée » (Partie 6) : à chaque nouvelle annonce, on
 // notifie les utilisateurs dont un filtre enregistré correspond. Jamais bloquant.
 type AnnonceRow = typeof annonces.$inferSelect;
@@ -134,13 +169,15 @@ export const annoncesRouter = router({
         );
       }
       const where = and(...conds);
-      const rows = await db
-        .select()
-        .from(annonces)
-        .where(where)
-        .orderBy(desc(annonces.boosted), desc(annonces.publishedAt), desc(annonces.createdAt))
-        .limit(input.limit)
-        .offset(input.offset);
+      const rows = await selectAnnoncesResilient(() =>
+        db
+          .select()
+          .from(annonces)
+          .where(where)
+          .orderBy(desc(annonces.boosted), desc(annonces.publishedAt), desc(annonces.createdAt))
+          .limit(input.limit)
+          .offset(input.offset),
+      );
 
       const [{ count }] = await db
         .select({ count: sql<number>`count(*)::int` })
@@ -178,7 +215,9 @@ export const annoncesRouter = router({
   get: publicProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
-      const [a] = await db.select().from(annonces).where(eq(annonces.id, input.id)).limit(1);
+      const [a] = await selectAnnoncesResilient(() =>
+        db.select().from(annonces).where(eq(annonces.id, input.id)).limit(1),
+      );
       if (!a) throw new TRPCError({ code: "NOT_FOUND" });
       // Smart Engine — enregistrer la vue (fire-and-forget)
       if (ctx.user?.uid) recordView(ctx.user.uid, input.id).catch(() => {});

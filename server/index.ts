@@ -105,6 +105,39 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", service: "mkapms-web", env: env.NODE_ENV });
 });
 
+/**
+ * Health check DB — vérifie que les colonnes critiques sont présentes.
+ * Objectif : détecter en 1 requête tout futur décalage entre le code
+ * déployé et le schéma appliqué (racine du bug « annonces invisibles »).
+ * Public en lecture — ne divulgue aucune donnée.
+ */
+app.get("/api/health/db", async (_req, res) => {
+  const critical: Record<string, string[]> = {
+    annonces: [
+      "id", "titre", "prix", "status", "type", "categorie", "categorie_annonce",
+      "vendeur_type", "owner_id", "published_at", "created_at",
+      "garanties", "points_forts", "equipements", "imperfections",
+    ],
+  };
+  const problems: Array<{ table: string; missing: string[] }> = [];
+  try {
+    for (const [table, cols] of Object.entries(critical)) {
+      const rows = await db.execute(
+        sql`SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name=${table}`,
+      );
+      const present = new Set((rows.rows as Array<{ column_name: string }>).map((r) => r.column_name));
+      const missing = cols.filter((c) => !present.has(c));
+      if (missing.length) problems.push({ table, missing });
+    }
+    if (problems.length > 0) {
+      return res.status(503).json({ status: "degraded", problems });
+    }
+    return res.json({ status: "ok", tablesChecked: Object.keys(critical) });
+  } catch (err) {
+    return res.status(500).json({ status: "down", message: (err as Error).message });
+  }
+});
+
 app.use(
   "/api/trpc",
   createExpressMiddleware({ router: appRouter, createContext }),
@@ -137,7 +170,29 @@ async function bootstrap() {
       await migrate(db, { migrationsFolder: folder });
       console.log("[MKA.P-MS] migrations appliquées");
     } catch (err) {
+      // FAIL-FAST — Une migration échouée en production laissait auparavant
+      // le serveur démarrer avec un schéma incohérent (colonnes manquantes
+      // → toutes les requêtes annonces cassées, invisibles côté public).
+      // On refuse désormais de démarrer avec la DB dans cet état, sauf si
+      // AUTO_MIGRATE_STRICT est explicitement mis à "false" (mode secours).
       console.error("[MKA.P-MS] échec migrations:", (err as Error).message);
+      if (process.env.AUTO_MIGRATE_STRICT !== "false") {
+        console.error("[MKA.P-MS] arrêt du démarrage pour préserver la cohérence des données.");
+        console.error("[MKA.P-MS] pour forcer un démarrage en mode secours: AUTO_MIGRATE_STRICT=false");
+        process.exit(1);
+      }
+    }
+    // Vérification post-migration — s'assure que les colonnes critiques
+    // d'annonces existent réellement. Auto-correctif si absentes.
+    try {
+      const { sql: rawSql } = await import("drizzle-orm");
+      const critical = ["garanties", "points_forts", "equipements", "imperfections"];
+      for (const col of critical) {
+        await db.execute(rawSql`ALTER TABLE annonces ADD COLUMN IF NOT EXISTS ${rawSql.identifier(col)} jsonb DEFAULT '[]'::jsonb`);
+      }
+      console.log("[MKA.P-MS] colonnes annonces vérifiées");
+    } catch (err) {
+      console.error("[MKA.P-MS] échec vérification colonnes annonces:", (err as Error).message);
     }
     // Synchronise la structure (modules, rôles, permissions, devises) à chaque
     // démarrage — 100 % idempotent. Garantit que le RBAC suit le code déployé.
