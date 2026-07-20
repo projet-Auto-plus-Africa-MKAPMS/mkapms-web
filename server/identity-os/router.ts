@@ -1,19 +1,22 @@
 /**
- * Identity OS — tRPC router (Sprint 1)
+ * Identity OS — tRPC router (Sprint 3 — Complétude fonctionnelle)
  *
- * Namespace : `identity.*`
- * Rôle : exposer la surface publique de l'Identity OS conformément au
- *        contrat défini dans `contract.ts` et à la doctrine MOS.
+ * Namespace : `identity.*` — surface publique complète conforme au contrat
+ * (`contract.ts`) et à la règle MOS #15 (complétude immédiate).
  *
- * Sprint 1 — endpoints livrés :
- *   • identity.me           → identité courante + contexte
- *   • identity.healthStatus → statut normalisé du moteur (obligatoire)
- *   • identity.sessions.list
- *   • identity.audit.recent
+ * Le router est décomposé en sous-routers logiques :
+ *   • Métadonnées & santé — meta, healthStatus, types, dashboard, controlCenterFeed
+ *   • Bridge auth (parallèle à auth.ts legacy — non destructif) — login, register, logout, oauthGoogle, changePassword
+ *   • Vérifications — email.send/verify, phone.send/verify
+ *   • Récupération de compte — password.forgot/reset
+ *   • MFA — mfa.setup/enable/verify/disable/status
+ *   • Sessions & appareils — sessions.list/revoke, devices.list, session.refresh
+ *   • Anomalies — anomalies.recent
+ *   • Compte — account.archive, refreshToken
+ *   • Agents IA — aiAgents.create/list/revoke
+ *   • Audit — audit.recent, audit.all, reportEvent
  *
- * Endpoints à venir Sprint 2 : login, register, upgrade, MFA, révocation
- * ciblée. La logique legacy (`server/routers/auth.ts`) reste en place et
- * fonctionne — l'Identity OS s'y branche via `resolveIdentityForUser`.
+ * Aucun endpoint `auth.*` n'est supprimé.
  */
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
@@ -26,7 +29,13 @@ import {
 } from "../trpc.js";
 import { db } from "../db.js";
 import { users } from "../schema.js";
-import { signToken, hashPassword, comparePassword } from "../auth.js";
+import { identities } from "./schema.js";
+import {
+  signToken,
+  hashPassword,
+  comparePassword,
+  verifyGoogleIdToken,
+} from "../auth.js";
 import { makeReference } from "../reference.js";
 import { logAction, clientMeta } from "../audit.js";
 import {
@@ -40,6 +49,30 @@ import {
   revokeSession,
   IDENTITY_OS_META,
 } from "./service.js";
+import {
+  archiveIdentity,
+  changePassword as changePasswordSvc,
+  confirmEmailVerification,
+  confirmPasswordReset,
+  confirmPhoneVerification,
+  createAiAgent,
+  isLockedOut,
+  listAiAgents,
+  listDevices,
+  mfaDisable,
+  mfaEnable,
+  mfaIsActivated,
+  mfaSetup,
+  persistSession,
+  recentAnomalies,
+  recordLoginAttempt,
+  refreshSession,
+  reissueToken,
+  requestEmailVerification,
+  requestPasswordReset,
+  requestPhoneVerification,
+  revokeAiAgent,
+} from "./complete.js";
 import { DEFAULT_ROLES_BY_TYPE, type IdentityRole, type IdentityType } from "./contract.js";
 
 const identityTypeSchema = z.enum([
@@ -203,30 +236,34 @@ export const identityRouter = router({
   // ────────────────────────────────────────────────────────────────────
 
   login: publicProcedure
-    .input(z.object({ email: z.string().email(), password: z.string() }))
+    .input(
+      z.object({
+        email: z.string().email(),
+        password: z.string(),
+        mfaCode: z.string().optional(), // TOTP 6 digits ou backup code
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
+      const meta = clientMeta(ctx.req);
+      // 1. Anti-abus — lockout email/IP après trop d'échecs récents.
+      if (await isLockedOut(input.email, meta.ipAddress)) {
+        await recordLoginAttempt(input.email, false, { reason: "lockout", ip: meta.ipAddress, ua: meta.userAgent });
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Trop de tentatives — réessayez dans quelques minutes" });
+      }
       const [u] = await db
         .select()
         .from(users)
         .where(eq(users.email, input.email.toLowerCase()))
         .limit(1);
       if (!u || !u.passwordHash) {
-        await audit({
-          action: "identity.login_failed",
-          reason: "unknown_or_no_hash",
-          metadata: { email: input.email },
-          ...clientMeta(ctx.req),
-        });
+        await recordLoginAttempt(input.email, false, { reason: "unknown_or_no_hash", ip: meta.ipAddress, ua: meta.userAgent });
+        await audit({ action: "identity.login_failed", reason: "unknown_or_no_hash", metadata: { email: input.email }, ipAddress: meta.ipAddress, userAgent: meta.userAgent });
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Identifiants invalides" });
       }
       const ok = await comparePassword(input.password, u.passwordHash);
       if (!ok) {
-        await audit({
-          action: "identity.login_failed",
-          reason: "bad_password",
-          metadata: { legacyUserId: u.id },
-          ...clientMeta(ctx.req),
-        });
+        await recordLoginAttempt(input.email, false, { identityId: undefined, reason: "bad_password", ip: meta.ipAddress, ua: meta.userAgent });
+        await audit({ action: "identity.login_failed", reason: "bad_password", metadata: { legacyUserId: u.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent });
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Identifiants invalides" });
       }
       const identity = await resolveIdentityForUser(u.id, {
@@ -235,15 +272,31 @@ export const identityRouter = router({
         name: u.name,
         roles: DEFAULT_ROLES_BY_TYPE[mapLegacyRoleToType(u.role)] ?? [],
       });
+      // 2. MFA — si activée, exige un code TOTP ou un backup code valide.
+      const mfaOn = identity ? await mfaIsActivated(identity.id) : false;
+      if (mfaOn) {
+        if (!input.mfaCode) {
+          return { requiresMfa: true as const, token: null, identityId: identity!.id, user: null };
+        }
+        const { mfaVerify } = await import("./complete.js");
+        const mfaOk = await mfaVerify(identity!.id, input.mfaCode);
+        if (!mfaOk) {
+          await recordLoginAttempt(input.email, false, { identityId: identity!.id, reason: "mfa_failed", ip: meta.ipAddress, ua: meta.userAgent });
+          await audit({ identityId: identity!.id, action: "identity.login_failed", reason: "mfa_failed", ipAddress: meta.ipAddress, userAgent: meta.userAgent });
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Code MFA invalide" });
+        }
+      }
       const token = signToken({ uid: u.id, role: u.role, email: u.email });
-      await logAction(u.id, "auth.login", "user", u.id, undefined, clientMeta(ctx.req));
-      await audit({
-        identityId: identity?.id,
-        action: "identity.login",
-        metadata: { via: "identity.login", legacyUserId: u.id },
-        ...clientMeta(ctx.req),
-      });
+      // 3. Persistance session + audit succès.
+      if (identity) {
+        await persistSession(identity.id, { userAgent: meta.userAgent, ip: meta.ipAddress });
+        await db.update(identities).set({ lastLoginAt: new Date() }).where(eq(identities.id, identity.id));
+      }
+      await recordLoginAttempt(input.email, true, { identityId: identity?.id, ip: meta.ipAddress, ua: meta.userAgent });
+      await logAction(u.id, "auth.login", "user", u.id, undefined, meta);
+      await audit({ identityId: identity?.id, action: "identity.login", metadata: { via: "identity.login", legacyUserId: u.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent });
       return {
+        requiresMfa: false as const,
         token,
         identityId: identity?.id ?? null,
         user: {
@@ -326,5 +379,241 @@ export const identityRouter = router({
       ...clientMeta(ctx.req),
     });
     return { ok: true };
+  }),
+
+  // ────────────────────────────────────────────────────────────────────
+  // Sprint 3 — OAuth Google (bridge non destructif)
+  // ────────────────────────────────────────────────────────────────────
+
+  oauthGoogle: publicProcedure
+    .input(z.object({ idToken: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const meta = clientMeta(ctx.req);
+      const profile = await verifyGoogleIdToken(input.idToken);
+      if (!profile) {
+        await audit({ action: "identity.oauth_google.failed", reason: "invalid_id_token", ipAddress: meta.ipAddress, userAgent: meta.userAgent });
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Google non vérifié" });
+      }
+      let [u] = await db.select().from(users).where(eq(users.email, profile.email.toLowerCase())).limit(1);
+      if (!u) {
+        [u] = await db
+          .insert(users)
+          .values({
+            email: profile.email.toLowerCase(),
+            name: profile.name,
+            googleId: profile.googleId,
+            avatarUrl: profile.picture,
+            emailVerified: true,
+            role: "user",
+          })
+          .returning();
+        const reference = makeReference("U", u.id);
+        await db.update(users).set({ reference }).where(eq(users.id, u.id));
+      } else if (!u.googleId) {
+        await db.update(users).set({ googleId: profile.googleId, emailVerified: true }).where(eq(users.id, u.id));
+      }
+      const identity = await resolveIdentityForUser(u.id, {
+        type: mapLegacyRoleToType(u.role),
+        email: u.email,
+        name: u.name,
+        roles: DEFAULT_ROLES_BY_TYPE[mapLegacyRoleToType(u.role)] ?? [],
+      });
+      const token = signToken({ uid: u.id, role: u.role, email: u.email });
+      if (identity) {
+        await persistSession(identity.id, { userAgent: meta.userAgent, ip: meta.ipAddress });
+        await db.update(identities).set({ lastLoginAt: new Date(), emailVerified: true }).where(eq(identities.id, identity.id));
+      }
+      await audit({ identityId: identity?.id, action: "identity.oauth_google.success", metadata: { legacyUserId: u.id }, ipAddress: meta.ipAddress, userAgent: meta.userAgent });
+      return {
+        token,
+        identityId: identity?.id ?? null,
+        user: { id: u.id, email: u.email, name: u.name, role: u.role, accountType: u.accountType },
+      };
+    }),
+
+  refreshToken: protectedProcedure.mutation(async ({ ctx }) => {
+    const token = await reissueToken(ctx.user.uid);
+    if (!token) throw new TRPCError({ code: "UNAUTHORIZED", message: "Identité inconnue" });
+    const identity = await resolveIdentityForUser(ctx.user.uid, undefined, { createIfMissing: false });
+    await audit({ identityId: identity?.id, action: "identity.token.refreshed", ...clientMeta(ctx.req) });
+    return { token };
+  }),
+
+  changePassword: protectedProcedure
+    .input(z.object({ currentPassword: z.string().min(6), newPassword: z.string().min(8) }))
+    .mutation(async ({ ctx, input }) => {
+      const res = await changePasswordSvc(ctx.user.uid, input.currentPassword, input.newPassword);
+      if (!res.ok) throw new TRPCError({ code: "BAD_REQUEST", message: res.reason });
+      return { ok: true };
+    }),
+
+  // ────────────────────────────────────────────────────────────────────
+  // Sprint 3 — Vérifications (email + téléphone)
+  // ────────────────────────────────────────────────────────────────────
+
+  email: router({
+    sendVerification: protectedProcedure.mutation(async ({ ctx }) => {
+      const identity = await resolveIdentityForUser(ctx.user.uid);
+      if (!identity?.email) throw new TRPCError({ code: "BAD_REQUEST", message: "Aucune adresse email" });
+      return requestEmailVerification(identity.id, identity.email, { ip: clientMeta(ctx.req).ipAddress, ua: clientMeta(ctx.req).userAgent });
+    }),
+    verify: publicProcedure
+      .input(z.object({ token: z.string().min(20) }))
+      .mutation(async ({ input }) => {
+        const r = await confirmEmailVerification(input.token);
+        if (!r.ok) throw new TRPCError({ code: "BAD_REQUEST", message: r.reason });
+        return { ok: true };
+      }),
+  }),
+
+  phone: router({
+    sendVerification: protectedProcedure
+      .input(z.object({ phone: z.string().min(5).max(32) }))
+      .mutation(async ({ ctx, input }) => {
+        const identity = await resolveIdentityForUser(ctx.user.uid);
+        if (!identity) throw new TRPCError({ code: "UNAUTHORIZED" });
+        return requestPhoneVerification(identity.id, input.phone, { ip: clientMeta(ctx.req).ipAddress });
+      }),
+    verify: protectedProcedure
+      .input(z.object({ code: z.string().length(6) }))
+      .mutation(async ({ ctx, input }) => {
+        const identity = await resolveIdentityForUser(ctx.user.uid);
+        if (!identity) throw new TRPCError({ code: "UNAUTHORIZED" });
+        const r = await confirmPhoneVerification(identity.id, input.code);
+        if (!r.ok) throw new TRPCError({ code: "BAD_REQUEST", message: r.reason });
+        return { ok: true };
+      }),
+  }),
+
+  // ────────────────────────────────────────────────────────────────────
+  // Sprint 3 — Récupération mot de passe (public, anti-énumération)
+  // ────────────────────────────────────────────────────────────────────
+
+  password: router({
+    forgot: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ ctx, input }) => {
+        const meta = clientMeta(ctx.req);
+        return requestPasswordReset(input.email, { ip: meta.ipAddress, ua: meta.userAgent });
+      }),
+    reset: publicProcedure
+      .input(z.object({ token: z.string().min(20), newPassword: z.string().min(8) }))
+      .mutation(async ({ ctx, input }) => {
+        const r = await confirmPasswordReset(input.token, input.newPassword, { ip: clientMeta(ctx.req).ipAddress });
+        if (!r.ok) throw new TRPCError({ code: "BAD_REQUEST", message: r.reason });
+        return { ok: true };
+      }),
+  }),
+
+  // ────────────────────────────────────────────────────────────────────
+  // Sprint 3 — MFA TOTP + backup codes
+  // ────────────────────────────────────────────────────────────────────
+
+  mfa: router({
+    status: protectedProcedure.query(async ({ ctx }) => {
+      const identity = await resolveIdentityForUser(ctx.user.uid);
+      if (!identity) return { activated: false };
+      return { activated: await mfaIsActivated(identity.id) };
+    }),
+    setup: protectedProcedure.mutation(async ({ ctx }) => {
+      const identity = await resolveIdentityForUser(ctx.user.uid);
+      if (!identity?.email) throw new TRPCError({ code: "BAD_REQUEST", message: "Email requis" });
+      const r = await mfaSetup(identity.id, identity.email);
+      if (!r.ok) throw new TRPCError({ code: "CONFLICT", message: r.reason });
+      return { otpauth: r.otpauth, secret: r.secret, backupCodes: r.backupCodes };
+    }),
+    enable: protectedProcedure
+      .input(z.object({ code: z.string().length(6) }))
+      .mutation(async ({ ctx, input }) => {
+        const identity = await resolveIdentityForUser(ctx.user.uid);
+        if (!identity) throw new TRPCError({ code: "UNAUTHORIZED" });
+        const r = await mfaEnable(identity.id, input.code);
+        if (!r.ok) throw new TRPCError({ code: "BAD_REQUEST", message: r.reason });
+        return { ok: true };
+      }),
+    disable: protectedProcedure
+      .input(z.object({ currentPassword: z.string().min(6) }))
+      .mutation(async ({ ctx, input }) => {
+        const identity = await resolveIdentityForUser(ctx.user.uid);
+        if (!identity) throw new TRPCError({ code: "UNAUTHORIZED" });
+        const r = await mfaDisable(identity.id, input.currentPassword);
+        if (!r.ok) throw new TRPCError({ code: "BAD_REQUEST", message: r.reason });
+        return { ok: true };
+      }),
+  }),
+
+  // ────────────────────────────────────────────────────────────────────
+  // Sprint 3 — Appareils + rafraîchissement session
+  // ────────────────────────────────────────────────────────────────────
+
+  devices: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const identity = await resolveIdentityForUser(ctx.user.uid);
+      if (!identity) return [];
+      return listDevices(identity.id);
+    }),
+  }),
+
+  session: router({
+    touch: protectedProcedure
+      .input(z.object({ sessionId: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        await refreshSession(input.sessionId);
+        return { ok: true };
+      }),
+  }),
+
+  // ────────────────────────────────────────────────────────────────────
+  // Sprint 3 — Anomalies + archivage compte
+  // ────────────────────────────────────────────────────────────────────
+
+  anomalies: router({
+    recent: adminProcedure
+      .input(z.object({ limit: z.number().int().min(1).max(500).default(100) }).optional())
+      .query(async ({ input }) => recentAnomalies(input?.limit ?? 100)),
+  }),
+
+  account: router({
+    archive: protectedProcedure
+      .input(z.object({ reason: z.string().max(500).default("user_request") }))
+      .mutation(async ({ ctx, input }) => {
+        const identity = await resolveIdentityForUser(ctx.user.uid);
+        if (!identity) throw new TRPCError({ code: "UNAUTHORIZED" });
+        return archiveIdentity(identity.id, identity.id, input.reason);
+      }),
+  }),
+
+  // ────────────────────────────────────────────────────────────────────
+  // Sprint 3 — Agents IA (comptes machine avec clés API)
+  // ────────────────────────────────────────────────────────────────────
+
+  aiAgents: router({
+    create: protectedProcedure
+      .input(
+        z.object({
+          label: z.string().min(2).max(160),
+          purpose: z.string().min(2).max(64),
+          scopes: z.array(z.string().max(64)).max(50).optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const identity = await resolveIdentityForUser(ctx.user.uid);
+        if (!identity) throw new TRPCError({ code: "UNAUTHORIZED" });
+        return createAiAgent(identity.id, input);
+      }),
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const identity = await resolveIdentityForUser(ctx.user.uid);
+      if (!identity) return [];
+      return listAiAgents(identity.id);
+    }),
+    revoke: protectedProcedure
+      .input(z.object({ agentId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const identity = await resolveIdentityForUser(ctx.user.uid);
+        if (!identity) throw new TRPCError({ code: "UNAUTHORIZED" });
+        const r = await revokeAiAgent(input.agentId, identity.id);
+        if (!r.ok) throw new TRPCError({ code: "NOT_FOUND" });
+        return { ok: true };
+      }),
   }),
 });
