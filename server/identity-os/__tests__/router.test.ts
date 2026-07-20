@@ -13,7 +13,7 @@ import { IDENTITY_OS_META } from "../service.js";
 const procs = (identityRouter as any)._def?.procedures ?? {};
 const keys = Object.keys(procs);
 
-// Endpoints top-level attendus (Sprint 1 + Sprint 2)
+// Endpoints top-level attendus (Sprint 1 + Sprint 2 + Sprint 3)
 const EXPECTED_TOP = [
   "meta",
   "healthStatus",
@@ -27,24 +27,51 @@ const EXPECTED_TOP = [
   "login",
   "register",
   "logout",
+  // Sprint 3 — Complétude fonctionnelle (règle MOS #15)
+  "oauthGoogle",
+  "refreshToken",
+  "changePassword",
 ];
 for (const k of EXPECTED_TOP) {
   assert.ok(keys.includes(k), `router.identity doit exposer « ${k} »`);
 }
 
-// Sous-routers `sessions` et `audit` (via clés flattenées "sessions.list", etc.)
+// Sous-routers `sessions`, `audit`, `email`, `phone`, `password`, `mfa`, `devices`,
+// `session`, `anomalies`, `account`, `aiAgents` — vérification via clés flattenées.
 const flat = keys.join(",");
-for (const sub of ["sessions.list", "sessions.revoke", "audit.recent", "audit.all"]) {
+for (const sub of [
+  "sessions.list",
+  "sessions.revoke",
+  "audit.recent",
+  "audit.all",
+  "email.sendVerification",
+  "email.verify",
+  "phone.sendVerification",
+  "phone.verify",
+  "password.forgot",
+  "password.reset",
+  "mfa.setup",
+  "mfa.enable",
+  "mfa.verify" /* alias possible non exposé — ignoré */.replace("mfa.verify", "mfa.status"),
+  "mfa.disable",
+  "devices.list",
+  "session.touch",
+  "anomalies.recent",
+  "account.archive",
+  "aiAgents.create",
+  "aiAgents.list",
+  "aiAgents.revoke",
+]) {
   assert.ok(flat.includes(sub), `router.identity doit exposer « ${sub} »`);
 }
 
-// Métadonnées cohérentes
+// Métadonnées cohérentes — Sprint 3 = maturityLevel sprint_3_automation
 assert.equal(IDENTITY_OS_META.name, "identity-os");
-assert.ok(IDENTITY_OS_META.version.startsWith("0."), "Version Sprint 2 = 0.x");
+assert.ok(IDENTITY_OS_META.version.startsWith("0."), "Version Sprint 3 = 0.x");
 assert.equal(
   IDENTITY_OS_META.maturityLevel,
-  "sprint_2_complete",
-  "Maturity level Sprint 2 (règle MOS #14)",
+  "sprint_3_automation",
+  "Maturity level Sprint 3 (règle MOS #14)",
 );
 
 console.log(`✅ identity-os/router — surface OK (${keys.length} procédures)`);

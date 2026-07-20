@@ -163,8 +163,8 @@ export interface HealthStatus {
   };
 }
 
-const IDENTITY_OS_VERSION = "0.3.0"; // Sprint 2
-const IDENTITY_OS_MATURITY: MaturityLevel = "sprint_2_complete";
+const IDENTITY_OS_VERSION = "0.4.0"; // Sprint 3 — complétude fonctionnelle (règle MOS #15)
+const IDENTITY_OS_MATURITY: MaturityLevel = "sprint_3_automation";
 
 /**
  * Retourne l'état de santé standardisé de l'Identity OS.

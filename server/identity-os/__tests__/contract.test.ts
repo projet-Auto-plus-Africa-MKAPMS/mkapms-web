@@ -101,8 +101,8 @@ assert.ok(
 );
 assert.equal(
   IDENTITY_OS_META.maturityLevel,
-  "sprint_2_complete",
-  "Identity OS est en Sprint 2",
+  "sprint_3_automation",
+  "Identity OS est en Sprint 3 (complétude fonctionnelle règle #15)",
 );
 
 console.log("✅ identity-os/contract — 100 % OK");

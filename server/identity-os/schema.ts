@@ -102,3 +102,80 @@ export const identityHealthLog = pgTable("identity_health_log", {
   metrics: jsonb("metrics"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ────────────────────────────────────────────────────────────────────────
+// Complétude fonctionnelle Identity OS (règle MOS #15) — migration 0035
+// ────────────────────────────────────────────────────────────────────────
+
+/** Vérifications email (double opt-in). */
+export const identityEmailVerifications = pgTable("identity_email_verifications", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  identityId: integer("identity_id").notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  tokenHash: varchar("token_hash", { length: 128 }).notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
+  requestedIp: varchar("requested_ip", { length: 64 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Vérifications téléphone (OTP SMS 6 chiffres). */
+export const identityPhoneVerifications = pgTable("identity_phone_verifications", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  identityId: integer("identity_id").notNull(),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  codeHash: varchar("code_hash", { length: 128 }).notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
+  attempts: integer("attempts").notNull().default(0),
+  requestedIp: varchar("requested_ip", { length: 64 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Réinitialisations mot de passe. */
+export const identityPasswordResets = pgTable("identity_password_resets", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  identityId: integer("identity_id").notNull(),
+  tokenHash: varchar("token_hash", { length: 128 }).notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  requestedIp: varchar("requested_ip", { length: 64 }),
+  userAgent: varchar("user_agent", { length: 255 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Secrets MFA TOTP (RFC 6238) + codes de secours (hashés). */
+export const identityMfaSecrets = pgTable("identity_mfa_secrets", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  identityId: integer("identity_id").notNull().unique(),
+  secretBase32: varchar("secret_base32", { length: 64 }).notNull(),
+  backupCodes: jsonb("backup_codes").$type<string[]>().notNull().default([]),
+  activatedAt: timestamp("activated_at", { withTimezone: true }),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Tentatives de connexion (détection d'anomalies + lockout). */
+export const identityLoginAttempts = pgTable("identity_login_attempts", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  email: varchar("email", { length: 255 }),
+  identityId: integer("identity_id"),
+  success: boolean("success").notNull(),
+  reason: varchar("reason", { length: 64 }),
+  ipAddress: varchar("ip_address", { length: 64 }),
+  userAgent: varchar("user_agent", { length: 255 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Comptes agents IA (clés d'API dédiées, hashées). */
+export const identityAiAgents = pgTable("identity_ai_agents", {
+  id: serial("id").primaryKey(),
+  identityId: integer("identity_id").notNull(),
+  label: varchar("label", { length: 160 }).notNull(),
+  purpose: varchar("purpose", { length: 64 }).notNull(),
+  apiKeyHash: varchar("api_key_hash", { length: 128 }).notNull().unique(),
+  scopes: jsonb("scopes").$type<string[]>().notNull().default([]),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+});
