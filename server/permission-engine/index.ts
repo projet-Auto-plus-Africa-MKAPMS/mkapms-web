@@ -20,3 +20,26 @@
 export { permissionEngineRouter } from "./router.js";
 export { logAccess } from "./journal.js";
 export * as permSchema from "./schema.js";
+// Complétude Sprint 3 (règle MOS #15) — surface publique étendue.
+export {
+  PERMISSION_OS_META,
+  controlCenterFeed,
+  createDelegation,
+  createPolicy,
+  dashboard,
+  deletePolicy,
+  healthStatus,
+  listDelegations,
+  listPolicies,
+  revokeDelegation,
+  updatePolicy,
+} from "./service.js";
+export { resolvePermission, simulatePermission, countRecentDecisions, recentResolutions } from "./intelligence.js";
+export type {
+  PermissionContext,
+  PermissionDecision,
+  PermissionEvent,
+  PermissionEngineMeta,
+  PermissionPolicy,
+  PermissionPolicyCondition,
+} from "./contract.js";
