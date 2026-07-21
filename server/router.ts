@@ -47,6 +47,9 @@ import { engineRegistryRouter } from "./engine-registry/router.js";
 import { paymentEngineRouter } from "./payment-engine/router.js";
 // Identity OS — moteur d'identité universel (Sprint 1)
 import { identityRouter } from "./identity-os/router.js";
+// Country OS + Language OS — registres mondiaux (règle MOS #15)
+import { countryOsRouter } from "./country-os/index.js";
+import { languageOsRouter } from "./language-os/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -126,6 +129,9 @@ export const appRouter = router({
   paymentEngine: paymentEngineRouter,
   // Identity OS — moteur transversal fondateur (namespace `identity.*`)
   identity: identityRouter,
+  // Country OS + Language OS — registres mondiaux (règle MOS #15)
+  country: countryOsRouter,
+  language: languageOsRouter,
 });
 
 export type AppRouter = typeof appRouter;
