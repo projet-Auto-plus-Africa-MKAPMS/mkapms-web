@@ -232,6 +232,48 @@
       "when": 1784425400000,
       "tag": "0032_payment_engine",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1784425500000,
+      "tag": "0033_annonces_garanties",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1784425600000,
+      "tag": "0034_identity_os",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1784425700000,
+      "tag": "0035_identity_os_complete",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1784425800000,
+      "tag": "0036_permission_engine_complete",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1784425900000,
+      "tag": "0037_ensure_annonces_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1784426000000,
+      "tag": "0038_country_and_language_os",
+      "breakpoints": true
     }
   ]
 }

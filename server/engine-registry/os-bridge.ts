@@ -2,105 +2,62 @@
  * MKA.P-MS Engine Registry — Pont des moteurs « OS » (connexion au moteur principal).
  *
  * Les moteurs fondateurs au standard MOS (Identity OS, Country OS, Language OS)
- * ont été développés séparément avec leur propre contrat et leur propre
- * tableau de bord. Ce pont les CONNECTE au registre central / Core Engine :
+ * sont déclarés dans le catalogue central (`identity`, `country`, `language`) et
+ * donc seedés dans `engine_registry`. Mais ils n'émettent pas eux-mêmes de
+ * heartbeat : sans ce pont, leur santé resterait « inconnue ».
  *
- *   - enregistrement idempotent dans engine_registry (nom, label, version,
- *     catégorie, dépendances) ;
- *   - remontée de leur santé via un heartbeat, en lisant UNIQUEMENT leur
- *     surface publique `controlCenterFeed()` (règle MOS #11 — aucun accès à
- *     leur logique interne ni à leurs tables).
+ * Ce pont lit UNIQUEMENT leur surface publique `controlCenterFeed()` (règle MOS
+ * #11 — aucun accès à leur logique interne ni à leurs tables) et remonte leur
+ * santé réelle au registre central via `heartbeat(...)`. Il ne modifie jamais
+ * les métadonnées déclarées de ces moteurs (label, dépendances, catégorie).
  *
  * 100 % additif et non bloquant : toute erreur sur un moteur est journalisée
- * mais n'interrompt jamais le démarrage de la plateforme. Ce pont ne modifie
- * pas les moteurs OS ; il ne fait que les brancher sur le registre central.
+ * mais n'interrompt jamais le démarrage de la plateforme.
  */
-import { registerEngine, heartbeat, journalAdmin } from "./service.js";
+import { ensureSeeded, heartbeat } from "./service.js";
 import type { EngineHealth } from "./service.js";
 
 interface OsFeed {
-  engine: string;
-  label: string;
   version: string;
-  health: "ok" | "degraded" | "down" | "unknown";
-  status: "active" | "read_only" | "maintenance" | "disabled" | "staging";
+  health: EngineHealth;
 }
 
 interface OsEngineBinding {
+  /** Nom canonique dans le catalogue central. */
   name: string;
-  category: "transversal";
-  dependencies: string[];
-  fallbackLabel: string;
-  description: string;
   loadFeed: () => Promise<OsFeed>;
 }
 
-/** Liste des moteurs OS à connecter, avec leur feed public standardisé. */
+/** Moteurs OS à connecter (santé remontée au registre central). */
 const OS_ENGINES: OsEngineBinding[] = [
   {
-    name: "country-os",
-    category: "transversal",
-    dependencies: ["core"],
-    fallbackLabel: "Country Operating System",
-    description: "Registre mondial des pays et devises.",
+    name: "country",
     loadFeed: async () => (await import("../country-os/index.js")).controlCenterFeed(),
   },
   {
-    name: "language-os",
-    category: "transversal",
-    dependencies: ["core"],
-    fallbackLabel: "Language Operating System",
-    description: "Langues, traductions, préférences i18n.",
+    name: "language",
     loadFeed: async () => (await import("../language-os/index.js")).controlCenterFeed(),
   },
   {
-    name: "identity-os",
-    category: "transversal",
-    dependencies: ["core", "country-os", "language-os"],
-    fallbackLabel: "Identity Operating System",
-    description: "Identités, rôles, sessions, sécurité (namespace identity.*).",
+    name: "identity",
     loadFeed: async () => (await import("../identity-os/index.js")).controlCenterFeed(),
   },
 ];
 
 async function bridgeOne(binding: OsEngineBinding): Promise<void> {
-  let feed: OsFeed | null = null;
   try {
-    feed = await binding.loadFeed();
-  } catch (err) {
-    // Feed indisponible : on enregistre quand même le moteur (connexion) en
-    // état de santé "dégradé", sans bloquer.
-    await registerEngine({
-      name: binding.name,
-      label: binding.fallbackLabel,
-      category: binding.category,
-      dependencies: binding.dependencies,
-      description: binding.description,
-      state: "active",
+    const feed = await binding.loadFeed();
+    await heartbeat(binding.name, feed.health ?? "unknown", {
+      version: feed.version,
+      message: "Connecté au registre central (pont MOS).",
     });
+  } catch (err) {
+    // Feed indisponible : la ligne existe déjà (seed catalogue) — on signale
+    // simplement une santé dégradée, sans bloquer.
     await heartbeat(binding.name, "degraded", {
       message: `Feed OS indisponible: ${(err as Error).message}`,
     });
-    await journalAdmin(binding.name, "register");
-    return;
   }
-
-  await registerEngine({
-    name: binding.name,
-    label: feed.label || binding.fallbackLabel,
-    category: binding.category,
-    version: feed.version,
-    dependencies: binding.dependencies,
-    description: binding.description,
-    state: feed.status,
-  });
-  await journalAdmin(binding.name, "register");
-
-  const health: EngineHealth = feed.health ?? "unknown";
-  await heartbeat(binding.name, health, {
-    message: "Connecté au registre central (pont MOS).",
-    version: feed.version,
-  });
 }
 
 /**
@@ -109,6 +66,16 @@ async function bridgeOne(binding: OsEngineBinding): Promise<void> {
  * le démarrage de la plateforme.
  */
 export async function bridgeOsEngines(): Promise<void> {
+  // Garantit que les moteurs du catalogue (dont identity/country/language)
+  // existent avant de leur envoyer un heartbeat. Idempotent.
+  try {
+    await ensureSeeded();
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] seed catalogue avant pont OS échoué:",
+      (err as Error).message,
+    );
+  }
   for (const binding of OS_ENGINES) {
     try {
       await bridgeOne(binding);
