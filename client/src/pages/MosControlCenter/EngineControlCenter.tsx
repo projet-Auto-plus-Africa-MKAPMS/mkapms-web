@@ -12,7 +12,7 @@ import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
 import { Activity, ChevronLeft, RefreshCw, ShieldAlert, Sparkles } from "lucide-react";
 
-type EngineKey = "identity" | "country" | "language" | "permissionEngine";
+type EngineKey = "identity" | "country" | "language" | "permissionEngine" | "notificationOs";
 
 /** Mapping moteur → configuration d'affichage. */
 const ENGINE_CONFIG: Record<EngineKey, {
@@ -37,13 +37,19 @@ const ENGINE_CONFIG: Record<EngineKey, {
     namespace: "language",
     label: "Language OS",
     color: "from-sky-500 to-blue-600",
-    tagline: "9 langues · Traductions · Préférences utilisateur · Détection auto",
+    tagline: "Toutes les langues du monde · Traductions · Préférences utilisateur",
   },
   permissionEngine: {
     namespace: "permissionEngine",
     label: "Permission OS",
     color: "from-amber-500 to-orange-600",
     tagline: "Permissions classiques + intelligentes contextuelles (2 niveaux)",
+  },
+  notificationOs: {
+    namespace: "notificationOs",
+    label: "Notification OS",
+    color: "from-pink-500 to-rose-600",
+    tagline: "Multi-canaux (email, SMS, push, in-app) · Templates multi-langues",
   },
 };
 
