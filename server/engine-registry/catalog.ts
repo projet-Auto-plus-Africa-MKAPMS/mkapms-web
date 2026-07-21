@@ -118,6 +118,31 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     description: "Analyse d'usage et comportement — partiel.",
     state: "disabled",
   },
+  // ── Moteurs OS (systèmes fondateurs, standard MOS) ──
+  {
+    name: "identity-os",
+    label: "Identity Operating System",
+    category: "transversal",
+    dependencies: ["core", "country-os", "language-os"],
+    description: "Identités, rôles, sessions, sécurité (namespace identity.*).",
+    state: "active",
+  },
+  {
+    name: "country-os",
+    label: "Country Operating System",
+    category: "transversal",
+    dependencies: ["core"],
+    description: "Registre mondial des pays et devises.",
+    state: "active",
+  },
+  {
+    name: "language-os",
+    label: "Language Operating System",
+    category: "transversal",
+    dependencies: ["core"],
+    description: "Langues, traductions, préférences i18n.",
+    state: "active",
+  },
   // ── Univers ──
   {
     name: "vo",

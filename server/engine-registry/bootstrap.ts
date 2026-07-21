@@ -16,6 +16,7 @@
  * 100 % additif — n'écrit que dans les tables engine_* du registre.
  */
 import { ENGINE_CONTRACTS, type EngineContract } from "./contracts.js";
+import { bridgeOsEngines } from "./os-bridge.js";
 import {
   registerEngine,
   getEngine,
@@ -131,5 +132,16 @@ export async function bootstrapEngines(): Promise<void> {
         (err as Error).message,
       );
     }
+  }
+
+  // Connecte les moteurs « OS » (Identity / Country / Language) au registre
+  // central via leur surface publique. Non bloquant.
+  try {
+    await bridgeOsEngines();
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] connexion des moteurs OS échouée:",
+      (err as Error).message,
+    );
   }
 }
