@@ -31,6 +31,30 @@ export const ENGINE_CATALOG: EngineSeed[] = [
   },
   // ── Transversaux ──
   {
+    name: "identity",
+    label: "Identity OS",
+    category: "transversal",
+    dependencies: ["core"],
+    description: "Identités, sessions, MFA TOTP, vérifications, agents IA, audit — 34 procédures.",
+    state: "active",
+  },
+  {
+    name: "country",
+    label: "Country OS",
+    category: "transversal",
+    dependencies: ["core"],
+    description: "Registre mondial des pays (langues, devises, TVA, univers actifs) — configuration pure.",
+    state: "active",
+  },
+  {
+    name: "language",
+    label: "Language OS",
+    category: "transversal",
+    dependencies: ["core", "country"],
+    description: "9 langues, traductions namespace/clé, préférences utilisateur, détection auto.",
+    state: "active",
+  },
+  {
     name: "smart",
     label: "Smart Engine",
     category: "transversal",
@@ -40,10 +64,10 @@ export const ENGINE_CATALOG: EngineSeed[] = [
   },
   {
     name: "permission",
-    label: "Permission Engine",
+    label: "Permission OS",
     category: "transversal",
-    dependencies: ["core"],
-    description: "Contrôle des accès : pages, boutons, endpoints, rôles.",
+    dependencies: ["core", "identity"],
+    description: "2 niveaux : matrice de rôle + politiques contextuelles (pays × type × univers × abonnement × contrat × ancienneté × device × risk).",
     state: "active",
   },
   {
