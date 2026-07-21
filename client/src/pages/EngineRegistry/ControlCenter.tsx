@@ -39,17 +39,20 @@ type EngineState = "active" | "read_only" | "maintenance" | "disabled" | "stagin
  */
 const PRIORITY: Record<string, number> = {
   core: 0,
-  smart: 1,
+  identity: 1,
   permission: 2,
-  redirection: 3,
-  payment: 4,
-  search: 5,
-  workflow: 6,
-  knowledge: 7,
-  notification: 8,
-  monitoring: 9,
-  analytics: 10,
-  seo: 11,
+  country: 3,
+  language: 4,
+  smart: 5,
+  redirection: 6,
+  payment: 7,
+  search: 8,
+  workflow: 9,
+  knowledge: 10,
+  notification: 11,
+  monitoring: 12,
+  analytics: 13,
+  seo: 14,
 };
 
 /** Familles de moteurs, dans l'ordre d'affichage (les plus structurantes en haut). */
@@ -64,8 +67,11 @@ const CATEGORY_ORDER: { key: string; title: string; subtitle: string }[] = [
 /** Route réelle du centre de contrôle dédié de chaque moteur (si elle existe). */
 const CONTROL_ROUTE: Record<string, string> = {
   core: "/superadmin/core-engine-beta",
+  identity: "/superadmin/identity-os",
   smart: "/superadmin/smart-engine",
   permission: "/superadmin/permission-engine",
+  country: "/superadmin/country-os",
+  language: "/superadmin/language-os",
   redirection: "/superadmin/redirection-engine",
 };
 

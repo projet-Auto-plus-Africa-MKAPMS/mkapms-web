@@ -174,6 +174,8 @@ const VOInterne = lazy(() => import("./pages/VOInterne"));
 const PermissionEngineControlCenter = lazy(() => import("./pages/PermissionEngine/ControlCenter"));
 const RedirectionEngineControlCenter = lazy(() => import("./pages/RedirectionEngine/ControlCenter"));
 const EngineRegistryControlCenter = lazy(() => import("./pages/EngineRegistry/ControlCenter"));
+// MOS Control Center — pages génériques pour Identity/Country/Language/Permission
+const MosEngineControlCenter = lazy(() => import("./pages/MosControlCenter/EngineControlCenter"));
 const Comptabilite = lazy(() => import("./pages/Comptabilite"));
 const CarteGrise = lazy(() => import("./pages/CarteGrise"));
 const Mission = lazy(() => import("./pages/Mission"));
@@ -1126,6 +1128,11 @@ export default function App() {
             <Route path="/superadmin/permission-engine" element={<U name="Moteur de Permissions"><PermissionEngineControlCenter /></U>} />
             <Route path="/superadmin/redirection-engine" element={<U name="Moteur de Redirection"><RedirectionEngineControlCenter /></U>} />
             <Route path="/admin/moteurs" element={<U name="Moteurs MKA.P-MS"><EngineRegistryControlCenter /></U>} />
+            {/* MOS Control Center — routes dédiées PDG + Direction */}
+            <Route path="/superadmin/identity-os" element={<U name="Identity OS"><MosEngineControlCenter engineKey="identity" /></U>} />
+            <Route path="/superadmin/country-os" element={<U name="Country OS"><MosEngineControlCenter engineKey="country" /></U>} />
+            <Route path="/superadmin/language-os" element={<U name="Language OS"><MosEngineControlCenter engineKey="language" /></U>} />
+            <Route path="/superadmin/permission-os" element={<U name="Permission OS"><MosEngineControlCenter engineKey="permissionEngine" /></U>} />
             <Route path="/superadmin/validation-documents-complete" element={<U name="Super Admin"><ValidationDocumentsComplete /></U>} />
             {/* Utilisateurs */}
             <Route path="/utilisateurs/abonnements-utilisateur" element={<U name="Utilisateurs"><AbonnementsUtilisateur /></U>} />
