@@ -1133,6 +1133,7 @@ export default function App() {
             <Route path="/superadmin/country-os" element={<U name="Country OS"><MosEngineControlCenter engineKey="country" /></U>} />
             <Route path="/superadmin/language-os" element={<U name="Language OS"><MosEngineControlCenter engineKey="language" /></U>} />
             <Route path="/superadmin/permission-os" element={<U name="Permission OS"><MosEngineControlCenter engineKey="permissionEngine" /></U>} />
+            <Route path="/superadmin/notification-os" element={<U name="Notification OS"><MosEngineControlCenter engineKey="notificationOs" /></U>} />
             <Route path="/superadmin/validation-documents-complete" element={<U name="Super Admin"><ValidationDocumentsComplete /></U>} />
             {/* Utilisateurs */}
             <Route path="/utilisateurs/abonnements-utilisateur" element={<U name="Utilisateurs"><AbonnementsUtilisateur /></U>} />
