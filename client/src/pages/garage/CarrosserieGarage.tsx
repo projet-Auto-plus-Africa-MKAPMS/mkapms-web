@@ -407,7 +407,8 @@ export default function CarrosserieGarage() {
       {/* Header */}
       <div className="bg-white border-b border-[#E5E7EB] px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <span className="text-lg font-extrabold tracking-tight">MK<span className="text-[#D4AF37]">A</span>.P-MS</span>
+          {/* Logo FERMÉ (Version 1 – Terre) : surface interne */}
+          <img src="/logo-closed.png" alt="MKA.P-MS" className="h-8 w-auto" draggable={false} />
           <span className="text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">Carrosserie</span>
         </div>
       </div>

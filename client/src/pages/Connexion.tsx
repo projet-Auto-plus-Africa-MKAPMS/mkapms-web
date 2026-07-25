@@ -54,11 +54,14 @@ export default function Connexion() {
   return (
     <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-[#FAFAFA] px-4 py-12">
       <div className="w-full max-w-md">
-        {/* Logo + Bienvenue */}
+        {/* Logo + Bienvenue — logo OUVERT (Version 2 – Lune) : surface app principale */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#111]">
-            <span className="text-2xl font-extrabold text-[#D4AF37]">M</span>
-          </div>
+          <img
+            src="/logo-open.png"
+            alt="MKA.P-MS"
+            className="mx-auto mb-4 h-16 w-auto"
+            draggable={false}
+          />
           <h1 className="text-2xl font-extrabold tracking-tight text-[#111]">
             MK<span className="text-[#D4AF37]">A</span>.P-MS
           </h1>

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import SupportWidget from "./SupportWidget";
 import DomainSelector from "./DomainSelector";
+import { Logo } from "./Logo";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
@@ -46,11 +47,10 @@ function Header() {
       }}
     >
       <div className="container-page flex h-16 items-center justify-between gap-4 lg:max-w-[1680px]">
-        <Link to="/" className="flex shrink-0 flex-col">
-          <span className="whitespace-nowrap text-lg font-extrabold tracking-tight text-noir">
-            MK<span className="text-gold">A</span><span className="text-noir">.P-MS</span>
-          </span>
-          <span className="-mt-1 whitespace-nowrap text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <Link to="/" className="flex shrink-0 flex-col items-start" aria-label="MKA.P-MS — Accueil">
+          {/* Logo OUVERT (Version 2 – Lune / Expansion) — surfaces principales de l'app */}
+          <Logo variant="open" size={40} />
+          <span className="-mt-0.5 whitespace-nowrap text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
             La marketplace automobile
           </span>
         </Link>
@@ -261,11 +261,10 @@ function Footer() {
         {/* Logo + description */}
         <div className="mb-6 text-center">
           <div className="flex flex-col items-center">
-            <span className="text-lg font-extrabold tracking-tight text-noir">
-              MK<span className="text-gold">A</span>.P-MS
-            </span>
-            <span className="-mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-              La marketplace automobile
+            {/* Logo FERMÉ (Version 1 – Terre / Unité) — utilisé à l'intérieur de l'app */}
+            <Logo variant="closed" size={44} />
+            <span className="mt-2 whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+              MKA.P-MS · La marketplace automobile
             </span>
           </div>
           <p className="mt-3 mx-auto max-w-md text-sm text-slate-500 text-center">

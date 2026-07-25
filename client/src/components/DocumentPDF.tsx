@@ -129,14 +129,23 @@ function today() { return new Date().toLocaleDateString("fr-FR"); }
 function PDFHeader({ type, ref: docRef }: { type: string; ref: string }) {
   return (
     <div className="flex items-start justify-between mb-5">
-      <div>
-        <h2 className="text-xl font-black text-[#111] tracking-tight">MKA.P-MS</h2>
-        <p className="text-[8px] text-[#6B7280] leading-relaxed mt-0.5">
-          Auto Plus Africa<br />
-          SIRET : 123 456 789 00012<br />
-          TVA : FR 12 345678901<br />
-          12 Avenue des Champs-Elysees, 75008 Paris
-        </p>
+      <div className="flex items-start gap-3">
+        {/* Logo FERMÉ (Version 1 – Terre / Unité) — obligatoire sur tous les documents */}
+        <img
+          src="/logo-closed.png"
+          alt="MKA.P-MS"
+          className="h-10 w-auto shrink-0 select-none"
+          draggable={false}
+        />
+        <div>
+          <h2 className="text-xl font-black text-[#111] tracking-tight">MKA.P-MS</h2>
+          <p className="text-[8px] text-[#6B7280] leading-relaxed mt-0.5">
+            Auto Plus Africa<br />
+            SIRET : 123 456 789 00012<br />
+            TVA : FR 12 345678901<br />
+            12 Avenue des Champs-Elysees, 75008 Paris
+          </p>
+        </div>
       </div>
       <div className="text-right">
         <div className={`inline-block rounded-lg px-3 py-1 text-xs font-black ${type === "facture" ? "bg-blue-50 text-blue-700" : type === "devis" ? "bg-amber-50 text-amber-700" : "bg-green-50 text-green-700"}`}>
@@ -272,8 +281,13 @@ export function DocumentView({ doc, onClose }: { doc: DocumentData; onClose: () 
                 <p className="text-[8px] font-bold text-[#6B7280] uppercase mb-1">MKA.P-MS (emetteur)</p>
                 <div className="h-16 rounded-lg bg-[#F5F3EF] border border-[#E5E7EB] flex items-center justify-center">
                   <div className="text-center">
-                    <p className="text-xs font-black text-[#D4AF37] italic">MKA.P-MS</p>
-                    <p className="text-[7px] text-[#9CA3AF]">Signe electroniquement</p>
+                    <img
+                      src="/logo-closed.png"
+                      alt="MKA.P-MS"
+                      className="mx-auto h-8 w-auto opacity-90"
+                      draggable={false}
+                    />
+                    <p className="text-[7px] text-[#9CA3AF] mt-1">Signe electroniquement</p>
                   </div>
                 </div>
               </div>
