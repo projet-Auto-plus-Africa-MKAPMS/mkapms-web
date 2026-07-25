@@ -59,13 +59,17 @@ export default function Connexion() {
           <img
             src="/logo-open.png"
             alt="MKA.P-MS"
-            className="mx-auto mb-4 h-16 w-auto"
+            className="mx-auto mb-3 h-16 w-auto"
             draggable={false}
           />
-          <h1 className="text-2xl font-extrabold tracking-tight text-[#111]">
-            MK<span className="text-[#D4AF37]">A</span>.P-MS
-          </h1>
-          <p className="mt-1 text-sm text-[#6B7280]">La Marketplace Automobile</p>
+          {/* Nom officiel de marque (image charte) — remplace l'ancien texte */}
+          <img
+            src="/brand/wordmark.png"
+            alt="MKA.P-MS"
+            className="mx-auto h-7 w-auto"
+            draggable={false}
+          />
+          <p className="mt-2 text-sm text-[#6B7280]">La Marketplace Automobile</p>
           <p className="mt-3 text-[#374151]">
             {mode === "login" && "Bienvenue ! Connectez-vous pour accéder à votre espace."}
             {mode === "register" && "Créez votre compte et rejoignez la communauté MKA.P-MS."}

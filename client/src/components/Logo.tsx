@@ -2,16 +2,21 @@
  * <Logo /> — composant officiel MKA.P-MS.
  *
  * Deux variantes autorisées (charte de marque) :
- *  - "open"   : Version 2 – Lune (Expansion). Extrémités ouvertes. Utilisée
- *               sur les surfaces principales de l'application (accueil,
- *               header, splash, PWA).
- *  - "closed" : Version 1 – Terre (Unité). Extrémités fermées. Utilisée
- *               à l'intérieur de l'application (headers de sections, pages
- *               internes) et surtout sur tous les documents générés
- *               (factures, devis, contrats, attestations, PDF).
+ *  - "open"   : ÉTAT OUVERT (Visiteur / Découverte). Extrémités du blason
+ *               ouvertes. Utilisé pour les visiteurs, le grand public, la
+ *               communication et la découverte (accueil non connecté, splash…).
+ *  - "closed" : ÉTAT FERMÉ (Membre / Protection). Extrémités fermées. Utilisé
+ *               dès qu'un compte est créé / l'utilisateur connecté, et sur les
+ *               documents officiels (factures, devis, contrats, certificats).
  *
- * ⚠️ Ne jamais recréer le logo à partir de texte. Toujours consommer
- * `/logo-open.png` ou `/logo-closed.png` fournis par la marque.
+ * Le nom de marque « MKA.P-MS » (blason au-dessus, nom en dessous) est fourni
+ * comme image officielle `/brand/wordmark.png` — lettres exactes de la charte :
+ * M or, K bleu (trait supérieur passant au-dessus du A), A or, P bleu ouvert à
+ * gauche, tiret or, M or, S bleu à flèche inférieure. Couleurs officielles :
+ * Or #FFD700, Bleu #0086FF, Bleu ciel #7FD3FF, Blanc #FFFFFF.
+ *
+ * ⚠️ Ne jamais recréer le logo/nom à partir de texte. Toujours consommer les
+ * images fournies par la marque.
  */
 import type { ImgHTMLAttributes } from "react";
 
@@ -23,15 +28,19 @@ const SRC: Record<LogoVariant, string> = {
 };
 
 const ALT: Record<LogoVariant, string> = {
-  open: "MKA.P-MS — logo officiel (Lune / Expansion)",
-  closed: "MKA.P-MS — logo officiel (Terre / Unité)",
+  open: "MKA.P-MS — logo officiel (état ouvert / visiteur)",
+  closed: "MKA.P-MS — logo officiel (état fermé / membre)",
 };
+
+const WORDMARK_SRC = "/brand/wordmark.png";
 
 export interface LogoProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt"> {
   variant?: LogoVariant;
-  /** Taille de hauteur en pixels (le ratio est conservé). */
+  /** Hauteur du blason en pixels (le ratio est conservé). */
   size?: number;
-  /** Affiche le sous-titre "La marketplace automobile" sous le logo. */
+  /** Affiche le nom de marque officiel « MKA.P-MS » sous le blason. */
+  withWordmark?: boolean;
+  /** Affiche le sous-titre "La marketplace automobile" sous le nom. */
   withTagline?: boolean;
   /** Force l'alt pour l'accessibilité. */
   alt?: string;
@@ -40,6 +49,7 @@ export interface LogoProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "sr
 export function Logo({
   variant = "open",
   size = 40,
+  withWordmark = false,
   withTagline = false,
   alt,
   className = "",
@@ -55,6 +65,15 @@ export function Logo({
         draggable={false}
         {...rest}
       />
+      {withWordmark && (
+        <img
+          src={WORDMARK_SRC}
+          alt="MKA.P-MS"
+          style={{ height: Math.max(10, Math.round(size * 0.42)), width: "auto", display: "block" }}
+          className="mt-1 select-none"
+          draggable={false}
+        />
+      )}
       {withTagline && (
         <span className="mt-1 whitespace-nowrap text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
           La marketplace automobile

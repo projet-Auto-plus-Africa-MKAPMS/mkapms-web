@@ -67,18 +67,16 @@ function Header() {
       }}
     >
       <div className="container-page flex h-16 items-center justify-between gap-4 lg:max-w-[1680px]">
-        <Link to="/" className="flex shrink-0 flex-col items-start" aria-label="MKA.P-MS — Accueil">
-          {/* Logo OUVERT (Version 2 – Lune / Expansion) — surfaces principales de l'app
-              Responsive : plus petit sur mobile pour éviter le débordement, tagline masqué < md */}
-          <img
-            src="/logo-open.png"
-            alt="MKA.P-MS"
-            className="h-7 w-auto sm:h-8 md:h-9 select-none"
-            draggable={false}
+        <Link to="/" className="flex shrink-0 flex-col items-center" aria-label="MKA.P-MS — Accueil">
+          {/* Blason : ÉTAT OUVERT pour les visiteurs, ÉTAT FERMÉ dès qu'un
+              compte est créé / l'utilisateur connecté (charte de marque).
+              Le nom officiel « MKA.P-MS » est affiché sous le blason. */}
+          <Logo
+            variant={user ? "closed" : "open"}
+            size={30}
+            withWordmark
+            className="shrink-0"
           />
-          <span className="hidden md:inline -mt-0.5 whitespace-nowrap text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-            La marketplace automobile
-          </span>
         </Link>
 
         <nav className="hidden min-w-0 items-center gap-1 lg:flex">
@@ -278,10 +276,10 @@ function Footer() {
         {/* Logo + description */}
         <div className="mb-6 text-center">
           <div className="flex flex-col items-center">
-            {/* Logo FERMÉ (Version 1 – Terre / Unité) — utilisé à l'intérieur de l'app */}
-            <Logo variant="closed" size={44} />
+            {/* Logo FERMÉ (état membre) + nom officiel de marque (image charte) */}
+            <Logo variant="closed" size={44} withWordmark />
             <span className="mt-2 whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-              MKA.P-MS · La marketplace automobile
+              La marketplace automobile
             </span>
           </div>
           <p className="mt-3 mx-auto max-w-md text-sm text-slate-500 text-center">
