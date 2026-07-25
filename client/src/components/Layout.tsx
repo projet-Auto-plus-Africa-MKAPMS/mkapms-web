@@ -48,9 +48,15 @@ function Header() {
     >
       <div className="container-page flex h-16 items-center justify-between gap-4 lg:max-w-[1680px]">
         <Link to="/" className="flex shrink-0 flex-col items-start" aria-label="MKA.P-MS — Accueil">
-          {/* Logo OUVERT (Version 2 – Lune / Expansion) — surfaces principales de l'app */}
-          <Logo variant="open" size={40} />
-          <span className="-mt-0.5 whitespace-nowrap text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+          {/* Logo OUVERT (Version 2 – Lune / Expansion) — surfaces principales de l'app
+              Responsive : plus petit sur mobile pour éviter le débordement, tagline masqué < md */}
+          <img
+            src="/logo-open.png"
+            alt="MKA.P-MS"
+            className="h-7 w-auto sm:h-8 md:h-9 select-none"
+            draggable={false}
+          />
+          <span className="hidden md:inline -mt-0.5 whitespace-nowrap text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
             La marketplace automobile
           </span>
         </Link>
