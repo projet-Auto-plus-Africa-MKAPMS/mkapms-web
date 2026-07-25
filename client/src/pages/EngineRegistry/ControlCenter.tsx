@@ -50,15 +50,16 @@ const PRIORITY: Record<string, number> = {
   country: 3,
   language: 4,
   notification: 5,
-  smart: 6,
-  redirection: 7,
-  payment: 8,
-  search: 9,
-  workflow: 10,
-  knowledge: 11,
-  monitoring: 12,
-  analytics: 13,
-  seo: 14,
+  document: 6,
+  smart: 7,
+  redirection: 8,
+  payment: 9,
+  search: 10,
+  workflow: 11,
+  knowledge: 12,
+  monitoring: 13,
+  analytics: 14,
+  seo: 15,
 };
 
 /** Familles de moteurs, dans l'ordre d'affichage (les plus structurantes en haut). */
@@ -79,6 +80,7 @@ const CONTROL_ROUTE: Record<string, string> = {
   country: "/superadmin/country-os",
   language: "/superadmin/language-os",
   notification: "/superadmin/notification-os",
+  document: "/superadmin/document-os",
   redirection: "/superadmin/redirection-engine",
 };
 
