@@ -349,6 +349,12 @@ export default function VenteEncheres() {
               <Lock size={12} className="text-purple-400" />
               <span className="text-[10px] font-bold text-purple-300 uppercase tracking-widest">Espace professionnel réservé</span>
             </div>
+            <img
+              src="/logo-open.png"
+              alt="MKA.P-MS"
+              className="mx-auto mb-4 h-14 md:h-20 w-auto drop-shadow-[0_4px_18px_rgba(212,175,55,0.35)]"
+              draggable={false}
+            />
             <h1 className="text-4xl md:text-6xl font-black text-white leading-tight">
               MK<span className="text-[#D4AF37]">A</span>.P-MS<br />
               <span className="text-purple-400">ENCHÈRES PRO</span>

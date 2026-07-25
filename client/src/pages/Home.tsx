@@ -864,9 +864,9 @@ export default function Home() {
                     <button className="rounded-lg bg-[#D4AF37] px-3 py-2 text-xs font-bold text-white">S'abonner</button>
                   </div>
                 </div>
-                {/* Logo */}
+                {/* Logo — Version FERMÉE (Version 1 – Terre / Unité) : bloc interne du footer */}
                 <div>
-                  <p className="text-lg font-extrabold">MK<span className="text-[#D4AF37]">A</span>.P-MS</p>
+                  <img src="/logo-closed.png" alt="MKA.P-MS" className="h-10 w-auto mb-1" draggable={false} />
                   <p className="text-[9px] text-white/50 uppercase tracking-wider mt-0.5">LA MARKETPLACE AUTOMOBILE</p>
                   <div className="flex gap-2 mt-3">
                     {["f", "📷", "▶", "in", "♪"].map((s, i) => (

@@ -170,9 +170,28 @@ export async function updateDocumentStatus(id: number, next: "brouillon" | "emis
   return row ?? null;
 }
 
-/** Interpole {{variables}} d'un template avec un dict. */
+/** Interpole {{variables}} d'un template avec un dict.
+ *  Injecte automatiquement les variables de marque MKA.P-MS
+ *  (logo_url, brand_name, brand_tagline, issuer_*) si l'appelant
+ *  ne les fournit pas. Le logo par défaut est le "logo fermé"
+ *  (Version 1 – Terre / Unité), conformément à la charte.
+ */
 export function renderDocument(html: string, vars: Record<string, string | number>): string {
-  return html.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, k) => String(vars[k] ?? ""));
+  const BRAND_DEFAULTS: Record<string, string> = {
+    logo_url: process.env.MKA_LOGO_URL ?? "/logo-closed.png",
+    brand_name: "MKA.P-MS",
+    brand_tagline: "Auto Plus Africa",
+    issuer_name: "MKA.P-MS SAS",
+    issuer_address: "12 Avenue des Champs-Élysées, 75008 Paris",
+    issuer_siret: "123 456 789 00012",
+    issuer_vat: "FR 12 345678901",
+    currency: "EUR",
+    doc_language: "fr",
+    signature_block: "",
+    legal_mentions: "Document généré par MKA.P-MS conformément aux articles L.441-9 et suivants du Code de commerce.",
+  };
+  const merged: Record<string, string | number> = { ...BRAND_DEFAULTS, ...vars };
+  return html.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, k) => String(merged[k] ?? ""));
 }
 
 export async function listDocuments(ownerUserId?: number, limit = 100) {

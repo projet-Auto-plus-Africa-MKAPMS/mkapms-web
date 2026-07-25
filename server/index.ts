@@ -233,6 +233,15 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec bootstrap moteurs:", (err as Error).message);
     }
+    // Document OS — templates par défaut FR (facture, devis, contrat, ...)
+    // avec le logo officiel MKA.P-MS intégré. Idempotent.
+    try {
+      const { ensureDefaultTemplates } = await import("./document-os/templates.js");
+      const r = await ensureDefaultTemplates();
+      console.log(`[MKA.P-MS] Document OS: templates prêts (${r.inserted} synchronisés, ${r.skipped} sautés)`);
+    } catch (err) {
+      console.error("[MKA.P-MS] échec seed templates Document OS:", (err as Error).message);
+    }
   }
   app.listen(env.PORT, "0.0.0.0", () => {
     console.log(`[MKA.P-MS] serveur démarré sur le port ${env.PORT} (${env.NODE_ENV})`);
