@@ -281,6 +281,13 @@
       "when": 1784426100000,
       "tag": "0039_cleanup_orphan_os_engines",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1784500000000,
+      "tag": "0041_seo_os_tables",
+      "breakpoints": true
     }
   ]
 }
