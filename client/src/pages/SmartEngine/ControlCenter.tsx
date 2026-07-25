@@ -1333,62 +1333,125 @@ function OptimisationTab() {
 /* ═══════════════════════════════════════════════════════════
    TAB : Moteurs connectés (hub d'observation)
    ═══════════════════════════════════════════════════════════ */
+const HEALTH_UI: Record<string, { label: string; dot: string; badge: string }> = {
+  ok: { label: "En bonne santé", dot: "bg-green-500", badge: "bg-green-100 text-green-700" },
+  degraded: { label: "Dégradé", dot: "bg-amber-500", badge: "bg-amber-100 text-amber-700" },
+  down: { label: "Hors service", dot: "bg-red-500", badge: "bg-red-100 text-red-700" },
+  unknown: { label: "Inconnu", dot: "bg-gray-400", badge: "bg-gray-100 text-gray-500" },
+};
+
 function MoteursTab() {
   const engines = trpc.smartEngine.enginesOverview.useQuery();
   const list = engines.data ?? [];
+  const total = list.length;
+  const actifs = list.filter((e: any) => e.status === "actif").length;
+  const degradedList = list.filter(
+    (e: any) => e.health === "degraded" || e.health === "down",
+  );
 
   return (
     <div className="space-y-3">
       <h2 className="text-base font-bold text-[#111]">Moteurs connectés</h2>
       <p className="text-[11px] text-[#6B7280]">
-        Le Système Intelligent observe tous les moteurs de la plateforme depuis ce hub. Chaque nouveau
-        moteur installé y apparaîtra automatiquement.
+        Le Système Intelligent observe <b>tous</b> les moteurs de la plateforme (source : registre
+        central). Chaque moteur installé y apparaît automatiquement, avec son état et sa santé.
       </p>
+
+      {!engines.isLoading && (
+        <div className="flex flex-wrap gap-2">
+          <div className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-1.5">
+            <span className="text-[10px] text-[#6B7280]">Moteurs observés </span>
+            <span className="text-sm font-black text-[#111]">{total}</span>
+          </div>
+          <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-1.5">
+            <span className="text-[10px] text-green-700">Actifs </span>
+            <span className="text-sm font-black text-green-800">{actifs}</span>
+          </div>
+          <div
+            className={`rounded-lg border px-3 py-1.5 ${
+              degradedList.length > 0
+                ? "border-amber-200 bg-amber-50"
+                : "border-[#E5E7EB] bg-white"
+            }`}
+          >
+            <span className="text-[10px] text-amber-700">Dégradés / HS </span>
+            <span className="text-sm font-black text-amber-800">{degradedList.length}</span>
+          </div>
+        </div>
+      )}
+
+      {!engines.isLoading && degradedList.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+          <p className="text-[11px] font-bold text-amber-800">
+            {degradedList.length} moteur(s) à surveiller :
+          </p>
+          <p className="mt-1 text-[11px] text-amber-700">
+            {degradedList.map((e: any) => e.name).join(", ")}
+          </p>
+        </div>
+      )}
 
       {engines.isLoading ? (
         <Loading />
       ) : (
         <div className="space-y-2">
-          {list.map((e: any) => (
-            <div key={e.key} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Cpu size={16} className="text-[#D4AF37]" />
-                  <span className="text-sm font-bold text-[#111]">{e.name}</span>
+          {list.map((e: any) => {
+            const h = HEALTH_UI[e.health] ?? HEALTH_UI.unknown;
+            return (
+              <div key={e.key} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Cpu size={16} className="text-[#D4AF37]" />
+                    <span className="text-sm font-bold text-[#111]">{e.name}</span>
+                    <span className="font-mono text-[10px] text-[#9CA3AF]">
+                      {e.key} · v{e.version}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${h.badge}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${h.dot}`} />
+                      {h.label}
+                    </span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        e.status === "actif"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
+                      {e.status === "actif" ? "Actif" : "Prévu"}
+                    </span>
+                  </div>
                 </div>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                    e.status === "actif"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-500"
-                  }`}
-                >
-                  {e.status === "actif" ? "Actif" : "Prévu"}
-                </span>
+                {e.description && <p className="mt-1 text-[11px] text-[#6B7280]">{e.description}</p>}
+                {e.dependencies?.length > 0 && (
+                  <p className="mt-1 text-[10px] text-[#9CA3AF]">
+                    Connecté à : {e.dependencies.join(", ")}
+                  </p>
+                )}
+
+                {e.metrics.length > 0 && (
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {e.metrics.map((m: any, i: number) => (
+                      <div key={i} className="rounded-lg bg-[#F5F3EF] p-2">
+                        <p className="text-[10px] text-[#6B7280]">{m.label}</p>
+                        <p className="text-lg font-black text-[#111]">{m.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {e.controlPath && (
+                  <Link
+                    to={e.controlPath}
+                    className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 underline"
+                  >
+                    Ouvrir le centre de contrôle <ExternalLink size={12} />
+                  </Link>
+                )}
               </div>
-              <p className="mt-1 text-[11px] text-[#6B7280]">{e.description}</p>
-
-              {e.metrics.length > 0 && (
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  {e.metrics.map((m: any, i: number) => (
-                    <div key={i} className="rounded-lg bg-[#F5F3EF] p-2">
-                      <p className="text-[10px] text-[#6B7280]">{m.label}</p>
-                      <p className="text-lg font-black text-[#111]">{m.value}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {e.controlPath && (
-                <Link
-                  to={e.controlPath}
-                  className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 underline"
-                >
-                  Ouvrir le centre de contrôle <ExternalLink size={12} />
-                </Link>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
