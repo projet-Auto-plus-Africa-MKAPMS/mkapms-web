@@ -1,62 +1,88 @@
 /**
  * WordmarkMKAPMS — signature typographique premium officielle.
  *
- * Rendu en SVG pour un contrôle pixel-parfait sur tous les appareils
- * (mobile / tablette / desktop / print) et tous les domaines
- * (.fr / .pro / .site). Zéro dépendance de police d'exécution.
+ * ⚠️ CHARTE DE MARQUE — À NE PAS MODIFIER SANS AUTORISATION :
+ *   - Ordre EXACT des glyphes : M · K · A · . · P · - · M · S
+ *   - Le "." est collé au A (composition "A.")
+ *   - Le "-" est entre P et M (composition "P-M")
+ *   - Les POSITIONS relatives du point et du tiret sont figées.
  *
- * Palette :
- *   - Noir profond   #0B0B0F (encre)
- *   - Or MKA.P-MS    #D4AF37 (accent luxe)
+ * Palette OFFICIELLE (charte 2026) :
+ *   - OR PRESTIGE       #FFD700
+ *   - BLEU LUMINEUX     #0086FF
+ *   - BLEU CIEL         #7FD3FF (highlights)
+ *   - BLANC PUR         #FFFFFF
  *
- * Détails de style (marque mondiale, uniques) :
- *   • Serif haute-contraste inspiré Didone/Playfair — moderne, luxe.
- *   • Lettres accentuées EN OR : "A", ".", "-" (rythme visuel).
- *   • "P" à tête OUVERTE — la boucle ne rejoint pas la hampe (open counter).
- *   • Petites capitales serifées avec espacement laqué (letter-spacing raffiné).
- *   • Fine ligne dorée sous la baseline pour ancrer la signature.
+ * Composition par glyphe (charte officielle) :
+ *   M, K, A, ., -, M   →  OR (protéger, relier)
+ *   P                   →  BLEU + queue courbée descendante (accès, ouverture)
+ *   S                   →  BLEU + flèche stylisée en haut-droite (mouvement, expansion mondiale)
  *
- * Le wordmark est vectoriel : il s'adapte à toute taille sans perte,
- * et prend la couleur d'accompagnement via CSS `currentColor` (variante ink).
+ * Baseline officielle (option) :
+ *   "PROTÉGER • RELIER • SERVIR LE MONDE ENTIER"
+ *
+ * Typographie : Raleway 900 (chargée dans index.html).
  */
 import type { CSSProperties } from "react";
 
 export interface WordmarkMKAPMSProps {
   /** Hauteur cible (px). Le ratio est conservé. */
   height?: number;
-  /** Encre principale (par défaut noir MKA.P-MS). */
-  ink?: string;
-  /** Or accent (par défaut #D4AF37). */
+  /** Or officiel (par défaut #FFD700). */
   gold?: string;
-  /** Affiche la fine ligne dorée sous le wordmark. */
-  underline?: boolean;
+  /** Bleu lumineux officiel (par défaut #0086FF). */
+  blue?: string;
+  /** Bleu ciel highlight (par défaut #7FD3FF). */
+  blueLight?: string;
+  /** Affiche la baseline "PROTÉGER • RELIER • SERVIR LE MONDE ENTIER". */
+  withTagline?: boolean;
+  /** Couleur baseline (par défaut or). */
+  taglineColor?: string;
   className?: string;
   style?: CSSProperties;
   "data-testid"?: string;
 }
 
-/**
- * Ce composant utilise des chemins SVG faits main pour un rendu premium
- * et cohérent sur TOUS les appareils. Chaque glyphe est dessiné dans
- * une grille de 60×80 (letter box) avec kerning manuel via l'attribut x.
- *
- * Cadence horizontale (unités SVG) :
- *   M(0)  K(70)  A(140)  .(210)  P(240)  -(300)  M(345)  S(415)
- */
 export function WordmarkMKAPMS({
-  height = 22,
-  ink = "#0B0B0F",
-  gold = "#D4AF37",
-  underline = true,
+  height = 28,
+  gold = "#FFD700",
+  blue = "#0086FF",
+  blueLight = "#7FD3FF",
+  withTagline = false,
+  taglineColor,
   className = "",
   style,
   ...rest
 }: WordmarkMKAPMSProps) {
+  // viewBox : 560×70 sans tagline / 560×105 avec tagline.
+  const vbW = 560;
+  const vbH = withTagline ? 105 : 70;
+  const fontFamily = "'Raleway', 'Helvetica Neue', Arial, sans-serif";
+
+  // ═══ POSITIONS EXACTES DES GLYPHES (charte figée) ═══
+  //
+  // Chaque glyphe est positionné par son x-origin (bas-gauche), fontSize=58.
+  // Le rythme respecte l'emplacement du point (collé à A) et du tiret
+  // (entre P et M), conformément à la brand board officielle.
+  //
+  //   M ─ K ─ A . ─ P - M ─ S
+  //   0   68  136 . 200 - 320 . 390
+  const POS = {
+    M1: 0,     // M
+    K:  68,    // K
+    A:  136,   // A
+    dot: 197,  // . (collé à A)
+    P:  216,   // P (petit décalage après le point)
+    dash: 288, // - (entre P et M)
+    M2: 322,   // M
+    S:  390,   // S (rythme régulier avec les autres lettres)
+  };
+
   return (
     <svg
-      viewBox="0 0 480 96"
+      viewBox={`0 0 ${vbW} ${vbH}`}
       role="img"
-      aria-label="MKA.P-MS"
+      aria-label="MKA.P-MS · Protéger, Relier, Servir le monde entier"
       height={height}
       preserveAspectRatio="xMidYMid meet"
       className={className}
@@ -65,77 +91,101 @@ export function WordmarkMKAPMS({
       {...rest}
     >
       <defs>
-        {/* Ligature dorée sous baseline */}
-        <linearGradient id="mkapms-goldline" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0" stopColor={gold} stopOpacity="0" />
-          <stop offset="0.15" stopColor={gold} stopOpacity="0.9" />
-          <stop offset="0.85" stopColor={gold} stopOpacity="0.9" />
-          <stop offset="1" stopColor={gold} stopOpacity="0" />
+        {/* Gradient OR — highlight métallique premium */}
+        <linearGradient id="wmk-gold" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#FFF3B0" />
+          <stop offset="0.45" stopColor={gold} />
+          <stop offset="1" stopColor="#B78D00" />
+        </linearGradient>
+        {/* Gradient BLEU — highlight lumineux (P & S) */}
+        <linearGradient id="wmk-blue" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={blueLight} />
+          <stop offset="0.5" stopColor={blue} />
+          <stop offset="1" stopColor="#0058B0" />
         </linearGradient>
       </defs>
 
-      {/* ═══ M (noir) ═══ Serif haute-contraste */}
-      <g fill={ink}>
-        <path d="M2 82 L2 14 L18 14 L34 62 L38 62 L54 14 L70 14 L70 82 L60 82 L60 28 L45 76 L27 76 L12 28 L12 82 Z" />
-        {/* Empattements top */}
-        <rect x="-2" y="12" width="14" height="4" />
-        <rect x="60" y="12" width="14" height="4" />
-        {/* Empattements bottom */}
-        <rect x="-3" y="80" width="20" height="4" />
-        <rect x="55" y="80" width="20" height="4" />
+      {/* ═══ GROUPE WORDMARK — Raleway 900, capitales espacées ═══ */}
+      <g
+        style={{
+          fontFamily,
+          fontWeight: 900,
+        }}
+      >
+        {/* M — or */}
+        <text x={POS.M1} y="52" fill="url(#wmk-gold)" fontSize="58" letterSpacing="1">M</text>
+        {/* K — or */}
+        <text x={POS.K} y="52" fill="url(#wmk-gold)" fontSize="58" letterSpacing="1">K</text>
+        {/* A — or */}
+        <text x={POS.A} y="52" fill="url(#wmk-gold)" fontSize="58" letterSpacing="1">A</text>
+
+        {/* . — or (disque plein, position figée collée à A) */}
+        <circle cx={POS.dot} cy="47" r="5" fill="url(#wmk-gold)" />
+
+        {/* P — bleu premium (avec queue courbée descendante — signature ouverture) */}
+        <text x={POS.P} y="52" fill="url(#wmk-blue)" fontSize="58" letterSpacing="1">P</text>
+        {/* Queue-swoosh du P : courbe descendant à droite depuis le bas de la hampe */}
+        <path
+          d={`M ${POS.P + 12} 55 Q ${POS.P + 22} 66 ${POS.P + 40} 66`}
+          stroke="url(#wmk-blue)"
+          strokeWidth="4"
+          strokeLinecap="round"
+          fill="none"
+        />
+
+        {/* - — or (tiret horizontal, position figée entre P et M) */}
+        <rect x={POS.dash} y="41" width="28" height="9" rx="3" fill="url(#wmk-gold)" />
+
+        {/* M — or */}
+        <text x={POS.M2} y="52" fill="url(#wmk-gold)" fontSize="58" letterSpacing="1">M</text>
+
+        {/* S — bleu premium (flèche stylisée en haut-droite — signature expansion mondiale) */}
+        <text x={POS.S} y="52" fill="url(#wmk-blue)" fontSize="58" letterSpacing="1">S</text>
+        {/* Flèche du S : trait diagonal montant depuis le haut du S vers le haut-droite */}
+        <path
+          d={`M ${POS.S + 42} 20 L ${POS.S + 62} 8 M ${POS.S + 62} 8 L ${POS.S + 52} 8 M ${POS.S + 62} 8 L ${POS.S + 62} 18`}
+          stroke="url(#wmk-blue)"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
       </g>
 
-      {/* ═══ K (noir) ═══ */}
-      <g fill={ink}>
-        <path d="M85 14 L95 14 L95 46 L118 14 L130 14 L108 44 L133 82 L120 82 L100 52 L95 58 L95 82 L85 82 Z" />
-        <rect x="82" y="12" width="16" height="4" />
-        <rect x="82" y="80" width="16" height="4" />
-        <rect x="119" y="80" width="16" height="4" />
-      </g>
-
-      {/* ═══ A (OR — lettre accentuée) ═══ */}
-      <g fill={gold}>
-        <path d="M139 82 L157 14 L169 14 L187 82 L177 82 L172 62 L154 62 L149 82 Z M156 55 L170 55 L163 24 Z" />
-        <rect x="137" y="80" width="16" height="4" />
-        <rect x="173" y="80" width="16" height="4" />
-        <rect x="158" y="12" width="10" height="3" />
-      </g>
-
-      {/* ═══ . (OR — point accent) ═══ */}
-      <circle cx="203" cy="78" r="5" fill={gold} />
-
-      {/* ═══ P (noir) — tête OUVERTE (open counter) — signature de la marque ═══ */}
-      <g fill={ink}>
-        {/* Hampe verticale */}
-        <path d="M218 14 L228 14 L228 82 L218 82 Z" />
-        {/* Boucle supérieure ouverte : partie gauche (verticale + haut) */}
-        <path d="M228 14 L252 14 L252 20 L228 20 Z" />
-        {/* Boucle : côté droit descendant (le haut-droit reste OUVERT) */}
-        <path d="M254 24 L262 24 Q268 24 268 32 L268 40 Q268 46 262 46 L228 46 L228 40 L258 40 L258 32 L254 32 Z" />
-        {/* Empattements */}
-        <rect x="215" y="12" width="16" height="4" />
-        <rect x="215" y="80" width="16" height="4" />
-      </g>
-
-      {/* ═══ - (OR — trait d'union stylisé) ═══ */}
-      <rect x="278" y="44" width="20" height="5" rx="1" fill={gold} />
-
-      {/* ═══ M (noir) ═══ */}
-      <g fill={ink}>
-        <path d="M308 82 L308 14 L324 14 L340 62 L344 62 L360 14 L376 14 L376 82 L366 82 L366 28 L351 76 L333 76 L318 28 L318 82 Z" />
-        <rect x="304" y="12" width="14" height="4" />
-        <rect x="366" y="12" width="14" height="4" />
-        <rect x="303" y="80" width="20" height="4" />
-        <rect x="361" y="80" width="20" height="4" />
-      </g>
-
-      {/* ═══ S (noir) — serif classique ═══ */}
-      <g fill={ink}>
-        <path d="M395 66 Q395 82 415 82 L425 82 Q447 82 447 66 Q447 54 435 50 L412 44 Q402 42 402 34 Q402 22 418 22 L426 22 Q443 22 443 34 L433 34 Q433 30 424 30 L418 30 Q412 30 412 34 Q412 38 420 40 L442 46 Q457 50 457 64 Q457 82 425 82 L415 82 Q385 82 385 66 Z M418 14 L426 14 L426 22 L418 22 Z M416 82 L428 82 L428 90 L416 90 Z" />
-      </g>
-
-      {/* Fine ligne dorée sous baseline — signature visuelle premium */}
-      {underline && <rect x="0" y="92" width="480" height="2" fill="url(#mkapms-goldline)" />}
+      {/* ═══ BASELINE OFFICIELLE ═══ PROTÉGER • RELIER • SERVIR LE MONDE ENTIER */}
+      {withTagline && (
+        <g style={{ fontFamily, fontWeight: 700 }}>
+          <text
+            x="0"
+            y="90"
+            fill={taglineColor || gold}
+            fontSize="12"
+            letterSpacing="3.8"
+          >
+            PROTÉGER
+          </text>
+          <circle cx="118" cy="86.5" r="2" fill={taglineColor || gold} />
+          <text
+            x="137"
+            y="90"
+            fill={taglineColor || gold}
+            fontSize="12"
+            letterSpacing="3.8"
+          >
+            RELIER
+          </text>
+          <circle cx="228" cy="86.5" r="2" fill={taglineColor || gold} />
+          <text
+            x="247"
+            y="90"
+            fill={taglineColor || gold}
+            fontSize="12"
+            letterSpacing="3.8"
+          >
+            SERVIR LE MONDE ENTIER
+          </text>
+        </g>
+      )}
     </svg>
   );
 }

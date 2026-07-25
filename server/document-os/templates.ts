@@ -36,30 +36,40 @@ export const COMMON_VARS = [
   "signature_block",
 ];
 
-// Wrapper HTML commun (papier A4 sobre, logo intégré en en-tête)
+// Wrapper HTML commun (papier A4, wordmark + filigrane logo M — charte 2026)
 function wrap(inner: string, docLabel: string): string {
   return `<!doctype html>
 <html lang="{{doc_language}}">
 <head>
   <meta charset="utf-8" />
   <title>${docLabel} {{doc_ref}} — {{brand_name}}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700;800;900&display=swap" />
   <style>
-    :root { --gold:#D4AF37; --ink:#111; --muted:#6B7280; --paper:#F5F3EF; --line:#E5E7EB; }
+    :root { --gold:#FFD700; --gold-dark:#B78D00; --blue:#0086FF; --blue-light:#7FD3FF; --ink:#0B0B0F; --muted:#6B7280; --paper:#F5F3EF; --line:#E5E7EB; }
     * { box-sizing: border-box; }
-    body { font-family: "Inter", "Helvetica Neue", Arial, sans-serif; color: var(--ink); background:#fff; margin:0; padding:24px; }
-    .page { max-width: 780px; margin: 0 auto; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
-    .goldbar { height:6px; background: linear-gradient(90deg,var(--gold),#B8962E,var(--gold)); }
-    .inner { padding: 28px 32px; }
+    body { font-family: 'Raleway','Helvetica Neue',Arial,sans-serif; color: var(--ink); background:#fff; margin:0; padding:24px; }
+    .page { max-width: 780px; margin: 0 auto; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; position:relative; }
+    /* Filigrane MKA.P-MS — logo M centré derrière le contenu (charte : documents) */
+    .watermark {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      opacity:0.06; pointer-events:none; z-index:0;
+    }
+    .watermark img { width:70%; max-width:520px; height:auto; }
+    .goldbar { height:6px; background: linear-gradient(90deg,var(--gold),var(--gold-dark),var(--gold)); }
+    .inner { padding: 28px 32px; position:relative; z-index:1; }
     header.doc { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:24px; }
-    .brand { display:flex; align-items:flex-start; gap:14px; }
-    .brand img { height:56px; width:auto; }
-    .brand h1 { margin:0; font-size:20px; letter-spacing:.02em; }
-    .brand p { margin:2px 0 0; font-size:10px; color:var(--muted); line-height:1.4; }
-    .doc-badge { display:inline-block; padding:4px 10px; border-radius:8px; font-weight:800; font-size:11px; background:#FEF3C7; color:#92400E; text-transform:uppercase; letter-spacing:.06em; }
-    .doc-ref { margin-top:6px; font-weight:700; font-size:12px; }
+    .brand { display:flex; flex-direction:column; align-items:flex-start; gap:6px; }
+    /* Wordmark SVG dans le header (M K A . P - M S — charte officielle) */
+    .brand svg.wm { height:34px; width:auto; }
+    .brand .tagline { font-size:8.5px; font-weight:700; letter-spacing:2.4px; color:var(--gold-dark); text-transform:uppercase; margin-top:2px; }
+    .brand .issuer { font-size:9px; color:var(--muted); line-height:1.5; margin-top:6px; }
+    .doc-badge { display:inline-block; padding:5px 12px; border-radius:8px; font-weight:900; font-size:11px; background:linear-gradient(180deg,#FEF3C7,#FCD34D); color:#78350F; text-transform:uppercase; letter-spacing:.08em; }
+    .doc-ref { margin-top:6px; font-weight:800; font-size:12px; color:var(--ink); }
     .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin: 12px 0 20px; }
     .card { background:var(--paper); border-radius:10px; padding:12px 14px; }
-    .card h4 { margin:0 0 6px; font-size:9px; color:var(--gold); text-transform:uppercase; letter-spacing:.16em; font-weight:800; }
+    .card h4 { margin:0 0 6px; font-size:9px; color:var(--gold-dark); text-transform:uppercase; letter-spacing:.16em; font-weight:800; }
     .card p { margin:0; font-size:12px; }
     table.lines { width:100%; border-collapse: collapse; margin: 12px 0 16px; font-size:12px; }
     table.lines thead th { background: var(--ink); color: var(--gold); text-align:left; padding:8px 10px; font-size:10px; letter-spacing:.06em; text-transform:uppercase; }
@@ -68,26 +78,44 @@ function wrap(inner: string, docLabel: string): string {
     .totals { margin-left:auto; width: 260px; font-size:12px; }
     .totals .row { display:flex; justify-content:space-between; padding:4px 0; }
     .totals .row.grand { border-top: 2px solid var(--gold); padding-top:8px; margin-top:4px; font-weight:900; font-size:14px; }
-    .totals .row.grand .val { color: var(--gold); }
+    .totals .row.grand .val { color: var(--gold-dark); }
     .legal { margin-top:18px; padding-top:12px; border-top:1px solid var(--line); font-size:9px; color: var(--muted); line-height:1.5; }
     .sign { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:24px; }
     .sign .box { border:1px dashed #D1D5DB; border-radius:10px; padding:14px; min-height:80px; }
     .sign .box img.emit { height:36px; opacity:.9; }
     .sign small { color: var(--muted); font-size:10px; }
-    footer { padding: 8px 32px 16px; font-size:9px; color:#9CA3AF; display:flex; justify-content:space-between; }
+    footer.page-foot { padding: 8px 32px 16px; font-size:9px; color:#9CA3AF; display:flex; justify-content:space-between; position:relative; z-index:1; }
   </style>
 </head>
 <body>
   <div class="page">
     <div class="goldbar"></div>
+    <div class="watermark"><img src="{{logo_url}}" alt="" /></div>
     <div class="inner">
       <header class="doc">
         <div class="brand">
-          <img src="{{logo_url}}" alt="{{brand_name}}" />
-          <div>
-            <h1>{{brand_name}}</h1>
-            <p>{{brand_tagline}}<br/>{{issuer_address}}<br/>SIRET : {{issuer_siret}} · TVA : {{issuer_vat}}</p>
-          </div>
+          <!-- Wordmark officiel MKA.P-MS (charte 2026 : M K A . en OR, P en BLEU + queue,
+               - en OR, M en OR, S en BLEU + flèche) -->
+          <svg class="wm" viewBox="0 0 560 70" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{{brand_name}}">
+            <defs>
+              <linearGradient id="dg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF3B0"/><stop offset="0.45" stop-color="#FFD700"/><stop offset="1" stop-color="#B78D00"/></linearGradient>
+              <linearGradient id="db" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7FD3FF"/><stop offset="0.5" stop-color="#0086FF"/><stop offset="1" stop-color="#0058B0"/></linearGradient>
+            </defs>
+            <g style="font-family:Raleway,sans-serif;font-weight:900;">
+              <text x="0" y="52" fill="url(#dg)" font-size="58" letter-spacing="1">M</text>
+              <text x="68" y="52" fill="url(#dg)" font-size="58" letter-spacing="1">K</text>
+              <text x="136" y="52" fill="url(#dg)" font-size="58" letter-spacing="1">A</text>
+              <circle cx="197" cy="47" r="5" fill="url(#dg)"/>
+              <text x="216" y="52" fill="url(#db)" font-size="58" letter-spacing="1">P</text>
+              <path d="M 228 55 Q 238 66 256 66" stroke="url(#db)" stroke-width="4" stroke-linecap="round" fill="none"/>
+              <rect x="288" y="41" width="28" height="9" rx="3" fill="url(#dg)"/>
+              <text x="322" y="52" fill="url(#dg)" font-size="58" letter-spacing="1">M</text>
+              <text x="390" y="52" fill="url(#db)" font-size="58" letter-spacing="1">S</text>
+              <path d="M 432 20 L 452 8 M 452 8 L 442 8 M 452 8 L 452 18" stroke="url(#db)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </g>
+          </svg>
+          <div class="tagline">PROTÉGER · RELIER · SERVIR LE MONDE ENTIER</div>
+          <div class="issuer">{{issuer_name}}<br/>{{issuer_address}}<br/>SIRET : {{issuer_siret}} · TVA : {{issuer_vat}}</div>
         </div>
         <div style="text-align:right;">
           <span class="doc-badge">${docLabel}</span>
@@ -98,7 +126,7 @@ function wrap(inner: string, docLabel: string): string {
       ${inner}
     </div>
     <div class="goldbar" style="height:4px"></div>
-    <footer>
+    <footer class="page-foot">
       <span>Document généré par {{brand_name}} — {{brand_tagline}}</span>
       <span>Page 1/1</span>
     </footer>

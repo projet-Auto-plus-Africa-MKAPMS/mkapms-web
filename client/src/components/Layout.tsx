@@ -86,12 +86,12 @@ function Header() {
             draggable={false}
             data-testid={user ? "header-logo-closed" : "header-logo-open"}
           />
-          {/* Wordmark premium SVG (serif haute-contraste, "A"/"."/"-" en or,
-              P à tête ouverte, fine ligne dorée sous baseline). Rendu vectoriel :
+          {/* Wordmark premium SVG (Raleway 900, MKA. -MS en OR, P et S en BLEU
+              avec queue-flèche et effet éclair). Rendu vectoriel :
               cohérent tous domaines / tous appareils. */}
           <WordmarkMKAPMS
             className="mt-0.5"
-            height={11}
+            height={14}
             data-testid="header-wordmark"
           />
         </Link>
@@ -293,11 +293,15 @@ function Footer() {
         {/* Logo + description */}
         <div className="mb-6 text-center">
           <div className="flex flex-col items-center">
-            {/* Logo FERMÉ (Version 1 – Terre / Unité) — utilisé à l'intérieur de l'app */}
-            <Logo variant="closed" size={44} />
-            <span className="mt-2 whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-              MKA.P-MS · La marketplace automobile
-            </span>
+            {/* Logo FERMÉ (Version 1 – Terre / Unité + double ligne) — surfaces internes */}
+            <Logo variant="closed" size={48} />
+            {/* Wordmark officiel + baseline "PROTÉGER • RELIER • SERVIR LE MONDE ENTIER" */}
+            <WordmarkMKAPMS
+              className="mt-3"
+              height={44}
+              withTagline
+              taglineColor="#94a3b8"
+            />
           </div>
           <p className="mt-3 mx-auto max-w-md text-sm text-slate-500 text-center">
             La marketplace automobile de référence. Achat, location et entretien — une seule
