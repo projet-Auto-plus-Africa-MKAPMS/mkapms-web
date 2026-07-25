@@ -288,6 +288,13 @@
       "when": 1784500000000,
       "tag": "0041_seo_os_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1784500100000,
+      "tag": "0042_smart_dev_review_lock",
+      "breakpoints": true
     }
   ]
 }

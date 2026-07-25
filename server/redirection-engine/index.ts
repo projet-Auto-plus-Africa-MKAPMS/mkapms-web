@@ -18,4 +18,5 @@
  * null (le client garde alors son comportement par défaut).
  */
 export { redirectionEngineRouter } from "./router.js";
+export { ensureDefaultRules } from "./service.js";
 export * as redirSchema from "./schema.js";

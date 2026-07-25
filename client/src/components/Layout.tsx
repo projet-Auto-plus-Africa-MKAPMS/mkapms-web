@@ -21,17 +21,37 @@ import { isAdmin } from "@shared/roles";
 import { useCurrency } from "../lib/currency";
 import { CURRENCIES } from "@shared/currency";
 import { trpc } from "../lib/trpc";
+import { SmartLink, useResolvedTarget } from "../lib/redirect";
 
 // Navigation publique — aucune donnée interne (VO retiré : confidentiel).
+// Chaque entrée passe par le Moteur de Redirection (redirKey) avec un
+// fallback = destination par défaut, donc le lien fonctionne toujours.
 const NAV = [
-  { to: "/acheter", label: "Acheter" },
-  { to: "/louer", label: "Louer" },
-  { to: "/pieces", label: "Pièces" },
-  { to: "/devis", label: "Devis Garage" },
-  { to: "/garages", label: "Garages" },
-  { to: "/univers", label: "Univers" },
-  { to: "/abonnements", label: "Abonnements" },
+  { to: "/acheter", label: "Acheter", redirKey: "nav_acheter" },
+  { to: "/louer", label: "Louer", redirKey: "nav_louer" },
+  { to: "/pieces", label: "Pièces", redirKey: "nav_pieces" },
+  { to: "/devis", label: "Devis Garage", redirKey: "nav_devis" },
+  { to: "/garages", label: "Garages", redirKey: "nav_garages" },
+  { to: "/univers", label: "Univers", redirKey: "nav_univers" },
+  { to: "/abonnements", label: "Abonnements", redirKey: "nav_abonnements" },
 ];
+
+// Élément de menu résolu par le Moteur de Redirection (garde l'état actif).
+function NavItem({ to, label, redirKey }: { to: string; label: string; redirKey: string }) {
+  const { target } = useResolvedTarget(redirKey, to);
+  return (
+    <NavLink
+      to={target}
+      className={({ isActive }) =>
+        `rounded-lg px-3 py-2 text-sm font-medium transition ${
+          isActive ? "text-brand" : "text-slate-600 hover:text-brand"
+        }`
+      }
+    >
+      {label}
+    </NavLink>
+  );
+}
 
 function Header() {
   const { user, logout } = useAuth();
@@ -63,17 +83,7 @@ function Header() {
 
         <nav className="hidden min-w-0 items-center gap-1 lg:flex">
           {NAV.map((n) => (
-            <NavLink
-              key={n.to}
-              to={n.to}
-              className={({ isActive }) =>
-                `rounded-lg px-3 py-2 text-sm font-medium transition ${
-                  isActive ? "text-brand" : "text-slate-600 hover:text-brand"
-                }`
-              }
-            >
-              {n.label}
-            </NavLink>
+            <NavItem key={n.to} to={n.to} label={n.label} redirKey={n.redirKey} />
           ))}
         </nav>
 
@@ -82,34 +92,34 @@ function Header() {
           <CurrencySelect />
           <SupportWidget />
           <NotificationsBell />
-          <Link to="/vendre" className="btn-gold">
+          <SmartLink redirKey="bouton_deposer_annonce" fallback="/vendre" className="btn-gold">
             Déposer une annonce
-          </Link>
+          </SmartLink>
           {user ? (
             <div className="flex items-center gap-2">
-              <Link
-                to="/messagerie"
+              <SmartLink
+                redirKey="bouton_messagerie"
+                fallback="/messagerie"
                 className="relative grid h-10 w-10 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-brand"
-                aria-label="Messages"
               >
                 <MessageSquare size={18} />
-              </Link>
+              </SmartLink>
               {isAdmin(user.role) && (
-                <Link to="/admin" className="rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#222]">
+                <SmartLink redirKey="bouton_admin" fallback="/admin" className="rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#222]">
                   Admin
-                </Link>
+                </SmartLink>
               )}
-              <Link to="/compte" className="btn-outline">
+              <SmartLink redirKey="bouton_compte" fallback="/compte" className="btn-outline">
                 {user.name?.split(" ")[0] || "Compte"}
-              </Link>
+              </SmartLink>
               <button onClick={logout} className="text-sm text-slate-500 hover:text-slate-800">
                 Quitter
               </button>
             </div>
           ) : (
-            <Link to="/connexion" className="btn-primary">
+            <SmartLink redirKey="bouton_connexion" fallback="/connexion" className="btn-primary">
               Connexion
-            </Link>
+            </SmartLink>
           )}
         </div>
 
@@ -133,22 +143,23 @@ function Header() {
         <div className="border-t border-slate-200 bg-white lg:hidden">
           <div className="container-page flex flex-col py-2">
             {NAV.map((n) => (
-              <Link
+              <SmartLink
                 key={n.to}
-                to={n.to}
+                redirKey={n.redirKey}
+                fallback={n.to}
                 onClick={() => setOpen(false)}
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700"
               >
                 {n.label}
-              </Link>
+              </SmartLink>
             ))}
-            <Link to="/vendre" onClick={() => setOpen(false)} className="btn-gold mt-2">
+            <SmartLink redirKey="bouton_deposer_annonce" fallback="/vendre" onClick={() => setOpen(false)} className="btn-gold mt-2">
               Déposer une annonce
-            </Link>
+            </SmartLink>
             {!user && (
-              <Link to="/connexion" onClick={() => setOpen(false)} className="btn-primary mt-2">
+              <SmartLink redirKey="bouton_connexion" fallback="/connexion" onClick={() => setOpen(false)} className="btn-primary mt-2">
                 Connexion
-              </Link>
+              </SmartLink>
             )}
           </div>
         </div>
@@ -284,19 +295,19 @@ function Footer() {
           <div>
             <h4 className="mb-3 text-sm font-bold text-slate-800">Plateforme</h4>
             <ul className="space-y-2 text-sm text-slate-500">
-              <li><Link to="/acheter">Acheter</Link></li>
-              <li><Link to="/louer">Louer</Link></li>
-              <li><Link to="/devis">Devis Garage</Link></li>
-              <li><Link to="/garages">Réseau de garages</Link></li>
-              <li><Link to="/abonnements">Abonnements</Link></li>
-              <li><Link to="/mission">Notre Mission</Link></li>
+              <li><SmartLink redirKey="nav_acheter" fallback="/acheter">Acheter</SmartLink></li>
+              <li><SmartLink redirKey="nav_louer" fallback="/louer">Louer</SmartLink></li>
+              <li><SmartLink redirKey="nav_devis" fallback="/devis">Devis Garage</SmartLink></li>
+              <li><SmartLink redirKey="nav_garages" fallback="/garages">Réseau de garages</SmartLink></li>
+              <li><SmartLink redirKey="bouton_abonnements" fallback="/abonnements">Abonnements</SmartLink></li>
+              <li><SmartLink redirKey="bouton_mission" fallback="/mission">Notre Mission</SmartLink></li>
             </ul>
           </div>
           <div>
             <h4 className="mb-3 text-sm font-bold text-slate-800">Aide & légal</h4>
             <ul className="space-y-2 text-sm text-slate-500">
-              <li><Link to="/aide">Centre d'aide / FAQ</Link></li>
-              <li><Link to="/confiance">Centre de confiance</Link></li>
+              <li><SmartLink redirKey="bouton_aide" fallback="/aide">Centre d'aide / FAQ</SmartLink></li>
+              <li><SmartLink redirKey="bouton_confiance" fallback="/confiance">Centre de confiance</SmartLink></li>
               <li><Link to="/aide#cgv">CGV / CGU</Link></li>
               <li><Link to="/aide#rgpd">Confidentialité (RGPD)</Link></li>
               <li><Link to="/aide#mentions">Mentions légales</Link></li>

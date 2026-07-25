@@ -325,6 +325,10 @@ export const smartDevRegistry = pgTable("smart_dev_registry", {
   detections: integer("detections").default(1),
   metadata: jsonb("metadata").$type<Record<string, unknown>>(),
   acknowledgedBy: integer("acknowledged_by"),
+  // Décision PDG verrouillée : une fois que le PDG a tranché la permission ou le
+  // statut d'un élément, le rescan ne réécrase plus sa décision (sinon « à
+  // définir » réapparaîtrait indéfiniment). Le PDG décide une fois, c'est validé.
+  reviewLocked: boolean("review_locked").default(false),
   firstSeenAt: timestamp("first_seen_at").defaultNow(),
   lastSeenAt: timestamp("last_seen_at").defaultNow(),
 });
