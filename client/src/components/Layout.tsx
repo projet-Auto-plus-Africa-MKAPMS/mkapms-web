@@ -15,7 +15,6 @@ import SupportWidget from "./SupportWidget";
 import DomainSelector from "./DomainSelector";
 import { Logo } from "./Logo";
 import { DynamicPWAIcon } from "./DynamicPWAIcon";
-import { WordmarkMKAPMS } from "./WordmarkMKAPMS";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
@@ -75,24 +74,15 @@ function Header() {
           aria-label="MKA.P-MS — Accueil"
           data-testid="header-logo-link"
         >
-          {/* Logo image dynamique :
-              - VISITEUR non connecté  → Version 2 OUVERTE (Lune / Expansion)
-              - UTILISATEUR connecté   → Version 1 FERMÉE  (Terre / Unité)
-              Taille réduite pour alignement avec les autres éléments du header. */}
-          <img
-            src={user ? "/logo-closed.png" : "/logo-open.png"}
-            alt="MKA.P-MS"
-            className="h-5 w-auto sm:h-6 md:h-7 select-none"
-            draggable={false}
+          {/* Blason : ÉTAT OUVERT pour les visiteurs, ÉTAT FERMÉ dès qu'un
+              compte est créé / l'utilisateur connecté (charte de marque).
+              Le nom officiel « MKA.P-MS » (image charte exacte) est sous le blason. */}
+          <Logo
+            variant={user ? "closed" : "open"}
+            size={30}
+            withWordmark
+            className="shrink-0"
             data-testid={user ? "header-logo-closed" : "header-logo-open"}
-          />
-          {/* Wordmark premium SVG (Raleway 900, MKA. -MS en OR, P et S en BLEU
-              avec queue-flèche et effet éclair). Rendu vectoriel :
-              cohérent tous domaines / tous appareils. */}
-          <WordmarkMKAPMS
-            className="mt-0.5"
-            height={14}
-            data-testid="header-wordmark"
           />
         </Link>
 
@@ -293,15 +283,8 @@ function Footer() {
         {/* Logo + description */}
         <div className="mb-6 text-center">
           <div className="flex flex-col items-center">
-            {/* Logo FERMÉ (Version 1 – Terre / Unité + double ligne) — surfaces internes */}
-            <Logo variant="closed" size={48} />
-            {/* Wordmark officiel + baseline "PROTÉGER • RELIER • SERVIR LE MONDE ENTIER" */}
-            <WordmarkMKAPMS
-              className="mt-3"
-              height={44}
-              withTagline
-              taglineColor="#94a3b8"
-            />
+            {/* Logo FERMÉ (état membre) + nom officiel + slogan officiel (images charte exactes) */}
+            <Logo variant="closed" size={44} withWordmark withSlogan />
           </div>
           <p className="mt-3 mx-auto max-w-md text-sm text-slate-500 text-center">
             La marketplace automobile de référence. Achat, location et entretien — une seule

@@ -355,8 +355,13 @@ export default function VenteEncheres() {
               className="mx-auto mb-4 h-14 md:h-20 w-auto drop-shadow-[0_4px_18px_rgba(212,175,55,0.35)]"
               draggable={false}
             />
-            <h1 className="text-4xl md:text-6xl font-black text-white leading-tight">
-              MK<span className="text-[#D4AF37]">A</span>.P-MS<br />
+            <h1 className="flex flex-col items-center gap-2 text-4xl md:text-6xl font-black text-white leading-tight">
+              <img
+                src="/brand/wordmark.png"
+                alt="MKA.P-MS"
+                className="h-9 md:h-14 w-auto"
+                draggable={false}
+              />
               <span className="text-purple-400">ENCHÈRES PRO</span>
             </h1>
             <p className="mt-4 text-sm md:text-base text-white/50 max-w-lg mx-auto">
