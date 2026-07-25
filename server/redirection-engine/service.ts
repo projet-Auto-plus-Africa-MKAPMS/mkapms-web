@@ -1,9 +1,10 @@
 /**
  * MKA.P-MS Redirection Engine — Service (logique métier).
  */
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { redirRules, redirLogs } from "./schema.js";
+import { DEFAULT_REDIRECT_RULES } from "./catalog.js";
 
 export interface ResolveResult {
   matched: boolean;
@@ -142,4 +143,38 @@ export async function getStats() {
 
 export async function getRecentLogs(limit = 100) {
   return db.select().from(redirLogs).orderBy(desc(redirLogs.createdAt)).limit(limit);
+}
+
+/**
+ * Connecte le Moteur de Redirection à toute la plateforme : insère les règles
+ * par défaut (univers, sous-sections, services, boutons/CTA) manquantes.
+ *
+ * 100% idempotent et NON destructif : on n'insère que les clés absentes et on
+ * ne réécrase JAMAIS une règle déjà présente (le PDG garde le contrôle total
+ * des destinations qu'il a personnalisées). Appelé au démarrage du serveur.
+ */
+export async function ensureDefaultRules(): Promise<{ inserted: number; existing: number }> {
+  const keys = DEFAULT_REDIRECT_RULES.map((r) => r.key);
+  const rows = await db
+    .select({ key: redirRules.key })
+    .from(redirRules)
+    .where(inArray(redirRules.key, keys));
+  const existing = new Set(rows.map((r) => r.key));
+
+  const toInsert = DEFAULT_REDIRECT_RULES.filter((r) => !existing.has(r.key)).map((r) => ({
+    key: r.key,
+    label: r.label,
+    kind: r.kind,
+    target: r.target,
+    external: false,
+    active: true,
+    priority: r.priority ?? 0,
+    description: "Règle par défaut MKA.P-MS (modifiable par le PDG).",
+  }));
+
+  if (toInsert.length > 0) {
+    await db.insert(redirRules).values(toInsert).onConflictDoNothing({ target: redirRules.key });
+  }
+
+  return { inserted: toInsert.length, existing: existing.size };
 }

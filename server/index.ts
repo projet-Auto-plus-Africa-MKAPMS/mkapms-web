@@ -242,6 +242,16 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec seed templates Document OS:", (err as Error).message);
     }
+    // Moteur de Redirection — connecte toute la plateforme : insère les règles
+    // par défaut manquantes (univers, sous-sections, services, boutons/CTA).
+    // Idempotent, non destructif : ne réécrase jamais une règle du PDG.
+    try {
+      const { ensureDefaultRules } = await import("./redirection-engine/index.js");
+      const r = await ensureDefaultRules();
+      console.log(`[MKA.P-MS] Redirection: ${r.inserted} règle(s) ajoutée(s), ${r.existing} déjà présente(s)`);
+    } catch (err) {
+      console.error("[MKA.P-MS] échec seed règles de redirection:", (err as Error).message);
+    }
     // Système Intelligent — travail autonome périodique (lecture seule) : il
     // analyse les données réelles et PROPOSE des solutions/alertes que le PDG
     // valide ensuite. Aucune décision humaine n'est appliquée automatiquement.
