@@ -12,7 +12,7 @@ import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
 import { Activity, ChevronLeft, RefreshCw, ShieldAlert, Sparkles } from "lucide-react";
 
-type EngineKey = "identity" | "country" | "language" | "permissionEngine" | "notificationOs";
+type EngineKey = "identity" | "country" | "language" | "permissionEngine" | "notificationOs" | "documentOs";
 
 /** Mapping moteur → configuration d'affichage. */
 const ENGINE_CONFIG: Record<EngineKey, {
@@ -50,6 +50,12 @@ const ENGINE_CONFIG: Record<EngineKey, {
     label: "Notification OS",
     color: "from-pink-500 to-rose-600",
     tagline: "Multi-canaux (email, SMS, push, in-app) · Templates multi-langues",
+  },
+  documentOs: {
+    namespace: "documentOs",
+    label: "Document OS",
+    color: "from-slate-600 to-gray-800",
+    tagline: "Factures · Contrats · Devis · Templates multi-langues par pays",
   },
 };
 

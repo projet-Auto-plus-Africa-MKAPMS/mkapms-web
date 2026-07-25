@@ -63,6 +63,14 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "document",
+    label: "Document OS",
+    category: "transversal",
+    dependencies: ["core", "language", "country"],
+    description: "Registre unifié : factures, contrats, devis, bons de commande, attestations. Templates multi-langues par pays.",
+    state: "active",
+  },
+  {
     name: "smart",
     label: "Smart Engine",
     category: "transversal",

@@ -52,6 +52,8 @@ import { countryOsRouter } from "./country-os/index.js";
 import { languageOsRouter } from "./language-os/index.js";
 // Notification OS — moteur unifié multi-canaux (règle MOS #15)
 import { notificationOsRouter } from "./notification-os/index.js";
+// Document OS — registre unifié des documents (règle MOS #15)
+import { documentOsRouter } from "./document-os/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -136,6 +138,8 @@ export const appRouter = router({
   language: languageOsRouter,
   // Notification OS — moteur unifié multi-canaux (règle MOS #15)
   notificationOs: notificationOsRouter,
+  // Document OS — registre unifié des documents (règle MOS #15)
+  documentOs: documentOsRouter,
 });
 
 export type AppRouter = typeof appRouter;
