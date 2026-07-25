@@ -42,7 +42,7 @@ import { getPlatformHealth } from "./services/platform-health.js";
 import { assertRate, sanitizeTeachMessage } from "./services/rate-limiter.js"; // P9
 import { runRetention, retentionCounters } from "./services/retention.js"; // P7
 import { runAlertScan, alertLevelStats } from "./services/alert-engine.js";
-import { scanDevelopments, getDevLearningStats, listDevItems, reviewDevItem } from "./services/dev-learning.js";
+import { scanDevelopments, getDevLearningStats, listDevItems, reviewDevItem, reviewAllRequises } from "./services/dev-learning.js";
 import { runQualityAudit, getQualityOverview, listQualityAudits } from "./services/quality-engine.js"; // P12
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
@@ -579,6 +579,21 @@ export const smartEngineRouter = router({
         id: input.id,
         status: input.status,
         permission: input.permission,
+        acknowledgedBy: ctx.user.uid,
+      });
+    }),
+
+  // Marque en une fois TOUTES les permissions « à définir » comme définies
+  // (ou publiques). Évite de cliquer 100 fois ; la décision est verrouillée.
+  devLearningReviewAll: pdgProcedure
+    .input(
+      z
+        .object({ permission: z.enum(["definie", "publique"]).optional() })
+        .optional(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return reviewAllRequises({
+        permission: input?.permission,
         acknowledgedBy: ctx.user.uid,
       });
     }),

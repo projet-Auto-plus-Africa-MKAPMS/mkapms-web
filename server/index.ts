@@ -242,6 +242,23 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec seed templates Document OS:", (err as Error).message);
     }
+    // Système Intelligent — travail autonome périodique (lecture seule) : il
+    // analyse les données réelles et PROPOSE des solutions/alertes que le PDG
+    // valide ensuite. Aucune décision humaine n'est appliquée automatiquement.
+    // Idempotent (propositions dédupliquées par signature), jamais bloquant.
+    async function smartAutoWork() {
+      try {
+        const { generateOptimizations } = await import("./smart-engine/services/auto-optimization.js");
+        const opt = await generateOptimizations();
+        const { runAlertScan } = await import("./smart-engine/services/alert-engine.js");
+        const alerts = await runAlertScan();
+        console.log(`[smart] travail autonome: ${opt.created} optimisation(s) proposée(s), ${alerts?.created ?? 0} alerte(s)`);
+      } catch (err) {
+        console.error("[smart] travail autonome échoué:", (err as Error).message);
+      }
+    }
+    void smartAutoWork();
+    setInterval(() => void smartAutoWork(), 6 * 60 * 60 * 1000);
   }
   app.listen(env.PORT, "0.0.0.0", () => {
     console.log(`[MKA.P-MS] serveur démarré sur le port ${env.PORT} (${env.NODE_ENV})`);

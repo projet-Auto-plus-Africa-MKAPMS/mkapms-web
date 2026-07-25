@@ -222,23 +222,30 @@ async function discoverTables(): Promise<DiscoveredItem[]> {
 async function upsertItem(item: DiscoveredItem): Promise<"created" | "updated"> {
   const signature = `${item.kind}|${item.name}`;
   const [existing] = await db
-    .select({ id: smartDevRegistry.id })
+    .select({ id: smartDevRegistry.id, reviewLocked: smartDevRegistry.reviewLocked })
     .from(smartDevRegistry)
     .where(eq(smartDevRegistry.signature, signature))
     .limit(1);
 
   if (existing) {
+    // Le rescan met toujours à jour les infos factuelles (fonction, détections,
+    // dernière détection). En revanche, si le PDG a déjà tranché (reviewLocked),
+    // on NE réécrase PAS sa décision de permission : sinon « à définir »
+    // réapparaîtrait à chaque analyse. Le PDG décide une fois, c'est définitif.
+    const patch: Record<string, unknown> = {
+      functionGuess: item.functionGuess,
+      subtype: item.subtype,
+      lastSeenAt: new Date(),
+      detections: sql`${smartDevRegistry.detections} + 1`,
+      metadata: item.metadata ?? {},
+    };
+    if (!existing.reviewLocked) {
+      patch.permissionModule = item.permissionModule ?? null;
+      patch.permission = item.permission;
+    }
     await db
       .update(smartDevRegistry)
-      .set({
-        functionGuess: item.functionGuess,
-        subtype: item.subtype,
-        permissionModule: item.permissionModule ?? null,
-        permission: item.permission,
-        lastSeenAt: new Date(),
-        detections: sql`${smartDevRegistry.detections} + 1`,
-        metadata: item.metadata ?? {},
-      })
+      .set(patch)
       .where(eq(smartDevRegistry.id, existing.id));
     return "updated";
   }
@@ -387,7 +394,33 @@ export async function reviewDevItem(input: {
   if (input.status) patch.status = input.status;
   if (input.permission) patch.permission = input.permission;
   if (input.acknowledgedBy != null) patch.acknowledgedBy = input.acknowledgedBy;
+  // Dès que le PDG tranche (permission ou statut), sa décision est verrouillée :
+  // le prochain scan ne la remettra plus en « à définir ». Une seule validation.
+  if (input.status || input.permission) patch.reviewLocked = true;
 
   await db.update(smartDevRegistry).set(patch).where(eq(smartDevRegistry.id, input.id));
   return { ok: true };
+}
+
+/**
+ * Traite en une fois TOUS les éléments dont la permission reste « à définir ».
+ * Évite au PDG de cliquer 100 fois : une seule validation marque tout le lot
+ * comme « permission définie » et verrouille les décisions (plus de retour en
+ * arrière au prochain scan). Additif : ne touche à aucune donnée métier.
+ */
+export async function reviewAllRequises(input: {
+  permission?: Extract<DevPermission, "definie" | "publique">;
+  acknowledgedBy?: number;
+}): Promise<{ updated: number }> {
+  const rows = await db
+    .update(smartDevRegistry)
+    .set({
+      permission: input.permission ?? "definie",
+      reviewLocked: true,
+      acknowledgedBy: input.acknowledgedBy ?? null,
+      lastSeenAt: new Date(),
+    })
+    .where(eq(smartDevRegistry.permission, "requise"))
+    .returning({ id: smartDevRegistry.id });
+  return { updated: rows.length };
 }

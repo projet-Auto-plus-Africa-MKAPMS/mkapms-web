@@ -1032,8 +1032,10 @@ function DeveloppementsTab() {
   };
   const scan = trpc.smartEngine.devLearningScan.useMutation({ onSuccess: refresh });
   const review = trpc.smartEngine.devLearningReview.useMutation({ onSuccess: refresh });
+  const reviewAll = trpc.smartEngine.devLearningReviewAll.useMutation({ onSuccess: refresh });
 
   const items = list.data ?? [];
+  const permissionsRequises = stats.data?.permissionsRequises ?? 0;
 
   return (
     <div className="space-y-3">
@@ -1064,9 +1066,23 @@ function DeveloppementsTab() {
         >
           <RefreshCw size={14} className={scan.isPending ? "animate-spin" : ""} /> Analyser les développements
         </button>
+        {permissionsRequises > 0 && (
+          <button
+            onClick={() => reviewAll.mutate({ permission: "definie" })}
+            disabled={reviewAll.isPending}
+            className="flex items-center gap-1 rounded-xl bg-[#111] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40"
+          >
+            <CheckCircle2 size={14} /> Tout marquer permission définie ({permissionsRequises})
+          </button>
+        )}
         {scan.data && (
           <span className="text-[11px] text-[#6B7280]">
             {scan.data.scanned} détecté(s) · {scan.data.created} nouveau(x)
+          </span>
+        )}
+        {reviewAll.data && (
+          <span className="text-[11px] font-semibold text-green-700">
+            {reviewAll.data.updated} permission(s) définie(s) — validé une fois pour toutes.
           </span>
         )}
       </div>
@@ -1461,14 +1477,37 @@ function MoteursTab() {
 /* ═══════════════════════════════════════════════════════════
    TAB : Recherches
    ═══════════════════════════════════════════════════════════ */
+const SEARCH_PERIODS: { key: number; label: string }[] = [
+  { key: 1, label: "Aujourd'hui (24h)" },
+  { key: 7, label: "Cette semaine" },
+  { key: 30, label: "Ce mois" },
+];
+
 function RecherchesTab() {
-  const { data: stats } = trpc.smartEngine.searchStats.useQuery({ days: 30 });
-  const { data: top } = trpc.smartEngine.topSearches.useQuery({ days: 30, limit: 15 });
+  const [days, setDays] = useState<number>(1);
+  const { data: stats } = trpc.smartEngine.searchStats.useQuery({ days });
+  const { data: top } = trpc.smartEngine.topSearches.useQuery({ days, limit: 15 });
   const { data: failed } = trpc.smartEngine.failedSearches.useQuery({ limit: 20 });
 
   return (
     <div className="space-y-4">
-      <h2 className="text-base font-bold text-[#111]">Analyse des recherches</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-base font-bold text-[#111]">Analyse des recherches</h2>
+        <div className="flex gap-1.5">
+          {SEARCH_PERIODS.map((p) => (
+            <button
+              key={p.key}
+              onClick={() => setDays(p.key)}
+              className={`rounded-lg px-2.5 py-1 text-[10px] font-semibold ${days === p.key ? "bg-[#111] text-white" : "bg-white text-[#374151] border border-[#E5E7EB]"}`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <p className="text-[11px] text-[#6B7280]">
+        Chiffres sur la période sélectionnée — {SEARCH_PERIODS.find((p) => p.key === days)?.label.toLowerCase()}.
+      </p>
 
       {stats && (
         <div className="grid grid-cols-2 gap-2">
