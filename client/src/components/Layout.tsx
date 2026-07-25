@@ -14,6 +14,7 @@ import {
 import SupportWidget from "./SupportWidget";
 import DomainSelector from "./DomainSelector";
 import { Logo } from "./Logo";
+import { DynamicPWAIcon } from "./DynamicPWAIcon";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
@@ -67,15 +68,21 @@ function Header() {
       }}
     >
       <div className="container-page flex h-16 items-center justify-between gap-4 lg:max-w-[1680px]">
-        <Link to="/" className="flex shrink-0 flex-col items-center" aria-label="MKA.P-MS — Accueil">
+        <Link
+          to="/"
+          className="flex shrink-0 flex-col items-center justify-center leading-none"
+          aria-label="MKA.P-MS — Accueil"
+          data-testid="header-logo-link"
+        >
           {/* Blason : ÉTAT OUVERT pour les visiteurs, ÉTAT FERMÉ dès qu'un
               compte est créé / l'utilisateur connecté (charte de marque).
-              Le nom officiel « MKA.P-MS » est affiché sous le blason. */}
+              Le nom officiel « MKA.P-MS » (image charte exacte) est sous le blason. */}
           <Logo
             variant={user ? "closed" : "open"}
             size={30}
             withWordmark
             className="shrink-0"
+            data-testid={user ? "header-logo-closed" : "header-logo-open"}
           />
         </Link>
 
@@ -276,7 +283,7 @@ function Footer() {
         {/* Logo + description */}
         <div className="mb-6 text-center">
           <div className="flex flex-col items-center">
-            {/* Logo FERMÉ (état membre) + nom officiel + slogan officiel (images charte) */}
+            {/* Logo FERMÉ (état membre) + nom officiel + slogan officiel (images charte exactes) */}
             <Logo variant="closed" size={44} withWordmark withSlogan />
           </div>
           <p className="mt-3 mx-auto max-w-md text-sm text-slate-500 text-center">
@@ -378,6 +385,8 @@ function BackButton() {
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Bascule dynamique de l'icône PWA / favicon selon état d'authentification */}
+      <DynamicPWAIcon />
       <Header />
       {/* Spacer pour compenser le header fixe */}
       <div className="h-16" style={{
