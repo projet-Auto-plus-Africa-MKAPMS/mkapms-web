@@ -12,9 +12,9 @@
  */
 
 import type { Request, Response } from "express";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "./db.js";
-import { annonces, annoncePhotos, seoPages } from "./schema.js";
+import { annonces, annoncePhotos, seoPages, garagesPublics, seoBlogArticles } from "./schema.js";
 import { resolveDomain, type DomainKey } from "./domain.js";
 import { STATIC_SEO, breadcrumbSchema, homeSchema } from "./seo-static.js";
 
@@ -398,42 +398,167 @@ export async function robotsTxt(req: Request, res: Response) {
   res.type("text/plain").send(content);
 }
 
+// ─── Sitemap intelligent (index + sitemaps enfants paginés) ────────────────────
+
+/** Limite officielle Sitemaps = 50 000 URLs. On garde une marge de sécurité. */
+const SITEMAP_PAGE_SIZE = 45000;
+
+function xmlUrl(loc: string, opts: { lastmod?: Date | null; changefreq?: string; priority?: string } = {}): string {
+  return (
+    `<url><loc>${escapeHtml(loc)}</loc>` +
+    (opts.lastmod ? `<lastmod>${new Date(opts.lastmod).toISOString()}</lastmod>` : "") +
+    (opts.changefreq ? `<changefreq>${opts.changefreq}</changefreq>` : "") +
+    (opts.priority ? `<priority>${opts.priority}</priority>` : "") +
+    `</url>`
+  );
+}
+
+function sendUrlset(res: Response, urls: string[]) {
+  res
+    .type("application/xml")
+    .send(
+      `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join("")}</urlset>`,
+    );
+}
+
 /**
- * sitemap.xml — chemins statiques propres à chaque domaine + annonces communes.
+ * sitemap.xml — INDEX de sitemaps (scalable à des millions d'URLs).
+ * Référence des sitemaps enfants paginés (annonces, garages, pages SEO, blog).
  */
 export async function sitemapXml(req: Request, res: Response) {
-  const host = hostFrom(req);
-  const domainKey = resolveDomain(host);
-  const meta = DOMAIN_SEO[domainKey];
   const baseUrl = baseUrlFrom(req);
+  const now = new Date().toISOString();
 
-  let rows: { id: number; updatedAt: Date | null }[] = [];
+  let nbAnnonces = 0;
+  let nbPages = 0;
   try {
-    rows = await db
-      .select({ id: annonces.id, updatedAt: annonces.updatedAt })
+    const [r] = await db
+      .select({ n: sql<number>`count(*)` })
       .from(annonces)
-      .where(and(eq(annonces.status, "publiee")))
-      .orderBy(desc(annonces.updatedAt))
-      .limit(50000);
+      .where(eq(annonces.status, "publiee"));
+    nbAnnonces = Number(r?.n ?? 0);
   } catch {
-    rows = [];
+    nbAnnonces = 0;
+  }
+  try {
+    const [r] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(seoPages)
+      .where(eq(seoPages.indexed, true));
+    nbPages = Number(r?.n ?? 0);
+  } catch {
+    nbPages = 0;
   }
 
-  const urls = [
-    ...meta.staticPaths.map(
-      (p) => `<url><loc>${baseUrl}${p}</loc><changefreq>daily</changefreq><priority>0.8</priority></url>`,
-    ),
-    ...rows.map(
-      (r) =>
-        `<url><loc>${baseUrl}/vehicule/${r.id}</loc>` +
-        (r.updatedAt ? `<lastmod>${new Date(r.updatedAt).toISOString()}</lastmod>` : "") +
-        `<changefreq>weekly</changefreq><priority>0.6</priority></url>`,
-    ),
-  ].join("");
+  const children: string[] = [`${baseUrl}/sitemap-static.xml`];
+  const nAnnoncePages = Math.max(1, Math.ceil(nbAnnonces / SITEMAP_PAGE_SIZE));
+  for (let i = 1; i <= nAnnoncePages; i++) children.push(`${baseUrl}/sitemap-annonces-${i}.xml`);
+  children.push(`${baseUrl}/sitemap-garages.xml`);
+  const nSeoPages = Math.max(1, Math.ceil(nbPages / SITEMAP_PAGE_SIZE));
+  for (let i = 1; i <= nSeoPages; i++) children.push(`${baseUrl}/sitemap-pages-${i}.xml`);
+  children.push(`${baseUrl}/sitemap-blog.xml`);
+
+  const body = children
+    .map((loc) => `<sitemap><loc>${escapeHtml(loc)}</loc><lastmod>${now}</lastmod></sitemap>`)
+    .join("");
 
   res
     .type("application/xml")
     .send(
-      `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`,
+      `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${body}</sitemapindex>`,
     );
+}
+
+/** Sitemap des pages statiques du domaine + pages publiques curées. */
+export async function sitemapStatic(req: Request, res: Response) {
+  const domainKey = resolveDomain(hostFrom(req));
+  const meta = DOMAIN_SEO[domainKey];
+  const baseUrl = baseUrlFrom(req);
+
+  const paths = new Set<string>(["/", ...meta.staticPaths, ...Object.keys(STATIC_SEO)]);
+  const urls = [...paths].map((p) =>
+    xmlUrl(`${baseUrl}${p}`, { changefreq: p === "/" ? "daily" : "weekly", priority: p === "/" ? "1.0" : "0.8" }),
+  );
+  sendUrlset(res, urls);
+}
+
+/** Sitemap paginé des annonces publiées. */
+export async function sitemapAnnonces(req: Request, res: Response) {
+  const baseUrl = baseUrlFrom(req);
+  const page = Math.max(1, Number(req.params.page) || 1);
+  let rows: { id: number; slug: string | null; updatedAt: Date | null }[] = [];
+  try {
+    rows = await db
+      .select({ id: annonces.id, slug: annonces.slug, updatedAt: annonces.updatedAt })
+      .from(annonces)
+      .where(eq(annonces.status, "publiee"))
+      .orderBy(desc(annonces.updatedAt))
+      .limit(SITEMAP_PAGE_SIZE)
+      .offset((page - 1) * SITEMAP_PAGE_SIZE);
+  } catch {
+    rows = [];
+  }
+  const urls = rows.map((r) =>
+    xmlUrl(`${baseUrl}/vehicule/${r.id}`, { lastmod: r.updatedAt, changefreq: "weekly", priority: "0.7" }),
+  );
+  sendUrlset(res, urls);
+}
+
+/** Sitemap des garages validés. */
+export async function sitemapGarages(req: Request, res: Response) {
+  const baseUrl = baseUrlFrom(req);
+  let rows: { id: number; slug: string | null; updatedAt: Date | null }[] = [];
+  try {
+    rows = await db
+      .select({ id: garagesPublics.id, slug: garagesPublics.slug, updatedAt: garagesPublics.updatedAt })
+      .from(garagesPublics)
+      .where(eq(garagesPublics.status, "valide"))
+      .limit(SITEMAP_PAGE_SIZE);
+  } catch {
+    rows = [];
+  }
+  const urls = rows.map((g) =>
+    xmlUrl(`${baseUrl}/garages/${g.slug || g.id}`, { lastmod: g.updatedAt, changefreq: "weekly", priority: "0.7" }),
+  );
+  sendUrlset(res, urls);
+}
+
+/** Sitemap paginé des pages programmatiques (seo_pages). */
+export async function sitemapPages(req: Request, res: Response) {
+  const baseUrl = baseUrlFrom(req);
+  const page = Math.max(1, Number(req.params.page) || 1);
+  let rows: { slug: string; priority: string; changeFreq: string; updatedAt: Date | null }[] = [];
+  try {
+    rows = await db
+      .select({ slug: seoPages.slug, priority: seoPages.priority, changeFreq: seoPages.changeFreq, updatedAt: seoPages.updatedAt })
+      .from(seoPages)
+      .where(eq(seoPages.indexed, true))
+      .limit(SITEMAP_PAGE_SIZE)
+      .offset((page - 1) * SITEMAP_PAGE_SIZE);
+  } catch {
+    rows = [];
+  }
+  const urls = rows.map((p) =>
+    xmlUrl(`${baseUrl}/${p.slug}`, { lastmod: p.updatedAt, changefreq: p.changeFreq, priority: p.priority }),
+  );
+  sendUrlset(res, urls);
+}
+
+/** Sitemap des articles de blog publiés. */
+export async function sitemapBlog(req: Request, res: Response) {
+  const baseUrl = baseUrlFrom(req);
+  let rows: { slug: string; updatedAt: Date | null }[] = [];
+  try {
+    rows = await db
+      .select({ slug: seoBlogArticles.slug, updatedAt: seoBlogArticles.updatedAt })
+      .from(seoBlogArticles)
+      .where(eq(seoBlogArticles.published, true))
+      .limit(SITEMAP_PAGE_SIZE);
+  } catch {
+    rows = [];
+  }
+  const urls = rows.map((a) =>
+    xmlUrl(`${baseUrl}/blog/${a.slug}`, { lastmod: a.updatedAt, changefreq: "monthly", priority: "0.6" }),
+  );
+  sendUrlset(res, urls);
 }

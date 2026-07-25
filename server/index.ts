@@ -17,7 +17,16 @@ import { appRouter } from "./router.js";
 import { createContext } from "./trpc.js";
 import { verifyToken } from "./auth.js";
 import { handleStripeWebhook } from "./stripeWebhook.js";
-import { injectAnnonceSeo, robotsTxt, sitemapXml } from "./seo.js";
+import {
+  injectAnnonceSeo,
+  robotsTxt,
+  sitemapXml,
+  sitemapStatic,
+  sitemapAnnonces,
+  sitemapGarages,
+  sitemapPages,
+  sitemapBlog,
+} from "./seo.js";
 import { domainMiddleware, domainHandler, domainsListHandler } from "./domain.js";
 import { env, isProd } from "./env.js";
 import { readFile } from "node:fs/promises";
@@ -146,6 +155,11 @@ app.use(
 // Référencement Google (Partie 6) — disponibles en prod comme en dev.
 app.get("/robots.txt", robotsTxt);
 app.get("/sitemap.xml", sitemapXml);
+app.get("/sitemap-static.xml", sitemapStatic);
+app.get("/sitemap-annonces-:page.xml", sitemapAnnonces);
+app.get("/sitemap-garages.xml", sitemapGarages);
+app.get("/sitemap-pages-:page.xml", sitemapPages);
+app.get("/sitemap-blog.xml", sitemapBlog);
 
 // Sert le frontend compilé en production
 if (isProd) {
