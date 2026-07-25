@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Search, ChevronDown, TrendingUp, RefreshCw, ExternalLink, FileText } from "lucide-react";
+import { ChevronLeft, Search, ChevronDown, TrendingUp, RefreshCw, ExternalLink, FileText, Lightbulb, Send } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 
 const KEYWORDS = [
@@ -22,8 +22,11 @@ export default function AdminSEO() {
   const byType = trpc.seo.pagesByType.useQuery();
   const utils = trpc.useUtils();
   const generate = trpc.seo.generateProgrammaticPages.useMutation({
-    onSuccess: () => utils.seo.pagesByType.invalidate(),
+    onSuccess: () => { utils.seo.pagesByType.invalidate(); utils.seo.analyze.invalidate(); },
   });
+  const analysis = trpc.seo.analyze.useQuery();
+  const indexNow = trpc.seo.indexNowConfigured.useQuery();
+  const submit = trpc.seo.submitToIndexNow.useMutation();
 
   const totalPages = (byType.data ?? []).reduce((s, r) => s + Number(r.count), 0);
 
@@ -80,6 +83,74 @@ export default function AdminSEO() {
           )}
           {generate.error && (
             <p className="mt-2 text-[11px] text-red-600">{generate.error.message}</p>
+          )}
+        </div>
+      </div>
+
+      {/* SEO OS intelligent — suggestions (validation humaine) */}
+      <div className="px-4 mt-4">
+        <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Lightbulb size={16} className="text-[#D4AF37]" />
+            <p className="text-sm font-bold text-[#111]">SEO OS intelligent — suggestions</p>
+          </div>
+          <p className="text-[11px] text-[#6B7280] mb-3">
+            Le système observe les données réelles et propose. Aucune action n'est
+            exécutée sans validation : cliquez « Générer » ci-dessus pour appliquer.
+          </p>
+          {(analysis.data?.suggestions ?? []).length === 0 ? (
+            <p className="text-[11px] text-green-700">Aucune page manquante détectée — couverture à jour.</p>
+          ) : (
+            <div className="space-y-2">
+              {(analysis.data?.suggestions ?? []).map((s) => (
+                <div key={s.type} className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                  <p className="text-xs font-bold text-amber-900">{s.label}</p>
+                  <p className="text-[10px] text-amber-800 mt-0.5">{s.reason}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          {analysis.data && (
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+              {[
+                { l: "Marques (top)", v: analysis.data.topMarques.length },
+                { l: "Villes (top)", v: analysis.data.topVilles.length },
+                { l: "Modèles (top)", v: analysis.data.topModeles.length },
+              ].map((x) => (
+                <div key={x.l} className="rounded-lg bg-[#F5F3EF] p-2">
+                  <p className="text-sm font-black text-[#111]">{x.v}</p>
+                  <p className="text-[8px] text-[#6B7280]">{x.l}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Indexation (soumission moteurs) */}
+      <div className="px-4 mt-4">
+        <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Send size={16} className="text-[#D4AF37]" />
+            <p className="text-sm font-bold text-[#111]">Soumission aux moteurs (IndexNow)</p>
+          </div>
+          <p className="text-[11px] text-[#6B7280] mb-3">
+            {indexNow.data?.configured
+              ? "IndexNow configuré. La soumission accélère la découverte (Bing, Yandex…) — l'indexation finale reste décidée par les moteurs."
+              : "IndexNow non configuré (clé INDEXNOW_KEY manquante). Le sitemap reste découvrable via robots.txt ; ajoutez la clé pour la soumission active."}
+          </p>
+          <button
+            onClick={() => submit.mutate({ baseUrl: window.location.origin })}
+            disabled={submit.isPending || !indexNow.data?.configured}
+            className="w-full rounded-lg bg-[#111] py-2 text-xs font-bold text-white flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <Send size={12} />
+            {submit.isPending ? "Soumission…" : "Soumettre les pages à IndexNow"}
+          </button>
+          {submit.data && (
+            <p className={`mt-2 text-[11px] ${submit.data.success ? "text-green-700" : "text-red-600"}`}>
+              {submit.data.provider} — {submit.data.submitted} URL(s) — {submit.data.detail}
+            </p>
           )}
         </div>
       </div>
