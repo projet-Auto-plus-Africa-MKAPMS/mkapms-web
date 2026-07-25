@@ -15,6 +15,7 @@ import SupportWidget from "./SupportWidget";
 import DomainSelector from "./DomainSelector";
 import { Logo } from "./Logo";
 import { DynamicPWAIcon } from "./DynamicPWAIcon";
+import { WordmarkMKAPMS } from "./WordmarkMKAPMS";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
@@ -70,24 +71,29 @@ function Header() {
       <div className="container-page flex h-16 items-center justify-between gap-4 lg:max-w-[1680px]">
         <Link
           to="/"
-          className="flex shrink-0 flex-col items-center"
+          className="flex shrink-0 flex-col items-center justify-center leading-none"
           aria-label="MKA.P-MS — Accueil"
           data-testid="header-logo-link"
         >
-          {/* Logo dynamique :
-              - VISITEUR non connecté  → Version 2 OUVERTE (Lune / Expansion, accueil ouvert)
-              - UTILISATEUR connecté   → Version 1 FERMÉE  (Terre / Unité, membre)
-              Responsive : plus petit sur mobile pour éviter tout débordement iPhone. */}
+          {/* Logo image dynamique :
+              - VISITEUR non connecté  → Version 2 OUVERTE (Lune / Expansion)
+              - UTILISATEUR connecté   → Version 1 FERMÉE  (Terre / Unité)
+              Taille réduite pour alignement avec les autres éléments du header. */}
           <img
             src={user ? "/logo-closed.png" : "/logo-open.png"}
             alt="MKA.P-MS"
-            className="h-6 w-auto sm:h-7 md:h-8 select-none"
+            className="h-5 w-auto sm:h-6 md:h-7 select-none"
             draggable={false}
             data-testid={user ? "header-logo-closed" : "header-logo-open"}
           />
-          <span className="mt-0.5 whitespace-nowrap text-center text-[9px] font-black uppercase tracking-[0.22em] text-slate-700">
-            MKA.P-MS
-          </span>
+          {/* Wordmark premium SVG (serif haute-contraste, "A"/"."/"-" en or,
+              P à tête ouverte, fine ligne dorée sous baseline). Rendu vectoriel :
+              cohérent tous domaines / tous appareils. */}
+          <WordmarkMKAPMS
+            className="mt-0.5"
+            height={11}
+            data-testid="header-wordmark"
+          />
         </Link>
 
         <nav className="hidden min-w-0 items-center gap-1 lg:flex">
