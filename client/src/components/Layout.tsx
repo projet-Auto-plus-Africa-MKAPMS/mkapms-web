@@ -14,6 +14,7 @@ import {
 import SupportWidget from "./SupportWidget";
 import DomainSelector from "./DomainSelector";
 import { Logo } from "./Logo";
+import { DynamicPWAIcon } from "./DynamicPWAIcon";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
@@ -47,17 +48,25 @@ function Header() {
       }}
     >
       <div className="container-page flex h-16 items-center justify-between gap-4 lg:max-w-[1680px]">
-        <Link to="/" className="flex shrink-0 flex-col items-start" aria-label="MKA.P-MS — Accueil">
-          {/* Logo OUVERT (Version 2 – Lune / Expansion) — surfaces principales de l'app
-              Responsive : plus petit sur mobile pour éviter le débordement, tagline masqué < md */}
+        <Link
+          to="/"
+          className="flex shrink-0 flex-col items-center"
+          aria-label="MKA.P-MS — Accueil"
+          data-testid="header-logo-link"
+        >
+          {/* Logo dynamique :
+              - VISITEUR non connecté  → Version 2 OUVERTE (Lune / Expansion, accueil ouvert)
+              - UTILISATEUR connecté   → Version 1 FERMÉE  (Terre / Unité, membre)
+              Responsive : plus petit sur mobile pour éviter tout débordement iPhone. */}
           <img
-            src="/logo-open.png"
+            src={user ? "/logo-closed.png" : "/logo-open.png"}
             alt="MKA.P-MS"
-            className="h-7 w-auto sm:h-8 md:h-9 select-none"
+            className="h-6 w-auto sm:h-7 md:h-8 select-none"
             draggable={false}
+            data-testid={user ? "header-logo-closed" : "header-logo-open"}
           />
-          <span className="hidden md:inline -mt-0.5 whitespace-nowrap text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-            La marketplace automobile
+          <span className="mt-0.5 whitespace-nowrap text-center text-[9px] font-black uppercase tracking-[0.22em] text-slate-700">
+            MKA.P-MS
           </span>
         </Link>
 
@@ -372,6 +381,8 @@ function BackButton() {
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Bascule dynamique de l'icône PWA / favicon selon état d'authentification */}
+      <DynamicPWAIcon />
       <Header />
       {/* Spacer pour compenser le header fixe */}
       <div className="h-16" style={{
