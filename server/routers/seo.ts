@@ -2,6 +2,9 @@ import { z } from "zod";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { router, publicProcedure, protectedProcedure, adminProcedure } from "../trpc.js";
 import { generateProgrammaticPages } from "../seo-generator.js";
+import { submitIndexNow, pingSitemaps } from "../seo-indexing.js";
+import { analyzeSeo } from "../seo-analyze.js";
+import { env } from "../env.js";
 import { db } from "../db.js";
 import {
   seoPages,
@@ -456,4 +459,35 @@ export const seoRouter = router({
       .groupBy(seoPages.pageType)
       .orderBy(desc(sql`count(*)`));
   }),
+
+  // ─── SEO OS intelligent : analyse + suggestions (validation humaine) ───
+  // OBSERVE et PROPOSE uniquement — n'exécute aucune modification.
+  analyze: adminProcedure.query(async () => {
+    return analyzeSeo();
+  }),
+
+  // ─── Indexation (soumission aux moteurs) ───
+  // Soumet les pages indexables à IndexNow (si INDEXNOW_KEY configurée).
+  submitToIndexNow: adminProcedure
+    .input(z.object({ baseUrl: z.string().url().optional(), limit: z.number().min(1).max(10000).default(5000) }))
+    .mutation(async ({ input }) => {
+      const baseUrl = input.baseUrl || env.PUBLIC_URL;
+      const pages = await db
+        .select({ canonicalUrl: seoPages.canonicalUrl, slug: seoPages.slug })
+        .from(seoPages)
+        .where(eq(seoPages.indexed, true))
+        .limit(input.limit);
+      const urls = pages.map((p) => `${baseUrl}${p.canonicalUrl || `/${p.slug}`}`);
+      return submitIndexNow(baseUrl, urls);
+    }),
+
+  // Ping des sitemaps (endpoints historiques, dépréciés — journalisé).
+  pingSitemaps: adminProcedure
+    .input(z.object({ baseUrl: z.string().url().optional() }).optional())
+    .mutation(async ({ input }) => {
+      const baseUrl = input?.baseUrl || env.PUBLIC_URL;
+      return pingSitemaps(baseUrl);
+    }),
+
+  indexNowConfigured: adminProcedure.query(() => ({ configured: !!env.INDEXNOW_KEY })),
 });

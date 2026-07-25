@@ -161,6 +161,13 @@ app.get("/sitemap-garages.xml", sitemapGarages);
 app.get("/sitemap-pages-:page.xml", sitemapPages);
 app.get("/sitemap-blog.xml", sitemapBlog);
 
+// IndexNow — fichier de vérification de clé (requis pour la soumission).
+if (env.INDEXNOW_KEY) {
+  app.get(`/${env.INDEXNOW_KEY}.txt`, (_req, res) => {
+    res.type("text/plain").send(env.INDEXNOW_KEY);
+  });
+}
+
 // Sert le frontend compilé en production
 if (isProd) {
   const clientDir = path.resolve(__dirname, "public");
