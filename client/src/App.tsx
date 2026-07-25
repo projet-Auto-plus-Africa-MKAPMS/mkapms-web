@@ -197,6 +197,7 @@ const GarageAuto = lazy(() => import("./pages/GarageAuto"));
 const SEOAbonnements = lazy(() => import("./pages/SEOAbonnements"));
 const RechercheGeolocalisee = lazy(() => import("./pages/RechercheGeolocalisee"));
 const RechercheLocale = lazy(() => import("./pages/RechercheLocale"));
+const SeoLandingPage = lazy(() => import("./pages/SeoLandingPage"));
 const RechercheUniverselle = lazy(() => import("./pages/RechercheUniverselle"));
 // Garage
 const AssistanceRoutiere = lazy(() => import("./pages/garage/AssistanceRoutiere"));
@@ -1473,6 +1474,16 @@ export default function App() {
             <Route path="/depot-annonce/score-qualite-annonce" element={<U name="Dépôt Annonce"><ScoreQualiteAnnonce /></U>} />
             <Route path="/depot-annonce/tableau-bord-annonceur" element={<U name="Dépôt Annonce"><TableauBordAnnonceur /></U>} />
             <Route path="/depot-annonce/videos-annonce" element={<U name="Dépôt Annonce"><VideosAnnonce /></U>} />
+            {/* Pages programmatiques SEO (seo_pages) — priorité sur /:pays/:ville */}
+            <Route path="/service/:slug" element={<U name="SEO"><SeoLandingPage /></U>} />
+            <Route path="/service/:slug/:ville" element={<U name="SEO"><SeoLandingPage /></U>} />
+            <Route path="/piece/:slug" element={<U name="SEO"><SeoLandingPage /></U>} />
+            <Route path="/location/:slug" element={<U name="SEO"><SeoLandingPage /></U>} />
+            <Route path="/marque/:marque" element={<U name="SEO"><SeoLandingPage /></U>} />
+            <Route path="/marque/:marque/:modele" element={<U name="SEO"><SeoLandingPage /></U>} />
+            <Route path="/ville/:slug" element={<U name="SEO"><SeoLandingPage /></U>} />
+            <Route path="/pays/:slug" element={<U name="SEO"><SeoLandingPage /></U>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
