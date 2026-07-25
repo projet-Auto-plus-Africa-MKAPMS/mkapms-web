@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { router, publicProcedure, protectedProcedure, adminProcedure } from "../trpc.js";
+import { generateProgrammaticPages } from "../seo-generator.js";
 import { db } from "../db.js";
 import {
   seoPages,
@@ -440,4 +441,19 @@ export const seoRouter = router({
 
       return meta;
     }),
+
+  // Générer/mettre à jour toutes les pages programmatiques (services, pièces,
+  // locations, pays, marques, modèles, villes). Idempotent.
+  generateProgrammaticPages: adminProcedure.mutation(async () => {
+    return generateProgrammaticPages();
+  }),
+
+  // Répartition des pages SEO par type (pour le tableau de bord).
+  pagesByType: adminProcedure.query(async () => {
+    return db
+      .select({ pageType: seoPages.pageType, count: sql<number>`count(*)` })
+      .from(seoPages)
+      .groupBy(seoPages.pageType)
+      .orderBy(desc(sql`count(*)`));
+  }),
 });
