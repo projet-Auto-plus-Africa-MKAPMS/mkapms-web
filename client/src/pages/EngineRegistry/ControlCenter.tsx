@@ -17,6 +17,7 @@
  * Aucune logique métier des moteurs n'est dupliquée ici : la page consomme
  * uniquement le registre central et les contrats déjà enregistrés.
  */
+import { useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
@@ -27,7 +28,12 @@ import {
   Activity,
   ExternalLink,
   ShieldAlert,
+  Search,
+  X,
 } from "lucide-react";
+
+/** Filtre rapide piloté par les cases cliquables du bandeau de synthèse. */
+type QuickFilter = "all" | "active" | "degraded";
 
 type EngineState = "active" | "read_only" | "maintenance" | "disabled" | "staging";
 
@@ -147,12 +153,43 @@ export default function EngineRegistryControlCenter() {
     },
   });
 
+  // Filtres du tableau de bord (cases cliquables + recherche + état).
+  const [quick, setQuick] = useState<QuickFilter>("all");
+  const [stateFilter, setStateFilter] = useState<EngineState | "all">("all");
+  const [search, setSearch] = useState("");
+
+  const engines = (list.data ?? []) as EngineRow[];
+
+  const degradedCount = useMemo(
+    () => engines.filter((e) => e.health === "degraded" || e.health === "down").length,
+    [engines],
+  );
+  const activeCount = useMemo(
+    () => engines.filter((e) => e.state === "active").length,
+    [engines],
+  );
+
+  const matchesFilters = (e: EngineRow) => {
+    if (quick === "active" && e.state !== "active") return false;
+    if (quick === "degraded" && !(e.health === "degraded" || e.health === "down")) return false;
+    if (stateFilter !== "all" && e.state !== stateFilter) return false;
+    const q = search.trim().toLowerCase();
+    if (q && !(`${e.label} ${e.name} ${e.description ?? ""}`.toLowerCase().includes(q)))
+      return false;
+    return true;
+  };
+  const filtered = engines.filter(matchesFilters);
+  const hasActiveFilter = quick !== "all" || stateFilter !== "all" || search.trim() !== "";
+  const resetFilters = () => {
+    setQuick("all");
+    setStateFilter("all");
+    setSearch("");
+  };
+
   // PDG + Directeur uniquement
   if (!user || !isDirection) {
     return <Navigate to="/" replace />;
   }
-
-  const engines = (list.data ?? []) as EngineRow[];
   const sortInFamily = (a: EngineRow, b: EngineRow) => {
     const pa = PRIORITY[a.name] ?? 999;
     const pb = PRIORITY[b.name] ?? 999;
@@ -188,15 +225,36 @@ export default function EngineRegistryControlCenter() {
       </div>
 
       <div className="mx-auto max-w-5xl px-4 py-5">
-        {/* Bandeau synthèse */}
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        {/* Bandeau synthèse — cases cliquables (filtres) */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-3">
-            <StatCard label="Moteurs" value={stats.data?.totalEngines ?? engines.length} />
-            <StatCard label="Actifs" value={stats.data?.activeEngines ?? engines.filter((e) => e.state === "active").length} />
+            <StatCard
+              label="Moteurs"
+              value={stats.data?.totalEngines ?? engines.length}
+              selected={quick === "all" && stateFilter === "all"}
+              onClick={() => {
+                setQuick("all");
+                setStateFilter("all");
+              }}
+            />
+            <StatCard
+              label="Actifs"
+              value={stats.data?.activeEngines ?? activeCount}
+              selected={quick === "active"}
+              onClick={() => {
+                setStateFilter("all");
+                setQuick((q) => (q === "active" ? "all" : "active"));
+              }}
+            />
             <StatCard
               label="Dégradés / HS"
-              value={engines.filter((e) => e.health === "degraded" || e.health === "down").length}
+              value={degradedCount}
               tone="warn"
+              selected={quick === "degraded"}
+              onClick={() => {
+                setStateFilter("all");
+                setQuick((q) => (q === "degraded" ? "all" : "degraded"));
+              }}
             />
           </div>
           <div className="flex items-center gap-2">
@@ -210,11 +268,53 @@ export default function EngineRegistryControlCenter() {
                 list.refetch();
                 stats.refetch();
               }}
-              className="flex items-center gap-1 rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700"
+              disabled={list.isFetching || stats.isFetching}
+              className="flex items-center gap-1 rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-300 disabled:opacity-60"
             >
-              <RefreshCw size={12} /> Rafraîchir
+              <RefreshCw size={12} className={list.isFetching || stats.isFetching ? "animate-spin" : ""} />
+              {list.isFetching || stats.isFetching ? "Actualisation…" : "Rafraîchir"}
             </button>
           </div>
+        </div>
+
+        {/* Options : recherche + filtre par état */}
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              value={search}
+              onChange={(ev) => setSearch(ev.target.value)}
+              placeholder="Rechercher un moteur…"
+              className="w-56 rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-xs text-slate-700 outline-none focus:border-slate-400"
+            />
+          </div>
+          {(["all", ...STATE_ORDER] as (EngineState | "all")[]).map((s) => (
+            <button
+              key={s}
+              onClick={() => {
+                setQuick("all");
+                setStateFilter(s);
+              }}
+              className={`rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition ${
+                stateFilter === s
+                  ? "border-[#111] bg-[#111] text-[#D4AF37]"
+                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {s === "all" ? "Tous les états" : STATE_LABEL[s]}
+            </button>
+          ))}
+          {hasActiveFilter && (
+            <button
+              onClick={resetFilters}
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50"
+            >
+              <X size={12} /> Réinitialiser
+            </button>
+          )}
+          <span className="text-xs text-slate-400">
+            {filtered.length} / {engines.length} moteur{engines.length > 1 ? "s" : ""}
+          </span>
         </div>
 
         {list.isLoading && (
@@ -227,8 +327,17 @@ export default function EngineRegistryControlCenter() {
           </p>
         )}
 
+        {!list.isLoading && engines.length > 0 && filtered.length === 0 && (
+          <p className="py-10 text-center text-sm text-slate-400">
+            Aucun moteur ne correspond à ce filtre.{" "}
+            <button onClick={resetFilters} className="font-semibold text-slate-600 underline">
+              Réinitialiser
+            </button>
+          </p>
+        )}
+
         {families.map((fam) => {
-          const rows = engines.filter((e) => e.category === fam.key).sort(sortInFamily);
+          const rows = filtered.filter((e) => e.category === fam.key).sort(sortInFamily);
           if (rows.length === 0) return null;
           return (
             <section key={fam.key} className="mb-7">
@@ -343,18 +452,30 @@ function StatCard({
   label,
   value,
   tone,
+  selected,
+  onClick,
 }: {
   label: string;
   value: number;
   tone?: "warn";
+  selected?: boolean;
+  onClick?: () => void;
 }) {
+  const base =
+    tone === "warn"
+      ? "border-amber-200 bg-amber-50"
+      : "border-slate-200 bg-white";
+  const ring = selected
+    ? tone === "warn"
+      ? "ring-2 ring-amber-400 border-amber-400"
+      : "ring-2 ring-[#111] border-[#111]"
+    : "";
   return (
-    <div
-      className={`rounded-xl border px-4 py-2 ${
-        tone === "warn"
-          ? "border-amber-200 bg-amber-50"
-          : "border-slate-200 bg-white"
-      }`}
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={`rounded-xl border px-4 py-2 text-left transition hover:shadow-sm active:scale-[0.98] ${base} ${ring}`}
     >
       <p className={`text-[11px] ${tone === "warn" ? "text-amber-600" : "text-slate-500"}`}>
         {label}
@@ -362,6 +483,6 @@ function StatCard({
       <p className={`text-xl font-black ${tone === "warn" ? "text-amber-700" : "text-slate-900"}`}>
         {value}
       </p>
-    </div>
+    </button>
   );
 }
