@@ -179,11 +179,21 @@ export function DocumentView({ doc, onClose }: { doc: DocumentData; onClose: () 
         <button onClick={onClose} className="absolute top-3 right-3 z-10 h-8 w-8 rounded-full bg-white/80 grid place-items-center shadow"><X size={16} /></button>
 
         {/* ── Paper ── */}
-        <div className="m-3 sm:m-4 bg-white rounded-xl shadow-lg border border-[#E5E7EB] overflow-hidden">
+        <div className="relative m-3 sm:m-4 bg-white rounded-xl shadow-lg border border-[#E5E7EB] overflow-hidden">
           {/* Gold top bar */}
           <div className="h-1.5 bg-gradient-to-r from-[#D4AF37] via-[#B8962E] to-[#D4AF37]" />
 
-          <div className="p-4 sm:p-6">
+          {/* Filigrane arrière-plan — blason FERMÉ (état membre / document officiel).
+              Le bas du blason fermé comporte deux lignes (charte). */}
+          <img
+            src="/logo-closed.png"
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-1/2 w-2/3 max-w-[280px] -translate-x-1/2 -translate-y-1/2 select-none opacity-[0.06]"
+            draggable={false}
+          />
+
+          <div className="relative p-4 sm:p-6">
             <PDFHeader type={doc.type} ref={doc.ref} />
 
             {/* Dates */}

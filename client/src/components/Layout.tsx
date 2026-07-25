@@ -276,11 +276,8 @@ function Footer() {
         {/* Logo + description */}
         <div className="mb-6 text-center">
           <div className="flex flex-col items-center">
-            {/* Logo FERMÉ (état membre) + nom officiel de marque (image charte) */}
-            <Logo variant="closed" size={44} withWordmark />
-            <span className="mt-2 whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-              La marketplace automobile
-            </span>
+            {/* Logo FERMÉ (état membre) + nom officiel + slogan officiel (images charte) */}
+            <Logo variant="closed" size={44} withWordmark withSlogan />
           </div>
           <p className="mt-3 mx-auto max-w-md text-sm text-slate-500 text-center">
             La marketplace automobile de référence. Achat, location et entretien — une seule

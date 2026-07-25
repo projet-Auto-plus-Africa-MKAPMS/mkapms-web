@@ -69,7 +69,13 @@ export default function Connexion() {
             className="mx-auto h-7 w-auto"
             draggable={false}
           />
-          <p className="mt-2 text-sm text-[#6B7280]">La Marketplace Automobile</p>
+          {/* Slogan officiel (image charte) */}
+          <img
+            src="/brand/slogan.png"
+            alt="PROTÉGER · RELIER · SERVIR LE MONDE ENTIER"
+            className="mx-auto mt-2 h-3 w-auto"
+            draggable={false}
+          />
           <p className="mt-3 text-[#374151]">
             {mode === "login" && "Bienvenue ! Connectez-vous pour accéder à votre espace."}
             {mode === "register" && "Créez votre compte et rejoignez la communauté MKA.P-MS."}

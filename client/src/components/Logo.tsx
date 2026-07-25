@@ -33,6 +33,8 @@ const ALT: Record<LogoVariant, string> = {
 };
 
 const WORDMARK_SRC = "/brand/wordmark.png";
+/** Slogan officiel « PROTÉGER · RELIER · SERVIR LE MONDE ENTIER » (image charte). */
+const SLOGAN_SRC = "/brand/slogan.png";
 
 export interface LogoProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt"> {
   variant?: LogoVariant;
@@ -40,8 +42,8 @@ export interface LogoProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "sr
   size?: number;
   /** Affiche le nom de marque officiel « MKA.P-MS » sous le blason. */
   withWordmark?: boolean;
-  /** Affiche le sous-titre "La marketplace automobile" sous le nom. */
-  withTagline?: boolean;
+  /** Affiche le slogan officiel « PROTÉGER · RELIER · SERVIR LE MONDE ENTIER » sous le nom. */
+  withSlogan?: boolean;
   /** Force l'alt pour l'accessibilité. */
   alt?: string;
 }
@@ -50,7 +52,7 @@ export function Logo({
   variant = "open",
   size = 40,
   withWordmark = false,
-  withTagline = false,
+  withSlogan = false,
   alt,
   className = "",
   ...rest
@@ -74,10 +76,14 @@ export function Logo({
           draggable={false}
         />
       )}
-      {withTagline && (
-        <span className="mt-1 whitespace-nowrap text-[8px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-          La marketplace automobile
-        </span>
+      {withSlogan && (
+        <img
+          src={SLOGAN_SRC}
+          alt="PROTÉGER · RELIER · SERVIR LE MONDE ENTIER"
+          style={{ height: Math.max(7, Math.round(size * 0.17)), width: "auto", display: "block" }}
+          className="mt-1 select-none"
+          draggable={false}
+        />
       )}
     </span>
   );
