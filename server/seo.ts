@@ -14,8 +14,9 @@
 import type { Request, Response } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "./db.js";
-import { annonces, annoncePhotos } from "./schema.js";
+import { annonces, annoncePhotos, seoPages } from "./schema.js";
 import { resolveDomain, type DomainKey } from "./domain.js";
+import { STATIC_SEO, breadcrumbSchema, homeSchema } from "./seo-static.js";
 
 // ─── Utilitaires ─────────────────────────────────────────────────────────────
 
@@ -229,43 +230,153 @@ async function annonceSeoHead(
   ].join("\n    ");
 }
 
+// ─── Constructeur de <head> générique ─────────────────────────────────────────
+
+interface HeadInput {
+  title: string;
+  description: string;
+  canonical: string;
+  keywords?: string;
+  image?: string;
+  type?: string;
+  lang: string;
+  jsonLd?: object[];
+}
+
+function buildHead(h: HeadInput): string {
+  const parts = [
+    `<html lang="${h.lang}">`,
+    `<title>${escapeHtml(h.title)}</title>`,
+    `<meta name="description" content="${escapeHtml(h.description)}" />`,
+    h.keywords ? `<meta name="keywords" content="${escapeHtml(h.keywords)}" />` : "",
+    `<link rel="canonical" href="${escapeHtml(h.canonical)}" />`,
+    `<meta property="og:type" content="${h.type || "website"}" />`,
+    `<meta property="og:title" content="${escapeHtml(h.title)}" />`,
+    `<meta property="og:description" content="${escapeHtml(h.description)}" />`,
+    h.image ? `<meta property="og:image" content="${escapeHtml(h.image)}" />` : "",
+    `<meta property="og:url" content="${escapeHtml(h.canonical)}" />`,
+    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:title" content="${escapeHtml(h.title)}" />`,
+    `<meta name="twitter:description" content="${escapeHtml(h.description)}" />`,
+    h.image ? `<meta name="twitter:image" content="${escapeHtml(h.image)}" />` : "",
+    ...(h.jsonLd || []).map(
+      (j) => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, "\\u003c")}</script>`,
+    ),
+  ];
+  return parts.filter(Boolean).join("\n    ");
+}
+
+/** SEO d'une page publique curée (marque, achat, location, garages, pièces…). */
+function staticSeoHead(path: string, baseUrl: string, domainKey: DomainKey): string | null {
+  const meta = DOMAIN_SEO[domainKey];
+  const s = STATIC_SEO[path];
+  const canonical = `${baseUrl}${path}`;
+  const jsonLd: object[] = [];
+
+  if (path === "/") {
+    jsonLd.push(...homeSchema(baseUrl, meta.siteName));
+    return buildHead({
+      title: meta.defaultTitle,
+      description: meta.defaultDescription,
+      keywords: meta.keywords,
+      canonical: `${baseUrl}/`,
+      lang: meta.lang,
+      jsonLd,
+    });
+  }
+
+  if (!s) return null;
+  jsonLd.push(breadcrumbSchema(baseUrl, path, s.title));
+  return buildHead({
+    title: `${s.title} | ${meta.siteName}`,
+    description: s.description,
+    keywords: s.keywords || meta.keywords,
+    canonical,
+    lang: meta.lang,
+    jsonLd,
+  });
+}
+
+/** SEO d'une page programmatique enregistrée en base (seo_pages). */
+async function seoPageHead(path: string, baseUrl: string, domainKey: DomainKey): Promise<string | null> {
+  const slug = path.replace(/^\/+/, "").replace(/\/+$/, "");
+  if (!slug) return null;
+  const meta = DOMAIN_SEO[domainKey];
+  let row: typeof seoPages.$inferSelect | undefined;
+  try {
+    [row] = await db
+      .select()
+      .from(seoPages)
+      .where(and(eq(seoPages.slug, slug), eq(seoPages.indexed, true)))
+      .limit(1);
+  } catch {
+    return null;
+  }
+  if (!row) return null;
+  const jsonLd: object[] = [];
+  if (row.schemaMarkup && typeof row.schemaMarkup === "object") jsonLd.push(row.schemaMarkup as object);
+  jsonLd.push(breadcrumbSchema(baseUrl, "/" + slug, row.title));
+  return buildHead({
+    title: row.title.includes("MKA") ? row.title : `${row.title} | ${meta.siteName}`,
+    description: row.metaDescription,
+    keywords: Array.isArray(row.keywords) ? (row.keywords as string[]).join(", ") : meta.keywords,
+    canonical: row.canonicalUrl || `${baseUrl}/${slug}`,
+    image: row.ogImage || undefined,
+    lang: meta.lang,
+    jsonLd,
+  });
+}
+
 // ─── Exports publics ──────────────────────────────────────────────────────────
 
 /**
- * Injecte les balises SEO dans l'index.html pour les pages d'annonce.
- * Ajoute également les meta par défaut du domaine sur toutes les pages.
+ * Injecte les balises SEO par page dans l'index.html servi aux robots.
+ * Ordre de résolution : annonce (/vehicule/:id) → page programmatique
+ * (seo_pages) → page publique curée → meta par défaut du domaine.
+ * Le nom est conservé pour compatibilité avec les appels existants.
  */
 export async function injectAnnonceSeo(req: Request, html: string): Promise<string> {
   const host = hostFrom(req);
   const domainKey = resolveDomain(host);
   const meta = DOMAIN_SEO[domainKey];
   const baseUrl = baseUrlFrom(req);
+  const path = req.path;
 
-  // Injecter les meta par défaut du domaine (lang, keywords, og:site_name)
+  // Meta transversales du domaine (toujours présentes)
   const domainMeta = [
-    `<meta name="keywords" content="${escapeHtml(meta.keywords)}" />`,
     `<meta property="og:site_name" content="${escapeHtml(meta.siteName)}" />`,
     `<meta property="og:locale" content="${meta.ogLocale}" />`,
   ].join("\n    ");
 
-  let result = html.replace("<!--SEO-->", domainMeta);
-
-  // Injecter le SEO spécifique à l'annonce si on est sur /vehicule/:id
-  const m = req.path.match(/^\/vehicule\/(\d+)/);
-  if (m) {
-    try {
-      const head = await annonceSeoHead(Number(m[1]), baseUrl, domainKey);
-      if (head) {
-        result = result
-          .replace(/<title>[\s\S]*?<\/title>/, "")
-          .replace("<!--SEO-->", head);
-      }
-    } catch {
-      // Silencieux — on retourne le HTML avec les meta domaine
+  // <head> spécifique à la page (title/description/canonical/OG/JSON-LD)
+  let pageHead: string | null = null;
+  try {
+    const vm = path.match(/\/vehicule\/(\d+)(?:$|[/?])/);
+    if (vm) {
+      pageHead = await annonceSeoHead(Number(vm[1]), baseUrl, domainKey);
     }
+    if (!pageHead) pageHead = await seoPageHead(path, baseUrl, domainKey);
+    if (!pageHead) pageHead = staticSeoHead(path, baseUrl, domainKey);
+  } catch {
+    pageHead = null;
   }
 
-  return result;
+  if (pageHead) {
+    // La page fournit son propre title/description/OG → on retire ceux par défaut
+    // du template pour éviter les doublons vus par Google.
+    const cleaned = html
+      .replace(/<title>[\s\S]*?<\/title>/, "")
+      .replace(/<meta\s+name="description"[^>]*>/i, "")
+      .replace(/<meta\s+property="og:title"[^>]*>/i, "")
+      .replace(/<meta\s+property="og:description"[^>]*>/i, "")
+      .replace(/<meta\s+name="twitter:title"[^>]*>/i, "")
+      .replace(/<meta\s+name="twitter:description"[^>]*>/i, "");
+    return cleaned.replace("<!--SEO-->", `${domainMeta}\n    ${pageHead}`);
+  }
+
+  // Pas de page spécifique → au minimum les meta domaine + mots-clés
+  const fallback = `${domainMeta}\n    <meta name="keywords" content="${escapeHtml(meta.keywords)}" />`;
+  return html.replace("<!--SEO-->", fallback);
 }
 
 /**
