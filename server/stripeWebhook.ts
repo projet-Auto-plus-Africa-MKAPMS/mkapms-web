@@ -3,10 +3,56 @@ import type Stripe from "stripe";
 import { eq } from "drizzle-orm";
 import { db } from "./db.js";
 import { payments, subscriptions, bookings, annonces, users } from "./schema.js";
+import { notifications } from "./modules/core.js";
 import { getStripe } from "./lib/stripe.js";
 import { getPlan } from "@shared/plans.js";
 import { awardPoints } from "./routers/operations.js";
+import { logActivity } from "./smart-engine/services/activity-log.js";
 import { env } from "./env.js";
+
+/**
+ * Supervision d'un paiement (§2) — fire-and-forget, jamais bloquant pour le
+ * webhook : notifie le client en base, et enregistre l'événement au Journal du
+ * Système Intelligent (visible dans le Control Center PDG). La validation
+ * financière reste celle du webhook Stripe signé.
+ */
+async function superviserPaiement(opts: {
+  userId: number | null;
+  title: string;
+  body: string;
+  url?: string;
+  action: string;
+  targetType?: string;
+  targetId?: number | null;
+  data?: Record<string, unknown>;
+  result?: string;
+}) {
+  try {
+    if (opts.userId) {
+      await db.insert(notifications).values({
+        userId: opts.userId,
+        type: "paiement",
+        title: opts.title.slice(0, 160),
+        body: opts.body,
+        url: opts.url ?? "/compte",
+      });
+    }
+  } catch (err) {
+    console.error("[payment] notification client échouée:", (err as Error).message);
+  }
+  try {
+    await logActivity({
+      action: opts.action,
+      userId: opts.userId ?? undefined,
+      targetType: opts.targetType ?? "payment",
+      targetId: opts.targetId ?? undefined,
+      data: opts.data,
+      result: opts.result ?? "success",
+    });
+  } catch (err) {
+    console.error("[payment] journal Smart Engine échoué:", (err as Error).message);
+  }
+}
 
 // Webhook Stripe — monté AVANT express.json() avec express.raw().
 export async function handleStripeWebhook(req: Request, res: Response) {
@@ -48,6 +94,20 @@ export async function handleStripeWebhook(req: Request, res: Response) {
           // Partie 18 — fidélité : 1 point MKA par euro payé.
           const amount = session.amount_total ? Math.round(session.amount_total / 100) : 0;
           if (userId && amount > 0) await awardPoints(userId, amount, "paiement", "payment", paymentId);
+          // Supervision (§2) : notifier le client + journal Smart Engine.
+          const montantTxt =
+            session.amount_total != null
+              ? `${(session.amount_total / 100).toLocaleString("fr-FR")} ${(session.currency ?? "eur").toUpperCase()}`
+              : "";
+          await superviserPaiement({
+            userId,
+            title: "Paiement confirmé",
+            body: `Votre paiement${montantTxt ? ` de ${montantTxt}` : ""} a bien été reçu. Merci.`,
+            url: "/compte",
+            action: "payment_succeeded",
+            targetId: paymentId,
+            data: { kind: m.payment_kind ?? null, amount, currency: session.currency ?? null },
+          });
         }
         if (userId && session.customer) {
           await db
@@ -78,6 +138,15 @@ export async function handleStripeWebhook(req: Request, res: Response) {
           if (plan?.audience === "pro" || plan?.audience === "franchise") {
             await db.update(users).set({ accountType: "professionnel" }).where(eq(users.id, userId));
           }
+          await superviserPaiement({
+            userId,
+            title: "Abonnement activé",
+            body: `Votre abonnement ${plan?.label ?? planCode} est maintenant actif.`,
+            url: "/abonnements",
+            action: "subscription_activated",
+            targetType: "subscription",
+            data: { planCode },
+          });
         }
         // Acompte réservation
         if (m.payment_kind === "reservation_acompte" && m.booking_id) {
@@ -85,6 +154,15 @@ export async function handleStripeWebhook(req: Request, res: Response) {
             .update(bookings)
             .set({ status: "accepted", cautionStatus: "paid", updatedAt: new Date() })
             .where(eq(bookings.id, Number(m.booking_id)));
+          await superviserPaiement({
+            userId,
+            title: "Réservation confirmée",
+            body: "Votre acompte a été reçu : le véhicule est bloqué pour vous.",
+            url: "/compte",
+            action: "reservation_confirmed",
+            targetType: "booking",
+            targetId: Number(m.booking_id),
+          });
         }
         // Boost annonce
         if (session.mode === "payment" && m.annonce_id && planCode) {
@@ -104,10 +182,46 @@ export async function handleStripeWebhook(req: Request, res: Response) {
       case "charge.refunded": {
         const charge = event.data.object as Stripe.Charge;
         if (charge.payment_intent) {
-          await db
+          const [refunded] = await db
             .update(payments)
             .set({ status: "refunded", updatedAt: new Date() })
-            .where(eq(payments.stripePaymentIntentId, charge.payment_intent as string));
+            .where(eq(payments.stripePaymentIntentId, charge.payment_intent as string))
+            .returning();
+          if (refunded) {
+            await superviserPaiement({
+              userId: refunded.userId ?? null,
+              title: "Remboursement effectué",
+              body: "Votre paiement a été remboursé.",
+              url: "/compte",
+              action: "payment_refunded",
+              targetId: refunded.id,
+              result: "success",
+            });
+          }
+        }
+        break;
+      }
+      case "checkout.session.expired": {
+        // Paiement abandonné/expiré → on repasse le payment en 'cancelled'
+        // (jamais 'paid' sans confirmation signée) + journal Smart Engine.
+        const session = event.data.object as Stripe.Checkout.Session;
+        const m = session.metadata || {};
+        const paymentId = m.payment_id ? Number(m.payment_id) : null;
+        const userId = m.user_id ? Number(m.user_id) : null;
+        if (paymentId) {
+          await db
+            .update(payments)
+            .set({ status: "cancelled", updatedAt: new Date() })
+            .where(eq(payments.id, paymentId));
+          await superviserPaiement({
+            userId,
+            title: "Paiement non finalisé",
+            body: "Votre paiement n'a pas été finalisé. Vous pouvez réessayer quand vous le souhaitez.",
+            url: "/compte",
+            action: "payment_expired",
+            targetId: paymentId,
+            result: "failure",
+          });
         }
         break;
       }
