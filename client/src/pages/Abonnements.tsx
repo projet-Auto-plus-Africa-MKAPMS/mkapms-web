@@ -53,16 +53,56 @@ export default function Abonnements() {
     const target = byRole[user.role];
     if (target) setTab(target);
   }, [user]);
+
+  // Reprise auto d'un checkout après connexion : si l'utilisateur a cliqué
+  // 'S'abonner' avant de se connecter, on relance automatiquement le paiement.
+  useEffect(() => {
+    if (!user) return;
+    try {
+      const pending = sessionStorage.getItem("mkapms_pending_plan");
+      if (pending) {
+        sessionStorage.removeItem("mkapms_pending_plan");
+        setPendingCode(pending);
+        checkout.mutate({ planCode: pending });
+      }
+    } catch { /* stockage indisponible */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
   const checkout = trpc.abonnements.createCheckout.useMutation({
     onSuccess: (r) => {
       if (r.url) window.location.href = r.url;
     },
+    onError: (err) => {
+      setErrMsg(err.message || "Impossible de démarrer le paiement pour le moment.");
+    },
   });
+  const openPortal = trpc.abonnements.openPortal.useMutation({
+    onSuccess: (r) => {
+      if (r.url) window.location.href = r.url;
+    },
+    onError: (err) => {
+      setErrMsg(err.message || "Impossible d'ouvrir le portail de gestion.");
+    },
+  });
+  const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [pendingCode, setPendingCode] = useState<string | null>(null);
 
   const filtered = tab !== "publicite" ? (plans.data?.filter((p) => p.category === tab) ?? []) : [];
 
-  function subscribe(code: string) {
-    if (!user) return navigate("/connexion");
+  function subscribe(code: string, priceEur: number | null) {
+    setErrMsg(null);
+    if (!user) {
+      // Sauvegarde l'offre visée pour reprise après connexion
+      try {
+        sessionStorage.setItem("mkapms_pending_plan", code);
+      } catch { /* stockage indisponible */ }
+      return navigate("/connexion?return=/abonnements");
+    }
+    if (priceEur == null) {
+      // Offre "sur demande" → redirection vers le formulaire de contact
+      return navigate(`/contact?sujet=${encodeURIComponent(`Offre sur demande — ${code}`)}`);
+    }
+    setPendingCode(code);
     checkout.mutate({ planCode: code });
   }
 
@@ -72,6 +112,45 @@ export default function Abonnements() {
       <p className="mt-2 text-center text-slate-500">
         Sans engagement. Paiement sécurisé Stripe. Affichage multi-devises automatique.
       </p>
+
+      {/* Bannière d'erreur (KYC manquant, Stripe non configuré, etc.) */}
+      {errMsg && (
+        <div
+          className="mx-auto mt-6 max-w-2xl rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+          role="alert"
+          data-testid="subscribe-error"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <span>{errMsg}</span>
+            <button
+              onClick={() => setErrMsg(null)}
+              className="shrink-0 text-red-500 hover:text-red-700"
+              aria-label="Fermer"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Gérer un abonnement existant (portail client Stripe) */}
+      {user && (
+        <div className="mx-auto mt-4 max-w-2xl text-center">
+          <button
+            onClick={() => {
+              setErrMsg(null);
+              openPortal.mutate({});
+            }}
+            disabled={openPortal.isPending}
+            className="text-xs font-semibold uppercase tracking-widest text-slate-500 underline underline-offset-4 hover:text-slate-800"
+            data-testid="open-portal-btn"
+          >
+            {openPortal.isPending
+              ? "Ouverture du portail…"
+              : "Gérer mon abonnement (annulation, factures, changement de plan)"}
+          </button>
+        </div>
+      )}
 
       {/* Particulier → devenir professionnel (accès aux offres pro) */}
       {(user?.role === "user" || user?.role === "particulier") && (
@@ -139,10 +218,17 @@ export default function Abonnements() {
             </ul>
             <button
               className={p.highlight ? "btn-primary mt-6" : "btn-outline mt-6"}
-              disabled={checkout.isPending}
-              onClick={() => subscribe(p.code)}
+              disabled={checkout.isPending && pendingCode === p.code}
+              onClick={() => subscribe(p.code, p.priceEur)}
+              data-testid={`subscribe-btn-${p.code}`}
             >
-              {p.priceEur == null ? "Contacter la Direction" : tab === "particulier" ? "Choisir cette option" : "S'abonner"}
+              {checkout.isPending && pendingCode === p.code
+                ? "Redirection Stripe…"
+                : p.priceEur == null
+                  ? "Contacter la Direction"
+                  : tab === "particulier"
+                    ? "Choisir cette option"
+                    : "S'abonner"}
             </button>
           </div>
         ))}
