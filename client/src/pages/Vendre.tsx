@@ -403,17 +403,39 @@ export default function Vendre() {
   }, [editId, editLoaded, editQuery.data]);
 
   // Hero carousel pour landing page
-  const HERO_PHOTOS_VENDRE = [
-    "/categories/cover_mkapms.jpg",
-    "/categories/cover_particulier.jpg",
-    "/categories/cover_pro.jpg",
-    "/categories/cover_moto.jpg",
+  const HERO_VIDEOS_VENDRE = [
+    { src: "/videos/vendre/vendre_hero1.mp4", label: "Annonce" },
+    { src: "/videos/vendre/vendre_hero2.mp4", label: "Photos" },
+    { src: "/videos/vendre/vendre_hero3.mp4", label: "Publication" },
+    { src: "/videos/vendre/vendre_hero4.mp4", label: "Contact" },
+    { src: "/videos/vendre/vendre_hero5.mp4", label: "Vente" },
   ];
   const [heroIdxV, setHeroIdxV] = useState(0);
+  const [heroProgressV, setHeroProgressV] = useState(0);
+  const progressRefV = useRef<ReturnType<typeof setInterval> | null>(null);
+  const videoRefsV = useRef<(HTMLVideoElement | null)[]>([]);
   useEffect(() => {
-    const t = setInterval(() => setHeroIdxV((i) => (i + 1) % HERO_PHOTOS_VENDRE.length), 4000);
-    return () => clearInterval(t);
-  }, []);
+    if (progressRefV.current) clearInterval(progressRefV.current);
+    setHeroProgressV(0);
+    const step = 100 / (8000 / 50);
+    progressRefV.current = setInterval(() => {
+      setHeroProgressV((p) => {
+        if (p + step >= 100) {
+          setHeroIdxV((i) => (i + 1) % HERO_VIDEOS_VENDRE.length);
+          return 0;
+        }
+        return p + step;
+      });
+    }, 50);
+    return () => { if (progressRefV.current) clearInterval(progressRefV.current); };
+  }, [heroIdxV]);
+  useEffect(() => {
+    videoRefsV.current.forEach((v, i) => {
+      if (!v) return;
+      if (i === heroIdxV) { v.currentTime = 0; v.play().catch(() => {}); }
+      else { v.pause(); }
+    });
+  }, [heroIdxV]);
 
   const equipRef = famille === "moto" ? EQUIPEMENTS_MOTO : EQUIPEMENTS_AUTO;
   const marquesRef = famille === "moto" ? MARQUES_MOTO : MARQUES_AUTO;
@@ -695,76 +717,79 @@ export default function Vendre() {
   if (mode === "landing") {
     return (
       <div className="min-h-screen bg-[#F5F3EF]">
-        {/* ── HERO PREMIUM ── */}
-        {(() => {
-          const STATS_VENDRE = [
-            { val: "+120 000", label: "acheteurs actifs" },
-            { val: "100%", label: "gratuit particuliers" },
-            { val: "4,8/5", label: "satisfaction vendeurs" },
-          ];
-          return (
-            <div className="relative overflow-hidden bg-[#111] px-4 pt-6 pb-12">
-              {/* Fond carousel */}
-              <div className="absolute inset-0">
-                {HERO_PHOTOS_VENDRE.map((src, i) => (
-                  <img
-                    key={i}
-                    src={src}
-                    alt=""
-                    className="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000"
-                    style={{ opacity: i === heroIdxV ? 0.18 : 0 }}
-                  />
-                ))}
-              </div>
-              {/* Badge */}
-              <div className="relative z-10 flex justify-center mb-3">
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-1.5 text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider">
-                  <Upload size={12} /> Vendre votre véhicule
-                </span>
-              </div>
-              {/* Titre centré */}
-              <div className="relative z-10 text-center">
-                <h1 className="text-[26px] md:text-5xl font-black text-white leading-tight">
-                  VENDEZ FACILEMENT<br />VOTRE <span className="text-[#D4AF37]">VÉHICULE</span>
-                </h1>
-                <p className="mt-3 text-sm text-white/70 max-w-sm mx-auto">
-                  Des milliers d'acheteurs vous font déjà confiance.<br />
-                  Déposez votre annonce en quelques minutes et vendez au meilleur prix.
-                </p>
-              </div>
-              {/* Avantages */}
-              <div className="relative z-10 mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5">
-                {[
-                  { icon: CheckCircle, text: "100% Gratuit pour les particuliers" },
-                  { icon: Zap, text: "Publication rapide" },
-                  { icon: Eye, text: "Visibilité maximale" },
-                  { icon: Lock, text: "Messagerie sécurisée" },
-                  { icon: Shield, text: "Paiement sécurisé" },
-                ].map((b) => (
-                  <div key={b.text} className="flex items-center gap-1.5">
-                    <b.icon size={13} className="text-[#D4AF37] shrink-0" />
-                    <span className="text-xs text-white/90">{b.text}</span>
-                  </div>
-                ))}
-              </div>
-              {/* Stats */}
-              <div className="relative z-10 mt-5 flex items-center justify-center gap-3 flex-wrap">
-                {STATS_VENDRE.map((s) => (
-                  <div key={s.val} className="flex flex-col items-center rounded-xl bg-white/10 backdrop-blur px-4 py-2 border border-white/10">
-                    <span className="text-base font-black text-[#D4AF37]">{s.val}</span>
-                    <span className="text-[9px] text-white/60 mt-0.5">{s.label}</span>
-                  </div>
-                ))}
-              </div>
-              {/* Indicateurs carousel */}
-              <div className="relative z-10 flex justify-center gap-1.5 mt-4">
-                {HERO_PHOTOS_VENDRE.map((_, i) => (
-                  <button key={i} onClick={() => setHeroIdxV(i)} className={`h-1.5 rounded-full transition-all ${i === heroIdxV ? "w-6 bg-[#D4AF37]" : "w-1.5 bg-white/30"}`} />
-                ))}
-              </div>
+        {/* ── HERO PREMIUM VIDÉO CAROUSEL ── */}
+        <div className="relative overflow-hidden bg-[#111]" style={{ height: "72vw", maxHeight: 420, minHeight: 280 }}>
+          {/* Vidéos préchargées */}
+          {HERO_VIDEOS_VENDRE.map((v, i) => (
+            <video
+              key={i}
+              ref={(el) => { videoRefsV.current[i] = el; }}
+              src={v.src}
+              muted
+              playsInline
+              loop
+              preload="auto"
+              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
+              style={{ opacity: i === heroIdxV ? 1 : 0 }}
+            />
+          ))}
+          {/* Overlay sombre */}
+          <div className="absolute inset-0 bg-black/55" />
+          {/* Badge */}
+          <div className="absolute top-4 left-0 right-0 z-10 flex justify-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-1.5 text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider backdrop-blur">
+              <Upload size={12} /> Vendre votre véhicule
+            </span>
+          </div>
+          {/* Titre + Sous-titre + Stats — bloc vertical centré */}
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 pt-10 pb-12 gap-2">
+            <h1 className="text-[26px] md:text-3xl font-black text-white leading-tight text-center">
+              Vendez facilement<br />
+              votre <span className="text-[#D4AF37]">véhicule</span>
+            </h1>
+            <p className="text-sm text-white/70 leading-relaxed max-w-sm mx-auto text-center">
+              Particulier ou professionnel — déposez votre annonce en quelques minutes.
+            </p>
+            {/* Stats */}
+            <div className="flex items-center justify-center gap-2 flex-nowrap w-full mt-1">
+              {[
+                { val: "+120 000", label: "acheteurs actifs" },
+                { val: "100%", label: "gratuit particuliers" },
+                { val: "4,8/5", label: "satisfaction vendeurs" },
+              ].map((s) => (
+                <div key={s.val} className="flex flex-col items-center rounded-xl bg-white/10 backdrop-blur px-3 py-2 border border-white/10 flex-1 min-w-0">
+                  <span className="text-sm font-black text-[#D4AF37] whitespace-nowrap">{s.val}</span>
+                  <span className="text-[9px] text-white/60 mt-0.5 text-center leading-tight">{s.label}</span>
+                </div>
+              ))}
             </div>
-          );
-        })()}
+          </div>
+          {/* Indicateurs barre de progression */}
+          <div className="absolute bottom-3 left-0 right-0 z-20 px-4">
+            <div className="flex gap-1.5 justify-center mb-1">
+              {HERO_VIDEOS_VENDRE.map((v, i) => (
+                <button
+                  key={i}
+                  onClick={() => setHeroIdxV(i)}
+                  className="relative h-[3px] rounded-full overflow-hidden bg-white/30 flex-1 max-w-[60px]"
+                  title={v.label}
+                >
+                  <div
+                    className="absolute left-0 top-0 h-full bg-[#D4AF37] transition-none"
+                    style={{ width: i === heroIdxV ? `${heroProgressV}%` : i < heroIdxV ? "100%" : "0%" }}
+                  />
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1.5 justify-center">
+              {HERO_VIDEOS_VENDRE.map((v, i) => (
+                <span key={i} className={`flex-1 max-w-[60px] text-center text-[8px] font-semibold truncate ${
+                  i === heroIdxV ? "text-[#D4AF37]" : "text-white/40"
+                }`}>{v.label}</span>
+              ))}
+            </div>
+          </div>
+        </div>
 
         {/* ── DEUX CARTES : Déposer / Estimer ── */}
         <div className="px-4 md:px-8 max-w-6xl mx-auto -mt-6 relative z-10">
