@@ -679,6 +679,15 @@ export const annoncesRouter = router({
         categorieAnnonce = "particulier";
       }
 
+      // Un compte particulier ne peut PAS déposer une annonce de location
+      // (il peut louer un véhicule, mais pas en proposer un à la location).
+      if (input.type === "location" && categorieAnnonce === "particulier") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Le dépôt d'annonces de location est réservé aux comptes professionnels. Vous pouvez louer un véhicule depuis l'espace Location.",
+        });
+      }
+
       // Déduire vendeurType et ownership depuis categorieAnnonce
       const vendeurType = categorieAnnonce === "particulier" ? "particulier" : "professionnel";
       const ownership = categorieAnnonce === "officielle" ? "plateforme" : "client";

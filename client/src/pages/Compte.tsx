@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { Camera, CheckCircle2, Pencil, Trash2, X, RefreshCw, Clock } from "lucide-react";
+import { Camera, CheckCircle2, Pencil, Trash2, X, RefreshCw, Clock, ChevronDown, LogOut, User as UserIcon, Bell, Grid3x3, Megaphone, FileText, Search as SearchIcon, CalendarCheck, Crown, FolderLock, HelpCircle, Plus, Car, Bike, Truck, Bus, KeyRound } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
@@ -46,9 +47,45 @@ const ALL_SERVICES = [
 
 const TIER_LABELS: Record<string, string> = { bronze: "Bronze", silver: "Silver", gold: "Gold", platinum: "Platinum", elite: "Elite" };
 
+const TAB_LABELS: Record<Tab, string> = {
+  annonces: "Mes annonces",
+  "toutes-annonces": "Toutes les annonces",
+  publicites: "Publicit\u00e9s",
+  favoris: "Favoris",
+  recherches: "Recherches",
+  reservations: "R\u00e9servations",
+  devis: "Devis Garage",
+  abonnements: "Abonnements",
+  litiges: "Litiges",
+  fidelite: "Rewards",
+  coffre: "Coffre-fort",
+  vehicules: "Dossier V\u00e9hicules",
+  rapports: "Rapports Historique",
+  services: "Services",
+  profil: "Profil",
+  notifications: "Notifications",
+};
+
+// Sections repliables (accord\u00e9on) — chaque groupe a une fl\u00e8che, s'ouvre en dessous.
+// Aucune fonction retir\u00e9e : chaque onglet existant est rang\u00e9 dans sa section.
+const GROUP_DEFS: { key: string; label: string; icon: LucideIcon; tabs: Tab[] }[] = [
+  { key: "annonces", label: "Annonces", icon: FileText, tabs: ["annonces", "toutes-annonces", "publicites"] },
+  { key: "recherche", label: "Recherches & Favoris", icon: SearchIcon, tabs: ["favoris", "recherches"] },
+  { key: "transactions", label: "R\u00e9servations & Devis", icon: CalendarCheck, tabs: ["reservations", "devis", "litiges"] },
+  { key: "abo", label: "Abonnements & Rewards", icon: Crown, tabs: ["abonnements", "fidelite"] },
+  { key: "docs", label: "Documents & V\u00e9hicules", icon: FolderLock, tabs: ["coffre", "vehicules", "rapports"] },
+  { key: "notif", label: "Notifications", icon: Bell, tabs: ["notifications"] },
+  { key: "services", label: "Services", icon: Grid3x3, tabs: ["services"] },
+  { key: "profil", label: "Profil & Compte", icon: UserIcon, tabs: ["profil"] },
+];
+const TAB_TO_GROUP: Record<string, string> = GROUP_DEFS.reduce((acc, g) => {
+  g.tabs.forEach((t) => (acc[t] = g.key));
+  return acc;
+}, {} as Record<string, string>);
+
 export default function Compte() {
   const { format: formatPrice } = useCurrency();
-  const { user, logout, isSessionLoading } = useAuth();
+  const { user, isSessionLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [tab, setTab] = useState<Tab>("annonces");
@@ -60,11 +97,15 @@ export default function Compte() {
     const params = new URLSearchParams(location.search);
     if (params.get("success") === "1") {
       setTab("abonnements");
+      setOpenGroups((g) => (g.includes("abo") ? g : [...g, "abo"]));
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 5000);
     }
     if (params.get("tab")) {
-      setTab(params.get("tab") as Tab);
+      const t = params.get("tab") as Tab;
+      setTab(t);
+      const grp = TAB_TO_GROUP[t];
+      if (grp) setOpenGroups((g) => (g.includes(grp) ? g : [...g, grp]));
     }
   }, [location]);
 
@@ -90,6 +131,16 @@ export default function Compte() {
   const createDossier = trpc.dossiers.create.useMutation({ onSuccess: () => { utils.dossiers.list.invalidate(); setDossier({ marque: "", modele: "", immatriculation: "" }); } });
   const [doc, setDoc] = useState({ category: "carte_grise", title: "", fileUrl: "" });
   const [dossier, setDossier] = useState({ marque: "", modele: "", immatriculation: "" });
+  const [openGroups, setOpenGroups] = useState<string[]>(["annonces"]);
+  const [showDepositChooser, setShowDepositChooser] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+  function toggleGroup(k: string) {
+    setOpenGroups((g) => (g.includes(k) ? g.filter((x) => x !== k) : [...g, k]));
+  }
+  function selectItem(t: Tab) {
+    setTab(t);
+    setTimeout(() => contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  }
 
   if (isSessionLoading) {
     return <div className="container-page py-16 text-center text-slate-500">Chargement...</div>;
@@ -103,30 +154,11 @@ export default function Compte() {
     );
   }
 
-  const baseTabs: [Tab, string][] = [
-    ["annonces", "Mes annonces"],
-    ["favoris", "Favoris"],
-    ["recherches", "Recherches"],
-    ["reservations", "Réservations"],
-    ["devis", "Devis Garage"],
-    ["abonnements", "Abonnements"],
-    ["litiges", "Litiges"],
-    ["fidelite", "Rewards"],
-    ["coffre", "Coffre-fort"],
-    ["vehicules", "Dossier V\u00e9hicules"],
-    ["rapports", "Rapports Historique"],
-    ["notifications", "Notifications"],
-    ["services", "Services"],
-    ["profil", "Profil"],
-  ];
-  const adminTabs: [Tab, string][] = isAdmin(user.role)
-    ? [["toutes-annonces", "Toutes les annonces"], ["publicites", "Publicités"]]
-    : [];
-  const TABS: [Tab, string][] = [
-    ["annonces", "Mes annonces"],
-    ...adminTabs,
-    ...baseTabs.slice(1),
-  ];
+  // Onglets réservés admin/PDG — filtrés hors des sections pour les autres rôles.
+  const adminOnlyTabs: Tab[] = ["toutes-annonces", "publicites"];
+  const canSeeTab = (t: Tab) => (adminOnlyTabs.includes(t) ? isAdmin(user.role) : true);
+  // Groupes visibles = ceux qui ont au moins un onglet autorisé pour ce rôle.
+  const groups = GROUP_DEFS.map((g) => ({ ...g, tabs: g.tabs.filter(canSeeTab) })).filter((g) => g.tabs.length > 0);
 
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const photoRef = useRef<HTMLInputElement>(null);
@@ -189,7 +221,6 @@ export default function Compte() {
           {isPro(user.role) && <Link to="/garage-plus" className="btn-outline">Espace Garage+</Link>}
           {isAdmin(user.role) && <Link to="/admin" className="btn-primary">Back-office</Link>}
           {user.role === "super_admin" && <Link to="/admin" className="rounded-lg bg-[#111] px-4 py-2 text-xs font-bold text-[#D4AF37] hover:bg-[#222]">Super Admin</Link>}
-          <button className="btn-outline" onClick={() => { logout(); navigate("/"); }}>Déconnexion</button>
         </div>
       </div>
 
@@ -230,22 +261,59 @@ export default function Compte() {
         </Link>
       )}
 
-      <div className="mt-6 flex flex-wrap gap-1 border-b border-slate-200">
-        {TABS.map(([v, l]) => (
-          <button
-            key={v}
-            onClick={() => { setTab(v); window.scrollTo(0, 0); }}
-            className={`px-4 py-2 text-sm font-semibold ${tab === v ? "border-b-2 border-gold text-noir" : "text-slate-500"}`}
-          >
-            {l}
-          </button>
-        ))}
+      {/* Bouton principal — Déposer une annonce (choix du type d'abord) */}
+      <button
+        onClick={() => setShowDepositChooser(true)}
+        className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-3.5 text-sm font-bold text-white shadow-md transition hover:bg-[#C5A028] active:scale-[0.99] sm:w-auto"
+      >
+        <Plus size={18} /> Déposer une annonce
+      </button>
+
+      {/* Navigation en sections repliables (accordéon à flèches) */}
+      <div className="mt-6 space-y-2">
+        {groups.map((g) => {
+          const isOpen = openGroups.includes(g.key);
+          const Icon = g.icon;
+          return (
+            <div key={g.key} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+              <button
+                onClick={() => toggleGroup(g.key)}
+                aria-expanded={isOpen}
+                className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-slate-50"
+              >
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#D4AF37]/10 text-[#D4AF37]">
+                  <Icon size={18} />
+                </span>
+                <span className="flex-1 font-semibold text-slate-800">{g.label}</span>
+                <ChevronDown size={18} className={`shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+              </button>
+              {isOpen && (
+                <div className="border-t border-slate-100">
+                  {g.tabs.map((t) => {
+                    const active = tab === t;
+                    return (
+                      <button
+                        key={t}
+                        onClick={() => selectItem(t)}
+                        aria-current={active}
+                        className={`flex w-full items-center gap-2 border-b border-slate-50 py-3 pl-14 pr-4 text-left text-sm transition last:border-0 ${active ? "bg-[#FFFBEB] font-semibold text-[#111]" : "text-slate-600 hover:bg-slate-50"}`}
+                      >
+                        <span className="flex-1">{TAB_LABELS[t]}</span>
+                        <ChevronDown size={16} className={`shrink-0 transition-transform ${active ? "rotate-180 text-[#D4AF37]" : "text-slate-300"}`} />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      <div className="mt-6">
+      <div ref={contentRef} className="mt-6 scroll-mt-20">
         {tab === "annonces" && (
           <div className="space-y-3">
-            <Link to="/vendre" className="btn-primary inline-flex">+ Déposer une annonce</Link>
+            <button onClick={() => setShowDepositChooser(true)} className="btn-primary inline-flex">+ Déposer une annonce</button>
             {mineAnnonces.data?.map((a) => (
               <div key={a.id} className="card overflow-hidden">
                 <Link to={getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)} className="flex items-center justify-between p-4 hover:bg-slate-50 transition cursor-pointer">
@@ -573,6 +641,7 @@ export default function Compte() {
             <h2 className="text-xl font-black text-[#111] flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-[#D4AF37]" /> Notifications
             </h2>
+            <NotifPrefs />
             <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 text-center">
               <p className="text-sm font-bold text-[#111] mb-4">Accédez à votre centre de notifications complet.</p>
               <Link to="/notifications" className="inline-block rounded-xl bg-[#D4AF37] px-6 py-3 text-xs font-bold text-white">Ouvrir les notifications</Link>
@@ -623,7 +692,7 @@ export default function Compte() {
               ))}
               {/* Bloc Publicités — dans la grille comme les autres */}
               {isAdmin(user.role) && (
-                <button onClick={() => { setTab("publicites"); window.scrollTo(0, 0); }} className="group flex flex-col items-center gap-2 rounded-xl border-2 border-[#D4AF37]/40 bg-[#FFFDF5] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                <button onClick={() => { setOpenGroups((g) => (g.includes("annonces") ? g : [...g, "annonces"])); selectItem("publicites"); }} className="group flex flex-col items-center gap-2 rounded-xl border-2 border-[#D4AF37]/40 bg-[#FFFDF5] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
                   <span className="text-3xl">📢</span>
                   <h3 className="text-xs font-bold text-[#111]">Publicités</h3>
                   <p className="text-[10px] text-slate-500 leading-tight">Emplacements & tarifs pub</p>
@@ -671,21 +740,89 @@ export default function Compte() {
           </div>
         </div>
       )}
+
+      {/* ── Modal : choix du type de véhicule avant le dépôt d'annonce ── */}
+      {showDepositChooser && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50" onClick={() => setShowDepositChooser(false)}>
+          <div className="w-full max-w-md rounded-t-2xl sm:rounded-2xl bg-white p-5 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-lg font-bold text-[#111]">Que voulez-vous déposer ?</h2>
+              <button onClick={() => setShowDepositChooser(false)} className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center"><X size={16} /></button>
+            </div>
+            <p className="text-xs text-slate-500 mb-4">Choisissez d'abord le type de véhicule.</p>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: "Voiture", icon: Car, to: "/vendre?depot=1&famille=auto" },
+                { label: "Moto / Scooter", icon: Bike, to: "/vendre?depot=1&famille=moto" },
+                { label: "Utilitaire", icon: Bus, to: "/vendre?depot=1&famille=auto&categorie=utilitaires" },
+                { label: "Camion", icon: Truck, to: "/vendre?depot=1&famille=auto&categorie=camions" },
+              ].map((v) => (
+                <button
+                  key={v.label}
+                  onClick={() => { setShowDepositChooser(false); navigate(v.to); }}
+                  className="flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-white p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md active:scale-95"
+                >
+                  <span className="grid h-11 w-11 place-items-center rounded-full bg-[#D4AF37]/10 text-[#D4AF37]"><v.icon size={22} /></span>
+                  <span className="text-sm font-bold text-[#111]">{v.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Location — un particulier ne peut PAS déposer une annonce de location, mais peut louer */}
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              <p className="text-xs font-semibold text-slate-500 mb-2">Location</p>
+              {isPro(user.role) || isAdmin(user.role) ? (
+                <button
+                  onClick={() => { setShowDepositChooser(false); navigate("/vendre?depot=1&type=location"); }}
+                  className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3.5 text-left transition hover:border-[#D4AF37] hover:shadow-md active:scale-[0.99]"
+                >
+                  <span className="grid h-10 w-10 place-items-center rounded-full bg-[#D4AF37]/10 text-[#D4AF37]"><KeyRound size={20} /></span>
+                  <span className="flex-1"><span className="block text-sm font-bold text-[#111]">Mettre un véhicule en location</span><span className="block text-[11px] text-slate-500">Réservé aux comptes professionnels</span></span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setShowDepositChooser(false); navigate("/louer"); }}
+                  className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3.5 text-left transition hover:border-[#D4AF37] hover:shadow-md active:scale-[0.99]"
+                >
+                  <span className="grid h-10 w-10 place-items-center rounded-full bg-[#D4AF37]/10 text-[#D4AF37]"><KeyRound size={20} /></span>
+                  <span className="flex-1"><span className="block text-sm font-bold text-[#111]">Louer un véhicule</span><span className="block text-[11px] text-slate-500">Le dépôt en location est réservé aux pros — vous pouvez louer un véhicule.</span></span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 function ProfilForm() {
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
+  const navigate = useNavigate();
+  const u = user as Record<string, unknown> | null;
   const [form, setForm] = useState({
+    firstName: (u?.firstName as string) || (user?.name?.split(" ")[0] ?? ""),
+    lastName: (u?.lastName as string) || (user?.name?.split(" ").slice(1).join(" ") ?? ""),
     name: user?.name || "",
-    phone: "",
-    city: "",
+    phone: (u?.phone as string) || "",
+    city: (u?.city as string) || "",
     companyName: user?.companyName || "",
   });
   const [profilPhoto, setProfilPhoto] = useState<string | null>(null);
   const profilPhotoRef = useRef<HTMLInputElement>(null);
-  const update = trpc.auth.updateProfile.useMutation({ onSuccess: (u) => setUser(u as any) });
+  const update = trpc.auth.updateProfile.useMutation({ onSuccess: (u2) => setUser(u2 as any) });
+
+  function save() {
+    const fullName = [form.firstName, form.lastName].filter(Boolean).join(" ").trim();
+    update.mutate({
+      firstName: form.firstName,
+      lastName: form.lastName,
+      name: fullName || form.name,
+      phone: form.phone,
+      city: form.city,
+      companyName: form.companyName,
+    });
+  }
 
   function handleProfilPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -717,14 +854,74 @@ function ProfilForm() {
           <button onClick={() => profilPhotoRef.current?.click()} className="text-xs text-[#D4AF37] font-semibold hover:underline">Changer la photo</button>
         </div>
       </div>
-      <div><label className="label">Nom</label><input className="input" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} /></div>
+      <div className="grid grid-cols-2 gap-3">
+        <div><label className="label">Prénom</label><input className="input" value={form.firstName} onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))} /></div>
+        <div><label className="label">Nom</label><input className="input" value={form.lastName} onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))} /></div>
+      </div>
       <div><label className="label">Téléphone</label><input className="input" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} /></div>
       <div><label className="label">Ville</label><input className="input" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} /></div>
       <div><label className="label">Société (si pro)</label><input className="input" value={form.companyName} onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))} /></div>
-      <button className="btn-primary" disabled={update.isPending} onClick={() => update.mutate(form)}>
-        {update.isPending ? "Enregistrement…" : "Enregistrer"}
+      <div>
+        <label className="label">Email</label>
+        <input className="input bg-slate-50 text-slate-500" value={user?.email || ""} readOnly disabled />
+        <p className="mt-1 text-[11px] text-slate-400">Pour modifier votre email, contactez le support.</p>
+      </div>
+      <button className="btn-primary" disabled={update.isPending} onClick={save}>
+        {update.isPending ? "Enregistrement…" : "Modifier mon profil"}
       </button>
       {update.isSuccess && <p className="text-sm text-green-600">Profil mis à jour.</p>}
+      <div className="border-t border-slate-100 pt-4">
+        <button
+          onClick={() => { logout(); navigate("/"); }}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 py-3 text-sm font-bold text-red-600 transition hover:bg-red-100 active:scale-[0.99]"
+        >
+          <LogOut size={16} /> Déconnexion
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function NotifPrefs() {
+  const prefs = trpc.notificationOs.preferences.me.useQuery();
+  const utils = trpc.useUtils();
+  const update = trpc.notificationOs.preferences.update.useMutation({
+    onSuccess: () => utils.notificationOs.preferences.me.invalidate(),
+  });
+  const p = prefs.data;
+  const rows: { key: "emailEnabled" | "smsEnabled" | "pushEnabled" | "inappEnabled"; label: string; desc: string }[] = [
+    { key: "inappEnabled", label: "Sur la plateforme", desc: "Notifications dans votre centre de notifications" },
+    { key: "pushEnabled", label: "Notifications push", desc: "Sur l'écran d'accueil, même sans ouvrir l'application" },
+    { key: "emailEnabled", label: "Par email", desc: "Recevoir un email pour les événements importants" },
+    { key: "smsEnabled", label: "Par SMS", desc: "Recevoir un SMS (selon disponibilité)" },
+  ];
+  return (
+    <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5">
+      <p className="text-sm font-bold text-[#111]">Préférences de notification</p>
+      <p className="mt-0.5 text-xs text-slate-500">Choisissez comment vous souhaitez être prévenu.</p>
+      {prefs.isLoading && <p className="mt-3 text-sm text-slate-400">Chargement…</p>}
+      {p && (
+        <div className="mt-3 divide-y divide-slate-100">
+          {rows.map((r) => {
+            const checked = Boolean((p as Record<string, unknown>)[r.key]);
+            return (
+              <label key={r.key} className="flex cursor-pointer items-center gap-3 py-3">
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-slate-800">{r.label}</p>
+                  <p className="text-[11px] text-slate-500">{r.desc}</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  disabled={update.isPending}
+                  onChange={(e) => update.mutate({ [r.key]: e.target.checked } as Record<string, boolean>)}
+                  className="h-5 w-5 accent-[#D4AF37]"
+                />
+              </label>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
