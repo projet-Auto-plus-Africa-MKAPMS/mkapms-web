@@ -58,6 +58,18 @@ export const STATIC_SEO: Record<string, StaticSeo> = {
       "Estimation gratuite et instantanée de la valeur de votre voiture. Cote fiable basée sur le marché pour vendre ou reprendre votre véhicule au juste prix.",
     keywords: "estimation voiture, cote auto, valeur véhicule, estimer sa voiture gratuitement",
   },
+  "/acheter/minibus": {
+    title: "Acheter un minibus d'occasion ou neuf",
+    description:
+      "Minibus d'occasion et neufs pour groupes, familles, associations et transport collectif. Toutes capacités, toutes marques. Comparez et achetez votre minibus sur MKA.P-MS.",
+    keywords: "acheter minibus, minibus occasion, minibus transport collectif, minibus 9 places, minibus familial",
+  },
+  "/acheter/camions-engins": {
+    title: "Acheter un camion ou engin de chantier",
+    description:
+      "Camions poids lourds, bennes, plateaux, pelleteuses, grues, nacelles et chariots élévateurs d'occasion ou neufs. Trouvez votre engin de chantier sur MKA.P-MS.",
+    keywords: "acheter camion, engin chantier, pelleteuse occasion, grue occasion, chariot élévateur, poids lourd",
+  },
   "/acheter/encheres": {
     title: "Enchères automobiles en ligne",
     description:

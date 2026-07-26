@@ -98,6 +98,8 @@ const VenteMKAPMS = lazy(() => import("./pages/VenteMKAPMS"));
 const VenteMoto = lazy(() => import("./pages/VenteMoto"));
 const VenteUtilitaires = lazy(() => import("./pages/VenteUtilitaires"));
 const VenteCamions = lazy(() => import("./pages/VenteCamions"));
+const VenteMinibus = lazy(() => import("./pages/VenteMinibus"));
+const VenteCamionsEngins = lazy(() => import("./pages/VenteCamionsEngins"));
 const VenteVTC = lazy(() => import("./pages/VenteVTC"));
 const VentePromotions = lazy(() => import("./pages/VentePromotions"));
 const VenteEncheres = lazy(() => import("./pages/VenteEncheres"));
@@ -825,6 +827,8 @@ export default function App() {
             <Route path="/acheter/moto" element={<U name="Vente Moto"><VenteMoto /></U>} />
             <Route path="/acheter/utilitaires" element={<U name="Vente Utilitaires"><VenteUtilitaires /></U>} />
             <Route path="/acheter/camions" element={<U name="Vente Camions"><VenteCamions /></U>} />
+            <Route path="/acheter/minibus" element={<U name="Vente Minibus"><VenteMinibus /></U>} />
+            <Route path="/acheter/camions-engins" element={<U name="Camions &amp; Engins"><VenteCamionsEngins /></U>} />
             <Route path="/acheter/vtc-taxi" element={<U name="Vente VTC"><VenteVTC /></U>} />
             <Route path="/acheter/promotions" element={<U name="Promotions"><VentePromotions /></U>} />
             <Route path="/acheter/encheres" element={<U name="Ench\u00e8res"><VenteEncheres /></U>} />

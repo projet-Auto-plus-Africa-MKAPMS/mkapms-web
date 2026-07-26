@@ -74,6 +74,8 @@ const STATIC_PAGES: SearchResult[] = [
   { id: "u-part", titre: "Vehicules Particuliers", description: "Annonces de particuliers — vente directe", category: "vehicule", to: "/acheter/particulier", icon: Users, badge: "PARTICULIER", badgeColor: "bg-green-600", priority: 6 },
   { id: "u-encheres", titre: "Encheres Pro", description: "Ventes aux encheres professionnelles — lots de vehicules", category: "vehicule", to: "/acheter/encheres", icon: Gavel, priority: 4 },
   { id: "u-moto", titre: "Motos & Scooters", description: "Motos, scooters et quads d'occasion", category: "vehicule", to: "/acheter/moto-occasion", icon: Car, priority: 6 },
+  { id: "u-minibus", titre: "Minibus a vendre", description: "Pour groupes, familles, associations et transport collectif", category: "vehicule", to: "/acheter/minibus", icon: Truck, badge: "MINIBUS", badgeColor: "bg-purple-600", priority: 5 },
+  { id: "u-camions-engins", titre: "Camions & Engins de chantier", description: "Poids lourds, bennes, pelleteuses, grues, chariots elevateurs", category: "vehicule", to: "/acheter/camions-engins", icon: Truck, badge: "ENGINS", badgeColor: "bg-gray-700", priority: 5 },
   // Univers Location
   { id: "l-voiture", titre: "Location voiture", description: "Louez une voiture — particulier, pro, courte ou longue duree", category: "location", to: "/louer", icon: Key, priority: 3 },
   { id: "l-vtc", titre: "Location VTC & Taxi", description: "Vehicules de transport avec chauffeur", category: "location", to: "/louer/vtc-taxi", icon: Key, priority: 4 },

@@ -74,6 +74,8 @@ const DOMAIN_SEO: Record<DomainKey, DomainSeoMeta> = {
       "/acheter/particulier",
       "/acheter/professionnel",
       "/acheter/mkapms-officiel",
+      "/acheter/minibus",
+      "/acheter/camions-engins",
       "/louer",
       "/vendre",
       "/garages",
