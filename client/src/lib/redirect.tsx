@@ -32,15 +32,29 @@ interface SmartLinkProps {
 export const SmartLink = forwardRef<HTMLAnchorElement, SmartLinkProps>(
   ({ redirKey, fallback, className, children, onClick }, ref) => {
     const { target, external } = useResolvedTarget(redirKey, fallback);
+    const report = trpc.redirectionEngine.reportOutcome.useMutation();
+    // Journalise la source du clic → destination réelle (§5). Best-effort :
+    // n'empêche jamais la navigation.
+    function handleClick() {
+      try {
+        report.mutate({
+          key: redirKey,
+          source: typeof window !== "undefined" ? window.location.pathname : undefined,
+          outcome: "navigated",
+          resolvedTo: target,
+        });
+      } catch { /* supervision best-effort */ }
+      onClick?.();
+    }
     if (external) {
       return (
-        <a ref={ref} href={target} target="_blank" rel="noreferrer" className={className} onClick={onClick}>
+        <a ref={ref} href={target} target="_blank" rel="noreferrer" className={className} onClick={handleClick}>
           {children}
         </a>
       );
     }
     return (
-      <Link ref={ref} to={target} className={className} onClick={onClick}>
+      <Link ref={ref} to={target} className={className} onClick={handleClick}>
         {children}
       </Link>
     );

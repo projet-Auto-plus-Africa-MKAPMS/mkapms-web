@@ -19,7 +19,7 @@ export interface ResolveResult {
  */
 export async function resolveKey(
   key: string,
-  who?: { userId?: number; role?: string },
+  who?: { userId?: number; role?: string; source?: string },
 ): Promise<ResolveResult> {
   const [rule] = await db
     .select()
@@ -34,6 +34,8 @@ export async function resolveKey(
     key,
     matched,
     resolvedTo: rule?.target ?? null,
+    source: who?.source ?? null,
+    outcome: matched ? "resolved" : "unmatched",
     userId: who?.userId ?? null,
     role: who?.role ?? null,
   });
@@ -46,6 +48,67 @@ export async function resolveKey(
     return { matched: true, target: rule.target, external: !!rule.external, key };
   }
   return { matched: false, target: null, external: false, key };
+}
+
+/**
+ * Enregistre le RÉSULTAT réel d'un parcours (rapporté par le client après la
+ * navigation) : clic navigué, page introuvable (404), ou erreur. C'est ce qui
+ * permet au moteur de superviser les parcours de bout en bout et de remonter
+ * automatiquement les redirections cassées.
+ */
+export interface OutcomeInput {
+  key: string;
+  source?: string;
+  outcome: "navigated" | "not_found" | "error";
+  resolvedTo?: string;
+  durationMs?: number;
+  error?: string;
+}
+
+export async function reportOutcome(
+  input: OutcomeInput,
+  who?: { userId?: number; role?: string },
+): Promise<{ recorded: true }> {
+  await db.insert(redirLogs).values({
+    key: input.key.slice(0, 128),
+    matched: input.outcome !== "not_found",
+    resolvedTo: input.resolvedTo?.slice(0, 512) ?? null,
+    source: input.source?.slice(0, 256) ?? null,
+    outcome: input.outcome,
+    durationMs: input.durationMs ?? null,
+    error: input.error ?? null,
+    userId: who?.userId ?? null,
+    role: who?.role ?? null,
+  });
+  return { recorded: true };
+}
+
+/**
+ * Redirections cassées des 7 derniers jours : clés sans règle, pages 404 et
+ * erreurs, regroupées par clé + source avec leur nombre et la dernière erreur.
+ * Alimente le centre de contrôle PDG et le Système Intelligent.
+ */
+export async function getBrokenRedirects(limit = 50) {
+  const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  return db
+    .select({
+      key: redirLogs.key,
+      source: redirLogs.source,
+      outcome: redirLogs.outcome,
+      count: sql<number>`count(*)::int`,
+      lastError: sql<string | null>`max(${redirLogs.error})`,
+      lastSeen: sql<Date>`max(${redirLogs.createdAt})`,
+    })
+    .from(redirLogs)
+    .where(
+      and(
+        inArray(redirLogs.outcome, ["unmatched", "not_found", "error"]),
+        sql`${redirLogs.createdAt} >= ${since7d}`,
+      ),
+    )
+    .groupBy(redirLogs.key, redirLogs.source, redirLogs.outcome)
+    .orderBy(desc(sql`count(*)`))
+    .limit(limit);
 }
 
 export async function listRules() {
@@ -117,6 +180,8 @@ export async function getStats() {
     .select({
       resolutions24h: sql<number>`count(*)::int`,
       unmatched24h: sql<number>`count(*) filter (where ${redirLogs.matched} = false)::int`,
+      notFound24h: sql<number>`count(*) filter (where ${redirLogs.outcome} = 'not_found')::int`,
+      errors24h: sql<number>`count(*) filter (where ${redirLogs.outcome} = 'error')::int`,
     })
     .from(redirLogs)
     .where(sql`${redirLogs.createdAt} >= ${since24h}`);
@@ -137,6 +202,8 @@ export async function getStats() {
     totalHits: ruleTotals?.hits ?? 0,
     resolutions24h: logTotals?.resolutions24h ?? 0,
     unmatched24h: logTotals?.unmatched24h ?? 0,
+    notFound24h: logTotals?.notFound24h ?? 0,
+    errors24h: logTotals?.errors24h ?? 0,
     unmatchedKeys,
   };
 }
