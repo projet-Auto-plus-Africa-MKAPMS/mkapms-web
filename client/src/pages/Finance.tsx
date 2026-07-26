@@ -619,19 +619,19 @@ export default function Finance() {
               { icon: Zap, label: "Réponse rapide", desc: "Réponse à votre dossier sous 48h" },
               { icon: Clock, label: "Suivi 24h/24", desc: "Accédez à votre espace à tout moment" },
             ].map((b) => (
-              <button key={b.label} onClick={() => {}} className="flex flex-col items-center gap-1 text-center transition hover:opacity-80 cursor-pointer rounded-xl border border-transparent hover:border-[#D4AF37]/30 p-2">
+              <div key={b.label} className="flex flex-col items-center gap-1 text-center rounded-xl border border-transparent p-2">
                 <b.icon size={16} className="text-[#D4AF37]" />
                 <h4 className="text-[9px] font-bold text-[#111]">{b.label}</h4>
                 <p className="text-[7px] text-slate-500 leading-tight">{b.desc}</p>
-              </button>
+              </div>
             ))}
           </div>
           <div className="mt-3 flex justify-center">
-            <button onClick={() => {}} className="flex flex-col items-center gap-1 text-center transition hover:opacity-80 cursor-pointer rounded-xl border border-transparent hover:border-[#D4AF37]/30 p-2">
+            <Link to="/aide" className="flex flex-col items-center gap-1 text-center transition hover:opacity-80 cursor-pointer rounded-xl border border-transparent hover:border-[#D4AF37]/30 p-2">
               <Users size={16} className="text-[#D4AF37]" />
               <h4 className="text-[9px] font-bold text-[#111]">Support dédié</h4>
               <p className="text-[7px] text-slate-500 leading-tight">Une équipe Finance+ à votre écoute</p>
-            </button>
+            </Link>
           </div>
         </div>
       </section>
