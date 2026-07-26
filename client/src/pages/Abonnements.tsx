@@ -86,8 +86,30 @@ export default function Abonnements() {
   });
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [pendingCode, setPendingCode] = useState<string | null>(null);
+  const [selectedCode, setSelectedCode] = useState<string | null>(null);
+
+  // Connexion Smart Engine : chaque sélection d'offre est un événement supervisé.
+  const track = trpc.smartEngine.trackAction.useMutation();
 
   const filtered = tab !== "publicite" ? (plans.data?.filter((p) => p.category === tab) ?? []) : [];
+  const selectedPlan = filtered.find((p) => p.code === selectedCode) ?? null;
+
+  // Le changement d'onglet remet la sélection à zéro (offres différentes).
+  useEffect(() => {
+    setSelectedCode(null);
+  }, [tab]);
+
+  // Sélection d'une carte (clic n'importe où / clavier) → mémorise l'offre
+  // et notifie le Système Intelligent (parcours §3).
+  function selectPlan(code: string) {
+    setErrMsg(null);
+    setSelectedCode(code);
+    track.mutate({
+      action: "select_plan",
+      target: code,
+      metadata: { category: tab, role: user?.role ?? "visiteur" },
+    });
+  }
 
   function subscribe(code: string, priceEur: number | null) {
     setErrMsg(null);
@@ -185,11 +207,39 @@ export default function Abonnements() {
       <h2 className="mt-8 text-center text-lg font-bold text-slate-700">{tab === "publicite" ? "Publicité — Emplacements & Tarifs" : PLAN_CATEGORY_LABELS[tab as PlanCategory]}</h2>
 
       <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {filtered.map((p) => (
+        {filtered.map((p) => {
+          const isSelected = selectedCode === p.code;
+          return (
           <div
             key={p.code}
-            className={`card relative flex flex-col p-6 ${p.highlight ? "ring-2 ring-gold" : ""}`}
+            role="button"
+            tabIndex={0}
+            aria-pressed={isSelected}
+            aria-label={`Choisir l'offre ${p.label}`}
+            onClick={() => selectPlan(p.code)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                selectPlan(p.code);
+              }
+            }}
+            data-testid={`plan-card-${p.code}`}
+            className={`card relative flex cursor-pointer flex-col p-6 outline-none transition duration-150 focus-visible:ring-2 focus-visible:ring-gold ${
+              isSelected
+                ? "-translate-y-1 ring-2 ring-gold shadow-[0_0_0_4px_rgba(212,175,55,0.25)]"
+                : p.highlight
+                  ? "ring-2 ring-gold hover:-translate-y-0.5 hover:shadow-lg"
+                  : "hover:-translate-y-0.5 hover:shadow-lg"
+            }`}
           >
+            {isSelected && (
+              <span
+                className="absolute -top-3 -right-3 flex h-8 w-8 items-center justify-center rounded-full bg-gold text-noir shadow-md"
+                aria-hidden="true"
+              >
+                <Check size={18} strokeWidth={3} />
+              </span>
+            )}
             {p.highlight && (
               <span className="badge absolute -top-3 left-1/2 -translate-x-1/2 bg-gold text-noir">
                 Le plus choisi
@@ -217,9 +267,13 @@ export default function Abonnements() {
               ))}
             </ul>
             <button
-              className={p.highlight ? "btn-primary mt-6" : "btn-outline mt-6"}
+              className={p.highlight || isSelected ? "btn-primary mt-6" : "btn-outline mt-6"}
               disabled={checkout.isPending && pendingCode === p.code}
-              onClick={() => subscribe(p.code, p.priceEur)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedCode(p.code);
+                subscribe(p.code, p.priceEur);
+              }}
               data-testid={`subscribe-btn-${p.code}`}
             >
               {checkout.isPending && pendingCode === p.code
@@ -231,8 +285,40 @@ export default function Abonnements() {
                     : "S'abonner"}
             </button>
           </div>
-        ))}
+          );
+        })}
       </div>
+
+      {/* Barre de confirmation (parcours §3) : la carte sélectionnée active le
+          bouton inférieur qui ouvre le tunnel de paiement. */}
+      {selectedPlan && (
+        <div className="sticky bottom-4 z-20 mx-auto mt-8 flex max-w-2xl flex-col items-center gap-3 rounded-2xl border border-gold bg-white/95 p-4 shadow-xl backdrop-blur sm:flex-row sm:justify-between">
+          <div className="text-center sm:text-left">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Offre sélectionnée</p>
+            <p className="text-base font-extrabold text-slate-900">
+              {selectedPlan.label}
+              {selectedPlan.priceEur != null && (
+                <span className="ml-2 text-gold-dark">
+                  {formatPrice(selectedPlan.priceEur)}
+                  {selectedPlan.recurring ? " /mois" : selectedPlan.durationDays ? ` / ${selectedPlan.durationDays}j` : ""}
+                </span>
+              )}
+            </p>
+          </div>
+          <button
+            className="btn-primary shrink-0"
+            disabled={checkout.isPending && pendingCode === selectedPlan.code}
+            onClick={() => subscribe(selectedPlan.code, selectedPlan.priceEur)}
+            data-testid="plan-continue-btn"
+          >
+            {checkout.isPending && pendingCode === selectedPlan.code
+              ? "Redirection Stripe…"
+              : selectedPlan.priceEur == null
+                ? `Continuer — ${selectedPlan.label} (sur demande)`
+                : `Continuer avec l'offre ${selectedPlan.label} — ${formatPrice(selectedPlan.priceEur)}${selectedPlan.recurring ? "/mois" : ""}`}
+          </button>
+        </div>
+      )}
       {tab === "particulier" && (
         <div className="mt-12">
           <h2 className="text-center text-lg font-bold text-slate-700">Photos supplémentaires (à l'unité)</h2>
@@ -272,7 +358,7 @@ export default function Abonnements() {
                     </li>
                   ))}
                 </ul>
-                <button className="btn-outline mt-4" onClick={() => subscribe(mod.code)}>
+                <button className="btn-outline mt-4" onClick={() => subscribe(mod.code, mod.priceEur ?? null)}>
                   Activer ce module
                 </button>
               </div>
