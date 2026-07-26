@@ -302,6 +302,13 @@
       "when": 1784500101000,
       "tag": "0043_redir_supervision",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1784500200000,
+      "tag": "0044_smart_staging",
+      "breakpoints": true
     }
   ]
 }

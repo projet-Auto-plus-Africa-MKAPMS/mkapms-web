@@ -371,3 +371,41 @@ export const smartQualityAudits = pgTable("smart_quality_audits", {
   sampleSize: integer("sample_size").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// ── Partie 16 — Évolution autonome (préproduction / staging) ────────────
+// Le Système Intelligent observe la plateforme (qualité faible, alertes
+// critiques) et DÉPOSE automatiquement des propositions d'évolution au statut
+// `brouillon`. Elles ne sont JAMAIS appliquées seules : cycle brouillon →
+// (test) → attente de validation → approbation HUMAINE (PDG) → intégrée.
+// Table isolée, additive. Fait partie du Smart Engine — ce n'est PAS un
+// nouveau moteur.
+export const smartStagingTypeEnum = pgEnum("smart_staging_type", [
+  "optimisation",
+  "correction",
+  "evolution",
+]);
+export const smartStagingStatusEnum = pgEnum("smart_staging_status", [
+  "brouillon", // proposé par le système, en attente
+  "en_test", // en cours de vérification
+  "a_valider", // prêt pour la décision humaine
+  "approuve", // validé par le PDG (prêt à intégrer)
+  "integre", // appliqué
+  "rejete", // écarté par le PDG
+]);
+export const smartStaging = pgTable("smart_staging", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  type: smartStagingTypeEnum("type").notNull().default("optimisation"),
+  title: varchar("title", { length: 240 }).notNull(),
+  description: text("description"),
+  // Note de risque affichée avant toute décision humaine.
+  riskNote: text("risk_note"),
+  status: smartStagingStatusEnum("status").notNull().default("brouillon"),
+  // Origine : "evolution_autonome" (système) ou "manuel" (humain).
+  origin: varchar("origin", { length: 48 }).default("evolution_autonome"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  // Décision humaine (PDG) — qui / quand.
+  reviewedBy: integer("reviewed_by"),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});

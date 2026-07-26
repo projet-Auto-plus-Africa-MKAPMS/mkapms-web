@@ -16,7 +16,7 @@
  * Ces actions nécessitent validation humaine.
  */
 import { z } from "zod";
-import { router, publicProcedure, protectedProcedure, adminProcedure, pdgProcedure } from "../trpc.js";
+import { router, publicProcedure, protectedProcedure, adminProcedure, pdgProcedure, directionProcedure } from "../trpc.js";
 
 // Services
 import { logSearch, getSearchesWithoutResults, getTopSearches, getSearchStats } from "./services/search-analytics.js";
@@ -44,6 +44,8 @@ import { runRetention, retentionCounters } from "./services/retention.js"; // P7
 import { runAlertScan, alertLevelStats } from "./services/alert-engine.js";
 import { scanDevelopments, getDevLearningStats, listDevItems, reviewDevItem, reviewAllRequises } from "./services/dev-learning.js";
 import { runQualityAudit, getQualityOverview, listQualityAudits } from "./services/quality-engine.js"; // P12
+import { listStaging, getStagingStats, transitionStaging } from "./services/preproduction.js"; // P16
+import { generateEvolutionProposals } from "./services/autonomous-evolution.js"; // P16
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
 import { desc, eq, sql, and } from "drizzle-orm";
@@ -70,19 +72,19 @@ export const smartEngineRouter = router({
       return logSearch({ ...input, userId: ctx.user?.uid });
     }),
 
-  searchStats: pdgProcedure
+  searchStats: directionProcedure
     .input(z.object({ days: z.number().default(30) }).optional())
     .query(async ({ input }) => {
       return getSearchStats(input?.days ?? 30);
     }),
 
-  topSearches: pdgProcedure
+  topSearches: directionProcedure
     .input(z.object({ days: z.number().default(30), limit: z.number().default(20) }).optional())
     .query(async ({ input }) => {
       return getTopSearches(input?.days ?? 30, input?.limit ?? 20);
     }),
 
-  failedSearches: pdgProcedure
+  failedSearches: directionProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getSearchesWithoutResults(input?.limit ?? 50);
@@ -140,7 +142,7 @@ export const smartEngineRouter = router({
       return learnFromInput({ ...input, submittedBy: ctx.user.uid });
     }),
 
-  pendingValidations: pdgProcedure
+  pendingValidations: directionProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getPendingValidations(input?.limit ?? 50);
@@ -165,7 +167,7 @@ export const smartEngineRouter = router({
       return checkDuplicates(input.annonceId);
     }),
 
-  unresolvedDuplicates: pdgProcedure
+  unresolvedDuplicates: directionProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getUnresolvedDuplicates(input?.limit ?? 50);
@@ -202,7 +204,7 @@ export const smartEngineRouter = router({
       return checkFraud(input);
     }),
 
-  unresolvedSuspects: pdgProcedure
+  unresolvedSuspects: directionProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getUnresolvedSuspects(input?.limit ?? 50);
@@ -215,7 +217,7 @@ export const smartEngineRouter = router({
     }),
 
   // ── 8. Centre de contrôle — Alertes ────────────────────────────────
-  alerts: pdgProcedure
+  alerts: directionProcedure
     .input(z.object({
       category: z.string().optional(),
       severity: z.enum(["info", "warning", "important", "critical"]).optional(),
@@ -242,7 +244,7 @@ export const smartEngineRouter = router({
       return { ok: true };
     }),
 
-  alertStats: pdgProcedure.query(async () => {
+  alertStats: directionProcedure.query(async () => {
     const [stats] = await db.select({
       total: sql<number>`count(*)::int`,
       open: sql<number>`count(*) filter (where ${smartAlerts.status} = 'open')::int`,
@@ -253,13 +255,13 @@ export const smartEngineRouter = router({
   }),
 
   // ── 9. Journal d'activité ──────────────────────────────────────────
-  activityLog: pdgProcedure
+  activityLog: directionProcedure
     .input(z.object({ limit: z.number().default(100), offset: z.number().default(0) }).optional())
     .query(async ({ input }) => {
       return getActivityLog(input?.limit ?? 100, input?.offset ?? 0);
     }),
 
-  activityStats: pdgProcedure
+  activityStats: directionProcedure
     .input(z.object({ days: z.number().default(30) }).optional())
     .query(async ({ input }) => {
       return getActivityStats(input?.days ?? 30);
@@ -277,7 +279,7 @@ export const smartEngineRouter = router({
       return analyzeReviews();
     }),
 
-  reviewAlerts: pdgProcedure
+  reviewAlerts: directionProcedure
     .input(z.object({ limit: z.number().default(20) }).optional())
     .query(async ({ input }) => {
       return getReviewAlerts(input?.limit ?? 20);
@@ -289,7 +291,7 @@ export const smartEngineRouter = router({
       return validateAnnonceUnivers();
     }),
 
-  misplacedAnnonces: pdgProcedure
+  misplacedAnnonces: directionProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getMisplacedAnnonces(input?.limit ?? 50);
@@ -301,7 +303,7 @@ export const smartEngineRouter = router({
       return validateBadges();
     }),
 
-  badgeAlerts: pdgProcedure
+  badgeAlerts: directionProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getBadgeAlerts(input?.limit ?? 50);
@@ -321,11 +323,11 @@ export const smartEngineRouter = router({
       return reportHealthCheck(input);
     }),
 
-  healthStatus: pdgProcedure.query(async () => {
+  healthStatus: directionProcedure.query(async () => {
     return getHealthStatus();
   }),
 
-  brokenElements: pdgProcedure
+  brokenElements: directionProcedure
     .input(z.object({ limit: z.number().default(50) }).optional())
     .query(async ({ input }) => {
       return getBrokenElements(input?.limit ?? 50);
@@ -359,30 +361,30 @@ export const smartEngineRouter = router({
       return trackUserAction({ ...input, userId: ctx.user?.uid });
     }),
 
-  pageStats: pdgProcedure
+  pageStats: directionProcedure
     .input(z.object({ days: z.number().default(30) }).optional())
     .query(async ({ input }) => {
       return getPageStats(input?.days ?? 30);
     }),
 
-  activeUsers: pdgProcedure.query(async () => {
+  activeUsers: directionProcedure.query(async () => {
     return getActiveUsers(15);
   }),
 
-  userBehavior: pdgProcedure
+  userBehavior: directionProcedure
     .input(z.object({ userId: z.number() }))
     .query(async ({ input }) => {
       return getUserBehaviorProfile(input.userId);
     }),
 
-  platformPulse: pdgProcedure
+  platformPulse: directionProcedure
     .input(z.object({ days: z.number().default(7) }).optional())
     .query(async ({ input }) => {
       return getPlatformPulse(input?.days ?? 7);
     }),
 
   // ── Dashboard global (Centre de contrôle) ──────────────────────────
-  dashboard: pdgProcedure.query(async () => {
+  dashboard: directionProcedure.query(async () => {
     const [alertStats] = await db.select({
       totalAlerts: sql<number>`count(*)::int`,
       openAlerts: sql<number>`count(*) filter (where ${smartAlerts.status} = 'open')::int`,
@@ -426,13 +428,13 @@ export const smartEngineRouter = router({
   }),
 
   // ── 16. Connaissances externes (veille / benchmark) ────────────────
-  knowledgeList: pdgProcedure
+  knowledgeList: directionProcedure
     .input(z.object({ category: z.string().optional(), limit: z.number().default(200) }).optional())
     .query(async ({ input }) => {
       return listKnowledge(input?.category, input?.limit ?? 200);
     }),
 
-  knowledgeStats: pdgProcedure.query(async () => {
+  knowledgeStats: directionProcedure.query(async () => {
     return getKnowledgeStats();
   }),
 
@@ -459,7 +461,7 @@ export const smartEngineRouter = router({
   }),
 
   // ── Moteurs connectés (hub d'observation) ─────────────────────
-  enginesOverview: pdgProcedure.query(async () => {
+  enginesOverview: directionProcedure.query(async () => {
     return getEnginesOverview();
   }),
 
@@ -479,7 +481,7 @@ export const smartEngineRouter = router({
       return observe({ ...input, userId: ctx.user?.uid });
     }),
 
-  kbList: pdgProcedure
+  kbList: directionProcedure
     .input(z.object({
       domain: z.string().optional(),
       status: z.enum(["proposed", "confirmed", "rejected"]).optional(),
@@ -489,7 +491,7 @@ export const smartEngineRouter = router({
       return listKB(input?.domain, input?.status, input?.limit ?? 200);
     }),
 
-  kbStats: pdgProcedure.query(async () => {
+  kbStats: directionProcedure.query(async () => {
     return kbStats();
   }),
 
@@ -506,7 +508,7 @@ export const smartEngineRouter = router({
     return generateOptimizations();
   }),
 
-  optimizationsList: pdgProcedure
+  optimizationsList: directionProcedure
     .input(z.object({
       category: z.string().optional(),
       status: z.enum(["proposed", "applied", "rejected"]).optional(),
@@ -516,7 +518,7 @@ export const smartEngineRouter = router({
       return listOptimizations(input?.category, input?.status, input?.limit ?? 100);
     }),
 
-  optimizationStats: pdgProcedure.query(async () => {
+  optimizationStats: directionProcedure.query(async () => {
     return optimizationStats();
   }),
 
@@ -527,7 +529,7 @@ export const smartEngineRouter = router({
     }),
 
   // ── 19. Tableau de santé plateforme temps réel (Partie 9) ─────────
-  platformHealth: pdgProcedure.query(async () => {
+  platformHealth: directionProcedure.query(async () => {
     return getPlatformHealth();
   }),
 
@@ -536,7 +538,7 @@ export const smartEngineRouter = router({
     return runAlertScan();
   }),
 
-  alertLevelStats: pdgProcedure.query(async () => {
+  alertLevelStats: directionProcedure.query(async () => {
     return alertLevelStats();
   }),
 
@@ -547,11 +549,11 @@ export const smartEngineRouter = router({
     return scanDevelopments();
   }),
 
-  devLearningStats: pdgProcedure.query(async () => {
+  devLearningStats: directionProcedure.query(async () => {
     return getDevLearningStats();
   }),
 
-  devLearningList: pdgProcedure
+  devLearningList: directionProcedure
     .input(
       z
         .object({
@@ -600,7 +602,7 @@ export const smartEngineRouter = router({
 
   // ── Renfort P7 — Rétention des logs Smart Engine (PDG uniquement) ────
   // Le PDG seul décide quand purger ; aucune purge automatique.
-  retentionCounters: pdgProcedure.query(async () => {
+  retentionCounters: directionProcedure.query(async () => {
     return retentionCounters();
   }),
 
@@ -626,11 +628,11 @@ export const smartEngineRouter = router({
     return runQualityAudit(ctx.user.uid);
   }),
 
-  qualityOverview: pdgProcedure.query(async () => {
+  qualityOverview: directionProcedure.query(async () => {
     return getQualityOverview();
   }),
 
-  qualityList: pdgProcedure
+  qualityList: directionProcedure
     .input(
       z
         .object({
@@ -652,5 +654,35 @@ export const smartEngineRouter = router({
     )
     .query(async ({ input }) => {
       return listQualityAudits(input?.category, input?.limit ?? 100);
+    }),
+
+  // ── 16. Évolution autonome (préproduction) ─────────────────────────
+  // Visible PDG + Directeur (lecture). Le système PROPOSE, l'humain valide.
+  evolutionProposals: directionProcedure
+    .input(z.object({ limit: z.number().min(1).max(200).default(100) }).optional())
+    .query(async ({ input }) => {
+      return listStaging(input?.limit ?? 100);
+    }),
+
+  evolutionStats: directionProcedure.query(async () => {
+    return getStagingStats();
+  }),
+
+  // Génération manuelle des propositions — réservé PDG.
+  generateEvolution: pdgProcedure.mutation(async () => {
+    return generateEvolutionProposals();
+  }),
+
+  // Décision humaine sur une proposition — réservé PDG (action sensible).
+  reviewEvolution: pdgProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        status: z.enum(["en_test", "a_valider", "approuve", "integre", "rejete"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const row = await transitionStaging(input.id, input.status, ctx.user?.uid);
+      return { ok: true, item: row };
     }),
 });
