@@ -104,13 +104,13 @@ export default function DomainSelector() {
       {/* Bouton principal */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:border-[#D4AF37] hover:text-[#D4AF37] transition"
+        className="grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 hover:border-[#D4AF37] hover:text-[#D4AF37] transition md:flex md:h-auto md:w-auto md:items-center md:gap-1.5 md:px-2.5 md:py-1.5"
         aria-label="Changer de domaine"
         title="Changer de portail"
       >
         <span className="text-base leading-none">{current.flag}</span>
         <span className="hidden md:inline text-xs font-semibold">{current.label}</span>
-        <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={12} className={`hidden md:inline transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {/* Dropdown */}

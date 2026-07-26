@@ -37,6 +37,19 @@ const NAV = [
   { to: "/abonnements", label: "Abonnements", redirKey: "nav_abonnements" },
 ];
 
+// Décalage haut du header en mode application installée (PWA).
+// - iPhone : valeur historique 28px (rendu déjà validé, on n'y touche pas).
+// - Android & autres : zone de sécurité native `env(safe-area-inset-top)` qui
+//   s'adapte à chaque appareil (0 si l'OS gère déjà la barre d'état), ce qui
+//   corrige le header « trop bas » sur Samsung sans affecter iPhone.
+function standaloneTopOffset(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  const iOSStandalone = (navigator as unknown as { standalone?: boolean }).standalone === true;
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || iOSStandalone;
+  if (!standalone) return undefined;
+  return iOSStandalone ? "28px" : "env(safe-area-inset-top, 0px)";
+}
+
 // Élément de menu résolu par le Moteur de Redirection (garde l'état actif).
 function NavItem({ to, label, redirKey }: { to: string; label: string; redirKey: string }) {
   const { target } = useResolvedTarget(redirKey, to);
@@ -60,12 +73,7 @@ function Header() {
   return (
     <header
       className="fixed inset-x-0 top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur"
-      style={{
-        paddingTop: window.matchMedia("(display-mode: standalone)").matches
-          || (navigator as any).standalone === true
-          ? "28px"
-          : undefined,
-      }}
+      style={{ paddingTop: standaloneTopOffset() }}
     >
       <div className="container-page flex h-16 items-center justify-between gap-4 lg:max-w-[1680px]">
         <Link
@@ -140,8 +148,12 @@ function Header() {
                 user est supprimée, l'icône est stable dès le premier rendu). */}
           <NotificationsBell />
           <SupportWidget />
-          <button aria-label="Menu" className="shrink-0" onClick={() => setOpen((o) => !o)}>
-            {open ? <X /> : <Menu />}
+          <button
+            aria-label="Menu"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-brand"
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
       </div>
@@ -390,10 +402,8 @@ export default function Layout({ children }: { children: ReactNode }) {
       {/* Bascule dynamique de l'icône PWA / favicon selon état d'authentification */}
       <DynamicPWAIcon />
       <Header />
-      {/* Spacer pour compenser le header fixe */}
-      <div className="h-16" style={{
-        marginTop: typeof window !== "undefined" && (window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true) ? "28px" : undefined,
-      }} />
+      {/* Spacer pour compenser le header fixe (même décalage que le header). */}
+      <div className="h-16" style={{ marginTop: standaloneTopOffset() }} />
       <BackButton />
       <main className="flex-1 pb-20 lg:pb-0">{children}</main>
       <Footer />
