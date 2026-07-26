@@ -99,4 +99,42 @@ export const abonnementsRouter = router({
 
       return { url: session.url, configured: true };
     }),
+
+  // ─── Customer Portal Stripe ────────────────────────────────────
+  // Ouvre le portail client Stripe où l'abonné gère seul son
+  // abonnement (changement de plan, annulation, mise à jour carte,
+  // téléchargement des factures). Retourne l'URL du portail.
+  openPortal: protectedProcedure
+    .input(z.object({ returnUrl: z.string().optional() }).optional())
+    .mutation(async ({ ctx, input }) => {
+      const stripe = getStripe();
+      if (!stripe) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Stripe n'est pas encore configuré sur ce déploiement.",
+        });
+      }
+      // Récupère la dernière subscription active de l'utilisateur pour en
+      // extraire le customer Stripe.
+      const [sub] = await db
+        .select()
+        .from(subscriptions)
+        .where(eq(subscriptions.userId, ctx.user.uid))
+        .orderBy(desc(subscriptions.createdAt))
+        .limit(1);
+      const customerId = (sub as any)?.stripeCustomerId as string | undefined;
+      if (!customerId) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message:
+            "Aucun abonnement actif à gérer. Souscrivez d'abord une offre depuis le catalogue.",
+        });
+      }
+      const returnUrl = input?.returnUrl || `${env.PUBLIC_URL}/compte/abonnements`;
+      const session = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: returnUrl,
+      });
+      return { url: session.url };
+    }),
 });
