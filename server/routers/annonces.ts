@@ -15,6 +15,7 @@ import { recordView } from "../smart-engine/services/user-memory.js";
 import { learnFromInput } from "../smart-engine/services/learning.js";
 import { checkDuplicates } from "../smart-engine/services/duplicate-detection.js";
 import { logActivity } from "../smart-engine/services/activity-log.js";
+import { onAnnoncePublished } from "../seo-hooks.js";
 
 /**
  * Auto-heal — si un déploiement précédent a laissé une colonne JSONB manquante
@@ -818,6 +819,8 @@ export const annoncesRouter = router({
       // Smart Engine — hooks post-création (fire-and-forget)
       checkDuplicates(created.id).catch(() => {});
       logActivity({ action: "annonce.created", userId: ctx.user.uid, targetType: "annonce", targetId: created.id, data: { marque: rest.marque, modele: rest.modele }, result: "success" }).catch(() => {});
+      // SEO OS — indexation automatique + supervision (§1)
+      onAnnoncePublished(created.id, "published", ctx.user.uid).catch(() => {});
       // Apprentissage : version/finition saisies manuellement
       if (rest.version) learnFromInput({ field: "version", marque: rest.marque, modele: rest.modele, value: rest.version, submittedBy: ctx.user.uid }).catch(() => {});
 
@@ -945,6 +948,8 @@ export const annoncesRouter = router({
 
       // Smart Engine — hook modification (fire-and-forget)
       logActivity({ action: "annonce.modified", userId: ctx.user.uid, targetType: "annonce", targetId: id, data: { changes: Object.keys(filtered) }, result: "success" }).catch(() => {});
+      // SEO OS — resoumission à l'indexation + supervision (§1)
+      onAnnoncePublished(id, "updated", ctx.user.uid).catch(() => {});
 
       return { ok: true };
     }),
