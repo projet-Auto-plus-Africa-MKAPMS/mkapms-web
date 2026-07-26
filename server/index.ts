@@ -301,7 +301,11 @@ async function bootstrap() {
         const opt = await generateOptimizations();
         const { runAlertScan } = await import("./smart-engine/services/alert-engine.js");
         const alerts = await runAlertScan();
-        console.log(`[smart] travail autonome: ${opt.created} optimisation(s) proposée(s), ${alerts?.created ?? 0} alerte(s)`);
+        // Partie 16 — Évolution autonome : dépose des propositions en
+        // préproduction (statut brouillon). Jamais appliquées seules.
+        const { generateEvolutionProposals } = await import("./smart-engine/services/autonomous-evolution.js");
+        const evo = await generateEvolutionProposals();
+        console.log(`[smart] travail autonome: ${opt.created} optimisation(s), ${alerts?.created ?? 0} alerte(s), ${evo.created} proposition(s) d'évolution`);
       } catch (err) {
         console.error("[smart] travail autonome échoué:", (err as Error).message);
       }

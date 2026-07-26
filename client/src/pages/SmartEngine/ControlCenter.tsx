@@ -50,12 +50,13 @@ import {
   Gauge,
 } from "lucide-react";
 
-type Tab = "dashboard" | "etat" | "qualite" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "etat" | "qualite" | "evolution" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
   { key: "etat", label: "État plateforme", icon: HeartPulse },
   { key: "qualite", label: "Qualité", icon: Gauge },
+  { key: "evolution", label: "Évolution autonome", icon: Lightbulb },
   { key: "alertes", label: "Alertes", icon: AlertTriangle },
   { key: "apprentissage", label: "Apprentissage privé", icon: GraduationCap },
   { key: "connaissances", label: "Connaissances externes", icon: Globe },
@@ -79,8 +80,11 @@ export default function ControlCenter() {
   const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("dashboard");
 
-  // Accès PDG uniquement
-  if (!user || user.role !== "super_admin") {
+  // Visible des deux côtés : PDG (super_admin) + Directeur/Direction (admin).
+  // Les décisions sensibles restent réservées au PDG (voir isPdg plus bas).
+  const isDirection = user?.role === "super_admin" || user?.role === "admin";
+  const isPdg = user?.role === "super_admin";
+  if (!user || !isDirection) {
     return <Navigate to="/" replace />;
   }
 
@@ -128,6 +132,7 @@ export default function ControlCenter() {
         {tab === "dashboard" && <DashboardTab onNavigate={setTab} />}
         {tab === "etat" && <EtatPlateformeTab />}
         {tab === "qualite" && <QualiteTab />}
+        {tab === "evolution" && <EvolutionTab isPdg={isPdg} />}
         {tab === "alertes" && <AlertesTab />}
         {tab === "apprentissage" && <ApprentissageTab />}
         {tab === "connaissances" && <ConnaissancesTab />}
@@ -779,6 +784,157 @@ function QualiteTab() {
                 <p className="mt-1 flex items-start gap-1 text-[11px] text-[#B45309]">
                   <Lightbulb size={12} className="mt-0.5 shrink-0" /> {c.recommendation}
                 </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : Évolution autonome — préproduction (Partie 16)
+   Visible PDG + Directeur. Le système PROPOSE, le PDG valide.
+   ═══════════════════════════════════════════════════════════ */
+const EVO_STATUS_LABEL: Record<string, string> = {
+  brouillon: "Brouillon",
+  en_test: "En test",
+  a_valider: "À valider",
+  approuve: "Approuvé",
+  integre: "Intégré",
+  rejete: "Rejeté",
+};
+const EVO_STATUS_COLOR: Record<string, string> = {
+  brouillon: "bg-slate-100 text-slate-600",
+  en_test: "bg-blue-100 text-blue-700",
+  a_valider: "bg-amber-100 text-amber-700",
+  approuve: "bg-emerald-100 text-emerald-700",
+  integre: "bg-[#D4AF37]/20 text-[#B45309]",
+  rejete: "bg-rose-100 text-rose-700",
+};
+const EVO_TYPE_LABEL: Record<string, string> = {
+  optimisation: "Optimisation",
+  correction: "Correction",
+  evolution: "Évolution",
+};
+
+function EvolutionTab({ isPdg }: { isPdg: boolean }) {
+  const utils = trpc.useUtils();
+  const stats = trpc.smartEngine.evolutionStats.useQuery();
+  const list = trpc.smartEngine.evolutionProposals.useQuery({ limit: 100 });
+  const refresh = () => {
+    utils.smartEngine.evolutionStats.invalidate();
+    utils.smartEngine.evolutionProposals.invalidate();
+  };
+  const generate = trpc.smartEngine.generateEvolution.useMutation({ onSuccess: refresh });
+  const review = trpc.smartEngine.reviewEvolution.useMutation({ onSuccess: refresh });
+
+  const items = list.data ?? [];
+  const s = stats.data;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">Évolution autonome</h2>
+        {s && (
+          <span className="rounded-full bg-[#111] px-2.5 py-1 text-[10px] font-bold text-[#D4AF37]">
+            {s.total} proposition(s)
+          </span>
+        )}
+      </div>
+      <p className="text-[11px] text-[#6B7280]">
+        Le Système Intelligent observe la plateforme (qualité faible, alertes importantes) et
+        <b> dépose des propositions d'évolution en préproduction</b>. Elles ne sont
+        <b> jamais appliquées seules</b> : le cycle est <i>brouillon → à valider → approuvé (PDG) →
+        intégré</i>. {isPdg ? "Toi seul (PDG) approuves ou rejettes." : "Lecture seule — seul le PDG peut approuver."}
+      </p>
+
+      {s && (
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+          {(["brouillon", "en_test", "a_valider", "approuve", "integre", "rejete"] as const).map((k) => (
+            <div key={k} className="rounded-xl bg-white p-2 text-center shadow-sm">
+              <p className="text-lg font-black text-[#111]">{s[k]}</p>
+              <p className="text-[9px] text-[#6B7280]">{EVO_STATUS_LABEL[k]}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {isPdg && (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => generate.mutate()}
+            disabled={generate.isPending}
+            className="flex items-center gap-1 rounded-xl bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40"
+          >
+            <RefreshCw size={14} className={generate.isPending ? "animate-spin" : ""} /> Générer les propositions
+          </button>
+          {generate.data && (
+            <span className="text-[11px] text-[#6B7280]">
+              {generate.data.created} nouvelle(s) proposition(s)
+            </span>
+          )}
+        </div>
+      )}
+
+      {list.isLoading ? (
+        <p className="text-xs text-[#6B7280]">Chargement…</p>
+      ) : items.length === 0 ? (
+        <p className="rounded-xl bg-white p-4 text-center text-xs text-[#6B7280]">
+          Aucune proposition pour le moment. Le système en déposera automatiquement.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {items.map((it) => (
+            <div key={it.id} className="rounded-xl bg-white p-3 shadow-sm">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-600">
+                      {EVO_TYPE_LABEL[it.type] ?? it.type}
+                    </span>
+                    <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${EVO_STATUS_COLOR[it.status] ?? "bg-slate-100 text-slate-600"}`}>
+                      {EVO_STATUS_LABEL[it.status] ?? it.status}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm font-semibold text-[#111]">{it.title}</p>
+                </div>
+              </div>
+              {it.description && <p className="mt-1 text-[11px] text-[#374151]">{it.description}</p>}
+              {it.riskNote && (
+                <p className="mt-1 flex items-start gap-1 text-[11px] text-[#B45309]">
+                  <AlertTriangle size={12} className="mt-0.5 shrink-0" /> {it.riskNote}
+                </p>
+              )}
+              {isPdg && it.status !== "integre" && it.status !== "rejete" && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {it.status !== "approuve" && (
+                    <button
+                      onClick={() => review.mutate({ id: it.id, status: "approuve" })}
+                      disabled={review.isPending}
+                      className="rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white disabled:opacity-40"
+                    >
+                      Approuver
+                    </button>
+                  )}
+                  {it.status === "approuve" && (
+                    <button
+                      onClick={() => review.mutate({ id: it.id, status: "integre" })}
+                      disabled={review.isPending}
+                      className="rounded-lg bg-[#D4AF37] px-2.5 py-1 text-[11px] font-bold text-white disabled:opacity-40"
+                    >
+                      Marquer intégré
+                    </button>
+                  )}
+                  <button
+                    onClick={() => review.mutate({ id: it.id, status: "rejete" })}
+                    disabled={review.isPending}
+                    className="rounded-lg bg-rose-600 px-2.5 py-1 text-[11px] font-bold text-white disabled:opacity-40"
+                  >
+                    Rejeter
+                  </button>
+                </div>
               )}
             </div>
           ))}

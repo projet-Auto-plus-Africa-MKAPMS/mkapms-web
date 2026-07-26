@@ -285,8 +285,8 @@ export default function Admin() {
       </section>
       )}
 
-      {/* Système Intelligent MKA.P-MS — accès PDG uniquement */}
-      {user?.role === "super_admin" && (
+      {/* Système Intelligent MKA.P-MS — visible PDG + Directeur/Direction */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">
         <h2 className="text-lg font-bold text-slate-800">Syst&egrave;me Intelligent MKA.P-MS</h2>
         <p className="text-xs text-slate-500">Centre de contr&ocirc;le — 14 fonctionnalit&eacute;s actives en temps r&eacute;el</p>
