@@ -325,6 +325,25 @@ export default function Vendre() {
     else setCategorieAnnonce("particulier");
   }, [isAdmin, isPro]);
 
+  // Pré-sélection depuis le compte : /vendre?depot=1&famille=..&categorie=..&type=..
+  // (le choix du type de véhicule est fait en amont dans l'espace compte).
+  const depotParamApplied = useRef(false);
+  useEffect(() => {
+    if (depotParamApplied.current || editId) return;
+    const depot = searchParams.get("depot");
+    const fam = searchParams.get("famille");
+    const cat = searchParams.get("categorie");
+    const typ = searchParams.get("type");
+    if (!depot && !fam && !cat && !typ) return;
+    depotParamApplied.current = true;
+    if (fam === "moto" || fam === "auto") setFamille(fam);
+    if (cat) setForm((f) => ({ ...f, categorie: cat }));
+    // Location réservée aux pros/admin ; un particulier ne peut pas déposer en location.
+    if (typ === "location" && (isPro || isAdmin)) setTypeAnnonce("location");
+    else setTypeAnnonce("vente");
+    if (user) { setMode("deposit"); setStep(1); }
+  }, [searchParams, editId, isPro, isAdmin, user]);
+
   /* ── Mode édition : pré-remplir le formulaire avec les données existantes ── */
   const [editLoaded, setEditLoaded] = useState(false);
   const editQuery = trpc.annonces.get.useQuery({ id: editId! }, { enabled: !!editId && !editLoaded });
