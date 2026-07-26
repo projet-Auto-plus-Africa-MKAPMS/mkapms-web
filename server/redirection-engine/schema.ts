@@ -49,6 +49,10 @@ export const redirLogs = pgTable("redir_logs", {
   key: varchar("key", { length: 128 }).notNull(),
   matched: boolean("matched").notNull(), // une règle active a-t-elle été trouvée ?
   resolvedTo: varchar("resolved_to", { length: 512 }),
+  source: varchar("source", { length: 256 }), // page/contexte d'origine du clic
+  outcome: varchar("outcome", { length: 24 }).default("resolved"), // resolved | navigated | unmatched | not_found | error
+  durationMs: integer("duration_ms"), // durée du parcours (client → destination)
+  error: text("error"), // message d'erreur éventuel
   userId: integer("user_id"),
   role: varchar("role", { length: 32 }),
   createdAt: timestamp("created_at").defaultNow(),

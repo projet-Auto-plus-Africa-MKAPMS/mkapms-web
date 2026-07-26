@@ -42,6 +42,12 @@ const KIND_LABEL: Record<string, string> = {
   route: "Route",
 };
 
+const OUTCOME_LABEL: Record<string, string> = {
+  unmatched: "Sans règle",
+  not_found: "404",
+  error: "Erreur",
+};
+
 export default function RedirectionEngineControlCenter() {
   const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("dashboard");
@@ -105,6 +111,7 @@ function Loading() {
 
 function DashboardTab({ onGoRules }: { onGoRules: () => void }) {
   const stats = trpc.redirectionEngine.stats.useQuery(undefined, { refetchInterval: 15000 });
+  const broken = trpc.redirectionEngine.broken.useQuery({ limit: 30 }, { refetchInterval: 15000 });
   const s = stats.data;
 
   const cards = [
@@ -112,6 +119,8 @@ function DashboardTab({ onGoRules }: { onGoRules: () => void }) {
     { label: "Règles actives", value: s?.activeRules ?? 0 },
     { label: "Redirections servies", value: s?.totalHits ?? 0 },
     { label: "Résolutions (24h)", value: s?.resolutions24h ?? 0 },
+    { label: "Pages introuvables (24h)", value: s?.notFound24h ?? 0 },
+    { label: "Erreurs (24h)", value: s?.errors24h ?? 0 },
   ];
 
   return (
@@ -151,6 +160,34 @@ function DashboardTab({ onGoRules }: { onGoRules: () => void }) {
                 <button onClick={onGoRules} className="mt-1 text-[11px] font-semibold text-blue-600 underline">
                   Configurer des règles →
                 </button>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={16} className="text-red-500" />
+              <h3 className="text-sm font-bold text-[#111]">Redirections cassées (7 j)</h3>
+            </div>
+            <p className="mt-1 text-[11px] text-[#6B7280]">
+              Parcours en échec remontés automatiquement : pages introuvables (404), clés sans règle et erreurs.
+            </p>
+            {(broken.data?.length ?? 0) === 0 ? (
+              <p className="mt-2 text-sm text-green-600">Aucune redirection cassée. Tous les parcours aboutissent.</p>
+            ) : (
+              <div className="mt-2 space-y-1">
+                {broken.data!.map((b, i) => (
+                  <div key={`${b.key}-${b.source}-${i}`} className="rounded-lg bg-[#FEF2F2] px-2 py-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <code className="truncate text-xs text-[#111]">{b.key}</code>
+                      <span className="shrink-0 text-[10px] font-bold text-red-600">
+                        {OUTCOME_LABEL[b.outcome ?? ""] ?? b.outcome} · {b.count}×
+                      </span>
+                    </div>
+                    {b.source && <p className="truncate text-[10px] text-[#6B7280]">depuis {b.source}</p>}
+                    {b.lastError && <p className="truncate text-[10px] text-red-500">{b.lastError}</p>}
+                  </div>
+                ))}
               </div>
             )}
           </div>

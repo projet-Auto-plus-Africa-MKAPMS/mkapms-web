@@ -14,6 +14,8 @@ import { z } from "zod";
 import { router, publicProcedure, pdgProcedure } from "../trpc.js";
 import {
   resolveKey,
+  reportOutcome,
+  getBrokenRedirects,
   listRules,
   createRule,
   updateRule,
@@ -26,9 +28,9 @@ export const redirectionEngineRouter = router({
   // Résolution d'une clé → destination. Public : tout composant peut demander
   // où mène un bouton/service. Journalisé pour repérer les clés sans règle.
   resolve: publicProcedure
-    .input(z.object({ key: z.string().min(1).max(128) }))
+    .input(z.object({ key: z.string().min(1).max(128), source: z.string().max(256).optional() }))
     .mutation(async ({ ctx, input }) => {
-      return resolveKey(input.key, { userId: ctx.user?.uid, role: ctx.user?.role });
+      return resolveKey(input.key, { userId: ctx.user?.uid, role: ctx.user?.role, source: input.source });
     }),
 
   // Version query (lecture) pour précharger une destination sans effet visible.
@@ -36,6 +38,23 @@ export const redirectionEngineRouter = router({
     .input(z.object({ key: z.string().min(1).max(128) }))
     .query(async ({ ctx, input }) => {
       return resolveKey(input.key, { userId: ctx.user?.uid, role: ctx.user?.role });
+    }),
+
+  // Résultat réel d'un parcours (rapporté par le client après navigation) :
+  // clic navigué, page 404, ou erreur. Alimente la supervision (§5).
+  reportOutcome: publicProcedure
+    .input(
+      z.object({
+        key: z.string().min(1).max(128),
+        source: z.string().max(256).optional(),
+        outcome: z.enum(["navigated", "not_found", "error"]),
+        resolvedTo: z.string().max(512).optional(),
+        durationMs: z.number().int().nonnegative().max(600000).optional(),
+        error: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return reportOutcome(input, { userId: ctx.user?.uid, role: ctx.user?.role });
     }),
 
   // ── Administration (PDG uniquement) ────────────────────────────────────
@@ -87,6 +106,13 @@ export const redirectionEngineRouter = router({
   stats: pdgProcedure.query(async () => {
     return getStats();
   }),
+
+  // Redirections cassées (clés sans règle, 404, erreurs) — 7 derniers jours.
+  broken: pdgProcedure
+    .input(z.object({ limit: z.number().min(1).max(200).default(50) }).optional())
+    .query(async ({ input }) => {
+      return getBrokenRedirects(input?.limit ?? 50);
+    }),
 
   logs: pdgProcedure
     .input(z.object({ limit: z.number().min(1).max(500).default(100) }).optional())
