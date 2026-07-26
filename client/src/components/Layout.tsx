@@ -76,10 +76,12 @@ function Header() {
         >
           {/* Blason : ÉTAT OUVERT pour les visiteurs, ÉTAT FERMÉ dès qu'un
               compte est créé / l'utilisateur connecté (charte de marque).
-              Le nom officiel « MKA.P-MS » (image charte exacte) est sous le blason. */}
+              Le nom officiel « MKA.P-MS » (image charte exacte) est sous le blason.
+              Taille du blason réduite pour rentrer proprement dans le cadre
+              du header sur toutes les tailles d'appareils (mobile + PWA). */}
           <Logo
             variant={user ? "closed" : "open"}
-            size={30}
+            size={22}
             withWordmark
             className="shrink-0"
             data-testid={user ? "header-logo-closed" : "header-logo-open"}
