@@ -17,6 +17,7 @@ import { appRouter } from "./router.js";
 import { createContext } from "./trpc.js";
 import { verifyToken } from "./auth.js";
 import { handleStripeWebhook } from "./stripeWebhook.js";
+import { getStripe } from "./lib/stripe.js";
 import {
   injectAnnonceSeo,
   robotsTxt,
@@ -40,6 +41,44 @@ app.use(cookieParser());
 
 // Webhook Stripe : corps brut, AVANT express.json()
 app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
+
+// ─── ÉTAT DE SANTÉ STRIPE ─────────────────────────────────────────
+// Endpoint public de vérification de la configuration Stripe.
+// Retourne le mode (test / live), les clés configurées (masquées),
+// et si le webhook secret est présent. Ne divulgue AUCUNE valeur secrète.
+app.get("/api/stripe/health", async (_req, res) => {
+  const configured = !!env.STRIPE_SECRET_KEY;
+  const mask = (s: string) => (s ? `${s.slice(0, 8)}…${s.slice(-4)}` : null);
+  const mode: "live" | "test" | "unconfigured" = !configured
+    ? "unconfigured"
+    : env.STRIPE_SECRET_KEY.startsWith("sk_live_")
+      ? "live"
+      : "test";
+  let account: { id: string; charges_enabled: boolean; details_submitted: boolean } | null = null;
+  const stripe = getStripe();
+  if (stripe) {
+    try {
+      const acc = await stripe.accounts.retrieve();
+      account = {
+        id: acc.id,
+        charges_enabled: acc.charges_enabled,
+        details_submitted: acc.details_submitted,
+      };
+    } catch {
+      // Compte inaccessible avec cette clé — non bloquant.
+    }
+  }
+  res.json({
+    configured,
+    mode,
+    secret_key: mask(env.STRIPE_SECRET_KEY),
+    publishable_key: mask(env.STRIPE_PUBLISHABLE_KEY),
+    webhook_secret_present: !!env.STRIPE_WEBHOOK_SECRET,
+    account,
+    ready_for_live_transactions: mode === "live" && !!account?.charges_enabled,
+  });
+});
+// ──────────────────────────────────────────────────────────────────
 
 app.use(express.json({ limit: "50mb" }));
 
