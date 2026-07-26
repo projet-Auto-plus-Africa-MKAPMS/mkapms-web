@@ -8,6 +8,7 @@ import { getPlan } from "@shared/plans.js";
 import { logAction } from "../audit.js";
 import { makeReference } from "../reference.js";
 import { sendEmail, emailAnnoncePubliee, emailAnnonceModifiee, emailAnnonceSupprimee, emailAnnonceProlongee } from "../services/email.js";
+import { createPaymentCheckout } from "../payment-engine/checkout.js";
 // Smart Engine — hooks (fire-and-forget, jamais bloquants)
 import { logSearch } from "../smart-engine/services/search-analytics.js";
 import { recordView } from "../smart-engine/services/user-memory.js";
@@ -1028,5 +1029,50 @@ export const annoncesRouter = router({
       logActivity({ action: "annonce.prolonged", userId: ctx.user.uid, targetType: "annonce", targetId: input.id, data: { newExpiresAt: newExpires.toISOString() }, result: "success" }).catch(() => {});
 
       return { ok: true, expiresAt: newExpires };
+    }),
+
+  // ── Mise en avant payante (boost) d'une annonce ──
+  // 4 options tarifées (barème indicatif Partie 3 §7) :
+  //   - boost_7j        : 9.90 €    (badge + top de recherche 7 jours)
+  //   - boost_30j       : 24.90 €   (badge + top de recherche 30 jours)
+  //   - mise_avant_home : 39.90 €   (mise en avant sur la page d'accueil)
+  //   - premium_30j     : 79.90 €   (top absolu, badge premium, priorité IA)
+  boostAnnonce: protectedProcedure
+    .input(z.object({
+      annonceId: z.number(),
+      option: z.enum(["boost_7j", "boost_30j", "mise_avant_home", "premium_30j"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const [a] = await db.select().from(annonces).where(eq(annonces.id, input.annonceId)).limit(1);
+      if (!a) throw new TRPCError({ code: "NOT_FOUND", message: "Annonce introuvable" });
+      if (a.ownerId !== ctx.user.uid) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Annonce d'un autre utilisateur" });
+      }
+      const priceByOption: Record<string, number> = {
+        boost_7j: 9.9,
+        boost_30j: 24.9,
+        mise_avant_home: 39.9,
+        premium_30j: 79.9,
+      };
+      const labelByOption: Record<string, string> = {
+        boost_7j: "Boost 7 jours",
+        boost_30j: "Boost 30 jours",
+        mise_avant_home: "Mise en avant accueil",
+        premium_30j: "Premium 30 jours",
+      };
+      const montant = priceByOption[input.option];
+      const res = await createPaymentCheckout({
+        userId: ctx.user.uid,
+        kind: "annonce_boost",
+        paymentTypeSql: "vehicle_boost",
+        amount: montant,
+        currency: "EUR",
+        label: `${labelByOption[input.option]} — ${a.titre ?? `Annonce #${a.id}`}`,
+        metadata: { annonceId: a.id, boostOption: input.option },
+        successPath: `/vehicule/${a.id}?boost=1`,
+        cancelPath: `/vehicule/${a.id}?boost=0`,
+        vehicleId: a.id,
+      });
+      return res;
     }),
 });
