@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { and, desc, eq, sql } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { deliveryProfiles, deliveryMissions, deliveryPricing, deliveryTracking, serviceTracking } from "../schema.js";
 import { notifications } from "../modules/core.js";
+import { createPaymentCheckout } from "../payment-engine/checkout.js";
 
 // Univers Livraison (Plan Partie 2 §7 + Partie 6 §4). Règle moto: 20 kg / 60x40x40 cm max.
 const MOTO_MAX_KG = 20;
@@ -190,5 +192,28 @@ export const livraisonRouter = router({
         url: "/compte",
       });
       return { ok: true };
+    }),
+
+  // Paiement d'une mission de livraison par le client.
+  // Reprend le devis (quote) pour calculer le montant à payer.
+  payMission: protectedProcedure
+    .input(z.object({ missionId: z.number(), amount: z.number().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const [m] = await db.select().from(deliveryMissions).where(eq(deliveryMissions.id, input.missionId)).limit(1);
+      if (!m) throw new TRPCError({ code: "NOT_FOUND", message: "Mission introuvable" });
+      if (m.clientId !== ctx.user.uid) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Mission d'un autre client" });
+      }
+      const res = await createPaymentCheckout({
+        userId: ctx.user.uid,
+        kind: "livraison_mission",
+        amount: input.amount,
+        currency: "EUR",
+        label: `Livraison LIV-${m.id} — ${m.typeColis ?? "Colis"}`,
+        metadata: { missionId: m.id, vehicleType: m.vehicleTypeRequis ?? "" },
+        successPath: `/compte/livraisons?paid=${m.id}`,
+        cancelPath: `/compte/livraisons?canceled=${m.id}`,
+      });
+      return res;
     }),
 });

@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { and, desc, eq, ilike, sql, gte, lte, or } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure, proProcedure, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
+import { createPaymentCheckout } from "../payment-engine/checkout.js";
 import {
   partsShops,
   partsSites,
@@ -795,4 +797,33 @@ export const piecesRouter = router({
     const [{ orders }] = await db.select({ orders: sql<number>`count(*)::int` }).from(partsOrders);
     return { shops, products, orders };
   }),
+
+  // ── Paiement d'une commande de pièces (checkout Stripe) ──
+  // Le client convertit son panier en commande, puis paie. Au succès du
+  // webhook, le status passe automatiquement à 'payee' et le vendeur
+  // reçoit une notification.
+  payOrder: protectedProcedure
+    .input(z.object({ orderId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const [order] = await db.select().from(partsOrders).where(eq(partsOrders.id, input.orderId)).limit(1);
+      if (!order) throw new TRPCError({ code: "NOT_FOUND", message: "Commande introuvable" });
+      if (order.buyerId !== ctx.user.uid) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Commande d'un autre client" });
+      }
+      const montant = Number(order.totalTtc);
+      if (!Number.isFinite(montant) || montant <= 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Total commande invalide" });
+      }
+      const res = await createPaymentCheckout({
+        userId: ctx.user.uid,
+        kind: "pieces_order",
+        amount: montant,
+        currency: "EUR",
+        label: `Pièces auto — Commande ${order.reference}`,
+        metadata: { orderId: order.id, reference: order.reference, shopId: order.shopId },
+        successPath: `/pieces/commande/${order.id}?paid=1`,
+        cancelPath: `/pieces/commande/${order.id}?canceled=1`,
+      });
+      return res;
+    }),
 });

@@ -1,8 +1,10 @@
 import { z } from "zod";
 import { and, desc, eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { breakdownProviders, breakdownRequests, breakdownQuotes, breakdownMissions } from "../schema.js";
+import { createPaymentCheckout } from "../payment-engine/checkout.js";
 
 // Univers Dépannage / Assistance (Plan Partie 2 §8).
 export const depannageRouter = router({
@@ -93,5 +95,30 @@ export const depannageRouter = router({
       }).returning();
       await db.update(breakdownRequests).set({ status: "en_intervention", updatedAt: new Date() }).where(eq(breakdownRequests.id, input.requestId));
       return m;
+    }),
+
+  // Paiement d'un devis dépannage accepté par le client.
+  // Le client accepte un devis (quoteId) → Stripe Checkout → mission
+  // activée automatiquement au webhook payment_succeeded.
+  payQuote: protectedProcedure
+    .input(z.object({ quoteId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const [q] = await db.select().from(breakdownQuotes).where(eq(breakdownQuotes.id, input.quoteId)).limit(1);
+      if (!q) throw new TRPCError({ code: "NOT_FOUND", message: "Devis introuvable" });
+      const montant = Number(q.montant);
+      if (!Number.isFinite(montant) || montant <= 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Montant du devis invalide" });
+      }
+      const res = await createPaymentCheckout({
+        userId: ctx.user.uid,
+        kind: "depannage_mission",
+        amount: montant,
+        currency: "EUR",
+        label: `Dépannage — Devis #${q.id}`,
+        metadata: { quoteId: q.id, requestId: q.requestId, providerId: q.providerId },
+        successPath: `/depannage/mission?request=${q.requestId}&paid=1`,
+        cancelPath: `/depannage/mission?request=${q.requestId}&canceled=1`,
+      });
+      return res;
     }),
 });
