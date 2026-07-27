@@ -8,6 +8,7 @@
 import { z } from "zod";
 import {
   router,
+  publicProcedure,
   protectedProcedure,
   proProcedure,
   pdgProcedure,
@@ -34,6 +35,13 @@ import {
   listTransactions,
 } from "./service.js";
 import { paymentAudit } from "./audit.js";
+import {
+  listProducts,
+  resolveProduct,
+  computePrice,
+  seedProducts,
+  upsertProduct,
+} from "./products.js";
 
 const method = z.enum(PAYMENT_METHODS);
 const status = z.enum(PAYMENT_STATUSES);
@@ -81,6 +89,21 @@ export const paymentEngineRouter = router({
       return getCountryRule(input.countryCode);
     }),
 
+  // ── Registre central des produits & tarifs (Phase 24) ─────────────────
+  // Liste publique (prix affichés aux visiteurs) : uniquement les produits actifs.
+  products: publicProcedure.query(async () => {
+    return listProducts(true);
+  }),
+
+  // Résolution serveur d'un prix depuis un code produit. Le prix ne vient
+  // jamais du navigateur : on renvoie le détail calculé côté serveur.
+  productPrice: publicProcedure
+    .input(z.object({ code: z.string().min(1).max(64), quantity: z.number().int().min(1).max(50).default(1) }))
+    .query(async ({ input }) => {
+      const product = await resolveProduct(input.code);
+      return { product, price: computePrice(product, input.quantity) };
+    }),
+
   // ── RIB professionnels ────────────────────────────────────────────────
   addRib: proProcedure
     .input(
@@ -109,6 +132,39 @@ export const paymentEngineRouter = router({
   audit: pdgProcedure.query(async () => {
     return paymentAudit();
   }),
+
+  // ── Registre produits (administration PDG) ────────────────────────────
+  productsAll: pdgProcedure.query(async () => {
+    return listProducts(false);
+  }),
+
+  seedProducts: pdgProcedure.mutation(async () => {
+    return seedProducts();
+  }),
+
+  upsertProduct: pdgProcedure
+    .input(
+      z.object({
+        code: z.string().min(1).max(64),
+        name: z.string().min(1).max(160),
+        univers: z.string().min(1).max(48),
+        paymentCase: z.string().min(1).max(48),
+        price: z.number().min(0),
+        currency: z.string().max(8).optional(),
+        vatRate: z.number().min(0).max(100).optional(),
+        countryCode: z.string().max(4).optional(),
+        paymentType: z.enum(["unique", "recurring"]).optional(),
+        periodicity: z.enum(["monthly", "quarterly", "yearly"]).nullable().optional(),
+        beneficiary: z.enum(["mkapms", "pro", "partner"]).optional(),
+        commissionRate: z.number().min(0).max(100).optional(),
+        validityDays: z.number().int().min(0).optional(),
+        refundPolicy: z.string().max(500).nullable().optional(),
+        active: z.boolean().optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      return upsertProduct(input);
+    }),
 
   transactions: pdgProcedure
     .input(

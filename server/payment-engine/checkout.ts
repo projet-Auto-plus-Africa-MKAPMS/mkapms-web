@@ -27,6 +27,7 @@ import { payments } from "../schema.js";
 import { getStripe } from "../lib/stripe.js";
 import { env } from "../env.js";
 import { eq } from "drizzle-orm";
+import { resolveProduct, computePrice } from "./products.js";
 
 /** Types de paiement supportés — reflet des kinds acceptés par le webhook. */
 export type PaymentKind =
@@ -42,9 +43,17 @@ export type PaymentKind =
 export interface CheckoutInput {
   userId: number;
   kind: PaymentKind;
-  amount: number;
+  /**
+   * Code produit du registre central (Phase 24). Si fourni, le montant, la
+   * devise et le libellé sont résolus CÔTÉ SERVEUR depuis le registre — le prix
+   * du navigateur est ignoré. À privilégier pour tout nouveau flux.
+   */
+  productCode?: string;
+  quantity?: number;
+  /** Montant (déprécié pour les nouveaux flux : préférer productCode). */
+  amount?: number;
   currency?: string;
-  label: string;
+  label?: string;
   /** Métadonnées propagées à Stripe et au webhook. */
   metadata?: Record<string, string | number>;
   /** Chemin de succès (relatif à PUBLIC_URL). */
@@ -68,10 +77,29 @@ export interface CheckoutResult {
 }
 
 export async function createPaymentCheckout(input: CheckoutInput): Promise<CheckoutResult> {
-  if (!(input.amount > 0)) {
-    throw new Error("Montant de paiement invalide");
+  // Résolution du prix côté serveur depuis le registre central (Phase 24).
+  // Si un productCode est fourni, le prix du navigateur est totalement ignoré.
+  let amount: number;
+  let currency: string;
+  let label: string;
+  if (input.productCode) {
+    const product = await resolveProduct(input.productCode);
+    const priced = computePrice(product, input.quantity ?? 1);
+    amount = priced.total;
+    currency = priced.currency.toUpperCase();
+    label = input.label ?? product.name;
+  } else {
+    if (typeof input.amount !== "number" || !(input.amount > 0)) {
+      throw new Error("Montant de paiement invalide");
+    }
+    amount = input.amount;
+    currency = (input.currency || "EUR").toUpperCase();
+    label = input.label ?? "Paiement MKA.P-MS";
   }
-  const currency = (input.currency || "EUR").toUpperCase();
+  // Les produits gratuits (prix 0) ne passent pas par le paiement.
+  if (!(amount > 0)) {
+    throw new Error("Ce produit est gratuit — aucun paiement requis");
+  }
 
   // 1. Enregistrement du paiement en base (statut pending)
   // Note : l'enum paymentTypeEnum en DB est limité à certaines valeurs.
@@ -95,7 +123,7 @@ export async function createPaymentCheckout(input: CheckoutInput): Promise<Check
     .values({
       userId: input.userId,
       type: paymentTypeSql as any,
-      amount: String(input.amount),
+      amount: String(amount),
       currency,
       status: "pending",
       vehicleId: input.vehicleId ?? undefined,
@@ -133,8 +161,8 @@ export async function createPaymentCheckout(input: CheckoutInput): Promise<Check
       {
         price_data: {
           currency: currency.toLowerCase(),
-          product_data: { name: input.label.slice(0, 200) },
-          unit_amount: Math.round(input.amount * 100),
+          product_data: { name: label.slice(0, 200) },
+          unit_amount: Math.round(amount * 100),
         },
         quantity: 1,
       },

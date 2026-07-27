@@ -20,6 +20,12 @@ export default function AdminPaiements() {
   const [selectedPaiement, setSelectedPaiement] = useState<typeof PAIEMENTS[0] | null>(null);
   const [showAudit, setShowAudit] = useState(false);
   const audit = trpc.paymentEngine.audit.useQuery(undefined, { enabled: showAudit });
+  const [showRegistry, setShowRegistry] = useState(false);
+  const products = trpc.paymentEngine.productsAll.useQuery(undefined, { enabled: showRegistry });
+  const utils = trpc.useUtils();
+  const seedProducts = trpc.paymentEngine.seedProducts.useMutation({
+    onSuccess: () => utils.paymentEngine.productsAll.invalidate(),
+  });
 
   const filtered = filter === "tous" ? PAIEMENTS : PAIEMENTS.filter((p) => p.statut === filter);
 
@@ -34,7 +40,60 @@ export default function AdminPaiements() {
         >
           <ShieldCheck size={14} className="text-[#D4AF37]" /> Audit du Payment OS (couverture réelle)
         </button>
+        <button
+          onClick={() => setShowRegistry(true)}
+          className="mt-2 w-full rounded-lg bg-white/10 py-2 text-xs font-bold text-white flex items-center justify-center gap-2 active:scale-[0.98]"
+        >
+          <Euro size={14} className="text-[#D4AF37]" /> Registre produits & tarifs (prix serveur)
+        </button>
       </div>
+
+      {showRegistry && (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60" onClick={() => setShowRegistry(false)}>
+          <div className="w-full max-w-md max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-black text-[#111] flex items-center gap-2"><Euro size={18} className="text-[#D4AF37]" /> Registre produits & tarifs</h3>
+              <button onClick={() => setShowRegistry(false)} className="text-[#9CA3AF]"><X size={18} /></button>
+            </div>
+            <p className="text-[11px] text-[#6B7280] mb-3">
+              Source unique des prix. Le serveur résout toujours le montant depuis ce registre — jamais depuis le navigateur.
+            </p>
+            <button
+              onClick={() => seedProducts.mutate()}
+              disabled={seedProducts.isPending}
+              className="mb-3 w-full rounded-lg bg-[#111] py-2 text-xs font-bold text-white disabled:opacity-50"
+            >
+              {seedProducts.isPending ? "Alimentation…" : "Alimenter / compléter le catalogue"}
+            </button>
+            {seedProducts.data && (
+              <p className="mb-3 text-[11px] text-green-700">{seedProducts.data.inserted} produit(s) ajouté(s) · {seedProducts.data.total} au total.</p>
+            )}
+            {products.isLoading ? (
+              <p className="text-xs text-[#6B7280]">Chargement…</p>
+            ) : products.data && products.data.length > 0 ? (
+              <div className="space-y-1.5">
+                {products.data.map((p) => (
+                  <div key={p.id} className="rounded-lg border border-[#E5E1D8] p-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-[#111]">{p.name}</span>
+                      <span className="text-[11px] font-black text-[#111]">{p.price.toFixed(2)} {p.currency}{p.paymentType === "recurring" ? `/${p.periodicity === "yearly" ? "an" : "mois"}` : ""}</span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      <span className="rounded-full bg-[#F5F3EF] px-2 py-0.5 text-[9px] text-[#6B7280]">{p.univers}</span>
+                      <span className="rounded-full bg-[#F5F3EF] px-2 py-0.5 text-[9px] text-[#6B7280]">TVA {p.vatRate}%</span>
+                      <span className="rounded-full bg-[#F5F3EF] px-2 py-0.5 text-[9px] text-[#6B7280]">{p.beneficiary}{p.commissionRate > 0 ? ` · ${p.commissionRate}%` : ""}</span>
+                      {p.validityDays > 0 && <span className="rounded-full bg-[#F5F3EF] px-2 py-0.5 text-[9px] text-[#6B7280]">{p.validityDays}j</span>}
+                      {!p.active && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[9px] text-red-700">inactif</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-[#6B7280]">Registre vide — cliquez sur « Alimenter » pour importer le catalogue.</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {showAudit && (
         <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60" onClick={() => setShowAudit(false)}>
