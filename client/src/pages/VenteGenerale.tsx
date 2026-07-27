@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import {
-  ChevronLeft, Search, Truck, Shield, Tag, Gavel,
+  ChevronLeft, Search, Truck, Shield, Tag, Gavel, HardHat,
   Calculator, History, ArrowRightLeft, PlusCircle, Building2,
   ChevronRight, Star, ChevronDown, Phone, Car, Bike,
   CheckCircle2, Lock, Zap, Users, Award, TrendingUp, MapPin
@@ -20,7 +20,7 @@ const UNIVERS = [
   { id: "utilitaires", label: "Acheter un utilitaire", desc: "Kangoo, Berlingo, Partner, Trafic, Master, Boxer.", photo: "/categories/cover_utilitaires.jpg", to: "/acheter/utilitaires", badge: "Utilitaires", badgeColor: "bg-orange-600 text-white border-transparent", icon: Truck },
   { id: "camions", label: "Acheter un camion", desc: "Porte-voitures, bennes, frigorifiques, poids lourds.", photo: "/categories/cover_camions.jpg", to: "/acheter/camions", badge: "Camions", badgeColor: "bg-gray-700 text-white border-transparent", icon: Truck },
   { id: "minibus", label: "Acheter un minibus", desc: "Pour groupes, familles, associations et transport collectif.", photo: "/categories/loc_cover_minibus.jpg", to: "/acheter/minibus", badge: "Minibus", badgeColor: "bg-purple-700 text-white border-transparent", icon: Truck },
-  { id: "camions-engins", label: "Acheter un camion ou engin", desc: "Pour poids lourds, bennes, plateaux, chantiers et besoins lourds.", photo: "/categories/camion_benne_tp.jpg", to: "/acheter/camions-engins", badge: "Camion / Engin", badgeColor: "bg-gray-800 text-white border-transparent", icon: Truck },
+  { id: "camions-engins", label: "Engins & Machines", desc: "Chantier, TP, agricole, forestier, industriel, minier — tout ce qui roule sur terre.", photo: "/categories/camion_benne_tp.jpg", to: "/acheter/camions-engins", badge: "Engins & Machines", badgeColor: "bg-[#1a1a2e] text-white border-transparent", icon: HardHat },
   { id: "vtc", label: "Acheter un véhicule VTC / Taxi", desc: "Véhicules adaptés à l'activité VTC et Taxi avec revenus estimés.", photo: "/categories/cover_vtc_taxi.jpg", to: "/acheter/vtc-taxi", badge: "VTC & Taxi", badgeColor: "bg-[#111] text-[#D4AF37] border border-[#D4AF37]", icon: Shield },
   { id: "promo", label: "Promotions & Déstockage", desc: "Offres limitées, fins de série, déstockage, prix réduits.", photo: "/categories/cover_promo.jpg", to: "/acheter/promotions", badge: "Promo", badgeColor: "bg-green-600 text-white border-transparent", icon: Tag },
   { id: "encheres", label: "Vente aux enchères", desc: "Réservé aux professionnels validés. Lots, reprises, vente rapide.", photo: "/categories/cover_encheres.jpg", to: "/acheter/encheres", badge: "Enchères", badgeColor: "bg-purple-700 text-white border-transparent", icon: Gavel },

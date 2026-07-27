@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import { ChevronLeft, Search, Truck, Heart } from "lucide-react";
 const CATEGORIES = [
+  /* ── Catégories existantes (ne pas supprimer) ── */
   { label: "Porte-voitures", desc: "Transport auto", photo: "/categories/camion_porte_voitures.jpg" },
   { label: "Bennes", desc: "BTP, déchets", photo: "/categories/camion_benne.jpg" },
   { label: "Frigorifiques", desc: "Transport frais", photo: "/categories/camion_frigo.jpg" },
@@ -16,6 +17,25 @@ const CATEGORIES = [
   { label: "Semi-remorques", desc: "Tracteurs routiers", photo: "/categories/camion_semiremorque.jpg" },
   { label: "Citernes", desc: "Liquides & carburants", photo: "/categories/camion_citerne.jpg" },
   { label: "Malaxeurs / Bétonnières", desc: "Béton & matériaux", photo: "/categories/camion_malaxeur.jpg" },
+  /* ── Catégories ajoutées ── */
+  { label: "Porteurs", desc: "Porteurs 12t → 26t", photo: "/categories/camion_poids_lourd.jpg" },
+  { label: "Tracteurs routiers", desc: "Cabines, attelages", photo: "/categories/camion_semiremorque.jpg" },
+  { label: "Remorques", desc: "Plateau, frigo, benne", photo: "/categories/camion_plateau.jpg" },
+  { label: "Camions-bras", desc: "Grue intégrée, HIAB", photo: "/categories/camion_grue_auxiliaire.jpg" },
+  { label: "Camions-pompes", desc: "Pompes à béton", photo: "/categories/camion_malaxeur.jpg" },
+  { label: "Camions-grues", desc: "Grue montée sur porteur", photo: "/categories/camion_grue_auxiliaire.jpg" },
+  { label: "Camions-hydrocureurs", desc: "Curage, assainissement", photo: "/categories/camion_citerne.jpg" },
+  { label: "Camions-nacelles", desc: "Travaux en hauteur", photo: "/categories/camion_ampliroll.jpg" },
+  { label: "Camions-forestiers", desc: "Grumiers, porteurs bois", photo: "/categories/camion_poids_lourd.jpg" },
+  { label: "Camions-poubelles", desc: "Bennes à ordures", photo: "/categories/camion_benne.jpg" },
+  { label: "Camions-citernes alim.", desc: "Alimentaire, laitiers", photo: "/categories/camion_citerne.jpg" },
+  { label: "Camions-malaxeurs", desc: "Toupies béton", photo: "/categories/camion_malaxeur.jpg" },
+  { label: "Camions-surbaissés", desc: "Transport exceptionnel", photo: "/categories/camion_plateau.jpg" },
+  { label: "Camions-frigorifiques", desc: "Multi-température", photo: "/categories/camion_frigo.jpg" },
+  { label: "Camions-plateau dép.", desc: "Dépannage & remorquage", photo: "/categories/camion_plateau.jpg" },
+  { label: "Camions-VL", desc: "Véhicules légers < 3.5t", photo: "/categories/camion_fourgon.jpg" },
+  { label: "Hybrides", desc: "Hybrides & gaz (CNG/LNG)", photo: "/categories/camion_electrique.jpg" },
+  { label: "Hydrogène", desc: "Camions à hydrogène", photo: "/categories/camion_electrique.jpg" },
 ];
 const ANNONCES = [
   { id: 1, nom: "Iveco Daily Benne 35C14", annee: 2022, km: 55000, prix: 28500, ptac: "3.5 t", photo: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&h=260&fit=crop" },

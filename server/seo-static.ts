@@ -65,10 +65,10 @@ export const STATIC_SEO: Record<string, StaticSeo> = {
     keywords: "acheter minibus, minibus occasion, minibus transport collectif, minibus 9 places, minibus familial",
   },
   "/acheter/camions-engins": {
-    title: "Acheter un camion ou engin de chantier",
+    title: "Engins & Machines d'occasion ou neufs | MKA.P-MS",
     description:
-      "Camions poids lourds, bennes, plateaux, pelleteuses, grues, nacelles et chariots élévateurs d'occasion ou neufs. Trouvez votre engin de chantier sur MKA.P-MS.",
-    keywords: "acheter camion, engin chantier, pelleteuse occasion, grue occasion, chariot élévateur, poids lourd",
+      "Pelleteuses, grues mobiles, tracteurs agricoles, chariots télescopiques, bulldozers, moissonneuses, tombereaux, nacelles, compacteurs. Achetez votre engin ou machine sur MKA.P-MS.",
+    keywords: "engin chantier achat, pelleteuse occasion, grue mobile, tracteur agricole, chariot télescopique, bulldozer, moissonneuse, tombereau, nacelle, compacteur, foreuse, chariot élévateur",
   },
   "/acheter/encheres": {
     title: "Enchères automobiles en ligne",
