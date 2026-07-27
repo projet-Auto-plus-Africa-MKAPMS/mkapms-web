@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Search, ChevronDown, RefreshCw, ExternalLink, FileText, Lightbulb, Send, Tag, ShieldCheck, Gauge } from "lucide-react";
+import { ChevronLeft, Search, ChevronDown, RefreshCw, ExternalLink, FileText, Lightbulb, Send, Tag, ShieldCheck, Gauge, Sparkles } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -17,6 +17,7 @@ export default function AdminSEO() {
     onSuccess: () => { utils.seo.pagesByType.invalidate(); utils.seo.analyze.invalidate(); },
   });
   const analysis = trpc.seo.analyze.useQuery();
+  const recommendations = trpc.seo.recommendations.useQuery();
   const dashboard = trpc.seo.dashboard.useQuery();
   const verify = trpc.seo.verify.useQuery(undefined, { enabled: false });
   const indexNow = trpc.seo.indexNowConfigured.useQuery();
@@ -190,6 +191,57 @@ export default function AdminSEO() {
                 <div key={x.l} className="rounded-lg bg-[#F5F3EF] p-2">
                   <p className="text-sm font-black text-[#111]">{x.v}</p>
                   <p className="text-[8px] text-[#6B7280]">{x.l}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* SEO Manager / Assistant IA (Phase 22) — recommandations */}
+      <div className="px-4 mt-4">
+        <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <Sparkles size={16} className="text-[#D4AF37]" />
+              <p className="text-sm font-bold text-[#111]">Assistant IA SEO — recommandations</p>
+            </div>
+            <button
+              onClick={() => recommendations.refetch()}
+              disabled={recommendations.isFetching}
+              className="rounded-lg border border-[#E5E7EB] px-2 py-1 text-[10px] font-bold text-[#111] flex items-center gap-1 disabled:opacity-60"
+            >
+              <RefreshCw size={11} className={recommendations.isFetching ? "animate-spin" : ""} /> Analyser
+            </button>
+          </div>
+          <p className="text-[11px] text-[#6B7280] mb-3">
+            Analyse des villes actives, modèles populaires et fiches garages. Propositions
+            uniquement — appliquez via « Générer » ci-dessus.
+          </p>
+          {recommendations.isLoading ? (
+            <p className="text-[11px] text-[#6B7280]">Analyse en cours…</p>
+          ) : (recommendations.data?.recommendations ?? []).length === 0 ? (
+            <p className="text-[11px] text-green-700">Aucune recommandation — couverture SEO à jour.</p>
+          ) : (
+            <div className="space-y-2">
+              {(recommendations.data?.recommendations ?? []).map((r, i) => (
+                <div key={`${r.category}-${i}`} className="rounded-lg border border-[#E5E7EB] bg-[#F5F3EF] p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-xs font-bold text-[#111]">{r.title}</p>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[8px] font-bold uppercase ${
+                        r.priority === "haute"
+                          ? "bg-red-100 text-red-700"
+                          : r.priority === "moyenne"
+                            ? "bg-amber-100 text-amber-800"
+                            : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {r.priority}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-[#6B7280] mt-0.5">{r.reason}</p>
+                  <p className="text-[10px] text-blue-700 mt-1">→ {r.suggestedAction}</p>
                 </div>
               ))}
             </div>
