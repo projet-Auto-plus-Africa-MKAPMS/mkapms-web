@@ -54,6 +54,8 @@ import { languageOsRouter } from "./language-os/index.js";
 import { notificationOsRouter } from "./notification-os/index.js";
 // Document OS — registre unifié des documents (règle MOS #15)
 import { documentOsRouter } from "./document-os/index.js";
+// Customer Journey OS — entonnoir de parcours client (règle MOS #15)
+import { customerJourneyOsRouter } from "./customer-journey-os/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -140,6 +142,7 @@ export const appRouter = router({
   notificationOs: notificationOsRouter,
   // Document OS — registre unifié des documents (règle MOS #15)
   documentOs: documentOsRouter,
+  customerJourneyOs: customerJourneyOsRouter,
 });
 
 export type AppRouter = typeof appRouter;
