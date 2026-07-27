@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Euro, ArrowDown, ArrowUp, AlertCircle, ChevronDown, Check, Clock } from "lucide-react";
+import { ChevronLeft, Euro, ArrowDown, ArrowUp, AlertCircle, ChevronDown, Check, Clock, ShieldCheck, X } from "lucide-react";
 import { DocumentView, buildFactureData } from "../../components/DocumentPDF";
+import { trpc } from "../../lib/trpc";
 
 const PAIEMENTS = [
   { id: 1, ref: "PAY-20250609-001", client: "Garage Auto 93", montant: "89 EUR", type: "abonnement", statut: "reussi", date: "09/06/2025 14:32", methode: "Carte bancaire", plan: "Pro Premium" },
@@ -17,6 +18,8 @@ export default function AdminPaiements() {
   const [filter, setFilter] = useState<string>("tous");
   const [viewFacture, setViewFacture] = useState<typeof PAIEMENTS[0] | null>(null);
   const [selectedPaiement, setSelectedPaiement] = useState<typeof PAIEMENTS[0] | null>(null);
+  const [showAudit, setShowAudit] = useState(false);
+  const audit = trpc.paymentEngine.audit.useQuery(undefined, { enabled: showAudit });
 
   const filtered = filter === "tous" ? PAIEMENTS : PAIEMENTS.filter((p) => p.statut === filter);
 
@@ -25,7 +28,75 @@ export default function AdminPaiements() {
       <div className="bg-[#111] px-4 pt-6 pb-5">
         <Link to="/superadmin" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Super Admin</Link>
         <h1 className="text-xl font-black text-white flex items-center gap-2"><Euro size={20} className="text-[#D4AF37]" /> Gestion paiements</h1>
+        <button
+          onClick={() => setShowAudit(true)}
+          className="mt-3 w-full rounded-lg bg-white/10 py-2 text-xs font-bold text-white flex items-center justify-center gap-2 active:scale-[0.98]"
+        >
+          <ShieldCheck size={14} className="text-[#D4AF37]" /> Audit du Payment OS (couverture réelle)
+        </button>
       </div>
+
+      {showAudit && (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60" onClick={() => setShowAudit(false)}>
+          <div className="w-full max-w-md max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-black text-[#111] flex items-center gap-2"><ShieldCheck size={18} className="text-[#D4AF37]" /> Audit Payment OS</h3>
+              <button onClick={() => setShowAudit(false)} className="text-[#9CA3AF]"><X size={18} /></button>
+            </div>
+            {audit.isLoading ? (
+              <p className="text-xs text-[#6B7280]">Analyse du moteur de paiement…</p>
+            ) : audit.data ? (
+              <div className="space-y-4">
+                <p className="text-[11px] text-[#6B7280]">
+                  {audit.data.totals.transactions} transaction(s) dans le moteur interne · {audit.data.countryRulesCount} règle(s) pays · {audit.data.methods.length} moyens · {audit.data.statuses.length} statuts.
+                </p>
+
+                {audit.data.gaps.length > 0 && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                    <p className="text-[11px] font-bold text-amber-900 mb-1">Écarts détectés</p>
+                    <ul className="list-disc pl-4 space-y-1">
+                      {audit.data.gaps.map((g, i) => (
+                        <li key={i} className="text-[10px] text-amber-900">{g}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-[11px] font-bold text-[#111] mb-1">Cas de paiement</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {audit.data.cases.map((c) => (
+                      <div key={c.key} className={`rounded-lg border p-2 ${c.covered ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}>
+                        <div className="flex items-center gap-1">
+                          {c.covered ? <Check size={11} className="text-green-600 shrink-0" /> : <AlertCircle size={11} className="text-red-500 shrink-0" />}
+                          <span className="text-[10px] font-bold text-[#111]">{c.label}</span>
+                        </div>
+                        <span className="text-[9px] text-[#6B7280]">{c.observed} transaction(s)</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[11px] font-bold text-[#111] mb-1">Webhooks Stripe (Phase 35)</p>
+                  <div className="space-y-1">
+                    {audit.data.webhooks.map((w) => (
+                      <div key={w.event} className="flex items-center justify-between text-[10px]">
+                        <span className="text-[#111]">{w.label}</span>
+                        <span className={`rounded-full px-2 py-0.5 font-bold ${w.handled ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                          {w.handled ? "traité" : "à brancher"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-red-600">{audit.error?.message ?? "Audit indisponible."}</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Stats grille */}
       <div className="px-4 mt-4 grid grid-cols-2 gap-2">
