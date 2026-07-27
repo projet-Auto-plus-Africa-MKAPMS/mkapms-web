@@ -72,7 +72,7 @@ export function Logo({
           src={WORDMARK_SRC}
           alt="MKA.P-MS"
           style={{ height: Math.max(10, Math.round(size * 0.42)), width: "auto", display: "block" }}
-          className="mt-1 select-none"
+          className="mt-0 select-none"
           draggable={false}
         />
       )}
