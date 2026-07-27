@@ -5,6 +5,7 @@ import {
   Camera, Check, Upload, FileText, Search, Sparkles, Bot, Star, Video, X,
   Loader2, Shield, Zap, Eye, AlertTriangle, Info, Clock, Award, MapPin,
   Phone, Mail, User, Calendar, Gauge, Fuel, Key, Globe, Leaf, Hash, CircleDot,
+  HardHat, CheckCircle,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import FileUpload from "../components/FileUpload";
@@ -22,6 +23,41 @@ const TYPES = [
   { id: "utilitaire", label: "Utilitaire", icon: Truck, color: "bg-orange-600", desc: "Fourgon, Camionnette, Pick-up..." },
   { id: "camion", label: "Camion", icon: Truck, color: "bg-gray-700", desc: "Poids lourd, Semi-remorque..." },
   { id: "vtc", label: "Véhicule VTC & Taxi", icon: Car, color: "bg-[#111]", desc: "Berline confort, Van..." },
+  { id: "engin", label: "Engin & Machine", icon: HardHat, color: "bg-amber-700", desc: "Pelleteuse, tracteur, grue, chariot, nacelle..." },
+];
+
+/* ── Catégories engins & machines ── */
+const CATEGORIES_ENGINS = [
+  /* Terrassement */
+  "Pelleteuses","Mini-pelles","Bulldozers","Niveleuses","Scrapers",
+  /* Levage */
+  "Grues mobiles","Grues à tour","Chariots élévateurs","Chariots télescopiques","Nacelles","Chariots tout-terrain",
+  /* Compactage */
+  "Compacteurs","Finisseurs","Fraiseuses",
+  /* Forage */
+  "Foreuses","Pieux & Battage",
+  /* Agricole */
+  "Tracteurs agricoles","Moissonneuses","Ensileuses","Chargeurs frontaux","Épandeurs","Pulvérisateurs","Presses à balles",
+  /* Forestier */
+  "Abatteuses","Porteurs forestiers","Broyeurs forestiers",
+  /* Industrie */
+  "Chariots élec.","Transpalettes","Gerbeurs","Chariots latéraux",
+  /* Portuaire */
+  "Reach stackers","Tracteurs portuaires","Chariots aéro.",
+  /* Mines */
+  "Tombereaux","Chargeuses","Foreuses minières",
+  /* Routier */
+  "Répandeuses","Balayeuses","Trancheuses",
+  /* Autre */
+  "Autre (à préciser)",
+];
+
+const MARQUES_ENGINS = [
+  "Caterpillar","Komatsu","Liebherr","Volvo CE","JCB","Doosan","Hitachi","Hyundai CE","Terex",
+  "Manitou","Linde","Toyota","Crown","Jungheinrich","Still","Hyster","Yale","Merlo","Bobcat",
+  "Skyjack","Haulotte","Genie","Snorkel","John Deere","Fendt","New Holland","Case IH","Claas",
+  "Massey Ferguson","Deutz-Fahr","Valtra","Ponsse","Sandvik","Atlas Copco","Epiroc","Wirtgen","Hamm",
+  "Autre",
 ];
 
 /* ── Catégories véhicule ── */
@@ -325,8 +361,18 @@ export default function DepotAnnonce() {
   const set = (k: string, v: string) => { setForm((f) => ({ ...f, [k]: v })); setErrors(e => { const n = {...e}; delete n[k]; return n; }); };
 
   const isMoto = selectedType === "moto";
-  const marques = isMoto ? MARQUES_MOTO : MARQUES_VOITURE;
+  const isEngin = selectedType === "engin";
+  const marques = isEngin ? MARQUES_ENGINS : (isMoto ? MARQUES_MOTO : MARQUES_VOITURE);
   const photoCats = isMoto ? PHOTO_CATS_MOTO : PHOTO_CATS_VOITURE;
+
+  /* ── Système d’alerte catégorie manquante ── */
+  const [alertCatManquante, setAlertCatManquante] = useState("");
+  const [alertCatEnvoyee, setAlertCatEnvoyee] = useState(false);
+  const handleSignalerCategorie = () => {
+    // Signalement à l’équipe MKA.P-MS via l’API
+    setAlertCatEnvoyee(true);
+    setTimeout(() => { setAlertCatEnvoyee(false); setAlertCatManquante(""); }, 4000);
+  };
 
   // Cascading logic (4 niveaux)
   const availableModeles = form.marque ? (MODELES[form.marque] || ["Autre"]) : [];
@@ -656,9 +702,55 @@ export default function DepotAnnonce() {
                 <SelectField label="Modele" value={form.modele} onChange={(v) => { set("modele", v); set("motorisation", ""); set("version", ""); set("finition", ""); const autoCat = AUTO_CATEGORIE[v]; if (autoCat) set("categorie", autoCat); }} options={availableModeles} required placeholder="Selectionnez le modele" errorKey="modele" />
               )}
 
-              {/* Categorie */}
-              {form.modele && !isMoto && (
+              {/* Categorie voiture */}
+              {form.modele && !isMoto && !isEngin && (
                 <SelectField label="Categorie" value={form.categorie} onChange={(v) => set("categorie", v)} options={CATEGORIES_VOITURE} placeholder="Selectionnez la categorie" />
+              )}
+
+              {/* Categorie engin — avec système d’alerte */}
+              {isEngin && (
+                <div>
+                  <label className="block text-sm font-semibold text-[#111] mb-1.5">Catégorie d’engin<span className="text-red-500 ml-0.5">*</span></label>
+                  <select
+                    value={form.categorie}
+                    onChange={(v) => {
+                      set("categorie", v.target.value);
+                      if (v.target.value === "Autre (à préciser)") setAlertCatManquante("Autre");
+                      else setAlertCatManquante("");
+                    }}
+                    className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm"
+                  >
+                    <option value="">Sélectionnez la catégorie</option>
+                    {CATEGORIES_ENGINS.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  {/* Champ texte libre si catégorie non listée */}
+                  {form.categorie === "Autre (à préciser)" && (
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        placeholder="Précisez la catégorie (ex: Drague, Engin amphibie...)"
+                        className="w-full rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm"
+                        onChange={(e) => setAlertCatManquante(e.target.value)}
+                      />
+                      {alertCatManquante && !alertCatEnvoyee && (
+                        <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3 flex items-start gap-3">
+                          <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-[11px] font-bold text-amber-800">Catégorie non répertoriée</p>
+                            <p className="text-[10px] text-amber-700 mt-0.5">« {alertCatManquante} » n’est pas encore dans le catalogue. Signalez-le pour que l’équipe MKA.P-MS l’ajoute.</p>
+                            <button onClick={handleSignalerCategorie} className="mt-1.5 px-3 py-1 bg-amber-500 text-white rounded-lg text-[10px] font-bold">Signaler cette catégorie</button>
+                          </div>
+                        </div>
+                      )}
+                      {alertCatEnvoyee && (
+                        <div className="mt-2 rounded-xl border border-green-200 bg-green-50 p-3 flex items-center gap-2">
+                          <CheckCircle size={14} className="text-green-500 shrink-0" />
+                          <p className="text-[11px] font-bold text-green-800">Signalement envoyé — l’équipe MKA.P-MS va traiter votre demande.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Moto-specific */}
@@ -670,30 +762,43 @@ export default function DepotAnnonce() {
                 </>
               )}
 
-              {/* Motorisation — cascading */}
-              {form.modele && !isMoto && (
+              {/* Motorisation — cascading (pas pour engins) */}
+              {form.modele && !isMoto && !isEngin && (
                 <SelectField label="Motorisation" value={form.motorisation} onChange={(v) => { set("motorisation", v); set("version", ""); set("finition", ""); }} options={availableMotorisations} required placeholder="Selectionnez la motorisation" />
               )}
 
-              {/* Version — cascading */}
-              {form.motorisation && !isMoto && (
+              {/* Version — cascading (pas pour engins) */}
+              {form.motorisation && !isMoto && !isEngin && (
                 <SelectField label="Version" value={form.version} onChange={(v) => { set("version", v); set("finition", ""); }} options={availableVersions} required placeholder="Selectionnez la version" />
               )}
 
-              {/* Finition — cascading (4eme niveau) */}
-              {form.version && !isMoto && (
+              {/* Finition — cascading (pas pour engins) */}
+              {form.version && !isMoto && !isEngin && (
                 <SelectField label="Finition" value={form.finition} onChange={(v) => set("finition", v)} options={availableFinitions} placeholder="Selectionnez la finition" />
               )}
 
               {/* Annee + Energie side by side */}
               <div className="grid grid-cols-2 gap-3">
                 <InputField label="Annee" value={form.annee} onChange={(v) => set("annee", v)} placeholder="2024" type="number" required />
-                <SelectField label="Energie" value={form.energie} onChange={(v) => set("energie", v)} options={isMoto ? ["Essence","Electrique","Hybride"] : ["Essence","Diesel","Hybride","Hybride rechargeable","Electrique","GPL","GNV","Hydrogene","E85"]} required />
+                {!isEngin && (
+                  <SelectField label="Energie" value={form.energie} onChange={(v) => set("energie", v)} options={isMoto ? ["Essence","Electrique","Hybride"] : ["Essence","Diesel","Hybride","Hybride rechargeable","Electrique","GPL","GNV","Hydrogene","E85"]} required />
+                )}
+                {isEngin && (
+                  <SelectField label="Motorisation" value={form.energie} onChange={(v) => set("energie", v)} options={["Diesel","Electrique","Hybride","Gaz","Essence","Hydraulique"]} required />
+                )}
               </div>
 
-              {/* Boite de vitesse — Radio vertical */}
-              {!isMoto && (
+              {/* Boite de vitesse (pas pour engins ni moto) */}
+              {!isMoto && !isEngin && (
                 <RadioGroup label="Boite de vitesse" value={form.boite} onChange={(v) => set("boite", v)} options={["AUTOMATIQUE","MANUELLE","SEMI-AUTOMATIQUE"]} vertical />
+              )}
+
+              {/* Champs spécifiques engins */}
+              {isEngin && (
+                <>
+                  <SelectField label="CACES requis" value={form.permis} onChange={(v) => set("permis", v)} options={["Aucun","CACES 1","CACES 2","CACES 3","CACES 4","CACES 5","CACES 6","CACES 7","CACES 8","CACES 9","CACES R372","CACES R377","CACES R382","CACES R386","CACES R389","CACES R390","CACES R482","Permis PL","Autre"]} placeholder="Sélectionnez le CACES" />
+                  <SelectField label="État de l’engin" value={form.etat} onChange={(v) => set("etat", v)} options={["Neuf","Très bon état","Bon état","État correct","Pour pièces / réparation"]} required placeholder="État de l’engin" errorKey="etat" />
+                </>
               )}
 
               <button onClick={() => {

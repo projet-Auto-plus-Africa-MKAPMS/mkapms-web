@@ -26,9 +26,9 @@ import {
 export const accountTypeEnum = pgEnum("account_type", ["particulier", "professionnel"]);
 export const annonceBoiteEnum = pgEnum("annonce_boite", ["manuelle", "automatique", "semi_automatique"]);
 export const annonceCarburantEnum = pgEnum("annonce_carburant", ["essence", "diesel", "electrique", "hybride", "hybride_rechargeable", "gpl", "hydrogene", "ethanol", "autre"]);
-export const annonceCategorieEnum = pgEnum("annonce_categorie", ["citadine", "berline", "break", "suv", "coupe", "cabriolet", "monospace", "utilitaire", "camion", "moto", "scooter", "quad", "luxe", "autre"]);
+export const annonceCategorieEnum = pgEnum("annonce_categorie", ["citadine", "berline", "break", "suv", "coupe", "cabriolet", "monospace", "utilitaire", "camion", "moto", "scooter", "quad", "luxe", "engin", "machine", "tracteur", "pelleteuse", "grue", "chariot", "nacelle", "compacteur", "autre"]);
 export const annonceEtatEnum = pgEnum("annonce_etat", ["neuf", "occasion", "demonstration", "accidente"]);
-export const annonceFamilleEnum = pgEnum("annonce_famille", ["auto", "moto"]);
+export const annonceFamilleEnum = pgEnum("annonce_famille", ["auto", "moto", "engin"]);
 export const annonceOptionTypeEnum = pgEnum("annonce_option_type", ["annonce_urgente", "boost_7j", "boost_15j", "boost_30j", "mise_avant_categorie", "mise_avant_accueil", "photo_pack"]);
 export const annonceStatusEnum = pgEnum("annonce_status", ["brouillon", "en_validation", "publiee", "vendue", "louee", "expiree", "refusee", "archivee"]);
 export const annonceTypeEnum = pgEnum("annonce_type", ["vente", "location"]);

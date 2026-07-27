@@ -376,7 +376,23 @@ export default function Vehicule({ univers }: { univers?: string }) {
     action();
   }
 
-  const details: [string, unknown][] = [
+  // Détection engin & machine (catégorie ou famille)
+  const ENGIN_CATEGORIES = ["engin", "machine", "tracteur", "pelleteuse", "grue", "chariot", "nacelle", "compacteur"];
+  const isEnginAnnonce = v.famille === "engin" || ENGIN_CATEGORIES.includes((v.categorie || "").toLowerCase());
+
+  const details: [string, unknown][] = isEnginAnnonce ? [
+    // Caractéristiques spécifiques aux engins & machines
+    ["Marque", v.marque],
+    ["Modèle", v.modele],
+    ["Année", v.annee],
+    ["Heures moteur", v.kilometrage != null ? `${v.kilometrage.toLocaleString("fr-FR")} h` : null],
+    ["Motorisation", v.carburant],
+    ["Puissance", v.puissanceCv ? `${v.puissanceCv} ch` : null],
+    ["CACES requis", v.permis],
+    ["État", v.etat],
+    ["Catégorie", v.categorie],
+  ] : [
+    // Caractéristiques standard véhicules
     ["Marque", v.marque],
     ["Modèle", v.modele],
     ["Version", v.version],
