@@ -337,6 +337,13 @@
       "when": 1784500303000,
       "tag": "0048_payment_products",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1784500304000,
+      "tag": "0049_document_traceability",
+      "breakpoints": true
     }
   ]
 }

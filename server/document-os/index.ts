@@ -67,7 +67,24 @@ export const docDocuments = pgTable("doc_documents", {
   signedAt: timestamp("signed_at", { withTimezone: true }),
   cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
   storageKey: varchar("storage_key", { length: 255 }),
+  // Phase 44 — traçabilité complète du document.
+  authorUserId: integer("author_user_id"),
+  version: integer("version").notNull().default(1),
+  qrPayload: text("qr_payload"),
+  signatureName: varchar("signature_name", { length: 160 }),
+  signatureData: text("signature_data"),
   metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Historique des documents (Phase 44) — chaque changement d'état/version. */
+export const docDocumentHistory = pgTable("doc_document_history", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  documentId: integer("document_id").notNull(),
+  version: integer("version").notNull(),
+  action: varchar("action", { length: 32 }).notNull(),
+  actorUserId: integer("actor_user_id"),
+  snapshot: jsonb("snapshot"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -96,6 +113,23 @@ export function makeDocRef(typeCode: string, seq: number): string {
   const year = new Date().getFullYear();
   const prefix = typeCode.slice(0, 3).toUpperCase();
   return `${prefix}-${year}-${String(seq).padStart(6, "0")}`;
+}
+
+/** URL publique de vérification d'un document (encodée dans le QR code). */
+export function verificationUrl(reference: string): string {
+  const base = process.env.PUBLIC_URL?.replace(/\/$/, "") ?? "https://mkapms.fr";
+  return `${base}/verifier-document/${encodeURIComponent(reference)}`;
+}
+
+/** Enregistre une entrée d'historique (best-effort). */
+async function recordHistory(documentId: number, version: number, action: string, actorUserId?: number | null, snapshot?: Record<string, unknown>) {
+  try {
+    await db.insert(docDocumentHistory).values({
+      documentId, version, action,
+      actorUserId: actorUserId ?? null,
+      snapshot: (snapshot ?? {}) as any,
+    });
+  } catch { /* best-effort */ }
 }
 
 export async function listTypes(activeOnly = true) {
@@ -135,6 +169,7 @@ export async function upsertTemplate(input: { typeCode: string; language: string
 export async function createDocument(input: {
   typeCode: string; language?: string; countryCode?: string;
   ownerUserId?: number; counterpartyUserId?: number;
+  authorUserId?: number;
   linkedEntityType?: string; linkedEntityId?: number;
   amountHt?: number; amountTtc?: number; currency?: string;
   metadata?: Record<string, unknown>;
@@ -150,24 +185,65 @@ export async function createDocument(input: {
     language: input.language ?? "fr", countryCode: input.countryCode ?? null,
     ownerUserId: input.ownerUserId ?? null,
     counterpartyUserId: input.counterpartyUserId ?? null,
+    authorUserId: input.authorUserId ?? input.ownerUserId ?? null,
     linkedEntityType: input.linkedEntityType ?? null,
     linkedEntityId: input.linkedEntityId ?? null,
     amountHt: input.amountHt !== undefined ? String(input.amountHt) : null,
     amountTtc: input.amountTtc !== undefined ? String(input.amountTtc) : null,
     currency: input.currency ?? null,
     status: "brouillon",
+    version: 1,
+    qrPayload: verificationUrl(reference),
     metadata: (input.metadata ?? {}) as any,
   }).returning();
+  await recordHistory(row.id, 1, "created", input.authorUserId ?? input.ownerUserId ?? null, { reference, typeCode: input.typeCode });
   return row;
 }
 
-export async function updateDocumentStatus(id: number, next: "brouillon" | "emis" | "signe" | "annule" | "archive") {
+export async function updateDocumentStatus(id: number, next: "brouillon" | "emis" | "signe" | "annule" | "archive", actorUserId?: number) {
   const patch: any = { status: next };
   if (next === "emis") patch.issuedAt = new Date();
   if (next === "signe") patch.signedAt = new Date();
   if (next === "annule") patch.cancelledAt = new Date();
+  // Chaque transition incrémente la version (traçabilité Phase 44).
+  patch.version = sql`${docDocuments.version} + 1`;
   const [row] = await db.update(docDocuments).set(patch).where(eq(docDocuments.id, id)).returning();
+  if (row) await recordHistory(row.id, row.version, `status_${next}`, actorUserId, { status: next });
   return row ?? null;
+}
+
+/** Signature d'un document (nom + trace) → passe le statut à « signe ». */
+export async function signDocument(id: number, signature: { name: string; data?: string }, actorUserId?: number) {
+  const [row] = await db.update(docDocuments).set({
+    status: "signe",
+    signedAt: new Date(),
+    signatureName: signature.name.slice(0, 160),
+    signatureData: signature.data ?? null,
+    version: sql`${docDocuments.version} + 1`,
+  }).where(eq(docDocuments.id, id)).returning();
+  if (row) await recordHistory(row.id, row.version, "signed", actorUserId, { signatureName: signature.name });
+  return row ?? null;
+}
+
+/** Vérification publique d'un document par sa référence (QR code). */
+export async function verifyDocument(reference: string) {
+  const [row] = await db.select({
+    reference: docDocuments.reference,
+    typeCode: docDocuments.typeCode,
+    status: docDocuments.status,
+    version: docDocuments.version,
+    issuedAt: docDocuments.issuedAt,
+    signedAt: docDocuments.signedAt,
+    signatureName: docDocuments.signatureName,
+  }).from(docDocuments).where(eq(docDocuments.reference, reference)).limit(1);
+  if (!row) return { valid: false as const };
+  return { valid: true as const, document: row };
+}
+
+export async function listHistory(documentId: number) {
+  return db.select().from(docDocumentHistory)
+    .where(eq(docDocumentHistory.documentId, documentId))
+    .orderBy(desc(docDocumentHistory.createdAt));
 }
 
 /** Interpole {{variables}} d'un template avec un dict.
@@ -304,8 +380,23 @@ export const documentOsRouter = router({
         id: z.number().int().positive(),
         status: z.enum(["brouillon", "emis", "signe", "annule", "archive"]),
       }))
-      .mutation(({ input }) => updateDocumentStatus(input.id, input.status)),
+      .mutation(({ ctx, input }) => updateDocumentStatus(input.id, input.status, ctx.user.uid)),
+    sign: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        name: z.string().min(2).max(160),
+        data: z.string().max(200000).optional(),
+      }))
+      .mutation(({ ctx, input }) => signDocument(input.id, { name: input.name, data: input.data }, ctx.user.uid)),
+    history: protectedProcedure
+      .input(z.object({ documentId: z.number().int().positive() }))
+      .query(({ input }) => listHistory(input.documentId)),
   }),
+
+  // Vérification publique via QR code (Phase 44).
+  verify: publicProcedure
+    .input(z.object({ reference: z.string().min(3).max(64) }))
+    .query(({ input }) => verifyDocument(input.reference)),
 
   render: adminProcedure
     .input(z.object({
