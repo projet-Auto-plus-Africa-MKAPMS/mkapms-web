@@ -715,7 +715,7 @@ export default function Garages() {
         {list.data?.items.map((g) => (
           <div key={g.id} className="card p-5">
             <div className="flex items-start justify-between">
-              <h3 className="font-bold text-slate-900">{g.name}</h3>
+              <Link to={`/garages/${g.slug || g.id}`} className="font-bold text-slate-900 hover:text-gold-dark">{g.name}</Link>
               {g.featured && <BadgeCheck className="text-gold-dark" size={18} />}
             </div>
             {g.description && <p className="mt-1 line-clamp-2 text-sm text-slate-500">{g.description}</p>}
@@ -729,9 +729,14 @@ export default function Garages() {
                 {Number(g.rating || 0).toFixed(1)} ({g.reviewCount || 0} avis)
               </p>
             </div>
-            <button onClick={() => { setSelectedGarage(g.id); setDevisMode(true); setStep(0); }} className="btn-outline mt-3 w-full text-sm">
-              Demander un devis
-            </button>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Link to={`/garages/${g.slug || g.id}`} className="btn-outline text-center text-sm">
+                Voir la fiche
+              </Link>
+              <button onClick={() => { setSelectedGarage(g.id); setDevisMode(true); setStep(0); }} className="btn-primary text-sm">
+                Devis
+              </button>
+            </div>
           </div>
         ))}
         {list.data && list.data.items.length === 0 && (

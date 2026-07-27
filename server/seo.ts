@@ -329,6 +329,92 @@ async function seoPageHead(path: string, baseUrl: string, domainKey: DomainKey):
   });
 }
 
+/**
+ * SEO d'une fiche garage/professionnel (/garages/:slug) — Phase 19.
+ * Chaque fiche est indexée indépendamment avec un schéma AutoRepair
+ * (adresse, téléphone, horaires, note moyenne, spécialités).
+ */
+async function garageSeoHead(path: string, baseUrl: string, domainKey: DomainKey): Promise<string | null> {
+  const m = path.match(/^\/garages\/([^/?]+)\/?$/);
+  if (!m) return null;
+  const ident = decodeURIComponent(m[1]);
+  const meta = DOMAIN_SEO[domainKey];
+
+  let g: typeof garagesPublics.$inferSelect | undefined;
+  try {
+    const byNumericId = /^\d+$/.test(ident);
+    [g] = await db
+      .select()
+      .from(garagesPublics)
+      .where(
+        and(
+          eq(garagesPublics.status, "valide"),
+          byNumericId ? eq(garagesPublics.id, Number(ident)) : eq(garagesPublics.slug, ident),
+        ),
+      )
+      .limit(1);
+  } catch {
+    return null;
+  }
+  if (!g) return null;
+
+  const url = `${baseUrl}/garages/${g.slug || g.id}`;
+  const ville = g.city ? ` à ${g.city}` : "";
+  const specialites = (g.specialites || g.services || "").replace(/\s+/g, " ").trim();
+  const title = `${g.name}${ville} — garage automobile | ${meta.siteName}`;
+  const description = (
+    g.description?.replace(/\s+/g, " ").trim().slice(0, 200) ||
+    `${g.name}${ville} : garage automobile vérifié sur MKA.P-MS.` +
+      (specialites ? ` Spécialités : ${specialites.slice(0, 120)}.` : "") +
+      " Avis, horaires et prise de rendez-vous en ligne."
+  );
+
+  const rating = Number(g.rating) || 0;
+  const address: Record<string, string> = { "@type": "PostalAddress" };
+  if (g.addressLine) address.streetAddress = g.addressLine;
+  if (g.city) address.addressLocality = g.city;
+  if (g.postalCode) address.postalCode = g.postalCode;
+  address.addressCountry = g.country || "FR";
+
+  const jsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "AutoRepair",
+    name: g.name,
+    description,
+    url,
+    address,
+    ...(g.phone ? { telephone: g.phone } : {}),
+    ...(g.logoUrl ? { logo: g.logoUrl, image: g.logoUrl } : {}),
+    ...(g.coverUrl ? { image: g.coverUrl } : {}),
+    ...(g.latitude && g.longitude
+      ? { geo: { "@type": "GeoCoordinates", latitude: Number(g.latitude), longitude: Number(g.longitude) } }
+      : {}),
+    ...(g.hours ? { openingHours: g.hours } : {}),
+    ...(specialites ? { knowsAbout: specialites.split(/[,;]/).map((s) => s.trim()).filter(Boolean).slice(0, 12) } : {}),
+    ...(rating > 0 && g.reviewCount > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: rating,
+            reviewCount: g.reviewCount,
+            bestRating: 5,
+          },
+        }
+      : {}),
+  };
+
+  return buildHead({
+    title,
+    description,
+    keywords: [g.name, `garage ${g.city || ""}`.trim(), "garage automobile", "réparation auto"].filter(Boolean).join(", "),
+    canonical: url,
+    image: g.coverUrl || g.logoUrl || undefined,
+    type: "website",
+    lang: meta.lang,
+    jsonLd: [jsonLd, breadcrumbSchema(baseUrl, `/garages/${g.slug || g.id}`, g.name)],
+  });
+}
+
 // ─── Exports publics ──────────────────────────────────────────────────────────
 
 /**
@@ -357,6 +443,7 @@ export async function injectAnnonceSeo(req: Request, html: string): Promise<stri
     if (vm) {
       pageHead = await annonceSeoHead(Number(vm[1]), baseUrl, domainKey);
     }
+    if (!pageHead) pageHead = await garageSeoHead(path, baseUrl, domainKey);
     if (!pageHead) pageHead = await seoPageHead(path, baseUrl, domainKey);
     if (!pageHead) pageHead = staticSeoHead(path, baseUrl, domainKey);
   } catch {
