@@ -1,14 +1,23 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { ChevronLeft, Search, Truck, Heart, Star, ChevronDown } from "lucide-react";
+import { ChevronLeft, Search, Truck, Heart, ChevronDown } from "lucide-react";
+
+/* ══════════════════════════════════════════════════════════════════════════
+   VENTE UTILITAIRES — Kangoo, Berlingo, Trafic, Master, Boxer, etc.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const MARQUES_UTIL = [
+  "Citroën", "Fiat", "Ford", "Iveco", "Mercedes-Benz",
+  "Opel", "Peugeot", "Renault", "Toyota", "Volkswagen",
+];
 
 const CATEGORIES = [
   { label: "Kangoo / Berlingo", desc: "Petits fourgons", photo: "/categories/util_petit_fourgon.jpg" },
   { label: "Trafic / Vivaro", desc: "Fourgons moyens", photo: "/categories/util_fourgon_moyen.jpg" },
   { label: "Master / Boxer", desc: "Grands fourgons", photo: "/categories/util_grand_fourgon.jpg" },
   { label: "Plateau", desc: "Transport matériel", photo: "/categories/util_plateau.jpg" },
-  { label: "Béne / Coffre", desc: "Stockage", photo: "/categories/util_benne.jpg" },
+  { label: "Benne / Coffre", desc: "Stockage", photo: "/categories/util_benne.jpg" },
   { label: "Pick-up / 4x4", desc: "Hilux, Ranger, L200", photo: "/categories/util_pickup.jpg" },
   { label: "Électriques", desc: "Kangoo E-Tech, Berlingo Électrique", photo: "/categories/util_electrique.jpg" },
   { label: "Bâchés", desc: "Transport matériel couvert", photo: "/categories/util_bache.jpg" },
@@ -23,49 +32,184 @@ const ANNONCES = [
   { id: 4, nom: "Ford Transit Custom L2", annee: 2023, km: 28000, prix: 24900, volume: "6.8 m³", charge: "1 100 kg", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop" },
 ];
 
+const ANNEES = Array.from({ length: 15 }, (_, i) => String(new Date().getFullYear() - i));
+
 export default function VenteUtilitaires() {
+  const [showFilters, setShowFilters] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
+      {/* EN-TÊTE */}
       <div className="bg-orange-600 px-4 pt-6 pb-5">
-        <Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour Vente</Link>
-        <span className="inline-block rounded-full bg-white/20 px-3 py-0.5 text-[10px] font-bold text-white mb-2">UTILITAIRES</span>
-        <h1 className="text-xl font-black text-white flex items-center gap-2"><Truck size={20} /> Achat Utilitaires</h1>
+        <Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-2">
+          <ChevronLeft size={14} /> Retour Vente
+        </Link>
+        <span className="inline-block rounded-full bg-white/20 px-3 py-0.5 text-[10px] font-bold text-white mb-2">
+          UTILITAIRES
+        </span>
+        <h1 className="text-xl font-black text-white flex items-center gap-2">
+          <Truck size={20} /> Achat Utilitaires
+        </h1>
         <p className="mt-1 text-sm text-white/80">Kangoo, Berlingo, Partner, Trafic, Master, Boxer</p>
       </div>
 
-      <div className="px-4 -mt-3 relative z-10 rounded-xl bg-white border border-[#E5E7EB] p-3 mx-4 shadow-sm">
+      {/* BARRE DE RECHERCHE DÉPLIANTE */}
+      <div className="mx-4 -mt-4 relative z-10 rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-md">
+        {/* Ligne principale */}
         <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5">
           <Search size={14} className="text-[#6B7280]" />
-          <input type="text" placeholder="Marque, modèle, volume…" className="w-full bg-transparent text-sm outline-none" />
+          <input
+            type="text"
+            placeholder="Marque, modèle, volume…"
+            className="w-full bg-transparent text-sm outline-none"
+          />
+          <button onClick={() => setShowFilters(!showFilters)} aria-label="Afficher les filtres">
+            <ChevronDown
+              size={16}
+              className={`text-[#6B7280] transition-transform duration-200 ${showFilters ? "rotate-180" : ""}`}
+            />
+          </button>
         </div>
+
+        {/* Filtres dépliants */}
+        {showFilters && (
+          <div className="mt-3 space-y-3">
+            {/* Marque */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Marque</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les marques</option>
+                {MARQUES_UTIL.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+
+            {/* Catégorie */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Catégorie</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les catégories</option>
+                {CATEGORIES.map((c) => <option key={c.label} value={c.label}>{c.label}</option>)}
+              </select>
+            </div>
+
+            {/* Volume de chargement */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Volume de chargement</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Tous</option>
+                <option value="3">Jusqu'à 3 m³</option>
+                <option value="5">Jusqu'à 5 m³</option>
+                <option value="8">Jusqu'à 8 m³</option>
+                <option value="12">Jusqu'à 12 m³</option>
+                <option value="20">20 m³ et plus</option>
+              </select>
+            </div>
+
+            {/* Énergie */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Énergie</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Électrique">Électrique</option>
+                <option value="Essence">Essence</option>
+                <option value="Hybride">Hybride</option>
+              </select>
+            </div>
+
+            {/* Année */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Année (à partir de)</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les années</option>
+                {ANNEES.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+
+            {/* Kilométrage max */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Kilométrage max</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Sans limite</option>
+                <option value="50000">50 000 km</option>
+                <option value="100000">100 000 km</option>
+                <option value="200000">200 000 km</option>
+                <option value="300000">300 000 km</option>
+              </select>
+            </div>
+
+            {/* Prix min / max */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix min</label>
+                <input
+                  type="number"
+                  placeholder="0 €"
+                  className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix max</label>
+                <input
+                  type="number"
+                  placeholder="80 000 €"
+                  className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Bouton Rechercher */}
+            <button className="w-full py-2.5 bg-purple-700 text-white rounded-xl text-xs font-bold active:scale-[0.98] transition">
+              Rechercher
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Catégories — scroll horizontal */}
+      {/* CATÉGORIES — scroll horizontal */}
       <div className="px-4 mt-4">
         <h2 className="text-base font-bold text-[#111]">Catégories</h2>
         <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {CATEGORIES.map((c) => (
-            <button key={c.label} className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition">
-              <img src={c.photo} alt="" className="w-full h-[60px] object-cover" loading="lazy" />
-              <div className="p-2"><h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3><p className="text-[8px] text-[#6B7280]">{c.desc}</p></div>
+            <button
+              key={c.label}
+              className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition"
+            >
+              <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
+              <div className="p-2">
+                <h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3>
+                <p className="text-[8px] text-[#6B7280]">{c.desc}</p>
+              </div>
             </button>
           ))}
         </div>
       </div>
 
+      {/* ANNONCES */}
       <div className="px-4 mt-6">
         <h2 className="text-base font-bold text-[#111]">Annonces utilitaires</h2>
         <div className="mt-3 space-y-3">
           {ANNONCES.map((a) => (
-            <Link key={a.id} to={getAnnonceUrl(9080 + a.id, null, null)} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
+            <Link
+              key={a.id}
+              to={getAnnonceUrl(9080 + a.id, null, null)}
+              className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition"
+            >
               <div className="relative h-[130px]">
                 <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
-                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span>
+                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center">
+                  <Heart size={14} className="text-red-500" />
+                </span>
               </div>
               <div className="p-4">
                 <h3 className="text-sm font-bold text-[#111]">{a.nom}</h3>
-                <p className="text-[10px] text-[#6B7280] mt-0.5">{a.annee} · {a.km.toLocaleString("fr-FR")} km</p>
-                <div className="mt-1 flex gap-2 text-[10px]"><span className="rounded bg-orange-50 px-1.5 py-0.5 font-semibold text-orange-700">{a.volume}</span><span className="rounded bg-orange-50 px-1.5 py-0.5 font-semibold text-orange-700">{a.charge}</span></div>
+                <p className="text-[10px] text-[#6B7280] mt-0.5">
+                  {a.annee} · {a.km.toLocaleString("fr-FR")} km
+                </p>
+                <div className="mt-1 flex gap-2 text-[10px]">
+                  <span className="rounded bg-orange-50 px-1.5 py-0.5 font-semibold text-orange-700">{a.volume}</span>
+                  <span className="rounded bg-orange-50 px-1.5 py-0.5 font-semibold text-orange-700">{a.charge}</span>
+                </div>
                 <p className="mt-2 text-lg font-black text-orange-600">{a.prix.toLocaleString("fr-FR")} €</p>
               </div>
             </Link>

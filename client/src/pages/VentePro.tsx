@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import {
   ChevronLeft, Search, Shield, Star, FileText, Truck,
-  Check, Filter, Heart, MapPin, ChevronDown, Euro,
+  Check, Heart, MapPin, ChevronDown,
   Building2, Award, ChevronRight, Phone
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
@@ -12,6 +12,12 @@ import { trpc } from "../lib/trpc";
    VENTE PROFESSIONNELLE
    Garages, Marchands, Concessionnaires. TVA récupérable, garantie, historique.
    ══════════════════════════════════════════════════════════════════════════ */
+
+const MARQUES_PRO = [
+  "Audi", "BMW", "Citroën", "DS", "Ford", "Honda", "Hyundai", "Kia",
+  "Mercedes-Benz", "Nissan", "Opel", "Peugeot", "Renault", "Seat",
+  "Skoda", "Tesla", "Toyota", "Volkswagen", "Volvo",
+];
 
 const DEMO_ANNONCES = [
   { id: 1, nom: "BMW X3 xDrive 20d", annee: 2023, km: 28000, prix: 38500, tva: true, garantie: "24 mois", carb: "Diesel", boite: "Auto", pro: "BMW Premium Selection Paris", note: 4.9, photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=260&fit=crop", ville: "Paris" },
@@ -34,11 +40,6 @@ const CATEGORIES_PRO = [
   { label: "Cabriolets", modeles: "Z4, SLK, Boxster", photo: "/categories/pro_cabriolet.jpg" },
 ];
 
-const FILTRES_PRO = [
-  "TVA récupérable", "Garantie constructeur", "Professionnel vérifié",
-  "Livraison possible", "Contrôle technique OK", "1ère main",
-];
-
 const FAQ = [
   { q: "Comment vérifier un professionnel ?", r: "Chaque professionnel est vérifié par MKA.P-MS : SIRET, KBIS, avis clients. Le badge 'Vérifié' garantit son sérieux." },
   { q: "La TVA est-elle récupérable ?", r: "Oui, les annonces avec le badge 'TVA récup.' permettent la récupération de la TVA pour les entreprises." },
@@ -48,9 +49,10 @@ const FAQ = [
 
 const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
 
+const ANNEES = Array.from({ length: 15 }, (_, i) => String(new Date().getFullYear() - i));
+
 export default function VentePro() {
   const [showFilters, setShowFilters] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { data: realData, isLoading } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", limit: 30 });
 
@@ -72,79 +74,223 @@ export default function VentePro() {
 
   const annonces = realAnnonces.length > 0 ? realAnnonces : DEMO_ANNONCES;
 
-  const toggleFilter = (f: string) => setActiveFilters((prev) => prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f]);
-
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
+      {/* EN-TÊTE */}
       <div className="bg-blue-800 px-4 pt-6 pb-5">
-        <Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour Vente</Link>
-        <span className="inline-block rounded-full bg-white/20 px-3 py-0.5 text-[10px] font-bold text-white mb-2">PROFESSIONNEL</span>
+        <Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-2">
+          <ChevronLeft size={14} /> Retour Vente
+        </Link>
+        <span className="inline-block rounded-full bg-white/20 px-3 py-0.5 text-[10px] font-bold text-white mb-2">
+          PROFESSIONNEL
+        </span>
         <h1 className="text-xl font-black text-white">Achat Professionnel</h1>
         <p className="mt-1 text-sm text-white/80">Garages, marchands, concessionnaires. Garantie et historique.</p>
       </div>
 
-      {/* Recherche */}
-      <div className="px-4 -mt-3 relative z-10 rounded-xl bg-white border border-[#E5E7EB] p-3 mx-4 shadow-sm">
+      {/* BARRE DE RECHERCHE DÉPLIANTE */}
+      <div className="mx-4 -mt-4 relative z-10 rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-md">
+        {/* Ligne principale */}
         <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5">
           <Search size={14} className="text-[#6B7280]" />
-          <input type="text" placeholder="Marque, modèle…" className="w-full bg-transparent text-sm outline-none" />
+          <input
+            type="text"
+            placeholder="Marque, modèle, professionnel…"
+            className="w-full bg-transparent text-sm outline-none"
+          />
+          <button onClick={() => setShowFilters(!showFilters)} aria-label="Afficher les filtres">
+            <ChevronDown
+              size={16}
+              className={`text-[#6B7280] transition-transform duration-200 ${showFilters ? "rotate-180" : ""}`}
+            />
+          </button>
         </div>
+
+        {/* Filtres dépliants */}
+        {showFilters && (
+          <div className="mt-3 space-y-3">
+            {/* Marque */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Marque</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les marques</option>
+                {MARQUES_PRO.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+
+            {/* Catégorie */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Catégorie</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les catégories</option>
+                {CATEGORIES_PRO.map((c) => <option key={c.label} value={c.label}>{c.label}</option>)}
+              </select>
+            </div>
+
+            {/* Carburant */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Carburant</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Tous</option>
+                <option value="Essence">Essence</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Hybride">Hybride</option>
+                <option value="Électrique">Électrique</option>
+                <option value="GPL">GPL</option>
+              </select>
+            </div>
+
+            {/* Année */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Année (à partir de)</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les années</option>
+                {ANNEES.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+
+            {/* Kilométrage max */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Kilométrage max</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Sans limite</option>
+                <option value="20000">20 000 km</option>
+                <option value="50000">50 000 km</option>
+                <option value="100000">100 000 km</option>
+                <option value="150000">150 000 km</option>
+                <option value="200000">200 000 km</option>
+              </select>
+            </div>
+
+            {/* TVA */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">TVA</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Tous</option>
+                <option value="tva">TVA récupérable</option>
+                <option value="no-tva">Sans TVA</option>
+              </select>
+            </div>
+
+            {/* Prix min / max */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix min</label>
+                <input
+                  type="number"
+                  placeholder="0 €"
+                  className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix max</label>
+                <input
+                  type="number"
+                  placeholder="100 000 €"
+                  className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Bouton Rechercher */}
+            <button className="w-full py-2.5 bg-purple-700 text-white rounded-xl text-xs font-bold active:scale-[0.98] transition">
+              Rechercher
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Quick filters */}
-      <div className="px-4 mt-3 flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-        {FILTRES_PRO.map((f) => (
-          <button key={f} onClick={() => toggleFilter(f)} className={`shrink-0 rounded-full px-3 py-1.5 text-[10px] font-semibold transition ${activeFilters.includes(f) ? "bg-blue-800 text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>{f}</button>
-        ))}
-      </div>
-
-      {/* Catégories — scroll horizontal */}
+      {/* CATÉGORIES — scroll horizontal */}
       <div className="px-4 mt-4">
         <h2 className="text-base font-bold text-[#111]">Catégories</h2>
         <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {CATEGORIES_PRO.map((c) => (
-            <button key={c.label} className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition">
+            <button
+              key={c.label}
+              className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition"
+            >
               <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
-              <div className="p-2"><h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3><p className="text-[8px] text-[#6B7280] truncate">{c.modeles}</p></div>
+              <div className="p-2">
+                <h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3>
+                <p className="text-[8px] text-[#6B7280] truncate">{c.modeles}</p>
+              </div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Annonces */}
+      {/* ANNONCES */}
       <div className="px-4 mt-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-bold text-[#111]">Annonces professionnelles</h2>
-          {realData && <span className="text-[10px] text-[#6B7280]">{realData.total} annonce{realData.total > 1 ? "s" : ""}</span>}
+          {realData && (
+            <span className="text-[10px] text-[#6B7280]">
+              {realData.total} annonce{realData.total > 1 ? "s" : ""}
+            </span>
+          )}
         </div>
-        {isLoading && <div className="py-8 text-center text-[#6B7280] text-sm">Chargement...</div>}
+        {isLoading && <div className="py-8 text-center text-[#6B7280] text-sm">Chargement…</div>}
         <div className="space-y-3">
           {annonces.map((a) => (
-            <Link key={a.id} to={getAnnonceUrl(a.id, a.categorieAnnonce, a.vendeurType)} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
+            <Link
+              key={a.id}
+              to={getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)}
+              className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition"
+            >
               <div className="relative h-[140px]">
-                <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }} />
-                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span>
+                <img
+                  src={a.photo}
+                  alt={a.nom}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }}
+                />
+                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center">
+                  <Heart size={14} className="text-red-500" />
+                </span>
                 <div className="absolute top-2 left-2 flex gap-1">
-                  <span className="rounded-full bg-blue-800 px-2 py-0.5 text-[9px] font-bold text-white flex items-center gap-0.5"><Shield size={8} /> Pro vérifié</span>
-                  {a.tva && <span className="rounded-full bg-green-600 px-2 py-0.5 text-[9px] font-bold text-white">TVA récup.</span>}
+                  <span className="rounded-full bg-blue-800 px-2 py-0.5 text-[9px] font-bold text-white flex items-center gap-0.5">
+                    <Shield size={8} /> Pro vérifié
+                  </span>
+                  {a.tva && (
+                    <span className="rounded-full bg-green-600 px-2 py-0.5 text-[9px] font-bold text-white">
+                      TVA récup.
+                    </span>
+                  )}
                 </div>
-                {a.garantie && <span className="absolute bottom-2 left-2 rounded-full bg-[#111] px-2 py-0.5 text-[9px] font-bold text-[#D4AF37]">Garantie {a.garantie}</span>}
+                {a.garantie && (
+                  <span className="absolute bottom-2 left-2 rounded-full bg-[#111] px-2 py-0.5 text-[9px] font-bold text-[#D4AF37]">
+                    Garantie {a.garantie}
+                  </span>
+                )}
               </div>
               <div className="p-4">
                 <h3 className="text-sm font-bold text-[#111]">{a.nom}</h3>
                 <div className="mt-1 flex items-center gap-3 text-[10px] text-[#6B7280]">
-                  <span>{a.annee}</span><span>{(a.km ?? 0).toLocaleString("fr-FR")} km</span><span>{a.carb}</span><span>{a.boite}</span>
+                  <span>{a.annee}</span>
+                  <span>{(a.km ?? 0).toLocaleString("fr-FR")} km</span>
+                  <span>{a.carb}</span>
+                  <span>{a.boite}</span>
                 </div>
                 <div className="mt-1 flex items-center gap-1 text-[10px] text-[#6B7280]">
                   <Building2 size={10} /> {a.pro}
-                  {a.ville && <><span className="mx-1">·</span><MapPin size={8} className="text-red-500" /> {a.ville}</>}
+                  {a.ville && (
+                    <>
+                      <span className="mx-1">·</span>
+                      <MapPin size={8} className="text-red-500" /> {a.ville}
+                    </>
+                  )}
                 </div>
                 <div className="mt-2 flex items-center justify-between">
                   <div>
-                    <span className="text-lg font-black text-blue-800">{(a.prix ?? 0).toLocaleString("fr-FR")} €</span>
+                    <span className="text-lg font-black text-blue-800">
+                      {(a.prix ?? 0).toLocaleString("fr-FR")} €
+                    </span>
                     {a.tva && <span className="text-[9px] text-green-600 ml-1 font-semibold">HT</span>}
                   </div>
-                  <span className="flex items-center gap-0.5 text-xs"><Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> {a.note}</span>
+                  <span className="flex items-center gap-0.5 text-xs">
+                    <Star size={10} className="text-[#D4AF37]" fill="#D4AF37" /> {a.note}
+                  </span>
                 </div>
               </div>
             </Link>
@@ -158,11 +304,21 @@ export default function VentePro() {
         <div className="mt-3 space-y-2">
           {FAQ.map((f, i) => (
             <div key={i} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-              <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between px-4 py-3 text-left">
+              <button
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left"
+              >
                 <span className="text-sm font-semibold text-[#111] pr-2">{f.q}</span>
-                <ChevronDown size={14} className={`text-red-500 shrink-0 transition ${openFaq === i ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  size={14}
+                  className={`text-blue-800 shrink-0 transition ${openFaq === i ? "rotate-180" : ""}`}
+                />
               </button>
-              {openFaq === i && <div className="px-4 pb-3"><p className="text-xs text-[#6B7280]">{f.r}</p></div>}
+              {openFaq === i && (
+                <div className="px-4 pb-3">
+                  <p className="text-xs text-[#6B7280]">{f.r}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>

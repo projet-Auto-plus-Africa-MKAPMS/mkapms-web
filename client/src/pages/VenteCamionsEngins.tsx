@@ -111,6 +111,7 @@ export default function VenteCamionsEngins() {
   const [searchInput, setSearchInput] = useState("");
   const [searchActive, setSearchActive] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   /* ── Système d'alerte catégorie manquante ── */
   const [alertCategorie, setAlertCategorie] = useState("");
@@ -202,7 +203,39 @@ export default function VenteCamionsEngins() {
                 <X size={14} />
               </button>
             )}
+            <button onClick={() => setShowFilters(!showFilters)} aria-label="Afficher les filtres">
+              <ChevronDown size={16} className={`text-[#6B7280] transition-transform duration-200 ${showFilters ? "rotate-180" : ""}`} />
+            </button>
           </div>
+          {/* Filtres dépliants */}
+          {showFilters && (
+          <div className="mt-2 space-y-2">
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Marque</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les marques</option>
+                {ALL_MARQUES.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Catégorie</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les catégories</option>
+                {CATEGORIES.map((c) => <option key={c.label} value={c.label}>{c.label}</option>)}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix min</label>
+                <input type="number" placeholder="0 €" className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix max</label>
+                <input type="number" placeholder="500 000 €" className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white" />
+              </div>
+            </div>
+          </div>
+          )}
           {/* Filtres rapides par marque */}
           <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide mb-2">
             {["Caterpillar", "Komatsu", "JCB", "Liebherr", "Manitou", "John Deere", "Fendt", "Claas"].map((m) => (

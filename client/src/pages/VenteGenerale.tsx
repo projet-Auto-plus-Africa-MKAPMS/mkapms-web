@@ -79,6 +79,7 @@ export default function VenteGenerale() {
   const [typeVeh, setTypeVeh] = useState("");
   const [zone, setZone] = useState("");
   const [q, setQ] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
@@ -204,9 +205,12 @@ export default function VenteGenerale() {
               onChange={(e) => setQ(e.target.value)}
               className="w-full bg-transparent text-sm text-[#111] placeholder:text-[#9CA3AF] outline-none"
             />
+            <button onClick={() => setShowFilters(!showFilters)} aria-label="Afficher les filtres">
+              <ChevronDown size={16} className={`text-[#6B7280] transition-transform duration-200 ${showFilters ? "rotate-180" : ""}`} />
+            </button>
           </div>
-          {/* Filtres */}
-          <div className="grid grid-cols-2 gap-2">
+          {/* Filtres dépliants */}
+          {showFilters && <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">Budget</label>
               <select value={budget} onChange={(e) => setBudget(e.target.value)} className="mt-1 w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm bg-[#FAFAF8] text-[#111] outline-none">
@@ -230,7 +234,7 @@ export default function VenteGenerale() {
               </select>
             </div>
           </div>
-          {/* Zone */}
+          {/* Zone — dans les filtres dépliants */}
           <div>
             <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide flex items-center gap-1"><MapPin size={10} /> Zone</label>
             <select value={zone} onChange={(e) => setZone(e.target.value)} className="mt-1 w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm bg-[#FAFAF8] text-[#111] outline-none">
@@ -248,6 +252,7 @@ export default function VenteGenerale() {
             </select>
           </div>
           {/* Bouton */}
+          </div>}
           <Link
             to={`/acheter${q ? `?q=${encodeURIComponent(q)}` : ""}${budget ? `&prixMax=${budget}` : ""}${typeVeh ? `&categorie=${typeVeh}` : ""}${zone ? `&zone=${zone}` : ""}`}
             className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md"

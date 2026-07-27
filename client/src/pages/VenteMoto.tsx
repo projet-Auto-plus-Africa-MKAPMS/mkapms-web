@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { ChevronLeft, Search, Bike, Star, Heart, MapPin, Filter, ChevronDown, ChevronRight, Shield, SlidersHorizontal } from "lucide-react";
+import { ChevronLeft, Search, Bike, Star, Heart, MapPin, ChevronDown } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════
    VENTE MOTO — Univers complet
@@ -41,7 +41,11 @@ const MARQUES_MOTO = [
   "Can-Am", "Zero", "Energica", "LiveWire", "Derbi", "MBK", "Peugeot",
 ];
 
-const CYLINDREES = ["50 cm³", "125 cm³", "250 cm³", "300 cm³", "400 cm³", "500 cm³", "600 cm³", "650 cm³", "700 cm³", "750 cm³", "800 cm³", "900 cm³", "1000 cm³", "1100 cm³", "1200 cm³", "1300 cm³+"];
+const CYLINDREES = [
+  "50 cm³", "125 cm³", "250 cm³", "300 cm³", "400 cm³", "500 cm³",
+  "600 cm³", "650 cm³", "700 cm³", "750 cm³", "800 cm³", "900 cm³",
+  "1000 cm³", "1100 cm³", "1200 cm³", "1300 cm³+",
+];
 
 const ANNONCES = [
   { id: 1, nom: "Yamaha MT-07", annee: 2023, km: 8000, prix: 6500, cat: "Roadster", cyl: "689 cm³", photo: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&h=260&fit=crop" },
@@ -54,102 +58,181 @@ const ANNONCES = [
   { id: 8, nom: "Ducati Scrambler Icon", annee: 2023, km: 7000, prix: 8900, cat: "Scrambler", cyl: "803 cm³", photo: "https://images.unsplash.com/photo-1558980394-4c7c9299fe96?w=400&h=260&fit=crop" },
 ];
 
-const PERMIS = [
-  { type: "AM", desc: "Cyclomoteur 50 cm³ dès 14 ans" },
-  { type: "A1", desc: "125 cm³ / 11 kW dès 16 ans" },
-  { type: "A2", desc: "≤ 35 kW (47,5 ch) dès 18 ans" },
-  { type: "A", desc: "Toutes motos, 2 ans après A2" },
-];
+const ANNEES = Array.from({ length: 15 }, (_, i) => String(new Date().getFullYear() - i));
 
 export default function VenteMoto() {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
-  const [showAllCats, setShowAllCats] = useState(false);
 
-  const displayedCats = showAllCats ? CATEGORIES_MOTO : CATEGORIES_MOTO.slice(0, 9);
-  const filtered = selectedCat ? ANNONCES.filter(a => a.cat === selectedCat) : ANNONCES;
+  const filtered = selectedCat ? ANNONCES.filter((a) => a.cat === selectedCat) : ANNONCES;
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
+      {/* EN-TÊTE */}
       <div className="bg-red-600 px-4 pt-6 pb-5">
-        <Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour Vente</Link>
-        <span className="inline-block rounded-full bg-white/20 px-3 py-0.5 text-[10px] font-bold text-white mb-2">MOTO & SCOOTER</span>
-        <h1 className="text-xl font-black text-white flex items-center gap-2"><Bike size={20} /> Achat Moto</h1>
+        <Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-2">
+          <ChevronLeft size={14} /> Retour Vente
+        </Link>
+        <span className="inline-block rounded-full bg-white/20 px-3 py-0.5 text-[10px] font-bold text-white mb-2">
+          MOTO & SCOOTER
+        </span>
+        <h1 className="text-xl font-black text-white flex items-center gap-2">
+          <Bike size={20} /> Achat Moto
+        </h1>
         <p className="mt-1 text-sm text-white/80">21 catégories · 30+ marques · Toutes cylindrées</p>
       </div>
 
-      {/* Recherche */}
-      <div className="px-4 -mt-3 relative z-10 rounded-xl bg-white border border-[#E5E7EB] p-3 mx-4 shadow-sm">
+      {/* BARRE DE RECHERCHE DÉPLIANTE */}
+      <div className="mx-4 -mt-4 relative z-10 rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-md">
+        {/* Ligne principale */}
         <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5">
           <Search size={14} className="text-[#6B7280]" />
-          <input type="text" placeholder="Marque, modèle, cylindrée…" className="w-full bg-transparent text-sm outline-none" />
-          <button onClick={() => setShowFilters(!showFilters)} className="shrink-0"><SlidersHorizontal size={16} className="text-[#6B7280]" /></button>
+          <input
+            type="text"
+            placeholder="Marque, modèle, cylindrée…"
+            className="w-full bg-transparent text-sm outline-none"
+          />
+          <button onClick={() => setShowFilters(!showFilters)} aria-label="Afficher les filtres">
+            <ChevronDown
+              size={16}
+              className={`text-[#6B7280] transition-transform duration-200 ${showFilters ? "rotate-180" : ""}`}
+            />
+          </button>
         </div>
+
+        {/* Filtres dépliants */}
+        {showFilters && (
+          <div className="mt-3 space-y-3">
+            {/* Marque */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Marque</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les marques</option>
+                {MARQUES_MOTO.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+
+            {/* Catégorie */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Catégorie</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les catégories</option>
+                {CATEGORIES_MOTO.map((c) => <option key={c.label} value={c.label}>{c.label}</option>)}
+              </select>
+            </div>
+
+            {/* Cylindrée */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Cylindrée</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes</option>
+                {CYLINDREES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+
+            {/* Année */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Année (à partir de)</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les années</option>
+                {ANNEES.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+
+            {/* Kilométrage max */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Kilométrage max</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Sans limite</option>
+                <option value="5000">5 000 km</option>
+                <option value="10000">10 000 km</option>
+                <option value="20000">20 000 km</option>
+                <option value="50000">50 000 km</option>
+                <option value="100000">100 000 km</option>
+              </select>
+            </div>
+
+            {/* Prix min / max */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix min</label>
+                <input
+                  type="number"
+                  placeholder="0 €"
+                  className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix max</label>
+                <input
+                  type="number"
+                  placeholder="50 000 €"
+                  className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Bouton Rechercher */}
+            <button className="w-full py-2.5 bg-purple-700 text-white rounded-xl text-xs font-bold active:scale-[0.98] transition">
+              Rechercher
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Filtres avancés */}
-      {showFilters && (
-        <div className="mx-4 mt-2 rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm space-y-3">
-          <div>
-            <label className="text-[10px] font-bold text-[#6B7280] uppercase">Marque</label>
-            <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm">
-              <option value="">Toutes les marques</option>
-              {MARQUES_MOTO.map(m => <option key={m} value={m}>{m}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-[#6B7280] uppercase">Cylindrée</label>
-            <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm">
-              <option value="">Toutes</option>
-              {CYLINDREES.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div><label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix min</label><input placeholder="0 €" className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" /></div>
-            <div><label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix max</label><input placeholder="50 000 €" className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" /></div>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-[#6B7280] uppercase">Permis requis</label>
-            <div className="flex gap-1.5 mt-1 flex-wrap">
-              {PERMIS.map(p => (
-                <button key={p.type} className="rounded-full border border-[#E5E7EB] bg-white px-3 py-1 text-[10px] font-semibold text-[#6B7280] active:bg-red-600 active:text-white active:border-red-600">{p.type} — {p.desc}</button>
-              ))}
-            </div>
-          </div>
-          <button className="w-full py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold">Rechercher</button>
-        </div>
-      )}
-
-      {/* Catégories — scroll horizontal */}
+      {/* CATÉGORIES — scroll horizontal */}
       <div className="px-4 mt-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-[#111]">Catégories ({CATEGORIES_MOTO.length})</h2>
-          {selectedCat && <button onClick={() => setSelectedCat(null)} className="text-[10px] font-bold text-red-600">Tout voir</button>}
+          {selectedCat && (
+            <button onClick={() => setSelectedCat(null)} className="text-[10px] font-bold text-red-600">
+              Tout voir
+            </button>
+          )}
         </div>
         <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {CATEGORIES_MOTO.map((c) => (
-            <button key={c.label} onClick={() => setSelectedCat(selectedCat === c.label ? null : c.label)} className={`shrink-0 w-[100px] rounded-xl overflow-hidden border-2 active:scale-[0.98] ${selectedCat === c.label ? "border-red-600" : "border-[#E5E7EB]"}`}>
+            <button
+              key={c.label}
+              onClick={() => setSelectedCat(selectedCat === c.label ? null : c.label)}
+              className={`shrink-0 w-[100px] rounded-xl overflow-hidden border-2 active:scale-[0.98] transition ${selectedCat === c.label ? "border-red-600" : "border-[#E5E7EB]"}`}
+            >
               <img src={c.photo} alt={c.label} className="w-full h-[50px] object-cover" loading="lazy" />
-              <div className="p-1.5 bg-white"><p className="text-[10px] font-bold text-[#111] leading-tight">{c.label}</p><p className="text-[7px] text-[#6B7280] leading-tight truncate">{c.desc}</p></div>
+              <div className="p-1.5 bg-white">
+                <p className="text-[10px] font-bold text-[#111] leading-tight">{c.label}</p>
+                <p className="text-[7px] text-[#6B7280] leading-tight truncate">{c.desc}</p>
+              </div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Annonces */}
+      {/* ANNONCES */}
       <div className="px-4 mt-6">
-        <h2 className="text-base font-bold text-[#111]">{selectedCat ? `Annonces ${selectedCat}` : "Toutes les annonces"} ({filtered.length})</h2>
+        <h2 className="text-base font-bold text-[#111]">
+          {selectedCat ? `Annonces ${selectedCat}` : "Toutes les annonces"} ({filtered.length})
+        </h2>
         <div className="mt-3 space-y-3">
           {filtered.map((a) => (
-            <Link key={a.id} to={getAnnonceUrl(9070 + a.id, null, null)} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition">
+            <Link
+              key={a.id}
+              to={getAnnonceUrl(9070 + a.id, null, null)}
+              className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition"
+            >
               <div className="relative h-[130px]">
                 <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" />
-                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span>
-                <span className="absolute top-2 left-2 rounded-full bg-red-600 px-2 py-0.5 text-[9px] font-bold text-white">{a.cat}</span>
+                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center">
+                  <Heart size={14} className="text-red-500" />
+                </span>
+                <span className="absolute top-2 left-2 rounded-full bg-red-600 px-2 py-0.5 text-[9px] font-bold text-white">
+                  {a.cat}
+                </span>
               </div>
               <div className="p-4">
                 <h3 className="text-sm font-bold text-[#111]">{a.nom}</h3>
-                <p className="text-[10px] text-[#6B7280] mt-0.5">{a.annee} · {a.km.toLocaleString("fr-FR")} km · {a.cyl}</p>
+                <p className="text-[10px] text-[#6B7280] mt-0.5">
+                  {a.annee} · {a.km.toLocaleString("fr-FR")} km · {a.cyl}
+                </p>
                 <p className="mt-2 text-lg font-black text-red-600">{a.prix.toLocaleString("fr-FR")} €</p>
               </div>
             </Link>
@@ -159,7 +242,12 @@ export default function VenteMoto() {
 
       {/* CTA dépôt */}
       <div className="px-4 mt-6">
-        <Link to="/depot-annonce" className="block w-full py-3 bg-red-600 text-white rounded-xl text-sm font-bold text-center active:scale-[0.98]">Vendre ma moto sur MKA.P-MS</Link>
+        <Link
+          to="/depot-annonce"
+          className="block w-full py-3 bg-red-600 text-white rounded-xl text-sm font-bold text-center active:scale-[0.98]"
+        >
+          Vendre ma moto sur MKA.P-MS
+        </Link>
       </div>
     </div>
   );

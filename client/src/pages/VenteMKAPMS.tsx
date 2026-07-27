@@ -1,13 +1,19 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { ChevronLeft, Star, Shield, Award, Check, History, CreditCard, Truck, ChevronDown, Heart, Calculator, Phone, MapPin, Search } from "lucide-react";
+import { ChevronLeft, Star, Shield, Award, Check, History, CreditCard, Truck, ChevronDown, Heart, Phone, MapPin, Search } from "lucide-react";
 import { trpc } from "../lib/trpc";
 
 /* ══════════════════════════════════════════════════════════════════════════
    VENTE MKA.P-MS OFFICIELLE — Univers Premium
    Véhicules appartenant à MKA.P-MS. Historique, contrôle qualité, Finance+, garantie.
    ══════════════════════════════════════════════════════════════════════════ */
+
+const MARQUES_OFFICIEL = [
+  "Audi", "BMW", "Citroën", "DS", "Ford", "Honda", "Hyundai", "Kia",
+  "Mercedes-Benz", "Nissan", "Opel", "Peugeot", "Renault", "Seat",
+  "Skoda", "Tesla", "Toyota", "Volkswagen", "Volvo",
+];
 
 const CATEGORIES_OFFICIEL = [
   { label: "Berlines", desc: "308 GT, Classe C, Série 3", photo: "/categories/berline.jpg" },
@@ -44,8 +50,10 @@ const AVANTAGES = [
 
 const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=280&fit=crop";
 
+const ANNEES = Array.from({ length: 15 }, (_, i) => String(new Date().getFullYear() - i));
+
 export default function VenteMKAPMS() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const { data: realData, isLoading } = trpc.annonces.list.useQuery({ categorieAnnonce: "officielle", limit: 30 });
 
   const realAnnonces = (realData?.items ?? []).map((a: any) => ({
@@ -65,68 +73,202 @@ export default function VenteMKAPMS() {
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
+      {/* EN-TÊTE */}
       <div className="bg-[#111] px-4 pt-6 pb-5">
-        <Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour Vente</Link>
-        <div className="flex items-center gap-2 mb-2"><Star size={14} className="text-[#D4AF37]" fill="#D4AF37" /><span className="rounded-full bg-[#D4AF37] px-3 py-0.5 text-[10px] font-bold text-white">MKA.P-MS OFFICIEL</span></div>
+        <Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-2">
+          <ChevronLeft size={14} /> Retour Vente
+        </Link>
+        <div className="flex items-center gap-2 mb-2">
+          <Star size={14} className="text-[#D4AF37]" fill="#D4AF37" />
+          <span className="rounded-full bg-[#D4AF37] px-3 py-0.5 text-[10px] font-bold text-white">MKA.P-MS OFFICIEL</span>
+        </div>
         <h1 className="text-xl font-black text-white">Véhicules MKA.P-MS</h1>
         <p className="mt-1 text-sm text-white/60">Sélectionnés, inspectés, garantis par MKA.P-MS.</p>
       </div>
 
-      {/* Barre de recherche */}
-      <div className="px-4 -mt-3 relative z-10 rounded-xl bg-white border border-[#E5E7EB] p-3 mx-4 shadow-sm">
+      {/* BARRE DE RECHERCHE DÉPLIANTE */}
+      <div className="mx-4 -mt-4 relative z-10 rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-md">
+        {/* Ligne principale */}
         <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5">
           <Search size={14} className="text-[#6B7280]" />
-          <input type="text" placeholder="Marque, mod\u00e8le\u2026" className="w-full bg-transparent text-sm outline-none" />
+          <input
+            type="text"
+            placeholder="Marque, modèle, certification…"
+            className="w-full bg-transparent text-sm outline-none"
+          />
+          <button onClick={() => setShowFilters(!showFilters)} aria-label="Afficher les filtres">
+            <ChevronDown
+              size={16}
+              className={`text-[#6B7280] transition-transform duration-200 ${showFilters ? "rotate-180" : ""}`}
+            />
+          </button>
         </div>
-      </div>
 
-      {/* Avantages */}
-      <div className="px-4 mt-4 grid grid-cols-2 gap-2">
-        {AVANTAGES.map((a) => { const Icon = a.icon; return (
-          <div key={a.label} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-start gap-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#D4AF37]/10"><Icon size={14} className="text-[#D4AF37]" /></div>
-            <div><h3 className="text-[11px] font-bold text-[#111]">{a.label}</h3><p className="text-[8px] text-[#6B7280]">{a.desc}</p></div>
+        {/* Filtres dépliants */}
+        {showFilters && (
+          <div className="mt-3 space-y-3">
+            {/* Marque */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Marque</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les marques</option>
+                {MARQUES_OFFICIEL.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+
+            {/* Catégorie */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Catégorie</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les catégories</option>
+                {CATEGORIES_OFFICIEL.map((c) => <option key={c.label} value={c.label}>{c.label}</option>)}
+              </select>
+            </div>
+
+            {/* Année */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Année (à partir de)</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les années</option>
+                {ANNEES.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+
+            {/* Kilométrage max */}
+            <div>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Kilométrage max</label>
+              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Sans limite</option>
+                <option value="20000">20 000 km</option>
+                <option value="50000">50 000 km</option>
+                <option value="100000">100 000 km</option>
+                <option value="150000">150 000 km</option>
+                <option value="200000">200 000 km</option>
+              </select>
+            </div>
+
+            {/* Prix min / max */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix min</label>
+                <input
+                  type="number"
+                  placeholder="0 €"
+                  className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix max</label>
+                <input
+                  type="number"
+                  placeholder="100 000 €"
+                  className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Bouton Rechercher */}
+            <button className="w-full py-2.5 bg-purple-700 text-white rounded-xl text-xs font-bold active:scale-[0.98] transition">
+              Rechercher
+            </button>
           </div>
-        ); })}
+        )}
       </div>
 
-      {/* Catégories — scroll horizontal */}
+      {/* AVANTAGES */}
+      <div className="px-4 mt-4 grid grid-cols-2 gap-2">
+        {AVANTAGES.map((a) => {
+          const Icon = a.icon;
+          return (
+            <div key={a.label} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-start gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#D4AF37]/10">
+                <Icon size={14} className="text-[#D4AF37]" />
+              </div>
+              <div>
+                <h3 className="text-[11px] font-bold text-[#111]">{a.label}</h3>
+                <p className="text-[8px] text-[#6B7280]">{a.desc}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* CATÉGORIES — scroll horizontal */}
       <div className="px-4 mt-4">
         <h2 className="text-base font-bold text-[#111]">Catégories</h2>
         <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {CATEGORIES_OFFICIEL.map((c) => (
-            <button key={c.label} className="shrink-0 w-[120px] rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden text-left active:scale-[0.98] transition">
-              <img src={c.photo} alt="" className="w-full h-[60px] object-cover" loading="lazy" />
-              <div className="p-2"><h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3><p className="text-[8px] text-[#6B7280]">{c.desc}</p></div>
+            <button
+              key={c.label}
+              className="shrink-0 w-[120px] rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden text-left active:scale-[0.98] transition"
+            >
+              <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
+              <div className="p-2">
+                <h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3>
+                <p className="text-[8px] text-[#6B7280]">{c.desc}</p>
+              </div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Annonces */}
+      {/* ANNONCES */}
       <div className="px-4 mt-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-bold text-[#111]">Véhicules disponibles</h2>
-          {realData && <span className="text-[10px] text-[#6B7280]">{realData.total} véhicule{realData.total > 1 ? "s" : ""}</span>}
+          {realData && (
+            <span className="text-[10px] text-[#6B7280]">
+              {realData.total} véhicule{realData.total > 1 ? "s" : ""}
+            </span>
+          )}
         </div>
-        {isLoading && <div className="py-8 text-center text-[#6B7280] text-sm">Chargement des véhicules...</div>}
+        {isLoading && (
+          <div className="py-8 text-center text-[#6B7280] text-sm">Chargement des véhicules…</div>
+        )}
         <div className="mt-3 space-y-3">
           {annonces.map((a) => (
-            <Link key={a.vehiculeId} to={getAnnonceUrl(a.vehiculeId, "officielle")} className="block rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden shadow-sm hover:shadow-lg transition">
+            <Link
+              key={a.vehiculeId}
+              to={getAnnonceUrl(a.vehiculeId, "officielle")}
+              className="block rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden shadow-sm hover:shadow-lg transition"
+            >
               <div className="relative h-[150px]">
-                <img src={a.photo} alt={a.nom} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }} />
-                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center"><Heart size={14} className="text-red-500" /></span>
-                <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-2.5 py-0.5 text-[9px] font-bold text-white"><Star size={10} fill="white" /> Certifié</span>
+                <img
+                  src={a.photo}
+                  alt={a.nom}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }}
+                />
+                <span className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 backdrop-blur flex items-center justify-center">
+                  <Heart size={14} className="text-red-500" />
+                </span>
+                <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-2.5 py-0.5 text-[9px] font-bold text-white">
+                  <Star size={10} fill="white" /> Certifié
+                </span>
               </div>
               <div className="p-4">
                 <h3 className="text-sm font-bold text-[#111]">{a.nom}</h3>
-                <p className="text-[10px] text-[#6B7280] mt-0.5">{a.annee} · {(a.km ?? 0).toLocaleString("fr-FR")} km · Garantie {a.garantie}</p>
-                {a.ville && <p className="text-[10px] text-[#6B7280] mt-0.5 flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</p>}
+                <p className="text-[10px] text-[#6B7280] mt-0.5">
+                  {a.annee} · {(a.km ?? 0).toLocaleString("fr-FR")} km · Garantie {a.garantie}
+                </p>
+                {a.ville && (
+                  <p className="text-[10px] text-[#6B7280] mt-0.5 flex items-center gap-0.5">
+                    <MapPin size={8} className="text-red-500" />{a.ville}
+                  </p>
+                )}
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {a.badges.map((b) => (<span key={b} className="inline-flex items-center gap-0.5 rounded-full bg-green-50 px-1.5 py-0.5 text-[8px] font-semibold text-green-700"><Check size={8} /> {b}</span>))}
+                  {a.badges.map((b) => (
+                    <span key={b} className="inline-flex items-center gap-0.5 rounded-full bg-green-50 px-1.5 py-0.5 text-[8px] font-semibold text-green-700">
+                      <Check size={8} /> {b}
+                    </span>
+                  ))}
                 </div>
                 <div className="mt-3 flex items-center justify-between">
-                  <div><span className="text-xl font-black text-[#D4AF37]">{(a.prix ?? 0).toLocaleString("fr-FR")} €</span><p className="text-[10px] text-[#6B7280]">ou {a.finance}</p></div>
+                  <div>
+                    <span className="text-xl font-black text-[#D4AF37]">{(a.prix ?? 0).toLocaleString("fr-FR")} €</span>
+                    <p className="text-[10px] text-[#6B7280]">ou {a.finance}</p>
+                  </div>
                   <span className="rounded-xl bg-[#D4AF37] px-5 py-2.5 text-sm font-bold text-white">Voir</span>
                 </div>
               </div>
