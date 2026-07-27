@@ -4,6 +4,13 @@ import { router, publicProcedure, protectedProcedure, adminProcedure } from "../
 import { generateProgrammaticPages } from "../seo-generator.js";
 import { submitIndexNow, pingSitemaps } from "../seo-indexing.js";
 import { analyzeSeo } from "../seo-analyze.js";
+import {
+  SEO_KEYWORD_CATALOG,
+  catalogSize,
+  seedKeywords,
+  keywordsByUnivers,
+} from "../seo-keywords-catalog.js";
+import { logActivity } from "../smart-engine/services/activity-log.js";
 import { env } from "../env.js";
 import { db } from "../db.js";
 import {
@@ -459,6 +466,54 @@ export const seoRouter = router({
       .groupBy(seoPages.pageType)
       .orderBy(desc(sql`count(*)`));
   }),
+
+  // ─── SEO OS : base de mots-clés (Phase 1) ───
+
+  // Catalogue curé (référence en code) : mots-clés par univers.
+  keywordCatalog: adminProcedure.query(() => ({
+    catalog: SEO_KEYWORD_CATALOG,
+    total: catalogSize(),
+    universes: SEO_KEYWORD_CATALOG.length,
+  })),
+
+  // Répartition des mots-clés réellement enregistrés en base, par univers.
+  keywordStats: adminProcedure.query(async () => {
+    const byUnivers = await keywordsByUnivers();
+    const total = byUnivers.reduce((s, r) => s + Number(r.count), 0);
+    return { byUnivers, total, catalogTotal: catalogSize() };
+  }),
+
+  // Liste des mots-clés enregistrés (filtrable par univers).
+  listKeywords: adminProcedure
+    .input(z.object({ univers: z.string().optional(), limit: z.number().min(1).max(2000).default(500) }).optional())
+    .query(async ({ input }) => {
+      return db
+        .select()
+        .from(seoKeywords)
+        .where(input?.univers ? eq(seoKeywords.univers, input.univers) : undefined)
+        .orderBy(seoKeywords.univers, seoKeywords.keyword)
+        .limit(input?.limit ?? 500);
+    }),
+
+  // Alimente / complète la base de mots-clés (idempotent). Supervisé.
+  seedKeywords: adminProcedure
+    .input(z.object({ language: z.string().max(4).optional(), country: z.string().max(4).optional() }).optional())
+    .mutation(async ({ ctx, input }) => {
+      const report = await seedKeywords({ language: input?.language, country: input?.country });
+      try {
+        await logActivity({
+          action: "seo.keywords_seeded",
+          userId: ctx.user.uid,
+          targetType: "seo_keywords",
+          data: { ...report },
+          result: "success",
+          proposedDecision: `Base SEO complétée : ${report.inserted} mot(s)-clé(s) ajouté(s) sur ${report.total} (${report.universes} univers).`,
+        });
+      } catch {
+        // supervision best-effort
+      }
+      return report;
+    }),
 
   // ─── SEO OS intelligent : analyse + suggestions (validation humaine) ───
   // OBSERVE et PROPOSE uniquement — n'exécute aucune modification.

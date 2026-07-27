@@ -1,15 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Search, ChevronDown, TrendingUp, RefreshCw, ExternalLink, FileText, Lightbulb, Send } from "lucide-react";
+import { ChevronLeft, Search, ChevronDown, RefreshCw, ExternalLink, FileText, Lightbulb, Send, Tag } from "lucide-react";
 import { trpc } from "../../lib/trpc";
-
-const KEYWORDS = [
-  { id: 1, mot: "voiture occasion france", position: 3, volume: "12 400/mois", tendance: "+2" },
-  { id: 2, mot: "vente voiture particulier", position: 7, volume: "8 100/mois", tendance: "+5" },
-  { id: 3, mot: "location voiture pas cher", position: 12, volume: "22 000/mois", tendance: "-1" },
-  { id: 4, mot: "garage reparation auto", position: 5, volume: "6 600/mois", tendance: "+3" },
-  { id: 5, mot: "estimation voiture gratuit", position: 4, volume: "14 800/mois", tendance: "0" },
-];
 
 const TYPE_LABELS: Record<string, string> = {
   service: "Services", geo_service: "Service × ville", piece: "Pièces",
@@ -18,7 +10,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function AdminSEO() {
-  const [expanded, setExpanded] = useState<number | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
   const byType = trpc.seo.pagesByType.useQuery();
   const utils = trpc.useUtils();
   const generate = trpc.seo.generateProgrammaticPages.useMutation({
@@ -27,6 +19,13 @@ export default function AdminSEO() {
   const analysis = trpc.seo.analyze.useQuery();
   const indexNow = trpc.seo.indexNowConfigured.useQuery();
   const submit = trpc.seo.submitToIndexNow.useMutation();
+  const keywordCatalog = trpc.seo.keywordCatalog.useQuery();
+  const keywordStats = trpc.seo.keywordStats.useQuery();
+  const seedKeywords = trpc.seo.seedKeywords.useMutation({
+    onSuccess: () => { utils.seo.keywordStats.invalidate(); utils.seo.listKeywords.invalidate(); },
+  });
+  const countByUnivers = (u: string) =>
+    Number(keywordStats.data?.byUnivers.find((r) => r.univers === u)?.count ?? 0);
 
   const totalPages = (byType.data ?? []).reduce((s, r) => s + Number(r.count), 0);
 
@@ -170,33 +169,111 @@ export default function AdminSEO() {
         </div>
       )}
 
-      {/* Mots-clés suivis (exemples) */}
+      {/* Base de mots-clés SEO (Phase 1 — tous les univers) */}
       <div className="px-4 mt-5">
-        <p className="text-[11px] font-bold text-[#6B7280] mb-2 uppercase">Mots-clés suivis (exemples)</p>
+        <div className="rounded-xl bg-white border border-[#E5E7EB] p-4 mb-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Tag size={16} className="text-[#D4AF37]" />
+            <p className="text-sm font-bold text-[#111]">Base de mots-clés SEO</p>
+          </div>
+          <p className="text-[11px] text-[#6B7280] mb-3">
+            Fondation du référencement : {keywordStats.data?.catalogTotal ?? keywordCatalog.data?.total ?? 0} mots-clés
+            curés couvrant tous les univers (vente, location, garage, carrosserie, contrôle
+            technique, administratif, pièces, professionnels, marketplace, Afrique). Le seed est
+            idempotent — relançable sans doublon.
+          </p>
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div className="rounded-lg bg-[#F5F3EF] p-2 text-center">
+              <p className="text-sm font-black text-blue-600">{(keywordStats.data?.total ?? 0).toLocaleString("fr-FR")}</p>
+              <p className="text-[8px] text-[#6B7280]">Mots-clés enregistrés</p>
+            </div>
+            <div className="rounded-lg bg-[#F5F3EF] p-2 text-center">
+              <p className="text-sm font-black text-[#D4AF37]">{keywordCatalog.data?.universes ?? 0}</p>
+              <p className="text-[8px] text-[#6B7280]">Univers couverts</p>
+            </div>
+          </div>
+          <button
+            onClick={() => seedKeywords.mutate({})}
+            disabled={seedKeywords.isPending}
+            className="w-full rounded-lg bg-[#111] py-2 text-xs font-bold text-white flex items-center justify-center gap-2 disabled:opacity-60"
+          >
+            <RefreshCw size={12} className={seedKeywords.isPending ? "animate-spin" : ""} />
+            {seedKeywords.isPending ? "Alimentation…" : "Alimenter / compléter la base de mots-clés"}
+          </button>
+          {seedKeywords.data && (
+            <p className="mt-2 text-[11px] text-green-700 font-medium">
+              {seedKeywords.data.inserted.toLocaleString("fr-FR")} mot(s)-clé(s) ajouté(s),
+              {" "}{seedKeywords.data.skipped.toLocaleString("fr-FR")} déjà présent(s) — {seedKeywords.data.universes} univers.
+            </p>
+          )}
+          {seedKeywords.error && (
+            <p className="mt-2 text-[11px] text-red-600">{seedKeywords.error.message}</p>
+          )}
+        </div>
+
+        <p className="text-[11px] font-bold text-[#6B7280] mb-2 uppercase">Mots-clés par univers</p>
         <div className="space-y-2">
-          {KEYWORDS.map((k) => {
-            const isExp = expanded === k.id;
-            return (
-              <div key={k.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-                <button onClick={() => setExpanded(isExp ? null : k.id)} className="w-full text-left p-3 flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-blue-50 grid place-items-center text-xs font-black text-blue-600">#{k.position}</div>
-                  <div className="flex-1 min-w-0"><p className="text-sm font-bold text-[#111]">{k.mot}</p><p className="text-[10px] text-[#6B7280]">{k.volume}</p></div>
-                  <div className="flex items-center gap-1">
-                    <TrendingUp size={10} className={k.tendance.startsWith("+") ? "text-green-500" : k.tendance === "0" ? "text-slate-400" : "text-red-500"} />
-                    <span className={`text-[10px] font-bold ${k.tendance.startsWith("+") ? "text-green-600" : "text-red-600"}`}>{k.tendance}</span>
-                  </div>
-                  <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
-                </button>
-                {isExp && (
-                  <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2">
-                    <p className="text-[10px] text-[#6B7280]">Analyse et suggestions à venir (SEO OS intelligent).</p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {(keywordCatalog.data?.catalog ?? []).map((g) => (
+            <KeywordUniverse
+              key={g.univers}
+              univers={g.univers}
+              label={g.label}
+              catalogCount={g.keywords.length}
+              savedCount={countByUnivers(g.univers)}
+              open={expanded === g.univers}
+              onToggle={() => setExpanded(expanded === g.univers ? null : g.univers)}
+            />
+          ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function KeywordUniverse(props: {
+  univers: string;
+  label: string;
+  catalogCount: number;
+  savedCount: number;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const list = trpc.seo.listKeywords.useQuery(
+    { univers: props.univers, limit: 500 },
+    { enabled: props.open },
+  );
+  return (
+    <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+      <button onClick={props.onToggle} className="w-full text-left p-3 flex items-center gap-3">
+        <div className="h-8 w-8 rounded-full bg-blue-50 grid place-items-center text-[10px] font-black text-blue-600">
+          {props.savedCount || props.catalogCount}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-[#111]">{props.label}</p>
+          <p className="text-[10px] text-[#6B7280]">
+            {props.catalogCount} mots-clés au catalogue
+            {props.savedCount ? ` · ${props.savedCount} en base` : " · non alimenté"}
+          </p>
+        </div>
+        <ChevronDown size={12} className={`text-[#9CA3AF] transition ${props.open ? "rotate-180" : ""}`} />
+      </button>
+      {props.open && (
+        <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2">
+          {list.isLoading ? (
+            <p className="text-[10px] text-[#6B7280]">Chargement…</p>
+          ) : (list.data ?? []).length === 0 ? (
+            <p className="text-[10px] text-[#6B7280]">Aucun mot-clé en base — cliquez « Alimenter » ci-dessus.</p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {(list.data ?? []).map((k) => (
+                <span key={k.id} className="rounded-full bg-[#F5F3EF] px-2 py-0.5 text-[10px] text-[#374151] border border-[#E5E7EB]">
+                  {k.keyword}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
