@@ -135,6 +135,7 @@ export default function Compte() {
   const [dossier, setDossier] = useState({ marque: "", modele: "", immatriculation: "" });
   const [openGroups, setOpenGroups] = useState<string[]>(["annonces"]);
   const [showDepositChooser, setShowDepositChooser] = useState(false);
+  const [annonceFilter, setAnnonceFilter] = useState<string>("all");
   // Le contenu de l'onglet actif est-il affiché ? Permet de le refermer en
   // recliquant sur la flèche (corrige le bug « la flèche ne referme plus »).
   const [contentOpen, setContentOpen] = useState(true);
@@ -346,7 +347,28 @@ export default function Compte() {
         {tab === "annonces" && (
           <div className="space-y-3">
             <button onClick={() => setShowDepositChooser(true)} className="btn-primary inline-flex">+ Déposer une annonce</button>
-            {mineAnnonces.data?.map((a) => (
+            {/* Filtre par statut */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                { k: "all", label: "Toutes" },
+                { k: "publiee", label: "En ligne" },
+                { k: "en_validation", label: "En validation" },
+                { k: "brouillon", label: "Brouillons" },
+                { k: "expiree", label: "Expirées" },
+                { k: "vendue", label: "Vendues" },
+              ].map((f) => (
+                <button
+                  key={f.k}
+                  onClick={() => setAnnonceFilter(f.k)}
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${annonceFilter === f.k ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            {mineAnnonces.data
+              ?.filter((a) => annonceFilter === "all" || a.status === annonceFilter)
+              .map((a) => (
               <div key={a.id} className="card overflow-hidden">
                 <Link to={getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)} className="flex items-center justify-between p-4 hover:bg-slate-50 transition cursor-pointer">
                   <div>
@@ -839,6 +861,7 @@ function ProfilForm() {
     name: user?.name || "",
     phone: (u?.phone as string) || "",
     city: (u?.city as string) || "",
+    country: (u?.country as string) || "",
     companyName: user?.companyName || "",
   });
   const [profilPhoto, setProfilPhoto] = useState<string | null>(null);
@@ -853,6 +876,7 @@ function ProfilForm() {
       name: fullName || form.name,
       phone: form.phone,
       city: form.city,
+      country: form.country,
       companyName: form.companyName,
     });
   }
@@ -892,7 +916,10 @@ function ProfilForm() {
         <div><label className="label">Nom</label><input className="input" value={form.lastName} onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))} /></div>
       </div>
       <div><label className="label">Téléphone</label><input className="input" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} /></div>
-      <div><label className="label">Ville</label><input className="input" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} /></div>
+      <div className="grid grid-cols-2 gap-3">
+        <div><label className="label">Ville</label><input className="input" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} /></div>
+        <div><label className="label">Pays</label><input className="input" value={form.country} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} placeholder="France" /></div>
+      </div>
       <div><label className="label">Société (si pro)</label><input className="input" value={form.companyName} onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))} /></div>
       <div>
         <label className="label">Email</label>
