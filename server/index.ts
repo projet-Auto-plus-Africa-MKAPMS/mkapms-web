@@ -356,6 +356,21 @@ async function bootstrap() {
   }
   expireAnnonces();
   setInterval(expireAnnonces, 60 * 60 * 1000);
+
+  // Scheduler OS — exécute les tâches planifiées dues (rappels, renouvellements…)
+  async function schedulerTick() {
+    try {
+      const { tick } = await import("./scheduler-os/index.js");
+      const r = await tick();
+      if (r.processed > 0 || r.failed > 0) {
+        console.log(`[scheduler] ${r.processed} tâche(s) exécutée(s), ${r.failed} échec(s)`);
+      }
+    } catch (e) {
+      console.error("[scheduler]", (e as Error).message);
+    }
+  }
+  void schedulerTick();
+  setInterval(() => void schedulerTick(), 60 * 1000);
 }
 
 bootstrap();

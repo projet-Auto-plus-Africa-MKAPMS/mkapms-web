@@ -56,6 +56,10 @@ import { notificationOsRouter } from "./notification-os/index.js";
 import { documentOsRouter } from "./document-os/index.js";
 // Customer Journey OS — entonnoir de parcours client (règle MOS #15)
 import { customerJourneyOsRouter } from "./customer-journey-os/index.js";
+// Search OS — moteur de recherche unifié (règle MOS #15)
+import { searchOsRouter } from "./search-os/index.js";
+// Scheduler OS — registre central des tâches planifiées (règle MOS #15)
+import { schedulerOsRouter } from "./scheduler-os/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -143,6 +147,8 @@ export const appRouter = router({
   // Document OS — registre unifié des documents (règle MOS #15)
   documentOs: documentOsRouter,
   customerJourneyOs: customerJourneyOsRouter,
+  searchOs: searchOsRouter,
+  schedulerOs: schedulerOsRouter,
 });
 
 export type AppRouter = typeof appRouter;
