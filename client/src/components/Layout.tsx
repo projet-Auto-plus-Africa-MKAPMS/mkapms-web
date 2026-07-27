@@ -89,7 +89,7 @@ function Header() {
               du header sur toutes les tailles d'appareils (mobile + PWA). */}
           <Logo
             variant={user ? "closed" : "open"}
-            size={22}
+            size={32}
             withWordmark
             className="shrink-0"
             data-testid={user ? "header-logo-closed" : "header-logo-open"}
