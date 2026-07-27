@@ -60,6 +60,8 @@ import { customerJourneyOsRouter } from "./customer-journey-os/index.js";
 import { searchOsRouter } from "./search-os/index.js";
 // Scheduler OS — registre central des tâches planifiées (règle MOS #15)
 import { schedulerOsRouter } from "./scheduler-os/index.js";
+// Media OS — optimisation/dédoublonnage des médias (règle MOS #15)
+import { mediaOsRouter } from "./media-os/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -149,6 +151,7 @@ export const appRouter = router({
   customerJourneyOs: customerJourneyOsRouter,
   searchOs: searchOsRouter,
   schedulerOs: schedulerOsRouter,
+  mediaOs: mediaOsRouter,
 });
 
 export type AppRouter = typeof appRouter;
