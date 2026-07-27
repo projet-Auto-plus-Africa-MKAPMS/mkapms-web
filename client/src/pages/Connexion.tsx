@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { PROFILE_LIST, getProfile } from "@shared/profiles";
-import { WordmarkMKAPMS } from "../components/WordmarkMKAPMS";
 
 declare global {
   interface Window {
@@ -63,8 +62,13 @@ export default function Connexion() {
             className="mx-auto mb-3 h-16 w-auto"
             draggable={false}
           />
-          {/* Nom officiel de marque (SVG vectoriel — lisible à toute taille) */}
-          <WordmarkMKAPMS height={28} className="mx-auto" />
+          {/* Nom officiel de marque (image charte) — remplace l'ancien texte */}
+          <img
+            src="/brand/wordmark.png"
+            alt="MKA.P-MS"
+            className="mx-auto h-7 w-auto"
+            draggable={false}
+          />
           {/* Slogan officiel (image charte) */}
           <img
             src="/brand/slogan.png"

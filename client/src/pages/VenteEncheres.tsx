@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { WordmarkMKAPMS } from "../components/WordmarkMKAPMS";
 import {
   ChevronLeft, ChevronRight, ChevronDown, Gavel, Shield, Clock, Users,
   AlertCircle, Star, CheckCircle, ArrowRight, Eye, Lock, Building2,
@@ -357,7 +356,12 @@ export default function VenteEncheres() {
               draggable={false}
             />
             <h1 className="flex flex-col items-center gap-2 text-4xl md:text-6xl font-black text-white leading-tight">
-              <WordmarkMKAPMS height={36} gold="#FFD700" blue="#0086FF" className="mx-auto" />
+              <img
+                src="/brand/wordmark.png"
+                alt="MKA.P-MS"
+                className="h-9 md:h-14 w-auto"
+                draggable={false}
+              />
               <span className="text-purple-400">ENCHÈRES PRO</span>
             </h1>
             <p className="mt-4 text-sm md:text-base text-white/50 max-w-lg mx-auto">
