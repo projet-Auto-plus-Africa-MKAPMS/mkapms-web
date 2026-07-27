@@ -82,7 +82,9 @@ export default function AdminSEO() {
               (services {generate.data.services}, service×ville {generate.data.serviceCities},
               pièces {generate.data.pieces}, locations {generate.data.locations},
               pays {generate.data.pays}, marques {generate.data.marques},
-              modèles {generate.data.modeles}, villes {generate.data.villes}).
+              modèles {generate.data.modeles}, villes {generate.data.villes},
+              réparations {generate.data.reparations}, réparation×modèle {generate.data.reparationModeles},
+              régions {generate.data.regions}, pays×ville {generate.data.paysVilles}).
             </p>
           )}
           {generate.error && (

@@ -121,6 +121,69 @@ export const TOP_CITIES = [
   "Strasbourg", "Bordeaux", "Lille", "Rennes", "Argenteuil", "Cergy", "Créteil",
 ];
 
+/**
+ * Réparations courantes (Phase 18). Chaque réparation devient une page, et
+ * se combine avec les modèles réels des annonces pour des pages très ciblées
+ * (ex. « Remplacement embrayage Clio 4 »).
+ */
+export const REPARATIONS: { slug: string; name: string }[] = [
+  { slug: "remplacement-embrayage", name: "Remplacement d'embrayage" },
+  { slug: "remplacement-alternateur", name: "Remplacement d'alternateur" },
+  { slug: "remplacement-demarreur", name: "Remplacement du démarreur" },
+  { slug: "vidange", name: "Vidange" },
+  { slug: "courroie-de-distribution", name: "Remplacement courroie de distribution" },
+  { slug: "remplacement-plaquettes-de-frein", name: "Remplacement des plaquettes de frein" },
+  { slug: "remplacement-disques-de-frein", name: "Remplacement des disques de frein" },
+  { slug: "remplacement-batterie", name: "Remplacement de batterie" },
+  { slug: "remplacement-amortisseurs", name: "Remplacement des amortisseurs" },
+  { slug: "remplacement-roulement", name: "Remplacement de roulement de roue" },
+  { slug: "diagnostic-moteur", name: "Diagnostic moteur" },
+  { slug: "remplacement-turbo", name: "Remplacement du turbo" },
+  { slug: "remplacement-injecteur", name: "Remplacement d'injecteur" },
+  { slug: "remplacement-pare-brise", name: "Remplacement du pare-brise" },
+  { slug: "recharge-climatisation", name: "Recharge de climatisation" },
+];
+
+/** Régions françaises (Phase 16 — maillage géographique national). */
+export const REGIONS: { slug: string; name: string }[] = [
+  { slug: "ile-de-france", name: "Île-de-France" },
+  { slug: "auvergne-rhone-alpes", name: "Auvergne-Rhône-Alpes" },
+  { slug: "provence-alpes-cote-d-azur", name: "Provence-Alpes-Côte d'Azur" },
+  { slug: "occitanie", name: "Occitanie" },
+  { slug: "nouvelle-aquitaine", name: "Nouvelle-Aquitaine" },
+  { slug: "hauts-de-france", name: "Hauts-de-France" },
+  { slug: "grand-est", name: "Grand Est" },
+  { slug: "pays-de-la-loire", name: "Pays de la Loire" },
+  { slug: "bretagne", name: "Bretagne" },
+  { slug: "normandie", name: "Normandie" },
+  { slug: "bourgogne-franche-comte", name: "Bourgogne-Franche-Comté" },
+  { slug: "centre-val-de-loire", name: "Centre-Val de Loire" },
+  { slug: "corse", name: "Corse" },
+];
+
+/**
+ * Villes par pays (Phase 16 — référencement mondial). Génère des pages
+ * `pays/:pays/:ville` réellement rendues, sans lien mort.
+ */
+export const CITIES_BY_COUNTRY: Record<string, string[]> = {
+  guinee: ["Conakry", "Kankan", "Labé", "Kindia", "Boké", "Nzérékoré", "Mamou", "Faranah", "Siguiri"],
+  senegal: ["Dakar", "Thiès", "Touba", "Rufisque", "Saint-Louis", "Ziguinchor", "Kaolack", "Mbour"],
+  "cote-d-ivoire": ["Abidjan", "Bouaké", "Daloa", "Yamoussoukro", "San-Pédro", "Korhogo", "Man"],
+  mali: ["Bamako", "Sikasso", "Ségou", "Mopti", "Kayes", "Koutiala"],
+  belgique: ["Bruxelles", "Anvers", "Gand", "Liège", "Charleroi", "Namur"],
+  suisse: ["Genève", "Lausanne", "Zurich", "Berne", "Bâle"],
+  maroc: ["Casablanca", "Rabat", "Marrakech", "Fès", "Tanger", "Agadir"],
+};
+
+/** Grandes villes françaises (préfectures) toujours générées en page ville. */
+export const FR_CITIES = [
+  "Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Montpellier",
+  "Strasbourg", "Bordeaux", "Lille", "Rennes", "Reims", "Le Havre",
+  "Saint-Étienne", "Toulon", "Grenoble", "Dijon", "Angers", "Nîmes",
+  "Clermont-Ferrand", "Argenteuil", "Cergy", "Créteil", "Versailles",
+  "Bezons", "Herblay", "Amiens", "Metz", "Tours", "Limoges", "Perpignan",
+];
+
 // ─── Fabrication du contenu ────────────────────────────────────────────────
 
 function servicePage(s: { slug: string; name: string; desc: string }): SeoPageInput {
@@ -256,6 +319,75 @@ function villePage(city: string, count: number): SeoPageInput {
   };
 }
 
+function reparationPage(r: { slug: string; name: string }): SeoPageInput {
+  return {
+    slug: `reparation/${r.slug}`,
+    title: `${r.name} — prix, garages et rendez-vous — MKA.P-MS`,
+    metaDescription: `${r.name} : trouvez un garage vérifié, comparez les devis et prenez rendez-vous en ligne sur MKA.P-MS.`,
+    h1: r.name,
+    content:
+      `Besoin d'une intervention « ${r.name.toLowerCase()} » ? MKA.P-MS vous met en relation avec des garages ` +
+      `vérifiés : comparez les devis, consultez les avis clients et réservez votre rendez-vous en ligne, ` +
+      `partout en France et à l'international.`,
+    keywords: [r.name.toLowerCase(), `prix ${r.name.toLowerCase()}`, `${r.name.toLowerCase()} garage`, `devis ${r.name.toLowerCase()}`],
+    pageType: "reparation",
+    univers: "garage",
+    priority: "0.6",
+  };
+}
+
+function reparationModelePage(r: { slug: string; name: string }, marque: string, modele: string): SeoPageInput {
+  const vehicule = `${marque} ${modele}`;
+  return {
+    slug: `reparation/${r.slug}/${slugify(vehicule)}`,
+    title: `${r.name} ${vehicule} — prix et garages — MKA.P-MS`,
+    metaDescription: `${r.name} sur ${vehicule} : tarif indicatif, garages spécialisés et prise de rendez-vous en ligne sur MKA.P-MS.`,
+    h1: `${r.name} — ${vehicule}`,
+    content:
+      `Vous recherchez « ${r.name.toLowerCase()} » pour votre ${vehicule} ? MKA.P-MS référence les garages ` +
+      `capables d'intervenir sur ${vehicule} : comparez les devis, vérifiez les avis et réservez près de chez vous.`,
+    keywords: [`${r.name.toLowerCase()} ${vehicule.toLowerCase()}`, `prix ${r.name.toLowerCase()} ${modele.toLowerCase()}`, `garage ${modele.toLowerCase()}`],
+    pageType: "reparation_modele",
+    univers: "garage",
+    priority: "0.5",
+  };
+}
+
+function regionPage(r: { slug: string; name: string }): SeoPageInput {
+  return {
+    slug: `region/${r.slug}`,
+    title: `Automobile en ${r.name} — achat, vente, location, garages — MKA.P-MS`,
+    metaDescription: `Voitures d'occasion, location, garages et services automobiles en ${r.name} sur MKA.P-MS.`,
+    h1: `Automobile en ${r.name}`,
+    content:
+      `MKA.P-MS couvre toute la région ${r.name} : annonces de véhicules, location, garages, pièces et démarches ` +
+      `administratives. Trouvez les meilleures offres et professionnels près de chez vous en ${r.name}.`,
+    keywords: [`voiture ${r.name.toLowerCase()}`, `garage ${r.name.toLowerCase()}`, `location voiture ${r.name.toLowerCase()}`],
+    pageType: "geo_region",
+    univers: "achat",
+    country: "FR",
+    priority: "0.6",
+  };
+}
+
+function paysVillePage(paysSlug: string, paysName: string, city: string): SeoPageInput {
+  return {
+    slug: `pays/${paysSlug}/${slugify(city)}`,
+    title: `Automobile à ${city} (${paysName}) — MKA.P-MS`,
+    metaDescription: `Achat, vente, location et entretien de véhicules à ${city}, ${paysName}, sur MKA.P-MS : annonces et services locaux.`,
+    h1: `Automobile à ${city}, ${paysName}`,
+    content:
+      `MKA.P-MS à ${city} (${paysName}) : achetez, vendez ou louez un véhicule, trouvez un garage ou un service ` +
+      `automobile local. Importation depuis l'Europe, annonces et professionnels adaptés à ${city}.`,
+    keywords: [`voiture ${city.toLowerCase()}`, `voiture ${paysName.toLowerCase()}`, `importation voiture ${city.toLowerCase()}`],
+    pageType: "geo_city_intl",
+    univers: "international",
+    city,
+    country: paysSlug.slice(0, 4),
+    priority: "0.5",
+  };
+}
+
 // ─── Génération ────────────────────────────────────────────────────────────
 
 async function upsertPages(pages: SeoPageInput[]): Promise<number> {
@@ -338,8 +470,8 @@ async function villesFromData(): Promise<{ ville: string; n: number }[]> {
   } catch {
     /* ignore */
   }
-  // Toujours garantir les villes prioritaires
-  for (const c of TOP_CITIES) if (!map.has(c)) map.set(c, 0);
+  // Toujours garantir les grandes villes françaises (préfectures)
+  for (const c of FR_CITIES) if (!map.has(c)) map.set(c, 0);
   return [...map.entries()].map(([ville, n]) => ({ ville, n }));
 }
 
@@ -352,6 +484,10 @@ export interface GenerationReport {
   marques: number;
   modeles: number;
   villes: number;
+  reparations: number;
+  reparationModeles: number;
+  regions: number;
+  paysVilles: number;
   total: number;
 }
 
@@ -362,7 +498,8 @@ export interface GenerationReport {
 export async function generateProgrammaticPages(): Promise<GenerationReport> {
   const report: GenerationReport = {
     services: 0, serviceCities: 0, pieces: 0, locations: 0, pays: 0,
-    marques: 0, modeles: 0, villes: 0, total: 0,
+    marques: 0, modeles: 0, villes: 0,
+    reparations: 0, reparationModeles: 0, regions: 0, paysVilles: 0, total: 0,
   };
 
   // Catalogues curés
@@ -370,11 +507,22 @@ export async function generateProgrammaticPages(): Promise<GenerationReport> {
   report.pieces = await upsertPages(PIECES.map(piecePage));
   report.locations = await upsertPages(LOCATIONS.map(locationPage));
   report.pays = await upsertPages(PAYS.map(paysPage));
+  report.reparations = await upsertPages(REPARATIONS.map(reparationPage));
+  report.regions = await upsertPages(REGIONS.map(regionPage));
 
   // Combinaisons service × ville prioritaire
   const serviceCity: SeoPageInput[] = [];
   for (const s of SERVICES) for (const c of TOP_CITIES) serviceCity.push(serviceCityPage(s, c));
   report.serviceCities = await upsertPages(serviceCity);
+
+  // Pays × villes (référencement mondial)
+  const paysName = new Map(PAYS.map((p) => [p.slug, p.name]));
+  const paysVilles: SeoPageInput[] = [];
+  for (const [paysSlug, cities] of Object.entries(CITIES_BY_COUNTRY)) {
+    const name = paysName.get(paysSlug) ?? paysSlug;
+    for (const c of cities) paysVilles.push(paysVillePage(paysSlug, name, c));
+  }
+  report.paysVilles = await upsertPages(paysVilles);
 
   // Données réelles
   const marques = await marquesFromAnnonces();
@@ -386,8 +534,15 @@ export async function generateProgrammaticPages(): Promise<GenerationReport> {
   const villes = await villesFromData();
   report.villes = await upsertPages(villes.map((v) => villePage(v.ville, v.n)));
 
+  // Réparation × modèle réel (bornée aux modèles les plus présents)
+  const topModeles = [...modeles].sort((a, b) => b.n - a.n).slice(0, 40);
+  const repMod: SeoPageInput[] = [];
+  for (const r of REPARATIONS) for (const m of topModeles) repMod.push(reparationModelePage(r, m.marque, m.modele));
+  report.reparationModeles = await upsertPages(repMod);
+
   report.total =
     report.services + report.serviceCities + report.pieces + report.locations +
-    report.pays + report.marques + report.modeles + report.villes;
+    report.pays + report.marques + report.modeles + report.villes +
+    report.reparations + report.reparationModeles + report.regions + report.paysVilles;
   return report;
 }

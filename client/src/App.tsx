@@ -1489,6 +1489,10 @@ export default function App() {
             <Route path="/marque/:marque/:modele" element={<U name="SEO"><SeoLandingPage /></U>} />
             <Route path="/ville/:slug" element={<U name="SEO"><SeoLandingPage /></U>} />
             <Route path="/pays/:slug" element={<U name="SEO"><SeoLandingPage /></U>} />
+            <Route path="/pays/:slug/:ville" element={<U name="SEO"><SeoLandingPage /></U>} />
+            <Route path="/reparation/:slug" element={<U name="SEO"><SeoLandingPage /></U>} />
+            <Route path="/reparation/:slug/:vehicule" element={<U name="SEO"><SeoLandingPage /></U>} />
+            <Route path="/region/:slug" element={<U name="SEO"><SeoLandingPage /></U>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
