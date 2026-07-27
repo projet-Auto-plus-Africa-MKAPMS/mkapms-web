@@ -78,7 +78,7 @@ function Header() {
       <div className="container-page flex h-16 items-center justify-between gap-4 lg:max-w-[1680px]">
         <Link
           to="/"
-          className="flex shrink-0 flex-col items-center justify-center leading-none"
+          className="flex shrink-0 flex-col items-center justify-center leading-none overflow-visible"
           aria-label="MKA.P-MS — Accueil"
           data-testid="header-logo-link"
         >
