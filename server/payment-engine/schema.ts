@@ -106,6 +106,41 @@ export const paymentProRib = pgTable("payment_pro_rib", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ── Registre central des produits & tarifs (Phase 24) ────────────────────
+// Source unique de vérité des prix. Aucun prix ne doit être codé en dur dans
+// plusieurs fichiers : le serveur résout toujours le montant depuis ce registre.
+export const paymentProducts = pgTable("payment_products", {
+  id: serial("id").primaryKey(),
+  // Identifiant stable et lisible. Ex: "annonce_boost_7j", "abo_pro_premium"
+  code: varchar("code", { length: 64 }).notNull().unique(),
+  name: varchar("name", { length: 160 }).notNull(),
+  univers: varchar("univers", { length: 48 }).notNull().default("general"),
+  // Cas de paiement (voir REQUIRED_PAYMENT_CASES) : boost_annonce, abonnement…
+  paymentCase: varchar("payment_case", { length: 48 }).notNull().default("options_premium"),
+  // Prix en unité principale (ex: 24.90 EUR). numeric pour éviter les flottants.
+  price: numeric("price", { precision: 12, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 8 }).notNull().default("EUR"),
+  // Taux de TVA en pourcentage (ex: 20.00). 0 = exonéré / non applicable.
+  vatRate: numeric("vat_rate", { precision: 5, scale: 2 }).notNull().default("20.00"),
+  countryCode: varchar("country_code", { length: 4 }).notNull().default("FR"),
+  // "unique" | "recurring"
+  paymentType: varchar("payment_type", { length: 24 }).notNull().default("unique"),
+  // Pour les abonnements : "monthly" | "quarterly" | "yearly" | null
+  periodicity: varchar("periodicity", { length: 16 }),
+  // À qui revient l'argent : "mkapms" | "pro" | "partner"
+  beneficiary: varchar("beneficiary", { length: 24 }).notNull().default("mkapms"),
+  // Commission MKA.P-MS en pourcentage prélevée (0 si bénéficiaire = mkapms).
+  commissionRate: numeric("commission_rate", { precision: 5, scale: 2 }).notNull().default("0.00"),
+  // Durée de validité du produit acheté, en jours (ex: 7, 30, 365). 0 = illimité.
+  validityDays: integer("validity_days").notNull().default(0),
+  // Conditions de remboursement (texte court structuré).
+  refundPolicy: text("refund_policy"),
+  active: boolean("active").notNull().default(true),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // ── Règles par pays ───────────────────────────────────────────────────────
 export const paymentCountryRules = pgTable("payment_country_rules", {
   id: serial("id").primaryKey(),
