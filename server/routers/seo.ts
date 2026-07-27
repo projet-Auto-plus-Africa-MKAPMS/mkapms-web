@@ -9,6 +9,8 @@ import {
   catalogSize,
   seedKeywords,
   keywordsByUnivers,
+  associateKeywords,
+  UNIVERS_TARGET,
 } from "../seo-keywords-catalog.js";
 import { logActivity } from "../smart-engine/services/activity-log.js";
 import { env } from "../env.js";
@@ -514,6 +516,47 @@ export const seoRouter = router({
       }
       return report;
     }),
+
+  // Carte des cibles par univers + couverture réelle des associations.
+  keywordAssociations: adminProcedure.query(async () => {
+    const rows = await db
+      .select({
+        univers: seoKeywords.univers,
+        targetPath: seoKeywords.targetPath,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(seoKeywords)
+      .groupBy(seoKeywords.univers, seoKeywords.targetPath)
+      .orderBy(seoKeywords.univers);
+    const associated = rows
+      .filter((r) => r.targetPath)
+      .reduce((s, r) => s + Number(r.count), 0);
+    const total = rows.reduce((s, r) => s + Number(r.count), 0);
+    return { targets: UNIVERS_TARGET, rows, associated, total };
+  }),
+
+  // Phase 2 — associe chaque mot-clé à sa page cible (idempotent). Supervisé.
+  associateKeywords: adminProcedure.mutation(async ({ ctx }) => {
+    const report = await associateKeywords();
+    try {
+      await logActivity({
+        action: "seo.keywords_associated",
+        userId: ctx.user.uid,
+        targetType: "seo_keywords",
+        data: {
+          updated: report.updated,
+          alreadySet: report.alreadySet,
+          total: report.total,
+          entries: report.byUnivers,
+        },
+        result: "success",
+        proposedDecision: `Association SEO : ${report.updated} mot(s)-clé(s) reliés à leur page cible sur ${report.total}.`,
+      });
+    } catch {
+      // supervision best-effort
+    }
+    return report;
+  }),
 
   // ─── SEO OS intelligent : analyse + suggestions (validation humaine) ───
   // OBSERVE et PROPOSE uniquement — n'exécute aucune modification.

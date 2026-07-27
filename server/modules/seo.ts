@@ -45,6 +45,8 @@ export const seoKeywords = pgTable("seo_keywords", {
   language: varchar("language", { length: 4 }).notNull().default("fr"),
   country: varchar("country", { length: 4 }).notNull().default("FR"),
   active: boolean("active").notNull().default(true),
+  // Phase 2 : page/route cible associée automatiquement à ce mot-clé.
+  targetPath: varchar("target_path", { length: 512 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => ({
   uniq: uniqueIndex("seo_keywords_univers_keyword_lang_country_uniq").on(
