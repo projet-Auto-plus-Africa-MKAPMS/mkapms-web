@@ -6,6 +6,7 @@ import { submitIndexNow, pingSitemaps } from "../seo-indexing.js";
 import { analyzeSeo } from "../seo-analyze.js";
 import { verifySeo } from "../seo-verify.js";
 import { seoDashboard } from "../seo-dashboard.js";
+import { seoRecommendations } from "../seo-manager.js";
 import {
   SEO_KEYWORD_CATALOG,
   catalogSize,
@@ -578,6 +579,13 @@ export const seoRouter = router({
   // Les métriques Google nécessitent la Search Console API (non branchée sans clé).
   dashboard: adminProcedure.query(async () => {
     return seoDashboard();
+  }),
+
+  // ─── SEO Manager / Assistant IA (Phase 22) ───
+  // Génère des recommandations actionnables à partir des données réelles.
+  // OBSERVE et PROPOSE uniquement — l'exécution passe par « Générer ».
+  recommendations: adminProcedure.query(async () => {
+    return seoRecommendations();
   }),
 
   // ─── Indexation (soumission aux moteurs) ───
