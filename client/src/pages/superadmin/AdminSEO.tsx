@@ -24,8 +24,13 @@ export default function AdminSEO() {
   const seedKeywords = trpc.seo.seedKeywords.useMutation({
     onSuccess: () => { utils.seo.keywordStats.invalidate(); utils.seo.listKeywords.invalidate(); },
   });
+  const associations = trpc.seo.keywordAssociations.useQuery();
+  const associate = trpc.seo.associateKeywords.useMutation({
+    onSuccess: () => { utils.seo.keywordAssociations.invalidate(); utils.seo.listKeywords.invalidate(); },
+  });
   const countByUnivers = (u: string) =>
     Number(keywordStats.data?.byUnivers.find((r) => r.univers === u)?.count ?? 0);
+  const targets = associations.data?.targets ?? {};
 
   const totalPages = (byType.data ?? []).reduce((s, r) => s + Number(r.count), 0);
 
@@ -211,6 +216,37 @@ export default function AdminSEO() {
           )}
         </div>
 
+        {/* Phase 2 — Association intelligente mots-clé → page cible */}
+        <div className="rounded-2xl bg-white border border-[#E5E7EB] p-4 mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Tag size={16} className="text-[#D4AF37]" />
+            <p className="text-sm font-bold text-[#111]">Association mots-clés → pages</p>
+          </div>
+          <p className="text-[11px] text-[#6B7280] mb-3">
+            Chaque mot-clé est relié à sa page canonique réellement rendue (aucun lien mort).
+            {associations.data
+              ? ` ${associations.data.associated.toLocaleString("fr-FR")} / ${associations.data.total.toLocaleString("fr-FR")} mots-clés associés.`
+              : ""}
+          </p>
+          <button
+            onClick={() => associate.mutate()}
+            disabled={associate.isPending}
+            className="w-full rounded-lg bg-[#111] py-2 text-xs font-bold text-white flex items-center justify-center gap-2 disabled:opacity-60"
+          >
+            <RefreshCw size={12} className={associate.isPending ? "animate-spin" : ""} />
+            {associate.isPending ? "Association…" : "Associer les mots-clés à leurs pages"}
+          </button>
+          {associate.data && (
+            <p className="mt-2 text-[11px] text-green-700 font-medium">
+              {associate.data.updated.toLocaleString("fr-FR")} mot(s)-clé(s) reliés,
+              {" "}{associate.data.alreadySet.toLocaleString("fr-FR")} déjà à jour — {associate.data.total.toLocaleString("fr-FR")} au total.
+            </p>
+          )}
+          {associate.error && (
+            <p className="mt-2 text-[11px] text-red-600">{associate.error.message}</p>
+          )}
+        </div>
+
         <p className="text-[11px] font-bold text-[#6B7280] mb-2 uppercase">Mots-clés par univers</p>
         <div className="space-y-2">
           {(keywordCatalog.data?.catalog ?? []).map((g) => (
@@ -220,6 +256,7 @@ export default function AdminSEO() {
               label={g.label}
               catalogCount={g.keywords.length}
               savedCount={countByUnivers(g.univers)}
+              target={targets[g.univers]}
               open={expanded === g.univers}
               onToggle={() => setExpanded(expanded === g.univers ? null : g.univers)}
             />
@@ -235,6 +272,7 @@ function KeywordUniverse(props: {
   label: string;
   catalogCount: number;
   savedCount: number;
+  target?: string;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -254,6 +292,9 @@ function KeywordUniverse(props: {
             {props.catalogCount} mots-clés au catalogue
             {props.savedCount ? ` · ${props.savedCount} en base` : " · non alimenté"}
           </p>
+          {props.target && (
+            <p className="text-[10px] text-blue-600 truncate">→ {props.target}</p>
+          )}
         </div>
         <ChevronDown size={12} className={`text-[#9CA3AF] transition ${props.open ? "rotate-180" : ""}`} />
       </button>

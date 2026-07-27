@@ -257,6 +257,66 @@ export async function seedKeywords(
   };
 }
 
+/**
+ * Phase 2 — Association intelligente : chaque univers pointe vers sa page
+ * canonique RÉELLEMENT rendue côté visiteur (route statique de `App.tsx` ou
+ * page programmatique SSR `/service/:slug`, `/pays/:slug`…). Aucune cible ne
+ * mène vers une route inexistante (pas de lien mort).
+ */
+export const UNIVERS_TARGET: Record<string, string> = {
+  vente: "/acheter",
+  location: "/louer",
+  garage: "/garages",
+  carrosserie: "/service/carrosserie",
+  "controle-technique": "/service/controle-technique",
+  administratif: "/demarches",
+  pieces: "/pieces",
+  professionnels: "/espace-pro",
+  marketplace: "/acheter",
+  international: "/acheter",
+};
+
+export interface AssociateKeywordsReport {
+  updated: number;
+  alreadySet: number;
+  total: number;
+  byUnivers: { univers: string; target: string; count: number }[];
+}
+
+/**
+ * Associe chaque mot-clé enregistré à la page cible de son univers.
+ * Idempotent : ne réécrit que les lignes dont `target_path` diffère de la
+ * cible attendue (les lignes déjà correctes sont ignorées).
+ */
+export async function associateKeywords(): Promise<AssociateKeywordsReport> {
+  const byUnivers: { univers: string; target: string; count: number }[] = [];
+  let updated = 0;
+  let alreadySet = 0;
+  let total = 0;
+
+  const counts = await keywordsByUnivers();
+  const countMap = new Map(counts.map((c) => [c.univers, Number(c.count)]));
+
+  for (const [univers, target] of Object.entries(UNIVERS_TARGET)) {
+    const count = countMap.get(univers) ?? 0;
+    total += count;
+    byUnivers.push({ univers, target, count });
+
+    // Ne touche que les lignes non encore alignées sur la bonne cible.
+    const res = await db
+      .update(seoKeywords)
+      .set({ targetPath: target })
+      .where(
+        sql`${seoKeywords.univers} = ${univers} AND (${seoKeywords.targetPath} IS DISTINCT FROM ${target})`,
+      )
+      .returning({ id: seoKeywords.id });
+    updated += res.length;
+    alreadySet += Math.max(0, count - res.length);
+  }
+
+  return { updated, alreadySet, total, byUnivers };
+}
+
 /** Répartition des mots-clés enregistrés par univers. */
 export async function keywordsByUnivers(): Promise<{ univers: string; count: number }[]> {
   try {
