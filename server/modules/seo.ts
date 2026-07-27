@@ -7,6 +7,7 @@ import {
   serial,
   text,
   timestamp,
+  uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
 
@@ -45,7 +46,14 @@ export const seoKeywords = pgTable("seo_keywords", {
   country: varchar("country", { length: 4 }).notNull().default("FR"),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+}, (t) => ({
+  uniq: uniqueIndex("seo_keywords_univers_keyword_lang_country_uniq").on(
+    t.univers,
+    t.keyword,
+    t.language,
+    t.country,
+  ),
+}));
 
 // Journal d'indexation Google (suivi des soumissions)
 export const seoIndexingLog = pgTable("seo_indexing_log", {
