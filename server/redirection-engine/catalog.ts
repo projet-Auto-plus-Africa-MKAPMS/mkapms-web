@@ -19,6 +19,34 @@ export interface DefaultRule {
   priority?: number;
 }
 
+/**
+ * Alias de chemins connus : un chemin qui n'a pas (ou plus) de page dédiée est
+ * redirigé automatiquement vers la bonne page. Sert de base d'auto-résolution
+ * des 404 par le Moteur de Redirection. Le PDG peut en ajouter d'autres depuis
+ * le centre de contrôle (clé "path:<chemin>").
+ */
+export interface PathAlias {
+  from: string;
+  to: string;
+  label: string;
+}
+
+export const PATH_ALIASES: PathAlias[] = [
+  { from: "/reparer", to: "/garages", label: "Chemin — Réparer → Réseau de garages" },
+  { from: "/reparation", to: "/garages", label: "Chemin — Réparation → Réseau de garages" },
+  { from: "/reparations", to: "/garages", label: "Chemin — Réparations → Réseau de garages" },
+  { from: "/garage", to: "/garages", label: "Chemin — Garage → Réseau de garages" },
+  { from: "/depanner", to: "/depannage", label: "Chemin — Dépanner → Dépannage" },
+  { from: "/remorquage", to: "/depannage", label: "Chemin — Remorquage → Dépannage" },
+  { from: "/piece", to: "/pieces", label: "Chemin — Pièce → Pièces détachées" },
+  { from: "/acheter-voiture", to: "/acheter", label: "Chemin — Acheter voiture → Acheter" },
+  { from: "/vente", to: "/vendre", label: "Chemin — Vente → Vendre" },
+  { from: "/location", to: "/louer", label: "Chemin — Location → Louer" },
+  { from: "/aide-support", to: "/aide", label: "Chemin — Aide support → Centre d'aide" },
+  { from: "/support", to: "/aide", label: "Chemin — Support → Centre d'aide" },
+  { from: "/contact", to: "/aide", label: "Chemin — Contact → Centre d'aide" },
+];
+
 export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
   // ── Univers principaux ────────────────────────────────────────────────
   { key: "univers_acheter", label: "Univers — Acheter", kind: "route", target: "/acheter", priority: 100 },
@@ -67,4 +95,16 @@ export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
   { key: "nav_garages", label: "Menu — Garages", kind: "route", target: "/garages", priority: 100 },
   { key: "nav_univers", label: "Menu — Univers", kind: "route", target: "/univers", priority: 100 },
   { key: "nav_abonnements", label: "Menu — Abonnements", kind: "route", target: "/abonnements", priority: 100 },
+
+  // ── Alias de chemins (auto-résolution des 404) ────────────────────────
+  // Un chemin obsolète/synonyme qui n'a pas de page propre est redirigé
+  // automatiquement vers la bonne page (clé "path:<chemin>"). Le Moteur de
+  // Redirection s'en sert pour RÉSOUDRE seul les pages introuvables (404).
+  ...PATH_ALIASES.map<DefaultRule>((a) => ({
+    key: `path:${a.from}`,
+    label: a.label,
+    kind: "route",
+    target: a.to,
+    priority: 200,
+  })),
 ];

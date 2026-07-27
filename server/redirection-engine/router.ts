@@ -14,6 +14,7 @@ import { z } from "zod";
 import { router, publicProcedure, pdgProcedure } from "../trpc.js";
 import {
   resolveKey,
+  resolvePath,
   reportOutcome,
   getBrokenRedirects,
   listRules,
@@ -55,6 +56,15 @@ export const redirectionEngineRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       return reportOutcome(input, { userId: ctx.user?.uid, role: ctx.user?.role });
+    }),
+
+  // Auto-résolution d'une page introuvable (404) : le client 404 envoie le
+  // chemin, le moteur cherche un alias et renvoie la destination à suivre
+  // automatiquement (ou null s'il n'a pas encore de correctif).
+  resolvePath: publicProcedure
+    .input(z.object({ path: z.string().min(1).max(512) }))
+    .mutation(async ({ ctx, input }) => {
+      return resolvePath(input.path, { userId: ctx.user?.uid, role: ctx.user?.role });
     }),
 
   // ── Administration (PDG uniquement) ────────────────────────────────────

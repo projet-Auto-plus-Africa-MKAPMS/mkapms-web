@@ -910,6 +910,8 @@ export default function App() {
             <Route path="/vendre" element={<U name="Vente"><Vendre /></U>} />
             <Route path="/devis" element={<U name="Devis"><Devis /></U>} />
             <Route path="/garages" element={<U name="Réseau de garages"><Garages /></U>} />
+            {/* Alias : "Réparer" n'a pas de page dédiée → réseau de garages. */}
+            <Route path="/reparer" element={<Navigate to="/garages" replace />} />
             <Route path="/garage-plus" element={<U name="Garage+"><GaragePlus /></U>} />
             <Route path="/univers" element={<U name="Univers"><Univers /></U>} />
             <Route path="/pieces" element={<U name="Pièces Auto"><Pieces /></U>} />

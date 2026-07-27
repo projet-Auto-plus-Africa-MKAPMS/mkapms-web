@@ -120,6 +120,7 @@ function DashboardTab({ onGoRules }: { onGoRules: () => void }) {
     { label: "Redirections servies", value: s?.totalHits ?? 0 },
     { label: "Résolutions (24h)", value: s?.resolutions24h ?? 0 },
     { label: "Pages introuvables (24h)", value: s?.notFound24h ?? 0 },
+    { label: "404 auto-résolus (24h)", value: s?.autoHealed24h ?? 0 },
     { label: "Erreurs (24h)", value: s?.errors24h ?? 0 },
   ];
 

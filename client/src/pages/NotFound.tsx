@@ -1,20 +1,43 @@
-import { useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 
 export default function NotFound() {
   const location = useLocation();
-  const report = trpc.redirectionEngine.reportOutcome.useMutation();
-  const reported = useRef<string | null>(null);
+  const navigate = useNavigate();
+  const heal = trpc.redirectionEngine.resolvePath.useMutation();
+  const handled = useRef<string | null>(null);
+  const [healing, setHealing] = useState(true);
 
-  // Remonte automatiquement la route cassée au Moteur de Redirection (§5).
+  // Auto-résolution des 404 par le Moteur de Redirection (§5) : on demande au
+  // moteur s'il connaît un correctif pour ce chemin ; si oui, il nous redirige
+  // automatiquement vers la bonne page. Sinon il journalise le 404.
   useEffect(() => {
     const path = location.pathname;
-    if (reported.current === path) return;
-    reported.current = path;
-    report.mutate({ key: "route_404", source: path, outcome: "not_found" });
+    if (handled.current === path) return;
+    handled.current = path;
+    setHealing(true);
+    heal.mutate(
+      { path },
+      {
+        onSuccess: (r) => {
+          if (r.healed && r.target) navigate(r.target, { replace: true });
+          else setHealing(false);
+        },
+        onError: () => setHealing(false),
+      },
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
+
+  if (healing) {
+    return (
+      <div className="container-page py-24 text-center">
+        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#D4AF37]" />
+        <p className="mt-4 text-slate-500">Un instant, nous vous redirigeons vers la bonne page…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container-page py-24 text-center">
