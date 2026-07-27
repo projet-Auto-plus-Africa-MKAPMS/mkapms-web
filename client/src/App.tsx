@@ -226,6 +226,7 @@ const FileAttenteAtelier = lazy(() => import("./pages/garage/FileAttenteAtelier"
 const FlottesEntreprises = lazy(() => import("./pages/garage/FlottesEntreprises"));
 const FournisseursGarage = lazy(() => import("./pages/garage/FournisseursGarage"));
 const GarageGenerale = lazy(() => import("./pages/garage/GarageGenerale"));
+const GaragePublicFiche = lazy(() => import("./pages/garage/GaragePublicFiche"));
 const GarageParticulier = lazy(() => import("./pages/garage/GarageParticulier"));
 const GarageProfessionnel = lazy(() => import("./pages/garage/GarageProfessionnel"));
 const GarantieTravaux = lazy(() => import("./pages/garage/GarantieTravaux"));
@@ -910,6 +911,7 @@ export default function App() {
             <Route path="/vendre" element={<U name="Vente"><Vendre /></U>} />
             <Route path="/devis" element={<U name="Devis"><Devis /></U>} />
             <Route path="/garages" element={<U name="Réseau de garages"><Garages /></U>} />
+            <Route path="/garages/:slug" element={<U name="Réseau de garages"><GaragePublicFiche /></U>} />
             {/* Alias : "Réparer" n'a pas de page dédiée → réseau de garages. */}
             <Route path="/reparer" element={<Navigate to="/garages" replace />} />
             <Route path="/garage-plus" element={<U name="Garage+"><GaragePlus /></U>} />

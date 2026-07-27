@@ -48,6 +48,25 @@ export const garagesRouter = router({
       return g;
     }),
 
+  // Fiche publique par slug (ou id numérique) — pages SEO indexées /garages/:slug
+  getBySlug: publicProcedure
+    .input(z.object({ slug: z.string().min(1) }))
+    .query(async ({ input }) => {
+      const isNumeric = /^\d+$/.test(input.slug);
+      const [g] = await db
+        .select()
+        .from(garagesPublics)
+        .where(
+          and(
+            eq(garagesPublics.status, "valide"),
+            isNumeric ? eq(garagesPublics.id, Number(input.slug)) : eq(garagesPublics.slug, input.slug),
+          ),
+        )
+        .limit(1);
+      if (!g) throw new TRPCError({ code: "NOT_FOUND" });
+      return g;
+    }),
+
   // Inscription d'un garage (§7.3) — création de la fiche en attente de validation
   register: protectedProcedure
     .input(
