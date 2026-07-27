@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { Camera, CheckCircle2, Pencil, Trash2, X, RefreshCw, Clock, ChevronDown, LogOut, User as UserIcon, Bell, Grid3x3, Megaphone, FileText, Search as SearchIcon, CalendarCheck, Crown, FolderLock, HelpCircle, Plus, Car, Bike, Truck, Bus, KeyRound } from "lucide-react";
+import { Camera, CheckCircle2, Pencil, Trash2, X, RefreshCw, Clock, ChevronDown, ChevronLeft, LogOut, User as UserIcon, Bell, Grid3x3, Megaphone, FileText, Search as SearchIcon, CalendarCheck, Crown, FolderLock, HelpCircle, Plus, Car, Bike, Truck, Bus, KeyRound } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -98,12 +98,14 @@ export default function Compte() {
     if (params.get("success") === "1") {
       setTab("abonnements");
       setOpenGroups((g) => (g.includes("abo") ? g : [...g, "abo"]));
+      setContentOpen(true);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 5000);
     }
     if (params.get("tab")) {
       const t = params.get("tab") as Tab;
       setTab(t);
+      setContentOpen(true);
       const grp = TAB_TO_GROUP[t];
       if (grp) setOpenGroups((g) => (g.includes(grp) ? g : [...g, grp]));
     }
@@ -133,13 +135,28 @@ export default function Compte() {
   const [dossier, setDossier] = useState({ marque: "", modele: "", immatriculation: "" });
   const [openGroups, setOpenGroups] = useState<string[]>(["annonces"]);
   const [showDepositChooser, setShowDepositChooser] = useState(false);
+  // Le contenu de l'onglet actif est-il affiché ? Permet de le refermer en
+  // recliquant sur la flèche (corrige le bug « la flèche ne referme plus »).
+  const [contentOpen, setContentOpen] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
   function toggleGroup(k: string) {
     setOpenGroups((g) => (g.includes(k) ? g.filter((x) => x !== k) : [...g, k]));
   }
   function selectItem(t: Tab) {
+    // Recliquer l'élément déjà ouvert → on le referme.
+    if (tab === t && contentOpen) {
+      setContentOpen(false);
+      return;
+    }
     setTab(t);
-    setTimeout(() => contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    setContentOpen(true);
+    // Sur ordinateur : amener le contenu juste sous la ligne cliquée (pas en
+    // bas de page). Sur mobile, le contenu s'ouvre en plein écran (voir CSS).
+    setTimeout(() => {
+      if (window.matchMedia("(min-width: 640px)").matches) {
+        contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 50);
   }
 
   if (isSessionLoading) {
@@ -290,11 +307,12 @@ export default function Compte() {
               {isOpen && (
                 <div className="border-t border-slate-100">
                   {g.tabs.map((t) => {
-                    const active = tab === t;
+                    const active = tab === t && contentOpen;
                     return (
                       <button
                         key={t}
                         onClick={() => selectItem(t)}
+                        aria-expanded={active}
                         aria-current={active}
                         className={`flex w-full items-center gap-2 border-b border-slate-50 py-3 pl-14 pr-4 text-left text-sm transition last:border-0 ${active ? "bg-[#FFFBEB] font-semibold text-[#111]" : "text-slate-600 hover:bg-slate-50"}`}
                       >
@@ -310,7 +328,21 @@ export default function Compte() {
         })}
       </div>
 
-      <div ref={contentRef} className="mt-6 scroll-mt-20">
+      {contentOpen && (
+      <div
+        ref={contentRef}
+        className="mt-6 scroll-mt-20 max-sm:fixed max-sm:inset-0 max-sm:z-50 max-sm:mt-0 max-sm:overflow-y-auto max-sm:bg-white max-sm:p-4"
+      >
+        {/* En-tête plein écran (mobile) : titre + retour pour refermer. */}
+        <div className="mb-4 flex items-center gap-2 sm:hidden">
+          <button
+            onClick={() => setContentOpen(false)}
+            className="flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 active:scale-95"
+          >
+            <ChevronLeft size={16} /> Retour
+          </button>
+          <span className="font-bold text-slate-900">{TAB_LABELS[tab]}</span>
+        </div>
         {tab === "annonces" && (
           <div className="space-y-3">
             <button onClick={() => setShowDepositChooser(true)} className="btn-primary inline-flex">+ Déposer une annonce</button>
@@ -703,6 +735,7 @@ export default function Compte() {
         )}
         {tab === "profil" && <ProfilForm />}
       </div>
+      )}
 
       {/* ── Modal Supprimer annonce (avec questionnaire) ── */}
       {deleteAnnonceId && (

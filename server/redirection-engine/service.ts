@@ -5,6 +5,7 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { redirRules, redirLogs } from "./schema.js";
 import { DEFAULT_REDIRECT_RULES } from "./catalog.js";
+import { logActivity } from "../smart-engine/services/activity-log.js";
 
 export interface ResolveResult {
   matched: boolean;
@@ -81,6 +82,90 @@ export async function reportOutcome(
     role: who?.role ?? null,
   });
   return { recorded: true };
+}
+
+/**
+ * Normalise un chemin d'URL : retire query/hash et le "/" final.
+ */
+function normalizePath(input: string): string {
+  let p = input;
+  try { p = decodeURI(p); } catch { /* garde tel quel */ }
+  p = p.split("?")[0].split("#")[0].trim();
+  if (p.length > 1 && p.endsWith("/")) p = p.replace(/\/+$/, "");
+  return p || "/";
+}
+
+export interface HealResult {
+  healed: boolean;
+  target: string | null;
+  source: string;
+}
+
+/**
+ * AUTO-RÉSOLUTION DES 404 (règle utilisateur : « quand on clique sur un truc
+ * 404, il règle le problème à 100 % »).
+ *
+ * Appelée par la page 404 : le moteur cherche un alias de chemin actif
+ * ("path:<chemin>") ; s'il en trouve un, il renvoie la destination pour une
+ * redirection immédiate, journalise le succès (outcome "auto_healed") et
+ * l'enregistre dans le Journal du Système Intelligent (apprentissage). Sinon,
+ * il journalise le 404 non résolu pour que le PDG/Smart Engine crée une règle.
+ */
+export async function resolvePath(
+  pathname: string,
+  who?: { userId?: number; role?: string },
+): Promise<HealResult> {
+  const path = normalizePath(pathname);
+  const key = `path:${path}`;
+
+  const [rule] = await db
+    .select()
+    .from(redirRules)
+    .where(and(eq(redirRules.key, key), eq(redirRules.active, true)))
+    .orderBy(desc(redirRules.priority), desc(redirRules.updatedAt))
+    .limit(1);
+
+  if (rule && rule.target && normalizePath(rule.target) !== path) {
+    await db.insert(redirLogs).values({
+      key,
+      matched: true,
+      resolvedTo: rule.target,
+      source: path.slice(0, 256),
+      outcome: "auto_healed",
+      userId: who?.userId ?? null,
+      role: who?.role ?? null,
+    });
+    await db
+      .update(redirRules)
+      .set({ hitCount: sql`${redirRules.hitCount} + 1` })
+      .where(eq(redirRules.id, rule.id));
+
+    // Apprentissage : consigner dans le Journal du Système Intelligent COMMENT
+    // le problème a été résolu (non bloquant).
+    try {
+      await logActivity({
+        action: "redirection.auto_heal",
+        userId: who?.userId,
+        targetType: "route",
+        data: { from: path, to: rule.target },
+        result: "success",
+        proposedDecision: `Page introuvable ${path} redirigée automatiquement vers ${rule.target}`,
+      });
+    } catch { /* journal best-effort */ }
+
+    return { healed: true, target: rule.target, source: path };
+  }
+
+  // Aucun correctif connu → journaliser le 404 pour apprentissage/supervision.
+  await db.insert(redirLogs).values({
+    key: "route_404",
+    matched: false,
+    source: path.slice(0, 256),
+    outcome: "not_found",
+    userId: who?.userId ?? null,
+    role: who?.role ?? null,
+  });
+  return { healed: false, target: null, source: path };
 }
 
 /**
@@ -182,6 +267,7 @@ export async function getStats() {
       unmatched24h: sql<number>`count(*) filter (where ${redirLogs.matched} = false)::int`,
       notFound24h: sql<number>`count(*) filter (where ${redirLogs.outcome} = 'not_found')::int`,
       errors24h: sql<number>`count(*) filter (where ${redirLogs.outcome} = 'error')::int`,
+      autoHealed24h: sql<number>`count(*) filter (where ${redirLogs.outcome} = 'auto_healed')::int`,
     })
     .from(redirLogs)
     .where(sql`${redirLogs.createdAt} >= ${since24h}`);
@@ -204,6 +290,7 @@ export async function getStats() {
     unmatched24h: logTotals?.unmatched24h ?? 0,
     notFound24h: logTotals?.notFound24h ?? 0,
     errors24h: logTotals?.errors24h ?? 0,
+    autoHealed24h: logTotals?.autoHealed24h ?? 0,
     unmatchedKeys,
   };
 }
