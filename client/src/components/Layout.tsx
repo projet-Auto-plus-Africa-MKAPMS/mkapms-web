@@ -75,7 +75,7 @@ function Header() {
       className="fixed inset-x-0 top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur"
       style={{ paddingTop: standaloneTopOffset() }}
     >
-      <div className="container-page flex h-16 items-center justify-between gap-4 lg:max-w-[1680px]">
+      <div className="container-page flex h-[72px] items-center justify-between gap-4 lg:max-w-[1680px]">
         <Link
           to="/"
           className="flex shrink-0 flex-col items-center justify-center leading-none overflow-visible"
@@ -403,7 +403,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <DynamicPWAIcon />
       <Header />
       {/* Spacer pour compenser le header fixe (même décalage que le header). */}
-      <div className="h-16" style={{ marginTop: standaloneTopOffset() }} />
+      <div className="h-[72px]" style={{ marginTop: standaloneTopOffset() }} />
       <BackButton />
       <main className="flex-1 pb-20 lg:pb-0">{children}</main>
       <Footer />
