@@ -58,6 +58,8 @@ import { documentOsRouter } from "./document-os/index.js";
 import { customerJourneyOsRouter } from "./customer-journey-os/index.js";
 // Search OS — moteur de recherche unifié (règle MOS #15)
 import { searchOsRouter } from "./search-os/index.js";
+// Monitoring OS — surveillance permanente (règle MOS #15)
+import { monitoringOsRouter } from "./monitoring-os/index.js";
 // Scheduler OS — registre central des tâches planifiées (règle MOS #15)
 import { schedulerOsRouter } from "./scheduler-os/index.js";
 // Media OS — optimisation/dédoublonnage des médias (règle MOS #15)
@@ -152,6 +154,7 @@ export const appRouter = router({
   searchOs: searchOsRouter,
   schedulerOs: schedulerOsRouter,
   mediaOs: mediaOsRouter,
+  monitoringOs: monitoringOsRouter,
 });
 
 export type AppRouter = typeof appRouter;
