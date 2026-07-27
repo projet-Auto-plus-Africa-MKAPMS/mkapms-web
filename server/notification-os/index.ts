@@ -21,6 +21,10 @@ import { z } from "zod";
 import { db } from "../db.js";
 import { publicProcedure, protectedProcedure, adminProcedure, router } from "../trpc.js";
 import type { ControlCenterFeed, EngineDashboard, MaturityLevel } from "../identity-os/contract.js";
+import { listTriggers, notifyEvent } from "./triggers.js";
+
+export { notifyEvent, NOTIFICATION_TRIGGERS } from "./triggers.js";
+export type { NotificationEvent, NotifyEventInput } from "./triggers.js";
 
 // ── Schéma ──────────────────────────────────────────────────────────────
 export const notifTemplates = pgTable("notif_templates", {
@@ -228,6 +232,22 @@ export async function dashboard(): Promise<EngineDashboard> {
 export const notificationOsRouter = router({
   meta: publicProcedure.query(() => NOTIFICATION_OS_META),
   healthStatus: publicProcedure.query(() => healthStatus()),
+
+  // Catalogue des déclencheurs unifiés (Phase 42).
+  triggers: adminProcedure.query(() => listTriggers()),
+
+  // Envoi via le point d'entrée unique — pour tests / usage admin.
+  notifyEvent: adminProcedure
+    .input(z.object({
+      userId: z.number().int().positive(),
+      event: z.string().min(2).max(64),
+      vars: z.record(z.union([z.string(), z.number()])).optional(),
+      url: z.string().max(255).optional(),
+      language: z.string().min(2).max(8).optional(),
+      channels: z.array(z.enum(["email", "sms", "push", "inapp"])).optional(),
+    }))
+    .mutation(({ input }) => notifyEvent(input)),
+
   controlCenterFeed: publicProcedure.query(() => controlCenterFeed()),
   dashboard: adminProcedure.query(() => dashboard()),
 

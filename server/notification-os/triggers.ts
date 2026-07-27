@@ -1,0 +1,161 @@
+/**
+ * Notification OS — Catalogue de déclencheurs + point d'entrée unique (Phase 42).
+ *
+ * RÈGLE : aucun service n'envoie de notification de son côté. Tous passent par
+ * `notifyEvent(...)`, qui :
+ *   1. résout l'événement dans le catalogue (canaux, catégorie, libellés) ;
+ *   2. crée la notification interne (table `notifications`) en respectant les
+ *      préférences utilisateur (in-app activé, catégorie non mutée) ;
+ *   3. met en file les canaux email / sms / push via `dispatch()` (préférences
+ *      + heures silencieuses gérées par le moteur) ;
+ *   4. journalise le tout.
+ *
+ * Ce module CONSOLIDE l'existant : la table `notifications` et le dispatch
+ * multi-canaux existent déjà — on ajoute la couche « déclencheurs » unifiée.
+ */
+import { db } from "../db.js";
+import { notifications } from "../schema.js";
+import { dispatch, getUserPrefs } from "./index.js";
+
+export type NotifChannel = "email" | "sms" | "push" | "inapp";
+
+export interface TriggerDef {
+  /** Catégorie pour le mute utilisateur + regroupement. */
+  category: string;
+  /** Canaux par défaut de l'événement. */
+  channels: NotifChannel[];
+  /** Type stocké dans la table `notifications` (in-app). */
+  inappType: string;
+  /** Titre in-app (interpolable avec {{vars}}). */
+  title: string;
+  /** Corps in-app (interpolable). */
+  body?: string;
+  /** Alerte administrateur (envoyée aussi au PDG/admin). */
+  adminAlert?: boolean;
+}
+
+/**
+ * Catalogue complet des déclencheurs demandés (Phase 42). `templateKey` =
+ * clé de l'événement, réutilisée pour retrouver un template email/sms/push
+ * personnalisé dans `notif_templates` (sinon fallback sur le libellé in-app).
+ */
+export const NOTIFICATION_TRIGGERS: Record<string, TriggerDef> = {
+  // ── Compte ──────────────────────────────────────────────────────────────
+  inscription: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Bienvenue sur MKA.P-MS", body: "Votre compte a été créé." },
+  connexion: { category: "securite", channels: ["inapp"], inappType: "securite", title: "Nouvelle connexion", body: "Une connexion à votre compte vient d'avoir lieu." },
+  changement_mot_de_passe: { category: "securite", channels: ["email", "inapp"], inappType: "securite", title: "Mot de passe modifié", body: "Votre mot de passe a été changé." },
+  compte_valide: { category: "compte", channels: ["email", "inapp"], inappType: "validation", title: "Compte validé", body: "Votre compte est validé." },
+  // ── Annonces ──────────────────────────────────────────────────────────────
+  annonce_depot: { category: "annonces", channels: ["inapp"], inappType: "annonce", title: "Annonce déposée", body: "Votre annonce « {{titre}} » a été déposée." },
+  annonce_validee: { category: "annonces", channels: ["email", "inapp"], inappType: "validation", title: "Annonce en ligne", body: "Votre annonce « {{titre}} » est en ligne." },
+  annonce_refusee: { category: "annonces", channels: ["email", "inapp"], inappType: "validation", title: "Annonce refusée", body: "Votre annonce « {{titre}} » a été refusée : {{motif}}." },
+  // ── Réservations / rendez-vous ──────────────────────────────────────────
+  reservation: { category: "reservations", channels: ["email", "inapp"], inappType: "reservation", title: "Réservation confirmée", body: "Votre réservation {{reference}} est confirmée." },
+  rdv_garage: { category: "reservations", channels: ["email", "inapp"], inappType: "reservation", title: "Rendez-vous garage", body: "Rendez-vous {{date}} chez {{garage}}." },
+  rappel_rdv: { category: "reservations", channels: ["push", "inapp"], inappType: "reservation", title: "Rappel de rendez-vous", body: "Rappel : rendez-vous {{date}}." },
+  livraison: { category: "livraison", channels: ["email", "inapp"], inappType: "livraison", title: "Livraison", body: "Votre livraison {{reference}} : {{statut}}." },
+  // ── Paiement (interconnexion Payment OS) ────────────────────────────────
+  paiement: { category: "paiement", channels: ["email", "inapp"], inappType: "paiement", title: "Paiement confirmé", body: "Paiement de {{montant}} confirmé (réf. {{reference}})." },
+  paiement_echoue: { category: "paiement", channels: ["email", "inapp"], inappType: "paiement", title: "Paiement échoué", body: "Le paiement {{reference}} a échoué." },
+  remboursement: { category: "paiement", channels: ["email", "inapp"], inappType: "paiement", title: "Remboursement", body: "Un remboursement de {{montant}} a été effectué." },
+  abonnement: { category: "abonnement", channels: ["email", "inapp"], inappType: "abonnement", title: "Abonnement activé", body: "Votre abonnement {{formule}} est actif." },
+  abonnement_expiration: { category: "abonnement", channels: ["email", "push", "inapp"], inappType: "abonnement", title: "Abonnement bientôt expiré", body: "Votre abonnement {{formule}} expire le {{date}}." },
+  // ── Enchères ──────────────────────────────────────────────────────────────
+  enchere_nouvelle: { category: "encheres", channels: ["push", "inapp"], inappType: "enchere", title: "Nouvelle enchère", body: "Nouvelle enchère sur {{lot}}." },
+  enchere_gagnee: { category: "encheres", channels: ["email", "push", "inapp"], inappType: "enchere", title: "Enchère gagnée", body: "Vous avez remporté {{lot}}." },
+  // ── Messagerie / documents ──────────────────────────────────────────────
+  message_nouveau: { category: "messagerie", channels: ["push", "inapp"], inappType: "message", title: "Nouveau message", body: "Vous avez reçu un message." },
+  devis: { category: "documents", channels: ["email", "inapp"], inappType: "devis", title: "Nouveau devis", body: "Un devis {{reference}} vous a été transmis." },
+  facture: { category: "documents", channels: ["email", "inapp"], inappType: "facture", title: "Nouvelle facture", body: "Votre facture {{reference}} est disponible." },
+  // ── Système / admin ─────────────────────────────────────────────────────
+  erreur_importante: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Erreur importante", body: "{{message}}", adminAlert: true },
+};
+
+export type NotificationEvent = keyof typeof NOTIFICATION_TRIGGERS;
+
+function interpolate(tpl: string, vars: Record<string, string | number>): string {
+  return tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, k) => String(vars[k] ?? ""));
+}
+
+export interface NotifyEventInput {
+  userId: number;
+  event: NotificationEvent | string;
+  vars?: Record<string, string | number>;
+  /** Lien profond in-app (ex: /vehicule/123). */
+  url?: string;
+  language?: string;
+  /** Restreint les canaux (sous-ensemble du catalogue). */
+  channels?: NotifChannel[];
+}
+
+export interface NotifyEventResult {
+  event: string;
+  inapp: "created" | "skipped";
+  channels: { channel: NotifChannel; status: string }[];
+}
+
+/**
+ * Point d'entrée UNIQUE des notifications de la plateforme.
+ * Best-effort : ne lève jamais (une notification ratée ne doit pas casser un
+ * flux métier). Retourne le détail de ce qui a été fait.
+ */
+export async function notifyEvent(input: NotifyEventInput): Promise<NotifyEventResult> {
+  const def = NOTIFICATION_TRIGGERS[input.event];
+  const vars = input.vars ?? {};
+  const result: NotifyEventResult = { event: input.event, inapp: "skipped", channels: [] };
+  if (!def) {
+    // Événement inconnu : on journalise en in-app générique pour ne rien perdre.
+    try {
+      await db.insert(notifications).values({
+        userId: input.userId, type: "systeme",
+        title: input.event, body: JSON.stringify(vars).slice(0, 500), url: input.url ?? null,
+      });
+      result.inapp = "created";
+    } catch { /* best-effort */ }
+    return result;
+  }
+
+  const prefs = await getUserPrefs(input.userId).catch(() => null);
+  const muted = prefs ? (prefs.mutedCategories as string[]).includes(def.category) : false;
+  const wanted = (input.channels ?? def.channels).filter((c) => def.channels.includes(c));
+
+  // 1. In-app (respecte inappEnabled + mute)
+  const inappEnabled = prefs ? prefs.inappEnabled : true;
+  if (wanted.includes("inapp") && inappEnabled && !muted) {
+    try {
+      await db.insert(notifications).values({
+        userId: input.userId,
+        type: def.inappType,
+        title: interpolate(def.title, vars).slice(0, 160),
+        body: def.body ? interpolate(def.body, vars) : null,
+        url: input.url ?? null,
+      });
+      result.inapp = "created";
+    } catch { /* best-effort */ }
+  }
+
+  // 2. Canaux externes (email / sms / push) via le dispatch existant
+  for (const channel of wanted) {
+    if (channel === "inapp") continue;
+    try {
+      const r = await dispatch({
+        userId: input.userId,
+        templateKey: input.event,
+        channel,
+        language: input.language,
+        vars,
+        category: def.category,
+      });
+      result.channels.push({ channel, status: r.status });
+    } catch (e) {
+      result.channels.push({ channel, status: "failed" });
+    }
+  }
+
+  return result;
+}
+
+/** Liste le catalogue (pour le centre de contrôle PDG). */
+export function listTriggers() {
+  return Object.entries(NOTIFICATION_TRIGGERS).map(([event, def]) => ({ event, ...def }));
+}
