@@ -4,6 +4,7 @@ import { router, publicProcedure, protectedProcedure, adminProcedure } from "../
 import { generateProgrammaticPages } from "../seo-generator.js";
 import { submitIndexNow, pingSitemaps } from "../seo-indexing.js";
 import { analyzeSeo } from "../seo-analyze.js";
+import { verifySeo } from "../seo-verify.js";
 import {
   SEO_KEYWORD_CATALOG,
   catalogSize,
@@ -562,6 +563,13 @@ export const seoRouter = router({
   // OBSERVE et PROPOSE uniquement — n'exécute aucune modification.
   analyze: adminProcedure.query(async () => {
     return analyzeSeo();
+  }),
+
+  // ─── Vérification qualité SEO (Phase 4) — avant soumission à Google ───
+  // OBSERVE et RAPPORTE uniquement (contenu, titres, descriptions, doublons,
+  // canonical, images, données structurées, indexabilité).
+  verify: adminProcedure.query(async () => {
+    return verifySeo();
   }),
 
   // ─── Indexation (soumission aux moteurs) ───
