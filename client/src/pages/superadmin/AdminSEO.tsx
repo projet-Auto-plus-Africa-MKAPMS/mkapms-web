@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Search, ChevronDown, RefreshCw, ExternalLink, FileText, Lightbulb, Send, Tag } from "lucide-react";
+import { ChevronLeft, Search, ChevronDown, RefreshCw, ExternalLink, FileText, Lightbulb, Send, Tag, ShieldCheck } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -17,6 +17,7 @@ export default function AdminSEO() {
     onSuccess: () => { utils.seo.pagesByType.invalidate(); utils.seo.analyze.invalidate(); },
   });
   const analysis = trpc.seo.analyze.useQuery();
+  const verify = trpc.seo.verify.useQuery(undefined, { enabled: false });
   const indexNow = trpc.seo.indexNowConfigured.useQuery();
   const submit = trpc.seo.submitToIndexNow.useMutation();
   const keywordCatalog = trpc.seo.keywordCatalog.useQuery();
@@ -130,6 +131,72 @@ export default function AdminSEO() {
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Vérification qualité (Phase 4) — avant soumission à Google */}
+      <div className="px-4 mt-4">
+        <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <ShieldCheck size={16} className="text-[#D4AF37]" />
+            <p className="text-sm font-bold text-[#111]">Vérification qualité (avant Google)</p>
+          </div>
+          <p className="text-[11px] text-[#6B7280] mb-3">
+            Contrôle contenu, titres, méta-descriptions, doublons, canonical, images
+            et données structurées. Rapport uniquement — aucune page n'est modifiée.
+          </p>
+          <button
+            onClick={() => verify.refetch()}
+            disabled={verify.isFetching}
+            className="w-full rounded-lg bg-[#111] py-2 text-xs font-bold text-white flex items-center justify-center gap-2 disabled:opacity-60"
+          >
+            <RefreshCw size={12} className={verify.isFetching ? "animate-spin" : ""} />
+            {verify.isFetching ? "Vérification en cours…" : "Lancer la vérification qualité"}
+          </button>
+          {verify.data && (
+            <div className="mt-3">
+              <div className="grid grid-cols-3 gap-2 text-center mb-3">
+                <div className="rounded-lg bg-[#F5F3EF] p-2">
+                  <p className="text-sm font-black text-[#111]">{verify.data.indexablePages.toLocaleString("fr-FR")}</p>
+                  <p className="text-[8px] text-[#6B7280]">Pages indexables</p>
+                </div>
+                <div className="rounded-lg bg-[#F5F3EF] p-2">
+                  <p className={`text-sm font-black ${verify.data.errors > 0 ? "text-red-600" : "text-green-600"}`}>{verify.data.errors}</p>
+                  <p className="text-[8px] text-[#6B7280]">Erreurs</p>
+                </div>
+                <div className="rounded-lg bg-[#F5F3EF] p-2">
+                  <p className={`text-sm font-black ${verify.data.warnings > 0 ? "text-amber-600" : "text-green-600"}`}>{verify.data.warnings}</p>
+                  <p className="text-[8px] text-[#6B7280]">Avertissements</p>
+                </div>
+              </div>
+              {verify.data.issues.length === 0 ? (
+                <p className="text-[11px] text-green-700">Aucun problème détecté — les pages sont prêtes pour la soumission.</p>
+              ) : (
+                <div className="space-y-2">
+                  {verify.data.issues.map((i) => (
+                    <div
+                      key={i.code}
+                      className={`rounded-lg border p-3 ${
+                        i.severity === "error"
+                          ? "border-red-200 bg-red-50"
+                          : i.severity === "warning"
+                            ? "border-amber-200 bg-amber-50"
+                            : "border-[#E5E7EB] bg-[#F5F3EF]"
+                      }`}
+                    >
+                      <p className={`text-xs font-bold ${i.severity === "error" ? "text-red-800" : i.severity === "warning" ? "text-amber-900" : "text-[#111]"}`}>
+                        {i.label} — <span className="font-black">{i.count}</span>
+                      </p>
+                      {i.samples.length > 0 && (
+                        <p className="text-[10px] text-[#6B7280] mt-0.5 break-all">{i.samples.join(" · ")}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {verify.error && <p className="mt-2 text-[11px] text-red-600">{verify.error.message}</p>}
         </div>
       </div>
 
