@@ -66,6 +66,8 @@ import { monitoringOsRouter } from "./monitoring-os/index.js";
 import { schedulerOsRouter } from "./scheduler-os/index.js";
 // Media OS — optimisation/dédoublonnage des médias (règle MOS #15)
 import { mediaOsRouter } from "./media-os/index.js";
+// Backup & Recovery OS — sauvegardes + restauration contrôlée (règle MOS #15)
+import { backupOsRouter } from "./backup-os/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -158,6 +160,7 @@ export const appRouter = router({
   mediaOs: mediaOsRouter,
   monitoringOs: monitoringOsRouter,
   auditOs: auditOsRouter,
+  backupOs: backupOsRouter,
 });
 
 export type AppRouter = typeof appRouter;
