@@ -71,7 +71,7 @@ export function Logo({
         <img
           src={WORDMARK_SRC}
           alt="MKA.P-MS"
-          style={{ height: Math.max(10, Math.round(size * 0.42)), width: "auto", display: "block" }}
+          style={{ height: Math.max(14, Math.round(size * 0.65)), width: "auto", display: "block" }}
           className="mt-0 select-none"
           draggable={false}
         />
