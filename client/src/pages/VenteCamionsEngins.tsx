@@ -1,9 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import {
   ChevronLeft, Search, Heart, HardHat, Wrench,
-  ShieldCheck, Star, ChevronDown, Tractor, X,
+  ShieldCheck, Star, ChevronDown, Tractor, X, AlertTriangle, CheckCircle,
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -14,54 +14,54 @@ import {
 
 const CATEGORIES = [
   /* ── Terrassement & Excavation ── */
-  { label: "Pelleteuses", desc: "Excavateurs, mini-pelles", photo: "/categories/camion_benne_tp.jpg" },
-  { label: "Mini-pelles", desc: "Moins de 6 t, compact", photo: "/categories/camion_benne_tp.jpg" },
-  { label: "Bulldozers", desc: "Pousseurs, niveleuses", photo: "/categories/camion_poids_lourd.jpg" },
-  { label: "Niveleuses", desc: "Graders, profilage terrain", photo: "/categories/camion_plateau.jpg" },
-  { label: "Scrapers", desc: "Décapage & transport terre", photo: "/categories/camion_benne.jpg" },
+  { label: "Pelleteuses", desc: "Excavateurs, mini-pelles", photo: "/categories/engin_pelleteuse.jpg" },
+  { label: "Mini-pelles", desc: "Moins de 6 t, compact", photo: "/categories/engin_minipelle.jpg" },
+  { label: "Bulldozers", desc: "Pousseurs, niveleuses", photo: "/categories/engin_bulldozer.jpg" },
+  { label: "Niveleuses", desc: "Graders, profilage terrain", photo: "/categories/engin_niveleuse.jpg" },
+  { label: "Scrapers", desc: "Décapage & transport terre", photo: "/categories/engin_bulldozer2.jpg" },
   /* ── Levage & Manutention ── */
-  { label: "Grues mobiles", desc: "Grues sur roues & chenilles", photo: "/categories/camion_grue_auxiliaire.jpg" },
-  { label: "Grues à tour", desc: "Grues fixes de chantier", photo: "/categories/camion_grue_auxiliaire.jpg" },
-  { label: "Chariots élévateurs", desc: "Frontaux, rétractables", photo: "/categories/camion_plateau.jpg" },
-  { label: "Chariots télescopiques", desc: "Manitou, JCB, Merlo", photo: "/categories/camion_plateau.jpg" },
-  { label: "Nacelles", desc: "Élévateurs de personnes", photo: "/categories/camion_ampliroll.jpg" },
-  { label: "Chariots tout-terrain", desc: "Manutention en extérieur", photo: "/categories/camion_plateau.jpg" },
+  { label: "Grues mobiles", desc: "Grues sur roues & chenilles", photo: "/categories/engin_grue.jpg" },
+  { label: "Grues à tour", desc: "Grues fixes de chantier", photo: "/categories/engin_grue.jpg" },
+  { label: "Chariots élévateurs", desc: "Frontaux, rétractables", photo: "/categories/engin_chariot.jpg" },
+  { label: "Chariots télescopiques", desc: "Manitou, JCB, Merlo", photo: "/categories/engin_chariot_tele.jpg" },
+  { label: "Nacelles", desc: "Élévateurs de personnes", photo: "/categories/engin_nacelle.jpg" },
+  { label: "Chariots tout-terrain", desc: "Manutention en extérieur", photo: "/categories/engin_chariot_tele.jpg" },
   /* ── Compactage & Finition ── */
-  { label: "Compacteurs", desc: "Rouleaux, plaques vibrantes", photo: "/categories/camion_benne.jpg" },
-  { label: "Finisseurs", desc: "Enrobés, asphalte", photo: "/categories/camion_benne_tp.jpg" },
-  { label: "Fraiseuses", desc: "Raboteuses de chaussée", photo: "/categories/camion_benne_tp.jpg" },
+  { label: "Compacteurs", desc: "Rouleaux, plaques vibrantes", photo: "/categories/engin_compacteur.jpg" },
+  { label: "Finisseurs", desc: "Enrobés, asphalte", photo: "/categories/engin_compacteur.jpg" },
+  { label: "Fraiseuses", desc: "Raboteuses de chaussée", photo: "/categories/engin_compacteur.jpg" },
   /* ── Forage & Fondations ── */
-  { label: "Foreuses", desc: "Sondeuses, foreuses rotatives", photo: "/categories/camion_benne_tp.jpg" },
-  { label: "Pieux & Battage", desc: "Moutons, vibrateurs de pieux", photo: "/categories/camion_benne_tp.jpg" },
+  { label: "Foreuses", desc: "Sondeuses, foreuses rotatives", photo: "/categories/engin_pelleteuse.jpg" },
+  { label: "Pieux & Battage", desc: "Moutons, vibrateurs de pieux", photo: "/categories/engin_pelleteuse.jpg" },
   /* ── Agricole ── */
-  { label: "Tracteurs agricoles", desc: "Toutes puissances, toutes marques", photo: "/categories/camion_plateau.jpg" },
-  { label: "Moissonneuses", desc: "Moissonneuses-batteuses", photo: "/categories/camion_plateau.jpg" },
-  { label: "Ensileuses", desc: "Récolte fourrage & maïs", photo: "/categories/camion_plateau.jpg" },
-  { label: "Chargeurs frontaux", desc: "Télescopiques agricoles", photo: "/categories/camion_plateau.jpg" },
-  { label: "Épandeurs", desc: "Fumier, lisier, engrais", photo: "/categories/camion_plateau.jpg" },
-  { label: "Pulvérisateurs", desc: "Automoteurs & traînés", photo: "/categories/camion_plateau.jpg" },
-  { label: "Presses à balles", desc: "Rondes & carrées", photo: "/categories/camion_plateau.jpg" },
+  { label: "Tracteurs agricoles", desc: "Toutes puissances, toutes marques", photo: "/categories/engin_tracteur.jpg" },
+  { label: "Moissonneuses", desc: "Moissonneuses-batteuses", photo: "/categories/engin_moissonneuse.jpg" },
+  { label: "Ensileuses", desc: "Récolte fourrage & maïs", photo: "/categories/engin_moissonneuse.jpg" },
+  { label: "Chargeurs frontaux", desc: "Télescopiques agricoles", photo: "/categories/engin_chargeuse.jpg" },
+  { label: "Épandeurs", desc: "Fumier, lisier, engrais", photo: "/categories/engin_tracteur.jpg" },
+  { label: "Pulvérisateurs", desc: "Automoteurs & traînés", photo: "/categories/engin_tracteur.jpg" },
+  { label: "Presses à balles", desc: "Rondes & carrées", photo: "/categories/engin_moissonneuse.jpg" },
   /* ── Forestier ── */
-  { label: "Abatteuses", desc: "Harvesters forestiers", photo: "/categories/camion_poids_lourd.jpg" },
-  { label: "Porteurs forestiers", desc: "Forwarders, débardeurs", photo: "/categories/camion_poids_lourd.jpg" },
-  { label: "Broyeurs forestiers", desc: "Déchiqueteurs, broyeurs", photo: "/categories/camion_poids_lourd.jpg" },
+  { label: "Abatteuses", desc: "Harvesters forestiers", photo: "/categories/engin_chargeuse2.jpg" },
+  { label: "Porteurs forestiers", desc: "Forwarders, débardeurs", photo: "/categories/engin_chargeuse2.jpg" },
+  { label: "Broyeurs forestiers", desc: "Déchiqueteurs, broyeurs", photo: "/categories/engin_chargeuse2.jpg" },
   /* ── Industrie & Entrepôt ── */
-  { label: "Chariots élec.", desc: "Électriques entrepôt", photo: "/categories/camion_plateau.jpg" },
-  { label: "Transpalettes", desc: "Manuels & électriques", photo: "/categories/camion_plateau.jpg" },
-  { label: "Gerbeurs", desc: "Stockage haute densité", photo: "/categories/camion_plateau.jpg" },
-  { label: "Chariots latéraux", desc: "Longues charges", photo: "/categories/camion_plateau.jpg" },
+  { label: "Chariots élec.", desc: "Électriques entrepôt", photo: "/categories/engin_chariot.jpg" },
+  { label: "Transpalettes", desc: "Manuels & électriques", photo: "/categories/engin_chariot.jpg" },
+  { label: "Gerbeurs", desc: "Stockage haute densité", photo: "/categories/engin_chariot.jpg" },
+  { label: "Chariots latéraux", desc: "Longues charges", photo: "/categories/engin_chariot.jpg" },
   /* ── Portuaire & Aéroportuaire ── */
-  { label: "Reach stackers", desc: "Manutention conteneurs", photo: "/categories/camion_plateau.jpg" },
-  { label: "Tracteurs portuaires", desc: "Terminaux, quais", photo: "/categories/camion_plateau.jpg" },
-  { label: "Chariots aéro.", desc: "Bagages & fret aéroport", photo: "/categories/camion_plateau.jpg" },
+  { label: "Reach stackers", desc: "Manutention conteneurs", photo: "/categories/engin_chargeuse.jpg" },
+  { label: "Tracteurs portuaires", desc: "Terminaux, quais", photo: "/categories/engin_tracteur.jpg" },
+  { label: "Chariots aéro.", desc: "Bagages & fret aéroport", photo: "/categories/engin_chariot.jpg" },
   /* ── Mines & Carrières ── */
-  { label: "Tombereaux", desc: "Dumpers articulés & rigides", photo: "/categories/camion_benne_tp.jpg" },
-  { label: "Chargeuses", desc: "Chargeuses sur pneus", photo: "/categories/camion_benne_tp.jpg" },
-  { label: "Foreuses minières", desc: "Perforatrices de roche", photo: "/categories/camion_benne_tp.jpg" },
+  { label: "Tombereaux", desc: "Dumpers articulés & rigides", photo: "/categories/engin_tombereau.jpg" },
+  { label: "Chargeuses", desc: "Chargeuses sur pneus", photo: "/categories/engin_chargeuse.jpg" },
+  { label: "Foreuses minières", desc: "Perforatrices de roche", photo: "/categories/engin_pelleteuse.jpg" },
   /* ── Travaux routiers ── */
-  { label: "Répandeuses", desc: "Liant, sel, saumure", photo: "/categories/camion_benne_tp.jpg" },
-  { label: "Balayeuses", desc: "Voirie & chantier", photo: "/categories/camion_benne_tp.jpg" },
-  { label: "Trancheuses", desc: "Canalisations, câbles", photo: "/categories/camion_benne_tp.jpg" },
+  { label: "Répandeuses", desc: "Liant, sel, saumure", photo: "/categories/engin_compacteur.jpg" },
+  { label: "Balayeuses", desc: "Voirie & chantier", photo: "/categories/engin_compacteur.jpg" },
+  { label: "Trancheuses", desc: "Canalisations, câbles", photo: "/categories/engin_pelleteuse.jpg" },
 ];
 
 const ALL_MARQUES = [
@@ -81,16 +81,16 @@ const ALL_MARQUES = [
 ];
 
 const ANNONCES = [
-  { id: 9300, titre: "Caterpillar 320 Pelleteuse", annee: 2021, km: 3200, ptac: "20 t", prix: 145000, categorie: "Pelleteuses", photo: "/categories/camion_benne_tp.jpg", vendeurType: "professionnel" },
-  { id: 9301, titre: "JCB 535-95 Chariot télescopique", annee: 2022, km: 1800, ptac: "8 t", prix: 68000, categorie: "Chariots télescopiques", photo: "/categories/camion_plateau.jpg", vendeurType: "professionnel" },
-  { id: 9302, titre: "Liebherr LTM 1030 Grue mobile", annee: 2020, km: 4500, ptac: "35 t", prix: 320000, categorie: "Grues mobiles", photo: "/categories/camion_grue_auxiliaire.jpg", vendeurType: "professionnel" },
-  { id: 9303, titre: "Manitou 160ATJ Nacelle", annee: 2022, km: 900, ptac: "6 t", prix: 42000, categorie: "Nacelles", photo: "/categories/camion_ampliroll.jpg", vendeurType: "professionnel" },
-  { id: 9304, titre: "Komatsu PC210 Excavateur", annee: 2020, km: 5600, ptac: "21 t", prix: 118000, categorie: "Pelleteuses", photo: "/categories/camion_benne_tp.jpg", vendeurType: "professionnel" },
-  { id: 9305, titre: "John Deere 6155R Tracteur", annee: 2021, km: 2100, ptac: "9 t", prix: 89000, categorie: "Tracteurs agricoles", photo: "/categories/camion_plateau.jpg", vendeurType: "professionnel" },
-  { id: 9306, titre: "Fendt 724 Vario Tracteur", annee: 2022, km: 1400, ptac: "10 t", prix: 135000, categorie: "Tracteurs agricoles", photo: "/categories/camion_plateau.jpg", vendeurType: "professionnel" },
-  { id: 9307, titre: "Caterpillar D6T Bulldozer", annee: 2019, km: 8200, ptac: "22 t", prix: 195000, categorie: "Bulldozers", photo: "/categories/camion_poids_lourd.jpg", vendeurType: "professionnel" },
-  { id: 9308, titre: "Linde H50 Chariot élévateur", annee: 2021, km: 3400, ptac: "5 t", prix: 28000, categorie: "Chariots élévateurs", photo: "/categories/camion_plateau.jpg", vendeurType: "professionnel" },
-  { id: 9309, titre: "Claas Lexion 8900 Moissonneuse", annee: 2022, km: 420, ptac: "18 t", prix: 480000, categorie: "Moissonneuses", photo: "/categories/camion_plateau.jpg", vendeurType: "professionnel" },
+  { id: 9300, titre: "Caterpillar 320 Pelleteuse", annee: 2021, km: 3200, ptac: "20 t", prix: 145000, categorie: "Pelleteuses", photo: "/categories/engin_pelleteuse.jpg", vendeurType: "professionnel" },
+  { id: 9301, titre: "JCB 535-95 Chariot télescopique", annee: 2022, km: 1800, ptac: "8 t", prix: 68000, categorie: "Chariots télescopiques", photo: "/categories/engin_chariot_tele.jpg", vendeurType: "professionnel" },
+  { id: 9302, titre: "Liebherr LTM 1030 Grue mobile", annee: 2020, km: 4500, ptac: "35 t", prix: 320000, categorie: "Grues mobiles", photo: "/categories/engin_grue.jpg", vendeurType: "professionnel" },
+  { id: 9303, titre: "Manitou 160ATJ Nacelle", annee: 2022, km: 900, ptac: "6 t", prix: 42000, categorie: "Nacelles", photo: "/categories/engin_nacelle.jpg", vendeurType: "professionnel" },
+  { id: 9304, titre: "Komatsu PC210 Excavateur", annee: 2020, km: 5600, ptac: "21 t", prix: 118000, categorie: "Pelleteuses", photo: "/categories/engin_pelleteuse.jpg", vendeurType: "professionnel" },
+  { id: 9305, titre: "John Deere 6155R Tracteur", annee: 2021, km: 2100, ptac: "9 t", prix: 89000, categorie: "Tracteurs agricoles", photo: "/categories/engin_tracteur.jpg", vendeurType: "professionnel" },
+  { id: 9306, titre: "Fendt 724 Vario Tracteur", annee: 2022, km: 1400, ptac: "10 t", prix: 135000, categorie: "Tracteurs agricoles", photo: "/categories/engin_tracteur.jpg", vendeurType: "professionnel" },
+  { id: 9307, titre: "Caterpillar D6T Bulldozer", annee: 2019, km: 8200, ptac: "22 t", prix: 195000, categorie: "Bulldozers", photo: "/categories/engin_bulldozer.jpg", vendeurType: "professionnel" },
+  { id: 9308, titre: "Linde H50 Chariot élévateur", annee: 2021, km: 3400, ptac: "5 t", prix: 28000, categorie: "Chariots élévateurs", photo: "/categories/engin_chariot.jpg", vendeurType: "professionnel" },
+  { id: 9309, titre: "Claas Lexion 8900 Moissonneuse", annee: 2022, km: 420, ptac: "18 t", prix: 480000, categorie: "Moissonneuses", photo: "/categories/engin_moissonneuse.jpg", vendeurType: "professionnel" },
 ];
 
 const FAQ = [
@@ -104,24 +104,50 @@ const FAQ = [
 
 const TYPE_FILTER = ["Tous", "Pelleteuses", "Grues mobiles", "Chariots télescopiques", "Nacelles", "Tracteurs agricoles", "Bulldozers", "Chariots élévateurs", "Moissonneuses", "Tombereaux", "Chargeuses"];
 
+const CATEGORIES_LABELS = CATEGORIES.map((c) => c.label);
+
 export default function VenteCamionsEngins() {
   const [filtre, setFiltre] = useState("Tous");
-  const [search, setSearch] = useState("");
-  const [marqueSearch, setMarqueSearch] = useState("");
-  const [marqueSelectionnee, setMarqueSelectionnee] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [searchActive, setSearchActive] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const filteredMarques = useMemo(() => {
-    if (!marqueSearch.trim()) return ALL_MARQUES;
-    const q = marqueSearch.toLowerCase();
-    return ALL_MARQUES.filter((m) => m.toLowerCase().includes(q));
-  }, [marqueSearch]);
+  /* ── Système d'alerte catégorie manquante ── */
+  const [alertCategorie, setAlertCategorie] = useState("");
+  const [alertEnvoye, setAlertEnvoye] = useState(false);
+
+  const handleSearch = () => {
+    setSearchActive(searchInput.trim());
+    // Détection automatique : si la recherche ne correspond à aucune catégorie connue
+    // et n'est pas une marque connue, on propose de signaler la catégorie manquante
+    if (searchInput.trim().length > 2) {
+      const q = searchInput.trim().toLowerCase();
+      const matchCat = CATEGORIES_LABELS.some((c) => c.toLowerCase().includes(q));
+      const matchMarque = ALL_MARQUES.some((m) => m.toLowerCase().includes(q));
+      if (!matchCat && !matchMarque) {
+        setAlertCategorie(searchInput.trim());
+      } else {
+        setAlertCategorie("");
+      }
+    } else {
+      setAlertCategorie("");
+    }
+  };
+
+  const handleAlertSignal = () => {
+    // Signalement de la catégorie manquante — dans un vrai système, cela enverrait
+    // une notification à l'équipe MKA.P-MS via l'API pour ajouter la catégorie
+    setAlertEnvoye(true);
+    setTimeout(() => {
+      setAlertEnvoye(false);
+      setAlertCategorie("");
+    }, 4000);
+  };
 
   const annoncesFiltered = ANNONCES.filter((a) => {
     const matchFiltre = filtre === "Tous" || a.categorie === filtre;
-    const matchSearch = !search || a.titre.toLowerCase().includes(search.toLowerCase());
-    const matchMarque = !marqueSelectionnee || a.titre.toLowerCase().includes(marqueSelectionnee.toLowerCase());
-    return matchFiltre && matchSearch && matchMarque;
+    const matchSearch = !searchActive || a.titre.toLowerCase().includes(searchActive.toLowerCase()) || a.categorie.toLowerCase().includes(searchActive.toLowerCase());
+    return matchFiltre && matchSearch;
   });
 
   return (
@@ -157,19 +183,76 @@ export default function VenteCamionsEngins() {
         </div>
       </div>
 
-      {/* ── BARRE DE RECHERCHE ── */}
-      <div className="px-4 -mt-3 relative z-10 rounded-xl bg-white border border-[#E5E7EB] p-3 mx-4 shadow-sm">
-        <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5">
-          <Search size={14} className="text-[#6B7280]" />
-          <input
-            type="text"
-            placeholder="Marque, modèle, CACES, catégorie…"
-            className="w-full bg-transparent text-sm outline-none"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      {/* ── BARRE DE RECHERCHE UNIFIÉE + BOUTON ── */}
+      <div className="px-4 -mt-3 relative z-10">
+        <div className="rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm">
+          {/* Champ de recherche */}
+          <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5 mb-2">
+            <Search size={14} className="text-[#6B7280] shrink-0" />
+            <input
+              type="text"
+              placeholder="Marque, modèle, CACES, catégorie…"
+              className="w-full bg-transparent text-sm outline-none"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            />
+            {searchInput && (
+              <button onClick={() => { setSearchInput(""); setSearchActive(""); setAlertCategorie(""); }} className="text-[#9CA3AF] hover:text-[#374151]">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          {/* Filtres rapides par marque */}
+          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide mb-2">
+            {["Caterpillar", "Komatsu", "JCB", "Liebherr", "Manitou", "John Deere", "Fendt", "Claas"].map((m) => (
+              <button
+                key={m}
+                onClick={() => { setSearchInput(m); setSearchActive(m); setAlertCategorie(""); }}
+                className={`shrink-0 rounded-full border px-3 py-1 text-[10px] font-semibold transition ${
+                  searchActive === m
+                    ? "border-[#1a1a2e] bg-[#1a1a2e] text-white"
+                    : "border-[#E5E7EB] bg-[#F5F3EF] text-[#6B7280] hover:border-[#1a1a2e]"
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+          {/* Bouton Rechercher */}
+          <button
+            onClick={handleSearch}
+            className="w-full py-2.5 bg-[#1a1a2e] text-white rounded-lg text-sm font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition"
+          >
+            <Search size={14} /> Rechercher
+          </button>
         </div>
       </div>
+
+      {/* ── ALERTE CATÉGORIE MANQUANTE ── */}
+      {alertCategorie && !alertEnvoye && (
+        <div className="mx-4 mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 flex items-start gap-3">
+          <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-xs font-bold text-amber-800">Catégorie introuvable</p>
+            <p className="text-[10px] text-amber-700 mt-0.5">
+              « {alertCategorie} » n'est pas encore dans notre catalogue. Signalez-le pour que l'équipe MKA.P-MS l'ajoute.
+            </p>
+            <button
+              onClick={handleAlertSignal}
+              className="mt-2 px-3 py-1 bg-amber-500 text-white rounded-lg text-[10px] font-bold"
+            >
+              Signaler cette catégorie
+            </button>
+          </div>
+        </div>
+      )}
+      {alertEnvoye && (
+        <div className="mx-4 mt-3 rounded-xl border border-green-200 bg-green-50 p-3 flex items-center gap-3">
+          <CheckCircle size={16} className="text-green-500 shrink-0" />
+          <p className="text-xs font-bold text-green-800">Signalement envoyé — merci ! L'équipe MKA.P-MS va traiter votre demande.</p>
+        </div>
+      )}
 
       {/* ── FILTRES TYPE ── */}
       <div className="px-4 mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -200,67 +283,13 @@ export default function VenteCamionsEngins() {
                 filtre === c.label ? "border-[#1a1a2e] shadow-md" : "border-[#E5E7EB]"
               }`}
             >
-              <img src={c.photo} alt="" className="w-full h-[60px] object-cover" loading="lazy" />
+              <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
               <div className="p-2">
                 <h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3>
                 <p className="text-[8px] text-[#6B7280]">{c.desc}</p>
               </div>
             </button>
           ))}
-        </div>
-      </div>
-
-      {/* ── MARQUES — barre de recherche + liste filtrée ── */}
-      <div className="px-4 mt-5">
-        <h2 className="text-base font-bold text-[#111] mb-2">Marques</h2>
-        <div className="bg-white rounded-xl border border-[#E5E7EB] overflow-hidden">
-          {/* Barre de recherche */}
-          <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[#E5E7EB]">
-            <Search size={14} className="text-[#9CA3AF] shrink-0" />
-            <input
-              type="text"
-              value={marqueSearch}
-              onChange={(e) => setMarqueSearch(e.target.value)}
-              placeholder="Rechercher une marque…"
-              className="w-full bg-transparent text-sm outline-none placeholder-[#9CA3AF]"
-            />
-            {marqueSearch && (
-              <button onClick={() => setMarqueSearch("")} className="text-[#9CA3AF] hover:text-[#374151]">
-                <X size={14} />
-              </button>
-            )}
-          </div>
-          {/* Liste filtrée */}
-          <div className="max-h-44 overflow-y-auto">
-            {filteredMarques.length === 0 ? (
-              <p className="p-3 text-xs text-[#9CA3AF] text-center">Aucune marque trouvée</p>
-            ) : (
-              filteredMarques.map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMarqueSelectionnee(marqueSelectionnee === m ? "" : m)}
-                  className={`w-full text-left px-4 py-2 text-sm transition ${
-                    marqueSelectionnee === m
-                      ? "bg-[#1a1a2e]/5 text-[#1a1a2e] font-semibold"
-                      : "text-[#374151] hover:bg-[#F5F3EF]"
-                  }`}
-                >
-                  {m}
-                </button>
-              ))
-            )}
-          </div>
-          {/* Bouton Voir les annonces */}
-          {marqueSelectionnee && (
-            <div className="px-3 py-2 border-t border-[#E5E7EB]">
-              <button
-                onClick={() => setSearch(marqueSelectionnee)}
-                className="w-full py-2 bg-[#1a1a2e] text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2"
-              >
-                <Search size={12} /> Voir les annonces {marqueSelectionnee}
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
