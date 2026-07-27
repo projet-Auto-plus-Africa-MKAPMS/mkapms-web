@@ -33,6 +33,7 @@ import {
   getStats,
   listTransactions,
 } from "./service.js";
+import { paymentAudit } from "./audit.js";
 
 const method = z.enum(PAYMENT_METHODS);
 const status = z.enum(PAYMENT_STATUSES);
@@ -102,6 +103,11 @@ export const paymentEngineRouter = router({
   // ── Centre de contrôle PDG ────────────────────────────────────────────
   stats: pdgProcedure.query(async () => {
     return getStats();
+  }),
+
+  // Audit de couverture (Phase 23) — observe et rapporte uniquement.
+  audit: pdgProcedure.query(async () => {
+    return paymentAudit();
   }),
 
   transactions: pdgProcedure
