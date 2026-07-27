@@ -953,6 +953,69 @@ function NotifPrefs() {
               </label>
             );
           })}
+
+          {/* Résumé (digest) : regrouper les notifications */}
+          <label className="flex cursor-pointer items-center gap-3 py-3">
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-slate-800">Résumé groupé</p>
+              <p className="text-[11px] text-slate-500">Recevoir un récapitulatif plutôt que chaque notification</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={Boolean(p.digestEnabled)}
+              disabled={update.isPending}
+              onChange={(e) => update.mutate({ digestEnabled: e.target.checked })}
+              className="h-5 w-5 accent-[#D4AF37]"
+            />
+          </label>
+          {p.digestEnabled && (
+            <div className="flex items-center justify-between gap-3 py-3">
+              <p className="text-sm font-semibold text-slate-800">Fréquence du résumé</p>
+              <select
+                value={p.digestFrequency ?? "daily"}
+                disabled={update.isPending}
+                onChange={(e) => update.mutate({ digestFrequency: e.target.value as "realtime" | "daily" | "weekly" })}
+                className="input h-9 w-40"
+              >
+                <option value="realtime">Temps réel</option>
+                <option value="daily">Quotidien</option>
+                <option value="weekly">Hebdomadaire</option>
+              </select>
+            </div>
+          )}
+
+          {/* Heures silencieuses : pas de notification pendant cette plage */}
+          <div className="flex items-center justify-between gap-3 py-3">
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-slate-800">Heures silencieuses</p>
+              <p className="text-[11px] text-slate-500">Aucune notification poussée pendant cette plage</p>
+            </div>
+            <div className="flex items-center gap-1">
+              <select
+                value={p.quietHoursFrom ?? ""}
+                disabled={update.isPending}
+                onChange={(e) => update.mutate({ quietHoursFrom: e.target.value === "" ? null : Number(e.target.value) })}
+                className="input h-9 w-20"
+              >
+                <option value="">—</option>
+                {Array.from({ length: 24 }, (_, h) => (
+                  <option key={h} value={h}>{String(h).padStart(2, "0")}h</option>
+                ))}
+              </select>
+              <span className="text-slate-400">à</span>
+              <select
+                value={p.quietHoursTo ?? ""}
+                disabled={update.isPending}
+                onChange={(e) => update.mutate({ quietHoursTo: e.target.value === "" ? null : Number(e.target.value) })}
+                className="input h-9 w-20"
+              >
+                <option value="">—</option>
+                {Array.from({ length: 24 }, (_, h) => (
+                  <option key={h} value={h}>{String(h).padStart(2, "0")}h</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
       )}
     </div>
