@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import {
   ChevronLeft, Search, Heart, HardHat, Wrench,
-  ShieldCheck, Star, ChevronDown, Tractor,
+  ShieldCheck, Star, ChevronDown, Tractor, X,
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════
-   VenteCamionsEngins — Achat Engins & Machines
-   Engins de chantier, TP, agricoles, industriels, forestiers, portuaires
-   Tout ce qui roule sur terre avec des pneus ou des chenilles (hors camions)
+   Engins & Machines — Achat
+   Chantier, TP, agricole, forestier, industriel, minier, portuaire
+   AUCUN camion — les camions sont dans /acheter/camions
    ══════════════════════════════════════════════════════════════════════════ */
 
 const CATEGORIES = [
@@ -64,7 +64,7 @@ const CATEGORIES = [
   { label: "Trancheuses", desc: "Canalisations, câbles", photo: "/categories/camion_benne_tp.jpg" },
 ];
 
-const MARQUES = [
+const ALL_MARQUES = [
   /* Chantier & TP */
   "Caterpillar", "Komatsu", "Liebherr", "Volvo CE", "JCB", "Doosan", "Hitachi",
   "Hyundai CE", "Terex", "Manitowoc", "Potain", "Tadano",
@@ -76,7 +76,7 @@ const MARQUES = [
   "Deutz-Fahr", "Valtra", "Same", "Lamborghini Trattori",
   /* Forestier */
   "Ponsse", "John Deere Forestry", "Komatsu Forest", "Tigercat",
-  /* Mines */
+  /* Mines & TP */
   "Sandvik", "Atlas Copco", "Epiroc", "Wirtgen", "Hamm", "Dynapac",
 ];
 
@@ -94,7 +94,7 @@ const ANNONCES = [
 ];
 
 const FAQ = [
-  { q: "Quel permis pour conduire un engin de chantier ?", a: "Les engins de chantier (pelleteuses, grues, chariots) nécessitent des CACES spécifiques selon la catégorie (R482 pour engins de chantier, R489 pour chariots). Pas de permis de conduire requis pour les engins non routiers." },
+  { q: "Quel permis pour conduire un engin de chantier ?", a: "Les engins de chantier nécessitent des CACES spécifiques (R482 pour engins de chantier, R489 pour chariots). Pas de permis de conduire requis pour les engins non routiers." },
   { q: "Les engins sont-ils garantis ?", a: "Les engins professionnels certifiés MKA.P-MS sont couverts par une garantie. Les ventes entre professionnels dépendent du vendeur et du contrat signé." },
   { q: "Puis-je financer l'achat d'un engin ?", a: "Oui, MKA.P-MS propose Finance+ avec simulation de crédit, LOA et leasing professionnel directement dans la plateforme." },
   { q: "Comment transporter un engin de chantier ?", a: "MKA.P-MS dispose d'un réseau de transport spécialisé. Contactez le Centre Transport pour un devis de convoi exceptionnel ou transport sur plateau." },
@@ -107,12 +107,21 @@ const TYPE_FILTER = ["Tous", "Pelleteuses", "Grues mobiles", "Chariots télescop
 export default function VenteCamionsEngins() {
   const [filtre, setFiltre] = useState("Tous");
   const [search, setSearch] = useState("");
+  const [marqueSearch, setMarqueSearch] = useState("");
+  const [marqueSelectionnee, setMarqueSelectionnee] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const filteredMarques = useMemo(() => {
+    if (!marqueSearch.trim()) return ALL_MARQUES;
+    const q = marqueSearch.toLowerCase();
+    return ALL_MARQUES.filter((m) => m.toLowerCase().includes(q));
+  }, [marqueSearch]);
 
   const annoncesFiltered = ANNONCES.filter((a) => {
     const matchFiltre = filtre === "Tous" || a.categorie === filtre;
     const matchSearch = !search || a.titre.toLowerCase().includes(search.toLowerCase());
-    return matchFiltre && matchSearch;
+    const matchMarque = !marqueSelectionnee || a.titre.toLowerCase().includes(marqueSelectionnee.toLowerCase());
+    return matchFiltre && matchSearch && matchMarque;
   });
 
   return (
@@ -201,18 +210,57 @@ export default function VenteCamionsEngins() {
         </div>
       </div>
 
-      {/* ── MARQUES ── */}
+      {/* ── MARQUES — barre de recherche + liste filtrée ── */}
       <div className="px-4 mt-5">
-        <h2 className="text-base font-bold text-[#111]">Marques</h2>
-        <div className="mt-2 flex gap-2 flex-wrap">
-          {MARQUES.map((m) => (
-            <span
-              key={m}
-              className="rounded-full border border-[#E5E7EB] bg-white px-3 py-1 text-xs font-medium text-[#374151] cursor-pointer hover:border-[#1a1a2e] transition"
-            >
-              {m}
-            </span>
-          ))}
+        <h2 className="text-base font-bold text-[#111] mb-2">Marques</h2>
+        <div className="bg-white rounded-xl border border-[#E5E7EB] overflow-hidden">
+          {/* Barre de recherche */}
+          <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[#E5E7EB]">
+            <Search size={14} className="text-[#9CA3AF] shrink-0" />
+            <input
+              type="text"
+              value={marqueSearch}
+              onChange={(e) => setMarqueSearch(e.target.value)}
+              placeholder="Rechercher une marque…"
+              className="w-full bg-transparent text-sm outline-none placeholder-[#9CA3AF]"
+            />
+            {marqueSearch && (
+              <button onClick={() => setMarqueSearch("")} className="text-[#9CA3AF] hover:text-[#374151]">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          {/* Liste filtrée */}
+          <div className="max-h-44 overflow-y-auto">
+            {filteredMarques.length === 0 ? (
+              <p className="p-3 text-xs text-[#9CA3AF] text-center">Aucune marque trouvée</p>
+            ) : (
+              filteredMarques.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMarqueSelectionnee(marqueSelectionnee === m ? "" : m)}
+                  className={`w-full text-left px-4 py-2 text-sm transition ${
+                    marqueSelectionnee === m
+                      ? "bg-[#1a1a2e]/5 text-[#1a1a2e] font-semibold"
+                      : "text-[#374151] hover:bg-[#F5F3EF]"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))
+            )}
+          </div>
+          {/* Bouton Voir les annonces */}
+          {marqueSelectionnee && (
+            <div className="px-3 py-2 border-t border-[#E5E7EB]">
+              <button
+                onClick={() => setSearch(marqueSelectionnee)}
+                className="w-full py-2 bg-[#1a1a2e] text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2"
+              >
+                <Search size={12} /> Voir les annonces {marqueSelectionnee}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
