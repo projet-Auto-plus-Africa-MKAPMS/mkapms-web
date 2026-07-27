@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Search, ChevronDown, RefreshCw, ExternalLink, FileText, Lightbulb, Send, Tag, ShieldCheck } from "lucide-react";
+import { ChevronLeft, Search, ChevronDown, RefreshCw, ExternalLink, FileText, Lightbulb, Send, Tag, ShieldCheck, Gauge } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -17,6 +17,7 @@ export default function AdminSEO() {
     onSuccess: () => { utils.seo.pagesByType.invalidate(); utils.seo.analyze.invalidate(); },
   });
   const analysis = trpc.seo.analyze.useQuery();
+  const dashboard = trpc.seo.dashboard.useQuery();
   const verify = trpc.seo.verify.useQuery(undefined, { enabled: false });
   const indexNow = trpc.seo.indexNowConfigured.useQuery();
   const submit = trpc.seo.submitToIndexNow.useMutation();
@@ -56,6 +57,68 @@ export default function AdminSEO() {
           <p className="text-lg font-black text-green-600 flex items-center justify-center gap-1"><ExternalLink size={14} /></p>
           <p className="text-[8px] text-[#6B7280]">Sitemap</p>
         </a>
+      </div>
+
+      {/* Tableau de bord SEO temps réel (Phase 21) */}
+      <div className="px-4 mt-4">
+        <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Gauge size={16} className="text-[#D4AF37]" />
+            <p className="text-sm font-bold text-[#111]">Tableau de bord SEO</p>
+          </div>
+          {dashboard.isLoading ? (
+            <p className="text-[11px] text-[#6B7280]">Chargement…</p>
+          ) : dashboard.data ? (
+            <>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-lg bg-[#F5F3EF] p-2">
+                  <p className="text-sm font-black text-blue-600">{dashboard.data.pages.indexable.toLocaleString("fr-FR")}</p>
+                  <p className="text-[8px] text-[#6B7280]">Pages indexables</p>
+                </div>
+                <div className="rounded-lg bg-[#F5F3EF] p-2">
+                  <p className="text-sm font-black text-[#111]">{dashboard.data.pages.nonIndexable.toLocaleString("fr-FR")}</p>
+                  <p className="text-[8px] text-[#6B7280]">Non indexables</p>
+                </div>
+                <div className="rounded-lg bg-[#F5F3EF] p-2">
+                  <p className={`text-sm font-black ${dashboard.data.errors.notFound24h > 0 ? "text-red-600" : "text-green-600"}`}>{dashboard.data.errors.notFound24h}</p>
+                  <p className="text-[8px] text-[#6B7280]">404 (24h)</p>
+                </div>
+                <div className="rounded-lg bg-[#F5F3EF] p-2">
+                  <p className={`text-sm font-black ${dashboard.data.errors.brokenLinks7d > 0 ? "text-amber-600" : "text-green-600"}`}>{dashboard.data.errors.brokenLinks7d}</p>
+                  <p className="text-[8px] text-[#6B7280]">Liens cassés (7j)</p>
+                </div>
+                <div className="rounded-lg bg-[#F5F3EF] p-2">
+                  <p className="text-sm font-black text-[#111]">{dashboard.data.indexation.submissions24h}</p>
+                  <p className="text-[8px] text-[#6B7280]">Soumissions (24h)</p>
+                </div>
+                <div className="rounded-lg bg-[#F5F3EF] p-2">
+                  <p className="text-sm font-black text-[#111]">{dashboard.data.performance.avgParcoursMs != null ? `${dashboard.data.performance.avgParcoursMs} ms` : "—"}</p>
+                  <p className="text-[8px] text-[#6B7280]">Parcours moyen</p>
+                </div>
+              </div>
+
+              {dashboard.data.topNotFound.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-[10px] font-bold text-[#6B7280] uppercase mb-1">Top 404 (7 jours)</p>
+                  <div className="space-y-1">
+                    {dashboard.data.topNotFound.map((n) => (
+                      <div key={n.path} className="flex items-center justify-between text-[11px]">
+                        <span className="truncate text-[#111]">{n.path}</span>
+                        <span className="ml-2 shrink-0 rounded-full bg-red-50 px-2 text-red-700">{n.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className={`mt-3 rounded-lg border p-2 text-[10px] ${dashboard.data.google.connected ? "border-green-200 bg-green-50 text-green-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
+                {dashboard.data.google.note}
+              </div>
+            </>
+          ) : (
+            <p className="text-[11px] text-red-600">{dashboard.error?.message ?? "Indisponible."}</p>
+          )}
+        </div>
       </div>
 
       {/* Génération des pages programmatiques */}

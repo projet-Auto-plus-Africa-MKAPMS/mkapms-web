@@ -5,6 +5,7 @@ import { generateProgrammaticPages } from "../seo-generator.js";
 import { submitIndexNow, pingSitemaps } from "../seo-indexing.js";
 import { analyzeSeo } from "../seo-analyze.js";
 import { verifySeo } from "../seo-verify.js";
+import { seoDashboard } from "../seo-dashboard.js";
 import {
   SEO_KEYWORD_CATALOG,
   catalogSize,
@@ -570,6 +571,13 @@ export const seoRouter = router({
   // canonical, images, données structurées, indexabilité).
   verify: adminProcedure.query(async () => {
     return verifySeo();
+  }),
+
+  // ─── Tableau de bord SEO temps réel (Phase 21) ───
+  // Métriques internes (pages, indexation, 404, liens cassés, vitesse parcours).
+  // Les métriques Google nécessitent la Search Console API (non branchée sans clé).
+  dashboard: adminProcedure.query(async () => {
+    return seoDashboard();
   }),
 
   // ─── Indexation (soumission aux moteurs) ───

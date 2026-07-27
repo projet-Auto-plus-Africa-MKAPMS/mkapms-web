@@ -22,6 +22,10 @@ export const env = {
   // ─────────────────────────────────────────────────────────────────
   PUBLIC_URL: get("PUBLIC_URL", "http://localhost:5173"),
   INDEXNOW_KEY: get("INDEXNOW_KEY"),
+  // Google Search Console API (clics, impressions, position réels) — Phase 21.
+  // Non branchée tant que la clé n'est pas fournie ; le tableau de bord
+  // affiche alors uniquement les métriques mesurées en interne.
+  GOOGLE_SEARCH_CONSOLE_KEY: get("GOOGLE_SEARCH_CONSOLE_KEY"),
 };
 
 export const isProd = env.NODE_ENV === "production";
