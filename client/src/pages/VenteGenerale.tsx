@@ -210,49 +210,51 @@ export default function VenteGenerale() {
             </button>
           </div>
           {/* Filtres dépliants */}
-          {showFilters && <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">Budget</label>
-              <select value={budget} onChange={(e) => setBudget(e.target.value)} className="mt-1 w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm bg-[#FAFAF8] text-[#111] outline-none">
-                <option value="">Tous budgets</option>
-                <option value="5000">Moins de 5 000 €</option>
-                <option value="10000">5 000 – 10 000 €</option>
-                <option value="20000">10 000 – 20 000 €</option>
-                <option value="50000">20 000 – 50 000 €</option>
-                <option value="999999">50 000 € et +</option>
-              </select>
+          {showFilters && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">Budget</label>
+                <select value={budget} onChange={(e) => setBudget(e.target.value)} className="mt-1 w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm bg-[#FAFAF8] text-[#111] outline-none">
+                  <option value="">Tous budgets</option>
+                  <option value="5000">Moins de 5 000 €</option>
+                  <option value="10000">5 000 – 10 000 €</option>
+                  <option value="20000">10 000 – 20 000 €</option>
+                  <option value="50000">20 000 – 50 000 €</option>
+                  <option value="999999">50 000 € et +</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">Type</label>
+                <select value={typeVeh} onChange={(e) => setTypeVeh(e.target.value)} className="mt-1 w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm bg-[#FAFAF8] text-[#111] outline-none">
+                  <option value="">Tous types</option>
+                  <option value="voiture">Voiture</option>
+                  <option value="moto">Moto</option>
+                  <option value="utilitaire">Utilitaire</option>
+                  <option value="camion">Camion</option>
+                  <option value="vtc">VTC & Taxi</option>
+                </select>
+              </div>
             </div>
             <div>
-              <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide">Type</label>
-              <select value={typeVeh} onChange={(e) => setTypeVeh(e.target.value)} className="mt-1 w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm bg-[#FAFAF8] text-[#111] outline-none">
-                <option value="">Tous types</option>
-                <option value="voiture">Voiture</option>
-                <option value="moto">Moto</option>
-                <option value="utilitaire">Utilitaire</option>
-                <option value="camion">Camion</option>
-                <option value="vtc">VTC & Taxi</option>
+              <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide flex items-center gap-1"><MapPin size={10} /> Zone</label>
+              <select value={zone} onChange={(e) => setZone(e.target.value)} className="mt-1 w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm bg-[#FAFAF8] text-[#111] outline-none">
+                <option value="">Toute la France</option>
+                <option value="75">75 — Paris</option>
+                <option value="13">13 — Bouches-du-Rhône</option>
+                <option value="69">69 — Rhône (Lyon)</option>
+                <option value="31">31 — Haute-Garonne (Toulouse)</option>
+                <option value="33">33 — Gironde (Bordeaux)</option>
+                <option value="06">06 — Alpes-Maritimes (Nice)</option>
+                <option value="59">59 — Nord (Lille)</option>
+                <option value="67">67 — Bas-Rhin (Strasbourg)</option>
+                <option value="44">44 — Loire-Atlantique (Nantes)</option>
+                <option value="34">34 — Hérault (Montpellier)</option>
               </select>
             </div>
           </div>
-          {/* Zone — dans les filtres dépliants */}
-          <div>
-            <label className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide flex items-center gap-1"><MapPin size={10} /> Zone</label>
-            <select value={zone} onChange={(e) => setZone(e.target.value)} className="mt-1 w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm bg-[#FAFAF8] text-[#111] outline-none">
-              <option value="">Toute la France</option>
-              <option value="75">75 — Paris</option>
-              <option value="13">13 — Bouches-du-Rhône</option>
-              <option value="69">69 — Rhône (Lyon)</option>
-              <option value="31">31 — Haute-Garonne (Toulouse)</option>
-              <option value="33">33 — Gironde (Bordeaux)</option>
-              <option value="06">06 — Alpes-Maritimes (Nice)</option>
-              <option value="59">59 — Nord (Lille)</option>
-              <option value="67">67 — Bas-Rhin (Strasbourg)</option>
-              <option value="44">44 — Loire-Atlantique (Nantes)</option>
-              <option value="34">34 — Hérault (Montpellier)</option>
-            </select>
-          </div>
+          )}
           {/* Bouton */}
-          </div>}
           <Link
             to={`/acheter${q ? `?q=${encodeURIComponent(q)}` : ""}${budget ? `&prixMax=${budget}` : ""}${typeVeh ? `&categorie=${typeVeh}` : ""}${zone ? `&zone=${zone}` : ""}`}
             className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md"
