@@ -32,7 +32,7 @@ const NAV = [
   { to: "/acheter", label: "Acheter", redirKey: "nav_acheter" },
   { to: "/louer", label: "Louer", redirKey: "nav_louer" },
   { to: "/pieces", label: "Pièces", redirKey: "nav_pieces" },
-  { to: "/garages", label: "Garages", redirKey: "nav_garages" },
+  { to: "/garages", label: "Davy & Garage", redirKey: "nav_garages" },
   { to: "/univers", label: "Univers", redirKey: "nav_univers" },
   { to: "/abonnements", label: "Abonnements", redirKey: "nav_abonnements" },
 ];
