@@ -65,7 +65,7 @@ export function Logo({
         <img
           src={WORDMARK_SRC}
           alt="MKA.P-MS"
-          style={{ height: Math.max(20, Math.round(size * 1.05)), width: "auto", display: "block", overflow: "visible", marginTop: -4 }}
+          style={{ height: Math.max(20, Math.round(size * 1.05)), width: "auto", display: "block", overflow: "visible", marginTop: -10 }}
           className="select-none"
           draggable={false}
         />
