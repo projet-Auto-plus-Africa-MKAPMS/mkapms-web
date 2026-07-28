@@ -254,6 +254,17 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec vérification colonnes annonces:", (err as Error).message);
     }
+    // Auto-correctif colonnes users (migration 0052) — idempotent IF NOT EXISTS
+    // company_siren, has_vat, vat_number peuvent manquer si la migration Drizzle
+    // a échoué ou n'a pas encore tourné. Sans elles, le login plante.
+    try {
+      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS company_siren varchar(16)`);
+      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS has_vat boolean NOT NULL DEFAULT false`);
+      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS vat_number varchar(32)`);
+      console.log("[MKA.P-MS] colonnes users (company_siren, has_vat, vat_number) vérifiées");
+    } catch (err) {
+      console.error("[MKA.P-MS] échec correctif colonnes users:", (err as Error).message);
+    }
     // Synchronise la structure (modules, rôles, permissions, devises) à chaque
     // démarrage — 100 % idempotent. Garantit que le RBAC suit le code déployé.
     if (process.env.AUTO_SEED !== "false") {
