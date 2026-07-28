@@ -710,6 +710,7 @@ const ComptaPublicites = lazy(() => import("./pages/comptabilite/PublicitesReven
 const CentrePilotage = lazy(() => import("./pages/comptabilite/CentrePilotage"));
 const ComptaAlertes = lazy(() => import("./pages/comptabilite/Alertes"));
 const ComptaRapports = lazy(() => import("./pages/comptabilite/Rapports"));
+const WalletAdmin = lazy(() => import("./pages/comptabilite/WalletAdmin"));
 
 // Chaque univers est isolé : un crash dans l'un n'affecte pas les autres.
 function U({ name, children }: { name: string; children: React.ReactNode }) {
@@ -960,6 +961,7 @@ export default function App() {
             <Route path="/comptabilite/centre-pilotage" element={<U name="Centre de Pilotage"><CentrePilotage /></U>} />
             <Route path="/comptabilite/alertes" element={<U name="Comptabilit\u00e9"><ComptaAlertes /></U>} />
             <Route path="/comptabilite/rapports" element={<U name="Comptabilit\u00e9"><ComptaRapports /></U>} />
+            <Route path="/comptabilite/wallets" element={<U name="Portefeuilles"><WalletAdmin /></U>} />
             <Route path="/suivi-vehicule" element={<U name="Suivi v\u00e9hicule"><SuiviVehicule /></U>} />
             <Route path="/journal-activite" element={<U name="Journal"><JournalActivite /></U>} />
             <Route path="/mk-direction" element={<AccesPDG />} />

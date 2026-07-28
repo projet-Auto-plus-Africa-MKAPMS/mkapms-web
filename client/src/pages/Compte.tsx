@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { Camera, CheckCircle2, Pencil, Trash2, X, RefreshCw, Clock, ChevronDown, ChevronLeft, LogOut, User as UserIcon, Bell, Grid3x3, Megaphone, FileText, Search as SearchIcon, CalendarCheck, Crown, FolderLock, HelpCircle, Plus, Car, Bike, Truck, Bus, KeyRound, Settings } from "lucide-react";
+import { Camera, CheckCircle2, Pencil, Trash2, X, RefreshCw, Clock, ChevronDown, ChevronLeft, LogOut, User as UserIcon, Bell, Grid3x3, Megaphone, FileText, Search as SearchIcon, CalendarCheck, Crown, FolderLock, HelpCircle, Plus, Car, Bike, Truck, Bus, KeyRound, Settings, Wallet } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -11,7 +11,7 @@ import type { UserRole } from "@shared/roles";
 import { canAccessServicePath } from "@shared/permissions";
 import FileUpload from "../components/FileUpload";
 
-type Tab = "annonces" | "toutes-annonces" | "publicites" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil" | "notifications";
+type Tab = "annonces" | "toutes-annonces" | "publicites" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil" | "notifications" | "wallet";
 
 const DEMO_RAPPORTS = [
   { id: 1, plaque: "AB-123-CD", vinPartiel: "VF1KR****567890", type: "Rapport Complet", prix: "7,99 \u20ac", date: "28/05/2024", statut: "Disponible" },
@@ -64,6 +64,7 @@ const TAB_LABELS: Record<Tab, string> = {
   services: "Services",
   profil: "Profil",
   notifications: "Notifications",
+  wallet: "Portefeuille",
 };
 
 // Sections repliables (accord\u00e9on) — chaque groupe a une fl\u00e8che, s'ouvre en dessous.
@@ -77,6 +78,7 @@ const GROUP_DEFS: { key: string; label: string; icon: LucideIcon; tabs: Tab[] }[
   { key: "notif", label: "Notifications", icon: Bell, tabs: ["notifications"] },
   { key: "services", label: "Services", icon: Grid3x3, tabs: ["services"] },
   { key: "profil", label: "Profil & Compte", icon: UserIcon, tabs: ["profil"] },
+  { key: "wallet", label: "Portefeuille", icon: Wallet, tabs: ["wallet"] },
 ];
 const TAB_TO_GROUP: Record<string, string> = GROUP_DEFS.reduce((acc, g) => {
   g.tabs.forEach((t) => (acc[t] = g.key));
@@ -773,6 +775,7 @@ export default function Compte() {
           </div>
         )}
         {tab === "profil" && <ProfilForm />}
+        {tab === "wallet" && <WalletTab />}
       </div>
       )}
 
@@ -1134,6 +1137,311 @@ function NotifPrefs() {
                 ))}
               </select>
             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Composant Wallet ─────────────────────────────────────────────────────────
+function WalletTab() {
+  const { user } = useAuth();
+  const wallet = trpc.wallet.me.useQuery(undefined, { enabled: !!user });
+  const transactions = trpc.wallet.transactions.useQuery(undefined, { enabled: !!user });
+  const payoutsList = trpc.wallet.payouts.useQuery(undefined, { enabled: !!user });
+  const bankAccountsList = trpc.wallet.bankAccounts.useQuery(undefined, { enabled: !!user });
+  const requestPayout = trpc.wallet.requestPayout.useMutation({ onSuccess: () => { wallet.refetch(); payoutsList.refetch(); transactions.refetch(); } });
+  const setFreq = trpc.wallet.setPayoutFrequency.useMutation({ onSuccess: () => wallet.refetch() });
+  const addBank = trpc.wallet.addBankAccount.useMutation({ onSuccess: () => bankAccountsList.refetch() });
+  const deleteBank = trpc.wallet.deleteBankAccount.useMutation({ onSuccess: () => bankAccountsList.refetch() });
+  const setDefaultBank = trpc.wallet.setDefaultBankAccount.useMutation({ onSuccess: () => bankAccountsList.refetch() });
+
+  const [view, setView] = useState<"dashboard" | "transactions" | "virements" | "banque" | "parametres">("dashboard");
+  const [payoutAmount, setPayoutAmount] = useState("");
+  const [bankForm, setBankForm] = useState({ titulaire: "", iban: "", bic: "", banque: "", isDefault: false });
+
+  const w = wallet.data;
+  const solde = Number(w?.soldeDisponible ?? 0);
+  const attente = Number(w?.soldeAttente ?? 0);
+  const bloque = Number(w?.soldeBloque ?? 0);
+
+  const statusColors: Record<string, string> = {
+    demande: "bg-amber-50 text-amber-700 border-amber-200",
+    en_cours: "bg-blue-50 text-blue-700 border-blue-200",
+    paye: "bg-green-50 text-green-700 border-green-200",
+    echoue: "bg-red-50 text-red-700 border-red-200",
+    annule: "bg-slate-50 text-slate-500 border-slate-200",
+  };
+  const statusLabels: Record<string, string> = {
+    demande: "En attente", en_cours: "En cours", paye: "Payé", echoue: "Échoué", annule: "Annulé",
+  };
+  const txTypeLabels: Record<string, string> = {
+    credit: "Crédit", debit: "Débit", retrait: "Virement", commission: "Commission",
+    remboursement: "Remboursement", blocage: "Blocage", deblocage: "Déblocage",
+  };
+
+  if (wallet.isLoading) return <div className="py-8 text-center text-slate-400">Chargement du portefeuille…</div>;
+
+  return (
+    <div className="space-y-4">
+      {/* ── En-tête ── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-black text-[#111] flex items-center gap-2">
+            <Wallet size={20} className="text-[#D4AF37]" /> Portefeuille
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">Gérez vos revenus, virements et comptes bancaires</p>
+        </div>
+      </div>
+
+      {/* ── Cartes solde ── */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#B8960C] p-4 text-white">
+          <p className="text-[10px] font-bold uppercase opacity-80">Disponible</p>
+          <p className="text-2xl font-black mt-1">{solde.toFixed(2)} €</p>
+        </div>
+        <div className="rounded-2xl bg-white border border-slate-200 p-4">
+          <p className="text-[10px] font-bold uppercase text-slate-500">En attente</p>
+          <p className="text-xl font-black text-slate-700 mt-1">{attente.toFixed(2)} €</p>
+        </div>
+        <div className="rounded-2xl bg-white border border-slate-200 p-4">
+          <p className="text-[10px] font-bold uppercase text-slate-500">Bloqué</p>
+          <p className="text-xl font-black text-slate-700 mt-1">{bloque.toFixed(2)} €</p>
+        </div>
+      </div>
+
+      {/* ── Navigation ── */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {([
+          { key: "dashboard", label: "Accueil" },
+          { key: "transactions", label: "Transactions" },
+          { key: "virements", label: "Virements" },
+          { key: "banque", label: "Comptes bancaires" },
+          { key: "parametres", label: "Paramètres" },
+        ] as const).map((v) => (
+          <button
+            key={v.key}
+            onClick={() => setView(v.key)}
+            className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold transition ${view === v.key ? "bg-[#D4AF37] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Vue Dashboard ── */}
+      {view === "dashboard" && (
+        <div className="space-y-4">
+          {/* Virement rapide */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <p className="text-sm font-bold text-[#111] mb-3">Virement rapide</p>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                min="1"
+                max={solde}
+                step="0.01"
+                placeholder="Montant (€)"
+                value={payoutAmount}
+                onChange={(e) => setPayoutAmount(e.target.value)}
+                className="input flex-1"
+              />
+              <button
+                onClick={() => {
+                  const m = parseFloat(payoutAmount);
+                  if (!m || m <= 0 || m > solde) return;
+                  const defaultAccount = bankAccountsList.data?.find((b) => b.isDefault);
+                  requestPayout.mutate({ montant: m, bankAccountId: defaultAccount?.id });
+                  setPayoutAmount("");
+                }}
+                disabled={requestPayout.isPending || !payoutAmount || parseFloat(payoutAmount) > solde}
+                className="btn-primary !text-sm"
+              >
+                {requestPayout.isPending ? "…" : "Virer"}
+              </button>
+            </div>
+            {parseFloat(payoutAmount) > solde && <p className="text-xs text-red-500 mt-1">Solde insuffisant</p>}
+          </div>
+
+          {/* Dernières transactions */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <p className="text-sm font-bold text-[#111] mb-3">Dernières transactions</p>
+            {transactions.data?.slice(0, 5).map((t) => (
+              <div key={t.id} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+                <div>
+                  <p className="text-xs font-semibold text-slate-800">{txTypeLabels[t.type] || t.type}</p>
+                  <p className="text-[10px] text-slate-400">{t.description || "—"}</p>
+                </div>
+                <p className={`text-sm font-black ${Number(t.montant) >= 0 ? "text-green-600" : "text-red-500"}`}>
+                  {Number(t.montant) >= 0 ? "+" : ""}{Number(t.montant).toFixed(2)} €
+                </p>
+              </div>
+            ))}
+            {!transactions.data?.length && <p className="text-xs text-slate-400">Aucune transaction</p>}
+            {(transactions.data?.length ?? 0) > 5 && (
+              <button onClick={() => setView("transactions")} className="mt-2 text-xs text-[#D4AF37] font-bold hover:underline">Voir tout</button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Vue Transactions ── */}
+      {view === "transactions" && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <p className="text-sm font-bold text-[#111] mb-3">Historique des transactions</p>
+          <div className="space-y-0 divide-y divide-slate-100">
+            {transactions.data?.map((t) => (
+              <div key={t.id} className="flex items-center justify-between py-3">
+                <div>
+                  <p className="text-xs font-semibold text-slate-800">{txTypeLabels[t.type] || t.type}</p>
+                  <p className="text-[10px] text-slate-400">{t.description || "—"} · {new Date(t.createdAt).toLocaleDateString("fr-FR")}</p>
+                  {t.reference && <p className="text-[9px] text-slate-300 font-mono">{t.reference}</p>}
+                </div>
+                <p className={`text-sm font-black ${Number(t.montant) >= 0 ? "text-green-600" : "text-red-500"}`}>
+                  {Number(t.montant) >= 0 ? "+" : ""}{Number(t.montant).toFixed(2)} €
+                </p>
+              </div>
+            ))}
+            {!transactions.data?.length && <p className="text-xs text-slate-400 py-4 text-center">Aucune transaction</p>}
+          </div>
+        </div>
+      )}
+
+      {/* ── Vue Virements ── */}
+      {view === "virements" && (
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <p className="text-sm font-bold text-[#111] mb-3">Demander un virement</p>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                min="1"
+                max={solde}
+                step="0.01"
+                placeholder={`Montant max : ${solde.toFixed(2)} €`}
+                value={payoutAmount}
+                onChange={(e) => setPayoutAmount(e.target.value)}
+                className="input flex-1"
+              />
+              <button
+                onClick={() => {
+                  const m = parseFloat(payoutAmount);
+                  if (!m || m <= 0 || m > solde) return;
+                  const defaultAccount = bankAccountsList.data?.find((b) => b.isDefault);
+                  requestPayout.mutate({ montant: m, bankAccountId: defaultAccount?.id });
+                  setPayoutAmount("");
+                }}
+                disabled={requestPayout.isPending || !payoutAmount || parseFloat(payoutAmount) > solde}
+                className="btn-primary !text-sm"
+              >
+                {requestPayout.isPending ? "Envoi…" : "Virer"}
+              </button>
+            </div>
+            {bankAccountsList.data?.find((b) => b.isDefault) ? (
+              <p className="text-[10px] text-slate-400 mt-1">Vers : {bankAccountsList.data?.find((b) => b.isDefault)?.iban}</p>
+            ) : (
+              <p className="text-[10px] text-amber-600 mt-1">Ajoutez un compte bancaire pour recevoir vos virements</p>
+            )}
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <p className="text-sm font-bold text-[#111] mb-3">Historique des virements</p>
+            <div className="space-y-0 divide-y divide-slate-100">
+              {payoutsList.data?.map((p) => (
+                <div key={p.id} className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-800">{Number(p.montant).toFixed(2)} €</p>
+                    <p className="text-[10px] text-slate-400">{new Date(p.createdAt).toLocaleDateString("fr-FR")}</p>
+                  </div>
+                  <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${statusColors[p.status] || "bg-slate-50 text-slate-500"}`}>
+                    {statusLabels[p.status] || p.status}
+                  </span>
+                </div>
+              ))}
+              {!payoutsList.data?.length && <p className="text-xs text-slate-400 py-4 text-center">Aucun virement</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Vue Comptes bancaires ── */}
+      {view === "banque" && (
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <p className="text-sm font-bold text-[#111] mb-3">Mes comptes bancaires</p>
+            <div className="space-y-2">
+              {bankAccountsList.data?.map((b) => (
+                <div key={b.id} className={`flex items-center justify-between rounded-xl border p-3 ${b.isDefault ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-slate-200"}`}>
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">{b.titulaire}</p>
+                    <p className="text-[10px] text-slate-500 font-mono">{b.iban}</p>
+                    {b.banque && <p className="text-[10px] text-slate-400">{b.banque}</p>}
+                    {b.isDefault && <span className="text-[9px] font-bold text-[#D4AF37]">Compte par défaut</span>}
+                  </div>
+                  <div className="flex gap-2">
+                    {!b.isDefault && (
+                      <button onClick={() => setDefaultBank.mutate({ id: b.id })} className="text-[10px] text-[#D4AF37] font-bold hover:underline">Défaut</button>
+                    )}
+                    <button onClick={() => deleteBank.mutate({ id: b.id })} className="text-[10px] text-red-500 font-bold hover:underline">Suppr.</button>
+                  </div>
+                </div>
+              ))}
+              {!bankAccountsList.data?.length && <p className="text-xs text-slate-400">Aucun compte bancaire enregistré</p>}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <p className="text-sm font-bold text-[#111] mb-3">Ajouter un compte bancaire</p>
+            <div className="space-y-3">
+              <div><label className="label">Titulaire du compte</label><input className="input" value={bankForm.titulaire} onChange={(e) => setBankForm((f) => ({ ...f, titulaire: e.target.value }))} placeholder="Prénom Nom ou Raison sociale" /></div>
+              <div><label className="label">IBAN</label><input className="input font-mono" value={bankForm.iban} onChange={(e) => setBankForm((f) => ({ ...f, iban: e.target.value }))} placeholder="FR76 3000 1007 9412 3456 7890 185" /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="label">BIC / SWIFT</label><input className="input" value={bankForm.bic} onChange={(e) => setBankForm((f) => ({ ...f, bic: e.target.value }))} placeholder="BNPAFRPP" /></div>
+                <div><label className="label">Banque</label><input className="input" value={bankForm.banque} onChange={(e) => setBankForm((f) => ({ ...f, banque: e.target.value }))} placeholder="BNP Paribas" /></div>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={bankForm.isDefault} onChange={(e) => setBankForm((f) => ({ ...f, isDefault: e.target.checked }))} className="h-4 w-4 accent-[#D4AF37]" />
+                <span className="text-sm text-slate-700">Définir comme compte par défaut</span>
+              </label>
+              <button
+                onClick={() => {
+                  if (!bankForm.titulaire || !bankForm.iban) return;
+                  addBank.mutate(bankForm);
+                  setBankForm({ titulaire: "", iban: "", bic: "", banque: "", isDefault: false });
+                }}
+                disabled={addBank.isPending || !bankForm.titulaire || !bankForm.iban}
+                className="btn-primary w-full"
+              >
+                {addBank.isPending ? "Ajout…" : "Ajouter ce compte"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Vue Paramètres virement ── */}
+      {view === "parametres" && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4">
+          <p className="text-sm font-bold text-[#111]">Fréquence de virement automatique</p>
+          <p className="text-xs text-slate-500">Choisissez quand vos revenus disponibles sont virés automatiquement sur votre compte bancaire.</p>
+          <div className="grid grid-cols-3 gap-3">
+            {(["manuel", "hebdomadaire", "mensuel"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFreq.mutate({ frequency: f })}
+                className={`rounded-xl border p-3 text-xs font-bold transition ${w?.payoutFrequency === f ? "border-[#D4AF37] bg-[#FFFDF5] text-[#D4AF37]" : "border-slate-200 text-slate-600 hover:border-[#D4AF37]"}`}
+              >
+                {f === "manuel" ? "Manuel" : f === "hebdomadaire" ? "Hebdomadaire" : "Mensuel"}
+              </button>
+            ))}
+          </div>
+          {w?.payoutFrequency !== "manuel" && w?.nextPayoutDate && (
+            <p className="text-xs text-slate-500">Prochain virement : <span className="font-bold text-slate-700">{new Date(w.nextPayoutDate).toLocaleDateString("fr-FR")}</span></p>
+          )}
+          <div className="rounded-xl bg-slate-50 border border-slate-100 p-4 space-y-2">
+            <p className="text-xs font-bold text-slate-600">Récapitulatif</p>
+            <div className="flex justify-between text-xs text-slate-500"><span>Total encaissé</span><span className="font-bold text-slate-800">{Number(w?.totalEncaisse ?? 0).toFixed(2)} €</span></div>
+            <div className="flex justify-between text-xs text-slate-500"><span>Total viré</span><span className="font-bold text-slate-800">{Number(w?.totalVire ?? 0).toFixed(2)} €</span></div>
+            <div className="flex justify-between text-xs text-slate-500 border-t border-slate-200 pt-2"><span>Solde disponible</span><span className="font-black text-[#D4AF37]">{solde.toFixed(2)} €</span></div>
           </div>
         </div>
       )}

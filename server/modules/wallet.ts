@@ -33,6 +33,9 @@ export const wallets = pgTable("wallets", {
   currency: varchar("currency", { length: 4 }).notNull().default("EUR"),
   stripeConnectId: varchar("stripe_connect_id", { length: 96 }),
   payoutFrequency: payoutFrequencyEnum("payout_frequency").notNull().default("manuel"),
+  nextPayoutDate: timestamp("next_payout_date"),
+  totalEncaisse: numeric("total_encaisse", { precision: 14, scale: 2 }).notNull().default("0"),
+  totalVire: numeric("total_vire", { precision: 14, scale: 2 }).notNull().default("0"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -45,6 +48,8 @@ export const walletTransactions = pgTable("wallet_transactions", {
   currency: varchar("currency", { length: 4 }).notNull().default("EUR"),
   reference: varchar("reference", { length: 96 }),
   description: text("description"),
+  sourceType: varchar("source_type", { length: 64 }), // "vente", "location", "service", "commission", etc.
+  sourceId: integer("source_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -57,6 +62,26 @@ export const payouts = pgTable("payouts", {
   status: payoutStatusEnum("status").notNull().default("demande"),
   stripePayoutId: varchar("stripe_payout_id", { length: 96 }),
   automatique: boolean("automatique").notNull().default(false),
+  bankAccountId: integer("bank_account_id"),
+  frais: numeric("frais", { precision: 10, scale: 2 }).notNull().default("0"),
+  note: text("note"),
+  processedAt: timestamp("processed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Comptes bancaires liés au wallet (IBAN pour virements)
+export const bankAccounts = pgTable("bank_accounts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  walletId: integer("wallet_id").notNull(),
+  titulaire: varchar("titulaire", { length: 128 }).notNull(),
+  iban: varchar("iban", { length: 34 }).notNull(),
+  bic: varchar("bic", { length: 11 }),
+  banque: varchar("banque", { length: 128 }),
+  isDefault: boolean("is_default").notNull().default(false),
+  stripeExternalAccountId: varchar("stripe_external_account_id", { length: 96 }),
+  verified: boolean("verified").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
