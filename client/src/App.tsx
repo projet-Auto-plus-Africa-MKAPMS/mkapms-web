@@ -34,6 +34,7 @@ const Abonnements = lazy(() => import("./pages/Abonnements"));
 const Aide = lazy(() => import("./pages/Aide"));
 const Confiance = lazy(() => import("./pages/Confiance"));
 const Connexion = lazy(() => import("./pages/Connexion"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const Compte = lazy(() => import("./pages/Compte"));
 const Parametres = lazy(() => import("./pages/Parametres"));
 const Favoris = lazy(() => import("./pages/Favoris"));
@@ -938,6 +939,7 @@ export default function App() {
             <Route path="/finance" element={<U name="Finance+"><Finance /></U>} />
             <Route path="/rechercher" element={<U name="Recherche"><Rechercher /></U>} />
             <Route path="/connexion" element={<Connexion />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/demande-publicite" element={<DemandePublicite />} />
             <Route path="/publicite/:id" element={<PubliciteDetail />} />
             <Route path="/favoris" element={<U name="Favoris"><Favoris /></U>} />

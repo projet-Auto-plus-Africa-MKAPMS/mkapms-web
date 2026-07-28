@@ -14,8 +14,15 @@ import {
   comparePassword,
   verifyGoogleIdToken,
 } from "../auth.js";
+import { requestEmailVerification } from "../identity-os/complete.js";
+import { resolveIdentityForUser } from "../identity-os/index.js";
 
 function publicUser(u: typeof users.$inferSelect) {
+  // Utiliser try/catch sur les champs nouveaux pour éviter tout crash
+  // si la migration n'a pas encore été appliquée en production.
+  const safeGet = (key: string, fallback: unknown = null) => {
+    try { return (u as any)[key] ?? fallback; } catch { return fallback; }
+  };
   return {
     id: u.id,
     email: u.email,
@@ -24,24 +31,23 @@ function publicUser(u: typeof users.$inferSelect) {
     lastName: u.lastName,
     phone: u.phone,
     avatarUrl: u.avatarUrl,
-    logoUrl: u.logoUrl,
+    logoUrl: safeGet("logoUrl"),
     role: u.role,
     staffPosition: u.staffPosition,
     reference: u.reference,
     accountType: u.accountType,
     companyName: u.companyName,
     companySiret: u.companySiret,
-    // companySiren and vatNumber/hasVat are new — use optional chaining for safety
-    companySiren: (u as any).companySiren ?? null,
-    hasVat: (u as any).hasVat ?? false,
-    vatNumber: (u as any).vatNumber ?? null,
+    companySiren: safeGet("companySiren"),
+    hasVat: safeGet("hasVat", false),
+    vatNumber: safeGet("vatNumber"),
     addressLine: u.addressLine,
     postalCode: u.postalCode,
     city: u.city,
     country: u.country,
     currency: u.currency,
     emailVerified: u.emailVerified,
-    twoFactorEnabled: (u as any).twoFactorEnabled ?? false,
+    twoFactorEnabled: safeGet("twoFactorEnabled", false),
   };
 }
 
@@ -90,6 +96,14 @@ export const authRouter = router({
       const token = signToken({ uid: created.id, role: created.role, email: created.email });
       // Smart Engine — hook inscription (fire-and-forget)
       logActivity({ action: "user.registered", userId: created.id, targetType: "user", targetId: created.id, data: { accountType, role }, result: "success" }).catch(() => {});
+      // Email de vérification — fire-and-forget (ne bloque pas l'inscription)
+      resolveIdentityForUser(created.id, { email: created.email, name: created.name })
+        .then((identity: { id: number } | null | undefined) => {
+          if (identity) {
+            requestEmailVerification(identity.id, created.email, {}).catch(() => {});
+          }
+        })
+        .catch(() => {});
       return { token, user: publicUser(created), profileType: input.profileType ?? "particulier" };
     }),
 

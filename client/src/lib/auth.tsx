@@ -22,6 +22,8 @@ export interface SessionUser {
   companyName?: string | null;
   country?: string | null;
   currency?: string | null;
+  emailVerified?: boolean | null;
+  reference?: string | null;
 }
 
 interface AuthCtx {

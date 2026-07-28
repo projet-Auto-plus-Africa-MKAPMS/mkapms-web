@@ -33,6 +33,11 @@ export default function Connexion() {
   const googleM = trpc.auth.googleLogin.useMutation({
     onSuccess: (r) => { login(r.token, r.user as any); navigate("/compte"); },
   });
+  // Mot de passe oublié — appel réel au serveur (anti-énumération : toujours afficher succès)
+  const forgotM = trpc.identity.password.forgot.useMutation({
+    onSuccess: () => setForgotSent(true),
+    onError: () => setForgotSent(true),
+  });
 
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID || !window.google || !googleDiv.current) return;
@@ -213,10 +218,11 @@ export default function Connexion() {
 
             {mode === "forgot" && (
               <button
-                className="w-full rounded-xl bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#C5A028]"
-                onClick={() => setForgotSent(true)}
+                className="w-full rounded-xl bg-[#D4AF37] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#C5A028] disabled:opacity-50"
+                disabled={forgotM.isPending || !form.email || forgotSent}
+                onClick={() => forgotM.mutate({ email: form.email })}
               >
-                Envoyer le lien de réinitialisation
+                {forgotM.isPending ? "Envoi en cours…" : "Envoyer le lien de réinitialisation"}
               </button>
             )}
           </div>

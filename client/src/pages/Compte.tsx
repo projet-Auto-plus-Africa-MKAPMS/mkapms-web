@@ -228,6 +228,19 @@ export default function Compte() {
             {(user as any).staffPosition === "adjoint" && " — Adjoint de direction"}
             {user.email ? ` · ${user.email}` : ""}
           </p>
+          {/* Badge email vérifié */}
+          <div className="mt-1 flex items-center gap-2 flex-wrap">
+            {user.emailVerified ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700 border border-green-200">
+                <CheckCircle2 size={12} className="text-green-500" />
+                Email vérifié
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 border border-amber-200">
+                Email non vérifié — vérifiez votre boîte mail
+              </span>
+            )}
+          </div>
           {(user as { reference?: string | null }).reference && (
             <p className="text-xs font-medium text-slate-400">
               Réf. compte : {(user as { reference?: string | null }).reference}
