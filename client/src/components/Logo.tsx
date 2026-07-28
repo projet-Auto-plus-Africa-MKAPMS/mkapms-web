@@ -57,7 +57,7 @@ export function Logo({
         src={SRC[variant]}
         alt={alt ?? ALT[variant]}
         height={size}
-        style={{ height: size, width: "auto", display: "block" }}
+        style={{ height: size, width: "auto", display: "block", marginTop: 6 }}
         draggable={false}
         {...rest}
       />
@@ -65,7 +65,7 @@ export function Logo({
         <img
           src={WORDMARK_SRC}
           alt="MKA.P-MS"
-          style={{ height: Math.max(18, Math.round(size * 0.85)), width: "auto", display: "block", overflow: "visible" }}
+          style={{ height: Math.max(20, Math.round(size * 1.05)), width: "auto", display: "block", overflow: "visible" }}
           className="mt-0 select-none"
           draggable={false}
         />
