@@ -99,7 +99,7 @@ export default function Compte() {
     const params = new URLSearchParams(location.search);
     if (params.get("success") === "1") {
       setTab("abonnements");
-      setOpenGroups((g) => (g.includes("abo") ? g : [...g, "abo"]));
+      setActiveGroup("abo");
       setContentOpen(true);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 5000);
@@ -109,7 +109,7 @@ export default function Compte() {
       setTab(t);
       setContentOpen(true);
       const grp = TAB_TO_GROUP[t];
-      if (grp) setOpenGroups((g) => (g.includes(grp) ? g : [...g, grp]));
+      if (grp) setActiveGroup(grp);
     }
   }, [location]);
 
@@ -135,31 +135,34 @@ export default function Compte() {
   const createDossier = trpc.dossiers.create.useMutation({ onSuccess: () => { utils.dossiers.list.invalidate(); setDossier({ marque: "", modele: "", immatriculation: "" }); } });
   const [doc, setDoc] = useState({ category: "carte_grise", title: "", fileUrl: "" });
   const [dossier, setDossier] = useState({ marque: "", modele: "", immatriculation: "" });
-  const [openGroups, setOpenGroups] = useState<string[]>(["annonces"]);
+  const [openGroups, setOpenGroups] = useState<string[]>([]);
   const [showDepositChooser, setShowDepositChooser] = useState(false);
   const [annonceFilter, setAnnonceFilter] = useState<string>("all");
-  // Le contenu de l'onglet actif est-il affiché ? Permet de le refermer en
-  // recliquant sur la flèche (corrige le bug « la flèche ne referme plus »).
+  // activeGroup = groupe actuellement ouvert en plein écran (null = vue liste)
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  // contentOpen reste pour compatibilité avec les refs existants
   const [contentOpen, setContentOpen] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
   function toggleGroup(k: string) {
-    setOpenGroups((g) => (g.includes(k) ? g.filter((x) => x !== k) : [...g, k]));
+    // Ouvre le groupe en plein écran
+    setActiveGroup(k);
+    // Sélectionne automatiquement le premier onglet du groupe
+    const grp = groups.find((g) => g.key === k);
+    if (grp && grp.tabs.length > 0) {
+      setTab(grp.tabs[0]);
+    }
+    setContentOpen(true);
+    window.scrollTo(0, 0);
   }
   function selectItem(t: Tab) {
-    // Recliquer l'élément déjà ouvert → on le referme.
-    if (tab === t && contentOpen) {
-      setContentOpen(false);
-      return;
-    }
     setTab(t);
     setContentOpen(true);
-    // Sur ordinateur : amener le contenu juste sous la ligne cliquée (pas en
-    // bas de page). Sur mobile, le contenu s'ouvre en plein écran (voir CSS).
-    setTimeout(() => {
-      if (window.matchMedia("(min-width: 640px)").matches) {
-        contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }, 50);
+    window.scrollTo(0, 0);
+  }
+  function goBack() {
+    setActiveGroup(null);
+    setContentOpen(false);
+    window.scrollTo(0, 0);
   }
 
   if (isSessionLoading) {
@@ -306,57 +309,68 @@ export default function Compte() {
         <Plus size={18} /> Déposer une annonce
       </button>
 
-      {/* Navigation en sections repliables (accordéon à flèches) */}
+      {/* ── Vue liste des groupes (page d'accueil du compte) ── */}
+      {!activeGroup && (
       <div className="mt-6 space-y-2">
         {groups.map((g) => {
-          const isOpen = openGroups.includes(g.key);
           const Icon = g.icon;
           return (
-            <div key={g.key} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-              <button
-                onClick={() => toggleGroup(g.key)}
-                aria-expanded={isOpen}
-                className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-slate-50"
-              >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#D4AF37]/10 text-[#D4AF37]">
-                  <Icon size={18} />
-                </span>
-                <span className="flex-1 font-semibold text-slate-800">{g.label}</span>
-                <ChevronDown size={18} className={`shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-              </button>
-              {isOpen && (
-                <div className="border-t border-slate-100">
-                  {g.tabs.map((t) => {
-                    const active = tab === t && contentOpen;
-                    return (
-                      <button
-                        key={t}
-                        onClick={() => selectItem(t)}
-                        aria-expanded={active}
-                        aria-current={active}
-                        className={`flex w-full items-center gap-2 border-b border-slate-50 py-3 pl-14 pr-4 text-left text-sm transition last:border-0 ${active ? "bg-[#FFFBEB] font-semibold text-[#111]" : "text-slate-600 hover:bg-slate-50"}`}
-                      >
-                        <span className="flex-1">{TAB_LABELS[t]}</span>
-                        <ChevronDown size={16} className={`shrink-0 transition-transform ${active ? "rotate-180 text-[#D4AF37]" : "text-slate-300"}`} />
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            <button
+              key={g.key}
+              onClick={() => toggleGroup(g.key)}
+              className="flex w-full items-center gap-3 px-4 py-3.5 text-left rounded-xl border border-slate-200 bg-white transition hover:bg-slate-50 hover:border-[#D4AF37]/40 active:scale-[0.99]"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#D4AF37]/10 text-[#D4AF37]">
+                <Icon size={18} />
+              </span>
+              <span className="flex-1 font-semibold text-slate-800">{g.label}</span>
+              <ChevronLeft size={18} className="shrink-0 text-slate-400 rotate-180" />
+            </button>
           );
         })}
       </div>
+      )}
 
-      {contentOpen && (
+      {/* ── Vue sous-page plein écran (groupe actif) ── */}
+      {activeGroup && (
       <div
         ref={contentRef}
-        className="mt-6 scroll-mt-20 max-sm:fixed max-sm:inset-0 max-sm:z-50 max-sm:mt-0 max-sm:overflow-y-auto max-sm:bg-white max-sm:p-4"
+        className="mt-0 fixed inset-0 z-50 overflow-y-auto bg-white"
       >
+        {/* En-tête : bouton Retour + titre du groupe + sous-onglets si plusieurs */}
+        <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={goBack}
+              className="flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 active:scale-95 hover:bg-slate-50"
+            >
+              <ChevronLeft size={16} /> Retour
+            </button>
+            <span className="font-bold text-slate-900 text-base">{groups.find((g) => g.key === activeGroup)?.label}</span>
+          </div>
+          {/* Sous-onglets si le groupe a plusieurs tabs */}
+          {(groups.find((g) => g.key === activeGroup)?.tabs.length ?? 0) > 1 && (
+            <div className="mt-2 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+              {groups.find((g) => g.key === activeGroup)?.tabs.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => selectItem(t)}
+                  className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                    tab === t ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                  }`}
+                >
+                  {TAB_LABELS[t]}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="p-4">
+        {/* ← DEBUT CONTENU (le bloc if/else des onglets suit ici) */}
         {/* En-tête plein écran (mobile) : titre + retour pour refermer. */}
-        <div className="mb-4 flex items-center gap-2 sm:hidden">
+        <div className="mb-4 flex items-center gap-2 hidden">
           <button
-            onClick={() => setContentOpen(false)}
+            onClick={goBack}
             className="flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 active:scale-95"
           >
             <ChevronLeft size={16} /> Retour
@@ -765,7 +779,7 @@ export default function Compte() {
               ))}
               {/* Bloc Publicités — dans la grille comme les autres */}
               {isAdmin(user.role) && (
-                <button onClick={() => { setOpenGroups((g) => (g.includes("annonces") ? g : [...g, "annonces"])); selectItem("publicites"); }} className="group flex flex-col items-center gap-2 rounded-xl border-2 border-[#D4AF37]/40 bg-[#FFFDF5] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
+                <button onClick={() => { setActiveGroup("annonces"); selectItem("publicites"); }} className="group flex flex-col items-center gap-2 rounded-xl border-2 border-[#D4AF37]/40 bg-[#FFFDF5] p-4 text-center transition hover:border-[#D4AF37] hover:shadow-md">
                   <span className="text-3xl">📢</span>
                   <h3 className="text-xs font-bold text-[#111]">Publicités</h3>
                   <p className="text-[10px] text-slate-500 leading-tight">Emplacements & tarifs pub</p>
@@ -776,7 +790,8 @@ export default function Compte() {
         )}
         {tab === "profil" && <ProfilForm />}
         {tab === "wallet" && <WalletTab />}
-      </div>
+        </div>{/* fin div.p-4 */}
+      </div>{/* fin div fixed plein écran */}
       )}
 
       {/* ── Modal Supprimer annonce (avec questionnaire) ── */}
