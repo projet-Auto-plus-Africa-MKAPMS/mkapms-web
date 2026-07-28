@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   Bell,
+  Settings,
 } from "lucide-react";
 import SupportWidget from "./SupportWidget";
 import DomainSelector from "./DomainSelector";
@@ -175,6 +176,12 @@ function Header() {
             <SmartLink redirKey="bouton_deposer_annonce" fallback="/vendre" onClick={() => setOpen(false)} className="btn-gold mt-2">
               Déposer une annonce
             </SmartLink>
+            {user && (
+              <Link to="/parametres" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+                <Settings size={16} className="text-slate-500" />
+                Paramètres
+              </Link>
+            )}
             {!user && (
               <SmartLink redirKey="bouton_connexion" fallback="/connexion" onClick={() => setOpen(false)} className="btn-primary mt-2">
                 Connexion

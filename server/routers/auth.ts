@@ -24,15 +24,24 @@ function publicUser(u: typeof users.$inferSelect) {
     lastName: u.lastName,
     phone: u.phone,
     avatarUrl: u.avatarUrl,
+    logoUrl: u.logoUrl,
     role: u.role,
     staffPosition: u.staffPosition,
     reference: u.reference,
     accountType: u.accountType,
     companyName: u.companyName,
+    companySiret: u.companySiret,
+    // companySiren and vatNumber/hasVat are new — use optional chaining for safety
+    companySiren: (u as any).companySiren ?? null,
+    hasVat: (u as any).hasVat ?? false,
+    vatNumber: (u as any).vatNumber ?? null,
+    addressLine: u.addressLine,
+    postalCode: u.postalCode,
     city: u.city,
     country: u.country,
     currency: u.currency,
     emailVerified: u.emailVerified,
+    twoFactorEnabled: (u as any).twoFactorEnabled ?? false,
   };
 }
 
@@ -163,15 +172,28 @@ export const authRouter = router({
         firstName: z.string().optional(),
         lastName: z.string().optional(),
         phone: z.string().optional(),
+        addressLine: z.string().optional(),
+        postalCode: z.string().optional(),
         city: z.string().optional(),
         country: z.string().optional(),
         companyName: z.string().optional(),
+        companySiret: z.string().optional(),
+        companySiren: z.string().optional(),
+        hasVat: z.boolean().optional(),
+        vatNumber: z.string().optional(),
+        avatarUrl: z.string().optional(),
+        logoUrl: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      // Filtrer les champs undefined pour ne pas écraser des valeurs existantes
+      const patch: Record<string, unknown> = { updatedAt: new Date() };
+      for (const [k, v] of Object.entries(input)) {
+        if (v !== undefined) patch[k] = v;
+      }
       const [u] = await db
         .update(users)
-        .set({ ...input, updatedAt: new Date() })
+        .set(patch as any)
         .where(eq(users.id, ctx.user.uid))
         .returning();
       return publicUser(u);

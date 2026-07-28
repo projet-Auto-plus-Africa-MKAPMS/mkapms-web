@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { Camera, CheckCircle2, Pencil, Trash2, X, RefreshCw, Clock, ChevronDown, ChevronLeft, LogOut, User as UserIcon, Bell, Grid3x3, Megaphone, FileText, Search as SearchIcon, CalendarCheck, Crown, FolderLock, HelpCircle, Plus, Car, Bike, Truck, Bus, KeyRound } from "lucide-react";
+import { Camera, CheckCircle2, Pencil, Trash2, X, RefreshCw, Clock, ChevronDown, ChevronLeft, LogOut, User as UserIcon, Bell, Grid3x3, Megaphone, FileText, Search as SearchIcon, CalendarCheck, Crown, FolderLock, HelpCircle, Plus, Car, Bike, Truck, Bus, KeyRound, Settings } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -235,10 +235,14 @@ export default function Compte() {
           )}
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {isPro(user.role) && <Link to="/garage-plus" className="btn-outline">Espace Garage+</Link>}
           {isAdmin(user.role) && <Link to="/admin" className="btn-primary">Back-office</Link>}
           {user.role === "super_admin" && <Link to="/admin" className="rounded-lg bg-[#111] px-4 py-2 text-xs font-bold text-[#D4AF37] hover:bg-[#222]">Super Admin</Link>}
+          <Link to="/parametres" className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+            <Settings size={14} />
+            Paramètres
+          </Link>
         </div>
       </div>
 
@@ -855,17 +859,24 @@ function ProfilForm() {
   const { user, setUser, logout } = useAuth();
   const navigate = useNavigate();
   const u = user as Record<string, unknown> | null;
+  const isProfessionnel = user?.accountType === "professionnel" || (user as any)?.accountType === "pro";
   const [form, setForm] = useState({
     firstName: (u?.firstName as string) || (user?.name?.split(" ")[0] ?? ""),
     lastName: (u?.lastName as string) || (user?.name?.split(" ").slice(1).join(" ") ?? ""),
     name: user?.name || "",
     phone: (u?.phone as string) || "",
+    addressLine: (u?.addressLine as string) || "",
+    postalCode: (u?.postalCode as string) || "",
     city: (u?.city as string) || "",
     country: (u?.country as string) || "",
     companyName: user?.companyName || "",
+    companySiret: (u?.companySiret as string) || "",
+    companySiren: (u?.companySiren as string) || "",
+    hasVat: !!(u?.hasVat as boolean),
+    vatNumber: (u?.vatNumber as string) || "",
+    avatarUrl: (u?.avatarUrl as string) || "",
+    logoUrl: (u?.logoUrl as string) || "",
   });
-  const [profilPhoto, setProfilPhoto] = useState<string | null>(null);
-  const profilPhotoRef = useRef<HTMLInputElement>(null);
   const update = trpc.auth.updateProfile.useMutation({ onSuccess: (u2) => setUser(u2 as any) });
 
   function save() {
@@ -875,62 +886,130 @@ function ProfilForm() {
       lastName: form.lastName,
       name: fullName || form.name,
       phone: form.phone,
+      addressLine: form.addressLine,
+      postalCode: form.postalCode,
       city: form.city,
       country: form.country,
       companyName: form.companyName,
-    });
-  }
-
-  function handleProfilPhoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => setProfilPhoto(ev.target?.result as string);
-    reader.readAsDataURL(file);
+      companySiret: form.companySiret,
+      companySiren: form.companySiren,
+      hasVat: form.hasVat,
+      vatNumber: form.hasVat ? form.vatNumber : "",
+      avatarUrl: form.avatarUrl || undefined,
+      logoUrl: form.logoUrl || undefined,
+    } as any);
   }
 
   return (
-    <div className="card max-w-lg space-y-4 p-6">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => profilPhotoRef.current?.click()}
-          className="relative shrink-0 h-20 w-20 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#111] flex items-center justify-center overflow-hidden border-2 border-[#D4AF37] hover:opacity-90 transition active:scale-95 group"
-        >
-          {profilPhoto ? (
-            <img src={profilPhoto} alt="Photo profil" className="h-full w-full object-cover" />
-          ) : (
-            <span className="text-3xl font-black text-white">{user?.name?.charAt(0)?.toUpperCase() || "U"}</span>
-          )}
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-            <Camera size={20} className="text-white" />
-          </div>
-        </button>
-        <input ref={profilPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleProfilPhoto} />
+    <div className="card max-w-lg space-y-5 p-6">
+      {/* ── Photo de profil / Logo ── */}
+      {!isProfessionnel ? (
         <div>
-          <p className="text-sm font-bold text-[#111]">Photo de profil</p>
-          <button onClick={() => profilPhotoRef.current?.click()} className="text-xs text-[#D4AF37] font-semibold hover:underline">Changer la photo</button>
+          <p className="label mb-2">Photo de profil</p>
+          <FileUpload
+            label="Changer la photo de profil"
+            accept="image/*"
+            multiple={false}
+            maxFiles={1}
+            onUploaded={(files) => {
+              if (files.length > 0) setForm((f) => ({ ...f, avatarUrl: files[0].url }));
+            }}
+          />
+          {form.avatarUrl && (
+            <div className="mt-2 flex items-center gap-3">
+              <img src={form.avatarUrl} alt="Photo profil" className="h-14 w-14 rounded-full object-cover border-2 border-[#D4AF37]" />
+              <button onClick={() => setForm((f) => ({ ...f, avatarUrl: "" }))} className="text-xs text-red-500 hover:underline">Supprimer</button>
+            </div>
+          )}
         </div>
-      </div>
+      ) : (
+        <div>
+          <p className="label mb-2">Logo de l'entreprise</p>
+          <FileUpload
+            label="Uploader le logo (PNG, JPG)"
+            accept="image/*"
+            multiple={false}
+            maxFiles={1}
+            onUploaded={(files) => {
+              if (files.length > 0) setForm((f) => ({ ...f, logoUrl: files[0].url }));
+            }}
+          />
+          {form.logoUrl && (
+            <div className="mt-2 flex items-center gap-3">
+              <img src={form.logoUrl} alt="Logo entreprise" className="h-14 w-14 rounded-xl object-contain border border-slate-200 bg-white p-1" />
+              <button onClick={() => setForm((f) => ({ ...f, logoUrl: "" }))} className="text-xs text-red-500 hover:underline">Supprimer</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Identité ── */}
       <div className="grid grid-cols-2 gap-3">
         <div><label className="label">Prénom</label><input className="input" value={form.firstName} onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))} /></div>
         <div><label className="label">Nom</label><input className="input" value={form.lastName} onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))} /></div>
       </div>
       <div><label className="label">Téléphone</label><input className="input" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} /></div>
-      <div className="grid grid-cols-2 gap-3">
-        <div><label className="label">Ville</label><input className="input" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} /></div>
+
+      {/* ── Adresse ── */}
+      <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Adresse</p>
+        <div><label className="label">Rue / Numéro</label><input className="input" value={form.addressLine} onChange={(e) => setForm((f) => ({ ...f, addressLine: e.target.value }))} placeholder="12 rue de la Paix" /></div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className="label">Code postal</label><input className="input" value={form.postalCode} onChange={(e) => setForm((f) => ({ ...f, postalCode: e.target.value }))} placeholder="75001" /></div>
+          <div><label className="label">Ville</label><input className="input" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} /></div>
+        </div>
         <div><label className="label">Pays</label><input className="input" value={form.country} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} placeholder="France" /></div>
       </div>
-      <div><label className="label">Société (si pro)</label><input className="input" value={form.companyName} onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))} /></div>
+
+      {/* ── Informations pro ── */}
+      {isProfessionnel && (
+        <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4 space-y-3">
+          <p className="text-xs font-bold text-indigo-500 uppercase tracking-wider">Informations professionnelles</p>
+          <div><label className="label">Raison sociale</label><input className="input" value={form.companyName} onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))} /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="label">SIREN</label><input className="input" value={form.companySiren} onChange={(e) => setForm((f) => ({ ...f, companySiren: e.target.value }))} placeholder="123 456 789" maxLength={9} /></div>
+            <div><label className="label">SIRET</label><input className="input" value={form.companySiret} onChange={(e) => setForm((f) => ({ ...f, companySiret: e.target.value }))} placeholder="123 456 789 00012" maxLength={14} /></div>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="hasVat"
+              checked={form.hasVat}
+              onChange={(e) => setForm((f) => ({ ...f, hasVat: e.target.checked }))}
+              className="h-4 w-4 rounded border-slate-300 accent-indigo-600"
+            />
+            <label htmlFor="hasVat" className="text-sm font-medium text-slate-700 cursor-pointer">Assujetti à la TVA</label>
+          </div>
+          {form.hasVat && (
+            <div>
+              <label className="label">Numéro de TVA intracommunautaire</label>
+              <input className="input" value={form.vatNumber} onChange={(e) => setForm((f) => ({ ...f, vatNumber: e.target.value }))} placeholder="FR12 123456789" />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Email (lecture seule) ── */}
       <div>
         <label className="label">Email</label>
         <input className="input bg-slate-50 text-slate-500" value={user?.email || ""} readOnly disabled />
         <p className="mt-1 text-[11px] text-slate-400">Pour modifier votre email, contactez le support.</p>
       </div>
-      <button className="btn-primary" disabled={update.isPending} onClick={save}>
-        {update.isPending ? "Enregistrement…" : "Modifier mon profil"}
+
+      {/* ── Actions ── */}
+      <button className="btn-primary w-full" disabled={update.isPending} onClick={save}>
+        {update.isPending ? "Enregistrement…" : "Modifier mes informations"}
       </button>
-      {update.isSuccess && <p className="text-sm text-green-600">Profil mis à jour.</p>}
-      <div className="border-t border-slate-100 pt-4">
+      {update.isSuccess && <p className="text-sm text-green-600">Profil mis à jour avec succès.</p>}
+      {update.isError && <p className="text-sm text-red-500">{(update.error as any)?.message || "Erreur lors de la mise à jour."}</p>}
+
+      <div className="border-t border-slate-100 pt-4 space-y-2">
+        <Link
+          to="/parametres"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+        >
+          <Settings size={15} /> Paramètres du compte
+        </Link>
         <button
           onClick={() => { logout(); navigate("/"); }}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 py-3 text-sm font-bold text-red-600 transition hover:bg-red-100 active:scale-[0.99]"
