@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { ChevronLeft, Search, Bike, Star, Heart, MapPin, ChevronDown } from "lucide-react";
+import { ChevronLeft, Search, Bike, Heart, ChevronDown } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════
    VENTE MOTO — Univers complet
@@ -58,11 +58,22 @@ const ANNONCES = [
   { id: 8, nom: "Ducati Scrambler Icon", annee: 2023, km: 7000, prix: 8900, cat: "Scrambler", cyl: "803 cm³", photo: "https://images.unsplash.com/photo-1558980394-4c7c9299fe96?w=400&h=260&fit=crop" },
 ];
 
-const ANNEES = Array.from({ length: 15 }, (_, i) => String(new Date().getFullYear() - i));
+const ANNEES = Array.from({ length: 20 }, (_, i) => String(new Date().getFullYear() - i));
+
+// Fourchettes de prix adaptées aux motos (max 25 000 € par défaut)
+const PRIX_MAX_DEFAUT = 25000;
 
 export default function VenteMoto() {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const [marque, setMarque] = useState("");
+  const [categorie, setCategorie] = useState("");
+  const [cylindree, setCylindree] = useState("");
+  const [annee, setAnnee] = useState("");
+  const [kmMax, setKmMax] = useState("");
+  const [prixMin, setPrixMin] = useState("");
+  const [prixMax, setPrixMax] = useState("");
+  const [searchText, setSearchText] = useState("");
 
   const filtered = selectedCat ? ANNONCES.filter((a) => a.cat === selectedCat) : ANNONCES;
 
@@ -82,14 +93,16 @@ export default function VenteMoto() {
         <p className="mt-1 text-sm text-white/80">21 catégories · 30+ marques · Toutes cylindrées</p>
       </div>
 
-      {/* BARRE DE RECHERCHE DÉPLIANTE */}
+      {/* BARRE DE RECHERCHE DÉPLIANTE — Spécifique Moto & Scooter */}
       <div className="mx-4 -mt-4 relative z-10 rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-md">
         {/* Ligne principale */}
         <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5">
           <Search size={14} className="text-[#6B7280]" />
           <input
             type="text"
-            placeholder="Marque, modèle, cylindrée…"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="Marque, modèle, cylindrée..."
             className="w-full bg-transparent text-sm outline-none"
           />
           <button onClick={() => setShowFilters(!showFilters)} aria-label="Afficher les filtres">
@@ -103,10 +116,15 @@ export default function VenteMoto() {
         {/* Filtres dépliants */}
         {showFilters && (
           <div className="mt-3 space-y-3">
+
             {/* Marque */}
             <div>
-              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Marque</label>
-              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Marque</label>
+              <select
+                value={marque}
+                onChange={(e) => setMarque(e.target.value)}
+                className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+              >
                 <option value="">Toutes les marques</option>
                 {MARQUES_MOTO.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
@@ -114,17 +132,25 @@ export default function VenteMoto() {
 
             {/* Catégorie */}
             <div>
-              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Catégorie</label>
-              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Catégorie</label>
+              <select
+                value={categorie}
+                onChange={(e) => setCategorie(e.target.value)}
+                className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+              >
                 <option value="">Toutes les catégories</option>
                 {CATEGORIES_MOTO.map((c) => <option key={c.label} value={c.label}>{c.label}</option>)}
               </select>
             </div>
 
-            {/* Cylindrée */}
+            {/* Cylindrée — spécifique moto */}
             <div>
-              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Cylindrée</label>
-              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Cylindrée</label>
+              <select
+                value={cylindree}
+                onChange={(e) => setCylindree(e.target.value)}
+                className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+              >
                 <option value="">Toutes</option>
                 {CYLINDREES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
@@ -132,41 +158,57 @@ export default function VenteMoto() {
 
             {/* Année */}
             <div>
-              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Année (à partir de)</label>
-              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Année (à partir de)</label>
+              <select
+                value={annee}
+                onChange={(e) => setAnnee(e.target.value)}
+                className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+              >
                 <option value="">Toutes les années</option>
                 {ANNEES.map((a) => <option key={a} value={a}>{a}</option>)}
               </select>
             </div>
 
-            {/* Kilométrage max */}
+            {/* Kilométrage max — adapté motos */}
             <div>
-              <label className="text-[10px] font-bold text-[#6B7280] uppercase">Kilométrage max</label>
-              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Kilométrage max</label>
+              <select
+                value={kmMax}
+                onChange={(e) => setKmMax(e.target.value)}
+                className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
+              >
                 <option value="">Sans limite</option>
+                <option value="2000">2 000 km</option>
                 <option value="5000">5 000 km</option>
                 <option value="10000">10 000 km</option>
                 <option value="20000">20 000 km</option>
+                <option value="30000">30 000 km</option>
                 <option value="50000">50 000 km</option>
-                <option value="100000">100 000 km</option>
+                <option value="80000">80 000 km</option>
               </select>
             </div>
 
-            {/* Prix min / max */}
+            {/* Prix min / max — fourchettes adaptées motos */}
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix min</label>
+                <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Prix min</label>
                 <input
                   type="number"
+                  value={prixMin}
+                  onChange={(e) => setPrixMin(e.target.value)}
                   placeholder="0 €"
+                  min={0}
                   className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix max</label>
+                <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Prix max</label>
                 <input
                   type="number"
-                  placeholder="50 000 €"
+                  value={prixMax}
+                  onChange={(e) => setPrixMax(e.target.value)}
+                  placeholder={`${PRIX_MAX_DEFAUT.toLocaleString("fr-FR")} €`}
+                  min={0}
                   className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
                 />
               </div>
