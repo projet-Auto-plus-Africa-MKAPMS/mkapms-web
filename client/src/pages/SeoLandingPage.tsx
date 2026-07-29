@@ -13,6 +13,21 @@ export default function SeoLandingPage() {
   const slug = location.pathname.replace(/^\/+/, "").replace(/\/+$/, "");
   const { data, isLoading } = trpc.seo.getPageMeta.useQuery({ slug }, { enabled: !!slug });
 
+  // Page géographique (ville / région) → afficher des véhicules avec repli
+  // automatique (ville → région → national) pour ne jamais montrer une page vide.
+  const isRegion = slug.startsWith("region/") || data?.pageType === "geo_region";
+  const regionSlug = isRegion ? slug.split("/").pop() : undefined;
+  // Ville : soit renseignée dans la page, soit dernier segment d'une URL /ville/x ou /pays/x/ville.
+  const cityFromSlug = slug.startsWith("ville/") || slug.startsWith("pays/")
+    ? decodeURIComponent(slug.split("/").pop() || "").replace(/-/g, " ")
+    : undefined;
+  const city = (data?.city || cityFromSlug) ?? undefined;
+  const isGeo = isRegion || !!city;
+  const { data: geo } = trpc.seo.annoncesNearLocation.useQuery(
+    { city: isRegion ? undefined : city, regionSlug, limit: 12 },
+    { enabled: isGeo },
+  );
+
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16">
@@ -73,6 +88,64 @@ export default function SeoLandingPage() {
           {(data!.keywords as string[]).slice(0, 8).map((k) => (
             <span key={k} className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm">{k}</span>
           ))}
+        </div>
+      )}
+
+      {/* Véhicules (page ville / région) — avec repli automatique */}
+      {isGeo && geo && geo.items.length > 0 && (
+        <div className="mb-10">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">
+            {geo.scope === "ville" && `Véhicules à ${geo.locationLabel}`}
+            {geo.scope === "region" && `Véhicules en ${geo.locationLabel}`}
+            {geo.scope === "national" && "Véhicules disponibles"}
+          </h2>
+          {geo.scope !== "ville" && (
+            <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">
+              {geo.scope === "region"
+                ? `Aucune annonce exactement à ${city} pour le moment — voici les véhicules ${geo.locationLabel ? `en ${geo.locationLabel}` : "de la région"} et des villes voisines.`
+                : "Élargi à toute la France pour vous proposer des véhicules."}
+            </p>
+          )}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {geo.items.map((v) => (
+              <Link
+                key={v.id}
+                to={`/vehicule/${v.slug || v.id}`}
+                className="rounded-xl border border-gray-200 overflow-hidden hover:border-blue-400 hover:shadow transition bg-white"
+              >
+                <div className="aspect-[4/3] bg-gray-100">
+                  {v.photoPrincipale ? (
+                    <img src={v.photoPrincipale} alt={`${v.marque} ${v.modele}`} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                      <Car className="w-8 h-8" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-2">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{v.marque} {v.modele}</p>
+                  <p className="text-xs text-gray-500 truncate">{[v.annee, v.ville].filter(Boolean).join(" · ")}</p>
+                  {v.prix && <p className="text-sm font-bold text-blue-700 mt-0.5">{Number(v.prix).toLocaleString("fr-FR")} €</p>}
+                </div>
+              </Link>
+            ))}
+          </div>
+          {Array.isArray(geo.nearby) && geo.nearby.length > 0 && (
+            <div className="mt-4">
+              <p className="text-sm text-gray-500 mb-2">Villes à proximité</p>
+              <div className="flex flex-wrap gap-2">
+                {geo.nearby.map((c) => (
+                  <Link
+                    key={c}
+                    to={`/ville/${c.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`}
+                    className="px-3 py-1 rounded-full bg-gray-50 border border-gray-200 text-gray-700 text-sm hover:bg-gray-100"
+                  >
+                    {c}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
