@@ -72,6 +72,8 @@ import { backupOsRouter } from "./backup-os/index.js";
 import { contractOsRouter } from "./contract-os/index.js";
 // Messagerie OS — sécurité/modération/supervision au-dessus des messages (règle MOS #15)
 import { messagingOsRouter } from "./messaging-os/index.js";
+// Support OS — priorités/file/suivi au-dessus des tickets (règle MOS #15)
+import { supportOsRouter } from "./support-os/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -167,6 +169,7 @@ export const appRouter = router({
   backupOs: backupOsRouter,
   contractOs: contractOsRouter,
   messagingOs: messagingOsRouter,
+  supportOs: supportOsRouter,
 });
 
 export type AppRouter = typeof appRouter;
