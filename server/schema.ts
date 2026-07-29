@@ -908,6 +908,21 @@ export const reviews = pgTable("reviews", {
   hidden: boolean("hidden").default(false),
 });
 
+// Notation par les comptes particuliers : l'application, un service, ou un
+// client concerné. Table dédiée (distincte de `reviews` qui cible vendeurs/garages).
+export const appFeedback = pgTable("app_feedback", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  userId: bigint("user_id", { mode: "number" }).notNull(),
+  // "application" | "service" | "client"
+  targetType: varchar("target_type", { length: 32 }).notNull().default("application"),
+  targetRef: varchar("target_ref", { length: 160 }),
+  targetLabel: varchar("target_label", { length: 200 }),
+  rating: integer("rating").notNull(),
+  comment: text("comment"),
+  status: varchar("status", { length: 24 }).notNull().default("nouveau"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const sessions = pgTable("sessions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),

@@ -147,4 +147,34 @@ export const reservationsRouter = router({
       .where(eq(bookings.userId, ctx.user.uid))
       .orderBy(desc(bookings.createdAt));
   }),
+
+  // Fiche détaillée d'une réservation : véhicule réservé, montants, statut du
+  // paiement (acompte) et étapes. Réservée au titulaire de la réservation.
+  detail: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const [booking] = await db
+        .select()
+        .from(bookings)
+        .where(eq(bookings.id, input.id))
+        .limit(1);
+      if (!booking || booking.userId !== ctx.user.uid) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      const [annonce] = await db
+        .select()
+        .from(annonces)
+        .where(eq(annonces.id, booking.vehicleId))
+        .limit(1);
+      const pays = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.bookingId, booking.id))
+        .orderBy(desc(payments.createdAt));
+      return {
+        booking,
+        annonce: annonce ?? null,
+        payments: pays,
+      };
+    }),
 });
