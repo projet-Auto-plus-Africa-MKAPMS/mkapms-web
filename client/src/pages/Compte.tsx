@@ -790,8 +790,8 @@ export default function Compte() {
         )}
         {tab === "profil" && <ProfilForm />}
         {tab === "wallet" && <WalletTab />}
-        </div>{/* fin div.p-4 */}
-      </div>{/* fin div fixed plein écran */}
+        </div>
+      </div>
       )}
 
       {/* ── Modal Supprimer annonce (avec questionnaire) ── */}
