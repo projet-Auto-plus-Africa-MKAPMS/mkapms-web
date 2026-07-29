@@ -372,6 +372,13 @@
       "when": 1753700100000,
       "tag": "0053_wallet_bank_accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1753700200000,
+      "tag": "0054_contract_terms",
+      "breakpoints": true
     }
   ]
 }
