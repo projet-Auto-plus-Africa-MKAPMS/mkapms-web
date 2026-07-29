@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { messageThreads, messages, annonces, users } from "../schema.js";
+import { assertCanSend } from "../messaging-os/index.js";
 
 /**
  * Messagerie interne MKA.P-MS — conversations liées à une annonce et à un
@@ -160,6 +161,9 @@ export const messagesRouter = router({
       const [t] = await db.select().from(messageThreads).where(eq(messageThreads.id, input.threadId)).limit(1);
       if (!t) throw new TRPCError({ code: "NOT_FOUND" });
       if (t.user1Id !== uid && t.user2Id !== uid) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const recipientId = t.user1Id === uid ? t.user2Id : t.user1Id;
+      await assertCanSend(uid, recipientId, input.content);
 
       const [msg] = await db
         .insert(messages)

@@ -70,6 +70,8 @@ import { mediaOsRouter } from "./media-os/index.js";
 import { backupOsRouter } from "./backup-os/index.js";
 // Contrat OS — cycle de vie des contrats au-dessus de Document OS (règle MOS #15)
 import { contractOsRouter } from "./contract-os/index.js";
+// Messagerie OS — sécurité/modération/supervision au-dessus des messages (règle MOS #15)
+import { messagingOsRouter } from "./messaging-os/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -164,6 +166,7 @@ export const appRouter = router({
   auditOs: auditOsRouter,
   backupOs: backupOsRouter,
   contractOs: contractOsRouter,
+  messagingOs: messagingOsRouter,
 });
 
 export type AppRouter = typeof appRouter;
