@@ -68,6 +68,8 @@ import { schedulerOsRouter } from "./scheduler-os/index.js";
 import { mediaOsRouter } from "./media-os/index.js";
 // Backup & Recovery OS — sauvegardes + restauration contrôlée (règle MOS #15)
 import { backupOsRouter } from "./backup-os/index.js";
+// Contrat OS — cycle de vie des contrats au-dessus de Document OS (règle MOS #15)
+import { contractOsRouter } from "./contract-os/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -161,6 +163,7 @@ export const appRouter = router({
   monitoringOs: monitoringOsRouter,
   auditOs: auditOsRouter,
   backupOs: backupOsRouter,
+  contractOs: contractOsRouter,
 });
 
 export type AppRouter = typeof appRouter;
