@@ -30,6 +30,9 @@ import {
   ShieldAlert,
   Search,
   X,
+  Brain,
+  ShieldCheck,
+  AlertTriangle,
 } from "lucide-react";
 
 /** Filtre rapide piloté par les cases cliquables du bandeau de synthèse. */
@@ -147,6 +150,15 @@ export default function EngineRegistryControlCenter() {
     enabled: isDirection,
     refetchInterval: 15000,
   });
+  // Phase 55 — deux moteurs centraux.
+  const supervision = trpc.centralEngines.supervision.useQuery(undefined, {
+    enabled: isDirection,
+    refetchInterval: 15000,
+  });
+  const intelligence = trpc.centralEngines.intelligence.useQuery(undefined, {
+    enabled: isPdg,
+    refetchInterval: 30000,
+  });
   const utils = trpc.useUtils();
   const setState = trpc.engineRegistry.setState.useMutation({
     onSettled: () => {
@@ -227,6 +239,93 @@ export default function EngineRegistryControlCenter() {
       </div>
 
       <div className="mx-auto max-w-5xl px-4 py-5">
+        {/* Phase 55 — Deux moteurs centraux (chefs d'orchestre) */}
+        <div className="mb-6 grid gap-3 md:grid-cols-2">
+          {/* Moteur 2 — Supervision & Opérations (PDG + Directeur) */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="mb-2 flex items-center gap-2">
+              <ShieldCheck size={16} className="text-emerald-600" />
+              <h2 className="text-sm font-black text-slate-900">Supervision &amp; Opérations</h2>
+              <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+                PDG + Directeur
+              </span>
+            </div>
+            {supervision.isLoading ? (
+              <p className="text-xs text-slate-400">Analyse en cours…</p>
+            ) : (
+              <>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <MiniStat label="Moteurs" value={supervision.data?.registry.totalEngines ?? 0} />
+                  <MiniStat label="Actifs" value={supervision.data?.registry.activeEngines ?? 0} />
+                  <MiniStat
+                    label="Anomalies"
+                    value={supervision.data?.anomalies.length ?? 0}
+                    tone={(supervision.data?.anomalies.length ?? 0) > 0 ? "warn" : undefined}
+                  />
+                </div>
+                {(supervision.data?.anomalies.length ?? 0) > 0 && (
+                  <ul className="mt-3 space-y-1">
+                    {supervision.data?.anomalies.slice(0, 4).map((a, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-[11px] text-amber-700">
+                        <AlertTriangle size={12} className="mt-0.5 shrink-0" />
+                        <span>
+                          <strong>{a.label}</strong> — {a.detail}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className="mt-2 text-[10px] text-slate-400">
+                  Santé plateforme : {supervision.data?.platformHealth.overall ?? "—"} · Alertes ouvertes :{" "}
+                  {supervision.data?.alerts.total ?? 0}
+                </p>
+              </>
+            )}
+          </div>
+
+          {/* Moteur 1 — Intelligence & Décision (PDG uniquement) */}
+          {isPdg && (
+            <div className="rounded-2xl border border-violet-200 bg-violet-50/40 p-4 shadow-sm">
+              <div className="mb-2 flex items-center gap-2">
+                <Brain size={16} className="text-violet-600" />
+                <h2 className="text-sm font-black text-slate-900">Intelligence &amp; Décision</h2>
+                <span className="ml-auto rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-600">
+                  PDG uniquement
+                </span>
+              </div>
+              {intelligence.isLoading ? (
+                <p className="text-xs text-slate-400">Préparation des recommandations…</p>
+              ) : (
+                <>
+                  <p className="text-xs text-slate-600">
+                    <strong>{intelligence.data?.pendingDecisions ?? 0}</strong> proposition(s) en attente de votre validation.
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    {(intelligence.data?.recommendations ?? []).slice(0, 4).map((r) => (
+                      <li key={r.id} className="text-[11px] text-slate-600">
+                        • <strong>{r.title}</strong>{" "}
+                        <span className="text-slate-400">({r.category}, impact {r.impact ?? "n/c"})</span>
+                      </li>
+                    ))}
+                    {(intelligence.data?.recommendations.length ?? 0) === 0 && (
+                      <li className="text-[11px] text-slate-400">Aucune proposition en attente.</li>
+                    )}
+                  </ul>
+                  <Link
+                    to="/superadmin/smart-engine"
+                    className="mt-2 inline-block text-[11px] font-semibold text-violet-700 underline"
+                  >
+                    Ouvrir le Système Intelligent pour valider →
+                  </Link>
+                  <p className="mt-1 text-[10px] text-slate-400">
+                    Lecture seule — aucune action sensible n'est appliquée sans votre validation.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Bandeau synthèse — cases cliquables (filtres) */}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-3">
@@ -446,6 +545,29 @@ export default function EngineRegistryControlCenter() {
           dédiée sera développée moteur par moteur.
         </p>
       </div>
+    </div>
+  );
+}
+
+function MiniStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone?: "warn";
+}) {
+  return (
+    <div
+      className={`rounded-lg border px-2 py-1.5 ${
+        tone === "warn" ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-slate-50"
+      }`}
+    >
+      <p className={`text-lg font-black ${tone === "warn" ? "text-amber-700" : "text-slate-900"}`}>
+        {value}
+      </p>
+      <p className="text-[10px] text-slate-500">{label}</p>
     </div>
   );
 }
