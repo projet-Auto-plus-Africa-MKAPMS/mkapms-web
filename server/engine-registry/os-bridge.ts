@@ -1,20 +1,21 @@
 /**
  * MKA.P-MS Engine Registry — Pont des moteurs « OS » (connexion au moteur principal).
  *
- * Les moteurs fondateurs au standard MOS (Identity OS, Country OS, Language OS)
- * sont déclarés dans le catalogue central (`identity`, `country`, `language`) et
- * donc seedés dans `engine_registry`. Mais ils n'émettent pas eux-mêmes de
- * heartbeat : sans ce pont, leur santé resterait « inconnue ».
+ * Les moteurs au standard MOS exposent tous la même surface publique
+ * `controlCenterFeed()` (règle MOS #13). Ce pont lit UNIQUEMENT cette surface
+ * (aucun accès à leur logique interne ni à leurs tables) et remonte leur santé
+ * réelle au registre central via `registerEngine(...)` + `heartbeat(...)`.
  *
- * Ce pont lit UNIQUEMENT leur surface publique `controlCenterFeed()` (règle MOS
- * #11 — aucun accès à leur logique interne ni à leurs tables) et remonte leur
- * santé réelle au registre central via `heartbeat(...)`. Il ne modifie jamais
- * les métadonnées déclarées de ces moteurs (label, dépendances, catégorie).
+ * Objectif Phase 55 : garantir que CHAQUE moteur spécialisé (Notification,
+ * Document, Messagerie, Support, Audit, Monitoring, Search, Scheduler, Media,
+ * Backup, Contrat, Customer Journey, AI Learning, Identity/Country/Language)
+ * remonte son état aux deux moteurs centraux (Intelligence & Décision +
+ * Supervision & Opérations) — via le registre central, sans doublon de moteur.
  *
  * 100 % additif et non bloquant : toute erreur sur un moteur est journalisée
  * mais n'interrompt jamais le démarrage de la plateforme.
  */
-import { ensureSeeded, heartbeat } from "./service.js";
+import { ensureSeeded, heartbeat, registerEngine } from "./service.js";
 import type { EngineHealth } from "./service.js";
 
 interface OsFeed {
@@ -25,26 +26,150 @@ interface OsFeed {
 interface OsEngineBinding {
   /** Nom canonique dans le catalogue central. */
   name: string;
+  label: string;
+  category: "core" | "transversal" | "univers";
+  dependencies: string[];
   loadFeed: () => Promise<OsFeed>;
 }
 
-/** Moteurs OS à connecter (santé remontée au registre central). */
+/**
+ * Moteurs OS à connecter (santé remontée au registre central).
+ *
+ * `loadFeed` importe dynamiquement la surface publique du moteur : on ne
+ * dépend jamais de son implémentation interne, seulement de son feed MOS.
+ */
 const OS_ENGINES: OsEngineBinding[] = [
+  // ── Fondateurs (déjà présents dans le catalogue) ──────────────────────
   {
     name: "country",
+    label: "Country OS",
+    category: "transversal",
+    dependencies: ["core"],
     loadFeed: async () => (await import("../country-os/index.js")).controlCenterFeed(),
   },
   {
     name: "language",
+    label: "Language OS",
+    category: "transversal",
+    dependencies: ["core", "country"],
     loadFeed: async () => (await import("../language-os/index.js")).controlCenterFeed(),
   },
   {
     name: "identity",
+    label: "Identity OS",
+    category: "transversal",
+    dependencies: ["core"],
     loadFeed: async () => (await import("../identity-os/index.js")).controlCenterFeed(),
+  },
+  // ── Moteurs OS transversaux (Phases 42-54) ────────────────────────────
+  {
+    name: "notification",
+    label: "Notification OS",
+    category: "transversal",
+    dependencies: ["core", "identity", "language"],
+    loadFeed: async () => (await import("../notification-os/index.js")).controlCenterFeed(),
+  },
+  {
+    name: "document",
+    label: "Document OS",
+    category: "transversal",
+    dependencies: ["core", "language", "country"],
+    loadFeed: async () => (await import("../document-os/index.js")).controlCenterFeed(),
+  },
+  {
+    name: "messaging",
+    label: "Messagerie OS",
+    category: "transversal",
+    dependencies: ["core", "identity", "notification"],
+    loadFeed: async () => (await import("../messaging-os/index.js")).controlCenterFeed(),
+  },
+  {
+    name: "support",
+    label: "Support OS",
+    category: "transversal",
+    dependencies: ["core", "identity", "notification"],
+    loadFeed: async () => (await import("../support-os/index.js")).controlCenterFeed(),
+  },
+  {
+    name: "contract",
+    label: "Contrat OS",
+    category: "transversal",
+    dependencies: ["core", "document", "scheduler"],
+    loadFeed: async () => (await import("../contract-os/index.js")).controlCenterFeed(),
+  },
+  {
+    name: "journey",
+    label: "Customer Journey OS",
+    category: "transversal",
+    dependencies: ["core", "smart"],
+    loadFeed: async () => (await import("../customer-journey-os/index.js")).controlCenterFeed(),
+  },
+  {
+    name: "search",
+    label: "Search OS",
+    category: "transversal",
+    dependencies: ["core", "permission"],
+    loadFeed: async () => (await import("../search-os/index.js")).controlCenterFeed(),
+  },
+  {
+    name: "scheduler",
+    label: "Scheduler OS",
+    category: "transversal",
+    dependencies: ["core", "notification"],
+    loadFeed: async () => (await import("../scheduler-os/index.js")).controlCenterFeed(),
+  },
+  {
+    name: "media",
+    label: "Media OS",
+    category: "transversal",
+    dependencies: ["core"],
+    loadFeed: async () => (await import("../media-os/index.js")).controlCenterFeed(),
+  },
+  {
+    name: "monitoring",
+    label: "Monitoring OS",
+    category: "transversal",
+    dependencies: ["core"],
+    loadFeed: async () => (await import("../monitoring-os/index.js")).controlCenterFeed(),
+  },
+  {
+    name: "audit",
+    label: "Audit OS",
+    category: "transversal",
+    dependencies: ["core", "identity"],
+    loadFeed: async () => (await import("../audit-os/index.js")).controlCenterFeed(),
+  },
+  {
+    name: "backup",
+    label: "Backup & Recovery OS",
+    category: "transversal",
+    dependencies: ["core"],
+    loadFeed: async () => (await import("../backup-os/index.js")).controlCenterFeed(),
+  },
+  {
+    name: "ai_learning",
+    label: "AI Learning OS",
+    category: "transversal",
+    dependencies: ["core", "smart"],
+    loadFeed: async () => (await import("../ai-learning-os/index.js")).controlCenterFeed(),
   },
 ];
 
 async function bridgeOne(binding: OsEngineBinding): Promise<void> {
+  // 1. Auto-enregistrement idempotent : garantit que la ligne existe avec ses
+  //    métadonnées à jour (ne force pas l'état piloté par le PDG).
+  try {
+    await registerEngine({
+      name: binding.name,
+      label: binding.label,
+      category: binding.category,
+      dependencies: binding.dependencies,
+    });
+  } catch {
+    /* le seed catalogue a peut-être déjà créé la ligne — non bloquant */
+  }
+
+  // 2. Lecture de la surface MOS + heartbeat.
   try {
     const feed = await binding.loadFeed();
     await heartbeat(binding.name, feed.health ?? "unknown", {
@@ -52,8 +177,7 @@ async function bridgeOne(binding: OsEngineBinding): Promise<void> {
       message: "Connecté au registre central (pont MOS).",
     });
   } catch (err) {
-    // Feed indisponible : la ligne existe déjà (seed catalogue) — on signale
-    // simplement une santé dégradée, sans bloquer.
+    // Feed indisponible : la ligne existe déjà — on signale une santé dégradée.
     await heartbeat(binding.name, "degraded", {
       message: `Feed OS indisponible: ${(err as Error).message}`,
     });
@@ -66,8 +190,7 @@ async function bridgeOne(binding: OsEngineBinding): Promise<void> {
  * le démarrage de la plateforme.
  */
 export async function bridgeOsEngines(): Promise<void> {
-  // Garantit que les moteurs du catalogue (dont identity/country/language)
-  // existent avant de leur envoyer un heartbeat. Idempotent.
+  // Garantit que les moteurs du catalogue existent avant heartbeat. Idempotent.
   try {
     await ensureSeeded();
   } catch (err) {

@@ -45,6 +45,8 @@ import { permissionEngineRouter } from "./permission-engine/router.js";
 import { redirectionEngineRouter } from "./redirection-engine/router.js";
 import { engineRegistryRouter } from "./engine-registry/router.js";
 import { paymentEngineRouter } from "./payment-engine/router.js";
+// Moteurs centraux — Coordination Intelligence & Décision + Supervision & Opérations (Phase 55)
+import { centralEnginesRouter } from "./central-engines/router.js";
 // Identity OS — moteur d'identité universel (Sprint 1)
 import { identityRouter } from "./identity-os/router.js";
 // Country OS + Language OS — registres mondiaux (règle MOS #15)
@@ -153,6 +155,8 @@ export const appRouter = router({
   redirectionEngine: redirectionEngineRouter,
   engineRegistry: engineRegistryRouter,
   paymentEngine: paymentEngineRouter,
+  // Coordination des deux moteurs centraux (Phase 55)
+  centralEngines: centralEnginesRouter,
   // Identity OS — moteur transversal fondateur (namespace `identity.*`)
   identity: identityRouter,
   // Country OS + Language OS — registres mondiaux (règle MOS #15)
