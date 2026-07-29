@@ -74,6 +74,8 @@ import { contractOsRouter } from "./contract-os/index.js";
 import { messagingOsRouter } from "./messaging-os/index.js";
 // Support OS — priorités/file/suivi au-dessus des tickets (règle MOS #15)
 import { supportOsRouter } from "./support-os/index.js";
+// AI Learning OS — supervision (lecture seule) de l'apprentissage du Smart Engine (Phase 54)
+import { aiLearningOsRouter } from "./ai-learning-os/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -170,6 +172,7 @@ export const appRouter = router({
   contractOs: contractOsRouter,
   messagingOs: messagingOsRouter,
   supportOs: supportOsRouter,
+  aiLearningOs: aiLearningOsRouter,
 });
 
 export type AppRouter = typeof appRouter;
