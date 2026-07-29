@@ -33,6 +33,11 @@ interface RaiseInput {
   targetType?: string;
   targetId?: number;
   signature: string; // clé de dédup stable
+  // Horodatage de la dernière occurrence RÉELLE du problème. Si fourni, on ne
+  // ré-ouvre pas une alerte déjà résolue tant qu'aucune nouvelle occurrence
+  // n'est survenue APRÈS la résolution (évite le retour en boucle des 404
+  // historiques après « Résolu » / « Analyser maintenant »).
+  lastOccurredAt?: Date;
 }
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -40,7 +45,7 @@ const DAY = 24 * 60 * 60 * 1000;
 /**
  * Lève une alerte si aucune alerte OUVERTE avec la même signature n'existe
  * déjà. On ne réveille pas une alerte déjà traitée (resolved/dismissed) tant
- * que le problème n'est pas re-détecté après résolution.
+ * que le problème n'est pas re-détecté APRÈS la résolution.
  */
 async function raiseAlert(input: RaiseInput): Promise<boolean> {
   const existing = await db
@@ -55,6 +60,23 @@ async function raiseAlert(input: RaiseInput): Promise<boolean> {
     .limit(1);
 
   if (existing.length > 0) return false;
+
+  // Déjà traitée ? On ne rouvre que si le problème est réapparu après coup.
+  const [lastResolved] = await db
+    .select({ resolvedAt: smartAlerts.resolvedAt, createdAt: smartAlerts.createdAt })
+    .from(smartAlerts)
+    .where(
+      and(
+        sql`${smartAlerts.status} in ('resolved','dismissed','acknowledged')`,
+        sql`${smartAlerts.metadata}->>'signature' = ${input.signature}`,
+      ),
+    )
+    .orderBy(sql`coalesce(${smartAlerts.resolvedAt}, ${smartAlerts.createdAt}) desc`)
+    .limit(1);
+  if (lastResolved && input.lastOccurredAt) {
+    const resolvedAt = lastResolved.resolvedAt ?? lastResolved.createdAt;
+    if (resolvedAt && input.lastOccurredAt.getTime() <= resolvedAt.getTime()) return false;
+  }
 
   await db.insert(smartAlerts).values({
     category: input.category,
@@ -104,6 +126,7 @@ export async function runAlertScan() {
     .select({
       key: redirLogs.key,
       n: sql<number>`count(*)::int`,
+      lastAt: sql<Date>`max(${redirLogs.createdAt})`,
     })
     .from(redirLogs)
     .where(and(eq(redirLogs.matched, false), gte(redirLogs.createdAt, since7d)))
@@ -118,6 +141,7 @@ export async function runAlertScan() {
       description: `Le bouton/lien « ${u.key} » a été sollicité ${u.n} fois sans règle de redirection active (7 derniers jours).`,
       level: u.n >= 5 ? "important" : "warning",
       signature: `redir:${u.key}`,
+      lastOccurredAt: u.lastAt ? new Date(u.lastAt) : undefined,
     });
   }
 

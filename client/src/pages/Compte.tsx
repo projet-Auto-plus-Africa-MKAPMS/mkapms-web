@@ -338,7 +338,7 @@ export default function Compte() {
         className="mt-0 fixed inset-0 z-50 overflow-y-auto bg-white"
       >
         {/* En-tête : bouton Retour + titre du groupe + sous-onglets si plusieurs */}
-        <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-4 py-3">
+        <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-4 pb-3" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}>
           <div className="flex items-center gap-3">
             <button
               onClick={goBack}

@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import {
+  REGION_CITIES,
+  REGION_NAMES,
+  regionOfCity,
+  nearbyCities,
+} from "../seo-geo.js";
 import { router, publicProcedure, protectedProcedure, adminProcedure } from "../trpc.js";
 import { generateProgrammaticPages } from "../seo-generator.js";
 import { submitIndexNow, pingSitemaps } from "../seo-indexing.js";
@@ -25,6 +31,7 @@ import {
   seoBlogArticles,
   seoConfig,
   annonces,
+  annoncePhotos,
   garagesPublics,
 } from "../schema.js";
 
@@ -159,6 +166,113 @@ export const seoRouter = router({
         .where(eq(seoPages.slug, input.slug))
         .limit(1);
       return page || null;
+    }),
+
+  /**
+   * Véhicules pour une page géographique (ville / région), avec repli
+   * automatique : ville → région (villes voisines) → national. Évite les
+   * pages ville vides : « véhicules à Paris » retombe sur l'Île-de-France
+   * s'il n'y a pas d'annonce exactement à Paris.
+   */
+  annoncesNearLocation: publicProcedure
+    .input(
+      z.object({
+        city: z.string().optional(),
+        regionSlug: z.string().optional(),
+        limit: z.number().min(1).max(48).default(12),
+      }),
+    )
+    .query(async ({ input }) => {
+      const limit = input.limit;
+
+      const withPhotos = async (rows: (typeof annonces.$inferSelect)[]) => {
+        const ids = rows.map((r) => r.id);
+        const photos = ids.length
+          ? await db
+              .select()
+              .from(annoncePhotos)
+              .where(sql`${annoncePhotos.annonceId} in (${sql.join(ids, sql`, `)})`)
+              .orderBy(annoncePhotos.ordre)
+          : [];
+        const map = new Map<number, string>();
+        for (const p of photos) if (!map.has(p.annonceId!)) map.set(p.annonceId!, p.url);
+        return rows.map((r) => ({
+          id: r.id,
+          slug: r.slug,
+          titre: r.titre,
+          marque: r.marque,
+          modele: r.modele,
+          annee: r.annee,
+          prix: r.prix,
+          ville: r.ville,
+          type: r.type,
+          photoPrincipale: map.get(r.id) ?? null,
+        }));
+      };
+
+      const queryByCities = async (cities: string[]) => {
+        if (!cities.length) return [];
+        const clause = or(...cities.map((c) => ilike(annonces.ville, `%${c}%`)));
+        return db
+          .select()
+          .from(annonces)
+          .where(and(eq(annonces.status, "publiee"), clause))
+          .orderBy(desc(annonces.boosted), desc(annonces.publishedAt), desc(annonces.createdAt))
+          .limit(limit);
+      };
+
+      // 1. Ville exacte
+      if (input.city) {
+        const exact = await queryByCities([input.city]);
+        if (exact.length > 0) {
+          return {
+            scope: "ville" as const,
+            locationLabel: input.city,
+            nearby: nearbyCities(input.city),
+            items: await withPhotos(exact),
+          };
+        }
+        // 2. Repli région de la ville
+        const region = regionOfCity(input.city);
+        if (region) {
+          const regional = await queryByCities(REGION_CITIES[region]);
+          if (regional.length > 0) {
+            return {
+              scope: "region" as const,
+              locationLabel: REGION_NAMES[region],
+              nearby: nearbyCities(input.city),
+              items: await withPhotos(regional),
+            };
+          }
+        }
+      }
+
+      // Page région directe
+      if (!input.city && input.regionSlug && REGION_CITIES[input.regionSlug]) {
+        const regional = await queryByCities(REGION_CITIES[input.regionSlug]);
+        if (regional.length > 0) {
+          return {
+            scope: "region" as const,
+            locationLabel: REGION_NAMES[input.regionSlug] ?? input.regionSlug,
+            nearby: REGION_CITIES[input.regionSlug].slice(0, 8),
+            items: await withPhotos(regional),
+          };
+        }
+      }
+
+      // 3. Repli national
+      const national = await db
+        .select()
+        .from(annonces)
+        .where(eq(annonces.status, "publiee"))
+        .orderBy(desc(annonces.boosted), desc(annonces.publishedAt), desc(annonces.createdAt))
+        .limit(limit);
+      return {
+        scope: "national" as const,
+        locationLabel: null,
+        nearby: input.city ? nearbyCities(input.city) : [],
+        items: await withPhotos(national),
+      };
     }),
 
   // Sitemap dynamique (retourne les URLs à indexer)
