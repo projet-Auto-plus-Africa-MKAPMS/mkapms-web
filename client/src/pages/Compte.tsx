@@ -382,10 +382,10 @@ export default function Compte() {
       </div>
       )}
 
-      {/* ── Sous la liste des sections : Noter l'application (particuliers) puis Version ── */}
+      {/* ── Sous la liste des sections : Noter l'application (tous comptes) puis Version ── */}
       {!activeGroup && (
         <div className="mt-6 space-y-4">
-          {!isPro(user.role) && !isAdmin(user.role) && <AppFeedbackSection />}
+          <AppFeedbackSection />
           <VersionSection />
         </div>
       )}
