@@ -84,6 +84,49 @@ export async function getPageStats(days = 30) {
   return rows;
 }
 
+/**
+ * Visites par jour depuis la mise en ligne (ou sur `days` jours).
+ * Renvoie une série chronologique (une ligne par jour) + un résumé
+ * (total, moyenne/jour, meilleur jour, tendance 7 derniers jours vs 7 précédents).
+ */
+export async function getDailyVisits(days = 30) {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const rows = await db
+    .select({
+      day: sql<string>`to_char(date_trunc('day', ${smartActivityLog.createdAt}), 'YYYY-MM-DD')`,
+      visits: sql<number>`count(*)::int`,
+      uniqueVisitors: sql<number>`count(distinct ${smartActivityLog.userId})::int`,
+      uniquePages: sql<number>`count(distinct (${smartActivityLog.data}->>'page'))::int`,
+      mobile: sql<number>`count(*) filter (where ${smartActivityLog.data}->>'device' = 'mobile')::int`,
+      desktop: sql<number>`count(*) filter (where ${smartActivityLog.data}->>'device' = 'desktop')::int`,
+    })
+    .from(smartActivityLog)
+    .where(and(
+      eq(smartActivityLog.action, "page.visit"),
+      gte(smartActivityLog.createdAt, since),
+    ))
+    .groupBy(sql`date_trunc('day', ${smartActivityLog.createdAt})`)
+    .orderBy(sql`date_trunc('day', ${smartActivityLog.createdAt}) asc`);
+
+  const totalVisits = rows.reduce((s, r) => s + r.visits, 0);
+  const activeDays = rows.length;
+  const avgPerDay = activeDays > 0 ? Math.round(totalVisits / activeDays) : 0;
+  const best = rows.reduce<{ day: string; visits: number } | null>(
+    (acc, r) => (!acc || r.visits > acc.visits ? { day: r.day, visits: r.visits } : acc),
+    null,
+  );
+
+  // Tendance : somme des 7 derniers jours vs les 7 précédents.
+  const last7 = rows.slice(-7).reduce((s, r) => s + r.visits, 0);
+  const prev7 = rows.slice(-14, -7).reduce((s, r) => s + r.visits, 0);
+  const trendPct = prev7 > 0 ? Math.round(((last7 - prev7) / prev7) * 100) : null;
+
+  return {
+    series: rows,
+    summary: { totalVisits, activeDays, avgPerDay, best, last7, prev7, trendPct },
+  };
+}
+
 export async function getUserBehaviorProfile(userId: number) {
   const views = await db
     .select({

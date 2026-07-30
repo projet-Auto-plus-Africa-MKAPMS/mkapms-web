@@ -31,7 +31,7 @@ import { analyzeReviews, getReviewAlerts } from "./services/review-analysis.js";
 import { validateAnnonceUnivers, getMisplacedAnnonces } from "./services/annonce-validator.js";
 import { validateBadges, getBadgeAlerts } from "./services/badge-validator.js";
 import { reportHealthCheck, getHealthStatus, getBrokenElements, registerCriticalElements } from "./services/health-monitor.js";
-import { trackPageVisit, trackUserAction, getPageStats, getUserBehaviorProfile, getActiveUsers, getPlatformPulse } from "./services/behavior-tracking.js";
+import { trackPageVisit, trackUserAction, getPageStats, getUserBehaviorProfile, getActiveUsers, getPlatformPulse, getDailyVisits } from "./services/behavior-tracking.js";
 import { teach, getConversation, getTeachingStats } from "./services/teaching.js";
 import { seedKnowledge, addKnowledge, listKnowledge, markApplied, getKnowledgeStats, KNOWLEDGE_CATEGORIES } from "./services/knowledge.js";
 import { getEnginesOverview } from "./services/connectors.js";
@@ -381,6 +381,12 @@ export const smartEngineRouter = router({
     .input(z.object({ days: z.number().default(7) }).optional())
     .query(async ({ input }) => {
       return getPlatformPulse(input?.days ?? 7);
+    }),
+
+  dailyVisits: directionProcedure
+    .input(z.object({ days: z.number().min(1).max(365).default(30) }).optional())
+    .query(async ({ input }) => {
+      return getDailyVisits(input?.days ?? 30);
     }),
 
   // ── Dashboard global (Centre de contrôle) ──────────────────────────
