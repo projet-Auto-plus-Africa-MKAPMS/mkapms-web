@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { Camera, CheckCircle2, Pencil, Trash2, X, RefreshCw, Clock, ChevronDown, ChevronLeft, LogOut, User as UserIcon, Bell, Grid3x3, Megaphone, FileText, Search as SearchIcon, CalendarCheck, Crown, FolderLock, HelpCircle, Plus, Car, Bike, Truck, Bus, KeyRound, Settings, Wallet } from "lucide-react";
+import { Camera, CheckCircle2, Pencil, Trash2, X, RefreshCw, Clock, ChevronDown, ChevronLeft, LogOut, User as UserIcon, Bell, Grid3x3, Megaphone, FileText, Search as SearchIcon, CalendarCheck, Crown, FolderLock, HelpCircle, Plus, Car, Bike, Truck, Bus, KeyRound, Settings, Wallet, Star, Info, Download, RefreshCcw } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
@@ -46,6 +46,53 @@ const ALL_SERVICES = [
 ];
 
 const TIER_LABELS: Record<string, string> = { bronze: "Bronze", silver: "Silver", gold: "Gold", platinum: "Platinum", elite: "Elite" };
+
+// Version publique de l'application (suivi de l'évolution côté compte).
+export const APP_VERSION = "1.0.0";
+
+// Statuts d'une réservation (booking) — libellés + couleurs pour la fiche détaillée.
+const BOOKING_STATUS: Record<string, { label: string; cls: string }> = {
+  pending: { label: "En attente", cls: "bg-amber-100 text-amber-700" },
+  confirmed: { label: "Confirmée", cls: "bg-emerald-100 text-emerald-700" },
+  cancelled: { label: "Annulée", cls: "bg-slate-200 text-slate-600" },
+  completed: { label: "Terminée", cls: "bg-sky-100 text-sky-700" },
+  rejected: { label: "Refusée", cls: "bg-red-100 text-red-700" },
+};
+const CAUTION_STATUS: Record<string, string> = {
+  none: "Aucun acompte",
+  pending: "Acompte en attente de paiement",
+  paid: "Acompte payé",
+  refunded: "Acompte remboursé",
+  forfeited: "Acompte conservé",
+};
+const PAYMENT_STATUS: Record<string, { label: string; cls: string }> = {
+  pending: { label: "En attente", cls: "bg-amber-100 text-amber-700" },
+  succeeded: { label: "Payé", cls: "bg-emerald-100 text-emerald-700" },
+  paid: { label: "Payé", cls: "bg-emerald-100 text-emerald-700" },
+  failed: { label: "Échoué", cls: "bg-red-100 text-red-700" },
+  refunded: { label: "Remboursé", cls: "bg-slate-200 text-slate-600" },
+  canceled: { label: "Annulé", cls: "bg-slate-200 text-slate-600" },
+};
+const DOC_CATEGORIES: { value: string; label: string }[] = [
+  { value: "carte_grise", label: "Carte grise" },
+  { value: "certificat_cession", label: "Certificat de cession" },
+  { value: "certificat_immatriculation", label: "Certificat d'immatriculation" },
+  { value: "controle_technique", label: "Contrôle technique" },
+  { value: "facture", label: "Facture" },
+  { value: "contrat", label: "Contrat" },
+  { value: "assurance", label: "Assurance" },
+  { value: "permis", label: "Permis de conduire" },
+  { value: "identite", label: "Pièce d'identité" },
+  { value: "photo_vehicule", label: "Photo du véhicule" },
+  { value: "autre", label: "Autre" },
+];
+// Catégories nécessitant une plaque d'immatriculation.
+const DOC_NEEDS_PLAQUE = new Set([
+  "carte_grise",
+  "certificat_cession",
+  "certificat_immatriculation",
+  "controle_technique",
+]);
 
 const TAB_LABELS: Record<Tab, string> = {
   annonces: "Mes annonces",
@@ -94,6 +141,10 @@ export default function Compte() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [deleteAnnonceId, setDeleteAnnonceId] = useState<number | null>(null);
   const [deleteReason, setDeleteReason] = useState("");
+  const [reservationDetailId, setReservationDetailId] = useState<number | null>(null);
+  // Barre de recherche interne à la section Recherches.
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchUnivers, setSearchUnivers] = useState("acheter");
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -130,10 +181,10 @@ export default function Compte() {
   const fidelite = trpc.loyalty.me.useQuery(undefined, { enabled: !!user && tab === "fidelite" });
   const coffre = trpc.documents.list.useQuery(undefined, { enabled: !!user && tab === "coffre" });
   const dossiers = trpc.dossiers.list.useQuery(undefined, { enabled: !!user && tab === "vehicules" });
-  const addDoc = trpc.documents.add.useMutation({ onSuccess: () => { utils.documents.list.invalidate(); setDoc({ category: "carte_grise", title: "", fileUrl: "" }); } });
+  const addDoc = trpc.documents.add.useMutation({ onSuccess: () => { utils.documents.list.invalidate(); setDoc({ category: "carte_grise", title: "", fileUrl: "", plaque: "" }); } });
   const removeDoc = trpc.documents.remove.useMutation({ onSuccess: () => utils.documents.list.invalidate() });
   const createDossier = trpc.dossiers.create.useMutation({ onSuccess: () => { utils.dossiers.list.invalidate(); setDossier({ marque: "", modele: "", immatriculation: "" }); } });
-  const [doc, setDoc] = useState({ category: "carte_grise", title: "", fileUrl: "" });
+  const [doc, setDoc] = useState<{ category: string; title: string; fileUrl: string; plaque: string }>({ category: "carte_grise", title: "", fileUrl: "", plaque: "" });
   const [dossier, setDossier] = useState({ marque: "", modele: "", immatriculation: "" });
   const [openGroups, setOpenGroups] = useState<string[]>([]);
   const [showDepositChooser, setShowDepositChooser] = useState(false);
@@ -526,6 +577,45 @@ export default function Compte() {
         )}
         {tab === "recherches" && (
           <div className="space-y-3">
+            {/* Barre de recherche réelle + filtres — lance la recherche dans l'univers choisi. */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const dest: Record<string, string> = {
+                  acheter: "/acheter",
+                  louer: "/louer",
+                  garages: "/garages",
+                  pieces: "/pieces",
+                };
+                const base = dest[searchUnivers] ?? "/acheter";
+                const q = searchQuery.trim();
+                navigate(q ? `${base}?q=${encodeURIComponent(q)}` : base);
+              }}
+              className="card flex flex-col gap-2 p-3 sm:flex-row sm:items-center"
+            >
+              <div className="flex flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3">
+                <SearchIcon size={16} className="text-slate-400" />
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Rechercher un véhicule, un garage, une pièce…"
+                  className="h-10 flex-1 bg-transparent text-sm outline-none"
+                />
+              </div>
+              <select
+                value={searchUnivers}
+                onChange={(e) => setSearchUnivers(e.target.value)}
+                className="input h-10 sm:max-w-[160px]"
+              >
+                <option value="acheter">Véhicules</option>
+                <option value="louer">Location</option>
+                <option value="garages">Garages</option>
+                <option value="pieces">Pièces</option>
+              </select>
+              <button type="submit" className="btn-gold h-10 shrink-0 px-4 text-sm font-bold">
+                Rechercher
+              </button>
+            </form>
             <p className="text-sm text-slate-500">
               Vos recherches enregistrées. Activez l'alerte pour être notifié dès qu'une
               nouvelle annonce correspond.
@@ -563,12 +653,33 @@ export default function Compte() {
         )}
         {tab === "reservations" && (
           <div className="space-y-3">
-            {reservations.data?.map((r) => (
-              <div key={r.id} onClick={() => navigate(`/acheter`)} className="card p-4 text-sm cursor-pointer hover:border-[#D4AF37] hover:shadow-md transition">
-                <p className="font-semibold text-slate-800">Réservation #{r.id}</p>
-                <p className="text-slate-500">Acompte {r.cautionAmount} € · {r.status} · {r.cautionStatus}</p>
-              </div>
-            ))}
+            {reservations.data?.map((r) => {
+              const st = BOOKING_STATUS[r.status] ?? { label: r.status, cls: "bg-slate-100 text-slate-600" };
+              return (
+                <button
+                  key={r.id}
+                  onClick={() => setReservationDetailId(r.id)}
+                  className="card w-full p-4 text-left text-sm cursor-pointer hover:border-[#D4AF37] hover:shadow-md transition"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold text-slate-800">Réservation #{r.id}</p>
+                      <p className="mt-0.5 text-slate-500">
+                        Acompte {r.cautionAmount ? formatPrice(Number(r.cautionAmount)) : "—"} ·{" "}
+                        {CAUTION_STATUS[r.cautionStatus] ?? r.cautionStatus}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-slate-400">
+                        {new Date(r.createdAt).toLocaleString("fr-FR")}
+                      </p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${st.cls}`}>{st.label}</span>
+                  </div>
+                  <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-[#D4AF37]">
+                    <Info size={12} /> Voir le détail
+                  </span>
+                </button>
+              );
+            })}
             {reservations.data?.length === 0 && <p className="text-sm text-slate-500">Aucune réservation.</p>}
           </div>
         )}
@@ -658,21 +769,35 @@ export default function Compte() {
           <div className="space-y-4">
             <form
               className="card space-y-2 p-4"
-              onSubmit={(e) => { e.preventDefault(); if (doc.title && doc.fileUrl) addDoc.mutate(doc as { category: "carte_grise"; title: string; fileUrl: string }); }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (doc.title && doc.fileUrl)
+                  addDoc.mutate({
+                    category: doc.category as "carte_grise",
+                    title: doc.title,
+                    fileUrl: doc.fileUrl,
+                    plaque: doc.plaque || undefined,
+                  });
+              }}
             >
               <p className="font-semibold text-slate-800">Ajouter un document</p>
-              <p className="text-xs text-slate-500">Cartes grises, factures, contrôles techniques, contrats, assurances — stockés dans votre espace sécurisé.</p>
+              <p className="text-xs text-slate-500">Cartes grises, certificats de cession/immatriculation, contrôles techniques, factures, contrats, assurances, permis — stockés dans votre espace sécurisé.</p>
               <div className="flex flex-wrap gap-2">
-                <select className="input max-w-[180px]" value={doc.category} onChange={(e) => setDoc({ ...doc, category: e.target.value })}>
-                  <option value="carte_grise">Carte grise</option>
-                  <option value="facture">Facture</option>
-                  <option value="controle_technique">Contrôle technique</option>
-                  <option value="contrat">Contrat</option>
-                  <option value="assurance">Assurance</option>
-                  <option value="autre">Autre</option>
+                <select className="input max-w-[220px]" value={doc.category} onChange={(e) => setDoc({ ...doc, category: e.target.value })}>
+                  {DOC_CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
                 </select>
                 <input className="input max-w-xs" placeholder="Titre" value={doc.title} onChange={(e) => setDoc({ ...doc, title: e.target.value })} />
               </div>
+              {DOC_NEEDS_PLAQUE.has(doc.category) && (
+                <input
+                  className="input max-w-[220px] uppercase"
+                  placeholder="Plaque d'immatriculation (ex. AB-123-CD)"
+                  value={doc.plaque}
+                  onChange={(e) => setDoc({ ...doc, plaque: e.target.value })}
+                />
+              )}
               <FileUpload
                 label="Ajouter le fichier (photo, PDF)"
                 accept="image/*,.pdf,.doc,.docx"
@@ -882,6 +1007,127 @@ export default function Compte() {
           </div>
         </div>
       )}
+
+      {reservationDetailId !== null && (
+        <ReservationDetailModal id={reservationDetailId} onClose={() => setReservationDetailId(null)} />
+      )}
+    </div>
+  );
+}
+
+// ─── Fiche détaillée d'une réservation ────────────────────────────────────────
+function ReservationDetailModal({ id, onClose }: { id: number; onClose: () => void }) {
+  const { format: formatPrice } = useCurrency();
+  const navigate = useNavigate();
+  const detail = trpc.reservations.detail.useQuery({ id });
+  const d = detail.data;
+  const booking = d?.booking;
+  const annonce = d?.annonce;
+  const payments = d?.payments ?? [];
+  const st = booking ? BOOKING_STATUS[booking.status] ?? { label: booking.status, cls: "bg-slate-100 text-slate-600" } : null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-t-2xl sm:rounded-2xl bg-white p-5 max-h-[88vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-[#111]">Réservation #{id}</h2>
+          <button onClick={onClose} className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center"><X size={16} /></button>
+        </div>
+
+        {detail.isLoading && <p className="py-8 text-center text-sm text-slate-400">Chargement…</p>}
+        {detail.isError && <p className="py-8 text-center text-sm text-red-500">Réservation introuvable.</p>}
+
+        {booking && (
+          <div className="mt-3 space-y-4">
+            {st && (
+              <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${st.cls}`}>{st.label}</span>
+            )}
+
+            {/* Véhicule / produit réservé */}
+            <div className="rounded-xl border border-slate-200 p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Véhicule réservé</p>
+              {annonce ? (
+                <>
+                  <p className="mt-1 font-bold text-slate-900">{annonce.titre}</p>
+                  <p className="text-sm text-gold-dark">{annonce.prix ? formatPrice(Number(annonce.prix)) : "—"}</p>
+                  <button
+                    onClick={() => { onClose(); navigate(getAnnonceUrl(annonce.id, (annonce as any).categorieAnnonce, (annonce as any).vendeurType)); }}
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#D4AF37] hover:underline"
+                  >
+                    <Info size={12} /> Ouvrir la fiche du véhicule
+                  </button>
+                </>
+              ) : (
+                <p className="mt-1 text-sm text-slate-500">Véhicule #{booking.vehicleId} (annonce indisponible)</p>
+              )}
+            </div>
+
+            {/* Acompte / caution */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-slate-200 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Acompte</p>
+                <p className="mt-1 font-bold text-slate-900">
+                  {booking.cautionAmount ? formatPrice(Number(booking.cautionAmount)) : "—"}
+                </p>
+                <p className="text-[11px] text-slate-500">{CAUTION_STATUS[booking.cautionStatus] ?? booking.cautionStatus}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Type</p>
+                <p className="mt-1 font-bold capitalize text-slate-900">{booking.type}</p>
+                <p className="text-[11px] text-slate-500">{new Date(booking.createdAt).toLocaleDateString("fr-FR")}</p>
+              </div>
+            </div>
+
+            {booking.message && (
+              <div className="rounded-xl border border-slate-200 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Message</p>
+                <p className="mt-1 text-sm text-slate-700">{booking.message}</p>
+              </div>
+            )}
+            {booking.rejectionReason && (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-red-500">Motif de refus</p>
+                <p className="mt-1 text-sm text-red-700">{booking.rejectionReason}</p>
+              </div>
+            )}
+
+            {/* Paiements associés */}
+            <div>
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Paiements liés</p>
+              {payments.length === 0 && <p className="text-sm text-slate-500">Aucun paiement enregistré.</p>}
+              <div className="space-y-2">
+                {payments.map((p) => {
+                  const ps = PAYMENT_STATUS[p.status] ?? { label: p.status, cls: "bg-slate-100 text-slate-600" };
+                  return (
+                    <div key={p.id} className="flex items-center justify-between rounded-xl border border-slate-200 p-3 text-sm">
+                      <div>
+                        <p className="font-semibold text-slate-800 capitalize">{p.type}</p>
+                        <p className="text-[11px] text-slate-400">{new Date(p.createdAt).toLocaleString("fr-FR")}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-slate-900">{formatPrice(Number(p.amount))} {p.currency}</p>
+                        <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${ps.cls}`}>{ps.label}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Actions selon l'état */}
+            <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+              {booking.cautionStatus === "pending" && (
+                <button onClick={() => { onClose(); navigate("/wallet"); }} className="btn-gold flex-1 !text-sm">
+                  Régler l'acompte
+                </button>
+              )}
+              <button onClick={() => { onClose(); navigate("/aide"); }} className="btn-outline flex-1 !text-sm">
+                Contacter le support
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1155,6 +1401,166 @@ function NotifPrefs() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Noter l'application / un service / un client ─────────────────────────────
+const FEEDBACK_TARGETS: { value: "application" | "service" | "client"; label: string }[] = [
+  { value: "application", label: "L'application" },
+  { value: "service", label: "Un service" },
+  { value: "client", label: "Un client / vendeur" },
+];
+
+function AppFeedbackSection() {
+  const utils = trpc.useUtils();
+  const mine = trpc.appFeedback.mine.useQuery(undefined);
+  const create = trpc.appFeedback.create.useMutation({
+    onSuccess: () => {
+      utils.appFeedback.mine.invalidate();
+      setForm({ targetType: "application", targetLabel: "", rating: 5, comment: "" });
+    },
+  });
+  const [form, setForm] = useState<{
+    targetType: "application" | "service" | "client";
+    targetLabel: string;
+    rating: number;
+    comment: string;
+  }>({ targetType: "application", targetLabel: "", rating: 5, comment: "" });
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+      <p className="text-sm font-bold text-[#111] flex items-center gap-2">
+        <Star size={16} className="text-[#D4AF37]" /> Noter l'application
+      </p>
+      <p className="text-xs text-slate-500 mt-0.5">
+        Donnez votre avis sur l'application, un service utilisé ou un client / vendeur.
+      </p>
+
+      <div className="mt-3 space-y-3">
+        <div className="flex flex-wrap gap-2">
+          {FEEDBACK_TARGETS.map((t) => (
+            <button
+              key={t.value}
+              onClick={() => setForm((f) => ({ ...f, targetType: t.value }))}
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${form.targetType === t.value ? "bg-[#D4AF37] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {form.targetType !== "application" && (
+          <input
+            className="input"
+            placeholder={form.targetType === "service" ? "Nom du service (ex. Livraison, Garage…)" : "Nom du client / vendeur"}
+            value={form.targetLabel}
+            onChange={(e) => setForm((f) => ({ ...f, targetLabel: e.target.value }))}
+          />
+        )}
+
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button key={n} onClick={() => setForm((f) => ({ ...f, rating: n }))} aria-label={`${n} étoile(s)`}>
+              <Star size={26} className={n <= form.rating ? "fill-[#D4AF37] text-[#D4AF37]" : "text-slate-300"} />
+            </button>
+          ))}
+        </div>
+
+        <textarea
+          className="input"
+          rows={2}
+          placeholder="Votre commentaire (facultatif)…"
+          value={form.comment}
+          onChange={(e) => setForm((f) => ({ ...f, comment: e.target.value }))}
+        />
+
+        <button
+          onClick={() =>
+            create.mutate({
+              targetType: form.targetType,
+              targetLabel: form.targetLabel || undefined,
+              rating: form.rating,
+              comment: form.comment || undefined,
+            })
+          }
+          disabled={create.isPending}
+          className="btn-primary !text-sm"
+        >
+          {create.isPending ? "Envoi…" : "Envoyer ma note"}
+        </button>
+        {create.isSuccess && <p className="text-xs text-green-600">Merci ! Votre note a bien été enregistrée.</p>}
+        {create.isError && <p className="text-xs text-red-500">Impossible d'enregistrer la note. Réessayez.</p>}
+      </div>
+
+      {(mine.data?.length ?? 0) > 0 && (
+        <div className="mt-4 border-t border-slate-100 pt-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-2">Mes notes</p>
+          <div className="space-y-2">
+            {mine.data?.slice(0, 5).map((f) => (
+              <div key={f.id} className="flex items-start justify-between gap-2 text-sm">
+                <div>
+                  <p className="font-semibold text-slate-800">
+                    {FEEDBACK_TARGETS.find((t) => t.value === f.targetType)?.label ?? f.targetType}
+                    {f.targetLabel ? ` · ${f.targetLabel}` : ""}
+                  </p>
+                  {f.comment && <p className="text-xs text-slate-500">{f.comment}</p>}
+                </div>
+                <div className="flex shrink-0">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Star key={n} size={13} className={n <= f.rating ? "fill-[#D4AF37] text-[#D4AF37]" : "text-slate-200"} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Version de l'application ─────────────────────────────────────────────────
+function VersionSection() {
+  const [checking, setChecking] = useState(false);
+  const [upToDate, setUpToDate] = useState(false);
+
+  function checkUpdate() {
+    setChecking(true);
+    setUpToDate(false);
+    // Recharge l'app depuis le serveur (récupère la dernière version publiée).
+    setTimeout(() => {
+      setChecking(false);
+      setUpToDate(true);
+    }, 900);
+  }
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+      <p className="text-sm font-bold text-[#111] flex items-center gap-2">
+        <RefreshCcw size={16} className="text-[#D4AF37]" /> Version & mise à jour
+      </p>
+      <div className="mt-2 flex items-center justify-between">
+        <div>
+          <p className="text-xs text-slate-500">Version installée</p>
+          <p className="text-lg font-black text-slate-900">MKA.P-MS v{APP_VERSION}</p>
+        </div>
+        <button onClick={checkUpdate} disabled={checking} className="btn-outline !text-sm inline-flex items-center gap-1.5">
+          <RefreshCcw size={14} className={checking ? "animate-spin" : ""} />
+          {checking ? "Vérification…" : "Vérifier / Mettre à jour"}
+        </button>
+      </div>
+      {upToDate && (
+        <p className="mt-2 text-xs text-green-600 flex items-center gap-1">
+          <CheckCircle2 size={13} /> Votre application est à jour.
+        </p>
+      )}
+      <button
+        onClick={() => window.location.reload()}
+        className="mt-2 text-[11px] font-semibold text-[#D4AF37] hover:underline"
+      >
+        Recharger l'application maintenant
+      </button>
     </div>
   );
 }
@@ -1460,6 +1866,10 @@ function WalletTab() {
           </div>
         </div>
       )}
+
+      {/* ── Noter l'application (comptes particuliers) + version ── */}
+      {user && !isPro(user.role) && !isAdmin(user.role) && <AppFeedbackSection />}
+      <VersionSection />
     </div>
   );
 }

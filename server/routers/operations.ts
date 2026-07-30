@@ -676,21 +676,44 @@ export const documentsRouter = router({
   add: protectedProcedure
     .input(
       z.object({
-        category: z.enum(["carte_grise", "facture", "controle_technique", "contrat", "assurance", "autre"]).default("autre"),
+        category: z
+          .enum([
+            "carte_grise",
+            "certificat_cession",
+            "certificat_immatriculation",
+            "controle_technique",
+            "facture",
+            "contrat",
+            "assurance",
+            "permis",
+            "identite",
+            "photo_vehicule",
+            "autre",
+          ])
+          .default("autre"),
         title: z.string().min(1).max(255),
         fileUrl: z.string().url(),
         fileName: z.string().max(255).optional(),
+        // Plaque d'immatriculation (carte grise, cession, CT…).
+        plaque: z.string().max(16).optional(),
         notes: z.string().max(2000).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      // La plaque est conservée en tête des notes pour rester recherchable.
+      const notes = [
+        input.plaque ? `Plaque : ${input.plaque.toUpperCase()}` : null,
+        input.notes ?? null,
+      ]
+        .filter(Boolean)
+        .join("\n") || null;
       const [d] = await db.insert(userDocuments).values({
         userId: ctx.user.uid,
         category: input.category,
         title: input.title,
         fileUrl: input.fileUrl,
         fileName: input.fileName ?? null,
-        notes: input.notes ?? null,
+        notes,
       }).returning();
       return d;
     }),

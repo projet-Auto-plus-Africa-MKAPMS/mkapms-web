@@ -78,6 +78,8 @@ import { messagingOsRouter } from "./messaging-os/index.js";
 import { supportOsRouter } from "./support-os/index.js";
 // AI Learning OS — supervision (lecture seule) de l'apprentissage du Smart Engine (Phase 54)
 import { aiLearningOsRouter } from "./ai-learning-os/index.js";
+// Notation par les comptes : application / service / client
+import { appFeedbackRouter } from "./routers/app-feedback.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -157,6 +159,8 @@ export const appRouter = router({
   paymentEngine: paymentEngineRouter,
   // Coordination des deux moteurs centraux (Phase 55)
   centralEngines: centralEnginesRouter,
+  // Notation de l'application / d'un service / d'un client
+  appFeedback: appFeedbackRouter,
   // Identity OS — moteur transversal fondateur (namespace `identity.*`)
   identity: identityRouter,
   // Country OS + Language OS — registres mondiaux (règle MOS #15)
