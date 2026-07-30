@@ -48,6 +48,9 @@ import {
   HeartPulse,
   Boxes,
   Gauge,
+  TrendingUp,
+  TrendingDown,
+  CalendarDays,
 } from "lucide-react";
 
 type Tab = "dashboard" | "etat" | "qualite" | "evolution" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
@@ -2045,8 +2048,13 @@ function ComportementTab() {
   const pageStats = trpc.smartEngine.pageStats.useQuery({ days: 30 });
   const activeUsers = trpc.smartEngine.activeUsers.useQuery();
   const pulse = trpc.smartEngine.platformPulse.useQuery({ days: 7 });
+  const daily = trpc.smartEngine.dailyVisits.useQuery({ days: 30 });
 
   if (pageStats.isLoading) return <Loading />;
+
+  const series = daily.data?.series ?? [];
+  const maxVisits = series.reduce((m, r) => Math.max(m, r.visits), 0);
+  const sum = daily.data?.summary;
 
   return (
     <div className="space-y-4">
@@ -2082,6 +2090,59 @@ function ComportementTab() {
         </div>
       </div>
       )}
+
+      {/* Visites par jour */}
+      <div>
+        <h3 className="text-sm font-bold text-[#111] mb-2 flex items-center gap-1.5">
+          <CalendarDays size={15} className="text-[#D4AF37]" /> Visites par jour — 30 jours
+        </h3>
+        {sum && sum.totalVisits > 0 ? (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <StatCard label="Total visites" value={sum.totalVisits} color="blue" icon={Eye} />
+              <StatCard label="Moyenne / jour" value={sum.avgPerDay} color="purple" icon={BarChart3} />
+              <StatCard label="Jours actifs" value={sum.activeDays} color="green" icon={CalendarDays} />
+              <div className="rounded-xl bg-white border border-[#E5E7EB] p-3">
+                <p className="text-[10px] font-semibold text-[#6B7280]">Tendance 7j</p>
+                {sum.trendPct === null ? (
+                  <p className="text-lg font-black text-[#6B7280]">—</p>
+                ) : (
+                  <p className={`text-lg font-black flex items-center gap-1 ${sum.trendPct >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                    {sum.trendPct >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                    {sum.trendPct >= 0 ? "+" : ""}{sum.trendPct}%
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {sum.best && (
+              <p className="text-[11px] text-[#6B7280]">
+                Meilleur jour : <span className="font-bold text-[#111]">{new Date(sum.best.day).toLocaleDateString("fr-FR")}</span> ({sum.best.visits} visites)
+              </p>
+            )}
+
+            <div className="rounded-xl bg-white border border-[#E5E7EB] p-3 space-y-1.5 max-h-72 overflow-y-auto">
+              {[...series].reverse().map((r) => (
+                <div key={r.day} className="flex items-center gap-2">
+                  <span className="w-16 shrink-0 text-[10px] text-[#6B7280]">
+                    {new Date(r.day).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })}
+                  </span>
+                  <div className="flex-1 h-4 rounded bg-[#F3F4F6] overflow-hidden">
+                    <div
+                      className="h-full bg-[#D4AF37]"
+                      style={{ width: maxVisits > 0 ? `${Math.max(3, (r.visits / maxVisits) * 100)}%` : "0%" }}
+                    />
+                  </div>
+                  <span className="w-10 shrink-0 text-right text-xs font-bold text-[#111]">{r.visits}</span>
+                  <span className="w-12 shrink-0 text-right text-[10px] text-[#6B7280]">{r.uniqueVisitors} uniq.</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <Empty msg="Aucune visite enregistrée sur la période — le système collecte en continu" />
+        )}
+      </div>
 
       {/* Pages les plus visitées */}
       <div>
