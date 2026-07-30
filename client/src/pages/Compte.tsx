@@ -382,6 +382,14 @@ export default function Compte() {
       </div>
       )}
 
+      {/* ── Sous la liste des sections : Noter l'application (particuliers) puis Version ── */}
+      {!activeGroup && (
+        <div className="mt-6 space-y-4">
+          {!isPro(user.role) && !isAdmin(user.role) && <AppFeedbackSection />}
+          <VersionSection />
+        </div>
+      )}
+
       {/* ── Vue sous-page plein écran (groupe actif) ── */}
       {activeGroup && (
       <div
@@ -1406,11 +1414,50 @@ function NotifPrefs() {
 }
 
 // ─── Noter l'application / un service / un client ─────────────────────────────
-const FEEDBACK_TARGETS: { value: "application" | "service" | "client"; label: string }[] = [
-  { value: "application", label: "L'application" },
-  { value: "service", label: "Un service" },
-  { value: "client", label: "Un client / vendeur" },
+type FeedbackTargetType = "application" | "service" | "client";
+
+const FEEDBACK_TARGETS: { value: FeedbackTargetType; label: string; hint: string }[] = [
+  { value: "application", label: "L'application", hint: "Notez la plateforme et ses fonctionnalités." },
+  { value: "service", label: "Un service", hint: "Notez un service que vous avez utilisé." },
+  { value: "client", label: "Un client / vendeur", hint: "Notez une personne avec qui vous avez échangé." },
 ];
+
+// Critères de qualité proposés selon la cible (stockés dans targetRef, sans nouvelle table).
+const FEEDBACK_ASPECTS: Record<FeedbackTargetType, string[]> = {
+  application: [
+    "Expérience générale",
+    "Facilité d'utilisation",
+    "Rapidité",
+    "Design & clarté",
+    "Fiabilité",
+    "Recherche & filtres",
+    "Messagerie",
+    "Notifications",
+    "Paiement",
+    "Support / aide",
+  ],
+  service: [
+    "Achat de véhicule",
+    "Location",
+    "Garage / entretien",
+    "Carrosserie",
+    "Pièces détachées",
+    "Contrôle technique",
+    "Démarches administratives",
+    "Dépannage / remorquage",
+    "Livraison / transport",
+    "Import / export",
+  ],
+  client: [
+    "Sérieux",
+    "Communication",
+    "Ponctualité",
+    "Honnêteté",
+    "Respect des engagements",
+    "Qualité du véhicule / bien",
+    "Paiement",
+  ],
+};
 
 function AppFeedbackSection() {
   const utils = trpc.useUtils();
@@ -1418,23 +1465,27 @@ function AppFeedbackSection() {
   const create = trpc.appFeedback.create.useMutation({
     onSuccess: () => {
       utils.appFeedback.mine.invalidate();
-      setForm({ targetType: "application", targetLabel: "", rating: 5, comment: "" });
+      setForm((f) => ({ ...f, aspect: "", targetLabel: "", rating: 5, comment: "" }));
     },
   });
   const [form, setForm] = useState<{
-    targetType: "application" | "service" | "client";
+    targetType: FeedbackTargetType;
+    aspect: string;
     targetLabel: string;
     rating: number;
     comment: string;
-  }>({ targetType: "application", targetLabel: "", rating: 5, comment: "" });
+  }>({ targetType: "application", aspect: "", targetLabel: "", rating: 5, comment: "" });
+
+  const activeTarget = FEEDBACK_TARGETS.find((t) => t.value === form.targetType);
+  const aspects = FEEDBACK_ASPECTS[form.targetType];
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
       <p className="text-sm font-bold text-[#111] flex items-center gap-2">
-        <Star size={16} className="text-[#D4AF37]" /> Noter l'application
+        <Star size={16} className="text-[#D4AF37]" /> Noter l'application &amp; nos services
       </p>
       <p className="text-xs text-slate-500 mt-0.5">
-        Donnez votre avis sur l'application, un service utilisé ou un client / vendeur.
+        Donnez votre avis sur l'application, un service utilisé ou un client / vendeur. Choisissez un critère puis mettez une note.
       </p>
 
       <div className="mt-3 space-y-3">
@@ -1442,18 +1493,35 @@ function AppFeedbackSection() {
           {FEEDBACK_TARGETS.map((t) => (
             <button
               key={t.value}
-              onClick={() => setForm((f) => ({ ...f, targetType: t.value }))}
+              onClick={() => setForm((f) => ({ ...f, targetType: t.value, aspect: "", targetLabel: "" }))}
               className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${form.targetType === t.value ? "bg-[#D4AF37] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
             >
               {t.label}
             </button>
           ))}
         </div>
+        {activeTarget && <p className="text-[11px] text-slate-400 -mt-1">{activeTarget.hint}</p>}
+
+        {/* Critères de qualité — plusieurs choix possibles selon la cible */}
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">Critère à noter</p>
+          <div className="flex flex-wrap gap-2">
+            {aspects.map((a) => (
+              <button
+                key={a}
+                onClick={() => setForm((f) => ({ ...f, aspect: f.aspect === a ? "" : a }))}
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${form.aspect === a ? "border-[#D4AF37] bg-[#FFFBEB] text-[#111]" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+              >
+                {a}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {form.targetType !== "application" && (
           <input
             className="input"
-            placeholder={form.targetType === "service" ? "Nom du service (ex. Livraison, Garage…)" : "Nom du client / vendeur"}
+            placeholder={form.targetType === "service" ? "Précisez (ex. nom du garage, société…)" : "Nom du client / vendeur"}
             value={form.targetLabel}
             onChange={(e) => setForm((f) => ({ ...f, targetLabel: e.target.value }))}
           />
@@ -1479,6 +1547,7 @@ function AppFeedbackSection() {
           onClick={() =>
             create.mutate({
               targetType: form.targetType,
+              targetRef: form.aspect || undefined,
               targetLabel: form.targetLabel || undefined,
               rating: form.rating,
               comment: form.comment || undefined,
@@ -1489,7 +1558,7 @@ function AppFeedbackSection() {
         >
           {create.isPending ? "Envoi…" : "Envoyer ma note"}
         </button>
-        {create.isSuccess && <p className="text-xs text-green-600">Merci ! Votre note a bien été enregistrée.</p>}
+        {create.isSuccess && <p className="text-xs text-green-600">Merci ! Votre note a bien été enregistrée. Vous pouvez en ajouter d'autres.</p>}
         {create.isError && <p className="text-xs text-red-500">Impossible d'enregistrer la note. Réessayez.</p>}
       </div>
 
@@ -1497,11 +1566,12 @@ function AppFeedbackSection() {
         <div className="mt-4 border-t border-slate-100 pt-3">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-2">Mes notes</p>
           <div className="space-y-2">
-            {mine.data?.slice(0, 5).map((f) => (
+            {mine.data?.slice(0, 8).map((f) => (
               <div key={f.id} className="flex items-start justify-between gap-2 text-sm">
                 <div>
                   <p className="font-semibold text-slate-800">
                     {FEEDBACK_TARGETS.find((t) => t.value === f.targetType)?.label ?? f.targetType}
+                    {f.targetRef ? ` · ${f.targetRef}` : ""}
                     {f.targetLabel ? ` · ${f.targetLabel}` : ""}
                   </p>
                   {f.comment && <p className="text-xs text-slate-500">{f.comment}</p>}
@@ -1866,10 +1936,6 @@ function WalletTab() {
           </div>
         </div>
       )}
-
-      {/* ── Noter l'application (comptes particuliers) + version ── */}
-      {user && !isPro(user.role) && !isAdmin(user.role) && <AppFeedbackSection />}
-      <VersionSection />
     </div>
   );
 }
