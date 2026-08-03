@@ -8,7 +8,8 @@ import {
   Truck, Zap, FileText, CreditCard, Phone, Settings, Eye, Navigation,
   Briefcase, Building2, Stethoscope, BadgeCheck, CarFront, Bus, HardHat,
   Fuel, History, Lock, Hammer, Receipt, Scale, Banknote, CircleDollarSign,
-  BookOpen, Cog, Sparkles, Play, Bell, MessageSquare, Wallet, User
+  BookOpen, Cog, Sparkles, Play, Bell, MessageSquare, Wallet, User,
+  Facebook, Instagram, Youtube, Linkedin, QrCode, RefreshCw, ThumbsUp
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { SmartLink } from "../lib/redirect";
@@ -120,6 +121,60 @@ function AnnonceCard({ a, badgeColor = "bg-[#D4AF37]" }: { a: any; badgeColor?: 
         </div>
       </div>
     </Link>
+  );
+}
+
+/* ── ÉTAT DÉMO ── Jamais de vide : quand une section n'a aucune annonce réelle,
+   on affiche des cartes « démonstration » filigranées DEMO / TEST avec de faux
+   prix et un appel à déposer une annonce. Même disposition que les vraies
+   cartes (remplit la ligne). */
+const DEMO_ANNONCES = [
+  { titre: "Votre véhicule ici", prix: 12900, annee: 2021, km: 45000, energie: "Essence", ville: "Paris" },
+  { titre: "Votre véhicule ici", prix: 8500, annee: 2019, km: 78000, energie: "Diesel", ville: "Lyon" },
+  { titre: "Votre véhicule ici", prix: 24500, annee: 2022, km: 21000, energie: "Hybride", ville: "Marseille" },
+  { titre: "Votre véhicule ici", prix: 5300, annee: 2016, km: 132000, energie: "Essence", ville: "Toulouse" },
+  { titre: "Votre véhicule ici", prix: 38900, annee: 2023, km: 9000, energie: "Électrique", ville: "Bordeaux" },
+  { titre: "Votre véhicule ici", prix: 16700, annee: 2020, km: 56000, energie: "Diesel", ville: "Nice" },
+];
+
+function DemoCard({ a, cta }: { a: (typeof DEMO_ANNONCES)[number]; cta: string }) {
+  return (
+    <Link to="/vendre" className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-dashed border-[#D4AF37]/40 overflow-hidden hover:shadow-lg transition group">
+      <div className="relative h-[130px] md:h-[150px] lg:h-[170px] bg-gradient-to-br from-[#F5F3EF] to-[#ECE7DD] flex items-center justify-center">
+        <span className="absolute top-2 left-2 rounded-sm bg-[#D4AF37] px-2 py-0.5 text-[8px] font-extrabold text-white uppercase tracking-wide">DEMO / TEST</span>
+        <span className="select-none text-[26px] font-black uppercase tracking-widest text-[#D4AF37]/20 -rotate-12">DÉMO</span>
+        <span className="absolute bottom-2 right-2 rounded-full bg-white/80 px-2 py-0.5 text-[8px] font-bold text-[#6B7280]">Exemple</span>
+      </div>
+      <div className="p-3">
+        <h3 className="text-sm font-bold text-[#111] truncate">{a.titre}</h3>
+        <div className="mt-1 flex flex-wrap gap-x-2 text-[10px] text-[#6B7280]">
+          <span>{a.annee}</span>
+          <span>· {a.km.toLocaleString("fr-FR")} km</span>
+          <span>· {a.energie}</span>
+        </div>
+        <div className="mt-2 flex items-end justify-between">
+          <p className="text-base font-black text-[#111]">{a.prix.toLocaleString("fr-FR")} €</p>
+          <span className="text-[10px] text-[#9CA3AF] flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</span>
+        </div>
+        <p className="mt-1 text-[9px] font-semibold text-[#D4AF37]">{cta}</p>
+      </div>
+    </Link>
+  );
+}
+
+/* Ligne de démonstration à afficher quand aucune annonce réelle n'existe. */
+function DemoRow({ cta = "Vos futures annonces apparaîtront ici." }: { cta?: string }) {
+  return (
+    <div>
+      <HScroll>
+        {DEMO_ANNONCES.map((a, i) => (
+          <DemoCard key={i} a={a} cta={cta} />
+        ))}
+      </HScroll>
+      <p className="mt-1 text-center text-[11px] text-[#9CA3AF]">
+        Annonce de démonstration — {cta}
+      </p>
+    </div>
   );
 }
 
@@ -261,24 +316,58 @@ function HomeHeaderDesktop() {
       className="fixed inset-x-0 top-0 z-50 hidden border-b border-[#E5E7EB] bg-white/95 backdrop-blur lg:block"
       onMouseLeave={() => setOpenKey(null)}
     >
-      <div className="mx-auto flex h-[88px] max-w-[1680px] items-center gap-3 px-4 xl:gap-4 xl:px-8">
-        {/* Gauche — logo (système inchangé : ouvert visiteur / fermé membre) */}
-        <Link
-          to="/"
-          className="flex shrink-0 flex-col items-center justify-center leading-none"
-          aria-label="MKA.P-MS — Accueil"
+      <div className="mx-auto max-w-[1680px] px-4 xl:px-8">
+        {/* LIGNE 1 — logo (gauche) + actions utilisateur (droite) */}
+        <div
+          className="flex h-[64px] items-center justify-between gap-3"
           onMouseEnter={() => setOpenKey(null)}
         >
-          <Logo variant={user ? "closed" : "open"} size={40} withWordmark />
-        </Link>
+          {/* Gauche — logo (système inchangé : ouvert visiteur / fermé membre) */}
+          <Link
+            to="/"
+            className="flex shrink-0 flex-col items-center justify-center leading-none"
+            aria-label="MKA.P-MS — Accueil"
+          >
+            <Logo variant={user ? "closed" : "open"} size={40} withWordmark />
+          </Link>
 
-        {/* Centre — services principaux + méga-menus */}
-        <nav className="flex flex-1 items-center justify-center gap-0 xl:gap-0.5">
+          {/* Droite — pays, devise, actions utilisateur */}
+          <div className="flex shrink-0 items-center gap-1.5 xl:gap-2">
+            <DomainSelector />
+            <CurrencySelect />
+            <NotificationsBell />
+            <SmartLink redirKey="bouton_favoris" fallback="/favoris" aria-label="Favoris" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-[#D4AF37]">
+              <Heart size={17} />
+            </SmartLink>
+            <SmartLink redirKey="bouton_messagerie" fallback="/messagerie" aria-label="Messages" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-[#D4AF37]">
+              <MessageSquare size={17} />
+            </SmartLink>
+            <SmartLink redirKey="bouton_portefeuille" fallback="/compte" aria-label="Portefeuille" className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-[13px] font-semibold text-slate-700 hover:border-[#D4AF37] hover:text-[#111]">
+              <Wallet size={16} /> <span className="hidden xl:inline">Portefeuille</span>
+            </SmartLink>
+            {user && (
+              <SmartLink redirKey="bouton_compte" fallback="/compte" className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-[13px] font-semibold text-slate-700 hover:border-[#D4AF37] hover:text-[#111]">
+                <User size={16} /> Mon compte
+              </SmartLink>
+            )}
+            <SmartLink redirKey="bouton_deposer_annonce" fallback="/vendre" className="whitespace-nowrap rounded-lg bg-[#D4AF37] px-3 py-2.5 text-[13px] font-bold text-white shadow-sm hover:bg-[#c9a430]">
+              + Déposer une annonce
+            </SmartLink>
+            {!user && (
+              <SmartLink redirKey="bouton_connexion" fallback="/connexion" className="whitespace-nowrap rounded-lg bg-[#111] px-3 py-2.5 text-[13px] font-bold text-white shadow-sm hover:bg-black">
+                Connexion
+              </SmartLink>
+            )}
+          </div>
+        </div>
+
+        {/* LIGNE 2 — services principaux + méga-menus (jamais sur la même ligne que les icônes) */}
+        <nav className="flex h-[52px] items-center gap-0.5 border-t border-[#F0EEE9] xl:gap-1">
           {HOME_MENUS.map((m) => (
             <div key={m.key} onMouseEnter={() => setOpenKey(m.key)}>
               <Link
                 to={m.to}
-                className={`flex items-center gap-1 rounded-lg px-2 py-2 text-[13px] font-semibold transition xl:px-3 xl:text-[15px] ${
+                className={`flex items-center gap-1 rounded-lg px-3 py-2 text-[14px] font-semibold transition xl:px-4 xl:text-[15px] ${
                   openKey === m.key ? "bg-[#F5F3EF] text-[#111]" : "text-slate-700 hover:text-[#111]"
                 }`}
               >
@@ -288,34 +377,6 @@ function HomeHeaderDesktop() {
             </div>
           ))}
         </nav>
-
-        {/* Droite — pays, devise, actions utilisateur */}
-        <div className="flex shrink-0 items-center gap-1 xl:gap-1.5" onMouseEnter={() => setOpenKey(null)}>
-          <DomainSelector />
-          <CurrencySelect />
-          <NotificationsBell />
-          <SmartLink redirKey="bouton_favoris" fallback="/favoris" aria-label="Favoris" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-[#D4AF37]">
-            <Heart size={17} />
-          </SmartLink>
-          <SmartLink redirKey="bouton_messagerie" fallback="/messagerie" aria-label="Messages" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-[#D4AF37]">
-            <MessageSquare size={17} />
-          </SmartLink>
-          <SmartLink redirKey="bouton_portefeuille" fallback="/compte" aria-label="Portefeuille" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-[#D4AF37]">
-            <Wallet size={17} />
-          </SmartLink>
-          {user ? (
-            <SmartLink redirKey="bouton_compte" fallback="/compte" className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-[13px] font-semibold text-slate-700 hover:border-[#D4AF37] hover:text-[#111] xl:text-sm">
-              <User size={16} /> Mon compte
-            </SmartLink>
-          ) : (
-            <SmartLink redirKey="bouton_connexion" fallback="/connexion" className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-[13px] font-semibold text-slate-700 hover:border-[#D4AF37] hover:text-[#111] xl:text-sm">
-              <User size={16} /> Connexion
-            </SmartLink>
-          )}
-          <SmartLink redirKey="bouton_deposer_annonce" fallback="/vendre" className="whitespace-nowrap rounded-lg bg-[#D4AF37] px-3 py-2.5 text-[13px] font-bold text-white shadow-sm hover:bg-[#c9a430] xl:px-4 xl:text-sm">
-            + Déposer
-          </SmartLink>
-        </div>
       </div>
 
       {/* Méga-menu (présentation) — s'ouvre au survol, se ferme quand le curseur quitte le header */}
@@ -465,7 +526,7 @@ export default function Home() {
       {/* Header premium — DESKTOP UNIQUEMENT (mobile/tablette : header partagé du Layout) */}
       <HomeHeaderDesktop />
       {/* Spacer desktop pour compenser le header fixe (aucun effet mobile/tablette) */}
-      <div className="hidden h-[88px] lg:block" />
+      <div className="hidden h-[117px] lg:block" />
 
       {/* ═══════════════════════════════════════════════════════════════════
           LAYOUT 3 COLONNES : PUB GAUCHE | CONTENU | PUB DROITE
@@ -565,7 +626,7 @@ export default function Home() {
               SECTION 3 — UNIVERS MKA.P-MS (Acheter, Vendre, Louer, Réparer)
               ═══════════════════════════════════════════════════════════════ */}
           <section className="bg-white px-4 py-3 md:py-5">
-            <div className="grid grid-cols-4 gap-2 md:gap-4 max-w-2xl xl:max-w-4xl mx-auto">
+            <div className="grid grid-cols-4 gap-2 md:gap-4 max-w-2xl lg:max-w-none mx-auto">
               {[
                 { icon: Search, label: "ACHETER", sub: "Un véhicule", to: "/acheter" },
                 { icon: Tag, label: "VENDRE", sub: "Mon véhicule", to: "/vendre" },
@@ -588,7 +649,7 @@ export default function Home() {
               SECTION 3B — BARRE DE RECHERCHE UNIVERSELLE
               ═══════════════════════════════════════════════════════════════ */}
           <section className="bg-white px-4 py-3 border-t border-[#F3F4F6]">
-            <div className="max-w-2xl xl:max-w-4xl mx-auto">
+            <div className="max-w-2xl lg:max-w-none mx-auto">
               <div
                 onClick={() => navigate("/recherche-universelle")}
                 className="flex items-center gap-2 rounded-xl border-2 border-[#D4AF37]/30 bg-[#F5F3EF] px-4 py-3 cursor-pointer hover:border-[#D4AF37] hover:shadow-md transition"
@@ -604,7 +665,7 @@ export default function Home() {
               SECTION 4 — RECHERCHE AVANCÉE PREMIUM
               ═══════════════════════════════════════════════════════════════ */}
           <section className="bg-white px-4 pb-4">
-            <div className="max-w-3xl xl:max-w-5xl mx-auto rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#FAFAF8] to-white p-4 xl:p-6 shadow-md">
+            <div className="max-w-3xl lg:max-w-none mx-auto rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#FAFAF8] to-white p-4 xl:p-6 shadow-md">
               {/* En-tête premium */}
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
@@ -617,7 +678,7 @@ export default function Home() {
               </div>
               <p className="text-[10px] text-[#9CA3AF] mb-3 pl-10">Voitures · Motos · Utilitaires · Partout dans le monde</p>
               {/* Grille 6 filtres premium */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
                 {/* Filtre 1 — Catégorie */}
                 <div className="relative">
                   <select value={sCategorie} onChange={(e) => setSCategorie(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
@@ -703,7 +764,7 @@ export default function Home() {
                 ))}
               </HScroll>
             ) : (
-              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucun véhicule officiel MKA.P-MS disponible pour le moment.</div>
+              <DemoRow cta="Bientôt : le stock officiel MKA.P-MS apparaîtra ici." />
             )}
           </section>
 
@@ -725,7 +786,7 @@ export default function Home() {
                 ))}
               </HScroll>
             ) : (
-              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce boostée pour le moment.</div>
+              <DemoRow cta="Boostez votre annonce pour apparaître ici." />
             )}
           </section>
 
@@ -747,7 +808,7 @@ export default function Home() {
                 ))}
               </HScroll>
             ) : (
-              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce premium pour le moment.</div>
+              <DemoRow cta="Passez Premium pour apparaître ici." />
             )}
           </section>
 
@@ -819,7 +880,7 @@ export default function Home() {
                 ))}
               </HScroll>
             ) : (
-              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce professionnelle pour le moment.</div>
+              <DemoRow cta="Professionnels : déposez vos annonces ici." />
             )}
           </section>
 
@@ -859,7 +920,7 @@ export default function Home() {
                 ))}
               </HScroll>
             ) : (
-              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucun véhicule trouvé autour de vous.</div>
+              <DemoRow cta="Vos futures annonces apparaîtront ici." />
             )}
           </section>
 
@@ -903,7 +964,7 @@ export default function Home() {
                 })}
               </HScroll>
             ) : (
-              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune location disponible pour le moment.</div>
+              <DemoRow cta="Mettez votre véhicule en location ici." />
             )}
           </section>
 
@@ -925,7 +986,7 @@ export default function Home() {
                 ))}
               </HScroll>
             ) : (
-              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune annonce de particulier pour le moment.</div>
+              <DemoRow cta="Particuliers : déposez votre annonce ici." />
             )}
           </section>
 
@@ -965,7 +1026,7 @@ export default function Home() {
                 ))}
               </HScroll>
             ) : (
-              <div className="py-8 text-center text-[#6B7280] text-sm border border-dashed border-[#E5E7EB] rounded-xl">Aucune moto disponible pour le moment.</div>
+              <DemoRow cta="Déposez votre moto ou deux-roues ici." />
             )}
           </section>
 
@@ -975,7 +1036,7 @@ export default function Home() {
           <section className="px-4 py-6 bg-[#F5F3EF] border-t border-[#E5E7EB]">
             <h2 className="text-base md:text-lg font-black text-[#111] text-center uppercase mb-1">Nos Services</h2>
             <p className="text-[10px] md:text-xs text-[#6B7280] text-center mb-4">MKA.P-MS — L'écosystème automobile complet</p>
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-w-4xl xl:max-w-6xl mx-auto">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-w-4xl lg:max-w-none mx-auto">
               {[
                 { icon: Car, label: "Achat / Vente", desc: "Véhicules neufs et d'occasion", to: "/acheter", color: "text-[#D4AF37]" },
                 { icon: KeyRound, label: "Location", desc: "Particulier, Pro, VTC & Taxi", to: "/louer", color: "text-blue-600" },
@@ -1025,7 +1086,7 @@ export default function Home() {
           <section className="px-4 py-6 bg-white border-t border-[#F3F4F6]">
             <h2 className="text-base md:text-lg font-black text-[#111] text-center uppercase mb-1">Vous êtes professionnel ?</h2>
             <p className="text-[10px] md:text-xs text-[#6B7280] text-center mb-4">Rejoignez MKA.P-MS et développez votre activité automobile</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl xl:max-w-5xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl lg:max-w-none mx-auto">
               {[
                 { icon: Wrench, label: "Garages", desc: "Gérez vos ateliers et devis", to: "/espace-pro" },
                 { icon: Car, label: "Marchands", desc: "Vendez vos véhicules", to: "/espace-pro" },
@@ -1058,7 +1119,7 @@ export default function Home() {
               SECTION 15 — SERVICES PREMIUM MKA.P-MS
               ═══════════════════════════════════════════════════════════════ */}
           <section className="px-4 py-5 bg-[#F5F3EF] border-t border-[#E5E7EB]">
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide max-w-4xl xl:max-w-6xl mx-auto">
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide max-w-4xl lg:max-w-none mx-auto">
               {[
                 { icon: CreditCard, label: "Finance+", desc: "LOA, Crédit, Paiement jusqu'à 10x", to: "/finance" },
                 { icon: History, label: "Historique véhicule", desc: "Rapports officiels & Analyse IA", to: "/historique" },
@@ -1083,7 +1144,7 @@ export default function Home() {
               MKA.P-MS REWARDS BANNER
               ═══════════════════════════════════════════════════════════════ */}
           <section className="px-4 py-6 bg-gradient-to-r from-[#D4AF37] to-[#B8960C]">
-            <div className="max-w-3xl xl:max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+            <div className="max-w-3xl lg:max-w-none mx-auto flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
               <div className="flex-1">
                 <h3 className="text-lg font-black text-white">MKA.P-MS REWARDS</h3>
                 <p className="text-xs text-white/80 mt-1">Gagnez des points a chaque action. Echangez-les contre des boosts, des photos, des abonnements Premium.</p>
@@ -1093,9 +1154,163 @@ export default function Home() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
-              SECTION 16 — FOOTER (dans Layout, mais on ajoute newsletter + liens)
+              BANDE DE GARANTIES — DESKTOP UNIQUEMENT (conforme à la maquette)
               ═══════════════════════════════════════════════════════════════ */}
-          <footer className="bg-[#111] text-white">
+          <section className="hidden lg:block bg-[#F5F3EF] border-t border-[#E5E7EB]">
+            <div className="mx-auto max-w-[1680px] px-8 py-6 grid grid-cols-5 gap-6">
+              {[
+                { icon: Lock, t: "Paiement sécurisé", s: "Transactions 100% protégées" },
+                { icon: ThumbsUp, t: "Satisfait ou remboursé", s: "Jusqu'à 14 jours" },
+                { icon: Headphones, t: "Support client 7J/7", s: "Toujours à votre écoute" },
+                { icon: ShieldCheck, t: "Garantie incluse", s: "Jusqu'à 60 mois offerte" },
+                { icon: BadgeCheck, t: "Professionnels certifiés", s: "Partenaires de confiance" },
+              ].map((g) => (
+                <div key={g.t} className="flex items-center gap-3">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white border border-[#D4AF37]/30">
+                    <g.icon size={18} className="text-[#D4AF37]" />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-bold text-[#111] leading-tight">{g.t}</p>
+                    <p className="text-[11px] text-[#6B7280] leading-tight">{g.s}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              FOOTER PREMIUM — DESKTOP UNIQUEMENT (conforme à la maquette validée)
+              ═══════════════════════════════════════════════════════════════ */}
+          <footer className="hidden lg:block bg-[#111] text-white">
+            <div className="mx-auto max-w-[1680px] px-8 py-12">
+              <div className="grid grid-cols-12 gap-8">
+                {/* Marque + slogan + réseaux sociaux */}
+                <div className="col-span-4">
+                  <div className="mb-3">
+                    <Logo variant="closed" size={44} withWordmark />
+                  </div>
+                  <p className="text-[12px] uppercase tracking-wider text-[#D4AF37] font-bold">La marketplace automobile de confiance</p>
+                  <p className="mt-2 text-[13px] text-white/60 leading-relaxed max-w-sm">
+                    Achetez, vendez, louez, réparez et entretenez votre véhicule en toute confiance, partout, à tout moment.
+                  </p>
+                  <div className="mt-4 flex gap-2.5">
+                    {[Facebook, Instagram, Youtube, Linkedin].map((Ic, i) => (
+                      <a key={i} href="#" aria-label="Réseau social" className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white/70 hover:bg-[#D4AF37] hover:text-white transition">
+                        <Ic size={16} />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Explorer */}
+                <div className="col-span-2">
+                  <p className="text-[11px] uppercase tracking-wider text-[#D4AF37] font-bold mb-3">Explorer</p>
+                  {[
+                    { label: "Acheter", to: "/acheter" },
+                    { label: "Vendre", to: "/vendre" },
+                    { label: "Louer", to: "/louer" },
+                    { label: "Réparer / Garage", to: "/garages" },
+                    { label: "Finance+", to: "/finance" },
+                    { label: "Services", to: "/demarches" },
+                  ].map((l) => (
+                    <Link key={l.label} to={l.to} className="block text-[13px] text-white/60 hover:text-white py-1">{l.label}</Link>
+                  ))}
+                </div>
+
+                {/* Aide & support */}
+                <div className="col-span-2">
+                  <p className="text-[11px] uppercase tracking-wider text-[#D4AF37] font-bold mb-3">Aide &amp; Support</p>
+                  {[
+                    { label: "Centre d'aide", to: "/aide" },
+                    { label: "FAQ", to: "/aide" },
+                    { label: "Contact", to: "/aide" },
+                    { label: "Conditions générales", to: "/aide" },
+                    { label: "Politique de confidentialité", to: "/aide" },
+                  ].map((l) => (
+                    <Link key={l.label} to={l.to} className="block text-[13px] text-white/60 hover:text-white py-1">{l.label}</Link>
+                  ))}
+                </div>
+
+                {/* Compte */}
+                <div className="col-span-2">
+                  <p className="text-[11px] uppercase tracking-wider text-[#D4AF37] font-bold mb-3">Compte</p>
+                  {[
+                    { label: "Mon compte", to: "/compte" },
+                    { label: "Mes annonces", to: "/compte" },
+                    { label: "Mes réservations", to: "/compte" },
+                    { label: "Mes paiements", to: "/compte" },
+                    { label: "Mes favoris", to: "/favoris" },
+                  ].map((l) => (
+                    <Link key={l.label} to={l.to} className="block text-[13px] text-white/60 hover:text-white py-1">{l.label}</Link>
+                  ))}
+                </div>
+
+                {/* Téléchargez l'application */}
+                <div className="col-span-2">
+                  <p className="text-[11px] uppercase tracking-wider text-[#D4AF37] font-bold mb-3">Téléchargez l'application</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 cursor-pointer hover:bg-white/20 transition">
+                      <Play size={16} className="text-white/70" />
+                      <div>
+                        <p className="text-[8px] text-white/50 uppercase">Disponible sur</p>
+                        <p className="text-[13px] font-bold">App Store</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 cursor-pointer hover:bg-white/20 transition">
+                      <Play size={16} className="text-white/70" />
+                      <div>
+                        <p className="text-[8px] text-white/50 uppercase">Disponible sur</p>
+                        <p className="text-[13px] font-bold">Google Play</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <QrCode size={40} className="text-white/70" />
+                      <p className="text-[10px] text-white/40 leading-tight">Scannez pour<br/>télécharger l'app</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Newsletter */}
+              <div className="mt-10 rounded-2xl bg-white/[0.04] border border-white/10 px-6 py-5 flex items-center justify-between gap-6">
+                <div>
+                  <p className="text-[14px] font-bold text-white">Restez informé</p>
+                  <p className="text-[12px] text-white/50">Recevez nos meilleures offres et nouveautés</p>
+                </div>
+                <div className="flex gap-2 w-full max-w-md">
+                  <input type="email" placeholder="Votre adresse email" className="flex-1 rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-[13px] text-white placeholder-white/40 outline-none focus:border-[#D4AF37]" />
+                  <button className="rounded-lg bg-[#D4AF37] px-5 py-2.5 text-[13px] font-bold text-white hover:bg-[#c9a430] transition">S'abonner</button>
+                </div>
+              </div>
+
+              {/* Bande des pays */}
+              <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center gap-x-5 gap-y-2">
+                {[
+                  { f: "🇫🇷", n: "France" }, { f: "🇧🇪", n: "Belgique" }, { f: "🇨🇭", n: "Suisse" },
+                  { f: "🇲🇦", n: "Maroc" }, { f: "🇩🇿", n: "Algérie" }, { f: "🇨🇦", n: "Canada" },
+                  { f: "🇸🇳", n: "Sénégal" }, { f: "🇨🇮", n: "Côte d'Ivoire" }, { f: "🇨🇲", n: "Cameroun" },
+                ].map((c) => (
+                  <span key={c.n} className="flex items-center gap-1.5 text-[12px] text-white/60">
+                    <span className="text-base leading-none">{c.f}</span> {c.n}
+                  </span>
+                ))}
+                <SmartLink redirKey="tous_les_pays" fallback="/univers" className="flex items-center gap-1.5 text-[12px] font-semibold text-[#D4AF37] hover:underline">
+                  <Globe size={14} /> Tous les pays
+                </SmartLink>
+              </div>
+
+              {/* Copyright */}
+              <div className="mt-6 flex items-center justify-between text-[11px] text-white/40">
+                <p>La plateforme s'adapte automatiquement à votre pays, langue et devise.</p>
+                <p>© {new Date().getFullYear()} MKA.P-MS — Tous droits réservés.</p>
+              </div>
+            </div>
+          </footer>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 16 — FOOTER MOBILE/TABLETTE (inchangé)
+              ═══════════════════════════════════════════════════════════════ */}
+          <footer className="lg:hidden bg-[#111] text-white">
             <div className="max-w-5xl xl:max-w-7xl 2xl:max-w-[1500px] mx-auto px-4 py-8 md:py-12">
               <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                 {/* Newsletter */}
