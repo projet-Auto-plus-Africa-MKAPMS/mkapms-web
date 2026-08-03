@@ -31,8 +31,10 @@ import {
 import { domainMiddleware, domainHandler, domainsListHandler } from "./domain.js";
 import { env, isProd } from "./env.js";
 import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const SERVER_STARTED_AT = new Date().toISOString();
 const app = express();
 
 app.use(cors({ origin: true, credentials: true }));
@@ -151,6 +153,25 @@ app.get("/api/domains", domainsListHandler);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", service: "mkapms-web", env: env.NODE_ENV });
+});
+
+// Version réelle du build en cours d'exécution — sert au client pour détecter
+// une mise à jour déployée (comparaison du commit). Aucune valeur codée en dur.
+let PKG_VERSION = "";
+try {
+  const raw = readFileSync(new URL("../package.json", import.meta.url), "utf8");
+  PKG_VERSION = (JSON.parse(raw) as { version?: string }).version ?? "";
+} catch {
+  PKG_VERSION = "";
+}
+const SERVER_COMMIT = (process.env.RAILWAY_GIT_COMMIT_SHA ?? "").slice(0, 7);
+app.get("/api/version", (_req, res) => {
+  res.json({
+    version: PKG_VERSION,
+    commit: SERVER_COMMIT,
+    deploymentId: process.env.RAILWAY_DEPLOYMENT_ID ?? null,
+    startedAt: SERVER_STARTED_AT,
+  });
 });
 
 /**

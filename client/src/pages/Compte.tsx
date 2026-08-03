@@ -11,7 +11,7 @@ import type { UserRole } from "@shared/roles";
 import { canAccessServicePath } from "@shared/permissions";
 import FileUpload from "../components/FileUpload";
 
-type Tab = "annonces" | "toutes-annonces" | "publicites" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil" | "notifications" | "wallet";
+type Tab = "annonces" | "toutes-annonces" | "publicites" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil" | "notifications" | "wallet" | "notes" | "version";
 
 const DEMO_RAPPORTS = [
   { id: 1, plaque: "AB-123-CD", vinPartiel: "VF1KR****567890", type: "Rapport Complet", prix: "7,99 \u20ac", date: "28/05/2024", statut: "Disponible" },
@@ -46,9 +46,6 @@ const ALL_SERVICES = [
 ];
 
 const TIER_LABELS: Record<string, string> = { bronze: "Bronze", silver: "Silver", gold: "Gold", platinum: "Platinum", elite: "Elite" };
-
-// Version publique de l'application (suivi de l'évolution côté compte).
-export const APP_VERSION = "1.0.0";
 
 // Statuts d'une réservation (booking) — libellés + couleurs pour la fiche détaillée.
 const BOOKING_STATUS: Record<string, { label: string; cls: string }> = {
@@ -112,6 +109,8 @@ const TAB_LABELS: Record<Tab, string> = {
   profil: "Profil",
   notifications: "Notifications",
   wallet: "Portefeuille",
+  notes: "Noter l'application",
+  version: "Version & mise à jour",
 };
 
 // Sections repliables (accord\u00e9on) — chaque groupe a une fl\u00e8che, s'ouvre en dessous.
@@ -126,6 +125,8 @@ const GROUP_DEFS: { key: string; label: string; icon: LucideIcon; tabs: Tab[] }[
   { key: "services", label: "Services", icon: Grid3x3, tabs: ["services"] },
   { key: "profil", label: "Profil & Compte", icon: UserIcon, tabs: ["profil"] },
   { key: "wallet", label: "Portefeuille", icon: Wallet, tabs: ["wallet"] },
+  { key: "notes", label: "Noter l'application", icon: Star, tabs: ["notes"] },
+  { key: "version", label: "Version & mise à jour", icon: RefreshCcw, tabs: ["version"] },
 ];
 const TAB_TO_GROUP: Record<string, string> = GROUP_DEFS.reduce((acc, g) => {
   g.tabs.forEach((t) => (acc[t] = g.key));
@@ -380,14 +381,6 @@ export default function Compte() {
           );
         })}
       </div>
-      )}
-
-      {/* ── Sous la liste des sections : Noter l'application (tous comptes) puis Version ── */}
-      {!activeGroup && (
-        <div className="mt-6 space-y-4">
-          <AppFeedbackSection />
-          <VersionSection />
-        </div>
       )}
 
       {/* ── Vue sous-page plein écran (groupe actif) ── */}
@@ -923,6 +916,8 @@ export default function Compte() {
         )}
         {tab === "profil" && <ProfilForm />}
         {tab === "wallet" && <WalletTab />}
+        {tab === "notes" && <AppFeedbackSection />}
+        {tab === "version" && <VersionSection />}
         </div>
       </div>
       )}
@@ -1591,18 +1586,51 @@ function AppFeedbackSection() {
 }
 
 // ─── Version de l'application ─────────────────────────────────────────────────
+// Version réelle injectée au build (voir vite.config.ts) : version du package,
+// numéro de build (nombre de commits) et empreinte du commit déployé.
+const APP_BUILD_DATE = new Date(__APP_BUILD_TIME__).toLocaleDateString("fr-FR", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+});
+
+async function forceReload() {
+  // Nettoie les service workers + caches pour garantir la dernière version.
+  try {
+    if ("serviceWorker" in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch {
+    /* best-effort */
+  }
+  window.location.reload();
+}
+
 function VersionSection() {
   const [checking, setChecking] = useState(false);
-  const [upToDate, setUpToDate] = useState(false);
+  const [result, setResult] = useState<"idle" | "uptodate" | "update">("idle");
+  const [serverCommit, setServerCommit] = useState<string | null>(null);
 
-  function checkUpdate() {
+  async function checkUpdate() {
     setChecking(true);
-    setUpToDate(false);
-    // Recharge l'app depuis le serveur (récupère la dernière version publiée).
-    setTimeout(() => {
+    setResult("idle");
+    try {
+      const res = await fetch("/api/version", { cache: "no-store" });
+      const data: { version?: string; commit?: string } = await res.json();
+      setServerCommit(data.commit ?? null);
+      // Mise à jour disponible si le serveur tourne un commit différent du build chargé.
+      const outdated = !!data.commit && !!__APP_COMMIT__ && data.commit !== __APP_COMMIT__;
+      setResult(outdated ? "update" : "uptodate");
+    } catch {
+      setResult("idle");
+    } finally {
       setChecking(false);
-      setUpToDate(true);
-    }, 900);
+    }
   }
 
   return (
@@ -1610,24 +1638,38 @@ function VersionSection() {
       <p className="text-sm font-bold text-[#111] flex items-center gap-2">
         <RefreshCcw size={16} className="text-[#D4AF37]" /> Version & mise à jour
       </p>
-      <div className="mt-2 flex items-center justify-between">
+      <div className="mt-2 flex items-center justify-between gap-3">
         <div>
           <p className="text-xs text-slate-500">Version installée</p>
-          <p className="text-lg font-black text-slate-900">MKA.P-MS v{APP_VERSION}</p>
+          <p className="text-lg font-black text-slate-900">MKA.P-MS v{__APP_VERSION__}</p>
+          <p className="text-[11px] text-slate-400">
+            Build {__APP_BUILD__ || "—"} · {__APP_COMMIT__ || "local"} · {APP_BUILD_DATE}
+          </p>
         </div>
-        <button onClick={checkUpdate} disabled={checking} className="btn-outline !text-sm inline-flex items-center gap-1.5">
+        <button onClick={checkUpdate} disabled={checking} className="btn-outline !text-sm inline-flex items-center gap-1.5 shrink-0">
           <RefreshCcw size={14} className={checking ? "animate-spin" : ""} />
-          {checking ? "Vérification…" : "Vérifier / Mettre à jour"}
+          {checking ? "Vérification…" : "Vérifier"}
         </button>
       </div>
-      {upToDate && (
+      {result === "uptodate" && (
         <p className="mt-2 text-xs text-green-600 flex items-center gap-1">
-          <CheckCircle2 size={13} /> Votre application est à jour.
+          <CheckCircle2 size={13} /> Votre application est à jour
+          {serverCommit ? ` (${serverCommit})` : ""}.
         </p>
       )}
+      {result === "update" && (
+        <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+          <p className="text-xs font-semibold text-amber-800">
+            Une nouvelle version est disponible{serverCommit ? ` (${serverCommit})` : ""}.
+          </p>
+          <button onClick={forceReload} className="mt-2 btn-primary !text-sm">
+            Mettre à jour maintenant
+          </button>
+        </div>
+      )}
       <button
-        onClick={() => window.location.reload()}
-        className="mt-2 text-[11px] font-semibold text-[#D4AF37] hover:underline"
+        onClick={forceReload}
+        className="mt-2 block text-[11px] font-semibold text-[#D4AF37] hover:underline"
       >
         Recharger l'application maintenant
       </button>
