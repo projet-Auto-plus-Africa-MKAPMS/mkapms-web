@@ -8,12 +8,15 @@ import {
   Truck, Zap, FileText, CreditCard, Phone, Settings, Eye, Navigation,
   Briefcase, Building2, Stethoscope, BadgeCheck, CarFront, Bus, HardHat,
   Fuel, History, Lock, Hammer, Receipt, Scale, Banknote, CircleDollarSign,
-  BookOpen, Cog, Sparkles, Play
+  BookOpen, Cog, Sparkles, Play, Bell, MessageSquare, Wallet, User
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { SmartLink } from "../lib/redirect";
 import { useAuth } from "../lib/auth";
 import { getAnnonceUrl } from "../lib/annonceUrl";
+import { Logo } from "../components/Logo";
+import DomainSelector from "../components/DomainSelector";
+import { CurrencySelect, NotificationsBell } from "../components/Layout";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE D'ACCUEIL MKA.P-MS — VERSION DÉFINITIVE V1
@@ -120,6 +123,241 @@ function AnnonceCard({ a, badgeColor = "bg-[#D4AF37]" }: { a: any; badgeColor?: 
   );
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   HEADER PREMIUM — PAGE D'ACCUEIL DESKTOP UNIQUEMENT
+   Rendu uniquement en desktop (`hidden lg:block`). Sur "/", le header partagé
+   (Layout) est masqué en desktop et reste actif sur mobile/tablette et sur
+   toutes les autres pages. Aucune redirection existante n'est modifiée :
+   chaque entrée pointe vers sa vraie page (le clic ouvre la page complète, le
+   survol présente le méga-menu). On ne supprime aucun service : on ajoute.
+   ══════════════════════════════════════════════════════════════════════════ */
+type MegaLink = { label: string; to: string };
+type MegaCol = { heading?: string; links: MegaLink[] };
+type MegaMenu = {
+  key: string;
+  label: string;
+  to: string;
+  cols: MegaCol[];
+  promo?: { title: string; sub: string; cta: string; to: string };
+};
+
+const HOME_MENUS: MegaMenu[] = [
+  {
+    key: "acheter", label: "Acheter", to: "/acheter",
+    cols: [{ links: [
+      { label: "Tous les véhicules", to: "/acheter" },
+      { label: "MKA.P-MS Officiel", to: "/acheter/mkapms-officiel" },
+      { label: "Annonces Élite", to: "/acheter?boost=true" },
+      { label: "Occasions", to: "/acheter/particulier" },
+      { label: "Professionnels", to: "/acheter/professionnel" },
+      { label: "Comparateur", to: "/comparateur" },
+      { label: "Estimation reprise", to: "/acheter/estimation" },
+    ] }],
+    promo: { title: "Estimez votre véhicule", sub: "Estimation gratuite en 2 minutes", cta: "Estimer", to: "/acheter/estimation" },
+  },
+  {
+    key: "vendre", label: "Vendre", to: "/vendre",
+    cols: [{ links: [
+      { label: "Déposer une annonce", to: "/vendre" },
+      { label: "Reprise cash", to: "/acheter/reprise" },
+      { label: "Estimation IA", to: "/acheter/estimation" },
+      { label: "Vente Pro", to: "/acheter/espace-pro" },
+      { label: "Vente Particulier", to: "/acheter/particulier" },
+      { label: "Mes annonces", to: "/acheter/mes-annonces" },
+    ] }],
+    promo: { title: "Vendez plus vite", sub: "Boostez la visibilité de votre annonce", cta: "Déposer", to: "/vendre" },
+  },
+  {
+    key: "louer", label: "Louer", to: "/louer",
+    cols: [{ links: [
+      { label: "Location de voitures", to: "/louer" },
+      { label: "VTC & Taxi", to: "/louer/vtc-taxi" },
+      { label: "Utilitaires", to: "/louer/utilitaires" },
+      { label: "Camions", to: "/louer/camions" },
+      { label: "Minibus", to: "/louer/minibus" },
+      { label: "Location LOA", to: "/louer/loa" },
+    ] }],
+    promo: { title: "Location tout compris", sub: "Particulier, Pro, VTC & Taxi dès 29€/jour", cta: "Découvrir", to: "/louer" },
+  },
+  {
+    key: "reparer", label: "Réparer", to: "/garages",
+    cols: [{ links: [
+      { label: "Garage & Réparation", to: "/garages" },
+      { label: "Contrôle technique", to: "/garage/controle-technique" },
+      { label: "Carrosserie / Peinture", to: "/garage/carrosserie-garage" },
+      { label: "Dépannage 24h/24", to: "/depannage" },
+      { label: "Pièces auto", to: "/pieces" },
+      { label: "Carte grise", to: "/carte-grise" },
+      { label: "Historique (VIN)", to: "/historique" },
+      { label: "Livraison", to: "/livraison" },
+    ] }],
+    promo: { title: "Trouvez un garage vérifié", sub: "Devis en ligne près de chez vous", cta: "Trouver", to: "/garages" },
+  },
+  {
+    key: "finance", label: "Finance+", to: "/finance",
+    cols: [{ links: [
+      { label: "Crédit auto", to: "/finance" },
+      { label: "LOA / LLD", to: "/finance/l-o-a-finance" },
+      { label: "Paiement fractionné", to: "/finance/paiement-fractionne" },
+      { label: "Garantie mécanique", to: "/finance/garantie-securite" },
+      { label: "Assurance auto", to: "/demarches" },
+      { label: "Mes factures", to: "/finance/centre-factures" },
+    ] }],
+    promo: { title: "Crédit auto en 24h", sub: "LOA · Paiement jusqu'à 10x", cta: "Simuler", to: "/finance" },
+  },
+  {
+    key: "services", label: "Services", to: "/demarches",
+    cols: [
+      { heading: "Véhicules", links: [
+        { label: "Acheter", to: "/acheter" },
+        { label: "Louer", to: "/louer" },
+        { label: "Vendre", to: "/vendre" },
+        { label: "Comparateur", to: "/comparateur" },
+      ] },
+      { heading: "Services auto", links: [
+        { label: "Garage & Réparation", to: "/garages" },
+        { label: "Contrôle technique", to: "/garage/controle-technique" },
+        { label: "Dépannage", to: "/depannage" },
+        { label: "Pièces auto", to: "/pieces" },
+        { label: "Carrosserie", to: "/garage/carrosserie-garage" },
+      ] },
+      { heading: "Administratif", links: [
+        { label: "Carte grise", to: "/carte-grise" },
+        { label: "Immatriculation", to: "/demarches" },
+        { label: "Import véhicule", to: "/demarches/importation-vehicule" },
+        { label: "Documents officiels", to: "/documents" },
+        { label: "Historique (VIN)", to: "/historique" },
+      ] },
+      { heading: "Mobilité & compte", links: [
+        { label: "VTC & Taxi", to: "/louer/vtc-taxi" },
+        { label: "Livraison", to: "/livraison" },
+        { label: "Mon compte", to: "/compte" },
+        { label: "Abonnements", to: "/abonnements" },
+        { label: "Centre d'aide", to: "/aide" },
+      ] },
+    ],
+    promo: { title: "Tout l'automobile réuni", sub: "Un écosystème complet, partout dans le monde", cta: "Explorer", to: "/demarches" },
+  },
+  {
+    key: "partenaires", label: "Partenaires", to: "/partenaires",
+    cols: [{ links: [
+      { label: "Devenir partenaire", to: "/partenaires/inscription-partenaire" },
+      { label: "Nos partenaires", to: "/corporate/nos-partenaires" },
+      { label: "Carte des partenaires", to: "/partenaires/carte-partenaires" },
+      { label: "Niveaux partenaires", to: "/partenaires/niveaux-partenaires" },
+      { label: "Espace Pro", to: "/espace-pro" },
+    ] }],
+    promo: { title: "Développez votre activité", sub: "Rejoignez le réseau MKA.P-MS", cta: "Rejoindre", to: "/partenaires/inscription-partenaire" },
+  },
+];
+
+function HomeHeaderDesktop() {
+  const { user } = useAuth();
+  const [openKey, setOpenKey] = useState<string | null>(null);
+  const active = HOME_MENUS.find((m) => m.key === openKey) ?? null;
+
+  return (
+    <header
+      className="fixed inset-x-0 top-0 z-50 hidden border-b border-[#E5E7EB] bg-white/95 backdrop-blur lg:block"
+      onMouseLeave={() => setOpenKey(null)}
+    >
+      <div className="mx-auto flex h-[88px] max-w-[1680px] items-center gap-3 px-4 xl:gap-4 xl:px-8">
+        {/* Gauche — logo (système inchangé : ouvert visiteur / fermé membre) */}
+        <Link
+          to="/"
+          className="flex shrink-0 flex-col items-center justify-center leading-none"
+          aria-label="MKA.P-MS — Accueil"
+          onMouseEnter={() => setOpenKey(null)}
+        >
+          <Logo variant={user ? "closed" : "open"} size={40} withWordmark />
+        </Link>
+
+        {/* Centre — services principaux + méga-menus */}
+        <nav className="flex flex-1 items-center justify-center gap-0 xl:gap-0.5">
+          {HOME_MENUS.map((m) => (
+            <div key={m.key} onMouseEnter={() => setOpenKey(m.key)}>
+              <Link
+                to={m.to}
+                className={`flex items-center gap-1 rounded-lg px-2 py-2 text-[13px] font-semibold transition xl:px-3 xl:text-[15px] ${
+                  openKey === m.key ? "bg-[#F5F3EF] text-[#111]" : "text-slate-700 hover:text-[#111]"
+                }`}
+              >
+                {m.label}
+                <ChevronDown size={15} className={`transition ${openKey === m.key ? "rotate-180 text-[#D4AF37]" : "text-slate-400"}`} />
+              </Link>
+            </div>
+          ))}
+        </nav>
+
+        {/* Droite — pays, devise, actions utilisateur */}
+        <div className="flex shrink-0 items-center gap-1 xl:gap-1.5" onMouseEnter={() => setOpenKey(null)}>
+          <DomainSelector />
+          <CurrencySelect />
+          <NotificationsBell />
+          <SmartLink redirKey="bouton_favoris" fallback="/favoris" aria-label="Favoris" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-[#D4AF37]">
+            <Heart size={17} />
+          </SmartLink>
+          <SmartLink redirKey="bouton_messagerie" fallback="/messagerie" aria-label="Messages" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-[#D4AF37]">
+            <MessageSquare size={17} />
+          </SmartLink>
+          <SmartLink redirKey="bouton_portefeuille" fallback="/compte" aria-label="Portefeuille" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:text-[#D4AF37]">
+            <Wallet size={17} />
+          </SmartLink>
+          {user ? (
+            <SmartLink redirKey="bouton_compte" fallback="/compte" className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-[13px] font-semibold text-slate-700 hover:border-[#D4AF37] hover:text-[#111] xl:text-sm">
+              <User size={16} /> Mon compte
+            </SmartLink>
+          ) : (
+            <SmartLink redirKey="bouton_connexion" fallback="/connexion" className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-[13px] font-semibold text-slate-700 hover:border-[#D4AF37] hover:text-[#111] xl:text-sm">
+              <User size={16} /> Connexion
+            </SmartLink>
+          )}
+          <SmartLink redirKey="bouton_deposer_annonce" fallback="/vendre" className="whitespace-nowrap rounded-lg bg-[#D4AF37] px-3 py-2.5 text-[13px] font-bold text-white shadow-sm hover:bg-[#c9a430] xl:px-4 xl:text-sm">
+            + Déposer
+          </SmartLink>
+        </div>
+      </div>
+
+      {/* Méga-menu (présentation) — s'ouvre au survol, se ferme quand le curseur quitte le header */}
+      {active && (
+        <div className="absolute inset-x-0 top-full border-t border-[#E5E7EB] bg-white shadow-xl">
+          <div className="mx-auto grid max-w-[1680px] grid-cols-12 gap-8 px-6 py-8 xl:px-8">
+            <div className={`grid gap-8 ${active.promo ? "col-span-9" : "col-span-12"} ${active.cols.length > 1 ? "grid-cols-4" : "grid-cols-1"}`}>
+              {active.cols.map((col, ci) => (
+                <div key={ci}>
+                  {col.heading && (
+                    <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[#D4AF37]">{col.heading}</p>
+                  )}
+                  <ul className={`${active.cols.length === 1 ? "grid max-w-md grid-cols-2 gap-x-10" : ""} space-y-2`}>
+                    {col.links.map((l) => (
+                      <li key={l.to + l.label}>
+                        <Link to={l.to} className="block py-1 text-[15px] text-slate-600 transition hover:text-[#111] hover:underline">
+                          {l.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            {active.promo && (
+              <Link to={active.promo.to} className="col-span-3 flex flex-col justify-between rounded-2xl bg-gradient-to-br from-[#111] to-[#333] p-6 text-white transition hover:opacity-95">
+                <div>
+                  <p className="text-lg font-black leading-tight">{active.promo.title}</p>
+                  <p className="mt-2 text-sm text-white/70">{active.promo.sub}</p>
+                </div>
+                <span className="mt-4 inline-flex w-fit items-center gap-1 rounded-full bg-[#D4AF37] px-4 py-2 text-sm font-bold">
+                  {active.promo.cta} <ArrowRight size={14} />
+                </span>
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
+
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -223,6 +461,11 @@ export default function Home() {
 
   return (
     <div className="bg-[#F5F3EF] min-h-screen">
+
+      {/* Header premium — DESKTOP UNIQUEMENT (mobile/tablette : header partagé du Layout) */}
+      <HomeHeaderDesktop />
+      {/* Spacer desktop pour compenser le header fixe (aucun effet mobile/tablette) */}
+      <div className="hidden h-[88px] lg:block" />
 
       {/* ═══════════════════════════════════════════════════════════════════
           LAYOUT 3 COLONNES : PUB GAUCHE | CONTENU | PUB DROITE
@@ -916,7 +1159,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="mt-8 pt-4 border-t border-white/10 text-center">
-                <p className="text-[10px] text-white/40">© 2024 MKA.P-MS — Tous droits réservés.</p>
+                <p className="text-[10px] text-white/40">© {new Date().getFullYear()} MKA.P-MS — Tous droits réservés.</p>
               </div>
             </div>
           </footer>

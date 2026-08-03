@@ -70,9 +70,13 @@ function NavItem({ to, label, redirKey }: { to: string; label: string; redirKey:
 function Header() {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  // Page d'accueil desktop : le header partagé cède la place au header premium
+  // propre à Home (voir Home.tsx). Sur mobile/tablette il reste affiché partout.
+  const isHome = pathname === "/";
   return (
     <header
-      className="fixed inset-x-0 top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur"
+      className={`fixed inset-x-0 top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur ${isHome ? "lg:hidden" : ""}`}
       style={{ paddingTop: standaloneTopOffset() }}
     >
       <div className="container-page flex h-[72px] items-center justify-between gap-4 lg:max-w-[1680px]">
@@ -193,7 +197,7 @@ function Header() {
   );
 }
 
-function CurrencySelect() {
+export function CurrencySelect() {
   const { currency, setCurrency } = useCurrency();
   return (
     <select
@@ -209,7 +213,7 @@ function CurrencySelect() {
   );
 }
 
-function NotificationsBell() {
+export function NotificationsBell() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -403,13 +407,16 @@ function BackButton() {
 }
 
 export default function Layout({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  const isHome = pathname === "/";
   return (
     <div className="flex min-h-screen flex-col">
       {/* Bascule dynamique de l'icône PWA / favicon selon état d'authentification */}
       <DynamicPWAIcon />
       <Header />
-      {/* Spacer pour compenser le header fixe (même décalage que le header). */}
-      <div className="h-[72px]" style={{ marginTop: standaloneTopOffset() }} />
+      {/* Spacer pour compenser le header fixe (même décalage que le header).
+          Sur desktop home, le header partagé est masqué → pas de spacer (Home gère le sien). */}
+      <div className={`h-[72px] ${isHome ? "lg:hidden" : ""}`} style={{ marginTop: standaloneTopOffset() }} />
       <BackButton />
       <main className="flex-1 pb-20 lg:pb-0">{children}</main>
       <Footer />
