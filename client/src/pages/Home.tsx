@@ -19,6 +19,15 @@ import { Logo } from "../components/Logo";
 import DomainSelector from "../components/DomainSelector";
 import { CurrencySelect, NotificationsBell } from "../components/Layout";
 
+/* Icône TikTok (absente de lucide-react) — même style que les autres réseaux. */
+function TikTokIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M16.5 3c.3 2 1.5 3.6 3.5 3.9v2.6c-1.2.1-2.4-.2-3.5-.8v5.9c0 3.2-2.6 5.4-5.5 5.4S5.5 17.8 5.5 14.9 8 9.6 10.9 9.9v2.7c-.4-.1-.8-.2-1.2-.1-1.2.1-2.1 1.1-2 2.3.1 1.2 1.1 2.1 2.3 2 1.2-.1 2-1 2-2.2V3h2.5z" />
+    </svg>
+  );
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE D'ACCUEIL MKA.P-MS — VERSION DÉFINITIVE V1
    16 sections dans l'ordre exact spécifié.
@@ -139,11 +148,12 @@ const DEMO_ANNONCES = [
 
 function DemoCard({ a, cta }: { a: (typeof DEMO_ANNONCES)[number]; cta: string }) {
   return (
-    <Link to="/vendre" className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-dashed border-[#D4AF37]/40 overflow-hidden hover:shadow-lg transition group">
-      <div className="relative h-[130px] md:h-[150px] lg:h-[170px] bg-gradient-to-br from-[#F5F3EF] to-[#ECE7DD] flex items-center justify-center">
+    <Link to="/vendre" className="shrink-0 w-[200px] md:w-[240px] lg:w-[260px] 2xl:w-[280px] rounded-xl bg-white border border-dashed border-[#D4AF37]/50 overflow-hidden hover:shadow-lg transition group">
+      <div className="relative h-[130px] md:h-[150px] lg:h-[170px] bg-gradient-to-br from-[#1f2937] to-[#0b1220] flex items-center justify-center overflow-hidden">
+        <Car size={56} className="text-white/15" />
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center select-none text-[24px] font-black uppercase tracking-widest text-white/10 -rotate-12">DÉMO</span>
         <span className="absolute top-2 left-2 rounded-sm bg-[#D4AF37] px-2 py-0.5 text-[8px] font-extrabold text-white uppercase tracking-wide">DEMO / TEST</span>
-        <span className="select-none text-[26px] font-black uppercase tracking-widest text-[#D4AF37]/20 -rotate-12">DÉMO</span>
-        <span className="absolute bottom-2 right-2 rounded-full bg-white/80 px-2 py-0.5 text-[8px] font-bold text-[#6B7280]">Exemple</span>
+        <span className="absolute bottom-0 inset-x-0 bg-black/55 px-2 py-1.5 text-center text-[9px] font-semibold leading-tight text-white">{cta}</span>
       </div>
       <div className="p-3">
         <h3 className="text-sm font-bold text-[#111] truncate">{a.titre}</h3>
@@ -156,7 +166,7 @@ function DemoCard({ a, cta }: { a: (typeof DEMO_ANNONCES)[number]; cta: string }
           <p className="text-base font-black text-[#111]">{a.prix.toLocaleString("fr-FR")} €</p>
           <span className="text-[10px] text-[#9CA3AF] flex items-center gap-0.5"><MapPin size={8} className="text-red-500" />{a.ville}</span>
         </div>
-        <p className="mt-1 text-[9px] font-semibold text-[#D4AF37]">{cta}</p>
+        <p className="mt-1 text-[9px] font-semibold text-[#D4AF37] group-hover:underline">Exemple — cliquez pour déposer votre annonce</p>
       </div>
     </Link>
   );
@@ -1194,8 +1204,14 @@ export default function Home() {
                     Achetez, vendez, louez, réparez et entretenez votre véhicule en toute confiance, partout, à tout moment.
                   </p>
                   <div className="mt-4 flex gap-2.5">
-                    {[Facebook, Instagram, Youtube, Linkedin].map((Ic, i) => (
-                      <a key={i} href="#" aria-label="Réseau social" className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white/70 hover:bg-[#D4AF37] hover:text-white transition">
+                    {[
+                      { Ic: Facebook, label: "Facebook" },
+                      { Ic: Instagram, label: "Instagram" },
+                      { Ic: Youtube, label: "YouTube" },
+                      { Ic: Linkedin, label: "LinkedIn" },
+                      { Ic: TikTokIcon, label: "TikTok" },
+                    ].map(({ Ic, label }) => (
+                      <a key={label} href="#" aria-label={label} className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white/70 hover:bg-[#D4AF37] hover:text-white transition">
                         <Ic size={16} />
                       </a>
                     ))}
@@ -1294,9 +1310,9 @@ export default function Home() {
                     <span className="text-base leading-none">{c.f}</span> {c.n}
                   </span>
                 ))}
-                <SmartLink redirKey="tous_les_pays" fallback="/univers" className="flex items-center gap-1.5 text-[12px] font-semibold text-[#D4AF37] hover:underline">
+                <Link to="/international/multi-pays" className="flex items-center gap-1.5 text-[12px] font-semibold text-[#D4AF37] hover:underline">
                   <Globe size={14} /> Tous les pays
-                </SmartLink>
+                </Link>
               </div>
 
               {/* Copyright */}
