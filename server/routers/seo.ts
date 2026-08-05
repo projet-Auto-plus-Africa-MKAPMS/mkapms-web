@@ -17,6 +17,8 @@ import {
   SEO_KEYWORD_CATALOG,
   catalogSize,
   seedKeywords,
+  seedKeywordsForActiveCountries,
+  learnKeywordsFromSearches,
   keywordsByUnivers,
   associateKeywords,
   UNIVERS_TARGET,
@@ -627,6 +629,45 @@ export const seoRouter = router({
           data: { ...report },
           result: "success",
           proposedDecision: `Base SEO complétée : ${report.inserted} mot(s)-clé(s) ajouté(s) sur ${report.total} (${report.universes} univers).`,
+        });
+      } catch {
+        // supervision best-effort
+      }
+      return report;
+    }),
+
+  // P4 — Seed la base de mots-clés pour TOUS les pays actifs (Country OS).
+  seedKeywordsAllCountries: adminProcedure.mutation(async ({ ctx }) => {
+    const report = await seedKeywordsForActiveCountries();
+    try {
+      await logActivity({
+        action: "seo.keywords_seeded_countries",
+        userId: ctx.user.uid,
+        targetType: "seo_keywords",
+        data: { ...report },
+        result: "success",
+        proposedDecision: `Base SEO multi-pays complétée : ${report.totalInserted} mot(s)-clé(s) ajouté(s) sur ${report.countries} pays actif(s).`,
+      });
+    } catch {
+      // supervision best-effort
+    }
+    return report;
+  }),
+
+  // P4 — Apprentissage automatique : enrichit les mots-clés par pays à partir
+  // des recherches réelles récentes (Smart Engine). Lecture seule des logs.
+  learnKeywords: adminProcedure
+    .input(z.object({ days: z.number().min(1).max(365).default(30), minOccurrences: z.number().min(1).max(100).default(2) }).optional())
+    .mutation(async ({ ctx, input }) => {
+      const report = await learnKeywordsFromSearches({ days: input?.days, minOccurrences: input?.minOccurrences });
+      try {
+        await logActivity({
+          action: "seo.keywords_learned",
+          userId: ctx.user.uid,
+          targetType: "seo_keywords",
+          data: { ...report },
+          result: "success",
+          proposedDecision: `Apprentissage mots-clés : ${report.learned} appris + ${report.reinforced} renforcé(s) sur ${report.scannedSearches} recherche(s) (${report.days} j).`,
         });
       } catch {
         // supervision best-effort
