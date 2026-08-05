@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { trpc } from "../lib/trpc";
+import { useCurrency } from "../lib/currency";
 
 /* ── SERVICES B2B ── */
 const PRO_SERVICES = [
@@ -111,7 +112,8 @@ const PRO_STATS = [
 export default function HomePro() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: proAnnonces } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", limit: 8 });
+  const { country } = useCurrency();
+  const { data: proAnnonces } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", pays: country ?? undefined, limit: 8 });
 
   return (
     <div className="bg-[#0A0A0A] min-h-screen text-white">

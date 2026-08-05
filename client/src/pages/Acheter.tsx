@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { BellPlus, Star, MapPin } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { useCurrency } from "../lib/currency";
 import VehicleCard from "../components/VehicleCard";
 
 const VENDEURS = [
@@ -41,6 +42,9 @@ export default function Acheter() {
   const [zone, setZone] = useState(params.get("zone") || "");
   const ville = params.get("ville") || undefined;
   const prixMax = params.get("prixMax") ? Number(params.get("prixMax")) : undefined;
+  const { country } = useCurrency();
+  // Filtrage par pays : ?pays= explicite prioritaire, sinon pays actif du visiteur.
+  const pays = params.get("pays") || country || undefined;
 
   const input = useMemo(
     () => ({
@@ -49,10 +53,11 @@ export default function Acheter() {
       categorieAnnonce: (vendeurType || undefined) as any,
       categorie: (categorie || undefined) as any,
       ville: ville || (zone ? zone : undefined),
+      pays,
       prixMax,
       limit: 48,
     }),
-    [q, vendeurType, categorie, ville, prixMax, zone],
+    [q, vendeurType, categorie, ville, prixMax, zone, pays],
   );
 
   const list = trpc.annonces.list.useQuery(input);

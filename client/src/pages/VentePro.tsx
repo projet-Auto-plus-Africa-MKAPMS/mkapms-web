@@ -7,6 +7,7 @@ import {
   Building2, Award, ChevronRight, Phone
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
+import { useCurrency } from "../lib/currency";
 
 /* ══════════════════════════════════════════════════════════════════════════
    VENTE PROFESSIONNELLE
@@ -54,7 +55,8 @@ const ANNEES = Array.from({ length: 15 }, (_, i) => String(new Date().getFullYea
 export default function VentePro() {
   const [showFilters, setShowFilters] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const { data: realData, isLoading } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", limit: 30 });
+  const { country } = useCurrency();
+  const { data: realData, isLoading } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", pays: country ?? undefined, limit: 30 });
 
   const realAnnonces = (realData?.items ?? []).map((a: any) => ({
     id: a.id,
