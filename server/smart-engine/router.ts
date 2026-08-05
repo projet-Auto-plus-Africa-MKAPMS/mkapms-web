@@ -38,6 +38,7 @@ import { getEnginesOverview } from "./services/connectors.js";
 import { observe, listKB, kbStats, validateKB, KB_DOMAINS } from "./services/knowledge-base.js";
 import { generateOptimizations, listOptimizations, optimizationStats, reviewOptimization } from "./services/auto-optimization.js";
 import { getPlatformHealth } from "./services/platform-health.js";
+import { buildDailyReport } from "./services/daily-report.js";
 // Renforts (activation)
 import { assertRate, sanitizeTeachMessage } from "./services/rate-limiter.js"; // P9
 import { runRetention, retentionCounters } from "./services/retention.js"; // P7
@@ -388,6 +389,11 @@ export const smartEngineRouter = router({
     .query(async ({ input }) => {
       return getDailyVisits(input?.days ?? 30);
     }),
+
+  // ── Rapport quotidien consolidé (anomalies + propositions) ─────────
+  dailyReport: directionProcedure.query(async () => {
+    return buildDailyReport();
+  }),
 
   // ── Dashboard global (Centre de contrôle) ──────────────────────────
   dashboard: directionProcedure.query(async () => {
