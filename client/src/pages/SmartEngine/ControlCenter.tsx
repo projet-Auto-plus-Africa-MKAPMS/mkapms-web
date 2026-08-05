@@ -53,10 +53,11 @@ import {
   CalendarDays,
 } from "lucide-react";
 
-type Tab = "dashboard" | "etat" | "qualite" | "evolution" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
+type Tab = "dashboard" | "rapport" | "etat" | "qualite" | "evolution" | "alertes" | "apprentissage" | "connaissances" | "savoir" | "optimisation" | "moteurs" | "developpements" | "recherches" | "doublons" | "suspects" | "annonces" | "badges" | "sante" | "journal" | "validations" | "avis" | "comportement";
 
 const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
+  { key: "rapport", label: "Rapport quotidien", icon: CalendarDays },
   { key: "etat", label: "État plateforme", icon: HeartPulse },
   { key: "qualite", label: "Qualité", icon: Gauge },
   { key: "evolution", label: "Évolution autonome", icon: Lightbulb },
@@ -133,6 +134,7 @@ export default function ControlCenter() {
       {/* Content */}
       <div className="px-4">
         {tab === "dashboard" && <DashboardTab onNavigate={setTab} />}
+        {tab === "rapport" && <RapportTab />}
         {tab === "etat" && <EtatPlateformeTab />}
         {tab === "qualite" && <QualiteTab />}
         {tab === "evolution" && <EvolutionTab isPdg={isPdg} />}
@@ -253,6 +255,96 @@ function ActionBtn({ label, icon: Icon, loading, onClick }: { label: string; ico
       {loading ? <RefreshCw size={12} className="animate-spin" /> : <Icon size={12} />}
       {label}
     </button>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB : Rapport quotidien (anomalies + propositions consolidées)
+   ═══════════════════════════════════════════════════════════ */
+const SEVERITY_STYLE: Record<string, { badge: string; label: string }> = {
+  critical: { badge: "bg-red-100 text-red-700", label: "Critique" },
+  important: { badge: "bg-orange-100 text-orange-700", label: "Important" },
+  warning: { badge: "bg-yellow-100 text-yellow-700", label: "Attention" },
+  info: { badge: "bg-blue-100 text-blue-700", label: "Info" },
+};
+
+function RapportTab() {
+  const { data, isLoading, refetch, isFetching } = trpc.smartEngine.dailyReport.useQuery();
+
+  if (isLoading) return <Loading />;
+  if (!data) return <Empty msg="Rapport indisponible" />;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">Rapport quotidien</h2>
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="flex items-center gap-1.5 rounded-full border border-[#E5E7EB] bg-white px-3 py-1.5 text-xs font-semibold text-[#374151] hover:bg-[#F5F3EF] transition disabled:opacity-50"
+        >
+          {isFetching ? <RefreshCw size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+          Actualiser
+        </button>
+      </div>
+      <p className="text-[11px] text-[#9CA3AF]">
+        Généré le {new Date(data.generatedAt).toLocaleString("fr-FR")} · lecture seule (aucune action sensible).
+      </p>
+
+      {/* Synthèse */}
+      <div className="grid grid-cols-3 gap-2">
+        <StatCard label="Anomalies" value={data.summary.anomalies} color="orange" icon={AlertTriangle} />
+        <StatCard label="Critiques" value={data.summary.criticalAnomalies} color="red" icon={XCircle} />
+        <StatCard label="Propositions" value={data.summary.suggestions} color="blue" icon={Lightbulb} />
+        <StatCard label="Éléments cassés" value={data.summary.brokenElements} color="red" icon={FileWarning} />
+        <StatCard label="Alertes ouvertes" value={data.summary.openAlerts} color="orange" icon={Shield} />
+        <StatCard label="Score qualité" value={data.summary.qualityScore} color="green" icon={Gauge} />
+      </div>
+
+      {/* Anomalies détectées */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-bold text-[#111]">Anomalies détectées</h3>
+        {data.anomalies.length === 0 ? (
+          <div className="rounded-xl border border-green-200 bg-green-50 p-3 text-xs font-medium text-green-700">
+            Aucune anomalie détectée. Plateforme saine.
+          </div>
+        ) : (
+          data.anomalies.map((a, i) => {
+            const style = SEVERITY_STYLE[a.severity] ?? SEVERITY_STYLE.info;
+            return (
+              <div key={i} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+                <div className="flex items-center gap-2">
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${style.badge}`}>{style.label}</span>
+                  <span className="text-[10px] font-semibold text-[#9CA3AF]">{a.domain}</span>
+                </div>
+                <p className="mt-1 text-xs font-semibold text-[#111]">{a.title}</p>
+                <p className="text-[11px] text-[#6B7280]">{a.detail}</p>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Propositions d'amélioration */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-bold text-[#111]">Propositions d'amélioration</h3>
+        {data.suggestions.length === 0 ? (
+          <div className="rounded-xl border border-[#E5E7EB] bg-white p-3 text-xs text-[#9CA3AF]">
+            Aucune proposition pour le moment.
+          </div>
+        ) : (
+          data.suggestions.map((s, i) => (
+            <div key={i} className="flex items-start gap-2 rounded-xl border border-[#E5E7EB] bg-white p-3">
+              <Lightbulb size={14} className="mt-0.5 shrink-0 text-[#D4AF37]" />
+              <div>
+                <p className="text-[10px] font-semibold text-[#9CA3AF]">{s.domain}</p>
+                <p className="text-xs text-[#374151]">{s.action}</p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
   );
 }
 
