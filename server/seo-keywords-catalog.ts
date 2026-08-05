@@ -13,9 +13,11 @@
  * de la plateforme (services, pièces, marketplace, international).
  */
 
-import { sql } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { db } from "./db.js";
 import { seoKeywords } from "./schema.js";
+import { countryCountries } from "./country-os/index.js";
+import { smartSearchLogs } from "./smart-engine/schema.js";
 
 export interface KeywordGroup {
   univers: string;
@@ -328,4 +330,159 @@ export async function keywordsByUnivers(): Promise<{ univers: string; count: num
   } catch {
     return [];
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// P4 — Moteur de mots-clés PAR PAYS
+// ═══════════════════════════════════════════════════════════════════════
+
+export interface SeedCountriesReport {
+  countries: number;
+  perCountry: { country: string; language: string; inserted: number; total: number }[];
+  totalInserted: number;
+}
+
+/**
+ * Alimente la base de mots-clés pour TOUS les pays actifs déclarés dans le
+ * Country OS, chacun avec sa langue par défaut. Aucune donnée inventée : la
+ * liste des pays et leurs langues proviennent de `country_countries`.
+ * Idempotent (upsert sur univers + mot-clé + langue + pays).
+ */
+export async function seedKeywordsForActiveCountries(): Promise<SeedCountriesReport> {
+  const countries = await db
+    .select({ code: countryCountries.code, lang: countryCountries.defaultLanguage })
+    .from(countryCountries)
+    .where(eq(countryCountries.active, true));
+
+  const perCountry: SeedCountriesReport["perCountry"] = [];
+  let totalInserted = 0;
+
+  for (const c of countries) {
+    const report = await seedKeywords({
+      language: (c.lang ?? "fr").slice(0, 4),
+      country: c.code,
+    });
+    perCountry.push({
+      country: c.code,
+      language: (c.lang ?? "fr").slice(0, 4),
+      inserted: report.inserted,
+      total: report.total,
+    });
+    totalInserted += report.inserted;
+  }
+
+  return { countries: countries.length, perCountry, totalInserted };
+}
+
+/**
+ * Infère l'univers d'une requête libre en la comparant au catalogue curé.
+ * Renvoie l'univers du premier groupe dont un mot-clé partage un token avec
+ * la requête, sinon `recherche` (bucket des intentions apprises).
+ */
+function inferUnivers(query: string): string {
+  const tokens = new Set(
+    query
+      .toLowerCase()
+      .split(/[^a-zà-ÿ0-9]+/)
+      .filter((t) => t.length >= 3),
+  );
+  if (tokens.size === 0) return "recherche";
+  for (const group of SEO_KEYWORD_CATALOG) {
+    for (const kw of group.keywords) {
+      const kwTokens = kw.toLowerCase().split(/[^a-zà-ÿ0-9]+/);
+      if (kwTokens.some((t) => t.length >= 3 && tokens.has(t))) {
+        return group.univers;
+      }
+    }
+  }
+  return "recherche";
+}
+
+/** Normalise un pays de log (« FR », « France »…) vers un code ISO à 2 lettres. */
+function normalizeCountry(raw: string | null, nameToCode: Map<string, string>): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (/^[A-Za-z]{2}$/.test(trimmed)) return trimmed.toUpperCase();
+  return nameToCode.get(trimmed.toLowerCase()) ?? null;
+}
+
+export interface LearnKeywordsReport {
+  scannedSearches: number;
+  learned: number;
+  reinforced: number;
+  skipped: number;
+  days: number;
+}
+
+/**
+ * Boucle d'apprentissage automatique : lit les recherches réelles récentes
+ * (Smart Engine) et enrichit la base de mots-clés PAR PAYS. Chaque requête
+ * distincte devient (ou renforce) un mot-clé du pays où elle a été faite ;
+ * `volume` accumule le nombre d'occurrences observées.
+ * Lecture des recherches uniquement — aucune action sensible.
+ */
+export async function learnKeywordsFromSearches(
+  opts: { days?: number; minOccurrences?: number } = {},
+): Promise<LearnKeywordsReport> {
+  const days = opts.days ?? 30;
+  const minOccurrences = opts.minOccurrences ?? 2;
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+  const countries = await db
+    .select({ code: countryCountries.code, nameFr: countryCountries.nameFr, nameEn: countryCountries.nameEn })
+    .from(countryCountries);
+  const nameToCode = new Map<string, string>();
+  for (const c of countries) {
+    nameToCode.set(c.code.toLowerCase(), c.code);
+    if (c.nameFr) nameToCode.set(c.nameFr.toLowerCase(), c.code);
+    if (c.nameEn) nameToCode.set(c.nameEn.toLowerCase(), c.code);
+  }
+
+  const rows = await db
+    .select({
+      query: smartSearchLogs.query,
+      pays: smartSearchLogs.pays,
+      occurrences: sql<number>`count(*)::int`,
+    })
+    .from(smartSearchLogs)
+    .where(and(gte(smartSearchLogs.createdAt, since), sql`${smartSearchLogs.query} IS NOT NULL AND length(trim(${smartSearchLogs.query})) >= 3`))
+    .groupBy(smartSearchLogs.query, smartSearchLogs.pays);
+
+  let learned = 0;
+  let reinforced = 0;
+  let skipped = 0;
+
+  for (const row of rows) {
+    const query = (row.query ?? "").trim();
+    const occ = Number(row.occurrences);
+    const country = normalizeCountry(row.pays, nameToCode);
+    if (!query || occ < minOccurrences || !country) {
+      skipped++;
+      continue;
+    }
+    const univers = inferUnivers(query);
+    const res = await db
+      .insert(seoKeywords)
+      .values({
+        univers,
+        keyword: query.slice(0, 128),
+        language: "fr",
+        country,
+        volume: occ,
+        active: true,
+      })
+      .onConflictDoUpdate({
+        target: [seoKeywords.univers, seoKeywords.keyword, seoKeywords.language, seoKeywords.country],
+        set: { volume: sql`GREATEST(COALESCE(${seoKeywords.volume}, 0), ${occ})` },
+      })
+      .returning({ id: seoKeywords.id, volume: seoKeywords.volume });
+
+    if (res.length > 0 && (res[0].volume ?? 0) === occ) {
+      learned++;
+    } else {
+      reinforced++;
+    }
+  }
+
+  return { scannedSearches: rows.length, learned, reinforced, skipped, days };
 }

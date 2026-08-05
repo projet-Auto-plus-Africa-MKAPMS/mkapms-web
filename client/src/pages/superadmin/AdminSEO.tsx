@@ -27,6 +27,12 @@ export default function AdminSEO() {
   const seedKeywords = trpc.seo.seedKeywords.useMutation({
     onSuccess: () => { utils.seo.keywordStats.invalidate(); utils.seo.listKeywords.invalidate(); },
   });
+  const seedAllCountries = trpc.seo.seedKeywordsAllCountries.useMutation({
+    onSuccess: () => { utils.seo.keywordStats.invalidate(); utils.seo.listKeywords.invalidate(); },
+  });
+  const learnKeywords = trpc.seo.learnKeywords.useMutation({
+    onSuccess: () => { utils.seo.keywordStats.invalidate(); utils.seo.listKeywords.invalidate(); },
+  });
   const associations = trpc.seo.keywordAssociations.useQuery();
   const associate = trpc.seo.associateKeywords.useMutation({
     onSuccess: () => { utils.seo.keywordAssociations.invalidate(); utils.seo.listKeywords.invalidate(); },
@@ -398,6 +404,43 @@ export default function AdminSEO() {
           {seedKeywords.error && (
             <p className="mt-2 text-[11px] text-red-600">{seedKeywords.error.message}</p>
           )}
+
+          {/* P4 — Base par pays + apprentissage automatique */}
+          <div className="mt-3 grid grid-cols-1 gap-2 border-t border-[#E5E7EB] pt-3">
+            <button
+              onClick={() => seedAllCountries.mutate()}
+              disabled={seedAllCountries.isPending}
+              className="w-full rounded-lg border border-[#111] py-2 text-xs font-bold text-[#111] flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              <RefreshCw size={12} className={seedAllCountries.isPending ? "animate-spin" : ""} />
+              {seedAllCountries.isPending ? "Alimentation…" : "Alimenter la base pour tous les pays actifs"}
+            </button>
+            {seedAllCountries.data && (
+              <p className="text-[11px] text-green-700 font-medium">
+                {seedAllCountries.data.totalInserted.toLocaleString("fr-FR")} mot(s)-clé(s) ajouté(s) sur {seedAllCountries.data.countries} pays actif(s).
+              </p>
+            )}
+            {seedAllCountries.error && (
+              <p className="text-[11px] text-red-600">{seedAllCountries.error.message}</p>
+            )}
+
+            <button
+              onClick={() => learnKeywords.mutate({ days: 30, minOccurrences: 2 })}
+              disabled={learnKeywords.isPending}
+              className="w-full rounded-lg border border-[#D4AF37] py-2 text-xs font-bold text-[#8a6d00] flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              <RefreshCw size={12} className={learnKeywords.isPending ? "animate-spin" : ""} />
+              {learnKeywords.isPending ? "Apprentissage…" : "Apprendre des recherches réelles (par pays)"}
+            </button>
+            {learnKeywords.data && (
+              <p className="text-[11px] text-green-700 font-medium">
+                {learnKeywords.data.learned.toLocaleString("fr-FR")} appris, {learnKeywords.data.reinforced.toLocaleString("fr-FR")} renforcé(s) sur {learnKeywords.data.scannedSearches.toLocaleString("fr-FR")} recherche(s) ({learnKeywords.data.days} j).
+              </p>
+            )}
+            {learnKeywords.error && (
+              <p className="text-[11px] text-red-600">{learnKeywords.error.message}</p>
+            )}
+          </div>
         </div>
 
         {/* Phase 2 — Association intelligente mots-clé → page cible */}
