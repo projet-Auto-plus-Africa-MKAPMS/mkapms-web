@@ -15,6 +15,7 @@ import { trpc } from "../lib/trpc";
 import { SmartLink } from "../lib/redirect";
 import { useAuth } from "../lib/auth";
 import { getAnnonceUrl } from "../lib/annonceUrl";
+import { useCurrency } from "../lib/currency";
 import { Logo } from "../components/Logo";
 import DomainSelector from "../components/DomainSelector";
 import { CurrencySelect, NotificationsBell } from "../components/Layout";
@@ -511,15 +512,18 @@ export default function Home() {
     navigate(`/acheter?${params.toString()}`);
   }
 
-  /* Annonces réelles depuis la DB — chaque section filtre correctement */
-  const { data: officielles } = trpc.annonces.list.useQuery({ categorieAnnonce: "officielle", limit: 10 });
-  const { data: boostees } = trpc.annonces.list.useQuery({ boosted: true, limit: 10 });
-  const { data: premium } = trpc.annonces.list.useQuery({ selectionMka: true, limit: 10 });
-  const { data: recentes } = trpc.annonces.list.useQuery({ type: "vente", limit: 10 });
-  const { data: locations } = trpc.annonces.list.useQuery({ type: "location", limit: 10 });
-  const { data: particuliers } = trpc.annonces.list.useQuery({ categorieAnnonce: "particulier", type: "vente", limit: 10 });
-  const { data: professionnelles } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", limit: 10 });
-  const { data: motos } = trpc.annonces.list.useQuery({ famille: "moto", limit: 10 });
+  /* Annonces réelles depuis la DB — chaque section filtre correctement, et
+     s'adapte automatiquement au pays actif (chaque pays voit ses annonces). */
+  const { country } = useCurrency();
+  const pays = country ?? undefined;
+  const { data: officielles } = trpc.annonces.list.useQuery({ categorieAnnonce: "officielle", pays, limit: 10 });
+  const { data: boostees } = trpc.annonces.list.useQuery({ boosted: true, pays, limit: 10 });
+  const { data: premium } = trpc.annonces.list.useQuery({ selectionMka: true, pays, limit: 10 });
+  const { data: recentes } = trpc.annonces.list.useQuery({ type: "vente", pays, limit: 10 });
+  const { data: locations } = trpc.annonces.list.useQuery({ type: "location", pays, limit: 10 });
+  const { data: particuliers } = trpc.annonces.list.useQuery({ categorieAnnonce: "particulier", type: "vente", pays, limit: 10 });
+  const { data: professionnelles } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", pays, limit: 10 });
+  const { data: motos } = trpc.annonces.list.useQuery({ famille: "moto", pays, limit: 10 });
 
   const realOfficielles = (officielles?.items ?? []).map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }));
   const realBoostees = (boostees?.items ?? []).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
