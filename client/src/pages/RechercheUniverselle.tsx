@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { trpc } from "../lib/trpc";
 import {
   Search, X, MapPin, Car, Wrench, Key, Gavel, Settings, Truck,
   HelpCircle, ChevronRight, Star, Shield, Navigation, Phone,
@@ -174,6 +175,15 @@ export default function RechercheUniverselle() {
   const results = useMemo(() => searchAll(query), [query]);
   const geoIntent = hasGeoIntent(query);
 
+  // Suggestions automatiques (marques / villes réelles) — Search OS.
+  const liveSuggest = trpc.searchOs.suggest.useQuery(
+    { prefix: query.trim(), limit: 8 },
+    { enabled: query.trim().length >= 2 },
+  );
+  const liveSuggestions = (liveSuggest.data ?? []).filter(
+    (s) => s.toLowerCase() !== query.trim().toLowerCase(),
+  );
+
   const filtered = tab === "tout" ? results : results.filter(r => r.category === tab);
 
   // Group by category for "tout" tab
@@ -284,6 +294,22 @@ export default function RechercheUniverselle() {
             </div>
           )}
         </div>
+
+        {/* Suggestions automatiques (marques / villes réelles) */}
+        {query.trim().length >= 2 && liveSuggestions.length > 0 && (
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] font-semibold text-white/40 uppercase">Suggestions</span>
+            {liveSuggestions.map((s) => (
+              <button
+                key={s}
+                onClick={() => { setQuery(s); inputRef.current?.blur(); }}
+                className="rounded-full bg-white/10 px-3 py-1 text-xs text-white hover:bg-[#D4AF37]/30 transition"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Geo intent indicator */}
         {geoIntent && (
