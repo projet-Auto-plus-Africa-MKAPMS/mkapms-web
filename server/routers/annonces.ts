@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, desc, eq, gte, ilike, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, ilike, isNull, lte, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
@@ -137,6 +137,7 @@ export const annoncesRouter = router({
         categorieAnnonce: z.enum(["officielle", "professionnelle", "particulier"]).optional(),
         prixMax: z.number().optional(),
         ville: z.string().optional(),
+        pays: z.string().optional(),
         segmentLocation: z.enum(["particulier", "professionnel", "vtc_taxi"]).optional(),
         boosted: z.boolean().optional(),
         selectionMka: z.boolean().optional(),
@@ -159,6 +160,11 @@ export const annoncesRouter = router({
       if (input.miseAvantAccueil !== undefined) conds.push(eq(annonces.miseAvantAccueil, input.miseAvantAccueil));
       if (input.prixMax) conds.push(lte(annonces.prix, String(input.prixMax)));
       if (input.ville) conds.push(ilike(annonces.ville, `%${input.ville}%`));
+      // Filtrage par pays : chaque pays voit ses annonces. On tolère les
+      // annonces sans pays renseigné (legacy) pour ne masquer aucun stock existant.
+      if (input.pays) {
+        conds.push(or(eq(annonces.pays, input.pays), isNull(annonces.pays))!);
+      }
       if (input.q) {
         const like = `%${input.q}%`;
         conds.push(
