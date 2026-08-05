@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import { ChevronLeft, Star, Shield, Award, Check, History, CreditCard, Truck, ChevronDown, Heart, Phone, MapPin, Search } from "lucide-react";
 import { trpc } from "../lib/trpc";
+import { useCurrency } from "../lib/currency";
 
 /* ══════════════════════════════════════════════════════════════════════════
    VENTE MKA.P-MS OFFICIELLE — Univers Premium
@@ -54,7 +55,8 @@ const ANNEES = Array.from({ length: 15 }, (_, i) => String(new Date().getFullYea
 
 export default function VenteMKAPMS() {
   const [showFilters, setShowFilters] = useState(false);
-  const { data: realData, isLoading } = trpc.annonces.list.useQuery({ categorieAnnonce: "officielle", limit: 30 });
+  const { country } = useCurrency();
+  const { data: realData, isLoading } = trpc.annonces.list.useQuery({ categorieAnnonce: "officielle", pays: country ?? undefined, limit: 30 });
 
   const realAnnonces = (realData?.items ?? []).map((a: any) => ({
     vehiculeId: a.id,

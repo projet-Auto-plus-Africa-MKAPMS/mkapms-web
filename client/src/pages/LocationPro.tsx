@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { trpc } from "../lib/trpc";
+import { useCurrency } from "../lib/currency";
 import {
   ChevronLeft, ChevronRight, Search, MapPin, Calendar, CarFront, Truck,
   Shield, Lock, Clock, Headphones, FileCheck, ChevronDown, Star,
@@ -155,8 +156,9 @@ export default function LocationPro() {
     : VEHICULES_PRO;
 
   // Vraies annonces pro location — additif aux mocks (best-effort).
+  const { country } = useCurrency();
   const realAnnonces = trpc.annonces.list.useQuery(
-    { type: "location", categorieAnnonce: "professionnelle", limit: 24 },
+    { type: "location", categorieAnnonce: "professionnelle", pays: country ?? undefined, limit: 24 },
     { retry: false },
   );
 

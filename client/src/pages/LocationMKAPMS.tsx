@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { trpc } from "../lib/trpc";
+import { useCurrency } from "../lib/currency";
 import {
   ChevronLeft, Search, MapPin, Calendar, CarFront, Car,
   Shield, Lock, Headphones, FileCheck, ChevronDown, Star,
@@ -155,8 +156,9 @@ export default function LocationMKAPMS() {
   });
 
   // Vraies annonces officielles MKAPMS location — additif (best-effort).
+  const { country } = useCurrency();
   const realAnnonces = trpc.annonces.list.useQuery(
-    { type: "location", categorieAnnonce: "officielle", limit: 24 },
+    { type: "location", categorieAnnonce: "officielle", pays: country ?? undefined, limit: 24 },
     { retry: false },
   );
 

@@ -5,6 +5,7 @@ import {
   ChevronLeft, Search, Car, Star, MapPin, ChevronDown, Heart, Shield
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
+import { useCurrency } from "../lib/currency";
 
 /* ══════════════════════════════════════════════════════════════════════════
    VENTE PARTICULIER
@@ -57,7 +58,8 @@ const ANNEES = Array.from({ length: 15 }, (_, i) => String(new Date().getFullYea
 export default function VenteParticulier() {
   const [showFilters, setShowFilters] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const { data: realData, isLoading } = trpc.annonces.list.useQuery({ categorieAnnonce: "particulier", type: "vente", limit: 30 });
+  const { country } = useCurrency();
+  const { data: realData, isLoading } = trpc.annonces.list.useQuery({ categorieAnnonce: "particulier", type: "vente", pays: country ?? undefined, limit: 30 });
 
   const realAnnonces = (realData?.items ?? []).map((a: any) => ({
     id: a.id,

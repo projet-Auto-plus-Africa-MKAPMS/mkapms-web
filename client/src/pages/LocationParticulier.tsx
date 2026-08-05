@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { trpc } from "../lib/trpc";
+import { useCurrency } from "../lib/currency";
 import {
   ChevronLeft, ChevronRight, Search, MapPin, Calendar, CarFront, Car,
   Shield, Lock, Clock, Headphones, FileCheck, ChevronDown, Star,
@@ -155,8 +156,9 @@ export default function LocationParticulier() {
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
 
   // Vraies annonces particulier location — additif aux mocks (best-effort).
+  const { country } = useCurrency();
   const realAnnonces = trpc.annonces.list.useQuery(
-    { type: "location", categorieAnnonce: "particulier", limit: 24 },
+    { type: "location", categorieAnnonce: "particulier", pays: country ?? undefined, limit: 24 },
     { retry: false },
   );
 

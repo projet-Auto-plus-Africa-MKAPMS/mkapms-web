@@ -61,10 +61,10 @@ const WORLD_STATS = [
 
 export default function HomeSite() {
   const navigate = useNavigate();
-  const { currency } = useCurrency();
+  const { currency, country } = useCurrency();
   const [searchCountry, setSearchCountry] = useState("");
 
-  const { data: recentes } = trpc.annonces.list.useQuery({ limit: 8 });
+  const { data: recentes } = trpc.annonces.list.useQuery({ pays: country ?? undefined, limit: 8 });
 
   const filteredCountries = searchCountry
     ? FEATURED_COUNTRIES.filter((c) =>
