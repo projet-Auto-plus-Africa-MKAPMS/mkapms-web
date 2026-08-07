@@ -103,6 +103,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "visibility",
+    label: "Global Visibility Engine",
+    category: "transversal",
+    dependencies: ["core", "seo", "smart"],
+    description:
+      "Moteur central de visibilité mondiale : coordonne SEO, visibilité IA/GEO, audience, canaux sociaux et publication organique (une info → tous les canaux).",
+    state: "active",
+  },
+  {
     name: "payment",
     label: "Payment Engine",
     category: "transversal",
