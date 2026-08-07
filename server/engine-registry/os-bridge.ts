@@ -153,6 +153,13 @@ const OS_ENGINES: OsEngineBinding[] = [
     dependencies: ["core", "smart"],
     loadFeed: async () => (await import("../ai-learning-os/index.js")).controlCenterFeed(),
   },
+  {
+    name: "visibility",
+    label: "Global Visibility Engine",
+    category: "transversal",
+    dependencies: ["core", "seo", "smart"],
+    loadFeed: async () => (await import("../visibility-os/index.js")).controlCenterFeed(),
+  },
 ];
 
 async function bridgeOne(binding: OsEngineBinding): Promise<void> {

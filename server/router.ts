@@ -80,6 +80,8 @@ import { supportOsRouter } from "./support-os/index.js";
 import { aiLearningOsRouter } from "./ai-learning-os/index.js";
 // Notation par les comptes : application / service / client
 import { appFeedbackRouter } from "./routers/app-feedback.js";
+// Global Visibility Engine — moteur central de visibilité mondiale (SEO/GEO/audience/social)
+import { visibilityOsRouter } from "./visibility-os/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -181,6 +183,8 @@ export const appRouter = router({
   messagingOs: messagingOsRouter,
   supportOs: supportOsRouter,
   aiLearningOs: aiLearningOsRouter,
+  // Global Visibility Engine — visibilité mondiale (SEO + IA/GEO + audience + réseaux sociaux)
+  visibilityOs: visibilityOsRouter,
 });
 
 export type AppRouter = typeof appRouter;

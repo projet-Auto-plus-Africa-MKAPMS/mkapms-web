@@ -16,6 +16,7 @@ import { learnFromInput } from "../smart-engine/services/learning.js";
 import { checkDuplicates } from "../smart-engine/services/duplicate-detection.js";
 import { logActivity } from "../smart-engine/services/activity-log.js";
 import { onAnnoncePublished } from "../seo-hooks.js";
+import { ingest as ingestVisibility } from "../visibility-os/index.js";
 
 /**
  * Auto-heal — si un déploiement précédent a laissé une colonne JSONB manquante
@@ -836,6 +837,16 @@ export const annoncesRouter = router({
       logActivity({ action: "annonce.created", userId: ctx.user.uid, targetType: "annonce", targetId: created.id, data: { marque: rest.marque, modele: rest.modele }, result: "success" }).catch(() => {});
       // SEO OS — indexation automatique + supervision (§1)
       onAnnoncePublished(created.id, "published", ctx.user.uid).catch(() => {});
+      // Global Visibility Engine — injection automatique (SEO/GEO/audience/social)
+      ingestVisibility({
+        sourceType: "annonce",
+        sourceId: String(created.id),
+        title: created.titre || `${rest.marque} ${rest.modele}`,
+        body: (created.description || `${rest.marque} ${rest.modele}${created.prix ? ` — ${created.prix}` : ""}`).slice(0, 2000),
+        country: (created.pays || "FR").slice(0, 2).toUpperCase(),
+        link: `/vehicule/${created.id}`,
+        keywords: [rest.marque, rest.modele, created.ville].filter((x): x is string => typeof x === "string" && x.length > 0),
+      }).catch(() => {});
       // Apprentissage : version/finition saisies manuellement
       if (rest.version) learnFromInput({ field: "version", marque: rest.marque, modele: rest.modele, value: rest.version, submittedBy: ctx.user.uid }).catch(() => {});
 
