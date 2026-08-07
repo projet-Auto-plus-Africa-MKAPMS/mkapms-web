@@ -29,6 +29,7 @@ import {
   visibilityEvents,
   visibilityAudiences,
   visibilityAiAnswers,
+  visibilityIntents,
 } from "./schema.js";
 import {
   generateVariant,
@@ -37,6 +38,7 @@ import {
 } from "./content-engine.js";
 import { rebuildAudiences } from "./audience-engine.js";
 import { seedAnswers, listAnswers } from "./geo-engine.js";
+import { seedIntents, deriveTrendsFromSearches, listIntents } from "./intent-engine.js";
 import { logActivity } from "../smart-engine/services/activity-log.js";
 import type {
   ControlCenterFeed,
@@ -231,6 +233,7 @@ export interface VisibilityOverview {
   events24h: { impressions: number; clicks: number; conversions: number };
   audiences: { total: number; owner: number; external: number };
   aiAnswers: number;
+  intents: { total: number; trending: number };
   byChannel: Array<{ channelKey: string; label: string; kind: string; enabled: boolean; publications: number }>;
 }
 
@@ -273,6 +276,11 @@ export async function overview(): Promise<VisibilityOverview> {
   for (const r of audRows) audMap[r.source] = Number(r.n);
 
   const [ai] = await db.select({ n: sql<number>`count(*)::int` }).from(visibilityAiAnswers);
+  const [intentsTotal] = await db.select({ n: sql<number>`count(*)::int` }).from(visibilityIntents);
+  const [intentsTrend] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(visibilityIntents)
+    .where(sql`${visibilityIntents.trendScore} > 0`);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -299,6 +307,7 @@ export async function overview(): Promise<VisibilityOverview> {
       external: audMap["external_ad"] ?? 0,
     },
     aiAnswers: Number(ai?.n ?? 0),
+    intents: { total: Number(intentsTotal?.n ?? 0), trending: Number(intentsTrend?.n ?? 0) },
     byChannel: channels
       .map((c) => ({ channelKey: c.channelKey, label: c.label, kind: c.kind, enabled: c.enabled, publications: perMap[c.channelKey] ?? 0 }))
       .sort((a, b) => b.publications - a.publications),
@@ -455,6 +464,25 @@ export const visibilityOsRouter = router({
       logActivity({ action: "visibility.ai_answers_seeded", targetType: "page", data: { ...res }, result: "success" }).catch(() => {});
       return res;
     }),
+
+  // ── Mots-clés / questions / intentions (3 niveaux) + tendances ─────────
+  intents: adminProcedure
+    .input(z.object({ topic: z.string().optional(), country: z.string().optional(), limit: z.number().min(1).max(500).default(100) }).optional())
+    .query(({ input }) => listIntents({ topic: input?.topic, country: input?.country, limit: input?.limit })),
+
+  seedIntents: pdgProcedure
+    .input(z.object({ countries: z.array(z.string()).optional() }).optional())
+    .mutation(async ({ input }) => {
+      const res = await seedIntents(input?.countries ?? [null]);
+      logActivity({ action: "visibility.intents_seeded", targetType: "page", data: { ...res }, result: "success" }).catch(() => {});
+      return res;
+    }),
+
+  refreshTrends: pdgProcedure.mutation(async () => {
+    const res = await deriveTrendsFromSearches();
+    logActivity({ action: "visibility.trends_refreshed", targetType: "page", data: { ...res }, result: "success" }).catch(() => {});
+    return res;
+  }),
 
   ingest: pdgProcedure
     .input(

@@ -421,6 +421,13 @@
       "when": 1753700800000,
       "tag": "0060_visibility_ai_answers",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1753700900000,
+      "tag": "0061_visibility_intents",
+      "breakpoints": true
     }
   ]
 }

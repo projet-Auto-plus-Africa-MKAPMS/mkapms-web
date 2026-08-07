@@ -142,6 +142,30 @@ export const visibilityAiAnswers = pgTable("visibility_ai_answers", {
 });
 
 /**
+ * Modèle à trois niveaux : mot-clé → question → intention.
+ * Exemple : "location voiture" → "où louer une voiture pas chère près de moi ?"
+ *           → "LOCATION+LOCAL+PRIX+DISPONIBILITE".
+ * Alimente le SEO, la recherche, les suggestions, les recommandations internes,
+ * les contenus sociaux, la visibilité IA/GEO et le ciblage d'audience.
+ * `trendScore` est dérivé des signaux réels (recherches enregistrées) — jamais
+ * copié d'un tiers. Brand-neutral et additif.
+ */
+export const visibilityIntents = pgTable("visibility_intents", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  intentKey: varchar("intent_key", { length: 200 }).notNull().unique(),
+  keyword: varchar("keyword", { length: 160 }).notNull(),
+  question: varchar("question", { length: 300 }),
+  intention: varchar("intention", { length: 200 }).notNull(), // tags majuscules combinés par '+'
+  topic: varchar("topic", { length: 48 }).notNull(), // achat|vente|location|garage|...
+  lang: varchar("lang", { length: 8 }).default("fr").notNull(),
+  country: varchar("country", { length: 2 }),
+  trendScore: integer("trend_score").default(0).notNull(),
+  source: varchar("source", { length: 24 }).default("base").notNull(), // base | search_signal
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+/**
  * Événements de visibilité (impressions/clics/inscriptions/conversions) par
  * canal — matière première remontée au Système Intelligent pour analyse.
  */
