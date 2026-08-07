@@ -58,6 +58,10 @@ export const HANDLED_WEBHOOK_EVENTS = [
   "checkout.session.completed",
   "checkout.session.expired",
   "charge.refunded",
+  "payment_intent.payment_failed",
+  "invoice.paid",
+  "invoice.payment_failed",
+  "customer.subscription.updated",
   "customer.subscription.deleted",
 ] as const;
 

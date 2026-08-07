@@ -225,6 +225,108 @@ export async function handleStripeWebhook(req: Request, res: Response) {
         }
         break;
       }
+      case "payment_intent.payment_failed": {
+        // Paiement refusé (carte, fonds…) → le payment ne doit plus rester
+        // 'pending' : on le passe en 'failed' et on informe le client.
+        const pi = event.data.object as Stripe.PaymentIntent;
+        const m = pi.metadata || {};
+        const paymentId = m.payment_id ? Number(m.payment_id) : null;
+        const userId = m.user_id ? Number(m.user_id) : null;
+        let updatedUserId: number | null = userId;
+        if (paymentId) {
+          const [failed] = await db
+            .update(payments)
+            .set({ status: "failed", stripePaymentIntentId: pi.id, updatedAt: new Date() })
+            .where(eq(payments.id, paymentId))
+            .returning();
+          updatedUserId = failed?.userId ?? userId;
+        } else if (pi.id) {
+          await db
+            .update(payments)
+            .set({ status: "failed", updatedAt: new Date() })
+            .where(eq(payments.stripePaymentIntentId, pi.id));
+        }
+        const reason = pi.last_payment_error?.message ?? "Votre paiement a été refusé.";
+        await superviserPaiement({
+          userId: updatedUserId,
+          title: "Paiement échoué",
+          body: `${reason} Vous pouvez réessayer quand vous le souhaitez.`,
+          url: "/compte",
+          action: "payment_failed",
+          targetId: paymentId,
+          data: { kind: m.payment_kind ?? null },
+          result: "failure",
+        });
+        break;
+      }
+      case "invoice.paid": {
+        // Renouvellement d'abonnement réussi → maintien de l'abonnement actif.
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId = (invoice.subscription as string) || null;
+        if (subId) {
+          const [sub] = await db
+            .update(subscriptions)
+            .set({ status: "active", updatedAt: new Date() })
+            .where(eq(subscriptions.stripeSubscriptionId, subId))
+            .returning();
+          if (sub) {
+            await superviserPaiement({
+              userId: sub.userId ?? null,
+              title: "Abonnement renouvelé",
+              body: "Votre abonnement a été renouvelé avec succès.",
+              url: "/abonnements",
+              action: "subscription_renewed",
+              targetType: "subscription",
+              targetId: sub.id,
+            });
+          }
+        }
+        break;
+      }
+      case "invoice.payment_failed": {
+        // Échec de renouvellement → abonnement en impayé (past_due) + alerte.
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId = (invoice.subscription as string) || null;
+        if (subId) {
+          const [sub] = await db
+            .update(subscriptions)
+            .set({ status: "past_due", updatedAt: new Date() })
+            .where(eq(subscriptions.stripeSubscriptionId, subId))
+            .returning();
+          if (sub) {
+            await superviserPaiement({
+              userId: sub.userId ?? null,
+              title: "Renouvellement d'abonnement échoué",
+              body: "Le paiement de votre abonnement a échoué. Merci de mettre à jour votre moyen de paiement.",
+              url: "/abonnements",
+              action: "subscription_payment_failed",
+              targetType: "subscription",
+              targetId: sub.id,
+              result: "failure",
+            });
+          }
+        }
+        break;
+      }
+      case "customer.subscription.updated": {
+        // Synchronise le statut local avec Stripe (actif / impayé / annulé).
+        const sub = event.data.object as Stripe.Subscription;
+        const mapped =
+          sub.status === "active" || sub.status === "trialing"
+            ? "active"
+            : sub.status === "past_due" || sub.status === "unpaid"
+              ? "past_due"
+              : sub.status === "canceled"
+                ? "cancelled"
+                : null;
+        if (mapped) {
+          await db
+            .update(subscriptions)
+            .set({ status: mapped, updatedAt: new Date() })
+            .where(eq(subscriptions.stripeSubscriptionId, sub.id));
+        }
+        break;
+      }
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
         await db

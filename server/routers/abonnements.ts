@@ -3,7 +3,7 @@ import { desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { subscriptions, payments, kycProfiles } from "../schema.js";
+import { subscriptions, payments, kycProfiles, users } from "../schema.js";
 import { ALL_PLANS, getPlan } from "@shared/plans.js";
 import { getStripe } from "../lib/stripe.js";
 import { env } from "../env.js";
@@ -77,6 +77,19 @@ export const abonnementsRouter = router({
           payment_id: String(pay.id),
           annonce_id: input.annonceId ? String(input.annonceId) : "",
         },
+        // Pour un boost à l'unité (mode payment), propage les métadonnées au
+        // PaymentIntent afin de rattacher un éventuel échec de paiement.
+        ...(plan.recurring
+          ? {}
+          : {
+              payment_intent_data: {
+                metadata: {
+                  user_id: String(ctx.user.uid),
+                  plan_code: plan.code,
+                  payment_id: String(pay.id),
+                },
+              },
+            }),
         line_items: [
           {
             price_data: {
@@ -114,15 +127,14 @@ export const abonnementsRouter = router({
           message: "Stripe n'est pas encore configuré sur ce déploiement.",
         });
       }
-      // Récupère la dernière subscription active de l'utilisateur pour en
-      // extraire le customer Stripe.
-      const [sub] = await db
-        .select()
-        .from(subscriptions)
-        .where(eq(subscriptions.userId, ctx.user.uid))
-        .orderBy(desc(subscriptions.createdAt))
+      // L'identifiant client Stripe est stocké sur l'utilisateur (renseigné par
+      // le webhook `checkout.session.completed`), pas sur la subscription.
+      const [u] = await db
+        .select({ stripeCustomerId: users.stripeCustomerId })
+        .from(users)
+        .where(eq(users.id, ctx.user.uid))
         .limit(1);
-      const customerId = (sub as any)?.stripeCustomerId as string | undefined;
+      const customerId = u?.stripeCustomerId ?? undefined;
       if (!customerId) {
         throw new TRPCError({
           code: "NOT_FOUND",
