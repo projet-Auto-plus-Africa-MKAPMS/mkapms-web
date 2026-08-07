@@ -95,6 +95,53 @@ export const visibilityPublications = pgTable("visibility_publications", {
 });
 
 /**
+ * Audiences (Moteur d'Audience mondial). Une audience = un segment
+ * (dimension + valeur) avec une taille estimée à partir des signaux réels de
+ * la plateforme.
+ *  - `source = owner`     : audience propriétaire, construite gratuitement à
+ *    partir de nos données (visiteurs, comptes, recherches, favoris…).
+ *  - `source = external_ad` : audience destinée à une diffusion sponsorisée
+ *    externe — toujours préparée en `draft` (aucune dépense sans décision).
+ */
+export const visibilityAudiences = pgTable("visibility_audiences", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  audienceKey: varchar("audience_key", { length: 180 }).notNull().unique(),
+  label: varchar("label", { length: 200 }).notNull(),
+  dimension: varchar("dimension", { length: 32 }).notNull(), // country|city|lang|account_type|service|vehicle|brand|model|intention|behavior
+  value: varchar("value", { length: 160 }).notNull(),
+  country: varchar("country", { length: 2 }),
+  size: integer("size").default(0).notNull(),
+  source: varchar("source", { length: 24 }).default("owner").notNull(), // owner | external_ad
+  status: varchar("status", { length: 24 }).default("ready").notNull(), // draft | ready | active
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  refreshedAt: timestamp("refreshed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+/**
+ * Base de connaissances pour les assistants IA / moteurs génératifs (GEO).
+ * Contenu question/réponse structuré, brand-neutral, indexable et exploitable
+ * par les moteurs de recherche et assistants IA. Aucune promesse de
+ * recommandation par un fournisseur externe — on rend le contenu découvrable.
+ */
+export const visibilityAiAnswers = pgTable("visibility_ai_answers", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  answerKey: varchar("answer_key", { length: 180 }).notNull().unique(),
+  topic: varchar("topic", { length: 48 }).notNull(), // achat|vente|location|garage|controle_technique|carte_grise|pieces|depannage|general
+  question: varchar("question", { length: 300 }).notNull(),
+  answer: varchar("answer", { length: 2000 }).notNull(),
+  lang: varchar("lang", { length: 8 }).default("fr").notNull(),
+  country: varchar("country", { length: 2 }),
+  link: varchar("link", { length: 1000 }),
+  sourceType: varchar("source_type", { length: 48 }),
+  sourceId: varchar("source_id", { length: 64 }),
+  status: varchar("status", { length: 24 }).default("published").notNull(), // draft | published
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+/**
  * Événements de visibilité (impressions/clics/inscriptions/conversions) par
  * canal — matière première remontée au Système Intelligent pour analyse.
  */

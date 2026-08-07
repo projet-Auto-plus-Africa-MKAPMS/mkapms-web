@@ -407,6 +407,20 @@
       "when": 1753700600000,
       "tag": "0058_visibility_os",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1753700700000,
+      "tag": "0059_visibility_audiences",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1753700800000,
+      "tag": "0060_visibility_ai_answers",
+      "breakpoints": true
     }
   ]
 }

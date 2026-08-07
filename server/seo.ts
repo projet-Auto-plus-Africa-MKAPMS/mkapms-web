@@ -505,7 +505,7 @@ export async function robotsTxt(req: Request, res: Response) {
   const domainKey = resolveDomain(host);
   const baseUrl = baseUrlFrom(req);
 
-  let content = `User-agent: *\nAllow: /\nSitemap: ${baseUrl}/sitemap.xml\n`;
+  let content = `User-agent: *\nAllow: /\nSitemap: ${baseUrl}/sitemap.xml\n# Réponses utiles (assistants IA / moteurs de recherche): ${baseUrl}/assistants-ia.txt\n`;
 
   if (domainKey === "pro") {
     // Sur .pro, on évite l'indexation des pages grand public
