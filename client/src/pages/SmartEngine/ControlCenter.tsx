@@ -1156,6 +1156,19 @@ function AlertesTab() {
         </p>
       )}
 
+      {resolve.data && (
+        <p className="text-[11px] font-semibold text-green-700">
+          Traité.
+          {resolve.data.redirectionFixed && resolve.data.redirectionTarget
+            ? ` Cause corrigée automatiquement : règle de redirection créée vers « ${resolve.data.redirectionTarget} » et mémorisée — ce bouton fonctionne maintenant et le défaut ne reviendra plus.`
+            : resolve.data.aliasesCreated > 0
+              ? ` Cause corrigée automatiquement : ${resolve.data.aliasesCreated} page(s) introuvable(s) reliée(s) à la bonne destination — recette mémorisée pour l'avenir.`
+              : resolve.data.healthChecksFixed > 0
+                ? ` Cause corrigée automatiquement : ${resolve.data.healthChecksFixed} contrôle(s) remis à « ok » — ce défaut ne reviendra plus.`
+                : " Ce défaut ne sera plus re-signalé tant qu'il ne réapparaît pas réellement. (Aucune correction automatique sûre trouvée — configure la destination dans le Moteur de Redirection si besoin.)"}
+        </p>
+      )}
+
       {/* Compteurs par niveau (cliquables = filtre) */}
       <div className="grid grid-cols-4 gap-2">
         {ALERT_LEVELS.map((l) => {
@@ -1271,10 +1284,12 @@ const DEV_PERMISSION_LABELS: Record<string, string> = {
 function DeveloppementsTab() {
   const [kind, setKind] = useState<string>("");
   const [permission, setPermission] = useState<string>("");
+  const [status, setStatus] = useState<string>("");
   const stats = trpc.smartEngine.devLearningStats.useQuery();
   const list = trpc.smartEngine.devLearningList.useQuery({
     kind: (kind || undefined) as "moteur" | "table" | "api" | "page" | "bouton" | "formulaire" | undefined,
     permission: (permission || undefined) as "definie" | "requise" | "publique" | "na" | undefined,
+    status: (status || undefined) as "nouveau" | "surveille" | "ignore" | undefined,
   });
   const utils = trpc.useUtils();
   const refresh = () => {
@@ -1367,7 +1382,33 @@ function DeveloppementsTab() {
             {s.label}
           </button>
         ))}
+        <span className="mx-1 self-center text-[#D1D5DB]">|</span>
+        {[
+          { key: "", label: "Tous états" },
+          { key: "nouveau", label: `Nouveaux (${stats.data?.nouveaux ?? 0})` },
+          { key: "surveille", label: `Sous surveillance (${stats.data?.surveilles ?? 0})` },
+          { key: "ignore", label: "Ignorés" },
+        ].map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setStatus(s.key)}
+            className={`rounded-lg px-2.5 py-1 text-[10px] font-semibold ${status === s.key ? "bg-blue-600 text-white" : "bg-white text-[#374151] border border-[#E5E7EB]"}`}
+          >
+            {s.label}
+          </button>
+        ))}
       </div>
+
+      {review.isError && (
+        <p className="text-[11px] font-semibold text-rose-600">
+          Action refusée (réservée au PDG) ou erreur réseau. La décision n'a pas été enregistrée.
+        </p>
+      )}
+      {review.isSuccess && !review.isPending && (
+        <p className="text-[11px] font-semibold text-green-700">
+          Décision enregistrée. Filtre « Sous surveillance » pour retrouver l'élément.
+        </p>
+      )}
 
       {list.isLoading ? (
         <Loading />

@@ -386,7 +386,16 @@ export default function Vendre() {
     if (d.famille) setFamille(d.famille);
     if (d.type) setTypeAnnonce(d.type);
     if (d.pointsForts?.length) setPointsForts(d.pointsForts);
-    if (d.equipements?.length) setSelectedEquipements(d.equipements);
+    // Restaurer TOUS les équipements enregistrés, quelle que soit la colonne
+    // (equipements + confort + multimédia + sécurité). Auparavant seul
+    // `equipements` était relu, donc Confort/Multimédia/Sécurité disparaissaient.
+    const allEquip = [
+      ...(d.equipements ?? []),
+      ...(d.confort ?? []),
+      ...(d.multimedia ?? []),
+      ...(d.securite ?? []),
+    ].filter((x: unknown): x is string => typeof x === "string" && x.length > 0);
+    if (allEquip.length) setSelectedEquipements(Array.from(new Set(allEquip)));
     if (d.imperfections?.length) setImperfections(d.imperfections);
     if (Array.isArray(d.garanties) && d.garanties.length) setGaranties(d.garanties);
     if (d.categorieAnnonce) setCategorieAnnonce(d.categorieAnnonce);
@@ -655,7 +664,12 @@ export default function Vendre() {
         consommation: form.consommation || undefined,
         classeEmission: form.classeEmission || undefined,
         pointsForts: pointsForts.length > 0 ? pointsForts : undefined,
-        equipements: restList.length > 0 ? restList : undefined,
+        // Envoyés systématiquement (même vides) pour refléter les retraits et
+        // ne plus perdre Confort / Multimédia / Sécurité à la modification.
+        equipements: restList,
+        confort: confortList,
+        multimedia: multiList,
+        securite: secuList,
         imperfections: imperfections.length > 0 ? imperfections : undefined,
         garanties: garanties.length > 0 ? garanties : undefined,
         typeBatterie: form.typeBatterie || undefined,

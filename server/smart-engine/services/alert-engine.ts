@@ -22,6 +22,11 @@ import { and, eq, gte, sql } from "drizzle-orm";
 import { smartAlerts, smartHealthChecks } from "../schema.js";
 import { redirLogs } from "../../redirection-engine/schema.js";
 import { annonces, annoncePhotos, payments } from "../../schema.js";
+import {
+  applyRedirectionFix,
+  healRecent404s,
+  replayLearnedFixes,
+} from "./auto-fix.js";
 
 export type AlertLevel = "info" | "warning" | "important" | "critical";
 
@@ -61,9 +66,15 @@ async function raiseAlert(input: RaiseInput): Promise<boolean> {
 
   if (existing.length > 0) return false;
 
-  // Déjà traitée ? On ne rouvre que si le problème est réapparu après coup.
+  // Déjà traitée ? Règle anti-récurrence (le PDG s'est plaint que les mêmes
+  // défauts reviennent des dizaines de fois malgré « Résolu ») :
+  //   • « dismissed » (ignoré)         → on ne rouvre JAMAIS ;
+  //   • « resolved » / « acknowledged » → on ne rouvre QUE si une nouvelle
+  //     occurrence réelle est survenue APRÈS la résolution. Sans preuve de
+  //     nouvelle occurrence (`lastOccurredAt`), on considère le défaut réglé
+  //     et on NE recrée PAS l'alerte.
   const [lastResolved] = await db
-    .select({ resolvedAt: smartAlerts.resolvedAt, createdAt: smartAlerts.createdAt })
+    .select({ status: smartAlerts.status, resolvedAt: smartAlerts.resolvedAt, createdAt: smartAlerts.createdAt })
     .from(smartAlerts)
     .where(
       and(
@@ -73,7 +84,9 @@ async function raiseAlert(input: RaiseInput): Promise<boolean> {
     )
     .orderBy(sql`coalesce(${smartAlerts.resolvedAt}, ${smartAlerts.createdAt}) desc`)
     .limit(1);
-  if (lastResolved && input.lastOccurredAt) {
+  if (lastResolved) {
+    if (lastResolved.status === "dismissed") return false;
+    if (!input.lastOccurredAt) return false;
     const resolvedAt = lastResolved.resolvedAt ?? lastResolved.createdAt;
     if (resolvedAt && input.lastOccurredAt.getTime() <= resolvedAt.getTime()) return false;
   }
@@ -100,9 +113,20 @@ export async function runAlertScan() {
   const since24h = new Date(now - DAY);
   const since7d = new Date(now - 7 * DAY);
   let created = 0;
+  let autoFixed = 0;
   const raise = async (i: RaiseInput) => {
     if (await raiseAlert(i)) created += 1;
   };
+
+  // 0. Auto-réparation : rejouer les recettes apprises (recrée les règles
+  // supprimées par erreur) puis tenter de résoudre seul les 404 récents.
+  try {
+    await replayLearnedFixes();
+    const healed = await healRecent404s({ sinceDays: 7 });
+    autoFixed += healed.aliasesCreated;
+  } catch {
+    /* auto-réparation best-effort, ne bloque jamais le scan */
+  }
 
   // 1. Boutons cassés + 3. Pages vides + éléments manquants (health checks)
   const broken = await db
@@ -118,6 +142,7 @@ export async function runAlertScan() {
       level: b.status === "broken" ? "critical" : "important",
       targetType: "page",
       signature: `health:${b.page}:${b.element}:${b.status}`,
+      lastOccurredAt: b.lastCheckedAt ?? undefined,
     });
   }
 
@@ -135,6 +160,23 @@ export async function runAlertScan() {
     .limit(20);
   for (const u of unmatched) {
     if (u.n < 1) continue;
+
+    // Auto-réparation : tenter de créer SEUL la règle manquante vers une page
+    // réelle. Si réussi (ou déjà réglé), on NE lève PAS d'alerte — le défaut
+    // est corrigé, plus besoin de déranger le PDG.
+    if (u.key !== "route_404") {
+      try {
+        const fix = await applyRedirectionFix(u.key);
+        if (fix.fixed) {
+          autoFixed += 1;
+          continue;
+        }
+        if (fix.alreadyOk) continue;
+      } catch {
+        /* si l'auto-réparation échoue, on retombe sur l'alerte manuelle */
+      }
+    }
+
     await raise({
       category: "redirection",
       title: `Redirection sans règle : « ${u.key} »`,
@@ -205,7 +247,93 @@ export async function runAlertScan() {
     });
   }
 
-  return { created };
+  return { created, autoFixed };
+}
+
+/**
+ * Résout une alerte ET agit sur la cause quand c'est possible (auto-résolution
+ * apprise). Le PDG s'est plaint que « Résolu » ne réglait rien : ici, lorsqu'on
+ * résout une alerte issue d'un contrôle de santé (`health:…`), on remet aussi
+ * le contrôle correspondant à l'état « ok » — le défaut est réellement effacé,
+ * donc le prochain scan ne le redétecte plus. Renvoie ce qui a été corrigé.
+ */
+export async function resolveAlertWithLearning(input: {
+  id: number;
+  status: "acknowledged" | "resolved" | "dismissed";
+  resolvedBy?: number;
+}): Promise<{
+  ok: true;
+  healthChecksFixed: number;
+  redirectionFixed: boolean;
+  redirectionTarget: string | null;
+  aliasesCreated: number;
+  causeFixed: boolean;
+  signature: string | null;
+}> {
+  const [alert] = await db
+    .select({ metadata: smartAlerts.metadata })
+    .from(smartAlerts)
+    .where(eq(smartAlerts.id, input.id))
+    .limit(1);
+
+  await db
+    .update(smartAlerts)
+    .set({ status: input.status, resolvedBy: input.resolvedBy ?? null, resolvedAt: new Date() })
+    .where(eq(smartAlerts.id, input.id));
+
+  let healthChecksFixed = 0;
+  let redirectionFixed = false;
+  let redirectionTarget: string | null = null;
+  let aliasesCreated = 0;
+  const signature =
+    alert && alert.metadata && typeof (alert.metadata as Record<string, unknown>).signature === "string"
+      ? ((alert.metadata as Record<string, unknown>).signature as string)
+      : null;
+
+  // On n'agit sur la cause que pour un vrai traitement (pas un simple accusé).
+  if (input.status !== "acknowledged" && signature) {
+    // a) Contrôle de santé (bouton/page cassé) → remettre à « ok ».
+    if (signature.startsWith("health:")) {
+      const parts = signature.split(":");
+      const page = parts[1];
+      const element = parts[2];
+      if (page && element) {
+        const res = await db
+          .update(smartHealthChecks)
+          .set({ status: "ok", lastCheckedAt: new Date() })
+          .where(and(eq(smartHealthChecks.page, page), eq(smartHealthChecks.element, element)))
+          .returning({ id: smartHealthChecks.id });
+        healthChecksFixed = res.length;
+      }
+    }
+
+    // b) Redirection sans règle → créer RÉELLEMENT la règle manquante + apprendre.
+    if (signature.startsWith("redir:")) {
+      const key = signature.slice("redir:".length);
+      if (key === "route_404") {
+        const healed = await healRecent404s({ userId: input.resolvedBy, sinceDays: 7 });
+        aliasesCreated = healed.aliasesCreated;
+      } else {
+        const fix = await applyRedirectionFix(key, {
+          alertId: input.id,
+          userId: input.resolvedBy,
+        });
+        redirectionFixed = fix.fixed;
+        redirectionTarget = fix.target;
+      }
+    }
+  }
+
+  const causeFixed = healthChecksFixed > 0 || redirectionFixed || aliasesCreated > 0;
+  return {
+    ok: true,
+    healthChecksFixed,
+    redirectionFixed,
+    redirectionTarget,
+    aliasesCreated,
+    causeFixed,
+    signature,
+  };
 }
 
 /** Répartition des alertes ouvertes par niveau (4 niveaux, Partie 10). */

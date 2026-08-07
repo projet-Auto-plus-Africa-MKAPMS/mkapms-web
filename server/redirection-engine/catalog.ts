@@ -79,6 +79,8 @@ export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
   { key: "bouton_compte", label: "Bouton — Mon compte", kind: "button", target: "/compte", priority: 110 },
   { key: "bouton_messagerie", label: "Bouton — Messagerie", kind: "button", target: "/messagerie", priority: 110 },
   { key: "bouton_notifications", label: "Bouton — Notifications", kind: "button", target: "/notifications", priority: 100 },
+  { key: "bouton_favoris", label: "Bouton — Favoris", kind: "button", target: "/favoris", priority: 110 },
+  { key: "bouton_portefeuille", label: "Bouton — Portefeuille", kind: "button", target: "/wallet", priority: 110 },
   { key: "bouton_admin", label: "Bouton — Espace Admin", kind: "button", target: "/admin", priority: 100 },
   { key: "bouton_abonnements", label: "Bouton — Abonnements", kind: "button", target: "/abonnements", priority: 100 },
   { key: "bouton_publicite", label: "Bouton — Demander une publicité", kind: "button", target: "/demande-publicite", priority: 90 },

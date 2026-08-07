@@ -890,6 +890,11 @@ export const annoncesRouter = router({
       contactTelephone: z.string().optional(),
       pointsForts: z.array(z.string()).optional(),
       equipements: z.array(z.string()).optional(),
+      // Équipements par catégorie — persistés à la modification comme à la création
+      // (sinon Confort / Multimédia / Sécurité étaient perdus à l'édition).
+      confort: z.array(z.string()).optional(),
+      multimedia: z.array(z.string()).optional(),
+      securite: z.array(z.string()).optional(),
       imperfections: z.array(z.string()).optional(),
       garanties: z
         .array(

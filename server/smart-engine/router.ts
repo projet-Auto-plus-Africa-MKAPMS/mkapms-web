@@ -42,7 +42,7 @@ import { buildDailyReport } from "./services/daily-report.js";
 // Renforts (activation)
 import { assertRate, sanitizeTeachMessage } from "./services/rate-limiter.js"; // P9
 import { runRetention, retentionCounters } from "./services/retention.js"; // P7
-import { runAlertScan, alertLevelStats } from "./services/alert-engine.js";
+import { runAlertScan, alertLevelStats, resolveAlertWithLearning } from "./services/alert-engine.js";
 import { scanDevelopments, getDevLearningStats, listDevItems, reviewDevItem, reviewAllRequises } from "./services/dev-learning.js";
 import { runQualityAudit, getQualityOverview, listQualityAudits } from "./services/quality-engine.js"; // P12
 import { listStaging, getStagingStats, transitionStaging } from "./services/preproduction.js"; // P16
@@ -237,12 +237,7 @@ export const smartEngineRouter = router({
   resolveAlert: pdgProcedure
     .input(z.object({ id: z.number(), status: z.enum(["acknowledged", "resolved", "dismissed"]) }))
     .mutation(async ({ ctx, input }) => {
-      await db.update(smartAlerts).set({
-        status: input.status,
-        resolvedBy: ctx.user.uid,
-        resolvedAt: new Date(),
-      }).where(eq(smartAlerts.id, input.id));
-      return { ok: true };
+      return resolveAlertWithLearning({ id: input.id, status: input.status, resolvedBy: ctx.user.uid });
     }),
 
   alertStats: directionProcedure.query(async () => {
