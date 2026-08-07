@@ -95,6 +95,31 @@ export const visibilityPublications = pgTable("visibility_publications", {
 });
 
 /**
+ * Audiences (Moteur d'Audience mondial). Une audience = un segment
+ * (dimension + valeur) avec une taille estimée à partir des signaux réels de
+ * la plateforme.
+ *  - `source = owner`     : audience propriétaire, construite gratuitement à
+ *    partir de nos données (visiteurs, comptes, recherches, favoris…).
+ *  - `source = external_ad` : audience destinée à une diffusion sponsorisée
+ *    externe — toujours préparée en `draft` (aucune dépense sans décision).
+ */
+export const visibilityAudiences = pgTable("visibility_audiences", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  audienceKey: varchar("audience_key", { length: 180 }).notNull().unique(),
+  label: varchar("label", { length: 200 }).notNull(),
+  dimension: varchar("dimension", { length: 32 }).notNull(), // country|city|lang|account_type|service|vehicle|brand|model|intention|behavior
+  value: varchar("value", { length: 160 }).notNull(),
+  country: varchar("country", { length: 2 }),
+  size: integer("size").default(0).notNull(),
+  source: varchar("source", { length: 24 }).default("owner").notNull(), // owner | external_ad
+  status: varchar("status", { length: 24 }).default("ready").notNull(), // draft | ready | active
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  refreshedAt: timestamp("refreshed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+/**
  * Événements de visibilité (impressions/clics/inscriptions/conversions) par
  * canal — matière première remontée au Système Intelligent pour analyse.
  */

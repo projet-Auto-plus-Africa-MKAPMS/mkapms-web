@@ -27,12 +27,14 @@ import {
   visibilityVariants,
   visibilityPublications,
   visibilityEvents,
+  visibilityAudiences,
 } from "./schema.js";
 import {
   generateVariant,
   type ChannelKind,
   type CentralContent,
 } from "./content-engine.js";
+import { rebuildAudiences } from "./audience-engine.js";
 import { logActivity } from "../smart-engine/services/activity-log.js";
 import type {
   ControlCenterFeed,
@@ -225,6 +227,7 @@ export interface VisibilityOverview {
   content24h: number;
   publications: { prepared: number; published: number; failed: number };
   events24h: { impressions: number; clicks: number; conversions: number };
+  audiences: { total: number; owner: number; external: number };
   byChannel: Array<{ channelKey: string; label: string; kind: string; enabled: boolean; publications: number }>;
 }
 
@@ -259,6 +262,13 @@ export async function overview(): Promise<VisibilityOverview> {
   const perMap: Record<string, number> = {};
   for (const r of perChannel) perMap[r.channelKey] = Number(r.n);
 
+  const audRows = await db
+    .select({ source: visibilityAudiences.source, n: sql<number>`count(*)::int` })
+    .from(visibilityAudiences)
+    .groupBy(visibilityAudiences.source);
+  const audMap: Record<string, number> = {};
+  for (const r of audRows) audMap[r.source] = Number(r.n);
+
   return {
     generatedAt: new Date().toISOString(),
     channels: {
@@ -277,6 +287,11 @@ export async function overview(): Promise<VisibilityOverview> {
       impressions: evMap["impression"] ?? 0,
       clicks: evMap["click"] ?? 0,
       conversions: evMap["conversion"] ?? 0,
+    },
+    audiences: {
+      total: (audMap["owner"] ?? 0) + (audMap["external_ad"] ?? 0),
+      owner: audMap["owner"] ?? 0,
+      external: audMap["external_ad"] ?? 0,
     },
     byChannel: channels
       .map((c) => ({ channelKey: c.channelKey, label: c.label, kind: c.kind, enabled: c.enabled, publications: perMap[c.channelKey] ?? 0 }))
@@ -401,6 +416,26 @@ export const visibilityOsRouter = router({
   validatePublication: pdgProcedure
     .input(z.object({ id: z.number() }))
     .mutation(({ input, ctx }) => validatePublication(input.id, ctx.user.uid)),
+
+  // ── Moteur d'Audience mondial ─────────────────────────────────────────
+  audiences: adminProcedure
+    .input(z.object({ dimension: z.string().optional(), source: z.string().optional(), country: z.string().optional(), limit: z.number().min(1).max(500).default(100) }).optional())
+    .query(async ({ input }) => {
+      const conds = [];
+      if (input?.dimension) conds.push(eq(visibilityAudiences.dimension, input.dimension));
+      if (input?.source) conds.push(eq(visibilityAudiences.source, input.source));
+      if (input?.country) conds.push(eq(visibilityAudiences.country, input.country.slice(0, 2).toUpperCase()));
+      const q = db.select().from(visibilityAudiences);
+      return conds.length
+        ? q.where(and(...conds)).orderBy(desc(visibilityAudiences.size)).limit(input?.limit ?? 100)
+        : q.orderBy(desc(visibilityAudiences.size)).limit(input?.limit ?? 100);
+    }),
+
+  rebuildAudiences: pdgProcedure.mutation(async () => {
+    const res = await rebuildAudiences();
+    logActivity({ action: "visibility.audiences_rebuilt", targetType: "page", data: { ...res }, result: "success" }).catch(() => {});
+    return res;
+  }),
 
   ingest: pdgProcedure
     .input(
