@@ -56,10 +56,66 @@ function truncate(s: string, max: number): string {
   return t.length <= max ? t : `${t.slice(0, max - 1).trimEnd()}…`;
 }
 
+/**
+ * Sous-formats sociaux (brand-neutral). Le nom du réseau vit dans la donnée du
+ * canal (`config.connector`), jamais ici : on ne raisonne que par format.
+ *  - social_long  : texte explicatif (réseau généraliste) ;
+ *  - social_short : légende courte + hashtags (réseau photo/stories) ;
+ *  - social_video : titre court + accroche (réseau vidéo court/long) ;
+ *  - social_pro   : version professionnelle (réseau partenaires).
+ */
+export type SocialFormat = "social_long" | "social_short" | "social_video" | "social_pro";
+
+export interface ChannelConfig {
+  connector?: string;
+  format?: string;
+}
+
+/** Déduit le sous-format social depuis la config du canal. */
+function socialFormatFrom(config?: ChannelConfig | null): SocialFormat {
+  const connector = config?.connector ?? "";
+  if (connector === "pro") return "social_pro";
+  if (config?.format === "video") return "social_video";
+  if (connector === "photo" || config?.format === "image") return "social_short";
+  return "social_long";
+}
+
+function socialVariant(content: CentralContent, fmt: SocialFormat): ChannelVariant {
+  const link = content.link ? ` ${content.link}` : "";
+  const hashtags = buildHashtags(content);
+  switch (fmt) {
+    case "social_video":
+      // Titre court + accroche : adapté aux formats vidéo courts.
+      return { text: truncate(`🎬 ${content.title}${link}`, 150), hashtags };
+    case "social_short":
+      // Légende courte : réseau photo / stories.
+      return { text: truncate(`${content.title}${link}`, 220), hashtags };
+    case "social_pro":
+      // Version professionnelle (partenaires) : ton sobre, sans emoji ni hashtags.
+      return { text: truncate(`${content.title}. ${content.body}${link}`, 700), hashtags: null };
+    case "social_long":
+    default:
+      // Texte plus explicatif : réseau généraliste.
+      return { text: truncate(`${content.title} — ${content.body}${link}`, 500), hashtags };
+  }
+}
+
 /** Produit la déclinaison adaptée à la famille de canal demandée. */
 export function generateVariant(
   content: CentralContent,
   kind: ChannelKind,
+): ChannelVariant {
+  return generateVariantForChannel(content, kind, null);
+}
+
+/**
+ * Variante tenant compte de la config du canal (sous-format social).
+ * Rétro-compatible : `config` nul → comportement historique.
+ */
+export function generateVariantForChannel(
+  content: CentralContent,
+  kind: ChannelKind,
+  config?: ChannelConfig | null,
 ): ChannelVariant {
   const link = content.link ? ` ${content.link}` : "";
   switch (kind) {
@@ -75,10 +131,7 @@ export function generateVariant(
       return { text: `${q}\n${a}`, hashtags: null };
     }
     case "social":
-      return {
-        text: truncate(`${content.title} — ${content.body}${link}`, 280),
-        hashtags: buildHashtags(content),
-      };
+      return socialVariant(content, socialFormatFrom(config));
     case "internal":
     default:
       return { text: truncate(`${content.title} — ${content.body}`, 300), hashtags: null };

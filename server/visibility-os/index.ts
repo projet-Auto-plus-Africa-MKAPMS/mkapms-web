@@ -32,8 +32,9 @@ import {
   visibilityIntents,
 } from "./schema.js";
 import {
-  generateVariant,
+  generateVariantForChannel,
   type ChannelKind,
+  type ChannelConfig,
   type CentralContent,
 } from "./content-engine.js";
 import { rebuildAudiences } from "./audience-engine.js";
@@ -153,7 +154,7 @@ export async function ingest(input: IngestInput): Promise<IngestResult> {
   let autoPublished = 0;
 
   for (const ch of channels) {
-    const v = generateVariant(central, ch.kind as ChannelKind);
+    const v = generateVariantForChannel(central, ch.kind as ChannelKind, (ch.config ?? null) as ChannelConfig | null);
     const [variant] = await db
       .insert(visibilityVariants)
       .values({

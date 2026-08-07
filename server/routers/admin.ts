@@ -4,6 +4,7 @@ import { router, adminProcedure, directionProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { hashPassword } from "../auth.js";
 import { logAction } from "../audit.js";
+import { ingest as ingestVisibility } from "../visibility-os/index.js";
 import {
   users,
   annonces,
@@ -518,6 +519,18 @@ export const adminRouter = router({
         .values({ ...input, code: input.code.toUpperCase(), createdBy: ctx.user.uid })
         .returning();
       await logAction(ctx.user.uid, "promo.create", "promo_code", p.id, { code: p.code });
+
+      // Injection automatique dans le Moteur de Visibilité (fire-and-forget).
+      const reduction = p.type === "pourcentage" ? `-${p.value}%` : `-${p.value}€`;
+      ingestVisibility({
+        sourceType: "promotion",
+        sourceId: String(p.id),
+        title: `Offre ${p.code} : ${reduction}`,
+        body: (p.description || `Profitez de l'offre ${p.code} (${reduction}) sur MKA.P-MS.`).slice(0, 2000),
+        link: "/abonnements",
+        keywords: [p.code, "promotion", "offre"].filter((x): x is string => typeof x === "string" && x.length > 0),
+      }).catch(() => {});
+
       return p;
     }),
 

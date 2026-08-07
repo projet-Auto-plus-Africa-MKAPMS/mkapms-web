@@ -5,6 +5,7 @@ import { router, publicProcedure, protectedProcedure, proProcedure } from "../tr
 import { db } from "../db.js";
 import { garagesPublics, rdvGarage, serviceTracking } from "../schema.js";
 import { notifications } from "../modules/core.js";
+import { ingest as ingestVisibility } from "../visibility-os/index.js";
 
 export const garagesRouter = router({
   // Annuaire public des garages (§7.1)
@@ -110,6 +111,23 @@ export const garagesRouter = router({
           status: "en_attente",
         })
         .returning();
+
+      // Injection automatique dans le Moteur de Visibilité (fire-and-forget).
+      ingestVisibility({
+        sourceType: "garage",
+        sourceId: String(created.id),
+        title: created.name,
+        body: (
+          created.description ||
+          `Garage ${created.name}${created.city ? ` à ${created.city}` : ""}${input.services.length ? ` — ${input.services.join(", ")}` : ""}`
+        ).slice(0, 2000),
+        country: (created.country || "FR").slice(0, 2).toUpperCase(),
+        link: `/garages/${created.slug}`,
+        keywords: [created.name, created.city, ...input.services].filter(
+          (x): x is string => typeof x === "string" && x.length > 0,
+        ),
+      }).catch(() => {});
+
       return created;
     }),
 
