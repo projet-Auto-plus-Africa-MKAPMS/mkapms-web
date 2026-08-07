@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
@@ -52,7 +52,7 @@ export const livraisonRouter = router({
     .input(z.object({ country: z.string().optional(), limit: z.number().min(1).max(100).default(30) }).default({}))
     .query(async ({ input }) => {
       const conds = [eq(deliveryProfiles.active, true)];
-      if (input.country) conds.push(eq(deliveryProfiles.countryCode, input.country));
+      if (input.country) conds.push(or(eq(deliveryProfiles.countryCode, input.country), isNull(deliveryProfiles.countryCode))!);
       return db.select().from(deliveryProfiles).where(and(...conds)).orderBy(desc(deliveryProfiles.rating)).limit(input.limit);
     }),
 
