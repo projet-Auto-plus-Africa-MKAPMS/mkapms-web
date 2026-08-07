@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { useCurrency } from "../lib/currency";
 import { PARTS_CATEGORIES } from "@shared/partsCategories";
 
 const CONDITIONS = [
@@ -40,7 +41,9 @@ export default function Pieces() {
   const [modeRetrait, setModeRetrait] = useState<"retrait" | "livraison">("livraison");
   const [selectedLivraison, setSelectedLivraison] = useState("");
 
-  const shops = trpc.pieces.shops.useQuery({ limit: 50 });
+  const { country } = useCurrency();
+  // Boutiques filtrées sur le pays actif (contenu par pays, structure identique).
+  const shops = trpc.pieces.shops.useQuery({ country: country || undefined, limit: 50 });
   const catalog = trpc.pieces.catalog.useQuery({
     q: q || undefined,
     categorie: categorie || undefined,

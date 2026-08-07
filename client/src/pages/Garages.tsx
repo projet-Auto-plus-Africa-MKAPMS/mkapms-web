@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { MapPin, Phone, Star, BadgeCheck, Search, Wrench, ShoppingCart, Calendar, Bell, ChevronRight, Check, Building2, Minus, Plus, FileText } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { useCurrency } from "../lib/currency";
 
 // Catalogue complet organisé par catégorie
 const CATEGORIES_PIECES = [
@@ -129,7 +130,10 @@ export default function Garages() {
   const { user } = useAuth();
   const [q, setQ] = useState("");
   const [city, setCity] = useState("");
-  const list = trpc.garages.list.useQuery({ q: q || undefined, city: city || undefined, limit: 60 });
+  const { country } = useCurrency();
+  // Annuaire filtré sur le pays actif du visiteur (structure inchangée, seul le
+  // contenu change selon le pays — cf. annonces).
+  const list = trpc.garages.list.useQuery({ q: q || undefined, city: city || undefined, country: country || undefined, limit: 60 });
 
   // Mode devis
   const [devisMode, setDevisMode] = useState(false);

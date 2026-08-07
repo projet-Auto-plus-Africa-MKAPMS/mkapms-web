@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull, or } from "drizzle-orm";
 import { router, publicProcedure, protectedProcedure, proProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { transportCompanies, drivers, transportVehicles, transportBookings } from "../schema.js";
@@ -11,7 +11,7 @@ export const transportRouter = router({
     .query(async ({ input }) => {
       const conds = [eq(transportCompanies.active, true)];
       if (input.type) conds.push(eq(transportCompanies.type, input.type));
-      if (input.country) conds.push(eq(transportCompanies.countryCode, input.country));
+      if (input.country) conds.push(or(eq(transportCompanies.countryCode, input.country), isNull(transportCompanies.countryCode))!);
       return db.select().from(transportCompanies).where(and(...conds)).orderBy(desc(transportCompanies.createdAt)).limit(input.limit);
     }),
 

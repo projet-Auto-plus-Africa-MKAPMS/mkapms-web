@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, desc, eq, ilike, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure, proProcedure } from "../trpc.js";
 import { db } from "../db.js";
@@ -13,6 +13,7 @@ export const garagesRouter = router({
       z.object({
         q: z.string().optional(),
         city: z.string().optional(),
+        country: z.string().optional(),
         limit: z.number().min(1).max(100).default(30),
         offset: z.number().min(0).default(0),
       }),
@@ -20,6 +21,11 @@ export const garagesRouter = router({
     .query(async ({ input }) => {
       const conds = [eq(garagesPublics.status, "valide")];
       if (input.city) conds.push(ilike(garagesPublics.city, `%${input.city}%`));
+      // Filtrage par pays actif : on tolère les fiches sans pays (legacy) pour
+      // ne masquer aucun garage existant. Même règle que les annonces.
+      if (input.country) {
+        conds.push(or(eq(garagesPublics.country, input.country), isNull(garagesPublics.country))!);
+      }
       if (input.q) conds.push(ilike(garagesPublics.name, `%${input.q}%`));
       const where = and(...conds);
       const items = await db

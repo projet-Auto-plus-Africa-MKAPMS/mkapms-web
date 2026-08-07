@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, desc, eq, ilike, sql, gte, lte, or } from "drizzle-orm";
+import { and, desc, eq, ilike, sql, gte, lte, or, isNull } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure, proProcedure, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
@@ -34,7 +34,7 @@ export const piecesRouter = router({
     )
     .query(async ({ input }) => {
       const conds = [eq(partsShops.active, true)];
-      if (input.country) conds.push(eq(partsShops.countryCode, input.country));
+      if (input.country) conds.push(or(eq(partsShops.countryCode, input.country), isNull(partsShops.countryCode))!);
       if (input.q) conds.push(ilike(partsShops.nom, `%${input.q}%`));
       const where = and(...conds);
       const items = await db.select().from(partsShops).where(where)
