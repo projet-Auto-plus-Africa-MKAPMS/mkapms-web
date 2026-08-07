@@ -28,6 +28,7 @@ import {
   sitemapPages,
   sitemapBlog,
 } from "./seo.js";
+import { aiAnswersFeed } from "./visibility-os/geo-engine.js";
 import { domainMiddleware, domainHandler, domainsListHandler } from "./domain.js";
 import { env, isProd } from "./env.js";
 import { readFile } from "node:fs/promises";
@@ -220,6 +221,8 @@ app.get("/sitemap-annonces-:page.xml", sitemapAnnonces);
 app.get("/sitemap-garages.xml", sitemapGarages);
 app.get("/sitemap-pages-:page.xml", sitemapPages);
 app.get("/sitemap-blog.xml", sitemapBlog);
+// Visibilité IA / GEO — feed texte question/réponse découvrable par les assistants IA
+app.get("/assistants-ia.txt", aiAnswersFeed);
 
 // IndexNow — fichier de vérification de clé (requis pour la soumission).
 if (env.INDEXNOW_KEY) {

@@ -120,6 +120,28 @@ export const visibilityAudiences = pgTable("visibility_audiences", {
 });
 
 /**
+ * Base de connaissances pour les assistants IA / moteurs génératifs (GEO).
+ * Contenu question/réponse structuré, brand-neutral, indexable et exploitable
+ * par les moteurs de recherche et assistants IA. Aucune promesse de
+ * recommandation par un fournisseur externe — on rend le contenu découvrable.
+ */
+export const visibilityAiAnswers = pgTable("visibility_ai_answers", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  answerKey: varchar("answer_key", { length: 180 }).notNull().unique(),
+  topic: varchar("topic", { length: 48 }).notNull(), // achat|vente|location|garage|controle_technique|carte_grise|pieces|depannage|general
+  question: varchar("question", { length: 300 }).notNull(),
+  answer: varchar("answer", { length: 2000 }).notNull(),
+  lang: varchar("lang", { length: 8 }).default("fr").notNull(),
+  country: varchar("country", { length: 2 }),
+  link: varchar("link", { length: 1000 }),
+  sourceType: varchar("source_type", { length: 48 }),
+  sourceId: varchar("source_id", { length: 64 }),
+  status: varchar("status", { length: 24 }).default("published").notNull(), // draft | published
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+/**
  * Événements de visibilité (impressions/clics/inscriptions/conversions) par
  * canal — matière première remontée au Système Intelligent pour analyse.
  */
