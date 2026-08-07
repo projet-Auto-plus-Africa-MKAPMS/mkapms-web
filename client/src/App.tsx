@@ -362,6 +362,7 @@ const GestionEmployesMKAPMS = lazy(() => import("./pages/superadmin/GestionEmplo
 const SuperAdminDashboard = lazy(() => import("./pages/superadmin/SuperAdminDashboard"));
 const CoreEngineBeta = lazy(() => import("./pages/superadmin/CoreEngineBeta"));
 const SmartEngineControlCenter = lazy(() => import("./pages/SmartEngine/ControlCenter"));
+const VisibilityControlCenter = lazy(() => import("./pages/VisibilityEngine/ControlCenter"));
 const ValidationDocumentsComplete = lazy(() => import("./pages/superadmin/ValidationDocumentsComplete"));
 // Utilisateurs
 const AbonnementsUtilisateur = lazy(() => import("./pages/utilisateurs/AbonnementsUtilisateur"));
@@ -1140,6 +1141,7 @@ export default function App() {
             <Route path="/superadmin" element={<U name="Super Admin"><SuperAdminDashboard /></U>} />
             <Route path="/superadmin/core-engine-beta" element={<U name="Super Admin"><CoreEngineBeta /></U>} />
             <Route path="/superadmin/smart-engine" element={<U name="Système Intelligent"><SmartEngineControlCenter /></U>} />
+            <Route path="/superadmin/visibilite-croissance" element={<U name="Visibilité & Croissance"><VisibilityControlCenter /></U>} />
             <Route path="/superadmin/permission-engine" element={<U name="Moteur de Permissions"><PermissionEngineControlCenter /></U>} />
             <Route path="/superadmin/redirection-engine" element={<U name="Moteur de Redirection"><RedirectionEngineControlCenter /></U>} />
             <Route path="/admin/moteurs" element={<U name="Moteurs MKA.P-MS"><EngineRegistryControlCenter /></U>} />
