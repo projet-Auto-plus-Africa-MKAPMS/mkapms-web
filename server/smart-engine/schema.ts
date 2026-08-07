@@ -372,6 +372,33 @@ export const smartQualityAudits = pgTable("smart_quality_audits", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// ── Partie 17 — Mémoire d'auto-réparation (auto-fix appris) ─────────────
+// Chaque fois qu'une correction SÛRE est appliquée (via « Résolu » ou
+// automatiquement pendant un scan), on mémorise la recette : type de problème
+// + clé + action + paramètres. Les scans suivants rejouent ces recettes pour
+// résoudre SEUL les mêmes défauts (ex: créer la règle de redirection manquante)
+// sans intervention humaine. Table isolée, additive — ne remplace aucune
+// mémoire existante (dev registry, teachings, KB…).
+export const smartAutoFixes = pgTable("smart_auto_fixes", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  // "redirection" | "health" | "path_alias" …
+  problemType: varchar("problem_type", { length: 48 }).notNull(),
+  // Clé/signature reconnaissable du défaut (ex: "bouton_favoris", "path:/xyz")
+  matchKey: varchar("match_key", { length: 255 }).notNull(),
+  // "create_redirect_rule" | "reset_health_check" | "create_path_alias" …
+  action: varchar("action", { length: 48 }).notNull(),
+  params: jsonb("params").$type<Record<string, unknown>>(),
+  confidence: integer("confidence").default(100).notNull(),
+  // Rejouer automatiquement à l'avenir (correction sûre) ?
+  autoApply: boolean("auto_apply").default(true).notNull(),
+  timesApplied: integer("times_applied").default(0).notNull(),
+  lastAppliedAt: timestamp("last_applied_at"),
+  learnedFrom: integer("learned_from"), // id de l'alerte d'origine
+  createdBy: integer("created_by"), // PDG (null = système)
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // ── Partie 16 — Évolution autonome (préproduction / staging) ────────────
 // Le Système Intelligent observe la plateforme (qualité faible, alertes
 // critiques) et DÉPOSE automatiquement des propositions d'évolution au statut
