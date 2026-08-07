@@ -170,11 +170,10 @@ export async function healthStatus() {
     const st = await stats();
     open = st.openReports;
     msgs24h = st.messages24h;
-    if (open > 0) status = "degraded";
   } catch {
     status = "degraded";
   }
-  return { engine: "messaging-os" as const, version: VERSION, status, checkedAt: new Date().toISOString(), metrics: { openReports: open, messages24h: msgs24h, responseMs: Date.now() - s } };
+  return { engine: "messaging-os" as const, version: VERSION, status, checkedAt: new Date().toISOString(), metrics: { openReports: open, messages24h: msgs24h, attention: open > 0, responseMs: Date.now() - s } };
 }
 
 export async function controlCenterFeed(): Promise<ControlCenterFeed> {

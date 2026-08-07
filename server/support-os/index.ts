@@ -86,15 +86,16 @@ export async function healthStatus() {
   const s = Date.now();
   let status: "ok" | "degraded" | "down" = "ok";
   let open = 0, openCritical = 0;
+  // Santé = le moteur peut-il fonctionner ? Un backlog métier (tickets ouverts)
+  // n'est PAS une panne : il est signalé via `attention`, sans dégrader le moteur.
   try {
     const st = await stats();
     open = st.open;
     openCritical = st.openCritical;
-    if (openCritical > 0) status = "degraded";
   } catch {
     status = "degraded";
   }
-  return { engine: "support-os" as const, version: VERSION, status, checkedAt: new Date().toISOString(), metrics: { open, openCritical, responseMs: Date.now() - s } };
+  return { engine: "support-os" as const, version: VERSION, status, checkedAt: new Date().toISOString(), metrics: { open, openCritical, attention: openCritical > 0, responseMs: Date.now() - s } };
 }
 
 export async function controlCenterFeed(): Promise<ControlCenterFeed> {
