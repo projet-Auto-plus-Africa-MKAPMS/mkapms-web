@@ -86,9 +86,10 @@ export async function healthStatus() {
     const ov = await overview();
     overall = ov.overall;
     reds = ov.categories.filter((c) => c.level === "red").length;
-    if (overall === "red") status = "degraded";
   } catch { status = "degraded"; }
-  return { engine: "monitoring-os" as const, version: V, status, checkedAt: new Date().toISOString(), metrics: { overall, reds, responseMs: Date.now() - s } };
+  // Le moteur de supervision rapporte l'état rouge de la plateforme via
+  // `attention` ; cela ne signifie pas que le moteur lui-même est en panne.
+  return { engine: "monitoring-os" as const, version: V, status, checkedAt: new Date().toISOString(), metrics: { overall, reds, attention: overall === "red", responseMs: Date.now() - s } };
 }
 
 export async function controlCenterFeed(): Promise<ControlCenterFeed> {

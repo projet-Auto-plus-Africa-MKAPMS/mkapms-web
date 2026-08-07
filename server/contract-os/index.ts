@@ -181,11 +181,10 @@ export async function healthStatus() {
     const [a] = await db.select({ n: sql<number>`count(*)::int` }).from(contractTerms).where(eq(contractTerms.status, "actif"));
     active = Number(a?.n ?? 0);
     expiringSoon = (await expiring(15)).length;
-    if (expiringSoon > 0) status = "degraded";
   } catch {
     status = "degraded";
   }
-  return { engine: "contract-os" as const, version: V, status, checkedAt: new Date().toISOString(), metrics: { active, expiringSoon, responseMs: Date.now() - s } };
+  return { engine: "contract-os" as const, version: V, status, checkedAt: new Date().toISOString(), metrics: { active, expiringSoon, attention: expiringSoon > 0, responseMs: Date.now() - s } };
 }
 
 export async function controlCenterFeed(): Promise<ControlCenterFeed> {

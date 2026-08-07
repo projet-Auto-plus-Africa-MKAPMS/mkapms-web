@@ -170,9 +170,11 @@ export async function healthStatus() {
     overdue = Number(b?.n ?? 0);
     const [c] = await db.select({ n: sql<number>`count(*)::int` }).from(schedulerTasks).where(eq(schedulerTasks.status, "failed"));
     failed = Number(c?.n ?? 0);
-    if (failed > 0 || overdue > 50) status = "degraded";
   } catch { status = "degraded"; }
-  return { engine: "scheduler-os" as const, version: V, status, checkedAt: new Date().toISOString(), metrics: { pending, overdue, failed, responseMs: Date.now() - s } };
+  // Tâches échouées / en retard = backlog à traiter, signalé via `attention` ;
+  // le moteur planificateur lui-même reste opérationnel.
+  const attention = failed > 0 || overdue > 50;
+  return { engine: "scheduler-os" as const, version: V, status, checkedAt: new Date().toISOString(), metrics: { pending, overdue, failed, attention, responseMs: Date.now() - s } };
 }
 
 export async function controlCenterFeed(): Promise<ControlCenterFeed> {

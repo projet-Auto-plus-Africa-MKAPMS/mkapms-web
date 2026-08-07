@@ -146,9 +146,11 @@ export async function healthStatus() {
     pendingRestores = Number(b?.n ?? 0);
     const [last] = await db.select({ at: backupSnapshots.createdAt }).from(backupSnapshots).orderBy(desc(backupSnapshots.createdAt)).limit(1);
     if (last?.at) lastBackupAgeH = Math.round((Date.now() - new Date(last.at).getTime()) / 3600000);
-    if (snapshots === 0 || (lastBackupAgeH !== null && lastBackupAgeH > 24 * 7)) status = "degraded";
   } catch { status = "degraded"; }
-  return { engine: "backup-os" as const, version: V, status, checkedAt: new Date().toISOString(), metrics: { snapshots, pendingRestores, lastBackupAgeH, responseMs: Date.now() - s } };
+  // Absence de snapshot ou sauvegarde ancienne = point d'attention métier,
+  // pas une panne du moteur (qui reste opérationnel et prêt à sauvegarder).
+  const attention = snapshots === 0 || (lastBackupAgeH !== null && lastBackupAgeH > 24 * 7);
+  return { engine: "backup-os" as const, version: V, status, checkedAt: new Date().toISOString(), metrics: { snapshots, pendingRestores, lastBackupAgeH, attention, responseMs: Date.now() - s } };
 }
 
 export async function controlCenterFeed(): Promise<ControlCenterFeed> {
