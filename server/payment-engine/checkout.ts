@@ -157,6 +157,9 @@ export async function createPaymentCheckout(input: CheckoutInput): Promise<Check
     mode: "payment",
     client_reference_id: String(input.userId),
     metadata: stringifiedMeta,
+    // Propage les métadonnées au PaymentIntent : indispensable pour rattacher
+    // l'événement `payment_intent.payment_failed` au bon paiement en base.
+    payment_intent_data: { metadata: stringifiedMeta },
     line_items: [
       {
         price_data: {
