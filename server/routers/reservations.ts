@@ -66,6 +66,14 @@ export const reservationsRouter = router({
           booking_id: String(booking.id),
           payment_kind: "reservation_acompte",
         },
+        payment_intent_data: {
+          metadata: {
+            user_id: String(ctx.user.uid),
+            payment_id: String(pay.id),
+            booking_id: String(booking.id),
+            payment_kind: "reservation_acompte",
+          },
+        },
         line_items: [
           {
             price_data: {
@@ -122,6 +130,13 @@ export const reservationsRouter = router({
           user_id: String(ctx.user.uid),
           payment_id: String(pay.id),
           payment_kind: "vehicle_purchase",
+        },
+        payment_intent_data: {
+          metadata: {
+            user_id: String(ctx.user.uid),
+            payment_id: String(pay.id),
+            payment_kind: "vehicle_purchase",
+          },
         },
         line_items: [
           {
