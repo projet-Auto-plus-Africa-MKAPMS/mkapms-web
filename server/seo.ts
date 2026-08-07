@@ -145,6 +145,37 @@ const DOMAIN_SEO: Record<DomainKey, DomainSeoMeta> = {
   },
 };
 
+// ─── SEO multilingue : alternates hreflang (Priorité 2) ──────────────────────
+//
+// Chaque langue publique pointe vers son domaine. Une seule URL par langue
+// (pas de doublon fr↔pro qui déclencherait un conflit hreflang côté Google).
+// `x-default` renvoie vers le portail international.
+const HREFLANG_DOMAINS: ReadonlyArray<{ hreflang: string; origin: string }> = [
+  { hreflang: "fr", origin: "https://mkapms.fr" },
+  { hreflang: "en", origin: "https://mkapms.site" },
+  { hreflang: "x-default", origin: "https://mkapms.site" },
+];
+
+/**
+ * Construit les balises <link rel="alternate" hreflang> pour un chemin donné,
+ * afin que chaque langue soit indexée indépendamment (P2 — SEO par langue).
+ */
+function hreflangLinks(path: string): string {
+  const clean = path.startsWith("/") ? path : `/${path}`;
+  return HREFLANG_DOMAINS.map(
+    (d) => `<link rel="alternate" hreflang="${d.hreflang}" href="${escapeHtml(`${d.origin}${clean}`)}" />`,
+  ).join("\n    ");
+}
+
+/** Extrait le chemin (pathname) d'une URL canonique absolue, avec repli sûr. */
+function pathFromCanonical(canonical: string): string {
+  try {
+    return new URL(canonical).pathname || "/";
+  } catch {
+    return "/";
+  }
+}
+
 // ─── SEO Annonce ──────────────────────────────────────────────────────────────
 
 async function annonceSeoHead(
@@ -203,12 +234,8 @@ async function annonceSeoHead(
     },
   };
 
-  // Balises hreflang pour les trois domaines (même contenu, domaines différents)
-  const hreflang = [
-    `<link rel="alternate" hreflang="fr" href="https://mkapms.fr/vehicule/${a.id}" />`,
-    `<link rel="alternate" hreflang="fr" href="https://mkapms.pro/vehicule/${a.id}" />`,
-    `<link rel="alternate" hreflang="x-default" href="https://mkapms.site/vehicule/${a.id}" />`,
-  ].join("\n    ");
+  // Alternates hreflang par langue (une URL par langue — cf. hreflangLinks).
+  const hreflang = hreflangLinks(`/vehicule/${a.id}`);
 
   return [
     `<html lang="${meta.lang}">`,
@@ -252,6 +279,7 @@ function buildHead(h: HeadInput): string {
     `<meta name="description" content="${escapeHtml(h.description)}" />`,
     h.keywords ? `<meta name="keywords" content="${escapeHtml(h.keywords)}" />` : "",
     `<link rel="canonical" href="${escapeHtml(h.canonical)}" />`,
+    hreflangLinks(pathFromCanonical(h.canonical)),
     `<meta property="og:type" content="${h.type || "website"}" />`,
     `<meta property="og:title" content="${escapeHtml(h.title)}" />`,
     `<meta property="og:description" content="${escapeHtml(h.description)}" />`,
