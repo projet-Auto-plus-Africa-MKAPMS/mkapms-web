@@ -28,6 +28,7 @@ import { getStripe } from "../lib/stripe.js";
 import { env } from "../env.js";
 import { eq } from "drizzle-orm";
 import { resolveProduct, computePrice } from "./products.js";
+import { routePayment, NO_PROVIDER_REASON } from "../payment-orchestrator/service.js";
 
 /** Types de paiement supportés — reflet des kinds acceptés par le webhook. */
 export type PaymentKind =
@@ -65,6 +66,10 @@ export interface CheckoutInput {
   /** ID facultatif du véhicule ou de la réservation liés. */
   vehicleId?: number | null;
   bookingId?: number | null;
+  /** Pays de l'acheteur : détermine le prestataire retenu par l'orchestrateur. */
+  countryCode?: string | null;
+  /** Prestataire souhaité par l'utilisateur, respecté s'il est utilisable. */
+  preferredProvider?: string | null;
 }
 
 export interface CheckoutResult {
@@ -74,6 +79,8 @@ export interface CheckoutResult {
   configured: boolean;
   /** ID du payment créé en base (utile pour debug / lien back). */
   paymentId: number;
+  /** Prestataire retenu par l'orchestrateur pour cet encaissement. */
+  provider?: string;
 }
 
 export async function createPaymentCheckout(input: CheckoutInput): Promise<CheckoutResult> {
@@ -141,7 +148,24 @@ export async function createPaymentCheckout(input: CheckoutInput): Promise<Check
     };
   }
 
-  // 3. Création de la session Stripe Checkout
+  // 3. Orchestrateur : quel prestataire encaisse ce paiement ?
+  // Le checkout ne présume plus d'un prestataire unique ; ajouter un
+  // connecteur ne demandera pas de réécrire ce parcours.
+  const decision = await routePayment({
+    countryCode: (input.countryCode || "FR").toUpperCase(),
+    currency,
+    service: input.kind,
+    preferred: input.preferredProvider ?? null,
+    userId: input.userId,
+  });
+  if (!decision.providerCode) {
+    await db.update(payments).set({ status: "failed" }).where(eq(payments.id, pay.id));
+    throw new Error(
+      `${NO_PROVIDER_REASON} — pays ${(input.countryCode || "FR").toUpperCase()}, devise ${currency}`,
+    );
+  }
+
+  // 4. Création de la session Stripe Checkout
   const stringifiedMeta: Record<string, string> = {
     user_id: String(input.userId),
     payment_id: String(pay.id),
@@ -183,5 +207,6 @@ export async function createPaymentCheckout(input: CheckoutInput): Promise<Check
     url: session.url as string,
     configured: true,
     paymentId: pay.id,
+    provider: decision.providerCode,
   };
 }
