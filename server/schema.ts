@@ -781,6 +781,18 @@ export const serviceTracking = pgTable("service_tracking", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ===== ABONNÉS NEWSLETTER =====
+export const newsletterSubscribers = pgTable("newsletter_subscribers", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  email: varchar("email", { length: 190 }).notNull().unique(),
+  pays: varchar("pays", { length: 2 }),
+  langue: varchar("langue", { length: 8 }),
+  source: varchar("source", { length: 64 }).notNull().default("footer"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // ===== TARIFS LIVRAISON =====
 export const deliveryPricing = pgTable("delivery_pricing", {
   id: serial("id").primaryKey(),

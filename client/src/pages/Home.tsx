@@ -19,6 +19,7 @@ import { useCurrency } from "../lib/currency";
 import { Logo } from "../components/Logo";
 import DomainSelector from "../components/DomainSelector";
 import { CurrencySelect, NotificationsBell } from "../components/Layout";
+import NewsletterForm from "../components/NewsletterForm";
 
 /* Icône TikTok (absente de lucide-react) — même style que les autres réseaux. */
 function TikTokIcon({ size = 16 }: { size?: number }) {
@@ -1297,9 +1298,12 @@ export default function Home() {
                   <p className="text-[14px] font-bold text-white">Restez informé</p>
                   <p className="text-[12px] text-white/50">Recevez nos meilleures offres et nouveautés</p>
                 </div>
-                <div className="flex gap-2 w-full max-w-md">
-                  <input type="email" placeholder="Votre adresse email" className="flex-1 rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-[13px] text-white placeholder-white/40 outline-none focus:border-[#D4AF37]" />
-                  <button className="rounded-lg bg-[#D4AF37] px-5 py-2.5 text-[13px] font-bold text-white hover:bg-[#c9a430] transition">S'abonner</button>
+                <div className="w-full max-w-md">
+                  <NewsletterForm
+                    source="footer_desktop"
+                    inputClassName="flex-1 rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-[13px] text-white placeholder-white/40 outline-none focus:border-[#D4AF37]"
+                    buttonClassName="rounded-lg bg-[#D4AF37] px-5 py-2.5 text-[13px] font-bold text-white hover:bg-[#c9a430] transition disabled:opacity-60"
+                  />
                 </div>
               </div>
 
@@ -1337,9 +1341,13 @@ export default function Home() {
                 <div className="col-span-2 md:col-span-1">
                   <p className="text-[10px] uppercase tracking-wider text-[#D4AF37] font-bold">RESTEZ INFORMÉ</p>
                   <p className="text-xs text-white/60 mt-1">Recevez nos meilleures offres</p>
-                  <div className="mt-2 flex gap-1">
-                    <input type="email" placeholder="Votre email" className="flex-1 rounded-lg bg-white/10 border border-white/20 px-3 py-2 text-xs text-white placeholder-white/40 outline-none" />
-                    <button className="rounded-lg bg-[#D4AF37] px-3 py-2 text-xs font-bold text-white">S'abonner</button>
+                  <div className="mt-2">
+                    <NewsletterForm
+                      source="footer_mobile"
+                      placeholder="Votre email"
+                      inputClassName="flex-1 rounded-lg bg-white/10 border border-white/20 px-3 py-2 text-xs text-white placeholder-white/40 outline-none"
+                      buttonClassName="rounded-lg bg-[#D4AF37] px-3 py-2 text-xs font-bold text-white disabled:opacity-60"
+                    />
                   </div>
                 </div>
                 {/* Logo — Version FERMÉE (Version 1 – Terre / Unité) : bloc interne du footer */}

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useCurrency } from "../lib/currency";
 import {
@@ -147,20 +147,52 @@ const FAQ = [
 const TYPE_PART = ["Tous types", "Citadine", "Berline", "SUV", "Familiale", "Monospace", "7 Places", "Minibus", "Premium"];
 
 export default function LocationParticulier() {
+  // Critères transmis par le hub de location (/louer) : la recherche saisie
+  // là-bas doit être déjà appliquée en arrivant ici.
+  const [urlParams] = useSearchParams();
+  const villeUrl = urlParams.get("ville") ?? "";
+  const typeUrl = urlParams.get("type") ?? "";
+
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [lieu, setLieu] = useState("");
-  const [dateDebut, setDateDebut] = useState("");
-  const [dateRetour, setDateRetour] = useState("");
-  const [typeVehicule, setTypeVehicule] = useState("Tous types");
+  const [lieu, setLieu] = useState(villeUrl);
+  const [dateDebut, setDateDebut] = useState(urlParams.get("debut") ?? "");
+  const [dateRetour, setDateRetour] = useState(urlParams.get("fin") ?? "");
+  const [typeVehicule, setTypeVehicule] = useState(TYPE_PART.includes(typeUrl) ? typeUrl : "Tous types");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
+
+  // Critères réellement appliqués à la liste (validés par « Rechercher »),
+  // distincts de la saisie en cours dans le formulaire.
+  const [criteres, setCriteres] = useState<{ ville?: string; q?: string }>({
+    ville: villeUrl || undefined,
+    q: typeUrl && typeUrl !== "Tous types" ? typeUrl : undefined,
+  });
+  const resultatsRef = useRef<HTMLDivElement | null>(null);
 
   // Vraies annonces particulier location — additif aux mocks (best-effort).
   const { country } = useCurrency();
   const realAnnonces = trpc.annonces.list.useQuery(
-    { type: "location", categorieAnnonce: "particulier", pays: country ?? undefined, limit: 24 },
+    {
+      type: "location",
+      categorieAnnonce: "particulier",
+      pays: country ?? undefined,
+      ville: criteres.ville,
+      q: criteres.q,
+      limit: 24,
+    },
     { retry: false },
   );
+
+  // `annonces.list` renvoie { total, items } : la liste est dans `items`.
+  const annoncesTrouvees = realAnnonces.data?.items ?? [];
+
+  function lancerRecherche() {
+    setCriteres({
+      ville: lieu.trim() || undefined,
+      q: typeVehicule !== "Tous types" ? typeVehicule : undefined,
+    });
+    resultatsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   const filteredVehicules = selectedCat
     ? VEHICULES.filter((v) => v.categorie === selectedCat)
@@ -234,7 +266,11 @@ export default function LocationParticulier() {
               </select>
             </div>
           </div>
-          <button className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md">
+          <button
+            type="button"
+            onClick={lancerRecherche}
+            className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md"
+          >
             <Search size={16} /> Rechercher
           </button>
         </div>
@@ -307,14 +343,30 @@ export default function LocationParticulier() {
           Additif : n'enlève rien à l'existant, s'affiche uniquement si
           des annonces réelles existent en base pour cet univers.
           ═══════════════════════════════════════════════════════════════════ */}
-      {(realAnnonces.data?.length ?? 0) > 0 && (
+      <div ref={resultatsRef} />
+      {criteres.ville || criteres.q ? (
+        <div className="px-4 mt-6">
+          <div className="flex items-center justify-between rounded-xl bg-white border border-[#E5E7EB] px-3 py-2">
+            <p className="text-xs text-[#6B7280]">
+              Recherche : <span className="font-bold text-[#111]">{[criteres.q, criteres.ville].filter(Boolean).join(" · ")}</span>
+              {realAnnonces.isFetching ? " — en cours…" : ` — ${annoncesTrouvees.length} résultat(s)`}
+            </p>
+            <button type="button" onClick={() => setCriteres({})} className="text-xs font-bold text-[#D4AF37]">Effacer</button>
+          </div>
+          {!realAnnonces.isFetching && (annoncesTrouvees.length) === 0 && (
+            <p className="mt-2 text-xs text-[#6B7280]">Aucun véhicule ne correspond à ces critères pour le moment.</p>
+          )}
+        </div>
+      ) : null}
+
+      {(annoncesTrouvees.length) > 0 && (
         <div className="px-4 mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-[#111]">Dernières annonces</h2>
-            <span className="text-xs font-semibold text-[#D4AF37]">{realAnnonces.data?.length} annonce{(realAnnonces.data?.length ?? 0) > 1 ? "s" : ""}</span>
+            <span className="text-xs font-semibold text-[#D4AF37]">{annoncesTrouvees.length} annonce{(annoncesTrouvees.length) > 1 ? "s" : ""}</span>
           </div>
           <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {realAnnonces.data?.map((a) => (
+            {annoncesTrouvees.map((a) => (
               <Link key={a.id} to={`/louer/particulier/vehicule/${a.id}`} className="block rounded-xl bg-white border border-[#D4AF37]/40 overflow-hidden active:scale-[0.99] transition hover:shadow-lg">
                 <div className="relative h-[160px] md:h-[180px] lg:h-[200px] bg-[#F5F3EF]">
                   {a.photoPrincipale && (

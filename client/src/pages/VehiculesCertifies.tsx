@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import ReserverLocationButton from "../components/ReserverLocationButton";
 import {
   ChevronLeft, Award, Star, Shield, Check, History,
   Camera, Wrench, Car, ChevronRight
@@ -78,9 +79,17 @@ export default function VehiculesCertifies() {
                     <span key={i} className="inline-flex items-center gap-0.5 rounded-full bg-green-50 px-2 py-0.5 text-[9px] font-semibold text-green-700"><Check size={8} /> {c}</span>
                   ))}
                 </div>
-                <div className="mt-3 flex items-center justify-between">
+                <div className="mt-3 flex items-center justify-between gap-3">
                   <div><span className="text-xl font-black text-[#D4AF37]">{v.prix} €</span><span className="text-xs text-[#6B7280]"> / jour</span></div>
-                  <button className="rounded-xl bg-[#D4AF37] px-5 py-2.5 text-sm font-bold text-white active:scale-[0.98] transition">Réserver</button>
+                  <ReserverLocationButton
+                    univers="certifie"
+                    vehiculeRef={String(v.id)}
+                    vehiculeTitre={v.nom}
+                    montantEstime={v.prix}
+                    className="rounded-xl bg-[#D4AF37] px-5 py-2.5 text-sm font-bold text-white active:scale-[0.98] transition disabled:opacity-60"
+                  >
+                    Réserver
+                  </ReserverLocationButton>
                 </div>
               </div>
             </div>
