@@ -51,6 +51,21 @@ export const PRODUCT_CATALOG: ProductSeed[] = [
   { code: "abo_elite_mensuel", name: "Abonnement Élite", univers: "abonnements", paymentCase: "abonnement", price: 49, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
   { code: "abo_garage_elite_mensuel", name: "Abonnement Garage Élite", univers: "abonnements", paymentCase: "abonnement", price: 99, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
   { code: "abo_vtc_max_mensuel", name: "Abonnement VTC Max", univers: "abonnements", paymentCase: "abonnement", price: 249.99, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
+  // ── Portail Pro — services activables à la carte ─────────────────────────
+  // Le professionnel compose son offre module par module au lieu de subir un
+  // abonnement unique. Chaque module est un produit à part entière : le montant
+  // du panier reste résolu ici, jamais recopié dans le portail.
+  { code: "pro_mod_vente", name: "Module Vente automobile", univers: "professionnels", paymentCase: "abonnement", price: 39, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
+  { code: "pro_mod_location", name: "Module Location", univers: "professionnels", paymentCase: "abonnement", price: 39, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
+  { code: "pro_mod_garage", name: "Module Garage", univers: "professionnels", paymentCase: "abonnement", price: 29, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
+  { code: "pro_mod_pieces", name: "Module Pièces", univers: "professionnels", paymentCase: "abonnement", price: 29, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
+  { code: "pro_mod_livraison", name: "Module Livraison", univers: "professionnels", paymentCase: "abonnement", price: 19, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
+  { code: "pro_mod_publicite", name: "Module Publicité", univers: "professionnels", paymentCase: "abonnement", price: 19, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
+  { code: "pro_mod_audience", name: "Module Audience", univers: "professionnels", paymentCase: "abonnement", price: 15, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
+  { code: "pro_mod_visibilite", name: "Module Visibilité", univers: "professionnels", paymentCase: "abonnement", price: 19, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
+  { code: "pro_mod_clients", name: "Module Gestion clients", univers: "professionnels", paymentCase: "abonnement", price: 12, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
+  { code: "pro_mod_facturation", name: "Module Facturation", univers: "professionnels", paymentCase: "abonnement", price: 15, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
+  { code: "pro_mod_planning", name: "Module Planning", univers: "professionnels", paymentCase: "abonnement", price: 9, paymentType: "recurring", periodicity: "monthly", validityDays: 30, refundPolicy: "Résiliable à tout moment, sans remboursement du mois entamé." },
 ];
 
 export interface ResolvedProduct {

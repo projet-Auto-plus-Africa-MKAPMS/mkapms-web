@@ -148,8 +148,15 @@ export default function HomePro() {
             {/* CTA */}
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                to="/abonnements"
+                to="/pro/demarrer"
                 className="inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-[#111] hover:bg-[#C9A227] transition"
+              >
+                <Briefcase size={16} />
+                Composer mon offre professionnelle
+              </Link>
+              <Link
+                to="/abonnements"
+                className="inline-flex items-center gap-2 rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-6 py-3 text-sm font-bold text-[#D4AF37] hover:bg-[#D4AF37]/20 transition"
               >
                 <Star size={16} />
                 Découvrir les abonnements Pro

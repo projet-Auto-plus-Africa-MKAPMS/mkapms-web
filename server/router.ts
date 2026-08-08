@@ -82,6 +82,8 @@ import { aiLearningOsRouter } from "./ai-learning-os/index.js";
 import { appFeedbackRouter } from "./routers/app-feedback.js";
 // Global Visibility Engine — moteur central de visibilité mondiale (SEO/GEO/audience/social)
 import { visibilityOsRouter } from "./visibility-os/index.js";
+// Pro Portal Engine — portail professionnel mondial (.pro) : métiers, offre à la carte
+import { proPortalRouter } from "./pro-portal/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -185,6 +187,8 @@ export const appRouter = router({
   aiLearningOs: aiLearningOsRouter,
   // Global Visibility Engine — visibilité mondiale (SEO + IA/GEO + audience + réseaux sociaux)
   visibilityOs: visibilityOsRouter,
+  // Pro Portal Engine — portail professionnel mondial (.pro)
+  proPortal: proPortalRouter,
 });
 
 export type AppRouter = typeof appRouter;
