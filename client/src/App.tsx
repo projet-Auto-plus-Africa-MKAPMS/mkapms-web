@@ -186,6 +186,7 @@ const Mission = lazy(() => import("./pages/Mission"));
 const EspacePro = lazy(() => import("./pages/EspacePro"));
 const PortailPro = lazy(() => import("./pages/pro/PortailPro"));
 const DossierPro = lazy(() => import("./pages/pro/DossierPro"));
+const MonEspace = lazy(() => import("./pages/MonEspace"));
 const InscriptionProVO = lazy(() => import("./pages/InscriptionProVO"));
 const Finance = lazy(() => import("./pages/Finance"));
 const Rechercher = lazy(() => import("./pages/Rechercher"));
@@ -941,6 +942,8 @@ export default function App() {
             <Route path="/espace-pro" element={<U name="Espace Pro"><EspacePro /></U>} />
             <Route path="/pro/demarrer" element={<U name="Portail Pro"><PortailPro /></U>} />
             <Route path="/pro/dossier" element={<U name="Dossier Pro"><DossierPro /></U>} />
+            {/* Account Routing Engine — retour au bon univers */}
+            <Route path="/mon-espace" element={<U name="Mon espace"><MonEspace /></U>} />
             <Route path="/inscription-pro-vo" element={<U name="Inscription Pro VO"><InscriptionProVO /></U>} />
             <Route path="/finance" element={<U name="Finance+"><Finance /></U>} />
             <Route path="/rechercher" element={<U name="Recherche"><Rechercher /></U>} />

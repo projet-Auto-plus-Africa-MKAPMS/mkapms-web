@@ -95,6 +95,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "account_routing",
+    label: "Account Routing Engine",
+    category: "transversal",
+    dependencies: ["core", "identity", "permission"],
+    description:
+      "Retour automatique de chaque compte dans son univers : particulier, vendeur, garage, location, VTC/Taxi, pièces, livraison, administration, direction, PDG.",
+    state: "active",
+  },
+  {
     name: "seo",
     label: "SEO Engine",
     category: "transversal",

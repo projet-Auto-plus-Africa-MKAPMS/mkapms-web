@@ -38,6 +38,8 @@ export const ENGINE_PROBES: EngineProbe[] = [
   { engine: "seo", tables: ["seo_pages", "seo_keywords", "seo_indexing_log", "seo_config"] },
   { engine: "pro_portal", tables: ["pro_portal_professions", "pro_portal_modules", "pro_portal_drafts"] },
   { engine: "pro_account", tables: ["pro_account_rules", "pro_account_applications"] },
+  // Le routage de compte décide à partir des comptes eux-mêmes : pas de table propre.
+  { engine: "account_routing", tables: ["users"] },
   { engine: "payment", tables: ["payments", "payment_transactions", "payment_products", "subscriptions"] },
   { engine: "workflow", tables: ["change_requests", "service_tracking"] },
   { engine: "knowledge", tables: ["smart_knowledge", "smart_kb_entries", "smart_learned_data"] },
