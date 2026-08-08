@@ -371,6 +371,16 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec seed règles de redirection:", (err as Error).message);
     }
+    // Pro Portal Engine — amorce le catalogue des métiers et des services
+    // activables à la carte. Idempotent : n'écrase jamais une entrée existante,
+    // de sorte qu'un métier ajouté en base survive à un redéploiement.
+    try {
+      const { seedProPortal } = await import("./pro-portal/index.js");
+      const r = await seedProPortal();
+      console.log(`[MKA.P-MS] Portail Pro: ${r.professions} métier(s), ${r.modules} service(s) ajouté(s)`);
+    } catch (err) {
+      console.error("[MKA.P-MS] échec seed Portail Pro:", (err as Error).message);
+    }
     // Système Intelligent — travail autonome périodique (lecture seule) : il
     // analyse les données réelles et PROPOSE des solutions/alertes que le PDG
     // valide ensuite. Aucune décision humaine n'est appliquée automatiquement.

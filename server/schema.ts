@@ -1161,3 +1161,4 @@ export * from "./permission-engine/schema"; // Permission Engine — Moteur de P
 export * from "./redirection-engine/schema"; // Redirection Engine — Moteur de Redirection MKA.P-MS (isolé)
 export * from "./engine-registry/schema"; // Engine Registry — Registre central des moteurs (isolé, Phase 1)
 export * from "./payment-engine/schema"; // Payment Engine — Moteur de paiement propriétaire (isolé, Phase 2)
+export * from "./pro-portal/schema"; // Pro Portal Engine — portail professionnel mondial (.pro, isolé)

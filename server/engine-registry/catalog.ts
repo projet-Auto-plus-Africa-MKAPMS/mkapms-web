@@ -112,6 +112,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "pro_portal",
+    label: "Pro Portal Engine",
+    category: "transversal",
+    dependencies: ["core", "payment", "country"],
+    description:
+      "Portail professionnel mondial (.pro) : métiers, catalogue de services à la carte, composition d'offre et parcours jusqu'à l'activation.",
+    state: "active",
+  },
+  {
     name: "payment",
     label: "Payment Engine",
     category: "transversal",
