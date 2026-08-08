@@ -7,6 +7,7 @@ import {
   Globe, Navigation, Euro, TrendingUp, Briefcase, Calculator,
   Pen, CreditCard, Car, Package
 } from "lucide-react";
+import ShareButton from "../components/ShareButton";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE PRODUIT — LOCATION VTC & TAXI
@@ -233,9 +234,16 @@ export default function ProduitVtcTaxi() {
           <button onClick={() => nav(-1)} className="flex items-center gap-1.5 text-sm font-semibold text-[#6B7280]">
             <ChevronLeft size={18} /> Retour VTC & Taxi
           </button>
-          <button onClick={() => setFav(!fav)} className="flex items-center justify-center w-9 h-9 rounded-full bg-[#F3F4F6]">
-            <Heart size={18} className={fav ? "fill-red-500 text-red-500" : "text-[#111]"} />
-          </button>
+          <div className="flex items-center gap-2">
+            <ShareButton
+              variant="icon"
+              title={VEHICLE.titre}
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-[#F3F4F6]"
+            />
+            <button onClick={() => setFav(!fav)} className="flex items-center justify-center w-9 h-9 rounded-full bg-[#F3F4F6]">
+              <Heart size={18} className={fav ? "fill-red-500 text-red-500" : "text-[#111]"} />
+            </button>
+          </div>
         </div>
 
         <div className="relative cursor-pointer" onClick={() => setGalleryOpen(true)}

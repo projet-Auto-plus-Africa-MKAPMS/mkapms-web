@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { shareLink } from "../lib/share";
 
 /* ─── CONSTANTS ─── */
 
@@ -172,7 +173,11 @@ function ModalPartage({ searchVal, onClose }: { searchVal: string; onClose: () =
   const [copied, setCopied] = useState(false);
   const url = `${window.location.origin}/historique?ref=${searchVal}`;
   function copyLink() {
-    navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+    shareLink({ title: "Rapport MKA.P-MS", url }).then((outcome) => {
+      if (outcome === "failed") return;
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
