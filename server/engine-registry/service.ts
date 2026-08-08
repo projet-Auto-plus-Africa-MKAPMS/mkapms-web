@@ -9,7 +9,7 @@
  *
  * Aucune écriture directe dans les tables d'un autre moteur.
  */
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import {
   engineRegistry,
@@ -109,6 +109,25 @@ export async function listEngines() {
     .select()
     .from(engineRegistry)
     .orderBy(engineRegistry.category, engineRegistry.name);
+}
+
+/**
+ * Vrai si un humain a déjà décidé de l'état de ce moteur. Sert de garde-fou :
+ * une correction automatique ne doit jamais écraser un choix du PDG.
+ */
+export async function hasManualStateDecision(name: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: engineAdminLog.id })
+    .from(engineAdminLog)
+    .where(
+      and(
+        eq(engineAdminLog.engineName, name),
+        eq(engineAdminLog.action, "set_state"),
+        isNotNull(engineAdminLog.userId),
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
 }
 
 export async function getEngine(name: string) {
