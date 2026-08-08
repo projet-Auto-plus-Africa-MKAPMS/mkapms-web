@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { getToken } from "../lib/auth";
+import { normalizeImages } from "../lib/imageUpload";
 
 interface UploadedFile {
   url: string;
@@ -44,13 +45,13 @@ export default function FileUpload({
     setError(null);
     setUploading(true);
 
-    const formData = new FormData();
-    const count = Math.min(fileList.length, maxFiles);
-    for (let i = 0; i < count; i++) {
-      formData.append("files", fileList[i]);
-    }
-
     try {
+      const prepared = await normalizeImages(
+        Array.from(fileList).slice(0, maxFiles),
+      );
+      const formData = new FormData();
+      for (const f of prepared) formData.append("files", f);
+
       const token = getToken();
       const resp = await fetch("/api/upload", {
         method: "POST",
@@ -65,6 +66,12 @@ export default function FileUpload({
       const newFiles = data.files as UploadedFile[];
       setUploaded((prev) => [...prev, ...newFiles]);
       onUploaded(newFiles);
+
+      // Envoi partiel : on garde les fichiers valides et on nomme les refusés.
+      const rejected = (data.errors ?? []) as { originalName: string; error: string }[];
+      if (rejected.length) {
+        setError(rejected.map((r) => `${r.originalName} : ${r.error}`).join(" ; "));
+      }
 
       /* IA Analysis — simulate intelligent document analysis */
       if (iaAnalysis && newFiles.length > 0) {

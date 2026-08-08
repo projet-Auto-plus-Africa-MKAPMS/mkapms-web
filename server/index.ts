@@ -102,12 +102,43 @@ const upload = multer({
   },
 });
 
+/** Vrai si le fichier est un HEIC/HEVC iPhone (non décodable par sharp). */
+function isHeicBuffer(buffer: Buffer): boolean {
+  // Conteneur ISO-BMFF : ....ftyp<major_brand>
+  if (buffer.length < 12 || buffer.toString("latin1", 4, 8) !== "ftyp") return false;
+  const brand = buffer.toString("latin1", 8, 12);
+  return ["heic", "heix", "hevc", "hevx", "heim", "heis", "hevm", "hevs", "mif1", "msf1"].includes(brand);
+}
+
+/**
+ * `sharp` est distribué avec un libvips sans décodeur HEVC (contrainte de
+ * brevet) : seul l'AVIF est lisible côté HEIF. Une photo iPhone en HEIC fait
+ * donc échouer la conversion — d'où l'échec du dépôt de photos.
+ */
+const HEIC_MESSAGE =
+  "photo au format HEIC (iPhone) non convertible. Sur l'iPhone : Réglages > Appareil photo > Formats > « Le plus compatible », puis reprenez la photo — ou envoyez-la en JPEG.";
+
 async function processImage(buffer: Buffer): Promise<string> {
-  const jpeg = await sharp(buffer)
-    .rotate() // auto-rotation EXIF (photos mobile)
-    .resize({ width: 1920, height: 1920, fit: "inside", withoutEnlargement: true })
-    .jpeg({ quality: 82, mozjpeg: true })
-    .toBuffer();
+  const render = (input: Buffer, opts?: { tolerant?: boolean }) =>
+    sharp(input, opts?.tolerant ? { failOn: "none" } : undefined)
+      .rotate() // auto-rotation EXIF (photos mobile)
+      .resize({ width: 1920, height: 1920, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 82, mozjpeg: true })
+      .toBuffer();
+
+  let jpeg: Buffer;
+  try {
+    jpeg = await render(buffer);
+  } catch (err) {
+    if (isHeicBuffer(buffer)) throw new Error(HEIC_MESSAGE);
+    // Seconde tentative tolérante : récupère les images légèrement tronquées
+    // ou aux métadonnées invalides plutôt que de perdre la photo.
+    try {
+      jpeg = await render(buffer, { tolerant: true });
+    } catch {
+      throw new Error(`image illisible (${(err as Error).message})`);
+    }
+  }
   return `data:image/jpeg;base64,${jpeg.toString("base64")}`;
 }
 
@@ -126,24 +157,38 @@ app.post("/api/upload", (req, res) => {
     }
     const files = req.files as Express.Multer.File[];
     if (!files?.length) return res.status(400).json({ error: "Aucun fichier reçu" });
-    try {
-      const results = await Promise.all(
-        files.map(async (f) => {
-          const isImage = /^image\//i.test(f.mimetype) || /\.(jpg|jpeg|png|gif|webp|heic|heif|avif)$/i.test(f.originalname);
-          if (isImage) {
-            const dataUri = await processImage(f.buffer);
-            return { url: dataUri, originalName: f.originalname, size: f.size, mimeType: "image/jpeg" };
-          }
-          // Non-image (PDF, vidéo) : base64 brut
-          const b64 = `data:${f.mimetype};base64,${f.buffer.toString("base64")}`;
-          return { url: b64, originalName: f.originalname, size: f.size, mimeType: f.mimetype };
-        }),
-      );
-      return res.json({ files: results });
-    } catch (e: any) {
-      console.error("[upload] processing error:", e.message);
-      return res.status(500).json({ error: "Erreur lors du traitement des photos. Réessayez." });
+    // Chaque fichier est traité isolément : une seule photo illisible ne doit
+    // plus faire échouer tout l'envoi (l'utilisateur perdait la totalité de sa
+    // sélection à cause d'un unique fichier).
+    const settled = await Promise.allSettled(
+      files.map(async (f) => {
+        const isImage = /^image\//i.test(f.mimetype) || /\.(jpg|jpeg|png|gif|webp|heic|heif|avif)$/i.test(f.originalname);
+        if (isImage) {
+          const dataUri = await processImage(f.buffer);
+          return { url: dataUri, originalName: f.originalname, size: f.size, mimeType: "image/jpeg" };
+        }
+        // Non-image (PDF, vidéo) : base64 brut
+        const b64 = `data:${f.mimetype};base64,${f.buffer.toString("base64")}`;
+        return { url: b64, originalName: f.originalname, size: f.size, mimeType: f.mimetype };
+      }),
+    );
+
+    const results = settled.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
+    const errors = settled.flatMap((r, i) =>
+      r.status === "rejected"
+        ? [{ originalName: files[i].originalname, error: (r.reason as Error).message }]
+        : [],
+    );
+
+    for (const e of errors) console.error(`[upload] ${e.originalName}: ${e.error}`);
+
+    if (!results.length) {
+      return res.status(422).json({
+        error: `Aucune photo n'a pu être traitée — ${errors.map((e) => `${e.originalName} : ${e.error}`).join(" ; ")}`,
+        errors,
+      });
     }
+    return res.json({ files: results, errors });
   });
 });
 

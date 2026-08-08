@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth, getToken } from "../lib/auth";
+import { normalizeImages } from "../lib/imageUpload";
 import { useCurrency } from "../lib/currency";
 import FileUpload from "../components/FileUpload";
 
@@ -1663,12 +1664,21 @@ export default function Vendre() {
                       if (!files?.length) return;
                       setUploadingCats(p => ({ ...p, [cat.key]: true }));
                       setUploadError(null);
-                      const fd = new FormData();
-                      for (let i = 0; i < files.length; i++) fd.append("files", files[i]);
                       try {
+                        const prepared = await normalizeImages(files);
+                        const fd = new FormData();
+                        for (const f of prepared) fd.append("files", f);
                         const token = getToken();
                         const resp = await fetch("/api/upload", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, body: fd });
-                        if (resp.ok) { const data = await resp.json(); const urls = (data.files || []).map((f: any) => f.url); setPhotoUrls(p => ({ ...p, [cat.key]: [...(p[cat.key] || []), ...urls] })); }
+                        if (resp.ok) {
+                          const data = await resp.json();
+                          const urls = (data.files || []).map((f: any) => f.url);
+                          setPhotoUrls(p => ({ ...p, [cat.key]: [...(p[cat.key] || []), ...urls] }));
+                          // Envoi partiel : les photos valides sont conservées,
+                          // on nomme précisément celles qui ont été refusées.
+                          const rejected = (data.errors || []) as { originalName: string; error: string }[];
+                          if (rejected.length) setUploadError(rejected.map(r => `${r.originalName} : ${r.error}`).join(" ; "));
+                        }
                         else { const err = await resp.json().catch(() => ({})); setUploadError(err.error || "Erreur lors de l'upload des photos"); }
                       } catch (e: any) { setUploadError(e.message || "Erreur réseau lors de l'upload"); }
                       finally { setUploadingCats(p => ({ ...p, [cat.key]: false })); }
