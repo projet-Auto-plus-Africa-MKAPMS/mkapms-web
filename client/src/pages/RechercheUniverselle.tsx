@@ -61,33 +61,33 @@ interface SearchResult {
 const STATIC_PAGES: SearchResult[] = [
   // Services
   { id: "s-depot", titre: "Deposer une annonce", description: "Publier votre vehicule a la vente sur MKA.P-MS", category: "services", to: "/acheter/depot-annonce", icon: Car, priority: 3 },
-  { id: "s-estim", titre: "Estimer mon vehicule", description: "Estimation gratuite de la valeur de votre vehicule", category: "services", to: "/estimation", icon: Star, priority: 3 },
+  { id: "s-estim", titre: "Estimer mon vehicule", description: "Estimation gratuite de la valeur de votre vehicule", category: "services", to: "/acheter/estimation", icon: Star, priority: 3 },
   { id: "s-cg", titre: "Carte grise", description: "Faire votre carte grise en ligne — demarches simplifiees", category: "services", to: "/carte-grise", icon: FileText, priority: 3 },
   { id: "s-devis", titre: "Demander un devis garage", description: "Devis gratuit pour reparation, entretien, revision", category: "garage", to: "/devis", icon: Wrench, priority: 3 },
   { id: "s-depannage", titre: "Depannage & Remorquage", description: "Assistance 24h/24 — depannage route et autoroute", category: "depannage", to: "/depannage", icon: Truck, priority: 3 },
   { id: "s-livraison", titre: "Livraison vehicule", description: "Transport et livraison de votre vehicule partout en France", category: "services", to: "/livraison", icon: Truck, priority: 3 },
   { id: "s-finance", titre: "Finance+ — Financement auto", description: "Credit auto, leasing, LOA — simulation gratuite", category: "services", to: "/finance", icon: Building2, priority: 3 },
-  { id: "s-assurance", titre: "Assurance auto", description: "Comparez les assurances auto — devis instantane", category: "services", to: "/assurance", icon: Shield, priority: 3 },
+  { id: "s-assurance", titre: "Assurance auto", description: "Comparez les assurances auto — devis instantane", category: "services", to: "/operations/m-k-a-p-m-s-assurance", icon: Shield, priority: 3 },
   { id: "s-historique", titre: "Historique vehicule", description: "Rapport complet : sinistres, entretien, km verifie", category: "services", to: "/historique", icon: Clock, priority: 3 },
   // Univers Acheter
   { id: "u-officiel", titre: "Vehicules MKA.P-MS Officiels", description: "Stock officiel MKA.P-MS — controle 200 points, garantie, Finance+", category: "vehicule", to: "/acheter/mkapms-officiel", icon: Shield, badge: "OFFICIEL", badgeColor: "bg-[#D4AF37]", priority: 3 },
   { id: "u-pro", titre: "Vehicules Professionnels", description: "Annonces de professionnels de l'automobile verifies", category: "vehicule", to: "/acheter/professionnel", icon: Building2, badge: "PRO", badgeColor: "bg-blue-600", priority: 4 },
   { id: "u-part", titre: "Vehicules Particuliers", description: "Annonces de particuliers — vente directe", category: "vehicule", to: "/acheter/particulier", icon: Users, badge: "PARTICULIER", badgeColor: "bg-green-600", priority: 6 },
   { id: "u-encheres", titre: "Encheres Pro", description: "Ventes aux encheres professionnelles — lots de vehicules", category: "vehicule", to: "/acheter/encheres", icon: Gavel, priority: 4 },
-  { id: "u-moto", titre: "Motos & Scooters", description: "Motos, scooters et quads d'occasion", category: "vehicule", to: "/acheter/moto-occasion", icon: Car, priority: 6 },
+  { id: "u-moto", titre: "Motos & Scooters", description: "Motos, scooters et quads d'occasion", category: "vehicule", to: "/moto-occasion", icon: Car, priority: 6 },
   { id: "u-minibus", titre: "Minibus a vendre", description: "Pour groupes, familles, associations et transport collectif", category: "vehicule", to: "/acheter/minibus", icon: Truck, badge: "MINIBUS", badgeColor: "bg-purple-600", priority: 5 },
   { id: "u-camions-engins", titre: "Camions & Engins de chantier", description: "Poids lourds, bennes, pelleteuses, grues, chariots elevateurs", category: "vehicule", to: "/acheter/camions-engins", icon: Truck, badge: "ENGINS", badgeColor: "bg-gray-700", priority: 5 },
   // Univers Location
   { id: "l-voiture", titre: "Location voiture", description: "Louez une voiture — particulier, pro, courte ou longue duree", category: "location", to: "/louer", icon: Key, priority: 3 },
   { id: "l-vtc", titre: "Location VTC & Taxi", description: "Vehicules de transport avec chauffeur", category: "location", to: "/louer/vtc-taxi", icon: Key, priority: 4 },
-  { id: "l-utilitaire", titre: "Location utilitaire", description: "Fourgons, camions, utilitaires — pro et particulier", category: "location", to: "/louer/utilitaire", icon: Truck, priority: 5 },
+  { id: "l-utilitaire", titre: "Location utilitaire", description: "Fourgons, camions, utilitaires — pro et particulier", category: "location", to: "/louer/utilitaires", icon: Truck, priority: 5 },
   // Univers Garage
   { id: "g-garage", titre: "Trouver un garage", description: "Garages verifies pres de chez vous — devis gratuit", category: "garage", to: "/garages", icon: Wrench, priority: 3 },
-  { id: "g-carrosserie", titre: "Carrosserie", description: "Carrossiers : peinture, debosselage, reparation tole", category: "carrosserie", to: "/carrosserie", icon: Paintbrush, priority: 3 },
+  { id: "g-carrosserie", titre: "Carrosserie", description: "Carrossiers : peinture, debosselage, reparation tole", category: "carrosserie", to: "/garage/carrosserie-garage", icon: Paintbrush, priority: 3 },
   { id: "g-pieces", titre: "Pieces detachees", description: "Pieces auto neuves et d'occasion — livraison rapide", category: "pieces", to: "/pieces", icon: Settings, priority: 3 },
   { id: "g-ct", titre: "Controle technique", description: "Centres de controle technique pres de chez vous", category: "garage", to: "/garages", icon: Shield, priority: 3 },
   // Electric+
-  { id: "e-electric", titre: "Electric+ — Bornes de recharge", description: "Trouvez les bornes de recharge electrique proches", category: "services", to: "/electric", icon: Zap, priority: 5 },
+  { id: "e-electric", titre: "Electric+ — Bornes de recharge", description: "Trouvez les bornes de recharge electrique proches", category: "services", to: "/labs/energy-recharge", icon: Zap, priority: 5 },
   // Aide / FAQ
   { id: "a-aide", titre: "Centre d'aide", description: "Questions frequentes, guides, tutoriels", category: "aide", to: "/aide", icon: HelpCircle, priority: 7 },
   { id: "a-vendre", titre: "Comment vendre ma voiture ?", description: "Guide complet pour vendre votre vehicule sur MKA.P-MS", category: "aide", to: "/aide", icon: HelpCircle, priority: 7 },
@@ -103,10 +103,11 @@ const TABS: { id: ResultCategory | "tout"; label: string; icon: typeof Car; to?:
   { id: "vehicule", label: "Vehicules", icon: Car, to: "/acheter" },
   { id: "location", label: "Location", icon: Key, to: "/louer" },
   { id: "garage", label: "Garage", icon: Wrench, to: "/garages" },
-  { id: "carrosserie", label: "Carrosserie", icon: Paintbrush, to: "/carrosserie" },
+  { id: "carrosserie", label: "Carrosserie", icon: Paintbrush, to: "/garage/carrosserie-garage" },
   { id: "pieces", label: "Pieces", icon: Settings, to: "/pieces" },
   { id: "depannage", label: "Depannage", icon: Truck, to: "/depannage" },
-  { id: "services", label: "Services", icon: Building2, to: "/services" },
+  // Pas de page « hub services » : l'onglet filtre la liste des services sur place.
+  { id: "services", label: "Services", icon: Building2 },
   { id: "aide", label: "Aide", icon: HelpCircle, to: "/aide" },
 ];
 
@@ -184,7 +185,10 @@ export default function RechercheUniverselle() {
     (s) => s.toLowerCase() !== query.trim().toLowerCase(),
   );
 
-  const filtered = tab === "tout" ? results : results.filter(r => r.category === tab);
+  // Sans recherche saisie, un onglet de catégorie liste directement les pages
+  // de cette catégorie : sinon le clic n'affichait rien du tout.
+  const source = query.trim() ? results : STATIC_PAGES;
+  const filtered = tab === "tout" ? results : source.filter((r) => r.category === tab);
 
   // Group by category for "tout" tab
   const grouped = useMemo(() => {
@@ -323,7 +327,10 @@ export default function RechercheUniverselle() {
       <div className="px-4 mt-3 flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
         {TABS.map((t) => {
           const Icon = t.icon;
-          const count = t.id === "tout" ? results.length : results.filter(r => r.category === t.id).length;
+          const count =
+            t.id === "tout"
+              ? results.length
+              : (query.trim() ? results : []).filter((r) => r.category === t.id).length;
           return (
             <button
               key={t.id}
@@ -387,7 +394,7 @@ export default function RechercheUniverselle() {
         })}
 
         {/* Filtered results for specific tab */}
-        {query && tab !== "tout" && (
+        {tab !== "tout" && (
           <div className="space-y-1.5">
             {filtered.map((r) => (
               <ResultCard key={r.id} result={r} />
@@ -399,7 +406,7 @@ export default function RechercheUniverselle() {
         )}
 
         {/* No query — show exploration */}
-        {!query && (
+        {!query && tab === "tout" && (
           <div className="space-y-4">
             {/* Quick access */}
             <div>
@@ -410,7 +417,7 @@ export default function RechercheUniverselle() {
                   { label: "Louer", icon: Key, to: "/louer", color: "bg-amber-50 text-[#D4AF37] border-amber-200" },
                   { label: "Garage", icon: Wrench, to: "/garages", color: "bg-green-50 text-green-600 border-green-200" },
                   { label: "Vendre", icon: Car, to: "/acheter/depot-annonce", color: "bg-red-50 text-red-600 border-red-200" },
-                  { label: "Estimation", icon: Star, to: "/estimation", color: "bg-purple-50 text-purple-600 border-purple-200" },
+                  { label: "Estimation", icon: Star, to: "/acheter/estimation", color: "bg-purple-50 text-purple-600 border-purple-200" },
                   { label: "Encheres", icon: Gavel, to: "/acheter/encheres", color: "bg-slate-50 text-[#111] border-slate-200" },
                   { label: "Pieces", icon: Settings, to: "/pieces", color: "bg-orange-50 text-orange-600 border-orange-200" },
                   { label: "Depannage", icon: Truck, to: "/depannage", color: "bg-red-50 text-red-500 border-red-200" },
