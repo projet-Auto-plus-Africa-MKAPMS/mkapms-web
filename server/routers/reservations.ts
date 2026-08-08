@@ -3,7 +3,8 @@ import { desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { bookings, payments, annonces } from "../schema.js";
+import { bookings, payments, annonces, serviceTracking } from "../schema.js";
+import { notifications } from "../modules/core.js";
 import { ACOMPTE_PALIERS } from "@shared/plans.js";
 import { getStripe } from "../lib/stripe.js";
 import { env } from "../env.js";
@@ -153,6 +154,65 @@ export const reservationsRouter = router({
       });
       await db.update(payments).set({ stripeSessionId: session.id }).where(eq(payments.id, pay.id));
       return { paymentId: pay.id, url: session.url, configured: true };
+    }),
+
+  /**
+   * Demande de réservation d'un véhicule de location (pro, utilitaire, camion,
+   * minibus, VTC/Taxi, particulier).
+   *
+   * Ces catalogues ne sont pas encore adossés à une annonce en base : la
+   * demande est donc enregistrée comme un suivi de service réel et notifiée,
+   * puis reprise par l'équipe. Rien n'est présenté comme « payé » ou
+   * « confirmé » tant qu'un loueur n'a pas répondu.
+   */
+  requestLocation: protectedProcedure
+    .input(
+      z.object({
+        univers: z.string().min(1).max(32),
+        vehiculeRef: z.string().min(1).max(64),
+        vehiculeTitre: z.string().min(1).max(255),
+        dateDebut: z.string().max(32).optional(),
+        dateFin: z.string().max(32).optional(),
+        montantEstime: z.number().nonnegative().optional(),
+        devise: z.string().max(4).default("EUR"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const detail = [
+        input.dateDebut && input.dateFin ? `Du ${input.dateDebut} au ${input.dateFin}` : null,
+        input.montantEstime ? `Estimation ${input.montantEstime} ${input.devise}` : null,
+        `Référence véhicule ${input.vehiculeRef}`,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+
+      const [created] = await db
+        .insert(serviceTracking)
+        .values({
+          userId: ctx.user.uid,
+          serviceType: "location",
+          serviceId: 0,
+          titre: `Réservation ${input.vehiculeTitre}`,
+          status: "nouveau",
+          statusLabel: "Demande envoyée — en attente du loueur",
+          detail,
+        })
+        .returning();
+
+      await db
+        .update(serviceTracking)
+        .set({ reference: `LOC-${created.id}` })
+        .where(eq(serviceTracking.id, created.id));
+
+      await db.insert(notifications).values({
+        userId: ctx.user.uid,
+        type: "reservation",
+        title: `Demande de réservation #LOC-${created.id}`,
+        body: `Votre demande pour "${input.vehiculeTitre}" a bien été envoyée. Le loueur vous répond avec la disponibilité et le montant définitif avant tout paiement.`,
+        url: "/compte",
+      });
+
+      return { id: created.id, reference: `LOC-${created.id}` };
     }),
 
   mine: protectedProcedure.query(async ({ ctx }) => {

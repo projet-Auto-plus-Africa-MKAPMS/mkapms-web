@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, CreditCard, Car, Home, Wrench, Truck, Package, Check, Star, Crown, Shield, Globe, MapPin, Zap, Gavel, Paintbrush, Settings, BarChart3, BookOpen, Megaphone } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -211,8 +211,35 @@ const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: "publicite", label: "Publicité", icon: Megaphone },
 ];
 
+// Chaque famille de ce catalogue correspond à une catégorie du parcours
+// d'abonnement réel : le clic « Continuer » y amène directement.
+const TAB_TO_CATEGORIE: Record<Tab, string> = {
+  vente: "pro_vente",
+  location: "location",
+  garage: "garage",
+  encheres: "encheres",
+  carrosserie: "carrosserie",
+  atelier: "garage",
+  autodata: "pro_vente",
+  comptabilite: "comptabilite",
+  depannage: "depannage",
+  pieces: "pieces",
+  publicite: "publicite",
+};
+
 export default function AbonnementsDefinitifs() {
   const [tab, setTab] = useState<Tab>("vente");
+  const [selected, setSelected] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  // Changer de famille remet la sélection à zéro : les offres ne sont plus les mêmes.
+  useEffect(() => {
+    setSelected(null);
+  }, [tab]);
+
+  function continuer(nom: string) {
+    navigate(`/abonnements?categorie=${TAB_TO_CATEGORIE[tab]}&offre=${encodeURIComponent(nom)}`);
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -243,7 +270,22 @@ export default function AbonnementsDefinitifs() {
 
       <div className="px-4 space-y-3">
         {PLANS[tab].map((plan, i) => (
-          <div key={plan.nom} className="rounded-2xl bg-white border-2 shadow-sm overflow-hidden" style={{ borderColor: plan.color + "40" }}>
+          <div
+            key={plan.nom}
+            role="button"
+            tabIndex={0}
+            aria-pressed={selected === plan.nom}
+            aria-label={`Choisir l'offre ${plan.nom}`}
+            onClick={() => setSelected(plan.nom)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setSelected(plan.nom);
+              }
+            }}
+            className={`cursor-pointer rounded-2xl bg-white border-2 overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lg ${selected === plan.nom ? "shadow-lg ring-2 ring-offset-2" : "shadow-sm"}`}
+            style={{ borderColor: plan.color + (selected === plan.nom ? "" : "40"), ...(selected === plan.nom ? { boxShadow: `0 0 0 2px ${plan.color}` } : {}) }}
+          >
             <div className="px-4 py-3 flex items-center justify-between" style={{ backgroundColor: plan.color + "08" }}>
               <div>
                 <div className="flex items-center gap-2">
@@ -265,7 +307,12 @@ export default function AbonnementsDefinitifs() {
               })}
             </div>
             <div className="px-4 pb-3">
-              <button className="w-full py-2.5 rounded-xl text-xs font-bold text-white" style={{ backgroundColor: plan.color }}>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setSelected(plan.nom); continuer(plan.nom); }}
+                className="w-full py-2.5 rounded-xl text-xs font-bold text-white"
+                style={{ backgroundColor: plan.color }}
+              >
                 {plan.prix === "Gratuit" ? "Commencer gratuitement" : "Choisir ce plan"}
               </button>
             </div>
@@ -290,10 +337,33 @@ export default function AbonnementsDefinitifs() {
             ))}
           </div>
           <div className="px-4 pb-3">
-            <button className="w-full py-2.5 rounded-xl text-xs font-bold text-[#111] bg-[#D4AF37]">Ajouter SEO Boost</button>
+            <button
+              type="button"
+              onClick={() => navigate("/abonnements?categorie=publicite&offre=SEO%20Boost")}
+              className="w-full py-2.5 rounded-xl text-xs font-bold text-[#111] bg-[#D4AF37]"
+            >
+              Ajouter SEO Boost
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Barre de confirmation : la carte sélectionnée reste visible et le
+          parcours se poursuit depuis le bas de l'écran, pas seulement depuis
+          le petit bouton de la carte. */}
+      {selected && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)]">
+          <p className="text-[10px] uppercase tracking-widest text-[#9CA3AF]">Offre sélectionnée</p>
+          <p className="text-sm font-black text-[#111]">{selected}</p>
+          <button
+            type="button"
+            onClick={() => continuer(selected)}
+            className="mt-2 w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-extrabold text-white"
+          >
+            Continuer avec l'offre {selected}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

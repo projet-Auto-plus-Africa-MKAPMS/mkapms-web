@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import ShareButton from "../components/ShareButton";
+import ReserverLocationButton from "../components/ReserverLocationButton";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE PRODUIT — LOCATION PARTICULIER
@@ -375,7 +376,17 @@ export default function ProduitParticulier() {
             <div className="flex justify-between text-xs"><span className="text-[#6B7280]">Caution</span><span className="font-semibold">500 €</span></div>
             <div className="border-t-2 border-[#111] pt-2 flex justify-between"><span className="text-sm font-bold">Total</span><span className="text-xl font-black">{total} € <span className="text-xs font-normal text-[#6B7280]">TTC</span></span></div>
           </div>
-          <button className="w-full rounded-xl bg-[#D4AF37] py-4 text-base font-extrabold text-white flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]"><Lock size={16} /> Payer et réserver</button>
+          <ReserverLocationButton
+            univers="location_particulier"
+            vehiculeRef={id ?? "inconnu"}
+            vehiculeTitre={VEHICLE.titre}
+            dateDebut={dateDebut}
+            dateFin={dateFin}
+            montantEstime={total}
+            className="w-full rounded-xl bg-[#D4AF37] py-4 text-base font-extrabold text-white flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] disabled:opacity-60"
+          >
+            <Lock size={16} /> Demander la réservation
+          </ReserverLocationButton>
           <div className="flex items-center justify-center gap-1"><Lock size={12} className="text-[#6B7280]" /><span className="text-xs text-[#6B7280]">Paiement 100% sécurisé</span></div>
           <div className="flex items-center justify-center gap-4">
             <span className="text-xs font-bold text-[#1a1f71]">VISA</span>

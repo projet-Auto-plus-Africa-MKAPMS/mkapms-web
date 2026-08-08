@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
@@ -30,11 +30,22 @@ export default function Abonnements() {
   const { user } = useAuth();
   const { format: formatPrice } = useCurrency();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const [tab, setTab] = useState<TabValue>("pro_vente");
   const plans = trpc.abonnements.listPlans.useQuery();
 
+  // Une catégorie demandée dans l'URL (arrivée depuis le catalogue ou le
+  // portail Pro) prime sur la sélection automatique par rôle.
+  const categorieDemandee = params.get("categorie");
+  useEffect(() => {
+    if (!categorieDemandee) return;
+    const connue = TABS.some(([v]) => v === categorieDemandee);
+    if (connue) setTab(categorieDemandee as TabValue);
+  }, [categorieDemandee]);
+
   // Chaque profil voit d'abord ses offres (Partie 6 §5).
   useEffect(() => {
+    if (categorieDemandee) return;
     if (!user) return;
     const byRole: Record<string, PlanCategory> = {
       garage: "garage",
@@ -52,7 +63,7 @@ export default function Abonnements() {
     };
     const target = byRole[user.role];
     if (target) setTab(target);
-  }, [user]);
+  }, [user, categorieDemandee]);
 
   // Reprise auto d'un checkout après connexion : si l'utilisateur a cliqué
   // 'S'abonner' avant de se connecter, on relance automatiquement le paiement.

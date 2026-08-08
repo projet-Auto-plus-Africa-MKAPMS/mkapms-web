@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import ShareButton from "../components/ShareButton";
+import ReserverLocationButton from "../components/ReserverLocationButton";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE PRODUIT — LOCATION GÉNÉRIQUE
@@ -452,9 +453,15 @@ export default function ProduitLocation() {
           </div>
           <p className="text-xs text-[#6B7280]">{v.prixMois} € /mois</p>
         </div>
-        <button className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white active:scale-[0.98] transition shadow-lg">
+        <ReserverLocationButton
+          univers="location"
+          vehiculeRef={id ?? "inconnu"}
+          vehiculeTitre={v.titre}
+          montantEstime={v.prixJour}
+          className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white active:scale-[0.98] transition shadow-lg disabled:opacity-60"
+        >
           Réserver maintenant
-        </button>
+        </ReserverLocationButton>
       </div>
     </div>
   );

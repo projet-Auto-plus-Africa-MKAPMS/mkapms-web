@@ -435,6 +435,13 @@
       "when": 1753701000000,
       "tag": "0062_pro_portal",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1753701100000,
+      "tag": "0063_newsletter_subscribers",
+      "breakpoints": true
     }
   ]
 }

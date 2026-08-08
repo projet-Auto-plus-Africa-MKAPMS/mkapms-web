@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Shield, CarFront, Users, Truck, HardHat, Bus, ChevronLeft, ChevronRight, Star, Clock,
   Headphones, CreditCard, Search, MapPin, Calendar, ChevronDown, FileCheck,
@@ -120,6 +120,18 @@ const TYPE_VEHICULE = [
   "Camion",
 ];
 
+// Chaque type de véhicule appartient à un univers de location déjà existant :
+// la recherche du hub y conduit avec les critères saisis.
+const TYPE_TO_UNIVERS: Record<string, string> = {
+  "Tous types": "/louer/particulier",
+  Berline: "/louer/particulier",
+  SUV: "/louer/particulier",
+  Utilitaire: "/louer/utilitaires",
+  Camionnette: "/louer/utilitaires",
+  Minibus: "/louer/minibus",
+  Camion: "/louer/camions",
+};
+
 const HERO_VIDEOS = [
   { src: "/videos/location/loc_hero1.mp4", label: "Flotte" },
   { src: "/videos/location/loc_hero2.mp4", label: "Remise" },
@@ -167,6 +179,17 @@ export default function Louer() {
   const [dateDebut, setDateDebut] = useState("");
   const [dateRetour, setDateRetour] = useState("");
   const [typeVehicule, setTypeVehicule] = useState("Tous types");
+  const navigate = useNavigate();
+
+  function lancerRecherche() {
+    const p = new URLSearchParams();
+    if (lieu.trim()) p.set("ville", lieu.trim());
+    if (dateDebut) p.set("debut", dateDebut);
+    if (dateRetour) p.set("fin", dateRetour);
+    if (typeVehicule !== "Tous types") p.set("type", typeVehicule);
+    const base = TYPE_TO_UNIVERS[typeVehicule] ?? "/louer/particulier";
+    navigate(p.toString() ? `${base}?${p.toString()}` : base);
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
@@ -313,7 +336,11 @@ export default function Louer() {
           </div>
 
           {/* Bouton Rechercher */}
-          <button className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md">
+          <button
+            type="button"
+            onClick={lancerRecherche}
+            className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md"
+          >
             <Search size={16} /> Rechercher
           </button>
         </div>

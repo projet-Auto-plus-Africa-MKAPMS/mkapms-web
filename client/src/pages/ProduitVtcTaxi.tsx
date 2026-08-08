@@ -8,6 +8,7 @@ import {
   Pen, CreditCard, Car, Package
 } from "lucide-react";
 import ShareButton from "../components/ShareButton";
+import ReserverLocationButton from "../components/ReserverLocationButton";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE PRODUIT — LOCATION VTC & TAXI
@@ -134,6 +135,7 @@ const KM_OPTIONS = [
 
 export default function ProduitVtcTaxi() {
   const nav = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [photoCat, setPhotoCat] = useState<PhotoCategory>("toutes");
   const [photoIdx, setPhotoIdx] = useState(0);
   const [fav, setFav] = useState(false);
@@ -524,9 +526,17 @@ export default function ProduitVtcTaxi() {
               <p className="text-2xl font-black text-[#111]">{acompte} €</p>
               <p className="text-[10px] text-[#6B7280] mt-1">Déduit de votre première mensualité de {mensualite} €</p>
             </div>
-            <button className="w-full rounded-xl bg-[#D4AF37] py-4 text-base font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-lg">
-              <Lock size={16} /> Payer l'acompte
-            </button>
+            <ReserverLocationButton
+              univers="vtc_taxi"
+              vehiculeRef={id ?? "inconnu"}
+              vehiculeTitre={VEHICLE.titre}
+              dateDebut={dateDebut}
+              dateFin={dateFin}
+              montantEstime={acompte}
+              className="w-full rounded-xl bg-[#D4AF37] py-4 text-base font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-lg disabled:opacity-60"
+            >
+              <Lock size={16} /> Demander la réservation
+            </ReserverLocationButton>
             <div className="flex items-center justify-center gap-1"><Lock size={12} className="text-[#6B7280]" /><span className="text-xs text-[#6B7280]">Paiement 100% sécurisé</span></div>
             <div className="flex items-center justify-center gap-4 py-1">
               <span className="text-xs font-bold text-[#1a1f71]">VISA</span>

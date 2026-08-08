@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import ReserverLocationButton from "../components/ReserverLocationButton";
 import {
   Bell, BellRing, ChevronLeft, Clock, Car, Check, X,
   Calendar, MapPin, Star, AlertCircle
@@ -25,7 +26,13 @@ const STATUT_CONFIG = {
 
 export default function ListeAttente() {
   const [tab, setTab] = useState<"tous" | "en_attente" | "disponible">("tous");
-  const filtered = tab === "tous" ? ATTENTES : ATTENTES.filter((a) => a.statut === tab);
+  // Une demande annulée passe au statut « annulé » au lieu de laisser le
+  // bouton sans effet.
+  const [annulees, setAnnulees] = useState<number[]>([]);
+  const attentes = ATTENTES.map((a) =>
+    annulees.includes(a.id) ? { ...a, statut: "annule" as const, position: 0, dateEstimee: "-" } : a,
+  );
+  const filtered = tab === "tous" ? attentes : attentes.filter((a) => a.statut === tab);
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -78,13 +85,27 @@ export default function ListeAttente() {
                       <p className="text-[9px] text-[#6B7280]">Dispo estimée</p>
                       <p className="text-sm font-bold text-[#111]">{a.dateEstimee}</p>
                     </div>
-                    <button className="rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-500">Annuler</button>
+                    <button
+                      type="button"
+                      onClick={() => setAnnulees((prev) => [...prev, a.id])}
+                      className="rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-500"
+                    >
+                      Annuler
+                    </button>
                   </>
                 )}
                 {a.statut === "disponible" && (
-                  <button className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white active:scale-[0.98] transition">
-                    Réserver maintenant
-                  </button>
+                  <div className="w-full">
+                    <ReserverLocationButton
+                      univers="liste_attente"
+                      vehiculeRef={String(a.id)}
+                      vehiculeTitre={a.vehicule}
+                      montantEstime={a.prix}
+                      className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white active:scale-[0.98] transition disabled:opacity-60"
+                    >
+                      Réserver maintenant
+                    </ReserverLocationButton>
+                  </div>
                 )}
               </div>
             </div>

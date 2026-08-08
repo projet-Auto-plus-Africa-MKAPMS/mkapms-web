@@ -198,7 +198,11 @@ export default function VtcTaxi() {
               </div>
             </div>
           </div>
-          <button className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md">
+          <button
+            type="button"
+            onClick={() => document.getElementById("vehicules-vtc")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md"
+          >
             <Search size={16} /> Rechercher un véhicule VTC / Taxi
           </button>
         </div>
@@ -239,7 +243,7 @@ export default function VtcTaxi() {
       </div>
 
       {/* LISTE DES VÉHICULES */}
-      <div className="px-4 mt-4">
+      <div id="vehicules-vtc" className="px-4 mt-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold text-[#111]">Véhicules disponibles</h2>
           <span className="text-xs text-[#6B7280]">{filteredVehicules.length} résultat{filteredVehicules.length > 1 ? "s" : ""}</span>

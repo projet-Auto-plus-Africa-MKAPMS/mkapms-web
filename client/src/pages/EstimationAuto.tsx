@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, Calculator, TrendingUp, TrendingDown, Minus, Sparkles } from "lucide-react";
 import VehicleIdentification from "../components/VehicleIdentification";
 
 export default function EstimationAuto() {
   const [showResult, setShowResult] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -59,7 +60,11 @@ export default function EstimationAuto() {
             </div>
           </div>
 
-          <button className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white active:scale-[0.98] shadow-lg">
+          <button
+            type="button"
+            onClick={() => navigate("/depot-annonce")}
+            className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white active:scale-[0.98] shadow-lg"
+          >
             Vendre mon vehicule sur MKA.P-MS
           </button>
         </div>
