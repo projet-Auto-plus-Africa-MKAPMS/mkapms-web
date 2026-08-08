@@ -17,12 +17,16 @@
  */
 import { ENGINE_CONTRACTS, type EngineContract } from "./contracts.js";
 import { bridgeOsEngines } from "./os-bridge.js";
+import { ENGINE_PROBES, runProbe } from "./probes.js";
 import {
   registerEngine,
   getEngine,
   heartbeat,
   publishEvent,
   journalAdmin,
+  ensureSeeded,
+  setState,
+  hasManualStateDecision,
   type EngineHealth,
 } from "./service.js";
 
@@ -108,10 +112,96 @@ async function bootEngine(contract: EngineContract): Promise<void> {
 }
 
 /**
+ * Moteurs semés `disabled` à une époque où ils n'existaient pas encore, mais
+ * livrés depuis (Search OS, Monitoring OS…). Le seed étant idempotent, leur
+ * ligne gardait l'état obsolète : le moteur était bel et bien installé et
+ * fonctionnel, mais le registre continuait de l'afficher désactivé.
+ */
+const IMPLEMENTED_SINCE_SEED: Record<string, "active"> = {
+  search: "active", // server/search-os
+  monitoring: "active", // server/monitoring-os
+  knowledge: "active", // base de connaissances du Système Intelligent
+  analytics: "active", // journaux de recherche / activité / redirection
+};
+
+/**
+ * Aligne l'état des moteurs livrés depuis le seed — sauf si le PDG a lui-même
+ * défini leur état : une décision humaine n'est jamais écrasée.
+ */
+async function reconcileImplementedEngines(): Promise<void> {
+  for (const [name, target] of Object.entries(IMPLEMENTED_SINCE_SEED)) {
+    try {
+      const engine = await getEngine(name);
+      if (!engine || engine.state !== "disabled") continue;
+
+      const decidedByHuman = await hasManualStateDecision(name);
+      if (decidedByHuman) continue;
+
+      await setState(name, target);
+      await journalAdmin(name, "implementation_detected", {
+        fromState: engine.state,
+        toState: target,
+      });
+      console.log(`[MKA.P-MS] moteur ${name}: implémentation détectée → ${target}`);
+    } catch (err) {
+      console.error(
+        `[MKA.P-MS] réconciliation moteur ${name} échouée:`,
+        (err as Error).message,
+      );
+    }
+  }
+}
+
+/**
+ * Fait battre le cœur des moteurs métier qui n'ont pas de surface MOS.
+ * Sans cela ils restent en santé `unknown` à vie et paraissent hors service.
+ * Chaque sonde est isolée : un domaine en panne n'empêche pas les autres de
+ * se signaler.
+ */
+async function probeBusinessEngines(): Promise<void> {
+  for (const probe of ENGINE_PROBES) {
+    try {
+      const result = await runProbe(probe);
+      await heartbeat(probe.engine, result.health, {
+        message: result.message,
+        metrics: result.metrics,
+      });
+      // Une incapacité réelle est remontée au Core et au Système Intelligent
+      // pour analyse ; la simple charge métier ne l'est pas.
+      if (result.health !== "ok") {
+        await publishEvent({
+          source: probe.engine,
+          type: "engine.probe_failed",
+          payload: { engine: probe.engine, health: result.health, ...result.metrics },
+          targets: ["smart", "core"],
+        });
+      }
+    } catch (err) {
+      console.error(
+        `[MKA.P-MS] sonde moteur ${probe.engine} échouée:`,
+        (err as Error).message,
+      );
+    }
+  }
+}
+
+/**
  * Point d'entrée appelé au démarrage du serveur. Ne lève jamais d'exception :
  * toute erreur est journalisée mais n'interrompt pas le démarrage de la plateforme.
  */
 export async function bootstrapEngines(): Promise<void> {
+  // Le catalogue doit exister AVANT la vérification des dépendances : sinon un
+  // moteur était déclaré dégradé simplement parce que sa dépendance n'avait pas
+  // encore été semée.
+  try {
+    await ensureSeeded();
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] seed du catalogue échoué:",
+      (err as Error).message,
+    );
+  }
+
   for (const contract of ENGINE_CONTRACTS) {
     try {
       await bootEngine(contract);
@@ -144,4 +234,25 @@ export async function bootstrapEngines(): Promise<void> {
       (err as Error).message,
     );
   }
+
+  // Aligne les moteurs livrés depuis le seed (Search OS, Monitoring OS…).
+  await reconcileImplementedEngines();
+
+  // Moteurs métier : sonde réelle de leur propre domaine.
+  await probeBusinessEngines();
+}
+
+/**
+ * Supervision continue. Le registre ne se rafraîchissait qu'au démarrage du
+ * serveur : un moteur rétabli restait affiché en panne jusqu'au redéploiement
+ * suivant, et un moteur tombé après le démarrage n'était jamais signalé.
+ * Cette passe périodique fait vivre les moteurs sans intervention humaine.
+ */
+export async function superviseEngines(): Promise<void> {
+  try {
+    await bridgeOsEngines();
+  } catch (err) {
+    console.error("[MKA.P-MS] supervision OS échouée:", (err as Error).message);
+  }
+  await probeBusinessEngines();
 }

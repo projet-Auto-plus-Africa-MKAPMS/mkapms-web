@@ -451,6 +451,19 @@ async function bootstrap() {
   }
   void schedulerTick();
   setInterval(() => void schedulerTick(), 60 * 1000);
+
+  // Supervision continue des moteurs — le registre ne se rafraîchissait qu'au
+  // démarrage : un moteur rétabli restait affiché en panne jusqu'au
+  // redéploiement suivant. Les moteurs vivent désormais sans intervention.
+  async function enginesTick() {
+    try {
+      const { superviseEngines } = await import("./engine-registry/bootstrap.js");
+      await superviseEngines();
+    } catch (e) {
+      console.error("[engines]", (e as Error).message);
+    }
+  }
+  setInterval(() => void enginesTick(), 5 * 60 * 1000);
 }
 
 bootstrap();
