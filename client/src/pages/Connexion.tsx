@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { PROFILE_LIST, getProfile } from "@shared/profiles";
+import { homePathForSession } from "../lib/accountRoute";
 
 declare global {
   interface Window {
@@ -20,18 +21,26 @@ export default function Connexion() {
   const [forgotSent, setForgotSent] = useState(false);
   const googleDiv = useRef<HTMLDivElement>(null);
 
+  // Account Routing Engine : chaque compte revient dans son univers, pas
+  // systématiquement sur l'espace particulier.
   const loginM = trpc.auth.login.useMutation({
-    onSuccess: (r) => { login(r.token, r.user as any); navigate("/compte"); },
+    onSuccess: (r) => {
+      login(r.token, r.user as any);
+      navigate(homePathForSession(r.user as any));
+    },
   });
   const registerM = trpc.auth.register.useMutation({
     onSuccess: (r) => {
       login(r.token, r.user as any);
       const prof = getProfile(r.profileType);
-      navigate(prof?.needsValidation ? "/compte/validation" : "/compte");
+      navigate(prof?.needsValidation ? "/compte/validation" : homePathForSession(r.user as any));
     },
   });
   const googleM = trpc.auth.googleLogin.useMutation({
-    onSuccess: (r) => { login(r.token, r.user as any); navigate("/compte"); },
+    onSuccess: (r) => {
+      login(r.token, r.user as any);
+      navigate(homePathForSession(r.user as any));
+    },
   });
   // Mot de passe oublié — appel réel au serveur (anti-énumération : toujours afficher succès)
   const forgotM = trpc.identity.password.forgot.useMutation({

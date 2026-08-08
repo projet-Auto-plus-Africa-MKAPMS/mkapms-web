@@ -34,6 +34,9 @@ function publicUser(u: typeof users.$inferSelect) {
     logoUrl: safeGet("logoUrl"),
     role: u.role,
     staffPosition: u.staffPosition,
+    // Métier professionnel : l'Account Routing Engine en a besoin pour
+    // ramener le compte dans le bon univers dès la connexion.
+    proCategory: safeGet("proCategory"),
     reference: u.reference,
     accountType: u.accountType,
     companyName: u.companyName,

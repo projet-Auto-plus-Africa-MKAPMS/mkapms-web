@@ -9,6 +9,7 @@ import { useCurrency } from "../lib/currency";
 import { isAdmin, isPro, ROLE_LABELS } from "@shared/roles";
 import type { UserRole } from "@shared/roles";
 import { canAccessServicePath } from "@shared/permissions";
+import { routeForSession } from "../lib/accountRoute";
 import FileUpload from "../components/FileUpload";
 
 type Tab = "annonces" | "toutes-annonces" | "publicites" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil" | "notifications" | "wallet" | "notes" | "version";
@@ -306,7 +307,13 @@ export default function Compte() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {isPro(user.role) && <Link to="/garage-plus" className="btn-outline">Espace Garage+</Link>}
+          {/* Account Routing Engine : chaque métier revient dans SON espace
+              (un vendeur n'est plus envoyé vers Garage+). */}
+          {isPro(user.role) && (
+            <Link to={routeForSession(user).homePath} className="btn-outline">
+              {routeForSession(user).label}
+            </Link>
+          )}
           {isAdmin(user.role) && <Link to="/admin" className="btn-primary">Back-office</Link>}
           {user.role === "super_admin" && <Link to="/admin" className="rounded-lg bg-[#111] px-4 py-2 text-xs font-bold text-[#D4AF37] hover:bg-[#222]">Super Admin</Link>}
           <Link to="/parametres" className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">

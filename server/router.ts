@@ -85,6 +85,8 @@ import { visibilityOsRouter } from "./visibility-os/index.js";
 // Pro Portal Engine — portail professionnel mondial (.pro) : métiers, offre à la carte
 import { proPortalRouter } from "./pro-portal/index.js";
 import { proAccountRouter } from "./pro-account/index.js";
+// Account Routing Engine — chaque compte revient automatiquement dans son univers
+import { accountRoutingRouter } from "./account-routing/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -192,6 +194,8 @@ export const appRouter = router({
   proPortal: proPortalRouter,
   // Pro Account Engine — dossier professionnel légal et activation contrôlée
   proAccount: proAccountRouter,
+  // Account Routing Engine — univers d'un compte (particulier, métiers, direction)
+  accountRouting: accountRoutingRouter,
 });
 
 export type AppRouter = typeof appRouter;
