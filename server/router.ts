@@ -87,6 +87,8 @@ import { proPortalRouter } from "./pro-portal/index.js";
 import { proAccountRouter } from "./pro-account/index.js";
 // Account Routing Engine — chaque compte revient automatiquement dans son univers
 import { accountRoutingRouter } from "./account-routing/index.js";
+// Auction Engine — enchères particuliers et professionnels
+import { auctionEngineRouter } from "./auction-engine/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -196,6 +198,7 @@ export const appRouter = router({
   proAccount: proAccountRouter,
   // Account Routing Engine — univers d'un compte (particulier, métiers, direction)
   accountRouting: accountRoutingRouter,
+  auctionEngine: auctionEngineRouter,
 });
 
 export type AppRouter = typeof appRouter;

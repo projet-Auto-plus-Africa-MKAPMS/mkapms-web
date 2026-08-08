@@ -392,4 +392,13 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     description: "Ventes aux enchères : lots, offres, adjudication.",
     state: "active",
   },
+  {
+    name: "auction_engine",
+    label: "Auction Engine",
+    category: "service",
+    dependencies: ["core", "payment", "notification", "visibility", "country"],
+    description:
+      "Moteur d'enchères particuliers et professionnels : lots, offres validées côté serveur, prix de réserve, anti-sniping, adjudication, historique et notifications.",
+    state: "active",
+  },
 ];

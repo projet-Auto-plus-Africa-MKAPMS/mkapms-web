@@ -449,6 +449,13 @@
       "when": 1753701200000,
       "tag": "0064_pro_account",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1753701600000,
+      "tag": "0068_auction_engine",
+      "breakpoints": true
     }
   ]
 }
