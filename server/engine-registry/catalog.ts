@@ -139,6 +139,24 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "accounting_internal",
+    label: "Internal Accounting Engine",
+    category: "transversal",
+    dependencies: ["core", "payment", "comptabilite"],
+    description:
+      "Comptabilité interne MKA.P-MS : rapprochement paiement ↔ écriture, commissions, remboursements, abonnements, écarts.",
+    state: "active",
+  },
+  {
+    name: "accounting_marketplace",
+    label: "Accounting Marketplace Engine",
+    category: "transversal",
+    dependencies: ["core", "identity", "country"],
+    description:
+      "Annuaire de comptables indépendants (« je cherche un comptable ») : pays, ville, spécialité, langue, disponibilité, note. Aucun accès aux comptes internes.",
+    state: "active",
+  },
+  {
     name: "payment",
     label: "Payment Engine",
     category: "transversal",

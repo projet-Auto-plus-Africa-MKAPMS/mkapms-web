@@ -449,6 +449,13 @@
       "when": 1753701200000,
       "tag": "0064_pro_account",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1753701500000,
+      "tag": "0067_comptabilite_deux_univers",
+      "breakpoints": true
     }
   ]
 }

@@ -68,6 +68,7 @@ const STATIC_PAGES: SearchResult[] = [
   { id: "s-livraison", titre: "Livraison vehicule", description: "Transport et livraison de votre vehicule partout en France", category: "services", to: "/livraison", icon: Truck, priority: 3 },
   { id: "s-finance", titre: "Finance+ — Financement auto", description: "Credit auto, leasing, LOA — simulation gratuite", category: "services", to: "/finance", icon: Building2, priority: 3 },
   { id: "s-assurance", titre: "Assurance auto", description: "Comparez les assurances auto — devis instantane", category: "services", to: "/operations/m-k-a-p-m-s-assurance", icon: Shield, priority: 3 },
+  { id: "s-comptable", titre: "Trouver un comptable", description: "Comptables independants par pays, ville, specialite et langue", category: "services", to: "/comptables", icon: Building2, priority: 3 },
   { id: "s-historique", titre: "Historique vehicule", description: "Rapport complet : sinistres, entretien, km verifie", category: "services", to: "/historique", icon: Clock, priority: 3 },
   // Univers Acheter
   { id: "u-officiel", titre: "Vehicules MKA.P-MS Officiels", description: "Stock officiel MKA.P-MS — controle 200 points, garantie, Finance+", category: "vehicule", to: "/acheter/mkapms-officiel", icon: Shield, badge: "OFFICIEL", badgeColor: "bg-[#D4AF37]", priority: 3 },
