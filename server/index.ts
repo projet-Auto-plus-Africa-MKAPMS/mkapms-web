@@ -381,6 +381,15 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec seed Portail Pro:", (err as Error).message);
     }
+    // Pro Account Engine — amorce les règles légales pays/métier. Idempotent :
+    // une règle déjà en base fait autorité et n'est jamais réécrite.
+    try {
+      const { seedProAccountRules } = await import("./pro-account/index.js");
+      const r = await seedProAccountRules();
+      console.log(`[MKA.P-MS] Compte Pro: ${r.rules} règle(s) pays/métier ajoutée(s)`);
+    } catch (err) {
+      console.error("[MKA.P-MS] échec seed Compte Pro:", (err as Error).message);
+    }
     // Système Intelligent — travail autonome périodique (lecture seule) : il
     // analyse les données réelles et PROPOSE des solutions/alertes que le PDG
     // valide ensuite. Aucune décision humaine n'est appliquée automatiquement.

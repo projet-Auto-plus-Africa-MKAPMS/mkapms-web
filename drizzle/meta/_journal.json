@@ -442,6 +442,13 @@
       "when": 1753701100000,
       "tag": "0063_newsletter_subscribers",
       "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1753701200000,
+      "tag": "0064_pro_account",
+      "breakpoints": true
     }
   ]
 }

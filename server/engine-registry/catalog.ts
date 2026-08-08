@@ -121,6 +121,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "pro_account",
+    label: "Pro Account Engine",
+    category: "transversal",
+    dependencies: ["core", "country", "payment", "notification"],
+    description:
+      "Dossier professionnel légal par pays et par métier : exigences variables, vérification humaine, paiement séparé et activation contrôlée.",
+    state: "active",
+  },
+  {
     name: "payment",
     label: "Payment Engine",
     category: "transversal",
