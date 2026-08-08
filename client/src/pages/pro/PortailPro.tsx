@@ -370,11 +370,18 @@ export default function PortailPro() {
               <button
                 onClick={() => {
                   persist({ step: "panier" });
-                  navigate(user ? "/abonnements" : "/acheter/inscription-pro");
+                  // Le dossier légal précède le paiement : métier, pays et
+                  // services choisis sont transmis pour ne rien ressaisir.
+                  const q = new URLSearchParams({
+                    metier: profession ?? "",
+                    pays: country ?? "",
+                    modules: selected.join(","),
+                  });
+                  navigate(user ? `/pro/dossier?${q}` : "/connexion");
                 }}
                 className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-black text-white"
               >
-                {user ? "Continuer vers le paiement" : "Créer mon compte professionnel"}
+                {user ? "Créer mon dossier professionnel" : "Créer mon compte professionnel"}
               </button>
               <button
                 onClick={() => goTo("besoins")}

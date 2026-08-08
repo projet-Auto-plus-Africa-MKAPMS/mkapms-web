@@ -67,6 +67,10 @@ export const NOTIFICATION_TRIGGERS: Record<string, TriggerDef> = {
   message_nouveau: { category: "messagerie", channels: ["push", "inapp"], inappType: "message", title: "Nouveau message", body: "Vous avez reçu un message." },
   devis: { category: "documents", channels: ["email", "inapp"], inappType: "devis", title: "Nouveau devis", body: "Un devis {{reference}} vous a été transmis." },
   facture: { category: "documents", channels: ["email", "inapp"], inappType: "facture", title: "Nouvelle facture", body: "Votre facture {{reference}} est disponible." },
+  // ── Compte professionnel ────────────────────────────────────────────────
+  pro_dossier_recu: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Dossier professionnel reçu", body: "Votre dossier {{metier}} ({{pays}}) est en cours de vérification." },
+  pro_dossier_decision: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Dossier professionnel — {{decision}}", body: "{{note}}" },
+  pro_compte_active: { category: "compte", channels: ["email", "push", "inapp"], inappType: "systeme", title: "Compte professionnel activé", body: "Vos services professionnels sont accessibles depuis votre tableau de bord." },
   // ── Système / admin ─────────────────────────────────────────────────────
   erreur_importante: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Erreur importante", body: "{{message}}", adminAlert: true },
 };
