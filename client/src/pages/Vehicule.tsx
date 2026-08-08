@@ -21,7 +21,6 @@ import {
   CreditCard,
   Send,
   Building2,
-  Share2,
   Wrench,
   Truck,
   FileCheck,
@@ -64,6 +63,7 @@ import { ACOMPTE_PALIERS } from "@shared/plans";
 import { computeTrustScore, TRUST_LEVEL_LABEL } from "@shared/trust";
 import { computeBadges } from "@shared/badges";
 import { BadgeChip } from "../components/VehicleCard";
+import ShareButton from "../components/ShareButton";
 
 /* ── Catégories photo pour galerie (tous véhicules) ── */
 type PhotoCategory = "toutes" | "exterieur" | "interieur" | "sieges" | "coffre" | "tableau_de_bord" | "moteur" | "roues" | "documents" | "autres" | "video360" | "video";
@@ -614,7 +614,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
           {/* ── 4. Favoris + Partager ── */}
           <div className="flex items-center justify-between px-2">
             <button className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-noir" onClick={() => { setIsFav(!isFav); requireLogin(() => toggleFav.mutate({ annonceId: v.id })); }}><Heart size={18} className={isFav ? "text-red-500 fill-red-500" : ""} /> {isFav ? "Favori" : "Ajouter aux favoris"}</button>
-            <button className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-noir" onClick={() => { if (navigator.share) navigator.share({ title: v.titre, url: window.location.href }); }}><Share2 size={18} /> Partager</button>
+            <ShareButton title={v.titre} />
           </div>
 
           {/* ── 8. DESCRIPTION — onglets défilables avec TOUTES les catégories ── */}
@@ -1312,9 +1312,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
               <ChevronLeft size={20} className="text-[#111]" />
             </button>
             <div className="flex gap-2">
-              <button onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(window.location.href); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md" style={{border: '1.5px solid #111', boxShadow: '0 0 8px rgba(212,175,55,0.3)'}}>
-                <Share2 size={18} className="text-[#111]" />
-              </button>
+              <ShareButton variant="icon" title={v.titre} />
               <button onClick={(e) => { e.stopPropagation(); setIsFav(!isFav); requireLogin(() => toggleFav.mutate({ annonceId: v.id })); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md" style={{border: '1.5px solid #111', boxShadow: '0 0 8px rgba(212,175,55,0.3)'}}>
                 <Heart size={18} className={isFav ? "text-red-500 fill-red-500" : "text-[#111]"} />
               </button>

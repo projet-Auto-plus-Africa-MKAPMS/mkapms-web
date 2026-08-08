@@ -8,6 +8,7 @@ import {
   Pen, CreditCard, Car, Package, Truck, Bus, HardHat
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
+import ShareButton from "../components/ShareButton";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE PRODUIT — LOCATION GÉNÉRIQUE
@@ -251,9 +252,16 @@ export default function ProduitLocation() {
         <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} className="absolute top-4 left-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur shadow">
           <ChevronLeft size={20} className="text-[#111]" />
         </button>
-        <button onClick={(e) => { e.stopPropagation(); setFav(!fav); }} className="absolute top-4 right-4 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur shadow">
-          <Heart size={18} className={fav ? "fill-red-500 text-red-500" : "text-[#6B7280]"} />
-        </button>
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+          <ShareButton
+            variant="icon"
+            title={v.titre}
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur shadow"
+          />
+          <button onClick={(e) => { e.stopPropagation(); setFav(!fav); }} className="flex items-center justify-center w-9 h-9 rounded-full bg-white/80 backdrop-blur shadow">
+            <Heart size={18} className={fav ? "fill-red-500 text-red-500" : "text-[#6B7280]"} />
+          </button>
+        </div>
         <div className="absolute bottom-3 left-4 flex items-center gap-2">
           <span className="rounded-md bg-black/60 px-3 py-1 text-xs font-bold text-white">{activeCatPhotos.length > 0 ? `${safeIdx + 1}/${activeCatPhotos.length}` : "0"}</span>
         </div>
