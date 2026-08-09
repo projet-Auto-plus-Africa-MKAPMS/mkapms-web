@@ -1177,4 +1177,6 @@ export * from "./pro-portal/schema"; // Pro Portal Engine — portail profession
 export * from "./vo-engine/schema"; // VO Engine — estimation, reprise et dossier VO (isolé)
 export * from "./payment-orchestrator/schema"; // Payment Orchestrator — prestataires configurables (isolé)
 export * from "./financial-intelligence/schema"; // Financial Intelligence — anomalies financières (isolé)
+export * from "./accounting-internal/schema"; // Comptabilité interne — rapprochement paiement/écriture (isolé)
+export * from "./accounting-marketplace/schema"; // Marketplace comptables indépendants (isolé)
 export * from "./pro-account/schema"; // Pro Account Engine — dossier professionnel légal et activation (isolé)

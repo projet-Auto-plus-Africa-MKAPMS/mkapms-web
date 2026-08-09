@@ -185,6 +185,7 @@ const CarteGrise = lazy(() => import("./pages/CarteGrise"));
 const Mission = lazy(() => import("./pages/Mission"));
 const EspacePro = lazy(() => import("./pages/EspacePro"));
 const PortailPro = lazy(() => import("./pages/pro/PortailPro"));
+const Comptables = lazy(() => import("./pages/Comptables"));
 const DossierPro = lazy(() => import("./pages/pro/DossierPro"));
 const MonEspace = lazy(() => import("./pages/MonEspace"));
 const InscriptionProVO = lazy(() => import("./pages/InscriptionProVO"));
@@ -942,6 +943,8 @@ export default function App() {
             <Route path="/espace-pro" element={<U name="Espace Pro"><EspacePro /></U>} />
             <Route path="/pro/demarrer" element={<U name="Portail Pro"><PortailPro /></U>} />
             <Route path="/pro/dossier" element={<U name="Dossier Pro"><DossierPro /></U>} />
+            {/* Marketplace Comptabilité — annuaire de comptables indépendants */}
+            <Route path="/comptables" element={<U name="Comptables"><Comptables /></U>} />
             {/* Account Routing Engine — retour au bon univers */}
             <Route path="/mon-espace" element={<U name="Mon espace"><MonEspace /></U>} />
             <Route path="/inscription-pro-vo" element={<U name="Inscription Pro VO"><InscriptionProVO /></U>} />
