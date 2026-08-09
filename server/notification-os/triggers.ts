@@ -71,6 +71,8 @@ export const NOTIFICATION_TRIGGERS: Record<string, TriggerDef> = {
   pro_dossier_recu: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Dossier professionnel reçu", body: "Votre dossier {{metier}} ({{pays}}) est en cours de vérification." },
   pro_dossier_decision: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Dossier professionnel — {{decision}}", body: "{{note}}" },
   pro_compte_active: { category: "compte", channels: ["email", "push", "inapp"], inappType: "systeme", title: "Compte professionnel activé", body: "Vos services professionnels sont accessibles depuis votre tableau de bord." },
+  // ── Intelligence financière ─────────────────────────────────────────────
+  anomalie_financiere: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Anomalie financière — {{severite}}", body: "{{detail}}", adminAlert: true },
   // ── Système / admin ─────────────────────────────────────────────────────
   erreur_importante: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Erreur importante", body: "{{message}}", adminAlert: true },
 };

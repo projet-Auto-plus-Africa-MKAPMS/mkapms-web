@@ -87,6 +87,9 @@ import { proPortalRouter } from "./pro-portal/index.js";
 import { proAccountRouter } from "./pro-account/index.js";
 // Account Routing Engine — chaque compte revient automatiquement dans son univers
 import { accountRoutingRouter } from "./account-routing/index.js";
+// Payment Orchestrator + Intelligence financière — points 27 & 29
+import { paymentOrchestratorRouter } from "./payment-orchestrator/index.js";
+import { financialIntelligenceRouter } from "./financial-intelligence/index.js";
 // Comptabilité en deux univers séparés — point 26
 import { accountingInternalRouter } from "./accounting-internal/index.js";
 import { accountingMarketplaceRouter } from "./accounting-marketplace/index.js";
@@ -199,6 +202,10 @@ export const appRouter = router({
   proAccount: proAccountRouter,
   // Account Routing Engine — univers d'un compte (particulier, métiers, direction)
   accountRouting: accountRoutingRouter,
+  // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
+  paymentOrchestrator: paymentOrchestratorRouter,
+  // Intelligence financière : aucune anomalie d'argent ne reste silencieuse
+  financialIntelligence: financialIntelligenceRouter,
   // A. Comptabilité interne MKA.P-MS (paiements, écritures, rapprochements)
   accountingInternal: accountingInternalRouter,
   // B. Marketplace de comptables indépendants — aucun accès aux comptes internes
