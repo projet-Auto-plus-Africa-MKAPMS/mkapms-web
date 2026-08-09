@@ -87,6 +87,9 @@ import { proPortalRouter } from "./pro-portal/index.js";
 import { proAccountRouter } from "./pro-account/index.js";
 // Account Routing Engine — chaque compte revient automatiquement dans son univers
 import { accountRoutingRouter } from "./account-routing/index.js";
+// Payment Orchestrator + Intelligence financière — points 27 & 29
+import { paymentOrchestratorRouter } from "./payment-orchestrator/index.js";
+import { financialIntelligenceRouter } from "./financial-intelligence/index.js";
 // Auction Engine — enchères particuliers et professionnels
 import { auctionEngineRouter } from "./auction-engine/index.js";
 
@@ -198,6 +201,10 @@ export const appRouter = router({
   proAccount: proAccountRouter,
   // Account Routing Engine — univers d'un compte (particulier, métiers, direction)
   accountRouting: accountRoutingRouter,
+  // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
+  paymentOrchestrator: paymentOrchestratorRouter,
+  // Intelligence financière : aucune anomalie d'argent ne reste silencieuse
+  financialIntelligence: financialIntelligenceRouter,
   auctionEngine: auctionEngineRouter,
 });
 

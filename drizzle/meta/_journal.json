@@ -451,6 +451,20 @@
       "breakpoints": true
     },
     {
+      "idx": 64,
+      "version": "7",
+      "when": 1753701300000,
+      "tag": "0065_payment_orchestrator",
+      "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1753701400000,
+      "tag": "0066_financial_intelligence",
+      "breakpoints": true
+    },
+    {
       "idx": 67,
       "version": "7",
       "when": 1753701600000,

@@ -390,6 +390,15 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec seed Compte Pro:", (err as Error).message);
     }
+    // Payment Orchestrator — amorce le registre des prestataires. Idempotent :
+    // un prestataire déjà configuré en base n'est jamais réécrit.
+    try {
+      const { seedProviders } = await import("./payment-orchestrator/index.js");
+      const r = await seedProviders();
+      console.log(`[MKA.P-MS] Orchestrateur paiement: ${r.inserted} prestataire(s) ajouté(s)`);
+    } catch (err) {
+      console.error("[MKA.P-MS] échec seed Orchestrateur paiement:", (err as Error).message);
+    }
     // Système Intelligent — travail autonome périodique (lecture seule) : il
     // analyse les données réelles et PROPOSE des solutions/alertes que le PDG
     // valide ensuite. Aucune décision humaine n'est appliquée automatiquement.
@@ -483,6 +492,21 @@ async function bootstrap() {
     }
   }
   setInterval(() => void enginesTick(), 5 * 60 * 1000);
+
+  // Intelligence financière — analyse autonome : une anomalie financière ne
+  // doit jamais rester silencieuse, même si personne ne consulte le tableau.
+  async function financeTick() {
+    try {
+      const { analyzeFinances } = await import("./financial-intelligence/index.js");
+      const r = await analyzeFinances();
+      if (r.nouvelles > 0) {
+        console.log(`[finance] ${r.nouvelles} nouvelle(s) anomalie(s) financière(s)`);
+      }
+    } catch (e) {
+      console.error("[finance]", (e as Error).message);
+    }
+  }
+  setInterval(() => void financeTick(), 60 * 60 * 1000);
 
   // Auction Engine — clôture des enchères échues. Sans ce cycle, une enchère
   // terminée resterait « en cours » sans jamais désigner de gagnant.
