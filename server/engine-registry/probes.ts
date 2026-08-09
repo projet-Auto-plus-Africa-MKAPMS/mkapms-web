@@ -40,6 +40,8 @@ export const ENGINE_PROBES: EngineProbe[] = [
   { engine: "pro_account", tables: ["pro_account_rules", "pro_account_applications"] },
   // Le routage de compte décide à partir des comptes eux-mêmes : pas de table propre.
   { engine: "account_routing", tables: ["users"] },
+  { engine: "payment_orchestrator", tables: ["payment_providers", "payment_routing_decisions"] },
+  { engine: "financial_intelligence", tables: ["finance_anomalies", "payments", "subscriptions"] },
   { engine: "payment", tables: ["payments", "payment_transactions", "payment_products", "subscriptions"] },
   { engine: "workflow", tables: ["change_requests", "service_tracking"] },
   { engine: "knowledge", tables: ["smart_knowledge", "smart_kb_entries", "smart_learned_data"] },

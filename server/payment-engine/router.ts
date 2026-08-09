@@ -35,6 +35,7 @@ import {
   listTransactions,
 } from "./service.js";
 import { paymentAudit } from "./audit.js";
+import { paymentChainAudit } from "./chain-audit.js";
 import {
   listProducts,
   resolveProduct,
@@ -131,6 +132,11 @@ export const paymentEngineRouter = router({
   // Audit de couverture (Phase 23) — observe et rapporte uniquement.
   audit: pdgProcedure.query(async () => {
     return paymentAudit();
+  }),
+
+  // Audit mondial de bout en bout (point 28) : chaque maillon avec sa preuve.
+  chainAudit: pdgProcedure.query(async () => {
+    return paymentChainAudit();
   }),
 
   // ── Registre produits (administration PDG) ────────────────────────────

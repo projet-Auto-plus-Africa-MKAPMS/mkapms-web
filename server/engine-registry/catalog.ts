@@ -139,6 +139,24 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "payment_orchestrator",
+    label: "Payment Orchestrator",
+    category: "transversal",
+    dependencies: ["core", "payment", "country"],
+    description:
+      "Sélection du prestataire de paiement selon pays, devise, service, disponibilité réelle du connecteur et préférence utilisateur. Ajouter un prestataire ne demande pas de reconstruire le checkout.",
+    state: "active",
+  },
+  {
+    name: "financial_intelligence",
+    label: "Financial Intelligence Engine",
+    category: "transversal",
+    dependencies: ["core", "payment", "comptabilite", "notification"],
+    description:
+      "Surveillance financière autonome : paiement échoué, double paiement, remboursement, facture manquante, abonnement expiré, commande sans paiement, montant ou devise incohérents.",
+    state: "active",
+  },
+  {
     name: "payment",
     label: "Payment Engine",
     category: "transversal",
