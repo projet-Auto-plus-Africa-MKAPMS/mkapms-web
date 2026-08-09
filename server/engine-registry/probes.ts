@@ -51,6 +51,7 @@ export const ENGINE_PROBES: EngineProbe[] = [
   // Le moteur de proximité n'a pas de stockage propre : il interroge les annuaires
   // locaux des univers. Sa santé dépend donc de la disponibilité de ces annuaires.
   { engine: "proximity_engine", tables: ["garages_publics", "accountant_profiles", "parts_shops"] },
+  { engine: "partner_engine", tables: ["partners", "partner_coverage", "partner_applications", "partner_opportunities"] },
 
   // ── Univers ──
   { engine: "vo", tables: ["vehicules", "vehicule_dossiers", "vehicule_historique"] },

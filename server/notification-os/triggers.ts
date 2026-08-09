@@ -71,6 +71,10 @@ export const NOTIFICATION_TRIGGERS: Record<string, TriggerDef> = {
   pro_dossier_recu: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Dossier professionnel reçu", body: "Votre dossier {{metier}} ({{pays}}) est en cours de vérification." },
   pro_dossier_decision: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Dossier professionnel — {{decision}}", body: "{{note}}" },
   pro_compte_active: { category: "compte", channels: ["email", "push", "inapp"], inappType: "systeme", title: "Compte professionnel activé", body: "Vos services professionnels sont accessibles depuis votre tableau de bord." },
+  // ── Réseau partenaires ──────────────────────────────────────────────────
+  partenaire_candidature: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Candidature partenaire reçue", body: "Votre candidature {{reference}} ({{metier}}) est en cours d'examen." },
+  partenaire_decision: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Candidature partenaire — {{decision}}", body: "{{note}}" },
+  opportunite_partenaire: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Zone sans partenaire — {{service}}", body: "{{zone}} : {{detail}}", adminAlert: true },
   // ── Intelligence financière ─────────────────────────────────────────────
   anomalie_financiere: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Anomalie financière — {{severite}}", body: "{{detail}}", adminAlert: true },
   // ── Système / admin ─────────────────────────────────────────────────────

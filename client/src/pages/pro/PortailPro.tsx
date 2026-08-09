@@ -133,6 +133,13 @@ export default function PortailPro() {
         <p className="mt-1 text-xs text-white/60">
           Composez votre offre service par service. Vous ne payez que ce dont vous avez besoin.
         </p>
+        {/* Point 36 — entrée partenariat : autre relation commerciale que l'abonnement. */}
+        <Link
+          to="/partenaires/inscription-partenaire"
+          className="mt-3 inline-block rounded-lg border border-[#D4AF37]/60 px-3 py-1.5 text-[12px] font-bold text-[#D4AF37]"
+        >
+          Devenir partenaire MKA.P-MS →
+        </Link>
       </div>
 
       {/* Fil des étapes */}

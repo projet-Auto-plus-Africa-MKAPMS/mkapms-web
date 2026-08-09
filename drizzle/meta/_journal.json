@@ -484,6 +484,13 @@
       "when": 1753701700000,
       "tag": "0069_vo_engine",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1753701800000,
+      "tag": "0070_partner_engine",
+      "breakpoints": true
     }
   ]
 }

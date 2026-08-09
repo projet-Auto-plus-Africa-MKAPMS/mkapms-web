@@ -1181,3 +1181,4 @@ export * from "./accounting-internal/schema"; // Comptabilité interne — rappr
 export * from "./accounting-marketplace/schema"; // Marketplace comptables indépendants (isolé)
 export * from "./auction-engine/schema"; // Auction Engine — enchères particuliers et professionnels (isolé)
 export * from "./pro-account/schema"; // Pro Account Engine — dossier professionnel légal et activation (isolé)
+export * from "./partner-engine/schema"; // Partner Engine — réseau partenaires et acquisition (isolé)
