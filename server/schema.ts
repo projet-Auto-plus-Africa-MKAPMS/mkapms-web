@@ -1174,6 +1174,7 @@ export * from "./redirection-engine/schema"; // Redirection Engine — Moteur de
 export * from "./engine-registry/schema"; // Engine Registry — Registre central des moteurs (isolé, Phase 1)
 export * from "./payment-engine/schema"; // Payment Engine — Moteur de paiement propriétaire (isolé, Phase 2)
 export * from "./pro-portal/schema"; // Pro Portal Engine — portail professionnel mondial (.pro, isolé)
+export * from "./vo-engine/schema"; // VO Engine — estimation, reprise et dossier VO (isolé)
 export * from "./payment-orchestrator/schema"; // Payment Orchestrator — prestataires configurables (isolé)
 export * from "./financial-intelligence/schema"; // Financial Intelligence — anomalies financières (isolé)
 export * from "./pro-account/schema"; // Pro Account Engine — dossier professionnel légal et activation (isolé)
