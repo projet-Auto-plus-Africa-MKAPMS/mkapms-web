@@ -523,6 +523,21 @@ async function bootstrap() {
     }
   }
   setInterval(() => void reconcileTick(), 60 * 60 * 1000);
+
+  // Auction Engine — clôture des enchères échues. Sans ce cycle, une enchère
+  // terminée resterait « en cours » sans jamais désigner de gagnant.
+  async function auctionTick() {
+    try {
+      const { closeExpiredAuctions } = await import("./auction-engine/index.js");
+      const closed = await closeExpiredAuctions();
+      if (closed.length > 0) {
+        console.log(`[encheres] ${closed.length} enchère(s) clôturée(s)`);
+      }
+    } catch (e) {
+      console.error("[encheres]", (e as Error).message);
+    }
+  }
+  setInterval(() => void auctionTick(), 60 * 1000);
 }
 
 bootstrap();

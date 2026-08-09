@@ -140,6 +140,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/dossier-client",
   "/dossier-vehicule-numerique",
   "/encheres",
+  "/encheres/live",
   "/entreprises/centre-carburant",
   "/entreprises/centre-geolocalisation",
   "/entreprises/centre-immobilisation",

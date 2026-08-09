@@ -95,6 +95,8 @@ import { financialIntelligenceRouter } from "./financial-intelligence/index.js";
 // Comptabilité en deux univers séparés — point 26
 import { accountingInternalRouter } from "./accounting-internal/index.js";
 import { accountingMarketplaceRouter } from "./accounting-marketplace/index.js";
+// Auction Engine — enchères particuliers et professionnels
+import { auctionEngineRouter } from "./auction-engine/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -213,6 +215,7 @@ export const appRouter = router({
   accountingInternal: accountingInternalRouter,
   // B. Marketplace de comptables indépendants — aucun accès aux comptes internes
   accountingMarketplace: accountingMarketplaceRouter,
+  auctionEngine: auctionEngineRouter,
 });
 
 export type AppRouter = typeof appRouter;

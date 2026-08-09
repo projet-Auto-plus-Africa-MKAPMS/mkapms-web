@@ -82,6 +82,7 @@ export const ENGINE_PROBES: EngineProbe[] = [
   { engine: "assurance", tables: ["user_assurances"] },
   { engine: "finance", tables: ["finance_documents", "finance_transactions", "payments"] },
   { engine: "encheres", tables: ["annonces", "payments"] },
+  { engine: "auction_engine", tables: ["auctions", "auction_bids", "auction_events"] },
 ];
 
 export interface ProbeResult {
