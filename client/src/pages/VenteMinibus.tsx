@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Search, Bus, Heart, Shield, Users, Star, ChevronDown, ChevronRight, HelpCircle } from "lucide-react";
+import { ChevronLeft, Bus, Heart, Shield, Users, Star, ChevronRight, HelpCircle } from "lucide-react";
+import SearchLine from "../components/SearchLine";
+import { useVehicleSearch } from "../lib/vehicleSearch";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -55,11 +57,12 @@ const TYPE_FILTER = ["Tous", "7-8 places", "9 places", "12-17 places", "Premium 
 
 export default function VenteMinibus() {
   const [showFilters, setShowFilters] = useState(false);
+  const search = useVehicleSearch();
   const [filtre, setFiltre] = useState("Tous");
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const filtered = ANNONCES.filter((a) => {
+  const filtered = search.filter(ANNONCES).filter((a) => {
     if (selectedCat && a.categorie !== selectedCat) return false;
     if (filtre === "Tous") return true;
     return a.categorie === filtre;
@@ -92,29 +95,28 @@ export default function VenteMinibus() {
 
       {/* RECHERCHE */}
       <div className="mx-4 -mt-4 relative z-10 rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-md">
-        <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5">
-          <Search size={14} className="text-[#6B7280]" />
-          <input
-            type="text"
-            placeholder="Marque, modèle, nombre de places…"
-            className="w-full bg-transparent text-sm outline-none"
-          />
-          <button onClick={() => setShowFilters(!showFilters)}>
-            <ChevronDown size={16} className={`text-[#6B7280] transition ${showFilters ? "rotate-180" : ""}`} />
-          </button>
-        </div>
+        <SearchLine
+          value={search.draft.q}
+          onChange={(v) => search.set("q", v)}
+          onSearch={search.apply}
+          placeholder="Marque, modèle, nombre de places…"
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters(!showFilters)}
+          activeCount={search.activeCount}
+          accent="bg-purple-700"
+        />
         {showFilters && (
           <div className="mt-3 space-y-3">
             <div>
               <label className="text-[10px] font-bold text-[#6B7280] uppercase">Marque</label>
-              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm">
+              <select value={search.draft.marque} onChange={(e) => search.set("marque", e.target.value)} className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm">
                 <option value="">Toutes les marques</option>
                 {MARQUES.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
             <div>
               <label className="text-[10px] font-bold text-[#6B7280] uppercase">Nombre de places</label>
-              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm">
+              <select value={search.draft.categorie} onChange={(e) => search.set("categorie", e.target.value)} className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm">
                 <option value="">Tous</option>
                 {TYPE_FILTER.filter(f => f !== "Tous").map((f) => <option key={f} value={f}>{f}</option>)}
               </select>
@@ -122,14 +124,19 @@ export default function VenteMinibus() {
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix min</label>
-                <input placeholder="0 €" className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
+                <input type="number" value={search.draft.prixMin} onChange={(e) => search.set("prixMin", e.target.value)} placeholder="0 €" className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix max</label>
-                <input placeholder="100 000 €" className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
+                <input type="number" value={search.draft.prixMax} onChange={(e) => search.set("prixMax", e.target.value)} placeholder="100 000 €" className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
               </div>
             </div>
-            <button className="w-full py-2.5 bg-purple-700 text-white rounded-xl text-xs font-bold">Rechercher</button>
+            <div className="flex gap-2">
+              <button type="button" onClick={search.reset} className="rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs font-bold text-[#6B7280]">Effacer</button>
+              <button type="button" onClick={() => { search.apply(); setShowFilters(false); }} className="flex-1 py-2.5 bg-purple-700 text-white rounded-xl text-xs font-bold active:scale-[0.98] transition">
+                Rechercher
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -130,6 +130,8 @@ export default function Garages() {
   const { user } = useAuth();
   const [q, setQ] = useState("");
   const [city, setCity] = useState("");
+  const [noteMin, setNoteMin] = useState("");
+  const [avecAvis, setAvecAvis] = useState(false);
   const { country } = useCurrency();
   // Annuaire filtré sur le pays actif du visiteur (structure inchangée, seul le
   // contenu change selon le pays — cf. annonces).
@@ -222,6 +224,13 @@ export default function Garages() {
   }
 
   const garageItems = list.data?.items || [];
+  // Note et avis viennent de la base : un garage sans avis n'est pas noté, il
+  // est simplement exclu quand on demande une note minimale.
+  const garagesAffiches = garageItems.filter((g) => {
+    if (avecAvis && !(g.reviewCount || 0)) return false;
+    if (noteMin && Number(g.rating || 0) < Number(noteMin)) return false;
+    return true;
+  });
   const selectedGarageObj = garageItems.find((g) => g.id === selectedGarage);
 
   // Hero vidéo carousel (hooks doivent être avant les early returns)
@@ -709,14 +718,28 @@ export default function Garages() {
       </div>
 
       {/* Recherche garages */}
-      <div className="mt-3 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-        <input className="input" placeholder="Nom du garage" value={q} onChange={(e) => setQ(e.target.value)} />
-        <input className="input" placeholder="Ville" value={city} onChange={(e) => setCity(e.target.value)} />
+      <div className="mt-3 grid gap-3 md:grid-cols-4">
+        <input className="input" placeholder="Nom du garage" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && list.refetch()} />
+        <input className="input" placeholder="Ville" value={city} onChange={(e) => setCity(e.target.value)} onKeyDown={(e) => e.key === "Enter" && list.refetch()} />
+        <select className="input" value={noteMin} onChange={(e) => setNoteMin(e.target.value)}>
+          <option value="">Toutes les notes</option>
+          <option value="3">3 ★ et plus</option>
+          <option value="4">4 ★ et plus</option>
+          <option value="4.5">4,5 ★ et plus</option>
+        </select>
+        <label className="flex items-center gap-2 text-sm text-slate-600">
+          <input type="checkbox" checked={avecAvis} onChange={(e) => setAvecAvis(e.target.checked)} />
+          Uniquement avec avis
+        </label>
+      </div>
+      <div className="mt-3 flex gap-2">
+        <button className="btn-primary text-sm" onClick={() => list.refetch()}>Rechercher</button>
+        <button className="btn-outline text-sm" onClick={() => { setQ(""); setCity(""); setNoteMin(""); setAvecAvis(false); }}>Effacer</button>
       </div>
 
       {/* Liste des garages */}
       <div className="mt-8 grid gap-4 md:grid-cols-3">
-        {list.data?.items.map((g) => (
+        {garagesAffiches.map((g) => (
           <div key={g.id} className="card p-5">
             <div className="flex items-start justify-between">
               <Link to={`/garages/${g.slug || g.id}`} className="font-bold text-slate-900 hover:text-gold-dark">{g.name}</Link>
@@ -743,8 +766,8 @@ export default function Garages() {
             </div>
           </div>
         ))}
-        {list.data && list.data.items.length === 0 && (
-          <p className="col-span-full py-12 text-center text-slate-500">Aucun garage trouvé.</p>
+        {list.data && garagesAffiches.length === 0 && (
+          <p className="col-span-full py-12 text-center text-slate-500">Aucun garage ne correspond à ces critères.</p>
         )}
       </div>
       </div>

@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import {
-  ChevronLeft, Search, Heart, HardHat, Wrench,
-  ShieldCheck, Star, ChevronDown, Tractor, X, AlertTriangle, CheckCircle,
-} from "lucide-react";
+import { ChevronLeft, Search, Heart, HardHat, Wrench, ShieldCheck, Star, ChevronDown, Tractor, X, AlertTriangle, CheckCircle } from "lucide-react";
+import { useVehicleSearch } from "../lib/vehicleSearch";
 
 /* ══════════════════════════════════════════════════════════════════════════
    Engins & Machines — Achat
@@ -112,6 +110,7 @@ export default function VenteCamionsEngins() {
   const [searchActive, setSearchActive] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const search = useVehicleSearch();
 
   /* ── Système d'alerte catégorie manquante ── */
   const [alertCategorie, setAlertCategorie] = useState("");
@@ -119,6 +118,8 @@ export default function VenteCamionsEngins() {
 
   const handleSearch = () => {
     setSearchActive(searchInput.trim());
+    search.apply();
+    setShowFilters(false);
     // Détection automatique : si la recherche ne correspond à aucune catégorie connue
     // et n'est pas une marque connue, on propose de signaler la catégorie manquante
     if (searchInput.trim().length > 2) {
@@ -145,7 +146,7 @@ export default function VenteCamionsEngins() {
     }, 4000);
   };
 
-  const annoncesFiltered = ANNONCES.filter((a) => {
+  const annoncesFiltered = search.filter(ANNONCES).filter((a) => {
     const matchFiltre = filtre === "Tous" || a.categorie === filtre;
     const matchSearch = !searchActive || a.titre.toLowerCase().includes(searchActive.toLowerCase()) || a.categorie.toLowerCase().includes(searchActive.toLowerCase());
     return matchFiltre && matchSearch;
@@ -212,14 +213,14 @@ export default function VenteCamionsEngins() {
           <div className="mt-2 space-y-2">
             <div>
               <label className="text-[10px] font-bold text-[#6B7280] uppercase">Marque</label>
-              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+              <select value={search.draft.marque} onChange={(e) => search.set("marque", e.target.value)} className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
                 <option value="">Toutes les marques</option>
                 {ALL_MARQUES.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
             <div>
               <label className="text-[10px] font-bold text-[#6B7280] uppercase">Catégorie</label>
-              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+              <select value={search.draft.categorie} onChange={(e) => search.set("categorie", e.target.value)} className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
                 <option value="">Toutes les catégories</option>
                 {CATEGORIES.map((c) => <option key={c.label} value={c.label}>{c.label}</option>)}
               </select>
@@ -227,11 +228,11 @@ export default function VenteCamionsEngins() {
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix min</label>
-                <input type="number" placeholder="0 €" className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white" />
+                <input type="number" value={search.draft.prixMin} onChange={(e) => search.set("prixMin", e.target.value)} placeholder="0 €" className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white" />
               </div>
               <div>
                 <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix max</label>
-                <input type="number" placeholder="500 000 €" className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white" />
+                <input type="number" value={search.draft.prixMax} onChange={(e) => search.set("prixMax", e.target.value)} placeholder="500 000 €" className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white" />
               </div>
             </div>
           </div>

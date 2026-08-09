@@ -215,6 +215,11 @@ export default function AtelierPro() {
   const [factureStatuts, setFactureStatuts] = useState<Record<number, string>>({});
   const [stockQtes, setStockQtes] = useState<Record<number, number>>({});
   const [showNewVehicle, setShowNewVehicle] = useState(false);
+  const [clientQ, setClientQ] = useState("");
+  const [clientQApplied, setClientQApplied] = useState("");
+  const [vehQ, setVehQ] = useState("");
+  const [vehQApplied, setVehQApplied] = useState("");
+  const [vehMarque, setVehMarque] = useState("");
   const [newVehForm, setNewVehForm] = useState({ plaque: "", vin: "", marque: "", modele: "", annee: "", km: "", client: "", tel: "" });
   const [extraVehicules, setExtraVehicules] = useState<Array<{id: number; marque: string; modele: string; plaque: string; vin: string; annee: number; km: string; client: string; derniereVisite: string}>>([]);
   const [viewDevisPDF, setViewDevisPDF] = useState<typeof DEVIS_ATELIER[0] | null>(null);
@@ -225,6 +230,22 @@ export default function AtelierPro() {
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const alertesStock = STOCK_MAGASIN.filter((s) => s.alerteRupture).length;
+
+  const clientsFiltres = CLIENTS_ATELIER.filter((c) => {
+    if (!clientQApplied) return true;
+    const s = clientQApplied.toLowerCase();
+    return c.nom.toLowerCase().includes(s) || c.tel.toLowerCase().includes(s);
+  });
+
+  const tousVehicules = [...extraVehicules, ...VEHICULES_ATELIER];
+  const marquesAtelier = Array.from(new Set(tousVehicules.map((v) => v.marque))).sort();
+  const vehiculesFiltres = tousVehicules.filter((v) => {
+    if (vehMarque && v.marque !== vehMarque) return false;
+    if (!vehQApplied) return true;
+    const s = vehQApplied.toLowerCase();
+    return [v.plaque, v.vin, v.marque, v.modele, v.client]
+      .some((x) => String(x).toLowerCase().includes(s));
+  });
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -788,9 +809,23 @@ export default function AtelierPro() {
           <div className="space-y-2">
             <div className="relative mb-2">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input type="text" placeholder="Rechercher un client..." className="w-full rounded-xl border border-[#E5E7EB] bg-white pl-9 pr-3 py-2.5 text-sm" />
+              <input
+                type="text"
+                value={clientQ}
+                onChange={(e) => setClientQ(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && setClientQApplied(clientQ.trim())}
+                placeholder="Nom du client ou téléphone..."
+                className="w-full rounded-xl border border-[#E5E7EB] bg-white pl-9 pr-3 py-2.5 text-sm"
+              />
             </div>
-            {CLIENTS_ATELIER.map((c) => {
+            <div className="flex gap-2 mb-2">
+              <button onClick={() => setClientQApplied(clientQ.trim())} className="flex-1 rounded-xl bg-[#D4AF37] py-2 text-xs font-bold text-white">Rechercher</button>
+              <button onClick={() => { setClientQ(""); setClientQApplied(""); }} className="rounded-xl border border-[#E5E7EB] px-4 py-2 text-xs font-bold text-slate-600">Effacer</button>
+            </div>
+            {clientsFiltres.length === 0 && (
+              <p className="rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-slate-500">Aucun client ne correspond à cette recherche.</p>
+            )}
+            {clientsFiltres.map((c) => {
               const isExp = selectedClient === c.id;
               return (
                 <div key={c.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
@@ -832,8 +867,16 @@ export default function AtelierPro() {
             <div className="flex gap-2 mb-2">
               <div className="relative flex-1">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input type="text" placeholder="Rechercher par plaque, VIN, marque..." className="w-full rounded-xl border border-[#E5E7EB] bg-white pl-9 pr-3 py-2.5 text-sm" />
+                <input
+                  type="text"
+                  value={vehQ}
+                  onChange={(e) => setVehQ(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && setVehQApplied(vehQ.trim())}
+                  placeholder="Plaque, VIN, marque, client..."
+                  className="w-full rounded-xl border border-[#E5E7EB] bg-white pl-9 pr-3 py-2.5 text-sm"
+                />
               </div>
+              <button onClick={() => setVehQApplied(vehQ.trim())} className="shrink-0 rounded-xl bg-[#111] px-4 py-2.5 text-xs font-bold text-white">Rechercher</button>
               <button onClick={() => setShowNewVehicle(!showNewVehicle)} className="shrink-0 rounded-xl bg-[#D4AF37] px-4 py-2.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={14} /> Nouveau</button>
             </div>
 
@@ -864,7 +907,18 @@ export default function AtelierPro() {
               </div>
             )}
 
-            {[...extraVehicules, ...VEHICULES_ATELIER].map((v) => {
+            <div className="flex gap-2 mb-2">
+              <select value={vehMarque} onChange={(e) => setVehMarque(e.target.value)} className="flex-1 rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs">
+                <option value="">Toutes les marques</option>
+                {marquesAtelier.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+              <button onClick={() => { setVehQ(""); setVehQApplied(""); setVehMarque(""); }} className="rounded-xl border border-[#E5E7EB] px-4 py-2 text-xs font-bold text-slate-600">Effacer</button>
+            </div>
+
+            {vehiculesFiltres.length === 0 && (
+              <p className="rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-slate-500">Aucun véhicule ne correspond à cette recherche.</p>
+            )}
+            {vehiculesFiltres.map((v) => {
               const isExp = selectedVehAtelier === v.id;
               return (
                 <div key={v.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">

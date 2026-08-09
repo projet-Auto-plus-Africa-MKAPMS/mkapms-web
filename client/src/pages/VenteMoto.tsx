@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { ChevronLeft, Search, Bike, Heart, ChevronDown } from "lucide-react";
+import { ChevronLeft, Bike, Heart } from "lucide-react";
+import SearchLine from "../components/SearchLine";
+import { useVehicleSearch } from "../lib/vehicleSearch";
 
 /* ══════════════════════════════════════════════════════════════════════════
    VENTE MOTO — Univers complet
@@ -64,18 +66,24 @@ const ANNEES = Array.from({ length: 20 }, (_, i) => String(new Date().getFullYea
 const PRIX_MAX_DEFAUT = 25000;
 
 export default function VenteMoto() {
+  const [params] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
-  const [marque, setMarque] = useState("");
-  const [categorie, setCategorie] = useState("");
-  const [cylindree, setCylindree] = useState("");
-  const [annee, setAnnee] = useState("");
-  const [kmMax, setKmMax] = useState("");
-  const [prixMin, setPrixMin] = useState("");
-  const [prixMax, setPrixMax] = useState("");
-  const [searchText, setSearchText] = useState("");
+  // Les critères transmis par la page « Moto occasion » sont repris tels quels.
+  const search = useVehicleSearch(
+    { cyl: params.get("cylindree") ? `${params.get("cylindree")} cm³` : "" },
+    {
+      q: params.get("q") || "",
+      categorie: params.get("categorie") || "",
+      annee: params.get("anneeMin") || "",
+      kmMax: params.get("kmMax") || "",
+      prixMax: params.get("prixMax") || "",
+    },
+  );
 
-  const filtered = selectedCat ? ANNONCES.filter((a) => a.cat === selectedCat) : ANNONCES;
+  const filtered = search
+    .filter(ANNONCES)
+    .filter((a) => (selectedCat ? a.cat === selectedCat : true));
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -96,22 +104,16 @@ export default function VenteMoto() {
       {/* BARRE DE RECHERCHE DÉPLIANTE — Spécifique Moto & Scooter */}
       <div className="mx-4 -mt-4 relative z-10 rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-md">
         {/* Ligne principale */}
-        <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5">
-          <Search size={14} className="text-[#6B7280]" />
-          <input
-            type="text"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            placeholder="Marque, modèle, cylindrée..."
-            className="w-full bg-transparent text-sm outline-none"
-          />
-          <button onClick={() => setShowFilters(!showFilters)} aria-label="Afficher les filtres">
-            <ChevronDown
-              size={16}
-              className={`text-[#6B7280] transition-transform duration-200 ${showFilters ? "rotate-180" : ""}`}
-            />
-          </button>
-        </div>
+        <SearchLine
+          value={search.draft.q}
+          onChange={(v) => search.set("q", v)}
+          onSearch={search.apply}
+          placeholder="Marque, modèle, cylindrée..."
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters(!showFilters)}
+          activeCount={search.activeCount}
+          accent="bg-red-600"
+        />
 
         {/* Filtres dépliants */}
         {showFilters && (
@@ -121,8 +123,8 @@ export default function VenteMoto() {
             <div>
               <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Marque</label>
               <select
-                value={marque}
-                onChange={(e) => setMarque(e.target.value)}
+                value={search.draft.marque}
+                onChange={(e) => search.set("marque", e.target.value)}
                 className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
               >
                 <option value="">Toutes les marques</option>
@@ -134,8 +136,8 @@ export default function VenteMoto() {
             <div>
               <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Catégorie</label>
               <select
-                value={categorie}
-                onChange={(e) => setCategorie(e.target.value)}
+                value={search.draft.categorie}
+                onChange={(e) => search.set("categorie", e.target.value)}
                 className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
               >
                 <option value="">Toutes les catégories</option>
@@ -145,10 +147,10 @@ export default function VenteMoto() {
 
             {/* Cylindrée — spécifique moto */}
             <div>
-              <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Cylindrée</label>
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Cylindrée (jusqu'à)</label>
               <select
-                value={cylindree}
-                onChange={(e) => setCylindree(e.target.value)}
+                value={search.draft.extra.cyl ?? ""}
+                onChange={(e) => search.setExtra("cyl", e.target.value)}
                 className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
               >
                 <option value="">Toutes</option>
@@ -160,8 +162,8 @@ export default function VenteMoto() {
             <div>
               <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Année (à partir de)</label>
               <select
-                value={annee}
-                onChange={(e) => setAnnee(e.target.value)}
+                value={search.draft.annee}
+                onChange={(e) => search.set("annee", e.target.value)}
                 className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
               >
                 <option value="">Toutes les années</option>
@@ -173,8 +175,8 @@ export default function VenteMoto() {
             <div>
               <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Kilométrage max</label>
               <select
-                value={kmMax}
-                onChange={(e) => setKmMax(e.target.value)}
+                value={search.draft.kmMax}
+                onChange={(e) => search.set("kmMax", e.target.value)}
                 className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
               >
                 <option value="">Sans limite</option>
@@ -194,8 +196,8 @@ export default function VenteMoto() {
                 <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Prix min</label>
                 <input
                   type="number"
-                  value={prixMin}
-                  onChange={(e) => setPrixMin(e.target.value)}
+                  value={search.draft.prixMin}
+                  onChange={(e) => search.set("prixMin", e.target.value)}
                   placeholder="0 €"
                   min={0}
                   className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
@@ -205,8 +207,8 @@ export default function VenteMoto() {
                 <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Prix max</label>
                 <input
                   type="number"
-                  value={prixMax}
-                  onChange={(e) => setPrixMax(e.target.value)}
+                  value={search.draft.prixMax}
+                  onChange={(e) => search.set("prixMax", e.target.value)}
                   placeholder={`${PRIX_MAX_DEFAUT.toLocaleString("fr-FR")} €`}
                   min={0}
                   className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
@@ -215,9 +217,22 @@ export default function VenteMoto() {
             </div>
 
             {/* Bouton Rechercher */}
-            <button className="w-full py-2.5 bg-purple-700 text-white rounded-xl text-xs font-bold active:scale-[0.98] transition">
-              Rechercher
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { search.reset(); setSelectedCat(null); }}
+                className="rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs font-bold text-[#6B7280]"
+              >
+                Effacer
+              </button>
+              <button
+                type="button"
+                onClick={() => { search.apply(); setShowFilters(false); }}
+                className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold active:scale-[0.98] transition"
+              >
+                Rechercher
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -254,6 +269,11 @@ export default function VenteMoto() {
         <h2 className="text-base font-bold text-[#111]">
           {selectedCat ? `Annonces ${selectedCat}` : "Toutes les annonces"} ({filtered.length})
         </h2>
+        {filtered.length === 0 && (
+          <p className="mt-3 rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-[#6B7280]">
+            Aucune moto ne correspond à ces critères. Modifiez ou effacez les filtres.
+          </p>
+        )}
         <div className="mt-3 space-y-3">
           {filtered.map((a) => (
             <Link

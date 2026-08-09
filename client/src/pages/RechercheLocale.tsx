@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { ChevronLeft, MapPin, Search, Car, Heart, Star, Shield } from "lucide-react";
+import { ChevronLeft, MapPin, Car, Heart, Star, Shield } from "lucide-react";
 import MetaSEO, { generateBreadcrumbSchema } from "../components/MetaSEO";
+import SearchLine from "../components/SearchLine";
+import { useVehicleSearch } from "../lib/vehicleSearch";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGES LOCALES AUTOMATIQUES
@@ -28,6 +30,8 @@ const ANNONCES_LOCALES = [
   { id: 3, nom: "Peugeot 206 CC 2.0", annee: 2005, km: 98000, prix: 4200, ville: "Saint-Denis", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=200&fit=crop" },
 ];
 
+const ANNEES = Array.from({ length: 20 }, (_, i) => String(new Date().getFullYear() - i));
+
 export default function RechercheLocale() {
   const params = useParams<{ pays?: string; ville?: string; modele?: string }>();
   const pays = params.pays || "france";
@@ -37,6 +41,10 @@ export default function RechercheLocale() {
   const paysNom = pays.charAt(0).toUpperCase() + pays.slice(1);
   const villeNom = ville.charAt(0).toUpperCase() + ville.slice(1);
   const modeleNom = modele.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+  const [showFilters, setShowFilters] = useState(false);
+  const search = useVehicleSearch({}, { q: modeleNom });
+  const annoncesLocales = search.filter(ANNONCES_LOCALES);
 
   const title = modeleNom
     ? `${modeleNom} à ${villeNom}, ${paysNom}`
@@ -69,10 +77,38 @@ export default function RechercheLocale() {
       </div>
 
       <div className="px-4 -mt-3 relative z-10 rounded-xl bg-white border border-[#E5E7EB] p-3 mx-4 shadow-sm">
-        <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5">
-          <Search size={14} className="text-[#6B7280]" />
-          <input type="text" defaultValue={modeleNom} placeholder="Marque, modèle…" className="w-full bg-transparent text-sm outline-none" />
-        </div>
+        <SearchLine
+          value={search.draft.q}
+          onChange={(v) => search.set("q", v)}
+          onSearch={search.apply}
+          placeholder="Marque, modèle…"
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters(!showFilters)}
+          activeCount={search.activeCount}
+        />
+        {showFilters && (
+          <div className="mt-3 space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <select value={search.draft.annee} onChange={(e) => search.set("annee", e.target.value)} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Toutes les années</option>
+                {ANNEES.map((a) => <option key={a} value={a}>À partir de {a}</option>)}
+              </select>
+              <select value={search.draft.kmMax} onChange={(e) => search.set("kmMax", e.target.value)} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+                <option value="">Kilométrage : sans limite</option>
+                <option value="50000">Jusqu'à 50 000 km</option>
+                <option value="100000">Jusqu'à 100 000 km</option>
+                <option value="150000">Jusqu'à 150 000 km</option>
+                <option value="200000">Jusqu'à 200 000 km</option>
+              </select>
+              <input type="number" value={search.draft.prixMin} onChange={(e) => search.set("prixMin", e.target.value)} placeholder="Prix min" className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white" />
+              <input type="number" value={search.draft.prixMax} onChange={(e) => search.set("prixMax", e.target.value)} placeholder="Prix max" className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white" />
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={search.reset} className="rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs font-bold text-[#6B7280]">Effacer</button>
+              <button type="button" onClick={() => { search.apply(); setShowFilters(false); }} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white active:scale-[0.98] transition">Rechercher</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Breadcrumb SEO */}
@@ -84,9 +120,14 @@ export default function RechercheLocale() {
 
       {/* Résultats */}
       <div className="px-4 mt-4">
-        <h2 className="text-sm font-bold text-[#111]">{ANNONCES_LOCALES.length} annonces à {villeNom}</h2>
+        <h2 className="text-sm font-bold text-[#111]">{annoncesLocales.length} annonces à {villeNom}</h2>
+        {annoncesLocales.length === 0 && (
+          <p className="mt-3 rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-[#6B7280]">
+            Aucune annonce ne correspond à ces critères à {villeNom}. Modifiez ou effacez les filtres.
+          </p>
+        )}
         <div className="mt-3 space-y-2">
-          {ANNONCES_LOCALES.map(a => (
+          {annoncesLocales.map(a => (
             <Link key={a.id} to={getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden shadow-sm active:scale-[0.98] transition">
               <div className="flex">
                 <img src={a.photo} alt={a.nom} className="w-[120px] h-[90px] object-cover" loading="lazy" />
