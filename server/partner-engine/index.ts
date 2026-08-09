@@ -35,7 +35,7 @@ export const partnerEngineRouter = router({
   services: publicProcedure.query(() => partnerServiceCatalog()),
 
   /** Point 36 — entrée commerciale « Devenir partenaire MKA.P-MS ». */
-  apply: publicProcedure
+  candidater: publicProcedure
     .input(
       z.object({
         companyName: z.string().min(2).max(180),
