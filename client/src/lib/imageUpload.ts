@@ -9,6 +9,19 @@
  */
 const HEIC_RE = /\.(heic|heif)$/i;
 
+/** Délai au-delà duquel on renonce à convertir et on laisse le serveur décoder. */
+const CONVERT_TIMEOUT_MS = 12_000;
+
+function withTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${label} : délai dépassé`)), CONVERT_TIMEOUT_MS);
+    promise.then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      (e) => { clearTimeout(timer); reject(e); },
+    );
+  });
+}
+
 function isHeic(file: File): boolean {
   return HEIC_RE.test(file.name) || /image\/hei[cf]/i.test(file.type);
 }
@@ -26,12 +39,15 @@ async function decode(file: File): Promise<CanvasImageSource & { width: number; 
   }
   const url = URL.createObjectURL(file);
   try {
-    return await new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("décodage impossible"));
-      img.src = url;
-    });
+    return await withTimeout(
+      new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error("décodage impossible"));
+        img.src = url;
+      }),
+      "décodage de la photo",
+    );
   } finally {
     URL.revokeObjectURL(url);
   }
@@ -49,8 +65,9 @@ async function toJpeg(file: File): Promise<File> {
   if (!ctx) throw new Error("canvas indisponible");
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, "image/jpeg", 0.9),
+  const blob = await withTimeout(
+    new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9)),
+    "encodage JPEG",
   );
   if (!blob) throw new Error("encodage JPEG impossible");
 
@@ -64,9 +81,9 @@ export async function normalizeImages(files: FileList | File[]): Promise<File[]>
     list.map(async (f) => {
       if (!isHeic(f)) return f;
       try {
-        return await toJpeg(f);
+        return await withTimeout(toJpeg(f), "conversion de la photo");
       } catch {
-        return f; // le serveur renverra un message explicite
+        return f; // le serveur décode à son tour et nomme l'erreur s'il échoue
       }
     }),
   );

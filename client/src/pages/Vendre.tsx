@@ -305,6 +305,37 @@ export default function Vendre() {
   const [openEqCats, setOpenEqCats] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadingCats, setUploadingCats] = useState<Record<string, boolean>>({});
+  const photoInputs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const uploadPhotos = useCallback(async (catKey: string, files: FileList | File[]) => {
+    const list = Array.from(files);
+    if (!list.length) return;
+    setUploadingCats(p => ({ ...p, [catKey]: true }));
+    setUploadError(null);
+    try {
+      const prepared = await normalizeImages(list);
+      const fd = new FormData();
+      for (const f of prepared) fd.append("files", f);
+      const token = getToken();
+      const resp = await fetch("/api/upload", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, body: fd });
+      if (resp.ok) {
+        const data = await resp.json();
+        const urls = ((data.files || []) as { url: string }[]).map(f => f.url);
+        setPhotoUrls(p => ({ ...p, [catKey]: [...(p[catKey] || []), ...urls] }));
+        // Envoi partiel : les photos valides sont conservées,
+        // on nomme précisément celles qui ont été refusées.
+        const rejected = (data.errors || []) as { originalName: string; error: string }[];
+        if (rejected.length) setUploadError(rejected.map(r => `${r.originalName} : ${r.error}`).join(" ; "));
+      } else {
+        const err = await resp.json().catch(() => ({}));
+        setUploadError(err.error || "Erreur lors de l'upload des photos");
+      }
+    } catch (e) {
+      setUploadError((e as Error).message || "Erreur réseau lors de l'upload");
+    } finally {
+      setUploadingCats(p => ({ ...p, [catKey]: false }));
+    }
+  }, []);
 
   /* Catégorie d'annonce (admin/employee only) */
   const isAdminOrEmployee = user?.role === "admin" || user?.role === "super_admin" || user?.role === "employee";
@@ -1668,37 +1699,24 @@ export default function Vendre() {
                 <div key={cat.key} className={`relative aspect-square rounded-xl border-2 border-dashed ${isUploading ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-[#D1D5DB] bg-[#FAFAFA]"} flex flex-col items-center justify-center cursor-pointer hover:border-[#D4AF37] hover:bg-[#FFFDF5] transition overflow-hidden`}
                   onClick={() => {
                     if (isUploading) return;
-                    const inp = document.createElement("input");
-                    inp.type = "file";
-                    inp.accept = "image/*";
-                    inp.multiple = true;
-                    inp.onchange = async (ev) => {
-                      const files = (ev.target as HTMLInputElement).files;
-                      if (!files?.length) return;
-                      setUploadingCats(p => ({ ...p, [cat.key]: true }));
-                      setUploadError(null);
-                      try {
-                        const prepared = await normalizeImages(files);
-                        const fd = new FormData();
-                        for (const f of prepared) fd.append("files", f);
-                        const token = getToken();
-                        const resp = await fetch("/api/upload", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, body: fd });
-                        if (resp.ok) {
-                          const data = await resp.json();
-                          const urls = (data.files || []).map((f: any) => f.url);
-                          setPhotoUrls(p => ({ ...p, [cat.key]: [...(p[cat.key] || []), ...urls] }));
-                          // Envoi partiel : les photos valides sont conservées,
-                          // on nomme précisément celles qui ont été refusées.
-                          const rejected = (data.errors || []) as { originalName: string; error: string }[];
-                          if (rejected.length) setUploadError(rejected.map(r => `${r.originalName} : ${r.error}`).join(" ; "));
-                        }
-                        else { const err = await resp.json().catch(() => ({})); setUploadError(err.error || "Erreur lors de l'upload des photos"); }
-                      } catch (e: any) { setUploadError(e.message || "Erreur réseau lors de l'upload"); }
-                      finally { setUploadingCats(p => ({ ...p, [cat.key]: false })); }
-                    };
-                    inp.click();
+                    photoInputs.current[cat.key]?.click();
                   }}
                 >
+                  {/* L'input reste monté : un input détaché du document perd son
+                      événement « change » sur iOS Safari — la photo choisie
+                      n'arrivait jamais jusqu'à l'envoi. */}
+                  <input
+                    ref={el => { photoInputs.current[cat.key] = el; }}
+                    type="file"
+                    accept="image/*,.heic,.heif"
+                    multiple
+                    className="hidden"
+                    onChange={e => {
+                      const files = e.target.files;
+                      e.target.value = "";
+                      if (files?.length) void uploadPhotos(cat.key, files);
+                    }}
+                  />
                   {isUploading ? (
                     <div className="flex flex-col items-center gap-2">
                       <svg className="h-6 w-6 animate-spin text-[#D4AF37]" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" /><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg>
