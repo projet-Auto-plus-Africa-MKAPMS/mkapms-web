@@ -11,6 +11,7 @@ import {
 import { trpc } from "../lib/trpc";
 import { useAuth, getToken } from "../lib/auth";
 import { normalizeImages } from "../lib/imageUpload";
+import { readPhotoDraft, clearPhotoDraft } from "../lib/photoDraft";
 import { useLearnedValues, mergeWithLearned } from "../lib/learnedValues";
 import { useCurrency } from "../lib/currency";
 import FileUpload from "../components/FileUpload";
@@ -306,6 +307,23 @@ export default function Vendre() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadingCats, setUploadingCats] = useState<Record<string, boolean>>({});
   const photoInputs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // Reprise des photos envoyées depuis l'écran de guidage photo du portail :
+  // cet écran ne publie pas l'annonce, ses photos seraient sinon perdues.
+  const draftTaken = useRef(false);
+  useEffect(() => {
+    if (draftTaken.current) return;
+    const draft = readPhotoDraft();
+    const cats = Object.keys(draft);
+    if (!cats.length) return;
+    draftTaken.current = true;
+    setPhotoUrls(p => {
+      const next = { ...p };
+      for (const cat of cats) next[cat] = [...(next[cat] || []), ...draft[cat]];
+      return next;
+    });
+    clearPhotoDraft();
+  }, []);
 
   const uploadPhotos = useCallback(async (catKey: string, files: FileList | File[]) => {
     const list = Array.from(files);

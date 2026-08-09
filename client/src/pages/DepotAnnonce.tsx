@@ -1071,9 +1071,10 @@ export default function DepotAnnonce() {
                           <div className="w-full h-full">
                             <FileUpload
                               label=""
-                              accept="image/*"
+                              accept="image/*,.heic,.heif"
                               multiple={false}
                               maxFiles={1}
+                              compact
                               onUploaded={(files) => { if (files[0]) { setPhotoUrls(p => ({ ...p, [slotKey]: files[0].url })); showToast(`${slot} ajoutee`); } }}
                             />
                           </div>
