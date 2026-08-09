@@ -17,7 +17,7 @@ export default function InscriptionPartenaire() {
   const professions = trpc.proPortal.professions.useQuery(undefined);
   const countries = trpc.proPortal.countries.useQuery();
   const services = trpc.partnerEngine.services.useQuery();
-  const apply = trpc.partnerEngine.apply.useMutation();
+  const apply = trpc.partnerEngine.candidater.useMutation();
 
   const [companyName, setCompanyName] = useState("");
   const [profession, setProfession] = useState("");
