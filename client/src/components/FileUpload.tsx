@@ -23,6 +23,8 @@ interface FileUploadProps {
   onUploaded: (files: UploadedFile[]) => void;
   existingFiles?: { url: string; name?: string }[];
   iaAnalysis?: boolean;
+  /** Emplacement réduit (grille de vignettes) : zone à la taille du parent, sans liste de fichiers. */
+  compact?: boolean;
 }
 
 export default function FileUpload({
@@ -33,6 +35,7 @@ export default function FileUpload({
   onUploaded,
   existingFiles = [],
   iaAnalysis = false,
+  compact = false,
 }: FileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -116,10 +119,10 @@ export default function FileUpload({
   ];
 
   return (
-    <div>
+    <div className={compact ? "h-full" : undefined}>
       {/* Zone de dépôt */}
       <div
-        className="relative cursor-pointer rounded-xl border-2 border-dashed border-[#D1D5DB] bg-[#FAFAFA] p-6 text-center transition hover:border-[#D4AF37] hover:bg-[#FFFDF5]"
+        className={`relative flex cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-[#D1D5DB] bg-[#FAFAFA] text-center transition hover:border-[#D4AF37] hover:bg-[#FFFDF5] ${compact ? "h-full w-full p-1" : "p-6"}`}
         onClick={() => inputRef.current?.click()}
         onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
         onDrop={(e) => { e.preventDefault(); e.stopPropagation(); handleFiles(e.dataTransfer.files); }}
@@ -133,15 +136,21 @@ export default function FileUpload({
           onChange={(e) => handleFiles(e.target.files)}
         />
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D4AF37]/10">
-            <svg className="h-5 w-5 text-[#D4AF37]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className={`flex items-center justify-center rounded-full bg-[#D4AF37]/10 ${compact ? "h-6 w-6" : "h-10 w-10"}`}>
+            <svg className={compact ? "h-3 w-3 text-[#D4AF37]" : "h-5 w-5 text-[#D4AF37]"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
           </div>
-          <p className="text-sm font-medium text-[#374151]">{label}</p>
-          <p className="text-xs text-[#9CA3AF]">
-            {uploading ? "Upload en cours…" : "Photos, PDF, documents — max 10 MB par fichier"}
-          </p>
+          {compact ? (
+            uploading && <p className="text-[8px] font-semibold text-[#D4AF37]">Upload…</p>
+          ) : (
+            <>
+              <p className="text-sm font-medium text-[#374151]">{label}</p>
+              <p className="text-xs text-[#9CA3AF]">
+                {uploading ? "Upload en cours…" : "Photos, PDF, documents — max 10 MB par fichier"}
+              </p>
+            </>
+          )}
         </div>
       </div>
 
@@ -178,7 +187,7 @@ export default function FileUpload({
       )}
 
       {/* Fichiers uploadés */}
-      {allFiles.length > 0 && (
+      {!compact && allFiles.length > 0 && (
         <div className="mt-3 space-y-2">
           {allFiles.map((f, i) => (
             <div key={i} className="flex items-center gap-3 rounded-lg border border-[#E5E7EB] bg-white px-3 py-2">
