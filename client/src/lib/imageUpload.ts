@@ -14,8 +14,15 @@ function isHeic(file: File): boolean {
 }
 
 async function decode(file: File): Promise<CanvasImageSource & { width: number; height: number }> {
+  // Safari/iOS refuse createImageBitmap sur un HEIC alors qu'il sait l'afficher
+  // dans une <img> : l'échec doit donc basculer sur la seconde voie, pas
+  // interrompre la conversion.
   if (typeof createImageBitmap === "function") {
-    return await createImageBitmap(file);
+    try {
+      return await createImageBitmap(file);
+    } catch {
+      /* repli <img> ci-dessous */
+    }
   }
   const url = URL.createObjectURL(file);
   try {

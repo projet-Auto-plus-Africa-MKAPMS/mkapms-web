@@ -11,6 +11,7 @@ import {
 import { trpc } from "../lib/trpc";
 import { useAuth, getToken } from "../lib/auth";
 import { normalizeImages } from "../lib/imageUpload";
+import { useLearnedValues, mergeWithLearned } from "../lib/learnedValues";
 import { useCurrency } from "../lib/currency";
 import FileUpload from "../components/FileUpload";
 
@@ -482,7 +483,19 @@ export default function Vendre() {
 
   /* ── Listes de modèles/versions dynamiques selon marque/modèle ── */
   const availableModels = useMemo(() => famille === "auto" && form.marque && form.marque !== "Autre" ? getModelsForBrand(form.marque) : [], [form.marque, famille]);
-  const availableVersions = useMemo(() => famille === "auto" && form.marque && form.modele ? getVersionsForModel(form.marque, form.modele) : [], [form.marque, form.modele, famille]);
+  const catalogueVersions = useMemo(() => famille === "auto" && form.marque && form.modele ? getVersionsForModel(form.marque, form.modele) : [], [form.marque, form.modele, famille]);
+  // Versions retenues par le Système Intelligent : elles complètent le
+  // catalogue, qui ne peut pas connaître toutes les versions du monde.
+  const learnedVersions = useLearnedValues("version", form.marque, form.modele);
+  const availableVersions = useMemo(
+    () =>
+      mergeWithLearned(catalogueVersions.map((v) => v.name), learnedVersions).map((name) => ({
+        name,
+        puissanceCv: catalogueVersions.find((v) => v.name === name)?.puissanceCv,
+        apprise: !catalogueVersions.some((v) => v.name === name),
+      })),
+    [catalogueVersions, learnedVersions],
+  );
   const [versionAutre, setVersionAutre] = useState(false);
 
   /* ── Auto-fill specs quand la version change ── */
@@ -1245,7 +1258,7 @@ export default function Vendre() {
                     }
                   }}>
                     <option value="">Choisir</option>
-                    {availableVersions.map((v) => <option key={v.name} value={v.name}>{v.name}{v.puissanceCv ? ` (${v.puissanceCv} CV)` : ""}</option>)}
+                    {availableVersions.map((v) => <option key={v.name} value={v.name}>{v.name}{v.puissanceCv ? ` (${v.puissanceCv} CV)` : v.apprise ? " — mémorisée" : ""}</option>)}
                     <option value="__autre">Autre version</option>
                   </select>
                 ) : (

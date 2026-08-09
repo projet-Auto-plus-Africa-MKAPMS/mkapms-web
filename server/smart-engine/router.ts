@@ -22,7 +22,7 @@ import { router, publicProcedure, protectedProcedure, adminProcedure, pdgProcedu
 import { logSearch, getSearchesWithoutResults, getTopSearches, getSearchStats } from "./services/search-analytics.js";
 import { saveMemory, getUserMemory, recordView, recordSearch } from "./services/user-memory.js";
 import { generateRecommendations, getUserRecommendations, markRecommendationSeen, markRecommendationClicked } from "./services/recommendations.js";
-import { learnFromInput, getPendingValidations, validateLearned, getConfirmedValues } from "./services/learning.js";
+import { learnFromInput, getPendingValidations, validateLearned, getConfirmedValues, getReusableValues } from "./services/learning.js";
 import { checkDuplicates, getUnresolvedDuplicates, resolveDuplicate } from "./services/duplicate-detection.js";
 import { findDuplicatePhotos, indexAllPhotos } from "./services/photo-analysis.js";
 import { checkFraud, getUnresolvedSuspects, resolveSuspect } from "./services/fraud-detection.js";
@@ -159,6 +159,18 @@ export const smartEngineRouter = router({
     .input(z.object({ field: z.string(), marque: z.string().optional(), modele: z.string().optional() }))
     .query(async ({ input }) => {
       return getConfirmedValues(input.field, input.marque, input.modele);
+    }),
+
+  /** Valeurs apprises proposées dans les formulaires (dépôt et modification). */
+  reusableValues: publicProcedure
+    .input(z.object({ field: z.string(), marque: z.string().optional(), modele: z.string().optional() }))
+    .query(async ({ input }) => {
+      try {
+        return await getReusableValues(input.field, input.marque, input.modele);
+      } catch {
+        // La mémoire ne doit jamais empêcher de déposer une annonce.
+        return [];
+      }
     }),
 
   // ── 5. Détection doublons ──────────────────────────────────────────
