@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import {
-  ChevronLeft, Search, Car, Star, MapPin, ChevronDown, Heart, Shield
-} from "lucide-react";
+import { ChevronLeft, Star, MapPin, ChevronDown, Heart } from "lucide-react";
+import SearchLine from "../components/SearchLine";
+import { useVehicleSearch } from "../lib/vehicleSearch";
 import { trpc } from "../lib/trpc";
 import { useCurrency } from "../lib/currency";
 
@@ -57,6 +57,7 @@ const ANNEES = Array.from({ length: 15 }, (_, i) => String(new Date().getFullYea
 
 export default function VenteParticulier() {
   const [showFilters, setShowFilters] = useState(false);
+  const search = useVehicleSearch();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { country } = useCurrency();
   const { data: realData, isLoading } = trpc.annonces.list.useQuery({ categorieAnnonce: "particulier", type: "vente", pays: country ?? undefined, limit: 30 });
@@ -75,7 +76,7 @@ export default function VenteParticulier() {
     vendeur: a.vendeurType === "professionnel" ? "Professionnel" : "Particulier",
   }));
 
-  const annonces = realAnnonces.length > 0 ? realAnnonces : DEMO_ANNONCES;
+  const annonces = search.filter(realAnnonces.length > 0 ? realAnnonces : DEMO_ANNONCES);
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -94,20 +95,16 @@ export default function VenteParticulier() {
       {/* BARRE DE RECHERCHE DÉPLIANTE */}
       <div className="mx-4 -mt-4 relative z-10 rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-md">
         {/* Ligne principale */}
-        <div className="flex items-center gap-2 rounded-lg bg-[#F5F3EF] px-3 py-2.5">
-          <Search size={14} className="text-[#6B7280]" />
-          <input
-            type="text"
-            placeholder="Marque, modèle, région…"
-            className="w-full bg-transparent text-sm outline-none"
-          />
-          <button onClick={() => setShowFilters(!showFilters)} aria-label="Afficher les filtres">
-            <ChevronDown
-              size={16}
-              className={`text-[#6B7280] transition-transform duration-200 ${showFilters ? "rotate-180" : ""}`}
-            />
-          </button>
-        </div>
+        <SearchLine
+          value={search.draft.q}
+          onChange={(v) => search.set("q", v)}
+          onSearch={search.apply}
+          placeholder="Marque, modèle, région…"
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters(!showFilters)}
+          activeCount={search.activeCount}
+          accent="bg-emerald-600"
+        />
 
         {/* Filtres dépliants */}
         {showFilters && (
@@ -115,7 +112,7 @@ export default function VenteParticulier() {
             {/* Marque */}
             <div>
               <label className="text-[10px] font-bold text-[#6B7280] uppercase">Marque</label>
-              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+              <select value={search.draft.marque} onChange={(e) => search.set("marque", e.target.value)} className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
                 <option value="">Toutes les marques</option>
                 {MARQUES_PART.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
@@ -124,7 +121,7 @@ export default function VenteParticulier() {
             {/* Catégorie */}
             <div>
               <label className="text-[10px] font-bold text-[#6B7280] uppercase">Catégorie</label>
-              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+              <select value={search.draft.categorie} onChange={(e) => search.set("categorie", e.target.value)} className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
                 <option value="">Toutes les catégories</option>
                 {CATEGORIES.map((c) => <option key={c.label} value={c.label}>{c.label}</option>)}
               </select>
@@ -156,7 +153,7 @@ export default function VenteParticulier() {
             {/* Année */}
             <div>
               <label className="text-[10px] font-bold text-[#6B7280] uppercase">Année (à partir de)</label>
-              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+              <select value={search.draft.annee} onChange={(e) => search.set("annee", e.target.value)} className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
                 <option value="">Toutes les années</option>
                 {ANNEES.map((a) => <option key={a} value={a}>{a}</option>)}
               </select>
@@ -165,7 +162,7 @@ export default function VenteParticulier() {
             {/* Kilométrage max */}
             <div>
               <label className="text-[10px] font-bold text-[#6B7280] uppercase">Kilométrage max</label>
-              <select className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
+              <select value={search.draft.kmMax} onChange={(e) => search.set("kmMax", e.target.value)} className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
                 <option value="">Sans limite</option>
                 <option value="20000">20 000 km</option>
                 <option value="50000">50 000 km</option>
@@ -191,6 +188,8 @@ export default function VenteParticulier() {
                 <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix min</label>
                 <input
                   type="number"
+                  value={search.draft.prixMin}
+                  onChange={(e) => search.set("prixMin", e.target.value)}
                   placeholder="0 €"
                   className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
                 />
@@ -199,6 +198,8 @@ export default function VenteParticulier() {
                 <label className="text-[10px] font-bold text-[#6B7280] uppercase">Prix max</label>
                 <input
                   type="number"
+                  value={search.draft.prixMax}
+                  onChange={(e) => search.set("prixMax", e.target.value)}
                   placeholder="100 000 €"
                   className="w-full mt-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white"
                 />
@@ -206,9 +207,12 @@ export default function VenteParticulier() {
             </div>
 
             {/* Bouton Rechercher */}
-            <button className="w-full py-2.5 bg-purple-700 text-white rounded-xl text-xs font-bold active:scale-[0.98] transition">
-              Rechercher
-            </button>
+            <div className="flex gap-2">
+              <button type="button" onClick={search.reset} className="rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs font-bold text-[#6B7280]">Effacer</button>
+              <button type="button" onClick={() => { search.apply(); setShowFilters(false); }} className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold active:scale-[0.98] transition">
+                Rechercher
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -244,6 +248,11 @@ export default function VenteParticulier() {
         </div>
         {isLoading && <div className="py-8 text-center text-[#6B7280] text-sm">Chargement…</div>}
         <div className="mt-3 space-y-3">
+          {annonces.length === 0 && (
+            <p className="rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-[#6B7280]">
+              Aucun véhicule ne correspond à ces critères. Modifiez ou effacez les filtres.
+            </p>
+          )}
           {annonces.map((a) => (
             <Link
               key={a.id}

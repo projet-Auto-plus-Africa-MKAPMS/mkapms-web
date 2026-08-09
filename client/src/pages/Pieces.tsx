@@ -269,8 +269,12 @@ export default function Pieces() {
                 placeholder="Rechercher par nom, référence OEM, code-barres, mot-clé (ex: plaquette, amortisseur, bougie)…"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && catalog.refetch()}
               />
             </div>
+            <button onClick={() => catalog.refetch()} className="btn-primary flex items-center gap-1.5">
+              <Search size={16} /> Rechercher
+            </button>
             <button onClick={() => setShowFilters(!showFilters)} className="btn-outline flex items-center gap-1.5">
               <Filter size={16} /> Filtres {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>

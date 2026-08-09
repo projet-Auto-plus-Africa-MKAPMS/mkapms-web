@@ -78,6 +78,19 @@ export default function Acheter() {
     saveSearch.mutate({ label, univers: "vente", filters, alertEnabled: true });
   }
 
+  // La liste réagit déjà à la saisie ; le bouton inscrit les critères dans
+  // l'adresse pour que la recherche soit partageable et retrouvée au retour.
+  function lancerRecherche() {
+    const next: Record<string, string> = {};
+    if (q) next.q = q;
+    if (vendeurType) next.categorieAnnonce = vendeurType;
+    if (categorie) next.categorie = categorie;
+    if (zone) next.zone = zone;
+    if (ville) next.ville = ville;
+    if (prixMax) next.prixMax = String(prixMax);
+    setParams(next);
+  }
+
   function reset() {
     setSaved(false);
     setQ("");
@@ -107,7 +120,7 @@ export default function Acheter() {
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
           <div>
             <label className="label">Recherche</label>
-            <input className="input text-sm" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Marque, modèle…" />
+            <input className="input text-sm" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && lancerRecherche()} placeholder="Marque, modèle…" />
           </div>
           <div>
             <label className="label">Type d'annonce</label>
@@ -137,6 +150,7 @@ export default function Acheter() {
           </div>
         </div>
         <div className="mt-3 flex items-center gap-3">
+          <button className="btn-primary text-sm" onClick={lancerRecherche}>Rechercher</button>
           <button className="btn-outline text-sm" onClick={reset}>Réinitialiser</button>
           {/* Alerte */}
           {user ? (
