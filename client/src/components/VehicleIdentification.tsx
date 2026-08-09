@@ -34,6 +34,8 @@ export default function VehicleIdentification({ onVehicleFound, compact }: Props
   const [vehicle, setVehicle] = useState<VehicleData | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [manuel, setManuel] = useState(false);
+  const [saisie, setSaisie] = useState({ marque: "", modele: "", version: "", annee: "", carburant: "", boite: "" });
   const utils = trpc.useUtils();
 
   const handleSearch = async () => {
@@ -73,6 +75,29 @@ export default function VehicleIdentification({ onVehicleFound, compact }: Props
     setVehicle(null);
     setNotFound(false);
     setQuery("");
+  };
+
+  // Saisie manuelle : l'identification automatique ne doit jamais être un
+  // passage obligé. Une plaque ou un VIN non reconnu n'empêche pas d'avancer.
+  const validerSaisieManuelle = () => {
+    if (!saisie.marque.trim() || !saisie.modele.trim()) return;
+    const q = value.replace(/\s/g, "").toUpperCase();
+    const v: VehicleData = {
+      marque: saisie.marque.trim(),
+      modele: saisie.modele.trim(),
+      version: saisie.version.trim() || null,
+      annee: saisie.annee ? Number(saisie.annee) : null,
+      carburant: saisie.carburant.trim() || null,
+      boite: saisie.boite.trim() || null,
+      puissance: null,
+      categorie: null,
+      ...(q ? (method === "plaque" ? { plaque: q } : { vin: q }) : {}),
+    };
+    setQuery(q);
+    setNotFound(false);
+    setVehicle(v);
+    setManuel(false);
+    onVehicleFound?.(v);
   };
 
   const fields: { icon: typeof Car; label: string; val: string | null }[] = [
@@ -126,6 +151,42 @@ export default function VehicleIdentification({ onVehicleFound, compact }: Props
         </div>
       )}
 
+      {/* Saisie manuelle toujours accessible, même sans identification */}
+      {!vehicle && !manuel && (
+        <button
+          type="button"
+          onClick={() => setManuel(true)}
+          className="w-full rounded-xl border border-[#E5E7EB] bg-white py-2.5 text-xs font-bold text-[#111]"
+        >
+          Saisir le vehicule a la main
+        </button>
+      )}
+
+      {manuel && !vehicle && (
+        <div className="rounded-xl bg-white border border-[#E5E7EB] p-3 space-y-2 shadow-sm">
+          <p className="text-xs font-bold text-[#111]">Saisie manuelle du vehicule</p>
+          <div className="grid grid-cols-2 gap-2">
+            <input value={saisie.marque} onChange={(e) => setSaisie({ ...saisie, marque: e.target.value })} placeholder="Marque *" className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
+            <input value={saisie.modele} onChange={(e) => setSaisie({ ...saisie, modele: e.target.value })} placeholder="Modele *" className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
+            <input value={saisie.version} onChange={(e) => setSaisie({ ...saisie, version: e.target.value })} placeholder="Version" className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
+            <input value={saisie.annee} onChange={(e) => setSaisie({ ...saisie, annee: e.target.value })} inputMode="numeric" placeholder="Annee" className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
+            <input value={saisie.carburant} onChange={(e) => setSaisie({ ...saisie, carburant: e.target.value })} placeholder="Energie" className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
+            <input value={saisie.boite} onChange={(e) => setSaisie({ ...saisie, boite: e.target.value })} placeholder="Boite" className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" />
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setManuel(false)} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-xs font-bold text-[#6B7280]">Annuler</button>
+            <button
+              type="button"
+              onClick={validerSaisieManuelle}
+              disabled={!saisie.marque.trim() || !saisie.modele.trim()}
+              className="flex-1 rounded-lg bg-[#D4AF37] py-2 text-xs font-bold text-white disabled:opacity-50"
+            >
+              Valider ce vehicule
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Resultats */}
       {vehicle && (
         <div className="rounded-xl bg-white border-2 border-green-300 overflow-hidden shadow-sm">
@@ -158,6 +219,27 @@ export default function VehicleIdentification({ onVehicleFound, compact }: Props
                 </div>
               );
             })}
+          </div>
+
+          <div className="px-3 pb-3">
+            <button
+              type="button"
+              onClick={() => {
+                setSaisie({
+                  marque: vehicle.marque,
+                  modele: vehicle.modele,
+                  version: vehicle.version ?? "",
+                  annee: vehicle.annee ? String(vehicle.annee) : "",
+                  carburant: vehicle.carburant ?? "",
+                  boite: vehicle.boite ?? "",
+                });
+                setVehicle(null);
+                setManuel(true);
+              }}
+              className="w-full rounded-lg border border-[#E5E7EB] py-2 text-[11px] font-bold text-[#6B7280]"
+            >
+              Corriger a la main
+            </button>
           </div>
         </div>
       )}

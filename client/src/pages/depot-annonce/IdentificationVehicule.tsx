@@ -20,6 +20,11 @@ export default function IdentificationVehicule() {
             <Check size={14} className="inline mr-1" /> Continuer avec ce vehicule
           </Link>
         )}
+        {!found && (
+          <Link to="/depot-annonce/informations-principales" className="mt-4 block w-full rounded-xl border border-[#E5E7EB] bg-white py-3 text-center text-sm font-bold text-[#6B7280]">
+            Continuer sans identification
+          </Link>
+        )}
       </div>
     </div>
   );

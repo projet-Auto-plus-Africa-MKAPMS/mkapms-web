@@ -197,6 +197,7 @@ export default function CarrosserieGarage() {
   const [plaque, setPlaque] = useState("");
   const [vin, setVin] = useState("");
   const [plateLoading, setPlateLoading] = useState(false);
+  const [saisieManuelle, setSaisieManuelle] = useState(false);
   const [vehicule, setVehicule] = useState({
     marque: "", modele: "", version: "", annee: "",
     carburant: "", boite: "",
@@ -466,8 +467,28 @@ export default function CarrosserieGarage() {
               <Search size={16} /> {plateLoading ? "Recherche..." : "Identifier mon véhicule"}
             </button>
             <div className="mt-3 text-center">
-              <button className="text-sm font-semibold text-[#D4AF37] hover:underline" onClick={() => setStep(3)}>Saisir manuellement →</button>
+              <button className="text-sm font-semibold text-[#D4AF37] hover:underline" onClick={() => setSaisieManuelle((v) => !v)}>
+                {saisieManuelle ? "Masquer la saisie manuelle" : "Saisir manuellement →"}
+              </button>
             </div>
+
+            {saisieManuelle && (
+              <div className="mt-3 space-y-2 rounded-xl border border-[#E5E7EB] p-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <input className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" placeholder="Marque *" value={vehicule.marque} onChange={(e) => setVehicule({ ...vehicule, marque: e.target.value })} />
+                  <input className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" placeholder="Modèle *" value={vehicule.modele} onChange={(e) => setVehicule({ ...vehicule, modele: e.target.value })} />
+                  <input className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" placeholder="Année" inputMode="numeric" value={vehicule.annee} onChange={(e) => setVehicule({ ...vehicule, annee: e.target.value })} />
+                  <input className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm" placeholder="Énergie" value={vehicule.carburant} onChange={(e) => setVehicule({ ...vehicule, carburant: e.target.value })} />
+                </div>
+                <button
+                  className="w-full rounded-xl bg-[#111] py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                  disabled={!vehicule.marque.trim() || !vehicule.modele.trim()}
+                  onClick={() => setStep(3)}
+                >
+                  Continuer avec ce véhicule
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
