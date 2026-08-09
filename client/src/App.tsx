@@ -180,6 +180,7 @@ const PermissionEngineControlCenter = lazy(() => import("./pages/PermissionEngin
 const RedirectionEngineControlCenter = lazy(() => import("./pages/RedirectionEngine/ControlCenter"));
 const EngineRegistryControlCenter = lazy(() => import("./pages/EngineRegistry/ControlCenter"));
 const MiniPlateformes = lazy(() => import("./pages/MiniPlateformes"));
+const PartenairesPilotage = lazy(() => import("./pages/PartenairesPilotage"));
 // MOS Control Center — pages génériques pour Identity/Country/Language/Permission
 const MosEngineControlCenter = lazy(() => import("./pages/MosControlCenter/EngineControlCenter"));
 const Comptabilite = lazy(() => import("./pages/Comptabilite"));
@@ -1161,6 +1162,7 @@ export default function App() {
             <Route path="/superadmin/redirection-engine" element={<U name="Moteur de Redirection"><RedirectionEngineControlCenter /></U>} />
             <Route path="/admin/moteurs" element={<U name="Moteurs MKA.P-MS"><EngineRegistryControlCenter /></U>} />
             <Route path="/superadmin/mini-plateformes" element={<U name="Univers en mini-plateformes"><MiniPlateformes /></U>} />
+            <Route path="/superadmin/partenaires" element={<U name="Réseau partenaires"><PartenairesPilotage /></U>} />
             {/* MOS Control Center — routes dédiées PDG + Direction */}
             <Route path="/superadmin/identity-os" element={<U name="Identity OS"><MosEngineControlCenter engineKey="identity" /></U>} />
             <Route path="/superadmin/country-os" element={<U name="Country OS"><MosEngineControlCenter engineKey="country" /></U>} />

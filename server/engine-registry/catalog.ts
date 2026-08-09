@@ -250,6 +250,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "partner_engine",
+    label: "Partner Engine",
+    category: "transversal",
+    dependencies: ["core", "country", "notification", "visibility"],
+    description:
+      "Réseau partenaires (pays, métier, zone, contrat, leads, performance) et acquisition des professionnels là où la demande dépasse l'offre.",
+    state: "active",
+  },
+  {
     name: "garage",
     label: "Garage Engine",
     category: "univers",

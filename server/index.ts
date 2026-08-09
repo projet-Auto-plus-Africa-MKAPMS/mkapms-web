@@ -538,6 +538,24 @@ async function bootstrap() {
     }
   }
   setInterval(() => void auctionTick(), 60 * 1000);
+
+  // Partner Engine — détection des zones où la demande dépasse l'offre. Le
+  // cycle ne fait que mesurer et ouvrir des opportunités : la préparation des
+  // actions d'acquisition (page SEO, contenus, campagne) reste une décision
+  // humaine, et rien n'est publié automatiquement.
+  async function partnerTick() {
+    try {
+      const { detectOpportunities } = await import("./partner-engine/service.js");
+      const r = await detectOpportunities(30);
+      if (r.created > 0) {
+        console.log(`[partenaires] ${r.created} opportunité(s) ouverte(s), ${r.updated} mise(s) à jour`);
+      }
+    } catch (e) {
+      console.error("[partenaires]", (e as Error).message);
+    }
+  }
+  setTimeout(() => void partnerTick(), 5 * 60 * 1000);
+  setInterval(() => void partnerTick(), 6 * 60 * 60 * 1000);
 }
 
 bootstrap();
