@@ -86,6 +86,34 @@ export async function validateLearned(id: number, approved: boolean) {
     .where(eq(smartLearnedData.id, id));
 }
 
+/**
+ * Valeurs apprises réutilisables dans les formulaires (dépôt et modification).
+ *
+ * Une valeur saisie une seule fois reste "proposed" jusqu'au seuil de
+ * confirmation : l'exclure obligerait l'utilisateur à la retaper à chaque fois,
+ * ce qui vide l'apprentissage de son sens. On renvoie donc tout sauf ce qui a
+ * été explicitement rejeté, en indiquant le statut pour l'affichage.
+ */
+export async function getReusableValues(field: string, marque?: string, modele?: string) {
+  const conditions = [
+    eq(smartLearnedData.field, field),
+    sql`${smartLearnedData.status} <> 'rejected'`,
+  ];
+  if (marque) conditions.push(eq(smartLearnedData.marque, marque));
+  if (modele) conditions.push(eq(smartLearnedData.modele, modele));
+
+  return db
+    .select({
+      value: smartLearnedData.value,
+      status: smartLearnedData.status,
+      confirmations: smartLearnedData.confirmations,
+    })
+    .from(smartLearnedData)
+    .where(and(...conditions))
+    .orderBy(desc(smartLearnedData.confirmations))
+    .limit(100);
+}
+
 export async function getConfirmedValues(field: string, marque?: string, modele?: string) {
   const conditions = [eq(smartLearnedData.field, field), eq(smartLearnedData.status, "confirmed")];
   if (marque) conditions.push(eq(smartLearnedData.marque, marque));

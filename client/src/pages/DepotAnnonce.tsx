@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import FileUpload from "../components/FileUpload";
+import { useLearnedValues, mergeWithLearned } from "../lib/learnedValues";
 
 /* ══════════════════════════════════════════════════════════════════════════
    DEPOT D'ANNONCE — MKA.P-MS Ultra Pro (depasse La Centrale)
@@ -217,6 +218,7 @@ const MOTORISATIONS: Record<string, string[]> = {
 };
 
 /* ── Versions ── */
+const VERSION_LIBRE = "Autre version (saisie manuelle)";
 const VERSIONS: Record<string, string[]> = {
   "Peugeot_308_1.2 PureTech 130": ["Active Pack","Allure","Allure Pack","GT","GT Pack"],
   "Peugeot_308_1.5 BlueHDi 130": ["Active Pack","Allure","Allure Pack","GT","GT Pack"],
@@ -380,9 +382,15 @@ export default function DepotAnnonce() {
   const availableMotorisations = form.marque && form.modele
     ? (MOTORISATIONS[motoKey] || MOTORISATIONS["default"] || [])
     : [];
+  // La version peut toujours être saisie à la main : aucune liste ne couvre
+  // l'intégralité du marché mondial.
+  const [versionLibre, setVersionLibre] = useState(false);
   const versionKey = `${form.marque}_${form.modele}_${form.motorisation}`;
+  // Le catalogue ne peut pas connaître toutes les versions : celles retenues
+  // par le Système Intelligent complètent la liste au lieu d'être oubliées.
+  const learnedVersions = useLearnedValues("version", form.marque, form.modele);
   const availableVersions = form.motorisation
-    ? (VERSIONS[versionKey] || VERSIONS["default"] || [])
+    ? mergeWithLearned(VERSIONS[versionKey] || VERSIONS["default"] || [], learnedVersions)
     : [];
   const finitionKey = `${form.marque}_${form.modele}_${form.version}`;
   const availableFinitions = form.version
@@ -769,7 +777,32 @@ export default function DepotAnnonce() {
 
               {/* Version — cascading (pas pour engins) */}
               {form.motorisation && !isMoto && !isEngin && (
-                <SelectField label="Version" value={form.version} onChange={(v) => { set("version", v); set("finition", ""); }} options={availableVersions} required placeholder="Selectionnez la version" />
+                versionLibre ? (
+                  <div>
+                    <label className="block text-sm font-semibold text-[#111] mb-1.5">Version<span className="text-red-500 ml-0.5">*</span></label>
+                    <input
+                      className="w-full rounded-xl border border-[#D4AF37] bg-[#FFFDF5] px-4 py-3 text-sm"
+                      value={form.version}
+                      onChange={(e) => { set("version", e.target.value); set("finition", ""); }}
+                      placeholder="Ex : GT Line, RS, Active..."
+                      autoFocus
+                    />
+                    <button type="button" onClick={() => { setVersionLibre(false); set("version", ""); }} className="mt-1 text-xs text-[#D4AF37] hover:underline">← Revenir à la liste</button>
+                  </div>
+                ) : (
+                  <SelectField
+                    label="Version"
+                    value={form.version}
+                    onChange={(v) => {
+                      if (v === VERSION_LIBRE) { setVersionLibre(true); set("version", ""); }
+                      else { set("version", v); }
+                      set("finition", "");
+                    }}
+                    options={[...availableVersions, VERSION_LIBRE]}
+                    required
+                    placeholder="Selectionnez la version"
+                  />
+                )
               )}
 
               {/* Finition — cascading (pas pour engins) */}

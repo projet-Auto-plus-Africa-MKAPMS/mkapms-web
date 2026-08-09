@@ -981,6 +981,17 @@ export const annoncesRouter = router({
       logActivity({ action: "annonce.modified", userId: ctx.user.uid, targetType: "annonce", targetId: id, data: { changes: Object.keys(filtered) }, result: "success" }).catch(() => {});
       // SEO OS — resoumission à l'indexation + supervision (§1)
       onAnnoncePublished(id, "updated", ctx.user.uid).catch(() => {});
+      // Apprentissage : une version saisie à la modification doit être retenue
+      // au même titre qu'au dépôt.
+      if (input.version) {
+        learnFromInput({
+          field: "version",
+          marque: input.marque ?? a.marque ?? undefined,
+          modele: input.modele ?? a.modele ?? undefined,
+          value: input.version,
+          submittedBy: ctx.user.uid,
+        }).catch(() => {});
+      }
 
       return { ok: true };
     }),

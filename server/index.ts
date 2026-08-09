@@ -112,11 +112,20 @@ function isHeicBuffer(buffer: Buffer): boolean {
 
 /**
  * `sharp` est distribué avec un libvips sans décodeur HEVC (contrainte de
- * brevet) : seul l'AVIF est lisible côté HEIF. Une photo iPhone en HEIC fait
- * donc échouer la conversion — d'où l'échec du dépôt de photos.
+ * brevet) : une photo iPhone en HEIC le fait échouer. `heic-decode` fournit ce
+ * décodeur en JavaScript pur — la photo est acceptée telle qu'elle sort du
+ * téléphone, sans demander à l'utilisateur de changer ses réglages.
  */
-const HEIC_MESSAGE =
-  "photo au format HEIC (iPhone) non convertible. Sur l'iPhone : Réglages > Appareil photo > Formats > « Le plus compatible », puis reprenez la photo — ou envoyez-la en JPEG.";
+async function decodeHeic(buffer: Buffer): Promise<Buffer> {
+  const { default: heicDecode } = await import("heic-decode");
+  const { width, height, data } = await heicDecode({ buffer });
+  return sharp(Buffer.from(data.buffer, data.byteOffset, data.byteLength), {
+    raw: { width, height, channels: 4 },
+  })
+    .resize({ width: 1920, height: 1920, fit: "inside", withoutEnlargement: true })
+    .jpeg({ quality: 82, mozjpeg: true })
+    .toBuffer();
+}
 
 async function processImage(buffer: Buffer): Promise<string> {
   const render = (input: Buffer, opts?: { tolerant?: boolean }) =>
@@ -130,7 +139,13 @@ async function processImage(buffer: Buffer): Promise<string> {
   try {
     jpeg = await render(buffer);
   } catch (err) {
-    if (isHeicBuffer(buffer)) throw new Error(HEIC_MESSAGE);
+    if (isHeicBuffer(buffer)) {
+      try {
+        return `data:image/jpeg;base64,${(await decodeHeic(buffer)).toString("base64")}`;
+      } catch (heicErr) {
+        throw new Error(`photo iPhone (HEIC) illisible (${(heicErr as Error).message})`);
+      }
+    }
     // Seconde tentative tolérante : récupère les images légèrement tronquées
     // ou aux métadonnées invalides plutôt que de perdre la photo.
     try {
