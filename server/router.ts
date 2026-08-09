@@ -97,6 +97,8 @@ import { accountingInternalRouter } from "./accounting-internal/index.js";
 import { accountingMarketplaceRouter } from "./accounting-marketplace/index.js";
 // Auction Engine — enchères particuliers et professionnels
 import { auctionEngineRouter } from "./auction-engine/index.js";
+// Proximity Engine — « près de moi » + complétude des mini-plateformes (points 34-35)
+import { proximityEngineRouter } from "./proximity-engine/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -207,6 +209,8 @@ export const appRouter = router({
   // Account Routing Engine — univers d'un compte (particulier, métiers, direction)
   accountRouting: accountRoutingRouter,
   voEngine: voEngineRouter,
+  // Recherche locale par service + matrice des univers en mini-plateformes
+  proximity: proximityEngineRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse
