@@ -463,6 +463,13 @@
       "when": 1753701400000,
       "tag": "0066_financial_intelligence",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1753701500000,
+      "tag": "0067_comptabilite_deux_univers",
+      "breakpoints": true
     }
   ]
 }

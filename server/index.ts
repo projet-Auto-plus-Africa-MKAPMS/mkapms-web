@@ -507,6 +507,22 @@ async function bootstrap() {
     }
   }
   setInterval(() => void financeTick(), 60 * 60 * 1000);
+
+  // Comptabilité interne — rapprochement automatique : un paiement encaissé
+  // sans écriture, c'est de l'argent en banque absent des comptes. Les
+  // écritures créées restent « à valider » : aucune validation automatique.
+  async function reconcileTick() {
+    try {
+      const { reconcilePayments } = await import("./accounting-internal/index.js");
+      const r = await reconcilePayments();
+      if (r.rapproches > 0 || r.ecarts > 0) {
+        console.log(`[compta] ${r.rapproches} paiement(s) rapproché(s), ${r.ecarts} écart(s)`);
+      }
+    } catch (e) {
+      console.error("[compta]", (e as Error).message);
+    }
+  }
+  setInterval(() => void reconcileTick(), 60 * 60 * 1000);
 }
 
 bootstrap();
