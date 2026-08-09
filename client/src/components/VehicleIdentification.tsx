@@ -1,53 +1,26 @@
 import { useState } from "react";
-import { Search, Car, Check, Fuel, Calendar, Gauge, Settings, Hash, Shield } from "lucide-react";
+import { Search, Car, Check, Fuel, Calendar, Settings, Hash, AlertCircle } from "lucide-react";
+import { trpc } from "../lib/trpc";
 
 /* ══════════════════════════════════════════════════════════════════════════
    VehicleIdentification — Composant reutilisable d'identification vehicule
-   par plaque ou VIN. Affiche toutes les informations techniques du vehicule.
-   Utilise partout: depot annonce, estimation, reparation, etc.
+   par plaque ou VIN. Utilise partout: depot annonce, estimation, reparation.
+   L'identification passe par le service reel (API plaque + repli base MKA.P-MS) :
+   aucune fiche n'est affichee tant que le vehicule n'est pas reconnu.
    ══════════════════════════════════════════════════════════════════════════ */
 
-interface VehicleData {
+export interface VehicleData {
   marque: string;
   modele: string;
-  version: string;
-  annee: string;
-  energie: string;
-  puissance: string;
-  cylindree: string;
-  boite: string;
-  km: string;
-  couleur: string;
-  carrosserie: string;
-  places: string;
-  portes: string;
-  vin: string;
-  dateCirculation: string;
-  co2: string;
-  normeEuro: string;
-  ptac: string;
+  version: string | null;
+  annee: number | null;
+  carburant: string | null;
+  boite: string | null;
+  puissance: string | null;
+  categorie: string | null;
+  plaque?: string;
+  vin?: string;
 }
-
-const DEMO_VEHICLE: VehicleData = {
-  marque: "Peugeot",
-  modele: "3008",
-  version: "GT BlueHDi 130 EAT8",
-  annee: "2022",
-  energie: "Diesel",
-  puissance: "130 ch (96 kW)",
-  cylindree: "1 499 cm³",
-  boite: "Automatique 8 rapports",
-  km: "45 200 km",
-  couleur: "Gris Artense",
-  carrosserie: "SUV / Crossover",
-  places: "5",
-  portes: "5",
-  vin: "VF3MCYHZRNS012345",
-  dateCirculation: "15/03/2022",
-  co2: "128 g/km",
-  normeEuro: "Euro 6d-Full",
-  ptac: "1 825 kg",
-};
 
 interface Props {
   onVehicleFound?: (vehicle: VehicleData) => void;
@@ -57,21 +30,66 @@ interface Props {
 export default function VehicleIdentification({ onVehicleFound, compact }: Props) {
   const [method, setMethod] = useState<"plaque" | "vin">("plaque");
   const [value, setValue] = useState("");
-  const [found, setFound] = useState(false);
+  const [query, setQuery] = useState("");
+  const [vehicle, setVehicle] = useState<VehicleData | null>(null);
+  const [notFound, setNotFound] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const utils = trpc.useUtils();
 
-  const handleSearch = () => {
-    if (value.length >= 4) {
-      setFound(true);
-      onVehicleFound?.(DEMO_VEHICLE);
+  const handleSearch = async () => {
+    const q = value.replace(/\s/g, "").toUpperCase();
+    if (q.length < 4) return;
+    setVehicle(null);
+    setNotFound(false);
+    setQuery(q);
+    setSearching(true);
+    try {
+      const data = await utils.annonces.lookupPlate.fetch({ type: method, query: q });
+      if (data?.marque) {
+        const v: VehicleData = {
+          marque: data.marque,
+          modele: data.modele ?? "",
+          version: data.version ?? null,
+          annee: data.annee ?? null,
+          carburant: data.carburant ?? null,
+          boite: data.boite ?? null,
+          puissance: data.puissance ? String(data.puissance) : null,
+          categorie: data.categorie ?? null,
+          ...(method === "plaque" ? { plaque: q } : { vin: q }),
+        };
+        setVehicle(v);
+        onVehicleFound?.(v);
+      } else {
+        setNotFound(true);
+      }
+    } catch {
+      setNotFound(true);
+    } finally {
+      setSearching(false);
     }
   };
+
+  const reset = () => {
+    setVehicle(null);
+    setNotFound(false);
+    setQuery("");
+  };
+
+  const fields: { icon: typeof Car; label: string; val: string | null }[] = [
+    { icon: Calendar, label: "Annee", val: vehicle?.annee ? String(vehicle.annee) : null },
+    { icon: Fuel, label: "Energie", val: vehicle?.carburant ?? null },
+    { icon: Settings, label: "Puissance", val: vehicle?.puissance ?? null },
+    { icon: Settings, label: "Boite", val: vehicle?.boite ?? null },
+    { icon: Car, label: "Categorie", val: vehicle?.categorie ?? null },
+    { icon: Hash, label: method === "plaque" ? "Plaque" : "VIN", val: query || null },
+  ];
 
   return (
     <div className="space-y-3">
       {/* Methode de recherche */}
       <div className="flex gap-2">
-        <button onClick={() => { setMethod("plaque"); setFound(false); }} className={`flex-1 py-2 rounded-xl text-xs font-bold border ${method === "plaque" ? "bg-[#D4AF37] text-white border-[#D4AF37]" : "bg-white text-[#6B7280] border-[#E5E7EB]"}`}>Plaque</button>
-        <button onClick={() => { setMethod("vin"); setFound(false); }} className={`flex-1 py-2 rounded-xl text-xs font-bold border ${method === "vin" ? "bg-[#D4AF37] text-white border-[#D4AF37]" : "bg-white text-[#6B7280] border-[#E5E7EB]"}`}>VIN</button>
+        <button onClick={() => { setMethod("plaque"); reset(); }} className={`flex-1 py-2 rounded-xl text-xs font-bold border ${method === "plaque" ? "bg-[#D4AF37] text-white border-[#D4AF37]" : "bg-white text-[#6B7280] border-[#E5E7EB]"}`}>Plaque</button>
+        <button onClick={() => { setMethod("vin"); reset(); }} className={`flex-1 py-2 rounded-xl text-xs font-bold border ${method === "vin" ? "bg-[#D4AF37] text-white border-[#D4AF37]" : "bg-white text-[#6B7280] border-[#E5E7EB]"}`}>VIN</button>
       </div>
 
       {/* Champ de saisie */}
@@ -79,53 +97,56 @@ export default function VehicleIdentification({ onVehicleFound, compact }: Props
         <div className="flex gap-2">
           <input
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => { setValue(e.target.value); reset(); }}
             placeholder={method === "plaque" ? "AA-123-BB" : "VF1XXXXXXXXX12345"}
             className={`flex-1 rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm font-bold uppercase ${method === "plaque" ? "text-center" : "font-mono text-xs"}`}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            onKeyDown={(e) => { if (e.key === "Enter") void handleSearch(); }}
           />
-          <button onClick={handleSearch} className={`px-4 rounded-lg text-white text-xs font-bold flex items-center gap-1 ${value.length >= 4 ? "bg-[#D4AF37]" : "bg-[#D4D4D4]"}`}>
-            <Search size={14} /> Identifier
+          <button
+            onClick={() => void handleSearch()}
+            disabled={value.replace(/\s/g, "").length < 4 || searching}
+            className={`px-4 rounded-lg text-white text-xs font-bold flex items-center gap-1 ${value.replace(/\s/g, "").length >= 4 ? "bg-[#D4AF37]" : "bg-[#D4D4D4]"}`}
+          >
+            <Search size={14} /> {searching ? "Recherche..." : "Identifier"}
           </button>
         </div>
       </div>
 
+      {/* Vehicule non reconnu — on le dit, on n'invente pas de fiche */}
+      {notFound && !searching && (
+        <div className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-start gap-2">
+          <AlertCircle size={16} className="text-[#B45309] shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-bold text-[#111]">Vehicule non identifie</p>
+            <p className="text-[11px] text-[#6B7280] mt-0.5">
+              Ce {method === "plaque" ? "numero de plaque" : "VIN"} n'a pas ete reconnu. Vous pouvez saisir
+              les informations du vehicule a la main.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Resultats */}
-      {found && (
+      {vehicle && (
         <div className="rounded-xl bg-white border-2 border-green-300 overflow-hidden shadow-sm">
-          {/* Header */}
           <div className="bg-gradient-to-r from-green-500 to-green-600 px-3 py-2 flex items-center gap-2">
             <Check size={14} className="text-white" />
-            <span className="text-xs font-bold text-white">Vehicule identifie avec succes</span>
+            <span className="text-xs font-bold text-white">Vehicule identifie</span>
           </div>
 
-          {/* Vehicule principal */}
           <div className="p-3 border-b border-[#E5E7EB]">
             <div className="flex items-center gap-2">
               <Car size={18} className="text-[#D4AF37]" />
               <div>
-                <p className="text-sm font-black text-[#111]">{DEMO_VEHICLE.marque} {DEMO_VEHICLE.modele}</p>
-                <p className="text-[10px] text-[#6B7280]">{DEMO_VEHICLE.version}</p>
+                <p className="text-sm font-black text-[#111]">{vehicle.marque} {vehicle.modele}</p>
+                {vehicle.version && <p className="text-[10px] text-[#6B7280]">{vehicle.version}</p>}
               </div>
             </div>
           </div>
 
-          {/* Grille informations techniques */}
+          {/* Seules les informations réellement retournées sont affichées */}
           <div className={`p-3 ${compact ? "grid grid-cols-2 gap-2" : "grid grid-cols-2 sm:grid-cols-3 gap-2"}`}>
-            {[
-              { icon: Calendar, label: "Annee", val: DEMO_VEHICLE.annee },
-              { icon: Fuel, label: "Energie", val: DEMO_VEHICLE.energie },
-              { icon: Settings, label: "Puissance", val: DEMO_VEHICLE.puissance },
-              { icon: Gauge, label: "Kilometrage", val: DEMO_VEHICLE.km },
-              { icon: Settings, label: "Cylindree", val: DEMO_VEHICLE.cylindree },
-              { icon: Settings, label: "Boite", val: DEMO_VEHICLE.boite },
-              { icon: Car, label: "Carrosserie", val: DEMO_VEHICLE.carrosserie },
-              { icon: Car, label: "Couleur", val: DEMO_VEHICLE.couleur },
-              { icon: Hash, label: "Places", val: DEMO_VEHICLE.places },
-              { icon: Hash, label: "Portes", val: DEMO_VEHICLE.portes },
-              { icon: Shield, label: "Norme Euro", val: DEMO_VEHICLE.normeEuro },
-              { icon: Shield, label: "CO2", val: DEMO_VEHICLE.co2 },
-            ].map((item) => {
+            {fields.filter((f) => f.val).map((item) => {
               const Icon = item.icon;
               return (
                 <div key={item.label} className="rounded-lg bg-[#F5F3EF] p-2">
@@ -137,18 +158,6 @@ export default function VehicleIdentification({ onVehicleFound, compact }: Props
                 </div>
               );
             })}
-          </div>
-
-          {/* VIN + Date */}
-          <div className="px-3 pb-3 grid grid-cols-2 gap-2">
-            <div className="rounded-lg bg-[#111] p-2">
-              <span className="text-[8px] text-white/50">VIN</span>
-              <p className="text-[9px] font-mono text-[#D4AF37]">{DEMO_VEHICLE.vin}</p>
-            </div>
-            <div className="rounded-lg bg-[#111] p-2">
-              <span className="text-[8px] text-white/50">1ere circulation</span>
-              <p className="text-[9px] font-bold text-white">{DEMO_VEHICLE.dateCirculation}</p>
-            </div>
           </div>
         </div>
       )}
