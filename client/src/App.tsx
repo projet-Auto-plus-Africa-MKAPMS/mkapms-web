@@ -179,6 +179,7 @@ const VOInterne = lazy(() => import("./pages/VOInterne"));
 const PermissionEngineControlCenter = lazy(() => import("./pages/PermissionEngine/ControlCenter"));
 const RedirectionEngineControlCenter = lazy(() => import("./pages/RedirectionEngine/ControlCenter"));
 const EngineRegistryControlCenter = lazy(() => import("./pages/EngineRegistry/ControlCenter"));
+const MiniPlateformes = lazy(() => import("./pages/MiniPlateformes"));
 // MOS Control Center — pages génériques pour Identity/Country/Language/Permission
 const MosEngineControlCenter = lazy(() => import("./pages/MosControlCenter/EngineControlCenter"));
 const Comptabilite = lazy(() => import("./pages/Comptabilite"));
@@ -187,6 +188,7 @@ const Mission = lazy(() => import("./pages/Mission"));
 const EspacePro = lazy(() => import("./pages/EspacePro"));
 const PortailPro = lazy(() => import("./pages/pro/PortailPro"));
 const Comptables = lazy(() => import("./pages/Comptables"));
+const PresDeMoi = lazy(() => import("./pages/PresDeMoi"));
 const DossierPro = lazy(() => import("./pages/pro/DossierPro"));
 const MonEspace = lazy(() => import("./pages/MonEspace"));
 const InscriptionProVO = lazy(() => import("./pages/InscriptionProVO"));
@@ -947,6 +949,7 @@ export default function App() {
             <Route path="/pro/dossier" element={<U name="Dossier Pro"><DossierPro /></U>} />
             {/* Marketplace Comptabilité — annuaire de comptables indépendants */}
             <Route path="/comptables" element={<U name="Comptables"><Comptables /></U>} />
+            <Route path="/pres-de-moi" element={<U name="Près de moi"><PresDeMoi /></U>} />
             {/* Account Routing Engine — retour au bon univers */}
             <Route path="/mon-espace" element={<U name="Mon espace"><MonEspace /></U>} />
             <Route path="/inscription-pro-vo" element={<U name="Inscription Pro VO"><InscriptionProVO /></U>} />
@@ -1157,6 +1160,7 @@ export default function App() {
             <Route path="/superadmin/permission-engine" element={<U name="Moteur de Permissions"><PermissionEngineControlCenter /></U>} />
             <Route path="/superadmin/redirection-engine" element={<U name="Moteur de Redirection"><RedirectionEngineControlCenter /></U>} />
             <Route path="/admin/moteurs" element={<U name="Moteurs MKA.P-MS"><EngineRegistryControlCenter /></U>} />
+            <Route path="/superadmin/mini-plateformes" element={<U name="Univers en mini-plateformes"><MiniPlateformes /></U>} />
             {/* MOS Control Center — routes dédiées PDG + Direction */}
             <Route path="/superadmin/identity-os" element={<U name="Identity OS"><MosEngineControlCenter engineKey="identity" /></U>} />
             <Route path="/superadmin/country-os" element={<U name="Country OS"><MosEngineControlCenter engineKey="country" /></U>} />

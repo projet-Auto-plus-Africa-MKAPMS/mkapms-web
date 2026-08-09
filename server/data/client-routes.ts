@@ -526,6 +526,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/pieces/statistiques-pieces",
   "/pieces/vendeurs-pieces",
   "/pieces/verification-compatibilite",
+  "/pres-de-moi",
   "/publicite-interne",
   "/recherche",
   "/recherche-universelle",

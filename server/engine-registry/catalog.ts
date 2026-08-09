@@ -241,6 +241,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "proximity_engine",
+    label: "Proximity Engine",
+    category: "transversal",
+    dependencies: ["core", "country"],
+    description:
+      "Recherche locale « près de moi » par service et matrice de complétude des univers en mini-plateformes.",
+    state: "active",
+  },
+  {
     name: "garage",
     label: "Garage Engine",
     category: "univers",
