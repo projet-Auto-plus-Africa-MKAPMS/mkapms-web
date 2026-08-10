@@ -184,6 +184,7 @@ const EngineRegistryControlCenter = lazy(() => import("./pages/EngineRegistry/Co
 const CentreReputation = lazy(() => import("./pages/CentreReputation"));
 const CentreActions = lazy(() => import("./pages/CentreActions"));
 const CentreConnaissance = lazy(() => import("./pages/CentreConnaissance"));
+const CentreReglesPays = lazy(() => import("./pages/CentreReglesPays"));
 const AvisUnivers = lazy(() => import("./pages/AvisUnivers"));
 const MiniPlateformes = lazy(() => import("./pages/MiniPlateformes"));
 const PartenairesPilotage = lazy(() => import("./pages/PartenairesPilotage"));
@@ -1172,6 +1173,7 @@ export default function App() {
             <Route path="/admin/reputation" element={<U name="Réputation & Avis"><CentreReputation /></U>} />
             <Route path="/admin/actions" element={<U name="Centre d'Actions"><CentreActions /></U>} />
             <Route path="/admin/connaissance" element={<U name="Mémoire automobile"><CentreConnaissance /></U>} />
+            <Route path="/admin/regles-pays" element={<U name="Règles par pays"><CentreReglesPays /></U>} />
             <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
             <Route path="/superadmin/mini-plateformes" element={<U name="Univers en mini-plateformes"><MiniPlateformes /></U>} />
             <Route path="/superadmin/partenaires" element={<U name="Réseau partenaires"><PartenairesPilotage /></U>} />

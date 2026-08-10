@@ -547,6 +547,13 @@
       "when": 1753702500000,
       "tag": "0078_automotive_knowledge_engine",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1753702600000,
+      "tag": "0079_veille_country_policy",
+      "breakpoints": true
     }
   ]
 }

@@ -34,6 +34,7 @@ import {
   recordDiscovery,
 } from "./discoveries.js";
 import { coverageGaps, runInternalLearning, staleKnowledge } from "./learning.js";
+import { WATCH_TOPICS, runWatchCycle, watchCoverage } from "./watch.js";
 
 export const KNOWLEDGE_ENGINE_META = {
   code: "connaissance_auto",
@@ -53,6 +54,12 @@ export const knowledgeEngineRouter = router({
     autorisations: Object.entries(AKE_AUTHORIZATIONS).map(([code, label]) => ({ code, label })),
     classifications: Object.entries(AKE_CLASSIFICATIONS).map(([code, label]) => ({ code, label })),
     decisions: Object.entries(AKE_DECISIONS).map(([code, label]) => ({ code, label })),
+    sujetsVeille: WATCH_TOPICS.map((t) => ({
+      code: t.code,
+      label: t.label,
+      classification: t.classification,
+      sourcesRequises: t.sourceKinds,
+    })),
   })),
 
   stats: directionProcedure.query(async () => knowledgeStats()),
@@ -220,6 +227,13 @@ export const knowledgeEngineRouter = router({
     const gaps = await coverageGaps();
     return gaps.map((g) => ({ ...g, label: AKE_DOMAINS[g.domain] ?? g.domain }));
   }),
+
+  // ── Points 64-65 — veille mondiale, pays par pays ─────────────────────
+  veilleCouverture: directionProcedure.query(async () => watchCoverage()),
+
+  lancerVeille: directionProcedure
+    .input(z.object({ countryCode: z.string().max(4).optional() }).optional())
+    .mutation(async ({ input }) => runWatchCycle({ countryCode: input?.countryCode })),
 
   connaissancesAVerifier: directionProcedure
     .input(z.object({ jours: z.number().int().min(1).max(3650).optional() }).optional())

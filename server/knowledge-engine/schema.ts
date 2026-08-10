@@ -182,3 +182,22 @@ export const akeDiscoveries = pgTable("ake_discoveries", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+/**
+ * Points 64-65 — journal des cycles de veille, par pays et par sujet.
+ *
+ * `status = aucune_source_autorisee` est une information utile en soi : elle
+ * dit qu'un sujet n'est **pas** surveillé dans ce pays, au lieu de laisser
+ * croire à une veille mondiale qui n'existerait pas.
+ */
+export const akeWatchRuns = pgTable("ake_watch_runs", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  countryCode: varchar("country_code", { length: 4 }).notNull(),
+  topic: varchar("topic", { length: 40 }).notNull(),
+  /** "observe" | "aucun_constat" | "aucune_source_autorisee" */
+  status: varchar("status", { length: 28 }).notNull(),
+  authorizedSources: integer("authorized_sources").notNull().default(0),
+  findings: integer("findings").notNull().default(0),
+  detail: text("detail"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
