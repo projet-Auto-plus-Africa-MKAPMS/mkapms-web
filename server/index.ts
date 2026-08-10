@@ -25,6 +25,7 @@ import {
   sitemapStatic,
   sitemapAnnonces,
   sitemapGarages,
+  sitemapAvis,
   sitemapPages,
   sitemapBlog,
 } from "./seo.js";
@@ -279,6 +280,7 @@ app.get("/sitemap.xml", sitemapXml);
 app.get("/sitemap-static.xml", sitemapStatic);
 app.get("/sitemap-annonces-:page.xml", sitemapAnnonces);
 app.get("/sitemap-garages.xml", sitemapGarages);
+app.get("/sitemap-avis.xml", sitemapAvis);
 app.get("/sitemap-pages-:page.xml", sitemapPages);
 app.get("/sitemap-blog.xml", sitemapBlog);
 // Visibilité IA / GEO — feed texte question/réponse découvrable par les assistants IA
