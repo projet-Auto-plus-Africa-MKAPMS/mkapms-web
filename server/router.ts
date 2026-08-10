@@ -102,6 +102,8 @@ import { proximityEngineRouter } from "./proximity-engine/index.js";
 import { partnerEngineRouter } from "./partner-engine/index.js";
 import { insuranceEngineRouter } from "./insurance-engine/index.js";
 import { chargingEngineRouter } from "./charging-engine/index.js";
+// Reviews & Reputation Engine (points 46-48)
+import { reputationEngineRouter } from "./reputation-engine/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -218,6 +220,8 @@ export const appRouter = router({
   // Point 45 — assurance auto (mise en relation) et bornes de recharge (annuaire)
   insuranceEngine: insuranceEngineRouter,
   chargingEngine: chargingEngineRouter,
+  // Points 46-48 — réputation : avis par pays et expériences vérifiées
+  reputationEngine: reputationEngineRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

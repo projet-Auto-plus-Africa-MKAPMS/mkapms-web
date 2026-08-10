@@ -82,6 +82,9 @@ export const NOTIFICATION_TRIGGERS: Record<string, TriggerDef> = {
   assurance_offre_disponible: { category: "compte", channels: ["email", "push", "inapp"], inappType: "systeme", title: "Offre d'assurance disponible", body: "Une offre a été enregistrée pour votre demande {{reference}} : {{montant}}." },
   assurance_demande_a_traiter: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Demande d'assurance à traiter — {{pays}}", body: "{{reference}} ({{formule}}) : {{detail}}", adminAlert: true },
   borne_declaration_a_valider: { category: "systeme", channels: ["inapp"], inappType: "systeme", title: "Borne de recharge à valider — {{ville}}", body: "{{operateur}} : {{detail}}", adminAlert: true },
+  // ── Avis & réputation ───────────────────────────────────────────────────
+  avis_demande_apres_prestation: { category: "compte", channels: ["email", "push", "inapp"], inappType: "systeme", title: "Votre avis sur {{service}}", body: "{{detail}} Votre avis sera marqué « Expérience vérifiée ».", },
+  avis_recu_professionnel: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Nouvel avis reçu — {{note}}/5", body: "{{extrait}}", },
   // ── Intelligence financière ─────────────────────────────────────────────
   anomalie_financiere: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Anomalie financière — {{severite}}", body: "{{detail}}", adminAlert: true },
   // ── Système / admin ─────────────────────────────────────────────────────

@@ -19,6 +19,7 @@ import {
   devisItems,
 } from "../schema.js";
 import { notifications } from "../modules/core.js";
+import { requestReviewAfterCompletion } from "../reputation-engine/service.js";
 
 // ===== BOUTIQUE PIÈCES AUTO PRO — Mini-ERP =====
 export const piecesRouter = router({
@@ -551,6 +552,26 @@ export const piecesRouter = router({
             await db.update(partsStock).set({ quantiteReservee: newReserve, updatedAt: new Date() }).where(eq(partsStock.id, stocks[0].id));
           }
         }
+      }
+
+      // Point 48 — commande réellement livrée → demande d'avis vérifiée
+      if (input.status === "livre" || input.status === "termine") {
+        const [shop] = await db
+          .select({ nom: partsShops.nom, countryCode: partsShops.countryCode })
+          .from(partsShops)
+          .where(eq(partsShops.id, order.shopId))
+          .limit(1);
+        await requestReviewAfterCompletion({
+          userId: order.buyerId,
+          targetType: "boutique_pieces",
+          targetId: order.shopId,
+          univers: "pieces",
+          transactionType: "commande_pieces",
+          transactionId: order.id,
+          countryCode: shop?.countryCode ?? null,
+          triggerReason: "achat_termine",
+          libelle: `Votre commande ${order.reference ?? ""} chez ${shop?.nom ?? "la boutique"} est livrée.`,
+        }).catch(() => {});
       }
 
       // If delivered/terminated, decrement real stock

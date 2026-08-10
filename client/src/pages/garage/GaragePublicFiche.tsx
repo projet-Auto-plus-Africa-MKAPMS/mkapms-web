@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { Wrench, MapPin, Phone, Mail, Globe, Clock, Star, ChevronRight, Calendar, FileText } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 import MetaSEO, { generateBreadcrumbSchema } from "../../components/MetaSEO";
+import BlocAvis from "../../components/avis/BlocAvis";
 
 /**
  * Fiche publique d'un garage/professionnel (/garages/:slug) — Phase 19.
@@ -13,6 +14,11 @@ export default function GaragePublicFiche() {
   const { data: g, isLoading, error } = trpc.garages.getBySlug.useQuery(
     { slug },
     { enabled: !!slug, retry: false },
+  );
+
+  const reputation = trpc.reputationEngine.reputation.useQuery(
+    { targetType: "garage", targetId: g?.id ?? 0, univers: "garage" },
+    { enabled: !!g?.id },
   );
 
   if (isLoading) {
@@ -37,7 +43,10 @@ export default function GaragePublicFiche() {
     );
   }
 
-  const rating = Number(g.rating) || 0;
+  // La note affichée doit venir des avis réellement publiés : la colonne
+  // `rating` de la fiche pouvait afficher une note sans avis correspondant.
+  const rating = reputation.data?.averageRating ?? 0;
+  const reviewCount = reputation.data?.totalReviews ?? 0;
   const specialites = (g.specialites || g.services || "")
     .split(/[,;]/)
     .map((s) => s.trim())
@@ -82,10 +91,10 @@ export default function GaragePublicFiche() {
                 <MapPin size={12} /> {[g.addressLine, g.postalCode, g.city].filter(Boolean).join(", ")}
               </p>
             )}
-            {rating > 0 && g.reviewCount > 0 && (
-              <p className="mt-1 flex items-center gap-1 text-sm text-[#D4AF37]">
-                <Star size={12} className="fill-[#D4AF37]" /> {rating.toFixed(1)} · {g.reviewCount} avis
-              </p>
+            {rating > 0 && reviewCount > 0 && (
+              <a href="#avis" className="mt-1 flex items-center gap-1 text-sm text-[#D4AF37]">
+                <Star size={12} className="fill-[#D4AF37]" /> {rating.toFixed(1)} · {reviewCount} avis
+              </a>
             )}
           </div>
         </div>
@@ -140,6 +149,17 @@ export default function GaragePublicFiche() {
               <Clock size={14} className="text-[#D4AF37]" /> {g.hours}
             </p>
           )}
+        </div>
+
+        {/* Avis & réputation (point 47) */}
+        <div className="mb-4">
+          <BlocAvis
+            targetType="garage"
+            targetId={g.id}
+            univers="garage"
+            nomCible={g.name}
+            titre="Avis clients de ce garage"
+          />
         </div>
 
         {/* Actions */}

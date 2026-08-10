@@ -31,6 +31,7 @@ import {
   notifications,
 } from "../schema.js";
 import { awardPoints } from "./operations.js";
+import { verifiedExperience } from "../reputation-engine/service.js";
 
 // ═══════════════════════════════════════════
 // HELPERS
@@ -458,6 +459,7 @@ export const reviewsV2Router = router({
       transactionType: z.string().optional(),
       transactionId: z.number().optional(),
       requestId: z.number().optional(),
+      countryCode: z.string().max(4).optional(),
       displayMode: z.enum(["full", "prenom", "initiales", "anonyme"]).default("full"),
       visibility: z.enum(["public", "prive"]).default("public"),
       language: z.string().max(8).default("fr"),
@@ -490,9 +492,20 @@ export const reviewsV2Router = router({
         status = "en_moderation";
       }
 
-      // Vérification
-      const verified = !!(input.transactionType && input.transactionId);
-      const verificationProof = verified ? `TXN-${input.transactionType}-${input.transactionId}` : null;
+      // Vérification (point 48) — décidée par le serveur, jamais par la requête.
+      // Auparavant il suffisait d'envoyer un couple transactionType/transactionId
+      // quelconque pour obtenir la mention « Expérience vérifiée » : la marque de
+      // confiance était donc déclarative. Elle repose maintenant sur une demande
+      // d'avis émise par la plateforme à la fin d'une prestation constatée.
+      const experience = await verifiedExperience({
+        userId: authorId,
+        targetType: input.targetType,
+        targetId: input.targetId,
+        transactionType: input.transactionType,
+        transactionId: input.transactionId,
+      });
+      const verified = experience.verified;
+      const verificationProof = experience.proof;
 
       // Détection fidélité (Point 19)
       const [author] = await db.select({ createdAt: users.createdAt, reviewCount: users.reviewCount }).from(users).where(eq(users.id, authorId)).limit(1);
@@ -521,6 +534,7 @@ export const reviewsV2Router = router({
           status,
           visibility: input.visibility,
           language: input.language,
+          countryCode: experience.countryCode ?? input.countryCode ?? null,
           authorLoyaltyTier: loyaltyTier,
           deviceType: "web",
         })
@@ -529,10 +543,11 @@ export const reviewsV2Router = router({
       // Historique (Point 26)
       await recordHistory(inserted.id, "created", authorId, null, { ratingGlobal: input.ratingGlobal, comment: input.comment });
 
-      // Demande d'avis → complétée
-      if (input.requestId) {
+      // Demande d'avis → complétée (celle fournie, ou celle qui a servi de preuve)
+      const requestToClose = input.requestId ?? experience.requestId;
+      if (requestToClose) {
         await db.update(reviewRequests).set({ status: "completed", completedAt: new Date(), reviewId: inserted.id })
-          .where(eq(reviewRequests.id, input.requestId));
+          .where(eq(reviewRequests.id, requestToClose));
       }
 
       // Recalcul

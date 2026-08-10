@@ -512,6 +512,13 @@
       "when": 1753702100000,
       "tag": "0073_assurance_bornes_recharge",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1753702200000,
+      "tag": "0074_avis_reputation_pays",
+      "breakpoints": true
     }
   ]
 }

@@ -238,6 +238,9 @@ export default function Compte() {
 
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const photoRef = useRef<HTMLInputElement>(null);
+  // Demandes d'avis ouvertes après une prestation réellement terminée (point 48)
+  const demandesAvis = trpc.reputationEngine.mesDemandes.useQuery(undefined);
+  const nbDemandesAvis = demandesAvis.data?.length ?? 0;
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -351,6 +354,19 @@ export default function Compte() {
             ))}
           </div>
         </div>
+      )}
+
+      {nbDemandesAvis > 0 && (
+        <Link
+          to="/compte/avis"
+          className="mt-4 flex items-center justify-between rounded-xl border border-[#D4AF37]/40 bg-[#FFFBEB] px-4 py-3 text-sm text-[#111]"
+        >
+          <span>
+            {nbDemandesAvis} prestation{nbDemandesAvis > 1 ? "s" : ""} terminée{nbDemandesAvis > 1 ? "s" : ""} :
+            votre avis est attendu (« ✓ Expérience vérifiée »).
+          </span>
+          <span className="font-semibold underline">Donner mon avis →</span>
+        </Link>
       )}
 
       {isPro(user.role) && (

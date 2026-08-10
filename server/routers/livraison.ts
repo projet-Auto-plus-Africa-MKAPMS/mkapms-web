@@ -6,6 +6,7 @@ import { db } from "../db.js";
 import { deliveryProfiles, deliveryMissions, deliveryPricing, deliveryTracking, serviceTracking } from "../schema.js";
 import { notifications } from "../modules/core.js";
 import { createPaymentCheckout } from "../payment-engine/checkout.js";
+import { requestReviewAfterCompletion } from "../reputation-engine/service.js";
 
 // Univers Livraison (Plan Partie 2 §7 + Partie 6 §4). Règle moto: 20 kg / 60x40x40 cm max.
 const MOTO_MAX_KG = 20;
@@ -191,6 +192,28 @@ export const livraisonRouter = router({
         body: input.detail ?? `Votre livraison est maintenant : ${statusLabels[input.status]}`,
         url: "/compte",
       });
+
+      // Point 48 — livraison réellement effectuée → demande d'avis vérifiée.
+      // Sans transporteur assigné (`profileId`), il n'y a personne à évaluer :
+      // aucune demande n'est créée plutôt que d'en créer une sans cible.
+      if (input.status === "livree" && mission.profileId) {
+        const [profil] = await db
+          .select({ nom: deliveryProfiles.nom, countryCode: deliveryProfiles.countryCode })
+          .from(deliveryProfiles)
+          .where(eq(deliveryProfiles.id, mission.profileId))
+          .limit(1);
+        await requestReviewAfterCompletion({
+          userId: mission.clientId,
+          targetType: "transporteur",
+          targetId: mission.profileId,
+          univers: "livraison",
+          transactionType: "mission_livraison",
+          transactionId: mission.id,
+          countryCode: profil?.countryCode ?? null,
+          triggerReason: "prestation_terminee",
+          libelle: `Votre livraison LIV-${mission.id}${profil?.nom ? ` par ${profil.nom}` : ""} est effectuée.`,
+        }).catch(() => {});
+      }
       return { ok: true };
     }),
 

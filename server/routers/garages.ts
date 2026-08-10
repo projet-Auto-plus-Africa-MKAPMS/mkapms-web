@@ -6,6 +6,7 @@ import { db } from "../db.js";
 import { garagesPublics, rdvGarage, serviceTracking } from "../schema.js";
 import { notifications } from "../modules/core.js";
 import { ingest as ingestVisibility } from "../visibility-os/index.js";
+import { requestReviewAfterCompletion } from "../reputation-engine/service.js";
 
 export const garagesRouter = router({
   // Annuaire public des garages (§7.1)
@@ -178,6 +179,26 @@ export const garagesRouter = router({
         body: input.detail ?? `Votre véhicule est maintenant : ${statusLabels[input.status]}.`,
         url: "/compte",
       });
+
+      // Point 48 — intervention réellement terminée → demande d'avis vérifiée.
+      if (input.status === "termine") {
+        const [garage] = await db
+          .select({ name: garagesPublics.name, country: garagesPublics.country })
+          .from(garagesPublics)
+          .where(eq(garagesPublics.id, rdv.garageId))
+          .limit(1);
+        await requestReviewAfterCompletion({
+          userId: rdv.clientId,
+          targetType: "garage",
+          targetId: rdv.garageId,
+          univers: "garage",
+          transactionType: "rdv_garage",
+          transactionId: rdv.id,
+          countryCode: garage?.country ?? null,
+          triggerReason: "intervention_terminee",
+          libelle: `Votre intervention chez ${garage?.name ?? "le garage"} est terminée.`,
+        }).catch(() => {});
+      }
 
       return rdv;
     }),
