@@ -34,6 +34,8 @@ import {
   ShieldCheck,
   AlertTriangle,
   History,
+  Network,
+  Undo2,
 } from "lucide-react";
 
 /** Filtre rapide piloté par les cases cliquables du bandeau de synthèse. */
@@ -208,11 +210,55 @@ export default function EngineRegistryControlCenter() {
     refetchInterval: 30000,
   });
   const utils = trpc.useUtils();
-  const setState = trpc.engineRegistry.setState.useMutation({
-    onSettled: () => {
-      utils.engineRegistry.list.invalidate();
-      utils.engineRegistry.stats.invalidate();
+  const graph = trpc.engineRegistry.dependencyGraph.useQuery(undefined, {
+    enabled: isDirection,
+  });
+  const invalidateRegistry = () => {
+    utils.engineRegistry.list.invalidate();
+    utils.engineRegistry.stats.invalidate();
+    utils.engineRegistry.overview.invalidate();
+    utils.engineRegistry.anomalies.invalidate();
+    utils.engineRegistry.dependencyGraph.invalidate();
+  };
+
+  // Point 43 — une action sensible passe par un avis d'impact avant d'être
+  // appliquée : éteindre un moteur coupait silencieusement ses dépendants.
+  const [pending, setPending] = useState<{
+    name: string;
+    state: EngineState;
+    avertissements: string[];
+    blocages: string[];
+    impacts: string[];
+  } | null>(null);
+
+  const setState = trpc.engineRegistry.setStateChecked.useMutation({
+    onSuccess: (res, vars) => {
+      if (res.applied) {
+        setPending(null);
+        return;
+      }
+      setPending({
+        name: vars.name,
+        state: vars.state as EngineState,
+        avertissements: res.validation.avertissements,
+        blocages: res.validation.blocages,
+        impacts: res.validation.impact?.activeAffected ?? [],
+      });
     },
+    onSettled: invalidateRegistry,
+  });
+
+  // Point 44 — retour arrière du dernier changement d'état.
+  const [revertMsg, setRevertMsg] = useState<string | null>(null);
+  const revert = trpc.engineRegistry.revertState.useMutation({
+    onSuccess: (res) => {
+      setRevertMsg(
+        res.applied
+          ? `${res.engine} : état précédent rétabli (${res.from} → ${res.to}).`
+          : `${res.engine} : ${res.raison}`,
+      );
+    },
+    onSettled: invalidateRegistry,
   });
 
   // Filtres du tableau de bord (cases cliquables + recherche + état).
@@ -225,6 +271,10 @@ export default function EngineRegistryControlCenter() {
   const readiness = useMemo(
     () => new Map((overview.data?.moteurs ?? []).map((m) => [m.name, m])),
     [overview.data],
+  );
+  const graphByName = useMemo(
+    () => new Map((graph.data?.nodes ?? []).map((n) => [n.name, n])),
+    [graph.data],
   );
 
   const degradedCount = useMemo(
@@ -616,6 +666,13 @@ export default function EngineRegistryControlCenter() {
                           <span className="text-slate-400">Connecté à : </span>
                           {e.dependencies?.length ? e.dependencies.join(", ") : "—"}
                         </p>
+                        <p>
+                          <Network size={11} className="mr-1 inline text-slate-400" />
+                          <span className="text-slate-400">Moteurs qui en dépendent : </span>
+                          {graphByName.get(e.name)?.requiredBy.length
+                            ? graphByName.get(e.name)?.requiredBy.join(", ")
+                            : "aucun"}
+                        </p>
                         <p className="flex items-center gap-1">
                           <Activity size={11} className="text-slate-400" />
                           <span className="text-slate-400">Dernier signal : </span>
@@ -641,12 +698,21 @@ export default function EngineRegistryControlCenter() {
                               <button
                                 key={s}
                                 disabled={setState.isPending}
-                                onClick={() => setState.mutate({ name: e.name, state: s })}
+                                onClick={() =>
+                                  setState.mutate({ name: e.name, state: s, confirm: false })
+                                }
                                 className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                               >
                                 {STATE_LABEL[s]}
                               </button>
                             ))}
+                            <button
+                              disabled={revert.isPending}
+                              onClick={() => revert.mutate({ name: e.name })}
+                              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+                            >
+                              <Undo2 size={12} /> État précédent
+                            </button>
                           </div>
                         ) : (
                           <span className="text-xs text-slate-400">
@@ -654,6 +720,56 @@ export default function EngineRegistryControlCenter() {
                           </span>
                         )}
                       </div>
+
+                      {revertMsg && revertMsg.startsWith(e.name) && (
+                        <p className="mt-2 rounded-lg bg-slate-100 px-2 py-1 text-[11px] text-slate-600">
+                          {revertMsg}
+                        </p>
+                      )}
+
+                      {/* Point 43 — avis d'impact : rien n'est appliqué sans confirmation. */}
+                      {pending?.name === e.name && (
+                        <div className="mt-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
+                          <p className="text-[11px] font-bold text-amber-800">
+                            Passer ce moteur en « {STATE_LABEL[pending.state]} » touche d'autres moteurs.
+                          </p>
+                          <ul className="mt-1 space-y-0.5">
+                            {pending.blocages.map((b, i) => (
+                              <li key={`b${i}`} className="text-[11px] font-semibold text-red-700">
+                                {b}
+                              </li>
+                            ))}
+                            {pending.avertissements.map((a, i) => (
+                              <li key={`a${i}`} className="text-[11px] text-amber-700">
+                                {a}
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {pending.blocages.length === 0 && (
+                              <button
+                                disabled={setState.isPending}
+                                onClick={() =>
+                                  setState.mutate({
+                                    name: pending.name,
+                                    state: pending.state,
+                                    confirm: true,
+                                  })
+                                }
+                                className="rounded-lg bg-[#111] px-2.5 py-1 text-[11px] font-bold text-[#D4AF37] disabled:opacity-50"
+                              >
+                                Je confirme malgré l'impact
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setPending(null)}
+                              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600"
+                            >
+                              Annuler
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -661,6 +777,9 @@ export default function EngineRegistryControlCenter() {
             </section>
           );
         })}
+
+        {/* Points 43-44 — anomalies consolidées du registre */}
+        <AnomaliesSection />
 
         {/* Point 42 — journal des modifications d'agents */}
         <AgentChangesSection isPdg={isPdg} />
@@ -672,6 +791,110 @@ export default function EngineRegistryControlCenter() {
         </p>
       </div>
     </div>
+  );
+}
+
+const ANOMALY_STYLE: Record<string, string> = {
+  critique: "border-red-200 bg-red-50 text-red-700",
+  important: "border-amber-200 bg-amber-50 text-amber-700",
+  a_surveiller: "border-slate-200 bg-slate-50 text-slate-600",
+};
+
+const ANOMALY_SEVERITY_LABEL: Record<string, string> = {
+  critique: "Critique",
+  important: "Important",
+  a_surveiller: "À surveiller",
+};
+
+/**
+ * Anomalies consolidées du registre (points 43-44) : dépendances manquantes,
+ * dépendances circulaires, moteurs hors service, signaux périmés. Une liste
+ * vide veut dire « aucune anomalie relevée », pas « tout est parfait ».
+ */
+function AnomaliesSection() {
+  const anomalies = trpc.engineRegistry.anomalies.useQuery(undefined, {
+    refetchInterval: 60000,
+  });
+  const graph = trpc.engineRegistry.dependencyGraph.useQuery();
+  const [severity, setSeverity] = useState<string>("all");
+
+  const rows = (anomalies.data?.anomalies ?? []).filter(
+    (a) => severity === "all" || a.severite === severity,
+  );
+
+  return (
+    <section className="mb-7 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <AlertTriangle size={16} className="text-amber-600" />
+        <h2 className="text-sm font-black text-slate-900">Anomalies du registre</h2>
+        <span className="text-[11px] text-slate-400">
+          Dépendances manquantes ou circulaires, moteurs coupés, signaux trop anciens.
+        </span>
+      </div>
+
+      <div className="mb-3 flex flex-wrap gap-1.5">
+        {["all", "critique", "important", "a_surveiller"].map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setSeverity(s)}
+            className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition ${
+              severity === s
+                ? "border-[#111] bg-[#111] text-[#D4AF37]"
+                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            {s === "all"
+              ? `Toutes (${anomalies.data?.anomalies.length ?? 0})`
+              : `${ANOMALY_SEVERITY_LABEL[s]} (${anomalies.data?.parSeverite[s] ?? 0})`}
+          </button>
+        ))}
+      </div>
+
+      {(graph.data?.cycles.length ?? 0) > 0 && (
+        <div className="mb-3 rounded-xl border border-red-200 bg-red-50 p-3">
+          <p className="text-[11px] font-bold text-red-800">
+            Dépendance circulaire détectée — aucun ordre de démarrage n'est possible :
+          </p>
+          {graph.data?.cycles.map((c, i) => (
+            <p key={i} className="font-mono text-[11px] text-red-700">
+              {c.join(" → ")}
+            </p>
+          ))}
+        </div>
+      )}
+
+      {anomalies.isLoading ? (
+        <p className="text-xs text-slate-400">Analyse du registre…</p>
+      ) : rows.length === 0 ? (
+        <p className="text-xs text-slate-400">
+          Aucune anomalie relevée pour ce filtre.
+        </p>
+      ) : (
+        <ul className="space-y-1.5">
+          {rows.map((a, i) => (
+            <li
+              key={i}
+              className={`rounded-xl border px-3 py-2 text-[11px] ${
+                ANOMALY_STYLE[a.severite] ?? ANOMALY_STYLE.a_surveiller
+              }`}
+            >
+              <span className="font-bold">{ANOMALY_SEVERITY_LABEL[a.severite] ?? a.severite}</span>
+              {" · "}
+              <span className="font-mono">{a.code}</span>
+              {a.engine ? ` · ${a.engine}` : ""} — {a.detail}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {(graph.data?.missing.length ?? 0) > 0 && (
+        <p className="mt-2 text-[10px] text-slate-500">
+          {graph.data?.missing.length} dépendance(s) déclarée(s) vers un moteur absent du
+          registre : elles ne pourront jamais être satisfaites en l'état.
+        </p>
+      )}
+    </section>
   );
 }
 

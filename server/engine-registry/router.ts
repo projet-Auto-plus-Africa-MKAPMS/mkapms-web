@@ -12,6 +12,13 @@ import { router, adminProcedure, directionProcedure, pdgProcedure } from "../trp
 import { MEMORY_SCOPES, memorySummary, recall } from "./memory.js";
 import { engineReadiness, OPERATIONAL_STATE_LABELS, registryOverview } from "./readiness.js";
 import {
+  dependencyGraph,
+  impactOf,
+  registryAnomalies,
+  revertLastStateChange,
+  validateStateChange,
+} from "./dependencies.js";
+import {
   AGENT_CHANGE_KINDS,
   AGENT_CHANGE_STATUSES,
   changeStats,
@@ -127,7 +134,58 @@ export const engineRegistryRouter = router({
     });
   }),
 
+  // ── Dépendances & anomalies (points 43-44) ───────────────────────────
+  dependencyGraph: directionProcedure.query(async () => {
+    return dependencyGraph();
+  }),
+
+  impact: directionProcedure
+    .input(z.object({ name: z.string().min(1).max(64) }))
+    .query(async ({ input }) => {
+      return impactOf(input.name);
+    }),
+
+  anomalies: directionProcedure.query(async () => {
+    return registryAnomalies();
+  }),
+
+  /** Avis avant une action sensible. N'applique rien. */
+  validateStateChange: directionProcedure
+    .input(z.object({ name: z.string().min(1).max(64), state: engineState }))
+    .query(async ({ input }) => {
+      return validateStateChange(input.name, input.state);
+    }),
+
+  /** Retour arrière du dernier changement d'état journalisé. */
+  revertState: pdgProcedure
+    .input(z.object({ name: z.string().min(1).max(64) }))
+    .mutation(async ({ ctx, input }) => {
+      return revertLastStateChange(input.name, ctx.user.uid);
+    }),
+
   // ── Administration (PDG) ─────────────────────────────────────────────
+  /**
+   * Changement d'état. Une action qui coupe des moteurs actifs exige
+   * `confirm: true` : sans confirmation, l'impact exact est renvoyé et rien
+   * n'est appliqué.
+   */
+  setStateChecked: pdgProcedure
+    .input(
+      z.object({
+        name: z.string().min(1).max(64),
+        state: engineState,
+        confirm: z.boolean().default(false),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const validation = await validateStateChange(input.name, input.state);
+      if (!validation.possible || (validation.confirmationRequise && !input.confirm)) {
+        return { applied: false as const, validation, engine: null };
+      }
+      const engine = await setState(input.name, input.state, ctx.user.uid);
+      return { applied: true as const, validation, engine };
+    }),
+
   setState: pdgProcedure
     .input(z.object({ name: z.string().min(1).max(64), state: engineState }))
     .mutation(async ({ ctx, input }) => {
