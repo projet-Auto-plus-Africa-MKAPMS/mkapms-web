@@ -85,6 +85,10 @@ export const reviewsV2 = pgTable("reviews_v2", {
   deviceType: varchar("device_type", { length: 16 }),
   ipCity: varchar("ip_city", { length: 128 }), // Point 29 — géolocalisation
   ipCountry: varchar("ip_country", { length: 4 }),
+  // ─── Pays de l'expérience (point 46 — réputation par pays activé) ───
+  // Distinct de `ipCountry` : un client peut consulter depuis un autre pays que
+  // celui où la prestation a eu lieu.
+  countryCode: varchar("country_code", { length: 4 }),
   // ─── Poids fidélité (Point 19) ───
   authorLoyaltyTier: varchar("author_loyalty_tier", { length: 16 }),
   // "new" | "regular" | "fidele" | "vip" — affiché pareil mais poids interne différent
@@ -148,6 +152,8 @@ export const reviewRequests = pgTable("review_requests", {
   completedAt: timestamp("completed_at"),
   reviewId: integer("review_id"),
   reminderCount: integer("reminder_count").notNull().default(0),
+  // Pays de la prestation terminée (point 48)
+  countryCode: varchar("country_code", { length: 4 }),
   expiresAt: timestamp("expires_at").notNull(),
   metadata: jsonb("metadata").default("{}"), // données contextuelles
   createdAt: timestamp("created_at").notNull().defaultNow(),

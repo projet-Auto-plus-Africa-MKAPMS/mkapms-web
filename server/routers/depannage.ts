@@ -5,6 +5,7 @@ import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { breakdownProviders, breakdownRequests, breakdownQuotes, breakdownMissions } from "../schema.js";
 import { createPaymentCheckout } from "../payment-engine/checkout.js";
+import { requestReviewAfterCompletion } from "../reputation-engine/service.js";
 
 // Univers Dépannage / Assistance (Plan Partie 2 §8).
 export const depannageRouter = router({
@@ -95,6 +96,61 @@ export const depannageRouter = router({
       }).returning();
       await db.update(breakdownRequests).set({ status: "en_intervention", updatedAt: new Date() }).where(eq(breakdownRequests.id, input.requestId));
       return m;
+    }),
+
+  // Clôture d'une intervention de dépannage. Elle n'existait pas : une mission
+  // restait « en intervention » indéfiniment, donc aucune prestation dépannage
+  // ne pouvait donner lieu à un avis vérifié (point 48).
+  completeMission: protectedProcedure
+    .input(z.object({ missionId: z.number(), montantFinal: z.number().positive().optional() }))
+    .mutation(async ({ input }) => {
+      const [mission] = await db
+        .select()
+        .from(breakdownMissions)
+        .where(eq(breakdownMissions.id, input.missionId))
+        .limit(1);
+      if (!mission) throw new TRPCError({ code: "NOT_FOUND", message: "Mission introuvable" });
+
+      await db
+        .update(breakdownMissions)
+        .set({
+          status: "terminee",
+          finishedAt: new Date(),
+          montantFinal: input.montantFinal != null ? String(input.montantFinal) : mission.montantFinal,
+          updatedAt: new Date(),
+        })
+        .where(eq(breakdownMissions.id, mission.id));
+      await db
+        .update(breakdownRequests)
+        .set({ status: "terminee", updatedAt: new Date() })
+        .where(eq(breakdownRequests.id, mission.requestId));
+
+      const [request] = await db
+        .select({ clientId: breakdownRequests.clientId })
+        .from(breakdownRequests)
+        .where(eq(breakdownRequests.id, mission.requestId))
+        .limit(1);
+      const [provider] = await db
+        .select({ nom: breakdownProviders.nom, countryCode: breakdownProviders.countryCode })
+        .from(breakdownProviders)
+        .where(eq(breakdownProviders.id, mission.providerId))
+        .limit(1);
+
+      if (request) {
+        await requestReviewAfterCompletion({
+          userId: request.clientId,
+          targetType: "depanneur",
+          targetId: mission.providerId,
+          univers: "depannage",
+          transactionType: "mission_depannage",
+          transactionId: mission.id,
+          countryCode: provider?.countryCode ?? null,
+          triggerReason: "prestation_terminee",
+          libelle: `Votre dépannage${provider?.nom ? ` par ${provider.nom}` : ""} est terminé.`,
+        }).catch(() => {});
+      }
+
+      return { ok: true, missionId: mission.id };
     }),
 
   // Paiement d'un devis dépannage accepté par le client.

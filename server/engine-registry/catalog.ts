@@ -449,6 +449,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "avis_reputation",
+    label: "Reviews & Reputation Engine",
+    category: "service",
+    dependencies: ["core", "country", "notification"],
+    description:
+      "Avis multi-univers par pays, expériences vérifiées après transaction réelle, réponses professionnelles et officielles, réputation consolidée.",
+    state: "active",
+  },
+  {
     name: "finance",
     label: "Financement Engine",
     category: "service",
