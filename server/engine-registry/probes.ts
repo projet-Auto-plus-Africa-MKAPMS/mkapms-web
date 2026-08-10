@@ -93,6 +93,10 @@ export const ENGINE_PROBES: EngineProbe[] = [
     engine: "connecteur_google_business",
     tables: ["gbp_locations", "gbp_review_snapshots"],
   },
+  {
+    engine: "connaissance_auto",
+    tables: ["ake_nodes", "ake_edges", "ake_sources", "ake_discoveries"],
+  },
   { engine: "finance", tables: ["finance_documents", "finance_transactions", "payments"] },
   { engine: "encheres", tables: ["annonces", "payments"] },
   { engine: "auction_engine", tables: ["auctions", "auction_bids", "auction_events"] },
