@@ -96,9 +96,13 @@ export function generateVehicleSchema(vehicle: {
   };
 }
 
+/**
+ * Un `AggregateRating` sans nombre d'avis est refusé par Google : la note n'est
+ * publiée que si elle repose sur un volume réel d'avis.
+ */
 export function generateGarageSchema(garage: {
   name: string; address: string; city: string; phone?: string;
-  rating?: number; url?: string;
+  rating?: number; reviewCount?: number; url?: string;
 }) {
   return {
     "@context": "https://schema.org",
@@ -106,7 +110,16 @@ export function generateGarageSchema(garage: {
     name: garage.name,
     address: { "@type": "PostalAddress", addressLocality: garage.city, streetAddress: garage.address },
     telephone: garage.phone,
-    aggregateRating: garage.rating ? { "@type": "AggregateRating", ratingValue: garage.rating, bestRating: 5 } : undefined,
+    aggregateRating:
+      garage.rating && garage.reviewCount && garage.reviewCount > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: garage.rating,
+            reviewCount: garage.reviewCount,
+            bestRating: 5,
+            worstRating: 1,
+          }
+        : undefined,
     url: garage.url,
   };
 }

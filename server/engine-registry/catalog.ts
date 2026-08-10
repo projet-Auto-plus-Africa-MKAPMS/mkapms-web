@@ -458,6 +458,17 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    // Connecteur externe : il dépend d'une identification Google, donc il reste
+    // en préproduction tant qu'aucun relevé n'a été obtenu de Google.
+    name: "connecteur_google_business",
+    label: "Connecteur Google Business Profile",
+    category: "service",
+    dependencies: ["core", "avis_reputation"],
+    description:
+      "Rattachement des établissements physiques éligibles et relevé séparé de leur réputation Google. Avis internes et avis Google restent distincts.",
+    state: "staging",
+  },
+  {
     name: "finance",
     label: "Financement Engine",
     category: "service",
