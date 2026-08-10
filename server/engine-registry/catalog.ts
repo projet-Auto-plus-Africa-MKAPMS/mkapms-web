@@ -492,6 +492,16 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    // Ce moteur ne produit rien : il empêche l'autonomie de devenir dangereuse.
+    name: "resilience",
+    label: "Resilience & Safety Engine",
+    category: "transversal",
+    dependencies: ["core", "smart", "country"],
+    description:
+      "Fermeture au public sans destruction, actions critiques à confirmation renforcée, pipeline obligatoire avant production, auto-réparation vérifiée, mémoire des échecs.",
+    state: "active",
+  },
+  {
     name: "finance",
     label: "Financement Engine",
     category: "service",
