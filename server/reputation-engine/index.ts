@@ -18,6 +18,8 @@ import {
 import { fraudSignals, linkedAccounts, resolveFraudSignal } from "./fraud.js";
 import { isTargetOwner } from "./ownership.js";
 import { reviewsForOwner, suggestResponse } from "./responses.js";
+import { reputationTrends } from "./trends.js";
+import { platformAverage, reputationForTargets } from "./ranking.js";
 
 export const REPUTATION_ENGINE_META = {
   code: "avis_reputation",
@@ -101,6 +103,23 @@ export const reputationEngineRouter = router({
         decision: input.decision,
       }),
     ),
+
+  // ── Point 54 — tendances expliquées, remontées au système intelligent ────
+  tendances: directionProcedure.query(async () => reputationTrends()),
+
+  /** Point 53 — note lissée par le volume, telle qu'utilisée par la recherche. */
+  scoreClassement: directionProcedure
+    .input(
+      z.object({
+        targetType: z.string().min(1).max(32),
+        targetIds: z.array(z.number().int().positive()).min(1).max(100),
+      }),
+    )
+    .query(async ({ input }) => {
+      const reps = await reputationForTargets(input.targetType, input.targetIds);
+      const plateforme = await platformAverage();
+      return { plateforme, cibles: Array.from(reps.values()) };
+    }),
 
   health: directionProcedure.query(async () => reputationEngineHealth()),
 });
