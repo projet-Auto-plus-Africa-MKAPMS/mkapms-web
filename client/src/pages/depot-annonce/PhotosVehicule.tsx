@@ -120,9 +120,17 @@ export default function PhotosVehicule() {
                     accept="image/*,.heic,.heif"
                     className="hidden"
                     onChange={e => {
-                      const files = e.target.files;
+                      // ════════════════════════════════════════════════════════
+                      // 🔒 BLOC PROTÉGÉ — CODE : MKAPMS-PHOTO-GUARDIAN-2026-SGX9K3
+                      // Ne PAS modifier sans autorisation explicite du propriétaire.
+                      // Voir Vendre.tsx (même correctif) pour le détail complet.
+                      // Résumé : cloner e.target.files en Array AVANT de reset la
+                      // value, sinon la FileList vive iOS Safari devient vide et
+                      // l'upload photo échoue silencieusement sur mobile.
+                      // ════════════════════════════════════════════════════════
+                      const selected = e.target.files ? Array.from(e.target.files) : [];
                       e.target.value = "";
-                      if (files?.length) void upload(s, files);
+                      if (selected.length) void upload(s, selected);
                     }}
                   />
                   <button

@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>FileList pattern test</title></head>
+<body>
+<h1>FileList clone-before-reset test</h1>
+
+<!-- BAD pattern: reset before clone → files.length becomes 0 in some browsers -->
+<input id="bad" type="file" multiple />
+<div id="bad-result">bad: (untested)</div>
+
+<!-- GOOD pattern (MKAPMS fix): clone via Array.from BEFORE reset -->
+<input id="good" type="file" multiple />
+<div id="good-result">good: (untested)</div>
+
+<script>
+  document.getElementById("bad").addEventListener("change", function (e) {
+    // Reproduces the buggy order: reset first, read length after
+    e.target.value = "";
+    const files = e.target.files;
+    const len = files ? files.length : 0;
+    document.getElementById("bad-result").textContent = "bad:" + len;
+  });
+
+  document.getElementById("good").addEventListener("change", function (e) {
+    // MKAPMS-PHOTO-GUARDIAN-2026-SGX9K3 : clone AVANT reset
+    const cloned = e.target.files ? Array.from(e.target.files) : [];
+    e.target.value = "";
+    document.getElementById("good-result").textContent = "good:" + cloned.length;
+  });
+</script>
+</body>
+</html>
