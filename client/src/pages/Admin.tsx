@@ -285,6 +285,42 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Réputation & Avis — PDG + Directeur (point 55) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">R&eacute;putation &amp; Avis</h2>
+        <p className="text-xs text-slate-500">Global, pays, services, professionnels, avis MKA.P-MS et Google s&eacute;par&eacute;s, signalements, tendances</p>
+        <Link to="/admin/reputation" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x2B50;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre R&eacute;putation</p>
+            <p className="text-xs text-white/60">R&eacute;putation r&eacute;elle sans m&eacute;langer les professionnels ni les sources</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Centre d'Actions — PDG + Directeur (point 70) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Centre d&apos;Actions</h2>
+        <p className="text-xs text-slate-500">&Agrave; valider, en cours, termin&eacute;, &eacute;checs, suggestions IA, connaissances, opportunit&eacute;s, alertes</p>
+        <Link to="/admin/actions" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x2705;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre d&apos;Actions PDG</p>
+            <p className="text-xs text-white/60">Une validation produit une action trac&eacute;e, un r&eacute;sultat v&eacute;rifi&eacute; ou un &eacute;chec expliqu&eacute;</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Système Intelligent MKA.P-MS — visible PDG + Directeur/Direction */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">

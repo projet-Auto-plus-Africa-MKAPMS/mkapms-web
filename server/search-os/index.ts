@@ -9,10 +9,11 @@
  *
  * Interconnexion : Supervision & Opérations (feed MOS).
  */
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db.js";
-import { annonces, garages } from "../schema.js";
+import { annonces, garages, garagesPublics } from "../schema.js";
+import { reputationForTargets } from "../reputation-engine/ranking.js";
 import { publicProcedure, adminProcedure, router } from "../trpc.js";
 import type { ControlCenterFeed, EngineDashboard, MaturityLevel } from "../identity-os/contract.js";
 
@@ -107,14 +108,38 @@ async function searchGarages(tokens: string[], limit: number): Promise<SearchHit
     .where(and(eq(garages.status, "active"), or(...conds)))
     .orderBy(desc(garages.rating))
     .limit(limit);
-  return rows.map((r) => ({
-    type: "garage" as const,
-    id: Number(r.id),
-    title: r.name,
-    subtitle: [r.city ?? undefined, r.rating ? `★ ${r.rating}` : undefined].filter(Boolean).join(" · "),
-    url: `/garages/${r.slug}`,
-    score: 1,
-  }));
+  if (rows.length === 0) return [];
+
+  // Point 53 : les avis portent sur la fiche publique (`garages_publics`), dont
+  // l'identifiant diffère de celui de `garages`. Le rapprochement se fait par
+  // slug — sans lui, on classerait sur les avis d'un autre garage.
+  const fiches = await db
+    .select({ id: garagesPublics.id, slug: garagesPublics.slug })
+    .from(garagesPublics)
+    .where(inArray(garagesPublics.slug, rows.map((r) => r.slug)));
+  const ficheParSlug = new Map(fiches.map((f) => [f.slug, f.id]));
+  const reputations = await reputationForTargets("garage", fiches.map((f) => f.id));
+
+  return rows.map((r) => {
+    const rep = reputations.get(ficheParSlug.get(r.slug) ?? -1);
+    const note = rep && rep.total > 0 ? rep : null;
+    return {
+      type: "garage" as const,
+      id: Number(r.id),
+      title: r.name,
+      subtitle: [
+        r.city ?? undefined,
+        // Une note n'est affichée qu'avec son volume : « ★ 5 » sur un seul avis
+        // ne doit pas ressembler à une réputation établie.
+        note ? `★ ${note.average} · ${note.total} avis` : undefined,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      url: `/garages/${r.slug}`,
+      // Note lissée par le volume : la qualité pèse sans écraser la pertinence.
+      score: note?.weighted != null ? 1 + note.weighted / 5 : 1,
+    };
+  });
 }
 
 function searchServices(tokens: string[]): SearchHit[] {

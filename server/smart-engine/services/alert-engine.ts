@@ -27,10 +27,11 @@ import {
   healRecent404s,
   replayLearnedFixes,
 } from "./auto-fix.js";
+import { reputationTrends, trendSignature } from "../../reputation-engine/trends.js";
 
 export type AlertLevel = "info" | "warning" | "important" | "critical";
 
-interface RaiseInput {
+export interface RaiseInput {
   category: string;
   title: string;
   description?: string;
@@ -52,7 +53,7 @@ const DAY = 24 * 60 * 60 * 1000;
  * déjà. On ne réveille pas une alerte déjà traitée (resolved/dismissed) tant
  * que le problème n'est pas re-détecté APRÈS la résolution.
  */
-async function raiseAlert(input: RaiseInput): Promise<boolean> {
+export async function raiseAlert(input: RaiseInput): Promise<boolean> {
   const existing = await db
     .select({ id: smartAlerts.id })
     .from(smartAlerts)
@@ -245,6 +246,29 @@ export async function runAlertScan() {
       level: "critical",
       signature: `srv:pic:${new Date().toISOString().slice(0, 10)}`,
     });
+  }
+
+  // 9. Point 54 — tendances de réputation. Le constat porte l'explication de la
+  // variation, pas seulement la note : c'est ce qui permet d'agir. Aucun avis
+  // n'est masqué ni supprimé ici.
+  try {
+    for (const t of await reputationTrends()) {
+      await raise({
+        category: "avis",
+        title: t.constat,
+        description: Object.entries(t.preuve)
+          .map(([k, v]) => `${k} : ${v}`)
+          .join(" · "),
+        level:
+          t.severity === "critique" ? "important" : t.severity === "attention" ? "warning" : "info",
+        targetType: t.targetType,
+        targetId: t.targetId,
+        signature: trendSignature(t),
+        lastOccurredAt: new Date(),
+      });
+    }
+  } catch {
+    /* le module d'avis peut ne pas être migré : le scan ne doit pas échouer */
   }
 
   return { created, autoFixed };

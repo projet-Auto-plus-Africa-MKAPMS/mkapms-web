@@ -17,6 +17,11 @@ import { db } from "./db.js";
 import { annonces, annoncePhotos, seoPages, garagesPublics, seoBlogArticles } from "./schema.js";
 import { resolveDomain, type DomainKey } from "./domain.js";
 import { STATIC_SEO, breadcrumbSchema, homeSchema } from "./seo-static.js";
+import { reputationJsonLdBlock } from "./reputation-engine/seo.js";
+import {
+  publicReputationPage,
+  universWithPublicReviews,
+} from "./reputation-engine/public-pages.js";
 
 // ─── Utilitaires ─────────────────────────────────────────────────────────────
 
@@ -397,7 +402,19 @@ async function garageSeoHead(path: string, baseUrl: string, domainKey: DomainKey
       " Avis, horaires et prise de rendez-vous en ligne."
   );
 
-  const rating = Number(g.rating) || 0;
+  // Point 51 — la note structurée vient des avis réellement publiés, pas de la
+  // colonne `garages_publics.rating` que le module d'avis n'alimente pas.
+  let reputation: Record<string, unknown> = {};
+  try {
+    reputation = await reputationJsonLdBlock({
+      targetType: "garage",
+      targetId: g.id,
+      univers: "garage",
+    });
+  } catch {
+    reputation = {};
+  }
+
   const address: Record<string, string> = { "@type": "PostalAddress" };
   if (g.addressLine) address.streetAddress = g.addressLine;
   if (g.city) address.addressLocality = g.city;
@@ -419,16 +436,7 @@ async function garageSeoHead(path: string, baseUrl: string, domainKey: DomainKey
       : {}),
     ...(g.hours ? { openingHours: g.hours } : {}),
     ...(specialites ? { knowsAbout: specialites.split(/[,;]/).map((s) => s.trim()).filter(Boolean).slice(0, 12) } : {}),
-    ...(rating > 0 && g.reviewCount > 0
-      ? {
-          aggregateRating: {
-            "@type": "AggregateRating",
-            ratingValue: rating,
-            reviewCount: g.reviewCount,
-            bestRating: 5,
-          },
-        }
-      : {}),
+    ...reputation,
   };
 
   return buildHead({
@@ -440,6 +448,93 @@ async function garageSeoHead(path: string, baseUrl: string, domainKey: DomainKey
     type: "website",
     lang: meta.lang,
     jsonLd: [jsonLd, breadcrumbSchema(baseUrl, `/garages/${g.slug || g.id}`, g.name)],
+  });
+}
+
+/**
+ * Point 57 — /avis/:univers. Le JSON-LD ne décrit que ce que la page affiche
+ * réellement : chaque professionnel avec sa vraie note et son vrai volume.
+ * Aucune note d'ensemble n'est déclarée, parce qu'une moyenne mélangeant
+ * plusieurs professionnels ne représente aucun d'entre eux.
+ */
+async function reputationSeoHead(
+  path: string,
+  baseUrl: string,
+  domainKey: DomainKey,
+): Promise<string | null> {
+  const m = path.match(/^\/avis\/([a-z0-9_-]+)\/?$/i);
+  if (!m) return null;
+  const meta = DOMAIN_SEO[domainKey];
+
+  let page: Awaited<ReturnType<typeof publicReputationPage>>;
+  try {
+    page = await publicReputationPage(decodeURIComponent(m[1]), 50);
+  } catch {
+    return null;
+  }
+
+  const url = `${baseUrl}/avis/${page.univers}`;
+  const title = `Avis et notes ${page.libelle} — ${meta.siteName}`;
+  const description = page.raison
+    ? `${page.libelle} : aucun avis publié pour l'instant sur ${meta.siteName}.`
+    : `${page.entrees.length} professionnel(s) ${page.libelle} évalués sur ${meta.siteName}, ${page.totalAvis} avis publiés. Notes réelles, avis vérifiés après transaction.`;
+
+  const items = page.entrees
+    .filter((e) => e.nom)
+    .map((e, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "LocalBusiness",
+        name: e.nom,
+        ...(e.url ? { url: `${baseUrl}${e.url}` } : {}),
+        ...(e.ville || e.pays
+          ? {
+              address: {
+                "@type": "PostalAddress",
+                ...(e.ville ? { addressLocality: e.ville } : {}),
+                ...(e.pays ? { addressCountry: e.pays } : {}),
+              },
+            }
+          : {}),
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: e.noteMoyenne,
+          reviewCount: e.avis,
+          bestRating: 5,
+          worstRating: 1,
+        },
+      },
+    }));
+
+  const jsonLd: Record<string, unknown>[] = [
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: title,
+      description,
+      url,
+      ...(items.length > 0
+        ? {
+            mainEntity: {
+              "@type": "ItemList",
+              numberOfItems: items.length,
+              itemListElement: items,
+            },
+          }
+        : {}),
+    },
+    breadcrumbSchema(baseUrl, `/avis/${page.univers}`, `Avis ${page.libelle}`),
+  ];
+
+  return buildHead({
+    title,
+    description,
+    keywords: [`avis ${page.libelle}`, `note ${page.libelle}`, "avis vérifiés", "réputation"].join(", "),
+    canonical: url,
+    type: "website",
+    lang: meta.lang,
+    jsonLd,
   });
 }
 
@@ -472,6 +567,7 @@ export async function injectAnnonceSeo(req: Request, html: string): Promise<stri
       pageHead = await annonceSeoHead(Number(vm[1]), baseUrl, domainKey);
     }
     if (!pageHead) pageHead = await garageSeoHead(path, baseUrl, domainKey);
+    if (!pageHead) pageHead = await reputationSeoHead(path, baseUrl, domainKey);
     if (!pageHead) pageHead = await seoPageHead(path, baseUrl, domainKey);
     if (!pageHead) pageHead = staticSeoHead(path, baseUrl, domainKey);
   } catch {
@@ -571,6 +667,7 @@ export async function sitemapXml(req: Request, res: Response) {
   const nAnnoncePages = Math.max(1, Math.ceil(nbAnnonces / SITEMAP_PAGE_SIZE));
   for (let i = 1; i <= nAnnoncePages; i++) children.push(`${baseUrl}/sitemap-annonces-${i}.xml`);
   children.push(`${baseUrl}/sitemap-garages.xml`);
+  children.push(`${baseUrl}/sitemap-avis.xml`);
   const nSeoPages = Math.max(1, Math.ceil(nbPages / SITEMAP_PAGE_SIZE));
   for (let i = 1; i <= nSeoPages; i++) children.push(`${baseUrl}/sitemap-pages-${i}.xml`);
   children.push(`${baseUrl}/sitemap-blog.xml`);
@@ -595,6 +692,24 @@ export async function sitemapStatic(req: Request, res: Response) {
   const paths = new Set<string>(["/", ...meta.staticPaths, ...Object.keys(STATIC_SEO)]);
   const urls = [...paths].map((p) =>
     xmlUrl(`${baseUrl}${p}`, { changefreq: p === "/" ? "daily" : "weekly", priority: p === "/" ? "1.0" : "0.8" }),
+  );
+  sendUrlset(res, urls);
+}
+
+/**
+ * Point 57 — sitemap des pages d'avis. Seuls les univers ayant réellement des
+ * avis publics y figurent : soumettre une page vide à Google ne sert à rien.
+ */
+export async function sitemapAvis(req: Request, res: Response) {
+  const baseUrl = baseUrlFrom(req);
+  let rows: { univers: string; avis: number }[] = [];
+  try {
+    rows = await universWithPublicReviews();
+  } catch {
+    rows = [];
+  }
+  const urls = rows.map((u) =>
+    xmlUrl(`${baseUrl}/avis/${u.univers}`, { changefreq: "daily", priority: "0.6" }),
   );
   sendUrlset(res, urls);
 }

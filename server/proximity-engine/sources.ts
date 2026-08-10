@@ -40,6 +40,11 @@ export interface LocalService {
   source: LocalSource | null;
   /** Pourquoi ce service n'a pas encore de source, quand c'est le cas. */
   missingReason?: string;
+  /**
+   * `target_type` des avis portant sur ces prestataires (point 53). Absent =
+   * la réputation n'entre pas dans le classement de ce service.
+   */
+  reviewTargetType?: string;
 }
 
 export const LOCAL_SERVICES: LocalService[] = [
@@ -61,6 +66,7 @@ export const LOCAL_SERVICES: LocalService[] = [
       phoneColumn: "phone",
       addressColumn: "address_line",
     },
+    reviewTargetType: "garage",
   },
   {
     code: "comptable",
@@ -97,6 +103,7 @@ export const LOCAL_SERVICES: LocalService[] = [
       phoneColumn: "telephone",
       addressColumn: "adresse",
     },
+    reviewTargetType: "boutique_pieces",
   },
   {
     code: "controle_technique",

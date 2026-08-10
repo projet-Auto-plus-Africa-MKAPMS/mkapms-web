@@ -73,6 +73,10 @@ export const agentChangeLog = pgTable(
     reviewedAt: timestamp("reviewed_at"),
     reviewNote: text("review_note"),
     metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    /** Points 67-68 : verdict de l'analyse automatique du dépôt. */
+    impactVerdict: varchar("impact_verdict", { length: 32 }),
+    impactFindings: jsonb("impact_findings").$type<Record<string, unknown>>(),
+    impactAt: timestamp("impact_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
