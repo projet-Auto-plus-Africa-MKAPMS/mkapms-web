@@ -357,6 +357,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Centre de Résilience — PDG + Directeur (points 73-74-76-77-78) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">R&eacute;silience &amp; garde-fous</h2>
+        <p className="text-xs text-slate-500">Ouverture au public, actions critiques, passage avant production, auto-r&eacute;paration, le&ccedil;ons</p>
+        <Link to="/admin/resilience" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F6DF;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre de R&eacute;silience</p>
+            <p className="text-xs text-white/60">Fermer au public sans rien d&eacute;truire &mdash; et ne jamais ex&eacute;cuter une action critique sur un clic</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Système Intelligent MKA.P-MS — visible PDG + Directeur/Direction */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">

@@ -31,6 +31,7 @@ import {
 } from "./seo.js";
 import { aiAnswersFeed } from "./visibility-os/geo-engine.js";
 import { domainMiddleware, domainHandler, domainsListHandler } from "./domain.js";
+import { publicWriteGate } from "./resilience/gate.js";
 import { env, isProd } from "./env.js";
 import { readFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
@@ -271,6 +272,8 @@ app.get("/api/health/db", async (_req, res) => {
 
 app.use(
   "/api/trpc",
+  // Point 73 — fermeture au public réellement appliquée (l'administration passe).
+  publicWriteGate,
   createExpressMiddleware({ router: appRouter, createContext }),
 );
 

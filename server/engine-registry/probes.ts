@@ -101,6 +101,16 @@ export const ENGINE_PROBES: EngineProbe[] = [
     engine: "politique_pays",
     tables: ["cpe_rules", "cpe_evaluations"],
   },
+  {
+    engine: "resilience",
+    tables: [
+      "rs_emergency_scopes",
+      "rs_emergency_events",
+      "rs_critical_requests",
+      "rs_pipeline_runs",
+      "rs_failure_lessons",
+    ],
+  },
   { engine: "finance", tables: ["finance_documents", "finance_transactions", "payments"] },
   { engine: "encheres", tables: ["annonces", "payments"] },
   { engine: "auction_engine", tables: ["auctions", "auction_bids", "auction_events"] },

@@ -108,6 +108,7 @@ import { googleBusinessRouter } from "./connectors/google-business/index.js";
 // Automotive Knowledge Engine (points 60-63, 83, 87)
 import { knowledgeEngineRouter } from "./knowledge-engine/index.js";
 import { countryPolicyRouter } from "./country-policy/index.js";
+import { resilienceRouter } from "./resilience/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -230,6 +231,7 @@ export const appRouter = router({
   // Points 60-63 — mémoire automobile reliée, sourcée et datée
   knowledgeEngine: knowledgeEngineRouter,
   countryPolicy: countryPolicyRouter,
+  resilience: resilienceRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

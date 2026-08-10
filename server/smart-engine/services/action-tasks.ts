@@ -19,6 +19,10 @@
  * Point 66 : avant toute exécution, le Country Policy Engine est interrogé.
  * Une action réglementée dont la règle du pays n'est pas confirmée n'est pas
  * exécutée « en attendant » — elle repart en validation humaine.
+ *
+ * Points 73-74-78 : la plateforme fermée en urgence n'exécute plus d'action de
+ * fond, une action critique attend une confirmation ressaisie, et chaque échec
+ * devient une leçon consultable avant la tentative suivante.
  */
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../db.js";
@@ -30,6 +34,14 @@ import { runQualityAudit } from "./quality-engine.js";
 import { runAlertScan } from "./alert-engine.js";
 import { logActivity } from "./activity-log.js";
 import { evaluateAction } from "../../country-policy/service.js";
+import {
+  classifyRisk,
+  lessonFor,
+  publicAccess,
+  recordFailure,
+  requestCriticalConfirmation,
+} from "../../resilience/service.js";
+import { rsCriticalRequests } from "../../resilience/schema.js";
 
 /** Étapes du cycle de vie, dans l'ordre. */
 export const TASK_STEPS = [
@@ -368,12 +380,74 @@ export async function runActionTask(
     return { status: "manuel_requis", detail: raison };
   }
 
-  if (task.riskLevel >= 3) {
-    const raison =
-      "Action de niveau critique (point 74) : elle exige une confirmation renforcée et n'est jamais lancée automatiquement.";
+  // Point 73 — en urgence, la plateforme ne lance plus d'action de fond : seule
+  // la remise en service compte tant que l'urgence dure.
+  const acces = await publicAccess({ countryCode: task.countryCode });
+  if (acces.level === "urgence") {
+    const raison = `Plateforme en urgence (${acces.scopeKey}) : aucune action de fond n'est lancée tant que le service n'est pas rétabli.`;
     await setStatus("manuel_requis", { failureReason: raison });
     await addStep({ taskId: id, step: "planifie", status: "info", detail: raison, actorId });
     return { status: "manuel_requis", detail: raison };
+  }
+
+  // Point 74 — niveau 3 : jamais sur un clic. Une demande de confirmation
+  // renforcée est ouverte, et l'action attend qu'elle soit ressaisie.
+  const niveau = classifyRisk(task.actionType, task.riskLevel as 1 | 2 | 3);
+  if (niveau >= 3) {
+    const [confirmee] = await db
+      .select({ id: rsCriticalRequests.id })
+      .from(rsCriticalRequests)
+      .where(
+        and(
+          eq(rsCriticalRequests.actionType, task.actionType),
+          eq(rsCriticalRequests.status, "confirme"),
+        ),
+      )
+      .limit(1);
+
+    if (!confirmee) {
+      const demande = await requestCriticalConfirmation({
+        actionType: task.actionType,
+        title: task.title,
+        impact:
+          task.failureReason ??
+          `Action de niveau critique déclenchée depuis le Centre d'Actions (tâche #${id}).`,
+        reversible: false,
+        countryCode: task.countryCode,
+        params: task.params ?? {},
+        requestedBy: actorId ?? 0,
+      });
+      const raison =
+        `Action de niveau critique (point 74) : confirmation renforcée requise. ` +
+        `Ressaisir « ${demande.challenge} » dans le Centre de Résilience avant exécution.`;
+      await setStatus("manuel_requis", { failureReason: raison });
+      await addStep({ taskId: id, step: "planifie", status: "info", detail: raison, actorId });
+      return { status: "manuel_requis", detail: raison };
+    }
+
+    await db
+      .update(rsCriticalRequests)
+      .set({ status: "consomme", consumedAt: new Date() })
+      .where(eq(rsCriticalRequests.id, confirmee.id));
+    await addStep({
+      taskId: id,
+      step: "planifie",
+      status: "ok",
+      detail: "Confirmation renforcée présente : l'action critique est autorisée une seule fois.",
+      actorId,
+    });
+  }
+
+  // Point 78 — ce que la plateforme a déjà appris sur cette action.
+  const lecon = await lessonFor(`action:${task.actionType}`);
+  if (lecon?.solution) {
+    await addStep({
+      taskId: id,
+      step: "planifie",
+      status: "info",
+      detail: `Déjà rencontré ${lecon.occurrences} fois — cause connue : ${lecon.cause ?? "non établie"}. Solution mémorisée : ${lecon.solution}`,
+      actorId,
+    });
   }
 
   await setStatus("planifie");
@@ -391,6 +465,12 @@ export async function runActionTask(
     const raison = (err as Error).message || "Erreur inconnue pendant l'exécution.";
     await setStatus("echec", { failureReason: raison, finishedAt: new Date() });
     await addStep({ taskId: id, step: "en_cours", status: "echec", detail: raison, actorId });
+    await recordFailure({
+      signature: `action:${task.actionType}`,
+      source: "action_pdg",
+      countryCode: task.countryCode,
+      problem: `Exécution interrompue par une erreur : ${raison}`,
+    });
     return { status: "echec", detail: raison };
   }
 
@@ -407,6 +487,12 @@ export async function runActionTask(
       detail: outcome.detail,
       evidence: outcome.evidence,
       actorId,
+    });
+    await recordFailure({
+      signature: `action:${task.actionType}`,
+      source: "action_pdg",
+      countryCode: task.countryCode,
+      problem: outcome.detail,
     });
     return { status: "echec", detail: outcome.detail };
   }
@@ -429,6 +515,13 @@ export async function runActionTask(
       finishedAt: new Date(),
     });
     await addStep({ taskId: id, step: "verifie", status: "echec", detail: verified.detail, actorId });
+    await recordFailure({
+      signature: `action:${task.actionType}:verification`,
+      source: "action_pdg",
+      countryCode: task.countryCode,
+      problem: `Exécution effectuée mais vérification échouée : ${verified.detail}`,
+      cause: "L'effet attendu n'est pas retrouvé en base après exécution.",
+    });
     return { status: "echec", detail: verified.detail };
   }
 

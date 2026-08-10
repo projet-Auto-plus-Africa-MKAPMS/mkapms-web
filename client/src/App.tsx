@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import Layout from "./components/Layout";
+import MaintenanceGate from "./components/MaintenanceGate";
 import { useAuth } from "./lib/auth";
 import { trpc } from "./lib/trpc";
 import { useDomain } from "./lib/domain";
@@ -185,6 +186,7 @@ const CentreReputation = lazy(() => import("./pages/CentreReputation"));
 const CentreActions = lazy(() => import("./pages/CentreActions"));
 const CentreConnaissance = lazy(() => import("./pages/CentreConnaissance"));
 const CentreReglesPays = lazy(() => import("./pages/CentreReglesPays"));
+const CentreResilience = lazy(() => import("./pages/CentreResilience"));
 const AvisUnivers = lazy(() => import("./pages/AvisUnivers"));
 const MiniPlateformes = lazy(() => import("./pages/MiniPlateformes"));
 const PartenairesPilotage = lazy(() => import("./pages/PartenairesPilotage"));
@@ -792,6 +794,7 @@ export default function App() {
       <SmartRouter />
       <SmartTracker />
       <Layout>
+        <MaintenanceGate>
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<DomainHome />} />
@@ -1174,6 +1177,7 @@ export default function App() {
             <Route path="/admin/actions" element={<U name="Centre d'Actions"><CentreActions /></U>} />
             <Route path="/admin/connaissance" element={<U name="Mémoire automobile"><CentreConnaissance /></U>} />
             <Route path="/admin/regles-pays" element={<U name="Règles par pays"><CentreReglesPays /></U>} />
+            <Route path="/admin/resilience" element={<U name="Centre de Résilience"><CentreResilience /></U>} />
             <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
             <Route path="/superadmin/mini-plateformes" element={<U name="Univers en mini-plateformes"><MiniPlateformes /></U>} />
             <Route path="/superadmin/partenaires" element={<U name="Réseau partenaires"><PartenairesPilotage /></U>} />
@@ -1539,6 +1543,7 @@ export default function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+        </MaintenanceGate>
       </Layout>
     </>
   );
