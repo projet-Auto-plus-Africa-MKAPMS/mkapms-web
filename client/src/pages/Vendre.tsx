@@ -306,6 +306,10 @@ export default function Vendre() {
   const [openEqCats, setOpenEqCats] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadingCats, setUploadingCats] = useState<Record<string, boolean>>({});
+  // Progression détaillée par catégorie (compteur "3/5" + % global)
+  const [uploadProgress, setUploadProgress] = useState<Record<string, { done: number; total: number; pct: number }>>({});
+  // AbortController pour permettre l'annulation d'un upload en cours
+  const uploadAborts = useRef<Record<string, AbortController>>({});
   const photoInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   // Reprise des photos envoyées depuis l'écran de guidage photo du portail :
@@ -329,31 +333,67 @@ export default function Vendre() {
     const list = Array.from(files);
     if (!list.length) return;
     setUploadingCats(p => ({ ...p, [catKey]: true }));
+    setUploadProgress(p => ({ ...p, [catKey]: { done: 0, total: list.length, pct: 0 } }));
     setUploadError(null);
+    const controller = new AbortController();
+    uploadAborts.current[catKey] = controller;
     try {
+      // Étape 1 : préparation (normalisation HEIC + compression) — 30% du poids
       const prepared = await normalizeImages(list);
+      setUploadProgress(p => ({ ...p, [catKey]: { done: 0, total: prepared.length, pct: 30 } }));
+      // Étape 2 : envoi via XHR pour capter le vrai % réseau
       const fd = new FormData();
       for (const f of prepared) fd.append("files", f);
       const token = getToken();
-      const resp = await fetch("/api/upload", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, body: fd });
-      if (resp.ok) {
-        const data = await resp.json();
-        const urls = ((data.files || []) as { url: string }[]).map(f => f.url);
-        setPhotoUrls(p => ({ ...p, [catKey]: [...(p[catKey] || []), ...urls] }));
-        // Envoi partiel : les photos valides sont conservées,
-        // on nomme précisément celles qui ont été refusées.
-        const rejected = (data.errors || []) as { originalName: string; error: string }[];
-        if (rejected.length) setUploadError(rejected.map(r => `${r.originalName} : ${r.error}`).join(" ; "));
-      } else {
-        const err = await resp.json().catch(() => ({}));
-        setUploadError(err.error || "Erreur lors de l'upload des photos");
-      }
+      const data = await new Promise<{ files?: { url: string }[]; errors?: { originalName: string; error: string }[] }>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/upload");
+        if (token) xhr.setRequestHeader("authorization", `Bearer ${token}`);
+        xhr.upload.onprogress = (ev) => {
+          if (ev.lengthComputable) {
+            // 30% (préparation) → 30% + 65% × ratio réseau = jusqu'à 95%
+            const netPct = Math.round((ev.loaded / ev.total) * 65);
+            setUploadProgress(p => ({ ...p, [catKey]: { done: Math.floor((netPct / 65) * prepared.length), total: prepared.length, pct: 30 + netPct } }));
+          }
+        };
+        xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch { reject(new Error("Réponse invalide")); } };
+        xhr.onerror = () => reject(new Error("Erreur réseau lors de l'upload"));
+        xhr.onabort = () => reject(new Error("Envoi annulé"));
+        controller.signal.addEventListener("abort", () => xhr.abort());
+        xhr.send(fd);
+      });
+      const urls = ((data.files || []) as { url: string }[]).map(f => f.url);
+      setPhotoUrls(p => ({ ...p, [catKey]: [...(p[catKey] || []), ...urls] }));
+      setUploadProgress(p => ({ ...p, [catKey]: { done: prepared.length, total: prepared.length, pct: 100 } }));
+      // Envoi partiel : les photos valides sont conservées, on nomme les rejets.
+      const rejected = (data.errors || []) as { originalName: string; error: string }[];
+      if (rejected.length) setUploadError(rejected.map(r => `${r.originalName} : ${r.error}`).join(" ; "));
     } catch (e) {
-      setUploadError((e as Error).message || "Erreur réseau lors de l'upload");
+      if ((e as Error).message !== "Envoi annulé") {
+        setUploadError((e as Error).message || "Erreur réseau lors de l'upload");
+      }
     } finally {
       setUploadingCats(p => ({ ...p, [catKey]: false }));
+      delete uploadAborts.current[catKey];
+      // Efface la progression après 1,5s pour laisser l'utilisateur voir "100%"
+      setTimeout(() => setUploadProgress(p => { const n = { ...p }; delete n[catKey]; return n; }), 1500);
     }
   }, []);
+
+  // Annulation d'un upload en cours (bannière globale ou overlay par case)
+  const cancelUpload = useCallback((catKey: string) => {
+    uploadAborts.current[catKey]?.abort();
+  }, []);
+
+  // Progression globale agrégée (bannière flottante en bas d'écran)
+  const globalProgress = useMemo(() => {
+    const entries = Object.entries(uploadProgress);
+    if (!entries.length) return null;
+    const totalDone = entries.reduce((s, [, v]) => s + v.done, 0);
+    const totalAll = entries.reduce((s, [, v]) => s + v.total, 0);
+    const avgPct = Math.round(entries.reduce((s, [, v]) => s + v.pct, 0) / entries.length);
+    return { totalDone, totalAll, avgPct, activeCats: entries.length };
+  }, [uploadProgress]);
 
   /* Catégorie d'annonce (admin/employee only) */
   const isAdminOrEmployee = user?.role === "admin" || user?.role === "super_admin" || user?.role === "employee";
@@ -717,7 +757,10 @@ export default function Vendre() {
         codePostal: form.codePostal || undefined,
         contactTelephone: form.contactTelephone || undefined,
         description: form.description || undefined,
-        photos: allPhotos.length > 0 ? allPhotos : undefined,
+        // En édition, on envoie TOUJOURS le tableau exact des photos actuelles
+        // (y compris vide) pour permettre la suppression volontaire de toutes
+        // les photos. L'ancien fallback ...:undefined empêchait de vider.
+        photos: allPhotos,
         couleur: form.couleur || undefined,
         portes: form.portes ? Number(form.portes) : undefined,
         places: form.places ? Number(form.places) : undefined,
@@ -763,7 +806,7 @@ export default function Vendre() {
         codePostal: form.codePostal || undefined,
         contactTelephone: form.contactTelephone || undefined,
         description: form.description || undefined,
-        photos: allPhotos.length > 0 ? allPhotos : photos,
+        photos: allPhotos.length > 0 ? allPhotos : undefined,
         couleur: form.couleur || undefined,
         portes: form.portes ? Number(form.portes) : undefined,
         places: form.places ? Number(form.places) : undefined,
@@ -1755,7 +1798,28 @@ export default function Vendre() {
                   {isUploading ? (
                     <div className="flex flex-col items-center gap-2">
                       <svg className="h-6 w-6 animate-spin text-[#D4AF37]" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" /><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg>
-                      <span className="text-[10px] font-semibold text-[#D4AF37]">Upload…</span>
+                      <span className="text-[10px] font-semibold text-[#D4AF37]">
+                        {uploadProgress[cat.key]
+                          ? `${uploadProgress[cat.key].done}/${uploadProgress[cat.key].total} · ${uploadProgress[cat.key].pct}%`
+                          : "Upload…"}
+                      </span>
+                      {/* Bouton Annuler (visible dès qu'un upload est en cours) */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); cancelUpload(cat.key); }}
+                        className="mt-1 text-[9px] font-bold text-red-600 underline underline-offset-2"
+                        data-testid={`cancel-upload-${cat.key}`}
+                      >
+                        Annuler
+                      </button>
+                      {/* Barre de progression dorée MKA.P-MS */}
+                      {uploadProgress[cat.key] && (
+                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/10">
+                          <div
+                            className="h-full bg-gradient-to-r from-[#FFD700] to-[#B78D00] transition-all duration-200"
+                            style={{ width: `${uploadProgress[cat.key].pct}%` }}
+                          />
+                        </div>
+                      )}
                     </div>
                   ) : catPhotos.length > 0 ? (
                     <>
@@ -2143,6 +2207,48 @@ export default function Vendre() {
           <p className="text-xs text-[#9CA3AF] text-center pb-6">
             Des options de mise en avant (Boost, Premium) seront proposées après la publication.
           </p>
+        </div>
+      )}
+
+      {/* ═══ Bannière globale de progression des uploads ═══
+          Visible en bas d'écran (mobile + desktop + PWA) dès qu'un upload
+          est en cours. Style or MKA.P-MS. Compteur + % + bouton Annuler. */}
+      {globalProgress && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-50 px-3 pb-3 pointer-events-none sm:bottom-4 sm:inset-x-auto sm:right-4 sm:w-96 sm:px-0"
+          data-testid="upload-progress-banner"
+        >
+          <div className="pointer-events-auto rounded-2xl border border-[#D4AF37]/50 bg-[#0B0B0F] px-4 py-3 shadow-2xl backdrop-blur-md">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <svg className="h-4 w-4 animate-spin text-[#FFD700] shrink-0" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                    <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                  </svg>
+                  <span className="text-xs font-bold text-[#FFD700] uppercase tracking-wide">Envoi photos</span>
+                </div>
+                <p className="mt-1 text-xs text-white/90">
+                  <span className="font-bold text-white">{globalProgress.totalDone}/{globalProgress.totalAll}</span>
+                  <span className="text-white/60"> · </span>
+                  <span className="font-bold text-[#FFD700]">{globalProgress.avgPct}%</span>
+                </p>
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#FFD700] via-[#FFEB80] to-[#B78D00] transition-all duration-200"
+                    style={{ width: `${globalProgress.avgPct}%` }}
+                  />
+                </div>
+              </div>
+              <button
+                onClick={() => Object.keys(uploadAborts.current).forEach(k => cancelUpload(k))}
+                className="shrink-0 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-[11px] font-bold text-red-300 hover:bg-red-500/20"
+                data-testid="cancel-all-uploads"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
