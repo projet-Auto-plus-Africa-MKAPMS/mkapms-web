@@ -19,6 +19,7 @@
  * images fournies par la marque.
  */
 import type { ImgHTMLAttributes } from "react";
+import { WordmarkMKAPMS } from "./WordmarkMKAPMS";
 type LogoVariant = "open" | "closed";
 const SRC: Record<LogoVariant, string> = {
   open: "/logo-open.png",
@@ -28,7 +29,6 @@ const ALT: Record<LogoVariant, string> = {
   open: "MKA.P-MS — logo officiel (état ouvert / visiteur)",
   closed: "MKA.P-MS — logo officiel (état fermé / membre)",
 };
-const WORDMARK_SRC = "/brand/wordmark.png";
 /** Slogan officiel « PROTÉGER · RELIER · SERVIR LE MONDE ENTIER » (image charte). */
 const SLOGAN_SRC = "/brand/slogan.png";
 export interface LogoProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt"> {
@@ -62,12 +62,11 @@ export function Logo({
         {...rest}
       />
       {withWordmark && (
-        <img
-          src={WORDMARK_SRC}
-          alt="MKA.P-MS"
-          style={{ height: Math.max(20, Math.round(size * 1.05)), width: "auto", display: "block", overflow: "visible", marginTop: -10 }}
+        <WordmarkMKAPMS
+          height={Math.max(20, Math.round(size * 1.05))}
+          withGlowLine
+          style={{ marginTop: -10 }}
           className="select-none"
-          draggable={false}
         />
       )}
       {withSlogan && (
