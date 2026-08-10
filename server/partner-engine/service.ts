@@ -16,7 +16,7 @@ import { and, count, desc, eq, gte, ilike, inArray, isNull, or, sql } from "driz
 import { db } from "../db.js";
 import { newsletterSubscribers, partners, seoPages } from "../schema.js";
 import { smartSearchLogs } from "../smart-engine/schema.js";
-import { notifyEvent } from "../notification-os/triggers.js";
+import { notifyDirection, notifyEvent } from "../notification-os/triggers.js";
 import { ingest } from "../visibility-os/index.js";
 import {
   partnerApplications,
@@ -107,6 +107,20 @@ export async function applyAsPartner(input: ApplyInput): Promise<ApplyResult> {
       });
     } catch { /* notification best-effort */ }
   }
+
+  // Une candidature que personne ne voit reste sans réponse : la direction est
+  // prévenue même si le candidat n'a pas de compte.
+  try {
+    await notifyDirection(
+      "partenaire_candidature_recue",
+      {
+        metier: input.profession,
+        societe: input.companyName,
+        zone: input.city ? `${input.city} (${input.countryCode})` : input.countryCode,
+      },
+      "/superadmin/partenaires",
+    );
+  } catch { /* notification best-effort */ }
 
   return {
     id: app.id,
@@ -552,16 +566,17 @@ export async function detectOpportunities(periodDays = 30): Promise<DetectResult
 
         if (priority === "critique") {
           try {
-            await notifyEvent({
-              userId: 0,
-              event: "opportunite_partenaire",
-              vars: {
+            // Opportunité de zone : elle n'appartient à aucun client, elle
+            // s'adresse à la direction.
+            await notifyDirection(
+              "opportunite_partenaire",
+              {
                 service: svc.label,
                 zone: city ? `${city} (${countryCode})` : countryCode,
                 detail: `${demand} recherche(s) sur ${periodDays} jours, ${partnersAvailable} partenaire(s) disponible(s).`,
               },
-              url: `/superadmin/partenaires?opportunite=${row.id}`,
-            });
+              `/superadmin/partenaires?opportunite=${row.id}`,
+            );
           } catch { /* notification best-effort */ }
         }
       }

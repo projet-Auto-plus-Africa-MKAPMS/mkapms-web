@@ -15,7 +15,9 @@
  *
  * 100 % additif — n'écrit que dans les tables engine_* du registre.
  */
+import { notifyDirection } from "../notification-os/triggers.js";
 import { ENGINE_CONTRACTS, type EngineContract } from "./contracts.js";
+import { recordState, remember } from "./memory.js";
 import { bridgeOsEngines } from "./os-bridge.js";
 import { ENGINE_PROBES, runProbe } from "./probes.js";
 import {
@@ -166,6 +168,26 @@ async function probeBusinessEngines(): Promise<void> {
         message: result.message,
         metrics: result.metrics,
       });
+      // Mémoire du moteur (point 40) : l'état est conservé, et seul un vrai
+      // changement d'état alerte la direction — sinon la même panne serait
+      // renotifiée à chaque passage de sonde.
+      const state = await recordState(probe.engine, result.health, result.message);
+      if (state.changed && result.health === "down") {
+        await remember({
+          engineKey: probe.engine,
+          scope: "anomalie",
+          kind: "hors_service",
+          refKey: result.message ?? "hors service",
+          label: result.message ?? "Moteur hors service",
+          value: { health: result.health, metrics: result.metrics ?? null },
+        });
+        await notifyDirection(
+          "moteur_hors_service",
+          { moteur: probe.engine, detail: result.message ?? "Sonde en échec." },
+          "/admin/moteurs",
+        );
+      }
+
       // Une incapacité réelle est remontée au Core et au Système Intelligent
       // pour analyse ; la simple charge métier ne l'est pas.
       if (result.health !== "ok") {

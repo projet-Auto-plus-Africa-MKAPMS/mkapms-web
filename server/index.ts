@@ -571,6 +571,26 @@ async function bootstrap() {
   }
   setTimeout(() => void partnerTick(), 5 * 60 * 1000);
   setInterval(() => void partnerTick(), 6 * 60 * 60 * 1000);
+
+  // Rapport quotidien de la direction (point 39) — il n'était calculé qu'à
+  // l'ouverture de l'écran : aucune trace et rien de remis si personne ne le
+  // consultait. Il est désormais archivé et remis chaque soir avant 23 h. Le
+  // cycle est idempotent : un rapport déjà remis n'est pas renvoyé.
+  async function dailyReportDeliveryTick() {
+    try {
+      const { dailyReportTick } = await import("./smart-engine/services/daily-report-delivery.js");
+      const r = await dailyReportTick();
+      if (r) {
+        console.log(
+          `[rapport] rapport du ${r.date} : ${r.status}, ${r.anomalies} anomalie(s) dont ${r.critiques} critique(s)`,
+        );
+      }
+    } catch (e) {
+      console.error("[rapport]", (e as Error).message);
+    }
+  }
+  setTimeout(() => void dailyReportDeliveryTick(), 10 * 60 * 1000);
+  setInterval(() => void dailyReportDeliveryTick(), 30 * 60 * 1000);
 }
 
 bootstrap();

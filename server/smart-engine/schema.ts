@@ -10,6 +10,7 @@
 import {
   bigserial,
   boolean,
+  date,
   integer,
   jsonb,
   pgEnum,
@@ -435,4 +436,22 @@ export const smartStaging = pgTable("smart_staging", {
   reviewedAt: timestamp("reviewed_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ── Rapport quotidien archivé et remis à la direction (point 39) ────────
+// Le rapport n'était calculé qu'à l'ouverture de l'écran : aucune trace, et
+// rien n'était remis si personne ne le consultait. Une ligne par jour.
+export const smartDailyReports = pgTable("smart_daily_reports", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  // Date du rapport (une seule par jour) au format YYYY-MM-DD.
+  reportDate: date("report_date").notNull().unique(),
+  generatedAt: timestamp("generated_at").notNull().defaultNow(),
+  summary: jsonb("summary").$type<Record<string, unknown>>().notNull(),
+  anomalies: jsonb("anomalies").$type<Record<string, unknown>[]>().notNull().default([]),
+  suggestions: jsonb("suggestions").$type<Record<string, unknown>[]>().notNull().default([]),
+  // en_attente | remis | sans_destinataire | echec
+  deliveryStatus: varchar("delivery_status", { length: 16 }).notNull().default("en_attente"),
+  deliveredAt: timestamp("delivered_at"),
+  recipients: jsonb("recipients").$type<number[]>().notNull().default([]),
+  deliveryError: text("delivery_error"),
 });

@@ -9,10 +9,9 @@
  * n'est pas recréée à chaque passage, sinon la direction recevrait la même
  * alerte indéfiniment.
  */
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../db.js";
-import { users } from "../schema.js";
-import { notifyEvent } from "../notification-os/triggers.js";
+import { notifyDirection } from "../notification-os/triggers.js";
 import { DETECTORS, type DetectedAnomaly, type Severity } from "./detectors.js";
 import { financeAnomalies } from "./schema.js";
 
@@ -39,15 +38,6 @@ async function runDetectors(): Promise<{
     }
   }
   return { found, failed };
-}
-
-/** Destinataires des alertes : direction et PDG. */
-async function directionUserIds(): Promise<number[]> {
-  const rows = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(inArray(users.role, ["super_admin", "admin"]));
-  return rows.map((r) => r.id);
 }
 
 export async function analyzeFinances(): Promise<AnalysisResult> {
@@ -94,22 +84,18 @@ export async function analyzeFinances(): Promise<AnalysisResult> {
   // Seules les nouvelles anomalies critiques déclenchent une alerte : le but
   // n'est pas d'envoyer 500 notifications, mais de ne rien laisser silencieux.
   if (critiques.length > 0) {
-    const recipients = await directionUserIds();
     const resume = critiques
       .slice(0, 5)
       .map((c) => `${c.code} (${c.entityType} ${c.entityId})`)
       .join(", ");
-    for (const userId of recipients) {
-      await notifyEvent({
-        userId,
-        event: "anomalie_financiere",
-        vars: {
-          severite: "critique",
-          detail: `${critiques.length} anomalie(s) critique(s) : ${resume}.`,
-        },
-        url: "/admin/finance-anomalies",
-      });
-    }
+    await notifyDirection(
+      "anomalie_financiere",
+      {
+        severite: "critique",
+        detail: `${critiques.length} anomalie(s) critique(s) : ${resume}.`,
+      },
+      "/admin/finance-anomalies",
+    );
   }
 
   return {

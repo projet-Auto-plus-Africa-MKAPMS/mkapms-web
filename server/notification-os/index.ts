@@ -23,7 +23,7 @@ import { publicProcedure, protectedProcedure, adminProcedure, router } from "../
 import type { ControlCenterFeed, EngineDashboard, MaturityLevel } from "../identity-os/contract.js";
 import { listTriggers, notifyEvent } from "./triggers.js";
 
-export { notifyEvent, NOTIFICATION_TRIGGERS } from "./triggers.js";
+export { notifyEvent, notifyDirection, directionRecipients, NOTIFICATION_TRIGGERS } from "./triggers.js";
 export type { NotificationEvent, NotifyEventInput } from "./triggers.js";
 
 // ── Schéma ──────────────────────────────────────────────────────────────
@@ -177,6 +177,50 @@ export async function dispatch(input: {
   return { status: "queued" as const, dispatchId: row.id, rendered, subject };
 }
 
+/**
+ * Couverture des déclencheurs : un déclencheur déclaré mais jamais déclenché
+ * signale un événement métier qui ne prévient personne. La mesure repose sur
+ * le journal d'envoi, donc un déclencheur purement in-app n'est pas mesurable
+ * par ce biais — il est marqué comme tel plutôt que présenté comme inutilisé.
+ */
+export async function triggerCoverage(days = 30) {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const counts = new Map<string, number>();
+  try {
+    const rows = await db
+      .select({ key: notifDispatchLog.templateKey, n: sql<number>`count(*)::int` })
+      .from(notifDispatchLog)
+      .where(gt(notifDispatchLog.createdAt, since))
+      .groupBy(notifDispatchLog.templateKey);
+    for (const r of rows) if (r.key) counts.set(r.key, Number(r.n));
+  } catch {
+    return { days, mesurable: false, raison: "journal d'envoi indisponible", triggers: [] };
+  }
+  const triggers = listTriggers().map((t) => {
+    const externe = t.channels.some((c) => c !== "inapp");
+    const envois = counts.get(t.event) ?? 0;
+    return {
+      event: t.event,
+      category: t.category,
+      channels: t.channels,
+      adminAlert: t.adminAlert === true,
+      envois,
+      etat: !externe
+        ? ("non_mesurable" as const)
+        : envois > 0
+          ? ("utilise" as const)
+          : ("jamais_declenche" as const),
+    };
+  });
+  return {
+    days,
+    mesurable: true,
+    triggers,
+    jamaisDeclenches: triggers.filter((t) => t.etat === "jamais_declenche").length,
+    nonMesurables: triggers.filter((t) => t.etat === "non_mesurable").length,
+  };
+}
+
 // ── Health / Feed / Dashboard ───────────────────────────────────────────
 export async function healthStatus() {
   const s = Date.now();
@@ -235,6 +279,11 @@ export const notificationOsRouter = router({
 
   // Catalogue des déclencheurs unifiés (Phase 42).
   triggers: adminProcedure.query(() => listTriggers()),
+
+  // Couverture réelle : quels déclencheurs ne préviennent jamais personne.
+  triggerCoverage: adminProcedure
+    .input(z.object({ days: z.number().int().min(1).max(365).default(30) }).optional())
+    .query(({ input }) => triggerCoverage(input?.days ?? 30)),
 
   // Envoi via le point d'entrée unique — pour tests / usage admin.
   notifyEvent: adminProcedure

@@ -13,8 +13,9 @@
  * Ce module CONSOLIDE l'existant : la table `notifications` et le dispatch
  * multi-canaux existent déjà — on ajoute la couche « déclencheurs » unifiée.
  */
+import { inArray } from "drizzle-orm";
 import { db } from "../db.js";
-import { notifications } from "../schema.js";
+import { notifications, users } from "../schema.js";
 import { dispatch, getUserPrefs } from "./index.js";
 
 export type NotifChannel = "email" | "sms" | "push" | "inapp";
@@ -79,6 +80,9 @@ export const NOTIFICATION_TRIGGERS: Record<string, TriggerDef> = {
   anomalie_financiere: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Anomalie financière — {{severite}}", body: "{{detail}}", adminAlert: true },
   // ── Système / admin ─────────────────────────────────────────────────────
   erreur_importante: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Erreur importante", body: "{{message}}", adminAlert: true },
+  partenaire_candidature_recue: { category: "systeme", channels: ["inapp"], inappType: "systeme", title: "Nouvelle candidature partenaire — {{metier}}", body: "{{societe}} ({{zone}}) attend une décision.", adminAlert: true },
+  rapport_quotidien: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Rapport quotidien du {{date}}", body: "{{resume}}", adminAlert: true },
+  moteur_hors_service: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Moteur hors service — {{moteur}}", body: "{{detail}}", adminAlert: true },
 };
 
 export type NotificationEvent = keyof typeof NOTIFICATION_TRIGGERS;
@@ -102,6 +106,24 @@ export interface NotifyEventResult {
   event: string;
   inapp: "created" | "skipped";
   channels: { channel: NotifChannel; status: string }[];
+  /** Comptes de direction également prévenus (déclencheurs `adminAlert`). */
+  adminRecipients?: number[];
+}
+
+/**
+ * Destinataires des alertes de supervision : PDG et administration.
+ * Une alerte système sans destinataire est une alerte perdue.
+ */
+export async function directionRecipients(): Promise<number[]> {
+  try {
+    const rows = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(inArray(users.role, ["super_admin", "admin"]));
+    return rows.map((r) => r.id);
+  } catch {
+    return [];
+  }
 }
 
 /**
@@ -113,6 +135,19 @@ export async function notifyEvent(input: NotifyEventInput): Promise<NotifyEventR
   const def = NOTIFICATION_TRIGGERS[input.event];
   const vars = input.vars ?? {};
   const result: NotifyEventResult = { event: input.event, inapp: "skipped", channels: [] };
+
+  // Un déclencheur de supervision (`adminAlert`) doit atteindre la direction,
+  // qu'il concerne un client ou la plateforme elle-même. Sans destinataire
+  // client (userId absent ou 0), l'alerte partait dans le vide.
+  if (def?.adminAlert) {
+    const recipients = (await directionRecipients()).filter((id) => id !== input.userId);
+    result.adminRecipients = recipients;
+    for (const userId of recipients) {
+      await deliver({ ...input, userId }, def, vars, { event: input.event, inapp: "skipped", channels: [] });
+    }
+  }
+  if (!input.userId || input.userId <= 0) return result;
+
   if (!def) {
     // Événement inconnu : on journalise en in-app générique pour ne rien perdre.
     try {
@@ -125,6 +160,16 @@ export async function notifyEvent(input: NotifyEventInput): Promise<NotifyEventR
     return result;
   }
 
+  return deliver(input, def, vars, result);
+}
+
+/** Livraison à un destinataire précis (in-app + canaux externes). */
+async function deliver(
+  input: NotifyEventInput,
+  def: TriggerDef,
+  vars: Record<string, string | number>,
+  result: NotifyEventResult,
+): Promise<NotifyEventResult> {
   const prefs = await getUserPrefs(input.userId).catch(() => null);
   const muted = prefs ? (prefs.mutedCategories as string[]).includes(def.category) : false;
   const wanted = (input.channels ?? def.channels).filter((c) => def.channels.includes(c));
@@ -157,12 +202,39 @@ export async function notifyEvent(input: NotifyEventInput): Promise<NotifyEventR
         category: def.category,
       });
       result.channels.push({ channel, status: r.status });
-    } catch (e) {
+    } catch {
       result.channels.push({ channel, status: "failed" });
     }
   }
 
   return result;
+}
+
+/**
+ * Alerte de supervision sans destinataire client : elle part à la direction.
+ * Retourne les comptes réellement prévenus — s'il n'y en a aucun, l'appelant
+ * le sait au lieu de croire l'alerte transmise.
+ */
+export async function notifyDirection(
+  event: NotificationEvent | string,
+  vars: Record<string, string | number> = {},
+  url?: string,
+): Promise<{ event: string; recipients: number[] }> {
+  const def = NOTIFICATION_TRIGGERS[event];
+  const recipients = await directionRecipients();
+  for (const userId of recipients) {
+    if (def) {
+      await deliver({ userId, event, vars, url }, def, vars, { event, inapp: "skipped", channels: [] });
+    } else {
+      try {
+        await db.insert(notifications).values({
+          userId, type: "systeme",
+          title: String(event).slice(0, 160), body: JSON.stringify(vars).slice(0, 500), url: url ?? null,
+        });
+      } catch { /* best-effort */ }
+    }
+  }
+  return { event: String(event), recipients };
 }
 
 /** Liste le catalogue (pour le centre de contrôle PDG). */

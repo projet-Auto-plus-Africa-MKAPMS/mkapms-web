@@ -268,6 +268,15 @@ const SEVERITY_STYLE: Record<string, { badge: string; label: string }> = {
   info: { badge: "bg-blue-100 text-blue-700", label: "Info" },
 };
 
+/** Libellés de remise du rapport quotidien (point 39). */
+const DELIVERY_LABELS: Record<string, string> = {
+  en_attente: "en attente",
+  remis: "remis à la direction",
+  deja_remis: "déjà remis",
+  sans_destinataire: "archivé, aucun destinataire",
+  echec: "échec de remise",
+};
+
 /**
  * Destination réelle de chaque domaine du rapport : une anomalie signalée doit
  * mener à l'écran qui permet de la traiter, sinon le rapport reste décoratif.
@@ -282,6 +291,14 @@ const REPORT_DOMAIN_TAB: Record<string, Tab> = {
 
 function RapportTab({ onNavigate }: { onNavigate: (t: Tab) => void }) {
   const { data, isLoading, refetch, isFetching } = trpc.smartEngine.dailyReport.useQuery();
+  const delivery = trpc.smartEngine.dailyReportDelivery.useQuery();
+  const archives = trpc.smartEngine.dailyReportArchives.useQuery({ limit: 14 });
+  const send = trpc.smartEngine.sendDailyReport.useMutation({
+    onSuccess: () => {
+      delivery.refetch();
+      archives.refetch();
+    },
+  });
 
   if (isLoading) return <Loading />;
   if (!data) return <Empty msg="Rapport indisponible" />;
@@ -302,6 +319,47 @@ function RapportTab({ onNavigate }: { onNavigate: (t: Tab) => void }) {
       <p className="text-[11px] text-[#9CA3AF]">
         Généré le {new Date(data.generatedAt).toLocaleString("fr-FR")} · lecture seule (aucune action sensible).
       </p>
+
+      {/* Remise du rapport à la direction (point 39) */}
+      {delivery.data && (
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-[#111]">
+                Remise du {new Date(delivery.data.date).toLocaleDateString("fr-FR")} :{" "}
+                {DELIVERY_LABELS[delivery.data.status] ?? delivery.data.status}
+              </p>
+              <p className="mt-0.5 text-[10px] text-[#6B7280]">
+                {delivery.data.deliveredAt
+                  ? `Remis à ${delivery.data.recipients.length} compte(s) de direction le ${new Date(delivery.data.deliveredAt).toLocaleString("fr-FR")}.`
+                  : `Remise automatique prévue à partir de ${delivery.data.dueHour} h.`}
+              </p>
+              {delivery.data.error && (
+                <p className="mt-0.5 text-[10px] font-semibold text-red-600">
+                  {delivery.data.error}
+                </p>
+              )}
+              <p className="mt-0.5 text-[10px] text-[#9CA3AF]">
+                {delivery.data.archives} rapport(s) archivé(s).
+              </p>
+            </div>
+            <button
+              onClick={() => send.mutate()}
+              disabled={send.isPending}
+              className="shrink-0 rounded-full bg-[#111] px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-50"
+            >
+              {send.isPending ? "Envoi…" : "Envoyer maintenant"}
+            </button>
+          </div>
+          {send.data && (
+            <p className="mt-2 text-[10px] font-semibold text-[#D4AF37]">
+              {send.data.status === "sans_destinataire"
+                ? "Aucun compte de direction destinataire : le rapport est archivé mais n'a été remis à personne."
+                : `Rapport du ${send.data.date} remis à ${send.data.recipients.length} compte(s).`}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Synthèse */}
       <div className="grid grid-cols-3 gap-2">
@@ -374,6 +432,47 @@ function RapportTab({ onNavigate }: { onNavigate: (t: Tab) => void }) {
               </div>
             </div>
           ))
+        )}
+      </div>
+
+      {/* Historique des rapports archivés (point 39) */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-bold text-[#111]">Rapports archivés</h3>
+        {(archives.data ?? []).length === 0 ? (
+          <div className="rounded-xl border border-[#E5E7EB] bg-white p-3 text-xs text-[#9CA3AF]">
+            Aucun rapport archivé pour l'instant. Le premier sera conservé dès la
+            remise du soir.
+          </div>
+        ) : (
+          (archives.data ?? []).map((r) => {
+            const s = r.summary as {
+              anomalies?: number;
+              criticalAnomalies?: number;
+              qualityScore?: number;
+            } | null;
+            return (
+              <div
+                key={r.id}
+                className="flex items-start justify-between gap-2 rounded-xl border border-[#E5E7EB] bg-white p-3"
+              >
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-[#111]">
+                    {new Date(r.reportDate).toLocaleDateString("fr-FR")}
+                  </p>
+                  <p className="text-[10px] text-[#6B7280]">
+                    {s?.anomalies ?? 0} anomalie(s) dont {s?.criticalAnomalies ?? 0}{" "}
+                    critique(s) · qualité {s?.qualityScore ?? 0}/100
+                  </p>
+                  {r.deliveryError && (
+                    <p className="text-[10px] font-semibold text-red-600">{r.deliveryError}</p>
+                  )}
+                </div>
+                <span className="shrink-0 rounded-full bg-[#F5F3EF] px-2 py-0.5 text-[10px] font-bold text-[#374151]">
+                  {DELIVERY_LABELS[r.deliveryStatus] ?? r.deliveryStatus}
+                </span>
+              </div>
+            );
+          })
         )}
       </div>
     </div>
@@ -1776,8 +1875,63 @@ const HEALTH_UI: Record<string, { label: string; dot: string; badge: string }> =
   unknown: { label: "Inconnu", dot: "bg-gray-400", badge: "bg-gray-100 text-gray-500" },
 };
 
+/** Domaines de la mémoire des moteurs (point 40). */
+const MEMORY_SCOPE_LABELS: Record<string, string> = {
+  etat: "État",
+  anomalie: "Anomalies",
+  decision: "Décisions",
+  apprentissage: "Appris du terrain",
+  dependance: "Dépendances",
+};
+
+function memoryCount(
+  summary: { engineKey: string; total: number }[] | undefined,
+  engineKey: string,
+): number {
+  return summary?.find((s) => s.engineKey === engineKey)?.total ?? 0;
+}
+
+/**
+ * Mémoire d'un moteur : ce qu'il a réellement retenu, rangé par domaine.
+ * Lecture seule — consulter une mémoire ne déclenche aucune action.
+ */
+function EngineMemory({ engineKey }: { engineKey: string }) {
+  const memory = trpc.engineRegistry.memory.useQuery({ engine: engineKey, limit: 50 });
+  if (memory.isLoading) return <p className="mt-2 text-[10px] text-[#9CA3AF]">Lecture de la mémoire…</p>;
+  const rows = memory.data ?? [];
+  if (rows.length === 0) {
+    return (
+      <p className="mt-2 rounded-lg bg-[#F9FAFB] p-2 text-[10px] text-[#6B7280]">
+        Ce moteur n'a encore rien mémorisé. Rien n'est masqué : sa mémoire se
+        remplit à mesure qu'il constate quelque chose.
+      </p>
+    );
+  }
+  return (
+    <div className="mt-2 space-y-1">
+      {rows.map((m) => (
+        <div key={m.id} className="rounded-lg bg-[#F9FAFB] p-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="rounded-full bg-white px-2 py-0.5 text-[9px] font-bold text-[#374151]">
+              {MEMORY_SCOPE_LABELS[m.scope] ?? m.scope}
+            </span>
+            <span className="font-mono text-[9px] text-[#9CA3AF]">{m.kind}</span>
+            <span className="text-[9px] text-[#9CA3AF]">
+              {m.observations} fois · dernière fois{" "}
+              {new Date(m.lastSeenAt).toLocaleString("fr-FR")}
+            </span>
+          </div>
+          <p className="mt-0.5 text-[11px] text-[#374151]">{m.label ?? m.refKey}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function MoteursTab() {
   const engines = trpc.smartEngine.enginesOverview.useQuery();
+  const memorySummary = trpc.engineRegistry.memorySummary.useQuery();
+  const [openMemory, setOpenMemory] = useState<string | null>(null);
   // Filtre piloté par les compteurs, et mise au point sur un moteur précis
   // quand on appuie sur son nom dans la liste « à surveiller ».
   const [filtre, setFiltre] = useState<"tous" | "actifs" | "degrades">("tous");
@@ -1933,6 +2087,18 @@ function MoteursTab() {
                     Ouvrir le centre de contrôle <ExternalLink size={12} />
                   </Link>
                 )}
+
+                {/* Mémoire du moteur (point 40) */}
+                <button
+                  type="button"
+                  onClick={() => setOpenMemory(openMemory === e.key ? null : e.key)}
+                  className="mt-2 block text-[11px] font-semibold text-[#D4AF37]"
+                >
+                  {openMemory === e.key ? "Masquer la mémoire" : "Mémoire du moteur"}
+                  {" · "}
+                  {memoryCount(memorySummary.data, e.key)} constat(s) mémorisé(s)
+                </button>
+                {openMemory === e.key && <EngineMemory engineKey={e.key} />}
               </div>
             );
           })}
