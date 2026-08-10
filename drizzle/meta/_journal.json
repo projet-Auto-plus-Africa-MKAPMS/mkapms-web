@@ -498,6 +498,13 @@
       "when": 1753701900000,
       "tag": "0071_rapport_quotidien_memoire_moteurs",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1753702000000,
+      "tag": "0072_journal_modifications_agents",
+      "breakpoints": true
     }
   ]
 }

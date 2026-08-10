@@ -10,6 +10,16 @@
 import { z } from "zod";
 import { router, adminProcedure, directionProcedure, pdgProcedure } from "../trpc.js";
 import { MEMORY_SCOPES, memorySummary, recall } from "./memory.js";
+import { engineReadiness, OPERATIONAL_STATE_LABELS, registryOverview } from "./readiness.js";
+import {
+  AGENT_CHANGE_KINDS,
+  AGENT_CHANGE_STATUSES,
+  changeStats,
+  declareChange,
+  listChanges,
+  reviewChange,
+  syncAppliedMigrations,
+} from "./agent-changes.js";
 import {
   listEngines,
   getEngine,
@@ -175,5 +185,81 @@ export const engineRegistryRouter = router({
     )
     .query(async ({ input }) => {
       return recall(input.engine, input.scope, input.limit);
+    }),
+
+  // ── Registre central complet (point 41) ──────────────────────────────
+  // Cinq états opérationnels CALCULÉS (jamais déclarés), avec le motif.
+  overview: directionProcedure.query(async () => {
+    return registryOverview();
+  }),
+
+  operationalStateLabels: directionProcedure.query(() => OPERATIONAL_STATE_LABELS),
+
+  readiness: directionProcedure
+    .input(z.object({ name: z.string().min(1).max(64) }))
+    .query(async ({ input }) => {
+      return engineReadiness(input.name);
+    }),
+
+  // ── Journal des modifications d'agents (point 42) ────────────────────
+  agentChanges: directionProcedure
+    .input(
+      z
+        .object({
+          kind: z.enum(AGENT_CHANGE_KINDS).optional(),
+          status: z.enum(AGENT_CHANGE_STATUSES).optional(),
+          limit: z.number().int().min(1).max(500).default(100),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      return listChanges({
+        kind: input?.kind,
+        status: input?.status,
+        limit: input?.limit ?? 100,
+      });
+    }),
+
+  agentChangeStats: directionProcedure.query(async () => {
+    return changeStats();
+  }),
+
+  /** Relève les migrations réellement appliquées en base. Lecture seule côté métier. */
+  syncMigrations: pdgProcedure.mutation(async () => {
+    return syncAppliedMigrations();
+  }),
+
+  declareAgentChange: adminProcedure
+    .input(
+      z.object({
+        agent: z.string().min(1).max(96),
+        kind: z.enum(AGENT_CHANGE_KINDS),
+        reference: z.string().min(1).max(200),
+        title: z.string().min(1).max(240),
+        detail: z.string().max(4000).optional(),
+        engineName: z.string().max(64).optional(),
+        rollbackPlan: z.string().max(4000).optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      return declareChange(input);
+    }),
+
+  /** Décision humaine : aucun changement ne se valide tout seul. */
+  reviewAgentChange: pdgProcedure
+    .input(
+      z.object({
+        id: z.number().int().positive(),
+        decision: z.enum(["validee", "rejetee", "annulee"]),
+        note: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return reviewChange({
+        id: input.id,
+        decision: input.decision,
+        reviewerId: ctx.user.uid,
+        note: input.note,
+      });
     }),
 });
