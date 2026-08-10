@@ -5,6 +5,7 @@ import { ChevronLeft, MapPin, Car, Heart, Star, Shield } from "lucide-react";
 import MetaSEO, { generateBreadcrumbSchema } from "../components/MetaSEO";
 import SearchLine from "../components/SearchLine";
 import { useVehicleSearch } from "../lib/vehicleSearch";
+import { trpc } from "../lib/trpc";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGES LOCALES AUTOMATIQUES
@@ -24,12 +25,6 @@ const PAYS_DATA: Record<string, { villes: string[]; devise: string }> = {
   espagne: { villes: ["Madrid", "Barcelone", "Valence", "Séville", "Malaga"], devise: "€" },
 };
 
-const ANNONCES_LOCALES = [
-  { id: 1, nom: "Peugeot 206 1.4 HDi", annee: 2008, km: 145000, prix: 3500, ville: "Paris", photo: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=400&h=200&fit=crop" },
-  { id: 2, nom: "Peugeot 206 1.6 16v", annee: 2006, km: 120000, prix: 2800, ville: "Boulogne", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=200&fit=crop" },
-  { id: 3, nom: "Peugeot 206 CC 2.0", annee: 2005, km: 98000, prix: 4200, ville: "Saint-Denis", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=200&fit=crop" },
-];
-
 const ANNEES = Array.from({ length: 20 }, (_, i) => String(new Date().getFullYear() - i));
 
 export default function RechercheLocale() {
@@ -44,7 +39,34 @@ export default function RechercheLocale() {
 
   const [showFilters, setShowFilters] = useState(false);
   const search = useVehicleSearch({}, { q: modeleNom });
-  const annoncesLocales = search.filter(ANNONCES_LOCALES);
+  // Annonces réellement publiées dans cette ville : une page ville ne doit
+  // jamais afficher le stock d'une autre ville ni un exemple fabriqué.
+  // Le filtre porte sur la ville : le pays de l'adresse est un libellé
+  // (« guinee ») alors que les annonces portent un code pays, filtrer dessus
+  // masquerait du stock réel.
+  const liste = trpc.annonces.list.useQuery({
+    type: "vente" as const,
+    ville: villeNom,
+    q: search.applied.q.trim() || undefined,
+    limit: 48,
+  });
+  const annoncesLocales = search.filter(
+    (liste.data?.items ?? []).map((a: any) => ({
+      id: a.id,
+      nom: a.titre ?? [a.marque, a.modele].filter(Boolean).join(" "),
+      annee: a.annee ?? null,
+      km: a.kilometrage ?? null,
+      prix: a.prix !== null && a.prix !== undefined ? Number(a.prix) : null,
+      ville: a.ville ?? villeNom,
+      photo: a.photoPrincipale ?? null,
+      marque: a.marque ?? null,
+      modele: a.modele ?? null,
+      categorie: a.categorie ?? null,
+      carburant: a.carburant ?? null,
+      categorieAnnonce: a.categorieAnnonce ?? null,
+      vendeurType: a.vendeurType ?? null,
+    })),
+  );
 
   const title = modeleNom
     ? `${modeleNom} à ${villeNom}, ${paysNom}`
@@ -120,21 +142,39 @@ export default function RechercheLocale() {
 
       {/* Résultats */}
       <div className="px-4 mt-4">
-        <h2 className="text-sm font-bold text-[#111]">{annoncesLocales.length} annonces à {villeNom}</h2>
-        {annoncesLocales.length === 0 && (
+        <h2 className="text-sm font-bold text-[#111]">
+          {liste.isLoading ? `Annonces à ${villeNom}…` : `${annoncesLocales.length} annonce(s) à ${villeNom}`}
+        </h2>
+        {!liste.isLoading && annoncesLocales.length === 0 && (
           <p className="mt-3 rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-[#6B7280]">
-            Aucune annonce ne correspond à ces critères à {villeNom}. Modifiez ou effacez les filtres.
+            {search.activeCount > 0
+              ? `Aucune annonce ne correspond à ces critères à ${villeNom}. Modifiez ou effacez les filtres.`
+              : `Aucune annonce publiée à ${villeNom} pour le moment. Rien n'est masqué : dès qu'une annonce y est publiée, elle apparaît ici.`}
           </p>
         )}
         <div className="mt-3 space-y-2">
           {annoncesLocales.map(a => (
-            <Link key={a.id} to={getAnnonceUrl(a.id, (a as any).categorieAnnonce, (a as any).vendeurType)} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden shadow-sm active:scale-[0.98] transition">
+            <Link key={a.id} to={getAnnonceUrl(a.id, a.categorieAnnonce, a.vendeurType)} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden shadow-sm active:scale-[0.98] transition">
               <div className="flex">
-                <img src={a.photo} alt={a.nom} className="w-[120px] h-[90px] object-cover" loading="lazy" />
+                {a.photo ? (
+                  <img src={a.photo} alt={a.nom} className="w-[120px] h-[90px] object-cover" loading="lazy" />
+                ) : (
+                  <div className="flex w-[120px] h-[90px] items-center justify-center bg-[#F5F3EF] text-[9px] text-[#9CA3AF]">
+                    <Car size={18} />
+                  </div>
+                )}
                 <div className="flex-1 p-2.5">
                   <p className="text-xs font-bold text-[#111]">{a.nom}</p>
-                  <p className="text-[9px] text-[#6B7280]">{a.annee} · {a.km.toLocaleString("fr-FR")} km · {a.ville}</p>
-                  <p className="mt-1 text-sm font-black text-[#D4AF37]">{a.prix.toLocaleString("fr-FR")} {paysInfo?.devise || "€"}</p>
+                  <p className="text-[9px] text-[#6B7280]">
+                    {[
+                      a.annee ? String(a.annee) : null,
+                      a.km !== null && a.km !== undefined ? `${Number(a.km).toLocaleString("fr-FR")} km` : null,
+                      a.ville,
+                    ].filter(Boolean).join(" · ")}
+                  </p>
+                  <p className="mt-1 text-sm font-black text-[#D4AF37]">
+                    {a.prix !== null ? `${a.prix.toLocaleString("fr-FR")} ${paysInfo?.devise || "€"}` : "Prix sur demande"}
+                  </p>
                 </div>
               </div>
             </Link>
