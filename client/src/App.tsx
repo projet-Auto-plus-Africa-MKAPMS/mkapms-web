@@ -181,6 +181,8 @@ const VOInterne = lazy(() => import("./pages/VOInterne"));
 const PermissionEngineControlCenter = lazy(() => import("./pages/PermissionEngine/ControlCenter"));
 const RedirectionEngineControlCenter = lazy(() => import("./pages/RedirectionEngine/ControlCenter"));
 const EngineRegistryControlCenter = lazy(() => import("./pages/EngineRegistry/ControlCenter"));
+const CentreReputation = lazy(() => import("./pages/CentreReputation"));
+const AvisUnivers = lazy(() => import("./pages/AvisUnivers"));
 const MiniPlateformes = lazy(() => import("./pages/MiniPlateformes"));
 const PartenairesPilotage = lazy(() => import("./pages/PartenairesPilotage"));
 // MOS Control Center — pages génériques pour Identity/Country/Language/Permission
@@ -1165,6 +1167,8 @@ export default function App() {
             <Route path="/superadmin/permission-engine" element={<U name="Moteur de Permissions"><PermissionEngineControlCenter /></U>} />
             <Route path="/superadmin/redirection-engine" element={<U name="Moteur de Redirection"><RedirectionEngineControlCenter /></U>} />
             <Route path="/admin/moteurs" element={<U name="Moteurs MKA.P-MS"><EngineRegistryControlCenter /></U>} />
+            <Route path="/admin/reputation" element={<U name="Réputation & Avis"><CentreReputation /></U>} />
+            <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
             <Route path="/superadmin/mini-plateformes" element={<U name="Univers en mini-plateformes"><MiniPlateformes /></U>} />
             <Route path="/superadmin/partenaires" element={<U name="Réseau partenaires"><PartenairesPilotage /></U>} />
             {/* MOS Control Center — routes dédiées PDG + Direction */}

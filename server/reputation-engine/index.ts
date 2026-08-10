@@ -19,6 +19,9 @@ import { fraudSignals, linkedAccounts, resolveFraudSignal } from "./fraud.js";
 import { isTargetOwner } from "./ownership.js";
 import { reviewsForOwner, suggestResponse } from "./responses.js";
 import { reputationTrends } from "./trends.js";
+import { reputationCenter } from "./center.js";
+import { audienceAdvice } from "./audience.js";
+import { publicReputationPage, universWithPublicReviews } from "./public-pages.js";
 import { platformAverage, reputationForTargets } from "./ranking.js";
 
 export const REPUTATION_ENGINE_META = {
@@ -42,6 +45,18 @@ export const reputationEngineRouter = router({
       }),
     )
     .query(async ({ input }) => reputationOf(input)),
+
+  // ── Point 57 — pages publiques de réputation (visiteurs + moteurs IA) ────
+  pagePublique: publicProcedure
+    .input(
+      z.object({
+        univers: z.string().min(1).max(64),
+        limit: z.number().int().min(1).max(100).optional(),
+      }),
+    )
+    .query(async ({ input }) => publicReputationPage(input.univers, input.limit ?? 50)),
+
+  universAvecAvis: publicProcedure.query(async () => universWithPublicReviews()),
 
   mesDemandes: protectedProcedure.query(async ({ ctx }) => pendingReviewRequests(ctx.user.uid)),
 
@@ -120,6 +135,16 @@ export const reputationEngineRouter = router({
       const plateforme = await platformAverage();
       return { plateforme, cibles: Array.from(reps.values()) };
     }),
+
+  // ── Point 55 — Centre Réputation PDG / Direction ─────────────────────
+  centre: directionProcedure
+    .input(z.object({ limitProfessionnels: z.number().int().min(1).max(200).optional() }).optional())
+    .query(async ({ input }) => reputationCenter(input ?? {})),
+
+  // ── Point 56 — la réputation comme signal d'audience (recommandations) ───
+  conseilsAudience: directionProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(200).optional() }).optional())
+    .query(async ({ input }) => audienceAdvice(input?.limit ?? 100)),
 
   health: directionProcedure.query(async () => reputationEngineHealth()),
 });
