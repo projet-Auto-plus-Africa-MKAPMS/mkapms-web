@@ -76,6 +76,12 @@ export const NOTIFICATION_TRIGGERS: Record<string, TriggerDef> = {
   partenaire_candidature: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Candidature partenaire reçue", body: "Votre candidature {{reference}} ({{metier}}) est en cours d'examen." },
   partenaire_decision: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Candidature partenaire — {{decision}}", body: "{{note}}" },
   opportunite_partenaire: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Zone sans partenaire — {{service}}", body: "{{zone}} : {{detail}}", adminAlert: true },
+  // ── Assurance & recharge (point 45) ─────────────────────────────────────
+  assurance_demande_recue: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Demande d'assurance reçue", body: "Votre demande {{reference}} ({{formule}}) est transmise à {{assureurs}} assureur(s) partenaire(s)." },
+  assurance_sans_assureur: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Demande d'assurance enregistrée", body: "Votre demande {{reference}} est enregistrée : aucun assureur partenaire ne couvre encore {{pays}}. Nous revenons vers vous dès qu'un partenaire est référencé." },
+  assurance_offre_disponible: { category: "compte", channels: ["email", "push", "inapp"], inappType: "systeme", title: "Offre d'assurance disponible", body: "Une offre a été enregistrée pour votre demande {{reference}} : {{montant}}." },
+  assurance_demande_a_traiter: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Demande d'assurance à traiter — {{pays}}", body: "{{reference}} ({{formule}}) : {{detail}}", adminAlert: true },
+  borne_declaration_a_valider: { category: "systeme", channels: ["inapp"], inappType: "systeme", title: "Borne de recharge à valider — {{ville}}", body: "{{operateur}} : {{detail}}", adminAlert: true },
   // ── Intelligence financière ─────────────────────────────────────────────
   anomalie_financiere: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Anomalie financière — {{severite}}", body: "{{detail}}", adminAlert: true },
   // ── Système / admin ─────────────────────────────────────────────────────

@@ -440,6 +440,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "energie_recharge",
+    label: "Energy Engine — Recharge",
+    category: "service",
+    dependencies: ["core", "country"],
+    description:
+      "Annuaire des bornes de recharge : recherche filtrée, déclarations validées par un humain.",
+    state: "active",
+  },
+  {
     name: "finance",
     label: "Financement Engine",
     category: "service",

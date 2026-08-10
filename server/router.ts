@@ -100,6 +100,8 @@ import { auctionEngineRouter } from "./auction-engine/index.js";
 // Proximity Engine — « près de moi » + complétude des mini-plateformes (points 34-35)
 import { proximityEngineRouter } from "./proximity-engine/index.js";
 import { partnerEngineRouter } from "./partner-engine/index.js";
+import { insuranceEngineRouter } from "./insurance-engine/index.js";
+import { chargingEngineRouter } from "./charging-engine/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -213,6 +215,9 @@ export const appRouter = router({
   // Recherche locale par service + matrice des univers en mini-plateformes
   proximity: proximityEngineRouter,
   partnerEngine: partnerEngineRouter,
+  // Point 45 — assurance auto (mise en relation) et bornes de recharge (annuaire)
+  insuranceEngine: insuranceEngineRouter,
+  chargingEngine: chargingEngineRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

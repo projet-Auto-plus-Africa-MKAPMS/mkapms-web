@@ -83,7 +83,11 @@ export const ENGINE_PROBES: EngineProbe[] = [
 
   // ── Services dédiés ──
   { engine: "controle_technique", tables: ["rdv_fidelite", "service_tracking"] },
-  { engine: "assurance", tables: ["user_assurances"] },
+  {
+    engine: "assurance",
+    tables: ["user_assurances", "insurance_partners", "insurance_quote_requests"],
+  },
+  { engine: "energie_recharge", tables: ["charging_points"] },
   { engine: "finance", tables: ["finance_documents", "finance_transactions", "payments"] },
   { engine: "encheres", tables: ["annonces", "payments"] },
   { engine: "auction_engine", tables: ["auctions", "auction_bids", "auction_events"] },
