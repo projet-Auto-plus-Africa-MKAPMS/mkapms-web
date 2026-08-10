@@ -179,6 +179,32 @@ export const reviewReports = pgTable("review_reports", {
 });
 
 // ════════════════════════════════════════════════════════════════════
+// SIGNAUX ANTI-FAUX-AVIS (point 49)
+// ════════════════════════════════════════════════════════════════════
+// Un signal n'est pas une sanction : il est écrit par le moteur, puis tranché
+// par un humain. `decision` conserve le motif, `reviewedBy` conserve l'acteur.
+
+export const reviewFraudSignals = pgTable("review_fraud_signals", {
+  id: serial("id").primaryKey(),
+  reviewId: integer("review_id").notNull(),
+  authorId: integer("author_id").notNull(),
+  targetType: varchar("target_type", { length: 32 }).notNull(),
+  targetId: integer("target_id").notNull(),
+  signalType: varchar("signal_type", { length: 40 }).notNull(),
+  // "creation_massive" | "repetition_meme_cible" | "aucune_experience_verifiee"
+  // | "notes_uniformes_en_rafale" | "afflux_inhabituel" | "commentaire_duplique"
+  // | "conflit_interet" | "sans_transaction"
+  severity: varchar("severity", { length: 12 }).notNull(),
+  // "info" | "attention" | "critique"
+  detail: text("detail").notNull(),
+  reviewed: boolean("reviewed").notNull().default(false),
+  reviewedBy: integer("reviewed_by"),
+  reviewedAt: timestamp("reviewed_at"),
+  decision: text("decision"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ════════════════════════════════════════════════════════════════════
 // CONTESTATIONS D'AVIS PAR LES PROFESSIONNELS (Point 12)
 // ════════════════════════════════════════════════════════════════════
 

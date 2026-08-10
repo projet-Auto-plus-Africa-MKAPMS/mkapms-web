@@ -32,6 +32,9 @@ import {
 } from "../schema.js";
 import { awardPoints } from "./operations.js";
 import { verifiedExperience } from "../reputation-engine/service.js";
+import { analyzeNewReview } from "../reputation-engine/fraud.js";
+import { isTargetOwner, ownerOfTarget } from "../reputation-engine/ownership.js";
+import { notifyDirection } from "../notification-os/triggers.js";
 
 // ═══════════════════════════════════════════
 // HELPERS
@@ -550,6 +553,43 @@ export const reviewsV2Router = router({
           .where(eq(reviewRequests.id, requestToClose));
       }
 
+      // Point 49 — analyse anti-faux-avis. Un signal critique met l'avis « en
+      // vérification » : il n'est ni supprimé, ni refusé sans décision humaine.
+      const fraude = await analyzeNewReview({
+        reviewId: inserted.id,
+        authorId,
+        targetType: input.targetType,
+        targetId: input.targetId,
+        ratingGlobal: input.ratingGlobal,
+        comment: input.comment,
+        verified,
+      });
+      if (fraude.needsVerification && status === "publie") {
+        status = "en_moderation";
+        await db.update(reviewsV2).set({
+          status,
+          moderationReason: fraude.signals
+            .filter((s) => s.severity === "critique")
+            .map((s) => s.detail)
+            .join(" "),
+        }).where(eq(reviewsV2.id, inserted.id));
+        await recordHistory(inserted.id, "status_changed", null, { status: "publie" }, {
+          status,
+          signaux: fraude.signals.map((s) => s.type),
+        });
+        await notifyDirection(
+          "avis_verification_requise",
+          {
+            avis: inserted.id,
+            signaux: fraude.signals
+              .filter((s) => s.severity === "critique")
+              .map((s) => s.type)
+              .join(", "),
+          },
+          "/admin/avis",
+        ).catch(() => {});
+      }
+
       // Recalcul
       if (status === "publie") {
         await recomputeAggregates(input.targetType, input.targetId, input.univers);
@@ -562,14 +602,19 @@ export const reviewsV2Router = router({
       if (input.requestId) points += 20;
       await awardPoints(authorId, points, "avis_depose", "review", inserted.id);
 
-      // Notification à la cible (Point 7)
-      if (input.targetType === "user" && input.visibility === "public") {
-        await sendNotification(
-          input.targetId, "review",
-          input.ratingGlobal >= 4 ? "⭐ Excellent avis reçu !" : "Nouvel avis reçu",
-          `Note : ${input.ratingGlobal}/5${input.comment ? ` — « ${input.comment.slice(0, 80)} »` : ""}`,
-          "/compte/avis",
-        );
+      // Notification à la cible (Point 7) — point 50 : le propriétaire d'une
+      // fiche professionnelle est prévenu lui aussi, pas seulement les cibles
+      // de type « user », sinon un garage n'apprenait jamais qu'il avait un avis.
+      if (input.visibility === "public" && status === "publie") {
+        const proprietaire = await ownerOfTarget(input.targetType, input.targetId);
+        if (proprietaire) {
+          await sendNotification(
+            proprietaire, "review",
+            input.ratingGlobal >= 4 ? "⭐ Excellent avis reçu !" : "Nouvel avis reçu",
+            `Note : ${input.ratingGlobal}/5${input.comment ? ` — « ${input.comment.slice(0, 80)} »` : ""}`,
+            "/pro/avis",
+          );
+        }
       }
 
       // Webhook (Point 9)
@@ -641,11 +686,14 @@ export const reviewsV2Router = router({
       if (!review) throw new Error("Avis introuvable.");
       if (review.responseText) throw new Error("Cet avis a déjà une réponse.");
 
-      // Vérifier propriétaire ou admin
-      const isTargetOwner = review.targetType === "user" && review.targetId === ctx.user.uid;
+      // Point 50 — le propriétaire réel de la cible répond, quel que soit son
+      // type de fiche (garage, boutique de pièces, transporteur, dépanneur…).
+      // Avant, seul `targetType === "user"` pouvait répondre : les fiches
+      // professionnelles n'avaient donc aucun droit de réponse.
+      const proprietaire = await isTargetOwner(ctx.user.uid, review.targetType, review.targetId);
       const [user] = await db.select({ role: users.role }).from(users).where(eq(users.id, ctx.user.uid)).limit(1);
       const isAdminUser = user && ["admin", "super_admin"].includes(user.role);
-      if (!isTargetOwner && !isAdminUser) throw new Error("Non autorisé.");
+      if (!proprietaire && !isAdminUser) throw new Error("Non autorisé.");
 
       await db.update(reviewsV2).set({
         responseText: input.responseText,
@@ -884,14 +932,21 @@ export const reviewsV2Router = router({
   moderate: adminProcedure
     .input(z.object({
       reviewId: z.number(),
-      action: z.enum(["approve", "hide"]),
+      action: z.enum(["approve", "hide", "refuse"]),
       reason: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const [review] = await db.select().from(reviewsV2).where(eq(reviewsV2.id, input.reviewId)).limit(1);
       if (!review) throw new Error("Avis introuvable.");
 
-      const newStatus = input.action === "approve" ? "publie" : "masque";
+      // Point 49 — un avis retiré ou refusé sans motif écrit n'est pas défendable
+      // plus tard, ni devant le client, ni devant le professionnel.
+      if (input.action !== "approve" && (!input.reason || input.reason.trim().length < 3)) {
+        throw new Error("Un motif est obligatoire pour masquer ou refuser un avis.");
+      }
+
+      const newStatus =
+        input.action === "approve" ? "publie" : input.action === "refuse" ? "refuse" : "masque";
       await db.update(reviewsV2).set({
         status: newStatus,
         moderationReason: input.reason,
@@ -904,9 +959,9 @@ export const reviewsV2Router = router({
       if (input.action === "hide") {
         await awardPoints(review.authorId, -200, "faux_avis_detecte", "review", input.reviewId);
       }
-      if (input.action === "approve") {
-        await recomputeAggregates(review.targetType, review.targetId, review.univers);
-      }
+      // Un avis retiré doit disparaître de la moyenne : les agrégats sont
+      // recalculés quelle que soit la décision.
+      await recomputeAggregates(review.targetType, review.targetId, review.univers);
       return { ok: true };
     }),
 

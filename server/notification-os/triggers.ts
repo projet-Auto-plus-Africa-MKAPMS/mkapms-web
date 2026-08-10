@@ -85,6 +85,8 @@ export const NOTIFICATION_TRIGGERS: Record<string, TriggerDef> = {
   // ── Avis & réputation ───────────────────────────────────────────────────
   avis_demande_apres_prestation: { category: "compte", channels: ["email", "push", "inapp"], inappType: "systeme", title: "Votre avis sur {{service}}", body: "{{detail}} Votre avis sera marqué « Expérience vérifiée ».", },
   avis_recu_professionnel: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Nouvel avis reçu — {{note}}/5", body: "{{extrait}}", },
+  avis_verification_requise: { category: "systeme", channels: ["inapp"], inappType: "systeme", title: "Avis en vérification — avis #{{avis}}", body: "Signaux détectés : {{signaux}}. Aucune suppression n'est appliquée sans décision motivée.", adminAlert: true },
+  avis_reponse_a_traiter: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Avis à traiter — {{note}}/5", body: "{{extrait}} Vous pouvez répondre publiquement depuis votre espace.", },
   // ── Intelligence financière ─────────────────────────────────────────────
   anomalie_financiere: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Anomalie financière — {{severite}}", body: "{{detail}}", adminAlert: true },
   // ── Système / admin ─────────────────────────────────────────────────────

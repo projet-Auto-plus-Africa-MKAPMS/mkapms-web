@@ -241,6 +241,9 @@ export default function Compte() {
   // Demandes d'avis ouvertes après une prestation réellement terminée (point 48)
   const demandesAvis = trpc.reputationEngine.mesDemandes.useQuery(undefined);
   const nbDemandesAvis = demandesAvis.data?.length ?? 0;
+  // Avis reçus sur les fiches professionnelles réellement détenues (point 50)
+  const avisRecus = trpc.reputationEngine.avisDeMesCibles.useQuery(undefined);
+  const nbAvisSansReponse = (avisRecus.data?.avis ?? []).filter((a) => !a.responseText).length;
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -366,6 +369,19 @@ export default function Compte() {
             votre avis est attendu (« ✓ Expérience vérifiée »).
           </span>
           <span className="font-semibold underline">Donner mon avis →</span>
+        </Link>
+      )}
+
+      {nbAvisSansReponse > 0 && (
+        <Link
+          to="/pro/avis"
+          className="mt-4 flex items-center justify-between rounded-xl border border-[#111]/15 bg-white px-4 py-3 text-sm text-[#111]"
+        >
+          <span>
+            {nbAvisSansReponse} avis reçu{nbAvisSansReponse > 1 ? "s" : ""} sans réponse sur vos fiches
+            professionnelles.
+          </span>
+          <span className="font-semibold underline">Répondre →</span>
         </Link>
       )}
 

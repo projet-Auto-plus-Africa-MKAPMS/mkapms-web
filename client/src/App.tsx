@@ -40,6 +40,7 @@ const Parametres = lazy(() => import("./pages/Parametres"));
 const Favoris = lazy(() => import("./pages/Favoris"));
 const Validation = lazy(() => import("./pages/Validation"));
 const MesAvis = lazy(() => import("./pages/compte/MesAvis"));
+const AvisPro = lazy(() => import("./pages/pro/AvisPro"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Univers = lazy(() => import("./pages/Univers"));
 const Pieces = lazy(() => import("./pages/Pieces"));
@@ -986,6 +987,7 @@ export default function App() {
             <Route path="/mk-global-engine" element={<U name="Global Country Engine"><GlobalCountryEngine /></U>} />
             <Route path="/compte/validation" element={<U name="Validation"><Validation /></U>} />
             <Route path="/compte/avis" element={<U name="Mes avis"><MesAvis /></U>} />
+            <Route path="/pro/avis" element={<U name="Avis reçus"><AvisPro /></U>} />
             <Route path="/compte/*" element={<U name="Mon compte"><Compte /></U>} />
             <Route path="/parametres" element={<U name="Paramètres"><Parametres /></U>} />
             <Route path="/admin/*" element={<U name="Back-office"><Admin /></U>} />

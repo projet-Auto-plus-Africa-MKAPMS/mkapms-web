@@ -7,6 +7,7 @@
  * santé remontée au registre central.
  */
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { directionProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
 import {
   REPUTATION_UNIVERS,
@@ -14,6 +15,9 @@ import {
   reputationEngineHealth,
   reputationOf,
 } from "./service.js";
+import { fraudSignals, linkedAccounts, resolveFraudSignal } from "./fraud.js";
+import { isTargetOwner } from "./ownership.js";
+import { reviewsForOwner, suggestResponse } from "./responses.js";
 
 export const REPUTATION_ENGINE_META = {
   code: "avis_reputation",
@@ -38,6 +42,65 @@ export const reputationEngineRouter = router({
     .query(async ({ input }) => reputationOf(input)),
 
   mesDemandes: protectedProcedure.query(async ({ ctx }) => pendingReviewRequests(ctx.user.uid)),
+
+  // ── Point 50 — espace réponse du professionnel ──────────────────────────
+  /** Avis portant sur les fiches réellement détenues par le compte. */
+  avisDeMesCibles: protectedProcedure.query(async ({ ctx }) => reviewsForOwner(ctx.user.uid)),
+
+  /**
+   * Proposition de réponse : le professionnel doit la relire puis publier
+   * lui-même via `reviewsV2.respond`. Le moteur ne publie jamais.
+   */
+  suggestionReponse: protectedProcedure
+    .input(z.object({ reviewId: z.number().int().positive() }))
+    .query(async ({ ctx, input }) => {
+      const suggestion = await suggestResponse(input.reviewId);
+      if (!suggestion) throw new TRPCError({ code: "NOT_FOUND", message: "Avis introuvable." });
+      const { avis } = await reviewsForOwner(ctx.user.uid, 200);
+      const cible = avis.find((a) => a.id === input.reviewId);
+      if (!cible) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Cet avis ne concerne pas une de vos fiches.",
+        });
+      }
+      const autorise = await isTargetOwner(ctx.user.uid, cible.targetType, cible.targetId);
+      if (!autorise) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Cet avis ne concerne pas une de vos fiches." });
+      }
+      return suggestion;
+    }),
+
+  // ── Point 49 — supervision des faux avis (direction) ────────────────────
+  signaux: directionProcedure
+    .input(
+      z
+        .object({
+          severity: z.enum(["info", "attention", "critique"]).optional(),
+          onlyOpen: z.boolean().optional(),
+          limit: z.number().int().min(1).max(200).optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => fraudSignals(input ?? {})),
+
+  comptesLies: directionProcedure.query(async () => linkedAccounts()),
+
+  /** Décision humaine sur un signal : le motif est obligatoire. */
+  traiterSignal: directionProcedure
+    .input(
+      z.object({
+        signalId: z.number().int().positive(),
+        decision: z.string().min(3).max(500),
+      }),
+    )
+    .mutation(async ({ ctx, input }) =>
+      resolveFraudSignal({
+        signalId: input.signalId,
+        actorId: ctx.user.uid,
+        decision: input.decision,
+      }),
+    ),
 
   health: directionProcedure.query(async () => reputationEngineHealth()),
 });
