@@ -14,7 +14,7 @@
  * - Activité en temps réel
  */
 import { useState, useEffect, useRef } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
 import {
@@ -134,8 +134,8 @@ export default function ControlCenter() {
       {/* Content */}
       <div className="px-4">
         {tab === "dashboard" && <DashboardTab onNavigate={setTab} />}
-        {tab === "rapport" && <RapportTab />}
-        {tab === "etat" && <EtatPlateformeTab />}
+        {tab === "rapport" && <RapportTab onNavigate={setTab} />}
+        {tab === "etat" && <EtatPlateformeTab onNavigate={setTab} />}
         {tab === "qualite" && <QualiteTab />}
         {tab === "evolution" && <EvolutionTab isPdg={isPdg} />}
         {tab === "alertes" && <AlertesTab />}
@@ -268,7 +268,19 @@ const SEVERITY_STYLE: Record<string, { badge: string; label: string }> = {
   info: { badge: "bg-blue-100 text-blue-700", label: "Info" },
 };
 
-function RapportTab() {
+/**
+ * Destination réelle de chaque domaine du rapport : une anomalie signalée doit
+ * mener à l'écran qui permet de la traiter, sinon le rapport reste décoratif.
+ */
+const REPORT_DOMAIN_TAB: Record<string, Tab> = {
+  Interface: "sante",
+  Alertes: "alertes",
+  Qualité: "qualite",
+  Santé: "etat",
+  Recherche: "recherches",
+};
+
+function RapportTab({ onNavigate }: { onNavigate: (t: Tab) => void }) {
   const { data, isLoading, refetch, isFetching } = trpc.smartEngine.dailyReport.useQuery();
 
   if (isLoading) return <Loading />;
@@ -293,12 +305,12 @@ function RapportTab() {
 
       {/* Synthèse */}
       <div className="grid grid-cols-3 gap-2">
-        <StatCard label="Anomalies" value={data.summary.anomalies} color="orange" icon={AlertTriangle} />
-        <StatCard label="Critiques" value={data.summary.criticalAnomalies} color="red" icon={XCircle} />
-        <StatCard label="Propositions" value={data.summary.suggestions} color="blue" icon={Lightbulb} />
-        <StatCard label="Éléments cassés" value={data.summary.brokenElements} color="red" icon={FileWarning} />
-        <StatCard label="Alertes ouvertes" value={data.summary.openAlerts} color="orange" icon={Shield} />
-        <StatCard label="Score qualité" value={data.summary.qualityScore} color="green" icon={Gauge} />
+        <StatCard label="Anomalies" value={data.summary.anomalies} color="orange" icon={AlertTriangle} onClick={() => onNavigate("etat")} />
+        <StatCard label="Critiques" value={data.summary.criticalAnomalies} color="red" icon={XCircle} onClick={() => onNavigate("alertes")} />
+        <StatCard label="Propositions" value={data.summary.suggestions} color="blue" icon={Lightbulb} onClick={() => onNavigate("optimisation")} />
+        <StatCard label="Éléments cassés" value={data.summary.brokenElements} color="red" icon={FileWarning} onClick={() => onNavigate("sante")} />
+        <StatCard label="Alertes ouvertes" value={data.summary.openAlerts} color="orange" icon={Shield} onClick={() => onNavigate("alertes")} />
+        <StatCard label="Score qualité" value={data.summary.qualityScore} color="green" icon={Gauge} onClick={() => onNavigate("qualite")} />
       </div>
 
       {/* Anomalies détectées */}
@@ -311,15 +323,35 @@ function RapportTab() {
         ) : (
           data.anomalies.map((a, i) => {
             const style = SEVERITY_STYLE[a.severity] ?? SEVERITY_STYLE.info;
-            return (
-              <div key={i} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+            const target = REPORT_DOMAIN_TAB[a.domain];
+            const body = (
+              <>
                 <div className="flex items-center gap-2">
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${style.badge}`}>{style.label}</span>
                   <span className="text-[10px] font-semibold text-[#9CA3AF]">{a.domain}</span>
                 </div>
                 <p className="mt-1 text-xs font-semibold text-[#111]">{a.title}</p>
                 <p className="text-[11px] text-[#6B7280]">{a.detail}</p>
-              </div>
+                {target && (
+                  <p className="mt-1 text-[10px] font-semibold text-[#D4AF37]">
+                    Appuyez pour ouvrir « {TABS.find((t) => t.key === target)?.label} » →
+                  </p>
+                )}
+              </>
+            );
+            if (!target) {
+              return (
+                <div key={i} className="rounded-xl border border-[#E5E7EB] bg-white p-3">{body}</div>
+              );
+            }
+            return (
+              <button
+                key={i}
+                onClick={() => onNavigate(target)}
+                className="w-full rounded-xl border border-[#E5E7EB] bg-white p-3 text-left transition hover:ring-2 hover:ring-[#D4AF37]/60 active:scale-[0.99]"
+              >
+                {body}
+              </button>
             );
           })
         )}
@@ -658,6 +690,9 @@ const KB_DOMAIN_LABELS: Record<string, string> = {
 function BaseConnaissancesTab() {
   const [domain, setDomain] = useState<string>("");
   const [status, setStatus] = useState<string>("");
+  // Fiche dépliée : la carte d'une connaissance doit pouvoir s'ouvrir pour
+  // montrer d'où elle vient, sinon son contexte reste invisible.
+  const [openId, setOpenId] = useState<number | null>(null);
   const stats = trpc.smartEngine.kbStats.useQuery();
   const list = trpc.smartEngine.kbList.useQuery({
     domain: domain || undefined,
@@ -745,7 +780,11 @@ function BaseConnaissancesTab() {
           {items.map((e) => (
             <div key={e.id} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
               <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
+                <button
+                  type="button"
+                  onClick={() => setOpenId(openId === e.id ? null : e.id)}
+                  className="min-w-0 flex-1 text-left"
+                >
                   <div className="flex items-center gap-1.5">
                     <span className="rounded-full bg-[#F5F3EF] px-2 py-0.5 text-[9px] font-bold uppercase text-[#6B7280]">
                       {KB_DOMAIN_LABELS[e.domain] ?? e.domain}
@@ -759,7 +798,10 @@ function BaseConnaissancesTab() {
                   <p className="mt-0.5 text-[10px] text-[#9CA3AF]">
                     {e.observations ?? 1} observation(s) · source : {e.firstSource ?? "système"}
                   </p>
-                </div>
+                  <p className="mt-0.5 text-[10px] font-semibold text-[#D4AF37]">
+                    {openId === e.id ? "Masquer la fiche" : "Appuyez pour voir la fiche"}
+                  </p>
+                </button>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
                   <span
                     className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
@@ -792,10 +834,53 @@ function BaseConnaissancesTab() {
                   )}
                 </div>
               </div>
+
+              {openId === e.id && (
+                <div className="mt-2 space-y-1 rounded-lg bg-[#F9FAFB] p-2.5">
+                  <KbLine label="Valeur mémorisée" value={e.value} />
+                  <KbLine label="Domaine" value={KB_DOMAIN_LABELS[e.domain] ?? e.domain} />
+                  <KbLine label="Type de donnée" value={e.type} />
+                  <KbLine label="Contexte" value={e.parentKey} />
+                  <KbLine label="Fois observée" value={String(e.observations ?? 1)} />
+                  <KbLine label="Première source" value={e.firstSource} />
+                  <KbLine
+                    label="Première fois vue"
+                    value={e.createdAt ? new Date(e.createdAt).toLocaleString("fr-FR") : null}
+                  />
+                  <KbLine
+                    label="Dernière mise à jour"
+                    value={e.updatedAt ? new Date(e.updatedAt).toLocaleString("fr-FR") : null}
+                  />
+                  {e.attributes && Object.keys(e.attributes).length > 0 && (
+                    <div className="pt-1">
+                      <p className="text-[10px] font-bold text-[#6B7280]">Détails mémorisés</p>
+                      {Object.entries(e.attributes).map(([k, v]) => (
+                        <KbLine key={k} label={k} value={typeof v === "string" || typeof v === "number" ? String(v) : JSON.stringify(v)} />
+                      ))}
+                    </div>
+                  )}
+                  <p className="pt-1 text-[10px] text-[#9CA3AF]">
+                    Cette donnée est reproposée automatiquement au dépôt et à la modification
+                    lorsqu'elle est confirmée.
+                  </p>
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Une ligne de la fiche d'une connaissance. Une valeur absente est dite, pas inventée. */
+function KbLine({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div className="flex items-start justify-between gap-2">
+      <span className="text-[10px] text-[#6B7280]">{label}</span>
+      <span className="text-[10px] font-semibold text-[#111] text-right">
+        {value && value.trim() !== "" ? value : "non renseigné"}
+      </span>
     </div>
   );
 }
@@ -1042,7 +1127,26 @@ function EvolutionTab({ isPdg }: { isPdg: boolean }) {
 /* ═══════════════════════════════════════════════════════════
    TAB : État plateforme — tableau de santé temps réel (Partie 9)
    ═══════════════════════════════════════════════════════════ */
-function EtatPlateformeTab() {
+/**
+ * Destination réelle de chaque indicateur d'état : soit un autre onglet du
+ * centre de contrôle, soit l'écran de la plateforme qui traite le sujet.
+ */
+const HEALTH_TARGET: Record<string, { tab?: Tab; path?: string }> = {
+  boutons: { tab: "sante" },
+  apis: { tab: "sante" },
+  paiements: { path: "/superadmin/admin-paiements" },
+  notifications: { path: "/superadmin/notification-os" },
+  messages: { path: "/messages" },
+  redirections: { path: "/superadmin/redirection-engine" },
+  images: { tab: "annonces" },
+  seo: { path: "/superadmin/admin-s-e-o" },
+  temps_reponse: { tab: "sante" },
+  erreurs: { tab: "alertes" },
+  modules: { tab: "moteurs" },
+};
+
+function EtatPlateformeTab({ onNavigate }: { onNavigate: (t: Tab) => void }) {
+  const navigate = useNavigate();
   const health = trpc.smartEngine.platformHealth.useQuery(undefined, {
     refetchInterval: 30000, // rafraîchissement temps réel toutes les 30s
   });
@@ -1069,29 +1173,53 @@ function EtatPlateformeTab() {
         </button>
       </div>
 
-      {/* Bandeau global */}
-      <div className="flex items-center gap-3 rounded-2xl bg-[#111] p-4">
+      {/* Bandeau global — mène aux alertes ouvertes à traiter */}
+      <button
+        onClick={() => onNavigate("alertes")}
+        className="flex w-full items-center gap-3 rounded-2xl bg-[#111] p-4 text-left transition hover:ring-2 hover:ring-[#D4AF37]/60"
+      >
         <span className={`h-4 w-4 rounded-full ${dot(overall)} shadow-[0_0_12px] shadow-current`} />
         <div>
           <p className="text-sm font-bold text-white">{overallLabel}</p>
           <p className="text-[10px] text-white/50">
             Vue temps réel · maj {new Date(generatedAt).toLocaleTimeString("fr-FR")}
           </p>
+          <p className="mt-0.5 text-[10px] font-semibold text-[#D4AF37]">Appuyez pour voir les alertes ouvertes →</p>
         </div>
-      </div>
+      </button>
 
-      {/* Grille des indicateurs */}
+      {/* Grille des indicateurs — chaque carte mène à l'écran qui traite le sujet */}
       <div className="grid grid-cols-2 gap-2">
-        {categories.map((c) => (
-          <div key={c.key} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
-            <div className="flex items-center gap-1.5">
-              <span className={`h-2.5 w-2.5 rounded-full ${dot(c.level)}`} />
-              <span className="text-[11px] font-semibold text-[#374151]">{c.label}</span>
-            </div>
-            <p className="mt-1 text-lg font-black text-[#111]">{c.headline}</p>
-            <p className="text-[10px] leading-tight text-[#9CA3AF]">{c.detail}</p>
-          </div>
-        ))}
+        {categories.map((c) => {
+          const target = HEALTH_TARGET[c.key];
+          const body = (
+            <>
+              <div className="flex items-center gap-1.5">
+                <span className={`h-2.5 w-2.5 rounded-full ${dot(c.level)}`} />
+                <span className="text-[11px] font-semibold text-[#374151]">{c.label}</span>
+              </div>
+              <p className="mt-1 text-lg font-black text-[#111]">{c.headline}</p>
+              <p className="text-[10px] leading-tight text-[#9CA3AF]">{c.detail}</p>
+            </>
+          );
+          if (!target) {
+            return (
+              <div key={c.key} className="rounded-xl border border-[#E5E7EB] bg-white p-3">{body}</div>
+            );
+          }
+          return (
+            <button
+              key={c.key}
+              onClick={() => {
+                if (target.tab) onNavigate(target.tab);
+                else if (target.path) navigate(target.path);
+              }}
+              className="rounded-xl border border-[#E5E7EB] bg-white p-3 text-left transition hover:ring-2 hover:ring-[#D4AF37]/60 active:scale-[0.98]"
+            >
+              {body}
+            </button>
+          );
+        })}
       </div>
 
       <p className="text-[10px] text-[#9CA3AF]">
@@ -1650,12 +1778,27 @@ const HEALTH_UI: Record<string, { label: string; dot: string; badge: string }> =
 
 function MoteursTab() {
   const engines = trpc.smartEngine.enginesOverview.useQuery();
-  const list = engines.data ?? [];
-  const total = list.length;
-  const actifs = list.filter((e: any) => e.status === "actif").length;
-  const degradedList = list.filter(
+  // Filtre piloté par les compteurs, et mise au point sur un moteur précis
+  // quand on appuie sur son nom dans la liste « à surveiller ».
+  const [filtre, setFiltre] = useState<"tous" | "actifs" | "degrades">("tous");
+  const [focus, setFocus] = useState<string | null>(null);
+  const all = engines.data ?? [];
+  const total = all.length;
+  const actifs = all.filter((e: any) => e.status === "actif").length;
+  const degradedList = all.filter(
     (e: any) => e.health === "degraded" || e.health === "down",
   );
+  const list = focus
+    ? all.filter((e: any) => e.key === focus)
+    : filtre === "actifs"
+      ? all.filter((e: any) => e.status === "actif")
+      : filtre === "degrades"
+        ? degradedList
+        : all;
+  const select = (f: "tous" | "actifs" | "degrades") => {
+    setFocus(null);
+    setFiltre(f);
+  };
 
   return (
     <div className="space-y-3">
@@ -1667,36 +1810,69 @@ function MoteursTab() {
 
       {!engines.isLoading && (
         <div className="flex flex-wrap gap-2">
-          <div className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-1.5">
+          <button
+            onClick={() => select("tous")}
+            className={`rounded-lg border px-3 py-1.5 transition ${filtre === "tous" && !focus ? "border-[#D4AF37] bg-[#FFFDF5]" : "border-[#E5E7EB] bg-white"}`}
+          >
             <span className="text-[10px] text-[#6B7280]">Moteurs observés </span>
             <span className="text-sm font-black text-[#111]">{total}</span>
-          </div>
-          <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-1.5">
+          </button>
+          <button
+            onClick={() => select("actifs")}
+            className={`rounded-lg border px-3 py-1.5 transition ${filtre === "actifs" && !focus ? "border-green-400 bg-green-100" : "border-green-200 bg-green-50"}`}
+          >
             <span className="text-[10px] text-green-700">Actifs </span>
             <span className="text-sm font-black text-green-800">{actifs}</span>
-          </div>
-          <div
-            className={`rounded-lg border px-3 py-1.5 ${
-              degradedList.length > 0
-                ? "border-amber-200 bg-amber-50"
-                : "border-[#E5E7EB] bg-white"
+          </button>
+          <button
+            onClick={() => select("degrades")}
+            className={`rounded-lg border px-3 py-1.5 transition ${
+              filtre === "degrades" && !focus
+                ? "border-amber-400 bg-amber-100"
+                : degradedList.length > 0
+                  ? "border-amber-200 bg-amber-50"
+                  : "border-[#E5E7EB] bg-white"
             }`}
           >
             <span className="text-[10px] text-amber-700">Dégradés / HS </span>
             <span className="text-sm font-black text-amber-800">{degradedList.length}</span>
-          </div>
+          </button>
         </div>
       )}
 
       {!engines.isLoading && degradedList.length > 0 && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-          <p className="text-[11px] font-bold text-amber-800">
+          <button
+            onClick={() => select("degrades")}
+            className="text-[11px] font-bold text-amber-800 underline"
+          >
             {degradedList.length} moteur(s) à surveiller :
-          </p>
-          <p className="mt-1 text-[11px] text-amber-700">
-            {degradedList.map((e: any) => e.name).join(", ")}
-          </p>
+          </button>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {degradedList.map((e: any) => (
+              <button
+                key={e.key}
+                onClick={() => setFocus(e.key)}
+                className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold transition ${
+                  focus === e.key
+                    ? "border-amber-500 bg-amber-200 text-amber-900"
+                    : "border-amber-300 bg-white text-amber-800"
+                }`}
+              >
+                {e.name}
+              </button>
+            ))}
+          </div>
         </div>
+      )}
+
+      {(focus || filtre !== "tous") && (
+        <button
+          onClick={() => select("tous")}
+          className="text-[11px] font-semibold text-[#D4AF37]"
+        >
+          ← Voir les {total} moteurs
+        </button>
       )}
 
       {engines.isLoading ? (
