@@ -14,6 +14,7 @@
 import { db } from "../../db.js";
 import { desc, eq } from "drizzle-orm";
 import { smartStaging } from "../schema.js";
+import { createActionTask, validateActionTask } from "./action-tasks.js";
 
 export type StagingType = "optimisation" | "correction" | "evolution";
 export type StagingStatus =
@@ -75,9 +76,13 @@ export async function getStagingStats() {
 }
 
 /**
- * Transition de statut — décision humaine (PDG). On ne permet que des
- * transitions cohérentes ; aucune action métier n'est déclenchée ici (les
- * propositions décrivent un travail à faire, elles ne l'exécutent pas).
+ * Transition de statut — décision humaine (PDG).
+ *
+ * Point 69 : approuver une proposition ne la faisait que changer de colonne.
+ * L'approbation crée maintenant une tâche du Centre d'Actions, exécutée quand
+ * un exécuteur existe, sinon laissée en attente d'intervention humaine avec la
+ * raison écrite. Le `metadata.actionType` de la proposition indique l'action à
+ * réaliser ; sans lui, la tâche est marquée non automatisable.
  */
 export async function transitionStaging(
   id: number,
@@ -94,5 +99,27 @@ export async function transitionStaging(
     })
     .where(eq(smartStaging.id, id))
     .returning();
+
+  if (!row || next !== "approuve" || !reviewedBy) return row;
+
+  const meta = row.metadata ?? {};
+  const actionType = typeof meta.actionType === "string" ? meta.actionType : `manuel:${row.type}`;
+  const params =
+    typeof meta.params === "object" && meta.params !== null
+      ? (meta.params as Record<string, unknown>)
+      : {};
+  const countryCode = typeof meta.countryCode === "string" ? meta.countryCode : null;
+  const task = await createActionTask({
+    source: "staging",
+    sourceId: row.id,
+    actionType,
+    title: row.title,
+    description: row.description ?? undefined,
+    params,
+    riskLevel: row.riskNote ? 3 : 2,
+    countryCode,
+    requestedBy: reviewedBy,
+  });
+  await validateActionTask(task.id, reviewedBy);
   return row;
 }

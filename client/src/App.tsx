@@ -182,6 +182,7 @@ const PermissionEngineControlCenter = lazy(() => import("./pages/PermissionEngin
 const RedirectionEngineControlCenter = lazy(() => import("./pages/RedirectionEngine/ControlCenter"));
 const EngineRegistryControlCenter = lazy(() => import("./pages/EngineRegistry/ControlCenter"));
 const CentreReputation = lazy(() => import("./pages/CentreReputation"));
+const CentreActions = lazy(() => import("./pages/CentreActions"));
 const AvisUnivers = lazy(() => import("./pages/AvisUnivers"));
 const MiniPlateformes = lazy(() => import("./pages/MiniPlateformes"));
 const PartenairesPilotage = lazy(() => import("./pages/PartenairesPilotage"));
@@ -1168,6 +1169,7 @@ export default function App() {
             <Route path="/superadmin/redirection-engine" element={<U name="Moteur de Redirection"><RedirectionEngineControlCenter /></U>} />
             <Route path="/admin/moteurs" element={<U name="Moteurs MKA.P-MS"><EngineRegistryControlCenter /></U>} />
             <Route path="/admin/reputation" element={<U name="Réputation & Avis"><CentreReputation /></U>} />
+            <Route path="/admin/actions" element={<U name="Centre d'Actions"><CentreActions /></U>} />
             <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
             <Route path="/superadmin/mini-plateformes" element={<U name="Univers en mini-plateformes"><MiniPlateformes /></U>} />
             <Route path="/superadmin/partenaires" element={<U name="Réseau partenaires"><PartenairesPilotage /></U>} />

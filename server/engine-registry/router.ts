@@ -28,6 +28,11 @@ import {
   syncAppliedMigrations,
 } from "./agent-changes.js";
 import {
+  analyzeChangeImpact,
+  analyzePendingChanges,
+  impactSummary,
+} from "./change-impact.js";
+import {
   listEngines,
   getEngine,
   setState,
@@ -284,7 +289,27 @@ export const engineRegistryRouter = router({
 
   /** Relève les migrations réellement appliquées en base. Lecture seule côté métier. */
   syncMigrations: pdgProcedure.mutation(async () => {
-    return syncAppliedMigrations();
+    const releve = await syncAppliedMigrations();
+    // Point 68 : un dépôt relevé est analysé tout de suite, pas plus tard.
+    const analyse = await analyzePendingChanges({ limit: 100 });
+    return { ...releve, analyse };
+  }),
+
+  // ── Points 67-68 — analyse automatique après chaque dépôt ────────────
+  changeImpact: directionProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      return analyzeChangeImpact(input.id);
+    }),
+
+  analyzeChanges: pdgProcedure
+    .input(z.object({ sinceDays: z.number().int().min(1).max(365).default(30) }).optional())
+    .mutation(async ({ input }) => {
+      return analyzePendingChanges({ sinceDays: input?.sinceDays ?? 30 });
+    }),
+
+  changeImpactSummary: directionProcedure.query(async () => {
+    return impactSummary();
   }),
 
   declareAgentChange: adminProcedure
@@ -300,7 +325,11 @@ export const engineRegistryRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      return declareChange(input);
+      const row = await declareChange(input);
+      // Le changement est analysé au moment du dépôt : ce qu'il peut casser,
+      // les moteurs et pays concernés, le retour arrière, les tests déclarés.
+      const impact = row ? await analyzeChangeImpact(row.id) : null;
+      return { ...row, impact };
     }),
 
   /** Décision humaine : aucun changement ne se valide tout seul. */

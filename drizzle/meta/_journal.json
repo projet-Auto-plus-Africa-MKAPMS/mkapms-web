@@ -533,6 +533,13 @@
       "when": 1753702301000,
       "tag": "0076_connecteur_google_business",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1753702400000,
+      "tag": "0077_actions_pdg_cycle_vie",
+      "breakpoints": true
     }
   ]
 }
