@@ -505,6 +505,13 @@
       "when": 1753702000000,
       "tag": "0072_journal_modifications_agents",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1753702100000,
+      "tag": "0073_assurance_bornes_recharge",
+      "breakpoints": true
     }
   ]
 }
