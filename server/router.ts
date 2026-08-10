@@ -104,6 +104,7 @@ import { insuranceEngineRouter } from "./insurance-engine/index.js";
 import { chargingEngineRouter } from "./charging-engine/index.js";
 // Reviews & Reputation Engine (points 46-48)
 import { reputationEngineRouter } from "./reputation-engine/index.js";
+import { googleBusinessRouter } from "./connectors/google-business/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -222,6 +223,7 @@ export const appRouter = router({
   chargingEngine: chargingEngineRouter,
   // Points 46-48 — réputation : avis par pays et expériences vérifiées
   reputationEngine: reputationEngineRouter,
+  googleBusiness: googleBusinessRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

@@ -89,6 +89,10 @@ export const ENGINE_PROBES: EngineProbe[] = [
   },
   { engine: "energie_recharge", tables: ["charging_points"] },
   { engine: "avis_reputation", tables: ["reviews_v2", "review_requests", "review_aggregates"] },
+  {
+    engine: "connecteur_google_business",
+    tables: ["gbp_locations", "gbp_review_snapshots"],
+  },
   { engine: "finance", tables: ["finance_documents", "finance_transactions", "payments"] },
   { engine: "encheres", tables: ["annonces", "payments"] },
   { engine: "auction_engine", tables: ["auctions", "auction_bids", "auction_events"] },

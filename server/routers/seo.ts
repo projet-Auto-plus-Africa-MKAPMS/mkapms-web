@@ -13,6 +13,7 @@ import { analyzeSeo } from "../seo-analyze.js";
 import { verifySeo } from "../seo-verify.js";
 import { seoDashboard } from "../seo-dashboard.js";
 import { seoRecommendations } from "../seo-manager.js";
+import { aggregateRatingFor } from "../reputation-engine/seo.js";
 import {
   SEO_KEYWORD_CATALOG,
   catalogSize,
@@ -387,6 +388,12 @@ export const seoRouter = router({
         .where(eq(garagesPublics.id, input.garageId))
         .limit(1);
       if (!garage) return null;
+      // Point 51 — même source que la page visible : les avis publiés.
+      const reputation = await aggregateRatingFor({
+        targetType: "garage",
+        targetId: garage.id,
+        univers: "garage",
+      });
       return localBusinessSchemaMarkup({
         name: garage.name,
         description: garage.description,
@@ -395,8 +402,8 @@ export const seoRouter = router({
         postalCode: garage.postalCode,
         phone: garage.phone,
         email: garage.email,
-        rating: garage.rating,
-        reviewCount: garage.reviewCount,
+        rating: reputation ? String(reputation.average) : null,
+        reviewCount: reputation?.total ?? 0,
       });
     }),
 

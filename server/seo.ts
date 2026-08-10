@@ -17,6 +17,7 @@ import { db } from "./db.js";
 import { annonces, annoncePhotos, seoPages, garagesPublics, seoBlogArticles } from "./schema.js";
 import { resolveDomain, type DomainKey } from "./domain.js";
 import { STATIC_SEO, breadcrumbSchema, homeSchema } from "./seo-static.js";
+import { reputationJsonLdBlock } from "./reputation-engine/seo.js";
 
 // ─── Utilitaires ─────────────────────────────────────────────────────────────
 
@@ -397,7 +398,19 @@ async function garageSeoHead(path: string, baseUrl: string, domainKey: DomainKey
       " Avis, horaires et prise de rendez-vous en ligne."
   );
 
-  const rating = Number(g.rating) || 0;
+  // Point 51 — la note structurée vient des avis réellement publiés, pas de la
+  // colonne `garages_publics.rating` que le module d'avis n'alimente pas.
+  let reputation: Record<string, unknown> = {};
+  try {
+    reputation = await reputationJsonLdBlock({
+      targetType: "garage",
+      targetId: g.id,
+      univers: "garage",
+    });
+  } catch {
+    reputation = {};
+  }
+
   const address: Record<string, string> = { "@type": "PostalAddress" };
   if (g.addressLine) address.streetAddress = g.addressLine;
   if (g.city) address.addressLocality = g.city;
@@ -419,16 +432,7 @@ async function garageSeoHead(path: string, baseUrl: string, domainKey: DomainKey
       : {}),
     ...(g.hours ? { openingHours: g.hours } : {}),
     ...(specialites ? { knowsAbout: specialites.split(/[,;]/).map((s) => s.trim()).filter(Boolean).slice(0, 12) } : {}),
-    ...(rating > 0 && g.reviewCount > 0
-      ? {
-          aggregateRating: {
-            "@type": "AggregateRating",
-            ratingValue: rating,
-            reviewCount: g.reviewCount,
-            bestRating: 5,
-          },
-        }
-      : {}),
+    ...reputation,
   };
 
   return buildHead({
