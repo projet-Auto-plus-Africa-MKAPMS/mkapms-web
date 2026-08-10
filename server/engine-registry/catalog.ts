@@ -481,6 +481,17 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    // Limite réglementaire de l'automatisation : ce moteur ne fait pas avancer
+    // une action, il l'arrête quand la règle du pays n'est pas confirmée.
+    name: "politique_pays",
+    label: "Country Policy Engine",
+    category: "transversal",
+    dependencies: ["core", "country", "smart"],
+    description:
+      "Contrôle réglementaire par pays avant exécution : règles confirmées, validité, autorité. Sans règle confirmée, l'action repart en validation humaine.",
+    state: "active",
+  },
+  {
     name: "finance",
     label: "Financement Engine",
     category: "service",

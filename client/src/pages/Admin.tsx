@@ -339,6 +339,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Règles par pays — PDG + Directeur (point 66) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">R&egrave;gles par pays</h2>
+        <p className="text-xs text-slate-500">Couverture r&eacute;glementaire par juridiction, r&egrave;gles confirm&eacute;es, actions bloqu&eacute;es</p>
+        <Link to="/admin/regles-pays" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x2696;&#xFE0F;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Country Policy Engine</p>
+            <p className="text-xs text-white/60">Une r&egrave;gle non confirm&eacute;e arr&ecirc;te l&apos;action &mdash; aucune autorisation n&apos;est suppos&eacute;e</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Système Intelligent MKA.P-MS — visible PDG + Directeur/Direction */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">

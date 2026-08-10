@@ -15,6 +15,10 @@
  *     `manuel_requis` et reste visible jusqu'à ce qu'un humain la termine ;
  *   • une action de niveau 3 (point 74) n'est jamais lancée par ce service —
  *     elle attend une confirmation explicite du PDG.
+ *
+ * Point 66 : avant toute exécution, le Country Policy Engine est interrogé.
+ * Une action réglementée dont la règle du pays n'est pas confirmée n'est pas
+ * exécutée « en attendant » — elle repart en validation humaine.
  */
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../db.js";
@@ -25,6 +29,7 @@ import { applyRedirectionFix, healRecent404s, replayLearnedFixes } from "./auto-
 import { runQualityAudit } from "./quality-engine.js";
 import { runAlertScan } from "./alert-engine.js";
 import { logActivity } from "./activity-log.js";
+import { evaluateAction } from "../../country-policy/service.js";
 
 /** Étapes du cycle de vie, dans l'ordre. */
 export const TASK_STEPS = [
@@ -335,6 +340,24 @@ export async function runActionTask(
       .set({ status, updatedAt: new Date(), ...patch })
       .where(eq(smartActionTasks.id, id));
   };
+
+  // Point 66 — Action → pays concerné → règles applicables → exécution ou blocage.
+  const politique = await evaluateAction({
+    actionType: task.actionType,
+    countryCode: task.countryCode,
+    actorId,
+    context: { taskId: id, title: task.title },
+  });
+  if (politique.verdict === "bloque") {
+    await setStatus("echec", { failureReason: politique.reason });
+    await addStep({ taskId: id, step: "planifie", status: "echec", detail: politique.reason, actorId });
+    return { status: "echec", detail: politique.reason };
+  }
+  if (politique.verdict === "validation_requise") {
+    await setStatus("manuel_requis", { failureReason: politique.reason });
+    await addStep({ taskId: id, step: "planifie", status: "info", detail: politique.reason, actorId });
+    return { status: "manuel_requis", detail: politique.reason };
+  }
 
   if (!executor) {
     const raison =

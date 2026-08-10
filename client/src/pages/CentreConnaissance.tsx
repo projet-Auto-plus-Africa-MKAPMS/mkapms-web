@@ -9,6 +9,10 @@
  *  - il ne publie rien : une découverte attend une décision du PDG (point 61) ;
  *  - il montre les domaines encore vides au lieu de laisser croire que la
  *    mémoire est complète.
+ *
+ * Points 64-65 — l'onglet Veille dit pays par pays ce qui est réellement
+ * surveillé. Un sujet sans source autorisée est affiché comme non surveillé :
+ * une veille annoncée mais inexistante serait pire que pas de veille du tout.
  */
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
@@ -28,15 +32,26 @@ import {
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 
-type Onglet = "memoire" | "decouvertes" | "sources" | "couverture" | "verifier";
+type Onglet = "memoire" | "veille" | "decouvertes" | "sources" | "couverture" | "verifier";
 
 const ONGLETS: { key: Onglet; label: string }[] = [
   { key: "memoire", label: "Mémoire" },
+  { key: "veille", label: "Veille" },
   { key: "decouvertes", label: "Découvertes" },
   { key: "sources", label: "Sources" },
   { key: "couverture", label: "Couverture" },
   { key: "verifier", label: "À vérifier" },
 ];
+
+/** États d'un sujet de veille pour un pays donné (point 64). */
+const ETATS_VEILLE: Record<string, { label: string; ton: string }> = {
+  observe: { label: "Constats remontés", ton: "bg-emerald-50 text-emerald-700" },
+  aucun_constat: { label: "Surveillé — rien à signaler", ton: "bg-black/5 text-black/60" },
+  aucune_source_autorisee: {
+    label: "Non surveillé — aucune source autorisée",
+    ton: "bg-orange-50 text-orange-700",
+  },
+};
 
 const CLASSIFICATIONS: Record<string, { label: string; ton: string }> = {
   critique: { label: "Critique", ton: "bg-red-50 text-red-700" },
@@ -132,6 +147,10 @@ export default function CentreConnaissance() {
     enabled: !!isDirection && onglet === "sources",
     refetchOnWindowFocus: false,
   });
+  const veille = trpc.knowledgeEngine.veilleCouverture.useQuery(undefined, {
+    enabled: !!isDirection && onglet === "veille",
+    refetchOnWindowFocus: false,
+  });
   const couverture = trpc.knowledgeEngine.couvertureManquante.useQuery(undefined, {
     enabled: !!isDirection && onglet === "couverture",
     refetchOnWindowFocus: false,
@@ -160,6 +179,22 @@ export default function CentreConnaissance() {
     onSuccess: (r) => {
       setMessage(`${r.crees} source(s) enregistrée(s), ${r.existants} déjà connue(s).`);
       sources.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
+  const lancerVeille = trpc.knowledgeEngine.lancerVeille.useMutation({
+    onSuccess: (r) => {
+      const constats = r.resultats.reduce((n, x) => n + x.constats, 0);
+      const bloques = r.resultats.filter((x) => x.statut === "aucune_source_autorisee").length;
+      setMessage(
+        r.pays === 0
+          ? "Aucun pays activé : la veille ne tourne sur aucune juridiction."
+          : `${r.pays} pays parcouru(s), ${constats} constat(s) remonté(s), ${bloques} sujet(s) non surveillé(s) faute de source autorisée.` +
+            (r.erreurs.length > 0 ? ` ${r.erreurs.length} erreur(s) : ${r.erreurs.join(" ; ")}` : ""),
+      );
+      veille.refetch();
+      decouvertes.refetch();
+      decouvertesStats.refetch();
     },
     onError: (e) => setMessage(`Échec : ${e.message}`),
   });
@@ -596,6 +631,77 @@ export default function CentreConnaissance() {
                             n'est pas établie.
                           </span>
                         </p>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : null}
+
+        {onglet === "veille" ? (
+          <div className="space-y-3">
+            <p className="text-[11px] text-black/50">
+              Chaque sujet est suivi pays par pays. Une règle constatée dans un pays n'est jamais
+              recopiée sur un autre.
+            </p>
+
+            {isPdg ? (
+              <button
+                type="button"
+                onClick={() => lancerVeille.mutate({})}
+                disabled={lancerVeille.isPending}
+                className="w-full rounded-xl bg-[#111] px-3 py-2.5 text-xs font-bold text-white disabled:opacity-50"
+              >
+                {lancerVeille.isPending
+                  ? "Cycle de veille en cours…"
+                  : "Lancer un cycle de veille sur tous les pays activés"}
+              </button>
+            ) : null}
+
+            {veille.isLoading ? (
+              <p className="text-sm text-black/50">Chargement de la veille…</p>
+            ) : (veille.data ?? []).length === 0 ? (
+              <p className="text-sm text-black/50">
+                Aucun cycle de veille n'a encore été exécuté. Tant qu'aucun cycle n'a tourné, la
+                plateforme ne surveille rien : c'est écrit plutôt que masqué.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {(veille.data ?? []).map((v) => {
+                  const et = ETATS_VEILLE[v.status] ?? {
+                    label: v.status,
+                    ton: "bg-black/5 text-black/60",
+                  };
+                  const cl = CLASSIFICATIONS[v.classification] ?? CLASSIFICATIONS.information;
+                  return (
+                    <div
+                      key={`${v.countryCode}-${v.topic}`}
+                      className="rounded-xl border border-black/5 bg-white p-3"
+                    >
+                      <div className="flex items-start gap-2">
+                        <Globe size={14} className="mt-0.5 shrink-0 text-black/30" />
+                        <div className="flex-1">
+                          <p className="text-sm font-bold text-[#111]">
+                            {v.label} — {v.countryCode}
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-black/50">
+                            {v.findings} constat(s) · {v.authorizedSources} source(s) autorisée(s) ·{" "}
+                            {dateCourte(v.createdAt)}
+                          </p>
+                        </div>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${cl.ton}`}>
+                          {cl.label}
+                        </span>
+                      </div>
+                      <p
+                        className={`mt-2 rounded-lg px-2 py-1.5 text-[11px] font-bold ${et.ton}`}
+                      >
+                        {et.label}
+                      </p>
+                      {v.detail ? (
+                        <p className="mt-1.5 text-[11px] text-black/60">{v.detail}</p>
                       ) : null}
                     </div>
                   );

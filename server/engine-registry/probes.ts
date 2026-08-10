@@ -95,7 +95,11 @@ export const ENGINE_PROBES: EngineProbe[] = [
   },
   {
     engine: "connaissance_auto",
-    tables: ["ake_nodes", "ake_edges", "ake_sources", "ake_discoveries"],
+    tables: ["ake_nodes", "ake_edges", "ake_sources", "ake_provenance", "ake_discoveries", "ake_watch_runs"],
+  },
+  {
+    engine: "politique_pays",
+    tables: ["cpe_rules", "cpe_evaluations"],
   },
   { engine: "finance", tables: ["finance_documents", "finance_transactions", "payments"] },
   { engine: "encheres", tables: ["annonces", "payments"] },
