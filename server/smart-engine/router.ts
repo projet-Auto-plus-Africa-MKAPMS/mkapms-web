@@ -39,6 +39,12 @@ import { observe, listKB, kbStats, validateKB, KB_DOMAINS } from "./services/kno
 import { generateOptimizations, listOptimizations, optimizationStats, reviewOptimization } from "./services/auto-optimization.js";
 import { getPlatformHealth } from "./services/platform-health.js";
 import { buildDailyReport } from "./services/daily-report.js";
+import {
+  archiveAndDeliverDailyReport,
+  getArchivedReport,
+  listArchivedReports,
+  todayDeliveryState,
+} from "./services/daily-report-delivery.js";
 // Renforts (activation)
 import { assertRate, sanitizeTeachMessage } from "./services/rate-limiter.js"; // P9
 import { runRetention, retentionCounters } from "./services/retention.js"; // P7
@@ -400,6 +406,29 @@ export const smartEngineRouter = router({
   // ── Rapport quotidien consolidé (anomalies + propositions) ─────────
   dailyReport: directionProcedure.query(async () => {
     return buildDailyReport();
+  }),
+
+  // Point 39 : archivage + remise du rapport à la direction avant 23 h.
+  dailyReportDelivery: directionProcedure.query(async () => {
+    return todayDeliveryState();
+  }),
+
+  dailyReportArchives: directionProcedure
+    .input(z.object({ limit: z.number().min(1).max(365).default(30) }).optional())
+    .query(async ({ input }) => {
+      return listArchivedReports(input?.limit ?? 30);
+    }),
+
+  dailyReportArchive: directionProcedure
+    .input(z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }))
+    .query(async ({ input }) => {
+      return getArchivedReport(input.date);
+    }),
+
+  // Remise immédiate déclenchée par la direction (le cycle automatique reste
+  // en place) : rejouable, ne crée pas de doublon de la journée.
+  sendDailyReport: directionProcedure.mutation(async () => {
+    return archiveAndDeliverDailyReport({ force: true });
   }),
 
   // ── Dashboard global (Centre de contrôle) ──────────────────────────

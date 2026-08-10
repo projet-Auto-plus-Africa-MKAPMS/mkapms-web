@@ -9,6 +9,7 @@
  */
 import { z } from "zod";
 import { router, adminProcedure, directionProcedure, pdgProcedure } from "../trpc.js";
+import { MEMORY_SCOPES, memorySummary, recall } from "./memory.js";
 import {
   listEngines,
   getEngine,
@@ -153,5 +154,26 @@ export const engineRegistryRouter = router({
     )
     .mutation(async ({ input }) => {
       return publishEvent(input);
+    }),
+
+  // ── Mémoire des moteurs (point 40) ───────────────────────────────────
+  // Ce que chaque moteur a réellement retenu, rangé par domaine. Lecture
+  // seule : consulter une mémoire ne déclenche aucune action.
+  memoryScopes: directionProcedure.query(() => MEMORY_SCOPES),
+
+  memorySummary: directionProcedure.query(async () => {
+    return memorySummary();
+  }),
+
+  memory: directionProcedure
+    .input(
+      z.object({
+        engine: z.string().min(1).max(64),
+        scope: z.enum(MEMORY_SCOPES).optional(),
+        limit: z.number().int().min(1).max(500).default(100),
+      }),
+    )
+    .query(async ({ input }) => {
+      return recall(input.engine, input.scope, input.limit);
     }),
 });
