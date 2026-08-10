@@ -519,6 +519,13 @@
       "when": 1753702200000,
       "tag": "0074_avis_reputation_pays",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1753702300000,
+      "tag": "0075_avis_signaux_fraude",
+      "breakpoints": true
     }
   ]
 }
