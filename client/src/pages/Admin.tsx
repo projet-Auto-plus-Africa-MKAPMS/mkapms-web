@@ -321,6 +321,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Mémoire automobile — PDG + Directeur (points 60-63, 83, 87) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">M&eacute;moire automobile</h2>
+        <p className="text-xs text-slate-500">Connaissances reli&eacute;es, sources autoris&eacute;es, d&eacute;couvertes en attente de d&eacute;cision, couverture par domaine</p>
+        <Link to="/admin/connaissance" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F4DA;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">M&eacute;moire automobile MKA.P-MS</p>
+            <p className="text-xs text-white/60">Ce que la plateforme sait, d&apos;o&ugrave; elle le tient et depuis quand &mdash; apprendre n&apos;est pas publier</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Système Intelligent MKA.P-MS — visible PDG + Directeur/Direction */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">

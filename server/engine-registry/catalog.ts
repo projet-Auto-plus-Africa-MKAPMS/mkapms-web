@@ -469,6 +469,18 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "staging",
   },
   {
+    // Mémoire technique de l'entreprise : elle apprend d'abord des données
+    // MKA.P-MS elles-mêmes. Les sources externes restent des connecteurs à
+    // autoriser un par un (point 62).
+    name: "connaissance_auto",
+    label: "Automotive Knowledge Engine",
+    category: "transversal",
+    dependencies: ["core", "smart", "country"],
+    description:
+      "Mémoire automobile reliée, datée et sourcée : véhicules, motorisations, pièces, diagnostics, réglementation. Une connaissance n'est jamais publiée sans décision du PDG.",
+    state: "active",
+  },
+  {
     name: "finance",
     label: "Financement Engine",
     category: "service",
