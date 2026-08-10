@@ -33,6 +33,7 @@ import {
   Brain,
   ShieldCheck,
   AlertTriangle,
+  History,
 } from "lucide-react";
 
 /** Filtre rapide piloté par les cases cliquables du bandeau de synthèse. */
@@ -117,6 +118,48 @@ const HEALTH_LABEL: Record<string, string> = {
   unknown: "Inconnu",
 };
 
+/** Les 5 états opérationnels calculés du registre complet (point 41). */
+type OperationalState = "ok" | "partiel" | "degrade" | "hors_service" | "non_configure";
+
+const OP_ORDER: OperationalState[] = [
+  "ok",
+  "partiel",
+  "degrade",
+  "hors_service",
+  "non_configure",
+];
+
+const OP_LABEL: Record<OperationalState, string> = {
+  ok: "Opérationnel",
+  partiel: "Partiel",
+  degrade: "Dégradé",
+  hors_service: "Hors service",
+  non_configure: "Non configuré",
+};
+
+const OP_STYLE: Record<OperationalState, string> = {
+  ok: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  partiel: "bg-sky-100 text-sky-700 border-sky-200",
+  degrade: "bg-amber-100 text-amber-700 border-amber-200",
+  hors_service: "bg-red-100 text-red-700 border-red-200",
+  non_configure: "bg-slate-200 text-slate-600 border-slate-300",
+};
+
+/** Journal des modifications d'agents (point 42). */
+const CHANGE_STATUS_LABEL: Record<string, string> = {
+  declaree: "En attente de validation",
+  validee: "Validée",
+  rejetee: "Rejetée",
+  annulee: "Annulée (retour arrière)",
+};
+
+const CHANGE_STATUS_STYLE: Record<string, string> = {
+  declaree: "bg-amber-100 text-amber-700",
+  validee: "bg-emerald-100 text-emerald-700",
+  rejetee: "bg-red-100 text-red-700",
+  annulee: "bg-slate-200 text-slate-600",
+};
+
 const STATE_ORDER: EngineState[] = [
   "active",
   "read_only",
@@ -150,6 +193,11 @@ export default function EngineRegistryControlCenter() {
     enabled: isDirection,
     refetchInterval: 15000,
   });
+  // Point 41 — état opérationnel réel (calculé) de chaque moteur.
+  const overview = trpc.engineRegistry.overview.useQuery(undefined, {
+    enabled: isDirection,
+    refetchInterval: 30000,
+  });
   // Phase 55 — deux moteurs centraux.
   const supervision = trpc.centralEngines.supervision.useQuery(undefined, {
     enabled: isDirection,
@@ -168,11 +216,16 @@ export default function EngineRegistryControlCenter() {
   });
 
   // Filtres du tableau de bord (cases cliquables + recherche + état).
+  const [opFilter, setOpFilter] = useState<OperationalState | "all">("all");
   const [quick, setQuick] = useState<QuickFilter>("all");
   const [stateFilter, setStateFilter] = useState<EngineState | "all">("all");
   const [search, setSearch] = useState("");
 
   const engines = (list.data ?? []) as EngineRow[];
+  const readiness = useMemo(
+    () => new Map((overview.data?.moteurs ?? []).map((m) => [m.name, m])),
+    [overview.data],
+  );
 
   const degradedCount = useMemo(
     () => engines.filter((e) => e.health === "degraded" || e.health === "down").length,
@@ -184,6 +237,7 @@ export default function EngineRegistryControlCenter() {
   );
 
   const matchesFilters = (e: EngineRow) => {
+    if (opFilter !== "all" && readiness.get(e.name)?.operational !== opFilter) return false;
     if (quick === "active" && e.state !== "active") return false;
     if (quick === "degraded" && !(e.health === "degraded" || e.health === "down")) return false;
     if (stateFilter !== "all" && e.state !== stateFilter) return false;
@@ -193,10 +247,12 @@ export default function EngineRegistryControlCenter() {
     return true;
   };
   const filtered = engines.filter(matchesFilters);
-  const hasActiveFilter = quick !== "all" || stateFilter !== "all" || search.trim() !== "";
+  const hasActiveFilter =
+    quick !== "all" || stateFilter !== "all" || opFilter !== "all" || search.trim() !== "";
   const resetFilters = () => {
     setQuick("all");
     setStateFilter("all");
+    setOpFilter("all");
     setSearch("");
   };
 
@@ -378,6 +434,54 @@ export default function EngineRegistryControlCenter() {
           </div>
         </div>
 
+        {/* Point 41 — registre complet : les 5 états opérationnels réels */}
+        <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-2 flex flex-wrap items-baseline gap-2">
+            <h2 className="text-sm font-black text-slate-900">État opérationnel réel</h2>
+            <span className="text-[11px] text-slate-400">
+              Calculé à partir de la santé, du dernier signal et des dépendances — jamais déclaré.
+            </span>
+          </div>
+          {overview.isLoading ? (
+            <p className="text-xs text-slate-400">Analyse du registre…</p>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-2">
+                {OP_ORDER.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    aria-pressed={opFilter === s}
+                    onClick={() => setOpFilter((f) => (f === s ? "all" : s))}
+                    className={`rounded-xl border px-3 py-2 text-left transition hover:shadow-sm ${OP_STYLE[s]} ${
+                      opFilter === s ? "ring-2 ring-[#111]" : ""
+                    }`}
+                  >
+                    <p className="text-lg font-black leading-none">
+                      {overview.data?.parEtat[s] ?? 0}
+                    </p>
+                    <p className="mt-0.5 text-[10px] font-semibold">{OP_LABEL[s]}</p>
+                  </button>
+                ))}
+              </div>
+              {(overview.data?.dependancesEnDefaut.length ?? 0) > 0 && (
+                <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                  <p className="text-[11px] font-bold text-amber-800">
+                    {overview.data?.dependancesEnDefaut.length} moteur(s) avec une dépendance en défaut :
+                  </p>
+                  <ul className="mt-1 space-y-0.5">
+                    {overview.data?.dependancesEnDefaut.slice(0, 6).map((m) => (
+                      <li key={m.name} className="text-[11px] text-amber-700">
+                        <strong>{m.label}</strong> — {m.reason}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
         {/* Options : recherche + filtre par état */}
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <div className="relative">
@@ -485,8 +589,27 @@ export default function EngineRegistryControlCenter() {
                             <span className={`h-2 w-2 rounded-full ${HEALTH_STYLE[e.health] ?? HEALTH_STYLE.unknown}`} />
                             {HEALTH_LABEL[e.health] ?? e.health}
                           </span>
+                          {(() => {
+                            const r = readiness.get(e.name);
+                            if (!r) return null;
+                            const op = r.operational as OperationalState;
+                            return (
+                              <span
+                                title={r.reason}
+                                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold ${OP_STYLE[op]}`}
+                              >
+                                {OP_LABEL[op]}
+                              </span>
+                            );
+                          })()}
                         </div>
                       </div>
+
+                      {readiness.get(e.name) && (
+                        <p className="mt-2 text-[11px] text-slate-500">
+                          {readiness.get(e.name)?.reason}
+                        </p>
+                      )}
 
                       <div className="mt-3 grid gap-x-6 gap-y-1 text-xs text-slate-600 sm:grid-cols-2">
                         <p>
@@ -539,6 +662,9 @@ export default function EngineRegistryControlCenter() {
           );
         })}
 
+        {/* Point 42 — journal des modifications d'agents */}
+        <AgentChangesSection isPdg={isPdg} />
+
         <p className="mt-2 text-center text-[11px] text-slate-400">
           Chaque moteur gère uniquement son périmètre et reste connecté au moteur principal.
           Les sous-sections en « préproduction » sont déclarées et isolables ; leur logique
@@ -546,6 +672,162 @@ export default function EngineRegistryControlCenter() {
         </p>
       </div>
     </div>
+  );
+}
+
+/**
+ * Journal des modifications d'agents (point 42).
+ *
+ * Chaque intervention est tracée avec son auteur, sa preuve d'application en
+ * base et sa procédure de retour arrière. Aucune modification ne se valide
+ * toute seule : la décision reste au PDG.
+ */
+function AgentChangesSection({ isPdg }: { isPdg: boolean }) {
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const utils = trpc.useUtils();
+  const stats = trpc.engineRegistry.agentChangeStats.useQuery();
+  const changes = trpc.engineRegistry.agentChanges.useQuery({
+    limit: 50,
+    ...(statusFilter === "all"
+      ? {}
+      : { status: statusFilter as "declaree" | "validee" | "rejetee" | "annulee" }),
+  });
+  const review = trpc.engineRegistry.reviewAgentChange.useMutation({
+    onSettled: () => {
+      utils.engineRegistry.agentChanges.invalidate();
+      utils.engineRegistry.agentChangeStats.invalidate();
+    },
+  });
+
+  const rows = changes.data ?? [];
+
+  return (
+    <section className="mb-7 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <History size={16} className="text-slate-500" />
+        <h2 className="text-sm font-black text-slate-900">Journal des modifications</h2>
+        <span className="text-[11px] text-slate-400">
+          Ce qui a réellement été modifié sur la plateforme, par qui, et comment le défaire.
+        </span>
+      </div>
+
+      {stats.data && (
+        <div className="mb-3 flex flex-wrap gap-2 text-[11px]">
+          <span className="rounded-lg bg-slate-100 px-2 py-1 font-semibold text-slate-700">
+            {stats.data.total} modification(s)
+          </span>
+          <span className="rounded-lg bg-amber-100 px-2 py-1 font-semibold text-amber-700">
+            {stats.data.enAttenteDeValidation} en attente de validation
+          </span>
+          <span className="rounded-lg bg-slate-100 px-2 py-1 font-semibold text-slate-600">
+            {stats.data.sansRetourArriere} sans retour arrière documenté
+          </span>
+        </div>
+      )}
+
+      <div className="mb-3 flex flex-wrap gap-1.5">
+        {["all", "declaree", "validee", "rejetee", "annulee"].map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setStatusFilter(s)}
+            className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition ${
+              statusFilter === s
+                ? "border-[#111] bg-[#111] text-[#D4AF37]"
+                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            {s === "all" ? "Toutes" : CHANGE_STATUS_LABEL[s]}
+          </button>
+        ))}
+      </div>
+
+      {changes.isLoading ? (
+        <p className="text-xs text-slate-400">Lecture du journal…</p>
+      ) : rows.length === 0 ? (
+        <p className="text-xs text-slate-400">
+          Aucune modification enregistrée pour ce filtre. Le journal ne montre que des
+          modifications réellement constatées.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {rows.map((c) => (
+            <div key={c.id} className="rounded-xl border border-slate-200 p-3">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-slate-900">{c.title}</p>
+                  <p className="mt-0.5 font-mono text-[10px] text-slate-400">
+                    {c.kind} · {c.reference}
+                    {c.engineName ? ` · ${c.engineName}` : ""}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      CHANGE_STATUS_STYLE[c.status] ?? "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {CHANGE_STATUS_LABEL[c.status] ?? c.status}
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      c.appliedInDb ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
+                    {c.appliedInDb ? "Appliquée en base" : "Application non constatée"}
+                  </span>
+                </div>
+              </div>
+
+              {c.detail && <p className="mt-1 text-[11px] text-slate-600">{c.detail}</p>}
+              <p className="mt-1 text-[10px] text-slate-400">
+                Par {c.agent} · {new Date(c.createdAt).toLocaleString("fr-FR")}
+                {c.appliedAt ? ` · appliquée le ${new Date(c.appliedAt).toLocaleString("fr-FR")}` : ""}
+              </p>
+              <p className="mt-1 text-[10px] text-slate-500">
+                {c.rollbackPlan
+                  ? `Retour arrière : ${c.rollbackPlan}`
+                  : "Retour arrière non documenté — à demander à l'auteur avant toute annulation."}
+              </p>
+              {c.reviewNote && (
+                <p className="mt-1 text-[10px] text-slate-500">Décision : {c.reviewNote}</p>
+              )}
+
+              {isPdg && c.status === "declaree" && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <button
+                    disabled={review.isPending}
+                    onClick={() => review.mutate({ id: c.id, decision: "validee" })}
+                    className="rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white disabled:opacity-50"
+                  >
+                    Valider
+                  </button>
+                  <button
+                    disabled={review.isPending}
+                    onClick={() => review.mutate({ id: c.id, decision: "rejetee" })}
+                    className="rounded-lg border border-red-200 bg-white px-2.5 py-1 text-[11px] font-bold text-red-700 disabled:opacity-50"
+                  >
+                    Rejeter
+                  </button>
+                  <button
+                    disabled={review.isPending}
+                    onClick={() => review.mutate({ id: c.id, decision: "annulee" })}
+                    className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 disabled:opacity-50"
+                  >
+                    Marquer annulée
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      {!isPdg && (
+        <p className="mt-2 text-[10px] text-slate-400">
+          Lecture seule (Directeur) — la validation d'une modification est réservée au PDG.
+        </p>
+      )}
+    </section>
   );
 }
 

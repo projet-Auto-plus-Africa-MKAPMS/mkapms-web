@@ -262,6 +262,24 @@ export async function bootstrapEngines(): Promise<void> {
 
   // Moteurs métier : sonde réelle de leur propre domaine.
   await probeBusinessEngines();
+
+  // Journal des modifications d'agents : relève les migrations réellement
+  // appliquées en base. Sans ce relevé, le journal reposerait sur de simples
+  // déclarations sans preuve.
+  try {
+    const { syncAppliedMigrations } = await import("./agent-changes.js");
+    const r = await syncAppliedMigrations();
+    if (r.nouvelles > 0) {
+      console.log(
+        `[MKA.P-MS] journal des modifications : ${r.nouvelles} migration(s) relevée(s) sur ${r.releve}`,
+      );
+    }
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] relevé des migrations échoué:",
+      (err as Error).message,
+    );
+  }
 }
 
 /**
