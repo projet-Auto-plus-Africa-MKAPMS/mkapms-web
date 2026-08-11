@@ -393,6 +393,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Laboratoire R&D automobile — PDG + Directeur (points 79-80-81-82) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Laboratoire R&amp;D automobile</h2>
+        <p className="text-xs text-slate-500">Projets industriels, cha&icirc;ne besoin &rarr; tests, navigation embarqu&eacute;e, calculateurs et droits d&apos;usage</p>
+        <Link to="/admin/labo-rd" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F9EA;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Automotive R&amp;D Lab</p>
+            <p className="text-xs text-white/60">S&eacute;par&eacute; des services vendus &mdash; rien n&apos;est publi&eacute;, rien n&apos;est absorb&eacute; sans droit d&apos;usage</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Système Intelligent MKA.P-MS — visible PDG + Directeur/Direction */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">

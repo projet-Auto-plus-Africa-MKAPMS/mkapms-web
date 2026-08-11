@@ -110,6 +110,7 @@ import { knowledgeEngineRouter } from "./knowledge-engine/index.js";
 import { countryPolicyRouter } from "./country-policy/index.js";
 import { resilienceRouter } from "./resilience/index.js";
 import { commandCenterRouter } from "./command-center/index.js";
+import { rdLabRouter } from "./rd-lab/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -234,6 +235,7 @@ export const appRouter = router({
   countryPolicy: countryPolicyRouter,
   resilience: resilienceRouter,
   commandCenter: commandCenterRouter,
+  rdLab: rdLabRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

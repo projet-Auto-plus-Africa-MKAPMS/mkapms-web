@@ -568,6 +568,13 @@
       "when": 1753702800000,
       "tag": "0081_centre_commandes",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1753789200000,
+      "tag": "0082_rd_lab_automobile",
+      "breakpoints": true
     }
   ]
 }

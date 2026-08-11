@@ -512,6 +512,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "rd_lab",
+    label: "Automotive R&D Lab",
+    category: "transversal",
+    dependencies: ["core", "smart", "connaissance_auto"],
+    description:
+      "Laboratoire R&D séparé des services vendus : projets industriels, chaîne besoin → tests, navigation et calculateurs, avec droits d'usage établis avant tout versement à la mémoire partagée.",
+    state: "active",
+  },
+  {
     name: "finance",
     label: "Financement Engine",
     category: "service",
