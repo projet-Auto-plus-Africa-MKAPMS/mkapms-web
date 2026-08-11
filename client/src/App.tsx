@@ -188,6 +188,7 @@ const CentreConnaissance = lazy(() => import("./pages/CentreConnaissance"));
 const CentreReglesPays = lazy(() => import("./pages/CentreReglesPays"));
 const CentreResilience = lazy(() => import("./pages/CentreResilience"));
 const CentreCommandes = lazy(() => import("./pages/CentreCommandes"));
+const LaboRD = lazy(() => import("./pages/LaboRD"));
 const AvisUnivers = lazy(() => import("./pages/AvisUnivers"));
 const MiniPlateformes = lazy(() => import("./pages/MiniPlateformes"));
 const PartenairesPilotage = lazy(() => import("./pages/PartenairesPilotage"));
@@ -1180,6 +1181,7 @@ export default function App() {
             <Route path="/admin/regles-pays" element={<U name="Règles par pays"><CentreReglesPays /></U>} />
             <Route path="/admin/resilience" element={<U name="Centre de Résilience"><CentreResilience /></U>} />
             <Route path="/admin/commandes" element={<U name="Centre de Commandes"><CentreCommandes /></U>} />
+            <Route path="/admin/labo-rd" element={<U name="Laboratoire R&D"><LaboRD /></U>} />
             <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
             <Route path="/superadmin/mini-plateformes" element={<U name="Univers en mini-plateformes"><MiniPlateformes /></U>} />
             <Route path="/superadmin/partenaires" element={<U name="Réseau partenaires"><PartenairesPilotage /></U>} />
