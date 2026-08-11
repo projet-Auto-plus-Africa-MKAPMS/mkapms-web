@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>MKA.P-MS</title>
+    <style>
+      :root { color-scheme: dark; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: #0b0b0f;
+        color: #f4f4f5;
+        font-family: -apple-system, "Segoe UI", Roboto, system-ui, sans-serif;
+      }
+      main {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        padding: 28px;
+        text-align: center;
+      }
+      img { width: 132px; height: 132px; }
+      h1 { font-size: 19px; margin: 0; letter-spacing: 0.02em; }
+      p { font-size: 14px; line-height: 1.5; color: #a1a1aa; margin: 0; max-width: 320px; }
+      button {
+        margin-top: 6px;
+        padding: 13px 26px;
+        border: 0;
+        border-radius: 999px;
+        background: #ffd700;
+        color: #0b0b0f;
+        font-size: 15px;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="icon.png" alt="MKA.P-MS" />
+      <h1>Connexion indisponible</h1>
+      <p>
+        L'application n'a pas pu joindre la plateforme MKA.P-MS. Vérifiez votre
+        connexion : aucune donnée n'est perdue, tout est conservé sur votre compte.
+      </p>
+      <button onclick="location.replace('https://www.mkapms.fr/')">Réessayer</button>
+    </main>
+  </body>
+</html>
