@@ -31,6 +31,13 @@ const ALT: Record<LogoVariant, string> = {
 const WORDMARK_SRC = "/brand/wordmark.png";
 /** Slogan officiel « PROTÉGER · RELIER · SERVIR LE MONDE ENTIER » (image charte). */
 const SLOGAN_SRC = "/brand/slogan.png";
+/**
+ * Liseré de lisibilité appliqué aux images de marque sur fond clair. Il ne
+ * change aucune couleur : il ajoute un contour bleu nuit très fin autour des
+ * glyphes clairs, sinon illisibles sur blanc.
+ */
+const WORDMARK_EDGE =
+  "drop-shadow(0 0 0.6px rgba(10, 40, 90, 0.85)) drop-shadow(0 0 1.2px rgba(10, 40, 90, 0.45))";
 export interface LogoProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt"> {
   variant?: LogoVariant;
   /** Hauteur du blason en pixels (le ratio est conservé). */
@@ -65,7 +72,19 @@ export function Logo({
         <img
           src={WORDMARK_SRC}
           alt="MKA.P-MS"
-          style={{ height: Math.max(20, Math.round(size * 1.05)), width: "auto", display: "block", overflow: "visible", marginTop: -10 }}
+          style={{
+            height: Math.max(20, Math.round(size * 1.05)),
+            width: "auto",
+            display: "block",
+            overflow: "visible",
+            marginTop: -10,
+            // Le « S » et le « P » bleus, ainsi que la ligne lumineuse, sont
+            // rendus avec des reflets quasi blancs : sur les fonds clairs
+            // (header, factures) ils disparaissaient. Ce liseré détache les
+            // glyphes sans altérer une seule couleur de la charte, et reste
+            // sans effet visible sur les fonds sombres.
+            filter: WORDMARK_EDGE,
+          }}
           className="select-none"
           draggable={false}
         />
@@ -74,7 +93,12 @@ export function Logo({
         <img
           src={SLOGAN_SRC}
           alt="PROTÉGER · RELIER · SERVIR LE MONDE ENTIER"
-          style={{ height: Math.max(7, Math.round(size * 0.17)), width: "auto", display: "block" }}
+          style={{
+            height: Math.max(7, Math.round(size * 0.17)),
+            width: "auto",
+            display: "block",
+            filter: WORDMARK_EDGE,
+          }}
           className="mt-1 select-none"
           draggable={false}
         />
