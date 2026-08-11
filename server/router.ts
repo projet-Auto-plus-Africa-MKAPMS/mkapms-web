@@ -111,6 +111,7 @@ import { countryPolicyRouter } from "./country-policy/index.js";
 import { resilienceRouter } from "./resilience/index.js";
 import { commandCenterRouter } from "./command-center/index.js";
 import { rdLabRouter } from "./rd-lab/index.js";
+import { aiFabricRouter } from "./ai-fabric/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -236,6 +237,7 @@ export const appRouter = router({
   resilience: resilienceRouter,
   commandCenter: commandCenterRouter,
   rdLab: rdLabRouter,
+  aiFabric: aiFabricRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

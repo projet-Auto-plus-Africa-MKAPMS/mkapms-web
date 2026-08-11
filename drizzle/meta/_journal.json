@@ -575,6 +575,13 @@
       "when": 1753789200000,
       "tag": "0082_rd_lab_automobile",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1753875600000,
+      "tag": "0083_ai_fabric",
+      "breakpoints": true
     }
   ]
 }
