@@ -393,6 +393,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Fournisseurs, coûts & supervision — PDG + Directeur (points 84-90) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Fournisseurs, co&ucirc;ts &amp; supervision</h2>
+        <p className="text-xs text-slate-500">Changer de fournisseur sans reconstruire, co&ucirc;t r&eacute;el de chaque automatisation, sauvegarde de la m&eacute;moire, &eacute;tat de tous les moteurs</p>
+        <Link to="/admin/ia-couts" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F517;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre IA, co&ucirc;ts &amp; supervision</p>
+            <p className="text-xs text-white/60">Aucun fournisseur affich&eacute; actif sans preuve, aucune &eacute;conomie invent&eacute;e</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Laboratoire R&D automobile — PDG + Directeur (points 79-80-81-82) */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">

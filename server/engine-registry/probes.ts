@@ -119,6 +119,10 @@ export const ENGINE_PROBES: EngineProbe[] = [
     engine: "rd_lab",
     tables: ["rd_projects", "rd_chain_links", "rd_assets", "rd_ecosystem_snapshots"],
   },
+  {
+    engine: "ai_fabric",
+    tables: ["af_providers", "af_routes", "af_cost_entries", "af_memory_backups"],
+  },
   { engine: "finance", tables: ["finance_documents", "finance_transactions", "payments"] },
   { engine: "encheres", tables: ["annonces", "payments"] },
   { engine: "auction_engine", tables: ["auctions", "auction_bids", "auction_events"] },
