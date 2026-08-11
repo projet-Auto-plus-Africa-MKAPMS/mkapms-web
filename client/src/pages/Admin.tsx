@@ -375,6 +375,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Centre de Commandes — PDG + Directeur (points 71-72-75) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Commandes &amp; agent d&eacute;veloppeur</h2>
+        <p className="text-xs text-slate-500">Demandes en langage naturel, commandes vocales PDG, dossiers de d&eacute;veloppement</p>
+        <Link to="/admin/commandes" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F5E3;&#xFE0F;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre de Commandes</p>
+            <p className="text-xs text-white/60">Une phrase devient une action trac&eacute;e &mdash; jamais une op&eacute;ration critique sans confirmation</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Système Intelligent MKA.P-MS — visible PDG + Directeur/Direction */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">

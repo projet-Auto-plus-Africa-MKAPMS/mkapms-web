@@ -111,6 +111,10 @@ export const ENGINE_PROBES: EngineProbe[] = [
       "rs_failure_lessons",
     ],
   },
+  {
+    engine: "command_center",
+    tables: ["cc_commands", "cc_voice_sessions", "cc_dev_requests"],
+  },
   { engine: "finance", tables: ["finance_documents", "finance_transactions", "payments"] },
   { engine: "encheres", tables: ["annonces", "payments"] },
   { engine: "auction_engine", tables: ["auctions", "auction_bids", "auction_events"] },
