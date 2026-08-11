@@ -109,6 +109,7 @@ import { googleBusinessRouter } from "./connectors/google-business/index.js";
 import { knowledgeEngineRouter } from "./knowledge-engine/index.js";
 import { countryPolicyRouter } from "./country-policy/index.js";
 import { resilienceRouter } from "./resilience/index.js";
+import { commandCenterRouter } from "./command-center/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -232,6 +233,7 @@ export const appRouter = router({
   knowledgeEngine: knowledgeEngineRouter,
   countryPolicy: countryPolicyRouter,
   resilience: resilienceRouter,
+  commandCenter: commandCenterRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

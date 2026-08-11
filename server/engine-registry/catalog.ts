@@ -502,6 +502,16 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    // Il ne décide rien : il traduit une demande humaine en action déjà tracée.
+    name: "command_center",
+    label: "Command & Development Center",
+    category: "transversal",
+    dependencies: ["core", "smart", "country", "resilience"],
+    description:
+      "Commandes écrites et vocales transformées en actions structurées et journalisées, dossiers de l'agent développeur passant obligatoirement par le pipeline avant production.",
+    state: "active",
+  },
+  {
     name: "finance",
     label: "Financement Engine",
     category: "service",
