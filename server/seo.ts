@@ -94,6 +94,7 @@ const DOMAIN_SEO: Record<DomainKey, DomainSeoMeta> = {
       "/abonnements",
       "/confiance",
       "/aide",
+      "/confidentialite",
     ],
   },
   pro: {
