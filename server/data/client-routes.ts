@@ -71,6 +71,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/comptabilite/wallets",
   "/compte/validation",
   "/confiance",
+  "/confidentialite",
   "/conformite/assurances-pays",
   "/conformite/centre-pays",
   "/conformite/contrats-adaptes",

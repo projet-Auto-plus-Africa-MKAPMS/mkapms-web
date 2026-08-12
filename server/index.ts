@@ -296,6 +296,34 @@ if (env.INDEXNOW_KEY) {
   });
 }
 
+// Application Android — vérification des liens (App Links). Sans empreinte de
+// signature déclarée, on ne publie pas un fichier faux : Google doit lire un
+// refus explicite plutôt qu'une association invalide.
+app.get("/.well-known/assetlinks.json", (_req, res) => {
+  const fingerprints = env.ANDROID_APP_FINGERPRINTS.split(",")
+    .map((f) => f.trim().toUpperCase())
+    .filter((f) => f.length > 0);
+
+  if (fingerprints.length === 0) {
+    return res.status(404).json({
+      error: "assetlinks_non_configure",
+      message:
+        "Empreinte de signature Android absente : renseigner ANDROID_APP_FINGERPRINTS (Play Console → Intégrité de l'app → certificat de signature).",
+    });
+  }
+
+  return res.json([
+    {
+      relation: ["delegate_permission/common.handle_all_urls"],
+      target: {
+        namespace: "android_app",
+        package_name: env.ANDROID_APP_ID,
+        sha256_cert_fingerprints: fingerprints,
+      },
+    },
+  ]);
+});
+
 // Sert le frontend compilé en production
 if (isProd) {
   const clientDir = path.resolve(__dirname, "public");

@@ -33,6 +33,7 @@ const Garages = lazy(() => import("./pages/Garages"));
 const GaragePlus = lazy(() => import("./pages/GaragePlus"));
 const Abonnements = lazy(() => import("./pages/Abonnements"));
 const Aide = lazy(() => import("./pages/Aide"));
+const Confidentialite = lazy(() => import("./pages/Confidentialite"));
 const Confiance = lazy(() => import("./pages/Confiance"));
 const Connexion = lazy(() => import("./pages/Connexion"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
@@ -956,6 +957,7 @@ export default function App() {
             <Route path="/carte-grise" element={<U name="Carte Grise"><CarteGrise /></U>} />
             <Route path="/abonnements" element={<U name="Abonnements"><Abonnements /></U>} />
             <Route path="/aide" element={<Aide />} />
+            <Route path="/confidentialite" element={<Confidentialite />} />
             <Route path="/confiance" element={<Confiance />} />
             <Route path="/mission" element={<Mission />} />
             <Route path="/espace-pro" element={<U name="Espace Pro"><EspacePro /></U>} />

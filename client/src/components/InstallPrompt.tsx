@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { estApplicationMkapms } from "../lib/native";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -15,7 +16,9 @@ export default function InstallPrompt() {
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    const standalone = window.matchMedia("(display-mode: standalone)").matches
+    // Dans l'application MKA.P-MS, proposer de « l'installer » n'a pas de sens.
+    const standalone = estApplicationMkapms()
+      || window.matchMedia("(display-mode: standalone)").matches
       || (navigator as any).standalone === true;
     setIsStandalone(standalone);
     if (standalone) return;

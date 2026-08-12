@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  Le nom affiché, l'identifiant du paquet et le schéma d'URL ne sont pas écrits
+  ici : ils sont produits par app/build.gradle à partir de mobile/variants.json,
+  pour que les trois applications MKA.P-MS sortent du même projet sans copie.
+-->
+<resources>
+</resources>

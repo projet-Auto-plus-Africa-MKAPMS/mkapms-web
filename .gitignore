@@ -6,3 +6,15 @@ dist/
 .DS_Store
 .cache/
 coverage/
+
+# Application Android — signature de publication (ne doit jamais être versionnée)
+android/keystore.properties
+*.jks
+*.keystore
+android/app/build/
+android/build/
+android/.gradle/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+mobile/dist/
