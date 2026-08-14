@@ -4,6 +4,7 @@ import { ChevronLeft, CreditCard, ShieldCheck, Wallet } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { ACOMPTE_PALIERS } from "@shared/plans";
+import MoyensPaiement from "../components/MoyensPaiement";
 
 /**
  * Page de paiement d'un véhicule.
@@ -126,6 +127,13 @@ export default function PaiementVehicule() {
               </div>
             )}
 
+            {/* Moyens réellement acceptés pour ce pays et cette devise */}
+            <MoyensPaiement
+              countryCode={v.pays ?? "FR"}
+              currency={v.devise ?? "EUR"}
+              service={mode === "comptant" ? "vente" : "reservation"}
+            />
+
             {erreur && (
               <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erreur}</div>
             )}
@@ -144,7 +152,7 @@ export default function PaiementVehicule() {
             </button>
 
             <p className="text-center text-[11px] text-slate-400">
-              Paiement sécurisé. Vous pourrez finaliser sur la page de paiement.
+              Le numéro de carte est saisi sur la page sécurisée du prestataire, jamais sur MKA.P-MS.
             </p>
           </>
         )}
