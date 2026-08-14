@@ -447,6 +447,31 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec seed Orchestrateur paiement:", (err as Error).message);
     }
+    // Vérifie que le prestataire accepte réellement nos identifiants. Une clé
+    // invalide bloque TOUS les encaissements : la direction doit l'apprendre
+    // au démarrage, pas par un client bloqué devant son panier.
+    try {
+      const { checkStripeKey } = await import("./lib/stripe.js");
+      const s = await checkStripeKey(true);
+      if (!s.configured) {
+        console.warn("[MKA.P-MS] Paiement: aucune clé Stripe configurée — mode simulation.");
+      } else if (!s.valid || !s.canCharge) {
+        console.error(`[MKA.P-MS] Paiement INDISPONIBLE — ${s.reason}`);
+        const { raiseAlert } = await import("./smart-engine/services/alert-engine.js");
+        await raiseAlert({
+          category: "paiement",
+          level: "critical",
+          title: "Paiements bloqués — identifiants prestataire refusés",
+          description: s.reason,
+          signature: "payment_provider_auth:stripe",
+          lastOccurredAt: new Date(),
+        });
+      } else {
+        console.log(`[MKA.P-MS] Paiement: clé Stripe ${s.kind} (${s.mode}) opérationnelle.`);
+      }
+    } catch (err) {
+      console.error("[MKA.P-MS] échec vérification clé Stripe:", (err as Error).message);
+    }
     // Système Intelligent — travail autonome périodique (lecture seule) : il
     // analyse les données réelles et PROPOSE des solutions/alertes que le PDG
     // valide ensuite. Aucune décision humaine n'est appliquée automatiquement.
