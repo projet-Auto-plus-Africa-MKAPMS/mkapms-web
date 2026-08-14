@@ -6,6 +6,7 @@
  * règles par pays, vérification RIB).
  */
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import {
   router,
   publicProcedure,
@@ -34,6 +35,7 @@ import {
   getStats,
   listTransactions,
 } from "./service.js";
+import { createPaymentCheckout, type PaymentKind } from "./checkout.js";
 import { paymentAudit } from "./audit.js";
 import { paymentChainAudit } from "./chain-audit.js";
 import {
@@ -46,6 +48,25 @@ import {
 
 const method = z.enum(PAYMENT_METHODS);
 const status = z.enum(PAYMENT_STATUSES);
+
+/**
+ * Correspondance registre produit → encaissement branché.
+ *
+ * D'abord par code produit (cas nommés), puis par cas de paiement. Un cas
+ * absent de ces tables n'est pas encaissé « en attendant » : la demande est
+ * refusée avec son motif, car le webhook ne saurait pas quoi confirmer.
+ */
+const KIND_BY_PRODUCT_CODE: Record<string, PaymentKind> = {
+  carte_grise_service: "carte_grise_service",
+  kyc_verification: "kyc_verification",
+  depotvente_frais: "depotvente_frais",
+};
+const KIND_BY_PAYMENT_CASE: Record<string, PaymentKind> = {
+  boost_annonce: "annonce_boost",
+  photos_supplementaires: "annonce_boost",
+  depot_annonce: "depotvente_frais",
+  garage: "garage_prestation",
+};
 
 export const paymentEngineRouter = router({
   // ── Utilisateur connecté ──────────────────────────────────────────────
@@ -103,6 +124,43 @@ export const paymentEngineRouter = router({
     .query(async ({ input }) => {
       const product = await resolveProduct(input.code);
       return { product, price: computePrice(product, input.quantity) };
+    }),
+
+  /**
+   * Démarrage d'un encaissement à partir d'un code produit du registre.
+   *
+   * Sert aux écrans de service (démarches administratives, options payantes…)
+   * qui n'ont pas d'entité métier propre à facturer. Le montant vient du
+   * registre central, jamais du navigateur, et le retour est un chemin interne
+   * validé : une URL externe fournie par le client est refusée.
+   */
+  startProductCheckout: protectedProcedure
+    .input(
+      z.object({
+        code: z.string().min(1).max(64),
+        quantity: z.number().int().min(1).max(50).default(1),
+        returnPath: z.string().min(1).max(200).regex(/^\/[A-Za-z0-9\-_/?=&.]*$/),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const product = await resolveProduct(input.code);
+      const kind = KIND_BY_PRODUCT_CODE[product.code] ?? KIND_BY_PAYMENT_CASE[product.paymentCase];
+      if (!kind) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Aucun encaissement en ligne n'est branché pour « ${product.paymentCase} » (produit ${product.code}).`,
+        });
+      }
+      const sep = input.returnPath.includes("?") ? "&" : "?";
+      return createPaymentCheckout({
+        userId: ctx.user.uid,
+        kind,
+        productCode: product.code,
+        quantity: input.quantity,
+        successPath: `${input.returnPath}${sep}paid=1`,
+        cancelPath: `${input.returnPath}${sep}canceled=1`,
+        countryCode: product.countryCode,
+      });
     }),
 
   // ── RIB professionnels ────────────────────────────────────────────────

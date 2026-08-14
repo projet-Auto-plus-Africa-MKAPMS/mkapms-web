@@ -419,6 +419,19 @@ export default function Vehicule({ univers }: { univers?: string }) {
   // « Réserver » : acompte → page de paiement en mode acompte.
   const reserveAction = () =>
     requireLogin(() => navigate(`/paiement-vehicule/${annonceId}?mode=acompte`));
+  /**
+   * « Payer l'acompte » / « Payer — Réserver » (location, VTC/Taxi).
+   *
+   * Ces boutons menaient à l'historique des paiements du compte : aucun écran
+   * carte ne s'ouvrait jamais. Ils ouvrent maintenant le paiement de l'acompte
+   * de CE véhicule. Une fiche de démonstration, qui n'a pas d'annonce en base,
+   * reste sur la demande au loueur au lieu d'échouer au paiement.
+   */
+  const acompteAction = () =>
+    requireLogin(() => {
+      if (isDemo) navigate("/compte/messages");
+      else navigate(`/paiement-vehicule/${annonceId}?mode=acompte`);
+    });
   // « Contacter le vendeur » : messagerie liée à cette annonce précise.
   const messageAction = () =>
     requireLogin(() => {
@@ -2088,7 +2101,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
                     <button className="btn-gold w-full h-[54px] lg:h-[60px]" onClick={() => navigate("/finance")}><TrendingUp size={16} /> Simuler mensualité</button>
                     <button className="btn-outline w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/dossiers"))}><EyeIcon size={16} /> Suivre mon dossier</button>
                     <button className="btn-gold w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/contrats"))}><FolderCheck size={16} /> Signer contrat</button>
-                    <button className="btn-reserver w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/paiements"))}><CreditCard size={16} /> Payer l'acompte</button>
+                    <button className="btn-reserver w-full h-[54px] lg:h-[60px]" onClick={acompteAction}><CreditCard size={16} /> Payer l'acompte</button>
                   </>
                 ) : (
                   /* Location classique — parcours client standard */
@@ -2097,7 +2110,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
                     <button className="btn-acheter w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/messages"))}><Send size={16} /> Faire une demande</button>
                     <button className="btn-message w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/documents"))}><FileText size={16} /> Envoyer mes documents</button>
                     <button className="btn-gold w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/contrats"))}><FolderCheck size={16} /> Signer le contrat</button>
-                    <button className="btn-reserver w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/paiements"))}><CreditCard size={16} /> Payer / Réserver</button>
+                    <button className="btn-reserver w-full h-[54px] lg:h-[60px]" onClick={acompteAction}><CreditCard size={16} /> Payer / Réserver</button>
                     <button className="btn-outline w-full h-[54px] lg:h-[60px]" onClick={() => requireLogin(() => navigate("/compte/locations"))}><EyeIcon size={16} /> Suivre ma location</button>
                   </>
                 )

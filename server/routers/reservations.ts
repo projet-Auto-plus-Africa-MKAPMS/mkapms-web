@@ -8,6 +8,7 @@ import { notifications } from "../modules/core.js";
 import { ACOMPTE_PALIERS } from "@shared/plans.js";
 import { getStripe } from "../lib/stripe.js";
 import { env } from "../env.js";
+import { createPaymentCheckout } from "../payment-engine/checkout.js";
 
 // Réservation avec acompte (§4.5) : bloque le véhicule 24h.
 export const reservationsRouter = router({
@@ -213,6 +214,55 @@ export const reservationsRouter = router({
       });
 
       return { id: created.id, reference: `LOC-${created.id}` };
+    }),
+
+  /**
+   * Règlement de l'acompte d'une réservation DÉJÀ ouverte.
+   *
+   * Le bouton « Régler l'acompte » d'une réservation en attente ne doit pas
+   * recréer une réservation : il reprend celle-ci et ouvre l'encaissement de
+   * son montant. Un acompte déjà payé est refusé plutôt que débité deux fois.
+   */
+  payCaution: protectedProcedure
+    .input(z.object({ bookingId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const [booking] = await db
+        .select()
+        .from(bookings)
+        .where(eq(bookings.id, input.bookingId))
+        .limit(1);
+      if (!booking || booking.userId !== ctx.user.uid) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Réservation introuvable" });
+      }
+      if (booking.cautionStatus === "paid") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Acompte déjà réglé pour cette réservation." });
+      }
+      const montant = Number(booking.cautionAmount);
+      if (!Number.isFinite(montant) || montant <= 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Aucun montant d'acompte n'est fixé sur cette réservation.",
+        });
+      }
+      const [a] = await db
+        .select()
+        .from(annonces)
+        .where(eq(annonces.id, booking.vehicleId))
+        .limit(1);
+
+      const res = await createPaymentCheckout({
+        userId: ctx.user.uid,
+        kind: "reservation_acompte",
+        amount: montant,
+        currency: booking.cautionCurrency || "EUR",
+        label: `Acompte réservation — ${a?.titre ?? `véhicule #${booking.vehicleId}`}`,
+        metadata: { booking_id: booking.id },
+        vehicleId: booking.vehicleId,
+        bookingId: booking.id,
+        successPath: `/vehicule/${booking.vehicleId}?reserve=1`,
+        cancelPath: `/compte?tab=reservations&canceled=1`,
+      });
+      return res;
     }),
 
   mine: protectedProcedure.query(async ({ ctx }) => {

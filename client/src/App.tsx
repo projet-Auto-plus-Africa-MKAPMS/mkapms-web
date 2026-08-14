@@ -63,6 +63,7 @@ const Notifications = lazy(() => import("./pages/Notifications"));
 const Messagerie = lazy(() => import("./pages/Messagerie"));
 const PaiementVehicule = lazy(() => import("./pages/PaiementVehicule"));
 const PaiementSimulation = lazy(() => import("./pages/PaiementSimulation"));
+const PiecesCommande = lazy(() => import("./pages/PiecesCommande"));
 const ListeAttente = lazy(() => import("./pages/ListeAttente"));
 const ReservationRecurrente = lazy(() => import("./pages/ReservationRecurrente"));
 const Comparateur = lazy(() => import("./pages/Comparateur"));
@@ -944,6 +945,7 @@ export default function App() {
             <Route path="/garage-plus" element={<U name="Garage+"><GaragePlus /></U>} />
             <Route path="/univers" element={<U name="Univers"><Univers /></U>} />
             <Route path="/pieces" element={<U name="Pièces Auto"><Pieces /></U>} />
+            <Route path="/pieces/commande/:id" element={<U name="Paiement"><PiecesCommande /></U>} />
             <Route path="/livraison" element={<U name="Livraison"><Livraison /></U>} />
             <Route path="/depannage" element={<U name="Dépannage"><Depannage /></U>} />
             <Route path="/vtc-taxi" element={<U name="VTC / TAXI"><VtcTaxi /></U>} />

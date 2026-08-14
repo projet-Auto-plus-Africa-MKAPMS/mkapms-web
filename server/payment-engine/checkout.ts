@@ -39,7 +39,8 @@ export type PaymentKind =
   | "annonce_boost"          // mise en avant d'une annonce
   | "garage_prestation"      // prestation garage payée en ligne
   | "kyc_verification"       // vérification KYC payante
-  | "carte_grise_service";   // service carte grise
+  | "carte_grise_service"    // service carte grise
+  | "reservation_acompte";   // acompte d'une réservation déjà ouverte
 
 export interface CheckoutInput {
   userId: number;
@@ -122,6 +123,7 @@ export async function createPaymentCheckout(input: CheckoutInput): Promise<Check
     garage_prestation: "vehicle_boost",
     kyc_verification: "vehicle_boost",
     carte_grise_service: "vehicle_boost",
+    reservation_acompte: "society_acompte",
   };
   const paymentTypeSql = input.paymentTypeSql ?? sqlTypeMap[input.kind] ?? "vehicle_boost";
 
