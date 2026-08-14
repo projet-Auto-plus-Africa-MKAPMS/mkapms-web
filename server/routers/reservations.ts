@@ -7,6 +7,7 @@ import { bookings, payments, annonces, serviceTracking } from "../schema.js";
 import { notifications } from "../modules/core.js";
 import { ACOMPTE_PALIERS } from "@shared/plans.js";
 import { getStripe } from "../lib/stripe.js";
+import { safeCheckoutSession } from "../lib/payment-errors.js";
 import { env } from "../env.js";
 import { createPaymentCheckout } from "../payment-engine/checkout.js";
 
@@ -59,7 +60,9 @@ export const reservationsRouter = router({
       if (!stripe) {
         return { bookingId: booking.id, url: `/paiement/simulation?payment=${pay.id}`, configured: false };
       }
-      const session = await stripe.checkout.sessions.create({
+      const session = await safeCheckoutSession(
+        stripe,
+        {
         mode: "payment",
         client_reference_id: String(ctx.user.uid),
         metadata: {
@@ -88,7 +91,15 @@ export const reservationsRouter = router({
         ],
         success_url: `${env.PUBLIC_URL}/vehicule/${input.annonceId}?reserve=1`,
         cancel_url: `${env.PUBLIC_URL}/vehicule/${input.annonceId}?canceled=1`,
-      });
+        },
+        {
+          operation: "checkout:reservation_acompte",
+          userId: ctx.user.uid,
+          onFailure: async () => {
+            await db.update(payments).set({ status: "failed" }).where(eq(payments.id, pay.id));
+          },
+        },
+      );
       await db
         .update(bookings)
         .set({ cautionStripeSessionId: session.id })
@@ -125,7 +136,9 @@ export const reservationsRouter = router({
       if (!stripe) {
         return { paymentId: pay.id, url: `/paiement/simulation?payment=${pay.id}`, configured: false };
       }
-      const session = await stripe.checkout.sessions.create({
+      const session = await safeCheckoutSession(
+        stripe,
+        {
         mode: "payment",
         client_reference_id: String(ctx.user.uid),
         metadata: {
@@ -152,7 +165,15 @@ export const reservationsRouter = router({
         ],
         success_url: `${env.PUBLIC_URL}/vehicule/${input.annonceId}?achat=1`,
         cancel_url: `${env.PUBLIC_URL}/vehicule/${input.annonceId}?canceled=1`,
-      });
+        },
+        {
+          operation: "checkout:vehicle_purchase",
+          userId: ctx.user.uid,
+          onFailure: async () => {
+            await db.update(payments).set({ status: "failed" }).where(eq(payments.id, pay.id));
+          },
+        },
+      );
       await db.update(payments).set({ stripeSessionId: session.id }).where(eq(payments.id, pay.id));
       return { paymentId: pay.id, url: session.url, configured: true };
     }),
