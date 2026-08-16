@@ -530,6 +530,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "smart_audit",
+    label: "Audit & activation du Système Intelligent",
+    category: "transversal",
+    dependencies: ["core", "smart", "ai_fabric"],
+    description:
+      "Mesure ce que le Système Intelligent sait réellement faire (16 capacités, du simple fait d'observer jusqu'au retour arrière) sur preuve d'usage, et exécute le cycle complet sur les données réelles au lieu de le décrire.",
+    state: "active",
+  },
+  {
     name: "product_engine",
     label: "Google Product Engine",
     category: "transversal",

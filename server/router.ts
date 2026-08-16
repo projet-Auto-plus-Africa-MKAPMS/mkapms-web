@@ -115,6 +115,7 @@ import { aiFabricRouter } from "./ai-fabric/index.js";
 import { activationAuditRouter } from "./activation-audit/index.js";
 import { indexationRouter } from "./indexation/index.js";
 import { productEngineRouter } from "./product-engine/index.js";
+import { smartAuditRouter } from "./smart-audit/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -245,6 +246,7 @@ export const appRouter = router({
   activationAudit: activationAuditRouter,
   indexation: indexationRouter,
   productEngine: productEngineRouter,
+  smartAudit: smartAuditRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

@@ -195,6 +195,7 @@ const CentreIA = lazy(() => import("./pages/CentreIA"));
 const AuditActivation = lazy(() => import("./pages/AuditActivation"));
 const CentreIndexation = lazy(() => import("./pages/CentreIndexation"));
 const CentreProduitsGoogle = lazy(() => import("./pages/CentreProduitsGoogle"));
+const CentreSystemeIntelligent = lazy(() => import("./pages/CentreSystemeIntelligent"));
 const AvisUnivers = lazy(() => import("./pages/AvisUnivers"));
 const MiniPlateformes = lazy(() => import("./pages/MiniPlateformes"));
 const PartenairesPilotage = lazy(() => import("./pages/PartenairesPilotage"));
@@ -1194,6 +1195,7 @@ export default function App() {
             <Route path="/admin/audit-activation" element={<U name="Audit d'activation"><AuditActivation /></U>} />
             <Route path="/admin/indexation" element={<U name="Indexation & visibilité"><CentreIndexation /></U>} />
             <Route path="/admin/produits-google" element={<U name="Produits Google & Merchant"><CentreProduitsGoogle /></U>} />
+            <Route path="/admin/systeme-intelligent" element={<U name="Système Intelligent — audit & activation"><CentreSystemeIntelligent /></U>} />
             <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
             <Route path="/superadmin/mini-plateformes" element={<U name="Univers en mini-plateformes"><MiniPlateformes /></U>} />
             <Route path="/superadmin/partenaires" element={<U name="Réseau partenaires"><PartenairesPilotage /></U>} />

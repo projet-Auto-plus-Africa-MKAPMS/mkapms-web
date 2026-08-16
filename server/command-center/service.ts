@@ -39,6 +39,17 @@ const VOICE_SESSION_MINUTES = 15;
  */
 export const CODE_GENERATION_AVAILABLE = false;
 
+/**
+ * Point 103 — la capacité est désormais relevée sur l'AI Fabric au lieu d'être
+ * figée : si un fournisseur de modèle est réellement branché, l'agent
+ * développeur peut aller au-delà du plan ; sinon il s'arrête et écrit pourquoi.
+ */
+async function generationState(): Promise<{ disponible: boolean; detail: string }> {
+  const { codeGenerationState } = await import("../smart-audit/service.js");
+  const s = await codeGenerationState();
+  return { disponible: s.disponible, detail: s.detail };
+}
+
 /** Moteurs/modules que l'analyse sait rattacher à un besoin exprimé. */
 const SCOPE_KEYWORDS: Record<string, string[]> = {
   location: ["location", "louer", "reservation"],
@@ -364,6 +375,7 @@ export async function openDevRequest(input: {
   countryCode?: string | null;
   requestedBy?: number;
 }) {
+  const generation = await generationState();
   const scope = analyseScope(input.need);
   const analysis =
     scope.length > 0
@@ -374,9 +386,7 @@ export async function openDevRequest(input: {
     { step: "analyse_architecture", detail: analysis },
     {
       step: "generation_code",
-      detail: CODE_GENERATION_AVAILABLE
-        ? "Génération assistée disponible."
-        : "Aucun générateur de code branché : cette étape est réalisée par un humain aujourd'hui.",
+      detail: generation.detail,
     },
     { step: "environnement_isole", detail: "Le travail se fait hors production (bac à sable puis préproduction)." },
     { step: "tests", detail: "Tests et non-régression obligatoires avant toute validation." },
@@ -394,7 +404,7 @@ export async function openDevRequest(input: {
       plan,
       riskLevel: 2,
       countryCode: input.countryCode ?? null,
-      generationAvailable: CODE_GENERATION_AVAILABLE,
+      generationAvailable: generation.disponible,
       status: scope.length > 0 ? "plan_pret" : "bloque",
       blockedReason:
         scope.length > 0
