@@ -289,6 +289,18 @@ app.get("/sitemap-blog.xml", sitemapBlog);
 // Visibilité IA / GEO — feed texte question/réponse découvrable par les assistants IA
 app.get("/assistants-ia.txt", aiAnswersFeed);
 
+// Flux produit Merchant Center (points 95-96). Public par nécessité : Google
+// doit pouvoir le lire. Il ne contient que des fiches réellement complètes et
+// disponibles, et jamais un véhicule — exclu des fiches gratuites.
+app.get("/feeds/produits.xml", async (_req, res) => {
+  try {
+    const { buildFeedXml } = await import("./product-engine/service.js");
+    res.type("application/xml").send(await buildFeedXml());
+  } catch {
+    res.status(503).type("text/plain").send("Flux produit indisponible");
+  }
+});
+
 // IndexNow — fichier de vérification de clé (requis pour la soumission).
 if (env.INDEXNOW_KEY) {
   app.get(`/${env.INDEXNOW_KEY}.txt`, (_req, res) => {

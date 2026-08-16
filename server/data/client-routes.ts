@@ -31,6 +31,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/admin/audit-activation",
   "/admin/indexation",
   "/admin/moteurs",
+  "/admin/produits-google",
   "/aide",
   "/atelier-pro",
   "/automatisations/centre-alertes-strategiques",

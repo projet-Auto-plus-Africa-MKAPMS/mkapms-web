@@ -124,6 +124,10 @@ export const ENGINE_PROBES: EngineProbe[] = [
     tables: ["af_providers", "af_routes", "af_cost_entries", "af_memory_backups"],
   },
   {
+    engine: "product_engine",
+    tables: ["product_feed_items", "product_sync_events", "product_feed_runs"],
+  },
+  {
     engine: "indexation",
     tables: ["indexation_audits", "indexation_url_checks", "indexation_watch"],
   },
