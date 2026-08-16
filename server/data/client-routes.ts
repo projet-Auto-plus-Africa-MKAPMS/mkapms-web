@@ -28,6 +28,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/acheter/reprise",
   "/acheter/utilitaires",
   "/acheter/vtc-taxi",
+  "/admin/audit-activation",
   "/admin/moteurs",
   "/aide",
   "/atelier-pro",
