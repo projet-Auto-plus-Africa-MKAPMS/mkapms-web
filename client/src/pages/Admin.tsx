@@ -447,6 +447,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Produits Google & Merchant — PDG + Directeur (points 94 à 97) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Produits Google &amp; Merchant</h2>
+        <p className="text-xs text-slate-500">Deux tuyaux s&eacute;par&eacute;s : les pi&egrave;ces se vendent comme des produits, les v&eacute;hicules s&apos;annoncent &mdash; envoy&eacute; &ne; approuv&eacute; &ne; visible</p>
+        <Link to="/admin/produits-google" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F4E6;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Google Product Engine</p>
+            <p className="text-xs text-white/60">Un v&eacute;hicule n&apos;est pas un produit de catalogue</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Laboratoire R&D automobile — PDG + Directeur (points 79-80-81-82) */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">

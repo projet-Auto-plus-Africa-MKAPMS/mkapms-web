@@ -530,6 +530,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "product_engine",
+    label: "Google Product Engine",
+    category: "transversal",
+    dependencies: ["core", "smart", "seo"],
+    description:
+      "Projette les pièces et produits réellement vendus vers les canaux Google (données structurées Product, flux Merchant Center lorsque éligible) et garde les véhicules hors du catalogue produit, où ils ne seraient que refusés.",
+    state: "active",
+  },
+  {
     name: "indexation",
     label: "Moniteur d'indexation",
     category: "transversal",
