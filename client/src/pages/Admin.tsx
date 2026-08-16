@@ -465,6 +465,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Système Intelligent — audit et activation réelle (points 102-103) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Syst&egrave;me Intelligent &mdash; audit &amp; activation</h2>
+        <p className="text-xs text-slate-500">Les 16 capacit&eacute;s attest&eacute;es par l&apos;usage r&eacute;el, du simple fait d&apos;observer jusqu&apos;au retour arri&egrave;re</p>
+        <Link to="/admin/systeme-intelligent" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F9E0;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Ce que le syst&egrave;me sait r&eacute;ellement faire</p>
+            <p className="text-xs text-white/60">Du code qui existe n&apos;est pas une capacit&eacute; active</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Laboratoire R&D automobile — PDG + Directeur (points 79-80-81-82) */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">

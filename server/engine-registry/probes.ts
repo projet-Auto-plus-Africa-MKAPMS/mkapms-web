@@ -124,6 +124,10 @@ export const ENGINE_PROBES: EngineProbe[] = [
     tables: ["af_providers", "af_routes", "af_cost_entries", "af_memory_backups"],
   },
   {
+    engine: "smart_audit",
+    tables: ["smart_audit_runs", "smart_audit_items", "smart_cycle_runs"],
+  },
+  {
     engine: "product_engine",
     tables: ["product_feed_items", "product_sync_events", "product_feed_runs"],
   },
