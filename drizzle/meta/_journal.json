@@ -589,6 +589,13 @@
       "when": 1753962000000,
       "tag": "0084_activation_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1754048400000,
+      "tag": "0085_indexation_monitor",
+      "breakpoints": true
     }
   ]
 }
