@@ -530,6 +530,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "event_bus",
+    label: "Bus d'événements central",
+    category: "core",
+    dependencies: ["core", "smart"],
+    description:
+      "Achemine réellement les événements entre moteurs : abonnés résolus, traitement exécuté, remise enregistrée avec sa durée et son erreur. Un événement que personne n'écoute est affiché comme orphelin au lieu de rester en attente pour toujours.",
+    state: "active",
+  },
+  {
     name: "smart_audit",
     label: "Audit & activation du Système Intelligent",
     category: "transversal",

@@ -578,6 +578,20 @@ async function bootstrap() {
   }
   setInterval(() => void enginesTick(), 5 * 60 * 1000);
 
+  // Point 106 — reprise des événements publiés mais non remis. Sans cette
+  // passe, un abonné momentanément en panne perdrait définitivement ce qui
+  // s'est produit pendant sa panne.
+  async function eventBusTick() {
+    try {
+      const { dispatchPending } = await import("./event-bus/service.js");
+      await dispatchPending({ limit: 100, trigger: "auto" });
+    } catch (e) {
+      console.error("[event-bus]", (e as Error).message);
+    }
+  }
+  setTimeout(() => void eventBusTick(), 45 * 1000);
+  setInterval(() => void eventBusTick(), 5 * 60 * 1000);
+
   // Intelligence financière — analyse autonome : une anomalie financière ne
   // doit jamais rester silencieuse, même si personne ne consulte le tableau.
   async function financeTick() {
