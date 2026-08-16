@@ -429,6 +429,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Indexation & visibilité Google — PDG + Directeur (points 92 à 101) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Indexation &amp; visibilit&eacute; Google</h2>
+        <p className="text-xs text-slate-500">URL par URL : statut HTTP, robots, canonique, sitemap, contenu, donn&eacute;es structur&eacute;es &mdash; et la cause exacte de chaque page non index&eacute;e</p>
+        <Link to="/admin/indexation" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F50D;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Moniteur d&apos;indexation</p>
+            <p className="text-xs text-white/60">Une soumission n&apos;est jamais une indexation</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Laboratoire R&D automobile — PDG + Directeur (points 79-80-81-82) */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">

@@ -530,6 +530,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "indexation",
+    label: "Moniteur d'indexation",
+    category: "transversal",
+    dependencies: ["core", "smart", "seo"],
+    description:
+      "Contrôle URL par URL ce que le serveur répond réellement (statut, robots, canonical, sitemap, contenu, données structurées) et refuse de confondre une soumission avec une indexation Google.",
+    state: "active",
+  },
+  {
     name: "activation_audit",
     label: "Audit d'activation",
     category: "transversal",

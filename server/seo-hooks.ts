@@ -13,6 +13,7 @@
 import { env } from "./env.js";
 import { submitIndexNow } from "./seo-indexing.js";
 import { logActivity } from "./smart-engine/services/activity-log.js";
+import { watchNewPage } from "./indexation/service.js";
 
 export async function onAnnoncePublished(
   annonceId: number,
@@ -21,6 +22,12 @@ export async function onAnnoncePublished(
 ): Promise<void> {
   const baseUrl = (env.PUBLIC_URL || "").replace(/\/+$/, "");
   const url = `${baseUrl}/vehicule/${annonceId}`;
+  // La page entre sous surveillance d'indexation. Elle y reste « en attente » :
+  // une soumission IndexNow ne prouve jamais que Google a indexé la page.
+  try {
+    await watchNewPage({ url, famille: "vehicule", pipeline: "annonce", soumise: !!baseUrl });
+  } catch { /* la surveillance ne bloque jamais la publication */ }
+
   try {
     const res = baseUrl
       ? await submitIndexNow(baseUrl, [url])
