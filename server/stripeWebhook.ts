@@ -17,6 +17,7 @@ import { getPlan } from "@shared/plans.js";
 import { awardPoints } from "./routers/operations.js";
 import { logActivity } from "./smart-engine/services/activity-log.js";
 import { env } from "./env.js";
+import { emitSafe } from "./event-bus/service.js";
 
 /**
  * Supervision d'un paiement (§2) — fire-and-forget, jamais bloquant pour le
@@ -115,6 +116,11 @@ export async function handleStripeWebhook(req: Request, res: Response) {
             action: "payment_succeeded",
             targetId: paymentId,
             data: { kind: m.payment_kind ?? null, amount, currency: session.currency ?? null },
+          });
+          await emitSafe({
+            source: "payment",
+            type: "paiement.reussi",
+            payload: { reference: String(paymentId), montant: amount, devise: session.currency ?? "eur" },
           });
         }
         if (userId && session.customer) {
@@ -291,6 +297,11 @@ export async function handleStripeWebhook(req: Request, res: Response) {
           targetId: paymentId,
           data: { kind: m.payment_kind ?? null },
           result: "failure",
+        });
+        await emitSafe({
+          source: "payment",
+          type: "paiement.echoue",
+          payload: { reference: String(paymentId ?? pi.id), motif: reason },
         });
         break;
       }
