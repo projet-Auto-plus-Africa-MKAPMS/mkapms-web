@@ -112,6 +112,7 @@ import { resilienceRouter } from "./resilience/index.js";
 import { commandCenterRouter } from "./command-center/index.js";
 import { rdLabRouter } from "./rd-lab/index.js";
 import { aiFabricRouter } from "./ai-fabric/index.js";
+import { activationAuditRouter } from "./activation-audit/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -238,6 +239,8 @@ export const appRouter = router({
   commandCenter: commandCenterRouter,
   rdLab: rdLabRouter,
   aiFabric: aiFabricRouter,
+  // Point 91 — audit d'activation : ce qui est réellement branché et prouvé
+  activationAudit: activationAuditRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

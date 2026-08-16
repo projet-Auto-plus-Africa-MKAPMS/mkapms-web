@@ -582,6 +582,13 @@
       "when": 1753875600000,
       "tag": "0083_ai_fabric",
       "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1753962000000,
+      "tag": "0084_activation_audit",
+      "breakpoints": true
     }
   ]
 }

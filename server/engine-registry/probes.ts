@@ -123,6 +123,10 @@ export const ENGINE_PROBES: EngineProbe[] = [
     engine: "ai_fabric",
     tables: ["af_providers", "af_routes", "af_cost_entries", "af_memory_backups"],
   },
+  {
+    engine: "activation_audit",
+    tables: ["activation_audit_runs", "activation_audit_items", "activation_test_evidence"],
+  },
   { engine: "finance", tables: ["finance_documents", "finance_transactions", "payments"] },
   { engine: "encheres", tables: ["annonces", "payments"] },
   { engine: "auction_engine", tables: ["auctions", "auction_bids", "auction_events"] },
