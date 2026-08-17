@@ -631,6 +631,23 @@ async function bootstrap() {
   setTimeout(() => void codeGraphTick(), 90 * 1000);
   setInterval(() => void codeGraphTick(), 12 * 3600 * 1000);
 
+  // Points 119-120-121 — l'état d'achèvement est recalculé tout seul : « ce qui
+  // reste à faire » ne dépend pas de quelqu'un qui pense à cliquer, et ne peut
+  // pas vieillir sans que le contrôle continu le dise.
+  async function completionTick() {
+    try {
+      const { evaluer } = await import("./completion/service.js");
+      const r = await evaluer({ trigger: "planifie" });
+      console.log(
+        `[completion] ${r.termines}/${r.domaines} domaine(s) TERMINÉ, avancement ${r.avancement} %, ${r.resteAFaire.length} tâche(s) restante(s).`,
+      );
+    } catch (e) {
+      console.error("[completion]", (e as Error).message);
+    }
+  }
+  setTimeout(() => void completionTick(), 150 * 1000);
+  setInterval(() => void completionTick(), 24 * 3600 * 1000);
+
   // Intelligence financière — analyse autonome : une anomalie financière ne
   // doit jamais rester silencieuse, même si personne ne consulte le tableau.
   async function financeTick() {

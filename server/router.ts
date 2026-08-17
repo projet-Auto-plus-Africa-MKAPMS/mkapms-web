@@ -119,6 +119,7 @@ import { smartAuditRouter } from "./smart-audit/index.js";
 import { eventBusRouter } from "./event-bus/index.js";
 import { continuousTestRouter } from "./continuous-test/index.js";
 import { codeGraphRouter } from "./code-graph/index.js";
+import { completionRouter } from "./completion/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -253,6 +254,7 @@ export const appRouter = router({
   eventBus: eventBusRouter,
   continuousTest: continuousTestRouter,
   codeGraph: codeGraphRouter,
+  completion: completionRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

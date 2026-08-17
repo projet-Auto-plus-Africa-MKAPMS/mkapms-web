@@ -501,6 +501,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Completion Center (points 119-121) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Completion Center</h2>
+        <p className="text-xs text-slate-500">Qu&apos;est-ce qui reste &agrave; faire ? Domaine par domaine, sur preuve et jamais sur estimation</p>
+        <Link to="/admin/completion" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F3AF;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">MKA.P-MS COMPLETION CENTER</p>
+            <p className="text-xs text-white/60">R&egrave;gle TERMIN&Eacute; calcul&eacute;e, rapports obligatoires, ordre d&apos;ex&eacute;cution</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Mémoire technique du code (points 116-118) */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">
