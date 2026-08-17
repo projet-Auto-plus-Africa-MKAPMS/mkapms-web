@@ -501,6 +501,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Mémoire technique du code (points 116-118) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">M&eacute;moire technique du code</h2>
+        <p className="text-xs text-slate-500">Ce qu&apos;un changement met en jeu, les angles morts, et les anomalies d&eacute;j&agrave; rencontr&eacute;es</p>
+        <Link to="/admin/memoire-technique" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F9E0;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Code Knowledge Graph</p>
+            <p className="text-xs text-white/60">Service &rarr; moteur &rarr; fichiers &rarr; API &rarr; tables &rarr; &eacute;v&eacute;nements &rarr; tests</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Système Intelligent — audit et activation réelle (points 102-103) */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">

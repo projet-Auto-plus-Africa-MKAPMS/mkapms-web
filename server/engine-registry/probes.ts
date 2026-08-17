@@ -132,6 +132,10 @@ export const ENGINE_PROBES: EngineProbe[] = [
     tables: ["ct_runs", "ct_results"],
   },
   {
+    engine: "code_graph",
+    tables: ["cg_snapshots", "cg_nodes", "cg_edges", "cg_observations", "cg_lessons"],
+  },
+  {
     engine: "smart_audit",
     tables: ["smart_audit_runs", "smart_audit_items", "smart_cycle_runs"],
   },

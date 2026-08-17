@@ -198,6 +198,7 @@ const CentreProduitsGoogle = lazy(() => import("./pages/CentreProduitsGoogle"));
 const CentreSystemeIntelligent = lazy(() => import("./pages/CentreSystemeIntelligent"));
 const CentreBusEvenements = lazy(() => import("./pages/CentreBusEvenements"));
 const CentreControleContinu = lazy(() => import("./pages/CentreControleContinu"));
+const MemoireTechnique = lazy(() => import("./pages/MemoireTechnique"));
 const AvisUnivers = lazy(() => import("./pages/AvisUnivers"));
 const MiniPlateformes = lazy(() => import("./pages/MiniPlateformes"));
 const PartenairesPilotage = lazy(() => import("./pages/PartenairesPilotage"));
@@ -1199,6 +1200,7 @@ export default function App() {
             <Route path="/admin/produits-google" element={<U name="Produits Google & Merchant"><CentreProduitsGoogle /></U>} />
             <Route path="/admin/bus-evenements" element={<U name="Bus d'événements"><CentreBusEvenements /></U>} />
             <Route path="/admin/controle-continu" element={<U name="Contrôle continu"><CentreControleContinu /></U>} />
+            <Route path="/admin/memoire-technique" element={<U name="Mémoire technique du code"><MemoireTechnique /></U>} />
             <Route path="/admin/systeme-intelligent" element={<U name="Système Intelligent — audit & activation"><CentreSystemeIntelligent /></U>} />
             <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
             <Route path="/superadmin/mini-plateformes" element={<U name="Univers en mini-plateformes"><MiniPlateformes /></U>} />
