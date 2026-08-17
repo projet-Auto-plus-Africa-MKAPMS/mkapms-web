@@ -142,6 +142,13 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     effet: "Ouvre une alerte critique : un encaissement refusé est une perte directe.",
   },
   {
+    engine: "smart",
+    eventType: "moteur.retabli",
+    handler: "smart_retabli",
+    effet:
+      "Referme l'alerte ouverte pour ce moteur : une alerte qui reste ouverte après rétablissement fait perdre confiance à toutes les autres.",
+  },
+  {
     engine: "audit_os",
     eventType: "*",
     handler: "audit_trace",

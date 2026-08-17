@@ -232,6 +232,17 @@ export interface TestOverview {
   resultats: ResultatScenario[];
   /** Moteurs du registre qu'aucun scénario ne contrôle : l'angle mort, nommé. */
   nonCouverts: string[];
+  /**
+   * Point 109 — AVANT / APRÈS. La comparaison brute des deux dernières
+   * campagnes : « 127 réussissaient avant, 126 après » suffit à refuser le vert,
+   * même quand aucun scénario pris isolément ne paraît alarmant.
+   */
+  comparaison: {
+    avant: { runId: number; date: string; reussis: number; total: number };
+    apres: { runId: number; date: string; reussis: number; total: number };
+    regression: boolean;
+    verdict: string;
+  } | null;
 }
 
 export async function overview(): Promise<TestOverview> {
@@ -265,6 +276,35 @@ export async function overview(): Promise<TestOverview> {
     nonCouverts = [];
   }
 
+  const deux = await db.select().from(ctRuns).orderBy(desc(ctRuns.id)).limit(2);
+  let comparaison: TestOverview["comparaison"] = null;
+  if (deux.length === 2) {
+    const [apresRun, avantRun] = deux;
+    const avant = {
+      runId: avantRun.id,
+      date: (avantRun.finishedAt ?? avantRun.startedAt).toISOString(),
+      reussis: avantRun.reussis,
+      total: avantRun.total,
+    };
+    const apres = {
+      runId: apresRun.id,
+      date: (apresRun.finishedAt ?? apresRun.startedAt).toISOString(),
+      reussis: apresRun.reussis,
+      total: apresRun.total,
+    };
+    const regression = apres.reussis < avant.reussis;
+    comparaison = {
+      avant,
+      apres,
+      regression,
+      verdict: regression
+        ? `${avant.reussis} contrôle(s) réussissaient avant, ${apres.reussis} après — régression détectée, le travail ne peut pas passer au vert.`
+        : apres.reussis > avant.reussis
+          ? `${avant.reussis} → ${apres.reussis} contrôle(s) réussis : progression.`
+          : `${apres.reussis} contrôle(s) réussis, identique à la campagne précédente.`,
+    };
+  }
+
   return {
     checkedAt: new Date().toISOString(),
     dernierRun: run
@@ -293,6 +333,7 @@ export async function overview(): Promise<TestOverview> {
       regression: r.regression ?? null,
     })),
     nonCouverts,
+    comparaison,
   };
 }
 
@@ -349,6 +390,27 @@ export async function deploymentGate(): Promise<{
       })),
     };
   }
+  // Point 109 — une baisse du nombre de contrôles réussis interdit le vert,
+  // même sans contrôle critique en échec.
+  if (run.regressions > 0) {
+    const regressions = await db
+      .select()
+      .from(ctResults)
+      .where(and(eq(ctResults.runId, run.id), inArray(ctResults.statut, ["echec"])));
+    const nommees = regressions.filter((r) => r.regression);
+    if (nommees.length > 0) {
+      return {
+        autorise: false,
+        motif: `${nommees.length} régression(s) sur la campagne #${run.id} : ces contrôles passaient avant.`,
+        bloquants: nommees.map((b) => ({
+          scenario: b.scenario,
+          label: b.label,
+          observe: b.observe,
+        })),
+      };
+    }
+  }
+
   const age = Date.now() - (run.finishedAt ?? run.startedAt).getTime();
   if (age > 24 * 3600 * 1000) {
     return {
