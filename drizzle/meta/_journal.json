@@ -617,6 +617,13 @@
       "when": 1754138500000,
       "tag": "0088_event_bus",
       "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1754138900000,
+      "tag": "0089_continuous_test",
+      "breakpoints": true
     }
   ]
 }

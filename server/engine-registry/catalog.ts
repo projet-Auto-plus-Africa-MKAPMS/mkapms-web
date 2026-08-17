@@ -539,6 +539,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "continuous_test",
+    label: "Contrôle continu de la plateforme",
+    category: "transversal",
+    dependencies: ["core", "smart", "event_bus"],
+    description:
+      "Exécute réellement des contrôles sur la plateforme en service et dépose la preuve datée qui autorise un domaine à passer au vert. Un contrôle non exécutable est marqué ignoré, jamais réussi, et un contrôle qui passait puis échoue est signalé comme régression.",
+    state: "active",
+  },
+  {
     name: "smart_audit",
     label: "Audit & activation du Système Intelligent",
     category: "transversal",

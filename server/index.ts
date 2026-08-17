@@ -592,6 +592,25 @@ async function bootstrap() {
   setTimeout(() => void eventBusTick(), 45 * 1000);
   setInterval(() => void eventBusTick(), 5 * 60 * 1000);
 
+  // Points 108-113 — contrôle continu. « Testé » ne vaut que daté : sans passe
+  // automatique, la preuve vieillit et l'audit d'activation resterait vert sur
+  // un contrôle d'il y a trois semaines.
+  async function continuousTestTick() {
+    try {
+      const { runTests } = await import("./continuous-test/service.js");
+      const r = await runTests({ trigger: "auto" });
+      if (r.echecs > 0) {
+        console.error(
+          `[continuous-test] campagne #${r.runId} : ${r.echecs} échec(s), ${r.regressions} régression(s).`,
+        );
+      }
+    } catch (e) {
+      console.error("[continuous-test]", (e as Error).message);
+    }
+  }
+  setTimeout(() => void continuousTestTick(), 3 * 60 * 1000);
+  setInterval(() => void continuousTestTick(), 6 * 3600 * 1000);
+
   // Intelligence financière — analyse autonome : une anomalie financière ne
   // doit jamais rester silencieuse, même si personne ne consulte le tableau.
   async function financeTick() {

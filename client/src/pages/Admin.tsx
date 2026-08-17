@@ -483,6 +483,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Contrôle continu (points 108-113) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Contr&ocirc;le continu</h2>
+        <p className="text-xs text-slate-500">Ce qui est r&eacute;ellement v&eacute;rifi&eacute; &mdash; un pr&eacute;requis manquant n&apos;est jamais un test r&eacute;ussi</p>
+        <Link to="/admin/controle-continu" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F9EA;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Continuous Test Engine</p>
+            <p className="text-xs text-white/60">Attendu / observ&eacute; pour chaque contr&ocirc;le, r&eacute;gressions nomm&eacute;es</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Système Intelligent — audit et activation réelle (points 102-103) */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">
