@@ -6,6 +6,9 @@
  * qui échoue renvoie une erreur — elle est enregistrée sur la remise, pas
  * avalée.
  */
+import { and, eq, sql } from "drizzle-orm";
+import { db } from "../db.js";
+import { smartAlerts } from "../smart-engine/schema.js";
 import { onAnnoncePublished } from "../seo-hooks.js";
 import { onPieceChanged } from "../product-engine/service.js";
 import { raiseAlert } from "../smart-engine/services/alert-engine.js";
@@ -71,6 +74,25 @@ const handlers: Record<string, Handler> = {
     return cree
       ? `Alerte ouverte pour le moteur ${moteur} (${etat}).`
       : `Alerte déjà ouverte pour le moteur ${moteur} (${etat}) : pas de doublon créé.`;
+  },
+
+  async smart_retabli(payload) {
+    const moteur = texte(payload, "moteur");
+    if (!moteur) throw new Error("Charge invalide : « moteur » absent.");
+    const closes = await db
+      .update(smartAlerts)
+      .set({ status: "resolved", resolvedAt: new Date() })
+      .where(
+        and(
+          eq(smartAlerts.status, "open"),
+          eq(smartAlerts.category, "moteur"),
+          sql`${smartAlerts.metadata}->>'signature' LIKE ${`bus:moteur:${moteur}:%`}`,
+        ),
+      )
+      .returning({ id: smartAlerts.id });
+    return closes.length > 0
+      ? `Moteur ${moteur} rétabli : ${closes.length} alerte(s) refermée(s).`
+      : `Moteur ${moteur} rétabli : aucune alerte ouverte à refermer.`;
   },
 
   async smart_alerte_paiement(payload) {

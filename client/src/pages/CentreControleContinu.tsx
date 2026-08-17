@@ -170,6 +170,24 @@ export default function CentreControleContinu() {
           />
         </div>
 
+        {data?.comparaison ? (
+          <section
+            className={`mt-4 rounded-2xl border p-4 ${
+              data.comparaison.regression
+                ? "border-red-200 bg-red-50"
+                : "border-black/5 bg-white"
+            }`}
+          >
+            <h2 className="text-sm font-black text-[#111]">Avant / après</h2>
+            <p className="mt-1 text-sm text-black/70">{data.comparaison.verdict}</p>
+            <p className="mt-1 text-[11px] text-black/50">
+              Campagne #{data.comparaison.avant.runId} ({data.comparaison.avant.reussis}/
+              {data.comparaison.avant.total}) → campagne #{data.comparaison.apres.runId} (
+              {data.comparaison.apres.reussis}/{data.comparaison.apres.total})
+            </p>
+          </section>
+        ) : null}
+
         {regressions.length > 0 ? (
           <section className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4">
             <h2 className="flex items-center gap-2 text-sm font-black text-[#111]">
