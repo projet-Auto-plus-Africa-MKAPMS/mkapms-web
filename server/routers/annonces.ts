@@ -15,7 +15,7 @@ import { recordView } from "../smart-engine/services/user-memory.js";
 import { learnFromInput } from "../smart-engine/services/learning.js";
 import { checkDuplicates } from "../smart-engine/services/duplicate-detection.js";
 import { logActivity } from "../smart-engine/services/activity-log.js";
-import { onAnnoncePublished } from "../seo-hooks.js";
+import { emitSafe } from "../event-bus/service.js";
 import { ingest as ingestVisibility } from "../visibility-os/index.js";
 
 /**
@@ -836,7 +836,7 @@ export const annoncesRouter = router({
       checkDuplicates(created.id).catch(() => {});
       logActivity({ action: "annonce.created", userId: ctx.user.uid, targetType: "annonce", targetId: created.id, data: { marque: rest.marque, modele: rest.modele }, result: "success" }).catch(() => {});
       // SEO OS — indexation automatique + supervision (§1)
-      onAnnoncePublished(created.id, "published", ctx.user.uid).catch(() => {});
+      void emitSafe({ source: "annonces", type: "annonce.publiee", payload: { annonceId: created.id } });
       // Global Visibility Engine — injection automatique (SEO/GEO/audience/social)
       ingestVisibility({
         sourceType: "annonce",
@@ -980,7 +980,7 @@ export const annoncesRouter = router({
       // Smart Engine — hook modification (fire-and-forget)
       logActivity({ action: "annonce.modified", userId: ctx.user.uid, targetType: "annonce", targetId: id, data: { changes: Object.keys(filtered) }, result: "success" }).catch(() => {});
       // SEO OS — resoumission à l'indexation + supervision (§1)
-      onAnnoncePublished(id, "updated", ctx.user.uid).catch(() => {});
+      void emitSafe({ source: "annonces", type: "annonce.modifiee", payload: { annonceId: id } });
       // Apprentissage : une version saisie à la modification doit être retenue
       // au même titre qu'au dépôt.
       if (input.version) {
