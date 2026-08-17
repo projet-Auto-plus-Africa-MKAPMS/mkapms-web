@@ -557,6 +557,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "completion_center",
+    label: "Completion Center (ce qui reste à faire)",
+    category: "transversal",
+    dependencies: ["core", "smart", "continuous_test", "activation_audit"],
+    description:
+      "Applique la règle TERMINÉ (construit + connecté + activé + testé + observable + inscrit au registre + rapporté au Système Intelligent + non-régression vérifiée + preuve de résultat) domaine par domaine, et publie la liste exacte des tâches restantes. Un pourcentage est une part de maillons prouvés, jamais une estimation.",
+    state: "active",
+  },
+  {
     name: "smart_audit",
     label: "Audit & activation du Système Intelligent",
     category: "transversal",

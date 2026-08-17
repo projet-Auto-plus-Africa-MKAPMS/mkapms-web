@@ -631,6 +631,13 @@
       "when": 1754138900001,
       "tag": "0090_code_graph",
       "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1754138900002,
+      "tag": "0091_completion_center",
+      "breakpoints": true
     }
   ]
 }

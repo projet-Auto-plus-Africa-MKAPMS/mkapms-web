@@ -270,4 +270,26 @@ export const MOTEURS_CENTRAUX_SCENARIOS: Scenario[] = [
       }
     },
   },
+  {
+    id: "central.achevement_calcule",
+    domaine: "completion",
+    label: "État d'achèvement calculé et récent",
+    criticite: "normale",
+    attendu:
+      "Une photographie d'achèvement de moins de 7 jours existe : « ce qui reste à faire » est calculé, pas estimé.",
+    async run(): Promise<Observation> {
+      try {
+        const { health } = await import("../completion/service.js");
+        const h = await health();
+        if (h.status === "up") return { statut: "reussi", observe: h.message };
+        if (h.status === "degraded") return { statut: "echec", observe: h.message };
+        return { statut: "ignore", observe: h.message };
+      } catch (e) {
+        return {
+          statut: "ignore",
+          observe: `Completion Center indisponible : ${e instanceof Error ? e.message : "erreur inconnue"}`,
+        };
+      }
+    },
+  },
 ];
