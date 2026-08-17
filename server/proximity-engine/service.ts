@@ -14,6 +14,7 @@ import { LOCAL_SERVICES, findService } from "./sources.js";
 import { PRODUCT_CATALOG } from "../payment-engine/products.js";
 import { NOTIFICATION_TRIGGERS } from "../notification-os/triggers.js";
 import { UNIVERSE_ROUTES, type AccountUniverse } from "@shared/account-routing.js";
+import { rankByReputation } from "../reputation-engine/ranking.js";
 
 export interface Position {
   latitude: number;
@@ -32,6 +33,10 @@ export interface NearbyProvider {
   /** null = pas encore d'avis, jamais une note fabriquée. */
   rating: number | null;
   reviewCount: number;
+  /** Part d'expériences vérifiées après transaction réelle (point 53). */
+  verifiedCount: number;
+  /** Score de classement combiné, null si la réputation n'est pas branchée. */
+  score: number | null;
 }
 
 export type NearbyMode = "distance" | "ville" | "pays" | "non_configure";
@@ -43,6 +48,8 @@ export interface NearbyResult {
   mode: NearbyMode;
   /** Explication du mode retenu, affichable telle quelle au visiteur. */
   explication: string;
+  /** Critères réellement pris en compte dans l'ordre affiché (point 53). */
+  classement: string;
   results: NearbyProvider[];
 }
 
@@ -73,6 +80,7 @@ export async function nearby(input: NearbyInput): Promise<NearbyResult> {
       ...base,
       mode: "non_configure",
       explication: svc.missingReason ?? "Service local non configuré.",
+      classement: "Aucun classement : ce service n'a pas de prestataires localisables.",
       results: [],
     };
   }
@@ -81,6 +89,7 @@ export async function nearby(input: NearbyInput): Promise<NearbyResult> {
       ...base,
       mode: "non_configure",
       explication: `La table « ${svc.source.table} » n'existe pas encore : le service n'est pas localisable.`,
+      classement: "Aucun classement : la source des prestataires n'existe pas encore.",
       results: [],
     };
   }
@@ -112,7 +121,7 @@ export async function nearby(input: NearbyInput): Promise<NearbyResult> {
   if (useDistance) {
     conditions.push(sql`${sql.raw(s.latColumn!)} is not null and ${sql.raw(s.lngColumn!)} is not null`);
     mode = "distance";
-    explication = `Prestataires situés à moins de ${radius} km, du plus proche au plus éloigné.`;
+    explication = `Prestataires situés à moins de ${radius} km de votre position.`;
   } else if (input.city) {
     conditions.push(sql`lower(${sql.raw(s.cityColumn)}) = lower(${input.city})`);
     mode = "ville";
@@ -153,21 +162,50 @@ export async function nearby(input: NearbyInput): Promise<NearbyResult> {
     limit ${limit}
   `);
 
+  const bruts = rows.rows.map((r) => ({
+    id: Number(r.id),
+    name: r.name,
+    city: r.city,
+    country: r.country,
+    address: r.address,
+    phone: r.phone,
+    distanceKm: r.distance_km === null ? null : Number(r.distance_km),
+    // Une note n'existe que s'il y a au moins un avis : sinon on n'affiche rien.
+    rating: r.rating !== null && Number(r.review_count ?? 0) > 0 ? Number(r.rating) : null,
+    reviewCount: Number(r.review_count ?? 0),
+    verifiedCount: 0,
+    score: null as number | null,
+  }));
+
+  // Point 53 — la réputation entre dans le classement quand le service est
+  // rattaché à des avis. La note affichée reste la note réelle : seul l'ordre
+  // est pondéré, pour qu'une note parfaite sur deux avis ne devance pas une
+  // réputation établie sur plusieurs centaines d'expériences.
+  if (!svc.reviewTargetType) {
+    return {
+      ...base,
+      mode,
+      explication,
+      classement: useDistance
+        ? "Distance uniquement : ce service n'est pas encore rattaché aux avis."
+        : "Ordre alphabétique : ni distance ni avis disponibles pour ce service.",
+      results: bruts,
+    };
+  }
+
+  const classes = await rankByReputation(svc.reviewTargetType, bruts, { rayonKm: radius });
   return {
     ...base,
     mode,
     explication,
-    results: rows.rows.map((r) => ({
-      id: Number(r.id),
-      name: r.name,
-      city: r.city,
-      country: r.country,
-      address: r.address,
-      phone: r.phone,
-      distanceKm: r.distance_km === null ? null : Number(r.distance_km),
-      // Une note n'existe que s'il y a au moins un avis : sinon on n'affiche rien.
-      rating: r.rating !== null && Number(r.review_count ?? 0) > 0 ? Number(r.rating) : null,
-      reviewCount: Number(r.review_count ?? 0),
+    classement:
+      "Qualité pondérée par le nombre d'avis, distance, part d'expériences vérifiées et disponibilité.",
+    results: classes.map((c) => ({
+      ...c.item,
+      rating: c.reputation.average ?? c.item.rating,
+      reviewCount: c.reputation.total > 0 ? c.reputation.total : c.item.reviewCount,
+      verifiedCount: c.reputation.verifiedCount,
+      score: c.score,
     })),
   };
 }

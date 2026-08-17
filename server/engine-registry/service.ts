@@ -165,6 +165,7 @@ export async function heartbeat(
   opts?: { message?: string; metrics?: unknown; version?: string },
 ) {
   const now = new Date();
+  const precedent = (await getEngine(name))?.health ?? "unknown";
   await db
     .update(engineRegistry)
     .set({
@@ -180,6 +181,21 @@ export async function heartbeat(
     message: opts?.message ?? null,
     metrics: (opts?.metrics as object) ?? null,
   });
+  // Point 105 — un changement d'état est annoncé au bus. Seul le *changement*
+  // est publié : répéter le même état à chaque sonde noierait le journal.
+  try {
+    const { emitSafe } = await import("../event-bus/service.js");
+    if (status === precedent) {
+      return { ok: true };
+    }
+    if (status === "degraded" || status === "down") {
+      await emitSafe({ source: "engine_registry", type: "moteur.degrade", payload: { moteur: name, etat: status } });
+    } else if (status === "ok") {
+      await emitSafe({ source: "engine_registry", type: "moteur.retabli", payload: { moteur: name } });
+    }
+  } catch {
+    /* la supervision ne doit jamais empêcher un battement de cœur */
+  }
   return { ok: true };
 }
 

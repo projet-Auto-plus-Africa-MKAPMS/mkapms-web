@@ -1067,6 +1067,20 @@ function ReservationDetailModal({ id, onClose }: { id: number; onClose: () => vo
   const annonce = d?.annonce;
   const payments = d?.payments ?? [];
   const st = booking ? BOOKING_STATUS[booking.status] ?? { label: booking.status, cls: "bg-slate-100 text-slate-600" } : null;
+  const [erreurAcompte, setErreurAcompte] = useState<string | null>(null);
+  /**
+   * « Régler l'acompte » ouvrait le portefeuille professionnel, qui n'encaisse
+   * aucune carte. Le bouton reprend désormais CETTE réservation et ouvre son
+   * paiement réel (page carte du prestataire, ou parcours de repli).
+   */
+  const payCaution = trpc.reservations.payCaution.useMutation({
+    onSuccess: (r) => {
+      if (!r.url) return;
+      if (r.url.startsWith("http")) window.location.href = r.url;
+      else { onClose(); navigate(r.url); }
+    },
+    onError: (e) => setErreurAcompte(e.message),
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50" onClick={onClose}>
@@ -1159,14 +1173,19 @@ function ReservationDetailModal({ id, onClose }: { id: number; onClose: () => vo
             {/* Actions selon l'état */}
             <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-3">
               {booking.cautionStatus === "pending" && (
-                <button onClick={() => { onClose(); navigate("/wallet"); }} className="btn-gold flex-1 !text-sm">
-                  Régler l'acompte
+                <button
+                  onClick={() => payCaution.mutate({ bookingId: id })}
+                  disabled={payCaution.isPending}
+                  className="btn-gold flex-1 !text-sm disabled:opacity-50"
+                >
+                  {payCaution.isPending ? "Ouverture du paiement…" : "Régler l'acompte"}
                 </button>
               )}
               <button onClick={() => { onClose(); navigate("/aide"); }} className="btn-outline flex-1 !text-sm">
                 Contacter le support
               </button>
             </div>
+            {erreurAcompte && <p className="text-xs font-semibold text-red-600">{erreurAcompte}</p>}
           </div>
         )}
       </div>

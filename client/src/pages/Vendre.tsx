@@ -1773,9 +1773,26 @@ export default function Vendre() {
                     multiple
                     className="hidden"
                     onChange={e => {
-                      const files = e.target.files;
+                      // ════════════════════════════════════════════════════════
+                      // 🔒 BLOC PROTÉGÉ — CODE : MKAPMS-PHOTO-GUARDIAN-2026-SGX9K3
+                      // Ne PAS modifier sans autorisation explicite du propriétaire.
+                      // Correctif du 27/07/2026 : dépôt d'annonce photos impossible
+                      // sur TOUS les appareils / TOUS les comptes / TOUS les pays.
+                      //
+                      // Cause racine (iOS Safari + certains navigateurs mobiles) :
+                      //   e.target.files est une FileList *vivante* liée à l'input.
+                      //   Faire `e.target.value = ""` juste après VIDE cette liste
+                      //   AVANT que uploadPhotos soit appelée → files.length === 0
+                      //   → early-return silencieux → l'utilisateur choisit ses
+                      //   photos, RIEN ne se passe ensuite.
+                      //
+                      // Correctif : cloner la FileList en Array *avant* de reset
+                      // la value (Array.from matérialise les File en références
+                      // fortes, indépendantes de l'état de l'input).
+                      // ════════════════════════════════════════════════════════
+                      const selected = e.target.files ? Array.from(e.target.files) : [];
                       e.target.value = "";
-                      if (files?.length) void uploadPhotos(cat.key, files);
+                      if (selected.length) void uploadPhotos(cat.key, selected);
                     }}
                   />
                   {isUploading ? (

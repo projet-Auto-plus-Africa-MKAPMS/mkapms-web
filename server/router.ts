@@ -104,6 +104,20 @@ import { insuranceEngineRouter } from "./insurance-engine/index.js";
 import { chargingEngineRouter } from "./charging-engine/index.js";
 // Reviews & Reputation Engine (points 46-48)
 import { reputationEngineRouter } from "./reputation-engine/index.js";
+import { googleBusinessRouter } from "./connectors/google-business/index.js";
+// Automotive Knowledge Engine (points 60-63, 83, 87)
+import { knowledgeEngineRouter } from "./knowledge-engine/index.js";
+import { countryPolicyRouter } from "./country-policy/index.js";
+import { resilienceRouter } from "./resilience/index.js";
+import { commandCenterRouter } from "./command-center/index.js";
+import { rdLabRouter } from "./rd-lab/index.js";
+import { aiFabricRouter } from "./ai-fabric/index.js";
+import { activationAuditRouter } from "./activation-audit/index.js";
+import { indexationRouter } from "./indexation/index.js";
+import { productEngineRouter } from "./product-engine/index.js";
+import { smartAuditRouter } from "./smart-audit/index.js";
+import { eventBusRouter } from "./event-bus/index.js";
+import { continuousTestRouter } from "./continuous-test/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -222,6 +236,21 @@ export const appRouter = router({
   chargingEngine: chargingEngineRouter,
   // Points 46-48 — réputation : avis par pays et expériences vérifiées
   reputationEngine: reputationEngineRouter,
+  googleBusiness: googleBusinessRouter,
+  // Points 60-63 — mémoire automobile reliée, sourcée et datée
+  knowledgeEngine: knowledgeEngineRouter,
+  countryPolicy: countryPolicyRouter,
+  resilience: resilienceRouter,
+  commandCenter: commandCenterRouter,
+  rdLab: rdLabRouter,
+  aiFabric: aiFabricRouter,
+  // Point 91 — audit d'activation : ce qui est réellement branché et prouvé
+  activationAudit: activationAuditRouter,
+  indexation: indexationRouter,
+  productEngine: productEngineRouter,
+  smartAudit: smartAuditRouter,
+  eventBus: eventBusRouter,
+  continuousTest: continuousTestRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

@@ -22,9 +22,11 @@
  * URL de simulation locale. Le webhook Stripe (server/stripeWebhook.ts)
  * marquera le payment 'succeeded' à la confirmation.
  */
+import type Stripe from "stripe";
 import { db } from "../db.js";
 import { payments } from "../schema.js";
 import { getStripe } from "../lib/stripe.js";
+import { providerTrpcError } from "../lib/payment-errors.js";
 import { env } from "../env.js";
 import { eq } from "drizzle-orm";
 import { resolveProduct, computePrice } from "./products.js";
@@ -39,7 +41,8 @@ export type PaymentKind =
   | "annonce_boost"          // mise en avant d'une annonce
   | "garage_prestation"      // prestation garage payée en ligne
   | "kyc_verification"       // vérification KYC payante
-  | "carte_grise_service";   // service carte grise
+  | "carte_grise_service"    // service carte grise
+  | "reservation_acompte";   // acompte d'une réservation déjà ouverte
 
 export interface CheckoutInput {
   userId: number;
@@ -122,6 +125,7 @@ export async function createPaymentCheckout(input: CheckoutInput): Promise<Check
     garage_prestation: "vehicle_boost",
     kyc_verification: "vehicle_boost",
     carte_grise_service: "vehicle_boost",
+    reservation_acompte: "society_acompte",
   };
   const paymentTypeSql = input.paymentTypeSql ?? sqlTypeMap[input.kind] ?? "vehicle_boost";
 
@@ -177,26 +181,36 @@ export async function createPaymentCheckout(input: CheckoutInput): Promise<Check
     }
   }
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    client_reference_id: String(input.userId),
-    metadata: stringifiedMeta,
-    // Propage les métadonnées au PaymentIntent : indispensable pour rattacher
-    // l'événement `payment_intent.payment_failed` au bon paiement en base.
-    payment_intent_data: { metadata: stringifiedMeta },
-    line_items: [
-      {
-        price_data: {
-          currency: currency.toLowerCase(),
-          product_data: { name: label.slice(0, 200) },
-          unit_amount: Math.round(amount * 100),
+  let session: Stripe.Checkout.Session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      client_reference_id: String(input.userId),
+      metadata: stringifiedMeta,
+      // Propage les métadonnées au PaymentIntent : indispensable pour rattacher
+      // l'événement `payment_intent.payment_failed` au bon paiement en base.
+      payment_intent_data: { metadata: stringifiedMeta },
+      line_items: [
+        {
+          price_data: {
+            currency: currency.toLowerCase(),
+            product_data: { name: label.slice(0, 200) },
+            unit_amount: Math.round(amount * 100),
+          },
+          quantity: 1,
         },
-        quantity: 1,
-      },
-    ],
-    success_url: `${env.PUBLIC_URL}${input.successPath}`,
-    cancel_url: `${env.PUBLIC_URL}${input.cancelPath}`,
-  });
+      ],
+      success_url: `${env.PUBLIC_URL}${input.successPath}`,
+      cancel_url: `${env.PUBLIC_URL}${input.cancelPath}`,
+    });
+  } catch (err) {
+    await db.update(payments).set({ status: "failed" }).where(eq(payments.id, pay.id));
+    throw await providerTrpcError(err, {
+      provider: decision.providerCode,
+      operation: `checkout:${input.kind}`,
+      userId: input.userId,
+    });
+  }
 
   await db
     .update(payments)

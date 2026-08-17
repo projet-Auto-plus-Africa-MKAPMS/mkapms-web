@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import Layout from "./components/Layout";
+import MaintenanceGate from "./components/MaintenanceGate";
 import { useAuth } from "./lib/auth";
 import { trpc } from "./lib/trpc";
 import { useDomain } from "./lib/domain";
@@ -32,6 +33,7 @@ const Garages = lazy(() => import("./pages/Garages"));
 const GaragePlus = lazy(() => import("./pages/GaragePlus"));
 const Abonnements = lazy(() => import("./pages/Abonnements"));
 const Aide = lazy(() => import("./pages/Aide"));
+const Confidentialite = lazy(() => import("./pages/Confidentialite"));
 const Confiance = lazy(() => import("./pages/Confiance"));
 const Connexion = lazy(() => import("./pages/Connexion"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
@@ -61,6 +63,7 @@ const Notifications = lazy(() => import("./pages/Notifications"));
 const Messagerie = lazy(() => import("./pages/Messagerie"));
 const PaiementVehicule = lazy(() => import("./pages/PaiementVehicule"));
 const PaiementSimulation = lazy(() => import("./pages/PaiementSimulation"));
+const PiecesCommande = lazy(() => import("./pages/PiecesCommande"));
 const ListeAttente = lazy(() => import("./pages/ListeAttente"));
 const ReservationRecurrente = lazy(() => import("./pages/ReservationRecurrente"));
 const Comparateur = lazy(() => import("./pages/Comparateur"));
@@ -181,6 +184,21 @@ const VOInterne = lazy(() => import("./pages/VOInterne"));
 const PermissionEngineControlCenter = lazy(() => import("./pages/PermissionEngine/ControlCenter"));
 const RedirectionEngineControlCenter = lazy(() => import("./pages/RedirectionEngine/ControlCenter"));
 const EngineRegistryControlCenter = lazy(() => import("./pages/EngineRegistry/ControlCenter"));
+const CentreReputation = lazy(() => import("./pages/CentreReputation"));
+const CentreActions = lazy(() => import("./pages/CentreActions"));
+const CentreConnaissance = lazy(() => import("./pages/CentreConnaissance"));
+const CentreReglesPays = lazy(() => import("./pages/CentreReglesPays"));
+const CentreResilience = lazy(() => import("./pages/CentreResilience"));
+const CentreCommandes = lazy(() => import("./pages/CentreCommandes"));
+const LaboRD = lazy(() => import("./pages/LaboRD"));
+const CentreIA = lazy(() => import("./pages/CentreIA"));
+const AuditActivation = lazy(() => import("./pages/AuditActivation"));
+const CentreIndexation = lazy(() => import("./pages/CentreIndexation"));
+const CentreProduitsGoogle = lazy(() => import("./pages/CentreProduitsGoogle"));
+const CentreSystemeIntelligent = lazy(() => import("./pages/CentreSystemeIntelligent"));
+const CentreBusEvenements = lazy(() => import("./pages/CentreBusEvenements"));
+const CentreControleContinu = lazy(() => import("./pages/CentreControleContinu"));
+const AvisUnivers = lazy(() => import("./pages/AvisUnivers"));
 const MiniPlateformes = lazy(() => import("./pages/MiniPlateformes"));
 const PartenairesPilotage = lazy(() => import("./pages/PartenairesPilotage"));
 // MOS Control Center — pages génériques pour Identity/Country/Language/Permission
@@ -787,6 +805,7 @@ export default function App() {
       <SmartRouter />
       <SmartTracker />
       <Layout>
+        <MaintenanceGate>
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<DomainHome />} />
@@ -932,6 +951,7 @@ export default function App() {
             <Route path="/garage-plus" element={<U name="Garage+"><GaragePlus /></U>} />
             <Route path="/univers" element={<U name="Univers"><Univers /></U>} />
             <Route path="/pieces" element={<U name="Pièces Auto"><Pieces /></U>} />
+            <Route path="/pieces/commande/:id" element={<U name="Paiement"><PiecesCommande /></U>} />
             <Route path="/livraison" element={<U name="Livraison"><Livraison /></U>} />
             <Route path="/depannage" element={<U name="Dépannage"><Depannage /></U>} />
             <Route path="/vtc-taxi" element={<U name="VTC / TAXI"><VtcTaxi /></U>} />
@@ -945,6 +965,7 @@ export default function App() {
             <Route path="/carte-grise" element={<U name="Carte Grise"><CarteGrise /></U>} />
             <Route path="/abonnements" element={<U name="Abonnements"><Abonnements /></U>} />
             <Route path="/aide" element={<Aide />} />
+            <Route path="/confidentialite" element={<Confidentialite />} />
             <Route path="/confiance" element={<Confiance />} />
             <Route path="/mission" element={<Mission />} />
             <Route path="/espace-pro" element={<U name="Espace Pro"><EspacePro /></U>} />
@@ -1165,6 +1186,21 @@ export default function App() {
             <Route path="/superadmin/permission-engine" element={<U name="Moteur de Permissions"><PermissionEngineControlCenter /></U>} />
             <Route path="/superadmin/redirection-engine" element={<U name="Moteur de Redirection"><RedirectionEngineControlCenter /></U>} />
             <Route path="/admin/moteurs" element={<U name="Moteurs MKA.P-MS"><EngineRegistryControlCenter /></U>} />
+            <Route path="/admin/reputation" element={<U name="Réputation & Avis"><CentreReputation /></U>} />
+            <Route path="/admin/actions" element={<U name="Centre d'Actions"><CentreActions /></U>} />
+            <Route path="/admin/connaissance" element={<U name="Mémoire automobile"><CentreConnaissance /></U>} />
+            <Route path="/admin/regles-pays" element={<U name="Règles par pays"><CentreReglesPays /></U>} />
+            <Route path="/admin/resilience" element={<U name="Centre de Résilience"><CentreResilience /></U>} />
+            <Route path="/admin/commandes" element={<U name="Centre de Commandes"><CentreCommandes /></U>} />
+            <Route path="/admin/labo-rd" element={<U name="Laboratoire R&D"><LaboRD /></U>} />
+            <Route path="/admin/ia-couts" element={<U name="Centre IA & Coûts"><CentreIA /></U>} />
+            <Route path="/admin/audit-activation" element={<U name="Audit d'activation"><AuditActivation /></U>} />
+            <Route path="/admin/indexation" element={<U name="Indexation & visibilité"><CentreIndexation /></U>} />
+            <Route path="/admin/produits-google" element={<U name="Produits Google & Merchant"><CentreProduitsGoogle /></U>} />
+            <Route path="/admin/bus-evenements" element={<U name="Bus d'événements"><CentreBusEvenements /></U>} />
+            <Route path="/admin/controle-continu" element={<U name="Contrôle continu"><CentreControleContinu /></U>} />
+            <Route path="/admin/systeme-intelligent" element={<U name="Système Intelligent — audit & activation"><CentreSystemeIntelligent /></U>} />
+            <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
             <Route path="/superadmin/mini-plateformes" element={<U name="Univers en mini-plateformes"><MiniPlateformes /></U>} />
             <Route path="/superadmin/partenaires" element={<U name="Réseau partenaires"><PartenairesPilotage /></U>} />
             {/* MOS Control Center — routes dédiées PDG + Direction */}
@@ -1529,6 +1565,7 @@ export default function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+        </MaintenanceGate>
       </Layout>
     </>
   );

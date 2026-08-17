@@ -458,6 +458,132 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    // Connecteur externe : il dépend d'une identification Google, donc il reste
+    // en préproduction tant qu'aucun relevé n'a été obtenu de Google.
+    name: "connecteur_google_business",
+    label: "Connecteur Google Business Profile",
+    category: "service",
+    dependencies: ["core", "avis_reputation"],
+    description:
+      "Rattachement des établissements physiques éligibles et relevé séparé de leur réputation Google. Avis internes et avis Google restent distincts.",
+    state: "staging",
+  },
+  {
+    // Mémoire technique de l'entreprise : elle apprend d'abord des données
+    // MKA.P-MS elles-mêmes. Les sources externes restent des connecteurs à
+    // autoriser un par un (point 62).
+    name: "connaissance_auto",
+    label: "Automotive Knowledge Engine",
+    category: "transversal",
+    dependencies: ["core", "smart", "country"],
+    description:
+      "Mémoire automobile reliée, datée et sourcée : véhicules, motorisations, pièces, diagnostics, réglementation. Une connaissance n'est jamais publiée sans décision du PDG.",
+    state: "active",
+  },
+  {
+    // Limite réglementaire de l'automatisation : ce moteur ne fait pas avancer
+    // une action, il l'arrête quand la règle du pays n'est pas confirmée.
+    name: "politique_pays",
+    label: "Country Policy Engine",
+    category: "transversal",
+    dependencies: ["core", "country", "smart"],
+    description:
+      "Contrôle réglementaire par pays avant exécution : règles confirmées, validité, autorité. Sans règle confirmée, l'action repart en validation humaine.",
+    state: "active",
+  },
+  {
+    // Ce moteur ne produit rien : il empêche l'autonomie de devenir dangereuse.
+    name: "resilience",
+    label: "Resilience & Safety Engine",
+    category: "transversal",
+    dependencies: ["core", "smart", "country"],
+    description:
+      "Fermeture au public sans destruction, actions critiques à confirmation renforcée, pipeline obligatoire avant production, auto-réparation vérifiée, mémoire des échecs.",
+    state: "active",
+  },
+  {
+    // Il ne décide rien : il traduit une demande humaine en action déjà tracée.
+    name: "command_center",
+    label: "Command & Development Center",
+    category: "transversal",
+    dependencies: ["core", "smart", "country", "resilience"],
+    description:
+      "Commandes écrites et vocales transformées en actions structurées et journalisées, dossiers de l'agent développeur passant obligatoirement par le pipeline avant production.",
+    state: "active",
+  },
+  {
+    name: "rd_lab",
+    label: "Automotive R&D Lab",
+    category: "transversal",
+    dependencies: ["core", "smart", "connaissance_auto"],
+    description:
+      "Laboratoire R&D séparé des services vendus : projets industriels, chaîne besoin → tests, navigation et calculateurs, avec droits d'usage établis avant tout versement à la mémoire partagée.",
+    state: "active",
+  },
+  {
+    name: "ai_fabric",
+    label: "AI Fabric",
+    category: "transversal",
+    dependencies: ["core", "smart", "monitoring"],
+    description:
+      "Couche entre MKA.P-MS et les fournisseurs externes : routage par capacité, confidentialité et coût, suivi des dépenses, sauvegarde de la mémoire intelligente et supervision de tous les moteurs.",
+    state: "active",
+  },
+  {
+    name: "event_bus",
+    label: "Bus d'événements central",
+    category: "core",
+    dependencies: ["core", "smart"],
+    description:
+      "Achemine réellement les événements entre moteurs : abonnés résolus, traitement exécuté, remise enregistrée avec sa durée et son erreur. Un événement que personne n'écoute est affiché comme orphelin au lieu de rester en attente pour toujours.",
+    state: "active",
+  },
+  {
+    name: "continuous_test",
+    label: "Contrôle continu de la plateforme",
+    category: "transversal",
+    dependencies: ["core", "smart", "event_bus"],
+    description:
+      "Exécute réellement des contrôles sur la plateforme en service et dépose la preuve datée qui autorise un domaine à passer au vert. Un contrôle non exécutable est marqué ignoré, jamais réussi, et un contrôle qui passait puis échoue est signalé comme régression.",
+    state: "active",
+  },
+  {
+    name: "smart_audit",
+    label: "Audit & activation du Système Intelligent",
+    category: "transversal",
+    dependencies: ["core", "smart", "ai_fabric"],
+    description:
+      "Mesure ce que le Système Intelligent sait réellement faire (16 capacités, du simple fait d'observer jusqu'au retour arrière) sur preuve d'usage, et exécute le cycle complet sur les données réelles au lieu de le décrire.",
+    state: "active",
+  },
+  {
+    name: "product_engine",
+    label: "Google Product Engine",
+    category: "transversal",
+    dependencies: ["core", "smart", "seo"],
+    description:
+      "Projette les pièces et produits réellement vendus vers les canaux Google (données structurées Product, flux Merchant Center lorsque éligible) et garde les véhicules hors du catalogue produit, où ils ne seraient que refusés.",
+    state: "active",
+  },
+  {
+    name: "indexation",
+    label: "Moniteur d'indexation",
+    category: "transversal",
+    dependencies: ["core", "smart", "seo"],
+    description:
+      "Contrôle URL par URL ce que le serveur répond réellement (statut, robots, canonical, sitemap, contenu, données structurées) et refuse de confondre une soumission avec une indexation Google.",
+    state: "active",
+  },
+  {
+    name: "activation_audit",
+    label: "Audit d'activation",
+    category: "transversal",
+    dependencies: ["core", "smart"],
+    description:
+      "Vérifie domaine par domaine ce qui est réellement connecté, activé, accessible, utilisé et prouvé par un test — le code existant ne suffit jamais à déclarer une fonction terminée.",
+    state: "active",
+  },
+  {
     name: "finance",
     label: "Financement Engine",
     category: "service",

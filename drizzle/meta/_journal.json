@@ -526,6 +526,104 @@
       "when": 1753702300000,
       "tag": "0075_avis_signaux_fraude",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1753702301000,
+      "tag": "0076_connecteur_google_business",
+      "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1753702400000,
+      "tag": "0077_actions_pdg_cycle_vie",
+      "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1753702500000,
+      "tag": "0078_automotive_knowledge_engine",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1753702600000,
+      "tag": "0079_veille_country_policy",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1753702700000,
+      "tag": "0080_resilience_garde_fous",
+      "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1753702800000,
+      "tag": "0081_centre_commandes",
+      "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1753789200000,
+      "tag": "0082_rd_lab_automobile",
+      "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1753875600000,
+      "tag": "0083_ai_fabric",
+      "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1753962000000,
+      "tag": "0084_activation_audit",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1754048400000,
+      "tag": "0085_indexation_monitor",
+      "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1754134800000,
+      "tag": "0086_product_engine",
+      "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1754138400000,
+      "tag": "0087_smart_audit",
+      "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1754138500000,
+      "tag": "0088_event_bus",
+      "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1754138900000,
+      "tag": "0089_continuous_test",
+      "breakpoints": true
     }
   ]
 }

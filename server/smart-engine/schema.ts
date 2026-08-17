@@ -438,6 +438,53 @@ export const smartStaging = pgTable("smart_staging", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ── Points 69-70 — cycle de vie réel des actions validées par le PDG ────
+// Défaut corrigé : une proposition validée changeait juste de statut et
+// disparaissait de l'écran — « je valide mais rien ne se passe ». Une
+// validation crée désormais une tâche exécutable qui traverse ses états, garde
+// ses étapes horodatées et, si elle échoue, conserve la raison exacte.
+export const smartActionTasks = pgTable("smart_action_tasks", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  // Origine de la tâche : "optimisation" | "staging" | "alerte" | "manuel" | "veille"
+  source: varchar("source", { length: 32 }).notNull(),
+  sourceId: integer("source_id"),
+  // Type d'action exécutable (voir ACTION_EXECUTORS).
+  actionType: varchar("action_type", { length: 48 }).notNull(),
+  title: varchar("title", { length: 240 }).notNull(),
+  description: text("description"),
+  params: jsonb("params").$type<Record<string, unknown>>().notNull().default({}),
+  // Niveau de risque du point 74 : 1 automatique, 2 autonomie contrôlée, 3 critique.
+  riskLevel: integer("risk_level").notNull().default(1),
+  // Pays concerné quand l'action en dépend ; null = tous les pays activés.
+  countryCode: varchar("country_code", { length: 4 }),
+  // propose | valide | planifie | en_cours | test | deploye | verifie
+  // | termine | echec | manuel_requis | rejete
+  status: varchar("status", { length: 20 }).notNull().default("propose"),
+  failureReason: text("failure_reason"),
+  result: jsonb("result").$type<Record<string, unknown>>(),
+  verifiedAt: timestamp("verified_at"),
+  requestedBy: integer("requested_by"),
+  validatedBy: integer("validated_by"),
+  validatedAt: timestamp("validated_at"),
+  startedAt: timestamp("started_at"),
+  finishedAt: timestamp("finished_at"),
+  signature: varchar("signature", { length: 400 }).notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const smartActionSteps = pgTable("smart_action_steps", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  taskId: integer("task_id").notNull(),
+  step: varchar("step", { length: 32 }).notNull(),
+  // ok | echec | info
+  status: varchar("status", { length: 16 }).notNull(),
+  detail: text("detail"),
+  evidence: jsonb("evidence").$type<Record<string, unknown>>(),
+  actorId: integer("actor_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // ── Rapport quotidien archivé et remis à la direction (point 39) ────────
 // Le rapport n'était calculé qu'à l'ouverture de l'écran : aucune trace, et
 // rien n'était remis si personne ne le consultait. Une ligne par jour.

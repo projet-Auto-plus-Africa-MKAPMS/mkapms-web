@@ -8,6 +8,7 @@ import { trpc } from "./lib/trpc";
 import { getToken, AuthProvider } from "./lib/auth";
 import { CurrencyProvider } from "./lib/currency";
 import { DomainProvider } from "./lib/domain";
+import { initialiserAppNative } from "./lib/native";
 import App from "./App";
 import "./index.css";
 
@@ -18,6 +19,8 @@ if ("serviceWorker" in navigator) {
   });
   caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
 }
+
+initialiserAppNative();
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },

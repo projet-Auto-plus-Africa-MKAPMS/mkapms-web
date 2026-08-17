@@ -13,6 +13,7 @@
 import { db } from "../../db.js";
 import { smartOptimizations, smartSearchLogs, smartKbEntries } from "../schema.js";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { actionTypeForOptimization, createActionTask, validateActionTask } from "./action-tasks.js";
 
 export const OPTIMIZATION_CATEGORIES = [
   "vitesse_recherche",
@@ -218,11 +219,35 @@ export async function optimizationStats() {
 /**
  * Le PDG valide (applique) ou rejette une proposition. C'est le seul moment où
  * une optimisation change d'état : le système ne s'applique jamais lui-même.
+ *
+ * Point 69 : valider ne se contente plus de changer le statut. Une validation
+ * crée une tâche exécutable et la lance ; le résultat (ou la raison exacte de
+ * l'échec) est renvoyé et reste consultable dans le Centre d'Actions.
  */
 export async function reviewOptimization(id: number, decision: "applied" | "rejected", reviewedBy?: number) {
+  const [opt] = await db
+    .select()
+    .from(smartOptimizations)
+    .where(eq(smartOptimizations.id, id))
+    .limit(1);
   await db
     .update(smartOptimizations)
     .set({ status: decision, reviewedBy: reviewedBy ?? null, reviewedAt: new Date(), updatedAt: new Date() })
     .where(eq(smartOptimizations.id, id));
-  return { ok: true };
+
+  if (decision !== "applied" || !opt || !reviewedBy) return { ok: true };
+
+  const { actionType, params } = actionTypeForOptimization(opt.category, opt.evidence ?? null);
+  const task = await createActionTask({
+    source: "optimisation",
+    sourceId: opt.id,
+    actionType,
+    title: opt.title,
+    description: opt.recommendation ?? opt.detail ?? undefined,
+    params,
+    riskLevel: 2,
+    requestedBy: reviewedBy,
+  });
+  const run = await validateActionTask(task.id, reviewedBy);
+  return { ok: true, tacheId: task.id, statut: run.status, detail: run.detail };
 }

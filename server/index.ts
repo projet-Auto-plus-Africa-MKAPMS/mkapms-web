@@ -25,11 +25,13 @@ import {
   sitemapStatic,
   sitemapAnnonces,
   sitemapGarages,
+  sitemapAvis,
   sitemapPages,
   sitemapBlog,
 } from "./seo.js";
 import { aiAnswersFeed } from "./visibility-os/geo-engine.js";
 import { domainMiddleware, domainHandler, domainsListHandler } from "./domain.js";
+import { publicWriteGate } from "./resilience/gate.js";
 import { env, isProd } from "./env.js";
 import { readFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
@@ -270,6 +272,8 @@ app.get("/api/health/db", async (_req, res) => {
 
 app.use(
   "/api/trpc",
+  // Point 73 — fermeture au public réellement appliquée (l'administration passe).
+  publicWriteGate,
   createExpressMiddleware({ router: appRouter, createContext }),
 );
 
@@ -279,10 +283,23 @@ app.get("/sitemap.xml", sitemapXml);
 app.get("/sitemap-static.xml", sitemapStatic);
 app.get("/sitemap-annonces-:page.xml", sitemapAnnonces);
 app.get("/sitemap-garages.xml", sitemapGarages);
+app.get("/sitemap-avis.xml", sitemapAvis);
 app.get("/sitemap-pages-:page.xml", sitemapPages);
 app.get("/sitemap-blog.xml", sitemapBlog);
 // Visibilité IA / GEO — feed texte question/réponse découvrable par les assistants IA
 app.get("/assistants-ia.txt", aiAnswersFeed);
+
+// Flux produit Merchant Center (points 95-96). Public par nécessité : Google
+// doit pouvoir le lire. Il ne contient que des fiches réellement complètes et
+// disponibles, et jamais un véhicule — exclu des fiches gratuites.
+app.get("/feeds/produits.xml", async (_req, res) => {
+  try {
+    const { buildFeedXml } = await import("./product-engine/service.js");
+    res.type("application/xml").send(await buildFeedXml());
+  } catch {
+    res.status(503).type("text/plain").send("Flux produit indisponible");
+  }
+});
 
 // IndexNow — fichier de vérification de clé (requis pour la soumission).
 if (env.INDEXNOW_KEY) {
@@ -290,6 +307,34 @@ if (env.INDEXNOW_KEY) {
     res.type("text/plain").send(env.INDEXNOW_KEY);
   });
 }
+
+// Application Android — vérification des liens (App Links). Sans empreinte de
+// signature déclarée, on ne publie pas un fichier faux : Google doit lire un
+// refus explicite plutôt qu'une association invalide.
+app.get("/.well-known/assetlinks.json", (_req, res) => {
+  const fingerprints = env.ANDROID_APP_FINGERPRINTS.split(",")
+    .map((f) => f.trim().toUpperCase())
+    .filter((f) => f.length > 0);
+
+  if (fingerprints.length === 0) {
+    return res.status(404).json({
+      error: "assetlinks_non_configure",
+      message:
+        "Empreinte de signature Android absente : renseigner ANDROID_APP_FINGERPRINTS (Play Console → Intégrité de l'app → certificat de signature).",
+    });
+  }
+
+  return res.json([
+    {
+      relation: ["delegate_permission/common.handle_all_urls"],
+      target: {
+        namespace: "android_app",
+        package_name: env.ANDROID_APP_ID,
+        sha256_cert_fingerprints: fingerprints,
+      },
+    },
+  ]);
+});
 
 // Sert le frontend compilé en production
 if (isProd) {
@@ -414,6 +459,31 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec seed Orchestrateur paiement:", (err as Error).message);
     }
+    // Vérifie que le prestataire accepte réellement nos identifiants. Une clé
+    // invalide bloque TOUS les encaissements : la direction doit l'apprendre
+    // au démarrage, pas par un client bloqué devant son panier.
+    try {
+      const { checkStripeKey } = await import("./lib/stripe.js");
+      const s = await checkStripeKey(true);
+      if (!s.configured) {
+        console.warn("[MKA.P-MS] Paiement: aucune clé Stripe configurée — mode simulation.");
+      } else if (!s.valid || !s.canCharge) {
+        console.error(`[MKA.P-MS] Paiement INDISPONIBLE — ${s.reason}`);
+        const { raiseAlert } = await import("./smart-engine/services/alert-engine.js");
+        await raiseAlert({
+          category: "paiement",
+          level: "critical",
+          title: "Paiements bloqués — identifiants prestataire refusés",
+          description: s.reason,
+          signature: "payment_provider_auth:stripe",
+          lastOccurredAt: new Date(),
+        });
+      } else {
+        console.log(`[MKA.P-MS] Paiement: clé Stripe ${s.kind} (${s.mode}) opérationnelle.`);
+      }
+    } catch (err) {
+      console.error("[MKA.P-MS] échec vérification clé Stripe:", (err as Error).message);
+    }
     // Système Intelligent — travail autonome périodique (lecture seule) : il
     // analyse les données réelles et PROPOSE des solutions/alertes que le PDG
     // valide ensuite. Aucune décision humaine n'est appliquée automatiquement.
@@ -507,6 +577,39 @@ async function bootstrap() {
     }
   }
   setInterval(() => void enginesTick(), 5 * 60 * 1000);
+
+  // Point 106 — reprise des événements publiés mais non remis. Sans cette
+  // passe, un abonné momentanément en panne perdrait définitivement ce qui
+  // s'est produit pendant sa panne.
+  async function eventBusTick() {
+    try {
+      const { dispatchPending } = await import("./event-bus/service.js");
+      await dispatchPending({ limit: 100, trigger: "auto" });
+    } catch (e) {
+      console.error("[event-bus]", (e as Error).message);
+    }
+  }
+  setTimeout(() => void eventBusTick(), 45 * 1000);
+  setInterval(() => void eventBusTick(), 5 * 60 * 1000);
+
+  // Points 108-113 — contrôle continu. « Testé » ne vaut que daté : sans passe
+  // automatique, la preuve vieillit et l'audit d'activation resterait vert sur
+  // un contrôle d'il y a trois semaines.
+  async function continuousTestTick() {
+    try {
+      const { runTests } = await import("./continuous-test/service.js");
+      const r = await runTests({ trigger: "auto" });
+      if (r.echecs > 0) {
+        console.error(
+          `[continuous-test] campagne #${r.runId} : ${r.echecs} échec(s), ${r.regressions} régression(s).`,
+        );
+      }
+    } catch (e) {
+      console.error("[continuous-test]", (e as Error).message);
+    }
+  }
+  setTimeout(() => void continuousTestTick(), 3 * 60 * 1000);
+  setInterval(() => void continuousTestTick(), 6 * 3600 * 1000);
 
   // Intelligence financière — analyse autonome : une anomalie financière ne
   // doit jamais rester silencieuse, même si personne ne consulte le tableau.

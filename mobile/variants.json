@@ -1,0 +1,29 @@
+{
+  "grandpublic": {
+    "appId": "com.mkapms.app",
+    "appName": "MKA.P-MS",
+    "startPath": "/",
+    "distribution": "publique",
+    "appLinksHost": "www.mkapms.fr",
+    "appLinksHostAlt": "mkapms.fr",
+    "description": "Plateforme complète : acheter, vendre, louer, réparer — particuliers et professionnels."
+  },
+  "pro": {
+    "appId": "com.mkapms.pro",
+    "appName": "MKA.P-MS PRO",
+    "startPath": "/espace-pro",
+    "distribution": "publique",
+    "appLinksHost": "interne.invalid",
+    "appLinksHostAlt": "interne.invalid",
+    "description": "Espace professionnel : garages, vendeurs VO, concessionnaires, loueurs, VTC/taxi, flottes, pièces, contrôle technique, carrosserie, dépannage, transport, comptables, partenaires. Les liens du site sont ouverts par l'application grand public : une seule application capte https://www.mkapms.fr, sinon Android demanderait laquelle utiliser à chaque clic."
+  },
+  "command": {
+    "appId": "com.mkapms.command",
+    "appName": "MKA.P-MS COMMAND",
+    "startPath": "/admin",
+    "distribution": "interne",
+    "appLinksHost": "interne.invalid",
+    "appLinksHostAlt": "interne.invalid",
+    "description": "Application interne PDG et Direction : moteurs, alertes, pays, paiements, système intelligent. Diffusion interne uniquement — jamais en accès public. Aucun lien public n'est capté : le domaine « interne.invalid » n'existe pas et ne peut pas être vérifié, l'application n'ouvre donc jamais un lien du site."
+  }
+}

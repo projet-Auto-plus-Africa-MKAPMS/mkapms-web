@@ -53,6 +53,16 @@ import { scanDevelopments, getDevLearningStats, listDevItems, reviewDevItem, rev
 import { runQualityAudit, getQualityOverview, listQualityAudits } from "./services/quality-engine.js"; // P12
 import { listStaging, getStagingStats, transitionStaging } from "./services/preproduction.js"; // P16
 import { generateEvolutionProposals } from "./services/autonomous-evolution.js"; // P16
+import {
+  ACTION_EXECUTORS,
+  actionTaskDetail,
+  actionTaskStats,
+  closeActionTask,
+  createActionTask,
+  listActionTasks,
+  runActionTask,
+  validateActionTask,
+} from "./services/action-tasks.js"; // Points 69-70
 import { db } from "../db.js";
 import { smartAlerts } from "./schema.js";
 import { desc, eq, sql, and } from "drizzle-orm";
@@ -732,5 +742,89 @@ export const smartEngineRouter = router({
     .mutation(async ({ ctx, input }) => {
       const row = await transitionStaging(input.id, input.status, ctx.user?.uid);
       return { ok: true, item: row };
+    }),
+
+  // ── Points 69-70 — Centre d'Actions PDG ──────────────────────────────
+  // Une validation produit une tâche traçable, un résultat vérifié, ou un
+  // échec conservé avec sa raison. Rien ne disparaît après validation.
+  actionTasks: directionProcedure
+    .input(
+      z
+        .object({
+          bucket: z.enum(["a_valider", "en_cours", "termine", "echecs", "tous"]).default("tous"),
+          limit: z.number().int().min(1).max(300).default(100),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      return listActionTasks({ bucket: input?.bucket ?? "tous", limit: input?.limit ?? 100 });
+    }),
+
+  actionTaskStats: directionProcedure.query(async () => {
+    return actionTaskStats();
+  }),
+
+  /** Historique complet d'une action, étape par étape. */
+  actionTaskDetail: directionProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      return actionTaskDetail(input.id);
+    }),
+
+  /** Types d'actions réellement exécutables aujourd'hui. */
+  actionExecutors: directionProcedure.query(async () => {
+    return Object.keys(ACTION_EXECUTORS);
+  }),
+
+  /** Le PDG crée une action à la main (source "manuel"). */
+  actionTaskCreate: pdgProcedure
+    .input(
+      z.object({
+        actionType: z.string().min(1).max(48),
+        title: z.string().min(3).max(240),
+        description: z.string().max(4000).optional(),
+        params: z.record(z.unknown()).optional(),
+        riskLevel: z.union([z.literal(1), z.literal(2), z.literal(3)]).default(2),
+        countryCode: z.string().max(4).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return createActionTask({
+        source: "manuel",
+        actionType: input.actionType,
+        title: input.title,
+        description: input.description,
+        params: input.params ?? {},
+        riskLevel: input.riskLevel,
+        countryCode: input.countryCode ?? null,
+        requestedBy: ctx.user.uid,
+      });
+    }),
+
+  /** Validation PDG : la tâche est planifiée, exécutée, puis vérifiée. */
+  actionTaskValidate: pdgProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      return validateActionTask(input.id, ctx.user.uid);
+    }),
+
+  /** Relance une tâche en échec sans redemander une décision. */
+  actionTaskRetry: pdgProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      return runActionTask(input.id, ctx.user.uid);
+    }),
+
+  /** Clôture humaine d'une action non automatisable, ou mise à l'écart. */
+  actionTaskClose: pdgProcedure
+    .input(
+      z.object({
+        id: z.number().int().positive(),
+        decision: z.enum(["termine", "rejete"]),
+        note: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return closeActionTask(input.id, input.decision, ctx.user.uid, input.note);
     }),
 });

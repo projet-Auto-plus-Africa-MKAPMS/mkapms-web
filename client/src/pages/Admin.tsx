@@ -285,6 +285,258 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Réputation & Avis — PDG + Directeur (point 55) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">R&eacute;putation &amp; Avis</h2>
+        <p className="text-xs text-slate-500">Global, pays, services, professionnels, avis MKA.P-MS et Google s&eacute;par&eacute;s, signalements, tendances</p>
+        <Link to="/admin/reputation" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x2B50;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre R&eacute;putation</p>
+            <p className="text-xs text-white/60">R&eacute;putation r&eacute;elle sans m&eacute;langer les professionnels ni les sources</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Centre d'Actions — PDG + Directeur (point 70) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Centre d&apos;Actions</h2>
+        <p className="text-xs text-slate-500">&Agrave; valider, en cours, termin&eacute;, &eacute;checs, suggestions IA, connaissances, opportunit&eacute;s, alertes</p>
+        <Link to="/admin/actions" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x2705;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre d&apos;Actions PDG</p>
+            <p className="text-xs text-white/60">Une validation produit une action trac&eacute;e, un r&eacute;sultat v&eacute;rifi&eacute; ou un &eacute;chec expliqu&eacute;</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Mémoire automobile — PDG + Directeur (points 60-63, 83, 87) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">M&eacute;moire automobile</h2>
+        <p className="text-xs text-slate-500">Connaissances reli&eacute;es, sources autoris&eacute;es, d&eacute;couvertes en attente de d&eacute;cision, couverture par domaine</p>
+        <Link to="/admin/connaissance" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F4DA;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">M&eacute;moire automobile MKA.P-MS</p>
+            <p className="text-xs text-white/60">Ce que la plateforme sait, d&apos;o&ugrave; elle le tient et depuis quand &mdash; apprendre n&apos;est pas publier</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Règles par pays — PDG + Directeur (point 66) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">R&egrave;gles par pays</h2>
+        <p className="text-xs text-slate-500">Couverture r&eacute;glementaire par juridiction, r&egrave;gles confirm&eacute;es, actions bloqu&eacute;es</p>
+        <Link to="/admin/regles-pays" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x2696;&#xFE0F;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Country Policy Engine</p>
+            <p className="text-xs text-white/60">Une r&egrave;gle non confirm&eacute;e arr&ecirc;te l&apos;action &mdash; aucune autorisation n&apos;est suppos&eacute;e</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Centre de Résilience — PDG + Directeur (points 73-74-76-77-78) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">R&eacute;silience &amp; garde-fous</h2>
+        <p className="text-xs text-slate-500">Ouverture au public, actions critiques, passage avant production, auto-r&eacute;paration, le&ccedil;ons</p>
+        <Link to="/admin/resilience" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F6DF;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre de R&eacute;silience</p>
+            <p className="text-xs text-white/60">Fermer au public sans rien d&eacute;truire &mdash; et ne jamais ex&eacute;cuter une action critique sur un clic</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Centre de Commandes — PDG + Directeur (points 71-72-75) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Commandes &amp; agent d&eacute;veloppeur</h2>
+        <p className="text-xs text-slate-500">Demandes en langage naturel, commandes vocales PDG, dossiers de d&eacute;veloppement</p>
+        <Link to="/admin/commandes" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F5E3;&#xFE0F;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre de Commandes</p>
+            <p className="text-xs text-white/60">Une phrase devient une action trac&eacute;e &mdash; jamais une op&eacute;ration critique sans confirmation</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Fournisseurs, coûts & supervision — PDG + Directeur (points 84-90) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Fournisseurs, co&ucirc;ts &amp; supervision</h2>
+        <p className="text-xs text-slate-500">Changer de fournisseur sans reconstruire, co&ucirc;t r&eacute;el de chaque automatisation, sauvegarde de la m&eacute;moire, &eacute;tat de tous les moteurs</p>
+        <Link to="/admin/ia-couts" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F517;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Centre IA, co&ucirc;ts &amp; supervision</p>
+            <p className="text-xs text-white/60">Aucun fournisseur affich&eacute; actif sans preuve, aucune &eacute;conomie invent&eacute;e</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Audit d'activation général — PDG + Directeur (point 91) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Audit d&apos;activation g&eacute;n&eacute;ral</h2>
+        <p className="text-xs text-slate-500">Domaine par domaine : existe, connect&eacute;, activ&eacute;, accessible, test&eacute;, utilis&eacute; r&eacute;ellement &mdash; avec le motif exact de chaque manque</p>
+        <Link to="/admin/audit-activation" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F4CB;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Audit d&apos;activation</p>
+            <p className="text-xs text-white/60">Aucune fonction d&eacute;clar&eacute;e termin&eacute;e parce que son code existe</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Indexation & visibilité Google — PDG + Directeur (points 92 à 101) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Indexation &amp; visibilit&eacute; Google</h2>
+        <p className="text-xs text-slate-500">URL par URL : statut HTTP, robots, canonique, sitemap, contenu, donn&eacute;es structur&eacute;es &mdash; et la cause exacte de chaque page non index&eacute;e</p>
+        <Link to="/admin/indexation" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F50D;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Moniteur d&apos;indexation</p>
+            <p className="text-xs text-white/60">Une soumission n&apos;est jamais une indexation</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Produits Google & Merchant — PDG + Directeur (points 94 à 97) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Produits Google &amp; Merchant</h2>
+        <p className="text-xs text-slate-500">Deux tuyaux s&eacute;par&eacute;s : les pi&egrave;ces se vendent comme des produits, les v&eacute;hicules s&apos;annoncent &mdash; envoy&eacute; &ne; approuv&eacute; &ne; visible</p>
+        <Link to="/admin/produits-google" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F4E6;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Google Product Engine</p>
+            <p className="text-xs text-white/60">Un v&eacute;hicule n&apos;est pas un produit de catalogue</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Bus d'événements central — PDG + Directeur (points 104-107) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Bus d&apos;&eacute;v&eacute;nements</h2>
+        <p className="text-xs text-slate-500">Ce qui circule entre les moteurs &mdash; publi&eacute; n&apos;est pas remis</p>
+        <Link to="/admin/bus-evenements" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F4E1;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Event Bus central</p>
+            <p className="text-xs text-white/60">Un &eacute;v&eacute;nement que personne n&apos;&eacute;coute est affich&eacute; comme orphelin</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Contrôle continu (points 108-113) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Contr&ocirc;le continu</h2>
+        <p className="text-xs text-slate-500">Ce qui est r&eacute;ellement v&eacute;rifi&eacute; &mdash; un pr&eacute;requis manquant n&apos;est jamais un test r&eacute;ussi</p>
+        <Link to="/admin/controle-continu" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F9EA;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Continuous Test Engine</p>
+            <p className="text-xs text-white/60">Attendu / observ&eacute; pour chaque contr&ocirc;le, r&eacute;gressions nomm&eacute;es</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Système Intelligent — audit et activation réelle (points 102-103) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Syst&egrave;me Intelligent &mdash; audit &amp; activation</h2>
+        <p className="text-xs text-slate-500">Les 16 capacit&eacute;s attest&eacute;es par l&apos;usage r&eacute;el, du simple fait d&apos;observer jusqu&apos;au retour arri&egrave;re</p>
+        <Link to="/admin/systeme-intelligent" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F9E0;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Ce que le syst&egrave;me sait r&eacute;ellement faire</p>
+            <p className="text-xs text-white/60">Du code qui existe n&apos;est pas une capacit&eacute; active</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
+      {/* Laboratoire R&D automobile — PDG + Directeur (points 79-80-81-82) */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Laboratoire R&amp;D automobile</h2>
+        <p className="text-xs text-slate-500">Projets industriels, cha&icirc;ne besoin &rarr; tests, navigation embarqu&eacute;e, calculateurs et droits d&apos;usage</p>
+        <Link to="/admin/labo-rd" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F9EA;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Automotive R&amp;D Lab</p>
+            <p className="text-xs text-white/60">S&eacute;par&eacute; des services vendus &mdash; rien n&apos;est publi&eacute;, rien n&apos;est absorb&eacute; sans droit d&apos;usage</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Système Intelligent MKA.P-MS — visible PDG + Directeur/Direction */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">

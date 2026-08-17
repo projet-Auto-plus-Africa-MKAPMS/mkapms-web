@@ -20,6 +20,7 @@ import {
 } from "../schema.js";
 import { notifications } from "../modules/core.js";
 import { requestReviewAfterCompletion } from "../reputation-engine/service.js";
+import { emitSafe } from "../event-bus/service.js";
 
 // ===== BOUTIQUE PIÈCES AUTO PRO — Mini-ERP =====
 export const piecesRouter = router({
@@ -271,6 +272,13 @@ export const piecesRouter = router({
         }
       }
 
+      // Point 97 — un seul dépôt actualise toute la chaîne commerciale.
+      await emitSafe({
+        source: "pieces",
+        type: "piece.modifiee",
+        payload: { source: "parts_catalog", sourceId: p.id, declencheur: "depot" },
+      });
+
       return p;
     }),
 
@@ -309,6 +317,12 @@ export const piecesRouter = router({
       if (largeurCm !== undefined) upd.largeurCm = String(largeurCm);
       if (hauteurCm !== undefined) upd.hauteurCm = String(hauteurCm);
       const [p] = await db.update(partsCatalog).set(upd).where(eq(partsCatalog.id, id)).returning();
+      // La chaîne se resynchronise : prix, disponibilité et destinations suivent.
+      await emitSafe({
+        source: "pieces",
+        type: "piece.modifiee",
+        payload: { source: "parts_catalog", sourceId: id, declencheur: "modification" },
+      });
       return p;
     }),
 
@@ -446,6 +460,14 @@ export const piecesRouter = router({
             .set({ quantiteReservee: stocks[0].quantiteReservee + it.quantite, updatedAt: new Date() })
             .where(eq(partsStock.id, stocks[0].id));
         }
+
+        // Le stock réservé change la disponibilité réelle : les destinations
+        // sont actualisées sans reprise manuelle (point 97).
+        await emitSafe({
+          source: "pieces",
+          type: "piece.modifiee",
+          payload: { source: "parts_catalog", sourceId: it.catalogId, declencheur: "vente" },
+        });
       }
 
       // Add initial tracking event
@@ -594,6 +616,57 @@ export const piecesRouter = router({
     const orders = await db.select().from(partsOrders).where(eq(partsOrders.buyerId, ctx.user.uid)).orderBy(desc(partsOrders.createdAt));
     return orders;
   }),
+
+  /**
+   * Fiche d'une commande de pièces : récapitulatif, lignes, suivi et état réel
+   * de l'encaissement. Le paiement n'est jamais déduit du statut de la commande :
+   * il est lu dans le journal des paiements.
+   */
+  order: protectedProcedure
+    .input(z.object({ orderId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const [order] = await db
+        .select()
+        .from(partsOrders)
+        .where(eq(partsOrders.id, input.orderId))
+        .limit(1);
+      if (!order || order.buyerId !== ctx.user.uid) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Commande introuvable" });
+      }
+      const items = await db
+        .select({
+          id: partsOrderItems.id,
+          catalogId: partsOrderItems.catalogId,
+          quantite: partsOrderItems.quantite,
+          prixUnitaireHt: partsOrderItems.prixUnitaireHt,
+          totalHt: partsOrderItems.totalHt,
+          nom: partsCatalog.nom,
+        })
+        .from(partsOrderItems)
+        .leftJoin(partsCatalog, eq(partsCatalog.id, partsOrderItems.catalogId))
+        .where(eq(partsOrderItems.orderId, order.id));
+      const tracking = await db
+        .select()
+        .from(partsOrderTracking)
+        .where(eq(partsOrderTracking.orderId, order.id))
+        .orderBy(desc(partsOrderTracking.createdAt));
+      const [shop] = await db
+        .select()
+        .from(partsShops)
+        .where(eq(partsShops.id, order.shopId))
+        .limit(1);
+      // Le journal financier n'a pas de lien direct commande → paiement : on
+      // n'affirme donc pas « payé ». On dit seulement si un règlement est encore
+      // attendu, ce qui est vérifiable : seule la confirmation du prestataire
+      // (ou du vendeur) fait sortir la commande du panier.
+      return {
+        order,
+        items,
+        tracking,
+        shop: shop ?? null,
+        awaitingPayment: order.status === "panier",
+      };
+    }),
 
   orderItems: protectedProcedure
     .input(z.object({ orderId: z.number() }))
@@ -819,10 +892,10 @@ export const piecesRouter = router({
     return { shops, products, orders };
   }),
 
-  // ── Paiement d'une commande de pièces (checkout Stripe) ──
+  // ── Paiement d'une commande de pièces (checkout prestataire) ──
   // Le client convertit son panier en commande, puis paie. Au succès du
-  // webhook, le status passe automatiquement à 'payee' et le vendeur
-  // reçoit une notification.
+  // webhook, la commande passe de 'panier' à 'confirme' et l'acheteur est
+  // notifié. Une commande déjà sortie du panier n'est pas repayée.
   payOrder: protectedProcedure
     .input(z.object({ orderId: z.number() }))
     .mutation(async ({ ctx, input }) => {
@@ -831,17 +904,38 @@ export const piecesRouter = router({
       if (order.buyerId !== ctx.user.uid) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Commande d'un autre client" });
       }
+      if (order.status !== "panier") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cette commande n'est plus en attente de paiement.",
+        });
+      }
       const montant = Number(order.totalTtc);
       if (!Number.isFinite(montant) || montant <= 0) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Total commande invalide" });
       }
+      // Le pays de la boutique détermine le prestataire retenu : aucun repli
+      // implicite sur un pays par défaut côté parcours.
+      const [shop] = await db
+        .select({ countryCode: partsShops.countryCode })
+        .from(partsShops)
+        .where(eq(partsShops.id, order.shopId))
+        .limit(1);
+      // La devise est celle du catalogue vendu, pas une devise supposée.
+      const [devise] = await db
+        .select({ currency: partsCatalog.currency })
+        .from(partsOrderItems)
+        .leftJoin(partsCatalog, eq(partsCatalog.id, partsOrderItems.catalogId))
+        .where(eq(partsOrderItems.orderId, order.id))
+        .limit(1);
       const res = await createPaymentCheckout({
         userId: ctx.user.uid,
         kind: "pieces_order",
         amount: montant,
-        currency: "EUR",
+        currency: devise?.currency || "EUR",
+        countryCode: shop?.countryCode ?? null,
         label: `Pièces auto — Commande ${order.reference}`,
-        metadata: { orderId: order.id, reference: order.reference, shopId: order.shopId },
+        metadata: { order_id: order.id, reference: order.reference ?? "", shop_id: order.shopId },
         successPath: `/pieces/commande/${order.id}?paid=1`,
         cancelPath: `/pieces/commande/${order.id}?canceled=1`,
       });

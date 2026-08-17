@@ -8,6 +8,7 @@
  */
 import { z } from "zod";
 import { adminProcedure, publicProcedure, router } from "../trpc.js";
+import { checkStripeKey } from "../lib/stripe.js";
 import {
   listProviders,
   orchestratorHealth,
@@ -37,17 +38,49 @@ export const paymentOrchestratorRouter = router({
         preferred: z.string().max(32).optional(),
       }),
     )
-    .query(({ input }) =>
-      selectProvider({
+    .query(async ({ input }) => {
+      const decision = await selectProvider({
         countryCode: input.countryCode.toUpperCase(),
         currency: input.currency.toUpperCase(),
         service: input.service ?? null,
         method: input.method ?? null,
         preferred: input.preferred ?? null,
-      }),
-    ),
+      });
+
+      // Un prestataire dont les identifiants sont refusés n'encaisse rien :
+      // on ne présente pas de moyens de paiement qui échoueront au clic.
+      if (decision.providerCode === "stripe") {
+        const key = await checkStripeKey();
+        if (!key.canCharge) {
+          return {
+            ...decision,
+            providerCode: null,
+            providerLabel: null,
+            reason:
+              "Le prestataire de paiement refuse actuellement les identifiants de la plateforme. L'équipe a été alertée.",
+            rejected: [
+              ...decision.rejected,
+              { code: "stripe", reason: key.reason },
+            ],
+          };
+        }
+      }
+
+      return decision;
+    }),
 
   health: adminProcedure.query(() => orchestratorHealth()),
+
+  /**
+   * Le prestataire accepte-t-il réellement nos identifiants ?
+   *
+   * Un connecteur « actif » dans le registre peut être refusé par le
+   * prestataire lui-même (clé invalide, révoquée, droits insuffisants). Sans
+   * ce contrôle, la panne n'est visible que par le client, au moment de payer.
+   */
+  credentials: adminProcedure
+    .input(z.object({ force: z.boolean().default(false) }).optional())
+    .query(({ input }) => checkStripeKey(input?.force ?? false)),
 
   setActive: adminProcedure
     .input(z.object({ code: z.string().min(1).max(32), active: z.boolean() }))

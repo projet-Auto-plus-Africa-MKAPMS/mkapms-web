@@ -89,6 +89,64 @@ export const ENGINE_PROBES: EngineProbe[] = [
   },
   { engine: "energie_recharge", tables: ["charging_points"] },
   { engine: "avis_reputation", tables: ["reviews_v2", "review_requests", "review_aggregates"] },
+  {
+    engine: "connecteur_google_business",
+    tables: ["gbp_locations", "gbp_review_snapshots"],
+  },
+  {
+    engine: "connaissance_auto",
+    tables: ["ake_nodes", "ake_edges", "ake_sources", "ake_provenance", "ake_discoveries", "ake_watch_runs"],
+  },
+  {
+    engine: "politique_pays",
+    tables: ["cpe_rules", "cpe_evaluations"],
+  },
+  {
+    engine: "resilience",
+    tables: [
+      "rs_emergency_scopes",
+      "rs_emergency_events",
+      "rs_critical_requests",
+      "rs_pipeline_runs",
+      "rs_failure_lessons",
+    ],
+  },
+  {
+    engine: "command_center",
+    tables: ["cc_commands", "cc_voice_sessions", "cc_dev_requests"],
+  },
+  {
+    engine: "rd_lab",
+    tables: ["rd_projects", "rd_chain_links", "rd_assets", "rd_ecosystem_snapshots"],
+  },
+  {
+    engine: "ai_fabric",
+    tables: ["af_providers", "af_routes", "af_cost_entries", "af_memory_backups"],
+  },
+  {
+    engine: "event_bus",
+    tables: ["eb_subscriptions", "eb_deliveries", "eb_dispatch_runs"],
+  },
+  {
+    engine: "continuous_test",
+    tables: ["ct_runs", "ct_results"],
+  },
+  {
+    engine: "smart_audit",
+    tables: ["smart_audit_runs", "smart_audit_items", "smart_cycle_runs"],
+  },
+  {
+    engine: "product_engine",
+    tables: ["product_feed_items", "product_sync_events", "product_feed_runs"],
+  },
+  {
+    engine: "indexation",
+    tables: ["indexation_audits", "indexation_url_checks", "indexation_watch"],
+  },
+  {
+    engine: "activation_audit",
+    tables: ["activation_audit_runs", "activation_audit_items", "activation_test_evidence"],
+  },
   { engine: "finance", tables: ["finance_documents", "finance_transactions", "payments"] },
   { engine: "encheres", tables: ["annonces", "payments"] },
   { engine: "auction_engine", tables: ["auctions", "auction_bids", "auction_events"] },

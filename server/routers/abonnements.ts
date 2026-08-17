@@ -6,6 +6,7 @@ import { db } from "../db.js";
 import { subscriptions, payments, kycProfiles, users } from "../schema.js";
 import { ALL_PLANS, getPlan } from "@shared/plans.js";
 import { getStripe } from "../lib/stripe.js";
+import { safeCheckoutSession } from "../lib/payment-errors.js";
 import { env } from "../env.js";
 
 export const abonnementsRouter = router({
@@ -68,7 +69,9 @@ export const abonnementsRouter = router({
         return { url: `/paiement/simulation?payment=${pay.id}`, configured: false };
       }
 
-      const session = await stripe.checkout.sessions.create({
+      const session = await safeCheckoutSession(
+        stripe,
+        {
         mode: plan.recurring ? "subscription" : "payment",
         client_reference_id: String(ctx.user.uid),
         metadata: {
@@ -103,7 +106,15 @@ export const abonnementsRouter = router({
         ],
         success_url: `${env.PUBLIC_URL}/compte/abonnements?success=1`,
         cancel_url: `${env.PUBLIC_URL}/abonnements?canceled=1`,
-      });
+        },
+        {
+          operation: `checkout:abonnement:${plan.code}`,
+          userId: ctx.user.uid,
+          onFailure: async () => {
+            await db.update(payments).set({ status: "failed" }).where(eq(payments.id, pay.id));
+          },
+        },
+      );
 
       await db
         .update(payments)
