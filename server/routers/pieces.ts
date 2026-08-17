@@ -20,7 +20,7 @@ import {
 } from "../schema.js";
 import { notifications } from "../modules/core.js";
 import { requestReviewAfterCompletion } from "../reputation-engine/service.js";
-import { onPieceChanged } from "../product-engine/service.js";
+import { emitSafe } from "../event-bus/service.js";
 
 // ===== BOUTIQUE PIÈCES AUTO PRO — Mini-ERP =====
 export const piecesRouter = router({
@@ -273,7 +273,11 @@ export const piecesRouter = router({
       }
 
       // Point 97 — un seul dépôt actualise toute la chaîne commerciale.
-      await onPieceChanged("parts_catalog", p.id, "depot");
+      await emitSafe({
+        source: "pieces",
+        type: "piece.modifiee",
+        payload: { source: "parts_catalog", sourceId: p.id, declencheur: "depot" },
+      });
 
       return p;
     }),
@@ -314,7 +318,11 @@ export const piecesRouter = router({
       if (hauteurCm !== undefined) upd.hauteurCm = String(hauteurCm);
       const [p] = await db.update(partsCatalog).set(upd).where(eq(partsCatalog.id, id)).returning();
       // La chaîne se resynchronise : prix, disponibilité et destinations suivent.
-      await onPieceChanged("parts_catalog", id, "modification");
+      await emitSafe({
+        source: "pieces",
+        type: "piece.modifiee",
+        payload: { source: "parts_catalog", sourceId: id, declencheur: "modification" },
+      });
       return p;
     }),
 
@@ -455,7 +463,11 @@ export const piecesRouter = router({
 
         // Le stock réservé change la disponibilité réelle : les destinations
         // sont actualisées sans reprise manuelle (point 97).
-        await onPieceChanged("parts_catalog", it.catalogId, "vente");
+        await emitSafe({
+          source: "pieces",
+          type: "piece.modifiee",
+          payload: { source: "parts_catalog", sourceId: it.catalogId, declencheur: "vente" },
+        });
       }
 
       // Add initial tracking event
