@@ -8,6 +8,7 @@
  *  - `ignore` : le prérequis manque (prestataire non configuré, aucune donnée
  *    à contrôler). Un scénario non exécutable n'est jamais compté comme réussi.
  */
+import { MOTEURS_CENTRAUX_SCENARIOS } from "./scenarios-moteurs-centraux.js";
 import { PARCOURS_SCENARIOS } from "./scenarios-parcours.js";
 import { http, scalaire, compte, type Observation, type Scenario, type Statut } from "./helpers.js";
 
@@ -332,8 +333,13 @@ const SCENARIOS_PLATEFORME: Scenario[] = [
 
 /**
  * Le catalogue complet : contrôles de plateforme (108-109) puis contrôles de
- * parcours, de pays, de rôles et d'écrans (110-113).
+ * parcours, de pays, de rôles et d'écrans (110-113), puis contrôle des deux
+ * moteurs centraux et de la mémoire technique (114-117).
  */
-export const SCENARIOS: Scenario[] = [...SCENARIOS_PLATEFORME, ...PARCOURS_SCENARIOS];
+export const SCENARIOS: Scenario[] = [
+  ...SCENARIOS_PLATEFORME,
+  ...PARCOURS_SCENARIOS,
+  ...MOTEURS_CENTRAUX_SCENARIOS,
+];
 
 export const SCENARIO_IDS = SCENARIOS.map((s) => s.id);

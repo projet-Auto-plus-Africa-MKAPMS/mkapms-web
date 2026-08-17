@@ -548,6 +548,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "code_graph",
+    label: "Mémoire technique du code (Code Knowledge Graph)",
+    category: "transversal",
+    dependencies: ["core", "smart", "continuous_test"],
+    description:
+      "Relit le code réel et relie service → moteur → fichiers → API → tables → événements → permissions → tests → dépendances. Il observe les changements d'un relevé à l'autre et mémorise les corrections des autres agents par classe d'anomalie. Un relevé non généré est signalé, jamais remplacé par une supposition.",
+    state: "active",
+  },
+  {
     name: "smart_audit",
     label: "Audit & activation du Système Intelligent",
     category: "transversal",

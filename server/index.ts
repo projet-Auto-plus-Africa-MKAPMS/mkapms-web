@@ -611,6 +611,26 @@ async function bootstrap() {
   setTimeout(() => void continuousTestTick(), 3 * 60 * 1000);
   setInterval(() => void continuousTestTick(), 6 * 3600 * 1000);
 
+  // Points 116-117-118 — l'agent code en mode observation. Il relève le code
+  // réellement déployé, apprend ce qui a changé depuis le relevé précédent, et
+  // retient les corrections des autres agents par classe d'anomalie. Il n'écrit
+  // rien : observer d'abord, proposer ensuite.
+  async function codeGraphTick() {
+    try {
+      const { ingest, apprendre } = await import("./code-graph/service.js");
+      const r = await ingest();
+      if (!r.ok) console.error("[code-graph]", r.motif);
+      else if (r.observations > 0) console.log(`[code-graph] ${r.motif}`);
+      const l = await apprendre();
+      if (l.nouvelles > 0)
+        console.log(`[code-graph] ${l.nouvelles} leçon(s) apprise(s), ${l.renforcees} renforcée(s).`);
+    } catch (e) {
+      console.error("[code-graph]", (e as Error).message);
+    }
+  }
+  setTimeout(() => void codeGraphTick(), 90 * 1000);
+  setInterval(() => void codeGraphTick(), 12 * 3600 * 1000);
+
   // Intelligence financière — analyse autonome : une anomalie financière ne
   // doit jamais rester silencieuse, même si personne ne consulte le tableau.
   async function financeTick() {

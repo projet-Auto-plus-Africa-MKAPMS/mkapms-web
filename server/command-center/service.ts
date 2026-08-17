@@ -377,13 +377,43 @@ export async function openDevRequest(input: {
 }) {
   const generation = await generationState();
   const scope = analyseScope(input.need);
-  const analysis =
+  const base =
     scope.length > 0
       ? `Modules identifiés à partir du besoin : ${scope.join(", ")}. Les dépendances de ces moteurs devront être contrôlées avant intégration.`
       : "Aucun module n'a pu être rattaché au besoin avec certitude : le périmètre doit être précisé par un humain avant toute écriture de code.";
 
+  // Point 115 — lecture réelle de l'architecture : le dossier nomme les
+  // fichiers, tables et contrôles concernés au lieu de rester une intention.
+  const architecture: string[] = [];
+  let experience = "";
+  try {
+    const graphe = await import("../code-graph/service.js");
+    for (const moteur of scope) {
+      const i = await graphe.impact(moteur);
+      if (!i.trouve) {
+        architecture.push(`${moteur} : absent du relevé de code — périmètre à confirmer.`);
+        continue;
+      }
+      architecture.push(
+        `${moteur} : ${i.fichiers.length} fichier(s), ${i.api.length} API, ${i.tables.length} table(s), ${i.tests.length} contrôle(s), ${i.dependants.length} module(s) dépendant${i.avertissements.length > 0 ? ` — ${i.avertissements.join(" ")}` : ""}`,
+      );
+    }
+    const reconnu = await graphe.reconnaitre(input.need);
+    experience = reconnu.verdict;
+  } catch (e) {
+    architecture.push(
+      `Lecture d'architecture indisponible : ${e instanceof Error ? e.message : "erreur inconnue"}`,
+    );
+  }
+
+  const analysis = [base, ...architecture, experience].filter((l) => l.length > 0).join("\n");
+
   const plan: { step: string; detail: string }[] = [
     { step: "analyse_architecture", detail: analysis },
+    {
+      step: "experience_passee",
+      detail: experience || "Aucune mémoire d'anomalie comparable consultée.",
+    },
     {
       step: "generation_code",
       detail: generation.detail,
