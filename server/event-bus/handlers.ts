@@ -111,6 +111,28 @@ const handlers: Record<string, Handler> = {
       : `Alerte déjà ouverte pour le paiement ${reference}.`;
   },
 
+  /**
+   * Un échange Intelligences réussi n'a rien à signaler. Un échange refusé par
+   * le fournisseur, en revanche, rend l'assistant public muet : c'est une panne
+   * visible par les clients, pas un détail technique.
+   */
+  async smart_intelligences(payload) {
+    const cote = texte(payload, "cote") || "inconnu";
+    const ok = payload.ok === true;
+    if (ok) return `Échange Intelligences (${cote}) abouti : rien à signaler.`;
+    const fournisseur = texte(payload, "fournisseur") || "aucun fournisseur routable";
+    const cree = await raiseAlert({
+      category: "moteur",
+      title: `MKA.P-MS Intelligences sans réponse (${cote})`,
+      description: `Un appel au fournisseur de modèle n'a pas abouti (${fournisseur}). Côté public, l'assistant reste muet ; côté direction, la génération de code est refusée. Vérifier la clé du fournisseur et le plafond journalier.`,
+      level: cote === "public" ? "critical" : "important",
+      signature: `bus:intelligences:${cote}`,
+    });
+    return cree
+      ? `Alerte ouverte : appel Intelligences en échec (${cote}).`
+      : `Alerte déjà ouverte pour les échecs Intelligences (${cote}).`;
+  },
+
   async audit_trace(payload, ctx) {
     await auditRecord({
       actorId: null,

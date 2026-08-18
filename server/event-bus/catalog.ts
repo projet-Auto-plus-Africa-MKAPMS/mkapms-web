@@ -96,6 +96,15 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     champs: ["moteur"],
     emetteurs: ["engine_registry", "monitoring"],
   },
+  {
+    code: "intelligences.echange",
+    domaine: "contenu",
+    label: "Échange MKA.P-MS Intelligences",
+    description:
+      "Une question a été posée à MKA.P-MS Intelligences (côté direction ou côté public) et une réponse a été tentée. L'événement porte le résultat réel : un appel refusé par le fournisseur est un signal, pas un silence.",
+    champs: ["sessionId", "cote", "ok"],
+    emetteurs: ["intelligences"],
+  },
 ];
 
 export interface SubscriptionSpec {
@@ -147,6 +156,13 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     handler: "smart_retabli",
     effet:
       "Referme l'alerte ouverte pour ce moteur : une alerte qui reste ouverte après rétablissement fait perdre confiance à toutes les autres.",
+  },
+  {
+    engine: "smart",
+    eventType: "intelligences.echange",
+    handler: "smart_intelligences",
+    effet:
+      "Ne fait rien tant que les appels aboutissent ; ouvre une alerte quand le fournisseur de modèle refuse les appels, car l'assistant public et la génération de code deviennent alors muets.",
   },
   {
     engine: "audit_os",

@@ -638,6 +638,13 @@
       "when": 1754138900002,
       "tag": "0091_completion_center",
       "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1754138900003,
+      "tag": "0092_intelligences",
+      "breakpoints": true
     }
   ]
 }
