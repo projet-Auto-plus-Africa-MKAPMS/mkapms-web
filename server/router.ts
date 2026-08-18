@@ -120,6 +120,7 @@ import { eventBusRouter } from "./event-bus/index.js";
 import { continuousTestRouter } from "./continuous-test/index.js";
 import { codeGraphRouter } from "./code-graph/index.js";
 import { completionRouter } from "./completion/index.js";
+import { intelligencesRouter } from "./intelligences/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -255,6 +256,9 @@ export const appRouter = router({
   continuousTest: continuousTestRouter,
   codeGraph: codeGraphRouter,
   completion: completionRouter,
+  // MKA.P-MS Intelligences : appels réels aux fournisseurs de modèles,
+  // côté direction (PDG) et assistant public strictement séparés
+  intelligences: intelligencesRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

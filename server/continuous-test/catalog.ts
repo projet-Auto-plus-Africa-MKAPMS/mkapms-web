@@ -10,6 +10,7 @@
  */
 import { MOTEURS_CENTRAUX_SCENARIOS } from "./scenarios-moteurs-centraux.js";
 import { PARCOURS_SCENARIOS } from "./scenarios-parcours.js";
+import { INTELLIGENCES_SCENARIOS } from "./scenarios-intelligences.js";
 import { http, scalaire, compte, type Observation, type Scenario, type Statut } from "./helpers.js";
 
 export type { Observation, Scenario, Statut };
@@ -340,6 +341,7 @@ export const SCENARIOS: Scenario[] = [
   ...SCENARIOS_PLATEFORME,
   ...PARCOURS_SCENARIOS,
   ...MOTEURS_CENTRAUX_SCENARIOS,
+  ...INTELLIGENCES_SCENARIOS,
 ];
 
 export const SCENARIO_IDS = SCENARIOS.map((s) => s.id);
