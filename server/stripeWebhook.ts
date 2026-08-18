@@ -70,13 +70,20 @@ export async function handleStripeWebhook(req: Request, res: Response) {
     return res.status(200).json({ received: true, configured: false });
   }
 
+  // Un secret de webhook configuré rend la signature obligatoire : sans cela,
+  // n'importe qui pourrait poster un « checkout.session.completed » et faire
+  // passer une commande en payée sans avoir jamais payé.
   let event: Stripe.Event;
   try {
     const sig = req.headers["stripe-signature"] as string | undefined;
-    if (env.STRIPE_WEBHOOK_SECRET && sig) {
+    if (env.STRIPE_WEBHOOK_SECRET) {
+      if (!sig) return res.status(400).send("Webhook Error: signature Stripe absente.");
       event = stripe.webhooks.constructEvent(req.body, sig, env.STRIPE_WEBHOOK_SECRET);
     } else {
       event = JSON.parse(req.body.toString());
+      console.warn(
+        "[payment] webhook accepté sans signature : STRIPE_WEBHOOK_SECRET absente.",
+      );
     }
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${(err as Error).message}`);

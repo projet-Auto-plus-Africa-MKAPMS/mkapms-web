@@ -265,6 +265,43 @@ const SCENARIOS_PLATEFORME: Scenario[] = [
     },
   },
   {
+    id: "paiement.confirmation",
+    domaine: "payment",
+    label: "La confirmation du prestataire est reçue et vérifiée",
+    criticite: "critique",
+    attendu:
+      "Le secret de webhook est configuré et l'endpoint refuse un événement non signé : sans confirmation vérifiée, une commande réglée resterait « en attente » et un faux événement pourrait la déclarer payée.",
+    async run(): Promise<Observation> {
+      if (!process.env.STRIPE_SECRET_KEY) {
+        return { statut: "ignore", observe: "Aucun prestataire de paiement configuré." };
+      }
+      if (!process.env.STRIPE_WEBHOOK_SECRET) {
+        return {
+          statut: "echec",
+          observe:
+            "STRIPE_WEBHOOK_SECRET absente : la confirmation du prestataire n'est pas vérifiée, aucune commande ne passe à « payée ».",
+        };
+      }
+      const r = await http("/api/stripe/webhook", {
+        methode: "POST",
+        entetes: { "Content-Type": "application/json" },
+        corps: JSON.stringify({ type: "checkout.session.completed" }),
+      });
+      if (!r.ok) {
+        return {
+          statut: "ignore",
+          observe: `Endpoint de confirmation non interrogeable : ${r.motif}`,
+        };
+      }
+      return r.status === 400
+        ? { statut: "reussi", observe: "Secret présent et événement non signé refusé (400)." }
+        : {
+            statut: "echec",
+            observe: `Un événement non signé a été accepté (HTTP ${r.status}) : un tiers pourrait déclarer une commande payée.`,
+          };
+    },
+  },
+  {
     id: "paiement.doublon",
     domaine: "payment",
     label: "Aucune commande n'est encaissée deux fois",
