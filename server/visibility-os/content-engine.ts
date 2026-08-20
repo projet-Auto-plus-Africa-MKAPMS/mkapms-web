@@ -4,7 +4,7 @@
  * À partir d'un contenu central unique (titre + corps + lien + pays + langue),
  * produit une version adaptée au format de chaque famille de canal :
  *  - moteur de recherche  → texte descriptif complet ;
- *  - assistant IA (GEO)   → réponse structurée question/réponse ;
+ *  - assistant Intelligence (GEO)   → réponse structurée question/réponse ;
  *  - réseau social        → accroche courte + hashtags ;
  *  - interne              → notification concise.
  *
@@ -125,7 +125,7 @@ export function generateVariantForChannel(
         hashtags: null,
       };
     case "ai_assistant": {
-      // Format question/réponse : facilite la découverte par les assistants IA.
+      // Format question/réponse : facilite la découverte par les assistants conversationnels.
       const q = `Q : ${content.title} ?`;
       const a = `R : ${truncate(content.body, 900)}${link}`;
       return { text: `${q}\n${a}`, hashtags: null };

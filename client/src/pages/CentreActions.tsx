@@ -46,7 +46,7 @@ const ONGLETS: { key: Onglet; label: string }[] = [
   { key: "en_cours", label: "En cours" },
   { key: "termine", label: "Terminé" },
   { key: "echecs", label: "Échecs" },
-  { key: "suggestions", label: "Suggestions IA" },
+  { key: "suggestions", label: "Suggestions Intelligence" },
   { key: "connaissances", label: "Connaissances acquises" },
   { key: "opportunites", label: "Opportunités" },
   { key: "alertes", label: "Alertes" },

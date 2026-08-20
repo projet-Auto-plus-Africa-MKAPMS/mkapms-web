@@ -1,7 +1,7 @@
 /**
  * Tableau PDG « Visibilité & Croissance » — Moteur Central de Visibilité MKA.P-MS.
  *
- * Regroupe en un seul espace : SEO / visibilité IA (GEO) / audience / réseaux
+ * Regroupe en un seul espace : SEO / visibilité Intelligence (GEO) / audience / réseaux
  * sociaux / mots-clés & intentions / promotions, par canal et par pays.
  * Lecture pour la Direction (PDG + Directeur) ; les actions de (re)génération
  * et de validation restent réservées au PDG (super_admin).
@@ -35,7 +35,7 @@ const TABS: { key: Tab; label: string; icon: typeof Globe }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
   { key: "canaux", label: "Canaux", icon: Radio },
   { key: "audiences", label: "Audience", icon: Users },
-  { key: "geo", label: "Visibilité IA", icon: Sparkles },
+  { key: "geo", label: "Visibilité assistants", icon: Sparkles },
   { key: "intentions", label: "Mots-clés & intentions", icon: Tag },
   { key: "publications", label: "Publications", icon: Send },
 ];
@@ -80,7 +80,7 @@ export default function VisibilityControlCenter() {
       <div className="bg-[#111] px-4 pt-6 pb-5">
         <Link to="/superadmin" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Super Admin</Link>
         <h1 className="text-xl font-black text-white flex items-center gap-2"><Globe size={20} className="text-[#D4AF37]" /> Visibilité &amp; Croissance</h1>
-        <p className="text-[11px] text-white/50 mt-1">Un seul moteur : SEO · visibilité IA · audience · réseaux · mots-clés · promotions.</p>
+        <p className="text-[11px] text-white/50 mt-1">Un seul moteur : SEO · visibilité Intelligence · audience · réseaux · mots-clés · promotions.</p>
       </div>
 
       {/* Onglets */}
@@ -112,7 +112,7 @@ export default function VisibilityControlCenter() {
                 <Stat label="En attente de validation" value={ov.publications.prepared} accent="text-orange-500" />
                 <Stat label="Audiences propriétaires" value={ov.audiences.owner} accent="text-blue-500" />
                 <Stat label="Audiences campagne (brouillon)" value={ov.audiences.external} accent="text-purple-500" />
-                <Stat label="Réponses IA / GEO" value={ov.aiAnswers} accent="text-teal-600" />
+                <Stat label="Réponses Intelligence / GEO" value={ov.aiAnswers} accent="text-teal-600" />
                 <Stat label="Intentions" value={ov.intents.total} accent="text-[#D4AF37]" />
                 <Stat label="Intentions tendance" value={ov.intents.trending} accent="text-pink-600" />
               </div>
@@ -200,7 +200,7 @@ export default function VisibilityControlCenter() {
         </div>
       )}
 
-      {/* Visibilité IA / GEO */}
+      {/* Visibilité assistants / GEO */}
       {tab === "geo" && (
         <div className="px-4 mt-4 space-y-2">
           <div className="flex gap-2">
@@ -215,7 +215,7 @@ export default function VisibilityControlCenter() {
               Feed public
             </a>
           </div>
-          <p className="text-[10px] text-[#6B7280]">Contenu question/réponse structuré, découvrable par les assistants IA. Aucune recommandation externe garantie.</p>
+          <p className="text-[10px] text-[#6B7280]">Contenu question/réponse structuré, découvrable par les assistants conversationnels. Aucune recommandation externe garantie.</p>
           {(aiAnswers.data ?? []).map((a) => (
             <div key={a.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
               <p className="text-[11px] font-bold text-[#111]">{a.question}</p>

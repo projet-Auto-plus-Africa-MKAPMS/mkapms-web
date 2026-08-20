@@ -13,7 +13,7 @@
  *   • Sessions & appareils — sessions.list/revoke, devices.list, session.refresh
  *   • Anomalies — anomalies.recent
  *   • Compte — account.archive, refreshToken
- *   • Agents IA — aiAgents.create/list/revoke
+ *   • Agents Intelligence — aiAgents.create/list/revoke
  *   • Audit — audit.recent, audit.all, reportEvent
  *
  * Aucun endpoint `auth.*` n'est supprimé.
@@ -584,7 +584,7 @@ export const identityRouter = router({
   }),
 
   // ────────────────────────────────────────────────────────────────────
-  // Sprint 3 — Agents IA (comptes machine avec clés API)
+  // Sprint 3 — Agents Intelligence (comptes machine avec clés API)
   // ────────────────────────────────────────────────────────────────────
 
   aiAgents: router({

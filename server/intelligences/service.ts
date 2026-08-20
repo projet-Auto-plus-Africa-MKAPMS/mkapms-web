@@ -4,7 +4,7 @@
  * Ce moteur n'est pas un second cerveau : il donne enfin la parole à ce qui
  * existe déjà. Le Système Intelligent observe, le registre connaît les moteurs,
  * le relevé de code connaît les fichiers, le Centre de Commandes trace les
- * ordres, l'AI Fabric choisit le fournisseur. Intelligences les interroge,
+ * ordres, la Fabrique Intelligence choisit le fournisseur. Intelligence les interroge,
  * appelle réellement le modèle, et rend une réponse utilisable.
  *
  * Deux côtés :
@@ -278,7 +278,7 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     systeme: input.cote === "direction" ? CONSIGNE_DIRECTION : CONSIGNE_PUBLIC,
     message,
     // Côté public la question peut contenir des éléments personnels : le niveau
-    // déclaré est plus strict, et l'AI Fabric peut donc refuser un fournisseur.
+    // déclaré est plus strict, et la Fabrique Intelligence peut donc refuser un fournisseur.
     confidentialite: input.cote === "direction" ? "interne" : "interne",
     countryCode: input.countryCode ?? null,
     maxTokens: input.cote === "direction" ? 2000 : 900,
@@ -475,7 +475,7 @@ export async function messages(sessionId: number) {
     .orderBy(inMessages.id);
 }
 
-export interface EtatIntelligences {
+export interface EtatIntelligence {
   nom: string;
   acces: {
     status: "up" | "degraded" | "down";
@@ -499,10 +499,10 @@ export interface EtatIntelligences {
 }
 
 /** Vue complète côté PDG : accès réel, fournisseurs, coûts, moteurs, commandes. */
-export async function etat(): Promise<EtatIntelligences> {
+export async function etat(): Promise<EtatIntelligence> {
   const acces = await verifierAcces();
 
-  let fournisseurs: EtatIntelligences["fournisseurs"] = [];
+  let fournisseurs: EtatIntelligence["fournisseurs"] = [];
   try {
     const fabric = await import("../ai-fabric/service.js");
     const etats = await fabric.providerStates();

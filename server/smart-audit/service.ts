@@ -66,7 +66,7 @@ async function statTable(table: string): Promise<TableStat> {
 
 /**
  * Capacité de génération de code : elle dépend d'un fournisseur de modèle
- * réellement branché (AI Fabric). Sans cela, l'agent développeur s'arrête au
+ * réellement branché (Fabrique Intelligence). Sans cela, l'agent développeur s'arrête au
  * plan — et le dit.
  */
 export async function codeGenerationState(): Promise<{
@@ -159,7 +159,7 @@ async function evaluerCapacite(spec: CapaciteSpec, genCode: boolean): Promise<Ca
   if (spec.code === "generer_code" && !genCode) {
     etat = "non_disponible";
     motif = spec.limite;
-    manquant.push("fournisseur de modèle IA");
+    manquant.push("fournisseur de modèle Intelligence");
   } else if (!codePresent) {
     etat = "inactive";
     motif = "Aucun module ne porte cette capacité : elle n'existe pas dans le code.";

@@ -1,5 +1,5 @@
 /**
- * Points 84-85-86-88-89-90 — Centre IA, coûts & supervision (PDG / Direction).
+ * Points 84-85-86-88-89-90 — Centre Intelligence, coûts & supervision (PDG / Direction).
  *
  * L'écran refuse quatre illusions :
  *  • un fournisseur « prêt » alors qu'aucun accès n'est fourni ;

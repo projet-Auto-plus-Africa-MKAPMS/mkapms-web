@@ -7,7 +7,7 @@
  *                  aux données internes.
  *
  * Rien ici ne duplique la mémoire du Système Intelligent ni le journal d'audit :
- * ces tables ne portent que les échanges Intelligences et leur consommation.
+ * ces tables ne portent que les échanges Intelligence et leur consommation.
  */
 import {
   bigserial,
@@ -66,9 +66,9 @@ export const inUsage = pgTable("in_usage", {
 });
 
 /**
- * Commandes exécutées depuis Intelligences. La table ne réimplémente pas le
+ * Commandes exécutées depuis Intelligence. La table ne réimplémente pas le
  * Centre de Commandes : elle enregistre le rattachement (dossier, passage de
- * pipeline) afin qu'aucune action ne parte sans trace côté Intelligences.
+ * pipeline) afin qu'aucune action ne parte sans trace côté Intelligence.
  */
 export const inActions = pgTable("in_actions", {
   id: serial("id").primaryKey(),

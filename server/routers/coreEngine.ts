@@ -291,7 +291,7 @@ const b2bCenter = router({
   }),
 });
 
-// ─── 7. CENTRE STATISTIQUES IA ───
+// ─── 7. CENTRE STATISTIQUES Intelligence ───
 const statsIACenter = router({
   getReports: adminProcedure
     .input(z.object({ type: z.string().optional(), period: z.string().optional() }).optional())
@@ -399,7 +399,7 @@ const openApiCenter = router({
     }),
 });
 
-// ─── 11. CENTRE IA AUTOMATISATION ───
+// ─── 11. CENTRE Intelligence AUTOMATISATION ───
 const automationCenter = router({
   emitEvent: protectedProcedure
     .input(z.object({ eventType: z.string(), sourceModule: z.string(), sourceId: z.number().optional(), payload: z.any().optional() }))
@@ -569,11 +569,11 @@ const CENTRES = [
   { key: "distribution", label: "Distribution", table: "ce_distribution_depots" },
   { key: "formation", label: "Formation", table: "ce_formation_courses" },
   { key: "b2b", label: "Marketplace B2B", table: "ce_b2b_listings" },
-  { key: "statsIA", label: "Statistiques IA", table: "ce_ai_reports" },
+  { key: "statsIA", label: "Statistiques Intelligence", table: "ce_ai_reports" },
   { key: "documents", label: "Documents Mondial", table: "ce_document_vault" },
   { key: "partenaires", label: "Partenaires Stratégiques", table: "ce_strategic_partners" },
   { key: "openApi", label: "Open API", table: "ce_api_keys" },
-  { key: "automation", label: "IA Automatisation", table: "ce_automation_events" },
+  { key: "automation", label: "Intelligence Automatisation", table: "ce_automation_events" },
   { key: "workflow", label: "Workflow", table: "ce_workflows" },
   { key: "recherche", label: "Recherche Mondiale", table: "ce_search_index" },
   { key: "expansion", label: "Expansion Mondiale", table: "ce_expansion_countries" },

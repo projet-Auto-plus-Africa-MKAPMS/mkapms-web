@@ -2734,7 +2734,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
               <div className="border-t border-[#D4AF37]/20 bg-[#1a1a1a] p-5">
                 <h3 className="text-sm font-bold text-[#D4AF37]">Étapes de la demande</h3>
                 <ol className="mt-3 space-y-2">
-                  {["Choisir véhicule", "Lire les conditions", "Cliquer « Demander ce véhicule »", "Envoyer documents", "Dossier analysé par IA", "Validation humaine par le loueur", "Signature contrat", "Paiement acompte ou première échéance", "Véhicule réservé", "Remise du véhicule"].map((t, i) => (
+                  {["Choisir véhicule", "Lire les conditions", "Cliquer « Demander ce véhicule »", "Envoyer documents", "Dossier analysé par Intelligence", "Validation humaine par le loueur", "Signature contrat", "Paiement acompte ou première échéance", "Véhicule réservé", "Remise du véhicule"].map((t, i) => (
                     <li key={t} className="flex items-center gap-2 text-xs text-slate-300">
                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#D4AF37] text-[9px] font-bold text-[#111]">{i + 1}</span> {t}
                     </li>

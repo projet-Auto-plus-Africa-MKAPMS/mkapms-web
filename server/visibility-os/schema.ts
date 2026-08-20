@@ -2,7 +2,7 @@
  * MKA.P-MS Global Visibility Engine — Schéma (tables `visibility_*`).
  *
  * Moteur central de visibilité mondiale : il coordonne SEO, visibilité auprès
- * des assistants IA (GEO), audience, canaux de diffusion (réseaux sociaux) et
+ * des assistants conversationnels (GEO), audience, canaux de diffusion (réseaux sociaux) et
  * publication organique. Aucun canal n'est codé en dur : les canaux vivent en
  * base (table `visibility_channels`), le cœur du moteur reste neutre et un
  * nouveau canal s'ajoute par simple configuration.
@@ -22,7 +22,7 @@ import {
 
 /**
  * Canaux de diffusion pilotés par configuration.
- * `kind` : famille de canal (moteur de recherche, assistant IA, réseau social,
+ * `kind` : famille de canal (moteur de recherche, assistant Intelligence, réseau social,
  * canal interne). Le nom de service externe éventuel reste dans `config`
  * (jamais dans le cœur du moteur).
  */
@@ -120,9 +120,9 @@ export const visibilityAudiences = pgTable("visibility_audiences", {
 });
 
 /**
- * Base de connaissances pour les assistants IA / moteurs génératifs (GEO).
+ * Base de connaissances pour les assistants conversationnels / moteurs génératifs (GEO).
  * Contenu question/réponse structuré, brand-neutral, indexable et exploitable
- * par les moteurs de recherche et assistants IA. Aucune promesse de
+ * par les moteurs de recherche et assistants conversationnels. Aucune promesse de
  * recommandation par un fournisseur externe — on rend le contenu découvrable.
  */
 export const visibilityAiAnswers = pgTable("visibility_ai_answers", {
@@ -146,7 +146,7 @@ export const visibilityAiAnswers = pgTable("visibility_ai_answers", {
  * Exemple : "location voiture" → "où louer une voiture pas chère près de moi ?"
  *           → "LOCATION+LOCAL+PRIX+DISPONIBILITE".
  * Alimente le SEO, la recherche, les suggestions, les recommandations internes,
- * les contenus sociaux, la visibilité IA/GEO et le ciblage d'audience.
+ * les contenus sociaux, la visibilité Intelligence/GEO et le ciblage d'audience.
  * `trendScore` est dérivé des signaux réels (recherches enregistrées) — jamais
  * copié d'un tiers. Brand-neutral et additif.
  */

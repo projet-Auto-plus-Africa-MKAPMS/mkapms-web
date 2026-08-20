@@ -204,13 +204,13 @@ export default function AdminSEO() {
         </div>
       </div>
 
-      {/* SEO Manager / Assistant IA (Phase 22) — recommandations */}
+      {/* SEO Manager / Assistant Intelligence (Phase 22) — recommandations */}
       <div className="px-4 mt-4">
         <div className="rounded-xl bg-white border border-[#E5E7EB] p-4">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
               <Sparkles size={16} className="text-[#D4AF37]" />
-              <p className="text-sm font-bold text-[#111]">Assistant IA SEO — recommandations</p>
+              <p className="text-sm font-bold text-[#111]">Assistant Intelligence SEO — recommandations</p>
             </div>
             <button
               onClick={() => recommendations.refetch()}

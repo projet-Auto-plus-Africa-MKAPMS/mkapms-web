@@ -6,7 +6,7 @@
  *   Intention → "LOCATION+LOCAL+PRIX+DISPONIBILITE"
  *
  * Ces données alimentent le SEO, la recherche interne, les suggestions, les
- * recommandations, les contenus sociaux, la visibilité IA/GEO et le ciblage
+ * recommandations, les contenus sociaux, la visibilité Intelligence/GEO et le ciblage
  * d'audience. Le `trendScore` est dérivé des signaux RÉELS de la plateforme
  * (recherches enregistrées) — aucune copie de contenu tiers.
  *

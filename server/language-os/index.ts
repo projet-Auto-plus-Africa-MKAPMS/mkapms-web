@@ -2,7 +2,7 @@
  * Language OS — Registre multilingue MKA.P-MS (règles MOS #11/#12/#13/#14/#15).
  *
  * Couvre : interface (UI), annonces, messagerie, notifications, documents
- * (factures, contrats, devis), SEO, recherche multilingue, IA (réponse dans
+ * (factures, contrats, devis), SEO, recherche multilingue, Intelligence (réponse dans
  * la langue de l'utilisateur), préférences utilisateur (mémorisation).
  *
  * Consolide et étend l'existant (aucune i18n structurée n'existait — ce

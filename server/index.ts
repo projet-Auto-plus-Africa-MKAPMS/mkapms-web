@@ -32,6 +32,7 @@ import {
 import { aiAnswersFeed } from "./visibility-os/geo-engine.js";
 import { domainMiddleware, domainHandler, domainsListHandler } from "./domain.js";
 import { publicWriteGate } from "./resilience/gate.js";
+import { apiV1 } from "./intelligences/api-v1.js";
 import { env, isProd } from "./env.js";
 import { readFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
@@ -270,6 +271,10 @@ app.get("/api/health/db", async (_req, res) => {
   }
 });
 
+// Point 127 — API interne versionnée des capacités MKA.P-MS Intelligences.
+// Les moteurs et les applications demandent une capacité, jamais un fournisseur.
+app.use("/api/v1", publicWriteGate, apiV1);
+
 app.use(
   "/api/trpc",
   // Point 73 — fermeture au public réellement appliquée (l'administration passe).
@@ -286,7 +291,7 @@ app.get("/sitemap-garages.xml", sitemapGarages);
 app.get("/sitemap-avis.xml", sitemapAvis);
 app.get("/sitemap-pages-:page.xml", sitemapPages);
 app.get("/sitemap-blog.xml", sitemapBlog);
-// Visibilité IA / GEO — feed texte question/réponse découvrable par les assistants IA
+// Visibilité assistants / GEO — feed texte question/réponse découvrable par les assistants conversationnels
 app.get("/assistants-ia.txt", aiAnswersFeed);
 
 // Flux produit Merchant Center (points 95-96). Public par nécessité : Google

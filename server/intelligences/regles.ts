@@ -1,8 +1,9 @@
 /**
  * MKA.P-MS Intelligences — règles et commandes.
  *
- * Le nom du moteur est « MKA.P-MS Intelligences ». Il ne s'appelle jamais « IA »
- * ni « AI » dans l'interface.
+ * Le nom du moteur est « MKA.P-MS Intelligences » — jamais l'ancienne appellation,
+ * ni en français ni en anglais. Le respect du nom n'est pas laissé à la
+ * vigilance : `scripts/check-naming.mjs` échoue le build s'il réapparaît.
  *
  * Ce fichier est la référence unique de ce que chaque côté est autorisé à faire.
  * Les consignes envoyées au modèle en découlent : une capacité qui n'est pas
@@ -124,7 +125,7 @@ export const REGLES: { code: string; regle: string; application: string }[] = [
     code: "confidentialite",
     regle: "La confidentialité décide du fournisseur, pas l'inverse.",
     application:
-      "Chaque appel déclare son niveau de confidentialité ; l'AI Fabric refuse un fournisseur dont la résidence des données ne le permet pas.",
+      "Chaque appel déclare son niveau de confidentialité ; la Fabrique Intelligence refuse un fournisseur dont la résidence des données ne le permet pas.",
   },
   {
     code: "cout_visible",
@@ -147,7 +148,8 @@ export const REGLES: { code: string; regle: string; application: string }[] = [
   {
     code: "nom",
     regle: "Le moteur s'appelle MKA.P-MS Intelligences.",
-    application: "Aucune mention « IA » ni « AI » dans les écrans de ce moteur.",
+    application:
+      "Aucune mention « IA » ni « AI » dans les écrans : le contrôle scripts/check-naming.mjs échoue le build si l'ancienne appellation réapparaît.",
   },
 ];
 

@@ -14,6 +14,13 @@ import { createHash } from "node:crypto";
 import { pdgProcedure, publicProcedure, router } from "../trpc.js";
 import { COMMANDES, NOM_MOTEUR, REGLES } from "./regles.js";
 import {
+  CAPACITES,
+  registre as registreCapacites,
+  resume as resumeCapacites,
+  type CodeCapacite,
+} from "./capacites.js";
+import { router as routerCapacite } from "./routeur.js";
+import {
   actions,
   coder,
   demander,
@@ -89,6 +96,48 @@ export const intelligencesRouter = router({
 
   regles: pdgProcedure.query(() => ({ nom: NOM_MOTEUR, commandes: COMMANDES, regles: REGLES })),
 
+  /**
+   * Points 124-126 — registre des capacités avec leur état **constaté**.
+   * Une capacité sans fournisseur joignable n'est jamais affichée « prête ».
+   */
+  capacites: pdgProcedure.query(async () => ({
+    resume: await resumeCapacites(),
+    capacites: await registreCapacites(),
+  })),
+
+  /**
+   * Point 128 — exécution d'une capacité par le routeur interne. Le PDG choisit
+   * la capacité, jamais le fournisseur : le routeur vérifie permission,
+   * confidentialité et état constaté avant tout appel.
+   */
+  executerCapacite: pdgProcedure
+    .input(
+      z.object({
+        capacite: z.enum(
+          CAPACITES.map((c) => c.code) as [CodeCapacite, ...CodeCapacite[]],
+        ),
+        moteur: z.string().min(2).max(64),
+        message: z.string().min(2).max(8000),
+        systeme: z.string().max(2000).optional(),
+        confidentialite: z
+          .enum(["publique", "personnelle", "confidentielle"])
+          .optional(),
+        countryCode: z.string().max(8).nullable().optional(),
+      }),
+    )
+    .mutation(({ input, ctx }) =>
+      routerCapacite({
+        capacite: input.capacite,
+        moteur: input.moteur,
+        message: input.message,
+        systeme:
+          input.systeme ?? "Réponds avec exactitude. Ce que tu ignores, dis-le.",
+        role: ctx.user?.role ?? null,
+        confidentialite: input.confidentialite,
+        countryCode: input.countryCode ?? null,
+      }),
+    ),
+
   /** Côté direction — question libre avec contexte interne réel. */
   demander: pdgProcedure
     .input(
@@ -152,7 +201,7 @@ export const intelligencesRouter = router({
       }),
     ),
 
-  /** Journal des commandes passées depuis Intelligences. */
+  /** Journal des commandes passées depuis Intelligence. */
   actions: pdgProcedure
     .input(z.object({ limit: z.number().int().min(1).max(200).default(60) }).optional())
     .query(({ input }) => actions(input?.limit ?? 60)),

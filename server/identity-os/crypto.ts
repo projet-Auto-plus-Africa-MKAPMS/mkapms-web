@@ -128,7 +128,7 @@ function timingSafeEqualStr(a: string, b: string): boolean {
   return diff === 0;
 }
 
-// ── Génération clé API agent IA (préfixe + entropie + hash) ─────────────
+// ── Génération clé API agent Intelligence (préfixe + entropie + hash) ─────────────
 /**
  * Format : `mos_ai_<random 32 bytes base64url>`.
  * La chaîne complète est retournée UNE seule fois ; on ne stocke que le hash.

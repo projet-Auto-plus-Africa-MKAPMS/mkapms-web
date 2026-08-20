@@ -112,14 +112,14 @@ const handlers: Record<string, Handler> = {
   },
 
   /**
-   * Un échange Intelligences réussi n'a rien à signaler. Un échange refusé par
+   * Un échange Intelligence réussi n'a rien à signaler. Un échange refusé par
    * le fournisseur, en revanche, rend l'assistant public muet : c'est une panne
    * visible par les clients, pas un détail technique.
    */
   async smart_intelligences(payload) {
     const cote = texte(payload, "cote") || "inconnu";
     const ok = payload.ok === true;
-    if (ok) return `Échange Intelligences (${cote}) abouti : rien à signaler.`;
+    if (ok) return `Échange Intelligence (${cote}) abouti : rien à signaler.`;
     const fournisseur = texte(payload, "fournisseur") || "aucun fournisseur routable";
     const cree = await raiseAlert({
       category: "moteur",
@@ -129,8 +129,8 @@ const handlers: Record<string, Handler> = {
       signature: `bus:intelligences:${cote}`,
     });
     return cree
-      ? `Alerte ouverte : appel Intelligences en échec (${cote}).`
-      : `Alerte déjà ouverte pour les échecs Intelligences (${cote}).`;
+      ? `Alerte ouverte : appel Intelligence en échec (${cote}).`
+      : `Alerte déjà ouverte pour les échecs Intelligence (${cote}).`;
   },
 
   async audit_trace(payload, ctx) {

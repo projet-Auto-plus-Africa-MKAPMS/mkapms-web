@@ -62,7 +62,7 @@ const TABS: { id: MainTab; label: string; icon: typeof Crown }[] = [
   { id: "carrosserie", label: "Carrosserie", icon: Wrench },
   { id: "alertes", label: "Alertes", icon: Bell },
   { id: "journal", label: "Journal", icon: Clock },
-  { id: "ia", label: "IA MKA", icon: Brain },
+  { id: "ia", label: "MKA.P-MS Intelligences", icon: Brain },
   { id: "parametres", label: "Parametres", icon: Settings },
   { id: "conseil", label: "Conseil d'Admin", icon: Shield },
   { id: "automatisation", label: "Automatisation", icon: Cog },
@@ -98,7 +98,7 @@ const TABS: { id: MainTab; label: string; icon: typeof Crown }[] = [
   { id: "observation", label: "Observation Marche", icon: LineChart },
   { id: "experience", label: "Experience Client", icon: Heart },
   { id: "rewards", label: "Rewards", icon: Gift },
-  { id: "ia_centre", label: "IA MKA Centre", icon: Cpu },
+  { id: "ia_centre", label: "MKA.P-MS Intelligences Centre", icon: Cpu },
   { id: "personnalisation", label: "Personnalisation", icon: Palette },
   { id: "indicateurs", label: "Indicateurs Exec.", icon: Gauge },
   { id: "connecteurs", label: "Connecteurs", icon: Plug },
@@ -299,10 +299,10 @@ const CROISSANCE_PAYS = [
 ];
 
 const INNOVATION_PROJETS = [
-  { nom: "IA Detection fraude annonces", statut: "Prototype", phase: "R&D", debut: "01/04/2026", equipe: "Tech", priorite: "Haute", avancement: 45 },
+  { nom: "Intelligence Detection fraude annonces", statut: "Prototype", phase: "R&D", debut: "01/04/2026", equipe: "Tech", priorite: "Haute", avancement: 45 },
   { nom: "App Mobile native (iOS/Android)", statut: "En cours", phase: "Developpement", debut: "01/03/2026", equipe: "Tech", priorite: "Haute", avancement: 30 },
   { nom: "Scoring financier automatique", statut: "Idee", phase: "Conception", debut: "—", equipe: "Finance", priorite: "Moyenne", avancement: 10 },
-  { nom: "Chatbot IA service client", statut: "En test", phase: "Beta", debut: "15/05/2026", equipe: "Tech", priorite: "Haute", avancement: 75 },
+  { nom: "Chatbot Intelligence service client", statut: "En test", phase: "Beta", debut: "15/05/2026", equipe: "Tech", priorite: "Haute", avancement: 75 },
   { nom: "Vehicule inspection 360°", statut: "Idee", phase: "Recherche", debut: "—", equipe: "Innovation", priorite: "Basse", avancement: 5 },
   { nom: "Blockchain certificat vehicule", statut: "Etude", phase: "Faisabilite", debut: "01/06/2026", equipe: "Tech", priorite: "Moyenne", avancement: 15 },
   { nom: "Prediction prix marche auto", statut: "Prototype", phase: "R&D", debut: "15/04/2026", equipe: "Data", priorite: "Moyenne", avancement: 35 },
@@ -310,9 +310,9 @@ const INNOVATION_PROJETS = [
 
 /* ---------- Partie 4 data (42-55) ---------- */
 const RD_PROJETS = [
-  { nom: "IA Detection fraude v2", categorie: "Intelligence artificielle", responsable: "Karim B.", budget: "45 000 EUR", priorite: "Haute", avancement: 55, cible: "Q4 2026", validation: "Approuve" },
+  { nom: "Intelligence Detection fraude v2", categorie: "MKA.P-MS Intelligences", responsable: "Karim B.", budget: "45 000 EUR", priorite: "Haute", avancement: 55, cible: "Q4 2026", validation: "Approuve" },
   { nom: "App Garage+ standalone", categorie: "Applications mobiles", responsable: "Ahmed T.", budget: "80 000 EUR", priorite: "Haute", avancement: 25, cible: "Q1 2027", validation: "En attente" },
-  { nom: "Moteur de recommandation", categorie: "Intelligence artificielle", responsable: "Data Team", budget: "35 000 EUR", priorite: "Moyenne", avancement: 15, cible: "Q2 2027", validation: "Approuve" },
+  { nom: "Moteur de recommandation", categorie: "MKA.P-MS Intelligences", responsable: "Data Team", budget: "35 000 EUR", priorite: "Moyenne", avancement: 15, cible: "Q2 2027", validation: "Approuve" },
   { nom: "Inspection vehicule AR", categorie: "Objets connectes", responsable: "Innovation", budget: "120 000 EUR", priorite: "Basse", avancement: 5, cible: "2028", validation: "Planifie" },
   { nom: "Dashboard Electric+ v2", categorie: "Electric+", responsable: "Awa S.", budget: "20 000 EUR", priorite: "Moyenne", avancement: 40, cible: "Q3 2026", validation: "Approuve" },
   { nom: "API Marketplace externe", categorie: "Outils internes", responsable: "Tech", budget: "15 000 EUR", priorite: "Haute", avancement: 60, cible: "Q3 2026", validation: "Approuve" },
@@ -1047,7 +1047,7 @@ export default function CentrePilotage() {
           </div>
         )}
 
-        {/* ━━━━ IA MKA.P-MS ━━━━ */}
+        {/* ━━━━ MKA.P-MS Intelligences ━━━━ */}
         {tab === "ia" && (
           <div className="space-y-3">
             <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4">
@@ -2233,7 +2233,7 @@ export default function CentrePilotage() {
           </div>
         )}
 
-        {/* 63. IA MKA CENTRE */}
+        {/* 63. MKA.P-MS Intelligences CENTRE */}
         {tab === "ia_centre" && (
           <div className="space-y-3">
             <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">
@@ -2632,7 +2632,7 @@ export default function CentrePilotage() {
                 <div className="flex justify-between"><span>v2.9 — Centre Pilotage P4-P6</span><span className="font-bold text-green-600">En cours</span></div>
                 <div className="flex justify-between"><span>v3.0 — App Mobile native</span><span className="font-bold text-amber-600">Q4 2026</span></div>
                 <div className="flex justify-between"><span>v3.1 — API Marketplace</span><span className="font-bold text-blue-600">Q1 2027</span></div>
-                <div className="flex justify-between"><span>v3.2 — IA Assistant avance</span><span className="font-bold text-blue-600">Q2 2027</span></div>
+                <div className="flex justify-between"><span>v3.2 — Intelligence Assistant avance</span><span className="font-bold text-blue-600">Q2 2027</span></div>
               </div>
             </SectionCard>
           </div>
@@ -2765,7 +2765,7 @@ export default function CentrePilotage() {
               <div className="p-3 space-y-2 text-[10px]">
                 <div className="rounded-lg bg-green-50 p-2"><span className="text-green-700 font-bold">2026 — Phase de lancement</span><p className="text-[#111]">8 pays, 50 garages, 27 000+ utilisateurs, modules complets</p></div>
                 <div className="rounded-lg bg-blue-50 p-2"><span className="text-blue-700 font-bold">2027 — Phase de croissance</span><p className="text-[#111]">15 pays, 200 garages, App mobile, Serie A, API Marketplace</p></div>
-                <div className="rounded-lg bg-amber-50 p-2"><span className="text-amber-700 font-bold">2028-2030 — Phase d&apos;expansion</span><p className="text-[#111]">25 pays, leader Afrique, IA avancee, objets connectes, ERP</p></div>
+                <div className="rounded-lg bg-amber-50 p-2"><span className="text-amber-700 font-bold">2028-2030 — Phase d&apos;expansion</span><p className="text-[#111]">25 pays, leader Afrique, Intelligence avancee, objets connectes, ERP</p></div>
                 <div className="rounded-lg bg-purple-50 p-2"><span className="text-purple-700 font-bold">2030-2035 — Phase internationale</span><p className="text-[#111]">50 pays, IPO envisagee, ecosystem mondial automobile</p></div>
               </div>
             </SectionCard>

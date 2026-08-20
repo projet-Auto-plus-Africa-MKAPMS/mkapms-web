@@ -6,7 +6,7 @@
  *   PRODUITS / PIÈCES → Search + données structurées Product + Merchant Center
  *                       lorsque réellement éligible + Images/Lens.
  *   VÉHICULES         → SEO d'annonces + pages indexables + données structurées
- *                       adaptées + images + contenu local + GEO/IA.
+ *                       adaptées + images + contenu local + GEO/Intelligence.
  *
  * Les véhicules motorisés sont exclus des fiches gratuites Merchant Center :
  * ce module refuse donc de les y pousser, et l'écrit noir sur blanc au lieu de
@@ -105,7 +105,7 @@ export function evaluerEligibilite(p: ProduitCandidat): Verdict {
     return {
       eligible: false,
       motif:
-        "Véhicule motorisé : exclu des fiches gratuites Merchant Center. Sa visibilité passe par le tuyau annonces (page indexable, données structurées de véhicule, images, contenu local, GEO/IA) — pas par un catalogue de produits.",
+        "Véhicule motorisé : exclu des fiches gratuites Merchant Center. Sa visibilité passe par le tuyau annonces (page indexable, données structurées de véhicule, images, contenu local, GEO/Intelligence) — pas par un catalogue de produits.",
       manquants,
       recommandesManquants,
     };

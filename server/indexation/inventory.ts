@@ -29,7 +29,7 @@ export type Famille = (typeof FAMILLES)[number];
 /**
  * Deux tuyaux distincts, jamais mélangés (points 94-95) :
  *  • `annonce`  → véhicules d'occasion : SEO d'annonce, pages indexables,
- *    données structurées adaptées, images, contenu local, GEO/IA ;
+ *    données structurées adaptées, images, contenu local, GEO/Intelligence ;
  *  • `produit`  → pièces et accessoires : données structurées Product, flux
  *    marchand quand l'éligibilité est réelle, images / Lens.
  */

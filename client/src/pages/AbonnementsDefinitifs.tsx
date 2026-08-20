@@ -136,7 +136,7 @@ const PLANS = {
     ]},
     { nom: "Compta Elite", prix: "99 €/mois", badge: "ELITE", color: "#111", features: [
       "Tout Premium", "Multi-sites", "API comptable", "Intégration Sage/EBP", "Audit automatique", "Badge noir/or ELITE",
-      "─── Comptabilité Elite ───", "Rapports automatiques", "Anomalies IA", "Gestionnaire dédié",
+      "─── Comptabilité Elite ───", "Rapports automatiques", "Anomalies Intelligence", "Gestionnaire dédié",
     ]},
   ],
   depannage: [
@@ -332,7 +332,7 @@ export default function AbonnementsDefinitifs() {
             <Globe size={24} className="text-[#D4AF37]" />
           </div>
           <div className="px-4 py-3 space-y-1.5">
-            {["Mise en avant SEO renforcée", "Priorité pages catégories", "Priorité résultats recherche", "Optimisation Google renforcée", "Pages locales premium", "Rapport SEO mensuel", "Recommandations IA", "Campagne Google Ads (accompagnement)"].map(f => (
+            {["Mise en avant SEO renforcée", "Priorité pages catégories", "Priorité résultats recherche", "Optimisation Google renforcée", "Pages locales premium", "Rapport SEO mensuel", "Recommandations Intelligence", "Campagne Google Ads (accompagnement)"].map(f => (
               <div key={f} className="flex items-center gap-2"><Check size={12} className="text-[#D4AF37] shrink-0" /><span className="text-xs text-white/80">{f}</span></div>
             ))}
           </div>

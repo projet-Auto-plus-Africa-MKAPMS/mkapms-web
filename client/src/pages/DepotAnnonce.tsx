@@ -944,7 +944,7 @@ export default function DepotAnnonce() {
               <Sparkles size={14} className="text-[#D4AF37] shrink-0 mt-0.5" />
               <div>
                 <p className="text-[10px] font-semibold text-[#111]">Estimation marche MKA.P-MS</p>
-                <p className="text-[9px] text-[#6B7280]">Notre IA analysera votre prix par rapport au marche apres publication</p>
+                <p className="text-[9px] text-[#6B7280]">MKA.P-MS Intelligences analysera votre prix par rapport au marche apres publication</p>
               </div>
             </div>
           </div>
@@ -1142,7 +1142,7 @@ export default function DepotAnnonce() {
               <textarea value={form.description} onChange={(e) => set("description", e.target.value)} placeholder={isMoto ? "Decrivez votre moto : entretien, modifications, etat general, historique, raison de la vente..." : "Decrivez votre vehicule : historique complet, entretien suivi, options, etat general, raison de la vente..."} className="w-full rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm h-32 resize-none hover:border-[#D4AF37]/50 transition" />
               <div className="flex items-center gap-2 mt-2 rounded-lg bg-[#FFFDF5] border border-[#D4AF37]/20 p-2.5">
                 <Sparkles size={12} className="text-[#D4AF37]" />
-                <span className="text-[10px] text-[#374151]">L'IA ameliorera automatiquement votre description apres publication</span>
+                <span className="text-[10px] text-[#374151]">L'Intelligence ameliorera automatiquement votre description apres publication</span>
               </div>
             </div>
 
@@ -1215,10 +1215,10 @@ export default function DepotAnnonce() {
          ═══════════════════════════════════════════════════════════════════ */}
       {step === 6 && !create.isSuccess && (
         <div className="px-4 mt-5 space-y-4">
-          {/* IA Verification */}
+          {/* Intelligence Verification */}
           <div className="rounded-xl bg-white border border-[#E5E7EB] p-5 text-center">
             <Bot size={32} className="mx-auto text-[#D4AF37]" />
-            <h3 className="text-base font-bold text-[#111] mt-2">Verification IA en cours</h3>
+            <h3 className="text-base font-bold text-[#111] mt-2">Verification Intelligence en cours</h3>
             <p className="text-xs text-[#6B7280] mt-1">Analyse automatique de votre annonce</p>
             <div className="mt-4 space-y-2 text-left">
               {[

@@ -40,7 +40,7 @@ const VOICE_SESSION_MINUTES = 15;
 export const CODE_GENERATION_AVAILABLE = false;
 
 /**
- * Point 103 — la capacité est désormais relevée sur l'AI Fabric au lieu d'être
+ * Point 103 — la capacité est désormais relevée sur la Fabrique Intelligence au lieu d'être
  * figée : si un fournisseur de modèle est réellement branché, l'agent
  * développeur peut aller au-delà du plan ; sinon il s'arrête et écrit pourquoi.
  */

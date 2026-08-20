@@ -3,7 +3,7 @@
  *
  * Coordonne, sous un seul moteur, la visibilité de la plateforme :
  *  - SEO classique (déjà couvert par le SEO OS — non dupliqué ici) ;
- *  - visibilité auprès des assistants IA / moteurs génératifs (GEO) ;
+ *  - visibilité auprès des assistants conversationnels / moteurs génératifs (GEO) ;
  *  - audience propriétaire ;
  *  - canaux de diffusion (réseaux sociaux) pilotés par configuration ;
  *  - publication organique préparée sous validation humaine (aucune dépense).
@@ -60,9 +60,9 @@ interface ChannelSeed {
 const DEFAULT_CHANNELS: ChannelSeed[] = [
   // Moteur de recherche mondial (SEO) — organique, gratuit.
   { channelKey: "moteur_recherche", label: "Moteur de recherche mondial", kind: "search", requiresBudget: false, autoPublish: true },
-  // Assistants IA de recherche / moteurs génératifs (GEO) — organique.
-  { channelKey: "assistants_ia", label: "Assistants IA de recherche (GEO)", kind: "ai_assistant", requiresBudget: false, autoPublish: true },
-  { channelKey: "moteurs_generatifs", label: "Moteurs génératifs (aperçus IA)", kind: "ai_assistant", requiresBudget: false, autoPublish: true },
+  // Assistants Intelligence de recherche / moteurs génératifs (GEO) — organique.
+  { channelKey: "assistants_ia", label: "Assistants Intelligence de recherche (GEO)", kind: "ai_assistant", requiresBudget: false, autoPublish: true },
+  { channelKey: "moteurs_generatifs", label: "Moteurs génératifs (aperçus Intelligence)", kind: "ai_assistant", requiresBudget: false, autoPublish: true },
   // Réseaux sociaux — connecteurs configurables (marque en `config.connector`).
   { channelKey: "reseau_video_court", label: "Réseau vidéo court", kind: "social", requiresBudget: false, autoPublish: false, config: { connector: "video_court", format: "video" } },
   { channelKey: "reseau_video_long", label: "Réseau vidéo long", kind: "social", requiresBudget: false, autoPublish: false, config: { connector: "video_long", format: "video" } },
@@ -453,7 +453,7 @@ export const visibilityOsRouter = router({
     return res;
   }),
 
-  // ── Visibilité IA / GEO ───────────────────────────────────────────────
+  // ── Visibilité assistants / GEO ───────────────────────────────────────────────
   aiAnswers: adminProcedure
     .input(z.object({ country: z.string().optional(), topic: z.string().optional() }).optional())
     .query(({ input }) => listAnswers({ country: input?.country, topic: input?.topic })),

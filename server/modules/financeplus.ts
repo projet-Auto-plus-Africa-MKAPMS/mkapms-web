@@ -98,8 +98,8 @@ export const finplusDocuments = pgTable("finplus_documents", {
   nom: varchar("nom", { length: 256 }),
   url: text("url"),
   statut: varchar("statut", { length: 32 }).default("en_attente"), // en_attente, valide, refuse, expire
-  iaScore: integer("ia_score"),              // Score IA 0-100
-  iaAnalyse: jsonb("ia_analyse"),            // Détails analyse IA
+  iaScore: integer("ia_score"),              // Score Intelligence 0-100
+  iaAnalyse: jsonb("ia_analyse"),            // Détails analyse Intelligence
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

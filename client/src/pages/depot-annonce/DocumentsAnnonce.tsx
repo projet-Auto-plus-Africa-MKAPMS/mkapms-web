@@ -27,7 +27,7 @@ export default function DocumentsAnnonce() {
             {d.required && !d.added && <span className="text-[8px] font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">OBLIGATOIRE</span>}
             {d.added && <span className="text-[8px] font-bold bg-green-100 text-green-600 px-2 py-0.5 rounded-full">AJOUTÉ</span>}
           </button>))}
-        <div className="rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 p-3 flex items-center gap-2"><Shield size={14} className="text-[#D4AF37]" /><p className="text-[10px] text-[#374151]">Vos documents sont vérifiés par l'IA puis validés par un humain. Jamais de validation IA seule.</p></div>
+        <div className="rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 p-3 flex items-center gap-2"><Shield size={14} className="text-[#D4AF37]" /><p className="text-[10px] text-[#374151]">Vos documents sont vérifiés par MKA.P-MS Intelligences puis validés par un humain. Jamais de validation Intelligence seule.</p></div>
         <Link to="/depot-annonce/options-annonce" className="block w-full py-3 bg-[#D4AF37] text-white rounded-xl text-sm font-bold text-center mt-2">Continuer → Options</Link>
       </div>
     </div>

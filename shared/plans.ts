@@ -293,7 +293,7 @@ export const GARAGE_PLANS: Plan[] = [
       "Productivité employés",
       "Commande fournisseur automatique",
       "Alertes rupture de stock",
-      "IA assistance atelier",
+      "Intelligence assistance atelier",
       "API fournisseurs",
       "Journal d'activité complet",
       "Accès modules futurs en avant-première",

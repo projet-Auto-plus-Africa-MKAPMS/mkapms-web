@@ -6,7 +6,7 @@
  *   • module 100 % additif, activable/désactivable sans casser l'existant.
  *   • collaboration avec `users` via `legacy_user_id` (référence molle).
  *
- * Rôle : moteur d'identité universel (Visitor → AI Agent) avec audit complet,
+ * Rôle : moteur d'identité universel (Visitor → Agent Intelligence) avec audit complet,
  * sessions multi-device, journal de sécurité, et santé (Health Status).
  *
  * Toutes les migrations associées sont idempotentes (voir `drizzle/0034_identity_os.sql`).
@@ -29,7 +29,7 @@ import {
 export const identities = pgTable("identity_identities", {
   id: serial("id").primaryKey(),
   // Référence molle vers la table legacy `users` (le temps de la migration
-  // progressive). Peut être nul pour les identités purement IA / partner.
+  // progressive). Peut être nul pour les identités purement Intelligence / partner.
   legacyUserId: integer("legacy_user_id"),
   // Type d'identité — 9 valeurs (visitor, user, pro, partner, franchisee,
   // universe_operator, employee, admin, ai_agent). Stocké en varchar pour
@@ -167,7 +167,7 @@ export const identityLoginAttempts = pgTable("identity_login_attempts", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-/** Comptes agents IA (clés d'API dédiées, hashées). */
+/** Comptes agents Intelligence (clés d'API dédiées, hashées). */
 export const identityAiAgents = pgTable("identity_ai_agents", {
   id: serial("id").primaryKey(),
   identityId: integer("identity_id").notNull(),

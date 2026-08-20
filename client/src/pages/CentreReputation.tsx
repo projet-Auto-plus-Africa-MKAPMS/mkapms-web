@@ -52,7 +52,7 @@ const ONGLETS: { key: Onglet; label: string }[] = [
   { key: "signalements", label: "Signalements" },
   { key: "reponses", label: "Réponses" },
   { key: "tendances", label: "Tendances" },
-  { key: "alertes", label: "Alertes IA" },
+  { key: "alertes", label: "Alertes Intelligence" },
   { key: "audience", label: "Audience" },
 ];
 

@@ -1,13 +1,13 @@
 /**
  * Point 57 — pages publiques de réputation, exploitables par les moteurs de
- * recherche et les assistants IA autorisés.
+ * recherche et les assistants conversationnels autorisés.
  *
  * Le contenu est fabriqué uniquement à partir d'avis réellement publiés : notes,
  * volumes, part d'expériences vérifiées, date du dernier avis. Aucun texte
  * marketing, aucune note inventée. Quand un univers n'a pas encore d'avis, la
  * page le dit — c'est ce qui fait la valeur de la source.
  *
- * Précision honnête : rendre la page compréhensible n'oblige aucun assistant IA
+ * Précision honnête : rendre la page compréhensible n'oblige aucun assistant Intelligence
  * à citer MKA.P-MS. On améliore la qualité de la source, rien de plus.
  */
 import { and, desc, eq, sql } from "drizzle-orm";

@@ -5,7 +5,7 @@
  * voir tous les moteurs, connaître les commandes et les règles, ouvrir un
  * dossier de développement et demander l'écriture d'un correctif.
  *
- * Le mot « IA » n'apparaît pas : le moteur s'appelle MKA.P-MS Intelligences.
+ * L'ancienne appellation n'apparaît pas : le moteur s'appelle MKA.P-MS Intelligences.
  */
 import { useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
@@ -23,10 +23,11 @@ import {
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 
-type Onglet = "echange" | "moteurs" | "commandes" | "couts" | "developpement";
+type Onglet = "echange" | "capacites" | "moteurs" | "commandes" | "couts" | "developpement";
 
 const ONGLETS: { cle: Onglet; label: string }[] = [
   { cle: "echange", label: "Échange" },
+  { cle: "capacites", label: "Capacités" },
   { cle: "moteurs", label: "Moteurs" },
   { cle: "commandes", label: "Commandes & règles" },
   { cle: "couts", label: "Consommation" },
@@ -72,6 +73,10 @@ export default function CentreIntelligences() {
     { limit: 40 },
     { enabled: !!estPdg, refetchOnWindowFocus: false },
   );
+  const capacites = trpc.intelligences.capacites.useQuery(undefined, {
+    enabled: !!estPdg,
+    refetchOnWindowFocus: false,
+  });
 
   const demander = trpc.intelligences.demander.useMutation({
     onSuccess: (r) => {
@@ -293,6 +298,95 @@ export default function CentreIntelligences() {
               {demander.isPending ? "…" : "Envoyer"}
             </button>
           </div>
+        </section>
+      ) : null}
+
+      {onglet === "capacites" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <Sparkles className="h-4 w-4" /> Équipement au maximum — état constaté
+            </h2>
+            {capacites.data ? (
+              <>
+                <p className="mt-2 text-sm text-black/70">
+                  {capacites.data.resume.disponibles} / {capacites.data.resume.total} capacités
+                  utilisables aujourd'hui — {capacites.data.resume.interneSeulement} limitées au
+                  repli interne, {capacites.data.resume.indisponibles} non exécutables.
+                </p>
+                {capacites.data.resume.manquantes.length > 0 ? (
+                  <ul className="mt-2 space-y-1 text-[12px] text-black/60">
+                    {capacites.data.resume.manquantes.map((m) => (
+                      <li key={m.capacite} className="flex items-start gap-2">
+                        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
+                        <span>
+                          <b>{m.capacite}</b> — {m.motif}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </>
+            ) : (
+              <p className="mt-2 text-sm text-black/50">Lecture du registre des capacités…</p>
+            )}
+          </div>
+
+          {(capacites.data?.capacites ?? []).map((c) => (
+            <div key={c.code} className="rounded-2xl border border-black/5 bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-black text-[#111]">{c.libelle}</h3>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    c.etat === "disponible"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : c.etat === "interne_seulement"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {c.etat === "disponible"
+                    ? "Disponible"
+                    : c.etat === "interne_seulement"
+                      ? "Repli interne seulement"
+                      : "Non exécutable"}
+                </span>
+              </div>
+              <p className="mt-1 text-[12px] text-black/60">{c.usage}</p>
+              <p className="mt-2 text-[12px] text-black/70">{c.motif}</p>
+              <dl className="mt-2 grid gap-1 text-[11px] text-black/50 sm:grid-cols-2">
+                <div>
+                  <dt className="inline font-bold">Fournisseur retenu : </dt>
+                  <dd className="inline">{c.fournisseurRetenu ?? "aucun"}</dd>
+                </div>
+                <div>
+                  <dt className="inline font-bold">Permission exigée : </dt>
+                  <dd className="inline">{c.permission}</dd>
+                </div>
+                <div>
+                  <dt className="inline font-bold">Repli : </dt>
+                  <dd className="inline">{c.fallback}</dd>
+                </div>
+                <div>
+                  <dt className="inline font-bold">Remplacement MKA.P-MS visé : </dt>
+                  <dd className="inline">{c.remplacementMka}</dd>
+                </div>
+                <div>
+                  <dt className="inline font-bold">Moteurs porteurs : </dt>
+                  <dd className="inline">{c.moteurs.join(", ")}</dd>
+                </div>
+                <div>
+                  <dt className="inline font-bold">Usage 30 jours : </dt>
+                  <dd className="inline">
+                    {c.appels30j} appel(s)
+                    {c.coutMesure
+                      ? ` — ${(c.coutCents / 100).toFixed(2)} €`
+                      : " — coût non mesuré (tarif non saisi)"}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          ))}
         </section>
       ) : null}
 

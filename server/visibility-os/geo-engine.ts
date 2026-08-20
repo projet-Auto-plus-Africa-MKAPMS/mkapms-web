@@ -1,14 +1,14 @@
 /**
- * MKA.P-MS AI Visibility & GEO Engine — visibilité auprès des assistants IA et
+ * MKA.P-MS Visibilité assistants & GEO Engine — visibilité auprès des assistants conversationnels et
  * moteurs génératifs.
  *
  * Objectif : rendre la plateforme découvrable et exploitable lorsqu'un
- * utilisateur pose une question à un assistant IA ou un moteur de recherche
+ * utilisateur pose une question à un assistant Intelligence ou un moteur de recherche
  * (« où vendre ma voiture ? », « trouver un contrôle technique près de moi »).
  * On ne prétend AUCUNE recommandation garantie par un fournisseur externe : on
  * publie un contenu question/réponse structuré, utile, local et indexable.
  *
- * Brand-neutral : aucun nom de fournisseur IA dans le code. Le contenu est
+ * Brand-neutral : aucun nom de fournisseur Intelligence dans le code. Le contenu est
  * exposé publiquement (feed texte + JSON) pour être lisible par les moteurs de
  * recherche et assistants, exactement comme le sitemap l'est pour le SEO.
  */
@@ -152,7 +152,7 @@ export async function listAnswers(opts: { country?: string | null; topic?: strin
     .orderBy(visibilityAiAnswers.topic);
 }
 
-/** Rend le feed texte structuré (Q/R) consommable par les assistants IA. */
+/** Rend le feed texte structuré (Q/R) consommable par les assistants conversationnels. */
 export function renderAnswersText(
   baseUrl: string,
   rows: Array<{ topic: string; question: string; answer: string; link: string | null }>,
@@ -184,7 +184,7 @@ function baseUrlFrom(req: Request): string {
 
 /**
  * Route publique `/assistants-ia.txt` — feed texte des réponses utiles,
- * crawlable par les moteurs de recherche et assistants IA. Auto-sème le socle
+ * crawlable par les moteurs de recherche et assistants conversationnels. Auto-sème le socle
  * au premier appel s'il est vide (non bloquant). Ne casse jamais le rendu.
  */
 export async function aiAnswersFeed(req: Request, res: Response): Promise<void> {

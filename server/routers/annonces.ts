@@ -1083,7 +1083,7 @@ export const annoncesRouter = router({
   //   - boost_7j        : 9.90 €    (badge + top de recherche 7 jours)
   //   - boost_30j       : 24.90 €   (badge + top de recherche 30 jours)
   //   - mise_avant_home : 39.90 €   (mise en avant sur la page d'accueil)
-  //   - premium_30j     : 79.90 €   (top absolu, badge premium, priorité IA)
+  //   - premium_30j     : 79.90 €   (top absolu, badge premium, priorité Intelligence)
   boostAnnonce: protectedProcedure
     .input(z.object({
       annonceId: z.number(),

@@ -83,7 +83,7 @@ for (let i = 0; i < 100; i++) {
   assert.equal(unique.size, 10, "les 10 codes de secours doivent être uniques");
 }
 
-// ── Clé agent IA ────────────────────────────────────────────────────────
+// ── Clé agent Intelligence ────────────────────────────────────────────────────────
 {
   const { plaintext, hash } = generateAiAgentKey();
   assert.match(plaintext, /^mos_ai_[A-Za-z0-9_-]+$/);
@@ -91,4 +91,4 @@ for (let i = 0; i < 100; i++) {
   assert.equal(hash.length, 64);
 }
 
-console.log("✅ identity-os/crypto — 100 % OK (TOTP RFC 6238, tokens, OTP, backup codes, agents IA)");
+console.log("✅ identity-os/crypto — 100 % OK (TOTP RFC 6238, tokens, OTP, backup codes, agents Intelligence)");

@@ -8,7 +8,7 @@
  *
  * Objectif Phase 55 : garantir que CHAQUE moteur spécialisé (Notification,
  * Document, Messagerie, Support, Audit, Monitoring, Search, Scheduler, Media,
- * Backup, Contrat, Customer Journey, AI Learning, Identity/Country/Language)
+ * Backup, Contrat, Customer Journey, Apprentissage Intelligence, Identity/Country/Language)
  * remonte son état aux deux moteurs centraux (Intelligence & Décision +
  * Supervision & Opérations) — via le registre central, sans doublon de moteur.
  *
@@ -148,7 +148,7 @@ const OS_ENGINES: OsEngineBinding[] = [
   },
   {
     name: "ai_learning",
-    label: "AI Learning OS",
+    label: "Apprentissage Intelligence",
     category: "transversal",
     dependencies: ["core", "smart"],
     loadFeed: async () => (await import("../ai-learning-os/index.js")).controlCenterFeed(),

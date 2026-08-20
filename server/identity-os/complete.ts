@@ -3,7 +3,7 @@
  *
  * Ce fichier contient TOUTES les fonctions manquantes identifiées lors de
  * l'audit d'Identity (récupération de compte, vérifications, MFA TOTP,
- * sessions, appareils, anomalies, agents IA). Elles se branchent sur les
+ * sessions, appareils, anomalies, agents Intelligence). Elles se branchent sur les
  * tables existantes (`users`, `sessions`, `auditLogs`) **sans les modifier**
  * et complètent les tables `identity_*` livrées en Sprint 1.
  */
@@ -517,7 +517,7 @@ export async function reissueToken(legacyUserId: number) {
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// 8. AGENTS IA (comptes machine)
+// 8. AGENTS Intelligence (comptes machine)
 // ────────────────────────────────────────────────────────────────────────
 
 export async function createAiAgent(

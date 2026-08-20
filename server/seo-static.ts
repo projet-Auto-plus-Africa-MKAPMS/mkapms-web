@@ -2,7 +2,7 @@
  * MKA.P-MS — Métadonnées SEO curées pour les pages publiques principales.
  *
  * Chaque page importante a un titre + description riches en mots-clés (FR),
- * injectés côté serveur pour les robots (Google, Bing, assistants IA).
+ * injectés côté serveur pour les robots (Google, Bing, assistants conversationnels).
  * Les pages non listées ici retombent sur les meta par défaut du domaine
  * ou sur une entrée `seo_pages` en base (pages programmatiques).
  */

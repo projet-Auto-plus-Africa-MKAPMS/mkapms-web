@@ -712,7 +712,7 @@ export async function prepareAcquisitionActions(opportunityId: number): Promise<
     });
   }
 
-  // 2. Contenus organiques par canal (social, LinkedIn, assistants IA) —
+  // 2. Contenus organiques par canal (social, LinkedIn, assistants conversationnels) —
   //    préparés par le Global Visibility Engine, jamais publiés d'office.
   try {
     const res = await ingest({

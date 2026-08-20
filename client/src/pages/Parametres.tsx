@@ -458,7 +458,7 @@ function CoachingPage({ onBack }: { onBack: () => void }) {
               <GraduationCap size={22} className="text-indigo-600" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-bold text-slate-800">Coach IA MKA.P-MS</p>
+              <p className="text-sm font-bold text-slate-800">Coach MKA.P-MS Intelligences</p>
               <p className="text-xs text-slate-400">Disponible 24h/24 — Répond à vos questions</p>
             </div>
             <span className="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">Actif</span>
