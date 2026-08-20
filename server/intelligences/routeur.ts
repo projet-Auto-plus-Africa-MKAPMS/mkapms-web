@@ -15,7 +15,6 @@
  * fabriquée pour sauver l'apparence. Le repli propriétaire, quand il existe,
  * est nommé dans le motif afin que l'appelant sache quoi faire.
  */
-import type { UserRole } from "../../shared/permissions.js";
 import { appeler, type AppelResultat } from "./provider.js";
 import {
   registre,
@@ -40,7 +39,7 @@ const PERMISSIONS_PAR_ROLE: Record<string, Permission[]> = {
   user: ["READ"],
 };
 
-export function permissionsDuRole(role: UserRole | string | null | undefined): Permission[] {
+export function permissionsDuRole(role: string | null | undefined): Permission[] {
   if (!role) return [];
   return PERMISSIONS_PAR_ROLE[role] ?? [];
 }
@@ -57,7 +56,7 @@ export interface DemandeCapacite {
   /** Consigne de rôle envoyée au modèle. */
   systeme: string;
   /** Rôle de l'utilisateur à l'origine de la demande. */
-  role: UserRole | string | null;
+  role: string | null;
   confidentialite?: Confidentiality;
   countryCode?: string | null;
   images?: string[];
