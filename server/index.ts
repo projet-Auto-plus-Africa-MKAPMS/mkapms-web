@@ -32,6 +32,7 @@ import {
 import { aiAnswersFeed } from "./visibility-os/geo-engine.js";
 import { domainMiddleware, domainHandler, domainsListHandler } from "./domain.js";
 import { publicWriteGate } from "./resilience/gate.js";
+import { apiV1 } from "./intelligences/api-v1.js";
 import { env, isProd } from "./env.js";
 import { readFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
@@ -269,6 +270,10 @@ app.get("/api/health/db", async (_req, res) => {
     return res.status(500).json({ status: "down", message: (err as Error).message });
   }
 });
+
+// Point 127 — API interne versionnée des capacités MKA.P-MS Intelligences.
+// Les moteurs et les applications demandent une capacité, jamais un fournisseur.
+app.use("/api/v1", publicWriteGate, apiV1);
 
 app.use(
   "/api/trpc",

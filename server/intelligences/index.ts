@@ -13,7 +13,13 @@ import { z } from "zod";
 import { createHash } from "node:crypto";
 import { pdgProcedure, publicProcedure, router } from "../trpc.js";
 import { COMMANDES, NOM_MOTEUR, REGLES } from "./regles.js";
-import { registre as registreCapacites, resume as resumeCapacites } from "./capacites.js";
+import {
+  CAPACITES,
+  registre as registreCapacites,
+  resume as resumeCapacites,
+  type CodeCapacite,
+} from "./capacites.js";
+import { router as routerCapacite } from "./routeur.js";
 import {
   actions,
   coder,
@@ -98,6 +104,39 @@ export const intelligencesRouter = router({
     resume: await resumeCapacites(),
     capacites: await registreCapacites(),
   })),
+
+  /**
+   * Point 128 — exécution d'une capacité par le routeur interne. Le PDG choisit
+   * la capacité, jamais le fournisseur : le routeur vérifie permission,
+   * confidentialité et état constaté avant tout appel.
+   */
+  executerCapacite: pdgProcedure
+    .input(
+      z.object({
+        capacite: z.enum(
+          CAPACITES.map((c) => c.code) as [CodeCapacite, ...CodeCapacite[]],
+        ),
+        moteur: z.string().min(2).max(64),
+        message: z.string().min(2).max(8000),
+        systeme: z.string().max(2000).optional(),
+        confidentialite: z
+          .enum(["publique", "personnelle", "confidentielle"])
+          .optional(),
+        countryCode: z.string().max(8).nullable().optional(),
+      }),
+    )
+    .mutation(({ input, ctx }) =>
+      routerCapacite({
+        capacite: input.capacite,
+        moteur: input.moteur,
+        message: input.message,
+        systeme:
+          input.systeme ?? "Réponds avec exactitude. Ce que tu ignores, dis-le.",
+        role: ctx.user?.role ?? null,
+        confidentialite: input.confidentialite,
+        countryCode: input.countryCode ?? null,
+      }),
+    ),
 
   /** Côté direction — question libre avec contexte interne réel. */
   demander: pdgProcedure

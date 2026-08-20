@@ -1,7 +1,7 @@
 /**
  * Point 123 — garde-fou de nom : aucune appellation « IA » / « AI » visible.
  *
- * Le nom officiel du système est MKA.P-MS Intelligence. Un renommage manuel
+ * Le nom officiel du système est MKA.P-MS Intelligences. Un renommage manuel
  * revient toujours en arrière au fil des écrans ajoutés : ce contrôle échoue le
  * build dès qu'une chaîne visible réintroduit l'ancienne appellation.
  *
@@ -64,11 +64,11 @@ for (const racine of RACINES) parcourir(racine);
 
 if (fautes.length > 0) {
   console.error(
-    `\n[nom] ${fautes.length} appellation(s) « IA » / « AI » restante(s). Le nom officiel est « MKA.P-MS Intelligence » :\n`,
+    `\n[nom] ${fautes.length} appellation(s) « IA » / « AI » restante(s). Le nom officiel est « MKA.P-MS Intelligences » :\n`,
   );
   for (const f of fautes) console.error(`  ${f}`);
   console.error(
-    "\nRemplace l'appellation par « MKA.P-MS Intelligence » (ou « Intelligence » dans un titre déjà préfixé).\n",
+    "\nRemplace l'appellation par « MKA.P-MS Intelligences » (ou « Intelligence » dans un titre déjà préfixé).\n",
   );
   process.exit(1);
 }
