@@ -7,9 +7,10 @@
  *
  *   1. la capacité existe-t-elle au registre ?          (sinon : refus nommé)
  *   2. l'appelant a-t-il la permission exigée ?          (sinon : refus nommé)
- *   3. la confidentialité demandée est-elle acceptable ? (sinon : refus nommé)
- *   4. la capacité est-elle constatée exécutable ?       (sinon : motif exact)
- *   5. appel réel via la couche fournisseur unique.
+ *   3. le niveau d'autonomie du domaine l'autorise-t-il ? (point 132)
+ *   4. la confidentialité demandée est-elle acceptable ? (sinon : refus nommé)
+ *   5. la capacité est-elle constatée exécutable ?       (sinon : motif exact)
+ *   6. appel réel via la couche fournisseur unique.
  *
  * Règle tenue : un refus est un refus écrit, jamais une réponse plausible
  * fabriquée pour sauver l'apparence. Le repli propriétaire, quand il existe,
@@ -23,6 +24,7 @@ import {
   type Permission,
   PERMISSIONS,
 } from "./capacites.js";
+import { autorise } from "./autonomie.js";
 import type { Confidentiality } from "../ai-fabric/service.js";
 
 /**
@@ -44,6 +46,20 @@ export function permissionsDuRole(role: string | null | undefined): Permission[]
   return PERMISSIONS_PAR_ROLE[role] ?? [];
 }
 
+/**
+ * Curseur d'autonomie qui gouverne chaque capacité (point 132). Le rôle dit ce
+ * qu'une personne peut demander ; le curseur dit ce que la plateforme s'autorise
+ * à faire elle-même. Les deux doivent être ouverts.
+ */
+const DOMAINE_AUTONOMIE: Partial<Record<CodeCapacite, string>> = {
+  code: "code",
+  image: "contenu",
+  traduction: "contenu",
+  documents: "contenu",
+  outils: "moteurs",
+  automatisation: "moteurs",
+};
+
 /** Ordre de gravité des niveaux de confidentialité, du plus ouvert au plus fermé. */
 const NIVEAUX: Confidentiality[] = ["publique", "personnelle", "confidentielle"];
 
@@ -61,6 +77,8 @@ export interface DemandeCapacite {
   countryCode?: string | null;
   images?: string[];
   maxTokens?: number;
+  /** Domaine du curseur d'autonomie, quand l'appelant en connaît un plus précis. */
+  domaineAutonomie?: string;
 }
 
 export interface ResultatCapacite extends AppelResultat {
@@ -111,6 +129,13 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
       `Permission ${s.permission} exigée pour « ${s.libelle} » : le rôle « ${demande.role ?? "aucun"} » ne l'a pas.`,
       s.repliInterne,
     );
+  }
+
+  const domaine =
+    demande.domaineAutonomie ?? DOMAINE_AUTONOMIE[demande.capacite] ?? "global";
+  const curseur = await autorise(domaine, s.permission);
+  if (!curseur.autorise) {
+    return refus(demande.capacite, curseur.motif, s.repliInterne);
   }
 
   const demandee = demande.confidentialite ?? "publique";

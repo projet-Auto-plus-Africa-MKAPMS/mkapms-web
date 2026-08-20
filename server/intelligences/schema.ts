@@ -82,3 +82,70 @@ export const inActions = pgTable("in_actions", {
   actorId: integer("actor_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/**
+ * Point 132 — niveau d'autonomie par domaine. Les capacités sont construites au
+ * maximum ; ce curseur décide de ce qui peut réellement s'exécuter. Une ligne
+ * absente vaut le niveau par défaut (proposition), jamais l'exécution.
+ */
+export const inAutonomie = pgTable("in_autonomie", {
+  id: serial("id").primaryKey(),
+  domaine: varchar("domaine", { length: 48 }).notNull().unique(),
+  niveau: integer("niveau").notNull().default(2),
+  motif: text("motif").notNull().default(""),
+  actorId: integer("actor_id"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+/** Journal des changements de curseur : qui a monté le niveau, quand, pourquoi. */
+export const inAutonomieJournal = pgTable("in_autonomie_journal", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  domaine: varchar("domaine", { length: 48 }).notNull(),
+  avant: integer("avant").notNull(),
+  apres: integer("apres").notNull(),
+  motif: text("motif").notNull().default(""),
+  actorId: integer("actor_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+/**
+ * Point 130 — missions de l'orchestrateur. Un objectif reçu devient un plan
+ * décomposé, exécuté jusqu'à la limite de permission et d'autonomie ; la
+ * mission s'arrête en nommant l'étape et la raison, elle ne se déclare jamais
+ * accomplie parce que le plan existait.
+ */
+export const inMissions = pgTable("in_missions", {
+  id: serial("id").primaryKey(),
+  objectif: text("objectif").notNull(),
+  domaine: varchar("domaine", { length: 48 }).notNull().default("inconnu"),
+  cote: varchar("cote", { length: 16 }).notNull().default("direction"),
+  statut: varchar("statut", { length: 32 }).notNull().default("en_cours"),
+  /** Étape sur laquelle la mission s'est arrêtée, quand elle s'est arrêtée. */
+  arretSur: varchar("arret_sur", { length: 48 }).notNull().default(""),
+  motif: text("motif").notNull().default(""),
+  rapport: text("rapport").notNull().default(""),
+  niveauRequis: integer("niveau_requis").notNull().default(1),
+  niveauAccorde: integer("niveau_accorde").notNull().default(0),
+  devRequestId: integer("dev_request_id"),
+  pipelineRunId: integer("pipeline_run_id"),
+  testRunId: integer("test_run_id"),
+  actorId: integer("actor_id"),
+  dureeMs: integer("duree_ms").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const inMissionEtapes = pgTable("in_mission_etapes", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  missionId: integer("mission_id").notNull(),
+  rang: integer("rang").notNull(),
+  etape: varchar("etape", { length: 48 }).notNull(),
+  libelle: varchar("libelle", { length: 160 }).notNull().default(""),
+  /** `fait`, `refuse`, `en_attente_autorisation`, `non_execute`, `echec`. */
+  statut: varchar("statut", { length: 32 }).notNull().default("non_execute"),
+  capacite: varchar("capacite", { length: 32 }),
+  permission: varchar("permission", { length: 24 }),
+  niveauRequis: integer("niveau_requis").notNull().default(1),
+  observe: text("observe").notNull().default(""),
+  dureeMs: integer("duree_ms").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
