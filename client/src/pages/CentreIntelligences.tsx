@@ -16,17 +16,29 @@ import {
   Cpu,
   Gauge,
   ListChecks,
+  Play,
   Send,
+  SlidersHorizontal,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 
-type Onglet = "echange" | "capacites" | "moteurs" | "commandes" | "couts" | "developpement";
+type Onglet =
+  | "echange"
+  | "missions"
+  | "autonomie"
+  | "capacites"
+  | "moteurs"
+  | "commandes"
+  | "couts"
+  | "developpement";
 
 const ONGLETS: { cle: Onglet; label: string }[] = [
   { cle: "echange", label: "Échange" },
+  { cle: "missions", label: "Missions" },
+  { cle: "autonomie", label: "Autonomie" },
   { cle: "capacites", label: "Capacités" },
   { cle: "moteurs", label: "Moteurs" },
   { cle: "commandes", label: "Commandes & règles" },
@@ -64,6 +76,8 @@ export default function CentreIntelligences() {
   const [dossierId, setDossierId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [codeProduit, setCodeProduit] = useState<string>("");
+  const [objectif, setObjectif] = useState("");
+  const [motifNiveau, setMotifNiveau] = useState<Record<string, string>>({});
 
   const etat = trpc.intelligences.etat.useQuery(undefined, {
     enabled: !!estPdg,
@@ -131,6 +145,36 @@ export default function CentreIntelligences() {
           : `Aucun code produit — ${r.motif}`,
       );
       actions.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
+
+  const autonomie = trpc.intelligences.autonomie.useQuery(undefined, {
+    enabled: !!estPdg,
+    refetchOnWindowFocus: false,
+  });
+  const missions = trpc.intelligences.missions.useQuery(undefined, {
+    enabled: !!estPdg,
+    refetchOnWindowFocus: false,
+  });
+
+  const reglerAutonomie = trpc.intelligences.reglerAutonomie.useMutation({
+    onSuccess: (r) => {
+      setMessage(r.detail);
+      autonomie.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
+
+  const lancerMission = trpc.intelligences.lancerMission.useMutation({
+    onSuccess: (m) => {
+      setObjectif("");
+      setMessage(
+        m.statut === "accomplie"
+          ? `Mission #${m.id} : toutes les étapes ont été exécutées.`
+          : `Mission #${m.id} arrêtée sur « ${m.arretSur} » : ${m.motif}`,
+      );
+      missions.refetch();
     },
     onError: (e) => setMessage(`Échec : ${e.message}`),
   });
@@ -297,6 +341,164 @@ export default function CentreIntelligences() {
               <Send className="h-4 w-4" />
               {demander.isPending ? "…" : "Envoyer"}
             </button>
+          </div>
+        </section>
+      ) : null}
+
+      {onglet === "missions" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <Play className="h-4 w-4" /> Un objectif, un plan exécuté
+            </h2>
+            <p className="mt-1 text-[12px] text-black/60">
+              Écrivez ce qui doit être obtenu. Le plan est exécuté étape par étape jusqu'à la
+              limite de votre curseur d'autonomie, puis il s'arrête en disant où et pourquoi.
+            </p>
+            <textarea
+              value={objectif}
+              onChange={(e) => setObjectif(e.target.value)}
+              rows={3}
+              placeholder="Ex. : Répare le problème de paiement de la page abonnement."
+              className="mt-2 w-full rounded-xl border border-black/10 p-3 text-sm"
+            />
+            <button
+              type="button"
+              disabled={objectif.trim().length < 5 || lancerMission.isPending}
+              onClick={() => lancerMission.mutate({ objectif: objectif.trim() })}
+              className="mt-2 rounded-xl bg-[#111] px-4 py-2 text-sm font-bold text-white disabled:opacity-40"
+            >
+              {lancerMission.isPending ? "Mission en cours…" : "Lancer la mission"}
+            </button>
+          </div>
+
+          {(missions.data ?? []).length === 0 ? (
+            <p className="rounded-2xl border border-black/5 bg-white p-4 text-sm text-black/50">
+              Aucune mission enregistrée.
+            </p>
+          ) : null}
+          {(missions.data ?? []).map((m) => (
+            <div key={m.id} className="rounded-2xl border border-black/5 bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-black text-[#111]">Mission #{m.id}</h3>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    m.statut === "accomplie"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : m.statut === "echouee"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-amber-100 text-amber-800"
+                  }`}
+                >
+                  {m.statut}
+                </span>
+              </div>
+              <p className="mt-1 text-[12px] text-black/70">{m.objectif}</p>
+              <p className="mt-1 text-[11px] text-black/45">
+                Domaine {m.domaine}
+                {m.arretSur ? ` — arrêt sur « ${m.arretSur} »` : ""}
+              </p>
+              {m.motif ? <p className="mt-1 text-[12px] text-black/60">{m.motif}</p> : null}
+              {m.rapport ? (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-[12px] font-bold text-[#8B7500]">
+                    Lire le rapport
+                  </summary>
+                  <pre className="mt-2 max-h-80 overflow-auto whitespace-pre-wrap rounded-xl bg-[#FAFAFA] p-3 text-[11px] text-black/70">
+                    {m.rapport}
+                  </pre>
+                </details>
+              ) : null}
+            </div>
+          ))}
+        </section>
+      ) : null}
+
+      {onglet === "autonomie" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <SlidersHorizontal className="h-4 w-4" /> Les 7 niveaux
+            </h2>
+            <p className="mt-1 text-[12px] text-black/60">
+              Les capacités sont construites au maximum ; c'est ce curseur qui décide de ce qui
+              peut réellement s'exécuter. Le défaut est « Proposition » : rien ne part sans vous.
+            </p>
+            <ol className="mt-2 space-y-1">
+              {(autonomie.data?.niveaux ?? []).map((n) => (
+                <li key={n.niveau} className="rounded-xl border border-black/5 px-3 py-2">
+                  <p className="text-[12px] font-bold text-[#111]">
+                    {n.niveau}. {n.libelle}
+                  </p>
+                  <p className="text-[11px] text-black/55">{n.portee}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {(autonomie.data?.domaines ?? []).map((d) => (
+            <div key={d.domaine} className="rounded-2xl border border-black/5 bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-black text-[#111]">{d.libelle}</h3>
+                <span className="rounded-full bg-[#FAFAFA] px-2 py-0.5 text-[11px] font-bold text-black/60">
+                  niveau {d.effectif}
+                  {d.effectif !== d.niveau ? ` (réglé à ${d.niveau}, plafonné)` : ""}
+                </span>
+              </div>
+              <p className="mt-1 text-[12px] text-black/60">{d.portee}</p>
+              <p className="mt-1 text-[11px] text-black/45">{d.motif}</p>
+              <input
+                value={motifNiveau[d.domaine] ?? ""}
+                onChange={(e) =>
+                  setMotifNiveau((m) => ({ ...m, [d.domaine]: e.target.value }))
+                }
+                placeholder="Raison du changement (obligatoire pour monter)"
+                className="mt-2 w-full rounded-xl border border-black/10 px-3 py-2 text-[12px]"
+              />
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    disabled={reglerAutonomie.isPending}
+                    onClick={() =>
+                      reglerAutonomie.mutate({
+                        domaine: d.domaine,
+                        niveau: n,
+                        motif: motifNiveau[d.domaine] ?? "",
+                      })
+                    }
+                    className={`h-8 w-8 rounded-lg text-[12px] font-bold ${
+                      n === d.niveau
+                        ? "bg-[#111] text-white"
+                        : "border border-black/10 text-black/60 hover:bg-black/5"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="text-sm font-black uppercase tracking-wide text-black/50">
+              Journal des changements
+            </h2>
+            {(autonomie.data?.journal ?? []).length === 0 ? (
+              <p className="mt-2 text-[12px] text-black/50">Aucun changement enregistré.</p>
+            ) : (
+              <ul className="mt-2 space-y-1">
+                {(autonomie.data?.journal ?? []).map((j) => (
+                  <li key={j.id} className="rounded-xl border border-black/5 px-3 py-2">
+                    <p className="text-[12px] text-black/70">
+                      {j.domaine} : {j.avant} → {j.apres}
+                    </p>
+                    <p className="text-[11px] text-black/45">{j.motif || "aucune raison écrite"}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </section>
       ) : null}

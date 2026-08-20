@@ -21,6 +21,19 @@ import {
 } from "./capacites.js";
 import { router as routerCapacite } from "./routeur.js";
 import {
+  NIVEAUX_AUTONOMIE,
+  PORTEE_NIVEAU,
+  etat as etatAutonomie,
+  journal as journalAutonomie,
+  regler as reglerAutonomie,
+} from "./autonomie.js";
+import {
+  orchestrer,
+  missions as listerMissions,
+  mission as detailMission,
+} from "./orchestrateur.js";
+import { TYPES_PIECE } from "./multimodal.js";
+import {
   actions,
   coder,
   demander,
@@ -137,6 +150,72 @@ export const intelligencesRouter = router({
         countryCode: input.countryCode ?? null,
       }),
     ),
+
+  /**
+   * Point 132 — le curseur d'autonomie, domaine par domaine. Il est distinct de
+   * la permission du rôle : une capacité peut exister, être permise, et rester
+   * volontairement bridée.
+   */
+  autonomie: pdgProcedure.query(async () => ({
+    niveaux: NIVEAUX_AUTONOMIE.map((n) => ({ ...n, portee: PORTEE_NIVEAU[n.niveau] })),
+    domaines: await etatAutonomie(),
+    journal: await journalAutonomie(60),
+  })),
+
+  reglerAutonomie: pdgProcedure
+    .input(
+      z.object({
+        domaine: z.string().min(2).max(48),
+        niveau: z.number().int().min(1).max(7),
+        motif: z.string().max(2000).default(""),
+      }),
+    )
+    .mutation(({ input, ctx }) =>
+      reglerAutonomie({
+        domaine: input.domaine,
+        niveau: input.niveau,
+        motif: input.motif,
+        actorId: ctx.user?.uid,
+      }),
+    ),
+
+  /**
+   * Points 130-131 — une mission : un objectif décomposé, exécuté jusqu'à la
+   * limite d'autorisation, avec le rapport de ce qui a réellement eu lieu.
+   */
+  lancerMission: pdgProcedure
+    .input(
+      z.object({
+        objectif: z.string().min(5).max(4000),
+        countryCode: z.string().max(8).nullable().optional(),
+        pieces: z
+          .array(
+            z.object({
+              type: z.enum(TYPES_PIECE),
+              nom: z.string().max(200).optional(),
+              texte: z.string().max(200000).optional(),
+              source: z.string().max(8000000).optional(),
+            }),
+          )
+          .max(8)
+          .optional(),
+      }),
+    )
+    .mutation(({ input, ctx }) =>
+      orchestrer({
+        objectif: input.objectif,
+        role: ctx.user?.role ?? null,
+        actorId: ctx.user?.uid,
+        pieces: input.pieces ?? [],
+        countryCode: input.countryCode ?? null,
+      }),
+    ),
+
+  missions: pdgProcedure.query(() => listerMissions(60)),
+
+  mission: pdgProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .query(({ input }) => detailMission(input.id)),
 
   /** Côté direction — question libre avec contexte interne réel. */
   demander: pdgProcedure
