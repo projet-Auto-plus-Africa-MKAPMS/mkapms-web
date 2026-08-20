@@ -585,7 +585,7 @@ export async function pipelinesSnapshot() {
         "Données structurées de véhicule",
         "Images",
         "Contenu local",
-        "GEO / IA",
+        "GEO / Intelligence",
       ],
       exclusion:
         "Les véhicules motorisés sont exclus des fiches gratuites Merchant Center. Les traiter comme un catalogue de pièces ne créerait aucune visibilité — seulement des refus.",

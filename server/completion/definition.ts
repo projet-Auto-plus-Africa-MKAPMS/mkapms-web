@@ -76,7 +76,7 @@ export const DOMAINES: DomaineCompletion[] = [
   },
   {
     cle: "ia",
-    label: "Intelligence artificielle",
+    label: "MKA.P-MS Intelligences",
     moteurs: ["ai_fabric", "ai_learning_os", "code_graph"],
     testDomaines: ["ai", "code_graph"],
   },

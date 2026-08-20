@@ -22,7 +22,7 @@ export default function AnalyseIA() {
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-[#111] px-4 pt-6 pb-5">
         <Link to="/depot-annonce/options-annonce" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Options</Link>
-        <h1 className="text-xl font-black text-white flex items-center gap-2"><Bot size={20} className="text-[#D4AF37]" /> Analyse IA</h1>
+        <h1 className="text-xl font-black text-white flex items-center gap-2"><Bot size={20} className="text-[#D4AF37]" /> Analyse Intelligence</h1>
       </div>
       {!done && <div className="px-4 mt-4"><div className="rounded-xl bg-white border border-[#E5E7EB] p-6 text-center shadow-sm"><Bot size={32} className="text-[#D4AF37] mx-auto mb-3 animate-pulse" /><p className="text-sm font-bold text-[#111] mb-2">Analyse en cours...</p><div className="w-full bg-[#E5E7EB] rounded-full h-2 mb-1"><div className="h-2 rounded-full bg-[#D4AF37] transition-all" style={{ width: `${progress}%` }} /></div><p className="text-[10px] text-[#6B7280]">{progress}% — Vérification prix, photos, documents, doublons, fraude</p></div></div>}
       {done && <div className="px-4 mt-4 space-y-3">

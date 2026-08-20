@@ -4,7 +4,7 @@
  * À ce stade, deux moteurs centraux deviennent les « chefs d'orchestre ».
  * Ce module NE CRÉE AUCUN nouveau moteur : c'est une couche de coordination
  * STRICTEMENT EN LECTURE qui agrège les surfaces publiques déjà existantes
- * (registre central des moteurs, Smart Engine, AI Learning OS, alertes,
+ * (registre central des moteurs, Smart Engine, Apprentissage Intelligence, alertes,
  * santé plateforme). Aucune écriture, aucune décision autonome.
  *
  *  ┌──────────────────────────────────────────────────────────────────────┐
@@ -142,7 +142,7 @@ export interface IntelligenceReport {
   generatedAt: string;
   readOnly: true;
   humanValidationRequired: true;
-  /** Ce que la plateforme a appris et retenu (AI Learning OS). */
+  /** Ce que la plateforme a appris et retenu (Apprentissage Intelligence). */
   learning: Awaited<ReturnType<typeof aiLearning.summary>>;
   /**
    * Recommandations / améliorations préparées, EN ATTENTE de validation

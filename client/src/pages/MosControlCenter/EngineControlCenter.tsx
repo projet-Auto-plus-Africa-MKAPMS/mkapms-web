@@ -25,7 +25,7 @@ const ENGINE_CONFIG: Record<EngineKey, {
     namespace: "identity",
     label: "Identity OS",
     color: "from-violet-500 to-indigo-600",
-    tagline: "Identités · Sessions · MFA · Vérifications · Agents IA",
+    tagline: "Identités · Sessions · MFA · Vérifications · Agents Intelligence",
   },
   country: {
     namespace: "country",

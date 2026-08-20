@@ -14,7 +14,7 @@ export default function ConseilsIA() {
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-[#111] px-4 pt-6 pb-5">
         <Link to="/depot-annonce" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dépôt annonce</Link>
-        <h1 className="text-xl font-black text-white flex items-center gap-2"><Sparkles size={20} className="text-[#D4AF37]" /> Conseils IA</h1>
+        <h1 className="text-xl font-black text-white flex items-center gap-2"><Sparkles size={20} className="text-[#D4AF37]" /> Conseils Intelligence</h1>
         <p className="text-xs text-white/50 mt-1">Améliorer la visibilité et la qualité de vos annonces</p>
       </div>
       <div className="px-4 mt-4 space-y-2">

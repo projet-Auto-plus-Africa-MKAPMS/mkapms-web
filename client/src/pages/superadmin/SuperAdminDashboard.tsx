@@ -20,7 +20,7 @@ const SECTIONS = [
   ]},
   { title: "Système Intelligent", items: [
     { label: "Système Intelligent MKA.P-MS", icon: Brain, to: "/superadmin/smart-engine", desc: "14 fonctionnalités — recherches, doublons, fraude, santé" },
-    { label: "Visibilité & Croissance", icon: Globe, to: "/superadmin/visibilite-croissance", desc: "SEO · visibilité IA · audience · réseaux · mots-clés · promos" },
+    { label: "Visibilité & Croissance", icon: Globe, to: "/superadmin/visibilite-croissance", desc: "SEO · visibilité Intelligence · audience · réseaux · mots-clés · promos" },
     { label: "Core Engine (Bêta)", icon: Cpu, to: "/superadmin/core-engine-beta", desc: "15 centres, santé, logs, orchestration" },
   ]},
   { title: "Gestion", items: [

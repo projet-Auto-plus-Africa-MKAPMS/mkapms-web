@@ -17,9 +17,9 @@ export default function DescriptionAnnonce() {
           <textarea value={text} onChange={e => setText(e.target.value)} rows={6} placeholder="Décrivez votre véhicule : historique, entretien, options, état..." className="w-full mt-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm resize-none" />
           <p className="text-[9px] text-[#6B7280] mt-1">{text.length} caractères</p>
         </div>
-        <button onClick={() => setImproved(true)} className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#111] text-white py-3 text-xs font-bold"><Wand2 size={14} className="text-[#D4AF37]" /> Améliorer avec l'IA</button>
+        <button onClick={() => setImproved(true)} className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#111] text-white py-3 text-xs font-bold"><Wand2 size={14} className="text-[#D4AF37]" /> Améliorer avec MKA.P-MS Intelligences</button>
         {improved && <div className="rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 p-3">
-          <div className="flex items-center gap-2 mb-2"><Sparkles size={14} className="text-[#D4AF37]" /><p className="text-xs font-bold text-[#D4AF37]">Suggestions IA</p></div>
+          <div className="flex items-center gap-2 mb-2"><Sparkles size={14} className="text-[#D4AF37]" /><p className="text-xs font-bold text-[#D4AF37]">Suggestions Intelligence</p></div>
           <ul className="space-y-1">{["Ajouter le nombre de propriétaires", "Mentionner la dernière révision", "Préciser les options (GPS, caméra, etc.)", "Ajouter l'historique d'entretien"].map(s => (<li key={s} className="text-[10px] text-[#374151] flex items-center gap-1.5"><span className="text-[#D4AF37]">→</span> {s}</li>))}</ul>
         </div>}
         <Link to="/depot-annonce/documents-annonce" className="block w-full py-3 bg-[#D4AF37] text-white rounded-xl text-sm font-bold text-center">Continuer → Documents</Link>

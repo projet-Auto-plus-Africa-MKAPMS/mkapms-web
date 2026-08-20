@@ -76,7 +76,7 @@ import { contractOsRouter } from "./contract-os/index.js";
 import { messagingOsRouter } from "./messaging-os/index.js";
 // Support OS — priorités/file/suivi au-dessus des tickets (règle MOS #15)
 import { supportOsRouter } from "./support-os/index.js";
-// AI Learning OS — supervision (lecture seule) de l'apprentissage du Smart Engine (Phase 54)
+// Apprentissage Intelligence — supervision (lecture seule) de l'apprentissage du Smart Engine (Phase 54)
 import { aiLearningOsRouter } from "./ai-learning-os/index.js";
 // Notation par les comptes : application / service / client
 import { appFeedbackRouter } from "./routers/app-feedback.js";
@@ -222,7 +222,7 @@ export const appRouter = router({
   messagingOs: messagingOsRouter,
   supportOs: supportOsRouter,
   aiLearningOs: aiLearningOsRouter,
-  // Global Visibility Engine — visibilité mondiale (SEO + IA/GEO + audience + réseaux sociaux)
+  // Global Visibility Engine — visibilité mondiale (SEO + Intelligence/GEO + audience + réseaux sociaux)
   visibilityOs: visibilityOsRouter,
   // Pro Portal Engine — portail professionnel mondial (.pro)
   proPortal: proPortalRouter,

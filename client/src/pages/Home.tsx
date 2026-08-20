@@ -227,7 +227,7 @@ const HOME_MENUS: MegaMenu[] = [
     cols: [{ links: [
       { label: "Déposer une annonce", to: "/vendre" },
       { label: "Reprise cash", to: "/acheter/reprise" },
-      { label: "Estimation IA", to: "/acheter/estimation" },
+      { label: "Estimation Intelligence", to: "/acheter/estimation" },
       { label: "Vente Pro", to: "/acheter/espace-pro" },
       { label: "Vente Particulier", to: "/acheter/particulier" },
       { label: "Mes annonces", to: "/acheter/mes-annonces" },
@@ -1061,7 +1061,7 @@ export default function Home() {
                 { icon: FileText, label: "Carte Grise", desc: "Démarches administratives", to: "/demarches", color: "text-purple-600" },
                 { icon: Package, label: "Livraison", desc: "Partout en France et à l'international", to: "/livraison", color: "text-[#D4AF37]" },
                 { icon: CreditCard, label: "Finance+", desc: "LOA, crédit, paiement jusqu'à 10x", to: "/finance", color: "text-emerald-600" },
-                { icon: History, label: "Historique Véhicule", desc: "Rapports officiels & Analyse IA", to: "/historique", color: "text-indigo-600" },
+                { icon: History, label: "Historique Véhicule", desc: "Rapports officiels & Analyse Intelligence", to: "/historique", color: "text-indigo-600" },
                 { icon: Cog, label: "Pièces Auto", desc: "Pièces d'origine au meilleur prix", to: "/pieces", color: "text-gray-700" },
                 { icon: Shield, label: "Assurance", desc: "Assurance auto compétitive", to: "/demarches", color: "text-sky-600" },
                 { icon: BadgeCheck, label: "VTC / Taxi", desc: "Solutions professionnelles VTC & Taxi", to: "/louer/vtc-taxi", color: "text-[#111]" },
@@ -1137,7 +1137,7 @@ export default function Home() {
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide max-w-4xl lg:max-w-none mx-auto">
               {[
                 { icon: CreditCard, label: "Finance+", desc: "LOA, Crédit, Paiement jusqu'à 10x", to: "/finance" },
-                { icon: History, label: "Historique véhicule", desc: "Rapports officiels & Analyse IA", to: "/historique" },
+                { icon: History, label: "Historique véhicule", desc: "Rapports officiels & Analyse Intelligence", to: "/historique" },
                 { icon: Package, label: "Livraison", desc: "Partout en France et à l'International", to: "/livraison" },
                 { icon: Shield, label: "Garantie", desc: "Jusqu'à 60 mois offerte", to: "/vente/garantie" },
                 { icon: ShieldCheck, label: "Contrôle technique", desc: "Prise de rendez-vous en ligne", to: "/garage/controle-technique" },

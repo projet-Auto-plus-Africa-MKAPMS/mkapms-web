@@ -65,7 +65,7 @@ export default function InscriptionProVO() {
   // Étape 4 — Abonnement
   const [selectedPlan, setSelectedPlan] = useState("vo_premium");
 
-  // Analyse IA des documents
+  // Analyse Intelligence des documents
   const [iaResults, setIaResults] = useState<Record<string, { status: string; score: number; details: string[] }>>({});
 
   function analyseIaDoc(docName: string) {
@@ -172,7 +172,7 @@ export default function InscriptionProVO() {
                   {d.state && <p className="mt-1 text-[10px] text-green-600">{d.state.name}</p>}
                   {iaResults[d.key] && (
                     <div className={`mt-2 rounded-lg border p-2 text-[10px] ${iaResults[d.key].status === "analysing" ? "border-blue-200 bg-blue-50 text-blue-700" : iaResults[d.key].status === "valid" ? "border-green-200 bg-green-50 text-green-700" : "border-orange-200 bg-orange-50 text-orange-700"}`}>
-                      <p className="font-bold">{iaResults[d.key].status === "analysing" ? "Analyse IA en cours…" : `Analyse IA — Score : ${iaResults[d.key].score}/100`}</p>
+                      <p className="font-bold">{iaResults[d.key].status === "analysing" ? "Analyse Intelligence en cours…" : `Analyse Intelligence — Score : ${iaResults[d.key].score}/100`}</p>
                       {iaResults[d.key].details.map((det, i) => <p key={i}>{det}</p>)}
                     </div>
                   )}
@@ -184,7 +184,7 @@ export default function InscriptionProVO() {
                 {docDomicile && <p className="mt-1 text-[10px] text-green-600">{docDomicile.name}</p>}
                 {iaResults["domicile"] && (
                   <div className={`mt-2 rounded-lg border p-2 text-[10px] ${iaResults["domicile"].status === "analysing" ? "border-blue-200 bg-blue-50 text-blue-700" : iaResults["domicile"].status === "valid" ? "border-green-200 bg-green-50 text-green-700" : "border-orange-200 bg-orange-50 text-orange-700"}`}>
-                    <p className="font-bold">{iaResults["domicile"].status === "analysing" ? "Analyse IA en cours…" : `Analyse IA — Score : ${iaResults["domicile"].score}/100`}</p>
+                    <p className="font-bold">{iaResults["domicile"].status === "analysing" ? "Analyse Intelligence en cours…" : `Analyse Intelligence — Score : ${iaResults["domicile"].score}/100`}</p>
                     {iaResults["domicile"].details.map((det, i) => <p key={i}>{det}</p>)}
                   </div>
                 )}
@@ -247,7 +247,7 @@ export default function InscriptionProVO() {
                   {d.state && <p className="mt-1 text-[10px] text-green-600">{d.state.name}</p>}
                   {iaResults[iaKey] && (
                     <div className={`mt-2 rounded-lg border p-2 text-[10px] ${iaResults[iaKey].status === "analysing" ? "border-blue-200 bg-blue-50 text-blue-700" : iaResults[iaKey].status === "valid" ? "border-green-200 bg-green-50 text-green-700" : "border-orange-200 bg-orange-50 text-orange-700"}`}>
-                      <p className="font-bold">{iaResults[iaKey].status === "analysing" ? "Analyse IA en cours…" : `Analyse IA — Score : ${iaResults[iaKey].score}/100`}</p>
+                      <p className="font-bold">{iaResults[iaKey].status === "analysing" ? "Analyse Intelligence en cours…" : `Analyse Intelligence — Score : ${iaResults[iaKey].score}/100`}</p>
                       {iaResults[iaKey].details.map((det, i) => <p key={i}>{det}</p>)}
                     </div>
                   )}

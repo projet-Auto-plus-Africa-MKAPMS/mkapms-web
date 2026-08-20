@@ -286,7 +286,7 @@ app.get("/sitemap-garages.xml", sitemapGarages);
 app.get("/sitemap-avis.xml", sitemapAvis);
 app.get("/sitemap-pages-:page.xml", sitemapPages);
 app.get("/sitemap-blog.xml", sitemapBlog);
-// Visibilité IA / GEO — feed texte question/réponse découvrable par les assistants IA
+// Visibilité assistants / GEO — feed texte question/réponse découvrable par les assistants conversationnels
 app.get("/assistants-ia.txt", aiAnswersFeed);
 
 // Flux produit Merchant Center (points 95-96). Public par nécessité : Google

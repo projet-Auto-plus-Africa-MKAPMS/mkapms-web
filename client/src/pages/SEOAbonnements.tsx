@@ -12,7 +12,7 @@ const PLANS_SEO = [
   },
   {
     nom: "SEO Boost", prix: "À partir de 29 €/mois", badge: "OPTION", color: "#111",
-    features: ["Tout SEO Premium", "Mise en avant pages catégories", "Annonce sponsorisée interne", "Campagne Google Ads (accompagnement)", "Rapport SEO mensuel", "Recommandations IA"],
+    features: ["Tout SEO Premium", "Mise en avant pages catégories", "Annonce sponsorisée interne", "Campagne Google Ads (accompagnement)", "Rapport SEO mensuel", "Recommandations Intelligence"],
   },
 ];
 

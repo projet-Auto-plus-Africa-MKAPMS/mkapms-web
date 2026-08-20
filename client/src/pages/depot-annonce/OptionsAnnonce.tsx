@@ -23,7 +23,7 @@ export default function OptionsAnnonce() {
             <div className={`h-5 w-5 rounded-md border-2 flex items-center justify-center ${o.active ? "border-[#D4AF37] bg-[#D4AF37]" : "border-[#D4D4D4]"}`}>{o.active && <Check size={12} className="text-white" />}</div>
             <div className="flex-1"><p className="text-sm font-semibold text-[#111]">{o.label}</p><p className="text-[10px] text-[#6B7280]">{o.desc}</p></div>
           </button>))}
-        <Link to="/depot-annonce/analyse-ia" className="block w-full py-3 bg-[#D4AF37] text-white rounded-xl text-sm font-bold text-center mt-4">Continuer → Analyse IA</Link>
+        <Link to="/depot-annonce/analyse-ia" className="block w-full py-3 bg-[#D4AF37] text-white rounded-xl text-sm font-bold text-center mt-4">Continuer → Analyse Intelligence</Link>
       </div>
     </div>
   );

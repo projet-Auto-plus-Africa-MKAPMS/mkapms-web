@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS AI FABRIC — router tRPC (points 84-85-86-88-89-90).
+ * MKA.P-MS FABRIQUE INTELLIGENCE — router tRPC (points 84-85-86-88-89-90).
  *
  * Lecture ouverte à la direction ; les gestes qui engagent l'entreprise
  * (suspendre un fournisseur, sauvegarder ou restaurer la mémoire) sont au PDG.
@@ -28,7 +28,7 @@ import {
 
 export const AI_FABRIC_META = {
   code: "ai_fabric",
-  name: "AI Fabric",
+  name: "Fabrique Intelligence",
   role: "Abstraction des fournisseurs externes, coûts, sauvegarde de la mémoire, supervision des moteurs.",
 } as const;
 

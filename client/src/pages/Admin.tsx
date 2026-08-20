@@ -307,7 +307,7 @@ export default function Admin() {
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">
         <h2 className="text-lg font-bold text-slate-800">Centre d&apos;Actions</h2>
-        <p className="text-xs text-slate-500">&Agrave; valider, en cours, termin&eacute;, &eacute;checs, suggestions IA, connaissances, opportunit&eacute;s, alertes</p>
+        <p className="text-xs text-slate-500">&Agrave; valider, en cours, termin&eacute;, &eacute;checs, suggestions Intelligence, connaissances, opportunit&eacute;s, alertes</p>
         <Link to="/admin/actions" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
             <span className="text-2xl">&#x2705;</span>
@@ -403,7 +403,7 @@ export default function Admin() {
             <span className="text-2xl">&#x1F517;</span>
           </div>
           <div className="flex-1">
-            <p className="text-base font-bold text-[#D4AF37]">Centre IA, co&ucirc;ts &amp; supervision</p>
+            <p className="text-base font-bold text-[#D4AF37]">Centre Intelligence, co&ucirc;ts &amp; supervision</p>
             <p className="text-xs text-white/60">Aucun fournisseur affich&eacute; actif sans preuve, aucune &eacute;conomie invent&eacute;e</p>
           </div>
           <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
@@ -1349,12 +1349,12 @@ export default function Admin() {
           {/* Partie 23 — MKA.P-MS Lab */}
           <section className="mt-10">
             <h2 className="text-lg font-bold text-slate-800">MKA.P-MS Lab <span className="text-xs font-normal text-gold-dark">(Super Admin)</span></h2>
-            <p className="text-xs text-slate-500">Tester de nouvelles idées (offre, page, service, paiement, IA) sans casser le système principal : brouillon → test → actif → désactivé.</p>
+            <p className="text-xs text-slate-500">Tester de nouvelles idées (offre, page, service, paiement, Intelligence) sans casser le système principal : brouillon → test → actif → désactivé.</p>
             <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); if (lab.key && lab.name) createLab.mutate({ key: lab.key, name: lab.name, category: lab.category as "autre" }); }}>
               <input className="input max-w-[180px]" placeholder="clé (ex: offre_test)" value={lab.key} onChange={(e) => setLab({ ...lab, key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_") })} />
               <input className="input max-w-xs" placeholder="Nom de l'expérience" value={lab.name} onChange={(e) => setLab({ ...lab, name: e.target.value })} />
               <select className="input max-w-[140px]" value={lab.category} onChange={(e) => setLab({ ...lab, category: e.target.value })}>
-                <option value="offre">Offre</option><option value="page">Page</option><option value="service">Service</option><option value="paiement">Paiement</option><option value="ia">IA</option><option value="autre">Autre</option>
+                <option value="offre">Offre</option><option value="page">Page</option><option value="service">Service</option><option value="paiement">Paiement</option><option value="ia">Intelligence</option><option value="autre">Autre</option>
               </select>
               <button className="btn-primary !text-sm">Créer</button>
             </form>

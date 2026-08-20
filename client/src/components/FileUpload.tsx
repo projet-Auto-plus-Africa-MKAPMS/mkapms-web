@@ -76,7 +76,7 @@ export default function FileUpload({
         setError(rejected.map((r) => `${r.originalName} : ${r.error}`).join(" ; "));
       }
 
-      /* IA Analysis — simulate intelligent document analysis */
+      /* Intelligence Analysis — simulate intelligent document analysis */
       if (iaAnalysis && newFiles.length > 0) {
         setIa({ status: "analysing", score: 0, details: [] });
         setTimeout(() => {
@@ -158,7 +158,7 @@ export default function FileUpload({
         <p className="mt-2 text-sm text-red-600">{error}</p>
       )}
 
-      {/* Analyse IA */}
+      {/* Analyse Intelligence */}
       {iaAnalysis && ia && (
         <div className={`mt-3 rounded-lg border p-3 ${
           ia.status === "analysing" ? "border-blue-200 bg-blue-50" :
@@ -169,11 +169,11 @@ export default function FileUpload({
           <div className="flex items-center gap-2">
             {ia.status === "analysing" ? (
               <><svg className="h-4 w-4 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" /><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg>
-              <span className="text-xs font-bold text-blue-700">Analyse IA MKA.P-MS en cours…</span></>
+              <span className="text-xs font-bold text-blue-700">Analyse MKA.P-MS Intelligences en cours…</span></>
             ) : (
               <><span className={`text-xs font-bold ${
                 ia.status === "valid" ? "text-green-700" : ia.status === "warning" ? "text-orange-700" : "text-red-700"
-              }`}>Analyse IA MKA.P-MS — Score : {ia.score}/100 ({ia.status === "valid" ? "Valid\u00e9" : ia.status === "warning" ? "Attention" : "Refus\u00e9"})</span></>
+              }`}>Analyse MKA.P-MS Intelligences — Score : {ia.score}/100 ({ia.status === "valid" ? "Valid\u00e9" : ia.status === "warning" ? "Attention" : "Refus\u00e9"})</span></>
             )}
           </div>
           {ia.details.length > 0 && (

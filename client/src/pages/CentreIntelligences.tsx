@@ -5,7 +5,7 @@
  * voir tous les moteurs, connaître les commandes et les règles, ouvrir un
  * dossier de développement et demander l'écriture d'un correctif.
  *
- * Le mot « IA » n'apparaît pas : le moteur s'appelle MKA.P-MS Intelligences.
+ * L'ancienne appellation n'apparaît pas : le moteur s'appelle MKA.P-MS Intelligences.
  */
 import { useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";

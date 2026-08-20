@@ -743,7 +743,7 @@ export const seoRouter = router({
     return seoDashboard();
   }),
 
-  // ─── SEO Manager / Assistant IA (Phase 22) ───
+  // ─── SEO Manager / Assistant Intelligence (Phase 22) ───
   // Génère des recommandations actionnables à partir des données réelles.
   // OBSERVE et PROPOSE uniquement — l'exécution passe par « Générer ».
   recommendations: adminProcedure.query(async () => {

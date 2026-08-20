@@ -152,7 +152,7 @@ export const intelligencesRouter = router({
       }),
     ),
 
-  /** Journal des commandes passées depuis Intelligences. */
+  /** Journal des commandes passées depuis Intelligence. */
   actions: pdgProcedure
     .input(z.object({ limit: z.number().int().min(1).max(200).default(60) }).optional())
     .query(({ input }) => actions(input?.limit ?? 60)),

@@ -68,7 +68,7 @@ const RAPPORTS = [
     border: "border-purple-200",
     features: [
       "Tout le Rapport Complet",
-      "Analyse IA MKA.P-MS",
+      "Analyse MKA.P-MS Intelligences",
       "Estimation valeur marché",
       "Points de vigilance",
       "Documents administratifs si disponibles",
@@ -149,7 +149,7 @@ function ModalExempleComplet({ onClose }: { onClose: () => void }) {
             { label: "Propriétaires", value: "2 propriétaires" },
             { label: "Importation", value: "Non importé" },
             { label: "Contrôle technique", value: "Valide jusqu'au 12/2025" },
-            { label: "Analyse IA", value: "Faible risque d'achat" },
+            { label: "Analyse Intelligence", value: "Faible risque d'achat" },
             { label: "Estimation marché", value: "8 500 — 10 200 €" },
             { label: "Recommandation", value: "✅ Achat recommandé" },
           ].map((r) => (
@@ -224,7 +224,7 @@ function ModalNotifications({ onClose }: { onClose: () => void }) {
           {[
             { title: "Rapport disponible", desc: "Votre rapport historique est prêt à être consulté.", time: "Il y a 2 min", dot: "bg-green-500" },
             { title: "Paiement confirmé", desc: "Votre paiement de 4,99 € a été accepté.", time: "Il y a 3 min", dot: "bg-blue-500" },
-            { title: "Analyse IA terminée", desc: "L'analyse intelligente de votre véhicule est complète.", time: "Il y a 5 min", dot: "bg-purple-500" },
+            { title: "Analyse Intelligence terminée", desc: "L'analyse intelligente de votre véhicule est complète.", time: "Il y a 5 min", dot: "bg-purple-500" },
           ].map((n) => (
             <div key={n.title} className="flex items-start gap-3 rounded-xl bg-[#F8F9FA] p-3">
               <div className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${n.dot}`} />
@@ -540,7 +540,7 @@ export default function Historique() {
                   {selectedRapport === "premium" && (
                     <>
                       <div className="flex items-center justify-between pt-1 border-t border-[#F5F5F5]">
-                        <span className="flex items-center gap-1.5 text-[10px] text-slate-600"><Zap size={10} className="text-purple-500 shrink-0" /> Analyse IA</span>
+                        <span className="flex items-center gap-1.5 text-[10px] text-slate-600"><Zap size={10} className="text-purple-500 shrink-0" /> Analyse Intelligence</span>
                         <span className="text-[10px] font-semibold text-green-600">Faible risque</span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -1008,7 +1008,7 @@ export default function Historique() {
   return (
     <div className="min-h-screen bg-white">
 
-      {/* ── HERO avec voiture IA en fond ── */}
+      {/* ── HERO avec voiture Intelligence en fond ── */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#0D0D0D] via-[#111111] to-[#1A1A1A] min-h-[520px]">
         {/* Image voiture en fond */}
         <div className="absolute inset-0">
@@ -1032,9 +1032,9 @@ export default function Historique() {
           <div className="mb-5 flex justify-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-4 py-1.5">
               <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[#D4AF37]">
-                <span className="text-[7px] font-bold text-white">IA</span>
+                <span className="text-[7px] font-bold text-white">Intelligence</span>
               </div>
-              <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider">Rapports officiels & Analyse IA</span>
+              <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider">Rapports officiels & Analyse Intelligence</span>
             </div>
           </div>
 
@@ -1272,7 +1272,7 @@ export default function Historique() {
         </div>
       </section>
 
-      {/* ── EXEMPLE + POURQUOI + ANALYSE IA ── */}
+      {/* ── EXEMPLE + POURQUOI + ANALYSE Intelligence ── */}
       <section className="bg-[#F5F5F5] py-10">
         <div className="container-page">
           <div className="grid gap-4 md:grid-cols-2">
@@ -1355,7 +1355,7 @@ export default function Historique() {
                 </div>
               </div>
 
-              {/* Analyse IA */}
+              {/* Analyse Intelligence */}
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0D0D0D] via-[#111111] to-[#1A1A1A] p-5 shadow-xl">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(212,175,55,0.12)_0%,_transparent_60%)]" />
                 <div className="relative">
@@ -1365,10 +1365,10 @@ export default function Historique() {
                     </div>
                     <div>
                       <h3 className="text-sm font-extrabold text-[#D4AF37]">ANALYSE INTELLIGENTE</h3>
-                      <p className="text-[9px] text-white/40">MKA.P-MS — Technologie IA</p>
+                      <p className="text-[9px] text-white/40">MKA.P-MS — Technologie Intelligence</p>
                     </div>
                   </div>
-                  <p className="text-xs text-white/60 leading-relaxed">Notre IA analyse des millions de données pour vous fournir un rapport fiable et objectif. Détection automatique des anomalies, estimation de la valeur marché et recommandation d'achat personnalisée.</p>
+                  <p className="text-xs text-white/60 leading-relaxed">MKA.P-MS Intelligences analyse des millions de données pour vous fournir un rapport fiable et objectif. Détection automatique des anomalies, estimation de la valeur marché et recommandation d'achat personnalisée.</p>
                   <div className="mt-4 grid grid-cols-3 gap-2">
                     {[
                       { label: "Précision", value: "99,2%" },

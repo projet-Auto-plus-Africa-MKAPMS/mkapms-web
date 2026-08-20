@@ -461,7 +461,7 @@ const AppAndroid = lazy(() => import("./pages/mobile/AppAndroid"));
 const AppIOS = lazy(() => import("./pages/mobile/AppIOS"));
 const ModeHorsLigne = lazy(() => import("./pages/mobile/ModeHorsLigne"));
 const NotificationsPush = lazy(() => import("./pages/mobile/NotificationsPush"));
-// IA
+// Intelligence
 const IAAideDevis = lazy(() => import("./pages/ia/IAAideDevis"));
 const IAAnalyseMarche = lazy(() => import("./pages/ia/IAAnalyseMarche"));
 const IAAssistantClient = lazy(() => import("./pages/ia/IAAssistantClient"));
@@ -1197,7 +1197,7 @@ export default function App() {
             <Route path="/admin/resilience" element={<U name="Centre de Résilience"><CentreResilience /></U>} />
             <Route path="/admin/commandes" element={<U name="Centre de Commandes"><CentreCommandes /></U>} />
             <Route path="/admin/labo-rd" element={<U name="Laboratoire R&D"><LaboRD /></U>} />
-            <Route path="/admin/ia-couts" element={<U name="Centre IA & Coûts"><CentreIA /></U>} />
+            <Route path="/admin/ia-couts" element={<U name="Centre Intelligence & Coûts"><CentreIA /></U>} />
             <Route path="/admin/audit-activation" element={<U name="Audit d'activation"><AuditActivation /></U>} />
             <Route path="/admin/indexation" element={<U name="Indexation & visibilité"><CentreIndexation /></U>} />
             <Route path="/admin/produits-google" element={<U name="Produits Google & Merchant"><CentreProduitsGoogle /></U>} />
@@ -1284,12 +1284,12 @@ export default function App() {
             <Route path="/mobile/app-i-o-s" element={<U name="Mobile"><AppIOS /></U>} />
             <Route path="/mobile/mode-hors-ligne" element={<U name="Mobile"><ModeHorsLigne /></U>} />
             <Route path="/mobile/notifications-push" element={<U name="Mobile"><NotificationsPush /></U>} />
-            {/* IA */}
-            <Route path="/ia/i-a-aide-devis" element={<U name="IA"><IAAideDevis /></U>} />
-            <Route path="/ia/i-a-analyse-marche" element={<U name="IA"><IAAnalyseMarche /></U>} />
-            <Route path="/ia/i-a-assistant-client" element={<U name="IA"><IAAssistantClient /></U>} />
-            <Route path="/ia/i-a-detection-fraude" element={<U name="IA"><IADetectionFraude /></U>} />
-            <Route path="/ia/i-a-estimation" element={<U name="IA"><IAEstimation /></U>} />
+            {/* Intelligence */}
+            <Route path="/ia/i-a-aide-devis" element={<U name="Intelligence"><IAAideDevis /></U>} />
+            <Route path="/ia/i-a-analyse-marche" element={<U name="Intelligence"><IAAnalyseMarche /></U>} />
+            <Route path="/ia/i-a-assistant-client" element={<U name="Intelligence"><IAAssistantClient /></U>} />
+            <Route path="/ia/i-a-detection-fraude" element={<U name="Intelligence"><IADetectionFraude /></U>} />
+            <Route path="/ia/i-a-estimation" element={<U name="Intelligence"><IAEstimation /></U>} />
             {/* International */}
             <Route path="/international/multi-devises" element={<U name="International"><MultiDevises /></U>} />
             <Route path="/international/multi-langues" element={<U name="International"><MultiLangues /></U>} />

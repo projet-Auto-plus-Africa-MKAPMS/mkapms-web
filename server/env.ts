@@ -26,6 +26,11 @@ export const env = {
   // Non branchée tant que la clé n'est pas fournie ; le tableau de bord
   // affiche alors uniquement les métriques mesurées en interne.
   GOOGLE_SEARCH_CONSOLE_KEY: get("GOOGLE_SEARCH_CONSOLE_KEY"),
+  // Vérification de propriété Google (Search Console, Merchant Center).
+  // Accepte plusieurs jetons séparés par une virgule, sous la forme
+  // « google<jeton>.html », « google<jeton> » ou « <jeton> ». Permet de
+  // vérifier un domaine sans déposer de fichier dans le dépôt.
+  GOOGLE_SITE_VERIFICATION: get("GOOGLE_SITE_VERIFICATION"),
   // ─── Application Android (Play Store) ────────────────────────────
   // Identifiant du paquet et empreintes SHA-256 du certificat de signature,
   // séparées par une virgule. Tant que l'empreinte n'est pas fournie,

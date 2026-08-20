@@ -35,7 +35,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     label: "Identity OS",
     category: "transversal",
     dependencies: ["core"],
-    description: "Identités, sessions, MFA TOTP, vérifications, agents IA, audit — 34 procédures.",
+    description: "Identités, sessions, MFA TOTP, vérifications, agents Intelligence, audit — 34 procédures.",
     state: "active",
   },
   {
@@ -117,7 +117,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     category: "transversal",
     dependencies: ["core", "seo", "smart"],
     description:
-      "Moteur central de visibilité mondiale : coordonne SEO, visibilité IA/GEO, audience, canaux sociaux et publication organique (une info → tous les canaux).",
+      "Moteur central de visibilité mondiale : coordonne SEO, visibilité Intelligence/GEO, audience, canaux sociaux et publication organique (une info → tous les canaux).",
     state: "active",
   },
   {
@@ -522,7 +522,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
   },
   {
     name: "ai_fabric",
-    label: "AI Fabric",
+    label: "Fabrique Intelligence",
     category: "transversal",
     dependencies: ["core", "smart", "monitoring"],
     description:

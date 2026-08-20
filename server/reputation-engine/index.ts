@@ -46,7 +46,7 @@ export const reputationEngineRouter = router({
     )
     .query(async ({ input }) => reputationOf(input)),
 
-  // ── Point 57 — pages publiques de réputation (visiteurs + moteurs IA) ────
+  // ── Point 57 — pages publiques de réputation (visiteurs + moteurs génératifs) ────
   pagePublique: publicProcedure
     .input(
       z.object({

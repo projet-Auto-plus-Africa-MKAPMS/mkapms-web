@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS — SEO Manager / Assistant IA SEO (Phase 22).
+ * MKA.P-MS — SEO Manager / Assistant Intelligence SEO (Phase 22).
  *
  * Analyse les données réelles de la plateforme et génère des recommandations
  * concrètes et actionnables, par exemple :

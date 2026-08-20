@@ -77,7 +77,7 @@ export const rsCriticalRequests = pgTable("rs_critical_requests", {
 
 export const rsPipelineRuns = pgTable("rs_pipeline_runs", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
-  /** Origine du changement : proposition IA, agent externe, correctif automatique. */
+  /** Origine du changement : proposition Intelligence, agent externe, correctif automatique. */
   origin: varchar("origin", { length: 40 }).notNull(),
   originRef: varchar("origin_ref", { length: 120 }),
   title: varchar("title", { length: 240 }).notNull(),

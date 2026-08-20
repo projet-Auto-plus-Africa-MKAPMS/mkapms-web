@@ -1,7 +1,7 @@
 // ===== MKA.P-MS CORE ENGINE =====
 // Le "cerveau" de la plateforme : moteur d'orchestration qui relie tous les modules.
 // 15 centres : Services, Recommandation, Fournisseurs, Distribution, Formation,
-// B2B, Stats IA, Documents, Partenaires, Open API, IA Automatisation, Workflow,
+// B2B, Stats Intelligence, Documents, Partenaires, Open API, Intelligence Automatisation, Workflow,
 // Recherche Mondiale, Expansion, Écosystème.
 //
 // Module 100% indépendant — ne modifie AUCUNE table existante.
@@ -203,7 +203,7 @@ export const b2bOrders = pgTable("ce_b2b_orders", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-// ─── 7. CENTRE STATISTIQUES IA ───
+// ─── 7. CENTRE STATISTIQUES Intelligence ───
 export const aiAnalysisReports = pgTable("ce_ai_reports", {
   id: serial("id").primaryKey(),
   type: varchar("type", { length: 64 }).notNull(), // tendances_vente, saisonnalite, prix, demande_ville
@@ -281,7 +281,7 @@ export const apiUsageLogs = pgTable("ce_api_usage_logs", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// ─── 11. CENTRE IA AUTOMATISATION ───
+// ─── 11. CENTRE Intelligence AUTOMATISATION ───
 // Événements déclencheurs qui font communiquer les modules entre eux.
 export const automationEvents = pgTable("ce_automation_events", {
   id: serial("id").primaryKey(),

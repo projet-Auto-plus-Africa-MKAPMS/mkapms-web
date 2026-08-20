@@ -18,11 +18,11 @@ export default function DepotAnnoncePortail() {
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-gradient-to-b from-[#111] to-[#1a1a1a] px-4 pt-6 pb-6">
         <h1 className="text-2xl font-black text-white flex items-center gap-2"><Plus size={22} className="text-[#D4AF37]" /> Déposer une annonce</h1>
-        <p className="mt-1 text-xs text-white/50">Publication en moins de 5 minutes · Contrôle IA automatique</p>
+        <p className="mt-1 text-xs text-white/50">Publication en moins de 5 minutes · Contrôle Intelligence automatique</p>
       </div>
       <div className="px-4 -mt-3 relative z-10 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 p-3 mb-4 flex items-center gap-2">
         <Sparkles size={16} className="text-[#D4AF37] shrink-0" />
-        <p className="text-[10px] text-[#374151]"><span className="font-bold text-[#D4AF37]">Annonce complète en 5 min</span> — Photos guidées, identification auto par plaque, contrôle IA, publication instantanée.</p>
+        <p className="text-[10px] text-[#374151]"><span className="font-bold text-[#D4AF37]">Annonce complète en 5 min</span> — Photos guidées, identification auto par plaque, contrôle Intelligence, publication instantanée.</p>
       </div>
       <div className="px-4">
         <h2 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-3">Quel type d'annonce ?</h2>

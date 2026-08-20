@@ -1,14 +1,14 @@
 /**
  * MKA.P-MS Intelligences — couche d'appel réelle aux fournisseurs de modèles.
  *
- * Jusqu'ici la plateforme savait *choisir* un fournisseur (AI Fabric) mais
+ * Jusqu'ici la plateforme savait *choisir* un fournisseur (Fabrique Intelligence) mais
  * n'appelait personne : aucun moteur ne pouvait donc réellement raisonner,
  * rédiger ou proposer du code. Ce fichier est le seul endroit du code qui parle
  * à un fournisseur de modèle. Conséquence voulue : on change de fournisseur ici,
  * et nulle part ailleurs.
  *
  * Règles tenues :
- *  - le fournisseur est choisi par l'AI Fabric (confidentialité, pays, coût),
+ *  - le fournisseur est choisi par la Fabrique Intelligence (confidentialité, pays, coût),
  *    jamais codé en dur dans un moteur métier ;
  *  - un appel qui échoue renvoie l'erreur telle quelle, il ne fabrique pas de
  *    réponse plausible ;
@@ -20,7 +20,7 @@ import { afCostEntries } from "../ai-fabric/schema.js";
 import { chooseProvider, markProviderUsed, type Confidentiality } from "../ai-fabric/service.js";
 
 export interface AppelInput {
-  /** Capacité AI Fabric : "ia_texte" ou "ia_vision". */
+  /** Capacité Fabrique Intelligence : "ia_texte" ou "ia_vision". */
   capacite: "ia_texte" | "ia_vision";
   /** Type de tâche, pour la traçabilité et le coût. */
   tache: string;

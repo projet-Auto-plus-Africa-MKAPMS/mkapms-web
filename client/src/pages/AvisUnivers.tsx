@@ -2,7 +2,7 @@
  * Point 57 — page publique de réputation d'un univers (/avis/:univers).
  *
  * Visible par tout le monde, y compris les moteurs de recherche et les
- * assistants IA autorisés. Elle n'affiche que des professionnels réels avec
+ * assistants conversationnels autorisés. Elle n'affiche que des professionnels réels avec
  * leurs vraies notes et leurs vrais volumes ; s'il n'y a pas d'avis, elle
  * l'écrit. Le nombre d'avis est indiqué à côté de chaque note pour qu'une note
  * de 5/5 sur deux avis ne soit pas lue comme une référence.

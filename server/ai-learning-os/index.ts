@@ -1,9 +1,9 @@
 /**
- * AI Learning OS — supervision de l'apprentissage (Phase 54).
+ * Apprentissage Intelligence — supervision de l'apprentissage (Phase 54).
  *
  * NE CRÉE AUCUN second moteur de décision. L'apprentissage réel est déjà porté
  * par le Système Intelligent (Smart Engine) : données apprises, leçons du PDG,
- * connaissances, base officielle, optimisations. AI Learning OS est une couche
+ * connaissances, base officielle, optimisations. Apprentissage Intelligence est une couche
  * de LECTURE qui agrège ces tables existantes et expose la surface MOS standard.
  *
  * Règle fondamentale (Phase 54) : le moteur n'applique jamais seul une règle
@@ -85,7 +85,7 @@ const VERSION = "0.1.0";
 const MATURITY: MaturityLevel = "sprint_2_complete";
 export const AI_LEARNING_OS_META = {
   name: "ai-learning-os" as const,
-  label: "AI Learning Operating System" as const,
+  label: "Apprentissage Intelligence" as const,
   version: VERSION,
   maturityLevel: MATURITY,
   contract: "server/ai-learning-os/index.ts",

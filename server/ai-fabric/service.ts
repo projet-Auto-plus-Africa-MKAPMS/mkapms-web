@@ -1,5 +1,5 @@
 /**
- * Points 84-85-86-88-89-90 — MKA.P-MS AI FABRIC.
+ * Points 84-85-86-88-89-90 — MKA.P-MS FABRIQUE INTELLIGENCE.
  *
  * Ce que cette couche refuse de faire, volontairement :
  *  • elle n'affiche jamais un fournisseur « actif » parce qu'il figure au
@@ -32,8 +32,8 @@ import { afCostEntries, afMemoryBackups, afProviders, afRoutes } from "./schema.
 
 /** Point 84 — capacités externes dont MKA.P-MS ne doit dépendre d'aucun acteur unique. */
 export const CAPABILITIES: { code: string; label: string; critique: boolean }[] = [
-  { code: "ia_texte", label: "Modèles IA — analyse et rédaction", critique: true },
-  { code: "ia_vision", label: "Modèles IA — images et documents", critique: false },
+  { code: "ia_texte", label: "Modèles Intelligence — analyse et rédaction", critique: true },
+  { code: "ia_vision", label: "Modèles Intelligence — images et documents", critique: false },
   { code: "hebergement", label: "Hébergement & exécution", critique: true },
   { code: "base_donnees", label: "Base de données", critique: true },
   { code: "paiement", label: "Encaissement", critique: true },

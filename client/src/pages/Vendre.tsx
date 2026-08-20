@@ -1946,7 +1946,7 @@ export default function Vendre() {
                   disabled={!form.marque || estimLoading}
                   onClick={estimerPrix}
                 >
-                  {estimLoading ? "Calcul..." : "Obtenir une estimation IA"}
+                  {estimLoading ? "Calcul..." : "Obtenir une estimation Intelligence"}
                 </button>
               </div>
             </div>
@@ -2064,7 +2064,7 @@ export default function Vendre() {
             })()}
             {estim && (
               <div className="rounded-xl border-2 border-[#D4AF37] bg-[#FFFBEB] p-4 text-center">
-                <p className="text-sm font-bold text-[#92400E]">Estimation IA MKA.P-MS</p>
+                <p className="text-sm font-bold text-[#92400E]">Estimation MKA.P-MS Intelligences</p>
                 <p className="mt-1 text-2xl font-extrabold text-[#D4AF37]">{formatPrice(estim.low)} – {formatPrice(estim.high)}</p>
                 <p className="mt-1 text-sm text-[#111]">Prix conseillé : <strong>{formatPrice(estim.mid)}</strong></p>
                 <button className="mt-2 text-xs font-bold text-[#D4AF37] underline" onClick={() => set("prix", String(estim.mid))}>Utiliser ce prix</button>
