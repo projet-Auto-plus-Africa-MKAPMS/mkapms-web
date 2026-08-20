@@ -313,6 +313,19 @@ if (env.INDEXNOW_KEY) {
   });
 }
 
+// Vérification de propriété Google (Search Console, Merchant Center) par jeton
+// en variable d'environnement : évite de dépendre d'un fichier déposé dans le
+// dépôt, qui n'était pas publié et renvoyait 404 à Google.
+const JETONS_GOOGLE = env.GOOGLE_SITE_VERIFICATION.split(",")
+  .map((j) => j.trim().replace(/\.html$/i, "").replace(/^google/i, ""))
+  .filter((j) => /^[a-z0-9]+$/i.test(j));
+
+app.get("/google:jeton.html", (req, res, next) => {
+  const jeton = req.params.jeton;
+  if (!JETONS_GOOGLE.includes(jeton)) return next();
+  res.type("html").send(`google-site-verification: google${jeton}.html`);
+});
+
 // Application Android — vérification des liens (App Links). Sans empreinte de
 // signature déclarée, on ne publie pas un fichier faux : Google doit lire un
 // refus explicite plutôt qu'une association invalide.
@@ -346,6 +359,10 @@ if (isProd) {
   const clientDir = path.resolve(__dirname, "public");
   const indexPath = path.join(clientDir, "index.html");
   app.use(express.static(clientDir, { index: false }));
+  // Fichiers déposés directement dans « public/ » à la racine du dépôt
+  // (vérifications Google, ads.txt…). Servis après le client compilé pour ne
+  // jamais masquer un asset de build.
+  app.use(express.static(path.resolve(process.cwd(), "public"), { index: false }));
   app.get("*", async (req, res) => {
     try {
       const baseHtml = await readFile(indexPath, "utf8");

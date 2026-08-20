@@ -27,8 +27,8 @@ export const env = {
   // affiche alors uniquement les métriques mesurées en interne.
   GOOGLE_SEARCH_CONSOLE_KEY: get("GOOGLE_SEARCH_CONSOLE_KEY"),
   // Vérification de propriété Google (Search Console, Merchant Center).
-  // Accepte plusieurs jetons séparés par une virgule, sous la forme
-  // « google<jeton>.html », « google<jeton> » ou « <jeton> ». Permet de
+  // Plusieurs jetons possibles, séparés par une virgule, sous la forme
+  // « google<jeton>.html », « google<jeton> » ou « <jeton> » : permet de
   // vérifier un domaine sans déposer de fichier dans le dépôt.
   GOOGLE_SITE_VERIFICATION: get("GOOGLE_SITE_VERIFICATION"),
   // ─── Application Android (Play Store) ────────────────────────────
