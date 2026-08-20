@@ -13,6 +13,7 @@ import { z } from "zod";
 import { createHash } from "node:crypto";
 import { pdgProcedure, publicProcedure, router } from "../trpc.js";
 import { COMMANDES, NOM_MOTEUR, REGLES } from "./regles.js";
+import { registre as registreCapacites, resume as resumeCapacites } from "./capacites.js";
 import {
   actions,
   coder,
@@ -88,6 +89,15 @@ export const intelligencesRouter = router({
   etat: pdgProcedure.query(() => etat()),
 
   regles: pdgProcedure.query(() => ({ nom: NOM_MOTEUR, commandes: COMMANDES, regles: REGLES })),
+
+  /**
+   * Points 124-126 — registre des capacités avec leur état **constaté**.
+   * Une capacité sans fournisseur joignable n'est jamais affichée « prête ».
+   */
+  capacites: pdgProcedure.query(async () => ({
+    resume: await resumeCapacites(),
+    capacites: await registreCapacites(),
+  })),
 
   /** Côté direction — question libre avec contexte interne réel. */
   demander: pdgProcedure
