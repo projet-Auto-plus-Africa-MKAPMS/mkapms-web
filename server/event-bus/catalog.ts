@@ -16,6 +16,9 @@ export const DOMAINES = [
   "moteur",
   "utilisateur",
   "contenu",
+  "code",
+  "pays",
+  "service",
 ] as const;
 
 export type Domaine = (typeof DOMAINES)[number];
@@ -105,6 +108,72 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     champs: ["sessionId", "cote", "ok"],
     emetteurs: ["intelligences"],
   },
+  // Point 138 — les événements de la liste qui n'existaient pas encore. Un
+  // événement déclaré mais jamais émis reste visible comme « jamais publié » à
+  // l'observabilité : c'est un manque nommé, pas une case cochée.
+  {
+    code: "compte.cree",
+    domaine: "utilisateur",
+    label: "Compte créé",
+    description:
+      "Un compte vient d'être créé. Sert au parcours d'activation, au routage vers le bon univers et à la détection d'inscriptions automatisées.",
+    champs: ["userId", "role"],
+    emetteurs: ["auth", "account_routing"],
+  },
+  {
+    code: "avis.cree",
+    domaine: "contenu",
+    label: "Avis déposé",
+    description:
+      "Un avis vient d'être déposé : la réputation du professionnel concerné et les données structurées de sa page doivent suivre.",
+    champs: ["avisId", "cible"],
+    emetteurs: ["reputation_engine"],
+  },
+  {
+    code: "bouton.casse",
+    domaine: "code",
+    label: "Bouton ou destination cassée",
+    description:
+      "Un contrôle a relevé un bouton sans destination réelle ou une route inconnue. Un client qui clique dans le vide abandonne : c'est une panne, pas un détail d'affichage.",
+    champs: ["ecran", "element"],
+    emetteurs: ["continuous_test", "redirection"],
+  },
+  {
+    code: "code.deploye",
+    domaine: "code",
+    label: "Code déployé",
+    description:
+      "Une mise en production a eu lieu. Déclenche la comparaison avant/après et remet le relevé de code à jour.",
+    champs: ["version"],
+    emetteurs: ["command_center", "resilience"],
+  },
+  {
+    code: "seo.erreur",
+    domaine: "contenu",
+    label: "Erreur de visibilité",
+    description:
+      "Une page publique est refusée, non indexable ou en erreur côté moteur de recherche. Sans signal, la perte de visibilité ne se voit qu'au chiffre d'affaires.",
+    champs: ["url", "motif"],
+    emetteurs: ["seo", "indexation"],
+  },
+  {
+    code: "service.cree",
+    domaine: "service",
+    label: "Service ou univers ouvert",
+    description:
+      "Un service, un univers ou une mini-plateforme vient d'être ouvert. Le registre, les permissions et la visibilité doivent en tenir compte.",
+    champs: ["service"],
+    emetteurs: ["engine_registry", "pro_portal"],
+  },
+  {
+    code: "pays.active",
+    domaine: "pays",
+    label: "Pays activé",
+    description:
+      "Un pays vient d'être activé : ses règles, sa devise, sa langue et ses restrictions s'appliquent à partir de cet instant.",
+    champs: ["countryCode"],
+    emetteurs: ["country_policy", "country_os"],
+  },
 ];
 
 export interface SubscriptionSpec {
@@ -163,6 +232,17 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     handler: "smart_intelligences",
     effet:
       "Ne fait rien tant que les appels aboutissent ; ouvre une alerte quand le fournisseur de modèle refuse les appels, car l'assistant public et la génération de code deviennent alors muets.",
+  },
+  // Point 138 — MKA.P-MS Intelligences entend le bus. Elle n'agit pas : elle
+  // mémorise l'événement et, pour un signal d'échec, en fait une expérience
+  // réutilisable (point 139). L'exécution reste gouvernée par le curseur
+  // d'autonomie.
+  {
+    engine: "intelligences",
+    eventType: "*",
+    handler: "intelligences_memoire",
+    effet:
+      "Écrit l'événement dans la mémoire technique et, pour un échec (paiement refusé, moteur dégradé, bouton cassé, erreur de visibilité), enregistre une expérience consultée par les missions suivantes.",
   },
   {
     engine: "audit_os",

@@ -23,6 +23,7 @@ import { inMissionEtapes, inMissions } from "./schema.js";
 import { router, permissionsDuRole } from "./routeur.js";
 import { autorise, type NiveauAutonomie } from "./autonomie.js";
 import { normaliser, type Piece } from "./multimodal.js";
+import { dejaVu, retenir } from "./memoire.js";
 import type { CodeCapacite, Permission } from "./capacites.js";
 import type { Confidentiality } from "../ai-fabric/service.js";
 
@@ -262,11 +263,17 @@ export async function orchestrer(input: OrchestrerInput): Promise<Mission> {
         }
 
         case "experience": {
+          // Deux mémoires distinctes, aucune recopiée : le relevé de code sait
+          // ce qui a déjà été corrigé dans le dépôt, la mémoire d'Intelligences
+          // sait ce qu'une mission précédente a réellement vécu (point 139).
           const graphe = await import("../code-graph/service.js");
           const r = await graphe.reconnaitre(objectif);
-          contexteExperience = r.verdict;
+          const vu = await dejaVu(domaine, objectif);
+          contexteExperience = [r.verdict, vu.verdict].join("\n");
           base.statut = "fait";
-          base.observe = r.verdict;
+          base.observe = vu.connu
+            ? `${r.verdict}\n${vu.verdict}`
+            : `${r.verdict}\nAucune mission passée comparable : ce cas est traité pour la première fois.`;
           break;
         }
 
@@ -438,6 +445,24 @@ export async function orchestrer(input: OrchestrerInput): Promise<Mission> {
       dureeMs: Date.now() - debutMission,
     })
     .where(eq(inMissions.id, mission.id));
+
+  // Point 139 — la mission se mémorise, réussie ou arrêtée. Un arrêt répété
+  // devient visible par son compteur d'occurrences au lieu d'être revécu
+  // identique à chaque fois.
+  await retenir({
+    domaine,
+    probleme: objectif,
+    diagnostic:
+      etapes.find((e) => e.etape === "analyse" && e.statut === "fait")?.observe ??
+      (contexteArchitecture || "Analyse non exécutée."),
+    solution:
+      etapes.find((e) => e.etape === "correctif" && e.statut === "fait")?.observe ?? "",
+    resultat: statut,
+    blocage: arretSur ? `${arretSur} — ${motifArret}` : "",
+    missionId: mission.id,
+    testRunId,
+    devRequestId,
+  });
 
   await db.insert(inMissionEtapes).values(
     etapes.map((e, i) => ({

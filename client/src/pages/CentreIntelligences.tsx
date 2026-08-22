@@ -11,12 +11,16 @@ import { useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import {
   AlertTriangle,
+  Archive,
+  Brain,
   ChevronLeft,
   Code2,
   Cpu,
   Gauge,
   ListChecks,
+  Network,
   Play,
+  Search,
   Send,
   SlidersHorizontal,
   ShieldCheck,
@@ -31,6 +35,8 @@ type Onglet =
   | "autonomie"
   | "capacites"
   | "moteurs"
+  | "connexion"
+  | "memoire"
   | "commandes"
   | "couts"
   | "developpement";
@@ -41,6 +47,8 @@ const ONGLETS: { cle: Onglet; label: string }[] = [
   { cle: "autonomie", label: "Autonomie" },
   { cle: "capacites", label: "Capacités" },
   { cle: "moteurs", label: "Moteurs" },
+  { cle: "connexion", label: "Connexion des moteurs" },
+  { cle: "memoire", label: "Mémoire" },
   { cle: "commandes", label: "Commandes & règles" },
   { cle: "couts", label: "Consommation" },
   { cle: "developpement", label: "Développement" },
@@ -78,6 +86,8 @@ export default function CentreIntelligences() {
   const [codeProduit, setCodeProduit] = useState<string>("");
   const [objectif, setObjectif] = useState("");
   const [motifNiveau, setMotifNiveau] = useState<Record<string, string>>({});
+  const [recherche, setRecherche] = useState("");
+  const [termeCherche, setTermeCherche] = useState("");
 
   const etat = trpc.intelligences.etat.useQuery(undefined, {
     enabled: !!estPdg,
@@ -175,6 +185,31 @@ export default function CentreIntelligences() {
           : `Mission #${m.id} arrêtée sur « ${m.arretSur} » : ${m.motif}`,
       );
       missions.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
+
+  const memoire = trpc.intelligences.memoire.useQuery(undefined, {
+    enabled: !!estPdg,
+    refetchOnWindowFocus: false,
+  });
+  const experiences = trpc.intelligences.experiences.useQuery(
+    { limit: 40 },
+    { enabled: !!estPdg, refetchOnWindowFocus: false },
+  );
+  const resultats = trpc.intelligences.memoireRechercher.useQuery(
+    { q: termeCherche, limit: 40 },
+    { enabled: !!estPdg && termeCherche.trim().length >= 2, refetchOnWindowFocus: false },
+  );
+  const auditMoteurs = trpc.intelligences.auditMoteurs.useQuery(undefined, {
+    enabled: !!estPdg,
+    refetchOnWindowFocus: false,
+  });
+
+  const archiver = trpc.intelligences.memoireArchiver.useMutation({
+    onSuccess: (r) => {
+      setMessage(`${r.archives} souvenir(s) passé(s) en archive. Aucune suppression.`);
+      memoire.refetch();
     },
     onError: (e) => setMessage(`Échec : ${e.message}`),
   });
@@ -634,6 +669,193 @@ export default function CentreIntelligences() {
           >
             Ouvrir le centre de contrôle des moteurs
           </Link>
+        </section>
+      ) : null}
+
+      {onglet === "connexion" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <Network className="h-4 w-4" /> Audit de connexion — {auditMoteurs.data?.controles ?? 0}{" "}
+              contrôlé(s) sur {auditMoteurs.data?.total ?? 0}
+            </h2>
+            <p className="mt-1 text-[12px] text-black/55">
+              Audit fait sur le registre central lui-même, pas sur une liste tenue à la main. Un
+              moteur n'est « contrôlé » que s'il remplit les six exigences.
+            </p>
+            <ul className="mt-2 grid gap-2 sm:grid-cols-3">
+              {(auditMoteurs.data?.exigences ?? []).map((e) => (
+                <li key={e.code} className="rounded-xl border border-black/5 p-2">
+                  <p className="text-[12px] font-bold text-[#111]">{e.libelle}</p>
+                  <p className="text-[11px] text-black/50">
+                    {auditMoteurs.data?.manquesParExigence?.[e.code] ?? 0} moteur(s) en manque
+                  </p>
+                </li>
+              ))}
+            </ul>
+            {(auditMoteurs.data?.reserves ?? []).map((r) => (
+              <p key={r} className="mt-2 text-[12px] font-bold text-amber-700">
+                Réserve : {r}
+              </p>
+            ))}
+          </div>
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <ul className="space-y-2">
+              {(auditMoteurs.data?.moteurs ?? []).map((m) => (
+                <li key={m.nom} className="rounded-xl border border-black/5 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-[#111]">{m.libelle}</p>
+                      <p className="truncate text-[11px] text-black/40">
+                        {m.nom} — {m.categorie} — version {m.version} — état {m.etat}
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                        m.controle ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                      }`}
+                    >
+                      {m.controle ? "Contrôlé" : `${m.manques.length} manque(s)`}
+                    </span>
+                  </div>
+                  <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+                    {m.exigences.map((x) => (
+                      <li key={x.code} className="text-[11px] text-black/60">
+                        <span className={x.rempli ? "text-emerald-700" : "text-amber-700"}>
+                          {x.rempli ? "✓" : "—"}
+                        </span>{" "}
+                        <span className="font-bold">{x.libelle} :</span> {x.preuve}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-1 text-[11px] text-black/45">
+                    {m.appels} appel(s) mesuré(s) auprès de MKA.P-MS Intelligences
+                    {m.dernierAppel
+                      ? ` — dernier le ${new Date(m.dernierAppel).toLocaleString("fr-FR")}`
+                      : " — aucun appel mesuré"}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
+
+      {onglet === "memoire" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+                <Brain className="h-4 w-4" /> Mémoires et leur détenteur réel
+              </h2>
+              <button
+                type="button"
+                onClick={() => archiver.mutate({ jours: 120 })}
+                disabled={archiver.isPending}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 px-3 py-1.5 text-[12px] font-bold text-black/70 disabled:opacity-50"
+              >
+                <Archive className="h-3.5 w-3.5" /> Passer l'historique de plus de 120 jours en
+                archive
+              </button>
+            </div>
+            <p className="mt-1 text-[12px] text-black/55">
+              Une mémoire détenue par un autre moteur n'est jamais recopiée ici : elle est lue chez
+              son détenteur. Aucune suppression, seulement actif → historique → archive.
+            </p>
+            <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+              {(memoire.data?.etat ?? []).map((c) => (
+                <li key={c.code} className="rounded-xl border border-black/5 p-3">
+                  <p className="text-sm font-bold text-[#111]">{c.libelle}</p>
+                  <p className="text-[11px] text-black/40">détenteur : {c.detenteur}</p>
+                  <p className="mt-1 text-[12px] text-black/60">
+                    {c.volume === null ? "Volume non mesuré" : `${c.volume} élément(s)`} — {c.motif}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-black/45">{c.usage}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <Search className="h-4 w-4" /> Recherche dans toutes les mémoires
+            </h2>
+            <form
+              className="mt-2 flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setTermeCherche(recherche);
+              }}
+            >
+              <input
+                value={recherche}
+                onChange={(e) => setRecherche(e.target.value)}
+                placeholder="Un mot, une route, une erreur, un modèle…"
+                className="flex-1 rounded-xl border border-black/10 px-3 py-2 text-sm"
+              />
+              <button
+                type="submit"
+                className="rounded-xl bg-[#111] px-4 py-2 text-sm font-bold text-white"
+              >
+                Chercher
+              </button>
+            </form>
+            {(resultats.data?.nonLues ?? []).map((n) => (
+              <p key={n.detenteur} className="mt-2 text-[12px] font-bold text-amber-700">
+                {n.detenteur} : non lu — {n.motif}
+              </p>
+            ))}
+            <ul className="mt-2 space-y-1.5">
+              {(resultats.data?.trouvailles ?? []).map((t, i) => (
+                <li key={`${t.categorie}-${i}`} className="rounded-xl border border-black/5 p-3">
+                  <p className="text-sm font-bold text-[#111]">{t.titre}</p>
+                  <p className="text-[11px] text-black/40">
+                    {t.categorie} — {t.detenteur} — {t.cycle}
+                    {t.quand ? ` — ${new Date(t.quand).toLocaleDateString("fr-FR")}` : ""}
+                  </p>
+                  <p className="mt-1 text-[12px] text-black/60">{t.extrait}</p>
+                </li>
+              ))}
+            </ul>
+            {termeCherche.trim().length >= 2 &&
+            !resultats.isLoading &&
+            (resultats.data?.trouvailles ?? []).length === 0 ? (
+              <p className="mt-2 text-[12px] text-black/50">
+                Aucune trace pour « {termeCherche} » dans les mémoires lues.
+              </p>
+            ) : null}
+          </div>
+
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="text-sm font-black uppercase tracking-wide text-black/50">
+              Expériences retenues après action
+            </h2>
+            <p className="mt-1 text-[12px] text-black/55">
+              Un même problème qui revient ne crée pas une nouvelle ligne : il incrémente son
+              compteur. C'est ce qui distingue une mémoire d'un journal.
+            </p>
+            <ul className="mt-2 space-y-1.5">
+              {(experiences.data ?? []).map((x) => (
+                <li key={x.id} className="rounded-xl border border-black/5 p-3">
+                  <p className="text-sm font-bold text-[#111]">{x.probleme}</p>
+                  <p className="text-[11px] text-black/40">
+                    {x.domaine} — résultat {x.resultat} — vu {x.occurrences} fois
+                  </p>
+                  {x.diagnostic ? (
+                    <p className="mt-1 text-[12px] text-black/60">{x.diagnostic}</p>
+                  ) : null}
+                  {x.blocage ? (
+                    <p className="mt-0.5 text-[12px] text-amber-700">{x.blocage}</p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            {(experiences.data ?? []).length === 0 ? (
+              <p className="mt-2 text-[12px] text-black/50">
+                Aucune expérience encore retenue : rien n'a été exécuté ni signalé.
+              </p>
+            ) : null}
+          </div>
         </section>
       ) : null}
 

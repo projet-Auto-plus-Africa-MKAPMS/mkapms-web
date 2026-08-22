@@ -13,6 +13,7 @@ import { onAnnoncePublished } from "../seo-hooks.js";
 import { onPieceChanged } from "../product-engine/service.js";
 import { raiseAlert } from "../smart-engine/services/alert-engine.js";
 import { record as auditRecord } from "../audit-os/index.js";
+import { ecrire as memoriser, retenir } from "../intelligences/memoire.js";
 
 export type Charge = Record<string, unknown>;
 
@@ -131,6 +132,51 @@ const handlers: Record<string, Handler> = {
     return cree
       ? `Alerte ouverte : appel Intelligence en échec (${cote}).`
       : `Alerte déjà ouverte pour les échecs Intelligence (${cote}).`;
+  },
+
+  /**
+   * Point 138 — MKA.P-MS Intelligences entend le bus, et point 139 — elle en
+   * apprend. L'événement va en mémoire technique ; un événement d'échec devient
+   * en plus une expérience que la prochaine mission consultera avant de repartir
+   * de zéro. Aucune action corrective n'est déclenchée ici : écouter n'est pas
+   * agir, et agir dépend du curseur d'autonomie.
+   */
+  async intelligences_memoire(payload, ctx) {
+    const resume = Object.entries(payload)
+      .filter(([, v]) => v !== null && v !== undefined && typeof v !== "object")
+      .map(([k, v]) => `${k} : ${String(v).slice(0, 200)}`)
+      .join("\n");
+
+    const ECHECS: Record<string, string> = {
+      "paiement.echoue": "paiement",
+      "moteur.degrade": "moteurs",
+      "bouton.casse": "code",
+      "seo.erreur": "seo",
+    };
+    const domaine = ECHECS[ctx.type];
+
+    await memoriser({
+      categorie: "technique",
+      cle: `bus:${ctx.type}`,
+      titre: `Événement ${ctx.type} (${ctx.source})`,
+      contenu: resume || "Événement sans champ exploitable.",
+      liens: { evenement: ctx.type, source: ctx.source },
+      source: "event_bus",
+    });
+
+    if (!domaine) return `Événement ${ctx.type} mémorisé (mémoire technique).`;
+
+    const x = await retenir({
+      domaine,
+      probleme: `${ctx.type} — ${resume}`,
+      diagnostic: `Signalé par le bus depuis ${ctx.source}. Cause non encore établie.`,
+      solution: "",
+      resultat: "signale",
+      blocage: "Aucune correction tentée : écouter n'est pas agir.",
+    });
+    return x.recurrent
+      ? `Échec ${ctx.type} mémorisé : cas déjà rencontré, compteur d'occurrences incrémenté.`
+      : `Échec ${ctx.type} mémorisé comme nouvelle expérience #${x.id}.`;
   },
 
   async audit_trace(payload, ctx) {

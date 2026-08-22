@@ -12,6 +12,7 @@
 import {
   bigserial,
   boolean,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -133,6 +134,75 @@ export const inMissions = pgTable("in_missions", {
   dureeMs: integer("duree_ms").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/**
+ * Point 134 — mémoire MKA.P-MS à grande capacité, indépendante des fournisseurs.
+ *
+ * Cette table n'héberge que les catégories qui n'ont pas déjà un moteur
+ * propriétaire (mémoire entreprise, décisions, projets, recherche…). Les
+ * catégories déjà tenues ailleurs — code, moteurs, automobile, erreurs —
+ * restent chez leur moteur et sont seulement indexées par `memoire.ts` : la
+ * mémoire est fédérée, pas recopiée.
+ */
+export const inMemoire = pgTable(
+  "in_memoire",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    categorie: varchar("categorie", { length: 32 }).notNull(),
+    /** `actif`, `historique`, `archive` — le cycle du point 134. */
+    cycle: varchar("cycle", { length: 16 }).notNull().default("actif"),
+    cle: varchar("cle", { length: 200 }).notNull().default(""),
+    titre: varchar("titre", { length: 240 }).notNull().default(""),
+    contenu: text("contenu").notNull().default(""),
+    /** Mots-clés extraits : recherche utilisable sans dépendre d'un fournisseur. */
+    motsCles: jsonb("mots_cles").$type<string[]>().notNull().default([]),
+    /** Rattachements au graphe de connaissances (moteur, pays, mission, dossier). */
+    liens: jsonb("liens").$type<Record<string, string>>().notNull().default({}),
+    source: varchar("source", { length: 64 }).notNull().default("intelligences"),
+    countryCode: varchar("country_code", { length: 8 }),
+    poids: integer("poids").notNull().default(1),
+    rappels: integer("rappels").notNull().default(0),
+    actorId: integer("actor_id"),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parCategorie: index("in_memoire_categorie_idx").on(t.categorie, t.cycle),
+    parCle: index("in_memoire_cle_idx").on(t.cle),
+  }),
+);
+
+/**
+ * Point 139 — apprentissage après chaque action. Une mission terminée devient
+ * une expérience réutilisable : signature du problème, diagnostic, solution,
+ * résultat constaté. La prochaine mission consulte cette table avant de
+ * repartir de zéro.
+ */
+export const inExperiences = pgTable(
+  "in_experiences",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    /** Empreinte stable du problème : sert à retrouver le même cas plus tard. */
+    signature: varchar("signature", { length: 160 }).notNull(),
+    domaine: varchar("domaine", { length: 48 }).notNull().default("inconnu"),
+    probleme: text("probleme").notNull().default(""),
+    diagnostic: text("diagnostic").notNull().default(""),
+    solution: text("solution").notNull().default(""),
+    resultat: varchar("resultat", { length: 32 }).notNull().default("inconnu"),
+    /** Ce qui a bloqué, quand ça a bloqué : l'échec est une leçon, pas un oubli. */
+    blocage: text("blocage").notNull().default(""),
+    missionId: integer("mission_id"),
+    testRunId: integer("test_run_id"),
+    devRequestId: integer("dev_request_id"),
+    occurrences: integer("occurrences").notNull().default(1),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parSignature: index("in_experiences_signature_idx").on(t.signature),
+    parDomaine: index("in_experiences_domaine_idx").on(t.domaine),
+  }),
+);
 
 export const inMissionEtapes = pgTable("in_mission_etapes", {
   id: bigserial("id", { mode: "number" }).primaryKey(),

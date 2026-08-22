@@ -652,6 +652,13 @@
       "when": 1754138901003,
       "tag": "0093_intelligences_orchestration",
       "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1754138902003,
+      "tag": "0094_intelligences_memoire",
+      "breakpoints": true
     }
   ]
 }

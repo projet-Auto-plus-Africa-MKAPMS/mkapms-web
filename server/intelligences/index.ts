@@ -34,6 +34,23 @@ import {
 } from "./orchestrateur.js";
 import { TYPES_PIECE } from "./multimodal.js";
 import {
+  CATEGORIES as CATEGORIES_MEMOIRE,
+  CYCLES,
+  archiver,
+  ecrire as ecrireMemoire,
+  etat as etatMemoire,
+  experiences as listerExperiences,
+  lister as listerMemoire,
+  rechercher as rechercherMemoire,
+} from "./memoire.js";
+import {
+  EXIGENCES,
+  appelsRecents,
+  audit as auditMoteurs,
+  journalSante,
+  moteur as detailMoteur,
+} from "./moteurs.js";
+import {
   actions,
   coder,
   demander,
@@ -279,6 +296,78 @@ export const intelligencesRouter = router({
         sessionId: input.sessionId ?? null,
       }),
     ),
+
+  /**
+   * Point 134 — état de la mémoire, catégorie par catégorie. Un détenteur qui
+   * ne répond pas est rendu « non mesuré », jamais « vide ».
+   */
+  memoire: pdgProcedure.query(async () => ({
+    categories: CATEGORIES_MEMOIRE,
+    cycles: CYCLES,
+    etat: await etatMemoire(),
+  })),
+
+  memoireLister: pdgProcedure
+    .input(
+      z.object({
+        categorie: z.string().max(32),
+        cycle: z.enum(CYCLES).optional(),
+        limit: z.number().int().min(1).max(200).default(60),
+      }),
+    )
+    .query(({ input }) => listerMemoire(input.categorie, input.cycle, input.limit)),
+
+  memoireRechercher: pdgProcedure
+    .input(z.object({ q: z.string().min(2).max(200), limit: z.number().int().min(1).max(100).default(40) }))
+    .query(({ input }) => rechercherMemoire(input.q, input.limit)),
+
+  memoireEcrire: pdgProcedure
+    .input(
+      z.object({
+        categorie: z.string().max(32),
+        titre: z.string().min(2).max(240),
+        contenu: z.string().min(1).max(200000),
+        cle: z.string().max(200).optional(),
+        countryCode: z.string().max(8).nullable().optional(),
+      }),
+    )
+    .mutation(({ input, ctx }) =>
+      ecrireMemoire({
+        categorie: input.categorie,
+        titre: input.titre,
+        contenu: input.contenu,
+        cle: input.cle,
+        countryCode: input.countryCode ?? null,
+        source: "direction",
+        actorId: ctx.user?.uid,
+      }),
+    ),
+
+  memoireArchiver: pdgProcedure
+    .input(z.object({ jours: z.number().int().min(7).max(3650).default(120) }).optional())
+    .mutation(({ input }) => archiver(input?.jours ?? 120)),
+
+  /** Point 139 — expériences retenues, les récurrentes en tête. */
+  experiences: pdgProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(200).default(60) }).optional())
+    .query(({ input }) => listerExperiences(input?.limit ?? 60)),
+
+  /** Points 136-137 — audit de connexion de tous les moteurs, sans exception. */
+  auditMoteurs: pdgProcedure.query(async () => ({
+    exigences: EXIGENCES,
+    ...(await auditMoteurs()),
+  })),
+
+  moteur: pdgProcedure
+    .input(z.object({ nom: z.string().max(64) }))
+    .query(async ({ input }) => ({
+      moteur: await detailMoteur(input.nom),
+      journal: await journalSante(input.nom, 30),
+    })),
+
+  appelsMoteurs: pdgProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(200).default(50) }).optional())
+    .query(({ input }) => appelsRecents(input?.limit ?? 50)),
 
   /** Journal des commandes passées depuis Intelligence. */
   actions: pdgProcedure
