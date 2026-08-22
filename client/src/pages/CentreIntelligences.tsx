@@ -36,6 +36,8 @@ type Onglet =
   | "capacites"
   | "moteurs"
   | "connexion"
+  | "surveillance"
+  | "support"
   | "memoire"
   | "commandes"
   | "couts"
@@ -48,6 +50,8 @@ const ONGLETS: { cle: Onglet; label: string }[] = [
   { cle: "capacites", label: "Capacités" },
   { cle: "moteurs", label: "Moteurs" },
   { cle: "connexion", label: "Connexion des moteurs" },
+  { cle: "surveillance", label: "Surveillance 24/7" },
+  { cle: "support", label: "Support intelligent" },
   { cle: "memoire", label: "Mémoire" },
   { cle: "commandes", label: "Commandes & règles" },
   { cle: "couts", label: "Consommation" },
@@ -88,6 +92,7 @@ export default function CentreIntelligences() {
   const [motifNiveau, setMotifNiveau] = useState<Record<string, string>>({});
   const [recherche, setRecherche] = useState("");
   const [termeCherche, setTermeCherche] = useState("");
+  const [ticketOuvert, setTicketOuvert] = useState<number | null>(null);
 
   const etat = trpc.intelligences.etat.useQuery(undefined, {
     enabled: !!estPdg,
@@ -205,6 +210,31 @@ export default function CentreIntelligences() {
     enabled: !!estPdg,
     refetchOnWindowFocus: false,
   });
+
+  const domaines = trpc.monitoringOs.domaines.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "surveillance",
+    refetchOnWindowFocus: false,
+  });
+  const nonMesures = trpc.monitoringOs.nonMesures.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "surveillance",
+    refetchOnWindowFocus: false,
+  });
+  const comparaison = trpc.continuousTest.comparaison.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "surveillance",
+    refetchOnWindowFocus: false,
+  });
+  const verrou = trpc.continuousTest.verrouDeploiement.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "surveillance",
+    refetchOnWindowFocus: false,
+  });
+  const fileSupport = trpc.supportOs.fileDiagnostiquee.useQuery(
+    { limit: 40 },
+    { enabled: !!estPdg && onglet === "support", refetchOnWindowFocus: false },
+  );
+  const dossier = trpc.supportOs.dossier.useQuery(
+    { ticketId: ticketOuvert ?? 0 },
+    { enabled: !!estPdg && ticketOuvert !== null, refetchOnWindowFocus: false },
+  );
 
   const archiver = trpc.intelligences.memoireArchiver.useMutation({
     onSuccess: (r) => {
@@ -738,6 +768,179 @@ export default function CentreIntelligences() {
               ))}
             </ul>
           </div>
+        </section>
+      ) : null}
+
+      {onglet === "surveillance" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <Gauge className="h-4 w-4" /> Quatorze domaines surveillés — état le plus bas :{" "}
+              {domaines.data?.pire ?? "…"}
+            </h2>
+            <p className="mt-1 text-[12px] text-black/55">
+              Un domaine qu'on ne sait pas mesurer est écrit « inconnu » avec son motif : jamais
+              vert. Les domaines rouges deviennent des événements, pour être vus avant le premier
+              client.
+            </p>
+            <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+              {(domaines.data?.domaines ?? []).map((d) => (
+                <li key={d.code} className="rounded-xl border border-black/5 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-bold text-[#111]">{d.libelle}</p>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                        d.niveau === "vert"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : d.niveau === "orange"
+                            ? "bg-amber-50 text-amber-700"
+                            : d.niveau === "rouge"
+                              ? "bg-red-50 text-red-700"
+                              : "bg-black/5 text-black/50"
+                      }`}
+                    >
+                      {d.niveau}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[12px] text-black/60">{d.constat}</p>
+                  <p className="mt-1 text-[11px] text-black/40">
+                    {d.mesure === null ? "aucune mesure" : `${d.mesure} ${d.unite}`} — source{" "}
+                    {d.source}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-[12px] font-bold text-black/70">
+              {domaines.data?.detectionTardive.motif ?? ""}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="text-sm font-black uppercase tracking-wide text-black/50">
+              Ce que personne ne mesure encore — {nonMesures.data?.length ?? 0}
+            </h2>
+            <ul className="mt-2 space-y-1">
+              {(nonMesures.data ?? []).map((d) => (
+                <li key={d.code} className="text-[12px] text-black/60">
+                  <span className="font-bold text-[#111]">{d.libelle} :</span> {d.constat}
+                </li>
+              ))}
+              {nonMesures.data?.length === 0 ? (
+                <li className="text-[12px] text-emerald-700">
+                  Les quatorze domaines produisent une mesure réelle.
+                </li>
+              ) : null}
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <ListChecks className="h-4 w-4" /> Avant / après les contrôles
+            </h2>
+            <p className="mt-1 text-sm font-bold text-[#111]">
+              {comparaison.data?.verdict ?? "…"}
+            </p>
+            <p className="mt-1 text-[12px] text-black/55">
+              Avant : {comparaison.data?.avant?.reussis ?? "—"} /{" "}
+              {comparaison.data?.avant?.total ?? "—"} — Après :{" "}
+              {comparaison.data?.apres?.reussis ?? "—"} / {comparaison.data?.apres?.total ?? "—"}
+            </p>
+            <ul className="mt-2 space-y-1">
+              {(comparaison.data?.perdus ?? []).map((p) => (
+                <li key={p.scenario} className="text-[12px] text-red-700">
+                  <span className="font-bold">{p.label} :</span> réussi avant, {p.apres} après.
+                </li>
+              ))}
+            </ul>
+            <p
+              className={`mt-3 rounded-xl px-3 py-2 text-[12px] font-bold ${
+                verrou.data?.autorise
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "bg-red-50 text-red-700"
+              }`}
+            >
+              {verrou.data?.autorise
+                ? "Déploiement pouvant être déclaré terminé."
+                : `Déploiement non déclarable : ${verrou.data?.motif ?? "…"}`}
+            </p>
+          </div>
+        </section>
+      ) : null}
+
+      {onglet === "support" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <AlertTriangle className="h-4 w-4" /> Demandes clientes — {fileSupport.data?.length ?? 0}
+            </h2>
+            <p className="mt-1 text-[12px] text-black/55">
+              « Déjà connu » signifie qu'une alerte interne existait avant la réclamation. Sinon, le
+              client a détecté la panne avant nous.
+            </p>
+            <ul className="mt-2 space-y-1.5">
+              {(fileSupport.data ?? []).map((t) => (
+                <li key={t.ticketId}>
+                  <button
+                    type="button"
+                    onClick={() => setTicketOuvert(t.ticketId)}
+                    className={`w-full rounded-xl border px-3 py-2 text-left ${
+                      ticketOuvert === t.ticketId ? "border-[#8B7500]" : "border-black/5"
+                    }`}
+                  >
+                    <p className="truncate text-sm font-bold text-[#111]">{t.sujet}</p>
+                    <p className="text-[11px] text-black/45">
+                      {t.domaine} — priorité {t.priorite} —{" "}
+                      {t.dejaConnu ? "défaut déjà connu" : "aucune alerte interne avant"}
+                    </p>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {ticketOuvert !== null && dossier.data ? (
+            <div className="rounded-2xl border border-black/5 bg-white p-4">
+              <h2 className="text-sm font-black uppercase tracking-wide text-black/50">
+                Dossier — {dossier.data.domaineLibelle}
+              </h2>
+              <p className="mt-1 text-[12px] text-black/55">
+                {dossier.data.client
+                  ? `${dossier.data.client.nom} — ${dossier.data.client.email}`
+                  : "Client non identifié"}
+              </p>
+              <ul className="mt-2 space-y-1">
+                {dossier.data.etapes.map((e) => (
+                  <li key={e.etape} className="text-[12px] text-black/65">
+                    <span className={e.lu ? "text-emerald-700" : "text-amber-700"}>
+                      {e.lu ? "✓" : "—"}
+                    </span>{" "}
+                    <span className="font-bold">{e.libelle} :</span> {e.constat}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-[12px]">
+                <span className="font-bold text-[#111]">Cause probable :</span>{" "}
+                {dossier.data.causeProbable}
+              </p>
+              <p className="mt-1 text-[12px]">
+                <span className="font-bold text-[#111]">Solution :</span> {dossier.data.solution}
+              </p>
+              <p className="mt-2 whitespace-pre-line rounded-xl bg-[#FAFAFA] p-3 text-[12px] text-black/70">
+                {dossier.data.reponsePreparee}
+              </p>
+              {dossier.data.actionProposee ? (
+                <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-[12px] font-bold text-amber-800">
+                  Action proposée, non exécutée : {dossier.data.actionProposee.libelle} — permission{" "}
+                  {dossier.data.actionProposee.permission}
+                </p>
+              ) : null}
+              {dossier.data.manques.map((m) => (
+                <p key={m} className="mt-1 text-[11px] text-black/45">
+                  Non lu : {m}
+                </p>
+              ))}
+            </div>
+          ) : null}
         </section>
       ) : null}
 

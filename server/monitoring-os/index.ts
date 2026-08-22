@@ -16,6 +16,7 @@ import { getPlatformHealth } from "../smart-engine/services/platform-health.js";
 import { smartAlerts } from "../smart-engine/schema.js";
 import { getStats } from "../engine-registry/service.js";
 import type { ControlCenterFeed, EngineDashboard, MaturityLevel } from "../identity-os/contract.js";
+import { detectionTardive, nonMesures, surveiller } from "./domaines.js";
 
 export interface MonitoringOverview {
   generatedAt: string;
@@ -119,4 +120,13 @@ export const monitoringOsRouter = router({
   dashboard: adminProcedure.query(() => dashboard()),
   overview: adminProcedure.query(() => overview()),
   scan: adminProcedure.mutation(() => scan()),
+
+  /** Point 140 — relevé des quatorze domaines, avec mesure, source et constat. */
+  domaines: adminProcedure.query(() => surveiller()),
+
+  /** Point 140 — ce qui n'est mesuré par personne : la liste à instrumenter. */
+  nonMesures: adminProcedure.query(() => nonMesures()),
+
+  /** Point 140 — pannes que des clients ont signalées avant toute alerte interne. */
+  detectionTardive: adminProcedure.query(() => detectionTardive()),
 });

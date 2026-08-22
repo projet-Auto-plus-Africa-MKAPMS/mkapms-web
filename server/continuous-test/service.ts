@@ -71,9 +71,17 @@ export async function runTests(opts?: {
   portee?: string;
   trigger?: string;
   requestedBy?: number;
+  /** Point 142 — contrôles désignés par l'impact de la modification. */
+  scenarios?: string[];
 }): Promise<RunResume> {
   const portee = opts?.portee ?? "complet";
-  const liste = portee === "complet" ? SCENARIOS : SCENARIOS.filter((s) => s.domaine === portee);
+  const cibles = opts?.scenarios?.filter((id) => id.trim().length > 0) ?? [];
+  const liste =
+    cibles.length > 0
+      ? SCENARIOS.filter((s) => cibles.includes(s.id))
+      : portee === "complet"
+        ? SCENARIOS
+        : SCENARIOS.filter((s) => s.domaine === portee);
 
   const [run] = await db
     .insert(ctRuns)
@@ -337,6 +345,90 @@ export async function overview(): Promise<TestOverview> {
   };
 }
 
+export interface Comparaison {
+  avant: { runId: number; reussis: number; total: number; quand: string } | null;
+  apres: { runId: number; reussis: number; total: number; quand: string } | null;
+  delta: number | null;
+  regression: boolean;
+  perdus: { scenario: string; label: string; avant: string; apres: string }[];
+  verdict: string;
+}
+
+/**
+ * Point 143 — aucun déploiement sans comparaison avant / après.
+ *
+ * 127 contrôles valides avant, 126 après : c'est une régression, même si aucun
+ * contrôle critique n'est en échec et même si le contrôle perdu est simplement
+ * passé à « ignoré ». Un contrôle qui ne s'exécute plus ne prouve plus rien.
+ */
+export async function comparaison(): Promise<Comparaison> {
+  const runs = await db.select().from(ctRuns).orderBy(desc(ctRuns.id)).limit(2);
+  const apres = runs[0] ?? null;
+  const avant = runs[1] ?? null;
+  if (!apres) {
+    return {
+      avant: null,
+      apres: null,
+      delta: null,
+      regression: false,
+      verdict: "Aucune campagne exécutée : il n'y a rien à comparer, donc rien de prouvé.",
+      perdus: [],
+    };
+  }
+  const resume = (r: typeof apres) => ({
+    runId: r.id,
+    reussis: r.reussis,
+    total: r.total,
+    quand: (r.finishedAt ?? r.startedAt).toISOString(),
+  });
+  if (!avant) {
+    return {
+      avant: null,
+      apres: resume(apres),
+      delta: null,
+      regression: false,
+      verdict: `Première campagne (#${apres.id}) : ${apres.reussis} contrôle(s) réussi(s). Aucune référence antérieure, la comparaison viendra à la prochaine.`,
+      perdus: [],
+    };
+  }
+
+  const [rAvant, rApres] = await Promise.all([
+    db.select().from(ctResults).where(eq(ctResults.runId, avant.id)),
+    db.select().from(ctResults).where(eq(ctResults.runId, apres.id)),
+  ]);
+  const parScenarioApres = new Map(rApres.map((r) => [r.scenario, r]));
+  const perdus: Comparaison["perdus"] = [];
+  for (const a of rAvant) {
+    if (a.statut !== "reussi") continue;
+    const b = parScenarioApres.get(a.scenario);
+    if (!b) {
+      perdus.push({
+        scenario: a.scenario,
+        label: a.label,
+        avant: "reussi",
+        apres: "non exécuté sur la campagne suivante",
+      });
+    } else if (b.statut !== "reussi") {
+      perdus.push({ scenario: a.scenario, label: a.label, avant: "reussi", apres: b.statut });
+    }
+  }
+
+  const delta = apres.reussis - avant.reussis;
+  const regression = perdus.length > 0;
+  return {
+    avant: resume(avant),
+    apres: resume(apres),
+    delta,
+    regression,
+    perdus,
+    verdict: regression
+      ? `RÉGRESSION : ${perdus.length} contrôle(s) réussissaient sur la campagne #${avant.id} et ne réussissent plus sur #${apres.id} (${avant.reussis} → ${apres.reussis}). Le déploiement ne peut pas être déclaré terminé.`
+      : delta < 0
+        ? `Baisse du nombre de contrôles réussis (${avant.reussis} → ${apres.reussis}) sans contrôle nommément perdu : la portée des deux campagnes diffère, la comparaison n'est pas concluante.`
+        : `Aucun contrôle perdu entre les campagnes #${avant.id} et #${apres.id} (${avant.reussis} → ${apres.reussis}).`,
+  };
+}
+
 export async function runHistory(limit = 20) {
   return db.select().from(ctRuns).orderBy(desc(ctRuns.id)).limit(limit);
 }
@@ -409,6 +501,21 @@ export async function deploymentGate(): Promise<{
         })),
       };
     }
+  }
+
+  // Point 143 — la comparaison avant/après refuse aussi un contrôle qui a
+  // cessé de s'exécuter : disparaître n'est pas réussir.
+  const comp = await comparaison();
+  if (comp.regression) {
+    return {
+      autorise: false,
+      motif: comp.verdict,
+      bloquants: comp.perdus.map((p) => ({
+        scenario: p.scenario,
+        label: p.label,
+        observe: `Réussi avant, ${p.apres} après.`,
+      })),
+    };
   }
 
   const age = Date.now() - (run.finishedAt ?? run.startedAt).getTime();

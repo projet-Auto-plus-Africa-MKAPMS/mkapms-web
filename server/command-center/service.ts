@@ -494,13 +494,28 @@ export async function sendDevRequestToPipeline(input: {
     createdBy: input.actorId,
   });
 
-  // Le bac à sable est la seule étape que l'ouverture du dossier atteste :
-  // le travail commence hors production. Les suivantes devront être prouvées.
+  // L'ouverture du dossier n'atteste que ce qu'elle prouve : l'instruction
+  // reçue, le plan écrit lorsqu'il existe, et le travail hors production.
+  // Branche, code, tests, aperçu, préproduction et validation restent à prouver.
+  await recordPipelineStep({
+    id: run.id,
+    step: "instruction",
+    status: "ok",
+    detail: `Demande enregistrée : ${dossier.need.slice(0, 400)}`,
+  });
+  await recordPipelineStep({
+    id: run.id,
+    step: "plan",
+    status: dossier.analysis ? "ok" : "info",
+    detail: dossier.analysis
+      ? `Plan issu de l'analyse du dossier #${dossier.id} : ${dossier.analysis}`
+      : "Aucun plan écrit : l'étape reste à franchir.",
+  });
   await recordPipelineStep({
     id: run.id,
     step: "sandbox",
     status: "ok",
-    detail: `Dossier de développement #${dossier.id} ouvert hors production. ${dossier.analysis ?? ""}`.trim(),
+    detail: `Dossier de développement #${dossier.id} ouvert hors production.`,
   });
 
   await db
@@ -510,7 +525,7 @@ export async function sendDevRequestToPipeline(input: {
 
   return {
     ok: true,
-    detail: `Passage #${run.id} ouvert. Les étapes tests, sécurité, non-régression, préproduction et validation restent à franchir avant la production.`,
+    detail: `Passage #${run.id} ouvert. Les étapes branche, code, tests, sécurité, non-régression, aperçu, préproduction et validation restent à franchir avant la production.`,
     pipelineRunId: run.id,
   };
 }

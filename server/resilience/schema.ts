@@ -87,7 +87,7 @@ export const rsPipelineRuns = pgTable("rs_pipeline_runs", {
     .$type<{ step: string; status: string; detail: string; at: string }[]>()
     .notNull()
     .default([]),
-  /** "en_cours" | "bloque" | "pret_production" | "en_production" | "annule" */
+  /** "en_cours" | "bloque" | "pret_production" | "en_production" | "surveille" | "annule" */
   status: varchar("status", { length: 20 }).notNull().default("en_cours"),
   blockedReason: text("blocked_reason"),
   rollbackPlan: text("rollback_plan"),
