@@ -14,6 +14,7 @@ import { supportTickets } from "../schema.js";
 import { logAction } from "../audit.js";
 import { adminProcedure, publicProcedure, router } from "../trpc.js";
 import type { ControlCenterFeed, EngineDashboard, MaturityLevel } from "../identity-os/contract.js";
+import { dossierMessage, dossierTicket, fileDiagnostiquee } from "./diagnostic.js";
 
 export const SUPPORT_PRIORITIES = ["critique", "elevee", "normale", "faible"] as const;
 export type SupportPriority = (typeof SUPPORT_PRIORITIES)[number];
@@ -143,4 +144,28 @@ export const supportOsRouter = router({
     .mutation(({ ctx, input }) => setPriority(input.id, input.priority, ctx.user.uid)),
 
   stats: adminProcedure.query(() => stats()),
+
+  /** Point 141 — file enrichie : domaine du ticket et défaut déjà connu. */
+  fileDiagnostiquee: adminProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(200).default(40) }).optional())
+    .query(({ input }) => fileDiagnostiquee(input?.limit ?? 40)),
+
+  /**
+   * Point 141 — dossier complet d'un ticket : compte, commande, paiement,
+   * erreur, prestataire, journaux, cause probable et réponse préparée.
+   */
+  dossier: adminProcedure
+    .input(z.object({ ticketId: z.number().int().positive() }))
+    .query(({ input }) => dossierTicket(input.ticketId)),
+
+  /** Point 141 — même dossier à partir d'un message libre, avant tout ticket. */
+  dossierMessage: adminProcedure
+    .input(
+      z.object({
+        texte: z.string().min(3).max(4000),
+        email: z.string().email().optional(),
+        userId: z.number().int().positive().optional(),
+      }),
+    )
+    .query(({ input }) => dossierMessage(input)),
 });

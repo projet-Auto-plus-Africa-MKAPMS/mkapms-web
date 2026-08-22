@@ -367,20 +367,41 @@ export async function listCriticalRequests(limit = 100) {
 
 // ─── Point 76 — pipeline obligatoire avant production ────────────────────
 
+/**
+ * Point 144 — pipeline du développeur autonome, dans l'ordre exigé :
+ * instruction → plan → branche → code → tests → sécurité → preview → staging
+ * → validation → production → surveillance → retour arrière.
+ *
+ * Les étapes ajoutées (instruction, plan, branche, code, preview, rollback)
+ * complètent celles qui existaient déjà : rien n'est renommé, pour que les
+ * passages déjà enregistrés restent lisibles.
+ */
 export const PIPELINE_STEPS = [
+  "instruction",
+  "plan",
+  "branche",
   "sandbox",
+  "code",
   "tests",
   "securite",
   "non_regression",
+  "preview",
   "staging",
   "validation",
   "production",
   "monitoring",
+  "rollback",
 ] as const;
 
 export type PipelineStep = (typeof PIPELINE_STEPS)[number];
 
 export const PIPELINE_STEP_LABELS: Record<PipelineStep, string> = {
+  instruction: "Instruction reçue",
+  plan: "Plan écrit",
+  branche: "Branche dédiée",
+  code: "Code produit",
+  preview: "Aperçu vérifiable",
+  rollback: "Retour arrière éprouvé",
   sandbox: "Environnement isolé",
   tests: "Tests",
   securite: "Contrôle de sécurité",
@@ -391,12 +412,22 @@ export const PIPELINE_STEP_LABELS: Record<PipelineStep, string> = {
   monitoring: "Surveillance après mise en production",
 };
 
-/** Étapes qu'on ne peut pas sauter pour atteindre la production. */
+/**
+ * Étapes qu'on ne peut pas sauter pour atteindre la production. Elles restent
+ * obligatoires quel que soit le niveau d'autonomie atteint : c'est exactement la
+ * phrase du point 144 — « même lorsqu'il devient très autonome, ce pipeline
+ * reste ».
+ */
 const REQUIRED_BEFORE_PROD: PipelineStep[] = [
+  "instruction",
+  "plan",
+  "branche",
   "sandbox",
+  "code",
   "tests",
   "securite",
   "non_regression",
+  "preview",
   "staging",
   "validation",
 ];
@@ -453,7 +484,12 @@ export async function recordPipelineStep(input: {
     status = "bloque";
     blockedReason = `Étape « ${PIPELINE_STEP_LABELS[input.step]} » en échec : ${input.detail}`;
   } else if (input.step === "production" && input.status === "ok") {
+    // Mis en production n'est pas terminé : la surveillance après déploiement
+    // reste due, sinon une panne introduite ne serait vue par personne.
     status = "en_production";
+    blockedReason = null;
+  } else if (input.step === "monitoring" && input.status === "ok" && franchies.has("production")) {
+    status = "surveille";
     blockedReason = null;
   } else if (manquantes.length === 0) {
     // Un changement sans retour arrière documenté ne franchit pas la porte.
@@ -476,7 +512,11 @@ export async function recordPipelineStep(input: {
     ok: input.status !== "echec",
     status,
     detail:
-      status === "pret_production"
+      status === "surveille"
+        ? "Mise en production surveillée après déploiement : le passage peut être déclaré terminé."
+        : status === "en_production"
+          ? "En production : la surveillance après déploiement reste due avant de déclarer terminé."
+        : status === "pret_production"
         ? "Toutes les étapes obligatoires sont franchies : la mise en production peut être décidée."
         : status === "bloque"
           ? (blockedReason ?? "Passage bloqué.")

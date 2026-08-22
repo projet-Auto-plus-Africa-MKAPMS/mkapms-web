@@ -48,7 +48,8 @@ const STATUTS_PIPELINE: Record<string, { label: string; ton: string }> = {
   en_cours: { label: "En cours", ton: "bg-black/5 text-black/60" },
   bloque: { label: "Bloqué", ton: "bg-red-50 text-red-700" },
   pret_production: { label: "Prêt pour la production", ton: "bg-emerald-50 text-emerald-700" },
-  en_production: { label: "En production", ton: "bg-blue-50 text-blue-700" },
+  en_production: { label: "En production — surveillance due", ton: "bg-blue-50 text-blue-700" },
+  surveille: { label: "En production et surveillé", ton: "bg-emerald-50 text-emerald-700" },
   annule: { label: "Annulé", ton: "bg-black/5 text-black/50" },
 };
 
