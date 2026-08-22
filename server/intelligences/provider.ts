@@ -18,6 +18,7 @@
 import { db } from "../db.js";
 import { afCostEntries } from "../ai-fabric/schema.js";
 import { chooseProvider, markProviderUsed, type Confidentiality } from "../ai-fabric/service.js";
+import { enregistrer as enregistrerAppel } from "./evaluation.js";
 
 export interface AppelInput {
   /** Capacité Fabrique Intelligence : "ia_texte" ou "ia_vision". */
@@ -35,6 +36,27 @@ export interface AppelInput {
   images?: string[];
   maxTokens?: number;
   temperature?: number;
+  /**
+   * Point 147 — fournisseur imposé par le propriétaire, ou moteur candidat en
+   * mode shadow. Quand il est fourni, le routage habituel n'est pas consulté.
+   */
+  fournisseurImpose?: string;
+  /** Fournisseurs déjà essayés et écartés : évite de rejouer un échec. */
+  exclure?: string[];
+  /** `principal`, `repli` ou `candidat` — pour la mesure du point 148. */
+  rang?: Rang;
+  /** Capacité MKA.P-MS demandée (`code`, `image`, `voix`…), pour la mesure. */
+  capaciteMka?: string;
+}
+
+export type Rang = "principal" | "repli" | "candidat";
+
+export interface Tentative {
+  fournisseur: string;
+  rang: Rang;
+  ok: boolean;
+  motif: string;
+  dureeMs: number;
 }
 
 export interface AppelResultat {
@@ -48,6 +70,12 @@ export interface AppelResultat {
   jetonsEntree: number;
   jetonsSortie: number;
   dureeMs: number;
+  /**
+   * Chaîne réellement parcourue : fournisseur principal, puis replis essayés.
+   * Un client qui ne voit que le résultat final ne saurait pas qu'un
+   * fournisseur est tombé — cette liste le dit.
+   */
+  tentatives: Tentative[];
 }
 
 /** Points d'entrée par fournisseur. Aucune clé n'est écrite ici. */
@@ -138,6 +166,34 @@ async function modeleDisponible(
 }
 
 /**
+ * Point 148 — chaque tentative réelle est mesurée, réussie comme échouée. Une
+ * mesure manquante deviendrait plus tard un « fournisseur fiable » sans preuve.
+ */
+async function mesurer(
+  input: AppelInput,
+  tentative: Tentative,
+  jetonsEntree: number,
+  jetonsSortie: number,
+): Promise<void> {
+  try {
+    await enregistrerAppel({
+      capacite: input.capaciteMka ?? input.capacite,
+      tache: input.tache,
+      moteur: input.moteur,
+      fournisseur: tentative.fournisseur,
+      rang: tentative.rang,
+      ok: tentative.ok,
+      dureeMs: tentative.dureeMs,
+      jetonsEntree,
+      jetonsSortie,
+      motif: tentative.motif,
+    });
+  } catch {
+    // La mesure ne doit jamais faire échouer l'appel qu'elle observe.
+  }
+}
+
+/**
  * Appelle réellement un modèle. Ne jette pas : l'échec est une donnée, il doit
  * pouvoir s'afficher.
  */
@@ -152,28 +208,80 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
     jetonsEntree: 0,
     jetonsSortie: 0,
     dureeMs: 0,
+    tentatives: [],
   };
 
-  const decision = await chooseProvider({
-    capability: input.capacite,
-    taskType: input.tache,
-    engine: input.moteur,
-    countryCode: input.countryCode ?? null,
-    confidentiality: input.confidentialite ?? "interne",
-  });
+  const rang: Rang = input.rang ?? "principal";
+  let providerCode = input.fournisseurImpose ?? null;
+  let providerLabel = providerCode;
+  let replis: string[] = [];
 
-  if (decision.verdict !== "route" || !decision.providerCode) {
-    return { ...vide, motif: decision.reason, dureeMs: Date.now() - debut };
+  if (!providerCode) {
+    const decision = await chooseProvider({
+      capability: input.capacite,
+      taskType: input.tache,
+      engine: input.moteur,
+      countryCode: input.countryCode ?? null,
+      confidentiality: input.confidentialite ?? "interne",
+    });
+
+    if (decision.verdict !== "route" || !decision.providerCode) {
+      return { ...vide, motif: decision.reason, dureeMs: Date.now() - debut };
+    }
+    providerCode = decision.providerCode;
+    providerLabel = decision.providerLabel ?? decision.providerCode;
+    replis = decision.candidates.filter(
+      (c) => c !== decision.providerCode && !(input.exclure ?? []).includes(c),
+    );
   }
 
-  const resolu = await resoudre(decision.providerCode);
-  if ("erreur" in resolu) {
-    return {
-      ...vide,
-      fournisseur: decision.providerCode,
-      motif: `${decision.providerLabel} est routable mais l'appel est impossible : ${resolu.erreur}`,
-      dureeMs: Date.now() - debut,
+  /**
+   * Point 147 — un fournisseur qui tombe ne fait pas tomber la tâche : on
+   * essaie le suivant, à condition qu'il soit lui aussi habilité (la liste des
+   * replis vient du routage, qui a déjà filtré confidentialité et pays).
+   */
+  const replier = async (motifEchec: string, dureeEchec: number): Promise<AppelResultat> => {
+    const tentative: Tentative = {
+      fournisseur: providerCode ?? "inconnu",
+      rang,
+      ok: false,
+      motif: motifEchec,
+      dureeMs: dureeEchec,
     };
+    await mesurer(input, tentative, 0, 0);
+
+    const suivant = replis[0];
+    if (!suivant) {
+      return {
+        ...vide,
+        fournisseur: providerCode,
+        motif: motifEchec,
+        dureeMs: Date.now() - debut,
+        tentatives: [tentative],
+      };
+    }
+
+    const secours = await appeler({
+      ...input,
+      fournisseurImpose: suivant,
+      exclure: [...(input.exclure ?? []), providerCode ?? ""],
+      rang: "repli",
+    });
+    return {
+      ...secours,
+      motif: secours.ok
+        ? `Repli sur ${suivant} après échec de ${providerLabel} : ${motifEchec}`
+        : `${motifEchec} Repli ${suivant} également indisponible : ${secours.motif}`,
+      tentatives: [tentative, ...secours.tentatives],
+    };
+  };
+
+  const resolu = await resoudre(providerCode);
+  if ("erreur" in resolu) {
+    return replier(
+      `${providerLabel} est routable mais l'appel est impossible : ${resolu.erreur}`,
+      Date.now() - debut,
+    );
   }
 
   const contenu: unknown = input.images?.length
@@ -211,13 +319,10 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
       } catch {
         // corps non JSON : on garde le texte brut tronqué.
       }
-      return {
-        ...vide,
-        fournisseur: decision.providerCode,
-        modele: resolu.modele,
-        motif: `${decision.providerLabel} a refusé l'appel (HTTP ${reponse.status}) : ${message}`,
-        dureeMs: Date.now() - debut,
-      };
+      return replier(
+        `${providerLabel} a refusé l'appel (HTTP ${reponse.status}) : ${message}`,
+        Date.now() - debut,
+      );
     }
 
     const corps = JSON.parse(brut) as {
@@ -229,22 +334,17 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
     const jetonsSortie = corps.usage?.completion_tokens ?? 0;
 
     if (texte.trim().length === 0) {
-      return {
-        ...vide,
-        fournisseur: decision.providerCode,
-        modele: resolu.modele,
-        motif: "Le fournisseur a répondu sans contenu utilisable.",
-        jetonsEntree,
-        jetonsSortie,
-        dureeMs: Date.now() - debut,
-      };
+      return replier(
+        `${providerLabel} a répondu sans contenu utilisable.`,
+        Date.now() - debut,
+      );
     }
 
-    await markProviderUsed(decision.providerCode);
+    await markProviderUsed(providerCode);
     await db.insert(afCostEntries).values({
       engine: input.moteur,
       taskType: input.tache,
-      providerCode: decision.providerCode,
+      providerCode,
       capability: input.capacite,
       units: Math.max(1, Math.round((jetonsEntree + jetonsSortie) / 1000)),
       unitLabel: "1000 jetons",
@@ -254,26 +354,33 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
       note: `${jetonsEntree} jetons entrée, ${jetonsSortie} jetons sortie, modèle ${resolu.modele}. Coût unitaire non renseigné : le tarif du fournisseur doit être saisi pour convertir en euros.`,
     });
 
+    const tentative: Tentative = {
+      fournisseur: providerCode,
+      rang,
+      ok: true,
+      motif: "",
+      dureeMs: Date.now() - debut,
+    };
+    await mesurer(input, tentative, jetonsEntree, jetonsSortie);
+
     return {
       ok: true,
       texte,
-      fournisseur: decision.providerCode,
+      fournisseur: providerCode,
       modele: resolu.modele,
       motif: "",
       jetonsEntree,
       jetonsSortie,
-      dureeMs: Date.now() - debut,
+      dureeMs: tentative.dureeMs,
+      tentatives: [tentative],
     };
   } catch (e) {
-    return {
-      ...vide,
-      fournisseur: decision.providerCode,
-      modele: resolu.modele,
-      motif: `Appel au fournisseur impossible : ${
+    return replier(
+      `Appel à ${providerLabel} impossible : ${
         e instanceof Error ? e.message : "erreur inconnue"
       }`,
-      dureeMs: Date.now() - debut,
-    };
+      Date.now() - debut,
+    );
   }
 }
 

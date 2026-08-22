@@ -16,35 +16,17 @@
  * fabriquée pour sauver l'apparence. Le repli propriétaire, quand il existe,
  * est nommé dans le motif afin que l'appelant sache quoi faire.
  */
+import { eq } from "drizzle-orm";
+import { db } from "../db.js";
 import { appeler, type AppelResultat } from "./provider.js";
-import {
-  registre,
-  spec,
-  type CodeCapacite,
-  type Permission,
-  PERMISSIONS,
-} from "./capacites.js";
+import { registre, spec, type CodeCapacite } from "./capacites.js";
 import { autorise } from "./autonomie.js";
+import { permissionsDuRole, verifier } from "./permissions.js";
+import { candidatSert, configuration, enregistrer as enregistrerComparaison } from "./shadow.js";
+import { inCapaciteEtat } from "./schema.js";
 import type { Confidentiality } from "../ai-fabric/service.js";
 
-/**
- * Permissions accordées par rôle (point 146). Le PDG possède tout ; les autres
- * rôles ne reçoivent que ce que leur métier justifie. Un rôle inconnu n'a rien.
- */
-const PERMISSIONS_PAR_ROLE: Record<string, Permission[]> = {
-  super_admin: [...PERMISSIONS],
-  admin: ["READ", "ANALYZE", "PROPOSE", "TEST"],
-  employee: ["READ", "ANALYZE"],
-  garage: ["READ", "ANALYZE"],
-  pro: ["READ", "ANALYZE"],
-  society: ["READ", "ANALYZE"],
-  user: ["READ"],
-};
-
-export function permissionsDuRole(role: string | null | undefined): Permission[] {
-  if (!role) return [];
-  return PERMISSIONS_PAR_ROLE[role] ?? [];
-}
+export { permissionsDuRole };
 
 /**
  * Curseur d'autonomie qui gouverne chaque capacité (point 132). Le rôle dit ce
@@ -103,6 +85,7 @@ function refus(
     jetonsEntree: 0,
     jetonsSortie: 0,
     dureeMs: 0,
+    tentatives: [],
   };
 }
 
@@ -122,13 +105,18 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
     );
   }
 
-  const accordees = permissionsDuRole(demande.role);
-  if (!accordees.includes(s.permission)) {
-    return refus(
-      demande.capacite,
-      `Permission ${s.permission} exigée pour « ${s.libelle} » : le rôle « ${demande.role ?? "aucun"} » ne l'a pas.`,
-      s.repliInterne,
-    );
+  /**
+   * Point 146 — double contrôle : le rôle doit avoir le droit de demander, et le
+   * moteur appelant doit avoir le droit de faire. La permission peut exister
+   * dans le catalogue sans être attribuée à ce moteur-là.
+   */
+  const droit = await verifier({
+    role: demande.role,
+    moteur: demande.moteur.trim(),
+    permission: s.permission,
+  });
+  if (!droit.autorise) {
+    return refus(demande.capacite, `« ${s.libelle} » : ${droit.motif}`, s.repliInterne);
   }
 
   const domaine =
@@ -143,6 +131,24 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
     return refus(
       demande.capacite,
       `Données ${demandee} refusées pour « ${s.libelle} » : cette capacité ne dépasse pas le niveau ${s.confidentialiteMax}.`,
+      s.repliInterne,
+    );
+  }
+
+  /**
+   * Point 145 — activation décidée par le propriétaire. Distincte de l'état
+   * constaté : une capacité désactivée reste refusée même si le fournisseur
+   * répond parfaitement, et le motif écrit par le PDG est rendu tel quel.
+   */
+  const [etat] = await db
+    .select()
+    .from(inCapaciteEtat)
+    .where(eq(inCapaciteEtat.capacite, demande.capacite))
+    .limit(1);
+  if (etat && !etat.actif) {
+    return refus(
+      demande.capacite,
+      `« ${s.libelle} » est désactivée par la direction${etat.motif ? ` : ${etat.motif}` : "."}`,
       s.repliInterne,
     );
   }
@@ -164,9 +170,13 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
     );
   }
 
-  const r = await appeler({
+  const shadow = await configuration(demande.capacite);
+  const parCandidat = candidatSert(shadow);
+
+  const commun = {
     capacite: s.capaciteFabrique,
     tache: demande.capacite,
+    capaciteMka: demande.capacite,
     moteur: demande.moteur,
     systeme: demande.systeme,
     message: demande.message,
@@ -174,7 +184,66 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
     countryCode: demande.countryCode ?? null,
     images: demande.images,
     maxTokens: demande.maxTokens,
-  });
+  } as const;
+
+  /**
+   * Point 149 — quand une part du trafic est confiée au candidat, c'est lui qui
+   * répond au client ; sinon il ne répond à personne. Un candidat en
+   * observation seule n'atteint jamais le client, même en cas de panne du
+   * fournisseur.
+   */
+  const r = parCandidat && shadow
+    ? await appeler({ ...commun, fournisseurImpose: shadow.candidat, rang: "candidat" })
+    : await appeler({ ...commun, fournisseurImpose: etat?.fournisseurImpose ?? undefined });
+
+  if (shadow?.actif && !parCandidat) {
+    void observerEnParallele(demande, s.capaciteFabrique, shadow.candidat, r);
+  }
 
   return { ...r, capacite: demande.capacite, repli: s.repliInterne };
+}
+
+/**
+ * Exécute la même mission avec le moteur candidat, après coup, sans faire
+ * attendre le client et sans jamais lui montrer ce résultat. Une erreur du
+ * candidat est une observation, pas un incident client.
+ */
+async function observerEnParallele(
+  demande: DemandeCapacite,
+  capaciteFabrique: "ia_texte" | "ia_vision",
+  candidat: string,
+  officiel: AppelResultat,
+): Promise<void> {
+  try {
+    const ombre = await appeler({
+      capacite: capaciteFabrique,
+      tache: demande.capacite,
+      capaciteMka: demande.capacite,
+      moteur: demande.moteur,
+      systeme: demande.systeme,
+      message: demande.message,
+      confidentialite: demande.confidentialite ?? "publique",
+      countryCode: demande.countryCode ?? null,
+      images: demande.images,
+      maxTokens: demande.maxTokens,
+      fournisseurImpose: candidat,
+      rang: "candidat",
+    });
+
+    await enregistrerComparaison({
+      capacite: demande.capacite,
+      tache: demande.capacite,
+      fournisseur: officiel.fournisseur,
+      candidat,
+      texteFournisseur: officiel.texte,
+      texteCandidat: ombre.texte,
+      okFournisseur: officiel.ok,
+      okCandidat: ombre.ok,
+      dureeFournisseurMs: officiel.dureeMs,
+      dureeCandidatMs: ombre.dureeMs,
+      motifCandidat: ombre.motif,
+    });
+  } catch {
+    // L'observation en parallèle ne doit jamais dégrader la réponse du client.
+  }
 }

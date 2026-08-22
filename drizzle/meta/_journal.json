@@ -659,6 +659,13 @@
       "when": 1754138902003,
       "tag": "0094_intelligences_memoire",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1754138903003,
+      "tag": "0095_intelligences_pilotage",
+      "breakpoints": true
     }
   ]
 }
