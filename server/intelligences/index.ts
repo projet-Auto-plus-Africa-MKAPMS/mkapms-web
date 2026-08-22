@@ -45,6 +45,25 @@ import {
   tableau as tableauPermissions,
 } from "./permissions.js";
 import {
+  FONCTIONS,
+  etat as etatFonctions,
+  regler as reglerFonction,
+  resume as resumeFonctions,
+} from "./fonctions.js";
+import {
+  levierAutonomie,
+  marquer as marquerEtape,
+  plan as planAutonomie,
+} from "./plan-autonomie.js";
+import {
+  contrat as contratDeveloppeur,
+  creer as creerCle,
+  journal as journalDeveloppeur,
+  lister as listerCles,
+  regler as reglerCle,
+  revoquer as revoquerCle,
+} from "./developpeur.js";
+import {
   CRITERES,
   LIBELLE_CRITERE,
   derniers as derniersAppels,
@@ -490,4 +509,78 @@ export const intelligencesRouter = router({
   detachementFournisseur: pdgProcedure
     .input(z.object({ capacite: z.string().min(1).max(32) }))
     .query(({ input }) => detachementPossible(input.capacite)),
+
+  /**
+   * Toutes les fonctionnalités du fournisseur, construites au maximum. Celles
+   * qui n'ont pas été demandées restent éteintes : c'est le propriétaire qui
+   * les allume, une par une.
+   */
+  fonctions: pdgProcedure.query(async () => ({
+    catalogue: FONCTIONS,
+    fonctions: await etatFonctions(),
+    resume: await resumeFonctions(),
+  })),
+
+  reglerFonction: pdgProcedure
+    .input(
+      z.object({
+        fonction: z.string().min(1).max(48),
+        active: z.boolean(),
+        motif: z.string().max(600).default(""),
+      }),
+    )
+    .mutation(({ input, ctx }) => reglerFonction({ ...input, actorId: ctx.user?.uid })),
+
+  /** Point 150 — plan de détachement des fournisseurs, étape par étape. */
+  planAutonomie: pdgProcedure
+    .input(z.object({ cibleMois: z.number().int().min(1).max(36).default(5) }).optional())
+    .query(async ({ input }) => ({
+      leviers: levierAutonomie(),
+      ...(await planAutonomie(input?.cibleMois ?? 5)),
+    })),
+
+  marquerEtape: pdgProcedure
+    .input(
+      z.object({
+        etape: z.string().min(1).max(48),
+        statut: z.enum(["attente", "en_cours", "atteinte", "abandonnee"]),
+        motif: z.string().max(600).default(""),
+      }),
+    )
+    .mutation(({ input, ctx }) => marquerEtape({ ...input, actorId: ctx.user?.uid })),
+
+  /** Point 151 — plateforme développeur : clés bornées, révocables, tracées. */
+  developpeur: pdgProcedure.query(async () => ({
+    contrat: contratDeveloppeur(),
+    cles: await listerCles(),
+    journal: await journalDeveloppeur(40),
+  })),
+
+  creerCleDeveloppeur: pdgProcedure
+    .input(
+      z.object({
+        nom: z.string().min(3).max(80),
+        portee: z.array(z.string().max(32)).min(1).max(20),
+        role: z.string().min(1).max(24),
+        quotaJour: z.number().int().min(0).max(1_000_000).default(0),
+        motif: z.string().max(600).default(""),
+      }),
+    )
+    .mutation(({ input, ctx }) => creerCle({ ...input, actorId: ctx.user?.uid })),
+
+  reglerCleDeveloppeur: pdgProcedure
+    .input(
+      z.object({
+        id: z.number().int().positive(),
+        active: z.boolean().optional(),
+        quotaJour: z.number().int().min(0).max(1_000_000).optional(),
+        portee: z.array(z.string().max(32)).max(20).optional(),
+        motif: z.string().max(600).default(""),
+      }),
+    )
+    .mutation(({ input, ctx }) => reglerCle({ ...input, actorId: ctx.user?.uid })),
+
+  revoquerCleDeveloppeur: pdgProcedure
+    .input(z.object({ id: z.number().int().positive(), motif: z.string().max(600).default("") }))
+    .mutation(({ input, ctx }) => revoquerCle({ ...input, actorId: ctx.user?.uid })),
 });

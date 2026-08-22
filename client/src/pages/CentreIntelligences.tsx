@@ -35,6 +35,9 @@ type Onglet =
   | "permissions"
   | "evaluation"
   | "shadow"
+  | "fonctions"
+  | "plan"
+  | "developpeur"
   | "missions"
   | "autonomie"
   | "capacites"
@@ -53,6 +56,9 @@ const ONGLETS: { cle: Onglet; label: string }[] = [
   { cle: "permissions", label: "Permissions" },
   { cle: "evaluation", label: "Évaluation" },
   { cle: "shadow", label: "Moteur candidat" },
+  { cle: "fonctions", label: "Fonctionnalités" },
+  { cle: "plan", label: "Plan d'autonomie" },
+  { cle: "developpeur", label: "Plateforme développeur" },
   { cle: "missions", label: "Missions" },
   { cle: "autonomie", label: "Autonomie" },
   { cle: "capacites", label: "Capacités" },
@@ -107,6 +113,13 @@ export default function CentreIntelligences() {
   const [permChoix, setPermChoix] = useState<Record<string, string[]>>({});
   const [motifPerm, setMotifPerm] = useState<Record<string, string>>({});
   const [motifShadow, setMotifShadow] = useState<Record<string, string>>({});
+  const [motifFonction, setMotifFonction] = useState<Record<string, string>>({});
+  const [motifEtape, setMotifEtape] = useState<Record<string, string>>({});
+  const [nomCle, setNomCle] = useState("");
+  const [roleCle, setRoleCle] = useState("user");
+  const [quotaCle, setQuotaCle] = useState("0");
+  const [porteeCle, setPorteeCle] = useState<string[]>([]);
+  const [secretCle, setSecretCle] = useState("");
 
   const etat = trpc.intelligences.etat.useQuery(undefined, {
     enabled: !!estPdg,
@@ -326,6 +339,57 @@ export default function CentreIntelligences() {
     onError: (e) => setMessage(`Échec : ${e.message}`),
   });
 
+  const fonctions = trpc.intelligences.fonctions.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "fonctions",
+    refetchOnWindowFocus: false,
+  });
+  const reglerFonction = trpc.intelligences.reglerFonction.useMutation({
+    onSuccess: (r) => {
+      setMessage(r.detail);
+      fonctions.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
+
+  const planAutonomie = trpc.intelligences.planAutonomie.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "plan",
+    refetchOnWindowFocus: false,
+  });
+  const marquerEtape = trpc.intelligences.marquerEtape.useMutation({
+    onSuccess: (r) => {
+      setMessage(r.detail);
+      planAutonomie.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
+
+  const developpeur = trpc.intelligences.developpeur.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "developpeur",
+    refetchOnWindowFocus: false,
+  });
+  const creerCle = trpc.intelligences.creerCleDeveloppeur.useMutation({
+    onSuccess: (r) => {
+      setSecretCle(r.secret ?? "");
+      setMessage(r.detail);
+      developpeur.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
+  const reglerCle = trpc.intelligences.reglerCleDeveloppeur.useMutation({
+    onSuccess: (r) => {
+      setMessage(r.detail);
+      developpeur.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
+  const revoquerCle = trpc.intelligences.revoquerCleDeveloppeur.useMutation({
+    onSuccess: (r) => {
+      setMessage(r.detail);
+      developpeur.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
+
   const moteursParCategorie = useMemo(() => {
     const groupes = new Map<string, NonNullable<typeof etat.data>["moteurs"]>();
     for (const m of etat.data?.moteurs ?? []) {
@@ -488,6 +552,324 @@ export default function CentreIntelligences() {
               <Send className="h-4 w-4" />
               {demander.isPending ? "…" : "Envoyer"}
             </button>
+          </div>
+        </section>
+      ) : null}
+
+      {onglet === "fonctions" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <Cpu className="h-4 w-4" /> Toutes les fonctionnalités disponibles
+            </h2>
+            <p className="mt-1 text-[12px] text-black/60">
+              Chaque fonctionnalité que les fournisseurs connectés savent faire est construite ici.
+              Celles qui n'ont pas été demandées restent <b>éteintes</b> : elles ne consomment rien
+              et ne sont jamais appelées tant que vous ne les allumez pas vous-même, avec une raison
+              écrite au journal.
+            </p>
+            <p className="mt-1 text-[11px] text-black/45">
+              {fonctions.data?.resume.total ?? 0} fonctionnalité(s) —{" "}
+              {fonctions.data?.resume.actives ?? 0} active(s),{" "}
+              {fonctions.data?.resume.eteintes ?? 0} éteinte(s),{" "}
+              {fonctions.data?.resume.impossibles ?? 0} impossible(s) faute de fournisseur.
+            </p>
+          </div>
+
+          {(fonctions.data?.fonctions ?? []).map((f) => (
+            <div key={f.code} className="rounded-2xl border border-black/5 bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-black text-[#111]">{f.libelle}</h3>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    f.etat === "active"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : f.etat === "impossible"
+                        ? "bg-red-50 text-red-700"
+                        : "bg-[#FAFAFA] text-black/60"
+                  }`}
+                >
+                  {f.etat === "active" ? "active" : f.etat === "impossible" ? "impossible" : "éteinte"}
+                </span>
+              </div>
+              <p className="mt-1 text-[12px] text-black/65">{f.apport}</p>
+              <p className="mt-1 text-[11px] text-black/50">{f.motif}</p>
+              <p className="mt-1 text-[11px] text-black/45">
+                Permission {f.permission} — bénéficiaires : {f.beneficiaires.join(", ") || "aucun"}
+              </p>
+              <p className="mt-1 text-[11px] text-black/45">Précaution : {f.precaution}</p>
+              <p className="mt-1 text-[11px] text-black/45">Autonomie : {f.autonomie}</p>
+              <input
+                value={motifFonction[f.code] ?? ""}
+                onChange={(e) => setMotifFonction((m) => ({ ...m, [f.code]: e.target.value }))}
+                placeholder="Raison de l'activation ou de l'extinction"
+                className="mt-2 w-full rounded-xl border border-black/10 px-3 py-2 text-[12px]"
+              />
+              <button
+                type="button"
+                disabled={reglerFonction.isPending || (!f.activable && f.etat !== "active")}
+                onClick={() =>
+                  reglerFonction.mutate({
+                    fonction: f.code,
+                    active: f.etat !== "active",
+                    motif: motifFonction[f.code] ?? "",
+                  })
+                }
+                className="mt-2 rounded-xl bg-[#111] px-3 py-1.5 text-[12px] font-bold text-white disabled:opacity-40"
+              >
+                {f.etat === "active" ? "Éteindre" : "Activer"}
+              </button>
+            </div>
+          ))}
+        </section>
+      ) : null}
+
+      {onglet === "plan" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <Cpu className="h-4 w-4" /> Détacher les fournisseurs externes
+            </h2>
+            <p className="mt-1 text-[12px] text-black/60">{planAutonomie.data?.verdict ?? "…"}</p>
+            <p className="mt-1 text-[11px] text-black/45">
+              {planAutonomie.data?.exemples ?? 0} appel(s) mesuré(s),{" "}
+              {planAutonomie.data?.exemplesNotes ?? 0} jugé(s) par un humain,{" "}
+              {planAutonomie.data?.comparaisons ?? 0} comparaison(s) avec le moteur candidat.
+            </p>
+          </div>
+
+          {(planAutonomie.data?.etapes ?? []).map((e) => (
+            <div key={e.code} className="rounded-2xl border border-black/5 bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-black text-[#111]">
+                  Mois {e.mois} — {e.titre}
+                </h3>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    e.conditionRemplie ? "bg-emerald-50 text-emerald-700" : "bg-[#FAFAFA] text-black/60"
+                  }`}
+                >
+                  {e.conditionRemplie ? "condition vérifiée" : "non atteinte"}
+                </span>
+              </div>
+              <p className="mt-1 text-[12px] text-black/65">{e.condition}</p>
+              <p className="mt-1 text-[11px] text-black/50">Constat : {e.constat}</p>
+              {e.motif ? (
+                <p className="mt-1 text-[11px] text-black/45">Votre note : {e.motif}</p>
+              ) : null}
+              <input
+                value={motifEtape[e.code] ?? ""}
+                onChange={(ev) => setMotifEtape((m) => ({ ...m, [e.code]: ev.target.value }))}
+                placeholder="Décision écrite"
+                className="mt-2 w-full rounded-xl border border-black/10 px-3 py-2 text-[12px]"
+              />
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {(["en_cours", "atteinte", "abandonnee"] as const).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    disabled={marquerEtape.isPending}
+                    onClick={() =>
+                      marquerEtape.mutate({
+                        etape: e.code,
+                        statut: s,
+                        motif: motifEtape[e.code] ?? "",
+                      })
+                    }
+                    className="rounded-xl border border-black/10 px-3 py-1.5 text-[12px] font-bold text-black/70"
+                  >
+                    {s === "en_cours" ? "En cours" : s === "atteinte" ? "Atteinte" : "Abandonnée"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="text-sm font-black uppercase tracking-wide text-black/50">
+              Ce qui bloque réellement
+            </h2>
+            {(planAutonomie.data?.obstacles ?? []).length === 0 ? (
+              <p className="mt-2 text-[12px] text-black/50">Aucun obstacle mesuré.</p>
+            ) : (
+              <ul className="mt-2 space-y-1">
+                {(planAutonomie.data?.obstacles ?? []).map((o) => (
+                  <li key={o} className="rounded-xl border border-black/5 px-3 py-2 text-[12px] text-black/65">
+                    {o}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {onglet === "developpeur" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <Cpu className="h-4 w-4" /> Clés d'accès à {developpeur.data?.contrat.base ?? "/api/v1"}
+            </h2>
+            <p className="mt-1 text-[12px] text-black/60">
+              {developpeur.data?.contrat.authentification ?? "…"}
+            </p>
+            <ul className="mt-2 space-y-1">
+              {(developpeur.data?.contrat.regles ?? []).map((r) => (
+                <li key={r} className="text-[11px] text-black/50">
+                  — {r}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="text-sm font-black uppercase tracking-wide text-black/50">
+              Créer une clé
+            </h2>
+            <input
+              value={nomCle}
+              onChange={(e) => setNomCle(e.target.value)}
+              placeholder="Nom reconnaissable (ex. application PRO Android)"
+              className="mt-2 w-full rounded-xl border border-black/10 px-3 py-2 text-[12px]"
+            />
+            <div className="mt-2 flex flex-wrap gap-2">
+              <select
+                value={roleCle}
+                onChange={(e) => setRoleCle(e.target.value)}
+                className="rounded-xl border border-black/10 px-3 py-2 text-[12px]"
+              >
+                {["user", "pro", "garage", "society", "employee"].map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+              <input
+                value={quotaCle}
+                onChange={(e) => setQuotaCle(e.target.value.replace(/[^0-9]/g, ""))}
+                placeholder="Quota / 24 h"
+                className="w-32 rounded-xl border border-black/10 px-3 py-2 text-[12px]"
+              />
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {(developpeur.data?.contrat.capacites ?? []).map((c) => {
+                const choisie = porteeCle.includes(c.code);
+                return (
+                  <button
+                    key={c.code}
+                    type="button"
+                    onClick={() =>
+                      setPorteeCle((p) =>
+                        choisie ? p.filter((x) => x !== c.code) : [...p, c.code],
+                      )
+                    }
+                    className={`rounded-xl border px-2.5 py-1 text-[11px] font-bold ${
+                      choisie
+                        ? "border-[#111] bg-[#111] text-white"
+                        : "border-black/10 text-black/60"
+                    }`}
+                  >
+                    {c.libelle}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              disabled={creerCle.isPending}
+              onClick={() =>
+                creerCle.mutate({
+                  nom: nomCle,
+                  portee: porteeCle,
+                  role: roleCle,
+                  quotaJour: Number(quotaCle || "0"),
+                  motif: "",
+                })
+              }
+              className="mt-2 rounded-xl bg-[#111] px-3 py-1.5 text-[12px] font-bold text-white disabled:opacity-40"
+            >
+              Créer (la clé restera fermée)
+            </button>
+            {secretCle ? (
+              <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <p className="text-[11px] font-bold text-amber-800">
+                  Copiez ce secret maintenant : il n'est pas conservé et ne sera plus affiché.
+                </p>
+                <p className="mt-1 break-all font-mono text-[12px] text-amber-900">{secretCle}</p>
+              </div>
+            ) : null}
+          </div>
+
+          {(developpeur.data?.cles ?? []).map((c) => (
+            <div key={c.id} className="rounded-2xl border border-black/5 bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-black text-[#111]">{c.nom}</h3>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    c.active ? "bg-emerald-50 text-emerald-700" : "bg-[#FAFAFA] text-black/60"
+                  }`}
+                >
+                  {c.active ? "ouverte" : "fermée"}
+                </span>
+              </div>
+              <p className="mt-1 font-mono text-[11px] text-black/50">{c.prefixe}…</p>
+              <p className="mt-1 text-[11px] text-black/50">
+                Rôle {c.role} — quota {c.quotaJour}/24 h — {c.appels24h} appel(s) servi(s),{" "}
+                {c.refus24h} refus sur 24 h
+              </p>
+              <p className="mt-1 text-[11px] text-black/45">
+                Capacités réellement ouvertes : {c.capacitesEffectives.join(", ") || "aucune"}
+              </p>
+              {c.capacitesRefusees.map((r) => (
+                <p key={r.capacite} className="mt-0.5 text-[11px] text-red-700">
+                  {r.capacite} — {r.motif}
+                </p>
+              ))}
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  disabled={reglerCle.isPending}
+                  onClick={() =>
+                    reglerCle.mutate({
+                      id: c.id,
+                      active: !c.active,
+                      motif: c.active ? "Fermée par la direction" : "Ouverte par la direction",
+                    })
+                  }
+                  className="rounded-xl border border-black/10 px-3 py-1.5 text-[12px] font-bold text-black/70"
+                >
+                  {c.active ? "Fermer" : "Ouvrir"}
+                </button>
+                <button
+                  type="button"
+                  disabled={revoquerCle.isPending}
+                  onClick={() => revoquerCle.mutate({ id: c.id, motif: "Révoquée par la direction" })}
+                  className="rounded-xl border border-red-200 px-3 py-1.5 text-[12px] font-bold text-red-700"
+                >
+                  Révoquer
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="text-sm font-black uppercase tracking-wide text-black/50">
+              Derniers appels et refus
+            </h2>
+            {(developpeur.data?.journal ?? []).length === 0 ? (
+              <p className="mt-2 text-[12px] text-black/50">Aucun appel développeur enregistré.</p>
+            ) : (
+              <ul className="mt-2 space-y-1">
+                {(developpeur.data?.journal ?? []).map((a) => (
+                  <li key={a.id} className="rounded-xl border border-black/5 px-3 py-2">
+                    <p className="text-[12px] text-black/70">
+                      {a.capacite || "capacité non précisée"} — {a.ok ? "servi" : "refusé"}
+                    </p>
+                    <p className="text-[11px] text-black/45">{a.motif || "aucun motif"}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </section>
       ) : null}
