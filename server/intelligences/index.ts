@@ -104,6 +104,10 @@ import {
   proposer,
   sessions,
 } from "./service.js";
+import {
+  compter as compterVehicules,
+  interpreter as interpreterRechercheVehicule,
+} from "./recherche.js";
 
 export const INTELLIGENCES_META = {
   code: "intelligences",
@@ -147,6 +151,28 @@ export const intelligencesRouter = router({
         countryCode: input.countryCode ?? null,
       }),
     ),
+
+  /**
+   * Recherche véhicule dictée ou écrite en langage naturel → critères réels.
+   * Public : c'est l'acheteur qui parle. Aucun critère n'est deviné ; ce qui
+   * n'a pas été compris est rendu tel quel pour que l'écran le dise.
+   */
+  interpreterRecherche: publicProcedure
+    .input(
+      z.object({
+        texte: z.string().min(2).max(500),
+        pays: z.string().max(4).nullable().optional(),
+        langue: z.string().max(8).optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const lecture = await interpreterRechercheVehicule({
+        texte: input.texte,
+        pays: input.pays ?? null,
+        langue: input.langue ?? "fr",
+      });
+      return { ...lecture, resultats: await compterVehicules(lecture.criteres) };
+    }),
 
   /** Historique d'une conversation publique (par identifiant de session). */
   filPublic: publicProcedure
