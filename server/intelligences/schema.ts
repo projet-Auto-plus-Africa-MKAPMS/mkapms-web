@@ -219,3 +219,130 @@ export const inMissionEtapes = pgTable("in_mission_etapes", {
   dureeMs: integer("duree_ms").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/**
+ * Point 146 — attribution des permissions techniques.
+ *
+ * Les neuf permissions existent toutes ; ce n'est pas une raison pour les
+ * donner à tout le monde. Cette table porte les attributions décidées par le
+ * PDG, par rôle **et** par moteur : un moteur Image n'a pas de raison d'obtenir
+ * FINANCIAL, même si la permission existe. Une ligne absente vaut le défaut
+ * codé, jamais « tout autorisé ».
+ */
+export const inPermissions = pgTable(
+  "in_permissions",
+  {
+    id: serial("id").primaryKey(),
+    /** `role` ou `moteur`. */
+    portee: varchar("portee", { length: 16 }).notNull(),
+    cible: varchar("cible", { length: 64 }).notNull(),
+    permissions: jsonb("permissions").$type<string[]>().notNull().default([]),
+    motif: text("motif").notNull().default(""),
+    actorId: integer("actor_id"),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parCible: index("in_permissions_cible_idx").on(t.portee, t.cible),
+  }),
+);
+
+/**
+ * Point 145 — état d'activation d'une capacité, décidé par le propriétaire.
+ *
+ * Distinct de l'état *constaté* (fournisseur joignable ou non) : ici c'est une
+ * décision humaine. Une capacité désactivée par le PDG est refusée par le
+ * routeur même si le fournisseur répond parfaitement.
+ */
+export const inCapaciteEtat = pgTable("in_capacite_etat", {
+  id: serial("id").primaryKey(),
+  capacite: varchar("capacite", { length: 32 }).notNull().unique(),
+  actif: boolean("actif").notNull().default(true),
+  /** Fournisseur imposé par le PDG, ou null pour laisser le routage décider. */
+  fournisseurImpose: varchar("fournisseur_impose", { length: 48 }),
+  motif: text("motif").notNull().default(""),
+  actorId: integer("actor_id"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+/**
+ * Point 148 — mesure de chaque appel réellement passé à un fournisseur.
+ *
+ * Sans cette table, « ce moteur est meilleur » resterait une impression. La
+ * qualité, elle, n'est pas déduite : elle vient d'une note humaine (`note`) ou
+ * d'une comparaison shadow. Un critère sans mesure reste non mesuré.
+ */
+export const inAppels = pgTable(
+  "in_appels",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    capacite: varchar("capacite", { length: 32 }).notNull(),
+    tache: varchar("tache", { length: 64 }).notNull().default(""),
+    moteur: varchar("moteur", { length: 64 }).notNull().default(""),
+    fournisseur: varchar("fournisseur", { length: 48 }),
+    /** `principal`, `repli` ou `candidat` (moteur MKA.P-MS en observation). */
+    rang: varchar("rang", { length: 16 }).notNull().default("principal"),
+    ok: boolean("ok").notNull().default(false),
+    dureeMs: integer("duree_ms").notNull().default(0),
+    jetonsEntree: integer("jetons_entree").notNull().default(0),
+    jetonsSortie: integer("jetons_sortie").notNull().default(0),
+    /** Coût en centimes quand le tarif du fournisseur est renseigné. */
+    coutCents: integer("cout_cents").notNull().default(0),
+    coutMesure: boolean("cout_mesure").notNull().default(false),
+    motif: text("motif").notNull().default(""),
+    /** Note de qualité 1-5 donnée par un humain ; null = qualité non jugée. */
+    note: integer("note"),
+    noteActorId: integer("note_actor_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parCapacite: index("in_appels_capacite_idx").on(t.capacite, t.createdAt),
+    parFournisseur: index("in_appels_fournisseur_idx").on(t.fournisseur, t.createdAt),
+  }),
+);
+
+/**
+ * Point 149 — mode shadow : le moteur MKA.P-MS candidat reçoit la même mission
+ * que le fournisseur en place, sans être exposé au client.
+ *
+ * `part` est le pourcentage de trafic réellement servi par le candidat. Elle ne
+ * monte que par paliers (10, 25, 50, 100) et seulement sur preuve : le
+ * remplacement se mérite, il ne se décrète pas.
+ */
+export const inShadow = pgTable("in_shadow", {
+  id: serial("id").primaryKey(),
+  capacite: varchar("capacite", { length: 32 }).notNull().unique(),
+  /** Fournisseur ou moteur candidat observé (ex. `modele_local`). */
+  candidat: varchar("candidat", { length: 48 }).notNull(),
+  /** Observation en parallèle active. */
+  actif: boolean("actif").notNull().default(false),
+  /** 0, 10, 25, 50 ou 100 — part du trafic réellement confiée au candidat. */
+  part: integer("part").notNull().default(0),
+  motif: text("motif").notNull().default(""),
+  actorId: integer("actor_id"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+/** Comparaisons shadow : une mission, deux exécutions, un écart mesuré. */
+export const inShadowRuns = pgTable(
+  "in_shadow_runs",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    capacite: varchar("capacite", { length: 32 }).notNull(),
+    tache: varchar("tache", { length: 64 }).notNull().default(""),
+    fournisseur: varchar("fournisseur", { length: 48 }),
+    candidat: varchar("candidat", { length: 48 }).notNull(),
+    okFournisseur: boolean("ok_fournisseur").notNull().default(false),
+    okCandidat: boolean("ok_candidat").notNull().default(false),
+    dureeFournisseurMs: integer("duree_fournisseur_ms").notNull().default(0),
+    dureeCandidatMs: integer("duree_candidat_ms").notNull().default(0),
+    /** Proximité des deux réponses, 0 à 100. Null quand l'une manque. */
+    similarite: integer("similarite"),
+    /** `equivalent`, `candidat_faible`, `candidat_meilleur`, `candidat_absent`. */
+    verdict: varchar("verdict", { length: 24 }).notNull().default("candidat_absent"),
+    motifCandidat: text("motif_candidat").notNull().default(""),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parCapacite: index("in_shadow_runs_capacite_idx").on(t.capacite, t.createdAt),
+  }),
+);

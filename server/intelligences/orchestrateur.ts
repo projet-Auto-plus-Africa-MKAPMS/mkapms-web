@@ -163,7 +163,7 @@ export async function orchestrer(input: OrchestrerInput): Promise<Mission> {
   const debutMission = Date.now();
   const objectif = input.objectif.trim();
   const { domaine, autonomie } = classerObjectif(objectif);
-  const accordees = permissionsDuRole(input.role);
+  const accordees = await permissionsDuRole(input.role);
 
   const [mission] = await db
     .insert(inMissions)

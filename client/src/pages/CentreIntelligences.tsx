@@ -31,6 +31,10 @@ import { useAuth } from "../lib/auth";
 
 type Onglet =
   | "echange"
+  | "pilotage"
+  | "permissions"
+  | "evaluation"
+  | "shadow"
   | "missions"
   | "autonomie"
   | "capacites"
@@ -45,6 +49,10 @@ type Onglet =
 
 const ONGLETS: { cle: Onglet; label: string }[] = [
   { cle: "echange", label: "Échange" },
+  { cle: "pilotage", label: "Actions de direction" },
+  { cle: "permissions", label: "Permissions" },
+  { cle: "evaluation", label: "Évaluation" },
+  { cle: "shadow", label: "Moteur candidat" },
   { cle: "missions", label: "Missions" },
   { cle: "autonomie", label: "Autonomie" },
   { cle: "capacites", label: "Capacités" },
@@ -93,6 +101,12 @@ export default function CentreIntelligences() {
   const [recherche, setRecherche] = useState("");
   const [termeCherche, setTermeCherche] = useState("");
   const [ticketOuvert, setTicketOuvert] = useState<number | null>(null);
+  const [argAction, setArgAction] = useState<Record<string, string>>({});
+  const [motifAction, setMotifAction] = useState<Record<string, string>>({});
+  const [phraseAction, setPhraseAction] = useState<Record<string, string>>({});
+  const [permChoix, setPermChoix] = useState<Record<string, string[]>>({});
+  const [motifPerm, setMotifPerm] = useState<Record<string, string>>({});
+  const [motifShadow, setMotifShadow] = useState<Record<string, string>>({});
 
   const etat = trpc.intelligences.etat.useQuery(undefined, {
     enabled: !!estPdg,
@@ -240,6 +254,74 @@ export default function CentreIntelligences() {
     onSuccess: (r) => {
       setMessage(`${r.archives} souvenir(s) passé(s) en archive. Aucune suppression.`);
       memoire.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
+
+  const pilotage = trpc.intelligences.pilotage.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "pilotage",
+    refetchOnWindowFocus: false,
+  });
+  const journalActions = trpc.intelligences.journalActions.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "pilotage",
+    refetchOnWindowFocus: false,
+  });
+  const executerAction = trpc.intelligences.executerAction.useMutation({
+    onSuccess: (r) => {
+      setMessage(`${r.detail}`);
+      pilotage.refetch();
+      journalActions.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
+
+  const permissions = trpc.intelligences.permissions.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "permissions",
+    refetchOnWindowFocus: false,
+  });
+  const journalPermissions = trpc.intelligences.journalPermissions.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "permissions",
+    refetchOnWindowFocus: false,
+  });
+  const attribuerPermissions = trpc.intelligences.attribuerPermissions.useMutation({
+    onSuccess: (r) => {
+      setMessage(r.detail);
+      permissions.refetch();
+      journalPermissions.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
+
+  const evaluation = trpc.intelligences.evaluation.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "evaluation",
+    refetchOnWindowFocus: false,
+  });
+  const appels = trpc.intelligences.appels.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "evaluation",
+    refetchOnWindowFocus: false,
+  });
+  const noterAppel = trpc.intelligences.noterAppel.useMutation({
+    onSuccess: (r) => {
+      setMessage(r.detail);
+      appels.refetch();
+      evaluation.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
+  });
+
+  const shadow = trpc.intelligences.shadow.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "shadow",
+    refetchOnWindowFocus: false,
+  });
+  const comparaisons = trpc.intelligences.comparaisonsShadow.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "shadow",
+    refetchOnWindowFocus: false,
+  });
+  const reglerShadow = trpc.intelligences.reglerShadow.useMutation({
+    onSuccess: (r) => {
+      setMessage(r.detail);
+      shadow.refetch();
+      comparaisons.refetch();
     },
     onError: (e) => setMessage(`Échec : ${e.message}`),
   });
@@ -476,6 +558,454 @@ export default function CentreIntelligences() {
               ) : null}
             </div>
           ))}
+        </section>
+      ) : null}
+
+      {onglet === "pilotage" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <ListChecks className="h-4 w-4" /> Ce que la direction peut faire d'ici
+            </h2>
+            <p className="mt-1 text-[12px] text-black/60">
+              Chaque action passe par la permission, le niveau d'autonomie et le journal. Les effets
+              sensibles ouvrent une demande de confirmation : ils ne s'appliquent pas d'un clic.
+            </p>
+          </div>
+
+          {(pilotage.data?.actions ?? []).map((a) => (
+            <div key={a.code} className="rounded-2xl border border-black/5 bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-black text-[#111]">{a.libelle}</h3>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    a.disponible ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
+                  }`}
+                >
+                  {a.disponible ? a.permission : "refusée"}
+                </span>
+              </div>
+              <p className="mt-1 text-[12px] text-black/60">{a.effet}</p>
+              <p className="mt-1 text-[11px] text-black/45">
+                {a.motif}
+                {a.confirmation ? " — confirmation humaine exigée." : ""}
+              </p>
+              {a.argument ? (
+                <input
+                  value={argAction[a.code] ?? ""}
+                  onChange={(e) => setArgAction((m) => ({ ...m, [a.code]: e.target.value }))}
+                  placeholder={a.argument}
+                  className="mt-2 w-full rounded-xl border border-black/10 px-3 py-2 text-[12px]"
+                />
+              ) : null}
+              {a.lecture ? null : (
+                <input
+                  value={motifAction[a.code] ?? ""}
+                  onChange={(e) => setMotifAction((m) => ({ ...m, [a.code]: e.target.value }))}
+                  placeholder="Motif écrit (conservé au journal)"
+                  className="mt-2 w-full rounded-xl border border-black/10 px-3 py-2 text-[12px]"
+                />
+              )}
+              {a.confirmation || a.code === "autoriser_action" ? (
+                <input
+                  value={phraseAction[a.code] ?? ""}
+                  onChange={(e) => setPhraseAction((m) => ({ ...m, [a.code]: e.target.value }))}
+                  placeholder="Phrase de confirmation exacte"
+                  className="mt-2 w-full rounded-xl border border-black/10 px-3 py-2 text-[12px]"
+                />
+              ) : null}
+              <button
+                type="button"
+                disabled={!a.disponible || executerAction.isPending}
+                onClick={() =>
+                  executerAction.mutate({
+                    code: a.code,
+                    argument: argAction[a.code] || undefined,
+                    motif: motifAction[a.code] || undefined,
+                    phrase: phraseAction[a.code] || undefined,
+                  })
+                }
+                className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-[#111] px-3 py-2 text-[12px] font-bold text-white disabled:opacity-40"
+              >
+                <Play className="h-3.5 w-3.5" /> {a.lecture ? "Consulter" : "Demander"}
+              </button>
+            </div>
+          ))}
+
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="text-sm font-black uppercase tracking-wide text-black/50">
+              Journal des actions
+            </h2>
+            {(journalActions.data ?? []).length === 0 ? (
+              <p className="mt-2 text-[12px] text-black/50">Aucune action enregistrée.</p>
+            ) : (
+              <ul className="mt-2 space-y-1">
+                {(journalActions.data ?? []).map((j) => (
+                  <li key={j.id} className="rounded-xl border border-black/5 px-3 py-2">
+                    <p className="text-[12px] text-black/70">
+                      {j.commande} — {j.resultat}
+                    </p>
+                    <p className="text-[11px] text-black/45">{j.detail || "aucun détail"}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {onglet === "permissions" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <ShieldCheck className="h-4 w-4" /> Les neuf permissions techniques
+            </h2>
+            <p className="mt-1 text-[12px] text-black/60">
+              Elles existent toutes dans l'architecture, mais aucune n'est distribuée d'office :
+              un moteur d'image n'a pas à toucher au paiement. La permission réelle est
+              l'intersection du rôle et du moteur appelant.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {(permissions.data?.permissions ?? []).map((p) => (
+                <span
+                  key={p}
+                  className="rounded-full bg-black/5 px-2 py-0.5 text-[11px] font-bold text-black/60"
+                >
+                  {p}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {[
+            { titre: "Par rôle", portee: "role" as const, lignes: permissions.data?.roles ?? [] },
+            { titre: "Par moteur appelant", portee: "moteur" as const, lignes: permissions.data?.moteurs ?? [] },
+          ].map((bloc) => (
+            <div key={bloc.portee} className="rounded-2xl border border-black/5 bg-white p-4">
+              <h3 className="text-sm font-black text-[#111]">{bloc.titre}</h3>
+              <ul className="mt-2 space-y-2">
+                {bloc.lignes.map((l) => {
+                  const cle = `${l.portee}:${l.cible}`;
+                  const choisi = permChoix[cle] ?? l.permissions;
+                  return (
+                    <li key={cle} className="rounded-xl border border-black/5 px-3 py-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-[12px] font-bold text-[#111]">{l.cible}</p>
+                        <span className="text-[11px] text-black/45">
+                          {l.origine === "decision" ? "décision de direction" : "défaut"}
+                        </span>
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {(permissions.data?.permissions ?? []).map((p) => (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() =>
+                              setPermChoix((m) => ({
+                                ...m,
+                                [cle]: choisi.includes(p)
+                                  ? choisi.filter((x) => x !== p)
+                                  : [...choisi, p],
+                              }))
+                            }
+                            className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                              choisi.includes(p)
+                                ? "bg-[#111] text-white"
+                                : "border border-black/10 text-black/50"
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        ))}
+                      </div>
+                      {l.ecart.length > 0 ? (
+                        <p className="mt-1 text-[11px] text-amber-700">
+                          Écart avec le défaut : {l.ecart.join(", ")}
+                        </p>
+                      ) : null}
+                      <p className="mt-1 text-[11px] text-black/45">{l.motif || "aucun motif écrit"}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <input
+                          value={motifPerm[cle] ?? ""}
+                          onChange={(e) => setMotifPerm((m) => ({ ...m, [cle]: e.target.value }))}
+                          placeholder="Motif de la décision"
+                          className="min-w-[180px] flex-1 rounded-xl border border-black/10 px-3 py-1.5 text-[12px]"
+                        />
+                        <button
+                          type="button"
+                          disabled={attribuerPermissions.isPending}
+                          onClick={() =>
+                            attribuerPermissions.mutate({
+                              portee: l.portee,
+                              cible: l.cible,
+                              permissions: choisi,
+                              motif: motifPerm[cle] ?? "",
+                            })
+                          }
+                          className="rounded-xl bg-[#111] px-3 py-1.5 text-[12px] font-bold text-white disabled:opacity-40"
+                        >
+                          Appliquer
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="text-sm font-black uppercase tracking-wide text-black/50">
+              Journal des attributions
+            </h2>
+            {(journalPermissions.data ?? []).length === 0 ? (
+              <p className="mt-2 text-[12px] text-black/50">Aucune décision enregistrée.</p>
+            ) : (
+              <ul className="mt-2 space-y-1">
+                {(journalPermissions.data ?? []).map((j) => (
+                  <li key={j.id} className="rounded-xl border border-black/5 px-3 py-2">
+                    <p className="text-[12px] text-black/70">
+                      {j.argument || "cible non précisée"} — {j.resultat}
+                    </p>
+                    <p className="text-[11px] text-black/45">{j.detail || "aucun motif écrit"}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {onglet === "evaluation" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <Gauge className="h-4 w-4" /> Évaluation permanente
+            </h2>
+            <p className="mt-1 text-[12px] text-black/60">
+              {evaluation.data?.appelsObserves ?? 0} appel(s) observé(s) sur{" "}
+              {evaluation.data?.jours ?? 30} jours. Un critère sans relevé reste écrit
+              « non mesuré » : aucun moteur n'est déclaré supérieur sans preuve.
+            </p>
+            <ul className="mt-2 space-y-1">
+              {(evaluation.data?.global ?? []).map((m) => (
+                <li key={m.critere} className="rounded-xl border border-black/5 px-3 py-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-[12px] font-bold text-[#111]">{m.libelle}</p>
+                    <span
+                      className={`text-[12px] font-bold ${
+                        m.mesure ? "text-[#111]" : "text-black/40"
+                      }`}
+                    >
+                      {m.mesure ? `${m.valeur} ${m.unite}` : "non mesuré"}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-black/45">{m.constat}</p>
+                </li>
+              ))}
+            </ul>
+            {(evaluation.data?.manques ?? []).length > 0 ? (
+              <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <p className="text-[12px] font-bold text-amber-800">Ce qui manque pour conclure</p>
+                <ul className="mt-1 space-y-0.5">
+                  {(evaluation.data?.manques ?? []).map((m) => (
+                    <li key={m} className="text-[11px] text-amber-800">
+                      {m}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+
+          {(evaluation.data?.fournisseurs ?? []).map((f) => (
+            <div key={f.fournisseur} className="rounded-2xl border border-black/5 bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-black text-[#111]">{f.fournisseur}</h3>
+                <span className="text-[11px] text-black/45">{f.appels} appel(s)</span>
+              </div>
+              <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+                {f.mesures.map((m) => (
+                  <li key={m.critere} className="rounded-xl border border-black/5 px-3 py-1.5">
+                    <p className="text-[11px] text-black/50">{m.libelle}</p>
+                    <p
+                      className={`text-[12px] font-bold ${
+                        m.mesure ? "text-[#111]" : "text-black/40"
+                      }`}
+                    >
+                      {m.mesure ? `${m.valeur} ${m.unite}` : "non mesuré"}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="text-sm font-black uppercase tracking-wide text-black/50">
+              Derniers appels réels
+            </h2>
+            {(appels.data ?? []).length === 0 ? (
+              <p className="mt-2 text-[12px] text-black/50">
+                Aucun appel mesuré pour l'instant.
+              </p>
+            ) : (
+              <ul className="mt-2 space-y-1">
+                {(appels.data ?? []).map((a) => (
+                  <li key={a.id} className="rounded-xl border border-black/5 px-3 py-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-[12px] text-black/70">
+                        {a.capacite} — {a.fournisseur ?? "aucun fournisseur"} ({a.rang})
+                      </p>
+                      <span
+                        className={`text-[11px] font-bold ${
+                          a.ok ? "text-emerald-700" : "text-red-700"
+                        }`}
+                      >
+                        {a.ok ? `${a.dureeMs} ms` : "échec"}
+                      </span>
+                    </div>
+                    {a.motif ? (
+                      <p className="text-[11px] text-black/45">{a.motif}</p>
+                    ) : null}
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <span className="text-[11px] text-black/40">
+                        {a.note ? `noté ${a.note}/5` : "non noté"}
+                      </span>
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          disabled={noterAppel.isPending}
+                          onClick={() => noterAppel.mutate({ appelId: a.id, note: n })}
+                          className="h-6 w-6 rounded-lg border border-black/10 text-[11px] font-bold text-black/60 hover:bg-black/5"
+                        >
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {onglet === "shadow" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <Cpu className="h-4 w-4" /> Moteur MKA.P-MS en observation
+            </h2>
+            <p className="mt-1 text-[12px] text-black/60">
+              Le candidat traite la même mission que le fournisseur, mais son résultat n'atteint
+              jamais le client tant qu'il est seulement observé. La montée se fait par paliers
+              prouvés : {(shadow.data?.paliers ?? []).join(" → ")} %.
+            </p>
+            <p className="mt-1 text-[11px] text-black/45">
+              {shadow.data?.resume.observees ?? 0} capacité(s) observée(s),{" "}
+              {shadow.data?.resume.servies ?? 0} servant déjà du trafic réel,{" "}
+              {shadow.data?.resume.comparaisons ?? 0} comparaison(s) conservée(s).
+            </p>
+          </div>
+
+          {(shadow.data?.capacites ?? []).map((c) => {
+            const cle = c.capacite;
+            return (
+              <div key={cle} className="rounded-2xl border border-black/5 bg-white p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm font-black text-[#111]">{c.libelle}</h3>
+                  <span className="rounded-full bg-[#FAFAFA] px-2 py-0.5 text-[11px] font-bold text-black/60">
+                    {c.actif ? `observé — ${c.part} % du trafic` : "non observé"}
+                  </span>
+                </div>
+                <p className="mt-1 text-[12px] text-black/60">
+                  Fournisseur : {c.fournisseurPrincipal ?? "aucun"} — candidat :{" "}
+                  {c.candidat ?? c.remplacementMka}
+                </p>
+                <p className="mt-1 text-[11px] text-black/50">
+                  {c.preuves.comparaisons} comparaison(s),{" "}
+                  {c.preuves.accordMoyen === null
+                    ? "accord non mesuré"
+                    : `accord moyen ${c.preuves.accordMoyen} %`},{" "}
+                  {c.preuves.echecCandidat === null
+                    ? "échec candidat non mesuré"
+                    : `${c.preuves.echecCandidat} % d'échecs candidat`}
+                </p>
+                <p className="mt-1 text-[11px] text-black/45">{c.verdict}</p>
+                <input
+                  value={motifShadow[cle] ?? ""}
+                  onChange={(e) => setMotifShadow((m) => ({ ...m, [cle]: e.target.value }))}
+                  placeholder="Motif de la décision"
+                  className="mt-2 w-full rounded-xl border border-black/10 px-3 py-2 text-[12px]"
+                />
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    disabled={reglerShadow.isPending}
+                    onClick={() =>
+                      reglerShadow.mutate({
+                        capacite: cle,
+                        actif: !c.actif,
+                        motif: motifShadow[cle] ?? "",
+                      })
+                    }
+                    className="rounded-xl border border-black/10 px-3 py-1.5 text-[12px] font-bold text-black/70"
+                  >
+                    {c.actif ? "Arrêter l'observation" : "Observer"}
+                  </button>
+                  {c.palierSuivant === null ? null : (
+                    <button
+                      type="button"
+                      disabled={reglerShadow.isPending || !c.montePossible}
+                      onClick={() =>
+                        reglerShadow.mutate({
+                          capacite: cle,
+                          part: c.palierSuivant ?? 0,
+                          actif: true,
+                          motif: motifShadow[cle] ?? "",
+                        })
+                      }
+                      className="rounded-xl bg-[#111] px-3 py-1.5 text-[12px] font-bold text-white disabled:opacity-40"
+                    >
+                      Monter à {c.palierSuivant} %
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="text-sm font-black uppercase tracking-wide text-black/50">
+              Comparaisons conservées
+            </h2>
+            {(comparaisons.data ?? []).length === 0 ? (
+              <p className="mt-2 text-[12px] text-black/50">
+                Aucune comparaison : rien ne permet encore de départager le candidat et le
+                fournisseur.
+              </p>
+            ) : (
+              <ul className="mt-2 space-y-1">
+                {(comparaisons.data ?? []).map((c) => (
+                  <li key={c.id} className="rounded-xl border border-black/5 px-3 py-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-[12px] text-black/70">
+                        {c.capacite} : {c.fournisseur ?? "aucun"} vs {c.candidat}
+                      </p>
+                      <span className="text-[11px] font-bold text-black/60">{c.verdict}</span>
+                    </div>
+                    <p className="text-[11px] text-black/45">
+                      {c.dureeFournisseurMs} ms / {c.dureeCandidatMs} ms —{" "}
+                      {c.similarite === null ? "similarité non mesurée" : `${c.similarite} % d'accord`}
+                      {c.motifCandidat ? ` — ${c.motifCandidat}` : ""}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </section>
       ) : null}
 

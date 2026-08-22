@@ -34,6 +34,32 @@ import {
 } from "./orchestrateur.js";
 import { TYPES_PIECE } from "./multimodal.js";
 import {
+  CODES_ACTION,
+  executer as executerAction,
+  journal as journalActions,
+  tableauDeBord,
+} from "./actions.js";
+import {
+  attribuer as attribuerPermissions,
+  journal as journalPermissions,
+  tableau as tableauPermissions,
+} from "./permissions.js";
+import {
+  CRITERES,
+  LIBELLE_CRITERE,
+  derniers as derniersAppels,
+  evaluation,
+  noter as noterAppel,
+} from "./evaluation.js";
+import {
+  PALIERS,
+  comparaisons as comparaisonsShadow,
+  detachementPossible,
+  etat as etatShadow,
+  regler as reglerShadow,
+  resume as resumeShadow,
+} from "./shadow.js";
+import {
   CATEGORIES as CATEGORIES_MEMOIRE,
   CYCLES,
   archiver,
@@ -373,4 +399,95 @@ export const intelligencesRouter = router({
   actions: pdgProcedure
     .input(z.object({ limit: z.number().int().min(1).max(200).default(60) }).optional())
     .query(({ input }) => actions(input?.limit ?? 60)),
+
+  /** Point 145 — les dix-neuf actions de direction, avec leur disponibilité réelle. */
+  pilotage: pdgProcedure.query(({ ctx }) => tableauDeBord(ctx.user?.role ?? null)),
+
+  executerAction: pdgProcedure
+    .input(
+      z.object({
+        code: z.enum(CODES_ACTION),
+        argument: z.string().max(400).optional(),
+        motif: z.string().max(600).optional(),
+        phrase: z.string().max(200).optional(),
+      }),
+    )
+    .mutation(({ input, ctx }) =>
+      executerAction({
+        code: input.code,
+        argument: input.argument,
+        motif: input.motif,
+        phrase: input.phrase,
+        role: ctx.user?.role ?? null,
+        actorId: ctx.user?.uid ?? 0,
+      }),
+    ),
+
+  journalActions: pdgProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(200).default(80) }).optional())
+    .query(({ input }) => journalActions(input?.limit ?? 80)),
+
+  /** Point 146 — permissions techniques disponibles, et ce qui est réellement attribué. */
+  permissions: pdgProcedure.query(() => tableauPermissions()),
+
+  attribuerPermissions: pdgProcedure
+    .input(
+      z.object({
+        portee: z.enum(["role", "moteur"]),
+        cible: z.string().min(1).max(64),
+        permissions: z.array(z.string().max(24)).max(20),
+        motif: z.string().min(3).max(600),
+      }),
+    )
+    .mutation(({ input, ctx }) =>
+      attribuerPermissions({ ...input, actorId: ctx.user?.uid }),
+    ),
+
+  journalPermissions: pdgProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(200).default(60) }).optional())
+    .query(({ input }) => journalPermissions(input?.limit ?? 60)),
+
+  /** Points 147-148 — usage réel par fournisseur et évaluation permanente. */
+  evaluation: pdgProcedure
+    .input(z.object({ jours: z.number().int().min(1).max(365).default(30) }).optional())
+    .query(async ({ input }) => ({
+      criteres: CRITERES,
+      libelles: LIBELLE_CRITERE,
+      ...(await evaluation(input?.jours ?? 30)),
+    })),
+
+  appels: pdgProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(200).default(40) }).optional())
+    .query(({ input }) => derniersAppels(input?.limit ?? 40)),
+
+  noterAppel: pdgProcedure
+    .input(z.object({ appelId: z.number().int().positive(), note: z.number().int().min(1).max(5) }))
+    .mutation(({ input, ctx }) => noterAppel({ ...input, actorId: ctx.user?.uid })),
+
+  /** Point 149 — mode shadow : comparaisons, paliers et preuves. */
+  shadow: pdgProcedure.query(async () => ({
+    paliers: PALIERS,
+    capacites: await etatShadow(),
+    resume: await resumeShadow(),
+  })),
+
+  reglerShadow: pdgProcedure
+    .input(
+      z.object({
+        capacite: z.string().min(1).max(32),
+        candidat: z.string().max(48).optional(),
+        actif: z.boolean().optional(),
+        part: z.number().int().min(0).max(100).optional(),
+        motif: z.string().min(3).max(600),
+      }),
+    )
+    .mutation(({ input, ctx }) => reglerShadow({ ...input, actorId: ctx.user?.uid })),
+
+  comparaisonsShadow: pdgProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(200).default(60) }).optional())
+    .query(({ input }) => comparaisonsShadow(input?.limit ?? 60)),
+
+  detachementFournisseur: pdgProcedure
+    .input(z.object({ capacite: z.string().min(1).max(32) }))
+    .query(({ input }) => detachementPossible(input.capacite)),
 });
