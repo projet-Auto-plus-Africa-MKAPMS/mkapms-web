@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { DocumentView, buildFactureData } from "../components/DocumentPDF";
-import { WordmarkMKAPMS } from "../components/WordmarkMKAPMS";
 
 /* ═══════════════════════════════════════════════════════════
    ACHETEURS AUTORISÉS
@@ -357,11 +356,11 @@ export default function VenteEncheres() {
               draggable={false}
             />
             <h1 className="flex flex-col items-center gap-2 text-4xl md:text-6xl font-black text-white leading-tight">
-              {/* Wordmark SVG charte — S entier + ligne lumineuse (responsive) */}
-              <WordmarkMKAPMS
-                height={36}
-                withGlowLine
-                className="md:!h-14"
+              <img
+                src="/brand/wordmark.png"
+                alt="MKA.P-MS"
+                className="h-9 md:h-14 w-auto"
+                draggable={false}
               />
               <span className="text-purple-400">ENCHÈRES PRO</span>
             </h1>

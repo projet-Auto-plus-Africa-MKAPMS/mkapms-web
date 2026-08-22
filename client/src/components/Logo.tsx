@@ -19,7 +19,6 @@
  * images fournies par la marque.
  */
 import type { ImgHTMLAttributes } from "react";
-import { WordmarkMKAPMS } from "./WordmarkMKAPMS";
 type LogoVariant = "open" | "closed";
 const SRC: Record<LogoVariant, string> = {
   open: "/logo-open.png",
@@ -29,6 +28,7 @@ const ALT: Record<LogoVariant, string> = {
   open: "MKA.P-MS — logo officiel (état ouvert / visiteur)",
   closed: "MKA.P-MS — logo officiel (état fermé / membre)",
 };
+const WORDMARK_SRC = "/brand/wordmark.png";
 /** Slogan officiel « PROTÉGER · RELIER · SERVIR LE MONDE ENTIER » (image charte). */
 const SLOGAN_SRC = "/brand/slogan.png";
 /**
@@ -69,11 +69,24 @@ export function Logo({
         {...rest}
       />
       {withWordmark && (
-        <WordmarkMKAPMS
-          height={Math.max(20, Math.round(size * 1.05))}
-          withGlowLine
-          style={{ marginTop: -10 }}
+        <img
+          src={WORDMARK_SRC}
+          alt="MKA.P-MS"
+          style={{
+            height: Math.max(20, Math.round(size * 1.05)),
+            width: "auto",
+            display: "block",
+            overflow: "visible",
+            marginTop: -10,
+            // Le « S » et le « P » bleus, ainsi que la ligne lumineuse, sont
+            // rendus avec des reflets quasi blancs : sur les fonds clairs
+            // (header, factures) ils disparaissaient. Ce liseré détache les
+            // glyphes sans altérer une seule couleur de la charte, et reste
+            // sans effet visible sur les fonds sombres.
+            filter: WORDMARK_EDGE,
+          }}
           className="select-none"
+          draggable={false}
         />
       )}
       {withSlogan && (
