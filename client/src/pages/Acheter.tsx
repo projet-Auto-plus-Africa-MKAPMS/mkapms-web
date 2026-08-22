@@ -46,18 +46,48 @@ export default function Acheter() {
   // Filtrage par pays : ?pays= explicite prioritaire, sinon pays actif du visiteur.
   const pays = params.get("pays") || country || undefined;
 
+  /**
+   * Critères venus de la recherche d'accueil (dictée ou filtres). Ils sont
+   * transmis tels quels au serveur : un critère demandé puis ignoré rendrait
+   * une liste qui ne correspond pas à ce que l'acheteur a demandé.
+   */
+  const texteURL = params.toString();
+  const criteresURL = useMemo(() => {
+    const p = new URLSearchParams(texteURL);
+    const nombre = (cle: string) => (p.get(cle) ? Number(p.get(cle)) : undefined);
+    const texte = (cle: string) => p.get(cle) || undefined;
+    return {
+      marque: texte("marque"),
+      modele: texte("modele"),
+      prixMin: nombre("prixMin"),
+      anneeMin: nombre("anneeMin") ?? nombre("annee"),
+      anneeMax: nombre("anneeMax"),
+      kmMax: nombre("kmMax"),
+      puissanceMin: nombre("puissanceMin"),
+      portes: nombre("portes"),
+      places: nombre("places"),
+      carburant: texte("carburant"),
+      boite: texte("boite"),
+      etat: texte("etat"),
+      couleur: texte("couleur"),
+      codePostal: texte("codePostal"),
+    };
+  }, [texteURL]);
+  const typeURL = params.get("type") === "location" ? ("location" as const) : ("vente" as const);
+
   const input = useMemo(
     () => ({
-      type: "vente" as const,
+      type: typeURL,
       q: q || undefined,
       categorieAnnonce: (vendeurType || undefined) as any,
       categorie: (categorie || undefined) as any,
       ville: ville || (zone ? zone : undefined),
       pays,
       prixMax,
+      ...criteresURL,
       limit: 48,
     }),
-    [q, vendeurType, categorie, ville, prixMax, zone, pays],
+    [q, vendeurType, categorie, ville, prixMax, zone, pays, criteresURL, typeURL],
   );
 
   const list = trpc.annonces.list.useQuery(input);
@@ -81,8 +111,14 @@ export default function Acheter() {
   // La liste réagit déjà à la saisie ; le bouton inscrit les critères dans
   // l'adresse pour que la recherche soit partageable et retrouvée au retour.
   function lancerRecherche() {
+    // Les critères déjà présents dans l'adresse sont conservés : lancer une
+    // recherche depuis cet écran ne doit pas effacer ce que l'accueil a compris.
     const next: Record<string, string> = {};
+    params.forEach((valeur, cle) => {
+      if (valeur) next[cle] = valeur;
+    });
     if (q) next.q = q;
+    else delete next.q;
     if (vendeurType) next.categorieAnnonce = vendeurType;
     if (categorie) next.categorie = categorie;
     if (zone) next.zone = zone;

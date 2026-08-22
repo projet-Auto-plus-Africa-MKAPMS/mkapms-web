@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, desc, eq, gte, ilike, isNull, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, ilike, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
@@ -137,6 +137,20 @@ export const annoncesRouter = router({
         ownership: z.enum(["client", "plateforme", "partenaire"]).optional(),
         categorieAnnonce: z.enum(["officielle", "professionnelle", "particulier"]).optional(),
         prixMax: z.number().optional(),
+        prixMin: z.number().optional(),
+        anneeMin: z.number().optional(),
+        anneeMax: z.number().optional(),
+        kmMax: z.number().optional(),
+        carburant: z.string().optional(),
+        boite: z.string().optional(),
+        etat: z.string().optional(),
+        couleur: z.string().optional(),
+        portes: z.number().optional(),
+        places: z.number().optional(),
+        puissanceMin: z.number().optional(),
+        codePostal: z.string().optional(),
+        marque: z.string().optional(),
+        modele: z.string().optional(),
         ville: z.string().optional(),
         pays: z.string().optional(),
         segmentLocation: z.enum(["particulier", "professionnel", "vtc_taxi"]).optional(),
@@ -160,6 +174,23 @@ export const annoncesRouter = router({
       if (input.selectionMka !== undefined) conds.push(eq(annonces.selectionMka, input.selectionMka));
       if (input.miseAvantAccueil !== undefined) conds.push(eq(annonces.miseAvantAccueil, input.miseAvantAccueil));
       if (input.prixMax) conds.push(lte(annonces.prix, String(input.prixMax)));
+      if (input.prixMin) conds.push(gte(annonces.prix, String(input.prixMin)));
+      if (input.anneeMin) conds.push(gte(annonces.annee, input.anneeMin));
+      if (input.anneeMax) conds.push(lte(annonces.annee, input.anneeMax));
+      if (input.kmMax) conds.push(lte(annonces.kilometrage, input.kmMax));
+      if (input.puissanceMin) conds.push(gte(annonces.puissanceCv, input.puissanceMin));
+      if (input.portes) conds.push(eq(annonces.portes, input.portes));
+      if (input.places) conds.push(eq(annonces.places, input.places));
+      // Les colonnes enum sont comparées en texte : la valeur vient d'un filtre
+      // public, on ne la fait pas transiter par un cast d'enum PostgreSQL qui
+      // ferait échouer toute la requête sur une valeur inconnue.
+      if (input.carburant) conds.push(sql`${annonces.carburant}::text = ${input.carburant}`);
+      if (input.boite) conds.push(sql`${annonces.boite}::text = ${input.boite}`);
+      if (input.etat) conds.push(sql`${annonces.etat}::text = ${input.etat}`);
+      if (input.couleur) conds.push(ilike(annonces.couleur, `%${input.couleur}%`));
+      if (input.codePostal) conds.push(ilike(annonces.codePostal, `${input.codePostal}%`));
+      if (input.marque) conds.push(ilike(annonces.marque, `%${input.marque}%`));
+      if (input.modele) conds.push(ilike(annonces.modele, `%${input.modele}%`));
       if (input.ville) conds.push(ilike(annonces.ville, `%${input.ville}%`));
       // Filtrage par pays : chaque pays voit ses annonces. On tolère les
       // annonces sans pays renseigné (legacy) pour ne masquer aucun stock existant.
@@ -218,6 +249,52 @@ export const annoncesRouter = router({
         total: count,
         items: rows.map((r) => ({ ...r, photoPrincipale: photoMap.get(r.id) ?? null })),
       };
+    }),
+
+  /**
+   * Valeurs réellement présentes dans le stock publié (pays, villes, couleurs).
+   * Les filtres de l'accueil s'appuient là-dessus : proposer un choix qui ne
+   * ramène aucun véhicule est une fausse promesse faite à l'acheteur.
+   */
+  facettes: publicProcedure
+    .input(z.object({ pays: z.string().max(4).optional() }).optional())
+    .query(async ({ input }) => {
+      const base = [eq(annonces.status, "publiee")];
+      if (input?.pays) {
+        base.push(or(eq(annonces.pays, input.pays), isNull(annonces.pays))!);
+      }
+      const where = and(...base);
+      const [pays, villes, couleurs] = await Promise.all([
+        db
+          .select({ valeur: annonces.pays, n: sql<number>`count(*)::int` })
+          .from(annonces)
+          .where(and(eq(annonces.status, "publiee"), isNotNull(annonces.pays)))
+          .groupBy(annonces.pays)
+          .orderBy(desc(sql`count(*)`))
+          .limit(200),
+        db
+          .select({ valeur: annonces.ville, n: sql<number>`count(*)::int` })
+          .from(annonces)
+          .where(and(where, isNotNull(annonces.ville)))
+          .groupBy(annonces.ville)
+          .orderBy(desc(sql`count(*)`))
+          .limit(300),
+        db
+          .select({ valeur: annonces.couleur, n: sql<number>`count(*)::int` })
+          .from(annonces)
+          .where(and(where, isNotNull(annonces.couleur)))
+          .groupBy(annonces.couleur)
+          .orderBy(desc(sql`count(*)`))
+          .limit(60),
+      ]);
+      const propre = (rows: { valeur: string | null; n: number }[]) =>
+        rows
+          .filter(
+            (r): r is { valeur: string; n: number } =>
+              typeof r.valeur === "string" && r.valeur.trim().length > 0,
+          )
+          .map((r) => ({ valeur: r.valeur.trim(), n: r.n }));
+      return { pays: propre(pays), villes: propre(villes), couleurs: propre(couleurs) };
     }),
 
   // Fiche véhicule détaillée

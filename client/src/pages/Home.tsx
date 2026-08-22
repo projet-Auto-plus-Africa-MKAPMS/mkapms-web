@@ -9,10 +9,13 @@ import {
   Briefcase, Building2, Stethoscope, BadgeCheck, CarFront, Bus, HardHat,
   Fuel, History, Lock, Hammer, Receipt, Scale, Banknote, CircleDollarSign,
   BookOpen, Cog, Sparkles, Play, Bell, MessageSquare, Wallet, User,
-  Facebook, Instagram, Youtube, Linkedin, QrCode, RefreshCw, ThumbsUp
+  Facebook, Instagram, Youtube, Linkedin, QrCode, RefreshCw, ThumbsUp,
+  SlidersHorizontal, ChevronUp
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { SmartLink } from "../lib/redirect";
+import MicroVocal from "../components/MicroVocal";
+import { ALL_BRANDS_AUTO, getModelsForBrand } from "../lib/vehicleData";
 import { useAuth } from "../lib/auth";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import { useCurrency } from "../lib/currency";
@@ -95,6 +98,26 @@ const HOME_SERVICE_VIDEOS = [
   { src: "/videos/home/home_livraison.mp4", label: "Livraison", sub: "Moto, utilitaire, fourgon", to: "/livraison", icon: "📦" },
   { src: "/videos/home/home_depannage.mp4", label: "Dépannage", sub: "Remorquage & intervention", to: "/depannage", icon: "🚨" },
 ];
+
+/* ── FILTRES DE RECHERCHE VÉHICULE (styles communs) ── */
+const SELECT_CLS =
+  "w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium";
+const INPUT_CLS =
+  "w-full rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition font-medium placeholder:text-[#9CA3AF]";
+const ICON_CLS = "pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]";
+const ANNEES = Array.from(
+  { length: new Date().getFullYear() - 1989 },
+  (_, i) => new Date().getFullYear() - i,
+);
+const BUDGETS = [1000, 3000, 5000, 8000, 10000, 15000, 20000, 30000, 50000, 80000, 100000, 200000, 500000];
+const KILOMETRAGES = [5000, 10000, 30000, 50000, 80000, 100000, 150000, 200000, 300000];
+const CATEGORIES_FILTRE = [
+  { v: "citadine", l: "Citadine" }, { v: "berline", l: "Berline" }, { v: "break", l: "Break" },
+  { v: "suv", l: "SUV / 4x4" }, { v: "coupe", l: "Coupé" }, { v: "cabriolet", l: "Cabriolet" },
+  { v: "monospace", l: "Monospace" }, { v: "utilitaire", l: "Utilitaire" }, { v: "camion", l: "Camion" },
+  { v: "moto", l: "Moto" }, { v: "scooter", l: "Scooter" }, { v: "quad", l: "Quad" }, { v: "luxe", l: "Luxe" },
+];
+const CARBURANTS_FILTRE = ["essence", "diesel", "hybride", "electrique", "gpl", "ethanol"];
 
 /* ── COMPOSANT SCROLL HORIZONTAL ── */
 function HScroll({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -494,24 +517,100 @@ export default function Home() {
     return () => { clearInterval(t1); clearInterval(t2); clearInterval(t3); clearInterval(t4); clearInterval(t5); };
   }, []);
 
-  /* Recherche */
+  /* Recherche véhicules — fermée par défaut, ouverte au clic sur l'en-tête. */
+  const [rechercheOuverte, setRechercheOuverte] = useState(false);
   const [sCategorie, setSCategorie] = useState("");
   const [sMarque, setSMarque] = useState("");
   const [sModele, setSModele] = useState("");
   const [sPrix, setSPrix] = useState("");
+  const [sPrixMin, setSPrixMin] = useState("");
   const [sLocalisation, setSLocalisation] = useState("");
   const [sAnnee, setSAnnee] = useState("");
+  const [sAnneeMax, setSAnneeMax] = useState("");
+  const [sKm, setSKm] = useState("");
+  const [sCarburant, setSCarburant] = useState("");
+  const [sBoite, setSBoite] = useState("");
+  const [sEtat, setSEtat] = useState("");
+  const [sCouleur, setSCouleur] = useState("");
+  const [sPortes, setSPortes] = useState("");
+  const [sPlaces, setSPlaces] = useState("");
+  const [sPuissance, setSPuissance] = useState("");
+  const [sVendeur, setSVendeur] = useState("");
+  const [sPays, setSPays] = useState("");
+  const [sCodePostal, setSCodePostal] = useState("");
+  const [sType, setSType] = useState("");
+  /* Ce que la dictée a été comprise — affiché tel quel, jamais reformulé. */
+  const [sLecture, setSLecture] = useState("");
 
-  function doSearch() {
+  function paramsRecherche() {
     const params = new URLSearchParams();
+    if (sType) params.set("type", sType);
     if (sCategorie) params.set("categorie", sCategorie);
     if (sMarque) params.set("marque", sMarque);
     if (sModele) params.set("modele", sModele);
     if (sPrix) params.set("prixMax", sPrix);
+    if (sPrixMin) params.set("prixMin", sPrixMin);
     if (sLocalisation) params.set("ville", sLocalisation);
-    if (sAnnee) params.set("annee", sAnnee);
-    navigate(`/acheter?${params.toString()}`);
+    if (sAnnee) params.set("anneeMin", sAnnee);
+    if (sAnneeMax) params.set("anneeMax", sAnneeMax);
+    if (sKm) params.set("kmMax", sKm);
+    if (sCarburant) params.set("carburant", sCarburant);
+    if (sBoite) params.set("boite", sBoite);
+    if (sEtat) params.set("etat", sEtat);
+    if (sCouleur) params.set("couleur", sCouleur);
+    if (sPortes) params.set("portes", sPortes);
+    if (sPlaces) params.set("places", sPlaces);
+    if (sPuissance) params.set("puissanceMin", sPuissance);
+    if (sVendeur) params.set("categorieAnnonce", sVendeur);
+    if (sPays) params.set("pays", sPays);
+    if (sCodePostal) params.set("codePostal", sCodePostal);
+    return params;
   }
+
+  function doSearch() {
+    navigate(`/acheter?${paramsRecherche().toString()}`);
+  }
+
+  /* Dictée → critères réels lus par MKA.P-MS Intelligences. */
+  const lireDictee = trpc.intelligences.interpreterRecherche.useMutation({
+    onSuccess: (lecture) => {
+      const c = lecture.criteres;
+      if (c.categorie) setSCategorie(c.categorie);
+      if (c.marque) setSMarque(c.marque);
+      if (c.modele) setSModele(c.modele);
+      if (c.prixMax !== undefined) setSPrix(String(c.prixMax));
+      if (c.prixMin !== undefined) setSPrixMin(String(c.prixMin));
+      if (c.ville) setSLocalisation(c.ville);
+      if (c.anneeMin !== undefined) setSAnnee(String(c.anneeMin));
+      if (c.anneeMax !== undefined) setSAnneeMax(String(c.anneeMax));
+      if (c.kmMax !== undefined) setSKm(String(c.kmMax));
+      if (c.carburant) setSCarburant(c.carburant);
+      if (c.boite) setSBoite(c.boite);
+      if (c.etat) setSEtat(c.etat);
+      if (c.couleur) setSCouleur(c.couleur);
+      if (c.places !== undefined) setSPlaces(String(c.places));
+      if (c.portes !== undefined) setSPortes(String(c.portes));
+      if (c.puissanceMin !== undefined) setSPuissance(String(c.puissanceMin));
+      if (c.vendeur) setSVendeur(c.vendeur);
+      if (c.type) setSType(c.type);
+      const lus = lecture.compris.length
+        ? `Compris : ${lecture.compris.join(" · ")}`
+        : "Aucun critère reconnu dans la dictée.";
+      const restes = lecture.nonCompris.length
+        ? ` — non pris en compte : ${lecture.nonCompris.join(", ")}`
+        : "";
+      setSLecture(`${lus}${restes} · ${lecture.resultats} véhicule(s) correspondant(s).`);
+      setRechercheOuverte(true);
+    },
+    onError: (e) => setSLecture(`Dictée non interprétée : ${e.message}`),
+  });
+
+  /* Pays, villes et couleurs réellement présents dans le stock publié. */
+  const facettes = trpc.annonces.facettes.useQuery(undefined, {
+    enabled: rechercheOuverte,
+    staleTime: 5 * 60 * 1000,
+  });
+  const modelesDisponibles = sMarque ? getModelsForBrand(sMarque) : [];
 
   /* Annonces réelles depuis la DB — chaque section filtre correctement, et
      s'adapte automatiquement au pays actif (chaque pays voit ses annonces). */
@@ -671,6 +770,15 @@ export default function Home() {
               >
                 <Search size={16} className="text-[#D4AF37] shrink-0" />
                 <span className="text-sm text-slate-400 flex-1">Vehicule, garage, piece, service, aide...</span>
+                <MicroVocal
+                  titre="Dicter ma recherche — véhicules, pièces, services, aide"
+                  onTexte={(texte, final) => {
+                    if (final && texte.trim()) {
+                      navigate(`/recherche-universelle?q=${encodeURIComponent(texte.trim())}`);
+                    }
+                  }}
+                  className="shrink-0"
+                />
                 <Sparkles size={14} className="text-[#D4AF37] shrink-0" />
               </div>
             </div>
@@ -681,83 +789,243 @@ export default function Home() {
               ═══════════════════════════════════════════════════════════════ */}
           <section className="bg-white px-4 pb-4">
             <div className="max-w-3xl lg:max-w-none mx-auto rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#FAFAF8] to-white p-4 xl:p-6 shadow-md">
-              {/* En-tête premium */}
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37]/10">
-                    <Search size={15} className="text-[#D4AF37]" />
+              {/* En-tête cliquable — ouvre et ferme les filtres ET les boutons */}
+              <button
+                type="button"
+                onClick={() => setRechercheOuverte((o) => !o)}
+                aria-expanded={rechercheOuverte}
+                className="w-full text-left"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37]/10">
+                      <Search size={15} className="text-[#D4AF37]" />
+                    </div>
+                    <h2 className="text-sm font-extrabold text-[#111] tracking-tight">Rechercher un véhicule</h2>
                   </div>
-                  <h2 className="text-sm font-extrabold text-[#111] tracking-tight">Rechercher un véhicule</h2>
+                  <span className="flex items-center gap-2">
+                    <span className="text-[9px] font-bold text-[#D4AF37] uppercase tracking-wider border border-[#D4AF37]/30 rounded-full px-2 py-0.5">Mondial</span>
+                    {rechercheOuverte ? <ChevronUp size={16} className="text-[#D4AF37]" /> : <ChevronDown size={16} className="text-[#D4AF37]" />}
+                  </span>
                 </div>
-                <span className="text-[9px] font-bold text-[#D4AF37] uppercase tracking-wider border border-[#D4AF37]/30 rounded-full px-2 py-0.5">Mondial</span>
-              </div>
-              <p className="text-[10px] text-[#9CA3AF] mb-3 pl-10">Voitures · Motos · Utilitaires · Partout dans le monde</p>
-              {/* Grille 6 filtres premium */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-                {/* Filtre 1 — Catégorie */}
-                <div className="relative">
-                  <select value={sCategorie} onChange={(e) => setSCategorie(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
-                    <option value="">Catégorie</option>
-                    <option>Citadine</option><option>Berline</option><option>SUV / 4x4</option><option>Coupé</option><option>Break</option><option>Cabriolet</option><option>Monospace</option><option>Utilitaire</option><option>Camion</option><option>Moto</option><option>Scooter</option>
-                  </select>
-                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">🚗</span>
-                </div>
-                {/* Filtre 2 — Marque */}
-                <div className="relative">
-                  <select value={sMarque} onChange={(e) => setSMarque(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
-                    <option value="">Marque</option>
-                    <option>Peugeot</option><option>Renault</option><option>Citroën</option><option>BMW</option><option>Mercedes</option><option>Audi</option><option>Volkswagen</option><option>Toyota</option><option>Ford</option><option>Fiat</option><option>Hyundai</option><option>Kia</option><option>Nissan</option><option>Honda</option><option>Mazda</option><option>Volvo</option><option>Tesla</option><option>Dacia</option><option>Seat</option><option>Skoda</option>
-                  </select>
-                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">🏷️</span>
-                </div>
-                {/* Filtre 3 — Modèle */}
-                <div className="relative">
-                  <select value={sModele} onChange={(e) => setSModele(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
-                    <option value="">Modèle</option>
-                  </select>
-                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">🔍</span>
-                </div>
-                {/* Filtre 4 — Année */}
-                <div className="relative">
-                  <select value={sAnnee} onChange={(e) => setSAnnee(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
-                    <option value="">Année</option>
-                    {Array.from({ length: new Date().getFullYear() - 1989 }, (_, i) => new Date().getFullYear() - i).map(y => (
-                      <option key={y} value={y}>{y}</option>
-                    ))}
-                  </select>
-                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">📅</span>
-                </div>
-                {/* Filtre 5 — Prix max */}
-                <div className="relative">
-                  <select value={sPrix} onChange={(e) => setSPrix(e.target.value)} className="w-full appearance-none rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition cursor-pointer font-medium">
-                    <option value="">Budget max</option>
-                    <option value="3000">3 000 €</option><option value="5000">5 000 €</option><option value="8000">8 000 €</option><option value="10000">10 000 €</option><option value="15000">15 000 €</option><option value="20000">20 000 €</option><option value="30000">30 000 €</option><option value="50000">50 000 €</option><option value="80000">80 000 €</option><option value="100000">100 000 €</option>
-                  </select>
-                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">💶</span>
-                </div>
-                {/* Filtre 6 — Localisation mondiale (champ libre) */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={sLocalisation}
-                    onChange={(e) => setSLocalisation(e.target.value)}
-                    placeholder="Ville, pays..."
-                    className="w-full rounded-xl border border-[#E5E7EB] bg-white pl-8 pr-3 py-2.5 text-xs text-[#111] outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition font-medium placeholder:text-[#9CA3AF]"
-                  />
-                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#D4AF37] text-[10px]">📍</span>
-                </div>
-              </div>
-              {/* Séparateur fin doré */}
-              <div className="my-3 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
-              {/* Boutons Rechercher et Simuler */}
-              <div className="flex gap-2">
-                <button onClick={doSearch} className="flex-1 rounded-xl bg-[#111] px-5 py-3 text-sm font-bold text-white hover:bg-[#333] active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-sm">
-                  <Search size={15} /> Rechercher
-                </button>
-                <button onClick={() => navigate("/acheter/estimation")} className="flex-1 rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-bold text-white hover:bg-[#c9a430] active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-sm">
-                  <Star size={15} /> Simuler / Estimer
-                </button>
-              </div>
+                <p className="text-[10px] text-[#9CA3AF] pl-10">
+                  {rechercheOuverte
+                    ? "Voitures · Motos · Utilitaires · Partout dans le monde"
+                    : "Appuyez pour ouvrir les filtres — marque, modèle, année, kilométrage, prix…"}
+                </p>
+              </button>
+
+              {rechercheOuverte && (
+                <>
+                  {/* Dictée — MKA.P-MS Intelligences lit les critères énoncés */}
+                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-[#D4AF37]/30 bg-white px-3 py-2">
+                    <MicroVocal
+                      titre="Dicter ma recherche de véhicule"
+                      onTexte={(texte, final) => {
+                        setSLecture(texte);
+                        if (final && texte.trim().length > 2) {
+                          lireDictee.mutate({ texte: texte.trim(), pays: country ?? null });
+                        }
+                      }}
+                    />
+                    <span className="text-[10px] leading-snug text-[#6B7280] flex-1">
+                      {sLecture || "« Je cherche une BYD 2025, moins de 30 000 km, budget 20 000, j'habite à Dakar »"}
+                    </span>
+                  </div>
+
+                  {/* Filtres — uniquement des critères réellement filtrés en base */}
+                  <div className="mt-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+                    <div className="relative">
+                      <select value={sType} onChange={(e) => setSType(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Achat ou location</option>
+                        <option value="vente">Achat</option>
+                        <option value="location">Location</option>
+                      </select>
+                      <span className={ICON_CLS}>🔁</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sCategorie} onChange={(e) => setSCategorie(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Catégorie</option>
+                        {CATEGORIES_FILTRE.map((c) => <option key={c.v} value={c.v}>{c.l}</option>)}
+                      </select>
+                      <span className={ICON_CLS}>🚗</span>
+                    </div>
+                    <div className="relative">
+                      <select
+                        value={sMarque}
+                        onChange={(e) => { setSMarque(e.target.value); setSModele(""); }}
+                        className={SELECT_CLS}
+                      >
+                        <option value="">Marque</option>
+                        {ALL_BRANDS_AUTO.map((m) => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                      <span className={ICON_CLS}>🏷️</span>
+                    </div>
+                    <div className="relative">
+                      <select
+                        value={sModele}
+                        onChange={(e) => setSModele(e.target.value)}
+                        disabled={!sMarque}
+                        className={`${SELECT_CLS} disabled:bg-[#F9FAFB] disabled:text-[#9CA3AF]`}
+                      >
+                        <option value="">{sMarque ? "Modèle" : "Modèle — choisir la marque"}</option>
+                        {modelesDisponibles.map((m) => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                      <span className={ICON_CLS}>🔍</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sAnnee} onChange={(e) => setSAnnee(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Année min</option>
+                        {ANNEES.map((y) => <option key={y} value={y}>{y}</option>)}
+                      </select>
+                      <span className={ICON_CLS}>📅</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sAnneeMax} onChange={(e) => setSAnneeMax(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Année max</option>
+                        {ANNEES.map((y) => <option key={y} value={y}>{y}</option>)}
+                      </select>
+                      <span className={ICON_CLS}>📅</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sKm} onChange={(e) => setSKm(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Kilométrage max</option>
+                        {KILOMETRAGES.map((k) => <option key={k} value={k}>{k.toLocaleString("fr-FR")} km</option>)}
+                      </select>
+                      <span className={ICON_CLS}>🛣️</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sPrixMin} onChange={(e) => setSPrixMin(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Budget min</option>
+                        {BUDGETS.map((b) => <option key={b} value={b}>{b.toLocaleString("fr-FR")}</option>)}
+                      </select>
+                      <span className={ICON_CLS}>💶</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sPrix} onChange={(e) => setSPrix(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Budget max</option>
+                        {BUDGETS.map((b) => <option key={b} value={b}>{b.toLocaleString("fr-FR")}</option>)}
+                      </select>
+                      <span className={ICON_CLS}>💶</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sCarburant} onChange={(e) => setSCarburant(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Carburant</option>
+                        {CARBURANTS_FILTRE.map((c) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                      </select>
+                      <span className={ICON_CLS}>⛽</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sBoite} onChange={(e) => setSBoite(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Boîte</option>
+                        <option value="manuelle">Manuelle</option>
+                        <option value="automatique">Automatique</option>
+                      </select>
+                      <span className={ICON_CLS}>⚙️</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sEtat} onChange={(e) => setSEtat(e.target.value)} className={SELECT_CLS}>
+                        <option value="">État</option>
+                        <option value="neuf">Neuf</option>
+                        <option value="occasion">Occasion</option>
+                      </select>
+                      <span className={ICON_CLS}>✨</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sPuissance} onChange={(e) => setSPuissance(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Puissance min</option>
+                        {[70, 90, 110, 130, 150, 200, 250, 300, 400].map((p) => <option key={p} value={p}>{p} cv</option>)}
+                      </select>
+                      <span className={ICON_CLS}>🐎</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sPortes} onChange={(e) => setSPortes(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Portes</option>
+                        {[2, 3, 4, 5].map((p) => <option key={p} value={p}>{p} portes</option>)}
+                      </select>
+                      <span className={ICON_CLS}>🚪</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sPlaces} onChange={(e) => setSPlaces(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Places</option>
+                        {[2, 4, 5, 7, 9].map((p) => <option key={p} value={p}>{p} places</option>)}
+                      </select>
+                      <span className={ICON_CLS}>💺</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sCouleur} onChange={(e) => setSCouleur(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Couleur</option>
+                        {(facettes.data?.couleurs ?? []).map((c) => (
+                          <option key={c.valeur} value={c.valeur}>{c.valeur} ({c.n})</option>
+                        ))}
+                      </select>
+                      <span className={ICON_CLS}>🎨</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sVendeur} onChange={(e) => setSVendeur(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Vendeur</option>
+                        <option value="officielle">MKA.P-MS officiel</option>
+                        <option value="professionnelle">Professionnel</option>
+                        <option value="particulier">Particulier</option>
+                      </select>
+                      <span className={ICON_CLS}>🧑‍💼</span>
+                    </div>
+                    <div className="relative">
+                      <select value={sPays} onChange={(e) => setSPays(e.target.value)} className={SELECT_CLS}>
+                        <option value="">Pays</option>
+                        {(facettes.data?.pays ?? []).map((p) => (
+                          <option key={p.valeur} value={p.valeur}>{p.valeur} ({p.n})</option>
+                        ))}
+                      </select>
+                      <span className={ICON_CLS}>🌍</span>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        list="home-villes"
+                        value={sLocalisation}
+                        onChange={(e) => setSLocalisation(e.target.value)}
+                        placeholder="Ville"
+                        className={INPUT_CLS}
+                      />
+                      <datalist id="home-villes">
+                        {(facettes.data?.villes ?? []).map((v) => <option key={v.valeur} value={v.valeur} />)}
+                      </datalist>
+                      <span className={ICON_CLS}>📍</span>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={sCodePostal}
+                        onChange={(e) => setSCodePostal(e.target.value)}
+                        placeholder="Code postal"
+                        className={INPUT_CLS}
+                      />
+                      <span className={ICON_CLS}>✉️</span>
+                    </div>
+                  </div>
+
+                  {/* Ce que la plateforme ne sait pas encore filtrer : dit, pas caché */}
+                  <p className="mt-2 flex items-start gap-1.5 text-[9px] leading-snug text-[#9CA3AF]">
+                    <SlidersHorizontal size={11} className="mt-px shrink-0 text-[#D4AF37]" />
+                    Conduite (gauche/droite), homologation par pays, rayon en km et livraison possible ne sont pas
+                    encore renseignés sur les annonces : ces filtres seront ouverts dès que la donnée existera, plutôt
+                    que d'afficher un résultat faux.
+                  </p>
+
+                  {/* Séparateur fin doré */}
+                  <div className="my-3 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
+                  {/* Boutons Rechercher et Simuler — fermés avec les filtres */}
+                  <div className="flex gap-2">
+                    <button onClick={doSearch} className="flex-1 rounded-xl bg-[#111] px-5 py-3 text-sm font-bold text-white hover:bg-[#333] active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-sm">
+                      <Search size={15} /> Rechercher
+                    </button>
+                    <button onClick={() => navigate("/acheter/estimation")} className="flex-1 rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-bold text-white hover:bg-[#c9a430] active:scale-[0.98] transition flex items-center justify-center gap-2 shadow-sm">
+                      <Star size={15} /> Simuler / Estimer
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </section>
 
