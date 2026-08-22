@@ -346,3 +346,76 @@ export const inShadowRuns = pgTable(
     parCapacite: index("in_shadow_runs_capacite_idx").on(t.capacite, t.createdAt),
   }),
 );
+
+/**
+ * Fonctionnalités natives du fournisseur connecté, construites au maximum mais
+ * **éteintes par défaut**. Le propriétaire les allume une par une : une
+ * fonctionnalité activée sans avoir été essayée est une facture et un risque,
+ * pas un progrès.
+ */
+export const inFonctions = pgTable("in_fonctions", {
+  id: serial("id").primaryKey(),
+  fonction: varchar("fonction", { length: 48 }).notNull().unique(),
+  active: boolean("active").notNull().default(false),
+  motif: text("motif").notNull().default(""),
+  actorId: integer("actor_id"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+/**
+ * Point 151 — plateforme développeur. Une clé n'ouvre que les capacités de sa
+ * portée, jamais le catalogue entier, et son secret n'est jamais conservé en
+ * clair : seule son empreinte est stockée.
+ */
+export const inDevCles = pgTable(
+  "in_dev_cles",
+  {
+    id: serial("id").primaryKey(),
+    nom: varchar("nom", { length: 80 }).notNull(),
+    /** Préfixe lisible, affiché pour reconnaître la clé sans la révéler. */
+    prefixe: varchar("prefixe", { length: 16 }).notNull(),
+    empreinte: varchar("empreinte", { length: 64 }).notNull().unique(),
+    /** Capacités ouvertes à cette clé. */
+    portee: jsonb("portee").$type<string[]>().notNull().default([]),
+    /** Rôle appliqué aux appels de la clé : ses permissions plafonnent tout. */
+    role: varchar("role", { length: 24 }).notNull().default("user"),
+    /** Plafond d'appels par jour ; 0 = clé fermée. */
+    quotaJour: integer("quota_jour").notNull().default(0),
+    active: boolean("active").notNull().default(false),
+    motif: text("motif").notNull().default(""),
+    actorId: integer("actor_id"),
+    dernierUsage: timestamp("dernier_usage"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parEmpreinte: index("in_dev_cles_empreinte_idx").on(t.empreinte),
+  }),
+);
+
+/** Appels reçus par la plateforme développeur : usage, quota et refus tracés. */
+export const inDevAppels = pgTable(
+  "in_dev_appels",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    cleId: integer("cle_id").notNull(),
+    capacite: varchar("capacite", { length: 32 }).notNull().default(""),
+    ok: boolean("ok").notNull().default(false),
+    motif: text("motif").notNull().default(""),
+    dureeMs: integer("duree_ms").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parCle: index("in_dev_appels_cle_idx").on(t.cleId, t.createdAt),
+  }),
+);
+
+/** Point 150 — étapes du plan de détachement des fournisseurs, décidées par le PDG. */
+export const inPlanAutonomie = pgTable("in_plan_autonomie", {
+  id: serial("id").primaryKey(),
+  etape: varchar("etape", { length: 48 }).notNull().unique(),
+  /** `attente`, `en_cours`, `atteinte`, `abandonnee`. */
+  statut: varchar("statut", { length: 16 }).notNull().default("attente"),
+  motif: text("motif").notNull().default(""),
+  actorId: integer("actor_id"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});

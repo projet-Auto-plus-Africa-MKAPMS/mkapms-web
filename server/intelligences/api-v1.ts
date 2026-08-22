@@ -17,6 +17,11 @@ import { router as routerCapacite } from "./routeur.js";
 import { orchestrer } from "./orchestrateur.js";
 import { etat as etatAutonomie } from "./autonomie.js";
 import { normaliser, type Piece } from "./multimodal.js";
+import {
+  autoriser as autoriserCle,
+  contrat as contratDeveloppeur,
+  enregistrer as enregistrerAppelCle,
+} from "./developpeur.js";
 
 function role(req: Request): { role: string | null; uid: number | null } {
   const header = req.headers.authorization;
@@ -28,6 +33,44 @@ function role(req: Request): { role: string | null; uid: number | null } {
 }
 
 export const apiV1 = Router();
+
+interface Acces {
+  role: string | null;
+  uid: number | null;
+  cleId: number | null;
+  motif: string;
+}
+
+/**
+ * Point 151 — deux entrées possibles : la session de la plateforme, ou une clé
+ * développeur. La clé n'ouvre que les capacités de sa portée et compte dans son
+ * quota ; elle ne donne jamais plus que le rôle qu'elle porte.
+ */
+async function acces(req: Request, capacite: string): Promise<Acces> {
+  const cle = req.headers["x-mka-key"];
+  const secret = typeof cle === "string" ? cle.trim() : "";
+  if (secret) {
+    const verdict = await autoriserCle({ secret, capacite });
+    return {
+      role: verdict.ok ? verdict.role : null,
+      uid: null,
+      cleId: verdict.cleId,
+      motif: verdict.motif,
+    };
+  }
+  const session = role(req);
+  return {
+    role: session.role,
+    uid: session.uid,
+    cleId: null,
+    motif: session.role ? "Session de la plateforme." : "Connexion requise.",
+  };
+}
+
+/** Contrat public : ce qu'un développeur peut appeler, et sous quelles règles. */
+apiV1.get("/intelligences/contrat", (_req: Request, res: Response) => {
+  return res.json({ ok: true, ...contratDeveloppeur() });
+});
 
 /** Contrat : ce que l'API sait faire, avec l'état constaté de chaque capacité. */
 apiV1.get("/intelligences/capacites", async (req: Request, res: Response) => {
@@ -53,8 +96,10 @@ apiV1.get("/intelligences/capacites", async (req: Request, res: Response) => {
 
 /** Exécution d'une capacité. Refus écrit et motivé, jamais de réponse inventée. */
 apiV1.post("/intelligences/executer", async (req: Request, res: Response) => {
-  const { role: r } = role(req);
-  if (!r) return res.status(401).json({ ok: false, motif: "Connexion requise." });
+  const body0 = req.body as { capacite?: string };
+  const droit = await acces(req, body0.capacite ?? "");
+  const r = droit.role;
+  if (!r) return res.status(401).json({ ok: false, motif: droit.motif });
 
   const body = req.body as {
     capacite?: string;
@@ -87,6 +132,16 @@ apiV1.post("/intelligences/executer", async (req: Request, res: Response) => {
     countryCode: body.countryCode ?? null,
     maxTokens: body.maxTokens,
   });
+
+  if (droit.cleId !== null) {
+    await enregistrerAppelCle({
+      cleId: droit.cleId,
+      capacite: resultat.capacite,
+      ok: resultat.ok,
+      motif: resultat.motif,
+      dureeMs: resultat.dureeMs,
+    });
+  }
 
   // Un refus n'est pas une erreur serveur : c'est une décision, avec son motif.
   return res.status(resultat.ok ? 200 : 409).json({
@@ -132,8 +187,9 @@ const CONSIGNE: Record<string, string> = {
 
 for (const [verbe, capacite] of Object.entries(ALIAS)) {
   apiV1.post(`/${verbe}`, async (req: Request, res: Response) => {
-    const { role: r } = role(req);
-    if (!r) return res.status(401).json({ ok: false, motif: "Connexion requise." });
+    const droit = await acces(req, capacite);
+    const r = droit.role;
+    if (!r) return res.status(401).json({ ok: false, motif: droit.motif });
 
     const body = req.body as {
       message?: string;
@@ -166,6 +222,16 @@ for (const [verbe, capacite] of Object.entries(ALIAS)) {
       images: lu.images.length > 0 ? lu.images : undefined,
       maxTokens: body.maxTokens,
     });
+
+    if (droit.cleId !== null) {
+      await enregistrerAppelCle({
+        cleId: droit.cleId,
+        capacite: resultat.capacite,
+        ok: resultat.ok,
+        motif: resultat.motif,
+        dureeMs: resultat.dureeMs,
+      });
+    }
 
     return res.status(resultat.ok ? 200 : 409).json({
       ok: resultat.ok,
