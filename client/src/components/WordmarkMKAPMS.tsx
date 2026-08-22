@@ -38,8 +38,6 @@ export interface WordmarkMKAPMSProps {
   withTagline?: boolean;
   /** Couleur baseline (par défaut or). */
   taglineColor?: string;
-  /** Affiche la ligne lumineuse or→bleu→or sous le nom (signature charte). */
-  withGlowLine?: boolean;
   className?: string;
   style?: CSSProperties;
   "data-testid"?: string;
@@ -52,16 +50,13 @@ export function WordmarkMKAPMS({
   blueLight = "#7FD3FF",
   withTagline = false,
   taglineColor,
-  withGlowLine = true,
   className = "",
   style,
   ...rest
 }: WordmarkMKAPMSProps) {
-  // viewBox : 580×82 sans tagline / 580×117 avec tagline.
-  // Largeur portée à 580 (marge droite pour la flèche du S — évite tout crop).
-  // Hauteur portée à 82 (marge basse pour la ligne lumineuse + descendante P).
-  const vbW = 580;
-  const vbH = withTagline ? 117 : 82;
+  // viewBox : 560×70 sans tagline / 560×105 avec tagline.
+  const vbW = 560;
+  const vbH = withTagline ? 105 : 70;
   const fontFamily = "'Raleway', 'Helvetica Neue', Arial, sans-serif";
 
   // ═══ POSITIONS EXACTES DES GLYPHES (charte figée) ═══
@@ -108,18 +103,6 @@ export function WordmarkMKAPMS({
           <stop offset="0.5" stopColor={blue} />
           <stop offset="1" stopColor="#0058B0" />
         </linearGradient>
-        {/* Gradient LIGNE LUMINEUSE — or → bleu → or (signature charte officielle) */}
-        <linearGradient id="wmk-glow" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor={gold} stopOpacity="0" />
-          <stop offset="0.12" stopColor={gold} stopOpacity="1" />
-          <stop offset="0.5" stopColor={blueLight} stopOpacity="1" />
-          <stop offset="0.88" stopColor={gold} stopOpacity="1" />
-          <stop offset="1" stopColor={gold} stopOpacity="0" />
-        </linearGradient>
-        {/* Filtre GLOW — halo doux autour de la ligne lumineuse */}
-        <filter id="wmk-glow-blur" x="-5%" y="-50%" width="110%" height="200%">
-          <feGaussianBlur stdDeviation="1.6" />
-        </filter>
       </defs>
 
       {/* ═══ GROUPE WORDMARK — Raleway 900, capitales espacées ═══ */}
@@ -169,58 +152,32 @@ export function WordmarkMKAPMS({
         />
       </g>
 
-      {/* ═══ LIGNE LUMINEUSE OFFICIELLE ═══ or → bleu → or (halo + ligne nette) */}
-      {withGlowLine && (
-        <g>
-          {/* Halo diffus (glow) */}
-          <rect
-            x="0"
-            y="73"
-            width={vbW}
-            height="3"
-            rx="1.5"
-            fill="url(#wmk-glow)"
-            filter="url(#wmk-glow-blur)"
-            opacity="0.9"
-          />
-          {/* Ligne nette au centre du halo */}
-          <rect
-            x="0"
-            y="74"
-            width={vbW}
-            height="1.4"
-            rx="0.7"
-            fill="url(#wmk-glow)"
-          />
-        </g>
-      )}
-
       {/* ═══ BASELINE OFFICIELLE ═══ PROTÉGER • RELIER • SERVIR LE MONDE ENTIER */}
       {withTagline && (
         <g style={{ fontFamily, fontWeight: 700 }}>
           <text
             x="0"
-            y="102"
+            y="90"
             fill={taglineColor || gold}
             fontSize="12"
             letterSpacing="3.8"
           >
             PROTÉGER
           </text>
-          <circle cx="118" cy="98.5" r="2" fill={taglineColor || gold} />
+          <circle cx="118" cy="86.5" r="2" fill={taglineColor || gold} />
           <text
             x="137"
-            y="102"
+            y="90"
             fill={taglineColor || gold}
             fontSize="12"
             letterSpacing="3.8"
           >
             RELIER
           </text>
-          <circle cx="228" cy="98.5" r="2" fill={taglineColor || gold} />
+          <circle cx="228" cy="86.5" r="2" fill={taglineColor || gold} />
           <text
             x="247"
-            y="102"
+            y="90"
             fill={taglineColor || gold}
             fontSize="12"
             letterSpacing="3.8"
