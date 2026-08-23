@@ -64,6 +64,7 @@ import { computeTrustScore, TRUST_LEVEL_LABEL } from "@shared/trust";
 import { computeBadges } from "@shared/badges";
 import { BadgeChip } from "../components/VehicleCard";
 import ShareButton from "../components/ShareButton";
+import AlerteRisqueImport, { useRisqueImport } from "../components/AlerteRisqueImport";
 
 /* ── Catégories photo pour galerie (tous véhicules) ── */
 type PhotoCategory = "toutes" | "exterieur" | "interieur" | "sieges" | "coffre" | "tableau_de_bord" | "moteur" | "roues" | "documents" | "autres" | "video360" | "video";
@@ -224,6 +225,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
     },
     { enabled: !!q.data && q.data.type === "vente" && !!q.data.marque && !!q.data.modele },
   );
+  const risqueImport = useRisqueImport(annonceId, !isDemo);
   const incView = trpc.annonces.incrementView.useMutation();
   const toggleFav = trpc.favoris.toggle.useMutation();
   const prolongMut = trpc.annonces.prolong.useMutation({ onSuccess: () => alert("Annonce prolongée de 30 jours !") });
@@ -407,9 +409,25 @@ export default function Vehicule({ univers }: { univers?: string }) {
     ["État", v.etat],
   ];
 
+  /**
+   * Un risque d'importation bloquant ou non vérifié arrête le parcours ici :
+   * un véhicule non immatriculable chez l'acheteur produit un litige, pas une
+   * vente. La confirmation lue est la seule sortie.
+   */
+  const risqueRetient = () => {
+    if (!risqueImport.doitConfirmer) return false;
+    alert(
+      "Ce véhicule présente des risques d'importation ou d'homologation vers votre pays. " +
+        "Lisez l'encart « Avant d'acheter ou de faire livrer » sur cette page, puis cochez la confirmation pour continuer.",
+    );
+    document.querySelector('[aria-label="Risques avant achat ou livraison"]')?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return true;
+  };
+
   // « Acheter » : achat comptant → page de paiement du véhicule.
   const primaryAction = () =>
     requireLogin(() => {
+      if (risqueRetient()) return;
       if (isLocation) {
         navigate("/compte/messages");
       } else {
@@ -418,7 +436,10 @@ export default function Vehicule({ univers }: { univers?: string }) {
     });
   // « Réserver » : acompte → page de paiement en mode acompte.
   const reserveAction = () =>
-    requireLogin(() => navigate(`/paiement-vehicule/${annonceId}?mode=acompte`));
+    requireLogin(() => {
+      if (risqueRetient()) return;
+      navigate(`/paiement-vehicule/${annonceId}?mode=acompte`);
+    });
   /**
    * « Payer l'acompte » / « Payer — Réserver » (location, VTC/Taxi).
    *
@@ -2079,6 +2100,8 @@ export default function Vehicule({ univers }: { univers?: string }) {
                 </div>
               );
             })()}
+
+            <AlerteRisqueImport etat={risqueImport} />
 
             {/* BOUTONS d'action — adaptés au tier et au type */}
             <div className="mt-5 space-y-2">

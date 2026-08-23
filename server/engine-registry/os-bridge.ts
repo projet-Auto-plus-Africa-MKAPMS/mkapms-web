@@ -154,6 +154,13 @@ const OS_ENGINES: OsEngineBinding[] = [
     loadFeed: async () => (await import("../ai-learning-os/index.js")).controlCenterFeed(),
   },
   {
+    name: "risque_import",
+    label: "Import Risk Engine",
+    category: "transversal",
+    dependencies: ["politique_pays", "core", "smart"],
+    loadFeed: async () => (await import("../import-risk/index.js")).controlCenterFeed(),
+  },
+  {
     name: "visibility",
     label: "Global Visibility Engine",
     category: "transversal",
