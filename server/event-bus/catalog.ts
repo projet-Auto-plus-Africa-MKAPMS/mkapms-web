@@ -183,6 +183,33 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     champs: ["annonceId", "paysDestination"],
     emetteurs: ["import_risk"],
   },
+  {
+    code: "livraison_vehicule.acceptee",
+    domaine: "service",
+    label: "Acheminement de véhicule accepté",
+    description:
+      "Un client a accepté un devis d'acheminement : l'expédition existe et engage un prix. Publié pour que la comptabilité et la direction voient l'engagement au moment où il est pris.",
+    champs: ["expeditionId", "reference", "total", "qualitePrix"],
+    emetteurs: ["livraison_vehicule"],
+  },
+  {
+    code: "livraison_vehicule.etape_bloquee",
+    domaine: "service",
+    label: "Étape d'acheminement bloquée",
+    description:
+      "Une étape (douane, enlèvement, transport) est bloquée. Un véhicule immobilisé sans que personne ne le sache est un litige qui grossit chaque jour.",
+    champs: ["expeditionId", "etape", "note"],
+    emetteurs: ["livraison_vehicule"],
+  },
+  {
+    code: "livraison_vehicule.prix_indisponible",
+    domaine: "service",
+    label: "Prix d'acheminement non chiffrable",
+    description:
+      "Un devis a été demandé sans barème applicable : le client repart sans prix. C'est une vente perdue mesurable, pas un incident technique.",
+    champs: ["mode", "categorie", "paysDepart", "paysArrivee", "manques"],
+    emetteurs: ["livraison_vehicule"],
+  },
 ];
 
 export interface SubscriptionSpec {
@@ -259,6 +286,20 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     handler: "smart_risque_import",
     effet:
       "Ouvre une alerte de direction dédupliquée par annonce et pays : un stock invendable dans un pays doit remonter, pas rester dans la page du client.",
+  },
+  {
+    engine: "smart",
+    eventType: "livraison_vehicule.etape_bloquee",
+    handler: "smart_livraison_vehicule_bloquee",
+    effet:
+      "Ouvre une alerte de direction par expédition et étape : un véhicule immobilisé en douane doit remonter le jour même.",
+  },
+  {
+    engine: "smart",
+    eventType: "livraison_vehicule.prix_indisponible",
+    handler: "smart_livraison_vehicule_sans_prix",
+    effet:
+      "Compte les corridors sans barème et ouvre une alerte : c'est la liste exacte des grilles tarifaires à obtenir.",
   },
   {
     engine: "audit_os",

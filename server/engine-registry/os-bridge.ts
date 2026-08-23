@@ -161,6 +161,14 @@ const OS_ENGINES: OsEngineBinding[] = [
     loadFeed: async () => (await import("../import-risk/index.js")).controlCenterFeed(),
   },
   {
+    name: "livraison_vehicule",
+    label: "Vehicle Delivery Engine",
+    category: "univers",
+    dependencies: ["core", "smart", "politique_pays"],
+    loadFeed: async () =>
+      (await import("../vehicle-delivery/index.js")).controlCenterFeed(),
+  },
+  {
     name: "visibility",
     label: "Global Visibility Engine",
     category: "transversal",
