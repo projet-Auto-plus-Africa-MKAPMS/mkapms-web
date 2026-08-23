@@ -1184,3 +1184,4 @@ export * from "./pro-account/schema"; // Pro Account Engine — dossier professi
 export * from "./partner-engine/schema"; // Partner Engine — réseau partenaires et acquisition (isolé)
 export * from "./insurance-engine/schema"; // Insurance Engine — assureurs référencés et demandes de couverture (isolé)
 export * from "./charging-engine/schema"; // Charging Engine — annuaire des bornes de recharge (isolé)
+export * from "./vehicle-delivery/schema"; // Vehicle Delivery Engine — acheminement des véhicules (isolé, distinct des colis)

@@ -102,6 +102,7 @@ import { proximityEngineRouter } from "./proximity-engine/index.js";
 import { partnerEngineRouter } from "./partner-engine/index.js";
 import { insuranceEngineRouter } from "./insurance-engine/index.js";
 import { chargingEngineRouter } from "./charging-engine/index.js";
+import { vehicleDeliveryRouter } from "./vehicle-delivery/index.js";
 // Reviews & Reputation Engine (points 46-48)
 import { reputationEngineRouter } from "./reputation-engine/index.js";
 import { googleBusinessRouter } from "./connectors/google-business/index.js";
@@ -237,6 +238,8 @@ export const appRouter = router({
   // Point 45 — assurance auto (mise en relation) et bornes de recharge (annuaire)
   insuranceEngine: insuranceEngineRouter,
   chargingEngine: chargingEngineRouter,
+  // Livraison de véhicules — moteur distinct de l'univers Livraison (pièces et colis)
+  livraisonVehicule: vehicleDeliveryRouter,
   // Points 46-48 — réputation : avis par pays et expériences vérifiées
   reputationEngine: reputationEngineRouter,
   googleBusiness: googleBusinessRouter,
