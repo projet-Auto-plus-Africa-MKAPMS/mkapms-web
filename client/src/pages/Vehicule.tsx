@@ -65,6 +65,7 @@ import { computeBadges } from "@shared/badges";
 import { BadgeChip } from "../components/VehicleCard";
 import ShareButton from "../components/ShareButton";
 import AlerteRisqueImport, { useRisqueImport } from "../components/AlerteRisqueImport";
+import CoutTotalEstime from "../components/CoutTotalEstime";
 
 /* ── Catégories photo pour galerie (tous véhicules) ── */
 type PhotoCategory = "toutes" | "exterieur" | "interieur" | "sieges" | "coffre" | "tableau_de_bord" | "moteur" | "roues" | "documents" | "autres" | "video360" | "video";
@@ -2102,6 +2103,8 @@ export default function Vehicule({ univers }: { univers?: string }) {
             })()}
 
             <AlerteRisqueImport etat={risqueImport} />
+
+            {annonceId > 0 && !isDemo && <CoutTotalEstime annonceId={annonceId} />}
 
             {/* BOUTONS d'action — adaptés au tier et au type */}
             <div className="mt-5 space-y-2">
