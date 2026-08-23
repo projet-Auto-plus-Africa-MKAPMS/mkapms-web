@@ -179,6 +179,30 @@ const handlers: Record<string, Handler> = {
       : `Échec ${ctx.type} mémorisé comme nouvelle expérience #${x.id}.`;
   },
 
+  /**
+   * Un véhicule qu'un acheteur ne pourra pas immatriculer chez lui n'est pas un
+   * incident technique : c'est du stock invendable dans ce pays. La direction
+   * doit le savoir, une seule fois par annonce et par pays.
+   */
+  async smart_risque_import(payload) {
+    const id = nombre(payload, "annonceId");
+    const pays = texte(payload, "paysDestination") || "pays non précisé";
+    if (id === null) throw new Error("Charge invalide : « annonceId » absent ou non numérique.");
+    const motif = texte(payload, "motif") || "motif non transmis";
+    const cree = await raiseAlert({
+      category: "annonce",
+      title: `Véhicule non importable — annonce ${id} vers ${pays}`,
+      description: `${motif} Cette annonce est visible depuis ${pays} alors qu'elle n'y est pas exploitable : soit la règle pays est à confirmer, soit l'annonce doit être masquée pour ce pays.`,
+      level: "important",
+      targetType: "annonce",
+      targetId: id,
+      signature: `bus:risque_import:${id}:${pays}`,
+    });
+    return cree
+      ? `Alerte ouverte : annonce ${id} non importable vers ${pays}.`
+      : `Alerte déjà ouverte pour l'annonce ${id} vers ${pays} : pas de doublon créé.`;
+  },
+
   async audit_trace(payload, ctx) {
     await auditRecord({
       actorId: null,

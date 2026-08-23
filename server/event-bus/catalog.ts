@@ -174,6 +174,15 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     champs: ["countryCode"],
     emetteurs: ["country_policy", "country_os"],
   },
+  {
+    code: "vehicule.risque_import",
+    domaine: "annonce",
+    label: "Risque d'importation bloquant",
+    description:
+      "Un acheteur consulte un véhicule qu'il ne pourra pas immatriculer chez lui. Publié uniquement quand le risque est bloquant : c'est une vente perdue et un litige évité.",
+    champs: ["annonceId", "paysDestination"],
+    emetteurs: ["import_risk"],
+  },
 ];
 
 export interface SubscriptionSpec {
@@ -243,6 +252,13 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     handler: "intelligences_memoire",
     effet:
       "Écrit l'événement dans la mémoire technique et, pour un échec (paiement refusé, moteur dégradé, bouton cassé, erreur de visibilité), enregistre une expérience consultée par les missions suivantes.",
+  },
+  {
+    engine: "smart",
+    eventType: "vehicule.risque_import",
+    handler: "smart_risque_import",
+    effet:
+      "Ouvre une alerte de direction dédupliquée par annonce et pays : un stock invendable dans un pays doit remonter, pas rester dans la page du client.",
   },
   {
     engine: "audit_os",

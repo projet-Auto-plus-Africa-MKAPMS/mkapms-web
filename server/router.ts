@@ -108,6 +108,7 @@ import { googleBusinessRouter } from "./connectors/google-business/index.js";
 // Automotive Knowledge Engine (points 60-63, 83, 87)
 import { knowledgeEngineRouter } from "./knowledge-engine/index.js";
 import { countryPolicyRouter } from "./country-policy/index.js";
+import { importRiskRouter } from "./import-risk/index.js";
 import { resilienceRouter } from "./resilience/index.js";
 import { commandCenterRouter } from "./command-center/index.js";
 import { rdLabRouter } from "./rd-lab/index.js";
@@ -243,6 +244,7 @@ export const appRouter = router({
   // Points 60-63 — mémoire automobile reliée, sourcée et datée
   knowledgeEngine: knowledgeEngineRouter,
   countryPolicy: countryPolicyRouter,
+  risqueImport: importRiskRouter,
   resilience: resilienceRouter,
   commandCenter: commandCenterRouter,
   rdLab: rdLabRouter,

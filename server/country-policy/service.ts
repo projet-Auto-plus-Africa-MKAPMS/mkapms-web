@@ -112,6 +112,15 @@ async function applicableRules(countryCode: string, domain: string) {
   );
 }
 
+/**
+ * Lecture seule des règles confirmées d'un pays pour un domaine. Sert aux
+ * diagnostics affichés à un visiteur : consulter une fiche véhicule n'est pas
+ * une action réglementée, on ne journalise donc pas une évaluation par vue.
+ */
+export async function reglesConfirmees(countryCode: string, domain: string) {
+  return applicableRules(countryCode, domain);
+}
+
 export interface EvaluateInput {
   actionType: string;
   countryCode?: string | null;
