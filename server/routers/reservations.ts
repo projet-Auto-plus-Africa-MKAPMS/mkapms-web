@@ -10,6 +10,8 @@ import { getStripe } from "../lib/stripe.js";
 import { safeCheckoutSession } from "../lib/payment-errors.js";
 import { env } from "../env.js";
 import { createPaymentCheckout } from "../payment-engine/checkout.js";
+import { devis as devisAcheminement } from "../vehicle-delivery/service.js";
+import { diagnostiquer } from "../import-risk/service.js";
 
 // Réservation avec acompte (§4.5) : bloque le véhicule 24h.
 export const reservationsRouter = router({
@@ -108,17 +110,65 @@ export const reservationsRouter = router({
       return { bookingId: booking.id, url: session.url, configured: true };
     }),
 
-  // Achat comptant (§ bouton « Acheter ») : paiement du prix total du véhicule.
+  /**
+   * Achat comptant (§ bouton « Acheter »).
+   *
+   * L'acheminement peut être payé dans la même transaction : le montant vient
+   * alors du moteur d'acheminement, jamais d'une saisie côté client. Sans
+   * barème chiffrable ou en cas de blocage réglementaire, l'encaissement est
+   * refusé — encaisser sur un montant que la plateforme ne sait pas tenir
+   * transforme une vente en litige.
+   */
   buyNow: protectedProcedure
-    .input(z.object({ annonceId: z.number() }))
+    .input(
+      z.object({
+        annonceId: z.number(),
+        avecAcheminement: z.boolean().optional(),
+        paysArrivee: z.string().max(4).nullable().optional(),
+        villeArrivee: z.string().max(120).nullable().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const [a] = await db.select().from(annonces).where(eq(annonces.id, input.annonceId)).limit(1);
       if (!a) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const montant = Number(a.prix);
-      if (!Number.isFinite(montant) || montant <= 0) {
+      const prixVehicule = Number(a.prix);
+      if (!Number.isFinite(prixVehicule) || prixVehicule <= 0) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Prix indisponible pour cette annonce." });
       }
+
+      let acheminement: { total: number; label: string } | null = null;
+      if (input.avecAcheminement) {
+        const diag = await diagnostiquer({
+          annonceId: input.annonceId,
+          paysDestination: input.paysArrivee ?? null,
+        });
+        if (diag.bloquant) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Acheminement impossible vers ce pays : ${diag.resume}`,
+          });
+        }
+        const d = await devisAcheminement({
+          annonceId: input.annonceId,
+          paysArrivee: input.paysArrivee ?? null,
+          villeArrivee: input.villeArrivee ?? null,
+          userId: ctx.user.uid,
+          enregistrer: true,
+        });
+        if (d.total === null) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "Le coût d'acheminement n'est pas chiffrable sur ce trajet : " +
+              (d.manques[0] ?? "aucun barème enregistré") +
+              ". Le paiement est retenu tant que le montant n'est pas justifiable.",
+          });
+        }
+        acheminement = { total: d.total, label: d.modeLabel };
+      }
+
+      const montant = prixVehicule + (acheminement?.total ?? 0);
 
       const [pay] = await db
         .insert(payments)
@@ -158,10 +208,22 @@ export const reservationsRouter = router({
             price_data: {
               currency: (a.devise || "EUR").toLowerCase(),
               product_data: { name: `Achat véhicule — ${a.titre}` },
-              unit_amount: Math.round(montant * 100),
+              unit_amount: Math.round(prixVehicule * 100),
             },
             quantity: 1,
           },
+          ...(acheminement
+            ? [
+                {
+                  price_data: {
+                    currency: (a.devise || "EUR").toLowerCase(),
+                    product_data: { name: `Acheminement — ${acheminement.label}` },
+                    unit_amount: Math.round(acheminement.total * 100),
+                  },
+                  quantity: 1,
+                },
+              ]
+            : []),
         ],
         success_url: `${env.PUBLIC_URL}/vehicule/${input.annonceId}?achat=1`,
         cancel_url: `${env.PUBLIC_URL}/vehicule/${input.annonceId}?canceled=1`,
