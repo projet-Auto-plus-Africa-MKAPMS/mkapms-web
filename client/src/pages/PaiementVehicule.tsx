@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
-import { ChevronLeft, CreditCard, ShieldCheck, Wallet } from "lucide-react";
+import { ChevronLeft, CreditCard, ShieldCheck, Truck, Wallet } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { useCurrency } from "../lib/currency";
 import { ACOMPTE_PALIERS } from "@shared/plans";
 import MoyensPaiement from "../components/MoyensPaiement";
 
@@ -24,8 +25,18 @@ export default function PaiementVehicule() {
   );
   const [acompte, setAcompte] = useState<number>(ACOMPTE_PALIERS[1] ?? ACOMPTE_PALIERS[0]);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [avecAcheminement, setAvecAcheminement] = useState(false);
+  const { country } = useCurrency();
 
   const q = trpc.annonces.get.useQuery({ id: annonceId }, { enabled: Number.isFinite(annonceId) });
+
+  /* Acheminement : le montant vient du moteur, jamais d'une saisie ici. */
+  const qLivraison = trpc.livraisonVehicule.devis.useQuery(
+    { annonceId, paysArrivee: country ?? null },
+    { enabled: Number.isFinite(annonceId) && annonceId > 0, staleTime: 5 * 60 * 1000 },
+  );
+  const livraison = qLivraison.data;
+  const coutAcheminement = livraison?.total ?? null;
 
   useEffect(() => {
     if (!user) navigate(`/connexion?next=/paiement-vehicule/${annonceId}`);
@@ -45,9 +56,16 @@ export default function PaiementVehicule() {
   const prix = v ? Number(v.prix) : 0;
   const fmt = (n: number) => n.toLocaleString("fr-FR") + " " + (v?.devise || "EUR");
 
+  const aPayer = mode === "comptant" ? prix + (avecAcheminement && coutAcheminement !== null ? coutAcheminement : 0) : acompte;
+
   const pay = () => {
     setErreur(null);
-    if (mode === "comptant") buyNow.mutate({ annonceId });
+    if (mode === "comptant")
+      buyNow.mutate({
+        annonceId,
+        avecAcheminement,
+        paysArrivee: country ?? null,
+      });
     else reserve.mutate({ annonceId, acompte });
   };
 
@@ -105,6 +123,46 @@ export default function PaiementVehicule() {
               </button>
             </div>
 
+            {/* Acheminement payé dans la même transaction */}
+            {mode === "comptant" && (
+              <div className="rounded-xl border border-[#E5E7EB] bg-white p-4">
+                <div className="flex items-start gap-2">
+                  <Truck size={18} className="mt-0.5 text-[#B8960C]" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#111]">Faire livrer le véhicule</p>
+                    {qLivraison.isLoading ? (
+                      <p className="text-[12px] text-slate-500">Calcul de l'acheminement…</p>
+                    ) : coutAcheminement !== null ? (
+                      <>
+                        <label className="mt-2 flex cursor-pointer items-start gap-2">
+                          <input
+                            type="checkbox"
+                            className="mt-0.5 h-4 w-4"
+                            checked={avecAcheminement}
+                            onChange={(e) => setAvecAcheminement(e.target.checked)}
+                          />
+                          <span className="text-[12.5px] leading-relaxed text-[#111]">
+                            Ajouter l'acheminement — {livraison?.modeLabel} :{" "}
+                            <strong>{fmt(coutAcheminement)}</strong>
+                          </span>
+                        </label>
+                        <p className="mt-1 text-[11.5px] text-slate-500">{livraison?.resume}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="mt-1 text-[12.5px] text-slate-600">
+                          L'acheminement n'est pas chiffrable sur ce trajet : il ne peut donc pas être payé ici.
+                        </p>
+                        {livraison?.manques?.[0] && (
+                          <p className="mt-0.5 text-[11.5px] text-slate-500">Manque : {livraison.manques[0]}</p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Palier d'acompte */}
             {mode === "acompte" && (
               <div className="rounded-xl border border-[#E5E7EB] bg-white p-4">
@@ -147,7 +205,7 @@ export default function PaiementVehicule() {
               {pending
                 ? "Redirection…"
                 : mode === "comptant"
-                ? `Payer ${fmt(prix)}`
+                ? `Payer ${fmt(aPayer)}`
                 : `Payer l'acompte de ${acompte} €`}
             </button>
 
