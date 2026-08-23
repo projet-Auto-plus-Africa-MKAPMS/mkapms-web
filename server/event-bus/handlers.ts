@@ -242,6 +242,26 @@ const handlers: Record<string, Handler> = {
       : `Alerte déjà ouverte pour ${corridor} en ${mode}.`;
   },
 
+  async smart_estimation_incomplete(payload) {
+    const depart = texte(payload, "paysDepart") || "?";
+    const arrivee = texte(payload, "paysArrivee") || "?";
+    const corridor = `${depart}→${arrivee}`;
+    const manques = texte(payload, "manques") || "sources non précisées";
+    const cree = await raiseAlert({
+      category: "service",
+      title: `Coût total non chiffrable — ${corridor}`,
+      description:
+        `Un acheteur a demandé le coût complet d'un véhicule sur ${corridor} et la plateforme n'a pas pu l'assembler. Sources manquantes : ${manques}. ` +
+        "Un acheteur qui ne connaît pas son coût total n'achète pas à distance.",
+      level: "warning",
+      targetType: "estimation_corridor",
+      signature: `bus:estimation_incomplete:${corridor}`,
+    });
+    return cree
+      ? `Alerte ouverte : estimation incomplète sur ${corridor}.`
+      : `Alerte déjà ouverte pour ${corridor}.`;
+  },
+
   async audit_trace(payload, ctx) {
     await auditRecord({
       actorId: null,

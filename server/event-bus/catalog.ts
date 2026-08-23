@@ -210,6 +210,15 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     champs: ["mode", "categorie", "paysDepart", "paysArrivee", "manques"],
     emetteurs: ["livraison_vehicule"],
   },
+  {
+    code: "estimation.incomplete",
+    domaine: "service",
+    label: "Coût total d'acquisition non chiffrable",
+    description:
+      "Un acheteur a demandé le coût complet d'un véhicule (valeur, acheminement, importation, pièces) et au moins un volet obligatoire n'a pas de source. Publié pour que la direction sache quelles sources achètent réellement une vente.",
+    champs: ["annonceId", "paysDepart", "paysArrivee", "manques"],
+    emetteurs: ["estimation"],
+  },
 ];
 
 export interface SubscriptionSpec {
@@ -300,6 +309,13 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     handler: "smart_livraison_vehicule_sans_prix",
     effet:
       "Compte les corridors sans barème et ouvre une alerte : c'est la liste exacte des grilles tarifaires à obtenir.",
+  },
+  {
+    engine: "smart",
+    eventType: "estimation.incomplete",
+    handler: "smart_estimation_incomplete",
+    effet:
+      "Ouvre une alerte par corridor d'estimation incomplète : c'est la liste des sources manquantes classée par demande réelle des acheteurs.",
   },
   {
     engine: "audit_os",

@@ -169,6 +169,14 @@ const OS_ENGINES: OsEngineBinding[] = [
       (await import("../vehicle-delivery/index.js")).controlCenterFeed(),
   },
   {
+    name: "estimation",
+    label: "Estimation Hub",
+    category: "transversal",
+    dependencies: ["core", "smart", "vo", "livraison_vehicule", "risque_import"],
+    loadFeed: async () =>
+      (await import("../estimation-hub/index.js")).controlCenterFeed(),
+  },
+  {
     name: "visibility",
     label: "Global Visibility Engine",
     category: "transversal",

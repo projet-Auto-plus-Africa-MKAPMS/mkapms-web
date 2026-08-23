@@ -110,6 +110,7 @@ import { googleBusinessRouter } from "./connectors/google-business/index.js";
 import { knowledgeEngineRouter } from "./knowledge-engine/index.js";
 import { countryPolicyRouter } from "./country-policy/index.js";
 import { importRiskRouter } from "./import-risk/index.js";
+import { estimationHubRouter } from "./estimation-hub/index.js";
 import { resilienceRouter } from "./resilience/index.js";
 import { commandCenterRouter } from "./command-center/index.js";
 import { rdLabRouter } from "./rd-lab/index.js";
@@ -241,6 +242,8 @@ export const appRouter = router({
   chargingEngine: chargingEngineRouter,
   // Livraison de véhicules — moteur distinct de l'univers Livraison (pièces et colis)
   livraisonVehicule: vehicleDeliveryRouter,
+  // Estimation unifiée : valeur VO + acheminement + importation + pièces
+  estimation: estimationHubRouter,
   // Points 46-48 — réputation : avis par pays et expériences vérifiées
   reputationEngine: reputationEngineRouter,
   googleBusiness: googleBusinessRouter,
