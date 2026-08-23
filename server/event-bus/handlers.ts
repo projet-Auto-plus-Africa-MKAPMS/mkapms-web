@@ -203,6 +203,45 @@ const handlers: Record<string, Handler> = {
       : `Alerte déjà ouverte pour l'annonce ${id} vers ${pays} : pas de doublon créé.`;
   },
 
+  async smart_livraison_vehicule_bloquee(payload) {
+    const id = nombre(payload, "expeditionId");
+    const etape = texte(payload, "etape") || "étape non précisée";
+    if (id === null) throw new Error("Charge invalide : « expeditionId » absent ou non numérique.");
+    const note = texte(payload, "note") || "aucun motif transmis";
+    const cree = await raiseAlert({
+      category: "service",
+      title: `Acheminement bloqué — expédition ${id} à l'étape ${etape}`,
+      description: `${note} Un véhicule immobilisé engage un gardiennage et un client qui attend : l'étape doit être débloquée ou le client prévenu.`,
+      level: "important",
+      targetType: "vd_expedition",
+      targetId: id,
+      signature: `bus:vd_bloquee:${id}:${etape}`,
+    });
+    return cree
+      ? `Alerte ouverte : expédition ${id} bloquée à l'étape ${etape}.`
+      : `Alerte déjà ouverte pour l'expédition ${id} à l'étape ${etape}.`;
+  },
+
+  async smart_livraison_vehicule_sans_prix(payload) {
+    const mode = texte(payload, "mode") || "mode non précisé";
+    const depart = texte(payload, "paysDepart") || "?";
+    const arrivee = texte(payload, "paysArrivee") || "?";
+    const corridor = `${depart}→${arrivee}`;
+    const cree = await raiseAlert({
+      category: "service",
+      title: `Acheminement sans barème — ${corridor} (${mode})`,
+      description:
+        `Un client a demandé un prix d'acheminement sur ${corridor} en ${mode} et aucun barème applicable n'existe : il repart sans prix. ` +
+        "Il faut soit une grille interne, soit un transporteur contractualisé sur ce corridor.",
+      level: "warning",
+      targetType: "vd_corridor",
+      signature: `bus:vd_sans_prix:${mode}:${corridor}`,
+    });
+    return cree
+      ? `Alerte ouverte : aucun barème sur ${corridor} en ${mode}.`
+      : `Alerte déjà ouverte pour ${corridor} en ${mode}.`;
+  },
+
   async audit_trace(payload, ctx) {
     await auditRecord({
       actorId: null,

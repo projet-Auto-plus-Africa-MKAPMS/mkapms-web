@@ -10,6 +10,7 @@
  * non vérifié donne un prix « estimé », un barème absent donne « non mesuré ».
  */
 import {
+  bigint,
   bigserial,
   boolean,
   integer,
@@ -144,7 +145,7 @@ export const vdDevis = pgTable("vd_devis", {
 /** Expédition réelle acceptée par un client. */
 export const vdExpeditions = pgTable("vd_expeditions", {
   id: serial("id").primaryKey(),
-  devisId: integer("devis_id"),
+  devisId: bigint("devis_id", { mode: "number" }),
   annonceId: integer("annonce_id"),
   clientId: integer("client_id").notNull(),
   reference: varchar("reference", { length: 32 }).notNull().unique(),

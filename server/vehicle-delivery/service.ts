@@ -137,6 +137,8 @@ export interface LigneOption {
 }
 
 export interface Devis {
+  /** Identifiant du devis enregistré (null quand le devis est seulement simulé). */
+  devisId: number | null;
   annonceId: number | null;
   mode: VdMode;
   modeLabel: string;
@@ -395,6 +397,7 @@ export async function devis(input: {
   const options = await lignesOptions(total);
 
   const resultat: Devis = {
+    devisId: null,
     annonceId,
     mode,
     modeLabel: MODE_LABELS[mode],
@@ -424,23 +427,43 @@ export async function devis(input: {
   };
 
   if (input.enregistrer) {
-    await db.insert(vdDevis).values({
-      annonceId,
-      userId: input.userId ?? null,
-      mode,
-      categorie: cat,
-      paysDepart,
-      paysArrivee,
-      villeDepart,
-      villeArrivee: resultat.villeArrivee,
-      distanceKm: distanceKm === null ? null : String(distanceKm),
-      total: total === null ? null : String(total),
-      devise,
-      qualite,
-      etapes: etapes as unknown as object,
-      options: options as unknown as object,
-      manques,
-      resume,
+    const [ligne] = await db
+      .insert(vdDevis)
+      .values({
+        annonceId,
+        userId: input.userId ?? null,
+        mode,
+        categorie: cat,
+        paysDepart,
+        paysArrivee,
+        villeDepart,
+        villeArrivee: resultat.villeArrivee,
+        distanceKm: distanceKm === null ? null : String(distanceKm),
+        total: total === null ? null : String(total),
+        devise,
+        qualite,
+        etapes: etapes as unknown as object,
+        options: options as unknown as object,
+        manques,
+        resume,
+      })
+      .returning({ id: vdDevis.id });
+    resultat.devisId = ligne ? Number(ligne.id) : null;
+  }
+
+  // Un client reparti sans prix est une vente perdue mesurable : la direction
+  // doit savoir quel corridor n'a aucun barème, pas le découvrir par hasard.
+  if (total === null) {
+    await emitSafe({
+      source: "livraison_vehicule",
+      type: "livraison_vehicule.prix_indisponible",
+      payload: {
+        mode,
+        categorie: cat,
+        paysDepart: paysDepart ?? "",
+        paysArrivee: paysArrivee ?? "",
+        manques: manques.join(" | "),
+      },
     });
   }
 
@@ -471,11 +494,10 @@ export async function accepterDevis(input: {
     );
   }
 
-  const [dernier] = await db.select({ id: vdDevis.id }).from(vdDevis).orderBy(desc(vdDevis.id)).limit(1);
   const [exp] = await db
     .insert(vdExpeditions)
     .values({
-      devisId: dernier ? Number(dernier.id) : null,
+      devisId: d.devisId,
       annonceId: d.annonceId,
       clientId: input.clientId,
       reference: `VDL-${Date.now().toString(36).toUpperCase()}`,
@@ -499,7 +521,7 @@ export async function accepterDevis(input: {
 
   await emitSafe({
     source: "livraison_vehicule",
-    type: "livraison_vehicule.devis_accepte",
+    type: "livraison_vehicule.acceptee",
     payload: {
       expeditionId: exp.id,
       reference: exp.reference,
@@ -578,7 +600,7 @@ export async function marquerEtape(input: {
         expeditionId: exp.id,
         reference: exp.reference,
         etape: input.etape,
-        motif: input.note ?? "",
+        note: input.note ?? "",
       },
     });
   }
@@ -715,7 +737,7 @@ export async function controlCenterFeed() {
 
   return {
     version: "1",
-    health: (t?.total ?? 0) === 0 ? ("degraded" as const) : ("healthy" as const),
+    health: (t?.total ?? 0) === 0 ? ("degraded" as const) : ("ok" as const),
     resume:
       (t?.total ?? 0) === 0
         ? "Aucun barème enregistré : le moteur refuse d'afficher un prix de livraison véhicule plutôt que d'en inventer un."

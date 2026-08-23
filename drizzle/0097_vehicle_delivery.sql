@@ -65,7 +65,7 @@ CREATE INDEX IF NOT EXISTS "vd_devis_annonce_idx" ON "vd_devis" ("annonce_id");
 
 CREATE TABLE IF NOT EXISTS "vd_expeditions" (
   "id" serial PRIMARY KEY,
-  "devis_id" integer,
+  "devis_id" bigint,
   "annonce_id" integer,
   "client_id" integer NOT NULL,
   "reference" varchar(32) NOT NULL UNIQUE,

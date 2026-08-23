@@ -430,7 +430,7 @@ export async function controlCenterFeed() {
 
   return {
     version: "1",
-    health: "healthy" as const,
+    health: "ok" as const,
     resume:
       "Diagnostic de risque avant achat, adossé aux règles pays confirmées. " +
       "Douane, transport, côté de conduite et couverture pièces restent non mesurés faute de connecteur.",
