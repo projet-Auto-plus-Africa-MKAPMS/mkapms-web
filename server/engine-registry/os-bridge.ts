@@ -58,7 +58,7 @@ const OS_ENGINES: OsEngineBinding[] = [
     name: "identity",
     label: "Identity OS",
     category: "transversal",
-    dependencies: ["core"],
+    dependencies: ["core", "country", "language"],
     loadFeed: async () => (await import("../identity-os/index.js")).controlCenterFeed(),
   },
   // ── Moteurs OS transversaux (Phases 42-54) ────────────────────────────
@@ -129,7 +129,7 @@ const OS_ENGINES: OsEngineBinding[] = [
     name: "monitoring",
     label: "Monitoring OS",
     category: "transversal",
-    dependencies: ["core"],
+    dependencies: ["core", "smart", "notification", "audit"],
     loadFeed: async () => (await import("../monitoring-os/index.js")).controlCenterFeed(),
   },
   {
