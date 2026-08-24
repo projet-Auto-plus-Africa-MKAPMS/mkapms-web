@@ -550,10 +550,16 @@ async function reputationSeoHead(
  * jeton fourni par Google contient des caractères hors [a-z0-9] (underscores,
  * tirets), ce qui interdit la méthode fichier.
  *
+ * Ajoute également le lien app Android :
+ *   - <meta name="google-play-app" content="app-id=..."> pour la bannière
+ *     Smart App Banner sur Chrome mobile
+ *   - <link rel="alternate" href="android-app://..."> pour signaler
+ *     l'application à Google Search et faciliter la validation Play Console
+ *
  * Toutes les valeurs viennent des variables d'environnement — rien n'est
  * publié tant qu'une variable est vide.
  */
-export function siteVerificationMeta(): string {
+export function siteVerificationMeta(req?: Request): string {
   const parts: string[] = [];
 
   // Google Search Console — supporte PLUSIEURS jetons séparés par une virgule,
@@ -606,6 +612,22 @@ export function siteVerificationMeta(): string {
     );
   }
 
+  // ─── Application Android — reconnaissance croisée site ↔ Play Store ─────
+  // La bannière Smart App Banner de Chrome mobile propose l'installation
+  // directement au visiteur, et l'alternate android-app signale l'app à
+  // Google Search (indexation croisée). Combiné avec /.well-known/assetlinks.json
+  // (Digital Asset Links), Play Console valide la propriété du site.
+  if (env.ANDROID_APP_ID) {
+    parts.push(
+      `<meta name="google-play-app" content="app-id=${escapeHtml(env.ANDROID_APP_ID)}" />`,
+    );
+    const host = req ? hostFrom(req) : "mkapms.site";
+    const p = req?.originalUrl || "/";
+    parts.push(
+      `<link rel="alternate" href="android-app://${escapeHtml(env.ANDROID_APP_ID)}/https/${escapeHtml(host)}${escapeHtml(p)}" />`,
+    );
+  }
+
   return parts.join("\n    ");
 }
 
@@ -625,7 +647,9 @@ export async function injectAnnonceSeo(req: Request, html: string): Promise<stri
   // Meta transversales du domaine (toujours présentes)
   // + balises de vérification de propriété du site (Google, Bing, Yandex,
   //   Facebook, Pinterest) issues des variables d'environnement Railway.
-  const verificationMeta = siteVerificationMeta();
+  // + balises app Android (google-play-app + link alternate android-app)
+  //   pour la reconnaissance Play Console et la Smart App Banner Chrome.
+  const verificationMeta = siteVerificationMeta(req);
   const domainMeta = [
     `<meta property="og:site_name" content="${escapeHtml(meta.siteName)}" />`,
     `<meta property="og:locale" content="${meta.ogLocale}" />`,

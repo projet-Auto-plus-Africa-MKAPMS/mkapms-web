@@ -546,6 +546,17 @@ async function bootstrap() {
         `[MKA.P-MS] Vérification propriété active (${seoActive.length}) : ${seoActive.join(" · ")}`,
       );
     }
+    // Récapitulatif Digital Asset Links (Play Console).
+    const androidFingerprints = env.ANDROID_APP_FINGERPRINTS.split(",").filter((f) => f.trim().length > 0);
+    if (androidFingerprints.length === 0) {
+      console.warn(
+        `[MKA.P-MS] Play Console : ANDROID_APP_FINGERPRINTS absent — /.well-known/assetlinks.json répondra 404 (app ${env.ANDROID_APP_ID}). Voir docs/GOOGLE_PLAY_CONSOLE.md.`,
+      );
+    } else {
+      console.log(
+        `[MKA.P-MS] Play Console actif : ${androidFingerprints.length} empreinte(s) SHA-256 déclarée(s) pour ${env.ANDROID_APP_ID}.`,
+      );
+    }
   });
 
   // Auto-expiration des annonces (vérification toutes les heures)
