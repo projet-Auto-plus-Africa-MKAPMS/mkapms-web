@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { IaConfigWarning } from "../components/IaConfigWarning";
 
 type Onglet = "fournisseurs" | "dependance" | "couts" | "memoire" | "supervision" | "regle";
 
@@ -221,6 +222,7 @@ export default function CentreIA() {
       </div>
 
       <div className="space-y-4 px-4">
+        <IaConfigWarning />
         {message ? (
           <div className="rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-3 text-xs text-black/70">
             {message}

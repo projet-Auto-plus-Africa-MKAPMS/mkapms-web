@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { AlertTriangle, ChevronLeft, Mic, MicOff, MessageCircle, Send, Sparkles } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { speechRecognitionConstructor, startDictation } from "../lib/speech";
+import { IaConfigWarning } from "../components/IaConfigWarning";
 
 interface Bulle {
   role: "moi" | "assistant";
@@ -112,6 +113,8 @@ export default function AssistantIntelligences() {
       >
         <ChevronLeft className="h-4 w-4" /> Accueil
       </Link>
+
+      <IaConfigWarning />
 
       <header className="rounded-2xl border border-black/5 bg-white p-4">
         <h1 className="flex items-center gap-2 text-xl font-black text-[#111]">
