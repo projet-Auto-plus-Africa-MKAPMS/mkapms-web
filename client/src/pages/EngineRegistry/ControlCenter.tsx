@@ -21,6 +21,7 @@ import { useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
+import { DiagnosticPanel } from "./DiagnosticPanel";
 import {
   Cpu,
   ChevronLeft,
@@ -483,6 +484,9 @@ export default function EngineRegistryControlCenter() {
             </button>
           </div>
         </div>
+
+        {/* Diagnostic actionnable des moteurs dégradés/HS */}
+        <DiagnosticPanel isPdg={isPdg} />
 
         {/* Point 41 — registre complet : les 5 états opérationnels réels */}
         <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">

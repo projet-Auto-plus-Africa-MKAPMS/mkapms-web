@@ -48,6 +48,7 @@ import {
   getContract,
   contractSummary,
 } from "./contracts.js";
+import { diagnoseAllEngines, diagnoseEngine, retryEngineSupervision } from "./diagnose.js";
 
 const engineState = z.enum([
   "active",
@@ -143,6 +144,24 @@ export const engineRegistryRouter = router({
   dependencyGraph: directionProcedure.query(async () => {
     return dependencyGraph();
   }),
+
+  // ── Diagnostic & remédiation des moteurs dégradés/HS ─────────────────
+  // Pourquoi ce moteur est-il dégradé ? Réponse actionnable, moteur par
+  // moteur : tables manquantes, dépendances non satisfaites, feed OS KO.
+  diagnose: directionProcedure.query(async () => {
+    return diagnoseAllEngines();
+  }),
+  diagnoseOne: directionProcedure
+    .input(z.object({ name: z.string().min(1).max(64) }))
+    .query(async ({ input }) => {
+      return diagnoseEngine(input.name);
+    }),
+  /** Relance manuelle de la supervision d'un moteur (sonde ou feed OS). */
+  retrySupervision: pdgProcedure
+    .input(z.object({ name: z.string().min(1).max(64) }))
+    .mutation(async ({ input }) => {
+      return retryEngineSupervision(input.name);
+    }),
 
   impact: directionProcedure
     .input(z.object({ name: z.string().min(1).max(64) }))
