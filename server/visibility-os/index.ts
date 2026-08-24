@@ -394,6 +394,51 @@ export const visibilityOsRouter = router({
     return db.select().from(visibilityChannels).orderBy(visibilityChannels.kind, visibilityChannels.label);
   }),
 
+  /**
+   * Comptes publics réellement configurés (pied de page du site).
+   * Un canal sans adresse enregistrée n'est pas retourné : mieux vaut ne rien
+   * afficher qu'une icône qui ne mène nulle part.
+   */
+  reseauxPublics: publicProcedure.query(async () => {
+    await ensureChannelsSeeded();
+    const rows = await db
+      .select()
+      .from(visibilityChannels)
+      .where(and(eq(visibilityChannels.kind, "social"), eq(visibilityChannels.enabled, true)));
+    return rows.flatMap((r) => {
+      const cfg = (r.config ?? {}) as Record<string, unknown>;
+      const url = typeof cfg.profileUrl === "string" ? cfg.profileUrl : "";
+      if (!url.startsWith("https://")) return [];
+      const connector = typeof cfg.connector === "string" ? cfg.connector : "";
+      return [{ channelKey: r.channelKey, label: r.label, connector, url }];
+    });
+  }),
+
+  /** Enregistre l'adresse publique d'un canal social (PDG). */
+  setChannelProfile: pdgProcedure
+    .input(
+      z.object({
+        channelKey: z.string(),
+        profileUrl: z.string().url().startsWith("https://").max(500).or(z.literal("")),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const [canal] = await db
+        .select()
+        .from(visibilityChannels)
+        .where(eq(visibilityChannels.channelKey, input.channelKey));
+      if (!canal) return null;
+      const cfg = { ...((canal.config ?? {}) as Record<string, unknown>) };
+      if (input.profileUrl) cfg.profileUrl = input.profileUrl;
+      else delete cfg.profileUrl;
+      const [row] = await db
+        .update(visibilityChannels)
+        .set({ config: cfg, updatedAt: new Date() })
+        .where(eq(visibilityChannels.channelKey, input.channelKey))
+        .returning();
+      return row ?? null;
+    }),
+
   setChannel: pdgProcedure
     .input(z.object({ channelKey: z.string(), enabled: z.boolean().optional(), autoPublish: z.boolean().optional() }))
     .mutation(async ({ input }) => {

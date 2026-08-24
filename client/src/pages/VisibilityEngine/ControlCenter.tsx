@@ -49,6 +49,44 @@ function Stat({ label, value, accent }: { label: string; value: number | string;
   );
 }
 
+/**
+ * Adresse publique du compte (pied de page du site). Sans adresse enregistrée,
+ * l'icône n'est pas affichée aux visiteurs : pas de lien mort.
+ */
+function ChampCompte({
+  valeur,
+  desactive,
+  onEnregistrer,
+}: {
+  valeur: string;
+  desactive: boolean;
+  onEnregistrer: (url: string) => void;
+}) {
+  const [saisie, setSaisie] = useState(valeur);
+  return (
+    <div className="mt-2 border-t border-[#F0EEE9] pt-2">
+      <p className="text-[9px] text-[#6B7280] mb-1">
+        Adresse publique du compte (https://…) — affichée au pied du site. Vide = icône masquée.
+      </p>
+      <div className="flex gap-1.5">
+        <input
+          value={saisie}
+          onChange={(e) => setSaisie(e.target.value)}
+          placeholder="https://…"
+          className="flex-1 rounded-lg border border-[#E5E7EB] px-2 py-1 text-[11px]"
+        />
+        <button
+          disabled={desactive || saisie === valeur}
+          onClick={() => onEnregistrer(saisie.trim())}
+          className="rounded-lg bg-[#111] px-2.5 py-1 text-[10px] font-bold text-white disabled:opacity-40"
+        >
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function VisibilityControlCenter() {
   const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("dashboard");
@@ -69,6 +107,7 @@ export default function VisibilityControlCenter() {
   const seedIntents = trpc.visibilityOs.seedIntents.useMutation({ onSuccess: () => { utils.visibilityOs.intents.invalidate(); utils.visibilityOs.overview.invalidate(); } });
   const refreshTrends = trpc.visibilityOs.refreshTrends.useMutation({ onSuccess: () => { utils.visibilityOs.intents.invalidate(); utils.visibilityOs.overview.invalidate(); } });
   const setChannel = trpc.visibilityOs.setChannel.useMutation({ onSuccess: () => { utils.visibilityOs.channels.invalidate(); } });
+  const setChannelProfile = trpc.visibilityOs.setChannelProfile.useMutation({ onSuccess: () => { utils.visibilityOs.channels.invalidate(); utils.visibilityOs.reseauxPublics.invalidate(); } });
   const validatePub = trpc.visibilityOs.validatePublication.useMutation({ onSuccess: () => { utils.visibilityOs.publications.invalidate(); utils.visibilityOs.overview.invalidate(); } });
 
   if (!user || !isDirection) return <Navigate to="/" replace />;
@@ -170,6 +209,13 @@ export default function VisibilityControlCenter() {
                   </button>
                 </div>
               </div>
+              {c.kind === "social" && (
+                <ChampCompte
+                  valeur={typeof (c.config as Record<string, unknown> | null)?.profileUrl === "string" ? String((c.config as Record<string, unknown>).profileUrl) : ""}
+                  desactive={!isPdg || setChannelProfile.isPending}
+                  onEnregistrer={(url) => setChannelProfile.mutate({ channelKey: c.channelKey, profileUrl: url })}
+                />
+              )}
             </div>
           ))}
         </div>
