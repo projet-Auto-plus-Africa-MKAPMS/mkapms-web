@@ -1,8 +1,9 @@
 /**
- * Bandeau d'alerte "IA non configurée" — présent partout où l'utilisateur
- * peut tenter d'envoyer une commande à l'IA. Sans clé API configurée, chaque
- * envoi échouait silencieusement avec un motif obscur. Ce composant remonte
- * la vraie cause et pointe vers l'action à effectuer.
+ * Bandeau d'alerte "MKA.P-MS Intelligence non configurée" — présent partout
+ * où l'utilisateur peut tenter d'envoyer une commande à l'Intelligence. Sans
+ * clé API configurée, chaque envoi échouait silencieusement avec un motif
+ * obscur. Ce composant remonte la vraie cause et pointe vers l'action à
+ * effectuer.
  */
 import { AlertTriangle, ExternalLink } from "lucide-react";
 import { trpc } from "../lib/trpc";
@@ -24,7 +25,7 @@ export function IaConfigWarning({ compact = false }: { compact?: boolean }) {
       <div className="mb-2 flex items-center gap-2">
         <AlertTriangle size={16} className="text-rose-700" />
         <h3 className="text-sm font-black text-rose-900">
-          Assistant IA hors service — aucune clé API configurée
+          Assistant MKA.P-MS Intelligence hors service — aucune clé API configurée
         </h3>
       </div>
       <p className="text-sm text-rose-800">{data.guidance}</p>
@@ -58,7 +59,7 @@ export function IaConfigWarning({ compact = false }: { compact?: boolean }) {
       </div>
       <p className="mt-3 text-xs text-rose-700">
         Coller la clé dans les <strong>Variables Railway</strong> du service backend
-        → Railway redéploie → l'IA remonte automatiquement.
+        → Railway redéploie → MKA.P-MS Intelligence remonte automatiquement.
       </p>
     </div>
   );

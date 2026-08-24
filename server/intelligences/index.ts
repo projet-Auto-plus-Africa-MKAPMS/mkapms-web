@@ -133,13 +133,15 @@ export const intelligencesRouter = router({
   })),
 
   /**
-   * État de la configuration IA — dit CLAIREMENT ce qui manque pour que l'IA
-   * puisse répondre. Sans ça, l'utilisateur voyait des refus silencieux
-   * (« aucun fournisseur habilité ») sans savoir quelle clé configurer.
+   * État de la configuration MKA.P-MS Intelligence — dit CLAIREMENT ce qui
+   * manque pour que l'Intelligence puisse répondre. Sans ça, l'utilisateur
+   * voyait des refus silencieux (« aucun fournisseur habilité ») sans savoir
+   * quelle clé configurer.
    *
    * Public par nécessité : le PDG doit pouvoir vérifier depuis n'importe quelle
-   * page (Centre Commandes, Centre IA) que l'IA est branchée. Aucune donnée
-   * sensible n'est exposée — seulement la présence/absence des clés.
+   * page (Centre Commandes, Centre Intelligence) que l'assistant est branché.
+   * Aucune donnée sensible n'est exposée — seulement la présence/absence des
+   * clés.
    */
   configStatus: publicProcedure.query(() => {
     const providers = [
@@ -173,7 +175,7 @@ export const intelligencesRouter = router({
       providers,
       guidance:
         active.length === 0
-          ? "Aucune clé API IA n'est configurée. Ajoute au moins OPENAI_API_KEY dans les variables Railway pour que l'assistant, le Centre de Commandes et les moteurs IA puissent répondre."
+          ? "Aucune clé API n'est configurée pour MKA.P-MS Intelligence. Ajoute au moins OPENAI_API_KEY dans les variables Railway pour que l'assistant, le Centre de Commandes et les moteurs Intelligence puissent répondre."
           : `${active.length}/${providers.length} fournisseur(s) opérationnel(s). Ajoute d'autres clés pour bénéficier du repli automatique en cas de panne.`,
     };
   }),
