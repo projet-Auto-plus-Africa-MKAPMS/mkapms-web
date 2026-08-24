@@ -285,6 +285,24 @@ export default function Admin() {
       </section>
       )}
 
+      {/* Demandes de suppression de compte — PDG + Directeur */}
+      {(user?.role === "super_admin" || user?.role === "admin") && (
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Demandes de suppression</h2>
+        <p className="text-xs text-slate-500">Demandes re&ccedil;ues du formulaire public &mdash; identit&eacute; &agrave; v&eacute;rifier avant toute suppression</p>
+        <Link to="/admin/demandes-suppression" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">
+            <span className="text-2xl">&#x1F5D1;</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-bold text-[#D4AF37]">Suppression de compte</p>
+            <p className="text-xs text-white/60">Chaque demande et chaque d&eacute;cision sont datées et attribu&eacute;es</p>
+          </div>
+          <ChevronDown size={18} className="text-[#D4AF37] -rotate-90" />
+        </Link>
+      </section>
+      )}
+
       {/* Réputation & Avis — PDG + Directeur (point 55) */}
       {(user?.role === "super_admin" || user?.role === "admin") && (
       <section className="mt-10">

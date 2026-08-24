@@ -34,6 +34,7 @@ const GaragePlus = lazy(() => import("./pages/GaragePlus"));
 const Abonnements = lazy(() => import("./pages/Abonnements"));
 const Aide = lazy(() => import("./pages/Aide"));
 const Confidentialite = lazy(() => import("./pages/Confidentialite"));
+const SuppressionCompte = lazy(() => import("./pages/SuppressionCompte"));
 const Confiance = lazy(() => import("./pages/Confiance"));
 const Connexion = lazy(() => import("./pages/Connexion"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
@@ -185,6 +186,7 @@ const PermissionEngineControlCenter = lazy(() => import("./pages/PermissionEngin
 const RedirectionEngineControlCenter = lazy(() => import("./pages/RedirectionEngine/ControlCenter"));
 const EngineRegistryControlCenter = lazy(() => import("./pages/EngineRegistry/ControlCenter"));
 const CentreReputation = lazy(() => import("./pages/CentreReputation"));
+const DemandesSuppression = lazy(() => import("./pages/DemandesSuppression"));
 const CentreActions = lazy(() => import("./pages/CentreActions"));
 const CentreConnaissance = lazy(() => import("./pages/CentreConnaissance"));
 const CentreReglesPays = lazy(() => import("./pages/CentreReglesPays"));
@@ -415,7 +417,6 @@ const MesVehicules = lazy(() => import("./pages/utilisateurs/MesVehicules"));
 const MessagerieGlobale = lazy(() => import("./pages/utilisateurs/MessagerieGlobale"));
 const ObjectifUtilisateur = lazy(() => import("./pages/utilisateurs/ObjectifUtilisateur"));
 const SecuriteUtilisateur = lazy(() => import("./pages/utilisateurs/SecuriteUtilisateur"));
-const SuppressionCompte = lazy(() => import("./pages/utilisateurs/SuppressionCompte"));
 const TableauBordPerso = lazy(() => import("./pages/utilisateurs/TableauBordPerso"));
 // Notifications
 const AlertesUrgentes = lazy(() => import("./pages/notifications/AlertesUrgentes"));
@@ -970,6 +971,7 @@ export default function App() {
             <Route path="/abonnements" element={<U name="Abonnements"><Abonnements /></U>} />
             <Route path="/aide" element={<Aide />} />
             <Route path="/confidentialite" element={<Confidentialite />} />
+            <Route path="/suppression-compte" element={<SuppressionCompte />} />
             <Route path="/confiance" element={<Confiance />} />
             <Route path="/mission" element={<Mission />} />
             <Route path="/espace-pro" element={<U name="Espace Pro"><EspacePro /></U>} />
@@ -1190,6 +1192,7 @@ export default function App() {
             <Route path="/superadmin/permission-engine" element={<U name="Moteur de Permissions"><PermissionEngineControlCenter /></U>} />
             <Route path="/superadmin/redirection-engine" element={<U name="Moteur de Redirection"><RedirectionEngineControlCenter /></U>} />
             <Route path="/admin/moteurs" element={<U name="Moteurs MKA.P-MS"><EngineRegistryControlCenter /></U>} />
+            <Route path="/admin/demandes-suppression" element={<U name="Demandes de suppression"><DemandesSuppression /></U>} />
             <Route path="/admin/reputation" element={<U name="Réputation & Avis"><CentreReputation /></U>} />
             <Route path="/admin/actions" element={<U name="Centre d'Actions"><CentreActions /></U>} />
             <Route path="/admin/connaissance" element={<U name="Mémoire automobile"><CentreConnaissance /></U>} />
@@ -1238,7 +1241,7 @@ export default function App() {
             <Route path="/utilisateurs/messagerie-globale" element={<U name="Utilisateurs"><MessagerieGlobale /></U>} />
             <Route path="/utilisateurs/objectif-utilisateur" element={<U name="Utilisateurs"><ObjectifUtilisateur /></U>} />
             <Route path="/utilisateurs/securite-utilisateur" element={<U name="Utilisateurs"><SecuriteUtilisateur /></U>} />
-            <Route path="/utilisateurs/suppression-compte" element={<U name="Utilisateurs"><SuppressionCompte /></U>} />
+            <Route path="/utilisateurs/suppression-compte" element={<SuppressionCompte />} />
             <Route path="/utilisateurs/tableau-bord-perso" element={<U name="Utilisateurs"><TableauBordPerso /></U>} />
             {/* Notifications */}
             <Route path="/notifications/alertes-urgentes" element={<U name="Notifications"><AlertesUrgentes /></U>} />
