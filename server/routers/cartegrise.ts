@@ -7,6 +7,7 @@ import {
   cgPacks, cgCredits, cgEtapes, cgAuditLog, serviceTracking, comptaEcritures,
 } from "../schema.js";
 import { notifications } from "../modules/core.js";
+import { createPaymentCheckout } from "../payment-engine/checkout.js";
 
 const STATUS_LABELS: Record<string, string> = {
   brouillon: "Brouillon",
@@ -294,6 +295,70 @@ export const carteGriseRouter = router({
   packs: protectedProcedure.query(async () => {
     return db.select().from(cgPacks).where(eq(cgPacks.actif, true)).orderBy(cgPacks.nbDossiers);
   }),
+
+  /**
+   * Souscription à un abonnement Carte Grise (agence / centre auto / autoécole).
+   * Crée un Stripe Checkout via le Payment Engine unifié — mode dégradé automatique
+   * si Stripe n'est pas configuré (URL de simulation locale, webhook confirmera).
+   */
+  souscrireAbonnement: protectedProcedure
+    .input(z.object({
+      abonnementId: z.number().int().positive(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const [abo] = await db
+        .select()
+        .from(cgAbonnements)
+        .where(and(eq(cgAbonnements.id, input.abonnementId), eq(cgAbonnements.actif, true)))
+        .limit(1);
+      if (!abo) throw new Error("Abonnement introuvable ou inactif");
+      const total = parseFloat(abo.prixTTC);
+
+      const { url } = await createPaymentCheckout({
+        userId: ctx.user.uid,
+        kind: "carte_grise_service",
+        amount: total,
+        currency: "EUR",
+        label: `Abonnement Carte Grise — ${abo.nom}`,
+        metadata: { abonnementId: input.abonnementId, type: "cg_abonnement" },
+        successPath: `/carte-grise/agence?subscribed=${input.abonnementId}`,
+        cancelPath: `/carte-grise/agence?canceled=1`,
+        paymentTypeSql: "carte_grise",
+      });
+      return { url };
+    }),
+
+  /**
+   * Achat d'un pack de dossiers Carte Grise (crédits prépayés — ex : 10 dossiers
+   * à tarif dégressif). Même mécanique que l'abonnement, kind identique côté
+   * webhook — les métadonnées distinguent les deux flux.
+   */
+  acheterPack: protectedProcedure
+    .input(z.object({
+      packId: z.number().int().positive(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const [pack] = await db
+        .select()
+        .from(cgPacks)
+        .where(and(eq(cgPacks.id, input.packId), eq(cgPacks.actif, true)))
+        .limit(1);
+      if (!pack) throw new Error("Pack introuvable ou inactif");
+      const total = parseFloat(pack.prixTTC);
+
+      const { url } = await createPaymentCheckout({
+        userId: ctx.user.uid,
+        kind: "carte_grise_service",
+        amount: total,
+        currency: "EUR",
+        label: `Pack Carte Grise — ${pack.nom} (${pack.nbDossiers} dossiers)`,
+        metadata: { packId: input.packId, type: "cg_pack", nbDossiers: pack.nbDossiers },
+        successPath: `/carte-grise/agence?pack=${input.packId}`,
+        cancelPath: `/carte-grise/agence?canceled=1`,
+        paymentTypeSql: "carte_grise",
+      });
+      return { url };
+    }),
 
   // ── STATS ──────────────────────────────────────────────────────────────
   stats: protectedProcedure.query(async () => {
