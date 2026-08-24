@@ -41,6 +41,14 @@ export const CAPABILITIES: { code: string; label: string; critique: boolean }[] 
   { code: "analytique", label: "Mesure d'audience", critique: false },
   { code: "email", label: "Envoi d'e-mails", critique: true },
   { code: "stockage", label: "Stockage de fichiers", critique: false },
+  { code: "voix_ecoute", label: "Dictée serveur — parole vers texte", critique: false },
+  { code: "voix_parole", label: "Réponse parlée — texte vers parole", critique: false },
+  { code: "recherche_web", label: "Recherche externe sourcée", critique: false },
+  { code: "itineraire", label: "Distance et itinéraire réels entre deux adresses", critique: true },
+  { code: "douane", label: "Droits, taxes et normes à l'importation par pays", critique: true },
+  { code: "transporteur", label: "Grilles transporteurs par corridor", critique: true },
+  { code: "donnees_techniques", label: "Données techniques véhicules et pièces", critique: true },
+  { code: "paiement_local", label: "Encaissement local Afrique (mobile money)", critique: true },
 ];
 
 /** Confidentialité croissante : un fournisseur n'accepte que jusqu'à son plafond. */
@@ -207,6 +215,114 @@ export const PROVIDER_CATALOG: {
     unitLabel: "mois",
     switchingNote:
       "Déjà propriétaire : les visites et recherches sont mesurées par la plateforme elle-même.",
+  },
+  {
+    code: "voix_ecoute_navigateur",
+    label: "Dictée du navigateur (Web Speech)",
+    capability: "voix_ecoute",
+    envKeys: [],
+    dataResidency: "Appareil du visiteur",
+    confidentialityMax: "publique",
+    unitCostCents: 0,
+    unitLabel: "dictée",
+    switchingNote:
+      "Déjà en place sur les barres de recherche et l'assistant, mais dépend du navigateur : absente sur plusieurs navigateurs, et l'écran le dit au visiteur.",
+  },
+  {
+    code: "voix_ecoute_serveur",
+    label: "Transcription serveur (parole vers texte)",
+    capability: "voix_ecoute",
+    envKeys: ["SPEECH_TO_TEXT_API_KEY"],
+    dataResidency: null,
+    confidentialityMax: "interne",
+    unitCostCents: null,
+    unitLabel: "minute",
+    switchingNote:
+      "Nécessaire pour dicter depuis les navigateurs sans Web Speech et pour les langues africaines mal reconnues côté appareil. Absent : aucune transcription serveur n'existe.",
+  },
+  {
+    code: "voix_parole_serveur",
+    label: "Synthèse vocale (texte vers parole)",
+    capability: "voix_parole",
+    envKeys: ["TEXT_TO_SPEECH_API_KEY"],
+    dataResidency: null,
+    confidentialityMax: "publique",
+    unitCostCents: null,
+    unitLabel: "1000 caractères",
+    switchingNote:
+      "Absent : l'assistant écrit mais ne parle pas. Indispensable pour les visiteurs qui lisent difficilement.",
+  },
+  {
+    code: "recherche_web_externe",
+    label: "Recherche web sourcée",
+    capability: "recherche_web",
+    envKeys: ["WEB_SEARCH_API_KEY"],
+    dataResidency: null,
+    confidentialityMax: "publique",
+    unitCostCents: null,
+    unitLabel: "1000 requêtes",
+    switchingNote:
+      "Absent : l'assistant ne peut pas sortir chercher une réponse avec sa source. Sans ce fournisseur, une réponse externe serait une réponse inventée.",
+  },
+  {
+    code: "itineraire_routier",
+    label: "Calcul d'itinéraire et de distance",
+    capability: "itineraire",
+    envKeys: ["ROUTING_API_KEY"],
+    dataResidency: null,
+    confidentialityMax: "publique",
+    unitCostCents: null,
+    unitLabel: "1000 itinéraires",
+    switchingNote:
+      "Absent : le moteur d'acheminement ne connaît pas la distance réelle entre deux adresses, donc son prix reste « estimé » au lieu de « confirmé ».",
+  },
+  {
+    code: "douane_tarifs",
+    label: "Tarifs douaniers et normes d'importation",
+    capability: "douane",
+    envKeys: ["CUSTOMS_TARIFF_API_KEY"],
+    dataResidency: null,
+    confidentialityMax: "publique",
+    unitCostCents: null,
+    unitLabel: "requête",
+    switchingNote:
+      "Absent : les droits et taxes à l'arrivée sont affichés « non mesuré ». Un chiffre inventé ici coûte au client plus cher qu'une absence de chiffre.",
+  },
+  {
+    code: "transporteurs_corridors",
+    label: "Grilles tarifaires transporteurs",
+    capability: "transporteur",
+    envKeys: ["CARRIER_RATES_API_KEY"],
+    dataResidency: null,
+    confidentialityMax: "interne",
+    unitCostCents: null,
+    unitLabel: "cotation",
+    switchingNote:
+      "Absent : seuls les barèmes saisis par la direction chiffrent un corridor. Sans barème, l'acceptation du transport est bloquée.",
+  },
+  {
+    code: "donnees_vehicules",
+    label: "Base technique véhicules et pièces (type AutoData)",
+    capability: "donnees_techniques",
+    envKeys: ["VEHICLE_TECH_DATA_API_KEY"],
+    dataResidency: null,
+    confidentialityMax: "publique",
+    unitCostCents: null,
+    unitLabel: "requête",
+    switchingNote:
+      "Absent : les caractéristiques et références de pièces reposent sur la saisie des vendeurs, donc la compatibilité d'une pièce n'est jamais garantie par la plateforme.",
+  },
+  {
+    code: "paiement_mobile_money",
+    label: "Encaissement mobile money Afrique",
+    capability: "paiement_local",
+    envKeys: ["MOBILE_MONEY_API_KEY"],
+    dataResidency: null,
+    confidentialityMax: "personnelle",
+    unitCostCents: null,
+    unitLabel: "transaction",
+    switchingNote:
+      "Absent : seul l'encaissement par carte existe. Sur plusieurs marchés africains, un acheteur sans carte ne peut pas payer du tout.",
   },
 ];
 
