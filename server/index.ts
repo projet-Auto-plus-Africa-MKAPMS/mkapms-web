@@ -530,6 +530,22 @@ async function bootstrap() {
   }
   app.listen(env.PORT, "0.0.0.0", () => {
     console.log(`[MKA.P-MS] serveur démarré sur le port ${env.PORT} (${env.NODE_ENV})`);
+    // Récapitulatif des vérifications de propriété du site actives.
+    const seoActive: string[] = [];
+    if (env.GOOGLE_SITE_VERIFICATION) seoActive.push("Google (meta + fichier)");
+    if (env.BING_SITE_VERIFICATION) seoActive.push("Bing");
+    if (env.YANDEX_VERIFICATION) seoActive.push("Yandex");
+    if (env.FACEBOOK_DOMAIN_VERIFICATION) seoActive.push("Facebook");
+    if (env.PINTEREST_SITE_VERIFICATION) seoActive.push("Pinterest");
+    if (seoActive.length === 0) {
+      console.warn(
+        "[MKA.P-MS] Vérification propriété du site : aucune méthode configurée. Voir docs/SEO_VERIFICATION.md pour Google Search Console.",
+      );
+    } else {
+      console.log(
+        `[MKA.P-MS] Vérification propriété active (${seoActive.length}) : ${seoActive.join(" · ")}`,
+      );
+    }
   });
 
   // Auto-expiration des annonces (vérification toutes les heures)

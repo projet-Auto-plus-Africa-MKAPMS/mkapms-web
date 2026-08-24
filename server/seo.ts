@@ -18,6 +18,7 @@ import { annonces, annoncePhotos, seoPages, garagesPublics, seoBlogArticles } fr
 import { resolveDomain, type DomainKey } from "./domain.js";
 import { STATIC_SEO, breadcrumbSchema, homeSchema } from "./seo-static.js";
 import { reputationJsonLdBlock } from "./reputation-engine/seo.js";
+import { env } from "./env.js";
 import {
   publicReputationPage,
   universWithPublicReviews,
@@ -542,6 +543,73 @@ async function reputationSeoHead(
 // ─── Exports publics ──────────────────────────────────────────────────────────
 
 /**
+ * Balises de vérification de propriété du site pour tous les moteurs.
+ *
+ * Devin a déjà branché la méthode « fichier » pour Google (route `/google:jeton.html`).
+ * On complète ici avec la méthode « balise HTML meta » — indispensable quand le
+ * jeton fourni par Google contient des caractères hors [a-z0-9] (underscores,
+ * tirets), ce qui interdit la méthode fichier.
+ *
+ * Toutes les valeurs viennent des variables d'environnement — rien n'est
+ * publié tant qu'une variable est vide.
+ */
+export function siteVerificationMeta(): string {
+  const parts: string[] = [];
+
+  // Google Search Console — supporte PLUSIEURS jetons séparés par une virgule,
+  // dans deux formats : « <jeton> » ou « google<jeton>.html ». Pour chaque
+  // jeton, on émet la meta officielle utilisée par la méthode « balise HTML ».
+  // Cas ambigu : quand le jeton contient uniquement [a-z0-9] et qu'il est
+  // aussi utilisé pour la méthode fichier, la meta reste correcte — Google
+  // accepte les deux méthodes en parallèle sur la même propriété.
+  if (env.GOOGLE_SITE_VERIFICATION) {
+    const seen = new Set<string>();
+    for (const raw of env.GOOGLE_SITE_VERIFICATION.split(",")) {
+      const j = raw
+        .trim()
+        .replace(/^google-site-verification[=:]\s*/i, "")
+        .replace(/\.html$/i, "")
+        .replace(/^google/i, "");
+      if (!j || seen.has(j)) continue;
+      seen.add(j);
+      parts.push(
+        `<meta name="google-site-verification" content="${escapeHtml(j)}" />`,
+      );
+    }
+  }
+
+  // Bing Webmaster Tools (msvalidate.01) — valeur brute du content=.
+  if (env.BING_SITE_VERIFICATION) {
+    parts.push(
+      `<meta name="msvalidate.01" content="${escapeHtml(env.BING_SITE_VERIFICATION)}" />`,
+    );
+  }
+
+  // Yandex Webmaster
+  if (env.YANDEX_VERIFICATION) {
+    parts.push(
+      `<meta name="yandex-verification" content="${escapeHtml(env.YANDEX_VERIFICATION)}" />`,
+    );
+  }
+
+  // Facebook Domain Verification (Meta Business, Publicités, Insights)
+  if (env.FACEBOOK_DOMAIN_VERIFICATION) {
+    parts.push(
+      `<meta name="facebook-domain-verification" content="${escapeHtml(env.FACEBOOK_DOMAIN_VERIFICATION)}" />`,
+    );
+  }
+
+  // Pinterest Domain Verification
+  if (env.PINTEREST_SITE_VERIFICATION) {
+    parts.push(
+      `<meta name="p:domain_verify" content="${escapeHtml(env.PINTEREST_SITE_VERIFICATION)}" />`,
+    );
+  }
+
+  return parts.join("\n    ");
+}
+
+/**
  * Injecte les balises SEO par page dans l'index.html servi aux robots.
  * Ordre de résolution : annonce (/vehicule/:id) → page programmatique
  * (seo_pages) → page publique curée → meta par défaut du domaine.
@@ -555,10 +623,16 @@ export async function injectAnnonceSeo(req: Request, html: string): Promise<stri
   const path = req.path;
 
   // Meta transversales du domaine (toujours présentes)
+  // + balises de vérification de propriété du site (Google, Bing, Yandex,
+  //   Facebook, Pinterest) issues des variables d'environnement Railway.
+  const verificationMeta = siteVerificationMeta();
   const domainMeta = [
     `<meta property="og:site_name" content="${escapeHtml(meta.siteName)}" />`,
     `<meta property="og:locale" content="${meta.ogLocale}" />`,
-  ].join("\n    ");
+    verificationMeta,
+  ]
+    .filter((s) => s.length > 0)
+    .join("\n    ");
 
   // <head> spécifique à la page (title/description/canonical/OG/JSON-LD)
   let pageHead: string | null = null;
