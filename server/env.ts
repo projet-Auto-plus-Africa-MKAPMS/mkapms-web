@@ -37,6 +37,14 @@ export const env = {
   // /.well-known/assetlinks.json n'invente rien : il répond « non configuré ».
   ANDROID_APP_ID: get("ANDROID_APP_ID", "com.mkapms.app"),
   ANDROID_APP_FINGERPRINTS: get("ANDROID_APP_FINGERPRINTS"),
+  // ─── SEO Verification OS — autres moteurs de recherche & réseaux ─────
+  // Complète GOOGLE_SITE_VERIFICATION (méthode fichier + meta) avec les
+  // autres plateformes. Chaque valeur : coller UNIQUEMENT le content=
+  // fourni par la plateforme. Vide → aucune balise émise.
+  BING_SITE_VERIFICATION: get("BING_SITE_VERIFICATION"),
+  YANDEX_VERIFICATION: get("YANDEX_VERIFICATION"),
+  FACEBOOK_DOMAIN_VERIFICATION: get("FACEBOOK_DOMAIN_VERIFICATION"),
+  PINTEREST_SITE_VERIFICATION: get("PINTEREST_SITE_VERIFICATION"),
 };
 
 export const isProd = env.NODE_ENV === "production";
