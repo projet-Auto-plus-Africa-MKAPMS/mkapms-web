@@ -40,6 +40,7 @@ type Onglet =
   | "developpeur"
   | "missions"
   | "autonomie"
+  | "assistance"
   | "capacites"
   | "moteurs"
   | "connexion"
@@ -61,6 +62,7 @@ const ONGLETS: { cle: Onglet; label: string }[] = [
   { cle: "developpeur", label: "Plateforme développeur" },
   { cle: "missions", label: "Missions" },
   { cle: "autonomie", label: "Autonomie" },
+  { cle: "assistance", label: "Assistant public" },
   { cle: "capacites", label: "Capacités" },
   { cle: "moteurs", label: "Moteurs" },
   { cle: "connexion", label: "Connexion des moteurs" },
@@ -104,6 +106,7 @@ export default function CentreIntelligences() {
   const [codeProduit, setCodeProduit] = useState<string>("");
   const [objectif, setObjectif] = useState("");
   const [motifNiveau, setMotifNiveau] = useState<Record<string, string>>({});
+  const [motifDomaine, setMotifDomaine] = useState<Record<string, string>>({});
   const [recherche, setRecherche] = useState("");
   const [termeCherche, setTermeCherche] = useState("");
   const [ticketOuvert, setTicketOuvert] = useState<number | null>(null);
@@ -198,6 +201,23 @@ export default function CentreIntelligences() {
   const missions = trpc.intelligences.missions.useQuery(undefined, {
     enabled: !!estPdg,
     refetchOnWindowFocus: false,
+  });
+
+  const domainesAssistance = trpc.intelligences.domaines.useQuery(undefined, {
+    enabled: !!estPdg && onglet === "assistance",
+    refetchOnWindowFocus: false,
+  });
+
+  const reglerDomaine = trpc.intelligences.reglerDomaine.useMutation({
+    onSuccess: (d) => {
+      setMessage(
+        d
+          ? `Domaine « ${d.libelle} » ${d.actif ? "ouvert au public" : "fermé"}.`
+          : "Domaine inconnu.",
+      );
+      domainesAssistance.refetch();
+    },
+    onError: (e) => setMessage(`Échec : ${e.message}`),
   });
 
   const reglerAutonomie = trpc.intelligences.reglerAutonomie.useMutation({
@@ -1477,6 +1497,72 @@ export default function CentreIntelligences() {
               </ul>
             )}
           </div>
+        </section>
+      ) : null}
+
+      {onglet === "assistance" ? (
+        <section className="mt-3 space-y-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-4">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black/50">
+              <Sparkles className="h-4 w-4" /> Domaines ouverts aux visiteurs
+            </h2>
+            <p className="mt-1 text-[12px] text-black/60">
+              Tous les domaines sont construits ; seuls ceux que vous ouvrez ici sont proposés au
+              public. Un domaine fermé ne produit aucune réponse et n'appelle aucun fournisseur.
+            </p>
+          </div>
+
+          {(domainesAssistance.data ?? []).map((d) => (
+            <div key={d.code} className="rounded-2xl border border-black/5 bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-black text-[#111]">{d.libelle}</h3>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    d.actif ? "bg-emerald-100 text-emerald-800" : "bg-black/5 text-black/60"
+                  }`}
+                >
+                  {d.actif ? "ouvert au public" : "construit, fermé"}
+                </span>
+              </div>
+              <p className="mt-1 text-[12px] text-black/60">{d.effet}</p>
+              <p className="mt-1 flex items-start gap-2 text-[11px] text-black/55">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
+                <span>{d.limite}</span>
+              </p>
+              {d.sourceObligatoire ? (
+                <p className="mt-1 text-[11px] font-bold text-black/60">
+                  Référence exacte obligatoire : sans source certaine, la réponse est refusée.
+                </p>
+              ) : null}
+              {d.motif ? (
+                <p className="mt-1 text-[11px] text-black/45">Dernière raison : {d.motif}</p>
+              ) : null}
+              <input
+                value={motifDomaine[d.code] ?? ""}
+                onChange={(e) => setMotifDomaine((m) => ({ ...m, [d.code]: e.target.value }))}
+                placeholder="Raison de l'ouverture ou de la fermeture"
+                className="mt-2 w-full rounded-xl border border-black/10 px-3 py-2 text-[12px]"
+              />
+              <button
+                type="button"
+                disabled={reglerDomaine.isPending}
+                onClick={() =>
+                  reglerDomaine.mutate({
+                    code: d.code,
+                    actif: !d.actif,
+                    motif: motifDomaine[d.code] ?? "",
+                  })
+                }
+                className={`mt-2 rounded-xl px-3 py-2 text-[12px] font-bold ${
+                  d.actif
+                    ? "border border-black/10 text-black/70 hover:bg-black/5"
+                    : "bg-[#111] text-white"
+                }`}
+              >
+                {d.actif ? "Fermer au public" : "Ouvrir au public"}
+              </button>
+            </div>
+          ))}
         </section>
       ) : null}
 

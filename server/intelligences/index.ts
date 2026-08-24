@@ -99,9 +99,11 @@ import {
   actions,
   coder,
   demander,
+  domaines,
   etat,
   messages,
   proposer,
+  reglerDomaine,
   sessions,
 } from "./service.js";
 import {
@@ -130,11 +132,23 @@ export const intelligencesRouter = router({
     commandes: COMMANDES.filter((c) => c.cote === "public"),
   })),
 
-  /** Côté public — assistant automobile. */
+  /**
+   * Domaines d'assistance réellement ouverts au public. La liste sert à
+   * l'écran : un domaine fermé n'y figure pas, il n'est pas proposé puis refusé.
+   */
+  domainesPublics: publicProcedure.query(async () => {
+    const tous = await domaines();
+    return tous
+      .filter((d) => d.actif)
+      .map((d) => ({ code: d.code, libelle: d.libelle, effet: d.effet, limite: d.limite }));
+  }),
+
+  /** Côté public — assistant mondial : automobile, vie quotidienne, travail, et domaines ouverts. */
   assistant: publicProcedure
     .input(
       z.object({
         question: z.string().min(2).max(4000),
+        domaine: z.string().max(48).optional(),
         sessionId: z.number().int().positive().nullable().optional(),
         langue: z.string().max(8).optional(),
         countryCode: z.string().max(8).nullable().optional(),
@@ -144,6 +158,7 @@ export const intelligencesRouter = router({
       demander({
         question: input.question,
         cote: "public",
+        domaine: input.domaine ?? null,
         sessionId: input.sessionId ?? null,
         userId: ctx.user?.uid ?? null,
         visiteur: empreinte(ctx.user?.uid ? `u${ctx.user.uid}` : ctx.req.ip),
@@ -196,6 +211,27 @@ export const intelligencesRouter = router({
   etat: pdgProcedure.query(() => etat()),
 
   regles: pdgProcedure.query(() => ({ nom: NOM_MOTEUR, commandes: COMMANDES, regles: REGLES })),
+
+  /** Catalogue complet des domaines d'assistance, avec l'état réel de chaque interrupteur. */
+  domaines: pdgProcedure.query(() => domaines()),
+
+  /** Ouverture ou fermeture d'un domaine : décision du PDG seul, datée et motivée. */
+  reglerDomaine: pdgProcedure
+    .input(
+      z.object({
+        code: z.string().max(48),
+        actif: z.boolean(),
+        motif: z.string().max(500).optional(),
+      }),
+    )
+    .mutation(({ input, ctx }) =>
+      reglerDomaine({
+        code: input.code,
+        actif: input.actif,
+        motif: input.motif,
+        actorId: ctx.user?.uid ?? undefined,
+      }),
+    ),
 
   /**
    * Points 124-126 — registre des capacités avec leur état **constaté**.
