@@ -4,6 +4,7 @@ import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { devisGarageRequests, serviceTracking } from "../schema.js";
 import { notifications } from "../modules/core.js";
+import { createPaymentCheckout } from "../payment-engine/checkout.js";
 
 // Module Devis Garage (§6) — parcours en 7 étapes côté front, persisté ici.
 export const devisRouter = router({
@@ -104,5 +105,42 @@ export const devisRouter = router({
         url: "/compte",
       });
       return { ok: true };
+    }),
+
+  /**
+   * Paiement d'un devis accepté — checkout Stripe unifié via le Payment Engine.
+   * Le devis doit être en statut "accepte". Le montant TTC vient de l'écran
+   * (calculé côté client à partir des devisItems du garage — audit possible
+   * plus tard). Le webhook Stripe déclenche la mise en statut "termine".
+   */
+  payerDevis: protectedProcedure
+    .input(z.object({
+      devisId: z.number().int().positive(),
+      montantTTC: z.number().positive(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const [devis] = await db
+        .select()
+        .from(devisGarageRequests)
+        .where(eq(devisGarageRequests.id, input.devisId))
+        .limit(1);
+      if (!devis) throw new Error("Devis introuvable");
+      if (devis.userId !== ctx.user.uid) throw new Error("Ce devis n'est pas le vôtre");
+      if (devis.status !== "accepte") {
+        throw new Error("Seuls les devis acceptés peuvent être payés");
+      }
+
+      const { url } = await createPaymentCheckout({
+        userId: ctx.user.uid,
+        kind: "garage_prestation",
+        amount: input.montantTTC,
+        currency: "EUR",
+        label: `Devis ${devis.typeIntervention} — ${devis.vehiculeMarque ?? ""} ${devis.vehiculeModele ?? ""}`.trim(),
+        metadata: { devisId: devis.id, type: "devis_garage" },
+        successPath: `/compte?devis=${devis.id}&paid=1`,
+        cancelPath: `/compte?devis=${devis.id}&canceled=1`,
+        paymentTypeSql: "garage_prestation",
+      });
+      return { url };
     }),
 });
