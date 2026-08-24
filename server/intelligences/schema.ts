@@ -31,6 +31,8 @@ export const inSessions = pgTable("in_sessions", {
   visiteur: varchar("visiteur", { length: 64 }),
   countryCode: varchar("country_code", { length: 8 }),
   langue: varchar("langue", { length: 8 }).notNull().default("fr"),
+  /** Domaine d'assistance réellement appliqué à la session (côté public). */
+  domaine: varchar("domaine", { length: 48 }).notNull().default("automobile"),
   messages: integer("messages").notNull().default(0),
   dernierAt: timestamp("dernier_at").notNull().defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -93,6 +95,20 @@ export const inAutonomie = pgTable("in_autonomie", {
   id: serial("id").primaryKey(),
   domaine: varchar("domaine", { length: 48 }).notNull().unique(),
   niveau: integer("niveau").notNull().default(2),
+  motif: text("motif").notNull().default(""),
+  actorId: integer("actor_id"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+/**
+ * Assistant mondial — interrupteur par domaine d'assistance. Une ligne absente
+ * vaut la valeur par défaut du catalogue : un domaine sensible reste fermé
+ * jusqu'à une activation explicite du PDG.
+ */
+export const inDomaines = pgTable("in_domaines", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 48 }).notNull().unique(),
+  actif: boolean("actif").notNull().default(false),
   motif: text("motif").notNull().default(""),
   actorId: integer("actor_id"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

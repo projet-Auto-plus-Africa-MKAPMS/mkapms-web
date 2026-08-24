@@ -13,7 +13,8 @@
  */
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../db.js";
-import { inActions, inMessages, inSessions, inUsage } from "./schema.js";
+import { inActions, inDomaines, inMessages, inSessions, inUsage } from "./schema.js";
+import { DOMAINE_DEFAUT, DOMAINES, domaine as specDomaine, type DomaineSpec } from "./domaines.js";
 import {
   COMMANDES,
   CONSIGNE_DIRECTION,
@@ -154,9 +155,81 @@ async function contexteDirection(question: string): Promise<string[]> {
   return lignes;
 }
 
+export interface DomaineEtat extends DomaineSpec {
+  actif: boolean;
+  motif: string;
+}
+
+/**
+ * État réel des domaines : catalogue complet, avec l'interrupteur tel qu'il est
+ * en base. Aucun domaine n'est présenté ouvert parce qu'il est codé.
+ */
+export async function domaines(): Promise<DomaineEtat[]> {
+  const lignes = await db.select().from(inDomaines);
+  const parCode = new Map(lignes.map((l) => [l.code, l]));
+  return DOMAINES.map((d) => {
+    const l = parCode.get(d.code);
+    return {
+      ...d,
+      actif: l ? l.actif : d.actifParDefaut,
+      motif: l?.motif ?? "",
+    };
+  });
+}
+
+/** Le PDG ouvre ou ferme un domaine ; la décision est datée et motivée. */
+export async function reglerDomaine(input: {
+  code: string;
+  actif: boolean;
+  motif?: string;
+  actorId?: number;
+}): Promise<DomaineEtat | null> {
+  const spec = specDomaine(input.code);
+  if (!spec) return null;
+
+  const [existante] = await db
+    .select({ id: inDomaines.id })
+    .from(inDomaines)
+    .where(eq(inDomaines.code, input.code))
+    .limit(1);
+
+  const valeurs = {
+    actif: input.actif,
+    motif: (input.motif ?? "").slice(0, 500),
+    actorId: input.actorId ?? null,
+    updatedAt: new Date(),
+  };
+
+  if (existante) {
+    await db.update(inDomaines).set(valeurs).where(eq(inDomaines.id, existante.id));
+  } else {
+    await db.insert(inDomaines).values({ code: input.code, ...valeurs });
+  }
+
+  await emitSafe({
+    source: "intelligences",
+    type: "intelligences.domaine",
+    payload: { code: input.code, actif: input.actif },
+  });
+
+  return { ...spec, actif: input.actif, motif: valeurs.motif };
+}
+
+async function domaineOuvert(code: string): Promise<{ spec: DomaineSpec; actif: boolean } | null> {
+  const spec = specDomaine(code);
+  if (!spec) return null;
+  const [ligne] = await db
+    .select({ actif: inDomaines.actif })
+    .from(inDomaines)
+    .where(eq(inDomaines.code, code))
+    .limit(1);
+  return { spec, actif: ligne ? ligne.actif : spec.actifParDefaut };
+}
+
 export interface DemandeInput {
   question: string;
   cote: Cote;
+  domaine?: string | null;
   sessionId?: number | null;
   userId?: number | null;
   visiteur?: string | null;
@@ -194,6 +267,7 @@ async function session(input: DemandeInput): Promise<number> {
       visiteur: input.visiteur ?? null,
       countryCode: input.countryCode ?? null,
       langue: input.langue ?? "fr",
+      domaine: input.domaine ?? DOMAINE_DEFAUT,
     })
     .returning({ id: inSessions.id });
   return creee?.id ?? 0;
@@ -236,6 +310,19 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
 
   if (question.length < 2) return echec("Question vide.");
 
+  let consigneDomaine = "";
+  if (input.cote === "public") {
+    const code = input.domaine ?? DOMAINE_DEFAUT;
+    const etat = await domaineOuvert(code);
+    if (!etat) return echec(`Domaine d'assistance inconnu : ${code}.`);
+    if (!etat.actif) {
+      return echec(
+        `Le domaine « ${etat.spec.libelle} » est construit mais fermé. Seul le PDG peut l'ouvrir depuis le centre MKA.P-MS Intelligences ; tant qu'il est fermé, aucune réponse n'est produite dans ce domaine.`,
+      );
+    }
+    consigneDomaine = etat.spec.consigne;
+  }
+
   const consommes = await appelsDuJour(input.cote);
   if (consommes >= PLAFOND_JOUR[input.cote]) {
     return echec(
@@ -275,7 +362,10 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     capacite: "ia_texte",
     tache: input.cote === "direction" ? "direction_demande" : "assistant_public",
     moteur: "intelligences",
-    systeme: input.cote === "direction" ? CONSIGNE_DIRECTION : CONSIGNE_PUBLIC,
+    systeme:
+      input.cote === "direction"
+        ? CONSIGNE_DIRECTION
+        : [CONSIGNE_PUBLIC, consigneDomaine].filter((c) => c.length > 0).join("\n\n"),
     message,
     // Côté public la question peut contenir des éléments personnels : le niveau
     // déclaré est plus strict, et la Fabrique Intelligence peut donc refuser un fournisseur.

@@ -1,6 +1,6 @@
 {
   "name": "mkapms-web",
-  "version": "1.6.0",
+  "version": "1.7.1",
   "private": true,
   "type": "module",
   "description": "MKA.P-MS — Auto Plus Africa : marketplace automobile (achat, vente, location, devis garage, Garage+). Code 100% propriété de MKA.P-MS.",
@@ -24,6 +24,7 @@
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "mobile:build": "node mobile/build-apps.mjs",
+    "version:bump": "node scripts/bump-version.mjs",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:migrate": "tsx server/migrate.ts",
