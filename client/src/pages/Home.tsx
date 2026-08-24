@@ -119,6 +119,15 @@ const CATEGORIES_FILTRE = [
 ];
 const CARBURANTS_FILTRE = ["essence", "diesel", "hybride", "electrique", "gpl", "ethanol"];
 
+/** Icône par famille de canal social configurée côté PDG (aucune marque codée en dur ailleurs). */
+const ICONE_RESEAU: Record<string, React.ElementType> = {
+  video_court: TikTokIcon,
+  video_long: Youtube,
+  photo: Instagram,
+  general: Facebook,
+  pro: Linkedin,
+};
+
 /* ── COMPOSANT SCROLL HORIZONTAL ── */
 function HScroll({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
@@ -624,6 +633,8 @@ export default function Home() {
   const { data: particuliers } = trpc.annonces.list.useQuery({ categorieAnnonce: "particulier", type: "vente", pays, limit: 10 });
   const { data: professionnelles } = trpc.annonces.list.useQuery({ categorieAnnonce: "professionnelle", pays, limit: 10 });
   const { data: motos } = trpc.annonces.list.useQuery({ famille: "moto", pays, limit: 10 });
+  const { data: reseauxData } = trpc.visibilityOs.reseauxPublics.useQuery(undefined, { staleTime: 300_000 });
+  const reseaux = reseauxData ?? [];
 
   const realOfficielles = (officielles?.items ?? []).map((a: any) => ({ ...a, badge: "MKA.P-MS OFFICIEL" }));
   const realBoostees = (boostees?.items ?? []).map((a: any) => ({ ...a, badge: "ELITE", type: "BOOSTÉ" }));
@@ -1476,19 +1487,25 @@ export default function Home() {
                   <p className="mt-2 text-[13px] text-white/60 leading-relaxed max-w-sm">
                     Achetez, vendez, louez, réparez et entretenez votre véhicule en toute confiance, partout, à tout moment.
                   </p>
-                  <div className="mt-4 flex gap-2.5">
-                    {[
-                      { Ic: Facebook, label: "Facebook" },
-                      { Ic: Instagram, label: "Instagram" },
-                      { Ic: Youtube, label: "YouTube" },
-                      { Ic: Linkedin, label: "LinkedIn" },
-                      { Ic: TikTokIcon, label: "TikTok" },
-                    ].map(({ Ic, label }) => (
-                      <a key={label} href="#" aria-label={label} className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white/70 hover:bg-[#D4AF37] hover:text-white transition">
-                        <Ic size={16} />
-                      </a>
-                    ))}
-                  </div>
+                  {reseaux.length > 0 && (
+                    <div className="mt-4 flex gap-2.5">
+                      {reseaux.map((r) => {
+                        const Ic = ICONE_RESEAU[r.connector] ?? Facebook;
+                        return (
+                          <a
+                            key={r.channelKey}
+                            href={r.url}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            aria-label={r.label}
+                            className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white/70 hover:bg-[#D4AF37] hover:text-white transition"
+                          >
+                            <Ic size={16} />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Explorer */}
