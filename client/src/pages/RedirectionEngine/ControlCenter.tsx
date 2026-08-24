@@ -26,15 +26,23 @@ import {
   ToggleRight,
   ExternalLink,
   AlertTriangle,
+  Network,
 } from "lucide-react";
 
-type Tab = "dashboard" | "rules" | "logs";
+type Tab = "dashboard" | "couverture" | "rules" | "logs";
 
 const TABS: { key: Tab; label: string; icon: typeof RouteIcon }[] = [
   { key: "dashboard", label: "Vue d'ensemble", icon: BarChart3 },
+  { key: "couverture", label: "Couverture", icon: Network },
   { key: "rules", label: "Règles", icon: ListChecks },
   { key: "logs", label: "Journal", icon: Database },
 ];
+
+const ETAT_ZONE: Record<string, { label: string; cage: string; point: string }> = {
+  branchee: { label: "Branchée", cage: "border-green-200 bg-green-50", point: "bg-green-500" },
+  partielle: { label: "Partielle", cage: "border-amber-200 bg-amber-50", point: "bg-amber-500" },
+  absente: { label: "Non branchée", cage: "border-red-200 bg-red-50", point: "bg-red-500" },
+};
 
 const KIND_LABEL: Record<string, string> = {
   button: "Bouton",
@@ -94,6 +102,7 @@ export default function RedirectionEngineControlCenter() {
 
       <div className="px-4">
         {tab === "dashboard" && <DashboardTab onGoRules={() => setTab("rules")} />}
+        {tab === "couverture" && <CouvertureTab />}
         {tab === "rules" && <RulesTab />}
         {tab === "logs" && <LogsTab />}
       </div>
@@ -105,6 +114,125 @@ function Loading() {
   return (
     <div className="flex justify-center py-10">
       <RefreshCw className="animate-spin text-[#D4AF37]" size={24} />
+    </div>
+  );
+}
+
+/**
+ * Couverture réelle du moteur : quelles zones de la plateforme lui sont
+ * branchées, et ce qui manque — nommé au lieu d'être supposé sain.
+ */
+function CouvertureTab() {
+  const q = trpc.redirectionEngine.couverture.useQuery(undefined, { refetchInterval: 30000 });
+  const a = q.data;
+
+  if (q.isLoading) return <Loading />;
+  if (!a) return <p className="py-6 text-sm text-[#6B7280]">Audit indisponible.</p>;
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+        <h2 className="text-base font-bold text-[#111]">Couverture du moteur</h2>
+        <p className="mt-1 text-xs text-[#374151]">{a.resume}</p>
+        <p className="mt-1 text-[10px] text-[#9CA3AF]">
+          {a.reglesActives} règle(s) active(s) · audit du {new Date(a.genereLe).toLocaleString("fr-FR")}
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        {a.zones.map((z) => {
+          const e = ETAT_ZONE[z.etat] ?? ETAT_ZONE.absente;
+          return (
+            <div key={z.code} className={`rounded-xl border p-3 ${e.cage}`}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-2">
+                  <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${e.point}`} />
+                  <div>
+                    <p className="text-sm font-bold text-[#111]">{z.label}</p>
+                    <p className="text-[11px] text-[#6B7280]">
+                      {z.presentes} règle(s) active(s) sur {z.attendu} prévue(s) au catalogue
+                    </p>
+                  </div>
+                </div>
+                <span className="shrink-0 text-[10px] font-bold uppercase text-[#374151]">{e.label}</span>
+              </div>
+              {z.manque && <p className="mt-1.5 text-[11px] text-[#B45309]">{z.manque}</p>}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+        <div className="flex items-center gap-2">
+          <AlertTriangle size={16} className="text-red-500" />
+          <h3 className="text-sm font-bold text-[#111]">Destinations inexistantes</h3>
+        </div>
+        <p className="mt-1 text-[11px] text-[#6B7280]">
+          Règles actives qui envoient le visiteur vers une page absente de la plateforme : le moteur casse le
+          parcours au lieu de le sauver.
+        </p>
+        {a.reglesCassees.length === 0 ? (
+          <p className="mt-2 text-sm text-green-600">Toutes les destinations correspondent à une page réelle.</p>
+        ) : (
+          <div className="mt-2 space-y-1">
+            {a.reglesCassees.map((r) => (
+              <div key={r.key} className="rounded-lg bg-[#FEF2F2] px-2 py-1.5">
+                <code className="text-xs text-[#111]">{r.key}</code>
+                <p className="text-[11px] text-red-600">{r.motif}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+        <h3 className="text-sm font-bold text-[#111]">Clés sans règle (30 j)</h3>
+        <p className="mt-1 text-[11px] text-[#6B7280]">
+          Clés prévues au catalogue mais absentes de la base, ou réclamées par la plateforme sans réponse.
+        </p>
+        {a.clesSansRegle.length === 0 ? (
+          <p className="mt-2 text-sm text-green-600">Aucune clé sans règle.</p>
+        ) : (
+          <div className="mt-2 space-y-1">
+            {a.clesSansRegle.map((c) => (
+              <div key={c.key} className="flex items-center justify-between rounded-lg bg-[#F5F3EF] px-2 py-1.5">
+                <div className="min-w-0">
+                  <code className="text-xs text-[#111]">{c.key}</code>
+                  {c.label && <p className="truncate text-[10px] text-[#6B7280]">{c.label}</p>}
+                </div>
+                <span className="shrink-0 text-[10px] font-bold text-[#6B7280]">
+                  {c.origine === "catalogue" ? "catalogue" : `${c.demandes}× demandée`}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+        <h3 className="text-sm font-bold text-[#111]">Pages introuvables non résolues (30 j)</h3>
+        <p className="mt-1 text-[11px] text-[#6B7280]">
+          Chemins visités sans alias : le moteur n'a rien pu proposer. Une suggestion n'apparaît que si une page
+          réelle correspond — sinon aucune, plutôt qu'une redirection au hasard.
+        </p>
+        {a.routes404.length === 0 ? (
+          <p className="mt-2 text-sm text-green-600">Aucune page introuvable non résolue.</p>
+        ) : (
+          <div className="mt-2 space-y-1">
+            {a.routes404.map((r) => (
+              <div key={r.chemin} className="rounded-lg bg-[#F5F3EF] px-2 py-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <code className="truncate text-xs text-[#111]">{r.chemin}</code>
+                  <span className="shrink-0 text-[10px] font-bold text-[#6B7280]">{r.occurrences}×</span>
+                </div>
+                <p className="text-[10px] text-[#6B7280]">
+                  {r.suggestion ? `Destination possible : ${r.suggestion}` : "Aucune destination sûre identifiée."}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

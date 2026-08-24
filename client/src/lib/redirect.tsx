@@ -61,3 +61,23 @@ export const SmartLink = forwardRef<HTMLAnchorElement, SmartLinkProps>(
   },
 );
 SmartLink.displayName = "SmartLink";
+
+/**
+ * Destinations dynamiques (fiche véhicule, ville, pièce…) : leur URL dépend de
+ * l'objet, aucune règle fixe ne peut donc la remplacer sans casser le lien. Le
+ * moteur ne résout pas la cible mais observe le parcours : c'est ce qui lui
+ * permet de repérer les pages produit et géographiques cassées.
+ */
+export function useReportNavigation() {
+  const report = trpc.redirectionEngine.reportOutcome.useMutation();
+  return (key: string, resolvedTo: string) => {
+    try {
+      report.mutate({
+        key,
+        source: typeof window !== "undefined" ? window.location.pathname : undefined,
+        outcome: "navigated",
+        resolvedTo,
+      });
+    } catch { /* supervision best-effort */ }
+  };
+}

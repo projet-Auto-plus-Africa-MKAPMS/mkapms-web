@@ -1,12 +1,16 @@
 /**
- * Liste des routes CLIENT valides (instantané généré depuis client/src/App.tsx).
+ * Liste des routes CLIENT valides.
  *
- * Sert au Système Intelligent pour VALIDER une destination avant de créer
- * automatiquement une règle de redirection : on n'auto-corrige que vers une
- * page qui existe réellement (correction sûre). Régénérable si les routes
- * changent — l'auto-correction reste conservatrice si une route manque ici.
+ * Fichier GÉNÉRÉ par scripts/gen-client-routes.mjs depuis client/src/App.tsx.
+ * Ne pas éditer à la main : `npm run gen:routes` le régénère, et la
+ * construction échoue s'il est périmé.
+ *
+ * Sert au Moteur de Redirection et au Système Intelligent pour VALIDER une
+ * destination avant de créer une règle : on ne redirige que vers une page qui
+ * existe réellement.
  */
 export const CLIENT_ROUTES: readonly string[] = [
+  "/",
   "/abonnements",
   "/abonnements-definitifs",
   "/acheter",
@@ -28,12 +32,23 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/acheter/reprise",
   "/acheter/utilitaires",
   "/acheter/vtc-taxi",
+  "/admin/actions",
   "/admin/audit-activation",
   "/admin/bus-evenements",
+  "/admin/commandes",
+  "/admin/completion",
+  "/admin/connaissance",
   "/admin/controle-continu",
+  "/admin/ia-couts",
   "/admin/indexation",
+  "/admin/intelligences",
+  "/admin/labo-rd",
+  "/admin/memoire-technique",
   "/admin/moteurs",
   "/admin/produits-google",
+  "/admin/regles-pays",
+  "/admin/reputation",
+  "/admin/resilience",
   "/admin/systeme-intelligent",
   "/aide",
   "/atelier-pro",
@@ -75,6 +90,8 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/comptabilite/rapports",
   "/comptabilite/tva",
   "/comptabilite/wallets",
+  "/comptables",
+  "/compte/avis",
   "/compte/validation",
   "/confiance",
   "/confidentialite",
@@ -270,6 +287,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/import-africa",
   "/inscription",
   "/inscription-pro-vo",
+  "/intelligences",
   "/international/multi-devises",
   "/international/multi-langues",
   "/international/multi-pays",
@@ -458,6 +476,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/mobile/app-i-o-s",
   "/mobile/mode-hors-ligne",
   "/mobile/notifications-push",
+  "/mon-espace",
   "/moto-occasion",
   "/notifications",
   "/notifications/alertes-urgentes",
@@ -534,6 +553,9 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/pieces/vendeurs-pieces",
   "/pieces/verification-compatibilite",
   "/pres-de-moi",
+  "/pro/avis",
+  "/pro/demarrer",
+  "/pro/dossier",
   "/publicite-interne",
   "/recherche",
   "/recherche-universelle",
@@ -582,12 +604,15 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/superadmin/gestion-employes-m-k-a-p-m-s",
   "/superadmin/identity-os",
   "/superadmin/language-os",
+  "/superadmin/mini-plateformes",
   "/superadmin/notification-os",
+  "/superadmin/partenaires",
   "/superadmin/permission-engine",
   "/superadmin/permission-os",
   "/superadmin/redirection-engine",
   "/superadmin/smart-engine",
   "/superadmin/validation-documents-complete",
+  "/superadmin/visibilite-croissance",
   "/tableau-de-bord",
   "/univers",
   "/utilisateurs",
@@ -671,10 +696,71 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/wallet",
 ];
 
+/** Routes à segment dynamique (/vehicule/:id, /ville/:slug…). */
+export const CLIENT_ROUTE_PATTERNS: readonly string[] = [
+  "/acheter/mkapms-officiel/vehicule/:id",
+  "/acheter/particulier/vehicule/:id",
+  "/acheter/professionnel/vehicule/:id",
+  "/avis/:univers",
+  "/garages/:slug",
+  "/location/:slug",
+  "/louer/camions/vehicule/:id",
+  "/louer/minibus/vehicule/:id",
+  "/louer/mkapms/vehicule/:id",
+  "/louer/particulier/vehicule/:id",
+  "/louer/pro/vehicule/:id",
+  "/louer/utilitaires/vehicule/:id",
+  "/louer/vtc-taxi/vehicule/:id",
+  "/marque/:marque",
+  "/marque/:marque/:modele",
+  "/paiement-vehicule/:id",
+  "/pays/:slug",
+  "/pays/:slug/:ville",
+  "/piece/:slug",
+  "/pieces/commande/:id",
+  "/publicite/:id",
+  "/region/:slug",
+  "/reparation/:slug",
+  "/reparation/:slug/:vehicule",
+  "/service/:slug",
+  "/service/:slug/:ville",
+  "/vehicule/:id",
+  "/vente/dossier-vehicule/:id?",
+  "/vente/workflow/:id?",
+  "/ville/:slug",
+];
+
 const ROUTE_SET = new Set(CLIENT_ROUTES);
+
+const PATTERN_REGEX = CLIENT_ROUTE_PATTERNS.map((motif) => {
+  const source = motif
+    .split("/")
+    .slice(1)
+    .map((seg) => {
+      if (seg.startsWith(":")) {
+        return seg.endsWith("?") ? "(?:/[^/]+)?" : "/[^/]+";
+      }
+      return "/" + seg.replace(/[^a-zA-Z0-9_-]/g, (c) => "\\" + c);
+    })
+    .join("");
+  return new RegExp("^" + source + "$");
+});
+
+function normaliser(path: string): string {
+  return path.split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
+}
 
 /** Vrai si le chemin correspond à une route client concrète existante. */
 export function isKnownRoute(path: string): boolean {
-  const p = path.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
-  return ROUTE_SET.has(p);
+  return ROUTE_SET.has(normaliser(path));
+}
+
+/**
+ * Vrai si le chemin correspond à une page réelle, y compris une page à
+ * paramètre (fiche véhicule, page ville, fiche garage…).
+ */
+export function isRoutablePath(path: string): boolean {
+  const p = normaliser(path);
+  if (ROUTE_SET.has(p)) return true;
+  return PATTERN_REGEX.some((re) => re.test(p));
 }
