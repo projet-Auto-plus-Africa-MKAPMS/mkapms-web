@@ -180,7 +180,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     category: "transversal",
     dependencies: ["core", "permission"],
     description: "Moteur de paiement propriétaire (Stripe/virement) — en staging (Phase 2).",
-    state: "staging",
+    state: "active",
   },
   {
     name: "search",
@@ -362,7 +362,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     category: "sous_section",
     dependencies: ["core", "achat"],
     description: "Sous-section Achat Officiel MKA.P-MS (stock officiel).",
-    state: "staging",
+    state: "active",
   },
   {
     name: "achat_pro",
@@ -370,7 +370,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     category: "sous_section",
     dependencies: ["core", "achat"],
     description: "Sous-section Achat Professionnel (vendeurs pros).",
-    state: "staging",
+    state: "active",
   },
   {
     name: "achat_particulier",
@@ -378,7 +378,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     category: "sous_section",
     dependencies: ["core", "achat"],
     description: "Sous-section Achat Particulier — isolable (location/vente à un opérateur).",
-    state: "staging",
+    state: "active",
   },
   // ── Sous-sections univers Vente (Officiel / Pro / Particulier) ──
   {
@@ -387,7 +387,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     category: "sous_section",
     dependencies: ["core", "vente"],
     description: "Sous-section Vente Officielle MKA.P-MS.",
-    state: "staging",
+    state: "active",
   },
   {
     name: "vente_pro",
@@ -395,7 +395,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     category: "sous_section",
     dependencies: ["core", "vente"],
     description: "Sous-section Vente Professionnelle (vendeurs pros).",
-    state: "staging",
+    state: "active",
   },
   {
     name: "vente_particulier",
@@ -403,7 +403,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     category: "sous_section",
     dependencies: ["core", "vente"],
     description: "Sous-section Vente Particulier — isolable.",
-    state: "staging",
+    state: "active",
   },
   // ── Sous-sections univers Location (Pro / Particulier) ──
   {
@@ -412,7 +412,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     category: "sous_section",
     dependencies: ["core", "location"],
     description: "Sous-section Location Professionnelle.",
-    state: "staging",
+    state: "active",
   },
   {
     name: "location_particulier",
@@ -420,7 +420,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     category: "sous_section",
     dependencies: ["core", "location"],
     description: "Sous-section Location Particulier.",
-    state: "staging",
+    state: "active",
   },
   // ── Services dédiés ──
   {
@@ -466,7 +466,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     dependencies: ["core", "avis_reputation"],
     description:
       "Rattachement des établissements physiques éligibles et relevé séparé de leur réputation Google. Avis internes et avis Google restent distincts.",
-    state: "staging",
+    state: "active",
   },
   {
     // Mémoire technique de l'entreprise : elle apprend d'abord des données

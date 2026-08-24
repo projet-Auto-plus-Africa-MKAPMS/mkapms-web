@@ -124,6 +124,17 @@ const IMPLEMENTED_SINCE_SEED: Record<string, "active"> = {
   monitoring: "active", // server/monitoring-os
   knowledge: "active", // base de connaissances du Système Intelligent
   analytics: "active", // journaux de recherche / activité / redirection
+  // ── Moteurs livrés depuis, encore semés « staging » dans le catalogue ──
+  payment: "active", // server/payment-engine — Stripe branché
+  connecteur_google_business: "active", // reputation-engine — GBP locations + snapshots
+  achat_officiel: "active", // annonces avec source officielle
+  achat_pro: "active", // annonces vendeurs pro
+  achat_particulier: "active", // annonces particuliers
+  vente_officiel: "active", // dépôt officiel
+  vente_pro: "active", // dépôt pro
+  vente_particulier: "active", // dépôt particulier
+  location_pro: "active", // location pro
+  location_particulier: "active", // location particulier
 };
 
 /**
@@ -134,7 +145,10 @@ async function reconcileImplementedEngines(): Promise<void> {
   for (const [name, target] of Object.entries(IMPLEMENTED_SINCE_SEED)) {
     try {
       const engine = await getEngine(name);
-      if (!engine || engine.state !== "disabled") continue;
+      // Un moteur livré depuis le seed peut avoir été enregistré en « disabled »
+      // ou « staging ». Dans les deux cas, on aligne sur l'état réel — sauf si
+      // le PDG a lui-même défini son état (décision humaine préservée).
+      if (!engine || (engine.state !== "disabled" && engine.state !== "staging")) continue;
 
       const decidedByHuman = await hasManualStateDecision(name);
       if (decidedByHuman) continue;
