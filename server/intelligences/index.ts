@@ -20,6 +20,7 @@ import {
   type CodeCapacite,
 } from "./capacites.js";
 import { router as routerCapacite } from "./routeur.js";
+import { etatConfiguration } from "./provider.js";
 import {
   NIVEAUX_AUTONOMIE,
   PORTEE_NIVEAU,
@@ -143,42 +144,7 @@ export const intelligencesRouter = router({
    * Aucune donnée sensible n'est exposée — seulement la présence/absence des
    * clés.
    */
-  configStatus: publicProcedure.query(() => {
-    const providers = [
-      {
-        code: "openai",
-        label: "OpenAI (GPT)",
-        envKey: "OPENAI_API_KEY",
-        obtain: "https://platform.openai.com/api-keys",
-        configured: Boolean(process.env.OPENAI_API_KEY?.trim()),
-      },
-      {
-        code: "mistral",
-        label: "Mistral AI",
-        envKey: "MISTRAL_API_KEY",
-        obtain: "https://console.mistral.ai/api-keys/",
-        configured: Boolean(process.env.MISTRAL_API_KEY?.trim()),
-      },
-      {
-        code: "modele_local",
-        label: "Modèle local (auto-hébergé)",
-        envKey: "LOCAL_LLM_URL",
-        obtain: "URL d'un endpoint compatible OpenAI (Ollama, LM Studio…)",
-        configured: Boolean(process.env.LOCAL_LLM_URL?.trim()),
-      },
-    ];
-    const active = providers.filter((p) => p.configured);
-    return {
-      operational: active.length > 0,
-      totalProviders: providers.length,
-      activeProviders: active.length,
-      providers,
-      guidance:
-        active.length === 0
-          ? "Aucune clé API n'est configurée pour MKA.P-MS Intelligence. Ajoute au moins OPENAI_API_KEY dans les variables Railway pour que l'assistant, le Centre de Commandes et les moteurs Intelligence puissent répondre."
-          : `${active.length}/${providers.length} fournisseur(s) opérationnel(s). Ajoute d'autres clés pour bénéficier du repli automatique en cas de panne.`,
-    };
-  }),
+  configStatus: publicProcedure.query(() => etatConfiguration()),
 
   /**
    * Domaines d'assistance réellement ouverts au public. La liste sert à
