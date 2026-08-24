@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { IaConfigWarning } from "../components/IaConfigWarning";
 import { speechRecognitionConstructor, startDictation } from "../lib/speech";
 
 type Onglet = "commande" | "voix" | "developpement" | "journal";
@@ -311,6 +312,7 @@ export default function CentreCommandes() {
       </div>
 
       <div className="space-y-4 px-4">
+        <IaConfigWarning />
         {message ? (
           <div className="rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-3 text-xs text-black/70">
             {message}
