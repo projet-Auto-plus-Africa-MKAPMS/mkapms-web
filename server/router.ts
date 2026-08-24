@@ -124,6 +124,7 @@ import { continuousTestRouter } from "./continuous-test/index.js";
 import { codeGraphRouter } from "./code-graph/index.js";
 import { completionRouter } from "./completion/index.js";
 import { intelligencesRouter } from "./intelligences/index.js";
+import { accountDeletionRouter } from "./account-deletion/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -267,6 +268,8 @@ export const appRouter = router({
   // MKA.P-MS Intelligences : appels réels aux fournisseurs de modèles,
   // côté direction (PDG) et assistant public strictement séparés
   intelligences: intelligencesRouter,
+  // Suppression de compte : exigence de publication mobile et droit du titulaire
+  suppressionCompte: accountDeletionRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

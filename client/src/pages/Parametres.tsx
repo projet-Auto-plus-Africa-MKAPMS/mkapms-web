@@ -8,6 +8,7 @@ import {
   Monitor, Vibrate, Volume2, BellOff, BellRing, ChevronDown, ChevronUp
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
+import { trpc } from "../lib/trpc";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type SubPage =
@@ -731,18 +732,24 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 // ─── Modal Supprimer le compte ───────────────────────────────────────────────
 function DeleteAccountModal({ onClose }: { onClose: () => void }) {
   const [confirmText, setConfirmText] = useState("");
+  const [motDePasse, setMotDePasse] = useState("");
   const [step, setStep] = useState<"warn" | "confirm">("warn");
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const conditions = trpc.suppressionCompte.conditions.useQuery();
+  const supprimer = trpc.suppressionCompte.supprimerMonCompte.useMutation({
+    onSuccess: () => {
+      logout();
+      navigate("/");
+    },
+  });
 
-  async function handleDelete() {
+  function handleDelete() {
     if (confirmText !== "SUPPRIMER") return;
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setLoading(false);
-    logout();
-    navigate("/");
+    supprimer.mutate({
+      confirmation: "SUPPRIMER",
+      motDePasse: motDePasse || undefined,
+    });
   }
 
   return (
@@ -758,9 +765,24 @@ function DeleteAccountModal({ onClose }: { onClose: () => void }) {
               <AlertTriangle size={20} className="text-red-500 shrink-0 mt-0.5" />
               <div className="text-sm text-red-700 space-y-1">
                 <p className="font-bold">Cette action est irréversible.</p>
-                <p>Toutes vos données (annonces, messages, favoris, wallet, historique) seront définitivement supprimées. Votre abonnement actif sera annulé sans remboursement.</p>
+                <ul className="list-disc pl-4 space-y-0.5">
+                  {(conditions.data?.supprime ?? []).map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
               </div>
             </div>
+            {(conditions.data?.conserve ?? []).length > 0 && (
+              <div className="bg-amber-50 rounded-2xl p-4 space-y-2">
+                <p className="text-sm font-bold text-amber-800">Ce que la loi nous impose de conserver</p>
+                {(conditions.data?.conserve ?? []).map((c) => (
+                  <div key={c.element}>
+                    <p className="text-xs font-semibold text-amber-900">{c.element}</p>
+                    <p className="text-xs text-amber-800">{c.raison}</p>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="flex gap-3">
               <button onClick={onClose} className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">Annuler</button>
               <button onClick={() => setStep("confirm")} className="flex-1 py-3 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition">Continuer</button>
@@ -770,14 +792,23 @@ function DeleteAccountModal({ onClose }: { onClose: () => void }) {
           <>
             <p className="text-sm text-slate-600">Pour confirmer, tapez <strong>SUPPRIMER</strong> ci-dessous :</p>
             <input className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-400" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="SUPPRIMER" />
+            <input
+              type="password"
+              autoComplete="current-password"
+              className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+              value={motDePasse}
+              onChange={(e) => setMotDePasse(e.target.value)}
+              placeholder="Votre mot de passe"
+            />
+            {supprimer.error ? <p className="text-sm text-red-600">{supprimer.error.message}</p> : null}
             <div className="flex gap-3">
               <button onClick={onClose} className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">Annuler</button>
               <button
-                disabled={confirmText !== "SUPPRIMER" || loading}
+                disabled={confirmText !== "SUPPRIMER" || supprimer.isPending}
                 onClick={handleDelete}
                 className="flex-1 py-3 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition disabled:opacity-40"
               >
-                {loading ? "Suppression…" : "Supprimer définitivement"}
+                {supprimer.isPending ? "Suppression…" : "Supprimer définitivement"}
               </button>
             </div>
           </>
@@ -1038,7 +1069,7 @@ export default function Parametres() {
         </SettingsCard>
 
         {/* Version */}
-        <p className="text-center text-xs text-slate-400 py-6">MKA.P-MS · Version 13.6.6</p>
+        <p className="text-center text-xs text-slate-400 py-6">MKA.P-MS · Version {__APP_VERSION__}</p>
       </div>
 
       {/* Modals */}

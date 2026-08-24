@@ -687,6 +687,13 @@
       "when": 1787566900000,
       "tag": "0098_intelligences_domaines",
       "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1787569200000,
+      "tag": "0099_account_deletion",
+      "breakpoints": true
     }
   ]
 }

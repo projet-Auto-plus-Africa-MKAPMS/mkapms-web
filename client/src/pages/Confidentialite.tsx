@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useCurrency } from "../lib/currency";
 
@@ -174,7 +175,11 @@ export default function Confidentialite() {
         <p className="mt-2 text-sm text-slate-600">
           Depuis l'application : Compte → Paramètres, ou par simple demande à{" "}
           <b>{legal.data?.email}</b>. La demande est traitée sans qu'il soit nécessaire de réinstaller
-          ou de recréer un compte.
+          ou de recréer un compte. Sans accès à votre compte, utilisez la page{" "}
+          <Link to="/suppression-compte" className="font-semibold text-blue-700 underline">
+            Supprimer mon compte
+          </Link>{" "}
+          : elle indique aussi précisément ce qui est effacé et ce que la loi nous impose de conserver.
         </p>
       </section>
     </div>

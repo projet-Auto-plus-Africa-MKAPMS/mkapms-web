@@ -338,6 +338,7 @@ function Footer() {
               <li><Link to="/aide#cgv">CGV / CGU</Link></li>
               <li><Link to="/aide#rgpd">Confidentialité (RGPD)</Link></li>
               <li><Link to="/confidentialite">Politique de confidentialité</Link></li>
+              <li><Link to="/suppression-compte">Supprimer mon compte</Link></li>
               <li><Link to="/aide#mentions">Mentions légales</Link></li>
             </ul>
           </div>
