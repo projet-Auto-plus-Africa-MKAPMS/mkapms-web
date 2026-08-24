@@ -384,6 +384,63 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
   }
 }
 
+/**
+ * Fournisseurs proposés au PDG, et où obtenir leur clé. Les noms de variables
+ * viennent de `ENDPOINTS` : une seule source, sinon le catalogue affiché
+ * finirait par nommer une variable que l'appel réel n'utilise plus.
+ */
+const OBTENTION: Record<string, { label: string; obtain: string }> = {
+  openai: { label: "OpenAI (GPT)", obtain: "https://platform.openai.com/api-keys" },
+  mistral: { label: "Mistral AI", obtain: "https://console.mistral.ai/api-keys/" },
+  modele_local: {
+    label: "Modèle local (auto-hébergé)",
+    obtain: "URL d'un endpoint compatible OpenAI (Ollama, LM Studio…)",
+  },
+};
+
+export interface EtatFournisseur {
+  code: string;
+  label: string;
+  envKey: string;
+  obtain: string;
+  configured: boolean;
+}
+
+/**
+ * Ce qui manque pour que l'Intelligence puisse répondre. Seule la présence ou
+ * l'absence d'une clé est exposée, jamais sa valeur.
+ */
+export function etatConfiguration(): {
+  operational: boolean;
+  totalProviders: number;
+  activeProviders: number;
+  providers: EtatFournisseur[];
+  guidance: string;
+} {
+  const providers: EtatFournisseur[] = Object.entries(OBTENTION).map(([code, meta]) => {
+    const envKey = ENDPOINTS[code]?.envKey ?? "";
+    return {
+      code,
+      label: meta.label,
+      envKey,
+      obtain: meta.obtain,
+      configured: Boolean(envKey && process.env[envKey]?.trim()),
+    };
+  });
+  const active = providers.filter((p) => p.configured);
+  const premiere = providers[0]?.envKey ?? "";
+  return {
+    operational: active.length > 0,
+    totalProviders: providers.length,
+    activeProviders: active.length,
+    providers,
+    guidance:
+      active.length === 0
+        ? `Aucune clé n'est configurée pour MKA.P-MS Intelligence. Ajoute au moins ${premiere} dans les variables Railway pour que l'assistant, le Centre de Commandes et les moteurs Intelligence puissent répondre.`
+        : `${active.length}/${providers.length} fournisseur(s) opérationnel(s). Ajoute d'autres clés pour bénéficier du repli automatique en cas de panne.`,
+  };
+}
+
 /** Contrôle de bout en bout : la clé configurée répond-elle vraiment ? */
 export async function verifierAcces(): Promise<{
   status: "up" | "degraded" | "down";
