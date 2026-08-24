@@ -186,3 +186,27 @@ details > summary::-webkit-details-marker {
     height: 12px !important;
   }
 }
+
+/* Impression d'un document (facture, devis, contrat, rapport) : seule la
+   feuille du document est envoyée à l'imprimante ou au PDF du navigateur. */
+@media print {
+  body.impression-document * {
+    visibility: hidden !important;
+  }
+  body.impression-document .document-imprimable,
+  body.impression-document .document-imprimable * {
+    visibility: visible !important;
+  }
+  body.impression-document .document-imprimable {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+  }
+  body.impression-document .document-actions {
+    display: none !important;
+  }
+}

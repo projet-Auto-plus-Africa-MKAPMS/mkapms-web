@@ -233,6 +233,34 @@ function CouvertureTab() {
           </div>
         )}
       </div>
+
+      <div className="rounded-xl border border-[#E5E7EB] bg-white p-3">
+        <h3 className="text-sm font-bold text-[#111]">Parcours à destination dynamique (30 j)</h3>
+        <p className="mt-1 text-[11px] text-[#6B7280]">
+          Fiches véhicule, commandes, villes, résultats de recherche : le moteur observe le parcours sans imposer
+          d'adresse fixe. « 0 navigation » signale un parcours jamais emprunté ; une destination inconnue signale un
+          lien qui mène hors des pages de la plateforme.
+        </p>
+        <div className="mt-2 space-y-1">
+          {a.parcoursObserves.map((p) => (
+            <div key={p.key} className="rounded-lg bg-[#F5F3EF] px-2 py-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate text-xs font-semibold text-[#111]">{p.label}</span>
+                <span
+                  className={`shrink-0 text-[10px] font-bold ${p.navigations === 0 ? "text-orange-600" : "text-green-600"}`}
+                >
+                  {p.navigations} navigation{p.navigations > 1 ? "s" : ""}
+                </span>
+              </div>
+              {p.destinationsCassees.length > 0 && (
+                <p className="text-[10px] text-red-600">
+                  Destinations inconnues : {p.destinationsCassees.join(", ")}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

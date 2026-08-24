@@ -9,6 +9,7 @@ import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
 import { PARTS_CATEGORIES } from "@shared/partsCategories";
+import { useReportNavigation } from "../lib/redirect";
 
 const CONDITIONS = [
   { value: "neuf", label: "Neuf" },
@@ -26,6 +27,7 @@ type CartItem = { catalogId: number; nom: string; prixHt: number; currency: stri
 export default function Pieces() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const signaler = useReportNavigation();
   const [q, setQ] = useState("");
   const [categorie, setCategorie] = useState("");
   const [sousCategorie, setSousCategorie] = useState("");
@@ -88,6 +90,7 @@ export default function Pieces() {
       else navigate(res.url);
     } catch (e) {
       setErreurPaiement(e instanceof Error ? e.message : "Paiement indisponible pour le moment.");
+      signaler("piece_commande", `/pieces/commande/${orderId}`);
       navigate(`/pieces/commande/${orderId}`);
     }
   };
@@ -124,6 +127,7 @@ export default function Pieces() {
   const handleOrder = async () => {
     if (cart.length === 0) return;
     if (!user) {
+      signaler("piece_connexion_requise", "/connexion?next=/pieces");
       navigate("/connexion?next=/pieces");
       return;
     }
@@ -506,7 +510,7 @@ export default function Pieces() {
                   {o.deliveredAt && <p className="mt-2 text-xs text-success"><CheckCircle size={12} className="mr-1 inline" /> Livré le {new Date(o.deliveredAt).toLocaleDateString("fr-FR")}</p>}
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button
-                      onClick={() => navigate(`/pieces/commande/${o.id}`)}
+                      onClick={() => { signaler("piece_commande", `/pieces/commande/${o.id}`); navigate(`/pieces/commande/${o.id}`); }}
                       className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700"
                     >
                       Voir la commande

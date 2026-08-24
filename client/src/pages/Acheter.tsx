@@ -34,6 +34,23 @@ const ZONES = [
   { value: "34", label: "34 — Hérault (Montpellier)" },
 ];
 
+const LIBELLE_CRITERE: Record<string, string> = {
+  marque: "Marque",
+  modele: "Modèle",
+  prixMin: "Prix min",
+  anneeMin: "Année min",
+  anneeMax: "Année max",
+  kmMax: "Km max",
+  puissanceMin: "Puissance min",
+  portes: "Portes",
+  places: "Places",
+  carburant: "Carburant",
+  boite: "Boîte",
+  etat: "État",
+  couleur: "Couleur",
+  codePostal: "Code postal",
+};
+
 export default function Acheter() {
   const [params, setParams] = useSearchParams();
   const [q, setQ] = useState(params.get("q") || "");
@@ -74,6 +91,24 @@ export default function Acheter() {
     };
   }, [texteURL]);
   const typeURL = params.get("type") === "location" ? ("location" as const) : ("vente" as const);
+
+  // Critères actifs affichés à l'acheteur : arriver ici depuis « Peugeot » sans
+  // voir que la liste est filtrée sur Peugeot fait croire à un stock vide.
+  const criteresActifs = useMemo(
+    () =>
+      Object.entries(criteresURL)
+        .filter(([, v]) => v !== undefined && v !== "")
+        .map(([cle, v]) => ({ cle, libelle: `${LIBELLE_CRITERE[cle] ?? cle} : ${v}` })),
+    [criteresURL],
+  );
+
+  function retirerCritere(cle: string) {
+    const next: Record<string, string> = {};
+    params.forEach((valeur, c) => {
+      if (valeur && c !== cle) next[c] = valeur;
+    });
+    setParams(next);
+  }
 
   const input = useMemo(
     () => ({
@@ -149,6 +184,22 @@ export default function Acheter() {
       <p className="mt-1 text-sm text-slate-500">
         {list.data ? `${list.data.total} véhicule(s) trouvé(s)` : "Recherche…"}
       </p>
+
+      {criteresActifs.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {criteresActifs.map((c) => (
+            <button
+              key={c.cle}
+              type="button"
+              onClick={() => retirerCritere(c.cle)}
+              className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:border-red-400 hover:text-red-600"
+              title="Retirer ce critère"
+            >
+              {c.libelle} ✕
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── RECHERCHE + FILTRES EN PREMIER ── */}
       <div className="mt-6 card p-4">

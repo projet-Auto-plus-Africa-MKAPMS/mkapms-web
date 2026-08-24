@@ -165,6 +165,19 @@ export function DocumentView({ doc, onClose }: { doc: DocumentData; onClose: () 
   const [linkCopied, setLinkCopied] = useState(false);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
+  /* Impression réelle : la feuille du document part à l'imprimante ou au PDF du
+     navigateur. Annoncer un téléchargement sans fichier tromperait le client. */
+  const imprimer = () => {
+    document.body.classList.add("impression-document");
+    const nettoyer = () => {
+      document.body.classList.remove("impression-document");
+      window.removeEventListener("afterprint", nettoyer);
+    };
+    window.addEventListener("afterprint", nettoyer);
+    window.print();
+    setTimeout(nettoyer, 2000);
+  };
+
   const totalHT = doc.lignes.reduce((s, l) => s + l.quantite * l.prixUnitaire, 0);
   const remise = doc.remise || 0;
   const totalApresRemise = totalHT - remise;
@@ -175,7 +188,7 @@ export function DocumentView({ doc, onClose }: { doc: DocumentData; onClose: () 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60" />
-      <div className="relative bg-[#F5F3EF] w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl" onClick={e => e.stopPropagation()}>
+      <div className="document-imprimable relative bg-[#F5F3EF] w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl" onClick={e => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-3 right-3 z-10 h-8 w-8 rounded-full bg-white/80 grid place-items-center shadow"><X size={16} /></button>
 
         {/* ── Paper ── */}
@@ -336,13 +349,13 @@ export function DocumentView({ doc, onClose }: { doc: DocumentData; onClose: () 
         </div>
 
         {/* Actions */}
-        <div className="px-3 sm:px-4 pb-4 space-y-2">
+        <div className="document-actions px-3 sm:px-4 pb-4 space-y-2">
           {doc.type === "contrat" && !signed && signatureData && (
             <button onClick={() => { setSigned(true); showToast("Contrat signe electroniquement !"); }} className="w-full rounded-xl bg-green-500 py-3 text-sm font-bold text-white flex items-center justify-center gap-2 active:scale-[0.97] transition"><PenTool size={16} /> Valider la signature</button>
           )}
           <div className="flex gap-2">
-            <button onClick={() => showToast("Impression lancee")} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97]"><Printer size={14} /> Imprimer</button>
-            <button onClick={() => showToast(`PDF ${doc.ref} telecharge`)} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> PDF</button>
+            <button onClick={imprimer} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97]"><Printer size={14} /> Imprimer</button>
+            <button onClick={imprimer} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> PDF</button>
             <button onClick={() => { setLinkCopied(true); navigator.clipboard.writeText(`https://mkapms.co/doc/${doc.ref}`).catch(() => {}); showToast("Lien de signature copie !"); setTimeout(() => setLinkCopied(false), 2000); }} className="flex-1 rounded-xl bg-blue-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97]"><Send size={14} /> {linkCopied ? "Copie !" : "Envoyer"}</button>
           </div>
         </div>
