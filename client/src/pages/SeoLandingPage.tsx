@@ -2,6 +2,17 @@ import { useLocation, Link } from "react-router-dom";
 import { ChevronRight, ShoppingCart, Car, Wrench, Package, Store } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import MetaSEO, { generateBreadcrumbSchema } from "../components/MetaSEO";
+import { SmartLink, useReportNavigation } from "../lib/redirect";
+
+/** Slug d'une ville pour l'URL /ville/:slug (même règle que le générateur SEO). */
+function villeSlug(nom: string): string {
+  return nom
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 /**
  * Page d'atterrissage générique pour les pages programmatiques SEO (seo_pages).
@@ -10,6 +21,7 @@ import MetaSEO, { generateBreadcrumbSchema } from "../components/MetaSEO";
  */
 export default function SeoLandingPage() {
   const location = useLocation();
+  const signaler = useReportNavigation();
   const slug = location.pathname.replace(/^\/+/, "").replace(/\/+$/, "");
   const { data, isLoading } = trpc.seo.getPageMeta.useQuery({ slug }, { enabled: !!slug });
 
@@ -48,12 +60,16 @@ export default function SeoLandingPage() {
     { name: title, url: location.pathname },
   ];
 
+  // Maillage interne passé par le Moteur de Redirection : le PDG peut changer
+  // la destination d'un univers sans toucher à cette page. `to` reste le repli
+  // si aucune règle n'est active.
   const quickLinks = [
-    { to: "/acheter", label: "Acheter un véhicule", icon: ShoppingCart },
-    { to: "/louer", label: "Louer un véhicule", icon: Car },
-    { to: "/garages", label: "Garages & services", icon: Wrench },
-    { to: "/pieces", label: "Pièces automobiles", icon: Package },
-    { to: "/vendre", label: "Vendre / déposer une annonce", icon: Store },
+    { key: "geo_vehicules_locaux", to: "/acheter", label: "Acheter un véhicule", icon: ShoppingCart },
+    { key: "univers_louer", to: "/louer", label: "Louer un véhicule", icon: Car },
+    { key: "geo_garages_locaux", to: "/garages", label: "Garages & services", icon: Wrench },
+    { key: "geo_pieces_locales", to: "/pieces", label: "Pièces automobiles", icon: Package },
+    { key: "univers_vendre", to: "/vendre", label: "Vendre / déposer une annonce", icon: Store },
+    { key: "geo_recherche_locale", to: "/pres-de-moi", label: "Chercher près de moi", icon: Car },
   ];
 
   return (
@@ -111,6 +127,7 @@ export default function SeoLandingPage() {
               <Link
                 key={v.id}
                 to={`/vehicule/${v.slug || v.id}`}
+                onClick={() => signaler("geo_fiche_vehicule", `/vehicule/${v.slug || v.id}`)}
                 className="rounded-xl border border-gray-200 overflow-hidden hover:border-blue-400 hover:shadow transition bg-white"
               >
                 <div className="aspect-[4/3] bg-gray-100">
@@ -137,7 +154,8 @@ export default function SeoLandingPage() {
                 {geo.nearby.map((c) => (
                   <Link
                     key={c}
-                    to={`/ville/${c.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`}
+                    to={`/ville/${villeSlug(c)}`}
+                    onClick={() => signaler("geo_ville_voisine", `/ville/${villeSlug(c)}`)}
                     className="px-3 py-1 rounded-full bg-gray-50 border border-gray-200 text-gray-700 text-sm hover:bg-gray-100"
                   >
                     {c}
@@ -154,15 +172,16 @@ export default function SeoLandingPage() {
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Continuer sur MKA.P-MS</h2>
         <div className="grid sm:grid-cols-2 gap-3">
           {quickLinks.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
+            <SmartLink
+              key={l.key}
+              redirKey={l.key}
+              fallback={l.to}
               className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition"
             >
               <l.icon className="w-5 h-5 text-blue-600" />
               <span className="font-medium text-gray-800">{l.label}</span>
               <ChevronRight className="w-4 h-4 text-gray-400 ml-auto" />
-            </Link>
+            </SmartLink>
           ))}
         </div>
       </div>

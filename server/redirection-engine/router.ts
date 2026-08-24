@@ -9,6 +9,7 @@
  *  - deleteRule   : supprimer une règle (PDG)
  *  - stats        : synthèse (PDG)
  *  - logs         : journal des résolutions (PDG)
+ *  - couverture   : audit de couverture par zone (PDG)
  */
 import { z } from "zod";
 import { router, publicProcedure, pdgProcedure } from "../trpc.js";
@@ -24,6 +25,7 @@ import {
   getStats,
   getRecentLogs,
 } from "./service.js";
+import { auditCouverture } from "./couverture.js";
 
 export const redirectionEngineRouter = router({
   // Résolution d'une clé → destination. Public : tout composant peut demander
@@ -115,6 +117,12 @@ export const redirectionEngineRouter = router({
 
   stats: pdgProcedure.query(async () => {
     return getStats();
+  }),
+
+  // Audit de couverture : zones branchées, destinations inexistantes, clés
+  // sans règle, pages introuvables non résolues.
+  couverture: pdgProcedure.query(async () => {
+    return auditCouverture();
   }),
 
   // Redirections cassées (clés sans règle, 404, erreurs) — 7 derniers jours.

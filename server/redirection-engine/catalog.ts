@@ -98,6 +98,39 @@ export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
   { key: "nav_univers", label: "Menu — Univers", kind: "route", target: "/univers", priority: 100 },
   { key: "nav_abonnements", label: "Menu — Abonnements", kind: "route", target: "/abonnements", priority: 100 },
 
+  // ── Produits, pièces et catalogues ────────────────────────────────────
+  { key: "produit_pieces_catalogue", label: "Produits — Catalogue pièces", kind: "route", target: "/pieces", priority: 90 },
+  { key: "produit_pieces_recherche", label: "Produits — Recherche intelligente de pièces", kind: "service", target: "/pieces/recherche-intelligente-pieces", priority: 80 },
+  { key: "produit_pieces_compatibilite", label: "Produits — Vérification de compatibilité", kind: "service", target: "/pieces/verification-compatibilite", priority: 80 },
+  { key: "produit_pieces_panier", label: "Produits — Panier pièces", kind: "button", target: "/pieces/panier-pieces-detachees", priority: 80 },
+  { key: "produit_officiel", label: "Produits — Boutique officielle", kind: "route", target: "/acheter/mkapms-officiel", priority: 80 },
+
+  // ── Pages géographiques (pays / région / ville / quartier) ────────────
+  // Les pages locales existent (SEO OS) mais n'étaient reliées à aucune clé :
+  // le moteur ne pouvait donc ni les superviser ni corriger leurs parcours.
+  { key: "geo_recherche_locale", label: "Géo — Recherche à proximité", kind: "route", target: "/pres-de-moi", priority: 70 },
+  { key: "geo_vehicules_locaux", label: "Géo — Véhicules de la zone", kind: "route", target: "/acheter", priority: 70 },
+  { key: "geo_pieces_locales", label: "Géo — Pièces de la zone", kind: "route", target: "/pieces", priority: 70 },
+  { key: "geo_garages_locaux", label: "Géo — Garages de la zone", kind: "route", target: "/garages", priority: 70 },
+
+  // ── Comptabilité ──────────────────────────────────────────────────────
+  { key: "compta_accueil", label: "Comptabilité — Accueil", kind: "route", target: "/comptabilite", priority: 80 },
+  { key: "compta_facturation", label: "Comptabilité — Facturation", kind: "route", target: "/comptabilite/facturation", priority: 70 },
+  { key: "compta_tva", label: "Comptabilité — TVA", kind: "route", target: "/comptabilite/tva", priority: 70 },
+  { key: "compta_paiements", label: "Comptabilité — Paiements", kind: "route", target: "/comptabilite/paiements", priority: 70 },
+  { key: "compta_rapports", label: "Comptabilité — Rapports", kind: "route", target: "/comptabilite/rapports", priority: 70 },
+  { key: "compta_comptables", label: "Comptabilité — Trouver un comptable", kind: "route", target: "/comptables", priority: 70 },
+
+  // ── VO (véhicules d'occasion) ─────────────────────────────────────────
+  { key: "vo_accueil", label: "VO — Espace VO", kind: "route", target: "/vo", priority: 80 },
+  { key: "vo_estimation", label: "VO — Estimer un véhicule", kind: "service", target: "/acheter/estimation", priority: 80 },
+  { key: "vo_reprise", label: "VO — Reprise", kind: "service", target: "/acheter/reprise", priority: 70 },
+
+  // ── Acquisition : estimation, acheminement, paiement ──────────────────
+  { key: "service_estimation_cout_total", label: "Service — Coût total d'acquisition", kind: "service", target: "/acheter/estimation", priority: 80 },
+  { key: "service_livraison_vehicule", label: "Service — Acheminement d'un véhicule", kind: "service", target: "/vente/livraison", priority: 80 },
+  { key: "service_livraison_pieces", label: "Service — Livraison de pièces", kind: "service", target: "/livraison", priority: 80 },
+
   // ── Alias de chemins (auto-résolution des 404) ────────────────────────
   // Un chemin obsolète/synonyme qui n'a pas de page propre est redirigé
   // automatiquement vers la bonne page (clé "path:<chemin>"). Le Moteur de
