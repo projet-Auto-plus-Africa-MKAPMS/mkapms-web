@@ -2,30 +2,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, Car, ChevronRight, Star, Shield, MapPin } from "lucide-react";
 import MetaSEO from "../components/MetaSEO";
-
-const MARQUES = [
-  { nom: "Peugeot", modeles: "208, 308, 3008, 5008", count: 1250 },
-  { nom: "Renault", modeles: "Clio, Captur, Mégane, Arkana", count: 1180 },
-  { nom: "Citroën", modeles: "C3, C4, C5 Aircross", count: 890 },
-  { nom: "Volkswagen", modeles: "Golf, Polo, Tiguan, T-Roc", count: 750 },
-  { nom: "BMW", modeles: "Série 1, 3, X1, X3", count: 620 },
-  { nom: "Mercedes", modeles: "Classe A, C, GLA, GLC", count: 580 },
-  { nom: "Audi", modeles: "A3, A4, Q3, Q5", count: 520 },
-  { nom: "Toyota", modeles: "Yaris, C-HR, RAV4, Corolla", count: 480 },
-  { nom: "Ford", modeles: "Fiesta, Focus, Puma, Kuga", count: 420 },
-  { nom: "Dacia", modeles: "Sandero, Duster, Jogger", count: 380 },
-];
-
-const CATEGORIES = [
-  { label: "Citadines", to: "/vente-particulier", count: 3200 },
-  { label: "SUV & 4x4", to: "/vente-particulier", count: 2800 },
-  { label: "Berlines", to: "/vente-particulier", count: 1900 },
-  { label: "Breaks", to: "/vente-particulier", count: 850 },
-  { label: "Monospaces", to: "/vente-particulier", count: 620 },
-  { label: "Cabriolets", to: "/vente-particulier", count: 340 },
-  { label: "Utilitaires", to: "/vente-utilitaires", count: 1100 },
-  { label: "Camions", to: "/vente-camions", count: 280 },
-];
+import { trpc } from "../lib/trpc";
+import { useCurrency } from "../lib/currency";
+import { SmartLink, useReportNavigation } from "../lib/redirect";
 
 const CARROSSERIES = ["Citadine", "Berline", "SUV", "Break", "Monospace", "Cabriolet", "Coupé"];
 const ENERGIES = ["Essence", "Diesel", "Hybride", "Électrique", "GPL"];
@@ -33,6 +12,16 @@ const ANNEES = Array.from({ length: 15 }, (_, i) => String(new Date().getFullYea
 
 export default function VoitureOccasion() {
   const navigate = useNavigate();
+  const signaler = useReportNavigation();
+  const { country } = useCurrency();
+  // Marques et catégories réellement présentes dans le stock publié du pays :
+  // afficher une marque sans annonce mènerait à une liste vide.
+  const facettes = trpc.annonces.facettes.useQuery(
+    { pays: country ?? undefined },
+    { staleTime: 5 * 60 * 1000 },
+  );
+  const marques = facettes.data?.marques ?? [];
+  const categories = facettes.data?.categories ?? [];
   const [q, setQ] = useState("");
   const [marque, setMarque] = useState("");
   const [carrosserie, setCarrosserie] = useState("");
@@ -77,7 +66,7 @@ export default function VoitureOccasion() {
         <div className="mt-2 grid grid-cols-2 gap-2">
           <select value={marque} onChange={(e) => setMarque(e.target.value)} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
             <option value="">Toutes les marques</option>
-            {MARQUES.map((m) => <option key={m.nom} value={m.nom}>{m.nom}</option>)}
+            {marques.map((m) => <option key={m.valeur} value={m.valeur}>{m.valeur} ({m.n})</option>)}
           </select>
           <select value={carrosserie} onChange={(e) => setCarrosserie(e.target.value)} className="rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm bg-white">
             <option value="">Toutes les carrosseries</option>
@@ -116,20 +105,47 @@ export default function VoitureOccasion() {
       </div>
       <div className="px-4 mt-4">
         <h2 className="text-base font-bold text-[#111]">Par marque</h2>
-        <div className="mt-3 space-y-1.5">{MARQUES.map(m => (
-          <Link key={m.nom} to="/vente-particulier" className="flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm active:scale-[0.99]">
-            <div className="flex-1"><p className="text-sm font-bold text-[#111]">{m.nom}</p><p className="text-[9px] text-[#6B7280]">{m.modeles}</p></div>
-            <span className="text-[10px] font-bold text-[#D4AF37]">{m.count.toLocaleString("fr-FR")}</span><ChevronRight size={14} className="text-red-500" />
-          </Link>
-        ))}</div>
+        {facettes.isLoading ? (
+          <p className="mt-3 text-xs text-[#6B7280]">Lecture du stock disponible…</p>
+        ) : marques.length === 0 ? (
+          <p className="mt-3 text-xs text-[#6B7280]">Aucun véhicule publié pour le moment dans ce pays.</p>
+        ) : (
+          <div className="mt-3 space-y-1.5">{marques.map(m => (
+            <Link
+              key={m.valeur}
+              to={`/acheter?marque=${encodeURIComponent(m.valeur)}`}
+              onClick={() => signaler("vo_marque", `/acheter?marque=${m.valeur}`)}
+              className="flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm active:scale-[0.99]"
+            >
+              <div className="flex-1"><p className="text-sm font-bold text-[#111]">{m.valeur}</p></div>
+              <span className="text-[10px] font-bold text-[#D4AF37]">{m.n.toLocaleString("fr-FR")}</span><ChevronRight size={14} className="text-red-500" />
+            </Link>
+          ))}</div>
+        )}
       </div>
-      <div className="px-4 mt-6">
-        <h2 className="text-base font-bold text-[#111]">Par catégorie</h2>
-        <div className="mt-3 grid grid-cols-2 gap-2">{CATEGORIES.map(c => (
-          <Link key={c.label} to={c.to} className="rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm text-center active:scale-[0.98]">
-            <p className="text-sm font-bold text-[#111]">{c.label}</p><p className="text-[10px] text-[#D4AF37] font-bold">{c.count.toLocaleString("fr-FR")} annonces</p>
-          </Link>
-        ))}</div>
+      {categories.length > 0 && (
+        <div className="px-4 mt-6">
+          <h2 className="text-base font-bold text-[#111]">Par catégorie</h2>
+          <div className="mt-3 grid grid-cols-2 gap-2">{categories.map(c => (
+            <Link
+              key={c.valeur}
+              to={`/acheter?categorie=${encodeURIComponent(c.valeur)}`}
+              onClick={() => signaler("vo_categorie", `/acheter?categorie=${c.valeur}`)}
+              className="rounded-xl bg-white border border-[#E5E7EB] p-3 shadow-sm text-center active:scale-[0.98]"
+            >
+              <p className="text-sm font-bold text-[#111] capitalize">{c.valeur.replace(/_/g, " ")}</p>
+              <p className="text-[10px] text-[#D4AF37] font-bold">{c.n.toLocaleString("fr-FR")} annonce(s)</p>
+            </Link>
+          ))}</div>
+        </div>
+      )}
+      <div className="px-4 mt-6 grid grid-cols-2 gap-2">
+        <SmartLink redirKey="vo_estimation" fallback="/acheter/estimation" className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center text-sm font-bold text-[#111] active:scale-[0.98]">
+          Estimer mon véhicule
+        </SmartLink>
+        <SmartLink redirKey="vo_reprise" fallback="/acheter/reprise" className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center text-sm font-bold text-[#111] active:scale-[0.98]">
+          Faire reprendre mon véhicule
+        </SmartLink>
       </div>
     </div>
   );

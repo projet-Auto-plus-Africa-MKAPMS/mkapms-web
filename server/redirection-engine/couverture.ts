@@ -18,7 +18,7 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { redirRules, redirLogs } from "./schema.js";
-import { DEFAULT_REDIRECT_RULES } from "./catalog.js";
+import { DEFAULT_REDIRECT_RULES, OBSERVED_KEYS } from "./catalog.js";
 import { isRoutablePath } from "../data/client-routes.js";
 
 export type EtatZone = "branchee" | "partielle" | "absente";
@@ -54,12 +54,26 @@ export interface Route404 {
   suggestion: string | null;
 }
 
+/**
+ * Parcours à destination dynamique : le moteur observe, il n'impose pas. Un
+ * parcours à 0 navigation sur 30 jours est un parcours mort ou jamais atteint
+ * — c'est l'information utile, pas une erreur en soi.
+ */
+export interface ParcoursObserve {
+  key: string;
+  label: string;
+  zone: string;
+  navigations: number;
+  destinationsCassees: string[];
+}
+
 export interface AuditCouverture {
   genereLe: string;
   reglesActives: number;
   reglesCassees: RegleCassee[];
   clesSansRegle: CleSansRegle[];
   routes404: Route404[];
+  parcoursObserves: ParcoursObserve[];
   zones: ZoneCouverture[];
   resume: string;
 }
@@ -191,6 +205,43 @@ export async function auditCouverture(): Promise<AuditCouverture> {
       suggestion: suggestion(r.chemin as string, cibles),
     }));
 
+  // Parcours à destination dynamique : navigations réelles et destinations
+  // qui n'aboutissent sur aucune page connue.
+  const observees = OBSERVED_KEYS.map((o) => o.key);
+  const navigations = observees.length
+    ? await db
+        .select({
+          key: redirLogs.key,
+          resolvedTo: redirLogs.resolvedTo,
+          n: sql<number>`count(*)::int`,
+        })
+        .from(redirLogs)
+        .where(
+          and(
+            inArray(redirLogs.key, observees),
+            sql`${redirLogs.createdAt} >= ${since30d}`,
+          ),
+        )
+        .groupBy(redirLogs.key, redirLogs.resolvedTo)
+    : [];
+
+  const parcoursObserves: ParcoursObserve[] = OBSERVED_KEYS.map((o) => {
+    const lignes = navigations.filter((n) => n.key === o.key);
+    const cassees = new Set<string>();
+    for (const l of lignes) {
+      const cible = (l.resolvedTo ?? "").split("?")[0];
+      if (!cible.startsWith("/")) continue;
+      if (!isRoutablePath(cible)) cassees.add(cible);
+    }
+    return {
+      key: o.key,
+      label: o.label,
+      zone: o.zone,
+      navigations: lignes.reduce((s, l) => s + l.n, 0),
+      destinationsCassees: [...cassees].slice(0, 20),
+    };
+  });
+
   // État par zone.
   const attenduParZone = new Map<string, number>();
   for (const r of DEFAULT_REDIRECT_RULES) {
@@ -248,6 +299,7 @@ export async function auditCouverture(): Promise<AuditCouverture> {
     reglesCassees,
     clesSansRegle,
     routes404,
+    parcoursObserves,
     zones,
     resume,
   };

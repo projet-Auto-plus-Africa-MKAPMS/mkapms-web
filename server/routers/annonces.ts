@@ -264,7 +264,7 @@ export const annoncesRouter = router({
         base.push(or(eq(annonces.pays, input.pays), isNull(annonces.pays))!);
       }
       const where = and(...base);
-      const [pays, villes, couleurs] = await Promise.all([
+      const [pays, villes, couleurs, marques, categories] = await Promise.all([
         db
           .select({ valeur: annonces.pays, n: sql<number>`count(*)::int` })
           .from(annonces)
@@ -286,6 +286,20 @@ export const annoncesRouter = router({
           .groupBy(annonces.couleur)
           .orderBy(desc(sql`count(*)`))
           .limit(60),
+        db
+          .select({ valeur: annonces.marque, n: sql<number>`count(*)::int` })
+          .from(annonces)
+          .where(and(where, isNotNull(annonces.marque)))
+          .groupBy(annonces.marque)
+          .orderBy(desc(sql`count(*)`))
+          .limit(200),
+        db
+          .select({ valeur: sql<string | null>`${annonces.categorie}::text`, n: sql<number>`count(*)::int` })
+          .from(annonces)
+          .where(and(where, isNotNull(annonces.categorie)))
+          .groupBy(annonces.categorie)
+          .orderBy(desc(sql`count(*)`))
+          .limit(60),
       ]);
       const propre = (rows: { valeur: string | null; n: number }[]) =>
         rows
@@ -294,7 +308,13 @@ export const annoncesRouter = router({
               typeof r.valeur === "string" && r.valeur.trim().length > 0,
           )
           .map((r) => ({ valeur: r.valeur.trim(), n: r.n }));
-      return { pays: propre(pays), villes: propre(villes), couleurs: propre(couleurs) };
+      return {
+        pays: propre(pays),
+        villes: propre(villes),
+        couleurs: propre(couleurs),
+        marques: propre(marques),
+        categories: propre(categories),
+      };
     }),
 
   // Fiche véhicule détaillée

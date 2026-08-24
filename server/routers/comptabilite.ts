@@ -14,12 +14,14 @@ export const comptabiliteRouter = router({
     .input(z.object({
       type: z.string().optional(),
       statut: z.string().optional(),
+      sens: z.enum(["debit", "credit"]).optional(),
       limit: z.number().min(1).max(500).default(100),
     }).default({}))
     .query(async ({ input }) => {
       const conds = [];
       if (input.type) conds.push(eq(comptaEcritures.type, input.type as any));
       if (input.statut) conds.push(eq(comptaEcritures.statut, input.statut as any));
+      if (input.sens) conds.push(eq(comptaEcritures.sens, input.sens));
       return db.select().from(comptaEcritures)
         .where(conds.length ? and(...conds) : undefined)
         .orderBy(desc(comptaEcritures.dateEcriture))

@@ -47,6 +47,30 @@ export const PATH_ALIASES: PathAlias[] = [
   { from: "/contact", to: "/aide", label: "Chemin — Contact → Centre d'aide" },
 ];
 
+/**
+ * Clés d'OBSERVATION : parcours dont la destination est dynamique (fiche
+ * véhicule, commande, ville, résultat de recherche…). Le moteur les suit pour
+ * détecter un parcours mort, mais ne leur impose pas de destination fixe :
+ * remplacer l'adresse d'une fiche par une règle unique casserait le lien de
+ * tous les autres articles. Elles sont déclarées ici pour que l'audit ne les
+ * confonde pas avec des clés oubliées.
+ */
+export interface ObservedKey {
+  key: string;
+  label: string;
+  zone: string;
+}
+
+export const OBSERVED_KEYS: ObservedKey[] = [
+  { key: "geo_fiche_vehicule", label: "Géo — Fiche véhicule depuis une page locale", zone: "geo" },
+  { key: "geo_ville_voisine", label: "Géo — Ville voisine", zone: "geo" },
+  { key: "piece_commande", label: "Pièces — Suivi d'une commande", zone: "produits" },
+  { key: "piece_connexion_requise", label: "Pièces — Connexion demandée avant commande", zone: "produits" },
+  { key: "vo_marque", label: "VO — Recherche par marque du stock réel", zone: "vo" },
+  { key: "vo_categorie", label: "VO — Recherche par catégorie du stock réel", zone: "vo" },
+  { key: "compta_ecritures_filtrees", label: "Comptabilité — Écritures filtrées depuis le tableau de bord", zone: "comptabilite" },
+];
+
 export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
   // ── Univers principaux ────────────────────────────────────────────────
   { key: "univers_acheter", label: "Univers — Acheter", kind: "route", target: "/acheter", priority: 100 },

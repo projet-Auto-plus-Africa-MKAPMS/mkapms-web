@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { Eye, FileText, Download } from "lucide-react";
 import { DocumentView, buildFactureData } from "../components/DocumentPDF";
+import { useReportNavigation } from "../lib/redirect";
 
 const TYPE_LABELS: Record<string, string> = {
   achat_vehicule: "Achat véhicule",
@@ -68,11 +70,12 @@ export default function Comptabilite() {
 }
 
 function Dashboard() {
+  const navigate = useNavigate();
+  const signaler = useReportNavigation();
   const { data: stats, isLoading } = trpc.comptabilite.stats.useQuery();
   if (isLoading) return <div className="py-8 text-center text-[#6B7280]">Chargement...</div>;
   if (!stats) return null;
 
-  const navigate = useNavigate();
   const cards = [
     { label: "Total débits", value: `${stats.totalDebits.toLocaleString()} €`, color: "text-red-500", bg: "bg-red-50", path: "?tab=ecritures&sens=debit" },
     { label: "Total crédits", value: `${stats.totalCredits.toLocaleString()} €`, color: "text-green-600", bg: "bg-green-50", path: "?tab=ecritures&sens=credit" },
@@ -86,7 +89,7 @@ function Dashboard() {
   return (
     <div className="grid grid-cols-2 gap-2">
       {cards.map((c) => (
-        <button key={c.label} onClick={() => navigate(`/comptabilite${c.path}`)} className={`rounded-xl border border-[#E5E7EB] bg-white p-4 text-left active:scale-[0.97] transition-all ${c.label === "Bénéfice net" ? "col-span-2 border-[#D4AF37] bg-[#111]" : ""}`}>
+        <button key={c.label} onClick={() => { signaler("compta_ecritures_filtrees", `/comptabilite${c.path}`); navigate(`/comptabilite${c.path}`); }} className={`rounded-xl border border-[#E5E7EB] bg-white p-4 text-left active:scale-[0.97] transition-all ${c.label === "Bénéfice net" ? "col-span-2 border-[#D4AF37] bg-[#111]" : ""}`}>
           <p className={`text-[10px] font-bold uppercase ${c.label === "Bénéfice net" ? "text-white/50" : "text-[#6B7280]"}`}>{c.label}</p>
           <div className={`mt-1 text-lg font-black ${c.color}`}>{c.value}</div>
         </button>
@@ -94,8 +97,6 @@ function Dashboard() {
     </div>
   );
 }
-
-import { useNavigate, useSearchParams } from "react-router-dom";
 
 function Ecritures({ setModalDoc }: { setModalDoc: (doc: any) => void }) {
   const [searchParams] = useSearchParams();
@@ -105,6 +106,7 @@ function Ecritures({ setModalDoc }: { setModalDoc: (doc: any) => void }) {
   const { data: ecritures, isLoading } = trpc.comptabilite.ecritures.useQuery({
     type: typeFilter || undefined,
     statut: statutFilter || undefined,
+    sens: sensFilter === "debit" || sensFilter === "credit" ? sensFilter : undefined,
   });
   if (isLoading) return <div className="py-8 text-center text-[#6B7280]">Chargement...</div>;
   if (!ecritures?.length) return <div className="py-8 text-center text-[#6B7280]">Aucune écriture comptable.</div>;
@@ -162,12 +164,7 @@ function Rapports({ setModalDoc }: { setModalDoc: (doc: any) => void }) {
               </button>
               <button 
                 onClick={() => {
-                  const docData = buildFactureData({ ref: `REP-${r.id}`, objet: `Rapport ${r.type}`, client: "Direction MKA", montant: "Rapport", date: r.periode, statut: "Généré", type: "Rapport" });
-                  // Logic to trigger PDF download (e.g., open in new tab or use a dedicated download function)
-                  // For now, we'll just log it to console or open in a new tab for demonstration
-                  console.log("Télécharger PDF pour le rapport:", docData);
-                  // Example: window.open(`/api/download-pdf?ref=${docData.ref}`, '_blank');
-                  alert("Le téléchargement du PDF a été initié. Vous le trouverez dans vos téléchargements.");
+                  setModalDoc(buildFactureData({ ref: `REP-${r.id}`, objet: `Rapport ${r.type}`, client: "Direction MKA", montant: "Rapport", date: r.periode, statut: "Généré", type: "Rapport" }));
                 }}
                 className="flex items-center gap-1.5 rounded-lg bg-[#F5F3EF] px-3 py-1.5 text-xs font-bold text-[#111] hover:bg-[#E5E7EB] transition"
               >
