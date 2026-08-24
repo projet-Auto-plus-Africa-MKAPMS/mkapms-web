@@ -13,6 +13,7 @@ import {
   Settings,
 } from "lucide-react";
 import SupportWidget from "./SupportWidget";
+import AssistantFlottant from "./AssistantFlottant";
 import DomainSelector from "./DomainSelector";
 import { Logo } from "./Logo";
 import { DynamicPWAIcon } from "./DynamicPWAIcon";
@@ -421,6 +422,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <BackButton />
       <main className="flex-1 pb-20 lg:pb-0">{children}</main>
       <Footer />
+      <AssistantFlottant />
       <BottomNav />
     </div>
   );
