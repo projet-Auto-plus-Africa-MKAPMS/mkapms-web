@@ -89,6 +89,8 @@ import { proAccountRouter } from "./pro-account/index.js";
 import { accountRoutingRouter } from "./account-routing/index.js";
 // VO Engine — estimation, reprise et dossier VO
 import { voEngineRouter } from "./vo-engine/index.js";
+// VO Espaces — cloisonnement officiel / professionnel / particulier
+import { voEspacesRouter } from "./vo-espaces/index.js";
 // Payment Orchestrator + Intelligence financière — points 27 & 29
 import { paymentOrchestratorRouter } from "./payment-orchestrator/index.js";
 import { financialIntelligenceRouter } from "./financial-intelligence/index.js";
@@ -236,6 +238,7 @@ export const appRouter = router({
   // Account Routing Engine — univers d'un compte (particulier, métiers, direction)
   accountRouting: accountRoutingRouter,
   voEngine: voEngineRouter,
+  voEspaces: voEspacesRouter,
   // Recherche locale par service + matrice des univers en mini-plateformes
   proximity: proximityEngineRouter,
   partnerEngine: partnerEngineRouter,

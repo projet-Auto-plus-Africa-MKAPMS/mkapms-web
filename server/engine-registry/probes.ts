@@ -56,6 +56,9 @@ export const ENGINE_PROBES: EngineProbe[] = [
   // ── Univers ──
   { engine: "vo", tables: ["vehicules", "vehicule_dossiers", "vehicule_historique"] },
   { engine: "vo_engine", tables: ["vo_estimations", "vo_reprise_requests", "vo_dossier_items"] },
+  // Le cloisonnement VO décide à partir des abonnements et des annonces des pros :
+  // pas de stockage propre, sa capacité dépend de ces deux tables.
+  { engine: "vo_espaces", tables: ["subscriptions", "annonces"] },
   { engine: "garage", tables: ["garages", "garages_publics", "rdv_garage", "devis_garage_requests"] },
   { engine: "pieces", tables: ["pieces", "parts_shops", "parts_stock", "parts_orders"] },
   { engine: "depannage", tables: ["service_tracking", "quotes"] },
