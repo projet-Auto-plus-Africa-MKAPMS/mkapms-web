@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { imprimerFeuille } from "../../lib/documents";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ChevronLeft, Crown, Globe, Building2, Wrench, Users, TrendingUp,
@@ -575,6 +576,61 @@ export default function CentrePilotage() {
   const [toast, setToast] = useState<string | null>(null);
   const navigate = useNavigate();
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
+  /* Rapport global reellement imprimable, assemble depuis les tableaux affiches. */
+  function imprimerRapportGlobal() {
+    const ok = imprimerFeuille({
+      typeDocument: "rapport_comptable",
+      titre: "Rapport global de direction",
+      sousTitre: "Centre de Pilotage Groupe — synthese univers et pays",
+      colonnes: [
+        { cle: "univers", titre: "Univers" },
+        { cle: "ca", titre: "CA (EUR)", numerique: true },
+        { cle: "transactions", titre: "Transactions", numerique: true },
+        { cle: "croissance", titre: "Croissance", numerique: true },
+        { cle: "objectif", titre: "Objectif (EUR)", numerique: true },
+        { cle: "marge", titre: "Marge", numerique: true },
+      ],
+      lignes: PERF_UNIVERS.map(u => ({
+        univers: u.univers, ca: u.ca, transactions: u.transactions,
+        croissance: u.croissance, objectif: u.objectif, marge: u.marge,
+      })),
+      totaux: PAYS_DATA.filter(p => p.ca > 0).map(p => ({
+        libelle: p.pays,
+        valeur: `${p.ca.toLocaleString("fr-FR")} EUR — ${p.clients.toLocaleString("fr-FR")} clients`,
+      })),
+      mentions: ["MKA.P-MS — Auto Plus Africa. Document confidentiel de direction."],
+    });
+    showToast(ok ? "Rapport global ouvert — enregistrable en PDF" : "Le navigateur a bloque la fenetre d'impression");
+  }
+
+  /* Le fichier d'origine n'est pas archive dans la plateforme : on edite la fiche
+     du document et on le dit, plutot que d'annoncer un telechargement inexistant. */
+  function imprimerFicheDocument(d: typeof DOCUMENTS_DATA[0]) {
+    const ok = imprimerFeuille({
+      typeDocument: "export_donnees",
+      titre: "Fiche document",
+      reference: d.nom,
+      sousTitre: d.categorie,
+      informations: [
+        { libelle: "Nom", valeur: d.nom },
+        { libelle: "Categorie", valeur: d.categorie },
+        { libelle: "Date", valeur: d.date },
+        { libelle: "Taille declaree", valeur: d.taille },
+        { libelle: "Versions", valeur: String(d.versions) },
+      ],
+      mentions: [
+        "Le fichier d'origine n'est pas encore archive dans la plateforme : aucun stockage documentaire n'est connecte.",
+        "Cette feuille est la fiche de suivi du document, pas le document lui-meme.",
+      ],
+    });
+    showToast(
+      ok
+        ? `${d.nom} : fiche ouverte — le fichier d'origine n'est pas archive dans la plateforme`
+        : "Le navigateur a bloque la fenetre d'impression",
+    );
+  }
+
 
   const totalCA = PAYS_DATA.reduce((s, p) => s + p.ca, 0);
   const totalClients = PAYS_DATA.reduce((s, p) => s + p.clients, 0);
@@ -1399,7 +1455,7 @@ export default function CentrePilotage() {
                     <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 grid grid-cols-3 gap-2 text-[10px]">
                       <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Taille</span><p className="font-bold">{d.taille}</p></div>
                       <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Versions</span><p className="font-bold">{d.versions}</p></div>
-                      <button onClick={() => showToast(`Telechargement: ${d.nom}`)} className="rounded-lg bg-[#111] p-2 text-[#D4AF37] font-bold flex items-center justify-center gap-1"><Download size={10} /> PDF</button>
+                      <button onClick={() => imprimerFicheDocument(d)} className="rounded-lg bg-[#111] p-2 text-[#D4AF37] font-bold flex items-center justify-center gap-1"><Download size={10} /> PDF</button>
                     </div>
                   )}
                 </div>
@@ -2791,7 +2847,7 @@ export default function CentrePilotage() {
 
       {/* EXPORT GLOBAL */}
       <div className="px-4 mt-4">
-        <button onClick={() => showToast("Rapport global PDG exporte en PDF")} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Exporter le rapport global</button>
+        <button onClick={imprimerRapportGlobal} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Exporter le rapport global</button>
       </div>
 
       {toast && (

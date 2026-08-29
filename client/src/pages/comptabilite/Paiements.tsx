@@ -5,6 +5,7 @@ import {
   X, Search, Filter, Banknote, Wallet, Clock, ArrowUpRight, ArrowDownLeft
 } from "lucide-react";
 import { DocumentView, buildFactureData } from "../../components/DocumentPDF";
+import { imprimerFeuille, telechargerCSV, type ColonneExport } from "../../lib/documents";
 
 type Tab = "tous" | "recus" | "en_attente" | "rembourses";
 type Methode = "tous" | "stripe" | "virement" | "cb" | "especes" | "cheque" | "differe";
@@ -86,6 +87,60 @@ export default function Paiements() {
   const totalRecus = PAIEMENTS.filter(p => p.statut === "valide").reduce((s, p) => s + p.montant, 0);
   const totalAttente = PAIEMENTS.filter(p => p.statut === "en_attente").reduce((s, p) => s + p.montant, 0);
   const totalRembourses = PAIEMENTS.filter(p => p.statut === "rembourse").reduce((s, p) => s + Math.abs(p.montant), 0);
+
+  const COLONNES: ColonneExport[] = [
+    { cle: "ref", titre: "Reference" },
+    { cle: "date", titre: "Date" },
+    { cle: "client", titre: "Client" },
+    { cle: "objet", titre: "Objet" },
+    { cle: "methode", titre: "Methode" },
+    { cle: "statut", titre: "Statut" },
+    { cle: "delai", titre: "Delai" },
+    { cle: "univers", titre: "Univers" },
+    { cle: "montant", titre: "Montant (EUR)", numerique: true },
+  ];
+
+  /* Export réel du journal des paiements : un fichier ouvrable dans Excel. */
+  function exporterPaiements() {
+    const r = telechargerCSV(
+      "paiements-mkapms",
+      COLONNES,
+      filtered.map(p => ({
+        ref: p.ref, date: p.date, client: p.client, objet: p.objet, methode: p.methode,
+        statut: STATUT_LABEL[p.statut], delai: p.delai, univers: p.univers, montant: p.montant.toFixed(2),
+      })),
+    );
+    showToast(r.ok ? `Fichier ${r.nom} telecharge (${r.lignes} paiement(s))` : "Telechargement refuse par le navigateur");
+  }
+
+  /* Reçu réellement imprimable : le client doit pouvoir garder une preuve. */
+  function imprimerRecu(p: Paiement) {
+    const ok = imprimerFeuille({
+      typeDocument: "recu",
+      titre: p.montant < 0 ? "Justificatif de remboursement" : "Recu de paiement",
+      reference: p.ref,
+      sousTitre: p.objet,
+      informations: [
+        { libelle: "Client", valeur: p.client },
+        { libelle: "Date", valeur: p.date },
+        { libelle: "Methode", valeur: p.methode },
+        { libelle: "Statut", valeur: STATUT_LABEL[p.statut] },
+        { libelle: "Delai", valeur: p.delai },
+        { libelle: "Univers", valeur: p.univers },
+      ],
+      colonnes: [
+        { cle: "designation", titre: "Designation" },
+        { cle: "montant", titre: "Montant", numerique: true },
+      ],
+      lignes: [{ designation: p.objet, montant: `${p.montant.toLocaleString("fr-FR")} EUR` }],
+      totaux: [{ libelle: "Montant encaisse", valeur: `${p.montant.toLocaleString("fr-FR")} EUR` }],
+      mentions: [
+        "MKA.P-MS — Auto Plus Africa. Recu genere depuis le journal des paiements.",
+        p.statut === "valide" ? "Paiement encaisse." : `Statut au moment de l'edition : ${STATUT_LABEL[p.statut]}.`,
+      ],
+    });
+    showToast(ok ? `Recu ${p.ref} : feuille ouverte, enregistrable en PDF` : "Le navigateur a bloque la fenetre d'impression");
+  }
 
   const Overlay = ({ children, onClose }: { children: React.ReactNode; onClose: () => void }) => (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
@@ -175,7 +230,7 @@ export default function Paiements() {
       </div>
 
       <div className="px-4 mt-4">
-        <button onClick={() => showToast("Export Excel de tous les paiements")} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Exporter les paiements</button>
+        <button onClick={exporterPaiements} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Exporter les paiements</button>
       </div>
 
       {modalPay && (
@@ -197,7 +252,7 @@ export default function Paiements() {
             </div>
             <div className="flex gap-2">
               <button onClick={() => { setModalDoc(buildFactureData({ ref: modalPay.ref, objet: modalPay.univers, client: modalPay.client, montant: `${modalPay.montant} EUR`, date: modalPay.date, statut: STATUT_LABEL[modalPay.statut], type: modalPay.methode })); setModalPay(null); }} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Eye size={14} /> Voir la facture</button>
-              <button onClick={() => { showToast(`Recu ${modalPay.ref} exporte en PDF`); setModalPay(null); }} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Download size={14} /> PDF</button>
+              <button onClick={() => { imprimerRecu(modalPay); }} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Download size={14} /> PDF</button>
             </div>
           </div>
         </Overlay>

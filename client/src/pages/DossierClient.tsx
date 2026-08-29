@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { imprimerFeuille } from "../lib/documents";
 import { Link } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import {
@@ -95,6 +96,106 @@ export default function DossierClient() {
   const [expandedItem, setExpandedItem] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
+  /* Historique reellement editable : la feuille imprimee reprend la chronologie. */
+  function imprimerHistorique(v: typeof ACHETES[0]) {
+    const ok = imprimerFeuille({
+      typeDocument: "rapport_historique",
+      titre: "Historique du vehicule",
+      reference: v.plaque,
+      sousTitre: v.nom,
+      informations: [
+        { libelle: "Vehicule", valeur: v.nom },
+        { libelle: "Immatriculation", valeur: v.plaque },
+        { libelle: "Achete le", valeur: v.date },
+        { libelle: "Vendeur", valeur: v.vendeur },
+        { libelle: "Kilometrage", valeur: v.km },
+      ],
+      colonnes: [
+        { cle: "date", titre: "Date" },
+        { cle: "event", titre: "Evenement" },
+        { cle: "detail", titre: "Detail" },
+      ],
+      lignes: v.historique.map(h => ({ date: h.date, event: h.event, detail: h.detail })),
+      mentions: ["MKA.P-MS — Auto Plus Africa. Historique issu du dossier client."],
+    });
+    showToast(ok ? "Historique ouvert — enregistrable en PDF" : "Le navigateur a bloque la fenetre d'impression");
+  }
+
+  /* Carnet d'entretien : feuille reelle, avec le total depense. */
+  function imprimerCarnet(v: typeof ACHETES[0]) {
+    const ok = imprimerFeuille({
+      typeDocument: "carnet_entretien",
+      titre: "Carnet d'entretien",
+      reference: v.plaque,
+      sousTitre: v.nom,
+      colonnes: [
+        { cle: "date", titre: "Date" },
+        { cle: "type", titre: "Intervention" },
+        { cle: "garage", titre: "Garage" },
+        { cle: "statut", titre: "Statut" },
+        { cle: "montant", titre: "Montant", numerique: true },
+      ],
+      lignes: v.entretiens.map(e => ({ date: e.date, type: e.type, garage: e.garage, statut: e.statut, montant: e.montant })),
+      mentions: ["MKA.P-MS — Auto Plus Africa. Carnet issu des interventions enregistrees sur la plateforme."],
+    });
+    showToast(ok ? "Carnet ouvert — enregistrable en PDF" : "Le navigateur a bloque la fenetre d'impression");
+  }
+
+  /* Les pieces jointes ne sont pas archivees dans la plateforme : on edite la
+     liste des documents du vehicule et on le dit clairement. */
+  function imprimerListeDocuments(v: typeof ACHETES[0]) {
+    const ok = imprimerFeuille({
+      typeDocument: "export_donnees",
+      titre: "Documents du vehicule",
+      reference: v.plaque,
+      sousTitre: v.nom,
+      colonnes: [
+        { cle: "nom", titre: "Document" },
+        { cle: "type", titre: "Type" },
+        { cle: "date", titre: "Date" },
+        { cle: "statut", titre: "Statut" },
+      ],
+      lignes: v.documents.map(d => ({ nom: d.nom, type: d.type, date: d.date, statut: d.statut })),
+      mentions: [
+        "Les fichiers d'origine ne sont pas encore archives dans la plateforme : aucun stockage documentaire n'est connecte.",
+        "Cette feuille recapitule les documents attendus pour ce vehicule.",
+      ],
+    });
+    showToast(
+      ok
+        ? "Recapitulatif ouvert — les fichiers d'origine ne sont pas archives dans la plateforme"
+        : "Le navigateur a bloque la fenetre d'impression",
+    );
+  }
+
+  /* Confirmation de reservation : document reel remis au client. */
+  function imprimerConfirmation(r: typeof RESERVATIONS[0]) {
+    const ok = imprimerFeuille({
+      typeDocument: "reservation",
+      titre: "Confirmation de reservation",
+      reference: r.ref,
+      sousTitre: r.vehicule,
+      informations: [
+        { libelle: "Vehicule", valeur: r.vehicule },
+        { libelle: "Type", valeur: r.type },
+        { libelle: "Vendeur", valeur: r.vendeur },
+        { libelle: "Date", valeur: r.date },
+        { libelle: "Statut", valeur: r.statut },
+      ],
+      colonnes: [
+        { cle: "poste", titre: "Poste" },
+        { cle: "montant", titre: "Montant", numerique: true },
+      ],
+      lignes: [{ poste: "Acompte verse", montant: r.acompte }],
+      mentions: [
+        "MKA.P-MS — Auto Plus Africa. Document a presenter au vendeur lors de la remise du vehicule.",
+        "Le solde et les frais d'acheminement restent dus selon les conditions acceptees.",
+      ],
+    });
+    showToast(ok ? `Confirmation ${r.ref} ouverte — enregistrable en PDF` : "Le navigateur a bloque la fenetre d'impression");
+  }
+
 
   // Modals
   const [modalHistorique, setModalHistorique] = useState<typeof ACHETES[0] | null>(null);
@@ -310,7 +411,7 @@ export default function DossierClient() {
                 </div>
               ))}
             </div>
-            <button onClick={() => { showToast("Historique complet exporté en PDF"); setModalHistorique(null); }} className="w-full mt-4 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> Exporter l'historique</button>
+            <button onClick={() => imprimerHistorique(modalHistorique)} className="w-full mt-4 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> Exporter l'historique</button>
           </div>
         </Overlay>
       )}
@@ -330,14 +431,14 @@ export default function DossierClient() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="rounded-full px-1.5 py-0.5 text-[8px] font-bold bg-green-50 text-green-700">{d.statut}</span>
-                    <button onClick={() => showToast(`${d.nom} téléchargé`)} className="h-7 w-7 rounded-full bg-[#D4AF37] grid place-items-center active:scale-90 transition"><Download size={12} className="text-white" /></button>
+                    <button onClick={() => imprimerListeDocuments(modalDocuments)} className="h-7 w-7 rounded-full bg-[#D4AF37] grid place-items-center active:scale-90 transition"><Download size={12} className="text-white" /></button>
                   </div>
                 </div>
               ))}
             </div>
             <div className="flex gap-2 mt-4">
-              <button onClick={() => { showToast("Tous les documents téléchargés"); setModalDocuments(null); }} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Download size={14} /> Tout télécharger</button>
-              <button onClick={() => { showToast("Impression lancée"); setModalDocuments(null); }} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Printer size={14} /> Imprimer</button>
+              <button onClick={() => imprimerListeDocuments(modalDocuments)} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Download size={14} /> Tout télécharger</button>
+              <button onClick={() => imprimerListeDocuments(modalDocuments)} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Printer size={14} /> Imprimer</button>
             </div>
           </div>
         </Overlay>
@@ -367,7 +468,7 @@ export default function DossierClient() {
             </div>
             <div className="flex gap-2 mt-4">
               <Link to="/reparer" onClick={() => setModalEntretien(null)} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Wrench size={14} /> Prendre RDV garage</Link>
-              <button onClick={() => { showToast("Carnet d'entretien exporté"); setModalEntretien(null); }} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Download size={14} /> Export PDF</button>
+              <button onClick={() => imprimerCarnet(modalEntretien)} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Download size={14} /> Export PDF</button>
             </div>
           </div>
         </Overlay>
@@ -394,7 +495,7 @@ export default function DossierClient() {
               <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Date</p><p className="text-sm font-bold text-[#111]">{modalReservation.date}</p></div>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => { showToast("Confirmation de réservation téléchargée"); setModalReservation(null); }} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> Confirmation</button>
+              <button onClick={() => imprimerConfirmation(modalReservation)} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> Confirmation</button>
               <button onClick={() => { showToast("Annulation envoyée"); setModalReservation(null); }} className="flex-1 rounded-xl bg-red-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><X size={14} /> Annuler</button>
             </div>
           </div>

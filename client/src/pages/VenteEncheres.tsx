@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { DocumentView, buildFactureData } from "../components/DocumentPDF";
+import { imprimerFeuille } from "../lib/documents";
 
 /* ═══════════════════════════════════════════════════════════
    ACHETEURS AUTORISÉS
@@ -281,6 +282,85 @@ export default function VenteEncheres() {
 
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
+  /**
+   * Bordereau du lot remporté : les pièces d'origine (carte grise, PV) ne sont
+   * pas archivées dans la plateforme, on édite donc le bordereau réellement
+   * connu et on le dit, au lieu d'annoncer un fichier qui n'existe pas.
+   */
+  function imprimerBordereau(e: EnchereRemportee) {
+    const lot = LOTS.find((l) => l.id === e.lotId);
+    const ok = imprimerFeuille({
+      typeDocument: "bordereau_enchere",
+      titre: "Bordereau d'adjudication",
+      reference: `LOT-${e.lotId}`,
+      sousTitre: e.titre,
+      informations: [
+        { libelle: "Adjudicataire", valeur: user?.email ?? "Compte MKA.P-MS" },
+        { libelle: "Date d'adjudication", valeur: e.date },
+        { libelle: "Statut du dossier", valeur: STATUT_LABELS[e.statut]?.label ?? e.statut },
+        ...(lot ? [{ libelle: "Localisation", valeur: lot.localisation }] : []),
+        ...(lot ? [{ libelle: "VIN", valeur: lot.vin }] : []),
+      ],
+      colonnes: [
+        { cle: "designation", titre: "Designation" },
+        { cle: "montant", titre: "Montant", numerique: true },
+      ],
+      lignes: [{ designation: e.titre, montant: `${e.montant.toLocaleString("fr-FR")} EUR` }],
+      totaux: [{ libelle: "Prix d'adjudication", valeur: `${e.montant.toLocaleString("fr-FR")} EUR` }],
+      mentions: [
+        "MKA.P-MS — Auto Plus Africa. Bordereau edite depuis le journal des encheres.",
+        lot
+          ? `Pieces annoncees au lot : ${lot.rapportDocuments.join(", ")}.`
+          : "Le detail du lot n'est plus disponible en ligne.",
+        "Les pieces originales du vehicule ne sont pas archivees dans la plateforme : elles sont remises lors du retrait. Ce bordereau ne les remplace pas.",
+      ],
+    });
+    showToast(ok ? `Bordereau du lot ${e.lotId} ouvert — enregistrable en PDF` : "Le navigateur a bloque la fenetre d'impression");
+  }
+
+  /** Rapport d'expertise du lot, construit depuis les constats réels du lot. */
+  function imprimerRapportLot(lot: LotType) {
+    const ok = imprimerFeuille({
+      typeDocument: "bordereau_enchere",
+      titre: "Rapport d'expertise du lot",
+      reference: `LOT-${lot.id}`,
+      sousTitre: lot.titre,
+      informations: [
+        { libelle: "Vehicule", valeur: `${lot.marque} ${lot.modele} ${lot.version}` },
+        { libelle: "Annee", valeur: lot.annee },
+        { libelle: "Kilometrage", valeur: lot.km },
+        { libelle: "Energie / boite", valeur: `${lot.energie} — ${lot.boite}` },
+        { libelle: "VIN", valeur: lot.vin },
+        { libelle: "Localisation", valeur: lot.localisation },
+        { libelle: "Etat general", valeur: lot.etatGeneral },
+        { libelle: "Roulant", valeur: lot.roulant ? "Oui" : "Non" },
+      ],
+      colonnes: [
+        { cle: "poste", titre: "Poste" },
+        { cle: "constat", titre: "Constat" },
+      ],
+      lignes: [
+        ...(Object.keys(lot.etatDetail) as (keyof EtatVehicule)[]).map((poste) => ({
+          poste,
+          constat: ETAT_LABELS[lot.etatDetail[poste]].label,
+        })),
+        ...lot.rapportDefauts.map((d) => ({ poste: "Defaut releve", constat: d })),
+        ...lot.rapportTravaux.map((t) => ({ poste: "Travaux a prevoir", constat: t })),
+        ...lot.rapportRemarques.map((r) => ({ poste: "Remarque", constat: r })),
+      ],
+      totaux: [
+        { libelle: "Mise a prix", valeur: `${lot.miseDepart.toLocaleString("fr-FR")} EUR` },
+        { libelle: "Offre actuelle", valeur: `${lot.offreActuelle.toLocaleString("fr-FR")} EUR` },
+        { libelle: "Travaux estimes", valeur: `${lot.rapportEstimation.toLocaleString("fr-FR")} EUR` },
+      ],
+      mentions: [
+        `Documents annonces : ${lot.rapportDocuments.join(", ")}.`,
+        "Rapport etabli sur les constats declares au lot. Il ne remplace pas une expertise contradictoire sur place.",
+      ],
+    });
+    showToast(ok ? `Rapport du lot ${lot.id} ouvert — enregistrable en PDF` : "Le navigateur a bloque la fenetre d'impression");
+  }
 
   const [mode, setMode] = useState<"landing" | "lots" | "detail" | "mes_encheres" | "remportes" | "conditions" | "prochaines" | "photos" | "vehicule_detail">("landing");
   const [viewFactureEnchere, setViewFactureEnchere] = useState<EnchereRemportee | null>(null);
@@ -566,7 +646,7 @@ export default function VenteEncheres() {
                   <p className="text-lg font-black text-[#D4AF37]">{e.montant.toLocaleString("fr-FR")} €</p>
                   <div className="flex gap-2">
                     <button onClick={() => setViewFactureEnchere(e)} className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-white/20 transition">Facture</button>
-                    <button onClick={() => showToast('Documents du lot telecharges')} className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-white/20 transition">Documents</button>
+                    <button onClick={() => imprimerBordereau(e)} className="rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-white/20 transition">Documents</button>
                   </div>
                 </div>
                 {e.statut === "paye" && (
@@ -789,7 +869,7 @@ export default function VenteEncheres() {
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => { if (selectedLot) { setWatchList(prev => prev.includes(selectedLot.id) ? prev.filter(x => x !== selectedLot.id) : [...prev, selectedLot.id]); showToast(watchList.includes(selectedLot.id) ? 'Retiree de votre liste' : 'Ajoutee a votre liste de suivi'); } }} className={`flex-1 rounded-xl py-2.5 text-[10px] font-bold flex items-center justify-center gap-1 ${selectedLot && watchList.includes(selectedLot.id) ? 'bg-purple-600 text-white' : 'bg-white/5 border border-white/10 text-white/60'}`}><Bookmark size={12} /> {selectedLot && watchList.includes(selectedLot.id) ? 'Dans ma liste' : 'Ajouter a ma liste'}</button>
-                  <button onClick={() => showToast('Rapport PDF genere — telechargement en cours')} className="flex-1 rounded-xl bg-white/5 border border-white/10 py-2.5 text-[10px] font-bold text-white/60 flex items-center justify-center gap-1"><FileText size={12} /> Voir rapport complet</button>
+                  <button onClick={() => { if (selectedLot) imprimerRapportLot(selectedLot); }} className="flex-1 rounded-xl bg-white/5 border border-white/10 py-2.5 text-[10px] font-bold text-white/60 flex items-center justify-center gap-1"><FileText size={12} /> Voir rapport complet</button>
                 </div>
               </div>
             ) : (

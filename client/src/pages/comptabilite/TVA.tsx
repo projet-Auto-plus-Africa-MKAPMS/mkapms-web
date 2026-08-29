@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { imprimerFeuille, telechargerCSV, type ColonneExport } from "../../lib/documents";
 import { Link } from "react-router-dom";
 import {
   ChevronLeft, Receipt, ChevronDown, Download, Eye, CheckCircle,
@@ -57,6 +58,60 @@ export default function TVA() {
   const [toast, setToast] = useState<string | null>(null);
   const [simTaux, setSimTaux] = useState("20");
   const [simCA, setSimCA] = useState("120000");
+
+  const COLONNES_TVA: ColonneExport[] = [
+    { cle: "periode", titre: "Periode" },
+    { cle: "collectee", titre: "TVA collectee (EUR)", numerique: true },
+    { cle: "deductible", titre: "TVA deductible (EUR)", numerique: true },
+    { cle: "nette", titre: "TVA nette (EUR)", numerique: true },
+    { cle: "statut", titre: "Statut" },
+    { cle: "limite", titre: "Date limite" },
+    { cle: "declaration", titre: "Date declaration" },
+  ];
+
+  const lignesTVA = (entries: TVAEntry[]) =>
+    entries.map(e => ({
+      periode: e.periode,
+      collectee: e.tvaCollectee.toFixed(2),
+      deductible: e.tvaDeductible.toFixed(2),
+      nette: e.tvaNette.toFixed(2),
+      statut: STATUT_LABEL[e.statut],
+      limite: e.dateLimite,
+      declaration: e.dateDeclaration || "—",
+    }));
+
+  /* Declaration reellement imprimable : une notification verte ne remplace pas
+     la feuille remise a l'administration ou au comptable. */
+  function imprimerDeclaration(entry: TVAEntry) {
+    const ok = imprimerFeuille({
+      typeDocument: "rapport_tva",
+      titre: "Declaration de TVA",
+      reference: entry.periode,
+      sousTitre: `Statut : ${STATUT_LABEL[entry.statut]} — echeance ${entry.dateLimite}`,
+      informations: [
+        { libelle: "Periode", valeur: entry.periode },
+        { libelle: "Date limite", valeur: entry.dateLimite },
+        { libelle: "Date de declaration", valeur: entry.dateDeclaration || "non declaree" },
+      ],
+      colonnes: [
+        { cle: "poste", titre: "Poste" },
+        { cle: "montant", titre: "Montant", numerique: true },
+      ],
+      lignes: [
+        { poste: "TVA collectee", montant: `${entry.tvaCollectee.toLocaleString("fr-FR")} EUR` },
+        { poste: "TVA deductible", montant: `${entry.tvaDeductible.toLocaleString("fr-FR")} EUR` },
+      ],
+      totaux: [{ libelle: "TVA nette a payer", valeur: `${entry.tvaNette.toLocaleString("fr-FR")} EUR` }],
+      mentions: ["MKA.P-MS — Auto Plus Africa. Document interne a verifier avant tout depot officiel."],
+    });
+    showToast(ok ? `Declaration ${entry.periode} : feuille ouverte, enregistrable en PDF` : "Le navigateur a bloque la fenetre d'impression");
+  }
+
+  function exporterHistoriqueTVA() {
+    const r = telechargerCSV("tva-mkapms", COLONNES_TVA, lignesTVA(TVA_DATA));
+    showToast(r.ok ? `Fichier ${r.nom} telecharge (${r.lignes} periode(s))` : "Telechargement refuse par le navigateur");
+  }
+
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const totalCollectee = TVA_DATA[0].tvaCollectee;
@@ -165,7 +220,7 @@ export default function TVA() {
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => setModalEntry(entry)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97]"><Eye size={12} /> Detail</button>
-                        <button onClick={() => showToast(`Export PDF — ${entry.periode}`)} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={12} /> PDF</button>
+                        <button onClick={() => imprimerDeclaration(entry)} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={12} /> PDF</button>
                       </div>
                     </div>
                   )}
@@ -193,7 +248,7 @@ export default function TVA() {
                 </button>
               ))}
             </div>
-            <button onClick={() => showToast("Export Excel historique TVA")} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Exporter l'historique complet</button>
+            <button onClick={exporterHistoriqueTVA} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Exporter l'historique complet</button>
           </div>
         )}
 
@@ -256,7 +311,7 @@ export default function TVA() {
               {modalEntry.dateDeclaration && <div className="flex justify-between rounded-lg bg-[#F5F3EF] p-2.5"><span className="text-[#6B7280]">Date declaration</span><span className="font-bold text-[#111]">{modalEntry.dateDeclaration}</span></div>}
             </div>
             <div className="flex gap-2">
-              <button onClick={() => { showToast(`PDF declaration ${modalEntry.periode} exporte`); setModalEntry(null); }} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> Export PDF</button>
+              <button onClick={() => imprimerDeclaration(modalEntry)} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> Export PDF</button>
               <button onClick={() => { showToast(`Declaration ${modalEntry.periode} validee`); setModalEntry(null); }} className="flex-1 rounded-xl bg-green-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><CheckCircle size={14} /> Valider</button>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { imprimerFeuille, telechargerCSV, type ColonneExport } from "../../lib/documents";
 import { Link } from "react-router-dom";
 import {
   ChevronLeft, Megaphone, ChevronDown, Download, Eye, CheckCircle,
@@ -54,6 +55,50 @@ export default function PublicitesRevenu() {
   const [modalCamp, setModalCamp] = useState<Campagne | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
+  const COLONNES_PUB: ColonneExport[] = [
+    { cle: "client", titre: "Client" },
+    { cle: "emplacement", titre: "Emplacement" },
+    { cle: "debut", titre: "Debut" },
+    { cle: "fin", titre: "Fin" },
+    { cle: "statut", titre: "Statut" },
+    { cle: "vues", titre: "Vues", numerique: true },
+    { cle: "clics", titre: "Clics", numerique: true },
+    { cle: "taux", titre: "Taux de clic", numerique: true },
+    { cle: "prix", titre: "Prix (EUR)", numerique: true },
+  ];
+
+  const lignesPub = (camps: Campagne[]) =>
+    camps.map(c => ({
+      client: c.client, emplacement: c.emplacement, debut: c.dateDebut, fin: c.dateFin,
+      statut: c.statut, vues: c.vues, clics: c.clics, taux: c.taux, prix: c.prix.toFixed(2),
+    }));
+
+  function imprimerRapportPub(camps: Campagne[], titre: string) {
+    const revenu = camps.reduce((s, c) => s + c.prix, 0);
+    const vues = camps.reduce((s, c) => s + c.vues, 0);
+    const clics = camps.reduce((s, c) => s + c.clics, 0);
+    const ok = imprimerFeuille({
+      typeDocument: "rapport_publicitaire",
+      titre,
+      sousTitre: `${camps.length} campagne(s)`,
+      colonnes: COLONNES_PUB,
+      lignes: lignesPub(camps),
+      totaux: [
+        { libelle: "Revenu publicitaire", valeur: `${revenu.toLocaleString("fr-FR")} EUR` },
+        { libelle: "Vues", valeur: vues.toLocaleString("fr-FR") },
+        { libelle: "Clics", valeur: clics.toLocaleString("fr-FR") },
+      ],
+      mentions: ["MKA.P-MS — Auto Plus Africa. Rapport publicitaire interne."],
+    });
+    showToast(ok ? "Rapport ouvert — enregistrable en PDF" : "Le navigateur a bloque la fenetre d'impression");
+  }
+
+  function exporterCampagnes() {
+    const r = telechargerCSV("campagnes-publicitaires", COLONNES_PUB, lignesPub(CAMPAGNES));
+    showToast(r.ok ? `Fichier ${r.nom} telecharge (${r.lignes} campagne(s))` : "Telechargement refuse par le navigateur");
+  }
+
 
   const totalRevenu = CAMPAGNES.reduce((s, c) => s + c.prix, 0);
   const totalVues = CAMPAGNES.reduce((s, c) => s + c.vues, 0);
@@ -175,7 +220,7 @@ export default function PublicitesRevenu() {
       </div>
 
       <div className="px-4 mt-4">
-        <button onClick={() => showToast("Rapport publicitaire exporte")} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Exporter le rapport</button>
+        <button onClick={() => imprimerRapportPub(CAMPAGNES, "Rapport publicitaire")} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Exporter le rapport</button>
       </div>
 
       {modalCamp && (
@@ -195,7 +240,7 @@ export default function PublicitesRevenu() {
               <div className="flex justify-between rounded-lg bg-[#F5F3EF] p-2.5"><span className="text-[#6B7280]">Fin</span><span className="font-bold text-[#111]">{modalCamp.dateFin}</span></div>
               <div className="flex justify-between rounded-lg bg-[#F5F3EF] p-2.5"><span className="text-[#6B7280]">CPC</span><span className="font-bold text-[#111]">{modalCamp.clics > 0 ? (modalCamp.prix / modalCamp.clics).toFixed(2) : "—"} EUR</span></div>
             </div>
-            <button onClick={() => { showToast(`Rapport ${modalCamp.client} exporte`); setModalCamp(null); }} className="w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> Rapport detaille</button>
+            <button onClick={() => imprimerRapportPub([modalCamp], `Rapport campagne — ${modalCamp.client}`)} className="w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> Rapport detaille</button>
           </div>
         </Overlay>
       )}

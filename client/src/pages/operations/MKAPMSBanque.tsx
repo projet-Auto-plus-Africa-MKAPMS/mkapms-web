@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { imprimerFeuille, telechargerCSV, type ColonneExport } from "../../lib/documents";
 import { Link } from "react-router-dom";
 import {
   ChevronLeft, Landmark, ArrowDownLeft, ArrowUpRight,
@@ -49,6 +50,47 @@ export default function MKAPMSBanque() {
   const [modalTx, setModalTx] = useState<Transaction | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
+  const COLONNES_BK: ColonneExport[] = [
+    { cle: "ref", titre: "Reference" },
+    { cle: "date", titre: "Date" },
+    { cle: "libelle", titre: "Libelle" },
+    { cle: "categorie", titre: "Categorie" },
+    { cle: "rapproche", titre: "Rapproche" },
+    { cle: "montant", titre: "Montant (EUR)", numerique: true },
+  ];
+
+  const lignesBK = (txs: Transaction[]) =>
+    txs.map(t => ({
+      ref: t.ref, date: t.date, libelle: t.libelle, categorie: t.categorie,
+      rapproche: t.rapproche ? "oui" : "non", montant: t.montant.toFixed(2),
+    }));
+
+  /* Releve reellement imprimable : le dirigeant doit pouvoir sortir la piece. */
+  function imprimerReleve(txs: Transaction[], titre: string) {
+    const entrees = txs.filter(t => t.montant > 0).reduce((s, t) => s + t.montant, 0);
+    const sorties = txs.filter(t => t.montant < 0).reduce((s, t) => s + Math.abs(t.montant), 0);
+    const ok = imprimerFeuille({
+      typeDocument: "releve_bancaire",
+      titre,
+      sousTitre: `${txs.length} operation(s)`,
+      colonnes: COLONNES_BK,
+      lignes: lignesBK(txs),
+      totaux: [
+        { libelle: "Encaissements", valeur: `${entrees.toLocaleString("fr-FR")} EUR` },
+        { libelle: "Decaissements", valeur: `${sorties.toLocaleString("fr-FR")} EUR` },
+        { libelle: "Solde de la periode", valeur: `${(entrees - sorties).toLocaleString("fr-FR")} EUR` },
+      ],
+      mentions: ["MKA.P-MS — Auto Plus Africa. Releve interne, a rapprocher du releve de la banque."],
+    });
+    showToast(ok ? "Releve ouvert — enregistrable en PDF" : "Le navigateur a bloque la fenetre d'impression");
+  }
+
+  function exporterReleve() {
+    const r = telechargerCSV("releve-bancaire-mkapms", COLONNES_BK, lignesBK(TRANSACTIONS));
+    showToast(r.ok ? `Fichier ${r.nom} telecharge (${r.lignes} operation(s))` : "Telechargement refuse par le navigateur");
+  }
+
 
   const totalEncaiss = TRANSACTIONS.filter(t => t.type === "encaissement").reduce((s, t) => s + t.montant, 0);
   const totalDecaiss = TRANSACTIONS.filter(t => t.type === "decaissement").reduce((s, t) => s + Math.abs(t.montant), 0);
@@ -168,8 +210,8 @@ export default function MKAPMSBanque() {
       </div>
 
       <div className="px-4 mt-4 flex gap-2">
-        <button onClick={() => showToast("Releve bancaire exporte en PDF")} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Export PDF</button>
-        <button onClick={() => showToast("Releve bancaire exporte en Excel")} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Excel</button>
+        <button onClick={() => imprimerReleve(TRANSACTIONS, "Releve bancaire")} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Export PDF</button>
+        <button onClick={exporterReleve} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Excel</button>
       </div>
 
       {modalTx && (
@@ -190,7 +232,7 @@ export default function MKAPMSBanque() {
               {!modalTx.rapproche && (
                 <button onClick={() => { showToast(`Transaction ${modalTx.ref} rapprochee`); setModalTx(null); }} className="flex-1 rounded-xl bg-green-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><CheckCircle size={14} /> Rapprocher</button>
               )}
-              <button onClick={() => { showToast(`Export ${modalTx.ref}`); setModalTx(null); }} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Download size={14} /> PDF</button>
+              <button onClick={() => imprimerReleve([modalTx], `Operation ${modalTx.ref}`)} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Download size={14} /> PDF</button>
             </div>
           </div>
         </Overlay>

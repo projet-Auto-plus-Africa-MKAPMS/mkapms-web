@@ -200,6 +200,61 @@ export async function createDocument(input: {
   return row;
 }
 
+/**
+ * Types de documents réellement édités depuis les écrans (feuille A4 ou export).
+ * Une édition non listée est refusée : le registre ne doit pas se remplir de
+ * codes inventés par un écran.
+ */
+export const DOC_EDITION_TYPES = [
+  "facture", "devis", "contrat", "avoir", "recu", "bordereau_enchere",
+  "rapport_historique", "carnet_entretien", "reservation", "rapport_comptable",
+  "rapport_tva", "releve_bancaire", "rapport_analytique", "rapport_publicitaire",
+  "attestation", "export_donnees",
+] as const;
+export type DocEditionType = (typeof DOC_EDITION_TYPES)[number];
+
+/**
+ * Trace une édition réelle de document produite par un écran (feuille A4
+ * ouverte ou fichier enregistré). Sans cette trace, le Document OS ne voyait
+ * passer aucun document alors que la plateforme en produisait : son état de
+ * santé restait muet et le PDG n'avait aucune preuve de ce qui a été remis.
+ *
+ * Best-effort : une trace en échec ne doit jamais empêcher le client d'obtenir
+ * son document.
+ */
+export async function recordEdition(input: {
+  typeCode: DocEditionType;
+  canal: "impression" | "fichier";
+  ecran: string;
+  titre: string;
+  referenceEcran?: string;
+  ownerUserId?: number;
+  amountTtc?: number;
+  currency?: string;
+  lignes?: number;
+}): Promise<{ ok: boolean; reference: string | null }> {
+  try {
+    const row = await createDocument({
+      typeCode: input.typeCode,
+      ownerUserId: input.ownerUserId,
+      amountTtc: input.amountTtc,
+      currency: input.currency,
+      metadata: {
+        canal: input.canal,
+        ecran: input.ecran.slice(0, 160),
+        titre: input.titre.slice(0, 160),
+        referenceEcran: input.referenceEcran?.slice(0, 64) ?? null,
+        lignes: input.lignes ?? null,
+        origine: "edition_ecran",
+      },
+    });
+    await updateDocumentStatus(row.id, "emis", input.ownerUserId);
+    return { ok: true, reference: row.reference };
+  } catch {
+    return { ok: false, reference: null };
+  }
+}
+
 export async function updateDocumentStatus(id: number, next: "brouillon" | "emis" | "signe" | "annule" | "archive", actorUserId?: number) {
   const patch: any = { status: next };
   if (next === "emis") patch.issuedAt = new Date();
@@ -391,6 +446,28 @@ export const documentOsRouter = router({
     history: protectedProcedure
       .input(z.object({ documentId: z.number().int().positive() }))
       .query(({ input }) => listHistory(input.documentId)),
+  }),
+
+  /**
+   * Édition tracée : appelée par les écrans dès qu'un document est réellement
+   * produit (feuille A4 ouverte, fichier enregistré). Publique car un visiteur
+   * non connecté peut éditer un récapitulatif ; le propriétaire est renseigné
+   * quand la session existe.
+   */
+  editions: router({
+    record: publicProcedure
+      .input(z.object({
+        typeCode: z.enum(DOC_EDITION_TYPES),
+        canal: z.enum(["impression", "fichier"]),
+        ecran: z.string().min(1).max(160),
+        titre: z.string().min(1).max(160),
+        referenceEcran: z.string().max(64).optional(),
+        amountTtc: z.number().nonnegative().optional(),
+        currency: z.string().max(4).optional(),
+        lignes: z.number().int().nonnegative().optional(),
+      }))
+      .mutation(({ ctx, input }) =>
+        recordEdition({ ...input, ownerUserId: ctx.user?.uid })),
   }),
 
   // Vérification publique via QR code (Phase 44).

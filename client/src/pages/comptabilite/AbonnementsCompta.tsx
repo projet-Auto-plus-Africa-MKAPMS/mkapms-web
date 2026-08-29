@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { telechargerCSV, type ColonneExport } from "../../lib/documents";
 import { Link } from "react-router-dom";
 import {
   ChevronLeft, CreditCard, ChevronDown, Download, Eye, CheckCircle,
@@ -67,6 +68,32 @@ export default function AbonnementsCompta() {
   const [showPlans, setShowPlans] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
+  const COLONNES_ABO: ColonneExport[] = [
+    { cle: "plan", titre: "Plan" },
+    { cle: "client", titre: "Client" },
+    { cle: "prix", titre: "Prix" },
+    { cle: "statut", titre: "Statut" },
+    { cle: "debut", titre: "Debut" },
+    { cle: "fin", titre: "Fin" },
+    { cle: "methode", titre: "Methode" },
+    { cle: "univers", titre: "Univers" },
+    { cle: "dernierPaiement", titre: "Dernier paiement" },
+  ];
+
+  function exporterAbonnements() {
+    const r = telechargerCSV(
+      "abonnements-mkapms",
+      COLONNES_ABO,
+      ABONNEMENTS.map(a => ({
+        plan: a.plan, client: a.client, prix: a.prix, statut: a.statut,
+        debut: a.dateDebut, fin: a.dateFin, methode: a.methode,
+        univers: a.univers, dernierPaiement: a.dernierPaiement,
+      })),
+    );
+    showToast(r.ok ? `Fichier ${r.nom} telecharge (${r.lignes} abonnement(s))` : "Telechargement refuse par le navigateur");
+  }
+
 
   const filtered = ABONNEMENTS.filter(a => {
     if (tab === "actifs" && a.statut !== "actif") return false;
@@ -162,7 +189,7 @@ export default function AbonnementsCompta() {
       </div>
 
       <div className="px-4 mt-4">
-        <button onClick={() => showToast("Export Excel de tous les abonnements")} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Exporter</button>
+        <button onClick={exporterAbonnements} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Exporter</button>
       </div>
 
       {modalAbo && (
