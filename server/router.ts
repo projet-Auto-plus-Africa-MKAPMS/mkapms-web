@@ -116,6 +116,7 @@ import { commandCenterRouter } from "./command-center/index.js";
 import { rdLabRouter } from "./rd-lab/index.js";
 import { aiFabricRouter } from "./ai-fabric/index.js";
 import { activationAuditRouter } from "./activation-audit/index.js";
+import { siteVerificationRouter } from "./site-verification/router.js";
 import { indexationRouter } from "./indexation/index.js";
 import { productEngineRouter } from "./product-engine/index.js";
 import { smartAuditRouter } from "./smart-audit/index.js";
@@ -259,6 +260,8 @@ export const appRouter = router({
   // Point 91 — audit d'activation : ce qui est réellement branché et prouvé
   activationAudit: activationAuditRouter,
   indexation: indexationRouter,
+  // Propriété du domaine : jeton collé depuis la plateforme, sans accès hébergeur
+  siteVerification: siteVerificationRouter,
   productEngine: productEngineRouter,
   smartAudit: smartAuditRouter,
   eventBus: eventBusRouter,

@@ -113,59 +113,83 @@ async function bootEngine(contract: EngineContract): Promise<void> {
   await journalAdmin(contract.id, "dependency_missing", { toState: details });
 }
 
-/**
- * Moteurs semés `disabled` à une époque où ils n'existaient pas encore, mais
- * livrés depuis (Search OS, Monitoring OS…). Le seed étant idempotent, leur
- * ligne gardait l'état obsolète : le moteur était bel et bien installé et
- * fonctionnel, mais le registre continuait de l'afficher désactivé.
- */
-const IMPLEMENTED_SINCE_SEED: Record<string, "active"> = {
-  search: "active", // server/search-os
-  monitoring: "active", // server/monitoring-os
-  knowledge: "active", // base de connaissances du Système Intelligent
-  analytics: "active", // journaux de recherche / activité / redirection
-  // ── Moteurs livrés depuis, encore semés « staging » dans le catalogue ──
-  payment: "active", // server/payment-engine — Stripe branché
-  connecteur_google_business: "active", // reputation-engine — GBP locations + snapshots
-  achat_officiel: "active", // annonces avec source officielle
-  achat_pro: "active", // annonces vendeurs pro
-  achat_particulier: "active", // annonces particuliers
-  vente_officiel: "active", // dépôt officiel
-  vente_pro: "active", // dépôt pro
-  vente_particulier: "active", // dépôt particulier
-  location_pro: "active", // location pro
-  location_particulier: "active", // location particulier
-};
+export interface ReconciliationReport {
+  /** Origine des preuves : un audit d'activation daté, ou aucun. */
+  source: "audit" | "aucun_audit";
+  auditDate: string | null;
+  /** Moteurs passés à `active` parce que l'audit les a prouvés opérationnels. */
+  promus: string[];
+  /** Moteurs laissés en place, avec le manque exact qui l'empêche. */
+  refuses: { moteur: string; etat: string; manque: string }[];
+}
 
 /**
- * Aligne l'état des moteurs livrés depuis le seed — sauf si le PDG a lui-même
- * défini leur état : une décision humaine n'est jamais écrasée.
+ * Aligne l'état des moteurs sur la PREUVE, jamais sur une déclaration.
+ *
+ * Un moteur semé `disabled` ou `staging` ne devient `active` que si le dernier
+ * audit d'activation l'a classé « opérationnelle » — c'est-à-dire : procédure
+ * tRPC réellement montée, battement de cœur reçu, données réelles en base et
+ * preuve de test enregistrée. Sans audit, rien ne bouge : un moteur n'est
+ * jamais marqué actif parce que son code existe.
+ *
+ * Une décision d'état prise par le PDG n'est jamais écrasée.
  */
-async function reconcileImplementedEngines(): Promise<void> {
-  for (const [name, target] of Object.entries(IMPLEMENTED_SINCE_SEED)) {
+export async function reconcileEngineStatesFromEvidence(options?: {
+  runAudit?: boolean;
+}): Promise<ReconciliationReport> {
+  const report: ReconciliationReport = {
+    source: "aucun_audit",
+    auditDate: null,
+    promus: [],
+    refuses: [],
+  };
+
+  const { latestActivationAudit, runActivationAudit } = await import(
+    "../activation-audit/service.js"
+  );
+  const audit = options?.runAudit
+    ? await runActivationAudit({ trigger: "reconciliation_moteurs" })
+    : await latestActivationAudit();
+  if (!audit) return report;
+
+  report.source = "audit";
+  report.auditDate = audit.checkedAt;
+
+  for (const item of audit.items) {
     try {
-      const engine = await getEngine(name);
-      // Un moteur livré depuis le seed peut avoir été enregistré en « disabled »
-      // ou « staging ». Dans les deux cas, on aligne sur l'état réel — sauf si
-      // le PDG a lui-même défini son état (décision humaine préservée).
-      if (!engine || (engine.state !== "disabled" && engine.state !== "staging")) continue;
+      const engine = await getEngine(item.domain);
+      if (!engine) continue;
+      if (engine.state !== "disabled" && engine.state !== "staging") continue;
 
-      const decidedByHuman = await hasManualStateDecision(name);
-      if (decidedByHuman) continue;
+      if (item.etat !== "operationnelle") {
+        report.refuses.push({
+          moteur: item.domain,
+          etat: engine.state,
+          manque: item.manquant.length > 0 ? item.manquant.join(" ; ") : item.motif,
+        });
+        continue;
+      }
 
-      await setState(name, target);
-      await journalAdmin(name, "implementation_detected", {
+      if (await hasManualStateDecision(item.domain)) continue;
+
+      await setState(item.domain, "active");
+      await journalAdmin(item.domain, "activation_prouvee", {
         fromState: engine.state,
-        toState: target,
+        toState: "active",
       });
-      console.log(`[MKA.P-MS] moteur ${name}: implémentation détectée → ${target}`);
+      report.promus.push(item.domain);
+      console.log(
+        `[MKA.P-MS] moteur ${item.domain}: activation prouvée par l'audit → active`,
+      );
     } catch (err) {
       console.error(
-        `[MKA.P-MS] réconciliation moteur ${name} échouée:`,
+        `[MKA.P-MS] réconciliation moteur ${item.domain} échouée:`,
         (err as Error).message,
       );
     }
   }
+
+  return report;
 }
 
 /**
@@ -271,8 +295,21 @@ export async function bootstrapEngines(): Promise<void> {
     );
   }
 
-  // Aligne les moteurs livrés depuis le seed (Search OS, Monitoring OS…).
-  await reconcileImplementedEngines();
+  // Aligne les états sur les preuves du dernier audit d'activation (jamais sur
+  // une simple déclaration). Aucun audit exécuté ici : le démarrage reste court.
+  try {
+    const r = await reconcileEngineStatesFromEvidence();
+    if (r.promus.length > 0) {
+      console.log(
+        `[MKA.P-MS] ${r.promus.length} moteur(s) activé(s) sur preuve d'audit : ${r.promus.join(", ")}`,
+      );
+    }
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] réconciliation des états moteurs échouée:",
+      (err as Error).message,
+    );
+  }
 
   // Moteurs métier : sonde réelle de leur propre domaine.
   await probeBusinessEngines();

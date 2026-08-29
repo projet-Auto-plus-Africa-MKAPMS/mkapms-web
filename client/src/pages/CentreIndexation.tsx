@@ -80,6 +80,123 @@ function Carte({ titre, valeur, detail }: { titre: string; valeur: string; detai
   );
 }
 
+/**
+ * Propriété du site — le jeton de vérification était uniquement lisible dans
+ * une variable de l'hébergeur : la propriété du domaine ne pouvait donc pas
+ * être validée sans accès serveur, et la publication de l'application restait
+ * bloquée. Le PDG colle ici la balise fournie par Search Console, puis la
+ * plateforme lit sa propre page publique pour prouver que la balise sort
+ * réellement — aucune notification ne prétend qu'une vérification est faite.
+ */
+function ProprieteDuSite({ estPdg }: { estPdg: boolean }) {
+  const utils = trpc.useUtils();
+  const etat = trpc.siteVerification.etat.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
+  const [saisies, setSaisies] = useState<Record<string, string>>({});
+  const [info, setInfo] = useState<string | null>(null);
+
+  const definir = trpc.siteVerification.definir.useMutation({
+    onSuccess: (r, vars) => {
+      setInfo(
+        r.jetons === 0
+          ? "Jeton effacé : plus aucune balise n'est publiée pour cette plateforme."
+          : `${r.jetons} jeton(s) enregistré(s). Redéploiement inutile : la balise est servie immédiatement.`,
+      );
+      setSaisies((s) => ({ ...s, [vars.plateforme]: "" }));
+      utils.siteVerification.etat.invalidate();
+    },
+    onError: (e) => setInfo(`Échec : ${e.message}`),
+  });
+
+  const verifier = trpc.siteVerification.verifierRendu.useMutation({
+    onError: (e) => setInfo(`Échec : ${e.message}`),
+  });
+  const rendu = verifier.data;
+
+  return (
+    <div className="mb-6 rounded-xl border border-black/5 bg-white p-4">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="text-sm font-black text-[#111]">Propriété du site</h2>
+          <p className="text-[11px] text-black/50">
+            Search Console → « Balise HTML » → coller la ligne complète ici. Aucun accès
+            hébergeur nécessaire.
+          </p>
+        </div>
+        <button
+          onClick={() => verifier.mutate()}
+          disabled={verifier.isPending}
+          className="rounded-lg bg-[#111] px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
+        >
+          {verifier.isPending ? "Lecture du site…" : "Vérifier le rendu réel"}
+        </button>
+      </div>
+
+      {info ? (
+        <p className="mb-2 rounded-lg bg-black/5 px-3 py-2 text-[11px] text-[#111]">{info}</p>
+      ) : null}
+
+      {rendu ? (
+        <div className="mb-3 rounded-lg border border-black/10 bg-[#F5F3EF] p-3 text-[11px]">
+          <p className="font-bold text-[#111]">{rendu.url}</p>
+          <p className="mt-0.5 text-black/70">{rendu.motif}</p>
+          <p className="mt-1 text-black/60">
+            Balises rendues : {rendu.balisesTrouvees}/{rendu.balisesAttendues}
+          </p>
+          {rendu.fichierGoogle ? (
+            <p className="mt-0.5 text-black/60">
+              Fichier {rendu.fichierGoogle.url} :{" "}
+              {rendu.fichierGoogle.servi ? "servi" : "non servi"}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="space-y-2">
+        {(etat.data ?? []).map((p) => (
+          <div key={p.provider} className="rounded-lg border border-black/10 p-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-bold text-[#111]">{p.label}</span>
+              <span className="text-[11px] text-black/50">
+                {p.jetonsMasques.length === 0
+                  ? "aucun jeton"
+                  : `${p.jetonsMasques.join(" · ")} — ${
+                      p.depuisPlateforme ? "saisi dans la plateforme" : "variable hébergeur"
+                    }`}
+              </span>
+            </div>
+            {estPdg ? (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <input
+                  value={saisies[p.provider] ?? ""}
+                  onChange={(e) =>
+                    setSaisies((s) => ({ ...s, [p.provider]: e.target.value }))
+                  }
+                  placeholder={`<meta name="${p.metaName}" content="…" />`}
+                  className="min-w-0 flex-1 rounded-lg border border-black/15 px-2 py-1.5 text-[11px]"
+                />
+                <button
+                  onClick={() =>
+                    definir.mutate({
+                      plateforme: p.provider,
+                      jeton: saisies[p.provider] ?? "",
+                    })
+                  }
+                  disabled={definir.isPending}
+                  className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-[11px] font-bold text-[#111] disabled:opacity-50"
+                >
+                  Enregistrer
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Pastille({ vrai, label }: { vrai: boolean; label: string }) {
   return (
     <span className="flex items-center gap-1 text-[11px] text-black/60">
@@ -189,6 +306,8 @@ export default function CentreIndexation() {
             </div>
           </div>
         ) : null}
+
+        <ProprieteDuSite estPdg={user.role === "super_admin"} />
 
         {/* ─── Moniteur d'indexation (point 99) ────────────────────────────── */}
         <h2 className="mb-2 text-sm font-black text-[#111]">Moniteur d&apos;indexation</h2>

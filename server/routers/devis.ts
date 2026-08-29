@@ -2,9 +2,10 @@ import { z } from "zod";
 import { desc, eq } from "drizzle-orm";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { devisGarageRequests, serviceTracking } from "../schema.js";
+import { devisGarageRequests, devisItems, serviceTracking } from "../schema.js";
 import { notifications } from "../modules/core.js";
 import { createPaymentCheckout } from "../payment-engine/checkout.js";
+import { getCountry } from "../country-os/index.js";
 
 // Module Devis Garage (§6) — parcours en 7 étapes côté front, persisté ici.
 export const devisRouter = router({
@@ -108,39 +109,119 @@ export const devisRouter = router({
     }),
 
   /**
+   * Montant réellement dû pour un devis, calculé à partir des lignes saisies
+   * par le garage et du taux de TVA du pays (Country OS). L'écran affiche ce
+   * montant mais ne le décide pas.
+   */
+  montantAPayer: protectedProcedure
+    .input(z.object({ devisId: z.number().int().positive() }))
+    .query(async ({ ctx, input }) => {
+      const devis = await devisDuClient(input.devisId, ctx.user.uid);
+      return calculerMontantDevis(devis);
+    }),
+
+  /**
    * Paiement d'un devis accepté — checkout Stripe unifié via le Payment Engine.
-   * Le devis doit être en statut "accepte". Le montant TTC vient de l'écran
-   * (calculé côté client à partir des devisItems du garage — audit possible
-   * plus tard). Le webhook Stripe déclenche la mise en statut "termine".
+   * Le montant est recalculé ici à partir des lignes du devis : il ne vient
+   * jamais du navigateur. Sans ligne chiffrée, le paiement est refusé plutôt
+   * que d'encaisser un montant inventé.
    */
   payerDevis: protectedProcedure
-    .input(z.object({
-      devisId: z.number().int().positive(),
-      montantTTC: z.number().positive(),
-    }))
+    .input(z.object({ devisId: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {
-      const [devis] = await db
-        .select()
-        .from(devisGarageRequests)
-        .where(eq(devisGarageRequests.id, input.devisId))
-        .limit(1);
-      if (!devis) throw new Error("Devis introuvable");
-      if (devis.userId !== ctx.user.uid) throw new Error("Ce devis n'est pas le vôtre");
+      const devis = await devisDuClient(input.devisId, ctx.user.uid);
       if (devis.status !== "accepte") {
         throw new Error("Seuls les devis acceptés peuvent être payés");
+      }
+
+      const montant = await calculerMontantDevis(devis);
+      if (!montant.chiffrable) {
+        throw new Error(
+          "Ce devis n'a aucune ligne chiffrée par le garage : le montant n'est pas calculable, le paiement est refusé.",
+        );
       }
 
       const { url } = await createPaymentCheckout({
         userId: ctx.user.uid,
         kind: "garage_prestation",
-        amount: input.montantTTC,
-        currency: "EUR",
+        amount: montant.totalTtc,
+        currency: montant.devise,
         label: `Devis ${devis.typeIntervention} — ${devis.vehiculeMarque ?? ""} ${devis.vehiculeModele ?? ""}`.trim(),
         metadata: { devisId: devis.id, type: "devis_garage" },
         successPath: `/compte?devis=${devis.id}&paid=1`,
         cancelPath: `/compte?devis=${devis.id}&canceled=1`,
         paymentTypeSql: "garage_prestation",
+        countryCode: devis.pays,
       });
       return { url };
     }),
 });
+
+type DevisGarage = typeof devisGarageRequests.$inferSelect;
+
+async function devisDuClient(devisId: number, userId: number): Promise<DevisGarage> {
+  const [devis] = await db
+    .select()
+    .from(devisGarageRequests)
+    .where(eq(devisGarageRequests.id, devisId))
+    .limit(1);
+  if (!devis) throw new Error("Devis introuvable");
+  if (devis.userId !== userId) throw new Error("Ce devis n'est pas le vôtre");
+  return devis;
+}
+
+export interface MontantDevis {
+  chiffrable: boolean;
+  lignes: number;
+  totalHt: number;
+  tauxTva: number;
+  totalTva: number;
+  totalTtc: number;
+  devise: string;
+  /** Pourquoi le montant n'est pas calculable, quand il ne l'est pas. */
+  manque?: string;
+}
+
+/**
+ * Total d'un devis : somme des lignes du garage, TVA du pays du devis.
+ * Aucun montant par défaut — un devis sans ligne n'est pas payable.
+ */
+async function calculerMontantDevis(devis: DevisGarage): Promise<MontantDevis> {
+  const lignes = await db.select().from(devisItems).where(eq(devisItems.devisId, devis.id));
+  const pays = devis.pays ?? "FR";
+  const country = await getCountry(pays);
+  const devise = country?.defaultCurrency ?? "EUR";
+  const tauxTva = country ? Number(country.tvaRate) : 0;
+
+  if (lignes.length === 0) {
+    return {
+      chiffrable: false,
+      lignes: 0,
+      totalHt: 0,
+      tauxTva,
+      totalTva: 0,
+      totalTtc: 0,
+      devise,
+      manque: "Aucune ligne chiffrée par le garage sur ce devis",
+    };
+  }
+
+  const totalHt = arrondir(
+    lignes.reduce((somme, l) => somme + Number(l.quantite) * Number(l.prixUnitaireHt), 0),
+  );
+  const totalTva = arrondir((totalHt * tauxTva) / 100);
+  return {
+    chiffrable: totalHt > 0,
+    lignes: lignes.length,
+    totalHt,
+    tauxTva,
+    totalTva,
+    totalTtc: arrondir(totalHt + totalTva),
+    devise,
+    manque: totalHt > 0 ? undefined : "Les lignes du devis totalisent 0",
+  };
+}
+
+function arrondir(montant: number): number {
+  return Math.round(montant * 100) / 100;
+}
