@@ -241,6 +241,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "vo_espaces",
+    label: "VO Espaces — cloisonnement officiel / pro / particulier",
+    category: "univers",
+    dependencies: ["core", "permission", "payment", "redirection"],
+    description:
+      "Décide côté serveur quel espace VO est ouvert (officiel réservé à l'équipe, professionnel sur abonnement VO actif, particulier fermé) et limite chaque stock à son propriétaire.",
+    state: "staging",
+  },
+  {
     name: "proximity_engine",
     label: "Proximity Engine",
     category: "transversal",

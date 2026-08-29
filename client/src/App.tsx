@@ -10,6 +10,7 @@ import HomePro from "./pages/HomePro";
 import HomeSite from "./pages/HomeSite";
 import NotFound from "./pages/NotFound";
 import UniversBoundary from "./components/UniversBoundary";
+import VoProGate from "./components/VoProGate";
 import InstallPrompt from "./components/InstallPrompt";
 import CountrySelectModal from "./components/CountrySelectModal";
 import SmartRouter from "./components/SmartRouter";
@@ -127,6 +128,7 @@ const TableauBordProVente = lazy(() => import("./pages/TableauBordProVente"));
 const GestionStockVO = lazy(() => import("./pages/vente/GestionStockVO"));
 const DossierVehicule = lazy(() => import("./pages/vente/DossierVehicule"));
 const WorkflowAchatVO = lazy(() => import("./pages/vente/WorkflowAchatVO"));
+const AttestationVente = lazy(() => import("./pages/vente/AttestationVente"));
 const CentreTransport = lazy(() => import("./pages/vente/CentreTransport"));
 const CentreDiagnostic = lazy(() => import("./pages/vente/CentreDiagnostic"));
 const CentreReparations = lazy(() => import("./pages/vente/CentreReparations"));
@@ -751,6 +753,19 @@ function U({ name, children }: { name: string; children: React.ReactNode }) {
   return <UniversBoundary name={name}>{children}</UniversBoundary>;
 }
 
+/**
+ * Écrans de gestion VO professionnelle : le serveur décide de l'accès
+ * (équipe officielle, professionnel abonné) avant tout affichage.
+ * Une adresse tapée à la main ne contourne plus le verrou.
+ */
+function V({ name, children }: { name: string; children: React.ReactNode }) {
+  return (
+    <UniversBoundary name={name}>
+      <VoProGate>{children}</VoProGate>
+    </UniversBoundary>
+  );
+}
+
 function PageLoader() {
   return (
     <div className="flex min-h-[40vh] items-center justify-center">
@@ -883,64 +898,65 @@ export default function App() {
             <Route path="/inscription" element={<U name="Inscription"><InscriptionParticulier /></U>} />
             <Route path="/tableau-de-bord" element={<U name="Mon espace"><TableauBordParticulier /></U>} />
             <Route path="/acheter/inscription-pro" element={<U name="Inscription Pro"><InscriptionProVente /></U>} />
-            <Route path="/vente" element={<U name="Tableau de bord Vente"><TableauBordProVente /></U>} />
+            <Route path="/vente" element={<V name="Tableau de bord Vente"><TableauBordProVente /></V>} />
             {/* Vente operations */}
-            <Route path="/vente/stock" element={<U name="Stock VO"><GestionStockVO /></U>} />
-            <Route path="/vente/dossier-vehicule/:id?" element={<U name="Dossier véhicule"><DossierVehicule /></U>} />
-            <Route path="/vente/workflow/:id?" element={<U name="Workflow VO"><WorkflowAchatVO /></U>} />
+            <Route path="/vente/stock" element={<V name="Stock VO"><GestionStockVO /></V>} />
+            <Route path="/vente/dossier-vehicule/:id?" element={<V name="Dossier véhicule"><DossierVehicule /></V>} />
+            <Route path="/vente/workflow/:id?" element={<V name="Workflow VO"><WorkflowAchatVO /></V>} />
+            <Route path="/vente/attestation/:id?" element={<V name="Attestation de vente"><AttestationVente /></V>} />
             <Route path="/vente/mes-annonces" element={<U name="Mes Annonces"><MesAnnonces /></U>} />
             <Route path="/comptabilite" element={<U name="Factures"><Comptabilite /></U>} />
             <Route path="/vente/abonnements" element={<U name="Abonnements"><Abonnements /></U>} />
-            <Route path="/vente/documents-societe" element={<U name="Documents"><CentreDocuments /></U>} />
-            <Route path="/vente/statistiques" element={<U name="Statistiques"><CentrePerformances /></U>} />
-            <Route path="/vente/transport" element={<U name="Transport"><CentreTransport /></U>} />
-            <Route path="/vente/diagnostic" element={<U name="Diagnostic"><CentreDiagnostic /></U>} />
-            <Route path="/vente/reparations" element={<U name="R\u00e9parations"><CentreReparations /></U>} />
-            <Route path="/vente/photos" element={<U name="Photos"><CentrePhotosMedias /></U>} />
-            <Route path="/vente/reservations" element={<U name="R\u00e9servations Vente"><ReservationsVente /></U>} />
-            <Route path="/vente/livraison" element={<U name="Livraison Vente"><LivraisonVente /></U>} />
-            <Route path="/vente/dossier-client" element={<U name="Dossier Client"><DossierClient /></U>} />
-            <Route path="/vente/avis" element={<U name="Avis Vendeurs"><AvisVendeurs /></U>} />
-            <Route path="/vente/qualite" element={<U name="Qualit\u00e9 Vendeur"><QualiteVendeur /></U>} />
-            <Route path="/vente/achat-express" element={<U name="Achat Express"><AchatExpress /></U>} />
-            <Route path="/vente/resume-vendeur" element={<U name="R\u00e9sum\u00e9 Vendeur"><TableauBordVendeur /></U>} />
-            <Route path="/vente/alertes" element={<U name="Alertes"><AlertesAuto /></U>} />
-            <Route path="/vente/multi-sites" element={<U name="Multi-Sites"><MultiSites /></U>} />
-            <Route path="/vente/employes" element={<U name="Employ\u00e9s"><GestionEmployes /></U>} />
-            <Route path="/vente/droits" element={<U name="Droits acc\u00e8s"><DroitsAcces /></U>} />
-            <Route path="/vente/fournisseurs" element={<U name="Fournisseurs"><CentreFournisseurs /></U>} />
-            <Route path="/vente/marges" element={<U name="Marges"><CentreMarges /></U>} />
-            <Route path="/vente/objectifs" element={<U name="Objectifs"><CentreObjectifs /></U>} />
-            <Route path="/vente/performances" element={<U name="Performances"><CentrePerformances /></U>} />
-            <Route path="/vente/publicites" element={<U name="Publicit\u00e9s"><CentrePublicites /></U>} />
-            <Route path="/vente/campagnes" element={<U name="Campagnes"><CentreCampagnes /></U>} />
-            <Route path="/vente/clients" element={<U name="Clients"><CentreClientsVente /></U>} />
-            <Route path="/vente/financement" element={<U name="Financement"><CentreFinancement /></U>} />
-            <Route path="/vente/controle-qualite" element={<U name="Contr\u00f4le Qualit\u00e9"><CentreControleQualite /></U>} />
-            <Route path="/vente/export" element={<U name="Export"><CentreExport /></U>} />
-            <Route path="/vente/archives" element={<U name="Archives"><CentreArchives /></U>} />
-            <Route path="/vente/securite" element={<U name="S\u00e9curit\u00e9"><CentreSecurite /></U>} />
+            <Route path="/vente/documents-societe" element={<V name="Documents"><CentreDocuments /></V>} />
+            <Route path="/vente/statistiques" element={<V name="Statistiques"><CentrePerformances /></V>} />
+            <Route path="/vente/transport" element={<V name="Transport"><CentreTransport /></V>} />
+            <Route path="/vente/diagnostic" element={<V name="Diagnostic"><CentreDiagnostic /></V>} />
+            <Route path="/vente/reparations" element={<V name="R\u00e9parations"><CentreReparations /></V>} />
+            <Route path="/vente/photos" element={<V name="Photos"><CentrePhotosMedias /></V>} />
+            <Route path="/vente/reservations" element={<V name="R\u00e9servations Vente"><ReservationsVente /></V>} />
+            <Route path="/vente/livraison" element={<V name="Livraison Vente"><LivraisonVente /></V>} />
+            <Route path="/vente/dossier-client" element={<V name="Dossier Client"><DossierClient /></V>} />
+            <Route path="/vente/avis" element={<V name="Avis Vendeurs"><AvisVendeurs /></V>} />
+            <Route path="/vente/qualite" element={<V name="Qualit\u00e9 Vendeur"><QualiteVendeur /></V>} />
+            <Route path="/vente/achat-express" element={<V name="Achat Express"><AchatExpress /></V>} />
+            <Route path="/vente/resume-vendeur" element={<V name="R\u00e9sum\u00e9 Vendeur"><TableauBordVendeur /></V>} />
+            <Route path="/vente/alertes" element={<V name="Alertes"><AlertesAuto /></V>} />
+            <Route path="/vente/multi-sites" element={<V name="Multi-Sites"><MultiSites /></V>} />
+            <Route path="/vente/employes" element={<V name="Employ\u00e9s"><GestionEmployes /></V>} />
+            <Route path="/vente/droits" element={<V name="Droits acc\u00e8s"><DroitsAcces /></V>} />
+            <Route path="/vente/fournisseurs" element={<V name="Fournisseurs"><CentreFournisseurs /></V>} />
+            <Route path="/vente/marges" element={<V name="Marges"><CentreMarges /></V>} />
+            <Route path="/vente/objectifs" element={<V name="Objectifs"><CentreObjectifs /></V>} />
+            <Route path="/vente/performances" element={<V name="Performances"><CentrePerformances /></V>} />
+            <Route path="/vente/publicites" element={<V name="Publicit\u00e9s"><CentrePublicites /></V>} />
+            <Route path="/vente/campagnes" element={<V name="Campagnes"><CentreCampagnes /></V>} />
+            <Route path="/vente/clients" element={<V name="Clients"><CentreClientsVente /></V>} />
+            <Route path="/vente/financement" element={<V name="Financement"><CentreFinancement /></V>} />
+            <Route path="/vente/controle-qualite" element={<V name="Contr\u00f4le Qualit\u00e9"><CentreControleQualite /></V>} />
+            <Route path="/vente/export" element={<V name="Export"><CentreExport /></V>} />
+            <Route path="/vente/archives" element={<V name="Archives"><CentreArchives /></V>} />
+            <Route path="/vente/securite" element={<V name="S\u00e9curit\u00e9"><CentreSecurite /></V>} />
             {/* Marketplace Avanc\u00e9e (51-70) */}
-            <Route path="/vente/negociation" element={<U name="N\u00e9gociation"><CentreNegociation /></U>} />
-            <Route path="/vente/reservation-achat" element={<U name="R\u00e9servation achat"><CentreReservationAchat /></U>} />
-            <Route path="/vente/visite" element={<U name="Visite v\u00e9hicule"><CentreVisiteVehicule /></U>} />
-            <Route path="/vente/essai" element={<U name="Essai routier"><CentreEssaiRoutier /></U>} />
-            <Route path="/vente/dossier-acheteur" element={<U name="Dossier acheteur"><CentreDossiersAcheteurs /></U>} />
-            <Route path="/vente/comparaison" element={<U name="Comparaison"><CentreComparaison /></U>} />
-            <Route path="/vente/alertes-recherche" element={<U name="Alertes recherche"><CentreAlertesRecherche /></U>} />
-            <Route path="/vente/favoris" element={<U name="Favoris Vente"><CentreFavorisVente /></U>} />
-            <Route path="/vente/recommandations" element={<U name="Recommandations"><CentreRecommandations /></U>} />
-            <Route path="/vente/historique-consultations" element={<U name="Historique consultations"><CentreHistoriqueConsultations /></U>} />
-            <Route path="/vente/certifies" element={<U name="V\u00e9hicules certifi\u00e9s"><CentreVehiculesCertifiesVente /></U>} />
-            <Route path="/vente/garantie" element={<U name="Garantie occasion"><CentreGarantieOccasion /></U>} />
-            <Route path="/vente/rapports" element={<U name="Rapports v\u00e9hicule"><CentreRapportsVehicule /></U>} />
-            <Route path="/vente/achat-distance" element={<U name="Achat \u00e0 distance"><CentreAchatDistance /></U>} />
-            <Route path="/vente/livraison-acheteur" element={<U name="Livraison acheteur"><CentreLivraisonAcheteur /></U>} />
-            <Route path="/vente/retour-client" element={<U name="Retour client"><CentreRetourClient /></U>} />
-            <Route path="/vente/badges" element={<U name="Badges vendeurs"><CentreBadgesVendeurs /></U>} />
-            <Route path="/vente/fraude" element={<U name="D\u00e9tection fraude"><CentreDetectionFraude /></U>} />
-            <Route path="/vente/confiance" element={<U name="Confiance acheteur"><CentreConfianceAcheteur /></U>} />
-            <Route path="/vente/parcours-acheteur" element={<U name="Parcours acheteur"><WorkflowCompletAcheteur /></U>} />
+            <Route path="/vente/negociation" element={<V name="N\u00e9gociation"><CentreNegociation /></V>} />
+            <Route path="/vente/reservation-achat" element={<V name="R\u00e9servation achat"><CentreReservationAchat /></V>} />
+            <Route path="/vente/visite" element={<V name="Visite v\u00e9hicule"><CentreVisiteVehicule /></V>} />
+            <Route path="/vente/essai" element={<V name="Essai routier"><CentreEssaiRoutier /></V>} />
+            <Route path="/vente/dossier-acheteur" element={<V name="Dossier acheteur"><CentreDossiersAcheteurs /></V>} />
+            <Route path="/vente/comparaison" element={<V name="Comparaison"><CentreComparaison /></V>} />
+            <Route path="/vente/alertes-recherche" element={<V name="Alertes recherche"><CentreAlertesRecherche /></V>} />
+            <Route path="/vente/favoris" element={<V name="Favoris Vente"><CentreFavorisVente /></V>} />
+            <Route path="/vente/recommandations" element={<V name="Recommandations"><CentreRecommandations /></V>} />
+            <Route path="/vente/historique-consultations" element={<V name="Historique consultations"><CentreHistoriqueConsultations /></V>} />
+            <Route path="/vente/certifies" element={<V name="V\u00e9hicules certifi\u00e9s"><CentreVehiculesCertifiesVente /></V>} />
+            <Route path="/vente/garantie" element={<V name="Garantie occasion"><CentreGarantieOccasion /></V>} />
+            <Route path="/vente/rapports" element={<V name="Rapports v\u00e9hicule"><CentreRapportsVehicule /></V>} />
+            <Route path="/vente/achat-distance" element={<V name="Achat \u00e0 distance"><CentreAchatDistance /></V>} />
+            <Route path="/vente/livraison-acheteur" element={<V name="Livraison acheteur"><CentreLivraisonAcheteur /></V>} />
+            <Route path="/vente/retour-client" element={<V name="Retour client"><CentreRetourClient /></V>} />
+            <Route path="/vente/badges" element={<V name="Badges vendeurs"><CentreBadgesVendeurs /></V>} />
+            <Route path="/vente/fraude" element={<V name="D\u00e9tection fraude"><CentreDetectionFraude /></V>} />
+            <Route path="/vente/confiance" element={<V name="Confiance acheteur"><CentreConfianceAcheteur /></V>} />
+            <Route path="/vente/parcours-acheteur" element={<V name="Parcours acheteur"><WorkflowCompletAcheteur /></V>} />
             {/* Routes dédiées par univers — chaque annonce dans son propre espace */}
             <Route path="/acheter/particulier/vehicule/:id" element={<U name="Vente Particulier"><Vehicule univers="particulier" /></U>} />
             <Route path="/acheter/professionnel/vehicule/:id" element={<U name="Vente Pro"><Vehicule univers="professionnelle" /></U>} />
