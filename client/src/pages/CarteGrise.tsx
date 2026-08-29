@@ -236,10 +236,27 @@ function Input({ label, value, onChange, type = "text", placeholder }: {
   );
 }
 
+/** Libellés de fonctionnalités enregistrés avec l'abonnement (jsonb libre). */
+function featuresListe(features: unknown): string[] {
+  if (!Array.isArray(features)) return [];
+  return features.filter((f): f is string => typeof f === "string");
+}
+
 function EspaceAgence() {
   const { data: agence, isLoading } = trpc.carteGrise.monAgence.useQuery();
   const { data: abonnements } = trpc.carteGrise.abonnements.useQuery();
   const { data: packs } = trpc.carteGrise.packs.useQuery();
+  const [erreurPaiement, setErreurPaiement] = useState<string | null>(null);
+
+  const versCheckout = {
+    onSuccess: (res: { url: string }) => {
+      setErreurPaiement(null);
+      window.location.href = res.url;
+    },
+    onError: (e: { message: string }) => setErreurPaiement(e.message),
+  };
+  const souscrire = trpc.carteGrise.souscrireAbonnement.useMutation(versCheckout);
+  const acheterPack = trpc.carteGrise.acheterPack.useMutation(versCheckout);
 
   if (isLoading) return <div className="py-8 text-center text-[#6B7280]">Chargement...</div>;
 
@@ -251,44 +268,70 @@ function EspaceAgence() {
           <p className="mb-4 text-[#6B7280]">Créez votre agence carte grise sur MKA.P-MS et gérez les dossiers de vos clients en ligne.</p>
           <p className="text-sm text-[#6B7280]">Documents requis : KBIS, identité dirigeant, justificatif de domicile, assurance professionnelle, habilitation SIV.</p>
         </div>
-        {/* Abonnements */}
+        {/* Abonnements — tarifs réellement enregistrés (aucun prix écrit dans l'écran) */}
         <h3 className="text-xl font-bold text-[#111]">Abonnements agences</h3>
         <p className="mb-4 text-sm text-[#6B7280]">Sans engagement. Résiliable à tout moment. Le mois commencé reste dû.</p>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { nom: "START", prix: "29,99", cible: "Auto-entrepreneur, petite agence, démarrage activité", dossiers: 25, utilisateurs: "1 utilisateur", features: ["Messagerie", "Suivi dossiers", "Notifications", "Téléchargement documents", "Tableau de bord"] },
-            { nom: "PREMIUM", prix: "59,99", cible: "Agence établie", dossiers: 100, utilisateurs: "3 utilisateurs", features: ["Gestion équipe", "Historique complet", "Statistiques", "Exports PDF", "Assignation dossiers", "Relances automatiques", "Rapports mensuels"] },
-            { nom: "ELITE", prix: "99,99", cible: "Grosse agence", dossiers: 300, utilisateurs: "10 utilisateurs", features: ["Multi-opérateurs", "Rapports avancés", "Suivi productivité", "Gestion responsables", "Contrôle qualité", "KPI équipe", "Priorisation dossiers"] },
-            { nom: "MAX", prix: "149,99", cible: "Réseau d'agences, franchise", dossiers: 9999, utilisateurs: "Illimité", features: ["Multi-agences", "Multi-sites", "Statistiques globales", "Superviseurs", "Tableaux de bord direction", "Contrôle centralisé"] },
-          ].map((p) => (
-            <div key={p.nom} className="rounded-xl border border-[#E5E7EB] bg-white p-5">
-              <div className="mb-1 text-lg font-bold text-[#D4AF37]">{p.nom}</div>
-              <div className="mb-1 text-2xl font-bold text-[#111]">{p.prix} € <span className="text-sm font-normal text-[#6B7280]">HT/mois</span></div>
-              <div className="mb-1 text-sm font-medium text-[#374151]">{p.dossiers === 9999 ? "Dossiers illimités" : `${p.dossiers} dossiers actifs`} · {p.utilisateurs}</div>
-              <div className="mb-3 text-xs text-[#9CA3AF]">{p.cible}</div>
-              <ul className="space-y-1 text-sm text-[#374151]">
-                {p.features.map((f) => <li key={f}>• {f}</li>)}
-              </ul>
-            </div>
-          ))}
-        </div>
+        {abonnements === undefined ? (
+          <p className="text-sm text-[#6B7280]">Chargement des tarifs…</p>
+        ) : abonnements.length === 0 ? (
+          <p className="rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-[#6B7280]">
+            Aucun abonnement agence n'est publié pour le moment. Les tarifs sont définis par la direction.
+          </p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {abonnements.map((a) => (
+              <div key={a.id} className="rounded-xl border border-[#E5E7EB] bg-white p-5">
+                <div className="mb-1 text-lg font-bold text-[#D4AF37]">{a.nom}</div>
+                <div className="mb-1 text-2xl font-bold text-[#111]">
+                  {a.prixHT} € <span className="text-sm font-normal text-[#6B7280]">HT/mois</span>
+                </div>
+                <div className="mb-3 text-sm font-medium text-[#374151]">{a.dossiersMois} dossiers/mois</div>
+                <ul className="mb-3 space-y-1 text-sm text-[#374151]">
+                  {featuresListe(a.features).map((f) => <li key={f}>• {f}</li>)}
+                </ul>
+                <button
+                  onClick={() => souscrire.mutate({ abonnementId: a.id })}
+                  disabled={souscrire.isPending}
+                  className="w-full rounded-lg bg-[#D4AF37] px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                >
+                  {souscrire.isPending ? "Redirection…" : `Souscrire — ${a.prixTTC} € TTC`}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         {/* Packs crédits */}
         <h3 className="mt-6 text-xl font-bold text-[#111]">Packs dossiers supplémentaires</h3>
         <p className="mb-4 text-sm text-[#6B7280]">Achetez des crédits supplémentaires en complément de votre abonnement.</p>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { nom: "Pack 10", dossiers: 10, prix: "49,99" },
-            { nom: "Pack 25", dossiers: 25, prix: "99,99" },
-            { nom: "Pack 50", dossiers: 50, prix: "179,99" },
-            { nom: "Pack 100", dossiers: 100, prix: "299,99" },
-          ].map((p) => (
-            <div key={p.nom} className="rounded-xl border border-[#E5E7EB] bg-white p-5 text-center">
-              <div className="mb-1 font-bold text-[#111]">{p.nom}</div>
-              <div className="mb-1 text-2xl font-bold text-[#D4AF37]">{p.prix} € <span className="text-sm font-normal text-[#6B7280]">HT</span></div>
-              <div className="text-sm text-[#6B7280]">{p.dossiers} dossiers</div>
-            </div>
-          ))}
-        </div>
+        {packs === undefined ? (
+          <p className="text-sm text-[#6B7280]">Chargement des packs…</p>
+        ) : packs.length === 0 ? (
+          <p className="rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-[#6B7280]">
+            Aucun pack de dossiers n'est publié pour le moment.
+          </p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {packs.map((p) => (
+              <div key={p.id} className="rounded-xl border border-[#E5E7EB] bg-white p-5 text-center">
+                <div className="mb-1 font-bold text-[#111]">{p.nom}</div>
+                <div className="mb-1 text-2xl font-bold text-[#D4AF37]">
+                  {p.prixHT} € <span className="text-sm font-normal text-[#6B7280]">HT</span>
+                </div>
+                <div className="mb-3 text-sm text-[#6B7280]">{p.nbDossiers} dossiers</div>
+                <button
+                  onClick={() => acheterPack.mutate({ packId: p.id })}
+                  disabled={acheterPack.isPending}
+                  className="w-full rounded-lg bg-[#111] px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                >
+                  {acheterPack.isPending ? "Redirection…" : `Acheter — ${p.prixTTC} € TTC`}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        {erreurPaiement && (
+          <p className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] p-3 text-sm text-[#991B1B]">{erreurPaiement}</p>
+        )}
         {/* Avantage */}
         <div className="mt-6 rounded-xl bg-[#F0F7EC] p-5">
           <h3 className="mb-2 font-bold text-[#166534]">Avantage MKA.P-MS</h3>

@@ -20,6 +20,12 @@ import { STATIC_SEO, breadcrumbSchema, homeSchema } from "./seo-static.js";
 import { reputationJsonLdBlock } from "./reputation-engine/seo.js";
 import { env } from "./env.js";
 import {
+  PROVIDER_META_NAME,
+  VERIFICATION_PROVIDERS,
+  scheduleVerificationRefresh,
+  tokensFor,
+} from "./site-verification/index.js";
+import {
   publicReputationPage,
   universWithPublicReviews,
 } from "./reputation-engine/public-pages.js";
@@ -568,48 +574,16 @@ export function siteVerificationMeta(req?: Request): string {
   // Cas ambigu : quand le jeton contient uniquement [a-z0-9] et qu'il est
   // aussi utilisé pour la méthode fichier, la meta reste correcte — Google
   // accepte les deux méthodes en parallèle sur la même propriété.
-  if (env.GOOGLE_SITE_VERIFICATION) {
-    const seen = new Set<string>();
-    for (const raw of env.GOOGLE_SITE_VERIFICATION.split(",")) {
-      const j = raw
-        .trim()
-        .replace(/^google-site-verification[=:]\s*/i, "")
-        .replace(/\.html$/i, "")
-        .replace(/^google/i, "");
-      if (!j || seen.has(j)) continue;
-      seen.add(j);
+  // Les jetons proviennent de la variable d'hébergeur ET du jeton collé par le
+  // PDG dans la plateforme (Vérification de propriété) : sans accès à
+  // l'hébergeur, la propriété du domaine restait invérifiable.
+  scheduleVerificationRefresh();
+  for (const provider of VERIFICATION_PROVIDERS) {
+    for (const jeton of tokensFor(provider)) {
       parts.push(
-        `<meta name="google-site-verification" content="${escapeHtml(j)}" />`,
+        `<meta name="${PROVIDER_META_NAME[provider]}" content="${escapeHtml(jeton)}" />`,
       );
     }
-  }
-
-  // Bing Webmaster Tools (msvalidate.01) — valeur brute du content=.
-  if (env.BING_SITE_VERIFICATION) {
-    parts.push(
-      `<meta name="msvalidate.01" content="${escapeHtml(env.BING_SITE_VERIFICATION)}" />`,
-    );
-  }
-
-  // Yandex Webmaster
-  if (env.YANDEX_VERIFICATION) {
-    parts.push(
-      `<meta name="yandex-verification" content="${escapeHtml(env.YANDEX_VERIFICATION)}" />`,
-    );
-  }
-
-  // Facebook Domain Verification (Meta Business, Publicités, Insights)
-  if (env.FACEBOOK_DOMAIN_VERIFICATION) {
-    parts.push(
-      `<meta name="facebook-domain-verification" content="${escapeHtml(env.FACEBOOK_DOMAIN_VERIFICATION)}" />`,
-    );
-  }
-
-  // Pinterest Domain Verification
-  if (env.PINTEREST_SITE_VERIFICATION) {
-    parts.push(
-      `<meta name="p:domain_verify" content="${escapeHtml(env.PINTEREST_SITE_VERIFICATION)}" />`,
-    );
   }
 
   // ─── Application Android — reconnaissance croisée site ↔ Play Store ─────

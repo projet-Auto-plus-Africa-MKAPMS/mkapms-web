@@ -488,6 +488,9 @@ export default function EngineRegistryControlCenter() {
         {/* Diagnostic actionnable des moteurs dégradés/HS */}
         <DiagnosticPanel isPdg={isPdg} />
 
+        {/* Réconciliation des états sur preuve d'audit (jamais sur déclaration) */}
+        {isPdg && <ReconciliationSurPreuve />}
+
         {/* Point 41 — registre complet : les 5 états opérationnels réels */}
         <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="mb-2 flex flex-wrap items-baseline gap-2">
@@ -899,6 +902,88 @@ function AnomaliesSection() {
         </p>
       )}
     </section>
+  );
+}
+
+/**
+ * Réconciliation des états sur preuve.
+ *
+ * Un moteur ne passe `active` que si l'audit d'activation l'a prouvé
+ * opérationnel (procédure exposée, signal reçu, données réelles, test réussi).
+ * Les moteurs refusés sont affichés avec le manque exact — c'est ce qui évite
+ * qu'un moteur soit peint en vert parce que son code existe.
+ */
+function ReconciliationSurPreuve() {
+  const utils = trpc.useUtils();
+  const reconcilier = trpc.engineRegistry.reconcilierSurPreuve.useMutation({
+    onSettled: () => {
+      utils.engineRegistry.list.invalidate();
+      utils.engineRegistry.stats.invalidate();
+      utils.engineRegistry.readiness.invalidate();
+    },
+  });
+  const rapport = reconcilier.data;
+
+  return (
+    <div
+      data-testid="engine-reconciliation"
+      className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+    >
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="text-sm font-black text-slate-900">Activation sur preuve</h2>
+          <p className="text-[11px] text-slate-500">
+            Aucun moteur n'est activé parce que son code existe : il faut une procédure
+            exposée, un signal reçu, des données réelles et un test réussi.
+          </p>
+        </div>
+        <button
+          type="button"
+          data-testid="engine-reconciliation-run"
+          onClick={() => reconcilier.mutate({ executerAudit: true })}
+          disabled={reconcilier.isPending}
+          className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
+        >
+          {reconcilier.isPending ? "Audit en cours…" : "Auditer et activer ce qui est prouvé"}
+        </button>
+      </div>
+
+      {reconcilier.error && (
+        <p className="rounded-xl bg-rose-50 p-2 text-xs font-semibold text-rose-700">
+          {reconcilier.error.message}
+        </p>
+      )}
+
+      {rapport && (
+        <div className="space-y-2 text-xs">
+          {rapport.source === "aucun_audit" ? (
+            <p className="rounded-xl bg-amber-50 p-2 text-amber-800">
+              Aucun audit d'activation disponible : aucun état n'a été modifié.
+            </p>
+          ) : (
+            <p className="text-slate-500">
+              Audit du {new Date(rapport.auditDate ?? "").toLocaleString("fr-FR")}
+            </p>
+          )}
+          <p className="font-semibold text-emerald-700">
+            {rapport.promus.length === 0
+              ? "Aucun moteur ne remplit encore toutes les conditions d'activation."
+              : `Activés sur preuve : ${rapport.promus.join(", ")}`}
+          </p>
+          {rapport.refuses.length > 0 && (
+            <ul className="space-y-1">
+              {rapport.refuses.map((r) => (
+                <li key={r.moteur} className="rounded-xl border border-slate-200 p-2">
+                  <span className="font-bold text-slate-800">{r.moteur}</span>{" "}
+                  <span className="text-slate-400">({r.etat})</span>
+                  <p className="text-slate-600">{r.manque}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -163,6 +163,18 @@ export const engineRegistryRouter = router({
       return retryEngineSupervision(input.name);
     }),
 
+  /**
+   * Réconciliation des états sur preuve : exécute un audit d'activation et
+   * n'active que les moteurs réellement prouvés opérationnels. Les autres
+   * restent en place avec le manque exact qui l'empêche.
+   */
+  reconcilierSurPreuve: pdgProcedure
+    .input(z.object({ executerAudit: z.boolean().default(true) }))
+    .mutation(async ({ input }) => {
+      const { reconcileEngineStatesFromEvidence } = await import("./bootstrap.js");
+      return reconcileEngineStatesFromEvidence({ runAudit: input.executerAudit });
+    }),
+
   impact: directionProcedure
     .input(z.object({ name: z.string().min(1).max(64) }))
     .query(async ({ input }) => {

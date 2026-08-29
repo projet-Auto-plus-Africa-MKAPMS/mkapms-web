@@ -13,6 +13,11 @@ import { sql, and, lt, eq } from "drizzle-orm";
 import { sendEmail, emailAnnonceExpiree } from "./services/email.js";
 import { seedStructure } from "./seed.js";
 import { bootstrapEngines } from "./engine-registry/bootstrap.js";
+import {
+  googleFileTokens,
+  refreshVerificationTokens,
+  verificationStatus,
+} from "./site-verification/index.js";
 import { appRouter } from "./router.js";
 import { createContext } from "./trpc.js";
 import { verifyToken } from "./auth.js";
@@ -316,13 +321,11 @@ if (env.INDEXNOW_KEY) {
 // Vérification de propriété Google (Search Console, Merchant Center) par jeton
 // en variable d'environnement : évite de dépendre d'un fichier déposé dans le
 // dépôt, qui n'était pas publié et renvoyait 404 à Google.
-const JETONS_GOOGLE = env.GOOGLE_SITE_VERIFICATION.split(",")
-  .map((j) => j.trim().replace(/\.html$/i, "").replace(/^google/i, ""))
-  .filter((j) => /^[a-z0-9]+$/i.test(j));
-
+// Les jetons acceptés viennent de la variable d'hébergeur et du jeton collé par
+// le PDG dans la plateforme : la liste est donc relue à chaque requête.
 app.get("/google:jeton.html", (req, res, next) => {
   const jeton = req.params.jeton;
-  if (!JETONS_GOOGLE.includes(jeton)) return next();
+  if (!googleFileTokens().includes(jeton)) return next();
   res.type("html").send(`google-site-verification: google${jeton}.html`);
 });
 
@@ -434,6 +437,16 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec bootstrap moteurs:", (err as Error).message);
     }
+    // Jetons de vérification de propriété saisis par le PDG : chargés une fois
+    // au démarrage pour que les balises soient rendues dès la première requête.
+    try {
+      await refreshVerificationTokens();
+    } catch (err) {
+      console.error(
+        "[MKA.P-MS] jetons de vérification non chargés:",
+        (err as Error).message,
+      );
+    }
     // Document OS — templates par défaut FR (facture, devis, contrat, ...)
     // avec le logo officiel MKA.P-MS intégré. Idempotent.
     try {
@@ -531,15 +544,12 @@ async function bootstrap() {
   app.listen(env.PORT, "0.0.0.0", () => {
     console.log(`[MKA.P-MS] serveur démarré sur le port ${env.PORT} (${env.NODE_ENV})`);
     // Récapitulatif des vérifications de propriété du site actives.
-    const seoActive: string[] = [];
-    if (env.GOOGLE_SITE_VERIFICATION) seoActive.push("Google (meta + fichier)");
-    if (env.BING_SITE_VERIFICATION) seoActive.push("Bing");
-    if (env.YANDEX_VERIFICATION) seoActive.push("Yandex");
-    if (env.FACEBOOK_DOMAIN_VERIFICATION) seoActive.push("Facebook");
-    if (env.PINTEREST_SITE_VERIFICATION) seoActive.push("Pinterest");
+    const seoActive = verificationStatus()
+      .filter((s) => s.jetonsMasques.length > 0)
+      .map((s) => `${s.label} (${s.depuisPlateforme ? "plateforme" : "hébergeur"})`);
     if (seoActive.length === 0) {
       console.warn(
-        "[MKA.P-MS] Vérification propriété du site : aucune méthode configurée. Voir docs/SEO_VERIFICATION.md pour Google Search Console.",
+        "[MKA.P-MS] Vérification propriété du site : aucun jeton. Le PDG peut le coller dans Indexation & visibilité → Propriété du site.",
       );
     } else {
       console.log(
