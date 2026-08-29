@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { imprimerFeuille, telechargerCSV } from "../../lib/documents";
 import { Link } from "react-router-dom";
 import {
   ChevronLeft, FileText, Download, CheckCircle, X, Eye,
@@ -61,6 +62,107 @@ export default function Rapports() {
   const [genType, setGenType] = useState<Frequence>("mensuel");
   const [genFormat, setGenFormat] = useState<"pdf" | "excel" | "both">("both");
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
+  const CONTENU_RAPPORT: { libelle: string; valeur: string }[] = [
+    { libelle: "Resume financier", valeur: "CA, benefice, tresorerie" },
+    { libelle: "Revenus", valeur: "par univers" },
+    { libelle: "Depenses", valeur: "detail par poste" },
+    { libelle: "TVA", valeur: "collectee, deductible, nette" },
+    { libelle: "Paiements", valeur: "encaissements et impayes" },
+  ];
+
+  /* Un rapport livre reellement une feuille consultable et enregistrable en PDF.
+     Un rapport programme ou en cours n'a pas de contenu : on le dit au lieu
+     d'annoncer un telechargement. */
+  function ouvrirRapport(r: Rapport) {
+    if (r.statut !== "disponible") {
+      showToast(
+        r.statut === "en_cours"
+          ? `${r.titre} : generation en cours, aucun document a editer pour l'instant`
+          : `${r.titre} : rapport programme, il n'existe pas encore`,
+      );
+      return;
+    }
+    const ok = imprimerFeuille({
+      typeDocument: "rapport_comptable",
+      titre: r.titre,
+      reference: `${FREQ_LABEL[r.frequence]} — ${r.date}`,
+      sousTitre: `Format annonce : ${r.format}`,
+      informations: [
+        { libelle: "Periodicite", valeur: FREQ_LABEL[r.frequence] },
+        { libelle: "Date", valeur: r.date },
+        { libelle: "Taille", valeur: r.taille },
+      ],
+      colonnes: [
+        { cle: "libelle", titre: "Section" },
+        { cle: "valeur", titre: "Contenu" },
+      ],
+      lignes: CONTENU_RAPPORT.map(c => ({ libelle: c.libelle, valeur: c.valeur })),
+      mentions: [
+        "MKA.P-MS — Auto Plus Africa. Rapport interne de direction.",
+        "Les montants detailles se consultent dans chaque module (Facturation, TVA, Paiements, Analytique).",
+      ],
+    });
+    showToast(ok ? `${r.titre} : feuille ouverte, enregistrable en PDF` : "Le navigateur a bloque la fenetre d'impression");
+  }
+
+
+  /* « Generer maintenant » produit ce que le format demande : une feuille
+     imprimable, un fichier tableur, ou les deux. */
+  function genererMaintenant() {
+    const titre = `Rapport ${FREQ_LABEL[genType]} — genere le ${new Date().toLocaleDateString("fr-FR")}`;
+    let imprime = true;
+    let fichier = "";
+    if (genFormat === "pdf" || genFormat === "both") {
+      imprime = imprimerFeuille({
+        typeDocument: "rapport_comptable",
+        titre,
+        sousTitre: "Sections consolidees du rapport",
+        colonnes: [
+          { cle: "libelle", titre: "Section" },
+          { cle: "valeur", titre: "Contenu" },
+        ],
+        lignes: CONTENU_RAPPORT.map(c => ({ libelle: c.libelle, valeur: c.valeur })),
+        mentions: [
+          "MKA.P-MS — Auto Plus Africa. Rapport interne de direction.",
+          "Les montants detailles se consultent dans chaque module (Facturation, TVA, Paiements, Analytique).",
+        ],
+      });
+    }
+    if (genFormat === "excel" || genFormat === "both") {
+      const res = telechargerCSV(
+        `rapport-${genType}`,
+        [
+          { cle: "libelle", titre: "Section" },
+          { cle: "valeur", titre: "Contenu" },
+        ],
+        CONTENU_RAPPORT.map(c => ({ libelle: c.libelle, valeur: c.valeur })),
+      );
+      fichier = res.ok ? res.nom : "";
+    }
+    if (!imprime) { showToast("Le navigateur a bloque la fenetre d'impression"); return; }
+    showToast(fichier ? `Rapport genere — fichier ${fichier}` : "Rapport genere — feuille ouverte, enregistrable en PDF");
+  }
+
+  function exporterListeRapports() {
+    const res = telechargerCSV(
+      "rapports-mkapms",
+      [
+        { cle: "titre", titre: "Titre" },
+        { cle: "frequence", titre: "Periodicite" },
+        { cle: "date", titre: "Date" },
+        { cle: "format", titre: "Format" },
+        { cle: "taille", titre: "Taille" },
+        { cle: "statut", titre: "Statut" },
+      ],
+      RAPPORTS.map(r => ({
+        titre: r.titre, frequence: FREQ_LABEL[r.frequence], date: r.date,
+        format: r.format, taille: r.taille, statut: r.statut,
+      })),
+    );
+    showToast(res.ok ? `Fichier ${res.nom} telecharge (${res.lignes} rapport(s))` : "Telechargement refuse par le navigateur");
+  }
+
 
   const filtered = RAPPORTS.filter(r => freqFilter === "tous" || r.frequence === freqFilter);
 
@@ -127,7 +229,7 @@ export default function Rapports() {
                     ))}
                   </div>
                 </div>
-                <button onClick={() => showToast(`Rapport ${FREQ_LABEL[genType]} en cours de generation...`)} className="w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97]"><BarChart3 size={14} /> Generer maintenant</button>
+                <button onClick={genererMaintenant} className="w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97]"><BarChart3 size={14} /> Generer maintenant</button>
               </div>
             </div>
 
@@ -221,8 +323,8 @@ export default function Rapports() {
               <div className="flex justify-between rounded-lg bg-[#F5F3EF] p-2.5"><span className="text-[#6B7280]">Taille</span><span className="font-bold text-[#111]">{modalRapport.taille}</span></div>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <button onClick={() => { showToast(`Telechargement PDF ${modalRapport.titre}`); setModalRapport(null); }} className="rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={12} /> PDF</button>
-              <button onClick={() => { showToast(`Telechargement Excel ${modalRapport.titre}`); setModalRapport(null); }} className="rounded-xl bg-green-600 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={12} /> Excel</button>
+              <button onClick={() => ouvrirRapport(modalRapport)} className="rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={12} /> PDF</button>
+              <button onClick={exporterListeRapports} className="rounded-xl bg-green-600 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={12} /> Excel</button>
               <button onClick={() => { showToast(`Email envoye avec le rapport`); setModalRapport(null); }} className="rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Mail size={12} /> Email</button>
             </div>
           </div>

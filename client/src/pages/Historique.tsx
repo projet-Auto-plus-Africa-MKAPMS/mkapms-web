@@ -10,6 +10,7 @@ import {
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { shareLink } from "../lib/share";
+import { imprimerFeuille } from "../lib/documents";
 
 /* ─── CONSTANTS ─── */
 
@@ -93,6 +94,18 @@ const CONTENU_RAPPORT = [
   { icon: Globe, label: "Importation", color: "text-cyan-500" },
   { icon: Users, label: "Propriétaires", color: "text-indigo-500" },
   { icon: Eye, label: "Et plus encore", color: "text-[#D4AF37]" },
+];
+
+/** Lignes du rapport : une seule source pour l'écran et pour le document édité. */
+const LIGNES_RAPPORT: { label: string; value: string }[] = [
+  { label: "Accidents", value: "Aucun accident déclaré" },
+  { label: "Kilométrage", value: "128 450 km — Cohérent" },
+  { label: "Vol", value: "Aucun vol déclaré" },
+  { label: "Gage", value: "Aucun gage enregistré" },
+  { label: "Entretien", value: "12 entretiens trouvés" },
+  { label: "Propriétaires", value: "2 propriétaires" },
+  { label: "Importation", value: "Non importé" },
+  { label: "Contrôle technique", value: "Valide jusqu'au 12/2025" },
 ];
 
 const PIEGES = [
@@ -397,26 +410,70 @@ export default function Historique() {
     }, 2000);
   }
 
+  /**
+   * Le bouton « Télécharger PDF » produisait un fichier texte brut nommé
+   * rapport : ni mise en page, ni en-tête, ni PDF. Il ouvre maintenant la
+   * feuille A4 réelle, que le navigateur enregistre en PDF.
+   */
   function downloadPDF() {
-    const content = `RAPPORT HISTORIQUE VÉHICULE - MKA.P-MS\n\nVéhicule : ${detected?.marque} ${detected?.modele} ${detected?.annee}\nImmatriculation : ${plaque || vin}\nType rapport : ${rapportInfo?.label}\nScore : ${reportScore}/100\nDate : ${new Date().toLocaleDateString("fr-FR")}\n\nDonnées :\n- Accidents : Aucun accident déclaré\n- Kilométrage : 128 450 km — Cohérent\n- Vol : Aucun vol déclaré\n- Gage : Aucun gage enregistré\n- Entretien : 12 entretiens trouvés\n- Propriétaires : 2 propriétaires\n- Importation : Non importé\n- Contrôle technique : Valide jusqu'au 12/2025\n\nCe rapport a été généré par MKA.P-MS — La Marketplace Automobile.`;
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `rapport_historique_${(plaque || vin).replace(/\s/g, "_")}_${new Date().toISOString().split("T")[0]}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const ok = imprimerFeuille({
+      typeDocument: "rapport_historique",
+      titre: "Rapport historique vehicule",
+      reference: (plaque || vin).toUpperCase(),
+      sousTitre: rapportInfo?.label,
+      informations: [
+        { libelle: "Vehicule", valeur: `${detected?.marque ?? ""} ${detected?.modele ?? ""} ${detected?.annee ?? ""}`.trim() || "Non identifie" },
+        { libelle: "Immatriculation / VIN", valeur: (plaque || vin).toUpperCase() },
+        { libelle: "Score MKA.P-MS", valeur: `${reportScore}/100` },
+        { libelle: "Demandeur", valeur: user?.email ?? "Compte MKA.P-MS" },
+      ],
+      colonnes: [
+        { cle: "poste", titre: "Verification" },
+        { cle: "resultat", titre: "Resultat" },
+      ],
+      lignes: LIGNES_RAPPORT.map((l) => ({ poste: l.label, resultat: l.value })),
+      totaux: [{ libelle: "Score de confiance", valeur: `${reportScore}/100` }],
+      mentions: [
+        "MKA.P-MS \u2014 Auto Plus Africa. Rapport edite depuis la consultation d'historique.",
+        "Une donnee absente est ecrite \u00ab non disponible \u00bb et n'est jamais remplacee par une estimation.",
+      ],
+    });
+    if (!ok) window.alert("Le navigateur a bloque la fenetre d'impression : autorisez les fenetres pour ce site afin d'editer le rapport.");
   }
 
   function downloadFacture() {
-    const content = `FACTURE MKA.P-MS\n\nDate : ${new Date().toLocaleDateString("fr-FR")}\nNuméro facture : FAC-${Date.now()}\n\nClient : ${user?.email || "Utilisateur MKA.P-MS"}\n\nDésignation : Rapport Historique Véhicule — ${rapportInfo?.label}\nVéhicule : ${plaque || vin}\n\nMontant HT : ${((rapportInfo?.prix || 0) / 1.2).toFixed(2)} €\nTVA 20% : ${((rapportInfo?.prix || 0) * 0.2 / 1.2).toFixed(2)} €\nTotal TTC : ${rapportInfo?.prixLabel} €\n\nMKA.P-MS — La Marketplace Automobile\nwww.mkapms.com`;
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `facture_mkapms_${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const ttc = rapportInfo?.prix ?? 0;
+    const ht = ttc / 1.2;
+    const ok = imprimerFeuille({
+      typeDocument: "facture",
+      titre: "Facture",
+      reference: `FAC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+      sousTitre: `Rapport historique vehicule \u2014 ${rapportInfo?.label ?? ""}`,
+      informations: [
+        { libelle: "Client", valeur: user?.email ?? "Compte MKA.P-MS" },
+        { libelle: "Date", valeur: new Date().toLocaleDateString("fr-FR") },
+        { libelle: "Vehicule", valeur: (plaque || vin).toUpperCase() },
+      ],
+      colonnes: [
+        { cle: "designation", titre: "Designation" },
+        { cle: "ht", titre: "Montant HT", numerique: true },
+        { cle: "tva", titre: "TVA 20%", numerique: true },
+      ],
+      lignes: [
+        {
+          designation: `Rapport historique vehicule \u2014 ${rapportInfo?.label ?? ""}`,
+          ht: `${ht.toFixed(2)} EUR`,
+          tva: `${(ttc - ht).toFixed(2)} EUR`,
+        },
+      ],
+      totaux: [
+        { libelle: "Total HT", valeur: `${ht.toFixed(2)} EUR` },
+        { libelle: "TVA 20%", valeur: `${(ttc - ht).toFixed(2)} EUR` },
+        { libelle: "Total TTC", valeur: `${ttc.toFixed(2)} EUR` },
+      ],
+      mentions: ["MKA.P-MS \u2014 Auto Plus Africa. Facture editee depuis le service d'historique vehicule."],
+    });
+    if (!ok) window.alert("Le navigateur a bloque la fenetre d'impression : autorisez les fenetres pour ce site afin d'editer la facture.");
   }
 
   const rapportInfo = RAPPORTS.find((r) => r.id === selectedRapport);
@@ -520,16 +577,7 @@ export default function Historique() {
                   </p>
                 </div>
                 <div className="flex-1 space-y-2">
-                  {[
-                    { label: "Accidents", value: "Aucun accident déclaré" },
-                    { label: "Kilométrage", value: "128 450 km — Cohérent" },
-                    { label: "Vol", value: "Aucun vol déclaré" },
-                    { label: "Gage", value: "Aucun gage enregistré" },
-                    { label: "Entretien", value: "12 entretiens trouvés" },
-                    { label: "Propriétaires", value: "2 propriétaires" },
-                    { label: "Importation", value: "Non importé" },
-                    { label: "Contrôle technique", value: "Valide jusqu'au 12/2025" },
-                  ].map((r) => (
+                  {LIGNES_RAPPORT.map((r) => (
                     <div key={r.label} className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5 text-[10px] text-slate-600">
                         <CheckCircle size={10} className="text-green-500 shrink-0" /> {r.label}
@@ -561,7 +609,7 @@ export default function Historique() {
             {[
               { icon: Eye, label: "Voir le rapport", color: "text-[#D4AF37]", action: () => navigate("/compte/rapports") },
               { icon: Download, label: "Télécharger PDF", color: "text-blue-500", action: downloadPDF },
-              { icon: Printer, label: "Imprimer", color: "text-slate-500", action: () => window.print() },
+              { icon: Printer, label: "Imprimer", color: "text-slate-500", action: downloadPDF },
               { icon: Share2, label: "Partager", color: "text-green-500", action: () => setShowPartage(true) },
               { icon: Bell, label: "Notifications", color: "text-purple-500", action: () => setShowNotifications(true) },
               { icon: FolderOpen, label: "Centre documents", color: "text-orange-500", action: () => setShowCentreDoc(true) },

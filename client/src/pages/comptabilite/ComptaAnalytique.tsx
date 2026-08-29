@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { imprimerFeuille, telechargerCSV, type ColonneExport } from "../../lib/documents";
 import { Link } from "react-router-dom";
 import {
   ChevronLeft, BarChart3, ChevronDown, Globe, MapPin, Building2,
@@ -94,6 +95,51 @@ export default function ComptaAnalytique() {
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
+  const COLONNES_ANA: ColonneExport[] = [
+    { cle: "label", titre: DIM_LABELS[dim] },
+    { cle: "ca", titre: "Chiffre d'affaires (EUR)", numerique: true },
+    { cle: "depenses", titre: "Depenses (EUR)", numerique: true },
+    { cle: "benefice", titre: "Benefice (EUR)", numerique: true },
+    { cle: "pct", titre: "Evolution", numerique: true },
+    { cle: "transactions", titre: "Transactions", numerique: true },
+  ];
+
+  const lignesAna = (rows: AnalyseRow[]) =>
+    rows.map(r => ({
+      label: r.label,
+      ca: r.ca.toFixed(2),
+      depenses: r.depenses.toFixed(2),
+      benefice: r.benefice.toFixed(2),
+      pct: r.pct,
+      transactions: r.transactions,
+    }));
+
+  /* Rapport analytique reellement imprimable, a partir de la dimension affichee. */
+  function imprimerAnalytique(rows: AnalyseRow[], titre: string) {
+    const ca = rows.reduce((s, r) => s + r.ca, 0);
+    const dep = rows.reduce((s, r) => s + r.depenses, 0);
+    const ok = imprimerFeuille({
+      typeDocument: "rapport_analytique",
+      titre,
+      sousTitre: `Analyse par ${DIM_LABELS[dim].toLowerCase()} — ${rows.length} ligne(s)`,
+      colonnes: COLONNES_ANA,
+      lignes: lignesAna(rows),
+      totaux: [
+        { libelle: "Chiffre d'affaires", valeur: `${ca.toLocaleString("fr-FR")} EUR` },
+        { libelle: "Depenses", valeur: `${dep.toLocaleString("fr-FR")} EUR` },
+        { libelle: "Benefice", valeur: `${(ca - dep).toLocaleString("fr-FR")} EUR` },
+      ],
+      mentions: ["MKA.P-MS — Auto Plus Africa. Rapport analytique interne."],
+    });
+    showToast(ok ? "Feuille ouverte — enregistrable en PDF" : "Le navigateur a bloque la fenetre d'impression");
+  }
+
+  function exporterAnalytique() {
+    const r = telechargerCSV(`analytique-${dim}`, COLONNES_ANA, lignesAna(DATA[dim]));
+    showToast(r.ok ? `Fichier ${r.nom} telecharge (${r.lignes} ligne(s))` : "Telechargement refuse par le navigateur");
+  }
+
+
   const rows = DATA[dim];
   const totalCA = rows.reduce((s, r) => s + r.ca, 0);
   const totalBenefice = rows.reduce((s, r) => s + r.benefice, 0);
@@ -171,7 +217,7 @@ export default function ComptaAnalytique() {
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => setModalRow(row)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97]">Detail complet</button>
-                    <button onClick={() => showToast(`Rapport ${row.label} exporte`)} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={12} /> Export</button>
+                    <button onClick={() => imprimerAnalytique([row], `Rapport analytique — ${row.label}`)} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={12} /> Export</button>
                   </div>
                 </div>
               )}
@@ -181,7 +227,7 @@ export default function ComptaAnalytique() {
       </div>
 
       <div className="px-4 mt-4">
-        <button onClick={() => showToast("Export analytique complet genere")} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Exporter l'analyse complete</button>
+        <button onClick={exporterAnalytique} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Exporter l'analyse complete</button>
       </div>
 
       {modalRow && (
@@ -200,7 +246,7 @@ export default function ComptaAnalytique() {
               <div className="flex justify-between rounded-lg bg-[#F5F3EF] p-2.5"><span className="text-[#6B7280]">Marge</span><span className="font-bold text-[#111]">{modalRow.ca > 0 ? Math.round(modalRow.benefice / modalRow.ca * 100) : 0}%</span></div>
               <div className="flex justify-between rounded-lg bg-[#F5F3EF] p-2.5"><span className="text-[#6B7280]">Panier moyen</span><span className="font-bold text-[#111]">{modalRow.transactions > 0 ? Math.round(modalRow.ca / modalRow.transactions).toLocaleString() : 0} EUR</span></div>
             </div>
-            <button onClick={() => { showToast(`Rapport detaille ${modalRow.label} exporte en PDF`); setModalRow(null); }} className="w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> Exporter le rapport PDF</button>
+            <button onClick={() => imprimerAnalytique([modalRow], `Rapport analytique detaille — ${modalRow.label}`)} className="w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> Exporter le rapport PDF</button>
           </div>
         </Overlay>
       )}

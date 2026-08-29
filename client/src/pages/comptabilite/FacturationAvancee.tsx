@@ -5,6 +5,7 @@ import {
   X, Search, Filter, Printer, Send, Ban, RefreshCw, ChevronDown
 } from "lucide-react";
 import { DocumentView, buildFactureData, buildDevisData } from "../../components/DocumentPDF";
+import { imprimerFeuille, telechargerCSV, type ColonneExport } from "../../lib/documents";
 
 type Tab = "toutes" | "creees" | "automatiques" | "avoirs" | "brouillons";
 
@@ -83,6 +84,79 @@ export default function FacturationAvancee() {
   const totalFacture = FACTURES.filter(f => f.montantTTC > 0).reduce((s, f) => s + f.montantTTC, 0);
   const totalAvoirs = FACTURES.filter(f => f.montantTTC < 0).reduce((s, f) => s + Math.abs(f.montantTTC), 0);
 
+  const COLONNES: ColonneExport[] = [
+    { cle: "ref", titre: "Reference" },
+    { cle: "date", titre: "Date" },
+    { cle: "client", titre: "Client" },
+    { cle: "objet", titre: "Objet" },
+    { cle: "univers", titre: "Univers" },
+    { cle: "statut", titre: "Statut" },
+    { cle: "montantHT", titre: "HT (EUR)", numerique: true },
+    { cle: "tva", titre: "TVA (EUR)", numerique: true },
+    { cle: "montantTTC", titre: "TTC (EUR)", numerique: true },
+  ];
+
+  const lignesExport = () =>
+    filtered.map(f => ({
+      ref: f.ref, date: f.date, client: f.client, objet: f.objet, univers: f.univers,
+      statut: STATUT_LABEL[f.statut],
+      montantHT: f.montantHT.toFixed(2), tva: f.tva.toFixed(2), montantTTC: f.montantTTC.toFixed(2),
+    }));
+
+  /* Impression réelle du journal affiché : annoncer un export sans feuille
+     laissait le dirigeant croire qu'il détenait son journal de facturation. */
+  function imprimerJournal() {
+    const lignes = lignesExport();
+    const ttc = filtered.reduce((s, f) => s + f.montantTTC, 0);
+    const ok = imprimerFeuille({
+      typeDocument: "rapport_comptable",
+      titre: "Journal de facturation",
+      sousTitre: `${filtered.length} facture(s) — filtre : ${tab}${search ? ` — recherche : ${search}` : ""}`,
+      colonnes: COLONNES,
+      lignes,
+      totaux: [
+        { libelle: "Factures emises", valeur: `${totalFacture.toLocaleString("fr-FR")} EUR` },
+        { libelle: "Avoirs", valeur: `${totalAvoirs.toLocaleString("fr-FR")} EUR` },
+        { libelle: "Total affiche TTC", valeur: `${ttc.toLocaleString("fr-FR")} EUR` },
+      ],
+      mentions: ["Document interne MKA.P-MS — Auto Plus Africa. Enregistrable en PDF depuis la fenetre d'impression."],
+    });
+    showToast(ok ? "Feuille d'impression ouverte — enregistrez-la en PDF" : "Le navigateur a bloque la fenetre d'impression : autorisez les fenetres pour ce site");
+  }
+
+  function exporterTableur() {
+    const r = telechargerCSV("factures-mkapms", COLONNES, lignesExport());
+    showToast(r.ok ? `Fichier ${r.nom} telecharge (${r.lignes} facture(s))` : "Telechargement refuse par le navigateur");
+  }
+
+  function imprimerFacture(f: Facture) {
+    const ok = imprimerFeuille({
+      typeDocument: "facture",
+      titre: f.montantTTC < 0 ? "Avoir" : "Facture",
+      reference: f.ref,
+      sousTitre: f.objet,
+      informations: [
+        { libelle: "Client", valeur: f.client },
+        { libelle: "Date", valeur: f.date },
+        { libelle: "Echeance", valeur: f.echeance },
+        { libelle: "Univers", valeur: f.univers },
+        { libelle: "Statut", valeur: STATUT_LABEL[f.statut] },
+      ],
+      colonnes: [
+        { cle: "designation", titre: "Designation" },
+        { cle: "ht", titre: "Montant HT", numerique: true },
+      ],
+      lignes: [{ designation: f.objet, ht: `${f.montantHT.toLocaleString("fr-FR")} EUR` }],
+      totaux: [
+        { libelle: "Total HT", valeur: `${f.montantHT.toLocaleString("fr-FR")} EUR` },
+        { libelle: "TVA", valeur: `${f.tva.toLocaleString("fr-FR")} EUR` },
+        { libelle: "Total TTC", valeur: `${f.montantTTC.toLocaleString("fr-FR")} EUR` },
+      ],
+      mentions: ["MKA.P-MS — Auto Plus Africa. Document a conserver."],
+    });
+    showToast(ok ? `${f.ref} : feuille ouverte, enregistrable en PDF` : "Le navigateur a bloque la fenetre d'impression");
+  }
+
   const Overlay = ({ children, onClose }: { children: React.ReactNode; onClose: () => void }) => (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/50" />
@@ -158,8 +232,8 @@ export default function FacturationAvancee() {
       </div>
 
       <div className="px-4 mt-4 flex gap-2">
-        <button onClick={() => showToast("Export PDF de toutes les factures")} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> PDF</button>
-        <button onClick={() => showToast("Export Excel de toutes les factures")} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Excel</button>
+        <button onClick={imprimerJournal} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> PDF</button>
+        <button onClick={exporterTableur} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97]"><Download size={14} /> Excel</button>
       </div>
 
       {modalFacture && (
@@ -181,11 +255,11 @@ export default function FacturationAvancee() {
             </div>
             <div className="grid grid-cols-2 gap-2 mb-2">
               <button onClick={() => { setModalDoc(buildFactureData({ ref: modalFacture.ref, objet: modalFacture.univers, client: modalFacture.client, montant: `${modalFacture.montantTTC} EUR`, date: modalFacture.date, statut: STATUT_LABEL[modalFacture.statut], type: modalFacture.type })); setModalFacture(null); }} className="rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Eye size={12} /> Apercu</button>
-              <button onClick={() => { showToast(`PDF ${modalFacture.ref} telecharge`); setModalFacture(null); }} className="rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Download size={12} /> PDF</button>
+              <button onClick={() => { imprimerFacture(modalFacture); }} className="rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Download size={12} /> PDF</button>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <button onClick={() => { showToast(`Facture ${modalFacture.ref} envoyee au client`); setModalFacture(null); }} className="rounded-xl border border-[#E5E7EB] py-2 text-xs font-bold text-[#111] flex items-center justify-center gap-1"><Send size={11} /> Envoyer</button>
-              <button onClick={() => { showToast(`Impression ${modalFacture.ref}`); setModalFacture(null); }} className="rounded-xl border border-[#E5E7EB] py-2 text-xs font-bold text-[#111] flex items-center justify-center gap-1"><Printer size={11} /> Imprimer</button>
+              <button onClick={() => { imprimerFacture(modalFacture); }} className="rounded-xl border border-[#E5E7EB] py-2 text-xs font-bold text-[#111] flex items-center justify-center gap-1"><Printer size={11} /> Imprimer</button>
               {modalFacture.statut !== "annulee" && modalFacture.statut !== "avoir" && (
                 <button onClick={() => { showToast(`Avoir cree pour ${modalFacture.ref}`); setModalFacture(null); }} className="rounded-xl border border-red-200 py-2 text-xs font-bold text-red-600 flex items-center justify-center gap-1"><Ban size={11} /> Avoir</button>
               )}

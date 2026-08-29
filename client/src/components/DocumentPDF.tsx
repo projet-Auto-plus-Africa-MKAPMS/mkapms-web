@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Download, Printer, Send, CheckCircle, PenTool, RotateCcw } from "lucide-react";
+import { tracerEdition } from "../lib/documents";
 
 /* ══════════════════════════════════════════════════════════════════
    COMPOSANTS PDF VISUELS — Facture, Devis, Contrat
@@ -176,6 +177,13 @@ export function DocumentView({ doc, onClose }: { doc: DocumentData; onClose: () 
     window.addEventListener("afterprint", nettoyer);
     window.print();
     setTimeout(nettoyer, 2000);
+    tracerEdition({
+      typeCode: doc.type,
+      canal: "impression",
+      titre: doc.objet ?? doc.type,
+      referenceEcran: doc.ref,
+      lignes: doc.lignes.length,
+    });
   };
 
   const totalHT = doc.lignes.reduce((s, l) => s + l.quantite * l.prixUnitaire, 0);
@@ -351,7 +359,7 @@ export function DocumentView({ doc, onClose }: { doc: DocumentData; onClose: () 
         {/* Actions */}
         <div className="document-actions px-3 sm:px-4 pb-4 space-y-2">
           {doc.type === "contrat" && !signed && signatureData && (
-            <button onClick={() => { setSigned(true); showToast("Contrat signe electroniquement !"); }} className="w-full rounded-xl bg-green-500 py-3 text-sm font-bold text-white flex items-center justify-center gap-2 active:scale-[0.97] transition"><PenTool size={16} /> Valider la signature</button>
+            <button onClick={() => { setSigned(true); showToast("Signature apposee sur le document a imprimer — archivage electronique pas encore actif"); }} className="w-full rounded-xl bg-green-500 py-3 text-sm font-bold text-white flex items-center justify-center gap-2 active:scale-[0.97] transition"><PenTool size={16} /> Valider la signature</button>
           )}
           <div className="flex gap-2">
             <button onClick={imprimer} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97]"><Printer size={14} /> Imprimer</button>

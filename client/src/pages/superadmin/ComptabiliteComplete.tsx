@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { imprimerFeuille, type ColonneExport } from "../../lib/documents";
 import { Link } from "react-router-dom";
 import {
   ChevronLeft, Calculator, TrendingUp, TrendingDown, Euro, BarChart3,
@@ -42,6 +43,55 @@ export default function ComptabiliteComplete() {
   const [searchFacture, setSearchFacture] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
+  const COLONNES_FACT: ColonneExport[] = [
+    { cle: "ref", titre: "Reference" },
+    { cle: "date", titre: "Date" },
+    { cle: "client", titre: "Client" },
+    { cle: "objet", titre: "Objet" },
+    { cle: "type", titre: "Type" },
+    { cle: "statut", titre: "Statut" },
+    { cle: "montant", titre: "Montant", numerique: true },
+  ];
+
+  function imprimerJournalFactures() {
+    const ok = imprimerFeuille({
+      typeDocument: "rapport_comptable",
+      titre: "Journal des factures",
+      sousTitre: `${FACTURES.length} piece(s)`,
+      colonnes: COLONNES_FACT,
+      lignes: FACTURES.map(f => ({
+        ref: f.ref, date: f.date, client: f.client, objet: f.objet,
+        type: f.type, statut: f.statut, montant: f.montant,
+      })),
+      mentions: ["MKA.P-MS — Auto Plus Africa. Journal interne des pieces comptables."],
+    });
+    showToast(ok ? "Journal ouvert — enregistrable en PDF" : "Le navigateur a bloque la fenetre d'impression");
+  }
+
+  function imprimerRevenu(r: typeof REVENUS[0]) {
+    const ok = imprimerFeuille({
+      typeDocument: "rapport_comptable",
+      titre: `Rapport de revenus — ${r.source}`,
+      informations: [
+        { libelle: "Source", valeur: r.source },
+        { libelle: "Evolution", valeur: r.pct },
+        { libelle: "Derniere operation", valeur: r.derniere },
+      ],
+      colonnes: [
+        { cle: "poste", titre: "Poste" },
+        { cle: "valeur", titre: "Valeur", numerique: true },
+      ],
+      lignes: [
+        { poste: "Montant encaisse", valeur: r.montant },
+        { poste: "Transactions", valeur: r.transactions },
+        { poste: "Panier moyen", valeur: r.moyenne },
+      ],
+      mentions: ["MKA.P-MS — Auto Plus Africa. Rapport interne de direction."],
+    });
+    showToast(ok ? "Rapport ouvert — enregistrable en PDF" : "Le navigateur a bloque la fenetre d'impression");
+  }
+
 
   const totalRevenus = 119700;
   const totalDepenses = 59500;
@@ -221,7 +271,7 @@ export default function ComptabiliteComplete() {
                 </div>
               </button>
             ))}
-            <button onClick={() => showToast("Export PDF de toutes les factures")} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97] transition"><Download size={14} /> Exporter toutes les factures</button>
+            <button onClick={imprimerJournalFactures} className="w-full rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1 active:scale-[0.97] transition"><Download size={14} /> Exporter toutes les factures</button>
           </div>
         )}
       </div>
@@ -244,7 +294,7 @@ export default function ComptabiliteComplete() {
               <p className="text-[10px] text-slate-400">Dernière transaction</p>
               <p className="text-sm font-bold text-[#111]">{modalRevenu.derniere}</p>
             </div>
-            <button onClick={() => { showToast(`Rapport ${modalRevenu.source} exporté`); setModalRevenu(null); }} className="w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97] transition"><Download size={14} /> Exporter le rapport {modalRevenu.source}</button>
+            <button onClick={() => imprimerRevenu(modalRevenu)} className="w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1 active:scale-[0.97] transition"><Download size={14} /> Exporter le rapport {modalRevenu.source}</button>
           </div>
         </Overlay>
       )}
