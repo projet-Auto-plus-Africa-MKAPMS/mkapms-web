@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Eye,
   FileText,
+  FileSignature,
   Plus,
 } from "lucide-react";
 import { trpc } from "../../lib/trpc";
@@ -152,7 +153,7 @@ export default function GestionStockVO() {
               </button>
               {selectedVeh === v.id && (
                 <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-3 bg-slate-50/50 space-y-2">
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-4 gap-2">
                     <Link
                       to={`/vente/workflow/${v.id}`}
                       className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-[#E5E7EB] active:scale-[0.97] transition"
@@ -173,6 +174,13 @@ export default function GestionStockVO() {
                     >
                       <Eye size={16} className="text-green-600" />
                       <span className="text-[9px] font-bold text-[#111]">Voir Annonce</span>
+                    </Link>
+                    <Link
+                      to={`/vente/attestation/${v.id}`}
+                      className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-[#E5E7EB] active:scale-[0.97] transition"
+                    >
+                      <FileSignature size={16} className="text-[#D4AF37]" />
+                      <span className="text-[9px] font-bold text-[#111]">Attestation</span>
                     </Link>
                   </div>
                 </div>

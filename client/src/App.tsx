@@ -128,6 +128,7 @@ const TableauBordProVente = lazy(() => import("./pages/TableauBordProVente"));
 const GestionStockVO = lazy(() => import("./pages/vente/GestionStockVO"));
 const DossierVehicule = lazy(() => import("./pages/vente/DossierVehicule"));
 const WorkflowAchatVO = lazy(() => import("./pages/vente/WorkflowAchatVO"));
+const AttestationVente = lazy(() => import("./pages/vente/AttestationVente"));
 const CentreTransport = lazy(() => import("./pages/vente/CentreTransport"));
 const CentreDiagnostic = lazy(() => import("./pages/vente/CentreDiagnostic"));
 const CentreReparations = lazy(() => import("./pages/vente/CentreReparations"));
@@ -902,6 +903,7 @@ export default function App() {
             <Route path="/vente/stock" element={<V name="Stock VO"><GestionStockVO /></V>} />
             <Route path="/vente/dossier-vehicule/:id?" element={<V name="Dossier véhicule"><DossierVehicule /></V>} />
             <Route path="/vente/workflow/:id?" element={<V name="Workflow VO"><WorkflowAchatVO /></V>} />
+            <Route path="/vente/attestation/:id?" element={<V name="Attestation de vente"><AttestationVente /></V>} />
             <Route path="/vente/mes-annonces" element={<U name="Mes Annonces"><MesAnnonces /></U>} />
             <Route path="/comptabilite" element={<U name="Factures"><Comptabilite /></U>} />
             <Route path="/vente/abonnements" element={<U name="Abonnements"><Abonnements /></U>} />

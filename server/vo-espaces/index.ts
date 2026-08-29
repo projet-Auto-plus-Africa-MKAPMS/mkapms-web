@@ -17,6 +17,12 @@ import {
   vehiculeProAppartient,
   type AccesVo,
 } from "./service.js";
+import {
+  attestationsDe,
+  genererAttestation,
+  signerAttestation,
+  TYPES_ATTESTATION,
+} from "./attestations.js";
 
 export const VO_ESPACES_META = {
   code: "vo_espaces",
@@ -79,4 +85,66 @@ export const voEspacesRouter = router({
       await exigerEspacePro(ctx.user);
       return { appartient: await vehiculeProAppartient(ctx.user.uid, input.annonceId) };
     }),
+
+  /**
+   * Étape 12 — attestation de cession / de vente complète.
+   * Le document est produit à partir des données enregistrées, archivé au
+   * Document OS et strictement borné aux véhicules du professionnel.
+   */
+  attestations: router({
+    liste: protectedProcedure
+      .input(z.object({ annonceId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        await exigerEspacePro(ctx.user);
+        if (!(await vehiculeProAppartient(ctx.user.uid, input.annonceId))) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Ce véhicule n'appartient pas à votre espace." });
+        }
+        return attestationsDe(ctx.user, input.annonceId);
+      }),
+
+    generer: protectedProcedure
+      .input(
+        z.object({
+          annonceId: z.number().int().positive(),
+          type: z.enum(TYPES_ATTESTATION),
+          immatriculation: z.string().max(32).optional(),
+          vin: z.string().max(32).optional(),
+          kilometrage: z.number().int().min(0).max(2_000_000).optional(),
+          prix: z.number().min(0).max(100_000_000).optional(),
+          acheteurNom: z.string().min(2).max(160),
+          acheteurAdresse: z.string().max(255).optional(),
+          acheteurEmail: z.string().email().max(255).optional(),
+          acheteurTelephone: z.string().max(32).optional(),
+          lieu: z.string().max(128).optional(),
+          dateVente: z.string().max(24).optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        await exigerEspacePro(ctx.user);
+        const resultat = await genererAttestation(ctx.user, input);
+        if ("refuse" in resultat) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Ce véhicule n'appartient pas à votre espace.",
+          });
+        }
+        return resultat;
+      }),
+
+    signer: protectedProcedure
+      .input(
+        z.object({
+          documentId: z.number().int().positive(),
+          signataire: z.string().min(2).max(160),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        await exigerEspacePro(ctx.user);
+        const resultat = await signerAttestation(ctx.user, input.documentId, input.signataire);
+        if (!resultat.ok) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Attestation introuvable dans votre espace." });
+        }
+        return resultat;
+      }),
+  }),
 });
