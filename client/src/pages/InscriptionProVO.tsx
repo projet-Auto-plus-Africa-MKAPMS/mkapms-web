@@ -1,9 +1,42 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Check, Upload, ShieldCheck, Building2, FileText, CreditCard, AlertTriangle, User, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Check, Upload, ShieldCheck, Building2, FileText, CreditCard, AlertTriangle, User, ChevronRight, Clock } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
 import { trpc } from "../lib/trpc";
+import FileUpload from "../components/FileUpload";
+import type { DocType } from "@shared/profiles";
+
+// Pièces du dossier VO. `docType` + `kycLabel` = identité de la pièce dans le
+// dossier de validation (server/routers/kyc) : c'est le serveur qui refuse un
+// dossier incomplet, l'écran ne fait que l'annoncer plus tôt.
+interface PieceDemandee {
+  key: string;
+  label: string;
+  docType: DocType;
+  kycLabel: string;
+  obligatoire: boolean;
+}
+
+const PIECES_DIRIGEANT: PieceDemandee[] = [
+  { key: "id_recto", label: "Pièce d'identité (recto)", docType: "piece_identite", kycLabel: "Pièce d'identité du dirigeant", obligatoire: true },
+  { key: "id_verso", label: "Pièce d'identité (verso)", docType: "piece_identite", kycLabel: "Pièce d'identité du dirigeant (verso)", obligatoire: true },
+  { key: "domicile", label: "Justificatif de domicile (moins de 3 mois)", docType: "justificatif_domicile", kycLabel: "Justificatif de domicile du dirigeant", obligatoire: true },
+];
+
+const PIECES_SOCIETE: PieceDemandee[] = [
+  { key: "kbis", label: "KBIS (moins de 3 mois)", docType: "kbis", kycLabel: "KBIS ou équivalent", obligatoire: true },
+  { key: "assurance", label: "Assurance RC professionnelle", docType: "autre", kycLabel: "Assurance RC professionnelle", obligatoire: true },
+  { key: "rib", label: "RIB société", docType: "rib", kycLabel: "RIB société", obligatoire: true },
+  { key: "insee", label: "Attestation INSEE", docType: "autre", kycLabel: "Attestation INSEE", obligatoire: false },
+  { key: "bail", label: "Justificatif local / Bail commercial", docType: "autre", kycLabel: "Justificatif local / bail (si applicable)", obligatoire: false },
+  { key: "activite", label: "Document activité automobile", docType: "autre", kycLabel: "Document activité automobile", obligatoire: false },
+];
+
+const PIECE_LOGO: PieceDemandee = { key: "logo", label: "Logo société", docType: "autre", kycLabel: "Logo société", obligatoire: false };
+
+const CHAMPS_DIRIGEANT = ["prenom", "nom", "dateNaissance", "telephone", "email", "adresse", "fonction"] as const;
+const CHAMPS_SOCIETE = ["nomCommercial", "raisonSociale", "formeJuridique", "siren", "siret", "adresseSiege", "emailSociete", "telSociete", "activite", "villeActivite"] as const;
 
 const STEPS = [
   "Identité dirigeant",
@@ -28,8 +61,19 @@ const VO_PLANS = [
 export default function InscriptionProVO() {
   const { user } = useAuth();
   const { format: formatPrice } = useCurrency();
-  const navigate = useNavigate();
   const [step, setStep] = useState(0);
+  const utils = trpc.useUtils();
+
+  // Dossier réellement enregistré côté serveur (statut, pièces reçues).
+  const dossier = trpc.kyc.myProfile.useQuery(undefined, { enabled: !!user });
+  const profilPro = trpc.pro.getProfile.useQuery(undefined, { enabled: !!user });
+
+  const enregistrerProfil = trpc.pro.createProfile.useMutation({
+    onSuccess: () => utils.pro.getProfile.invalidate(),
+  });
+  const envoyerPieces = trpc.kyc.submitDocuments.useMutation({
+    onSuccess: () => utils.kyc.myProfile.invalidate(),
+  });
 
   // Paiement de l'abonnement VO (débloque l'accès au VO Pro).
   const checkout = trpc.abonnements.createCheckout.useMutation({
@@ -42,9 +86,6 @@ export default function InscriptionProVO() {
     prenom: "", nom: "", dateNaissance: "", nationalite: "", telephone: "",
     email: "", adresse: "", fonction: "",
   });
-  const [docIdRecto, setDocIdRecto] = useState<File | null>(null);
-  const [docIdVerso, setDocIdVerso] = useState<File | null>(null);
-  const [docDomicile, setDocDomicile] = useState<File | null>(null);
 
   // Étape 2 — Société
   const [societe, setSociete] = useState({
@@ -53,39 +94,23 @@ export default function InscriptionProVO() {
     telSociete: "", siteWeb: "", activite: "", paysActivite: "France", villeActivite: "",
   });
 
-  // Étape 3 — Documents société
-  const [docKbis, setDocKbis] = useState<File | null>(null);
-  const [docInsee, setDocInsee] = useState<File | null>(null);
-  const [docAssurance, setDocAssurance] = useState<File | null>(null);
-  const [docBail, setDocBail] = useState<File | null>(null);
-  const [docRib, setDocRib] = useState<File | null>(null);
-  const [docActivite, setDocActivite] = useState<File | null>(null);
-  const [docLogo, setDocLogo] = useState<File | null>(null);
+  // Étapes 1 et 3 — pièces réellement téléversées sur le serveur (/api/upload).
+  const [pieces, setPieces] = useState<
+    Record<string, { url: string; nom: string; mimeType?: string; taille?: number }>
+  >({});
 
   // Étape 4 — Abonnement
   const [selectedPlan, setSelectedPlan] = useState("vo_premium");
 
-  // Analyse Intelligence des documents
-  const [iaResults, setIaResults] = useState<Record<string, { status: string; score: number; details: string[] }>>({});
-
-  function analyseIaDoc(docName: string) {
-    setIaResults((prev) => ({ ...prev, [docName]: { status: "analysing", score: 0, details: [] } }));
-    setTimeout(() => {
-      const score = 85 + Math.floor(Math.random() * 15);
-      setIaResults((prev) => ({
-        ...prev,
-        [docName]: {
-          status: score >= 70 ? "valid" : "warning",
-          score,
-          details: [
-            "\u2705 Document lisible et de bonne qualit\u00e9",
-            "\u2705 Format accept\u00e9",
-            "\u2705 Aucune falsification d\u00e9tect\u00e9e",
-            "\u2705 Coh\u00e9rence des informations",
-          ],
-        },
+  function recevoirPiece(key: string) {
+    return (files: { url: string; originalName: string; size: number; mimeType: string }[]) => {
+      const f = files[0];
+      if (!f) return;
+      setPieces((p) => ({
+        ...p,
+        [key]: { url: f.url, nom: f.originalName, mimeType: f.mimeType, taille: f.size },
       }));
-    }, 1500);
+    };
   }
 
   function setD<K extends keyof typeof dirigeant>(k: K, v: string) { setDirigeant((o) => ({ ...o, [k]: v })); }
@@ -106,9 +131,44 @@ export default function InscriptionProVO() {
     );
   }
 
-  function submitDossier() {
-    // Simulation de soumission du dossier
-    setStep(4);
+  // Champs et pièces réellement manquants — l'envoi est refusé tant qu'il en reste.
+  const champsManquants = [
+    ...CHAMPS_DIRIGEANT.filter((c) => !dirigeant[c].trim()),
+    ...CHAMPS_SOCIETE.filter((c) => !societe[c].trim()),
+  ];
+  const piecesManquantes = [...PIECES_DIRIGEANT, ...PIECES_SOCIETE].filter(
+    (p) => p.obligatoire && !pieces[p.key],
+  );
+
+  async function submitDossier() {
+    if (champsManquants.length || piecesManquantes.length) return;
+    const aEnvoyer = [...PIECES_DIRIGEANT, ...PIECES_SOCIETE, PIECE_LOGO]
+      .filter((p) => pieces[p.key])
+      .map((p) => ({
+        docType: p.docType,
+        fileUrl: pieces[p.key].url,
+        fileName: p.kycLabel,
+        mimeType: pieces[p.key].mimeType,
+        sizeBytes: pieces[p.key].taille,
+      }));
+    try {
+      if (!profilPro.data) {
+        await enregistrerProfil.mutateAsync({
+          activity: "vente_pro",
+          companyName: societe.raisonSociale || societe.nomCommercial,
+          siret: societe.siret,
+          addressLine: societe.adresseSiege,
+          city: societe.villeActivite,
+          country: societe.paysActivite,
+          phone: societe.telSociete,
+          email: societe.emailSociete,
+        });
+      }
+      await envoyerPieces.mutateAsync({ profileType: "pro_vente", documents: aEnvoyer });
+      setStep(4);
+    } catch {
+      // L'erreur est affichée sous le bouton : le dossier n'est pas soumis.
+    }
   }
 
   return (
@@ -160,35 +220,28 @@ export default function InscriptionProVO() {
               </div>
             </div>
 
-            <h4 className="mt-6 flex items-center gap-2 text-sm font-bold text-[#111]"><Upload size={16} className="text-[#D4AF37]" /> Documents obligatoires</h4>
+            <h4 className="mt-6 flex items-center gap-2 text-sm font-bold text-[#111]"><Upload size={16} className="text-[#D4AF37]" /> Pièces exigées</h4>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              {[
-                { label: "Pièce d'identité (recto) *", state: docIdRecto, setter: setDocIdRecto, key: "id_recto" },
-                { label: "Pièce d'identité (verso) *", state: docIdVerso, setter: setDocIdVerso, key: "id_verso" },
-              ].map((d) => (
-                <div key={d.key} className="rounded-lg border border-dashed border-[#D4AF37]/50 p-4">
-                  <label className="block text-xs font-semibold text-[#111]">{d.label}</label>
-                  <input type="file" accept="image/*,.pdf" className="mt-1 text-xs" onChange={(e) => { d.setter(e.target.files?.[0] || null); if (e.target.files?.[0]) analyseIaDoc(d.key); }} />
-                  {d.state && <p className="mt-1 text-[10px] text-green-600">{d.state.name}</p>}
-                  {iaResults[d.key] && (
-                    <div className={`mt-2 rounded-lg border p-2 text-[10px] ${iaResults[d.key].status === "analysing" ? "border-blue-200 bg-blue-50 text-blue-700" : iaResults[d.key].status === "valid" ? "border-green-200 bg-green-50 text-green-700" : "border-orange-200 bg-orange-50 text-orange-700"}`}>
-                      <p className="font-bold">{iaResults[d.key].status === "analysing" ? "Analyse Intelligence en cours…" : `Analyse Intelligence — Score : ${iaResults[d.key].score}/100`}</p>
-                      {iaResults[d.key].details.map((det, i) => <p key={i}>{det}</p>)}
-                    </div>
+              {PIECES_DIRIGEANT.map((p) => (
+                <div key={p.key} className="rounded-lg border border-dashed border-[#D4AF37]/50 p-4">
+                  <label className="block text-xs font-semibold text-[#111]">
+                    {p.label}{p.obligatoire ? " *" : ""}
+                  </label>
+                  <FileUpload
+                    label={pieces[p.key] ? "Remplacer la pièce" : "Choisir un fichier"}
+                    accept="image/*,.pdf"
+                    multiple={false}
+                    maxFiles={1}
+                    onUploaded={recevoirPiece(p.key)}
+                    iaAnalysis
+                  />
+                  {pieces[p.key] && (
+                    <p className="mt-1 text-[10px] text-green-700">
+                      Enregistré sur le serveur : {pieces[p.key].nom}
+                    </p>
                   )}
                 </div>
               ))}
-              <div className="rounded-lg border border-dashed border-[#D4AF37]/50 p-4 sm:col-span-2">
-                <label className="block text-xs font-semibold text-[#111]">Justificatif de domicile (moins de 3 mois) *</label>
-                <input type="file" accept="image/*,.pdf" className="mt-1 text-xs" onChange={(e) => { setDocDomicile(e.target.files?.[0] || null); if (e.target.files?.[0]) analyseIaDoc("domicile"); }} />
-                {docDomicile && <p className="mt-1 text-[10px] text-green-600">{docDomicile.name}</p>}
-                {iaResults["domicile"] && (
-                  <div className={`mt-2 rounded-lg border p-2 text-[10px] ${iaResults["domicile"].status === "analysing" ? "border-blue-200 bg-blue-50 text-blue-700" : iaResults["domicile"].status === "valid" ? "border-green-200 bg-green-50 text-green-700" : "border-orange-200 bg-orange-50 text-orange-700"}`}>
-                    <p className="font-bold">{iaResults["domicile"].status === "analysing" ? "Analyse Intelligence en cours…" : `Analyse Intelligence — Score : ${iaResults["domicile"].score}/100`}</p>
-                    {iaResults["domicile"].details.map((det, i) => <p key={i}>{det}</p>)}
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         )}
@@ -229,48 +282,58 @@ export default function InscriptionProVO() {
             <h3 className="flex items-center gap-2 text-lg font-bold text-[#111]"><FileText size={20} className="text-[#D4AF37]" /> Documents société</h3>
             <p className="mt-1 text-xs text-[#6B7280]">Formats acceptés : PDF, JPG, PNG</p>
 
-            <h4 className="mt-4 text-sm font-bold text-[#111]">Documents obligatoires</h4>
+            <h4 className="mt-4 text-sm font-bold text-[#111]">Pièces exigées</h4>
             <div className="mt-2 grid gap-3 sm:grid-cols-2">
-              {[
-                { label: "KBIS (moins de 3 mois) *", state: docKbis, setter: setDocKbis },
-                { label: "Attestation INSEE", state: docInsee, setter: setDocInsee },
-                { label: "Assurance RC professionnelle *", state: docAssurance, setter: setDocAssurance },
-                { label: "Justificatif local / Bail commercial", state: docBail, setter: setDocBail },
-                { label: "RIB société *", state: docRib, setter: setDocRib },
-                { label: "Document activité automobile", state: docActivite, setter: setDocActivite },
-              ].map((d) => {
-                const iaKey = d.label.replace(/[^a-z]/gi, "_").toLowerCase();
-                return (
-                <div key={d.label} className="rounded-lg border border-dashed border-[#D4AF37]/50 p-3">
-                  <label className="block text-xs font-semibold text-[#111]">{d.label}</label>
-                  <input type="file" accept="image/*,.pdf" className="mt-1 text-xs" onChange={(e) => { d.setter(e.target.files?.[0] || null); if (e.target.files?.[0]) analyseIaDoc(iaKey); }} />
-                  {d.state && <p className="mt-1 text-[10px] text-green-600">{d.state.name}</p>}
-                  {iaResults[iaKey] && (
-                    <div className={`mt-2 rounded-lg border p-2 text-[10px] ${iaResults[iaKey].status === "analysing" ? "border-blue-200 bg-blue-50 text-blue-700" : iaResults[iaKey].status === "valid" ? "border-green-200 bg-green-50 text-green-700" : "border-orange-200 bg-orange-50 text-orange-700"}`}>
-                      <p className="font-bold">{iaResults[iaKey].status === "analysing" ? "Analyse Intelligence en cours…" : `Analyse Intelligence — Score : ${iaResults[iaKey].score}/100`}</p>
-                      {iaResults[iaKey].details.map((det, i) => <p key={i}>{det}</p>)}
-                    </div>
+              {PIECES_SOCIETE.filter((p) => p.obligatoire).map((p) => (
+                <div key={p.key} className="rounded-lg border border-dashed border-[#D4AF37]/50 p-3">
+                  <label className="block text-xs font-semibold text-[#111]">{p.label} *</label>
+                  <FileUpload
+                    label={pieces[p.key] ? "Remplacer la pièce" : "Choisir un fichier"}
+                    accept="image/*,.pdf"
+                    multiple={false}
+                    maxFiles={1}
+                    onUploaded={recevoirPiece(p.key)}
+                    iaAnalysis
+                  />
+                  {pieces[p.key] && (
+                    <p className="mt-1 text-[10px] text-green-700">
+                      Enregistré sur le serveur : {pieces[p.key].nom}
+                    </p>
                   )}
                 </div>
-                );
-              })}
+              ))}
             </div>
 
-            <h4 className="mt-6 text-sm font-bold text-[#111]">Documents optionnels (recommandés)</h4>
+            <h4 className="mt-6 text-sm font-bold text-[#111]">Pièces selon votre situation (facultatives)</h4>
             <div className="mt-2 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-lg border border-dashed border-[#E5E7EB] p-3">
-                <label className="block text-xs font-semibold text-[#6B7280]">Logo société</label>
-                <input type="file" accept="image/*" className="mt-1 text-xs" onChange={(e) => setDocLogo(e.target.files?.[0] || null)} />
-                {docLogo && <p className="mt-1 text-[10px] text-green-600">{docLogo.name}</p>}
-              </div>
+              {[...PIECES_SOCIETE.filter((p) => !p.obligatoire), PIECE_LOGO].map((p) => (
+                <div key={p.key} className="rounded-lg border border-dashed border-[#E5E7EB] p-3">
+                  <label className="block text-xs font-semibold text-[#6B7280]">{p.label}</label>
+                  <FileUpload
+                    label={pieces[p.key] ? "Remplacer la pièce" : "Choisir un fichier"}
+                    accept={p.key === "logo" ? "image/*" : "image/*,.pdf"}
+                    multiple={false}
+                    maxFiles={1}
+                    onUploaded={recevoirPiece(p.key)}
+                  />
+                  {pieces[p.key] && (
+                    <p className="mt-1 text-[10px] text-green-700">
+                      Enregistré sur le serveur : {pieces[p.key].nom}
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
 
             <div className="mt-4 rounded-lg bg-amber-50 border border-amber-200 p-3">
               <p className="flex items-center gap-1 text-xs font-semibold text-amber-800">
-                <AlertTriangle size={14} /> Système anti-faux documents
+                <AlertTriangle size={14} /> Contrôle des pièces
               </p>
               <p className="mt-1 text-[10px] text-amber-700">
-                Chaque document est vérifié automatiquement : lisibilité, date d'émission, expiration, cohérence nom/société. Score de risque calculé (0-30 fiable, 31-60 contrôle admin, 61-100 suspect/blocage).
+                Les pièces sont enregistrées sur le serveur puis contrôlées par l'équipe MKA.P-MS
+                (lisibilité, date d'émission, cohérence nom / société) avant l'activation du compte.
+                Aucun contrôle automatique n'est effectué à l'envoi : un dossier n'est jamais
+                déclaré conforme sans lecture humaine.
               </p>
             </div>
           </div>
@@ -321,44 +384,38 @@ export default function InscriptionProVO() {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#D4AF37]/10">
               <ShieldCheck size={32} className="text-[#D4AF37]" />
             </div>
-            <h3 className="mt-4 text-xl font-extrabold text-[#111]">Dossier soumis</h3>
+            <h3 className="mt-4 text-xl font-extrabold text-[#111]">Dossier envoyé</h3>
             <p className="mt-2 text-sm text-[#6B7280]">
-              Votre dossier professionnel VO est en cours de vérification.
+              {envoyerPieces.data
+                ? `${envoyerPieces.data.documentsEnregistres} pièce(s) enregistrée(s) sur le serveur.`
+                : "Dossier enregistré."}
             </p>
 
             <div className="mt-6 mx-auto max-w-sm text-left space-y-2">
+              {(dossier.data?.documents ?? []).map((d) => (
+                <div key={d.id} className="flex items-center gap-2 text-sm">
+                  <Check size={16} className="text-green-500" />
+                  <span className="text-[#111]">{d.fileName ?? d.docType}</span>
+                </div>
+              ))}
               <div className="flex items-center gap-2 text-sm">
-                <Check size={16} className="text-green-500" />
-                <span className="text-[#111]">Identité dirigeant envoyée</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Check size={16} className="text-green-500" />
-                <span className="text-[#111]">Informations société enregistrées</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Check size={16} className="text-green-500" />
-                <span className="text-[#111]">Documents société envoyés</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Check size={16} className="text-green-500" />
-                <span className="text-[#111]">Abonnement {VO_PLANS.find((p) => p.code === selectedPlan)?.label} sélectionné</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <div className="h-4 w-4 rounded-full border-2 border-[#D4AF37] animate-spin border-t-transparent" />
-                <span className="text-[#D4AF37] font-medium">Validation automatique en cours…</span>
+                <Clock size={16} className="text-[#D4AF37]" />
+                <span className="text-[#D4AF37] font-medium">
+                  Dossier {dossier.data?.profile?.status ?? "en_validation"} — en attente du contrôle de l'équipe
+                </span>
               </div>
             </div>
 
             <div className="mt-6 rounded-lg bg-blue-50 border border-blue-200 p-3 mx-auto max-w-sm text-left">
               <p className="text-xs text-blue-800">
                 <b>Prochaines étapes :</b><br />
-                1. Vérification automatique des documents<br />
-                2. Validation par un administrateur MKA.P-MS<br />
+                1. Contrôle des pièces par l'équipe MKA.P-MS<br />
+                2. Décision de validation ou de refus, notifiée dans votre compte<br />
                 3. Paiement de l'abonnement<br />
                 4. Accès aux services Pro VO
               </p>
               <p className="mt-2 text-[10px] text-blue-600">
-                Vous serez notifié par email à chaque étape. Délai estimé : 24-48h.
+                Le suivi du dossier reste visible dans « Mon compte → Validation ».
               </p>
             </div>
 
@@ -402,11 +459,43 @@ export default function InscriptionProVO() {
                 Suivant →
               </button>
             ) : (
-              <button className="btn-primary" onClick={submitDossier}>
-                Soumettre le dossier
+              <button
+                className="btn-primary disabled:opacity-60"
+                onClick={submitDossier}
+                disabled={
+                  envoyerPieces.isPending ||
+                  enregistrerProfil.isPending ||
+                  champsManquants.length > 0 ||
+                  piecesManquantes.length > 0
+                }
+              >
+                {envoyerPieces.isPending || enregistrerProfil.isPending
+                  ? "Envoi…"
+                  : "Soumettre le dossier"}
               </button>
             )}
           </div>
+        )}
+
+        {step === 3 && (piecesManquantes.length > 0 || champsManquants.length > 0) && (
+          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-left">
+            {piecesManquantes.length > 0 && (
+              <p className="text-xs text-amber-800">
+                Pièces obligatoires manquantes : {piecesManquantes.map((p) => p.label).join(", ")}.
+              </p>
+            )}
+            {champsManquants.length > 0 && (
+              <p className="mt-1 text-xs text-amber-800">
+                Informations obligatoires manquantes : {champsManquants.length} champ(s) aux étapes 1 et 2.
+              </p>
+            )}
+          </div>
+        )}
+
+        {(envoyerPieces.error || enregistrerProfil.error) && (
+          <p className="mt-3 text-sm text-red-600">
+            {envoyerPieces.error?.message ?? enregistrerProfil.error?.message}
+          </p>
         )}
       </div>
     </div>
