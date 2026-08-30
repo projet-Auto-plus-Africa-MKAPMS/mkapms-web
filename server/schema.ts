@@ -1186,3 +1186,4 @@ export * from "./insurance-engine/schema"; // Insurance Engine — assureurs ré
 export * from "./charging-engine/schema"; // Charging Engine — annuaire des bornes de recharge (isolé)
 export * from "./vehicle-delivery/schema"; // Vehicle Delivery Engine — acheminement des véhicules (isolé, distinct des colis)
 export * from "./account-deletion/schema"; // Suppression de compte — demandes tracées (isolé)
+export * from "./media-authenticity/schema"; // Media Authenticity — provenance et réutilisation des médias et documents (isolé)

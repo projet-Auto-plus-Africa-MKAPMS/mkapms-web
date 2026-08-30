@@ -109,6 +109,9 @@ export default function DossierVehiculeNumerique() {
       </div>
 
       <div className="px-4 mt-4">
+        <p className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-700">
+          Exemple de carnet : le carnet d'entretien n'a pas encore son moteur, donc rien n'est encore enregistre ici. Les boutons ci-dessous ouvrent les services qui enregistrent reellement (devis garage, controle technique, documents).
+        </p>
         {/* Resume */}
         {tab === "resume" && (
           <div className="space-y-3">
@@ -183,9 +186,9 @@ export default function DossierVehiculeNumerique() {
         {/* Entretiens */}
         {tab === "entretiens" && (
           <div className="space-y-2">
-            <button className="w-full rounded-xl border-2 border-dashed border-[#D4AF37] bg-[#D4AF37]/5 p-3 flex items-center justify-center gap-2 text-sm font-bold text-[#D4AF37]">
+            <Link to="/garage/demande-devis" className="w-full rounded-xl border-2 border-dashed border-[#D4AF37] bg-[#D4AF37]/5 p-3 flex items-center justify-center gap-2 text-sm font-bold text-[#D4AF37]">
               <Plus size={16} /> Ajouter un entretien
-            </button>
+            </Link>
             {ENTRETIENS.map((e) => (
               <div key={e.id} className={`rounded-xl bg-white border overflow-hidden ${e.statut === "en_retard" ? "border-red-300" : e.statut === "a_prevoir" ? "border-amber-200" : "border-[#E5E7EB]"}`}>
                 <button onClick={() => setExpandedItem(expandedItem === e.id ? null : e.id)} className="w-full text-left p-3">
@@ -222,9 +225,9 @@ export default function DossierVehiculeNumerique() {
         {/* Reparations */}
         {tab === "reparations" && (
           <div className="space-y-2">
-            <button className="w-full rounded-xl border-2 border-dashed border-[#D4AF37] bg-[#D4AF37]/5 p-3 flex items-center justify-center gap-2 text-sm font-bold text-[#D4AF37]">
+            <Link to="/garage/demande-devis" className="w-full rounded-xl border-2 border-dashed border-[#D4AF37] bg-[#D4AF37]/5 p-3 flex items-center justify-center gap-2 text-sm font-bold text-[#D4AF37]">
               <Plus size={16} /> Ajouter une reparation
-            </button>
+            </Link>
             {REPARATIONS.map((r) => (
               <div key={r.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
                 <button onClick={() => setExpandedItem(expandedItem === r.id + 100 ? null : r.id + 100)} className="w-full text-left p-3">
@@ -256,9 +259,9 @@ export default function DossierVehiculeNumerique() {
         {/* CT */}
         {tab === "ct" && (
           <div className="space-y-3">
-            <button className="w-full rounded-xl border-2 border-dashed border-[#D4AF37] bg-[#D4AF37]/5 p-3 flex items-center justify-center gap-2 text-sm font-bold text-[#D4AF37]">
+            <Link to="/garage/controle-technique" className="w-full rounded-xl border-2 border-dashed border-[#D4AF37] bg-[#D4AF37]/5 p-3 flex items-center justify-center gap-2 text-sm font-bold text-[#D4AF37]">
               <Plus size={16} /> Ajouter un controle technique
-            </button>
+            </Link>
             {CT_HISTORY.map((ct) => (
               <div key={ct.id} className="rounded-xl bg-white border border-[#E5E7EB] p-4">
                 <div className="flex items-center justify-between mb-2">
@@ -279,9 +282,9 @@ export default function DossierVehiculeNumerique() {
         {/* Factures */}
         {tab === "factures" && (
           <div className="space-y-2">
-            <button className="w-full rounded-xl border-2 border-dashed border-[#D4AF37] bg-[#D4AF37]/5 p-3 flex items-center justify-center gap-2 text-sm font-bold text-[#D4AF37]">
+            <Link to="/documents" className="w-full rounded-xl border-2 border-dashed border-[#D4AF37] bg-[#D4AF37]/5 p-3 flex items-center justify-center gap-2 text-sm font-bold text-[#D4AF37]">
               <Plus size={16} /> Ajouter une facture
-            </button>
+            </Link>
             {FACTURES.map((f) => (
               <div key={f.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center justify-between">
                 <div>
@@ -301,9 +304,9 @@ export default function DossierVehiculeNumerique() {
         {/* Photos */}
         {tab === "photos" && (
           <div className="space-y-3">
-            <button className="w-full rounded-xl border-2 border-dashed border-[#D4AF37] bg-[#D4AF37]/5 p-3 flex items-center justify-center gap-2 text-sm font-bold text-[#D4AF37]">
+            <Link to="/documents" className="w-full rounded-xl border-2 border-dashed border-[#D4AF37] bg-[#D4AF37]/5 p-3 flex items-center justify-center gap-2 text-sm font-bold text-[#D4AF37]">
               <Camera size={16} /> Ajouter des photos
-            </button>
+            </Link>
             <div className="grid grid-cols-2 gap-2">
               {PHOTOS_CAT.map((p) => (
                 <div key={p.cat} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">

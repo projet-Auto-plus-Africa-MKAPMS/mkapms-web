@@ -128,6 +128,8 @@ import { codeGraphRouter } from "./code-graph/index.js";
 import { completionRouter } from "./completion/index.js";
 import { intelligencesRouter } from "./intelligences/index.js";
 import { accountDeletionRouter } from "./account-deletion/index.js";
+import { mediaAuthenticityRouter } from "./media-authenticity/index.js";
+import { userPreferencesRouter } from "./user-preferences/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -276,6 +278,11 @@ export const appRouter = router({
   intelligences: intelligencesRouter,
   // Suppression de compte : exigence de publication mobile et droit du titulaire
   suppressionCompte: accountDeletionRouter,
+  // Authenticité des médias et des justificatifs : provenance constatée, jamais
+  // un verdict « vrai / faux » inventé — la décision reste humaine
+  mediaAuthenticity: mediaAuthenticityRouter,
+  // Préférences de compte réellement persistées (confidentialité, coaching, cookies)
+  preferencesUtilisateur: userPreferencesRouter,
   // Orchestrateur : quel prestataire encaisse, selon pays / devise / service
   paymentOrchestrator: paymentOrchestratorRouter,
   // Intelligence financière : aucune anomalie d'argent ne reste silencieuse

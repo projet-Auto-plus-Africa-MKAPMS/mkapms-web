@@ -45,6 +45,7 @@ export const ENGINE_PROBES: EngineProbe[] = [
   { engine: "accounting_internal", tables: ["compta_rapprochements", "compta_ecritures", "payments"] },
   { engine: "accounting_marketplace", tables: ["accountant_profiles", "accountant_requests"] },
   { engine: "payment", tables: ["payments", "payment_transactions", "payment_products", "subscriptions"] },
+  { engine: "media_authenticity", tables: ["ma_medias", "ma_analyses", "ma_labels", "ma_incidents"] },
   { engine: "workflow", tables: ["change_requests", "service_tracking"] },
   { engine: "knowledge", tables: ["smart_knowledge", "smart_kb_entries", "smart_learned_data"] },
   { engine: "analytics", tables: ["smart_search_logs", "smart_activity_log", "redir_logs"] },

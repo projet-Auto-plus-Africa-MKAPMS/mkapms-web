@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   ChevronLeft, ChevronRight, Lock, Trash2, Bell, Shield, FileText,
@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { trpc } from "../lib/trpc";
+import { ecrireConsentement, lireConsentement } from "../lib/consentementCookies";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type SubPage =
@@ -122,64 +123,175 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean
   );
 }
 
-// ─── Sous-page : Notifications ───────────────────────────────────────────────
-function NotificationsPage({ onBack }: { onBack: () => void }) {
-  const [prefs, setPrefs] = useState({
-    emailAnnonces: true,
-    emailMessages: true,
-    emailOffres: false,
-    emailNewsletter: false,
-    appAnnonces: true,
-    appMessages: true,
-    appOffres: true,
-    appSystem: true,
-    pushBrowser: false,
-    pushMobile: true,
-    smsAnnonces: false,
-    smsMessages: false,
-    smsOffres: false,
+// ─── Préférences de compte réellement persistées ──────────────────────────────
+// Confidentialité, coaching et charte cookies n'étaient que des états d'écran :
+// le bouton « Enregistrer » ne sauvegardait rien. Les trois écrans passent
+// maintenant par le moteur de préférences (`preferencesUtilisateur`), seule
+// source consultée par les autres moteurs.
+type EspacePreferences = "confidentialite" | "coaching" | "cookies";
+
+function usePreferences(espace: EspacePreferences) {
+  const lecture = trpc.preferencesUtilisateur.get.useQuery({ espace });
+  const [brouillon, setBrouillon] = useState<Record<string, boolean> | null>(null);
+  const [message, setMessage] = useState("");
+  const [erreur, setErreur] = useState("");
+
+  const enregistrement = trpc.preferencesUtilisateur.set.useMutation({
+    onSuccess: (valeurs) => {
+      setErreur("");
+      setMessage("Préférences enregistrées.");
+      setBrouillon(valeurs);
+      void lecture.refetch();
+    },
+    onError: (e) => {
+      setMessage("");
+      setErreur(e.message);
+    },
   });
 
-  const set = (key: keyof typeof prefs) => (v: boolean) =>
-    setPrefs((p) => ({ ...p, [key]: v }));
+  const valeurs = brouillon ?? lecture.data ?? null;
+
+  return {
+    valeurs,
+    chargement: lecture.isLoading,
+    enPlace: enregistrement.isPending,
+    message,
+    erreur,
+    basculer: (cle: string) => (v: boolean) => {
+      setMessage("");
+      setBrouillon({ ...(valeurs ?? {}), [cle]: v });
+    },
+    enregistrer: () => {
+      if (!valeurs) return;
+      enregistrement.mutate({ espace, valeurs });
+    },
+  };
+}
+
+function BoutonEnregistrer({
+  onClick,
+  enPlace,
+  message,
+  erreur,
+  libelle = "Enregistrer",
+}: {
+  onClick: () => void;
+  enPlace: boolean;
+  message: string;
+  erreur: string;
+  libelle?: string;
+}) {
+  return (
+    <div className="px-4 pt-4">
+      {erreur && <p className="mb-2 text-xs font-semibold text-red-600">{erreur}</p>}
+      {message && <p className="mb-2 text-xs font-semibold text-green-700">{message}</p>}
+      <button
+        onClick={onClick}
+        disabled={enPlace}
+        className="w-full py-3 rounded-2xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition shadow disabled:opacity-60"
+      >
+        {enPlace ? "Enregistrement…" : libelle}
+      </button>
+    </div>
+  );
+}
+
+// ─── Sous-page : Notifications ──────────────────────────────────────
+// Les préférences étaient de simples états d'écran : « Enregistrer mes préférences »
+// ne faisait rien et tout était perdu au retour. L'écran lit et écrit maintenant
+// les préférences réelles du Notification OS (canaux + catégories coupées), qui
+// sont celles que le moteur consulte avant d'envoyer quoi que ce soit.
+const CATEGORIES_NOTIF = [
+  { code: "annonces", label: "Nouvelles annonces", sub: "Alertes pour vos recherches enregistrées" },
+  { code: "messages", label: "Messages reçus", sub: "Alerte à chaque nouveau message" },
+  { code: "offres", label: "Offres et promotions", sub: "Réductions et offres spéciales MKA.P-MS" },
+  { code: "newsletter", label: "Newsletter", sub: "Actualités et nouveautés de la plateforme" },
+  { code: "systeme", label: "Notifications système", sub: "Mises à jour importantes du compte" },
+] as const;
+
+const CANAUX_NOTIF = [
+  { cle: "emailEnabled", label: "Email", sub: "Notifications envoyées par email", icon: Mail },
+  { cle: "inappEnabled", label: "Dans l'application", sub: "Badge et alerte dans MKA.P-MS", icon: BellRing },
+  { cle: "pushEnabled", label: "Push (téléphone et ordinateur)", sub: "Même lorsque l'application est fermée", icon: Smartphone },
+  { cle: "smsEnabled", label: "SMS", sub: "Notifications envoyées par SMS", icon: Phone },
+] as const;
+
+type CleCanal = (typeof CANAUX_NOTIF)[number]["cle"];
+
+function NotificationsPage({ onBack }: { onBack: () => void }) {
+  const prefs = trpc.notificationOs.preferences.me.useQuery();
+  const [canaux, setCanaux] = useState<Record<CleCanal, boolean> | null>(null);
+  const [coupees, setCoupees] = useState<string[] | null>(null);
+  const [message, setMessage] = useState("");
+  const [erreur, setErreur] = useState("");
+
+  const enregistrer = trpc.notificationOs.preferences.update.useMutation({
+    onSuccess: () => {
+      setErreur("");
+      setMessage("Préférences enregistrées.");
+      void prefs.refetch();
+    },
+    onError: (e) => {
+      setMessage("");
+      setErreur(e.message);
+    },
+  });
+
+  const p = prefs.data;
+  const valeurCanal = (cle: CleCanal): boolean =>
+    canaux ? canaux[cle] : p ? !!p[cle] : false;
+  const categoriesCoupees = coupees ?? p?.mutedCategories ?? [];
+
+  const basculerCanal = (cle: CleCanal) => (v: boolean) => {
+    const base: Record<CleCanal, boolean> = {
+      emailEnabled: valeurCanal("emailEnabled"),
+      inappEnabled: valeurCanal("inappEnabled"),
+      pushEnabled: valeurCanal("pushEnabled"),
+      smsEnabled: valeurCanal("smsEnabled"),
+    };
+    base[cle] = v;
+    setCanaux(base);
+    setMessage("");
+  };
+
+  const basculerCategorie = (code: string) => (v: boolean) => {
+    const actuelles = categoriesCoupees;
+    setCoupees(v ? actuelles.filter((c) => c !== code) : [...actuelles.filter((c) => c !== code), code]);
+    setMessage("");
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <SubPageHeader title="Préférences de notification" onBack={onBack} />
       <div className="max-w-2xl mx-auto">
 
-        {/* Email */}
-        <SectionTitle title="Notifications par email" />
+        {prefs.isLoading && <p className="px-4 pt-5 text-sm text-slate-400">Chargement de vos préférences…</p>}
+        {prefs.error && (
+          <p className="mx-4 mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700">
+            Préférences non chargées : {prefs.error.message}
+          </p>
+        )}
+
+        <SectionTitle title="Par quel moyen vous prévenir" />
         <SettingsCard>
-          {[
-            { key: "emailAnnonces" as const, label: "Nouvelles annonces", sub: "Alertes pour les annonces correspondant à vos recherches" },
-            { key: "emailMessages" as const, label: "Messages reçus", sub: "Notification lors d'un nouveau message" },
-            { key: "emailOffres" as const, label: "Offres et promotions", sub: "Réductions et offres spéciales MKA.P-MS" },
-            { key: "emailNewsletter" as const, label: "Newsletter", sub: "Actualités et nouveautés de la plateforme" },
-          ].map(({ key, label, sub }) => (
-            <div key={key} className="flex items-center gap-3 px-4 py-3.5">
+          {CANAUX_NOTIF.map(({ cle, label, sub, icon: Icon }) => (
+            <div key={cle} className="flex items-center gap-3 px-4 py-3.5">
               <div className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center bg-blue-50">
-                <Mail size={18} className="text-blue-600" />
+                <Icon size={18} className="text-blue-600" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800">{label}</p>
                 <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
               </div>
-              <Toggle enabled={prefs[key]} onChange={set(key)} />
+              <Toggle enabled={valeurCanal(cle)} onChange={basculerCanal(cle)} />
             </div>
           ))}
         </SettingsCard>
 
-        {/* Application */}
-        <SectionTitle title="Notifications dans l'application" />
+        <SectionTitle title="Ce que vous voulez recevoir" />
         <SettingsCard>
-          {[
-            { key: "appAnnonces" as const, label: "Nouvelles annonces", sub: "Alertes dans l'app pour vos recherches sauvegardées" },
-            { key: "appMessages" as const, label: "Messages reçus", sub: "Badge et alerte pour chaque nouveau message" },
-            { key: "appOffres" as const, label: "Offres et promotions", sub: "Offres spéciales dans l'application" },
-            { key: "appSystem" as const, label: "Notifications système", sub: "Mises à jour importantes du compte" },
-          ].map(({ key, label, sub }) => (
-            <div key={key} className="flex items-center gap-3 px-4 py-3.5">
+          {CATEGORIES_NOTIF.map(({ code, label, sub }) => (
+            <div key={code} className="flex items-center gap-3 px-4 py-3.5">
               <div className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center bg-purple-50">
                 <BellRing size={18} className="text-purple-600" />
               </div>
@@ -187,58 +299,44 @@ function NotificationsPage({ onBack }: { onBack: () => void }) {
                 <p className="text-sm font-semibold text-slate-800">{label}</p>
                 <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
               </div>
-              <Toggle enabled={prefs[key]} onChange={set(key)} />
+              <Toggle
+                enabled={!categoriesCoupees.includes(code)}
+                onChange={basculerCategorie(code)}
+              />
             </div>
           ))}
         </SettingsCard>
 
-        {/* Push navigateur / mobile */}
-        <SectionTitle title="Notifications push (écran d'accueil)" />
-        <div className="mx-4 rounded-2xl bg-amber-50 border border-amber-200 p-4 mb-2">
-          <p className="text-xs text-amber-800 font-medium">Les notifications push apparaissent directement sur l'écran d'accueil de votre téléphone ou ordinateur, même lorsque l'application est fermée.</p>
-        </div>
-        <SettingsCard>
-          {[
-            { key: "pushBrowser" as const, label: "Push navigateur (ordinateur)", sub: "Notifications sur Chrome, Safari, Firefox…", icon: Monitor },
-            { key: "pushMobile" as const, label: "Push mobile (téléphone)", sub: "Notifications sur iOS et Android", icon: Smartphone },
-          ].map(({ key, label, sub, icon: Icon }) => (
-            <div key={key} className="flex items-center gap-3 px-4 py-3.5">
-              <div className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center bg-amber-50">
-                <Icon size={18} className="text-amber-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800">{label}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
-              </div>
-              <Toggle enabled={prefs[key]} onChange={set(key)} />
-            </div>
-          ))}
-        </SettingsCard>
+        <p className="mx-4 mt-3 text-[11px] text-slate-400">
+          Le résumé groupé et les heures silencieuses se règlent dans Compte → Notifications.
+        </p>
 
-        {/* SMS */}
-        <SectionTitle title="Notifications par SMS" />
-        <SettingsCard>
-          {[
-            { key: "smsAnnonces" as const, label: "Nouvelles annonces", sub: "SMS pour vos alertes de recherche" },
-            { key: "smsMessages" as const, label: "Messages reçus", sub: "SMS lors d'un nouveau message" },
-            { key: "smsOffres" as const, label: "Offres et promotions", sub: "SMS pour les offres spéciales" },
-          ].map(({ key, label, sub }) => (
-            <div key={key} className="flex items-center gap-3 px-4 py-3.5">
-              <div className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center bg-green-50">
-                <Phone size={18} className="text-green-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800">{label}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
-              </div>
-              <Toggle enabled={prefs[key]} onChange={set(key)} />
-            </div>
-          ))}
-        </SettingsCard>
+        {message && (
+          <p className="mx-4 mt-3 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-xs font-semibold text-green-700">
+            {message}
+          </p>
+        )}
+        {erreur && (
+          <p className="mx-4 mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700">
+            {erreur}
+          </p>
+        )}
 
         <div className="px-4 pt-4 pb-2">
-          <button className="w-full py-3 rounded-2xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition shadow">
-            Enregistrer mes préférences
+          <button
+            onClick={() =>
+              enregistrer.mutate({
+                emailEnabled: valeurCanal("emailEnabled"),
+                inappEnabled: valeurCanal("inappEnabled"),
+                pushEnabled: valeurCanal("pushEnabled"),
+                smsEnabled: valeurCanal("smsEnabled"),
+                mutedCategories: categoriesCoupees,
+              })
+            }
+            disabled={enregistrer.isPending || prefs.isLoading}
+            className="w-full py-3 rounded-2xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition shadow disabled:opacity-50"
+          >
+            {enregistrer.isPending ? "Enregistrement…" : "Enregistrer mes préférences"}
           </button>
         </div>
       </div>
@@ -349,16 +447,19 @@ function TwoFactorPage({ onBack }: { onBack: () => void }) {
 
 // ─── Sous-page : Confidentialité du profil ────────────────────────────────────
 function ConfidentialitePage({ onBack }: { onBack: () => void }) {
-  const [prefs, setPrefs] = useState({
-    showPhone: false,
-    showEmail: false,
-    showAddress: false,
-    showLastSeen: true,
-    showAnnonces: true,
-    allowSearch: true,
-    allowContact: true,
-  });
-  const set = (k: keyof typeof prefs) => (v: boolean) => setPrefs(p => ({ ...p, [k]: v }));
+  const prefs = usePreferences("confidentialite");
+  const valeurs = prefs.valeurs;
+
+  if (!valeurs) {
+    return (
+      <div className="min-h-screen bg-slate-50 pb-20">
+        <SubPageHeader title="Confidentialité du profil" onBack={onBack} />
+        <p className="px-4 pt-6 text-sm text-slate-500">
+          {prefs.chargement ? "Chargement de vos préférences…" : "Connectez-vous pour gérer votre confidentialité."}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -378,7 +479,7 @@ function ConfidentialitePage({ onBack }: { onBack: () => void }) {
                 <p className="text-sm font-semibold text-slate-800">{label}</p>
                 <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
               </div>
-              <Toggle enabled={prefs[key]} onChange={set(key)} />
+              <Toggle enabled={valeurs[key] ?? false} onChange={prefs.basculer(key)} />
             </div>
           ))}
         </SettingsCard>
@@ -394,16 +495,17 @@ function ConfidentialitePage({ onBack }: { onBack: () => void }) {
                 <p className="text-sm font-semibold text-slate-800">{label}</p>
                 <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
               </div>
-              <Toggle enabled={prefs[key]} onChange={set(key)} />
+              <Toggle enabled={valeurs[key] ?? false} onChange={prefs.basculer(key)} />
             </div>
           ))}
         </SettingsCard>
 
-        <div className="px-4 pt-4">
-          <button className="w-full py-3 rounded-2xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition shadow">
-            Enregistrer
-          </button>
-        </div>
+        <BoutonEnregistrer
+          onClick={prefs.enregistrer}
+          enPlace={prefs.enPlace}
+          message={prefs.message}
+          erreur={prefs.erreur}
+        />
       </div>
     </div>
   );
@@ -411,13 +513,19 @@ function ConfidentialitePage({ onBack }: { onBack: () => void }) {
 
 // ─── Sous-page : Gestion de coaching ─────────────────────────────────────────
 function CoachingPage({ onBack }: { onBack: () => void }) {
-  const [prefs, setPrefs] = useState({
-    coachingEnabled: true,
-    coachingTips: true,
-    coachingAnnonce: true,
-    coachingPrix: true,
-  });
-  const set = (k: keyof typeof prefs) => (v: boolean) => setPrefs(p => ({ ...p, [k]: v }));
+  const prefs = usePreferences("coaching");
+  const valeurs = prefs.valeurs;
+
+  if (!valeurs) {
+    return (
+      <div className="min-h-screen bg-slate-50 pb-20">
+        <SubPageHeader title="Gestion du coaching" onBack={onBack} />
+        <p className="px-4 pt-6 text-sm text-slate-500">
+          {prefs.chargement ? "Chargement de vos préférences…" : "Connectez-vous pour gérer votre coaching."}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -447,7 +555,7 @@ function CoachingPage({ onBack }: { onBack: () => void }) {
                 <p className="text-sm font-semibold text-slate-800">{label}</p>
                 <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
               </div>
-              <Toggle enabled={prefs[key]} onChange={set(key)} />
+              <Toggle enabled={valeurs[key] ?? false} onChange={prefs.basculer(key)} />
             </div>
           ))}
         </SettingsCard>
@@ -466,11 +574,12 @@ function CoachingPage({ onBack }: { onBack: () => void }) {
           </div>
         </SettingsCard>
 
-        <div className="px-4 pt-4">
-          <button className="w-full py-3 rounded-2xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition shadow">
-            Enregistrer
-          </button>
-        </div>
+        <BoutonEnregistrer
+          onClick={prefs.enregistrer}
+          enPlace={prefs.enPlace}
+          message={prefs.message}
+          erreur={prefs.erreur}
+        />
       </div>
     </div>
   );
@@ -638,31 +747,76 @@ function PolitiquePage({ onBack }: { onBack: () => void }) {
 
 // ─── Sous-page : Charte cookies ───────────────────────────────────────────────
 function CharteCookiesPage({ onBack }: { onBack: () => void }) {
-  const [prefs, setPrefs] = useState({ essential: true, analytics: false, marketing: false });
-  const set = (k: keyof typeof prefs) => (v: boolean) => setPrefs(p => ({ ...p, [k]: v }));
+  // Le consentement s'applique d'abord dans le navigateur (il doit tenir même
+  // sans compte), puis suit le compte lorsqu'il existe.
+  const [prefs, setPrefs] = useState<{ essential: boolean; analytics: boolean; marketing: boolean }>(() => ({
+    essential: true,
+    ...lireConsentement(),
+  }));
+  const [message, setMessage] = useState("");
+  const [erreur, setErreur] = useState("");
+  const { user } = useAuth();
+
+  const distant = trpc.preferencesUtilisateur.get.useQuery(
+    { espace: "cookies" },
+    { enabled: Boolean(user) },
+  );
+  useEffect(() => {
+    if (!distant.data) return;
+    const recu = { analytics: distant.data.analytics === true, marketing: distant.data.marketing === true };
+    ecrireConsentement(recu);
+    setPrefs({ essential: true, ...recu });
+  }, [distant.data]);
+
+  const enregistrement = trpc.preferencesUtilisateur.set.useMutation({
+    onSuccess: () => setErreur(""),
+    onError: (e) => setErreur(`Choix appliqué sur cet appareil, mais non enregistré sur le compte : ${e.message}`),
+  });
+
+  const set = (k: "analytics" | "marketing") => (v: boolean) => {
+    setMessage("");
+    setPrefs(p => ({ ...p, [k]: v }));
+  };
+
+  const enregistrer = () => {
+    const valeurs = { analytics: prefs.analytics, marketing: prefs.marketing };
+    ecrireConsentement(valeurs);
+    setMessage("Choix appliqué sur cet appareil.");
+    if (user) enregistrement.mutate({ espace: "cookies", valeurs });
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <SubPageHeader title="Gestion des cookies" onBack={onBack} />
       <div className="max-w-2xl mx-auto px-4 pt-5 space-y-4">
         <p className="text-sm text-slate-600">Nous utilisons des cookies pour améliorer votre expérience. Gérez vos préférences ci-dessous.</p>
+        <p className="text-xs text-slate-500">La mesure d'audience interne de la plateforme reste anonyme et ne dépose pas de cookie publicitaire.</p>
         <SettingsCard>
           {[
             { key: "essential" as const, label: "Cookies essentiels", sub: "Nécessaires au fonctionnement du site (connexion, panier). Ne peuvent pas être désactivés.", disabled: true },
-            { key: "analytics" as const, label: "Cookies analytiques", sub: "Nous aident à comprendre comment vous utilisez la plateforme (Google Analytics).", disabled: false },
-            { key: "marketing" as const, label: "Cookies marketing", sub: "Utilisés pour personnaliser les publicités et les offres.", disabled: false },
+            { key: "analytics" as const, label: "Cookies analytiques", sub: "Autorisent un outil de mesure externe. Aucun n'est chargé aujourd'hui : votre choix est conservé et s'appliquera dès qu'un outil sera connecté.", disabled: false },
+            { key: "marketing" as const, label: "Cookies marketing", sub: "Autorisent la personnalisation publicitaire par un tiers. Aucun régisseur n'est branché aujourd'hui.", disabled: false },
           ].map(({ key, label, sub, disabled }) => (
             <div key={key} className="flex items-center gap-3 px-4 py-3.5">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800">{label}</p>
                 <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
               </div>
-              <Toggle enabled={prefs[key]} onChange={disabled ? () => {} : set(key)} />
+              <Toggle
+                enabled={prefs[key]}
+                onChange={disabled || key === "essential" ? () => {} : set(key)}
+              />
             </div>
           ))}
         </SettingsCard>
-        <button className="w-full py-3 rounded-2xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition shadow">
-          Enregistrer mes préférences
+        {erreur && <p className="text-xs font-semibold text-red-600">{erreur}</p>}
+        {message && <p className="text-xs font-semibold text-green-700">{message}</p>}
+        <button
+          onClick={enregistrer}
+          disabled={enregistrement.isPending}
+          className="w-full py-3 rounded-2xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition shadow disabled:opacity-60"
+        >
+          {enregistrement.isPending ? "Enregistrement…" : "Enregistrer mes préférences"}
         </button>
       </div>
     </div>
@@ -842,31 +996,46 @@ export default function Parametres() {
   if (subPage === "charte-cookies") return <CharteCookiesPage onBack={() => setSubPage(null)} />;
   if (subPage === "cookies") return <CharteCookiesPage onBack={() => setSubPage(null)} />;
 
-  // ── Sessions (placeholder) ──
+  // ── Sessions ──
+  // L'écran affichait trois appareils inventés (iPhone à Paris, MacBook, Chrome à
+  // Lyon) et un bouton « Déconnecter » sans action. Aucune session n'est
+  // enregistrée côté serveur : on ne montre donc que l'appareil réel, celui-ci,
+  // avec la seule action qui existe vraiment — s'en déconnecter.
   if (subPage === "sessions") return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <SubPageHeader title="Sessions actives" onBack={() => setSubPage(null)} />
       <div className="max-w-2xl mx-auto px-4 pt-5 space-y-3">
-        {[
-          { device: "iPhone 14 Pro", location: "Paris, France", time: "Maintenant", current: true },
-          { device: "MacBook Pro", location: "Paris, France", time: "Il y a 2h", current: false },
-          { device: "Chrome / Windows", location: "Lyon, France", time: "Il y a 3 jours", current: false },
-        ].map((s, i) => (
-          <div key={i} className="bg-white rounded-2xl shadow-sm px-4 py-3.5 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-              <Smartphone size={18} className="text-slate-500" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-slate-800">{s.device}</p>
-              <p className="text-xs text-slate-400">{s.location} · {s.time}</p>
-            </div>
-            {s.current ? (
-              <span className="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">Actuel</span>
-            ) : (
-              <button className="text-xs font-semibold text-red-500 hover:text-red-700 transition">Déconnecter</button>
-            )}
+        <div className="bg-white rounded-2xl shadow-sm px-4 py-3.5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+            <Smartphone size={18} className="text-slate-500" />
           </div>
-        ))}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-slate-800">Cet appareil</p>
+            <p className="truncate text-xs text-slate-400">{navigator.userAgent}</p>
+          </div>
+          <span className="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">Actuel</span>
+        </div>
+
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-xs font-semibold text-amber-800">
+            La plateforme ne conserve pas encore la liste de vos autres appareils connectés :
+            elle ne peut donc pas vous les montrer ni les déconnecter à distance. Pour couper
+            l'accès partout, changez votre mot de passe.
+          </p>
+        </div>
+
+        <button
+          onClick={() => { logout(); navigate("/"); }}
+          className="w-full py-3 rounded-2xl bg-red-50 text-red-600 text-sm font-bold hover:bg-red-100 transition"
+        >
+          Me déconnecter de cet appareil
+        </button>
+        <button
+          onClick={() => { setSubPage(null); setShowChangePassword(true); }}
+          className="w-full py-3 rounded-2xl bg-white text-slate-800 text-sm font-bold shadow-sm hover:bg-slate-50 transition"
+        >
+          Changer mon mot de passe
+        </button>
       </div>
     </div>
   );

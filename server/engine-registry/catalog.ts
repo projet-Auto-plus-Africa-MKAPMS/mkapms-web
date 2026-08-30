@@ -71,6 +71,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "media_authenticity",
+    label: "Media Authenticity Engine",
+    category: "transversal",
+    dependencies: ["core", "document", "smart", "audit"],
+    description:
+      "Provenance des photos, vidéos et justificatifs : empreinte, métadonnées, réutilisation, signature C2PA. Constate, n'authentifie pas un document administratif — la décision reste humaine.",
+    state: "staging",
+  },
+  {
     name: "smart",
     label: "Smart Engine",
     category: "transversal",

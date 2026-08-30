@@ -9,6 +9,7 @@
  * Règle commune : un contrôle qui ne peut pas s'exécuter renvoie `ignore` avec
  * le motif exact. Jamais `reussi`.
  */
+import { BOUTONS_SANS_ACTION, ecransConcernes } from "../data/boutons-sans-action.js";
 import { CLIENT_ROUTES } from "../data/client-routes.js";
 import { estIntrouvable, http, lignes, type Observation, type Scenario } from "./helpers.js";
 
@@ -119,6 +120,26 @@ export const PARCOURS_SCENARIOS: Scenario[] = [
             statut: "echec",
             observe: `${morts.length} bouton(s) mort(s) : ${morts.slice(0, 6).join(" · ")}${morts.length > 6 ? " …" : ""}`,
           };
+    },
+  },
+  {
+    id: "parcours.boutons_sans_action",
+    domaine: "redirection",
+    label: "Aucun bouton n'est posé sans action",
+    criticite: "critique",
+    attendu:
+      "Aucun bouton d'écran ne reste sans gestionnaire de clic, sans type « submit » et sans formulaire soumis : appuyer produit toujours quelque chose.",
+    async run(): Promise<Observation> {
+      if (BOUTONS_SANS_ACTION.length === 0)
+        return { statut: "reussi", observe: "Aucun bouton sans action relevé dans les écrans." };
+      const ecrans = ecransConcernes();
+      const exemples = BOUTONS_SANS_ACTION.slice(0, 6).map(
+        (b) => `${b.libelle || "(sans texte)"} — ${b.fichier}:${b.ligne}`,
+      );
+      return {
+        statut: "echec",
+        observe: `${BOUTONS_SANS_ACTION.length} bouton(s) sans action sur ${ecrans.length} écran(s) : ${exemples.join(" · ")}${BOUTONS_SANS_ACTION.length > 6 ? " …" : ""}`,
+      };
     },
   },
   {
