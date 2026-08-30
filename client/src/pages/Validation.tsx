@@ -3,7 +3,12 @@ import { Link } from "react-router-dom";
 import { CheckCircle2, Clock, ShieldAlert, Upload } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
-import { profilesForRole, PROFILE_LIST, type ProfileDef } from "@shared/profiles";
+import {
+  profilesForRole,
+  PROFILE_LIST,
+  documentsObligatoires,
+  type ProfileDef,
+} from "@shared/profiles";
 import FileUpload from "../components/FileUpload";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -31,7 +36,9 @@ export default function Validation() {
 
   const [profileType, setProfileType] = useState<string>(options[0]?.type ?? "pro_vente");
   const profile = options.find((p) => p.type === profileType) ?? options[0];
-  const [docs, setDocs] = useState<Record<string, string>>({});
+  const [docs, setDocs] = useState<
+    Record<string, { url: string; mimeType?: string; size?: number }>
+  >({});
 
   if (!user) {
     return (
@@ -45,17 +52,42 @@ export default function Validation() {
   const status = myProfile.data?.profile?.status;
   const submitted = myProfile.data?.documents ?? [];
 
-  function setDoc(key: string, value: string) {
+  function setDoc(key: string, value: { url: string; mimeType?: string; size?: number }) {
     setDocs((d) => ({ ...d, [key]: value }));
   }
 
+  // Une pièce compte comme fournie si elle vient d'être déposée ou si elle est
+  // déjà enregistrée dans le dossier (même type et même libellé).
+  function estFournie(docType: string, label: string, key: string): boolean {
+    if (docs[key]) return true;
+    return submitted.some((s) => s.docType === docType && (s.fileName ?? "") === label);
+  }
+
+  const manquantes = profile
+    ? documentsObligatoires(profile).filter((d) => {
+        const index = profile.documents.findIndex(
+          (x) => x.docType === d.docType && x.label === d.label,
+        );
+        return !estFournie(d.docType, d.label, `${d.docType}_${index}`);
+      })
+    : [];
+
   function handleSubmit() {
-    if (!profile) return;
+    if (!profile || manquantes.length) return;
     const payload = profile.documents
-      .map((d, i) => ({ docType: d.docType, fileUrl: docs[`${d.docType}_${i}`]?.trim() ?? "", fileName: d.label }))
+      .map((d, i) => {
+        const fichier = docs[`${d.docType}_${i}`];
+        return {
+          docType: d.docType,
+          fileUrl: fichier?.url.trim() ?? "",
+          fileName: d.label,
+          mimeType: fichier?.mimeType,
+          sizeBytes: fichier?.size,
+        };
+      })
       .filter((d) => d.fileUrl.length > 0);
     if (!payload.length) return;
-    submit.mutate({ documents: payload });
+    submit.mutate({ profileType: profile.type, documents: payload });
   }
 
   return (
@@ -114,7 +146,13 @@ export default function Validation() {
                       multiple={false}
                       maxFiles={1}
                       onUploaded={(files) => {
-                        if (files.length > 0) setDoc(key, files[0].url);
+                        if (files.length > 0) {
+                          setDoc(key, {
+                            url: files[0].url,
+                            mimeType: files[0].mimeType,
+                            size: files[0].size,
+                          });
+                        }
                       }}
                       iaAnalysis
                     />
@@ -130,7 +168,17 @@ export default function Validation() {
           {submit.error && <p className="mt-3 text-sm text-red-600">{submit.error.message}</p>}
           {submit.isSuccess && <p className="mt-3 text-sm text-green-600">Documents envoyés. Dossier en attente de validation.</p>}
 
-          <button className="btn-primary mt-5" disabled={submit.isPending} onClick={handleSubmit}>
+          {manquantes.length > 0 && (
+            <p className="mt-3 text-sm text-amber-700">
+              Pièces encore manquantes : {manquantes.map((d) => d.label).join(", ")}.
+            </p>
+          )}
+
+          <button
+            className="btn-primary mt-5"
+            disabled={submit.isPending || manquantes.length > 0}
+            onClick={handleSubmit}
+          >
             {submit.isPending ? "Envoi…" : "Envoyer pour validation"}
           </button>
           <p className="mt-3 text-xs text-slate-400">

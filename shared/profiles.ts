@@ -27,6 +27,18 @@ export type DocType =
 export interface RequiredDoc {
   docType: DocType;
   label: string;
+  /**
+   * Pièce exigée pour que le dossier soit recevable. `false` = pièce
+   * dépendante de la situation (bail si local, KBIS si société) : elle est
+   * proposée mais n'empêche pas l'envoi. Le serveur refuse tout dossier dont
+   * une pièce obligatoire manque.
+   */
+  obligatoire?: boolean;
+}
+
+/** Pièces sans lesquelles un dossier ne peut pas être envoyé. */
+export function documentsObligatoires(profile: ProfileDef): RequiredDoc[] {
+  return profile.documents.filter((d) => d.obligatoire !== false);
 }
 
 export interface ProfileDef {
@@ -62,7 +74,7 @@ export const PROFILES: Record<ProfileType, ProfileDef> = {
       { docType: "kbis", label: "KBIS ou équivalent" },
       { docType: "piece_identite", label: "Pièce d'identité du dirigeant" },
       { docType: "justificatif_domicile", label: "Justificatif de domicile du dirigeant" },
-      { docType: "autre", label: "Justificatif local / bail (si applicable)" },
+      { docType: "autre", label: "Justificatif local / bail (si applicable)", obligatoire: false },
     ],
     description: "Boutique pro, dépôt d'annonces avec quotas et badge après validation.",
   },
@@ -78,7 +90,7 @@ export const PROFILES: Record<ProfileType, ProfileDef> = {
       { docType: "piece_identite", label: "Pièce d'identité du dirigeant" },
       { docType: "justificatif_domicile", label: "Justificatif de domicile du dirigeant" },
       { docType: "autre", label: "Assurance professionnelle" },
-      { docType: "autre", label: "Justificatif local / bail (si garage fixe)" },
+      { docType: "autre", label: "Justificatif local / bail (si garage fixe)", obligatoire: false },
     ],
     description: "Accès Garage+ : devis, atelier, planning, clients, employés.",
   },
@@ -94,7 +106,7 @@ export const PROFILES: Record<ProfileType, ProfileDef> = {
       { docType: "piece_identite", label: "Pièce d'identité du dirigeant" },
       { docType: "justificatif_domicile", label: "Justificatif de domicile du dirigeant" },
       { docType: "autre", label: "Assurance professionnelle" },
-      { docType: "autre", label: "Justificatif local (si agence)" },
+      { docType: "autre", label: "Justificatif local (si agence)", obligatoire: false },
     ],
     description: "Mise en location de véhicules, contrats automatiques, états des lieux.",
   },
@@ -124,7 +136,7 @@ export const PROFILES: Record<ProfileType, ProfileDef> = {
       { docType: "kbis", label: "KBIS" },
       { docType: "piece_identite", label: "Pièce d'identité du dirigeant" },
       { docType: "justificatif_domicile", label: "Justificatif d'adresse" },
-      { docType: "autre", label: "Assurance (si nécessaire)" },
+      { docType: "autre", label: "Assurance (si nécessaire)", obligatoire: false },
     ],
     description: "Boutique en ligne + gestion de stock, commandes et facturation.",
   },
@@ -140,7 +152,7 @@ export const PROFILES: Record<ProfileType, ProfileDef> = {
       { docType: "permis_conduire", label: "Permis de conduire" },
       { docType: "autre", label: "Assurance" },
       { docType: "carte_grise", label: "Carte grise du véhicule" },
-      { docType: "kbis", label: "KBIS (si société)" },
+      { docType: "kbis", label: "KBIS (si société)", obligatoire: false },
     ],
     description: "Missions de livraison selon véhicule, poids, dimensions et zone.",
   },

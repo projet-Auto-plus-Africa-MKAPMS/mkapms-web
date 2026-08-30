@@ -9,10 +9,14 @@ interface UploadedFile {
   mimeType: string;
 }
 
-interface IAAnalysis {
-  status: "analysing" | "valid" | "warning" | "rejected";
-  score: number;
-  details: string[];
+/**
+ * Constat de réception : ce que le serveur a réellement reçu et enregistré.
+ * Aucune analyse antifraude n'est effectuée ici — la vérification des pièces
+ * est faite par l'équipe lors de la validation du dossier.
+ */
+interface ReceptionReport {
+  acceptes: { nom: string; taille: number; type: string }[];
+  refuses: { nom: string; motif: string }[];
 }
 
 interface FileUploadProps {
@@ -22,6 +26,7 @@ interface FileUploadProps {
   maxFiles?: number;
   onUploaded: (files: UploadedFile[]) => void;
   existingFiles?: { url: string; name?: string }[];
+  /** Affiche le constat de réception des pièces (nom, format, taille enregistrés). */
   iaAnalysis?: boolean;
   /** Emplacement réduit (grille de vignettes) : zone à la taille du parent, sans liste de fichiers. */
   compact?: boolean;
@@ -41,7 +46,7 @@ export default function FileUpload({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploaded, setUploaded] = useState<UploadedFile[]>([]);
-  const [ia, setIa] = useState<IAAnalysis | null>(null);
+  const [reception, setReception] = useState<ReceptionReport | null>(null);
 
   const handleFiles = async (fileList: FileList | null) => {
     if (!fileList?.length) return;
@@ -76,37 +81,18 @@ export default function FileUpload({
         setError(rejected.map((r) => `${r.originalName} : ${r.error}`).join(" ; "));
       }
 
-      /* Intelligence Analysis — simulate intelligent document analysis */
-      if (iaAnalysis && newFiles.length > 0) {
-        setIa({ status: "analysing", score: 0, details: [] });
-        setTimeout(() => {
-          const isImage = newFiles.some((f) => f.mimeType?.startsWith("image/"));
-          const isPdf = newFiles.some((f) => f.mimeType === "application/pdf" || f.originalName.endsWith(".pdf"));
-          const details: string[] = [];
-          let score = 85;
-
-          if (isImage) {
-            details.push("\u2705 Image lisible et de bonne qualit\u00e9");
-            details.push("\u2705 Format accept\u00e9");
-            score += 5;
-          }
-          if (isPdf) {
-            details.push("\u2705 Document PDF d\u00e9tect\u00e9");
-            details.push("\u2705 Contenu lisible");
-            score += 5;
-          }
-          details.push("\u2705 Aucune falsification d\u00e9tect\u00e9e");
-          details.push("\u2705 Coh\u00e9rence des informations");
-          if (newFiles.some((f) => f.size > 5 * 1024 * 1024)) {
-            details.push("\u26a0\ufe0f Fichier volumineux — v\u00e9rification approfondie");
-            score -= 10;
-          }
-          score = Math.min(100, Math.max(0, score));
-          setIa({ status: score >= 70 ? "valid" : score >= 40 ? "warning" : "rejected", score, details });
-        }, 1500);
+      if (iaAnalysis) {
+        setReception({
+          acceptes: newFiles.map((f) => ({
+            nom: f.originalName,
+            taille: f.size,
+            type: f.mimeType,
+          })),
+          refuses: rejected.map((r) => ({ nom: r.originalName, motif: r.error })),
+        });
       }
-    } catch (e: any) {
-      setError(e.message || "Erreur lors de l'upload");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur lors de l'upload");
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -158,31 +144,28 @@ export default function FileUpload({
         <p className="mt-2 text-sm text-red-600">{error}</p>
       )}
 
-      {/* Analyse Intelligence */}
-      {iaAnalysis && ia && (
-        <div className={`mt-3 rounded-lg border p-3 ${
-          ia.status === "analysing" ? "border-blue-200 bg-blue-50" :
-          ia.status === "valid" ? "border-green-200 bg-green-50" :
-          ia.status === "warning" ? "border-orange-200 bg-orange-50" :
-          "border-red-200 bg-red-50"
-        }`}>
-          <div className="flex items-center gap-2">
-            {ia.status === "analysing" ? (
-              <><svg className="h-4 w-4 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" /><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg>
-              <span className="text-xs font-bold text-blue-700">Analyse MKA.P-MS Intelligences en cours…</span></>
-            ) : (
-              <><span className={`text-xs font-bold ${
-                ia.status === "valid" ? "text-green-700" : ia.status === "warning" ? "text-orange-700" : "text-red-700"
-              }`}>Analyse MKA.P-MS Intelligences — Score : {ia.score}/100 ({ia.status === "valid" ? "Valid\u00e9" : ia.status === "warning" ? "Attention" : "Refus\u00e9"})</span></>
-            )}
+      {/* Constat de réception — faits enregistrés, aucun jugement automatique */}
+      {iaAnalysis && reception && (
+        <div className="mt-3 rounded-lg border border-[#E5E7EB] bg-[#FAFAFA] p-3">
+          <p className="text-xs font-bold text-[#374151]">
+            Pièces enregistrées sur le serveur : {reception.acceptes.length}
+          </p>
+          <div className="mt-1 space-y-0.5">
+            {reception.acceptes.map((f, i) => (
+              <p key={`ok-${i}`} className="text-[10px] text-slate-600">
+                {f.nom} — {f.type || "format inconnu"}
+                {f.taille > 0 ? ` — ${(f.taille / 1024).toFixed(0)} KB` : ""}
+              </p>
+            ))}
+            {reception.refuses.map((f, i) => (
+              <p key={`ko-${i}`} className="text-[10px] text-red-600">
+                {f.nom} — non enregistré : {f.motif}
+              </p>
+            ))}
           </div>
-          {ia.details.length > 0 && (
-            <div className="mt-2 space-y-0.5">
-              {ia.details.map((d, i) => (
-                <p key={i} className="text-[10px] text-slate-600">{d}</p>
-              ))}
-            </div>
-          )}
+          <p className="mt-1 text-[10px] text-slate-400">
+            La conformité des pièces est vérifiée par l'équipe MKA.P-MS lors de la validation.
+          </p>
         </div>
       )}
 
