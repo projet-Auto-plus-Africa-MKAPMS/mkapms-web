@@ -727,6 +727,7 @@ export const CLIENT_ROUTE_PATTERNS: readonly string[] = [
   "/service/:slug",
   "/service/:slug/:ville",
   "/vehicule/:id",
+  "/vente/attestation/:id?",
   "/vente/dossier-vehicule/:id?",
   "/vente/workflow/:id?",
   "/ville/:slug",
