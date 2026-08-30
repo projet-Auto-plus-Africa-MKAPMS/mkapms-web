@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { imprimerFeuille, telechargerCSV } from "../lib/documents";
 import {
   ChevronLeft, BarChart3, TrendingUp, TrendingDown, Euro, CreditCard,
   Users, Clock, Bell, AlertTriangle, CheckCircle, Eye, Download,
@@ -51,6 +52,27 @@ interface Alerte {
   actionLabel: string;
   redirectTo: string;
 }
+
+interface Paiement {
+  id: number;
+  objet: string;
+  montant: string;
+  date: string;
+  statut: string;
+  type: string;
+  ref: string;
+  client: string;
+  methode: string;
+}
+
+const PAIEMENTS: Paiement[] = [
+  { id: 1, objet: "Vente Peugeot 3008 GT", montant: "+28 500 EUR", date: "09/06/2025", statut: "Recu", type: "vente", ref: "PAY-2025-0892", client: "Martin D.", methode: "Virement bancaire" },
+  { id: 2, objet: "Location Mercedes E Break", montant: "+1 350 EUR", date: "08/06/2025", statut: "Recu", type: "location", ref: "PAY-2025-0891", client: "Sophie L.", methode: "CB ****4532" },
+  { id: 3, objet: "Abonnement Pro Premium x12", montant: "+1 068 EUR", date: "07/06/2025", statut: "Recu", type: "abo", ref: "PAY-2025-0890", client: "Garage Auto 93", methode: "Prelevement SEPA" },
+  { id: 4, objet: "Devis Garage Auto Express", montant: "+389 EUR", date: "06/06/2025", statut: "En attente", type: "garage", ref: "PAY-2025-0889", client: "Jean Dupont", methode: "Attente CB" },
+  { id: 5, objet: "Boost Premium Annonce #142", montant: "+29 EUR", date: "06/06/2025", statut: "Recu", type: "pub", ref: "PAY-2025-0888", client: "Auto Premium", methode: "CB ****8721" },
+  { id: 6, objet: "Remboursement reservation", montant: "-50 EUR", date: "05/06/2025", statut: "Traite", type: "remb", ref: "REM-2025-0156", client: "Ahmed B.", methode: "Remboursement CB" },
+];
 
 const EMPLOYES: Employe[] = [
   { id: 1, nom: "Karim M.", poste: "Mecanicien senior — Atelier", heuresM: "168h", presence: "98%", taches: 34, perf: 92, statut: "present", email: "karim.m@mkapms.com", tel: "+33 6 12 34 56 78", dateEmbauche: "15/03/2023", departement: "Atelier Mecanique", salaire: "2 800 EUR", formation: "CAP Mecanique Auto + BTS", derniereCo: "09/06/2026 18:00" },
@@ -107,6 +129,106 @@ export default function ComptaDirigeant() {
   const [selectedAlerte, setSelectedAlerte] = useState<Alerte | null>(null);
   const [alerteFilter, setAlerteFilter] = useState<string>("tous");
   const [expandedPaiement, setExpandedPaiement] = useState<number | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3500); };
+
+  /* Reçu de paiement : feuille réelle, enregistrable en PDF par le navigateur. */
+  function imprimerRecu(p: Paiement) {
+    const ok = imprimerFeuille({
+      typeDocument: "recu",
+      titre: "Recu de paiement",
+      reference: p.ref,
+      sousTitre: p.objet,
+      informations: [
+        { libelle: "Client", valeur: p.client },
+        { libelle: "Date", valeur: p.date },
+        { libelle: "Methode", valeur: p.methode },
+        { libelle: "Statut", valeur: p.statut },
+        { libelle: "Montant", valeur: p.montant },
+      ],
+      mentions: [
+        "MKA.P-MS — Auto Plus Africa. Recu edite depuis le tableau de bord dirigeant.",
+      ],
+    });
+    showToast(ok ? "Recu ouvert — enregistrable en PDF" : "Le navigateur a bloque la fenetre d'impression");
+  }
+
+  function exporterPaiement(p: Paiement) {
+    const r = telechargerCSV(
+      `paiement-${p.ref}`,
+      [
+        { cle: "ref", titre: "Reference" },
+        { cle: "objet", titre: "Objet" },
+        { cle: "client", titre: "Client" },
+        { cle: "date", titre: "Date" },
+        { cle: "methode", titre: "Methode" },
+        { cle: "statut", titre: "Statut" },
+        { cle: "montant", titre: "Montant", numerique: true },
+      ],
+      [{ ref: p.ref, objet: p.objet, client: p.client, date: p.date, methode: p.methode, statut: p.statut, montant: p.montant }],
+      "recu",
+    );
+    showToast(r.ok ? `Fichier enregistre : ${r.nom}` : "Export impossible sur cet appareil");
+  }
+
+  /* Fiche employe imprimable — les donnees affichees, rien d'invente. */
+  function imprimerFicheEmploye(e: Employe) {
+    const ok = imprimerFeuille({
+      typeDocument: "export_donnees",
+      titre: "Fiche employe",
+      reference: `EMP-${e.id}`,
+      sousTitre: `${e.nom} — ${e.poste}`,
+      informations: [
+        { libelle: "Departement", valeur: e.departement },
+        { libelle: "Date d'embauche", valeur: e.dateEmbauche },
+        { libelle: "Salaire", valeur: e.salaire },
+        { libelle: "Heures du mois", valeur: e.heuresM },
+        { libelle: "Presence", valeur: e.presence },
+        { libelle: "Taches", valeur: String(e.taches) },
+        { libelle: "Performance", valeur: `${e.perf}%` },
+        { libelle: "Formation", valeur: e.formation },
+        { libelle: "Email", valeur: e.email },
+        { libelle: "Telephone", valeur: e.tel },
+      ],
+      mentions: ["MKA.P-MS — Auto Plus Africa. Document interne, usage direction."],
+    });
+    showToast(ok ? "Fiche ouverte — enregistrable en PDF" : "Le navigateur a bloque la fenetre d'impression");
+  }
+
+  /* Alerte : la feuille reprend l'alerte telle qu'elle est, avec sa date. */
+  function imprimerAlerte(a: Alerte) {
+    const ok = imprimerFeuille({
+      typeDocument: "export_donnees",
+      titre: "Alerte de direction",
+      reference: `ALERTE-${a.id}`,
+      sousTitre: a.titre,
+      informations: [
+        { libelle: "Niveau", valeur: a.type },
+        { libelle: "Categorie", valeur: a.categorie },
+        { libelle: "Date", valeur: a.date },
+        ...(a.montant ? [{ libelle: "Montant", valeur: a.montant }] : []),
+        { libelle: "Detail", valeur: a.desc },
+      ],
+      mentions: ["MKA.P-MS — Auto Plus Africa. Alerte issue du tableau de bord dirigeant."],
+    });
+    showToast(ok ? "Alerte ouverte — enregistrable en PDF" : "Le navigateur a bloque la fenetre d'impression");
+  }
+
+  function exporterAlertes() {
+    const r = telechargerCSV(
+      "alertes-direction",
+      [
+        { cle: "titre", titre: "Alerte" },
+        { cle: "type", titre: "Niveau" },
+        { cle: "categorie", titre: "Categorie" },
+        { cle: "date", titre: "Date" },
+        { cle: "montant", titre: "Montant", numerique: true },
+        { cle: "desc", titre: "Detail" },
+      ],
+      ALERTES.map((a) => ({ titre: a.titre, type: a.type, categorie: a.categorie, date: a.date, montant: a.montant ?? "", desc: a.desc })),
+    );
+    showToast(r.ok ? `Fichier enregistre : ${r.nom}` : "Export impossible sur cet appareil");
+  }
 
   const filteredEmployes = EMPLOYES.filter((e) => {
     if (empFilter === "tous") return true;
@@ -266,14 +388,7 @@ export default function ComptaDirigeant() {
             {/* Derniers paiements — cliquables avec detail expandable */}
             <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
               <div className="bg-[#111] px-3 py-2"><h3 className="text-xs font-bold text-[#D4AF37]">Derniers paiements</h3></div>
-              {[
-                { id: 1, objet: "Vente Peugeot 3008 GT", montant: "+28 500 EUR", date: "09/06/2025", statut: "Recu", type: "vente", ref: "PAY-2025-0892", client: "Martin D.", methode: "Virement bancaire" },
-                { id: 2, objet: "Location Mercedes E Break", montant: "+1 350 EUR", date: "08/06/2025", statut: "Recu", type: "location", ref: "PAY-2025-0891", client: "Sophie L.", methode: "CB ****4532" },
-                { id: 3, objet: "Abonnement Pro Premium x12", montant: "+1 068 EUR", date: "07/06/2025", statut: "Recu", type: "abo", ref: "PAY-2025-0890", client: "Garage Auto 93", methode: "Prelevement SEPA" },
-                { id: 4, objet: "Devis Garage Auto Express", montant: "+389 EUR", date: "06/06/2025", statut: "En attente", type: "garage", ref: "PAY-2025-0889", client: "Jean Dupont", methode: "Attente CB" },
-                { id: 5, objet: "Boost Premium Annonce #142", montant: "+29 EUR", date: "06/06/2025", statut: "Recu", type: "pub", ref: "PAY-2025-0888", client: "Auto Premium", methode: "CB ****8721" },
-                { id: 6, objet: "Remboursement reservation", montant: "-50 EUR", date: "05/06/2025", statut: "Traite", type: "remb", ref: "REM-2025-0156", client: "Ahmed B.", methode: "Remboursement CB" },
-              ].map((p) => (
+              {PAIEMENTS.map((p) => (
                 <div key={p.id}>
                   <button onClick={() => setExpandedPaiement(expandedPaiement === p.id ? null : p.id)} className="w-full flex items-center justify-between px-3 py-2.5 border-b border-[#F3F4F6] last:border-0 hover:bg-[#F5F3EF]/50 transition">
                     <div className="text-left">
@@ -298,8 +413,8 @@ export default function ComptaDirigeant() {
                       </div>
                       <div className="flex gap-2 mt-2">
                         <button onClick={() => navigate("/comptabilite?tab=ecritures")} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-[#D4AF37] py-2 text-[10px] font-bold text-white"><Eye size={10} /> Voir la facture</button>
-                        <button className="flex items-center justify-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-[10px] font-bold text-[#111]"><Printer size={10} /> Imprimer</button>
-                        <button className="flex items-center justify-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-[10px] font-bold text-[#111]"><Download size={10} /> PDF</button>
+                        <button onClick={() => imprimerRecu(p)} className="flex items-center justify-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-[10px] font-bold text-[#111]"><Printer size={10} /> Imprimer</button>
+                        <button onClick={() => exporterPaiement(p)} className="flex items-center justify-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-[10px] font-bold text-[#111]"><Download size={10} /> Export</button>
                       </div>
                     </div>
                   )}
@@ -526,12 +641,12 @@ export default function ComptaDirigeant() {
 
               {/* Actions */}
               <div className="grid grid-cols-2 gap-2">
-                <button className="flex items-center justify-center gap-1.5 rounded-xl bg-[#D4AF37] py-3 text-xs font-bold text-white hover:bg-[#C5A028] transition"><Pencil size={14} /> Modifier</button>
-                <button className="flex items-center justify-center gap-1.5 rounded-xl bg-red-500 py-3 text-xs font-bold text-white hover:bg-red-600 transition"><Trash2 size={14} /> Supprimer</button>
-                <button className="flex items-center justify-center gap-1.5 rounded-xl border border-[#E5E7EB] py-3 text-xs font-bold text-[#111] hover:bg-[#F5F3EF] transition"><Printer size={14} /> Imprimer la fiche</button>
-                <button className="flex items-center justify-center gap-1.5 rounded-xl border border-[#E5E7EB] py-3 text-xs font-bold text-[#111] hover:bg-[#F5F3EF] transition"><Mail size={14} /> Envoyer un mail</button>
-                <button className="flex items-center justify-center gap-1.5 rounded-xl border border-[#E5E7EB] py-3 text-xs font-bold text-[#111] hover:bg-[#F5F3EF] transition"><Phone size={14} /> Appeler</button>
-                <button className="flex items-center justify-center gap-1.5 rounded-xl border border-[#E5E7EB] py-3 text-xs font-bold text-[#111] hover:bg-[#F5F3EF] transition"><FileText size={14} /> Journal d'activite</button>
+                <button onClick={() => navigate("/superadmin/admin-employes")} className="flex items-center justify-center gap-1.5 rounded-xl bg-[#D4AF37] py-3 text-xs font-bold text-white hover:bg-[#C5A028] transition"><Pencil size={14} /> Modifier</button>
+                <button onClick={() => navigate("/superadmin/admin-employes")} className="flex items-center justify-center gap-1.5 rounded-xl bg-red-500 py-3 text-xs font-bold text-white hover:bg-red-600 transition"><Trash2 size={14} /> Supprimer</button>
+                <button onClick={() => imprimerFicheEmploye(selectedEmploye)} className="flex items-center justify-center gap-1.5 rounded-xl border border-[#E5E7EB] py-3 text-xs font-bold text-[#111] hover:bg-[#F5F3EF] transition"><Printer size={14} /> Imprimer la fiche</button>
+                <a href={`mailto:${selectedEmploye.email}`} className="flex items-center justify-center gap-1.5 rounded-xl border border-[#E5E7EB] py-3 text-xs font-bold text-[#111] hover:bg-[#F5F3EF] transition"><Mail size={14} /> Envoyer un mail</a>
+                <a href={`tel:${selectedEmploye.tel.replace(/\s/g, "")}`} className="flex items-center justify-center gap-1.5 rounded-xl border border-[#E5E7EB] py-3 text-xs font-bold text-[#111] hover:bg-[#F5F3EF] transition"><Phone size={14} /> Appeler</a>
+                <button onClick={() => navigate("/superadmin/admin-employes")} className="flex items-center justify-center gap-1.5 rounded-xl border border-[#E5E7EB] py-3 text-xs font-bold text-[#111] hover:bg-[#F5F3EF] transition"><FileText size={14} /> Journal d'activite</button>
               </div>
             </div>
           </div>
@@ -573,13 +688,19 @@ export default function ComptaDirigeant() {
                   <Eye size={14} /> {selectedAlerte.actionLabel}
                 </button>
                 <div className="grid grid-cols-3 gap-2">
-                  <button className="flex items-center justify-center gap-1 rounded-xl border border-[#E5E7EB] py-2.5 text-[10px] font-bold text-[#111] hover:bg-[#F5F3EF] transition"><CheckCircle size={12} /> Resoudre</button>
-                  <button className="flex items-center justify-center gap-1 rounded-xl border border-[#E5E7EB] py-2.5 text-[10px] font-bold text-[#111] hover:bg-[#F5F3EF] transition"><Printer size={12} /> Imprimer</button>
-                  <button className="flex items-center justify-center gap-1 rounded-xl border border-[#E5E7EB] py-2.5 text-[10px] font-bold text-[#111] hover:bg-[#F5F3EF] transition"><Download size={12} /> Exporter</button>
+                  <button onClick={() => { navigate("/admin/systeme-intelligent"); setSelectedAlerte(null); }} className="flex items-center justify-center gap-1 rounded-xl border border-[#E5E7EB] py-2.5 text-[10px] font-bold text-[#111] hover:bg-[#F5F3EF] transition"><CheckCircle size={12} /> Resoudre</button>
+                  <button onClick={() => imprimerAlerte(selectedAlerte)} className="flex items-center justify-center gap-1 rounded-xl border border-[#E5E7EB] py-2.5 text-[10px] font-bold text-[#111] hover:bg-[#F5F3EF] transition"><Printer size={12} /> Imprimer</button>
+                  <button onClick={exporterAlertes} className="flex items-center justify-center gap-1 rounded-xl border border-[#E5E7EB] py-2.5 text-[10px] font-bold text-[#111] hover:bg-[#F5F3EF] transition"><Download size={12} /> Exporter</button>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-20 left-1/2 z-[60] -translate-x-1/2 rounded-xl bg-[#111] px-4 py-2.5 text-[11px] font-bold text-white shadow-lg">
+          {toast}
         </div>
       )}
     </div>

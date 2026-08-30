@@ -391,7 +391,7 @@ export default function AtelierPro() {
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-sm font-bold text-[#111]">Planning du jour — Lundi 9 Juin 2025</h2>
-              <button className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={12} /> RDV</button>
+              <Link to="/garage/prise-rendez-vous" className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={12} /> RDV</Link>
             </div>
             {PLANNING_SLOTS.map((s) => {
               const isExp = selectedPlanning === s.id;
@@ -439,7 +439,7 @@ export default function AtelierPro() {
           <div className="space-y-3">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-sm font-bold text-[#111]">Ordres de reparation</h2>
-              <button className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={12} /> Nouvel OR</button>
+              <Link to="/garage/ordre-reparation" className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={12} /> Nouvel OR</Link>
             </div>
             {ORDRES.map((o) => (
               <div key={o.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
@@ -533,7 +533,7 @@ export default function AtelierPro() {
           <div className="space-y-3">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-sm font-bold text-[#111]">Equipe atelier</h2>
-              <button className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={12} /> Ajouter</button>
+              <Link to="/garage/gestion-mecaniciens" className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={12} /> Ajouter</Link>
             </div>
 
             {/* Synthese equipe */}
@@ -638,8 +638,8 @@ export default function AtelierPro() {
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-sm font-bold text-[#111]">Stock magasin</h2>
               <div className="flex gap-1.5">
-                <button className="rounded-lg bg-[#F5F3EF] px-2.5 py-1.5 text-[10px] font-bold text-slate-600 flex items-center gap-1"><Download size={10} /> Inventaire</button>
-                <button className="rounded-lg bg-[#D4AF37] px-2.5 py-1.5 text-[10px] font-bold text-white flex items-center gap-1"><Plus size={10} /> Entree stock</button>
+                <Link to="/garage/stock-pieces" className="rounded-lg bg-[#F5F3EF] px-2.5 py-1.5 text-[10px] font-bold text-slate-600 flex items-center gap-1"><Download size={10} /> Inventaire</Link>
+                <Link to="/garage/commande-pieces" className="rounded-lg bg-[#D4AF37] px-2.5 py-1.5 text-[10px] font-bold text-white flex items-center gap-1"><Plus size={10} /> Entree stock</Link>
               </div>
             </div>
 
@@ -718,7 +718,7 @@ export default function AtelierPro() {
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-sm font-bold text-[#111]">Devis atelier</h2>
-              <button className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={12} /> Nouveau devis</button>
+              <Link to="/garage/demande-devis" className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"><Plus size={12} /> Nouveau devis</Link>
             </div>
             {DEVIS_ATELIER.map((d) => {
               const isExp = selectedDevis === d.id;

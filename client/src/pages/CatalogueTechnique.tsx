@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { imprimerFeuille } from "../lib/documents";
 import {
   ChevronLeft, Search, Car, CheckCircle, Cog, Settings,
   Disc, Thermometer, Wind, Fuel, Gauge, Zap, Shield,
@@ -1063,7 +1064,7 @@ function getSystemSVG(systemId: string, pieces: PieceData[], highlight: number |
   }
 }
 
-function ExplodedDiagram({ pieces, systemLabel, systemId, selectedPiece, onSelect, coupleSerrage }: { pieces: PieceData[]; systemLabel: string; systemId: string; selectedPiece: number | null; onSelect: (i: number) => void; coupleSerrage?: { piece: string; valeur: string; outil: string }[] }) {
+function ExplodedDiagram({ pieces, systemLabel, systemId, selectedPiece, onSelect, coupleSerrage, onCommander }: { pieces: PieceData[]; systemLabel: string; systemId: string; selectedPiece: number | null; onSelect: (i: number) => void; coupleSerrage?: { piece: string; valeur: string; outil: string }[]; onCommander: (ref: string, nom: string) => void }) {
   const [zoom, setZoom] = useState(1);
   const selectedP = selectedPiece !== null ? pieces[selectedPiece] : null;
   const schemaNum = systemId === "distribution" ? "11_1056" : systemId === "moteur" ? "10_001" : systemId === "freinage" ? "40_001" : `${systemId.slice(0,2).toUpperCase()}_001`;
@@ -1162,7 +1163,7 @@ function ExplodedDiagram({ pieces, systemLabel, systemId, selectedPiece, onSelec
               <p className={`text-[10px] font-bold mt-0.5 ${selectedP.dispo ? "text-green-600" : "text-red-500"}`}>
                 {selectedP.dispo ? "● En stock" : "○ Sur commande"}
               </p>
-              <button className="mt-1.5 rounded bg-[#c0392b] px-3 py-1 text-[10px] font-bold text-white hover:bg-[#a93226] transition">Ajouter au panier</button>
+              <button onClick={() => onCommander(selectedP.ref, selectedP.nom)} className="mt-1.5 rounded bg-[#c0392b] px-3 py-1 text-[10px] font-bold text-white hover:bg-[#a93226] transition">Ajouter au panier</button>
             </div>
           </div>
         </div>
@@ -1191,6 +1192,41 @@ export default function CatalogueTechnique() {
   const [vehicle, setVehicle] = useState<VehicleInfo>(DEFAULT_VEHICLE);
   const [isDemoVehicle, setIsDemoVehicle] = useState(false);
   const [isAbonne, setIsAbonne] = useState(true);
+  const navigate = useNavigate();
+
+  /**
+   * Le catalogue technique ne tient pas de panier : la commande de pièces est
+   * portée par l'univers Pièces, qui connaît les stocks et les fournisseurs.
+   */
+  const commander = (ref: string, nom: string) => {
+    navigate(
+      `/garage/recherche-pieces?ref=${encodeURIComponent(ref)}&nom=${encodeURIComponent(nom)}&vehicule=${encodeURIComponent(
+        `${vehicle.marque} ${vehicle.modele} ${vehicle.version}`,
+      )}`,
+    );
+  };
+
+  const imprimerCouples = (
+    titre: string,
+    lignes: { systeme: string; piece: string; valeur: string; outil: string }[],
+  ) => {
+    const ouvert = imprimerFeuille({
+      titre,
+      typeDocument: "carnet_entretien",
+      sousTitre: `${vehicle.marque} ${vehicle.modele} — ${vehicle.codeMoteur}`,
+      colonnes: [
+        { cle: "systeme", titre: "Système" },
+        { cle: "piece", titre: "Pièce" },
+        { cle: "valeur", titre: "Couple" },
+        { cle: "outil", titre: "Outil" },
+      ],
+      lignes,
+    });
+    if (!ouvert)
+      alert(
+        "Le navigateur a bloqué la fenêtre d'impression. Autorise les fenêtres pour ce site puis réessaie.",
+      );
+  };
 
   const doSearch = () => {
     if (plaque.trim().length >= 3) {
@@ -1368,7 +1404,25 @@ export default function CatalogueTechnique() {
               <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
                 <div className="bg-[#1a2744] px-4 py-2 flex items-center justify-between">
                   <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-1.5"><Wrench size={12} /> Couples de serrage — tous systèmes</h3>
-                  <button className="text-[10px] text-white/40 flex items-center gap-1"><Download size={10} /> PDF</button>
+                  <button
+                    onClick={() =>
+                      imprimerCouples(
+                        `Couples de serrage — ${vehicle.marque} ${vehicle.modele}`,
+                        ["moteur", "distribution", "freinage", "embrayage", "suspension"].flatMap((sysId) => {
+                          const sysLabel = SYSTEMS_ALL.find((s) => s.id === sysId)?.label || sysId;
+                          return getSystemData(sysId).coupleSerrage.map((c) => ({
+                            systeme: sysLabel,
+                            piece: c.piece,
+                            valeur: c.valeur,
+                            outil: c.outil,
+                          }));
+                        }),
+                      )
+                    }
+                    className="text-[10px] text-white/70 flex items-center gap-1 hover:text-white"
+                  >
+                    <Download size={10} /> PDF
+                  </button>
                 </div>
                 <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
                   <table className="w-full text-xs">
@@ -1550,7 +1604,7 @@ export default function CatalogueTechnique() {
                       {selectedPiece === i && (
                         <div className="mt-2 pt-2 border-t border-[#E5E7EB] space-y-1">
                           <p className="text-[9px] text-slate-500">Réf: {p.ref}</p>
-                          <button className="w-full rounded-lg bg-[#c0392b] py-1.5 text-[9px] font-bold text-white hover:bg-[#a93226] transition flex items-center justify-center gap-1"><ShoppingCart size={10} /> Ajouter au panier</button>
+                          <button onClick={(e) => { e.stopPropagation(); commander(p.ref, p.nom); }} className="w-full rounded-lg bg-[#c0392b] py-1.5 text-[9px] font-bold text-white hover:bg-[#a93226] transition flex items-center justify-center gap-1"><ShoppingCart size={10} /> Ajouter au panier</button>
                         </div>
                       )}
                     </button>
@@ -1640,6 +1694,7 @@ export default function CatalogueTechnique() {
               selectedPiece={selectedPiece}
               onSelect={(i) => setSelectedPiece(selectedPiece === i ? null : i)}
               coupleSerrage={data.coupleSerrage}
+              onCommander={commander}
             />
           )}
 
@@ -1667,7 +1722,17 @@ export default function CatalogueTechnique() {
               <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
                 <div className="bg-[#111] px-3 py-2 flex items-center justify-between">
                   <h3 className="text-xs font-bold text-[#D4AF37]">Couples de serrage</h3>
-                  <button className="text-[10px] text-white/40 flex items-center gap-1"><Download size={10} /> PDF</button>
+                  <button
+                    onClick={() =>
+                      imprimerCouples(
+                        `Couples de serrage — ${vehicle.marque} ${vehicle.modele}`,
+                        data.coupleSerrage.map((c) => ({ systeme: "", piece: c.piece, valeur: c.valeur, outil: c.outil })),
+                      )
+                    }
+                    className="text-[10px] text-white/70 flex items-center gap-1 hover:text-white"
+                  >
+                    <Download size={10} /> PDF
+                  </button>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -1735,7 +1800,7 @@ export default function CatalogueTechnique() {
                       </div>
                       {selectedPiece === i && (
                         <div className="mt-2 pt-2 border-t border-[#E5E7EB]">
-                          <button className="w-full rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Commander cette pièce</button>
+                          <button onClick={(e) => { e.stopPropagation(); commander(p.ref, p.nom); }} className="w-full rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Commander cette pièce</button>
                         </div>
                       )}
                     </button>

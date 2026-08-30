@@ -10,6 +10,7 @@ import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { kycProfiles, kycDocuments } from "../schema.js";
+import { analyser, type RapportMedia } from "../media-authenticity/service.js";
 import { PROFILES, documentsObligatoires, type ProfileType } from "@shared/profiles.js";
 
 const DOC_TYPES = [
@@ -24,6 +25,87 @@ const DOC_TYPES = [
 ] as const;
 
 const PROFILE_TYPES = Object.keys(PROFILES) as [ProfileType, ...ProfileType[]];
+
+/**
+ * Constat d'un justificatif, tel qu'il est rendu à l'écran et écrit dans le
+ * dossier. « verifie » ne veut pas dire « authentique » : la machine constate
+ * ce qui est constatable (empreinte, métadonnées, réutilisation du même
+ * fichier ailleurs, provenance signée, cohérence technique, lecture par
+ * MKA.P-MS Intelligences quand le fournisseur vision est configuré) et
+ * n'établit jamais qu'un KBIS ou une pièce d'identité est un vrai document
+ * administratif. Cette décision reste humaine.
+ */
+export interface ControleDocument {
+  docType: string;
+  libelle: string;
+  /** Vrai quand un constat exige un examen humain avant validation. */
+  aExaminer: boolean;
+  niveau: "faible" | "moyen" | "eleve" | "indetermine" | "illisible";
+  motif: string;
+  /** Détecteurs qui n'ont pas pu s'exécuter — jamais rassurant. */
+  nonVerifie: string[];
+}
+
+/**
+ * Analyse une pièce par le moteur d'authenticité des médias. Le contexte
+ * « kyc_document » relie le constat au justificatif enregistré : la direction
+ * retrouve le détail, les preuves et les incidents dans le moteur.
+ */
+async function controler(
+  docType: string,
+  fileName: string | undefined,
+  fileUrl: string,
+  mimeType: string | undefined,
+  cible: { documentId: number; userId: number },
+): Promise<ControleDocument> {
+  const libelle = fileName ?? docType;
+  let rapport: RapportMedia;
+  try {
+    rapport = await analyser({
+      contenu: fileUrl,
+      contexte: "kyc_document",
+      contexteId: cible.documentId,
+      ownerId: cible.userId,
+      mime: mimeType,
+      kind: mimeType && mimeType.startsWith("image/") ? "image" : "document",
+    });
+  } catch (e) {
+    // Une pièce illisible n'est pas une pièce acceptée : elle part en examen.
+    return {
+      docType,
+      libelle,
+      aExaminer: true,
+      niveau: "illisible",
+      motif: `Pièce non analysable (${(e as Error).message}) : elle doit être examinée à la main avant toute validation.`,
+      nonVerifie: [],
+    };
+  }
+
+  const nonVerifie = rapport.detecteursIndisponibles.map(
+    (d) => `${d.detecteur} — ${d.dependance}`,
+  );
+  return {
+    docType,
+    libelle,
+    aExaminer: rapport.niveau === "eleve" || rapport.niveau === "indetermine",
+    niveau: rapport.niveau,
+    motif: rapport.motif,
+    nonVerifie,
+  };
+}
+
+function resumeControles(controles: ControleDocument[]): string {
+  const lignes = controles.map(
+    (c) =>
+      `• ${c.libelle} — ${c.niveau}${c.aExaminer ? " (à examiner)" : ""} : ${c.motif}${
+        c.nonVerifie.length ? ` [non vérifié : ${c.nonVerifie.join(" ; ")}]` : ""
+      }`,
+  );
+  return [
+    "Contrôle d'authenticité des pièces (constat automatique, décision humaine) :",
+    ...lignes,
+  ].join("\n");
+}
 
 export const kycRouter = router({
   // Mon dossier de validation + documents soumis.
@@ -124,6 +206,8 @@ export const kycRouter = router({
         .from(kycDocuments)
         .where(eq(kycDocuments.profileId, profile.id));
 
+      const controles: ControleDocument[] = [];
+
       for (const doc of input.documents) {
         const doublons = existants.filter(
           (e) => e.docType === doc.docType && (e.fileName ?? "") === (doc.fileName ?? ""),
@@ -131,15 +215,33 @@ export const kycRouter = router({
         for (const d of doublons) {
           await db.delete(kycDocuments).where(eq(kycDocuments.id, d.id));
         }
-        await db.insert(kycDocuments).values({
-          profileId: profile.id,
-          docType: doc.docType,
-          fileUrl: doc.fileUrl,
-          fileName: doc.fileName ?? null,
-          mimeType: doc.mimeType ?? null,
-          sizeBytes: doc.sizeBytes ?? null,
-        });
+        const [enregistre] = await db
+          .insert(kycDocuments)
+          .values({
+            profileId: profile.id,
+            docType: doc.docType,
+            fileUrl: doc.fileUrl,
+            fileName: doc.fileName ?? null,
+            mimeType: doc.mimeType ?? null,
+            sizeBytes: doc.sizeBytes ?? null,
+          })
+          .returning({ id: kycDocuments.id });
+
+        controles.push(
+          await controler(doc.docType, doc.fileName, doc.fileUrl, doc.mimeType, {
+            documentId: enregistre.id,
+            userId: ctx.user.uid,
+          }),
+        );
       }
+
+      // Le constat est écrit dans le dossier : la personne qui valide voit ce
+      // que la machine a réellement pu vérifier, et ce qu'elle n'a pas pu.
+      const aExaminer = controles.filter((c) => c.aExaminer);
+      await db
+        .update(kycProfiles)
+        .set({ notes: resumeControles(controles), updatedAt: new Date() })
+        .where(eq(kycProfiles.id, profile.id));
 
       const total = await db
         .select({ id: kycDocuments.id })
@@ -150,6 +252,8 @@ export const kycRouter = router({
         status: "en_validation" as const,
         profileId: profile.id,
         documentsEnregistres: total.length,
+        controles,
+        piecesAExaminer: aExaminer.length,
       };
     }),
 });

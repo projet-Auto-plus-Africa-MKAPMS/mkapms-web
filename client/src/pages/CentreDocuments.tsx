@@ -1,23 +1,25 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FileText, Upload, Check, Clock, AlertCircle, XCircle, Eye,
-  ChevronDown, Search, Filter, Download, Plus, Shield, Car,
-  Wrench, Briefcase, CreditCard, FileCheck
+  Search, Download, Plus, Shield, Car,
+  Wrench, Briefcase, CreditCard
 } from "lucide-react";
+import { trpc } from "../lib/trpc";
+import { useAuth } from "../lib/auth";
 
 /* ══════════════════════════════════════════════════════════════════════════
    CENTRE DE DOCUMENTS
-   Tous les documents restent dans la plateforme.
-   Présent dans : Vente, Location, Garage, VTC, Taxi, Démarches admin.
+   Les pièces réellement enregistrées dans le dossier de validation (kyc).
+   Chaque action mène à un vrai résultat : le fichier est ouvert/téléchargé
+   depuis son URL, ou l'écran de dépôt (/compte/validation) est ouvert.
    ══════════════════════════════════════════════════════════════════════════ */
 
-type DocStatus = "attente" | "envoye" | "recu" | "verification" | "refuse" | "a_completer" | "valide";
+type DocStatus = "attente" | "envoye" | "verification" | "refuse" | "a_completer" | "valide";
 
 const STATUS_CONFIG: Record<DocStatus, { label: string; color: string; bg: string; icon: typeof Check }> = {
   attente: { label: "En attente", color: "text-[#6B7280]", bg: "bg-[#F3F4F6]", icon: Clock },
   envoye: { label: "Envoyé", color: "text-blue-600", bg: "bg-blue-50", icon: Upload },
-  recu: { label: "Reçu", color: "text-indigo-600", bg: "bg-indigo-50", icon: FileText },
   verification: { label: "En vérification", color: "text-amber-600", bg: "bg-amber-50", icon: Eye },
   refuse: { label: "Refusé", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
   a_completer: { label: "À compléter", color: "text-orange-600", bg: "bg-orange-50", icon: AlertCircle },
@@ -33,35 +35,82 @@ const CATEGORIES = [
   { id: "admin", label: "Admin", icon: Briefcase },
 ];
 
-const DOCUMENTS = [
-  { id: 1, nom: "Pièce d'identité", type: "location", statut: "valide" as DocStatus, date: "2025-01-15", taille: "2.4 Mo" },
-  { id: 2, nom: "Permis de conduire", type: "location", statut: "valide" as DocStatus, date: "2025-01-15", taille: "1.8 Mo" },
-  { id: 3, nom: "Carte VTC", type: "vtc", statut: "verification" as DocStatus, date: "2025-02-01", taille: "3.1 Mo" },
-  { id: 4, nom: "KBIS Société", type: "admin", statut: "envoye" as DocStatus, date: "2025-02-10", taille: "1.2 Mo" },
-  { id: 5, nom: "Assurance RC Pro", type: "vtc", statut: "a_completer" as DocStatus, date: "2025-02-12", taille: "0 Mo" },
-  { id: 6, nom: "Carte grise véhicule", type: "vente", statut: "valide" as DocStatus, date: "2025-01-20", taille: "1.5 Mo" },
-  { id: 7, nom: "Contrôle technique", type: "garage", statut: "attente" as DocStatus, date: "2025-03-01", taille: "0 Mo" },
-  { id: 8, nom: "Justificatif de domicile", type: "location", statut: "refuse" as DocStatus, date: "2025-02-05", taille: "0.8 Mo" },
-  { id: 9, nom: "Attestation URSSAF", type: "vtc", statut: "recu" as DocStatus, date: "2025-02-20", taille: "0.5 Mo" },
-];
+/** Rattache un type de pièce à l'univers qui l'exige. */
+const CATEGORIE_PAR_TYPE: Record<string, string> = {
+  piece_identite: "admin",
+  permis_conduire: "location",
+  justificatif_domicile: "location",
+  kbis: "admin",
+  rib: "admin",
+  carte_grise: "vente",
+  controle_technique: "garage",
+  autre: "vtc",
+};
+
+/** L'état du dossier décide de l'état affiché : une pièce seule n'a pas de verdict. */
+const STATUT_PAR_DOSSIER: Record<string, DocStatus> = {
+  non_demarre: "attente",
+  en_cours: "envoye",
+  en_validation: "verification",
+  valide: "valide",
+  refuse: "refuse",
+  expire: "a_completer",
+};
+
+const LIBELLE_TYPE: Record<string, string> = {
+  piece_identite: "Pièce d'identité",
+  permis_conduire: "Permis de conduire",
+  justificatif_domicile: "Justificatif de domicile",
+  kbis: "KBIS société",
+  rib: "RIB",
+  carte_grise: "Carte grise",
+  controle_technique: "Contrôle technique",
+  autre: "Autre justificatif",
+};
+
+function taille(bytes: number | null): string {
+  if (!bytes) return "—";
+  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+}
 
 export default function CentreDocuments() {
+  const { user } = useAuth();
   const [cat, setCat] = useState("tous");
   const [search, setSearch] = useState("");
+  const dossier = trpc.kyc.myProfile.useQuery(undefined, { enabled: !!user });
 
-  const filtered = DOCUMENTS.filter((d) => {
+  const statutDossier = dossier.data?.profile?.status ?? "non_demarre";
+  const documents = useMemo(
+    () =>
+      (dossier.data?.documents ?? []).map((d) => ({
+        id: d.id,
+        nom: d.fileName || LIBELLE_TYPE[d.docType] || d.docType,
+        type: CATEGORIE_PAR_TYPE[d.docType] ?? "admin",
+        statut: STATUT_PAR_DOSSIER[statutDossier] ?? "attente",
+        date: new Date(d.uploadedAt).toLocaleDateString("fr-FR"),
+        taille: taille(d.sizeBytes),
+        fileUrl: d.fileUrl,
+      })),
+    [dossier.data, statutDossier],
+  );
+
+  const filtered = documents.filter((d) => {
     if (cat !== "tous" && d.type !== cat) return false;
     if (search && !d.nom.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
-  const counts = { total: DOCUMENTS.length, valide: DOCUMENTS.filter((d) => d.statut === "valide").length, en_cours: DOCUMENTS.filter((d) => !["valide", "refuse"].includes(d.statut)).length, refuse: DOCUMENTS.filter((d) => d.statut === "refuse").length };
+  const counts = {
+    valide: documents.filter((d) => d.statut === "valide").length,
+    en_cours: documents.filter((d) => !["valide", "refuse"].includes(d.statut)).length,
+    refuse: documents.filter((d) => d.statut === "refuse").length,
+  };
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-[#111] px-4 pt-6 pb-5">
         <h1 className="text-xl font-black text-white">Centre de documents</h1>
-        <p className="mt-1 text-sm text-white/60">Tous vos documents au même endroit</p>
+        <p className="mt-1 text-sm text-white/60">Les pièces enregistrées dans votre dossier</p>
       </div>
 
       {/* Stats */}
@@ -98,11 +147,11 @@ export default function CentreDocuments() {
         })}
       </div>
 
-      {/* Upload button */}
+      {/* Dépôt d'une pièce : l'écran de validation est le seul endroit qui enregistre. */}
       <div className="px-4 mt-4">
-        <button className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#D4AF37] bg-[#D4AF37]/5 py-4 text-sm font-bold text-[#D4AF37] active:scale-[0.98] transition">
+        <Link to="/compte/validation" className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#D4AF37] bg-[#D4AF37]/5 py-4 text-sm font-bold text-[#D4AF37] active:scale-[0.98] transition">
           <Plus size={16} /> Ajouter un document
-        </button>
+        </Link>
       </div>
 
       {/* Documents list */}
@@ -127,21 +176,34 @@ export default function CentreDocuments() {
                 </span>
               </div>
               <div className="mt-3 flex gap-2">
-                {d.statut === "valide" && <button className="flex-1 rounded-lg bg-[#F5F3EF] py-2 text-xs font-semibold text-[#6B7280] flex items-center justify-center gap-1"><Download size={12} /> Télécharger</button>}
-                {d.statut === "refuse" && <button className="flex-1 rounded-lg bg-red-50 py-2 text-xs font-semibold text-red-600 flex items-center justify-center gap-1"><Upload size={12} /> Renvoyer</button>}
-                {d.statut === "a_completer" && <button className="flex-1 rounded-lg bg-[#D4AF37]/10 py-2 text-xs font-semibold text-[#D4AF37] flex items-center justify-center gap-1"><Upload size={12} /> Compléter</button>}
-                {d.statut === "attente" && <button className="flex-1 rounded-lg bg-[#D4AF37]/10 py-2 text-xs font-semibold text-[#D4AF37] flex items-center justify-center gap-1"><Upload size={12} /> Envoyer</button>}
-                <button className="rounded-lg bg-[#F5F3EF] px-3 py-2 text-xs font-semibold text-[#6B7280]"><Eye size={12} /></button>
+                <a href={d.fileUrl} download={d.nom} target="_blank" rel="noreferrer" className="flex-1 rounded-lg bg-[#F5F3EF] py-2 text-xs font-semibold text-[#6B7280] flex items-center justify-center gap-1">
+                  <Download size={12} /> Télécharger
+                </a>
+                {(d.statut === "refuse" || d.statut === "a_completer") && (
+                  <Link to="/compte/validation" className="flex-1 rounded-lg bg-red-50 py-2 text-xs font-semibold text-red-600 flex items-center justify-center gap-1">
+                    <Upload size={12} /> Renvoyer
+                  </Link>
+                )}
+                <a href={d.fileUrl} target="_blank" rel="noreferrer" className="rounded-lg bg-[#F5F3EF] px-3 py-2 text-xs font-semibold text-[#6B7280] flex items-center"><Eye size={12} /></a>
               </div>
             </div>
           );
         })}
       </div>
 
-      {filtered.length === 0 && (
+      {!user && (
         <div className="px-4 mt-8 text-center">
           <FileText size={32} className="mx-auto text-[#D4AF37]" />
-          <p className="mt-2 text-sm font-semibold text-[#6B7280]">Aucun document trouvé</p>
+          <p className="mt-2 text-sm font-semibold text-[#6B7280]">Connectez-vous pour voir vos documents</p>
+          <Link to="/connexion" className="mt-3 inline-block rounded-xl bg-[#111] px-4 py-2 text-xs font-bold text-[#D4AF37]">Se connecter</Link>
+        </div>
+      )}
+
+      {user && !dossier.isLoading && filtered.length === 0 && (
+        <div className="px-4 mt-8 text-center">
+          <FileText size={32} className="mx-auto text-[#D4AF37]" />
+          <p className="mt-2 text-sm font-semibold text-[#6B7280]">Aucun document enregistré</p>
+          <Link to="/compte/validation" className="mt-3 inline-block rounded-xl bg-[#111] px-4 py-2 text-xs font-bold text-[#D4AF37]">Déposer une pièce</Link>
         </div>
       )}
     </div>
