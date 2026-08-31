@@ -113,6 +113,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "atelier",
+    label: "Moteur d'Atelier",
+    category: "service",
+    dependencies: ["core", "event_bus", "smart"],
+    description:
+      "Capacités serveur de l'atelier qui manquaient réellement : validation interne et contrôle qualité enregistrés et opposables, stock de pièces du garage avec un mouvement par écriture, report de rendez-vous tracé. Chaque écriture est publiée à l'Event Bus.",
+    state: "active",
+  },
+  {
     name: "account_routing",
     label: "Account Routing Engine",
     category: "transversal",

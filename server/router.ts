@@ -131,6 +131,7 @@ import { intelligencesRouter } from "./intelligences/index.js";
 import { accountDeletionRouter } from "./account-deletion/index.js";
 import { mediaAuthenticityRouter } from "./media-authenticity/index.js";
 import { userPreferencesRouter } from "./user-preferences/index.js";
+import { atelierEngineRouter } from "./atelier-engine/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -208,6 +209,8 @@ export const appRouter = router({
   redirectionEngine: redirectionEngineRouter,
   // Moteur de boutons — chaque bouton déclare son action, le moteur l'exécute
   buttonEngine: buttonEngineRouter,
+  // Moteur d'Atelier — validations, contrôle qualité, stock garage, report de RDV
+  atelierEngine: atelierEngineRouter,
   engineRegistry: engineRegistryRouter,
   paymentEngine: paymentEngineRouter,
   // Coordination des deux moteurs centraux (Phase 55)

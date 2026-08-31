@@ -1187,3 +1187,4 @@ export * from "./charging-engine/schema"; // Charging Engine — annuaire des bo
 export * from "./vehicle-delivery/schema"; // Vehicle Delivery Engine — acheminement des véhicules (isolé, distinct des colis)
 export * from "./account-deletion/schema"; // Suppression de compte — demandes tracées (isolé)
 export * from "./media-authenticity/schema"; // Media Authenticity — provenance et réutilisation des médias et documents (isolé)
+export * from "./atelier-engine/schema"; // Moteur d'Atelier — validations, contrôle qualité, stock garage, reports de RDV (isolé)
