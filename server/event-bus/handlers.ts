@@ -262,6 +262,39 @@ const handlers: Record<string, Handler> = {
       : `Alerte déjà ouverte pour ${corridor}.`;
   },
 
+  /**
+   * Un bouton qui ne mène à rien : le Système Intelligent ouvre l'alerte, et
+   * MKA.P-MS Intelligences ouvre le dossier de développement correspondant —
+   * une seule fois par bouton, à la première alerte, pour que 500 clics ne
+   * fassent pas 500 dossiers.
+   */
+  async smart_bouton_sans_action(payload) {
+    const code = texte(payload, "code") || "?";
+    const ecran = texte(payload, "ecran") || "écran non transmis";
+    const manque = texte(payload, "manque") || "action non déclarée au Moteur de boutons";
+    const cree = await raiseAlert({
+      category: "service",
+      title: `Bouton sans action — ${code}`,
+      description:
+        `Un utilisateur a cliqué sur « ${code} » depuis ${ecran} et rien ne s'est produit. Cause : ${manque}. ` +
+        "Un bouton visible qui ne fait rien fait douter de toute la plateforme.",
+      level: "warning",
+      targetType: "bouton",
+      signature: `bus:bouton_sans_action:${code}`,
+    });
+    if (!cree) return `Alerte déjà ouverte pour le bouton ${code}.`;
+
+    // Import différé : les Intelligences publient elles-mêmes sur le bus.
+    const { proposer } = await import("../intelligences/service.js");
+    const { dossier } = await proposer({
+      besoin:
+        `Bouton « ${code} » sans action réelle sur ${ecran}. ${manque} ` +
+        "Brancher ce bouton sur une action exécutable (procédure serveur, destination existante) " +
+        "ou retirer le bouton de l'écran. Aucun faux succès ne doit être affiché en attendant.",
+    });
+    return `Alerte ouverte pour ${code} et dossier de développement ${dossier?.id ?? "non ouvert"} demandé aux Intelligences.`;
+  },
+
   async audit_trace(payload, ctx) {
     await auditRecord({
       actorId: null,

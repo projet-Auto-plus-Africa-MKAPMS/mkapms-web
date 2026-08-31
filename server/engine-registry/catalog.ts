@@ -104,6 +104,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "boutons",
+    label: "Moteur de boutons",
+    category: "transversal",
+    dependencies: ["core", "redirection", "event_bus"],
+    description:
+      "Chaque bouton déclare un code d'action ; le moteur donne l'action à exécuter, résoud la destination via le Moteur de Redirection, signale chaque clic et publie « bouton.sans_action » au Système Intelligent quand l'action mène au vide.",
+    state: "active",
+  },
+  {
     name: "account_routing",
     label: "Account Routing Engine",
     category: "transversal",

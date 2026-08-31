@@ -249,6 +249,44 @@ export const ENGINE_CONTRACTS: EngineContract[] = [
       rollback: "Redéployer la version précédente ; migrations redirection_* additives.",
     },
   },
+  {
+    id: "boutons",
+    technicalName: "MKA.P-MS Button Engine",
+    publicName: "Moteur de boutons MKA.P-MS",
+    version: "1.0.0",
+    category: "transversal",
+    description:
+      "Chaque bouton déclare un code d'action au lieu de câbler son comportement dans l'écran.",
+    responsibilities: [
+      "Donner l'action d'un bouton (navigation, contact, document, formulaire).",
+      "Résoudre la destination d'un bouton via le Moteur de Redirection.",
+      "Nommer les actions déclarées que rien n'exécute encore côté serveur.",
+      "Signaler chaque clic pour rendre visible un bouton qui mène au vide.",
+    ],
+    dependencies: ["core", "redirection", "event_bus"],
+    eventsPublished: ["bouton.sans_action"],
+    eventsConsumed: [],
+    endpoints: ["buttonEngine.*"],
+    tables: [],
+    permissions: [
+      {
+        key: "boutons.inventaire.view",
+        kind: "page",
+        roles: ["super_admin"],
+        description: "Inventaire des boutons de la plateforme (PDG).",
+      },
+    ],
+    controlCenter: "/admin/redirection-engine",
+    healthCheck: "engineRegistry.heartbeat(boutons)",
+    currentState: "active",
+    environment: "production",
+    procedures: {
+      stop: "engineRegistry.setState(boutons, maintenance) — les écrans utilisent la cible catalogue.",
+      resume: "engineRegistry.setState(boutons, active).",
+      update: "Déployer puis heartbeat(boutons, version).",
+      rollback: "Redéployer la version précédente ; aucune table propre au moteur.",
+    },
+  },
 ];
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

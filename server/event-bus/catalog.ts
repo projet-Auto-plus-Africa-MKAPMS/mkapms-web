@@ -219,6 +219,15 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     champs: ["annonceId", "paysDepart", "paysArrivee", "manques"],
     emetteurs: ["estimation"],
   },
+  {
+    code: "bouton.sans_action",
+    domaine: "service",
+    label: "Bouton sans action réelle",
+    description:
+      "Un utilisateur a cliqué sur un bouton dont l'action n'existe pas encore, ou dont la destination est introuvable. Publié pour que l'écran cassé remonte au clic réel, sans attendre qu'un agent le retrouve à la main.",
+    champs: ["code", "ecran", "manque"],
+    emetteurs: ["boutons"],
+  },
 ];
 
 export interface SubscriptionSpec {
@@ -316,6 +325,13 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     handler: "smart_estimation_incomplete",
     effet:
       "Ouvre une alerte par corridor d'estimation incomplète : c'est la liste des sources manquantes classée par demande réelle des acheteurs.",
+  },
+  {
+    engine: "smart",
+    eventType: "bouton.sans_action",
+    handler: "smart_bouton_sans_action",
+    effet:
+      "Ouvre une alerte dédupliquée par code de bouton et demande à MKA.P-MS Intelligences la correction à apporter : c'est la liste des écrans qui déçoivent réellement un utilisateur, classée par clics.",
   },
   {
     engine: "audit_os",
