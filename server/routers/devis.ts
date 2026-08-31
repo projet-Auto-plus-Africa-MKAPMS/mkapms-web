@@ -74,9 +74,9 @@ export const devisRouter = router({
       montantHT: z.number().optional(),
       montantTTC: z.number().optional(),
     }))
-    .mutation(async ({ input }) => {
-      const [devis] = await db.select().from(devisGarageRequests).where(eq(devisGarageRequests.id, input.devisId)).limit(1);
-      if (!devis) throw new Error("Devis introuvable");
+    .mutation(async ({ input, ctx }) => {
+      // Un devis n'est accepté, refusé ou annulé que par son propre client.
+      const devis = await devisDuClient(input.devisId, ctx.user.uid);
       await db.update(devisGarageRequests).set({ status: input.status }).where(eq(devisGarageRequests.id, input.devisId));
       const statusLabels: Record<string, string> = {
         nouveau: "Demande envoyée",
@@ -118,6 +118,22 @@ export const devisRouter = router({
     .query(async ({ ctx, input }) => {
       const devis = await devisDuClient(input.devisId, ctx.user.uid);
       return calculerMontantDevis(devis);
+    }),
+
+  /**
+   * Devis du client avec les lignes réellement chiffrées par le garage et son
+   * total. L'écran de validation affiche ces lignes ; il n'en invente aucune.
+   */
+  detail: protectedProcedure
+    .input(z.object({ devisId: z.number().int().positive() }))
+    .query(async ({ ctx, input }) => {
+      const devis = await devisDuClient(input.devisId, ctx.user.uid);
+      const lignes = await db
+        .select()
+        .from(devisItems)
+        .where(eq(devisItems.devisId, devis.id))
+        .orderBy(devisItems.id);
+      return { devis, lignes, montant: await calculerMontantDevis(devis) };
     }),
 
   /**

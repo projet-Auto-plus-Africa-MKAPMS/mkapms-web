@@ -228,6 +228,42 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     champs: ["code", "ecran", "manque"],
     emetteurs: ["boutons"],
   },
+  {
+    code: "atelier.validation_enregistree",
+    domaine: "service",
+    label: "Validation d'atelier enregistrée",
+    description:
+      "Une validation interne ou un contrôle qualité vient d'être écrit côté serveur : le « validé » de l'écran est désormais opposable, avec son auteur et ses points contrôlés.",
+    champs: ["validationId", "dossier", "type", "conforme"],
+    emetteurs: ["atelier"],
+  },
+  {
+    code: "atelier.controle_non_conforme",
+    domaine: "service",
+    label: "Contrôle d'atelier non conforme",
+    description:
+      "Un dossier a été contrôlé et n'est pas conforme. Un véhicule rendu dans cet état revient toujours : le Système Intelligent ouvre l'alerte au lieu d'attendre la réclamation du client.",
+    champs: ["dossier", "type", "points"],
+    emetteurs: ["atelier"],
+  },
+  {
+    code: "atelier.stock_bas",
+    domaine: "service",
+    label: "Stock de pièces au niveau d'alerte",
+    description:
+      "Une référence du stock garage est tombée sous son seuil réel. Remplace le « réapprovisionnement automatique » qui n'existait pas : le manque est signalé, la commande reste une décision.",
+    champs: ["garageId", "reference", "quantite", "seuil"],
+    emetteurs: ["atelier"],
+  },
+  {
+    code: "atelier.rdv_reporte",
+    domaine: "service",
+    label: "Rendez-vous atelier reporté",
+    description:
+      "Un rendez-vous a changé de date avec son motif. Un report non tracé est un client qui se présente pour rien.",
+    champs: ["rdvId", "nouvelleDate", "motif"],
+    emetteurs: ["atelier"],
+  },
 ];
 
 export interface SubscriptionSpec {
@@ -332,6 +368,20 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     handler: "smart_bouton_sans_action",
     effet:
       "Ouvre une alerte dédupliquée par code de bouton et demande à MKA.P-MS Intelligences la correction à apporter : c'est la liste des écrans qui déçoivent réellement un utilisateur, classée par clics.",
+  },
+  {
+    engine: "smart",
+    eventType: "atelier.controle_non_conforme",
+    handler: "smart_atelier_non_conforme",
+    effet:
+      "Ouvre une alerte dédupliquée par dossier : un contrôle non conforme doit être traité avant la restitution du véhicule, pas après.",
+  },
+  {
+    engine: "smart",
+    eventType: "atelier.stock_bas",
+    handler: "smart_atelier_stock_bas",
+    effet:
+      "Ouvre une alerte dédupliquée par référence de pièce : la rupture est annoncée avant l'immobilisation d'un véhicule.",
   },
   {
     engine: "audit_os",

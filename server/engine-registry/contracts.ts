@@ -62,8 +62,8 @@ export interface EngineContract {
   publicName: string;
   /** Version sémantique. */
   version: string;
-  /** Catégorie dans l'écosystème. */
-  category: "core" | "transversal" | "univers";
+  /** Catégorie dans l'écosystème, alignée sur le catalogue du registre. */
+  category: "core" | "transversal" | "univers" | "service" | "sous_section";
   /** Description courte. */
   description: string;
   /** Responsabilités du moteur. */
@@ -285,6 +285,55 @@ export const ENGINE_CONTRACTS: EngineContract[] = [
       resume: "engineRegistry.setState(boutons, active).",
       update: "Déployer puis heartbeat(boutons, version).",
       rollback: "Redéployer la version précédente ; aucune table propre au moteur.",
+    },
+  },
+  {
+    id: "atelier",
+    technicalName: "MKA.P-MS Atelier Engine",
+    publicName: "Moteur d'Atelier MKA.P-MS",
+    version: "1.0.0",
+    category: "service",
+    description:
+      "Capacités serveur de l'atelier : validation interne, contrôle qualité, stock de pièces du garage, report de rendez-vous.",
+    responsibilities: [
+      "Enregistrer une validation d'atelier opposable (qui, quoi, quand, points contrôlés).",
+      "Calculer la conformité à partir des points réellement cochés, jamais la déclarer.",
+      "Tenir le stock de pièces d'un garage avec un mouvement par écriture.",
+      "Tracer le report d'un rendez-vous atelier avec son motif.",
+    ],
+    dependencies: ["core", "event_bus", "smart"],
+    eventsPublished: [
+      "atelier.validation_enregistree",
+      "atelier.controle_non_conforme",
+      "atelier.stock_bas",
+      "atelier.rdv_reporte",
+    ],
+    eventsConsumed: [],
+    endpoints: ["atelierEngine.*"],
+    tables: ["atelier_*"],
+    permissions: [
+      {
+        key: "atelier.validation.write",
+        kind: "endpoint",
+        roles: ["pro", "super_admin"],
+        description: "Enregistrer une validation d'atelier sur un garage possédé.",
+      },
+      {
+        key: "atelier.stock.write",
+        kind: "endpoint",
+        roles: ["pro", "super_admin"],
+        description: "Tenir le stock de pièces d'un garage possédé.",
+      },
+    ],
+    controlCenter: "/admin/engines",
+    healthCheck: "atelierEngine.etat",
+    currentState: "active",
+    environment: "production",
+    procedures: {
+      stop: "engineRegistry.setState(atelier, maintenance) — les écrans annoncent l'indisponibilité au lieu d'un faux succès.",
+      resume: "engineRegistry.setState(atelier, active).",
+      update: "Déployer puis heartbeat(atelier, version).",
+      rollback: "Redéployer la version précédente ; migrations atelier_* additives.",
     },
   },
 ];

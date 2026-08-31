@@ -86,17 +86,13 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
     code: "garage_validation_interne",
     libelle: "Valider (validation interne)",
     ecran: "/garage/validation-interne",
-    genre: "non_branchee",
-    manque:
-      "Aucune procédure serveur n'enregistre les validations d'atelier : il n'existe ni table ni route pour tracer qui valide, quand, et sur quel dossier.",
+    genre: "formulaire",
   },
   {
     code: "garage_cq_validation",
     libelle: "Valider (contrôle qualité premium)",
     ecran: "/garage/controle-qualite-premium",
-    genre: "non_branchee",
-    manque:
-      "Le contrôle qualité n'a pas de dossier serveur : la double validation ne peut pas être opposable tant qu'elle n'est pas enregistrée.",
+    genre: "formulaire",
   },
 
   // ── Garage — pièces et contrats ───────────────────────────────────────
@@ -114,12 +110,120 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
     ecran: "/garage/commandes-automatiques",
     genre: "non_branchee",
     manque:
-      "Le réapprovisionnement automatique suppose un stock serveur et un déclencheur planifié (Scheduler OS) : aucun des deux n'est relié au stock garage.",
+      "Le stock garage existe désormais côté serveur et signale lui-même ses ruptures (événement atelier.stock_bas), mais aucun déclencheur planifié ne passe commande automatiquement : la commande reste une décision de l'atelier.",
   },
   {
     code: "garage_contrat_flotte_souscrire",
     libelle: "Souscrire un contrat de flotte",
     ecran: "/garage/contrats-flottes",
+    genre: "navigation",
+    cible: "/garage/demande-devis",
+    cleRedirection: "bouton_garage_devis",
+  },
+
+  // ── Garage — dépannage urgent ─────────────────────────────────────────
+  {
+    code: "garage_depannage_appel",
+    libelle: "Appel d'urgence dépannage",
+    ecran: "/garage/depannage-garage",
+    genre: "non_branchee",
+    manque:
+      "Aucun numéro d'assistance n'existe côté serveur : les dépanneurs enregistrés (breakdown_providers) n'ont pas de champ téléphone. Afficher un numéro ici serait un numéro inventé.",
+  },
+  {
+    code: "garage_depannage_demande",
+    libelle: "Demander un dépanneur",
+    ecran: "/garage/depannage-garage",
+    genre: "formulaire",
+  },
+  {
+    code: "garage_depannage_photo",
+    libelle: "Joindre une photo à la demande de dépannage",
+    ecran: "/garage/depannage-garage",
+    genre: "non_branchee",
+    manque:
+      "La demande de dépannage n'a pas de champ média côté serveur (aucune colonne photo sur breakdown_requests) : une photo jointe ici n'arriverait nulle part.",
+  },
+
+  // ── Garage — historique du véhicule ───────────────────────────────────
+  {
+    code: "garage_historique_suivi",
+    libelle: "Suivre l'intervention",
+    ecran: "/garage/historique-garage",
+    genre: "navigation",
+    cible: "/compte",
+    cleRedirection: "bouton_garage_suivi",
+  },
+  {
+    code: "garage_historique_devis",
+    libelle: "Demander un devis pour ce véhicule",
+    ecran: "/garage/historique-garage",
+    genre: "navigation",
+    cible: "/garage/demande-devis",
+    cleRedirection: "bouton_garage_devis",
+  },
+  {
+    code: "garage_historique_facture",
+    libelle: "Facture de l'intervention",
+    ecran: "/garage/historique-garage",
+    genre: "non_branchee",
+    manque:
+      "Aucune facture d'atelier n'est émise côté serveur : les interventions garage n'ont ni montant facturé ni document rattaché, seul leur suivi d'étape est enregistré.",
+  },
+
+  // ── Garage — planning atelier ─────────────────────────────────────────
+  {
+    code: "garage_planning_commencer",
+    libelle: "Commencer l'intervention",
+    ecran: "/garage/planning-atelier",
+    genre: "formulaire",
+  },
+  {
+    code: "garage_planning_pret",
+    libelle: "Véhicule prêt",
+    ecran: "/garage/planning-atelier",
+    genre: "formulaire",
+  },
+  {
+    code: "garage_planning_reporter",
+    libelle: "Reporter le rendez-vous",
+    ecran: "/garage/planning-atelier",
+    genre: "formulaire",
+  },
+
+  // ── Garage — stock de pièces ──────────────────────────────────────────
+  {
+    code: "garage_stock_ajuster",
+    libelle: "Enregistrer le stock",
+    ecran: "/garage/stock-pieces",
+    genre: "formulaire",
+  },
+  {
+    code: "garage_stock_commander",
+    libelle: "Commander la pièce",
+    ecran: "/garage/stock-pieces",
+    genre: "navigation",
+    cible: "/garage/panier-pieces",
+    cleRedirection: "bouton_garage_panier_pieces",
+  },
+
+  // ── Garage — validation du devis par le client ────────────────────────
+  {
+    code: "garage_devis_accepter",
+    libelle: "Accepter le devis",
+    ecran: "/garage/validation-client",
+    genre: "formulaire",
+  },
+  {
+    code: "garage_devis_refuser",
+    libelle: "Refuser le devis",
+    ecran: "/garage/validation-client",
+    genre: "formulaire",
+  },
+  {
+    code: "garage_devis_modifier",
+    libelle: "Demander une modification du devis",
+    ecran: "/garage/validation-client",
     genre: "navigation",
     cible: "/garage/demande-devis",
     cleRedirection: "bouton_garage_devis",

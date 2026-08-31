@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure, proProcedure } from "../trpc.js";
 import { db } from "../db.js";
@@ -7,6 +7,30 @@ import { garagesPublics, rdvGarage, serviceTracking } from "../schema.js";
 import { notifications } from "../modules/core.js";
 import { ingest as ingestVisibility } from "../visibility-os/index.js";
 import { requestReviewAfterCompletion } from "../reputation-engine/service.js";
+import { tracerReportRdv } from "../atelier-engine/service.js";
+
+/**
+ * Un professionnel n'agit que sur les rendez-vous de ses propres garages.
+ * Sans ce contrôle, `proProcedure` laissait n'importe quel compte pro modifier
+ * l'intervention d'un confrère.
+ */
+async function rdvDeMesGarages(userId: number, rdvId: number) {
+  const [ligne] = await db
+    .select({ rdv: rdvGarage, ownerId: garagesPublics.ownerId })
+    .from(rdvGarage)
+    .innerJoin(garagesPublics, eq(garagesPublics.id, rdvGarage.garageId))
+    .where(eq(rdvGarage.id, rdvId))
+    .limit(1);
+
+  if (!ligne) throw new TRPCError({ code: "NOT_FOUND", message: "Rendez-vous introuvable." });
+  if (ligne.ownerId !== userId) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Ce rendez-vous appartient à un garage qui n'est pas le vôtre.",
+    });
+  }
+  return ligne.rdv;
+}
 
 export const garagesRouter = router({
   // Annuaire public des garages (§7.1)
@@ -139,7 +163,9 @@ export const garagesRouter = router({
       status: z.enum(["planifiee", "accueil", "diagnostic", "devis_envoye", "en_reparation", "controle_qualite", "pret", "termine", "annulee"]),
       detail: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await rdvDeMesGarages(ctx.user.uid, input.rdvId);
+
       const statusLabels: Record<string, string> = {
         planifiee: "Rendez-vous planifié",
         accueil: "Véhicule réceptionné",
@@ -201,6 +227,87 @@ export const garagesRouter = router({
       }
 
       return rdv;
+    }),
+
+  // Atelier : rendez-vous réellement enregistrés pour les garages du compte.
+  planningAtelier: proProcedure.query(async ({ ctx }) => {
+    const miens = await db
+      .select({ id: garagesPublics.id, name: garagesPublics.name })
+      .from(garagesPublics)
+      .where(eq(garagesPublics.ownerId, ctx.user.uid));
+    if (miens.length === 0) return { garages: [], rdvs: [] };
+    const rdvs = await db
+      .select()
+      .from(rdvGarage)
+      .where(inArray(rdvGarage.garageId, miens.map((g) => g.id)))
+      .orderBy(desc(rdvGarage.dateHeure))
+      .limit(200);
+    return { garages: miens, rdvs };
+  }),
+
+  /**
+   * Report d'un rendez-vous : la date est réellement déplacée dans
+   * `rdv_garage`, l'ancienne et la nouvelle date sont conservées par le Moteur
+   * d'Atelier, et le client est prévenu. Un report non tracé, c'est un client
+   * qui se présente pour rien.
+   */
+  reporterRdv: proProcedure
+    .input(
+      z.object({
+        rdvId: z.number().int().positive(),
+        nouvelleDate: z.string().min(1),
+        motif: z.string().min(3).max(300),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const rdv = await rdvDeMesGarages(ctx.user.uid, input.rdvId);
+
+      const nouvelleDate = new Date(input.nouvelleDate);
+      if (Number.isNaN(nouvelleDate.getTime())) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Date de report illisible." });
+      }
+      if (nouvelleDate.getTime() <= Date.now()) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Un rendez-vous ne peut pas être reporté à une date déjà passée.",
+        });
+      }
+
+      const ancienneDate = rdv.dateHeure;
+      const [maj] = await db
+        .update(rdvGarage)
+        .set({ dateHeure: nouvelleDate, updatedAt: new Date() })
+        .where(eq(rdvGarage.id, rdv.id))
+        .returning();
+
+      await tracerReportRdv({
+        rdvId: rdv.id,
+        ancienneDate,
+        nouvelleDate,
+        motif: input.motif,
+        parUser: ctx.user.uid,
+      });
+
+      await db.insert(serviceTracking).values({
+        userId: rdv.clientId,
+        serviceType: "garage",
+        serviceId: rdv.id,
+        reference: `RDV-${rdv.id}`,
+        titre: "Intervention garage",
+        status: "planifiee",
+        statusLabel: "Rendez-vous reporté",
+        detail: `Nouvelle date : ${nouvelleDate.toLocaleString("fr-FR")}. Motif : ${input.motif}`,
+      });
+
+      await db.insert(notifications).values({
+        userId: rdv.clientId,
+        type: "garage",
+        title: "Garage — rendez-vous reporté",
+        body: `Votre rendez-vous est reporté au ${nouvelleDate.toLocaleString("fr-FR")}. Motif : ${input.motif}`,
+        url: "/compte",
+      });
+
+      return maj;
     }),
 
   // Client: voir le suivi de ses interventions garage

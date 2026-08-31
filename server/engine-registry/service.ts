@@ -30,7 +30,7 @@ export type EngineHealth = "ok" | "degraded" | "down" | "unknown";
 export interface RegisterInput {
   name: string;
   label: string;
-  category?: "core" | "transversal" | "univers";
+  category?: "core" | "transversal" | "univers" | "service" | "sous_section";
   version?: string;
   state?: EngineState;
   description?: string;

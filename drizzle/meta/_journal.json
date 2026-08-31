@@ -708,6 +708,13 @@
       "when": 1787576400000,
       "tag": "0101_user_preferences",
       "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1788171600000,
+      "tag": "0102_atelier_engine",
+      "breakpoints": true
     }
   ]
 }

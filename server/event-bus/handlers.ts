@@ -295,6 +295,44 @@ const handlers: Record<string, Handler> = {
     return `Alerte ouverte pour ${code} et dossier de développement ${dossier?.id ?? "non ouvert"} demandé aux Intelligences.`;
   },
 
+  async smart_atelier_non_conforme(payload) {
+    const dossier = texte(payload, "dossier") || "?";
+    const type = texte(payload, "type") || "contrôle";
+    const points = texte(payload, "points") || "points non transmis";
+    const cree = await raiseAlert({
+      category: "service",
+      title: `Contrôle atelier non conforme — ${dossier}`,
+      description:
+        `Le ${type.replace("_", " ")} du dossier ${dossier} n'est pas conforme : ${points}. ` +
+        "Le véhicule ne doit pas être restitué dans cet état.",
+      level: "important",
+      targetType: "atelier_validation",
+      signature: `bus:atelier_non_conforme:${dossier}`,
+    });
+    return cree
+      ? `Alerte ouverte sur le dossier ${dossier}.`
+      : `Alerte déjà ouverte sur le dossier ${dossier}.`;
+  },
+
+  async smart_atelier_stock_bas(payload) {
+    const reference = texte(payload, "reference") || "?";
+    const quantite = texte(payload, "quantite") || "0";
+    const seuil = texte(payload, "seuil") || "0";
+    const cree = await raiseAlert({
+      category: "service",
+      title: `Stock de pièce au seuil — ${reference}`,
+      description:
+        `La référence ${reference} est à ${quantite} pour un seuil d'alerte de ${seuil}. ` +
+        "La commande reste une décision de l'atelier : la plateforme signale, elle n'achète pas à sa place.",
+      level: "warning",
+      targetType: "atelier_stock",
+      signature: `bus:atelier_stock_bas:${reference}`,
+    });
+    return cree
+      ? `Alerte ouverte pour la référence ${reference}.`
+      : `Alerte déjà ouverte pour la référence ${reference}.`;
+  },
+
   async audit_trace(payload, ctx) {
     await auditRecord({
       actorId: null,
