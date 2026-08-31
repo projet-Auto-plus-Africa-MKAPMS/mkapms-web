@@ -16,7 +16,7 @@ export default function GestionMecaniciens() {
         {[
           { l: "Equipe", v: "4", c: "text-[#D4AF37]" },
           { l: "Perf. moyenne", v: "92%", c: "text-green-500" },
-        ].map(s => (<button key={s.l} className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center active:scale-[0.97]"><p className={`text-lg font-black ${s.c}`}>{s.v}</p><p className="text-[9px] text-[#6B7280]">{s.l}</p></button>))}
+        ].map(s => (<div key={s.l} className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center"><p className={`text-lg font-black ${s.c}`}>{s.v}</p><p className="text-[9px] text-[#6B7280]">{s.l}</p></div>))}
       </div>
       <div className="px-4 mt-3 space-y-2">{MECANICIENS.map(m => {
         const isExp = expanded === m.id;
@@ -36,8 +36,8 @@ export default function GestionMecaniciens() {
                   <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-[#6B7280]">Interventions</span><p className="font-bold text-[#111]">{m.interventions}</p></div>
                 </div>
                 <div className="flex gap-2 mt-2">
-                  <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[9px] font-bold text-white flex items-center justify-center gap-1"><Phone size={10} /> Appeler</button>
-                  <button className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Mail size={10} /> Email</button>
+                  <a href={`tel:${m.tel.replace(/\s/g, "")}`} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[9px] font-bold text-white flex items-center justify-center gap-1"><Phone size={10} /> Appeler</a>
+                  <a href={`mailto:${m.email}`} className="flex-1 rounded-lg bg-[#111] py-1.5 text-[9px] font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Mail size={10} /> Email</a>
                 </div>
               </div>
             )}
