@@ -715,6 +715,20 @@
       "when": 1788171600000,
       "tag": "0102_atelier_engine",
       "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1788216000000,
+      "tag": "0106_connecteur_google_business",
+      "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1788216001000,
+      "tag": "0107_avis_reputation_tables",
+      "breakpoints": true
     }
   ]
 }
