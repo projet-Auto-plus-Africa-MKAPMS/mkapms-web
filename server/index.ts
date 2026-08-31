@@ -378,7 +378,9 @@ if (isProd) {
 }
 
 async function bootstrap() {
-  if (env.DATABASE_URL && process.env.AUTO_MIGRATE !== "false") {
+  // Les migrations sont toujours appliquées au démarrage — la condition AUTO_MIGRATE
+  // est supprimée pour garantir que la base est à jour avant tout autre traitement.
+  if (env.DATABASE_URL) {
     try {
       const folder = path.resolve(process.cwd(), "drizzle");
       await migrate(db, { migrationsFolder: folder });
