@@ -155,6 +155,13 @@ export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
   { key: "service_livraison_vehicule", label: "Service — Acheminement d'un véhicule", kind: "service", target: "/vente/livraison", priority: 80 },
   { key: "service_livraison_pieces", label: "Service — Livraison de pièces", kind: "service", target: "/livraison", priority: 80 },
 
+  // ── Boutons déclarés au Moteur de boutons ─────────────────────────────
+  // Ces clés sont celles du catalogue du Moteur de boutons : le PDG peut
+  // changer la destination d'un bouton d'écran sans toucher au code.
+  { key: "bouton_garage_devis", label: "Bouton — Demande de devis garage", kind: "button", target: "/garage/demande-devis", priority: 90 },
+  { key: "bouton_garage_panier_pieces", label: "Bouton — Panier de pièces garage", kind: "button", target: "/garage/panier-pieces", priority: 90 },
+  { key: "bouton_garage_facturation", label: "Bouton — Facturation du dossier atelier", kind: "button", target: "/comptabilite/facturation", priority: 90 },
+
   // ── Alias de chemins (auto-résolution des 404) ────────────────────────
   // Un chemin obsolète/synonyme qui n'a pas de page propre est redirigé
   // automatiquement vers la bonne page (clé "path:<chemin>"). Le Moteur de
