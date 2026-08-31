@@ -143,6 +143,34 @@ export const PARCOURS_SCENARIOS: Scenario[] = [
     },
   },
   {
+    id: "parcours.destinations_existantes",
+    domaine: "redirection",
+    label: "Aucun écran n'envoie vers une page inexistante",
+    criticite: "critique",
+    attendu:
+      "Chaque destination écrite dans un écran mène à une route déclarée, ou est rattrapée par une règle active du Moteur de Redirection.",
+    async run(): Promise<Observation> {
+      // Le module d'auto-branchement est la seule source : le contrôle continu
+      // ne recompte pas les cliquables de son côté, sinon deux vérités
+      // différeraient sur le même écran.
+      const { destinationsMortes } = await import("../auto-branchement/service.js");
+      const toutes = await destinationsMortes();
+      const vivantes = toutes.filter((d) => !d.rattrapeeParRedirection);
+      if (vivantes.length === 0)
+        return {
+          statut: "reussi",
+          observe: `Toutes les destinations citées existent (${toutes.length} rattrapée(s) par le Moteur de Redirection).`,
+        };
+      const exemples = vivantes
+        .slice(0, 6)
+        .map((d) => `${d.destination} (${d.occurrences} lien(s))`);
+      return {
+        statut: "echec",
+        observe: `${vivantes.length} destination(s) inexistante(s) : ${exemples.join(" · ")}${vivantes.length > 6 ? " …" : ""}`,
+      };
+    },
+  },
+  {
     id: "parcours.pas_de_boucle",
     domaine: "redirection",
     label: "Aucune redirection ne tourne en boucle",

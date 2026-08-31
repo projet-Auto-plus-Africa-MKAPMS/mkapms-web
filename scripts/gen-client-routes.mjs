@@ -18,10 +18,21 @@ const CIBLE = "server/data/client-routes.ts";
 const app = readFileSync(SOURCE, "utf8");
 const routes = new Set();
 const motifs = new Set();
+const prefixes = new Set();
 for (const m of app.matchAll(/<Route\s+[^>]*path="([^"]+)"/g)) {
   const p = m[1].trim();
   if (!p.startsWith("/")) continue;
-  if (p.includes("*")) continue;
+  // Une route joker (`/admin/*`) est une page réelle qui gère elle-même ses
+  // sous-chemins. Ignorée, elle rendait `/admin` et `/compte` introuvables
+  // pour le Moteur de Redirection alors qu'ils existent.
+  if (p.includes("*")) {
+    const base = p.replace(/\/?\*+$/, "").replace(/\/+$/, "");
+    if (base) {
+      prefixes.add(base);
+      routes.add(base);
+    }
+    continue;
+  }
   const propre = p.replace(/\/+$/, "") || "/";
   // Une route à segment dynamique (/vehicule/:id) est une page réelle : sans
   // elle, le moteur considérait comme inexistante toute fiche véhicule ou
@@ -36,6 +47,7 @@ for (const m of app.matchAll(/<Route\s+[^>]*path="([^"]+)"/g)) {
 
 const triees = [...routes].sort();
 const motifsTries = [...motifs].sort();
+const prefixesTries = [...prefixes].sort();
 const contenu = `/**
  * Liste des routes CLIENT valides.
  *
@@ -54,6 +66,11 @@ ${triees.map((r) => `  ${JSON.stringify(r)},`).join("\n")}
 /** Routes à segment dynamique (/vehicule/:id, /ville/:slug…). */
 export const CLIENT_ROUTE_PATTERNS: readonly string[] = [
 ${motifsTries.map((r) => `  ${JSON.stringify(r)},`).join("\n")}
+];
+
+/** Racines de routes joker (/admin/*, /compte/*) : tout sous-chemin existe. */
+export const CLIENT_ROUTE_PREFIXES: readonly string[] = [
+${prefixesTries.map((r) => `  ${JSON.stringify(r)},`).join("\n")}
 ];
 
 const ROUTE_SET = new Set(CLIENT_ROUTES);
@@ -88,6 +105,7 @@ export function isKnownRoute(path: string): boolean {
 export function isRoutablePath(path: string): boolean {
   const p = normaliser(path);
   if (ROUTE_SET.has(p)) return true;
+  if (CLIENT_ROUTE_PREFIXES.some((base) => p.startsWith(base + "/"))) return true;
   return PATTERN_REGEX.some((re) => re.test(p));
 }
 `;
@@ -100,7 +118,7 @@ if (check) {
     const anciennes = new Set(
       [...actuel.matchAll(/^  "([^"]+)",$/gm)].map((m) => m[1]),
     );
-    const attendues = new Set([...triees, ...motifsTries]);
+    const attendues = new Set([...triees, ...motifsTries, ...prefixesTries]);
     const ajoutees = [...attendues].filter((r) => !anciennes.has(r));
     const retirees = [...anciennes].filter((r) => !attendues.has(r));
     console.error(`Inventaire des routes périmé (${CIBLE}).`);

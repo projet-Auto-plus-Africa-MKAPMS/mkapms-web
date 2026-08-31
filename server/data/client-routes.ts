@@ -32,8 +32,10 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/acheter/reprise",
   "/acheter/utilitaires",
   "/acheter/vtc-taxi",
+  "/admin",
   "/admin/actions",
   "/admin/audit-activation",
+  "/admin/auto-branchement",
   "/admin/bus-evenements",
   "/admin/commandes",
   "/admin/completion",
@@ -92,6 +94,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/comptabilite/tva",
   "/comptabilite/wallets",
   "/comptables",
+  "/compte",
   "/compte/avis",
   "/compte/validation",
   "/confiance",
@@ -733,6 +736,12 @@ export const CLIENT_ROUTE_PATTERNS: readonly string[] = [
   "/ville/:slug",
 ];
 
+/** Racines de routes joker (/admin/*, /compte/*) : tout sous-chemin existe. */
+export const CLIENT_ROUTE_PREFIXES: readonly string[] = [
+  "/admin",
+  "/compte",
+];
+
 const ROUTE_SET = new Set(CLIENT_ROUTES);
 
 const PATTERN_REGEX = CLIENT_ROUTE_PATTERNS.map((motif) => {
@@ -765,5 +774,6 @@ export function isKnownRoute(path: string): boolean {
 export function isRoutablePath(path: string): boolean {
   const p = normaliser(path);
   if (ROUTE_SET.has(p)) return true;
+  if (CLIENT_ROUTE_PREFIXES.some((base) => p.startsWith(base + "/"))) return true;
   return PATTERN_REGEX.some((re) => re.test(p));
 }

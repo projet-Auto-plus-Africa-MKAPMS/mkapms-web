@@ -204,6 +204,7 @@ const CentreIntelligences = lazy(() => import("./pages/CentreIntelligences"));
 const AssistantIntelligences = lazy(() => import("./pages/AssistantIntelligences"));
 const CentreBusEvenements = lazy(() => import("./pages/CentreBusEvenements"));
 const CentreControleContinu = lazy(() => import("./pages/CentreControleContinu"));
+const CentreAutoBranchement = lazy(() => import("./pages/CentreAutoBranchement"));
 const MemoireTechnique = lazy(() => import("./pages/MemoireTechnique"));
 const CompletionCenter = lazy(() => import("./pages/CompletionCenter"));
 const AvisUnivers = lazy(() => import("./pages/AvisUnivers"));
@@ -1222,6 +1223,7 @@ export default function App() {
             <Route path="/admin/produits-google" element={<U name="Produits Google & Merchant"><CentreProduitsGoogle /></U>} />
             <Route path="/admin/bus-evenements" element={<U name="Bus d'événements"><CentreBusEvenements /></U>} />
             <Route path="/admin/controle-continu" element={<U name="Contrôle continu"><CentreControleContinu /></U>} />
+            <Route path="/admin/auto-branchement" element={<U name="Auto-branchement des cliquables"><CentreAutoBranchement /></U>} />
             <Route path="/admin/memoire-technique" element={<U name="Mémoire technique du code"><MemoireTechnique /></U>} />
             <Route path="/admin/completion" element={<U name="Completion Center"><CompletionCenter /></U>} />
             <Route path="/admin/systeme-intelligent" element={<U name="Système Intelligent — audit & activation"><CentreSystemeIntelligent /></U>} />

@@ -229,6 +229,24 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     emetteurs: ["boutons"],
   },
   {
+    code: "cliquables.audit_termine",
+    domaine: "code",
+    label: "Auto-branchement — passe terminée",
+    description:
+      "Le module d'auto-branchement vient de relire tous les éléments cliquables des écrans : combien sont pilotés par le Moteur de boutons, combien ne déclenchent rien, combien de destinations n'existent pas. État de fait daté, pas une impression d'écran.",
+    champs: ["total", "ecrans", "couvertureMoteur", "sansAction", "destinationsMortes"],
+    emetteurs: ["auto_branchement"],
+  },
+  {
+    code: "cliquable.destination_morte",
+    domaine: "code",
+    label: "Destination citée mais inexistante",
+    description:
+      "Plusieurs écrans envoient vers une page qui n'existe pas et qu'aucune règle du Moteur de Redirection ne rattrape. Publié avant qu'un client tombe dessus, avec le nombre d'endroits concernés.",
+    champs: ["destination", "occurrences", "ecrans"],
+    emetteurs: ["auto_branchement"],
+  },
+  {
     code: "atelier.validation_enregistree",
     domaine: "service",
     label: "Validation d'atelier enregistrée",
@@ -368,6 +386,20 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     handler: "smart_bouton_sans_action",
     effet:
       "Ouvre une alerte dédupliquée par code de bouton et demande à MKA.P-MS Intelligences la correction à apporter : c'est la liste des écrans qui déçoivent réellement un utilisateur, classée par clics.",
+  },
+  {
+    engine: "smart",
+    eventType: "cliquables.audit_termine",
+    handler: "smart_cliquables_audit",
+    effet:
+      "Écrit l'état des cliquables au Système Intelligent et ouvre une alerte de direction tant qu'il reste des boutons sans action ou des destinations inexistantes.",
+  },
+  {
+    engine: "smart",
+    eventType: "cliquable.destination_morte",
+    handler: "smart_cliquable_destination_morte",
+    effet:
+      "Ouvre une alerte dédupliquée par destination et demande à MKA.P-MS Intelligences si la page doit être créée ou la destination redirigée.",
   },
   {
     engine: "smart",
