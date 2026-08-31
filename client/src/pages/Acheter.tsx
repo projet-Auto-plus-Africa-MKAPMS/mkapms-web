@@ -49,6 +49,15 @@ const LIBELLE_CRITERE: Record<string, string> = {
   etat: "État",
   couleur: "Couleur",
   codePostal: "Code postal",
+  puissanceMax: "Puissance max",
+  kmMin: "Km min",
+  cylindreeMin: "Cylindrée min",
+  cylindreeMax: "Cylindrée max",
+  carburants: "Carburants",
+  equipements: "Équipements",
+  avecPhotos: "Avec photos",
+  avecVideo: "Avec vidéo",
+  publieDepuisHeures: "Publiées depuis (h)",
 };
 
 export default function Acheter() {
@@ -73,6 +82,9 @@ export default function Acheter() {
     const p = new URLSearchParams(texteURL);
     const nombre = (cle: string) => (p.get(cle) ? Number(p.get(cle)) : undefined);
     const texte = (cle: string) => p.get(cle) || undefined;
+    const liste = (cle: string) =>
+      p.get(cle) ? p.get(cle)!.split(",").filter(Boolean) : undefined;
+    const drapeau = (cle: string) => (p.get(cle) ? true : undefined);
     return {
       marque: texte("marque"),
       modele: texte("modele"),
@@ -88,6 +100,15 @@ export default function Acheter() {
       etat: texte("etat"),
       couleur: texte("couleur"),
       codePostal: texte("codePostal"),
+      puissanceMax: nombre("puissanceMax"),
+      kmMin: nombre("kmMin"),
+      cylindreeMin: nombre("cylindreeMin"),
+      cylindreeMax: nombre("cylindreeMax"),
+      carburants: liste("carburants"),
+      equipements: liste("equipements"),
+      avecPhotos: drapeau("avecPhotos"),
+      avecVideo: drapeau("avecVideo"),
+      publieDepuisHeures: nombre("publieDepuisHeures"),
     };
   }, [texteURL]);
   const typeURL = params.get("type") === "location" ? ("location" as const) : ("vente" as const);
@@ -97,8 +118,13 @@ export default function Acheter() {
   const criteresActifs = useMemo(
     () =>
       Object.entries(criteresURL)
-        .filter(([, v]) => v !== undefined && v !== "")
-        .map(([cle, v]) => ({ cle, libelle: `${LIBELLE_CRITERE[cle] ?? cle} : ${v}` })),
+        .filter(([, v]) => v !== undefined && v !== "" && (!Array.isArray(v) || v.length > 0))
+        .map(([cle, v]) => ({
+          cle,
+          libelle: `${LIBELLE_CRITERE[cle] ?? cle} : ${
+            v === true ? "oui" : Array.isArray(v) ? v.join(", ") : v
+          }`,
+        })),
     [criteresURL],
   );
 

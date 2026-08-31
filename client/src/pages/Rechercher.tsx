@@ -17,10 +17,24 @@ const MotoIcon = ({ size = 20, className = "" }: { size?: number; className?: st
   </svg>
 );
 
-/* ── types de véhicules par catégorie ── */
-const VOITURE_TYPES = ["Citadine", "Berline", "SUV", "Coupé", "Cabriolet", "Break", "Monospace", "Pick-up", "Sans permis"];
-const UTILITAIRE_TYPES = ["Fourgon", "Fourgonnette", "Châssis cabine", "Benne", "Plateau", "Camping-car"];
-const MOTO_SOUS = ["Motos", "Scooter", "Quad"] as const;
+/* ── types de véhicules par catégorie ──
+   Chaque libellé porte la valeur réellement enregistrée sur l'annonce : un
+   filtre affiché sans valeur correspondante ne rendrait jamais rien. */
+const VOITURE_TYPES: readonly { label: string; value: string }[] = [
+  { label: "Citadine", value: "citadine" },
+  { label: "Berline", value: "berline" },
+  { label: "SUV", value: "suv" },
+  { label: "Coupé", value: "coupe" },
+  { label: "Cabriolet", value: "cabriolet" },
+  { label: "Break", value: "break" },
+  { label: "Monospace", value: "monospace" },
+  { label: "Luxe", value: "luxe" },
+];
+const MOTO_SOUS: readonly { label: string; value: string }[] = [
+  { label: "Motos", value: "moto" },
+  { label: "Scooter", value: "scooter" },
+  { label: "Quad", value: "quad" },
+];
 
 const MARQUES_VOITURE = [
   "Peugeot", "Renault", "Citroën", "Volkswagen", "BMW", "Mercedes", "Audi", "Toyota",
@@ -29,16 +43,23 @@ const MARQUES_VOITURE = [
   "Mini", "Alfa Romeo", "DS", "Jaguar", "Lexus",
 ];
 
-const CARBURANTS = ["Diesel", "Essence", "Électrique", "Hybride", "GPL", "Hydrogène"];
-const BOITES = ["Automatique", "Manuelle"];
-const INDICATEURS_PRIX = [
-  { label: "Très bonne affaire", color: "text-green-600 border-green-400" },
-  { label: "Bonne affaire", color: "text-green-600 border-green-400" },
-  { label: "Offre équitable", color: "text-slate-700 border-slate-300" },
+const CARBURANTS: readonly { label: string; value: string }[] = [
+  { label: "Diesel", value: "diesel" },
+  { label: "Essence", value: "essence" },
+  { label: "Électrique", value: "electrique" },
+  { label: "Hybride", value: "hybride" },
+  { label: "Hybride rechargeable", value: "hybride_rechargeable" },
+  { label: "GPL", value: "gpl" },
+  { label: "Hydrogène", value: "hydrogene" },
+  { label: "Éthanol", value: "ethanol" },
+];
+const BOITES: readonly { label: string; value: string }[] = [
+  { label: "Automatique", value: "automatique" },
+  { label: "Manuelle", value: "manuelle" },
+  { label: "Semi-automatique", value: "semi_automatique" },
 ];
 
 const COULEURS_EXT = ["Noir", "Blanc", "Gris", "Bleu", "Rouge", "Vert", "Marron", "Beige", "Orange", "Jaune", "Violet"];
-const COULEURS_INT = ["Noir", "Beige", "Gris", "Marron", "Rouge", "Blanc"];
 
 const EQUIPEMENTS = [
   "Climatisation", "GPS", "Régulateur de vitesse", "Caméra de recul", "Radar de stationnement",
@@ -51,7 +72,7 @@ export default function Rechercher() {
 
   /* ── onglets principaux ── */
   const [mainTab, setMainTab] = useState<"voiture" | "utilitaire" | "moto">("voiture");
-  const [motoSub, setMotoSub] = useState<typeof MOTO_SOUS[number]>("Motos");
+  const [motoSub, setMotoSub] = useState("moto");
 
   /* ── filtres de base ── */
   const [typeVehicule, setTypeVehicule] = useState("");
@@ -66,28 +87,30 @@ export default function Rechercher() {
   const [boite, setBoite] = useState("");
 
   /* ── prix ── */
-  const [prixTab, setPrixTab] = useState<"total" | "loa">("total");
   const [prixMin, setPrixMin] = useState("");
   const [prixMax, setPrixMax] = useState("");
-  const [indicateurs, setIndicateurs] = useState<string[]>([]);
 
   /* ── localisation ── */
   const [codePostal, setCodePostal] = useState("");
-  const [avecLivraison, setAvecLivraison] = useState(false);
 
   /* ── type vendeur ── */
   const [vendeurType, setVendeurType] = useState("");
 
   /* ── couleurs ── */
   const [couleurExt, setCouleurExt] = useState("");
-  const [couleurInt, setCouleurInt] = useState("");
 
   /* ── performance ── */
-  const [quatreRoues, setQuatreRoues] = useState(false);
+  const [puissanceMin, setPuissanceMin] = useState("");
+  const [puissanceMax, setPuissanceMax] = useState("");
 
-  /* ── historique ── */
-  const [premiereMain, setPremiereMain] = useState(false);
-  const [historiqueVehicule, setHistoriqueVehicule] = useState(false);
+  /* ── places & portes ── */
+  const [places, setPlaces] = useState("");
+  const [portes, setPortes] = useState("");
+
+  /* ── autres critères ── */
+  const [moins24h, setMoins24h] = useState(false);
+  const [avecPhotos, setAvecPhotos] = useState(false);
+  const [avecVideo, setAvecVideo] = useState(false);
 
   /* ── cylindrées moto ── */
   const [cylindreeMin, setCylindreeMin] = useState("");
@@ -101,17 +124,47 @@ export default function Rechercher() {
   const toggleSection = (key: string) => setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
 
   const toggleCarburant = (c: string) => setCarburants(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]);
-  const toggleIndicateur = (i: string) => setIndicateurs(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]);
   const toggleEquipement = (e: string) => setEquipements(prev => prev.includes(e) ? prev.filter(x => x !== e) : [...prev, e]);
 
+  /**
+   * Tous les critères choisis partent dans l'adresse de la liste : un critère
+   * saisi puis abandonné en route rendrait une liste qui ne correspond pas à
+   * la demande, et l'acheteur croirait le stock vide ou mal filtré.
+   */
   function doSearch() {
     const p = new URLSearchParams();
-    if (marque) p.set("q", marque + (modele ? " " + modele : ""));
+    if (marque) p.set("marque", marque);
+    if (modele) p.set("modele", modele);
+    if (mainTab === "moto") {
+      p.set("famille", "moto");
+      p.set("categorie", motoSub);
+    } else if (mainTab === "utilitaire") {
+      p.set("categorie", "utilitaire");
+    } else if (typeVehicule) {
+      p.set("categorie", typeVehicule);
+    }
+    if (anneeMin) p.set("anneeMin", anneeMin);
+    if (anneeMax) p.set("anneeMax", anneeMax);
+    if (kmMin) p.set("kmMin", kmMin);
+    if (kmMax) p.set("kmMax", kmMax);
+    if (neufUniquement) p.set("etat", "neuf");
+    if (carburants.length) p.set("carburants", carburants.join(","));
+    if (boite) p.set("boite", boite);
+    if (prixMin) p.set("prixMin", prixMin);
     if (prixMax) p.set("prixMax", prixMax);
-    if (codePostal) p.set("ville", codePostal);
-    if (mainTab === "moto") p.set("famille", "moto");
-    if (mainTab === "utilitaire") p.set("categorie", "utilitaire");
+    if (codePostal) p.set("codePostal", codePostal);
     if (vendeurType) p.set("categorieAnnonce", vendeurType);
+    if (couleurExt) p.set("couleur", couleurExt);
+    if (puissanceMin) p.set("puissanceMin", puissanceMin);
+    if (puissanceMax) p.set("puissanceMax", puissanceMax);
+    if (cylindreeMin) p.set("cylindreeMin", cylindreeMin);
+    if (cylindreeMax) p.set("cylindreeMax", cylindreeMax);
+    if (equipements.length) p.set("equipements", equipements.join(","));
+    if (places) p.set("places", places);
+    if (portes) p.set("portes", portes);
+    if (moins24h) p.set("publieDepuisHeures", "24");
+    if (avecPhotos) p.set("avecPhotos", "1");
+    if (avecVideo) p.set("avecVideo", "1");
     navigate(`/acheter?${p.toString()}`);
   }
 
@@ -119,10 +172,11 @@ export default function Rechercher() {
     setTypeVehicule(""); setMarque(""); setModele("");
     setAnneeMin(""); setAnneeMax(""); setKmMin(""); setKmMax("");
     setNeufUniquement(false); setCarburants([]); setBoite("");
-    setPrixTab("total"); setPrixMin(""); setPrixMax(""); setIndicateurs([]);
-    setCodePostal(""); setAvecLivraison(false); setVendeurType("");
-    setCouleurExt(""); setCouleurInt(""); setQuatreRoues(false);
-    setPremiereMain(false); setHistoriqueVehicule(false);
+    setPrixMin(""); setPrixMax("");
+    setCodePostal(""); setVendeurType("");
+    setCouleurExt(""); setPuissanceMin(""); setPuissanceMax("");
+    setPlaces(""); setPortes("");
+    setMoins24h(false); setAvecPhotos(false); setAvecVideo(false);
     setCylindreeMin(""); setCylindreeMax(""); setEquipements([]);
   }
 
@@ -166,22 +220,24 @@ export default function Rechercher() {
         {mainTab === "moto" && (
           <div className="mx-4 mt-4 flex gap-0 overflow-hidden rounded-xl border border-slate-200 bg-white">
             {MOTO_SOUS.map(s => (
-              <button key={s} onClick={() => setMotoSub(s)}
-                className={`flex-1 py-2.5 text-sm font-medium transition ${motoSub === s ? "bg-[#D4AF37]/10 text-[#D4AF37]" : "text-slate-500 hover:bg-slate-50"}`}>
-                {s}
+              <button key={s.value} onClick={() => setMotoSub(s.value)}
+                className={`flex-1 py-2.5 text-sm font-medium transition ${motoSub === s.value ? "bg-[#D4AF37]/10 text-[#D4AF37]" : "text-slate-500 hover:bg-slate-50"}`}>
+                {s.label}
               </button>
             ))}
           </div>
         )}
 
         {/* ── Type de véhicule ── */}
-        <FilterSection title="Type de véhicule" expanded={expandedSections["type"]} onToggle={() => toggleSection("type")}>
-          <div className="flex flex-wrap gap-2">
-            {(mainTab === "utilitaire" ? UTILITAIRE_TYPES : VOITURE_TYPES).map(t => (
-              <button key={t} onClick={() => setTypeVehicule(typeVehicule === t ? "" : t)} className={chipClass(typeVehicule === t)}>{t}</button>
-            ))}
-          </div>
-        </FilterSection>
+        {mainTab === "voiture" && (
+          <FilterSection title="Type de véhicule" expanded={expandedSections["type"]} onToggle={() => toggleSection("type")}>
+            <div className="flex flex-wrap gap-2">
+              {VOITURE_TYPES.map(t => (
+                <button key={t.value} onClick={() => setTypeVehicule(typeVehicule === t.value ? "" : t.value)} className={chipClass(typeVehicule === t.value)}>{t.label}</button>
+              ))}
+            </div>
+          </FilterSection>
+        )}
 
         {/* ── Marque ── */}
         <FilterSection title="Marque" expanded={expandedSections["marque"]} onToggle={() => toggleSection("marque")}>
@@ -240,7 +296,7 @@ export default function Rechercher() {
           <h3 className="text-sm font-bold text-[#111]">Carburant</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {CARBURANTS.map(c => (
-              <button key={c} onClick={() => toggleCarburant(c)} className={chipClass(carburants.includes(c))}>{c}</button>
+              <button key={c.value} onClick={() => toggleCarburant(c.value)} className={chipClass(carburants.includes(c.value))}>{c.label}</button>
             ))}
           </div>
         </div>
@@ -250,71 +306,29 @@ export default function Rechercher() {
           <h3 className="text-sm font-bold text-[#111]">Boîte de vitesse</h3>
           <div className="mt-3 flex gap-3">
             {BOITES.map(b => (
-              <button key={b} onClick={() => setBoite(boite === b ? "" : b)}
-                className={`flex-1 rounded-lg border py-2.5 text-sm font-medium transition ${boite === b ? "border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
-                {b}
+              <button key={b.value} onClick={() => setBoite(boite === b.value ? "" : b.value)}
+                className={`flex-1 rounded-lg border py-2.5 text-sm font-medium transition ${boite === b.value ? "border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}>
+                {b.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* ── Prix et mensualités ── */}
+        {/* ── Prix ── */}
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
-          <h3 className="text-sm font-bold text-[#111]">Prix et mensualités</h3>
-          <div className="mt-3 flex overflow-hidden rounded-lg border border-slate-200">
-            <button onClick={() => setPrixTab("total")}
-              className={`flex-1 py-2.5 text-sm font-medium transition ${prixTab === "total" ? "bg-[#D4AF37]/10 text-[#D4AF37]" : "text-slate-500"}`}>
-              Prix total
-            </button>
-            <button onClick={() => setPrixTab("loa")}
-              className={`flex-1 py-2.5 text-sm font-medium transition ${prixTab === "loa" ? "bg-[#D4AF37]/10 text-[#D4AF37]" : "text-slate-500"}`}>
-              Leasing (LOA)
-            </button>
-          </div>
+          <h3 className="text-sm font-bold text-[#111]">Prix</h3>
           <div className="mt-3 flex gap-3">
             <input value={prixMin} onChange={e => setPrixMin(e.target.value)} placeholder="Prix min" className={inputClass} />
             <input value={prixMax} onChange={e => setPrixMax(e.target.value)} placeholder="Prix max" className={inputClass} />
           </div>
         </div>
 
-        {/* ── Indicateur de prix ── */}
-        <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
-          <h3 className="text-sm font-bold text-[#111]">Indicateur de prix</h3>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {INDICATEURS_PRIX.map(ind => (
-              <button key={ind.label} onClick={() => toggleIndicateur(ind.label)}
-                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${indicateurs.includes(ind.label) ? ind.color + " bg-opacity-10" : "border-slate-200 text-slate-500"}`}>
-                <span className="text-xs">€</span> {ind.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* ── Localisation véhicules ── */}
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
           <h3 className="text-sm font-bold text-[#111]">Localisation véhicules</h3>
-          <div className="mt-3 flex gap-2">
-            <div className="relative flex-1">
-              <span className="absolute left-3 top-2.5 text-slate-400">📍</span>
-              <input value={codePostal} onChange={e => setCodePostal(e.target.value)} placeholder="Code postal" className={inputClass + " pl-8"} />
-            </div>
-            <button className="rounded-lg border border-slate-200 px-3 text-slate-400 hover:border-slate-400">⊕</button>
-          </div>
-          <button onClick={() => toggleSection("regions")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Régions et pays voisins <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["regions"] ? "rotate-90" : ""}`} />
-          </button>
-          {expandedSections["regions"] && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {["Île-de-France", "PACA", "Auvergne-Rhône-Alpes", "Occitanie", "Nouvelle-Aquitaine", "Hauts-de-France", "Grand Est", "Bretagne", "Normandie", "Belgique", "Luxembourg", "Suisse"].map(r => (
-                <button key={r} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:border-[#D4AF37] hover:text-[#D4AF37] transition">{r}</button>
-              ))}
-            </div>
-          )}
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-sm text-slate-600">Avec livraison</span>
-            <button onClick={() => setAvecLivraison(!avecLivraison)} className={toggleClass(avecLivraison)}>
-              <div className={toggleDot(avecLivraison)} />
-            </button>
+          <div className="relative mt-3">
+            <span className="absolute left-3 top-2.5 text-slate-400">📍</span>
+            <input value={codePostal} onChange={e => setCodePostal(e.target.value)} placeholder="Code postal" className={inputClass + " pl-8"} />
           </div>
         </div>
 
@@ -358,82 +372,14 @@ export default function Rechercher() {
               ))}
             </div>
           )}
-          <button onClick={() => toggleSection("couleurInt")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Couleurs intérieur <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["couleurInt"] ? "rotate-90" : ""}`} />
-          </button>
-          {expandedSections["couleurInt"] && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {COULEURS_INT.map(c => (
-                <button key={c} onClick={() => setCouleurInt(couleurInt === c ? "" : c)} className={chipClass(couleurInt === c)}>{c}</button>
-              ))}
-            </div>
-          )}
         </div>
 
-        {/* ── Performance ── */}
+        {/* ── Puissance ── */}
         <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
-          <h3 className="text-sm font-bold text-[#111]">Performance</h3>
-          <button onClick={() => toggleSection("puissanceFiscale")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Puissance fiscale <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["puissanceFiscale"] ? "rotate-90" : ""}`} />
-          </button>
-          {expandedSections["puissanceFiscale"] && (
-            <div className="mt-2 flex gap-3">
-              <input placeholder="CV min" className={inputClass} />
-              <input placeholder="CV max" className={inputClass} />
-            </div>
-          )}
-          <button onClick={() => toggleSection("puissanceDin")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Puissance DIN (ch) <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["puissanceDin"] ? "rotate-90" : ""}`} />
-          </button>
-          {expandedSections["puissanceDin"] && (
-            <div className="mt-2 flex gap-3">
-              <input placeholder="ch min" className={inputClass} />
-              <input placeholder="ch max" className={inputClass} />
-            </div>
-          )}
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-sm text-slate-600">4 roues motrices</span>
-            <button onClick={() => setQuatreRoues(!quatreRoues)} className={toggleClass(quatreRoues)}>
-              <div className={toggleDot(quatreRoues)} />
-            </button>
-          </div>
-        </div>
-
-        {/* ── Consommation ── */}
-        <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
-          <h3 className="text-sm font-bold text-[#111]">Consommation</h3>
-          <button onClick={() => toggleSection("consMax")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Consommation max <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["consMax"] ? "rotate-90" : ""}`} />
-          </button>
-          {expandedSections["consMax"] && (
-            <div className="mt-2">
-              <input placeholder="L/100km max" className={inputClass} />
-            </div>
-          )}
-          <button onClick={() => toggleSection("emissionCo2")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Emission de CO2 <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["emissionCo2"] ? "rotate-90" : ""}`} />
-          </button>
-          {expandedSections["emissionCo2"] && (
-            <div className="mt-2">
-              <input placeholder="g CO₂/km max" className={inputClass} />
-            </div>
-          )}
-        </div>
-
-        {/* ── Historique ── */}
-        <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
-          <h3 className="text-sm font-bold text-[#111]">Historique</h3>
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-sm text-slate-600">Première main</span>
-            <button onClick={() => setPremiereMain(!premiereMain)} className={toggleClass(premiereMain)}>
-              <div className={toggleDot(premiereMain)} />
-            </button>
-          </div>
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-sm text-slate-600">Historique du véhicule</span>
-            <button onClick={() => setHistoriqueVehicule(!historiqueVehicule)} className={toggleClass(historiqueVehicule)}>
-              <div className={toggleDot(historiqueVehicule)} />
-            </button>
+          <h3 className="text-sm font-bold text-[#111]">Puissance fiscale</h3>
+          <div className="mt-3 flex gap-3">
+            <input value={puissanceMin} onChange={e => setPuissanceMin(e.target.value)} placeholder="CV min" className={inputClass} />
+            <input value={puissanceMax} onChange={e => setPuissanceMax(e.target.value)} placeholder="CV max" className={inputClass} />
           </div>
         </div>
 
@@ -446,7 +392,7 @@ export default function Rechercher() {
           {expandedSections["nbPlaces"] && (
             <div className="mt-2 flex flex-wrap gap-2">
               {[2, 3, 4, 5, 6, 7, 8, 9].map(n => (
-                <button key={n} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:border-[#D4AF37] hover:text-[#D4AF37] transition">{n}</button>
+                <button key={n} onClick={() => setPlaces(places === String(n) ? "" : String(n))} className={chipClass(places === String(n))}>{n}</button>
               ))}
             </div>
           )}
@@ -456,32 +402,8 @@ export default function Rechercher() {
           {expandedSections["nbPortes"] && (
             <div className="mt-2 flex flex-wrap gap-2">
               {[2, 3, 4, 5].map(n => (
-                <button key={n} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:border-[#D4AF37] hover:text-[#D4AF37] transition">{n}</button>
+                <button key={n} onClick={() => setPortes(portes === String(n) ? "" : String(n))} className={chipClass(portes === String(n))}>{n}</button>
               ))}
-            </div>
-          )}
-        </div>
-
-        {/* ── Dimensions ── */}
-        <div className="mx-4 mt-3 rounded-xl border border-slate-100 bg-white p-4">
-          <h3 className="text-sm font-bold text-[#111]">Dimensions</h3>
-          <button onClick={() => toggleSection("dimVehicule")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Dimensions du véhicule <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["dimVehicule"] ? "rotate-90" : ""}`} />
-          </button>
-          {expandedSections["dimVehicule"] && (
-            <div className="mt-2 space-y-2">
-              <input placeholder="Longueur max (cm)" className={inputClass} />
-              <input placeholder="Largeur max (cm)" className={inputClass} />
-              <input placeholder="Hauteur max (cm)" className={inputClass} />
-            </div>
-          )}
-          <button onClick={() => toggleSection("volumeCoffre")} className="mt-3 flex w-full items-center justify-between text-sm text-slate-600">
-            Volume du coffre <ChevronRight size={16} className={`text-red-500 transition ${expandedSections["volumeCoffre"] ? "rotate-90" : ""}`} />
-          </button>
-          {expandedSections["volumeCoffre"] && (
-            <div className="mt-2 flex gap-3">
-              <input placeholder="Litres min" className={inputClass} />
-              <input placeholder="Litres max" className={inputClass} />
             </div>
           )}
         </div>
@@ -491,15 +413,15 @@ export default function Rechercher() {
           <h3 className="text-sm font-bold text-[#111]">Autres critères</h3>
           <div className="mt-3 flex items-center justify-between">
             <span className="text-sm text-slate-600">Moins de 24h</span>
-            <input type="checkbox" className="h-5 w-5 rounded border-slate-300 text-[#D4AF37] accent-[#D4AF37]" />
+            <input type="checkbox" checked={moins24h} onChange={e => setMoins24h(e.target.checked)} className="h-5 w-5 rounded border-slate-300 text-[#D4AF37] accent-[#D4AF37]" />
           </div>
           <div className="mt-3 flex items-center justify-between">
             <span className="text-sm text-slate-600">Avec photos uniquement</span>
-            <input type="checkbox" className="h-5 w-5 rounded border-slate-300 text-[#D4AF37] accent-[#D4AF37]" />
+            <input type="checkbox" checked={avecPhotos} onChange={e => setAvecPhotos(e.target.checked)} className="h-5 w-5 rounded border-slate-300 text-[#D4AF37] accent-[#D4AF37]" />
           </div>
           <div className="mt-3 flex items-center justify-between">
             <span className="text-sm text-slate-600">Avec vidéo</span>
-            <input type="checkbox" className="h-5 w-5 rounded border-slate-300 text-[#D4AF37] accent-[#D4AF37]" />
+            <input type="checkbox" checked={avecVideo} onChange={e => setAvecVideo(e.target.checked)} className="h-5 w-5 rounded border-slate-300 text-[#D4AF37] accent-[#D4AF37]" />
           </div>
         </div>
       </div>

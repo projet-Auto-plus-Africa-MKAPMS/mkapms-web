@@ -142,12 +142,21 @@ export const annoncesRouter = router({
         anneeMax: z.number().optional(),
         kmMax: z.number().optional(),
         carburant: z.string().optional(),
+        carburants: z.array(z.string()).optional(),
         boite: z.string().optional(),
         etat: z.string().optional(),
         couleur: z.string().optional(),
         portes: z.number().optional(),
         places: z.number().optional(),
         puissanceMin: z.number().optional(),
+        puissanceMax: z.number().optional(),
+        kmMin: z.number().optional(),
+        cylindreeMin: z.number().optional(),
+        cylindreeMax: z.number().optional(),
+        equipements: z.array(z.string()).optional(),
+        avecPhotos: z.boolean().optional(),
+        avecVideo: z.boolean().optional(),
+        publieDepuisHeures: z.number().optional(),
         codePostal: z.string().optional(),
         marque: z.string().optional(),
         modele: z.string().optional(),
@@ -178,7 +187,9 @@ export const annoncesRouter = router({
       if (input.anneeMin) conds.push(gte(annonces.annee, input.anneeMin));
       if (input.anneeMax) conds.push(lte(annonces.annee, input.anneeMax));
       if (input.kmMax) conds.push(lte(annonces.kilometrage, input.kmMax));
+      if (input.kmMin) conds.push(gte(annonces.kilometrage, input.kmMin));
       if (input.puissanceMin) conds.push(gte(annonces.puissanceCv, input.puissanceMin));
+      if (input.puissanceMax) conds.push(lte(annonces.puissanceCv, input.puissanceMax));
       if (input.portes) conds.push(eq(annonces.portes, input.portes));
       if (input.places) conds.push(eq(annonces.places, input.places));
       // Les colonnes enum sont comparées en texte : la valeur vient d'un filtre
@@ -188,6 +199,51 @@ export const annoncesRouter = router({
       if (input.boite) conds.push(sql`${annonces.boite}::text = ${input.boite}`);
       if (input.etat) conds.push(sql`${annonces.etat}::text = ${input.etat}`);
       if (input.couleur) conds.push(ilike(annonces.couleur, `%${input.couleur}%`));
+      // Plusieurs carburants cochés = union, sinon cocher « Diesel » et
+      // « Essence » ne rendrait aucune annonce.
+      if (input.carburants?.length) {
+        conds.push(
+          or(
+            ...input.carburants.map(
+              (c) => sql`${annonces.carburant}::text = ${c}`,
+            ),
+          )!,
+        );
+      }
+      // La cylindrée est saisie librement (« 125 cm³ ») : on ne compare que les
+      // chiffres qu'elle contient, et une valeur non numérique est écartée du
+      // filtre au lieu de faire échouer la requête.
+      const cylindree = sql`nullif(regexp_replace(${annonces.cylindree}, '[^0-9]', '', 'g'), '')::int`;
+      if (input.cylindreeMin) conds.push(sql`${cylindree} >= ${input.cylindreeMin}`);
+      if (input.cylindreeMax) conds.push(sql`${cylindree} <= ${input.cylindreeMax}`);
+      // Les équipements sont stockés en listes JSON séparées selon l'écran de
+      // dépôt (équipements, confort, multimédia, sécurité) : un équipement
+      // demandé est cherché dans les quatre.
+      for (const equipement of input.equipements ?? []) {
+        conds.push(
+          sql`(${annonces.equipements}::text ilike ${`%${equipement}%`}
+            or ${annonces.confort}::text ilike ${`%${equipement}%`}
+            or ${annonces.multimedia}::text ilike ${`%${equipement}%`}
+            or ${annonces.securite}::text ilike ${`%${equipement}%`})`,
+        );
+      }
+      if (input.avecPhotos) {
+        conds.push(
+          sql`exists (select 1 from ${annoncePhotos} where ${annoncePhotos.annonceId} = ${annonces.id})`,
+        );
+      }
+      if (input.avecVideo) {
+        conds.push(
+          sql`(coalesce(${annonces.videos}, '') <> ''
+            or coalesce(${annonces.videosNormales}::text, '[]') <> '[]'
+            or coalesce(${annonces.videos360}::text, '[]') <> '[]')`,
+        );
+      }
+      if (input.publieDepuisHeures) {
+        conds.push(
+          sql`coalesce(${annonces.publishedAt}, ${annonces.createdAt}) >= now() - make_interval(hours => ${input.publieDepuisHeures})`,
+        );
+      }
       if (input.codePostal) conds.push(ilike(annonces.codePostal, `${input.codePostal}%`));
       if (input.marque) conds.push(ilike(annonces.marque, `%${input.marque}%`));
       if (input.modele) conds.push(ilike(annonces.modele, `%${input.modele}%`));
