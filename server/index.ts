@@ -439,6 +439,18 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec bootstrap moteurs:", (err as Error).message);
     }
+    // Réconciliation des états des moteurs sur PREUVE : un moteur en `staging`
+    // ne devient `active` que si l'audit d'activation l'a classé « opérationnelle »
+    // (procédure montée + battement de cœur + données réelles + preuve de test).
+    // Jamais de promotion forcée ; une décision manuelle du PDG n'est jamais écrasée.
+    // Ne bloque jamais le démarrage (erreurs journalisées).
+    try {
+      const { reconcileEngineStatesFromEvidence } = await import("./engine-registry/bootstrap.js");
+      const r = await reconcileEngineStatesFromEvidence({ runAudit: true });
+      console.log(`[MKA.P-MS] réconciliation moteurs: ${r.promus.length} promu(s), ${r.refuses.length} refusé(s) (source: ${r.source})`);
+    } catch (err) {
+      console.error("[MKA.P-MS] échec réconciliation moteurs:", (err as Error).message);
+    }
     // Jetons de vérification de propriété saisis par le PDG : chargés une fois
     // au démarrage pour que les balises soient rendues dès la première requête.
     try {
