@@ -684,6 +684,27 @@ async function bootstrap() {
   setTimeout(() => void continuousTestTick(), 3 * 60 * 1000);
   setInterval(() => void continuousTestTick(), 6 * 3600 * 1000);
 
+  // Auto-branchement des cliquables. Reprendre 700 écrans à la main ne tient
+  // pas : la passe relit l'inventaire, revérifie chaque destination auprès du
+  // Moteur de Redirection et remet chaque défaut à l'Event Bus, au Système
+  // Intelligent et aux Intelligences — sans attendre qu'un client tombe dessus.
+  async function autoBranchementTick() {
+    try {
+      const { analyser } = await import("./auto-branchement/service.js");
+      const r = await analyser({ trigger: "auto" });
+      const mortes = r.destinationsMortes.length - r.destinationsRattrapees;
+      if (r.synthese.parMotif.sans_action > 0 || mortes > 0) {
+        console.error(
+          `[auto-branchement] ${r.synthese.parMotif.sans_action} bouton(s) sans action, ${mortes} destination(s) inexistante(s) sur ${r.synthese.total} cliquable(s).`,
+        );
+      }
+    } catch (e) {
+      console.error("[auto-branchement]", (e as Error).message);
+    }
+  }
+  setTimeout(() => void autoBranchementTick(), 4 * 60 * 1000);
+  setInterval(() => void autoBranchementTick(), 6 * 3600 * 1000);
+
   // Points 116-117-118 — l'agent code en mode observation. Il relève le code
   // réellement déployé, apprend ce qui a changé depuis le relevé précédent, et
   // retient les corrections des autres agents par classe d'anomalie. Il n'écrit

@@ -295,6 +295,107 @@ const handlers: Record<string, Handler> = {
     return `Alerte ouverte pour ${code} et dossier de développement ${dossier?.id ?? "non ouvert"} demandé aux Intelligences.`;
   },
 
+  async smart_cliquables_audit(payload) {
+    const total = nombre(payload, "total") ?? 0;
+    const ecrans = nombre(payload, "ecrans") ?? 0;
+    const couverture = nombre(payload, "couvertureMoteur") ?? 0;
+    const sansAction = nombre(payload, "sansAction") ?? 0;
+    const mortes = nombre(payload, "destinationsMortes") ?? 0;
+
+    // La mesure est conservée même quand tout va bien : c'est elle qui permet
+    // de dire si la situation s'améliore d'une semaine à l'autre.
+    await memoriser({
+      categorie: "technique",
+      cle: "auto_branchement:mesure",
+      titre: "Cliquables — dernière mesure remise au Système Intelligent",
+      contenu:
+        `${total} cliquable(s) sur ${ecrans} écran(s), ${couverture} % pilotés par le Moteur de boutons. ` +
+        `${sansAction} bouton(s) sans action, ${mortes} destination(s) inexistante(s).`,
+      source: "event-bus.smart_cliquables_audit",
+    });
+
+    if (sansAction === 0 && mortes === 0) {
+      return `Aucun défaut de cliquable : ${total} élément(s) sur ${ecrans} écran(s) tous branchés.`;
+    }
+
+    const cree = await raiseAlert({
+      category: "service",
+      title: `Écrans : ${sansAction} bouton(s) sans action, ${mortes} destination(s) inexistante(s)`,
+      description:
+        `Sur ${total} élément(s) cliquable(s) répartis sur ${ecrans} écran(s), ${couverture} % passent par le Moteur de boutons. ` +
+        `${sansAction} bouton(s) ne déclenchent rien et ${mortes} destination(s) citées n'existent pas ` +
+        "et ne sont rattrapées par aucune règle du Moteur de Redirection. Détail et propositions : Centre d'auto-branchement.",
+      level: mortes > 20 || sansAction > 50 ? "important" : "warning",
+      targetType: "cliquables",
+      signature: "bus:cliquables_audit",
+    });
+    return cree
+      ? `Alerte ouverte : ${sansAction} bouton(s) sans action, ${mortes} destination(s) inexistante(s).`
+      : `Alerte déjà ouverte sur l'état des cliquables (${sansAction} sans action, ${mortes} destinations mortes).`;
+  },
+
+  async smart_cliquable_destination_morte(payload) {
+    const destination = texte(payload, "destination") || "?";
+    const occurrences = nombre(payload, "occurrences") ?? 0;
+    const ecrans = texte(payload, "ecrans") || "écrans non transmis";
+
+    const cree = await raiseAlert({
+      category: "service",
+      title: `Destination inexistante — ${destination}`,
+      description:
+        `${occurrences} endroit(s) envoient vers « ${destination} », qui n'est déclarée nulle part et qu'aucune règle ` +
+        `du Moteur de Redirection ne rattrape. Écrans concernés : ${ecrans}.`,
+      level: occurrences >= 10 ? "important" : "warning",
+      targetType: "route",
+      signature: `bus:cliquable_destination_morte:${destination}`,
+    });
+    if (!cree) return `Alerte déjà ouverte pour la destination ${destination}.`;
+
+    const { proposer } = await import("../intelligences/service.js");
+    const { dossier } = await proposer({
+      besoin:
+        `« ${destination} » est citée ${occurrences} fois dans les écrans (${ecrans}) mais n'existe pas. ` +
+        "Décider : créer la page de cette section, ou déclarer au Moteur de Redirection la page existante qui la remplace, " +
+        "ou corriger les liens. Ne pas masquer l'anomalie sans traiter la cause.",
+    });
+    return `Alerte ouverte pour ${destination} (${occurrences} endroit(s)) et dossier ${dossier?.id ?? "non ouvert"} demandé aux Intelligences.`;
+  },
+
+  async smart_ecrans_vides(payload) {
+    const vides = nombre(payload, "vides") ?? 0;
+    const total = nombre(payload, "total") ?? 0;
+    const sections = nombre(payload, "sections") ?? 0;
+    const principales = texte(payload, "principales") || "sections non transmises";
+
+    await memoriser({
+      categorie: "technique",
+      cle: "auto_branchement:ecrans_vides",
+      titre: "Écrans annoncés au visiteur sans contenu",
+      contenu:
+        `${vides} écran(s) sur ${total} listés au sommaire de leur section n'affichent qu'un gabarit. ` +
+        `${sections} section(s) concernée(s) : ${principales}.`,
+      source: "event-bus.smart_ecrans_vides",
+    });
+
+    if (vides === 0) return `Aucun écran vide : les ${total} écran(s) de section affichent du contenu.`;
+
+    const cree = await raiseAlert({
+      category: "service",
+      title: `${vides} écran(s) annoncés au visiteur sans aucun contenu`,
+      description:
+        `${vides} écran(s) sur ${total} sont atteignables et listés au sommaire de leur section, mais n'affichent ` +
+        `qu'un gabarit « Module … ». Sections les plus concernées : ${principales}. ` +
+        "Ces écrans sont désormais annoncés « en préparation » au visiteur au lieu d'être présentés comme livrés, " +
+        "mais le contenu reste à produire.",
+      level: vides > 100 ? "important" : "warning",
+      targetType: "cliquables",
+      signature: "bus:ecrans_vides",
+    });
+    return cree
+      ? `Alerte ouverte : ${vides} écran(s) annoncés sans contenu.`
+      : `Alerte déjà ouverte sur les ${vides} écran(s) sans contenu.`;
+  },
+
   async smart_atelier_non_conforme(payload) {
     const dossier = texte(payload, "dossier") || "?";
     const type = texte(payload, "type") || "contrôle";

@@ -132,6 +132,7 @@ import { accountDeletionRouter } from "./account-deletion/index.js";
 import { mediaAuthenticityRouter } from "./media-authenticity/index.js";
 import { userPreferencesRouter } from "./user-preferences/index.js";
 import { atelierEngineRouter } from "./atelier-engine/index.js";
+import { autoBranchementRouter } from "./auto-branchement/index.js";
 
 export const appRouter = router({
   auth: authRouter,
@@ -211,6 +212,8 @@ export const appRouter = router({
   buttonEngine: buttonEngineRouter,
   // Moteur d'Atelier — validations, contrôle qualité, stock garage, report de RDV
   atelierEngine: atelierEngineRouter,
+  // Auto-branchement — chaque cliquable rendu au Moteur de boutons et à la Redirection
+  autoBranchement: autoBranchementRouter,
   engineRegistry: engineRegistryRouter,
   paymentEngine: paymentEngineRouter,
   // Coordination des deux moteurs centraux (Phase 55)

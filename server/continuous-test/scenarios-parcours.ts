@@ -143,6 +143,54 @@ export const PARCOURS_SCENARIOS: Scenario[] = [
     },
   },
   {
+    id: "parcours.destinations_ecrans",
+    domaine: "redirection",
+    label: "Aucun écran n'envoie vers une page inexistante",
+    criticite: "critique",
+    attendu:
+      "Chaque destination écrite dans un écran mène à une route déclarée, ou est rattrapée par une règle active du Moteur de Redirection.",
+    async run(): Promise<Observation> {
+      // Le module d'auto-branchement est la seule source : le contrôle continu
+      // ne recompte pas les cliquables de son côté, sinon deux vérités
+      // différeraient sur le même écran.
+      const { destinationsMortes } = await import("../auto-branchement/service.js");
+      const toutes = await destinationsMortes();
+      const vivantes = toutes.filter((d) => !d.rattrapeeParRedirection);
+      if (vivantes.length === 0)
+        return {
+          statut: "reussi",
+          observe: `Toutes les destinations citées existent (${toutes.length} rattrapée(s) par le Moteur de Redirection).`,
+        };
+      const exemples = vivantes
+        .slice(0, 6)
+        .map((d) => `${d.destination} (${d.occurrences} lien(s))`);
+      return {
+        statut: "echec",
+        observe: `${vivantes.length} destination(s) inexistante(s) : ${exemples.join(" · ")}${vivantes.length > 6 ? " …" : ""}`,
+      };
+    },
+  },
+  {
+    id: "parcours.ecrans_avec_contenu",
+    domaine: "redirection",
+    label: "Aucun écran annoncé au visiteur n'est vide",
+    criticite: "normale",
+    attendu:
+      "Un écran listé au sommaire de sa section affiche un contenu réel, ou est explicitement annoncé « en préparation ».",
+    async run(): Promise<Observation> {
+      const { sectionsVides } = await import("../auto-branchement/service.js");
+      const sections = sectionsVides();
+      const vides = sections.reduce((n, s) => n + s.vides, 0);
+      if (vides === 0)
+        return { statut: "reussi", observe: "Tous les écrans de section affichent un contenu." };
+      const exemples = sections.slice(0, 5).map((s) => `${s.prefixe} (${s.vides})`);
+      return {
+        statut: "echec",
+        observe: `${vides} écran(s) réduits à un gabarit sur ${sections.length} section(s) : ${exemples.join(" · ")}${sections.length > 5 ? " …" : ""}`,
+      };
+    },
+  },
+  {
     id: "parcours.pas_de_boucle",
     domaine: "redirection",
     label: "Aucune redirection ne tourne en boucle",

@@ -122,6 +122,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "auto_branchement",
+    label: "Module d'auto-branchement",
+    category: "transversal",
+    dependencies: ["core", "boutons", "redirection", "event_bus", "smart", "intelligences"],
+    description:
+      "Relit l'inventaire généré des éléments cliquables de tous les écrans, revérifie chaque destination auprès du Moteur de Redirection, et remet chaque défaut à l'Event Bus, au Système Intelligent et à MKA.P-MS Intelligences. Il constate et propose : il ne modifie jamais le code de production.",
+    state: "active",
+  },
+  {
     name: "account_routing",
     label: "Account Routing Engine",
     category: "transversal",

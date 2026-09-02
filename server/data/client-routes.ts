@@ -32,8 +32,10 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/acheter/reprise",
   "/acheter/utilitaires",
   "/acheter/vtc-taxi",
+  "/admin",
   "/admin/actions",
   "/admin/audit-activation",
+  "/admin/auto-branchement",
   "/admin/bus-evenements",
   "/admin/commandes",
   "/admin/completion",
@@ -53,6 +55,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/admin/systeme-intelligent",
   "/aide",
   "/atelier-pro",
+  "/automatisations",
   "/automatisations/centre-alertes-strategiques",
   "/automatisations/centre-auto-marketing",
   "/automatisations/centre-croissance",
@@ -72,6 +75,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/carte",
   "/carte-grise",
   "/catalogue-technique",
+  "/communaute",
   "/communaute/avis-conseils",
   "/communaute/guides-achat",
   "/communaute/guides-garage",
@@ -92,10 +96,12 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/comptabilite/tva",
   "/comptabilite/wallets",
   "/comptables",
+  "/compte",
   "/compte/avis",
   "/compte/validation",
   "/confiance",
   "/confidentialite",
+  "/conformite",
   "/conformite/assurances-pays",
   "/conformite/centre-pays",
   "/conformite/contrats-adaptes",
@@ -113,6 +119,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/conformite/taxes-automatiques",
   "/conformite/vente-pays",
   "/connexion",
+  "/corporate",
   "/corporate/a-propos",
   "/corporate/contact-entreprise",
   "/corporate/nos-partenaires",
@@ -166,6 +173,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/dossier-vehicule-numerique",
   "/encheres",
   "/encheres/live",
+  "/entreprises",
   "/entreprises/centre-carburant",
   "/entreprises/centre-geolocalisation",
   "/entreprises/centre-immobilisation",
@@ -177,6 +185,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/entreprises/objectif-flottes",
   "/entreprises/rapports-entreprises",
   "/espace-pro",
+  "/expansion",
   "/expansion/centre-international",
   "/expansion/multi-devises-global",
   "/expansion/multi-langues-global",
@@ -210,6 +219,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/finance/paiements-professionnels",
   "/finance/remboursements-finance",
   "/finance/tableau-bord-finance",
+  "/formations",
   "/formations/certificats",
   "/formations/formation-garage",
   "/formations/formation-taxi",
@@ -280,6 +290,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/garages",
   "/historique",
   "/historique-consultations",
+  "/ia",
   "/ia/i-a-aide-devis",
   "/ia/i-a-analyse-marche",
   "/ia/i-a-assistant-client",
@@ -289,12 +300,14 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/inscription",
   "/inscription-pro-vo",
   "/intelligences",
+  "/international",
   "/international/multi-devises",
   "/international/multi-langues",
   "/international/multi-pays",
   "/investisseurs/espace-investisseurs",
   "/investisseurs/objectif-global",
   "/journal-activite",
+  "/labs",
   "/labs/academie-m-k-a-p-m-s",
   "/labs/analyse-marche-mondiale",
   "/labs/analyse-trafic",
@@ -463,6 +476,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/louer/tableau-bord-loueur",
   "/louer/utilitaires",
   "/louer/vtc-taxi",
+  "/marketing",
   "/marketing/campagnes-automatiques",
   "/marketing/codes-promotionnels",
   "/marketing/espaces-publicitaires",
@@ -473,6 +487,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/mission",
   "/mk-direction",
   "/mk-global-engine",
+  "/mobile",
   "/mobile/app-android",
   "/mobile/app-i-o-s",
   "/mobile/mode-hors-ligne",
@@ -499,6 +514,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/notifications/parametres-notifications",
   "/notifications/rappels-automatiques",
   "/notifications/signatures-globales",
+  "/operations",
   "/operations/ambassadeurs",
   "/operations/centre-acquisition",
   "/operations/centre-audit",
@@ -554,6 +570,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/pieces/vendeurs-pieces",
   "/pieces/verification-compatibilite",
   "/pres-de-moi",
+  "/pro",
   "/pro/avis",
   "/pro/demarrer",
   "/pro/dossier",
@@ -561,6 +578,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/recherche",
   "/recherche-universelle",
   "/rechercher",
+  "/recrutement",
   "/recrutement/depot-c-v",
   "/recrutement/offres-emploi",
   "/recrutement/recherche-talents",
@@ -733,6 +751,12 @@ export const CLIENT_ROUTE_PATTERNS: readonly string[] = [
   "/ville/:slug",
 ];
 
+/** Racines de routes joker (/admin/*, /compte/*) : tout sous-chemin existe. */
+export const CLIENT_ROUTE_PREFIXES: readonly string[] = [
+  "/admin",
+  "/compte",
+];
+
 const ROUTE_SET = new Set(CLIENT_ROUTES);
 
 const PATTERN_REGEX = CLIENT_ROUTE_PATTERNS.map((motif) => {
@@ -765,5 +789,6 @@ export function isKnownRoute(path: string): boolean {
 export function isRoutablePath(path: string): boolean {
   const p = normaliser(path);
   if (ROUTE_SET.has(p)) return true;
+  if (CLIENT_ROUTE_PREFIXES.some((base) => p.startsWith(base + "/"))) return true;
   return PATTERN_REGEX.some((re) => re.test(p));
 }
