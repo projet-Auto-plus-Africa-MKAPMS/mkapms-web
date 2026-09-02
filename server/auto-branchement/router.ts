@@ -13,6 +13,7 @@ import {
   destinationsMortes,
   ecransMuets,
   propositions,
+  sectionsVides,
   synthese,
 } from "./service.js";
 
@@ -26,6 +27,8 @@ export const autoBranchementRouter = router({
     .query(({ input }) => ecransMuets().slice(0, input?.limit ?? 60)),
 
   codesNonDeclares: pdgProcedure.query(() => codesNonDeclares()),
+
+  sectionsVides: pdgProcedure.query(() => sectionsVides()),
 
   propositions: pdgProcedure
     .input(z.object({ limit: z.number().int().min(1).max(400).default(60) }).optional())

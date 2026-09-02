@@ -303,7 +303,11 @@ export const ENGINE_CONTRACTS: EngineContract[] = [
       "Proposer le traitement de chaque défaut sans jamais modifier le code de production.",
     ],
     dependencies: ["core", "boutons", "redirection", "event_bus", "smart", "intelligences"],
-    eventsPublished: ["cliquables.audit_termine", "cliquable.destination_morte"],
+    eventsPublished: [
+      "cliquables.audit_termine",
+      "cliquable.destination_morte",
+      "ecrans.vides_recenses",
+    ],
     eventsConsumed: [],
     endpoints: ["autoBranchement.*"],
     tables: [],

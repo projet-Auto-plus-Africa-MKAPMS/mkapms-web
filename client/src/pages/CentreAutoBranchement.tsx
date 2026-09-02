@@ -11,6 +11,7 @@ import { Link, Navigate } from "react-router-dom";
 import {
   AlertTriangle,
   ChevronLeft,
+  FileWarning,
   MousePointerClick,
   RefreshCw,
   Route as RouteIcon,
@@ -34,6 +35,7 @@ const LIBELLE_TRAITEMENT: Record<string, string> = {
   regle_redirection: "Déclarer une redirection",
   declarer_au_moteur: "Déclarer au Moteur de boutons",
   retirer_element: "Retirer l'élément",
+  livrer_module: "Livrer le contenu de l'écran",
 };
 
 export default function CentreAutoBranchement() {
@@ -46,6 +48,10 @@ export default function CentreAutoBranchement() {
     refetchOnWindowFocus: false,
   });
   const destinations = trpc.autoBranchement.destinations.useQuery(undefined, {
+    enabled: !!isPdg,
+    refetchOnWindowFocus: false,
+  });
+  const sectionsVides = trpc.autoBranchement.sectionsVides.useQuery(undefined, {
     enabled: !!isPdg,
     refetchOnWindowFocus: false,
   });
@@ -62,6 +68,7 @@ export default function CentreAutoBranchement() {
       );
       synthese.refetch();
       destinations.refetch();
+      sectionsVides.refetch();
       propositions.refetch();
     },
     onError: (e) => setMessage(`Échec : ${e.message}`),
@@ -142,6 +149,37 @@ export default function CentreAutoBranchement() {
                     <span className="font-normal text-black/50">— {d.occurrences} lien(s)</span>
                   </p>
                   <p className="text-[11px] text-black/50">{d.ecrans.join(" · ")}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="mt-4 rounded-2xl border border-black/5 bg-white p-4">
+          <h2 className="flex items-center gap-2 text-sm font-black text-[#111]">
+            <FileWarning size={16} className="text-amber-600" />
+            Écrans annoncés au visiteur sans contenu
+          </h2>
+          <p className="mt-1 text-[11px] text-black/50">
+            Ces écrans existent, sont atteignables depuis le sommaire de leur section, mais
+            n&apos;affichent qu&apos;un gabarit. Ils sont présentés « en préparation » au visiteur
+            tant que le contenu n&apos;est pas livré.
+          </p>
+          {(sectionsVides.data ?? []).length === 0 ? (
+            <p className="mt-2 flex items-center gap-2 text-sm text-emerald-700">
+              <ShieldCheck size={16} /> Aucun écran vide annoncé au visiteur.
+            </p>
+          ) : (
+            <ul className="mt-3 divide-y divide-black/5">
+              {(sectionsVides.data ?? []).map((sv) => (
+                <li key={sv.prefixe} className="py-2">
+                  <p className="text-sm font-bold text-[#111]">
+                    {sv.titre}{" "}
+                    <span className="font-normal text-black/50">
+                      — {sv.vides} vide(s) sur {sv.ecrans} écran(s)
+                    </span>
+                  </p>
+                  <p className="text-[11px] text-black/50">{sv.exemples.join(" · ")}</p>
                 </li>
               ))}
             </ul>

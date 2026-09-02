@@ -205,6 +205,7 @@ const AssistantIntelligences = lazy(() => import("./pages/AssistantIntelligences
 const CentreBusEvenements = lazy(() => import("./pages/CentreBusEvenements"));
 const CentreControleContinu = lazy(() => import("./pages/CentreControleContinu"));
 const CentreAutoBranchement = lazy(() => import("./pages/CentreAutoBranchement"));
+const SectionAccueil = lazy(() => import("./pages/SectionAccueil"));
 const MemoireTechnique = lazy(() => import("./pages/MemoireTechnique"));
 const CompletionCenter = lazy(() => import("./pages/CompletionCenter"));
 const AvisUnivers = lazy(() => import("./pages/AvisUnivers"));
@@ -1374,6 +1375,22 @@ export default function App() {
             <Route path="/operations/programme-entreprises-strategiques" element={<U name="Opérations"><ProgrammeEntreprisesStrategiques /></U>} />
             <Route path="/operations/programme-premium" element={<U name="Opérations"><ProgrammePremium /></U>} />
             <Route path="/operations/tableau-bord-fondateur" element={<U name="Opérations"><TableauBordFondateur /></U>} />
+            {/* Pages d'accueil des sections (sommaire issu de l'inventaire des routes) */}
+            <Route path="/automatisations" element={<U name="Automatisations"><SectionAccueil /></U>} />
+            <Route path="/communaute" element={<U name="Communauté"><SectionAccueil /></U>} />
+            <Route path="/conformite" element={<U name="Conformité"><SectionAccueil /></U>} />
+            <Route path="/corporate" element={<U name="L'entreprise MKA.P-MS"><SectionAccueil /></U>} />
+            <Route path="/entreprises" element={<U name="Entreprises et flottes"><SectionAccueil /></U>} />
+            <Route path="/expansion" element={<U name="Expansion internationale"><SectionAccueil /></U>} />
+            <Route path="/formations" element={<U name="Formations"><SectionAccueil /></U>} />
+            <Route path="/ia" element={<U name="MKA.P-MS Intelligences"><SectionAccueil /></U>} />
+            <Route path="/international" element={<U name="International"><SectionAccueil /></U>} />
+            <Route path="/labs" element={<U name="Laboratoires MKA.P-MS"><SectionAccueil /></U>} />
+            <Route path="/marketing" element={<U name="Marketing"><SectionAccueil /></U>} />
+            <Route path="/mobile" element={<U name="Applications mobiles"><SectionAccueil /></U>} />
+            <Route path="/operations" element={<U name="Opérations"><SectionAccueil /></U>} />
+            <Route path="/pro" element={<U name="Espace professionnel"><SectionAccueil /></U>} />
+            <Route path="/recrutement" element={<U name="Recrutement"><SectionAccueil /></U>} />
             {/* Automatisations */}
             <Route path="/automatisations/centre-alertes-strategiques" element={<U name="Automatisations"><CentreAlertesStrategiques /></U>} />
             <Route path="/automatisations/centre-auto-marketing" element={<U name="Automatisations"><CentreAutoMarketing /></U>} />

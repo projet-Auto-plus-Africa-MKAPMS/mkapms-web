@@ -247,6 +247,15 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     emetteurs: ["auto_branchement"],
   },
   {
+    code: "ecrans.vides_recenses",
+    domaine: "code",
+    label: "Écrans annoncés mais vides",
+    description:
+      "Des écrans sont atteignables et listés au sommaire de leur section, mais n'affichent qu'un gabarit sans contenu. Publié pour que la direction sache ce qui est annoncé au visiteur sans être livré.",
+    champs: ["vides", "total", "sections", "principales"],
+    emetteurs: ["auto_branchement"],
+  },
+  {
     code: "atelier.validation_enregistree",
     domaine: "service",
     label: "Validation d'atelier enregistrée",
@@ -400,6 +409,13 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     handler: "smart_cliquable_destination_morte",
     effet:
       "Ouvre une alerte dédupliquée par destination et demande à MKA.P-MS Intelligences si la page doit être créée ou la destination redirigée.",
+  },
+  {
+    engine: "smart",
+    eventType: "ecrans.vides_recenses",
+    handler: "smart_ecrans_vides",
+    effet:
+      "Écrit en mémoire technique combien d'écrans sont annoncés sans contenu et ouvre une alerte de direction tant qu'il en reste, avec les sections les plus concernées.",
   },
   {
     engine: "smart",

@@ -361,6 +361,41 @@ const handlers: Record<string, Handler> = {
     return `Alerte ouverte pour ${destination} (${occurrences} endroit(s)) et dossier ${dossier?.id ?? "non ouvert"} demandé aux Intelligences.`;
   },
 
+  async smart_ecrans_vides(payload) {
+    const vides = nombre(payload, "vides") ?? 0;
+    const total = nombre(payload, "total") ?? 0;
+    const sections = nombre(payload, "sections") ?? 0;
+    const principales = texte(payload, "principales") || "sections non transmises";
+
+    await memoriser({
+      categorie: "technique",
+      cle: "auto_branchement:ecrans_vides",
+      titre: "Écrans annoncés au visiteur sans contenu",
+      contenu:
+        `${vides} écran(s) sur ${total} listés au sommaire de leur section n'affichent qu'un gabarit. ` +
+        `${sections} section(s) concernée(s) : ${principales}.`,
+      source: "event-bus.smart_ecrans_vides",
+    });
+
+    if (vides === 0) return `Aucun écran vide : les ${total} écran(s) de section affichent du contenu.`;
+
+    const cree = await raiseAlert({
+      category: "service",
+      title: `${vides} écran(s) annoncés au visiteur sans aucun contenu`,
+      description:
+        `${vides} écran(s) sur ${total} sont atteignables et listés au sommaire de leur section, mais n'affichent ` +
+        `qu'un gabarit « Module … ». Sections les plus concernées : ${principales}. ` +
+        "Ces écrans sont désormais annoncés « en préparation » au visiteur au lieu d'être présentés comme livrés, " +
+        "mais le contenu reste à produire.",
+      level: vides > 100 ? "important" : "warning",
+      targetType: "cliquables",
+      signature: "bus:ecrans_vides",
+    });
+    return cree
+      ? `Alerte ouverte : ${vides} écran(s) annoncés sans contenu.`
+      : `Alerte déjà ouverte sur les ${vides} écran(s) sans contenu.`;
+  },
+
   async smart_atelier_non_conforme(payload) {
     const dossier = texte(payload, "dossier") || "?";
     const type = texte(payload, "type") || "contrôle";

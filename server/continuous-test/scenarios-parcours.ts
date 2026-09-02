@@ -143,7 +143,7 @@ export const PARCOURS_SCENARIOS: Scenario[] = [
     },
   },
   {
-    id: "parcours.destinations_existantes",
+    id: "parcours.destinations_ecrans",
     domaine: "redirection",
     label: "Aucun écran n'envoie vers une page inexistante",
     criticite: "critique",
@@ -167,6 +167,26 @@ export const PARCOURS_SCENARIOS: Scenario[] = [
       return {
         statut: "echec",
         observe: `${vivantes.length} destination(s) inexistante(s) : ${exemples.join(" · ")}${vivantes.length > 6 ? " …" : ""}`,
+      };
+    },
+  },
+  {
+    id: "parcours.ecrans_avec_contenu",
+    domaine: "redirection",
+    label: "Aucun écran annoncé au visiteur n'est vide",
+    criticite: "normale",
+    attendu:
+      "Un écran listé au sommaire de sa section affiche un contenu réel, ou est explicitement annoncé « en préparation ».",
+    async run(): Promise<Observation> {
+      const { sectionsVides } = await import("../auto-branchement/service.js");
+      const sections = sectionsVides();
+      const vides = sections.reduce((n, s) => n + s.vides, 0);
+      if (vides === 0)
+        return { statut: "reussi", observe: "Tous les écrans de section affichent un contenu." };
+      const exemples = sections.slice(0, 5).map((s) => `${s.prefixe} (${s.vides})`);
+      return {
+        statut: "echec",
+        observe: `${vides} écran(s) réduits à un gabarit sur ${sections.length} section(s) : ${exemples.join(" · ")}${sections.length > 5 ? " …" : ""}`,
       };
     },
   },

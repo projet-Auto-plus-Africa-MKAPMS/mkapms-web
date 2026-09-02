@@ -27,8 +27,10 @@ export {
   ecransMuets,
   health,
   propositions,
+  sectionsVides,
   synthese,
   type Proposition,
+  type SectionVide,
   type RapportAutoBranchement,
   type SyntheseAutoBranchement,
 } from "./service.js";

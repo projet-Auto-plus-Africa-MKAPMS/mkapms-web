@@ -37,6 +37,11 @@ import { actionParCode } from "../button-engine/catalogue.js";
 import { listRules } from "../redirection-engine/service.js";
 import { emitSafe } from "../event-bus/service.js";
 import { heartbeat } from "../engine-registry/service.js";
+import {
+  SECTIONS_ECRANS_TOTAL,
+  SECTIONS_ECRANS_VIDES,
+  SECTIONS_SOMMAIRE,
+} from "@shared/sections.js";
 
 export interface SyntheseAutoBranchement {
   /** Total des cliquables relevés dans les écrans. */
@@ -213,7 +218,41 @@ export function codesNonDeclares(): { fichier: string; ligne: number; code: stri
     .map((a) => ({ fichier: a.fichier, ligne: a.ligne, code: a.libelle }));
 }
 
-export type Traitement = "creer_page" | "regle_redirection" | "declarer_au_moteur" | "retirer_element";
+export interface SectionVide {
+  prefixe: string;
+  titre: string;
+  ecrans: number;
+  /** Écrans encore réduits au gabarit « Module … » : annoncés, pas livrés. */
+  vides: number;
+  exemples: string[];
+}
+
+/**
+ * Sections dont les écrans sont annoncés au visiteur mais n'affichent encore
+ * aucun contenu. Compter ces écrans comme livrés serait le mensonge le plus
+ * coûteux de la plateforme : un client qui ouvre 247 pages vides ne revient pas.
+ */
+export function sectionsVides(): SectionVide[] {
+  return SECTIONS_SOMMAIRE.map((s) => ({
+    prefixe: s.prefixe,
+    titre: s.titre,
+    ecrans: s.entrees.length,
+    vides: s.entrees.filter((e) => e.vide).length,
+    exemples: s.entrees
+      .filter((e) => e.vide)
+      .slice(0, 5)
+      .map((e) => e.chemin),
+  }))
+    .filter((s) => s.vides > 0)
+    .sort((a, b) => b.vides - a.vides || a.prefixe.localeCompare(b.prefixe));
+}
+
+export type Traitement =
+  | "creer_page"
+  | "regle_redirection"
+  | "declarer_au_moteur"
+  | "retirer_element"
+  | "livrer_module";
 
 export interface Proposition {
   /** Clé stable : la même anomalie donne toujours la même proposition. */
@@ -261,6 +300,20 @@ export async function propositions(): Promise<Proposition[]> {
           .map((x) => `« ${x.libelle} » l.${x.ligne}`)
           .join(", ")}). Déclarer chaque bouton au catalogue du Moteur de boutons avec son action réelle, ` +
         "ou retirer l'élément de l'écran s'il n'a pas de raison d'exister.",
+    });
+  }
+
+  for (const s of sectionsVides()) {
+    out.push({
+      cle: `section_vide:${s.prefixe}`,
+      sujet: s.prefixe,
+      motif: "sans_action",
+      poids: s.vides,
+      traitement: "livrer_module",
+      action:
+        `${s.vides} écran(s) sur ${s.ecrans} de la section « ${s.titre} » n'affichent qu'un gabarit ` +
+        `(ex. ${s.exemples.join(", ")}). Livrer le contenu de chaque écran, ou retirer la section du sommaire ` +
+        "tant qu'elle n'a rien à montrer : le visiteur ne doit pas ouvrir une page vide.",
     });
   }
 
@@ -340,6 +393,26 @@ export async function analyser(
       });
       publies.push(`cliquable.destination_morte:${d.destination}`);
     }
+
+    // Une page atteignable mais vide est un défaut de livraison, pas un lien
+    // mort : le Système Intelligent doit la voir avant le client.
+    if (SECTIONS_ECRANS_VIDES > 0) {
+      const parSection = sectionsVides();
+      await emitSafe({
+        type: "ecrans.vides_recenses",
+        source: "auto_branchement",
+        payload: {
+          vides: SECTIONS_ECRANS_VIDES,
+          total: SECTIONS_ECRANS_TOTAL,
+          sections: parSection.length,
+          principales: parSection
+            .slice(0, 5)
+            .map((s) => `${s.prefixe} (${s.vides})`)
+            .join(", "),
+        },
+      });
+      publies.push("ecrans.vides_recenses");
+    }
   }
 
   // Mémoire technique : l'état des cliquables devient un fait daté, réutilisable
@@ -355,6 +428,7 @@ export async function analyser(
         `Couverture Moteur de boutons : ${s.couvertureMoteur} %. ` +
         `${s.parMotif.sans_action} bouton(s) sans action, ${vivantes.length} destination(s) morte(s), ` +
         `${mortes.length - vivantes.length} rattrapée(s) par le Moteur de Redirection. ` +
+        `${SECTIONS_ECRANS_VIDES} écran(s) de section sur ${SECTIONS_ECRANS_TOTAL} n'affichent qu'un gabarit. ` +
         `Déclenchement : ${trigger}.`,
       source: "auto_branchement.analyser",
     });
