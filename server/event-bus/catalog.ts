@@ -278,8 +278,80 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     domaine: "service",
     label: "Stock de pièces au niveau d'alerte",
     description:
-      "Une référence du stock garage est tombée sous son seuil réel. Remplace le « réapprovisionnement automatique » qui n'existait pas : le manque est signalé, la commande reste une décision.",
+      "Une référence du stock garage est tombée sous son seuil réel. Le Moteur d'Atelier ouvre lui-même la proposition de réapprovisionnement (atelier.reappro_proposee) ; la commande reste une décision humaine.",
     champs: ["garageId", "reference", "quantite", "seuil"],
+    emetteurs: ["atelier"],
+  },
+  {
+    code: "atelier.reappro_reglages_modifies",
+    domaine: "service",
+    label: "Réglages de réapprovisionnement modifiés",
+    description:
+      "Un garage a fixé son plafond d'engagement mensuel, son fournisseur habituel ou l'ouverture automatique des propositions. Sans plafond, aucune commande ne peut partir.",
+    champs: ["garageId", "plafondMensuelCents", "propositionAuto", "fournisseur"],
+    emetteurs: ["atelier"],
+  },
+  {
+    code: "atelier.reappro_proposee",
+    domaine: "service",
+    label: "Proposition de réapprovisionnement ouverte",
+    description:
+      "Une ligne de stock sous seuil a une proposition persistante, en attente d'une décision humaine de l'atelier. Une proposition qui reste sans décision est une rupture qui dure.",
+    champs: ["propositionId", "garageId", "reference", "quantiteProposee", "origine", "prixConnu"],
+    emetteurs: ["atelier"],
+  },
+  {
+    code: "atelier.reappro_decidee",
+    domaine: "service",
+    label: "Proposition de réapprovisionnement décidée",
+    description:
+      "Un humain de l'atelier a validé (quantité et prix fixés) ou refusé (motif exigé) une proposition. La décision est opposable : qui, quand, pourquoi.",
+    champs: ["propositionId", "garageId", "reference", "decision", "quantite", "motif"],
+    emetteurs: ["atelier"],
+  },
+  {
+    code: "atelier.commande_fournisseur_passee",
+    domaine: "service",
+    label: "Commande fournisseur passée",
+    description:
+      "Engagement financier réel de l'atelier, sous son plafond mensuel, sur des propositions validées. Le statut dit si le bon est réellement parti par email ou reste à transmettre.",
+    champs: ["commandeId", "numero", "garageId", "fournisseur", "totalCents", "lignes", "statut", "engageApresCents", "plafondCents"],
+    emetteurs: ["atelier"],
+  },
+  {
+    code: "atelier.commande_fournisseur_receptionnee",
+    domaine: "service",
+    label: "Commande fournisseur réceptionnée",
+    description:
+      "Les pièces sont entrées en stock, un mouvement par ligne au nom de la commande. La rupture est réellement close, pas déclarée close.",
+    champs: ["commandeId", "numero", "garageId", "piecesEntrees", "lignes"],
+    emetteurs: ["atelier"],
+  },
+  {
+    code: "atelier.commande_fournisseur_annulee",
+    domaine: "service",
+    label: "Commande fournisseur annulée",
+    description:
+      "Une commande non réceptionnée a été annulée avec motif ; ses propositions redeviennent validées car la rupture n'a pas disparu.",
+    champs: ["commandeId", "numero", "garageId", "motif", "totalCents"],
+    emetteurs: ["atelier"],
+  },
+  {
+    code: "atelier.reappro_plafond_depasse",
+    domaine: "service",
+    label: "Commande refusée : plafond mensuel dépassé",
+    description:
+      "Une commande a été refusée par le moteur parce qu'elle dépassait le plafond d'engagement du garage. Soit le plafond est trop bas, soit l'atelier sur-commande : la direction doit trancher.",
+    champs: ["garageId", "plafondCents", "engageCents", "demandeCents"],
+    emetteurs: ["atelier"],
+  },
+  {
+    code: "atelier.reappro_plafond_proche",
+    domaine: "service",
+    label: "Plafond mensuel de réapprovisionnement presque atteint",
+    description:
+      "L'engagement du mois dépasse 90 % du plafond du garage : les prochaines ruptures ne pourront plus être commandées sans décision.",
+    champs: ["garageId", "plafondCents", "engageCents"],
     emetteurs: ["atelier"],
   },
   {
@@ -430,6 +502,48 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     handler: "smart_atelier_stock_bas",
     effet:
       "Ouvre une alerte dédupliquée par référence de pièce : la rupture est annoncée avant l'immobilisation d'un véhicule.",
+  },
+  {
+    engine: "smart",
+    eventType: "atelier.reappro_proposee",
+    handler: "smart_atelier_reappro_proposee",
+    effet:
+      "Écrit la proposition en mémoire technique et ouvre une alerte si le prix d'achat est inconnu : sans prix, la commande sera refusée et la rupture durera.",
+  },
+  {
+    engine: "smart",
+    eventType: "atelier.reappro_decidee",
+    handler: "smart_atelier_reappro_decidee",
+    effet:
+      "Ferme l'alerte de rupture ouverte sur la référence quand la proposition est validée ; mémorise le motif d'un refus pour que la même rupture ne soit pas reproposée sans contexte.",
+  },
+  {
+    engine: "smart",
+    eventType: "atelier.commande_fournisseur_passee",
+    handler: "smart_atelier_commande_passee",
+    effet:
+      "Mémorise l'engagement financier et ouvre une alerte quand le bon n'a pas pu partir par email (SMTP absent ou fournisseur sans adresse) : une commande « à transmettre » qu'on oublie est une rupture qui dure.",
+  },
+  {
+    engine: "smart",
+    eventType: "atelier.commande_fournisseur_receptionnee",
+    handler: "smart_atelier_commande_receptionnee",
+    effet:
+      "Ferme les alertes de rupture et de transmission de la commande : la boucle seuil → réception est bouclée sur preuve de stock.",
+  },
+  {
+    engine: "smart",
+    eventType: "atelier.reappro_plafond_depasse",
+    handler: "smart_atelier_plafond",
+    effet:
+      "Ouvre une alerte importante dédupliquée par garage : commande refusée faute de plafond, la direction ou l'atelier doit trancher.",
+  },
+  {
+    engine: "smart",
+    eventType: "atelier.reappro_plafond_proche",
+    handler: "smart_atelier_plafond",
+    effet:
+      "Ouvre une alerte d'avertissement dédupliquée par garage : 90 % du plafond mensuel engagé.",
   },
   {
     engine: "audit_os",

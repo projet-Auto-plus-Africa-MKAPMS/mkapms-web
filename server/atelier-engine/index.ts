@@ -22,12 +22,37 @@ import {
   validationsDossier,
   validationsGarages,
 } from "./service.js";
+import {
+  annulerCommande,
+  commanderFournisseur,
+  deciderProposition,
+  engagementDuMois,
+  enregistrerReglages,
+  listerCommandes,
+  listerPropositions,
+  proposerPourStock,
+  proposerToutesLesRuptures,
+  ReapproRefus,
+  receptionnerCommande,
+  reglages,
+  STATUTS_PROPOSITION,
+} from "./reappro.js";
 
 export const ATELIER_ENGINE_META = {
   code: "atelier",
   name: "MKA.P-MS Moteur d'Atelier",
-  role: "Enregistre les validations d'atelier et de contrôle qualité, tient le stock de pièces d'un garage et trace les reports de rendez-vous.",
+  role: "Enregistre les validations d'atelier et de contrôle qualité, tient le stock de pièces d'un garage, conduit le réapprovisionnement (seuil → proposition → décision → commande fournisseur sous plafond → réception) et trace les reports de rendez-vous.",
 } as const;
+
+/** Un refus métier du réapprovisionnement devient une erreur tRPC lisible, jamais un 500. */
+async function reappro<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    if (e instanceof ReapproRefus) throw new TRPCError({ code: e.code, message: e.message });
+    throw e;
+  }
+}
 
 /** Garages réellement possédés par le compte courant. */
 async function mesGarages(userId: number) {
@@ -197,6 +222,135 @@ export const atelierEngineRouter = router({
         });
       }
       return reportsRdv(input.rdvId);
+    }),
+
+  /* ---------------------------------------------------- réapprovisionnement */
+
+  /** Réglages (plafond mensuel, fournisseur habituel) + engagement du mois, pour un garage du compte. */
+  reapproReglages: proProcedure
+    .input(z.object({ garageId: z.number().int().positive().optional() }).default({}))
+    .query(async ({ input, ctx }) => {
+      const { garageId, miens } = await garageAutorise(ctx.user.uid, input.garageId);
+      if (garageId == null) return { garages: miens, garageId: null, reglages: null, engageCents: 0 };
+      return {
+        garages: miens,
+        garageId,
+        reglages: await reglages(garageId),
+        engageCents: await engagementDuMois(garageId),
+      };
+    }),
+
+  enregistrerReapproReglages: proProcedure
+    .input(
+      z.object({
+        garageId: z.number().int().positive().optional(),
+        plafondMensuelCents: z.number().int().min(0).max(1_000_000_000),
+        propositionAuto: z.boolean(),
+        fournisseurNom: z.string().max(160).optional(),
+        fournisseurEmail: z.string().email().max(200).optional(),
+        fournisseurTelephone: z.string().max(40).optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const garageId = await garageObligatoire(ctx.user.uid, input.garageId);
+      return enregistrerReglages({ ...input, garageId, parUser: ctx.user.uid });
+    }),
+
+  /** Propositions des garages du compte, filtrables par statut. */
+  propositions: proProcedure
+    .input(z.object({ statuts: z.array(z.enum(STATUTS_PROPOSITION)).optional() }).default({}))
+    .query(async ({ input, ctx }) => {
+      const miens = await mesGarages(ctx.user.uid);
+      return listerPropositions(
+        miens.map((g) => g.id),
+        input.statuts,
+      );
+    }),
+
+  /** Ouvre à la main une proposition sur une ligne de stock du compte. */
+  proposerReappro: proProcedure
+    .input(z.object({ stockId: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      const miens = await mesGarages(ctx.user.uid);
+      const lignes = await listerStock(miens.map((g) => g.id));
+      if (!lignes.some((l) => l.id === input.stockId)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Cette ligne de stock n'est pas la vôtre." });
+      }
+      return reappro(() => proposerPourStock(input.stockId, "manuelle", ctx.user.uid));
+    }),
+
+  /** Ouvre une proposition pour chaque rupture actuelle des garages du compte. */
+  proposerToutesRuptures: proProcedure.mutation(async ({ ctx }) => {
+    const miens = await mesGarages(ctx.user.uid);
+    return proposerToutesLesRuptures(
+      miens.map((g) => g.id),
+      ctx.user.uid,
+    );
+  }),
+
+  /** Décision humaine : valider (quantité/prix ajustables) ou refuser (motif exigé). */
+  deciderProposition: proProcedure
+    .input(
+      z.object({
+        propositionId: z.number().int().positive(),
+        decision: z.enum(["valider", "refuser"]),
+        quantite: z.number().int().min(1).max(1_000_000).optional(),
+        prixUnitaireCents: z.number().int().min(1).optional(),
+        motif: z.string().max(300).optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const miens = await mesGarages(ctx.user.uid);
+      return reappro(() =>
+        deciderProposition({ ...input, garageIds: miens.map((g) => g.id), parUser: ctx.user.uid }),
+      );
+    }),
+
+  /** Commande fournisseur réelle, sur propositions validées, sous plafond mensuel. */
+  commanderFournisseur: proProcedure
+    .input(
+      z.object({
+        garageId: z.number().int().positive().optional(),
+        propositionIds: z.array(z.number().int().positive()).min(1).max(100),
+        fournisseurNom: z.string().max(160).optional(),
+        fournisseurEmail: z.string().email().max(200).optional(),
+        fournisseurTelephone: z.string().max(40).optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const garageId = await garageObligatoire(ctx.user.uid, input.garageId);
+      return reappro(() => commanderFournisseur({ ...input, garageId, parUser: ctx.user.uid }));
+    }),
+
+  commandesFournisseur: proProcedure.query(async ({ ctx }) => {
+    const miens = await mesGarages(ctx.user.uid);
+    return listerCommandes(miens.map((g) => g.id));
+  }),
+
+  /** Réception : le stock est réellement incrémenté, mouvement tracé par commande. */
+  receptionnerCommande: proProcedure
+    .input(
+      z.object({
+        commandeId: z.number().int().positive(),
+        recues: z
+          .array(z.object({ propositionId: z.number().int().positive(), quantite: z.number().int().min(0) }))
+          .optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const miens = await mesGarages(ctx.user.uid);
+      return reappro(() =>
+        receptionnerCommande({ ...input, garageIds: miens.map((g) => g.id), parUser: ctx.user.uid }),
+      );
+    }),
+
+  annulerCommande: proProcedure
+    .input(z.object({ commandeId: z.number().int().positive(), motif: z.string().min(3).max(300) }))
+    .mutation(async ({ input, ctx }) => {
+      const miens = await mesGarages(ctx.user.uid);
+      return reappro(() =>
+        annulerCommande({ ...input, garageIds: miens.map((g) => g.id), parUser: ctx.user.uid }),
+      );
     }),
 
   /** Lecture de direction : ce que le moteur a réellement enregistré. */

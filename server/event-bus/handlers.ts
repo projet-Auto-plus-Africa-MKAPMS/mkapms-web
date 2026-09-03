@@ -434,6 +434,152 @@ const handlers: Record<string, Handler> = {
       : `Alerte déjà ouverte pour la référence ${reference}.`;
   },
 
+  async smart_atelier_reappro_proposee(payload) {
+    const id = nombre(payload, "propositionId");
+    const reference = texte(payload, "reference") || "?";
+    const garageId = texte(payload, "garageId") || "?";
+    const quantite = texte(payload, "quantiteProposee") || "?";
+    const origine = texte(payload, "origine") || "?";
+    const prixConnu = texte(payload, "prixConnu") === "true";
+
+    await memoriser({
+      categorie: "technique",
+      cle: `atelier:reappro:proposition:${id ?? reference}`,
+      titre: `Réapprovisionnement proposé — ${reference} (garage ${garageId})`,
+      contenu: `Proposition #${id ?? "?"} : ${quantite} × ${reference}, origine ${origine}, prix d'achat ${prixConnu ? "connu" : "INCONNU"}. En attente d'une décision humaine.`,
+      liens: { garageId, reference },
+      source: "event-bus.smart_atelier_reappro_proposee",
+    });
+
+    if (prixConnu) return `Proposition #${id} mémorisée (${reference}, prix connu).`;
+    const cree = await raiseAlert({
+      category: "service",
+      title: `Réapprovisionnement sans prix d'achat — ${reference}`,
+      description:
+        `La proposition #${id} (garage ${garageId}) n'a pas de prix d'achat : la commande fournisseur sera refusée tant qu'il n'est pas renseigné, ` +
+        "et la rupture durera. Renseignez le prix sur la ligne de stock ou lors de la validation.",
+      level: "warning",
+      targetType: "atelier_reappro",
+      targetId: id ?? undefined,
+      signature: `bus:atelier_reappro_sans_prix:${garageId}:${reference}`,
+    });
+    return cree
+      ? `Alerte ouverte : proposition #${id} sans prix d'achat.`
+      : `Alerte déjà ouverte : proposition sans prix pour ${reference}.`;
+  },
+
+  async smart_atelier_reappro_decidee(payload) {
+    const id = nombre(payload, "propositionId");
+    const reference = texte(payload, "reference") || "?";
+    const garageId = texte(payload, "garageId") || "?";
+    const decision = texte(payload, "decision");
+    const motif = texte(payload, "motif");
+
+    if (decision === "validee") {
+      const closes = await db
+        .update(smartAlerts)
+        .set({ status: "resolved", resolvedAt: new Date() })
+        .where(
+          and(
+            eq(smartAlerts.status, "open"),
+            sql`${smartAlerts.metadata}->>'signature' IN (${`bus:atelier_stock_bas:${reference}`}, ${`bus:atelier_reappro_sans_prix:${garageId}:${reference}`})`,
+          ),
+        )
+        .returning({ id: smartAlerts.id });
+      return `Proposition #${id} validée : ${closes.length} alerte(s) de rupture refermée(s) pour ${reference}.`;
+    }
+
+    await memoriser({
+      categorie: "technique",
+      cle: `atelier:reappro:refus:${garageId}:${reference}`,
+      titre: `Réapprovisionnement refusé — ${reference} (garage ${garageId})`,
+      contenu: `Proposition #${id} refusée par l'atelier. Motif : ${motif || "non transmis"}. La rupture reste ouverte volontairement.`,
+      liens: { garageId, reference },
+      source: "event-bus.smart_atelier_reappro_decidee",
+    });
+    return `Refus de la proposition #${id} mémorisé (${reference}).`;
+  },
+
+  async smart_atelier_commande_passee(payload) {
+    const id = nombre(payload, "commandeId");
+    const numero = texte(payload, "numero") || "?";
+    const garageId = texte(payload, "garageId") || "?";
+    const fournisseur = texte(payload, "fournisseur") || "?";
+    const total = nombre(payload, "totalCents") ?? 0;
+    const statut = texte(payload, "statut");
+
+    await memoriser({
+      categorie: "technique",
+      cle: `atelier:reappro:commande:${numero}`,
+      titre: `Commande fournisseur ${numero} (garage ${garageId})`,
+      contenu: `${(total / 100).toFixed(2)} € engagés auprès de ${fournisseur}, statut ${statut}. Engagement du mois : ${texte(payload, "engageApresCents")} / plafond ${texte(payload, "plafondCents")} cents.`,
+      liens: { garageId, numero },
+      source: "event-bus.smart_atelier_commande_passee",
+    });
+
+    if (statut === "envoyee") return `Commande ${numero} mémorisée : bon transmis au fournisseur.`;
+    const cree = await raiseAlert({
+      category: "service",
+      title: `Bon de commande ${numero} non transmis au fournisseur`,
+      description:
+        `La commande ${numero} (${(total / 100).toFixed(2)} €, ${fournisseur}) est enregistrée mais le bon n'est pas parti par email ` +
+        "(fournisseur sans adresse ou envoi d'email non configuré). L'atelier doit le transmettre lui-même, sinon la rupture dure.",
+      level: "warning",
+      targetType: "atelier_commande",
+      targetId: id ?? undefined,
+      signature: `bus:atelier_commande_a_transmettre:${numero}`,
+    });
+    return cree
+      ? `Alerte ouverte : commande ${numero} à transmettre.`
+      : `Alerte déjà ouverte : commande ${numero} à transmettre.`;
+  },
+
+  async smart_atelier_commande_receptionnee(payload) {
+    const numero = texte(payload, "numero") || "?";
+    const pieces = texte(payload, "piecesEntrees") || "0";
+    const closes = await db
+      .update(smartAlerts)
+      .set({ status: "resolved", resolvedAt: new Date() })
+      .where(
+        and(
+          eq(smartAlerts.status, "open"),
+          sql`${smartAlerts.metadata}->>'signature' = ${`bus:atelier_commande_a_transmettre:${numero}`}`,
+        ),
+      )
+      .returning({ id: smartAlerts.id });
+    await memoriser({
+      categorie: "technique",
+      cle: `atelier:reappro:reception:${numero}`,
+      titre: `Commande ${numero} réceptionnée`,
+      contenu: `${pieces} pièce(s) entrées en stock, mouvements tracés au nom de la commande.`,
+      source: "event-bus.smart_atelier_commande_receptionnee",
+    });
+    return `Commande ${numero} réceptionnée (${pieces} pièce(s)) : ${closes.length} alerte(s) refermée(s).`;
+  },
+
+  async smart_atelier_plafond(payload, ctx) {
+    const garageId = texte(payload, "garageId") || "?";
+    const plafond = nombre(payload, "plafondCents") ?? 0;
+    const engage = nombre(payload, "engageCents") ?? 0;
+    const depasse = ctx.type === "atelier.reappro_plafond_depasse";
+    const demande = nombre(payload, "demandeCents") ?? 0;
+    const cree = await raiseAlert({
+      category: "service",
+      title: depasse
+        ? `Commande fournisseur refusée : plafond dépassé (garage ${garageId})`
+        : `Plafond de réapprovisionnement presque atteint (garage ${garageId})`,
+      description: depasse
+        ? `Une commande de ${(demande / 100).toFixed(2)} € a été refusée : ${(engage / 100).toFixed(2)} € déjà engagés sur un plafond de ${(plafond / 100).toFixed(2)} €. Relever le plafond ou réduire la commande.`
+        : `${(engage / 100).toFixed(2)} € engagés sur ${(plafond / 100).toFixed(2)} € ce mois : les prochaines ruptures ne pourront plus être commandées sans décision.`,
+      level: depasse ? "important" : "warning",
+      targetType: "atelier_reappro",
+      signature: `bus:atelier_plafond:${depasse ? "depasse" : "proche"}:${garageId}`,
+    });
+    return cree
+      ? `Alerte plafond ${depasse ? "dépassé" : "proche"} ouverte pour le garage ${garageId}.`
+      : `Alerte plafond déjà ouverte pour le garage ${garageId}.`;
+  },
+
   async audit_trace(payload, ctx) {
     await auditRecord({
       actorId: null,

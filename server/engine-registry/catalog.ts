@@ -116,9 +116,9 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "atelier",
     label: "Moteur d'Atelier",
     category: "service",
-    dependencies: ["core", "event_bus", "smart"],
+    dependencies: ["core", "boutons", "redirection", "event_bus", "smart", "intelligences", "permission"],
     description:
-      "Capacités serveur de l'atelier qui manquaient réellement : validation interne et contrôle qualité enregistrés et opposables, stock de pièces du garage avec un mouvement par écriture, report de rendez-vous tracé. Chaque écriture est publiée à l'Event Bus.",
+      "Capacités serveur de l'atelier : validation interne et contrôle qualité opposables, stock de pièces avec un mouvement par écriture, réapprovisionnement gouverné (seuil → proposition persistante → décision humaine → commande fournisseur sous plafond mensuel → réception en stock), report de rendez-vous tracé. Chaque écriture est publiée à l'Event Bus, supervisée par le Système Intelligent et mémorisée par MKA.P-MS Intelligences.",
     state: "active",
   },
   {
