@@ -24,6 +24,7 @@ import {
 } from "./schema.js";
 import { emitSafe } from "../event-bus/service.js";
 import { heartbeat } from "../engine-registry/service.js";
+import { etatReappro, proposerPourStock, ReapproRefus } from "./reappro.js";
 
 export const TYPES_VALIDATION = ["validation_interne", "controle_qualite"] as const;
 export type TypeValidation = (typeof TYPES_VALIDATION)[number];
@@ -211,6 +212,12 @@ export async function enregistrerStock(input: StockInput) {
         seuil: ligne.seuil,
       },
     });
+    // Le seuil ouvre la proposition lui-même (idempotent) ; l'atelier décide.
+    try {
+      await proposerPourStock(ligne.id, "seuil_auto");
+    } catch (e) {
+      if (!(e instanceof ReapproRefus)) throw e;
+    }
   }
 
   await heartbeat("atelier", "ok", {
@@ -323,6 +330,7 @@ export async function etat() {
   const [{ reports }] = await db
     .select({ reports: sql<number>`count(*)::int` })
     .from(atelierRdvReports);
+  const reappro = await etatReappro();
 
   return {
     checkedAt: new Date().toISOString(),
@@ -331,6 +339,7 @@ export async function etat() {
     lignesStock,
     stockBas,
     reports,
+    reappro,
   };
 }
 
