@@ -220,6 +220,15 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     emetteurs: ["livraison_vehicule"],
   },
   {
+    code: "livraison_vehicule.validation_requise",
+    domaine: "service",
+    label: "Acheminement transfrontalier à valider",
+    description:
+      "Le Country Policy Engine a rendu un verdict « validation requise » pour l'importation dans le pays d'arrivée : l'expédition est créée mais ne peut pas être planifiée tant qu'un humain de la direction ne l'a pas autorisée.",
+    champs: ["expeditionId", "reference", "paysArrivee", "motif"],
+    emetteurs: ["livraison_vehicule"],
+  },
+  {
     code: "livraison_vehicule.baremes_initialises",
     domaine: "service",
     label: "Barème interne d'acheminement posé",
@@ -497,6 +506,13 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     handler: "smart_livraison_vehicule_bloquee",
     effet:
       "Ouvre une alerte de direction par expédition et étape : un véhicule immobilisé en douane doit remonter le jour même.",
+  },
+  {
+    engine: "smart",
+    eventType: "livraison_vehicule.validation_requise",
+    handler: "smart_livraison_vehicule_validation",
+    effet:
+      "Ouvre une alerte de direction par expédition : une importation soumise à validation ne doit pas partir sans décision humaine tracée.",
   },
   {
     engine: "smart",

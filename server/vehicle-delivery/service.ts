@@ -20,6 +20,7 @@ import { and, asc, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { annonces } from "../schema.js";
 import { countryCountries } from "../country-os/index.js";
+import { evaluateAction, reglesConfirmees } from "../country-policy/service.js";
 import { emitSafe } from "../event-bus/service.js";
 import {
   VD_CATEGORIES,
@@ -161,6 +162,44 @@ export interface Devis {
   delaiJoursMax: number | null;
   resume: string;
   manques: string[];
+  /**
+   * Règles d'importation confirmées par la direction pour le pays d'arrivée
+   * (Country Policy Engine). Vide tant qu'aucune règle n'est confirmée : le
+   * moteur le dit plutôt que de laisser croire que l'import est libre.
+   */
+  reglementation: ReglementationImport;
+}
+
+export interface ReglementationImport {
+  pays: string | null;
+  transfrontalier: boolean;
+  /** Aucune règle confirmée = statut inconnu, pas « autorisé ». */
+  statut: "autorise" | "interdit" | "conditionne" | "inconnu" | "sans_objet";
+  regles: { titre: string; effet: string; autorite: string; conditions: string }[];
+}
+
+async function reglementationImport(paysArrivee: string | null, transfrontalier: boolean): Promise<ReglementationImport> {
+  if (!paysArrivee || !transfrontalier) return { pays: paysArrivee, transfrontalier, statut: "sans_objet", regles: [] };
+  const regles = await reglesConfirmees(paysArrivee, "importation");
+  const effets = new Set(regles.map((r) => r.effect));
+  const statut: ReglementationImport["statut"] = regles.length === 0
+    ? "inconnu"
+    : effets.has("interdit")
+      ? "interdit"
+      : effets.has("conditionne")
+        ? "conditionne"
+        : "autorise";
+  return {
+    pays: paysArrivee,
+    transfrontalier,
+    statut,
+    regles: regles.map((r) => ({
+      titre: r.rule,
+      effet: r.effect,
+      autorite: r.authority ?? "",
+      conditions: Object.keys(r.conditions).length ? JSON.stringify(r.conditions) : "",
+    })),
+  };
 }
 
 /** Étapes obligatoires selon le mode et le franchissement de frontière. */
@@ -353,6 +392,13 @@ export async function devis(input: {
   }
   if (distanceKm === null) manques.push("Distance entre les deux adresses non calculée (aucun connecteur d'itinéraire).");
 
+  const reglementation = await reglementationImport(paysArrivee, transfrontalier);
+  if (reglementation.statut === "inconnu") {
+    manques.push(`Aucune règle d'importation confirmée pour ${paysArriveeNom ?? paysArrivee} : l'homologation à l'arrivée n'est pas garantie.`);
+  } else if (reglementation.statut === "interdit") {
+    manques.push(`Importation de ce type de véhicule interdite en ${paysArriveeNom ?? paysArrivee} selon la règle confirmée.`);
+  }
+
   const tarifs = await tarifsApplicables(mode, cat, paysDepart, paysArrivee);
   const etapes = etapesDuMode(mode, transfrontalier).map((e) => chiffrer(e, tarifs, distanceKm, true));
 
@@ -424,6 +470,7 @@ export async function devis(input: {
     delaiJoursMax,
     resume,
     manques,
+    reglementation,
   };
 
   if (input.enregistrer) {
@@ -486,6 +533,21 @@ export async function accepterDevis(input: {
   distanceKm?: number | null;
 }) {
   const d = await devis({ ...input, userId: input.clientId, enregistrer: true });
+  let validationRequise: string | null = null;
+  if (d.transfrontalier && d.paysArrivee) {
+    const decision = await evaluateAction({
+      actionType: "livraison_vehicule.importer",
+      countryCode: d.paysArrivee,
+      domain: "importation",
+      topic: d.categorie,
+      actorId: input.clientId,
+      context: { mode: d.mode, paysDepart: d.paysDepart ?? "" },
+    });
+    if (decision.verdict === "bloque") {
+      throw new Error(`Importation refusée en ${d.paysArriveeNom ?? d.paysArrivee} : ${decision.reason}`);
+    }
+    if (decision.verdict === "validation_requise") validationRequise = decision.reason;
+  }
   if (d.total === null) {
     throw new Error(
       "Cette livraison n'est pas chiffrable aujourd'hui : " +
@@ -502,7 +564,7 @@ export async function accepterDevis(input: {
       clientId: input.clientId,
       reference: `VDL-${Date.now().toString(36).toUpperCase()}`,
       mode: d.mode,
-      statut: "a_planifier",
+      statut: validationRequise ? "validation_requise" : "a_planifier",
       etapeCourante: d.etapes[0]?.etape ?? null,
       total: String(d.total),
       devise: d.devise,
@@ -518,6 +580,19 @@ export async function accepterDevis(input: {
       note: e.prix === null ? "Étape non chiffrée au devis." : "",
     })),
   );
+
+  if (validationRequise) {
+    await emitSafe({
+      source: "livraison_vehicule",
+      type: "livraison_vehicule.validation_requise",
+      payload: {
+        expeditionId: exp.id,
+        reference: exp.reference,
+        paysArrivee: d.paysArrivee ?? "",
+        motif: validationRequise,
+      },
+    });
+  }
 
   await emitSafe({
     source: "livraison_vehicule",

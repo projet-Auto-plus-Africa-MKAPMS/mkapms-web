@@ -30,6 +30,8 @@ interface BoutonMoteurProps {
   query?: Record<string, string>;
   /** Exécution locale d'une action `document` ou `formulaire`. */
   onExecuter?: () => void;
+  /** Motif d'indisponibilité : le bouton reste déclaré au moteur mais n'exécute rien. */
+  desactive?: string;
 }
 
 function avecQuery(cible: string, query?: Record<string, string>): string {
@@ -46,6 +48,7 @@ export function BoutonMoteur({
   email,
   query,
   onExecuter,
+  desactive,
 }: BoutonMoteurProps) {
   const { data: action } = trpc.buttonEngine.resoudre.useQuery(
     { code },
@@ -106,6 +109,13 @@ export function BoutonMoteur({
 
   if ((action.genre === "document" || action.genre === "formulaire") && onExecuter) {
     const trace = action.cible ?? action.genre;
+    if (desactive) {
+      return (
+        <button type="button" className={className} disabled title={desactive}>
+          {children}
+        </button>
+      );
+    }
     return (
       <button
         type="button"

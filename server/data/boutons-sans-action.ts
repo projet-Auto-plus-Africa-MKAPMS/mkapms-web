@@ -21,7 +21,6 @@ export interface BoutonSansAction {
 }
 
 export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
-  { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 74, libelle: "" },
   { fichier: "client/src/pages/AssistanceSinistre.tsx", ligne: 47, libelle: "Appeler" },
   { fichier: "client/src/pages/AssistanceSinistre.tsx", ligne: 77, libelle: "Modifier" },
   { fichier: "client/src/pages/AssistanceSinistre.tsx", ligne: 90, libelle: "Photo" },
@@ -110,8 +109,8 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/LocationPro.tsx", ligne: 496, libelle: "Voir les véhicules proches" },
   { fichier: "client/src/pages/LocationPro.tsx", ligne: 520, libelle: "Demander un devis flotte" },
   { fichier: "client/src/pages/LocationUtilitaires.tsx", ligne: 139, libelle: "Rechercher un utilitaire" },
-  { fichier: "client/src/pages/Louer.tsx", ligne: 481, libelle: "Voir sur la carte" },
-  { fichier: "client/src/pages/Louer.tsx", ligne: 484, libelle: "Véhicules disponibles" },
+  { fichier: "client/src/pages/Louer.tsx", ligne: 492, libelle: "Voir sur la carte" },
+  { fichier: "client/src/pages/Louer.tsx", ligne: 495, libelle: "Véhicules disponibles" },
   { fichier: "client/src/pages/Notifications.tsx", ligne: 225, libelle: "Marquer lu" },
   { fichier: "client/src/pages/Notifications.tsx", ligne: 228, libelle: "Imprimer" },
   { fichier: "client/src/pages/pieces/AbonnementsProPieces.tsx", ligne: 17, libelle: "Choisir" },

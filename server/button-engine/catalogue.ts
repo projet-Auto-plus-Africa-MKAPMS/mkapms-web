@@ -270,6 +270,74 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
     ecran: "/",
     genre: "formulaire",
   },
+
+  // ── Livraison de véhicules et camions (Vehicle Delivery Engine) ────────
+  // Entrées visibles vers le service : accueil, page livraison colis, location.
+  {
+    code: "accueil_livraison_vehicule",
+    libelle: "Faire livrer un véhicule ou un camion (accueil)",
+    ecran: "/",
+    genre: "navigation",
+    cible: "/livraison-vehicule",
+    cleRedirection: "service_livraison_vehicule",
+  },
+  {
+    code: "livraison_colis_vers_vehicule",
+    libelle: "Faire livrer un véhicule ou un camion (depuis Livraison)",
+    ecran: "/livraison",
+    genre: "navigation",
+    cible: "/livraison-vehicule",
+    cleRedirection: "service_livraison_vehicule",
+  },
+  {
+    code: "louer_livraison_vehicule",
+    libelle: "Faire livrer un véhicule ou un camion (depuis Location)",
+    ecran: "/louer",
+    genre: "navigation",
+    cible: "/livraison-vehicule",
+    cleRedirection: "service_livraison_vehicule",
+  },
+  // Actions de l'écran du service lui-même.
+  {
+    code: "livraison_vehicule_onglet_devis",
+    libelle: "Onglet Devis",
+    ecran: "/livraison-vehicule",
+    genre: "formulaire",
+  },
+  {
+    code: "livraison_vehicule_onglet_suivi",
+    libelle: "Onglet Suivi",
+    ecran: "/livraison-vehicule",
+    genre: "formulaire",
+  },
+  {
+    code: "livraison_vehicule_choisir_mode",
+    libelle: "Choisir un mode d'acheminement",
+    ecran: "/livraison-vehicule",
+    genre: "formulaire",
+  },
+  {
+    code: "livraison_vehicule_accepter",
+    libelle: "Accepter le devis et créer l'expédition",
+    ecran: "/livraison-vehicule",
+    genre: "formulaire",
+  },
+  {
+    code: "livraison_vehicule_connexion",
+    libelle: "Se connecter pour commander ou suivre",
+    ecran: "/livraison-vehicule",
+    genre: "navigation",
+    cible: "/connexion",
+    cleRedirection: "bouton_livraison_vehicule_connexion",
+  },
+  {
+    code: "livraison_vehicule_retour",
+    libelle: "Retour à l'accueil",
+    ecran: "/livraison-vehicule",
+    genre: "navigation",
+    cible: "/",
+    cleRedirection: "accueil",
+  },
 ];
 
 const PAR_CODE = new Map(ACTIONS_BOUTONS.map((a) => [a.code, a]));

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Truck, AlertTriangle, CheckCircle, Loader2, Calculator } from "lucide-react";
 import { trpc } from "../lib/trpc";
+import { BoutonMoteur } from "../lib/boutonMoteur";
 
 export default function Livraison() {
   const [poids, setPoids] = useState(5);
@@ -47,6 +48,13 @@ export default function Livraison() {
       </div>
 
       <div className="px-4 mt-6 space-y-6">
+        <BoutonMoteur code="livraison_colis_vers_vehicule" className="flex items-center gap-3 rounded-2xl border border-[#D4AF37]/40 bg-white p-4 shadow-sm hover:border-[#D4AF37] transition">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F5F3EF]"><Truck size={18} className="text-[#D4AF37]" /></div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-black text-[#111]">Faire livrer un véhicule ou un camion</p>
+            <p className="text-[10px] text-[#6B7280]">Voiture, utilitaire, camion, engin, bus — devis d'acheminement réel</p>
+          </div>
+        </BoutonMoteur>
         <div className="rounded-3xl bg-white border border-[#E5E7EB] p-6 shadow-sm">
           <h2 className="text-xs font-black text-[#111] uppercase tracking-widest mb-6 flex items-center gap-2">
             <div className="h-1 w-4 bg-[#D4AF37] rounded-full"></div> Calculer un tarif

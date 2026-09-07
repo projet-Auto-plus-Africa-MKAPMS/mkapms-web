@@ -97,6 +97,7 @@ const HOME_SERVICE_VIDEOS = [
   { src: "/videos/home/home_finance.mp4", label: "Finance+", sub: "Financement auto", to: "/finance", icon: "💳" },
   { src: "/videos/home/home_services.mp4", label: "Services", sub: "Livraison, CT, démarches", to: "/demarches", icon: "⚙️" },
   { src: "/videos/home/home_livraison.mp4", label: "Livraison", sub: "Moto, utilitaire, fourgon", to: "/livraison", icon: "📦" },
+  { src: "/videos/home/home_livraison.mp4", label: "Livraison véhicules", sub: "Voitures, camions, engins", to: "/livraison-vehicule", icon: "🚛" },
   { src: "/videos/home/home_depannage.mp4", label: "Dépannage", sub: "Remorquage & intervention", to: "/depannage", icon: "🚨" },
 ];
 
@@ -290,6 +291,7 @@ const HOME_MENUS: MegaMenu[] = [
       { label: "Carte grise", to: "/carte-grise" },
       { label: "Historique (VIN)", to: "/historique" },
       { label: "Livraison", to: "/livraison" },
+      { label: "Livraison véhicules & camions", to: "/livraison-vehicule" },
     ] }],
     promo: { title: "Trouvez un garage vérifié", sub: "Devis en ligne près de chez vous", cta: "Trouver", to: "/garages" },
   },
@@ -331,6 +333,7 @@ const HOME_MENUS: MegaMenu[] = [
       { heading: "Mobilité & compte", links: [
         { label: "VTC & Taxi", to: "/louer/vtc-taxi" },
         { label: "Livraison", to: "/livraison" },
+        { label: "Livraison véhicules & camions", to: "/livraison-vehicule" },
         { label: "Mon compte", to: "/compte" },
         { label: "Abonnements", to: "/abonnements" },
         { label: "Centre d'aide", to: "/aide" },
@@ -1340,6 +1343,7 @@ export default function Home() {
                 { icon: ShieldCheck, label: "Contrôle Technique", desc: "Prise en charge et suivi", to: "/garage/controle-technique", color: "text-green-600" },
                 { icon: FileText, label: "Carte Grise", desc: "Démarches administratives", to: "/demarches", color: "text-purple-600" },
                 { icon: Package, label: "Livraison", desc: "Partout en France et à l'international", to: "/livraison", color: "text-[#D4AF37]" },
+                { icon: Truck, label: "Livraison véhicules", desc: "Voitures, camions, engins — devis réel", to: "/livraison-vehicule", color: "text-blue-700" },
                 { icon: CreditCard, label: "Finance+", desc: "LOA, crédit, paiement jusqu'à 10x", to: "/finance", color: "text-emerald-600" },
                 { icon: History, label: "Historique Véhicule", desc: "Rapports officiels & Analyse Intelligence", to: "/historique", color: "text-indigo-600" },
                 { icon: Cog, label: "Pièces Auto", desc: "Pièces d'origine au meilleur prix", to: "/pieces", color: "text-gray-700" },
@@ -1419,6 +1423,7 @@ export default function Home() {
                 { icon: CreditCard, label: "Finance+", desc: "LOA, Crédit, Paiement jusqu'à 10x", to: "/finance" },
                 { icon: History, label: "Historique véhicule", desc: "Rapports officiels & Analyse Intelligence", to: "/historique" },
                 { icon: Package, label: "Livraison", desc: "Partout en France et à l'International", to: "/livraison" },
+                { icon: Truck, label: "Livraison véhicules", desc: "Voitures, camions, engins", to: "/livraison-vehicule" },
                 { icon: Shield, label: "Garantie", desc: "Jusqu'à 60 mois offerte", to: "/vente/garantie" },
                 { icon: ShieldCheck, label: "Contrôle technique", desc: "Prise de rendez-vous en ligne", to: "/garage/controle-technique" },
                 { icon: Cog, label: "Pièces auto", desc: "Pièces d'origine au meilleur prix", to: "/pieces" },

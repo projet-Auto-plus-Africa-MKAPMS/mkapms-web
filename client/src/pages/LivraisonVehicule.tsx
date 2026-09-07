@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import {
-  ChevronLeft, Truck, MapPin, Clock, Check, AlertTriangle, Ship, Train, Plane, Package,
+  ChevronLeft, Truck, MapPin, Clock, Check, AlertTriangle, Ship, Train, Plane, Package, ShieldCheck,
 } from "lucide-react";
 import type { inferRouterInputs } from "@trpc/server";
 import type { AppRouter } from "@server/router.js";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
+import { BoutonMoteur } from "../lib/boutonMoteur";
 
 type DevisInput = inferRouterInputs<AppRouter>["livraisonVehicule"]["devis"];
 type ModeCode = NonNullable<DevisInput["mode"]>;
@@ -24,6 +24,22 @@ const QUALITE_STYLE: Record<string, { label: string; classe: string }> = {
   confirmation_requise: { label: "À confirmer par le transporteur", classe: "text-amber-700 bg-amber-50 border-amber-200" },
   non_mesure: { label: "Non mesuré", classe: "text-red-700 bg-red-50 border-red-200" },
   indisponible: { label: "Indisponible", classe: "text-[#6B7280] bg-[#F3F4F6] border-[#E5E7EB]" },
+};
+
+const STATUT_EXPEDITION: Record<string, { label: string; classe: string }> = {
+  a_planifier: { label: "À planifier", classe: "bg-[#F3F4F6] text-[#111]" },
+  validation_requise: { label: "Validation de la direction requise", classe: "bg-amber-100 text-amber-800" },
+  en_cours: { label: "En cours", classe: "bg-blue-100 text-blue-800" },
+  livree: { label: "Livrée", classe: "bg-green-100 text-green-800" },
+  bloquee: { label: "Bloquée", classe: "bg-red-100 text-red-800" },
+};
+const STATUT_EXPEDITION_DEFAUT = { label: "Statut inconnu", classe: "bg-[#F3F4F6] text-[#111]" };
+
+const REGLEMENTATION_STYLE: Record<string, { label: string; classe: string }> = {
+  autorise: { label: "Importation autorisée (règle confirmée)", classe: "text-green-700 bg-green-50 border-green-200" },
+  conditionne: { label: "Importation sous conditions", classe: "text-amber-700 bg-amber-50 border-amber-200" },
+  interdit: { label: "Importation interdite", classe: "text-red-700 bg-red-50 border-red-200" },
+  inconnu: { label: "Aucune règle d'importation confirmée", classe: "text-amber-700 bg-amber-50 border-amber-200" },
 };
 
 const ICONE_MODE: Record<string, typeof Truck> = {
@@ -91,14 +107,14 @@ export default function LivraisonVehicule() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-[#111] px-4 pt-6 pb-5">
-        <Link to="/louer" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour Location</Link>
-        <h1 className="text-xl font-black text-white flex items-center gap-2"><Truck size={20} className="text-[#D4AF37]" /> Livraison du véhicule</h1>
-        <p className="mt-1 text-sm text-white/60">Mode d'acheminement, étapes, délais et prix réels</p>
+        <BoutonMoteur code="livraison_vehicule_retour" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Retour</BoutonMoteur>
+        <h1 className="text-xl font-black text-white flex items-center gap-2"><Truck size={20} className="text-[#D4AF37]" /> Livraison de véhicules et camions</h1>
+        <p className="mt-1 text-sm text-white/60">Voiture, utilitaire, camion, engin, bus : mode d'acheminement, étapes, délais et prix réels</p>
       </div>
 
       <div className="px-4 mt-4 flex gap-2">
-        <button onClick={() => setTab("commander")} className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition ${tab === "commander" ? "bg-[#D4AF37] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>Devis</button>
-        <button onClick={() => setTab("suivi")} className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition ${tab === "suivi" ? "bg-[#D4AF37] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>Suivi</button>
+        <BoutonMoteur code="livraison_vehicule_onglet_devis" onExecuter={() => setTab("commander")} className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition ${tab === "commander" ? "bg-[#D4AF37] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>Devis</BoutonMoteur>
+        <BoutonMoteur code="livraison_vehicule_onglet_suivi" onExecuter={() => setTab("suivi")} className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition ${tab === "suivi" ? "bg-[#D4AF37] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>Suivi</BoutonMoteur>
       </div>
 
       {message && (
@@ -150,13 +166,13 @@ export default function LivraisonVehicule() {
               const Icon = ICONE_MODE[m.code] ?? Truck;
               const actif = (mode ?? d?.mode) === m.code;
               return (
-                <button key={m.code} onClick={() => setMode(m.code)} className={`w-full flex items-center gap-3 rounded-xl border-2 p-4 text-left transition ${actif ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-[#E5E7EB] bg-white"}`}>
+                <BoutonMoteur key={m.code} code="livraison_vehicule_choisir_mode" onExecuter={() => setMode(m.code)} className={`w-full flex items-center gap-3 rounded-xl border-2 p-4 text-left transition ${actif ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-[#E5E7EB] bg-white"}`}>
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#F5F3EF]"><Icon size={20} className="text-[#D4AF37]" /></div>
                   <div className="flex-1">
                     <h3 className="text-sm font-bold text-[#111]">{m.label}</h3>
                   </div>
                   {actif && <Check size={16} className="text-[#D4AF37]" />}
-                </button>
+                </BoutonMoteur>
               );
             })}
             {d && d.modesPossibles.some((m) => !m.disponible) && (
@@ -229,6 +245,22 @@ export default function LivraisonVehicule() {
                 </div>
               )}
 
+              {d.reglementation.statut !== "sans_objet" && (
+                <div className="p-4 border-t border-[#F3F4F6]">
+                  <p className="text-xs font-bold text-[#111] flex items-center gap-1"><ShieldCheck size={12} /> Réglementation d'importation — {d.paysArriveeNom ?? d.paysArrivee}</p>
+                  <span className={`mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${(REGLEMENTATION_STYLE[d.reglementation.statut] ?? REGLEMENTATION_STYLE.inconnu).classe}`}>
+                    {(REGLEMENTATION_STYLE[d.reglementation.statut] ?? REGLEMENTATION_STYLE.inconnu).label}
+                  </span>
+                  {d.reglementation.regles.length > 0 && (
+                    <ul className="mt-1 space-y-1">
+                      {d.reglementation.regles.map((r) => (
+                        <li key={r.titre} className="text-[10px] text-[#6B7280]">• {r.titre}{r.autorite ? ` (${r.autorite})` : ""}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+
               {d.manques.length > 0 && (
                 <div className="p-4 border-t border-[#F3F4F6]">
                   <p className="text-xs font-bold text-red-700 flex items-center gap-1"><AlertTriangle size={12} /> Ce qui manque pour un prix ferme</p>
@@ -242,13 +274,20 @@ export default function LivraisonVehicule() {
 
               <div className="p-4 border-t border-[#F3F4F6]">
                 {!user ? (
-                  <Link to="/connexion" className="block w-full rounded-xl bg-[#111] py-3.5 text-center text-sm font-bold text-white">
+                  <BoutonMoteur code="livraison_vehicule_connexion" className="block w-full rounded-xl bg-[#111] py-3.5 text-center text-sm font-bold text-white">
                     Se connecter pour accepter ce devis
-                  </Link>
+                  </BoutonMoteur>
                 ) : (
-                  <button
-                    disabled={d.total === null || accepter.isPending}
-                    onClick={() =>
+                  <BoutonMoteur
+                    code="livraison_vehicule_accepter"
+                    desactive={
+                      d.total === null
+                        ? "Devis non chiffrable — acceptation impossible"
+                        : accepter.isPending
+                          ? "Création en cours…"
+                          : undefined
+                    }
+                    onExecuter={() =>
                       accepter.mutate({
                         mode: d.mode,
                         categorie: d.categorie,
@@ -258,10 +297,18 @@ export default function LivraisonVehicule() {
                         villeArrivee: d.villeArrivee ?? undefined,
                       })
                     }
-                    className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#E5E7EB] disabled:text-[#6B7280]"
+                    className={`w-full rounded-xl py-3.5 text-sm font-bold transition active:scale-[0.98] ${
+                      d.total === null || accepter.isPending
+                        ? "cursor-not-allowed bg-[#E5E7EB] text-[#6B7280]"
+                        : "bg-[#D4AF37] text-white"
+                    }`}
                   >
-                    {d.total === null ? "Devis non chiffrable — acceptation impossible" : `Accepter et lancer l'acheminement (${montant(d.total, d.devise)})`}
-                  </button>
+                    {d.total === null
+                      ? "Devis non chiffrable — acceptation impossible"
+                      : accepter.isPending
+                        ? "Création en cours…"
+                        : `Accepter et lancer l'acheminement (${montant(d.total, d.devise)})`}
+                  </BoutonMoteur>
                 )}
               </div>
             </div>
@@ -272,9 +319,9 @@ export default function LivraisonVehicule() {
       {tab === "suivi" && (
         <div className="px-4 mt-4 space-y-4">
           {!user && (
-            <Link to="/connexion" className="block rounded-xl border border-[#E5E7EB] bg-white p-4 text-center text-sm font-bold text-[#111]">
+            <BoutonMoteur code="livraison_vehicule_connexion" className="block rounded-xl border border-[#E5E7EB] bg-white p-4 text-center text-sm font-bold text-[#111]">
               Se connecter pour voir vos acheminements
-            </Link>
+            </BoutonMoteur>
           )}
           {user && expeditions.isLoading && <p className="text-xs text-[#6B7280]">Chargement…</p>}
           {user && expeditions.data?.length === 0 && (
@@ -289,10 +336,15 @@ export default function LivraisonVehicule() {
               <div className="p-4">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="text-sm font-bold text-[#111]">{exp.reference}</h3>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[#F3F4F6] px-2 py-0.5 text-[10px] font-semibold text-[#111]">
-                    {exp.statut}
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${(STATUT_EXPEDITION[exp.statut] ?? STATUT_EXPEDITION_DEFAUT).classe}`}>
+                    {(STATUT_EXPEDITION[exp.statut] ?? STATUT_EXPEDITION_DEFAUT).label}
                   </span>
                 </div>
+                {exp.statut === "validation_requise" && (
+                  <p className="mt-1 text-[10px] text-amber-700">
+                    L'importation dans le pays d'arrivée exige une autorisation de la direction avant planification.
+                  </p>
+                )}
                 <p className="text-[10px] text-[#6B7280]">
                   {exp.modeLabel} · {montant(exp.total === null ? null : Number(exp.total), exp.devise)}
                 </p>

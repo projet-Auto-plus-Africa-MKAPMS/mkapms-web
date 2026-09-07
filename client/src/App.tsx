@@ -134,7 +134,6 @@ const CentreDiagnostic = lazy(() => import("./pages/vente/CentreDiagnostic"));
 const CentreReparations = lazy(() => import("./pages/vente/CentreReparations"));
 const CentrePhotosMedias = lazy(() => import("./pages/vente/CentrePhotosMedias"));
 const ReservationsVente = lazy(() => import("./pages/vente/ReservationsVente"));
-const LivraisonVente = lazy(() => import("./pages/vente/LivraisonVente"));
 const DossierClient = lazy(() => import("./pages/vente/DossierClient"));
 const AvisVendeurs = lazy(() => import("./pages/vente/AvisVendeurs"));
 const QualiteVendeur = lazy(() => import("./pages/vente/QualiteVendeur"));
@@ -867,7 +866,8 @@ export default function App() {
             <Route path="/louer/programme-vtc" element={<U name="Programme VTC"><ProgrammeVTC /></U>} />
             <Route path="/louer/calendrier" element={<U name="Calendrier"><CalendrierDispo /></U>} />
             <Route path="/louer/score-confiance" element={<U name="Score confiance"><ScoreConfiance /></U>} />
-            <Route path="/louer/livraison" element={<U name="Livraison"><LivraisonVehicule /></U>} />
+            <Route path="/livraison-vehicule" element={<U name="Livraison véhicule"><LivraisonVehicule /></U>} />
+            <Route path="/louer/livraison" element={<U name="Livraison véhicule"><LivraisonVehicule /></U>} />
             <Route path="/louer/loa" element={<U name="LOA"><LocationLOA /></U>} />
             <Route path="/louer/certifies" element={<U name="Certifiés"><VehiculesCertifies /></U>} />
             <Route path="/louer/multi-vehicules" element={<U name="Multi-véhicules"><ReservationMulti /></U>} />
@@ -916,7 +916,7 @@ export default function App() {
             <Route path="/vente/reparations" element={<V name="R\u00e9parations"><CentreReparations /></V>} />
             <Route path="/vente/photos" element={<V name="Photos"><CentrePhotosMedias /></V>} />
             <Route path="/vente/reservations" element={<V name="R\u00e9servations Vente"><ReservationsVente /></V>} />
-            <Route path="/vente/livraison" element={<V name="Livraison Vente"><LivraisonVente /></V>} />
+            <Route path="/vente/livraison" element={<V name="Livraison Vente"><LivraisonVehicule /></V>} />
             <Route path="/vente/dossier-client" element={<V name="Dossier Client"><DossierClient /></V>} />
             <Route path="/vente/avis" element={<V name="Avis Vendeurs"><AvisVendeurs /></V>} />
             <Route path="/vente/qualite" element={<V name="Qualit\u00e9 Vendeur"><QualiteVendeur /></V>} />

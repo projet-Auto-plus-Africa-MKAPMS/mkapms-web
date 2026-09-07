@@ -18,6 +18,11 @@ import { join, relative } from "node:path";
 
 const RACINE = "client/src";
 const CIBLE = "server/data/boutons-sans-action.ts";
+/**
+ * Le rendu du Moteur de boutons lui-même : ses boutons inactifs sont des états
+ * voulus (moteur pas encore répondu, indisponibilité déclarée), pas des boutons morts.
+ */
+const EXCLUS = new Set(["client/src/lib/boutonMoteur.tsx"]);
 
 function fichiers(dir, acc = []) {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
@@ -54,6 +59,7 @@ function dansFormulaireSoumis(source, index) {
 
 const releves = [];
 for (const f of fichiers(RACINE)) {
+  if (EXCLUS.has(relative(".", f))) continue;
   const source = readFileSync(f, "utf8");
   for (const m of source.matchAll(/<button\b([^>]*)>([\s\S]{0,400}?)<\/button>/g)) {
     const attributs = m[1];
