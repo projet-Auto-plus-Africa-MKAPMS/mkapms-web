@@ -6,6 +6,7 @@ import { db } from "../db.js";
 import { messageThreads, messages, annonces, users } from "../schema.js";
 import { assertCanSend } from "../messaging-os/index.js";
 import { notifyEvent } from "../notification-os/triggers.js";
+import { nomPublic } from "../identity-os/identite-officielle.js";
 
 /**
  * Messagerie interne MKA.P-MS — conversations liées à une annonce et à un
@@ -36,7 +37,7 @@ async function partyInfo(userId: number) {
     .where(eq(users.id, userId))
     .limit(1);
   if (!u) return { id: userId, nom: "Vendeur" };
-  return { id: u.id, nom: u.companyName || u.name || "Vendeur", role: u.role };
+  return { id: u.id, nom: nomPublic(u), role: u.role };
 }
 
 export const messagesRouter = router({

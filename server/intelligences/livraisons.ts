@@ -137,6 +137,31 @@ export const LIVRAISONS: Livraison[] = [
       "Une icône qui ressemble à un bouton doit être un bouton connu du Moteur de boutons, sinon c'est un cliquable mort. Et la politesse fait partie du service : le moteur la lit et y répond lui-même, le fournisseur n'est appelé que pour une vraie question.",
     domaine: "intelligences",
   },
+  {
+    cle: "identite-direction-protegee-partout",
+    titre: "Identité personnelle du PDG retirée de tous les écrans et masquée par le serveur ; garde-fou au build",
+    moteurs: ["identity_os", "annonces", "avis", "messagerie", "compte_pro", "inscription"],
+    quoi:
+      "Les formulaires d'inscription pro et particulier présentaient le prénom, le nom et l'adresse e-mail du PDG comme valeurs d'exemple ; plusieurs tableaux de démonstration (journal d'activité, comptabilité dirigeant, centre de pilotage, publicité) affichaient son nom. Tout est remplacé par des libellés neutres (« Votre prénom », « Votre nom », « votre@email.com », « Direction (PDG) »). Côté moteur : Identity OS expose `IDENTITE_OFFICIELLE` (marque + numéro officiel de la société) et `estDirection(role)` ; le détail public d'une annonce, les avis publics (v1 et v2) et la fiche interlocuteur de la messagerie renvoient la marque et le numéro officiel à la place du nom et du téléphone personnels dès que le compte est admin ou super_admin. Le contrôle `check:identite` casse le build si un motif d'identité de la direction réapparaît dans client, server, shared ou scripts.",
+    pourquoi:
+      "Alerte maximale de la direction : son identité exacte apparaissait dans l'inscription pro, et rien dans la plateforme n'empêchait qu'elle sorte par une procédure publique.",
+    ou: [
+      "server/identity-os/identite-officielle.ts",
+      "server/routers/annonces.ts",
+      "server/routers/reviews.ts",
+      "server/routers/reviewsV2.ts",
+      "server/routers/messages.ts",
+      "client/src/pages/InscriptionProVente.tsx",
+      "client/src/pages/InscriptionParticulier.tsx",
+      "client/src/pages/JournalActivite.tsx",
+      "client/src/pages/ComptaDirigeant.tsx",
+      "client/src/pages/comptabilite/CentrePilotage.tsx",
+      "scripts/check-identite.mjs",
+    ],
+    lecon:
+      "Aucune donnée personnelle réelle ne sert d'exemple de saisie ni de donnée de démonstration : un placeholder décrit le champ, il ne le remplit pas. L'identité de la direction appartient à Identity OS ; ce que le public voit d'un compte de direction est la marque, décidé par le serveur (rôle), jamais par l'écran. Le garde-fou est au build, pas dans la vigilance d'un agent.",
+    domaine: "identite",
+  },
 ];
 
 /**

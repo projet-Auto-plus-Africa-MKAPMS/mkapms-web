@@ -150,7 +150,7 @@ const PAYS_DATA = [
 ];
 
 const AGENCES = [
-  { nom: "Siege MKA.P-MS Paris", directeur: "Moussa K.", pays: "France", region: "Ile-de-France", adresse: "Paris 93", ca: "98 500", effectif: 12, resultat: "+15.3%", objectif: "110 000" },
+  { nom: "Siege MKA.P-MS Paris", directeur: "Direction", pays: "France", region: "Ile-de-France", adresse: "Paris 93", ca: "98 500", effectif: 12, resultat: "+15.3%", objectif: "110 000" },
   { nom: "Agence Abidjan Plateau", directeur: "Awa S.", pays: "Cote d'Ivoire", region: "Abidjan", adresse: "Plateau, Abidjan", ca: "52 300", effectif: 8, resultat: "+22.1%", objectif: "55 000" },
   { nom: "Agence Dakar Almadies", directeur: "Ibrahima D.", pays: "Senegal", region: "Dakar", adresse: "Almadies, Dakar", ca: "38 900", effectif: 6, resultat: "+12.8%", objectif: "42 000" },
   { nom: "Agence Lyon Part-Dieu", directeur: "Karim B.", pays: "France", region: "Auvergne-Rhone-Alpes", adresse: "Part-Dieu, Lyon", ca: "34 200", effectif: 5, resultat: "+7.6%", objectif: "38 000" },
@@ -185,10 +185,10 @@ const ALERTES = [
 ];
 
 const JOURNAL_STRAT = [
-  { action: "Validation annonce #A-45623", user: "Moussa K. (PDG)", dept: "Direction", date: "09/06/2026 18:10", ip: "92.184.xx.xx" },
+  { action: "Validation annonce #A-45623", user: "Direction (PDG)", dept: "Direction", date: "09/06/2026 18:10", ip: "92.184.xx.xx" },
   { action: "Suppression annonce #A-45601 — fausse annonce", user: "Directeur Awa S.", dept: "Direction", date: "09/06/2026 17:55", ip: "41.202.xx.xx" },
-  { action: "Modification tarif Pro Premium: 79 → 89 EUR", user: "Moussa K. (PDG)", dept: "Direction", date: "09/06/2026 17:25", ip: "92.184.xx.xx" },
-  { action: "Validation KYC — Garage AutoPro 77", user: "Moussa K. (PDG)", dept: "Direction", date: "09/06/2026 16:45", ip: "92.184.xx.xx" },
+  { action: "Modification tarif Pro Premium: 79 → 89 EUR", user: "Direction (PDG)", dept: "Direction", date: "09/06/2026 17:25", ip: "92.184.xx.xx" },
+  { action: "Validation KYC — Garage AutoPro 77", user: "Direction (PDG)", dept: "Direction", date: "09/06/2026 16:45", ip: "92.184.xx.xx" },
   { action: "Changement role — Fatou D. → Pro Vente", user: "Karima L.", dept: "RH", date: "09/06/2026 16:15", ip: "91.168.xx.xx" },
   { action: "Export donnees utilisateurs", user: "admin@mkapms.fr", dept: "Tech", date: "09/06/2026 14:20", ip: "91.168.xx.xx" },
 ];
@@ -202,10 +202,10 @@ const IA_RECOMMANDATIONS = [
 ];
 
 const CONSEIL_PROJETS = [
-  { projet: "Expansion Tunisie", statut: "En preparation", budget: "50 000 EUR", echeance: "Q3 2026", responsable: "Moussa K." },
+  { projet: "Expansion Tunisie", statut: "En preparation", budget: "50 000 EUR", echeance: "Q3 2026", responsable: "Direction" },
   { projet: "Expansion Congo", statut: "En preparation", budget: "40 000 EUR", echeance: "Q3 2026", responsable: "Awa S." },
   { projet: "Expansion Togo", statut: "Planifie", budget: "35 000 EUR", echeance: "Q4 2026", responsable: "A definir" },
-  { projet: "Acquisition Garage Meca Plus", statut: "Negociation", budget: "120 000 EUR", echeance: "Q2 2026", responsable: "Moussa K." },
+  { projet: "Acquisition Garage Meca Plus", statut: "Negociation", budget: "120 000 EUR", echeance: "Q2 2026", responsable: "Direction" },
   { projet: "Lancement Finance+ International", statut: "Planifie", budget: "80 000 EUR", echeance: "Q4 2026", responsable: "A definir" },
   { projet: "Objectif 50 garages 2026", statut: "En cours", budget: "—", echeance: "31/12/2026", responsable: "Direction" },
 ];
@@ -245,7 +245,7 @@ const SERVEURS = [
 ];
 
 const SECURITE_DATA = [
-  { event: "Connexion reussie", user: "moussa@mkapms.fr", appareil: "Chrome / MacOS", ip: "92.184.xx.xx", date: "09/06/2026 18:10", type: "succes" },
+  { event: "Connexion reussie", user: "direction@exemple.com", appareil: "Chrome / MacOS", ip: "92.184.xx.xx", date: "09/06/2026 18:10", type: "succes" },
   { event: "Connexion reussie", user: "awa.s@mkapms.fr", appareil: "Safari / iPhone", ip: "41.202.xx.xx", date: "09/06/2026 17:55", type: "succes" },
   { event: "Tentative echouee (3x)", user: "inconnu", appareil: "Firefox / Linux", ip: "185.22.xx.xx", date: "09/06/2026 17:42", type: "echec" },
   { event: "2FA active", user: "karim.b@mkapms.fr", appareil: "—", ip: "91.168.xx.xx", date: "09/06/2026 16:30", type: "info" },
@@ -320,7 +320,7 @@ const RD_PROJETS = [
 ];
 
 const IDEES_INNOVATION = [
-  { titre: "Livraison par drone", auteur: "Moussa K. (PDG)", date: "01/06/2026", impact: "Eleve", cout: "200 000 EUR", difficulte: "Haute", priorite: "Basse", decision: "Report 2028" },
+  { titre: "Livraison par drone", auteur: "Direction (PDG)", date: "01/06/2026", impact: "Eleve", cout: "200 000 EUR", difficulte: "Haute", priorite: "Basse", decision: "Report 2028" },
   { titre: "Assurance integree MKA", auteur: "Awa S. (Dir.)", date: "15/05/2026", impact: "Eleve", cout: "50 000 EUR", difficulte: "Moyenne", priorite: "Haute", decision: "Approuve" },
   { titre: "Abonnement famille", auteur: "Client via feedback", date: "20/05/2026", impact: "Moyen", cout: "5 000 EUR", difficulte: "Basse", priorite: "Moyenne", decision: "En etude" },
   { titre: "Mode sombre app", auteur: "Ahmed T. (Dev)", date: "10/06/2026", impact: "Faible", cout: "2 000 EUR", difficulte: "Basse", priorite: "Basse", decision: "Planifie" },
@@ -343,13 +343,13 @@ const PARTENAIRES_DATA = [
 ];
 
 const MARQUES_DATA = [
-  { nom: "MKA.P-MS", logo: "Enregistre", pays: "France, CI, Senegal", depot: "INPI 2024", renouvellement: "2034", statut: "Actif", responsable: "Moussa K." },
-  { nom: "Garage+", logo: "Enregistre", pays: "France", depot: "INPI 2025", renouvellement: "2035", statut: "Actif", responsable: "Moussa K." },
-  { nom: "Finance+", logo: "Enregistre", pays: "France", depot: "INPI 2025", renouvellement: "2035", statut: "Actif", responsable: "Moussa K." },
-  { nom: "Electric+", logo: "En cours", pays: "France", depot: "INPI 2026", renouvellement: "—", statut: "En depot", responsable: "Moussa K." },
+  { nom: "MKA.P-MS", logo: "Enregistre", pays: "France, CI, Senegal", depot: "INPI 2024", renouvellement: "2034", statut: "Actif", responsable: "Direction" },
+  { nom: "Garage+", logo: "Enregistre", pays: "France", depot: "INPI 2025", renouvellement: "2035", statut: "Actif", responsable: "Direction" },
+  { nom: "Finance+", logo: "Enregistre", pays: "France", depot: "INPI 2025", renouvellement: "2035", statut: "Actif", responsable: "Direction" },
+  { nom: "Electric+", logo: "En cours", pays: "France", depot: "INPI 2026", renouvellement: "—", statut: "En depot", responsable: "Direction" },
   { nom: "Rewards MKA", logo: "Planifie", pays: "—", depot: "—", renouvellement: "—", statut: "Planifie", responsable: "A definir" },
-  { nom: "Encheres Pro", logo: "Enregistre", pays: "France", depot: "INPI 2025", renouvellement: "2035", statut: "Actif", responsable: "Moussa K." },
-  { nom: "Atelier Pro", logo: "Enregistre", pays: "France", depot: "INPI 2025", renouvellement: "2035", statut: "Actif", responsable: "Moussa K." },
+  { nom: "Encheres Pro", logo: "Enregistre", pays: "France", depot: "INPI 2025", renouvellement: "2035", statut: "Actif", responsable: "Direction" },
+  { nom: "Atelier Pro", logo: "Enregistre", pays: "France", depot: "INPI 2025", renouvellement: "2035", statut: "Actif", responsable: "Direction" },
 ];
 
 const PROPRIETE_IP = [
@@ -2212,7 +2212,7 @@ export default function CentrePilotage() {
             </SectionCard>
             <SectionCard title="Gestion de crise" icon={AlertTriangle}>
               <div className="p-3 space-y-2 text-[10px]">
-                <div className="flex justify-between"><span>Responsable crise</span><span className="font-bold">Moussa K. (PDG)</span></div>
+                <div className="flex justify-between"><span>Responsable crise</span><span className="font-bold">Direction (PDG)</span></div>
                 <div className="flex justify-between"><span>Equipe d&apos;astreinte</span><span className="font-bold">3 personnes</span></div>
                 <div className="flex justify-between"><span>Temps de reaction max</span><span className="font-bold">15 min</span></div>
               </div>

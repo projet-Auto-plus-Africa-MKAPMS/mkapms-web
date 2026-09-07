@@ -19,6 +19,7 @@ import { emitSafe } from "../event-bus/service.js";
 import { ingest as ingestVisibility } from "../visibility-os/index.js";
 import { resolvePermission } from "../permission-engine/intelligence.js";
 import { termGroups } from "../search-os/index.js";
+import { IDENTITE_OFFICIELLE, estDirection } from "../identity-os/identite-officielle.js";
 import type { UserRole } from "@shared/roles.js";
 
 /**
@@ -446,14 +447,23 @@ export const annoncesRouter = router({
         videosNormales: safeArray(a.videosNormales),
         photos,
         vendeur: owner
-          ? {
-              id: owner.id,
-              name: owner.companyName || owner.name,
-              accountType: owner.accountType,
-              rating: owner.rating,
-              reviewCount: owner.reviewCount,
-              phone: a.contactTelephone || owner.phone,
-            }
+          ? estDirection(owner.role)
+            ? {
+                id: owner.id,
+                name: IDENTITE_OFFICIELLE.nom,
+                accountType: owner.accountType,
+                rating: owner.rating,
+                reviewCount: owner.reviewCount,
+                phone: a.contactTelephone || IDENTITE_OFFICIELLE.telephone,
+              }
+            : {
+                id: owner.id,
+                name: owner.companyName || owner.name,
+                accountType: owner.accountType,
+                rating: owner.rating,
+                reviewCount: owner.reviewCount,
+                phone: a.contactTelephone || owner.phone,
+              }
           : null,
       };
     }),
