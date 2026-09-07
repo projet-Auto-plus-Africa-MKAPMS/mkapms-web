@@ -91,6 +91,17 @@ const UNIVERS = [
     icon: Bus,
     to: "/louer/minibus",
   },
+  {
+    id: "livraison-vehicule",
+    titre: "Livraison de véhicules & camions",
+    desc: "Faire acheminer une voiture, un camion ou un engin : plateau, convoyage, conteneur, RoRo, train.",
+    bouton: "Demander un devis",
+    badge: "ACHEMINEMENT",
+    badgeColor: "bg-[#D4AF37] text-white border-transparent",
+    photo: "/categories/loc_cover_camions.jpg",
+    icon: Truck,
+    to: "/livraison-vehicule",
+  },
 ];
 
 const VEHICULES_POPULAIRES = [

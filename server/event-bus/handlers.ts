@@ -225,6 +225,26 @@ const handlers: Record<string, Handler> = {
       : `Alerte déjà ouverte pour l'expédition ${id} à l'étape ${etape}.`;
   },
 
+  async smart_livraison_vehicule_validation(payload) {
+    const id = nombre(payload, "expeditionId");
+    if (id === null) throw new Error("Charge invalide : « expeditionId » absent ou non numérique.");
+    const reference = texte(payload, "reference") || `#${id}`;
+    const pays = texte(payload, "paysArrivee") || "?";
+    const motif = texte(payload, "motif") || "règle pays sans motif transmis";
+    const cree = await raiseAlert({
+      category: "service",
+      title: `Acheminement ${reference} vers ${pays} — validation humaine requise`,
+      description: `${motif} L'expédition est créée au statut « validation_requise » et ne sera pas planifiée sans décision de la direction.`,
+      level: "important",
+      targetType: "vd_expedition",
+      targetId: id,
+      signature: `bus:vd_validation:${id}`,
+    });
+    return cree
+      ? `Alerte ouverte : expédition ${reference} en attente de validation (${pays}).`
+      : `Alerte déjà ouverte pour l'expédition ${reference}.`;
+  },
+
   async smart_livraison_vehicule_sans_prix(payload) {
     const mode = texte(payload, "mode") || "mode non précisé";
     const depart = texte(payload, "paysDepart") || "?";

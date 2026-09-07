@@ -152,7 +152,7 @@ export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
 
   // ── Acquisition : estimation, acheminement, paiement ──────────────────
   { key: "service_estimation_cout_total", label: "Service — Coût total d'acquisition", kind: "service", target: "/acheter/estimation", priority: 80 },
-  { key: "service_livraison_vehicule", label: "Service — Acheminement d'un véhicule", kind: "service", target: "/vente/livraison", priority: 80 },
+  { key: "service_livraison_vehicule", label: "Service — Livraison d'un véhicule ou d'un camion", kind: "service", target: "/livraison-vehicule", priority: 80 },
   { key: "service_livraison_pieces", label: "Service — Livraison de pièces", kind: "service", target: "/livraison", priority: 80 },
 
   // ── Boutons déclarés au Moteur de boutons ─────────────────────────────
@@ -163,6 +163,7 @@ export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
   { key: "bouton_garage_facturation", label: "Bouton — Facturation du dossier atelier", kind: "button", target: "/comptabilite/facturation", priority: 90 },
   { key: "bouton_garage_stock", label: "Bouton — Stock de pièces du garage", kind: "button", target: "/garage/stock-pieces", priority: 90 },
   { key: "bouton_garage_suivi", label: "Bouton — Suivi des interventions garage", kind: "button", target: "/compte", priority: 90 },
+  { key: "bouton_livraison_vehicule_connexion", label: "Bouton — Connexion depuis Livraison véhicule", kind: "button", target: "/connexion", priority: 90 },
 
   // ── Alias de chemins (auto-résolution des 404) ────────────────────────
   // Un chemin obsolète/synonyme qui n'a pas de page propre est redirigé

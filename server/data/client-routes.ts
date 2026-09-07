@@ -443,6 +443,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/labs/world-vision",
   "/labs/zones-techniques",
   "/livraison",
+  "/livraison-vehicule",
   "/location-voiture",
   "/louer",
   "/louer/assistance",
