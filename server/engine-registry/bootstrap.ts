@@ -17,6 +17,7 @@
  */
 import { emitSafe } from "../event-bus/service.js";
 import { seedLivraisons } from "../intelligences/livraisons.js";
+import { initialiserBaremes } from "../vehicle-delivery/service.js";
 import { retenir } from "../intelligences/memoire.js";
 import { notifyDirection } from "../notification-os/triggers.js";
 import { ENGINE_CONTRACTS, type EngineContract } from "./contracts.js";
@@ -356,6 +357,20 @@ export async function bootstrapEngines(): Promise<void> {
         (err as Error).message,
       );
     }
+  }
+
+  // Chaque moteur pose ses données de départ AVANT que le pont OS ne lise sa
+  // sonde : un registre de barèmes vide rendrait la livraison véhicule dégradée.
+  try {
+    const r = await initialiserBaremes();
+    if (r.inseres > 0) {
+      console.log(`[MKA.P-MS] Vehicle Delivery : barème interne v1 posé (${r.inseres} lignes, non vérifiées).`);
+    }
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] initialisation des barèmes d'acheminement échouée:",
+      (err as Error).message,
+    );
   }
 
   // Connecte les moteurs « OS » (Identity / Country / Language) au registre

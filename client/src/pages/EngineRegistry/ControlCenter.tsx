@@ -670,15 +670,22 @@ export default function EngineRegistryControlCenter() {
 
                       <div className="mt-3 grid gap-x-6 gap-y-1 text-xs text-slate-600 sm:grid-cols-2">
                         <p>
-                          <span className="text-slate-400">Connecté à : </span>
+                          <span className="text-slate-400">
+                            A besoin de ({e.dependencies?.length ?? 0}) :{" "}
+                          </span>
                           {e.dependencies?.length ? e.dependencies.join(", ") : "—"}
                         </p>
                         <p>
                           <Network size={11} className="mr-1 inline text-slate-400" />
-                          <span className="text-slate-400">Moteurs qui en dépendent : </span>
-                          {graphByName.get(e.name)?.requiredBy.length
-                            ? graphByName.get(e.name)?.requiredBy.join(", ")
-                            : "aucun"}
+                          <span className="text-slate-400">
+                            Moteurs qui en dépendent ({graphByName.get(e.name)?.requiredBy.length ?? 0}) :{" "}
+                          </span>
+                          {(() => {
+                            const list = graphByName.get(e.name)?.requiredBy ?? [];
+                            if (!list.length) return "aucun";
+                            if (list.length <= 12) return list.join(", ");
+                            return `${list.slice(0, 12).join(", ")} … et ${list.length - 12} autres`;
+                          })()}
                         </p>
                         <p className="flex items-center gap-1">
                           <Activity size={11} className="text-slate-400" />

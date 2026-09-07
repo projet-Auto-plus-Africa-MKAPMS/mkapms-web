@@ -131,10 +131,11 @@ export async function healthStatus() {
   let status: "ok" | "degraded" | "down" = "ok";
   let sharpOk = false;
   try {
-    // 1×1 px PNG minimal → vérifie que le pipeline sharp fonctionne.
-    const px = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
-    await sharp(px).webp().toBuffer();
-    sharpOk = true;
+    // Vérifie le pipeline complet : encodage PNG → décodage → conversion WebP.
+    const px = await sharp({ create: { width: 1, height: 1, channels: 3, background: { r: 0, g: 0, b: 0 } } }).png().toBuffer();
+    const webp = await sharp(px).webp().toBuffer();
+    sharpOk = webp.length > 0;
+    if (!sharpOk) status = "degraded";
   } catch { status = "degraded"; }
   return { engine: "media-os" as const, version: V, status, checkedAt: new Date().toISOString(), metrics: { sharpOk, responseMs: Date.now() - s } };
 }

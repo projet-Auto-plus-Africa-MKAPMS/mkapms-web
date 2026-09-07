@@ -750,6 +750,13 @@
       "when": 1788232000000,
       "tag": "0108_atelier_reappro",
       "breakpoints": true
+    },
+    {
+      "idx": 107,
+      "version": "7",
+      "when": 1788232001000,
+      "tag": "0109_tables_sans_migration",
+      "breakpoints": true
     }
   ]
 }

@@ -46,6 +46,9 @@ export interface DependencyGraph {
   cycles: string[][];
 }
 
+/** Moteur socle : tous les autres en dépendent, il démarre en premier. */
+const SOCLE = "core";
+
 /** Graphe complet des dépendances entre moteurs. */
 export async function dependencyGraph(): Promise<DependencyGraph> {
   const rows = await db.select().from(engineRegistry).orderBy(engineRegistry.name);
@@ -81,7 +84,13 @@ export async function dependencyGraph(): Promise<DependencyGraph> {
 
 /** Détection des dépendances circulaires (parcours en profondeur). */
 function findCycles(nodes: DependencyNode[]): string[][] {
-  const deps = new Map(nodes.map((n) => [n.name, n.dependsOn]));
+  // Le socle démarre en premier et coordonne les moteurs qu'il liste : ses
+  // propres liens sortants sont des liens d'orchestration, pas des prérequis
+  // de démarrage. Les compter comme arêtes créait 150+ « boucles » fictives
+  // (chaque moteur → core → smart → core…) qui noyaient les vraies anomalies.
+  const deps = new Map(
+    nodes.map((n) => [n.name, n.name === SOCLE ? [] : n.dependsOn]),
+  );
   const cycles: string[][] = [];
   const seen = new Set<string>();
   const stack: string[] = [];
@@ -252,12 +261,15 @@ export async function registryAnomalies(): Promise<{
     });
   }
 
+  // Les moteurs tournent dans un seul processus : une boucle ne bloque pas le
+  // démarrage, elle signale une coopération mutuelle à surveiller (une panne
+  // de l'un se propage à l'autre dans les deux sens).
   for (const c of graph.cycles) {
     anomalies.push({
       code: "dependance_circulaire",
-      severite: "critique",
+      severite: "a_surveiller",
       engine: c[0] ?? null,
-      detail: `Dépendance circulaire : ${c.join(" → ")}.`,
+      detail: `Dépendance mutuelle : ${c.join(" → ")} (propagation de panne dans les deux sens).`,
     });
   }
 

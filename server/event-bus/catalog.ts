@@ -220,6 +220,15 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     emetteurs: ["livraison_vehicule"],
   },
   {
+    code: "livraison_vehicule.baremes_initialises",
+    domaine: "service",
+    label: "Barème interne d'acheminement posé",
+    description:
+      "Le moteur a posé son barème interne de départ sur un registre vide (non vérifié, mondial). La direction doit vérifier ou remplacer chaque ligne : tant qu'elle ne l'a pas fait, les devis restent « confirmation requise ».",
+    champs: ["baremes", "verifies", "source"],
+    emetteurs: ["livraison_vehicule"],
+  },
+  {
     code: "estimation.incomplete",
     domaine: "service",
     label: "Coût total d'acquisition non chiffrable",

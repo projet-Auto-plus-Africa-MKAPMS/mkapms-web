@@ -719,6 +719,97 @@ export async function enregistrerOption(input: {
   return row;
 }
 
+const SOURCE_BAREME_INTERNE =
+  "Barème interne indicatif MKA.P-MS v1 (mondial, hors douane) — non vérifié : à confirmer par la direction ou remplacé par une grille transporteur.";
+
+/**
+ * Barème interne de départ, mondial (aucun pays), un par mode et gabarit pour le
+ * transport principal, plus les étapes fixes (enlèvement, livraison finale,
+ * remise du PV). Chaque ligne est `origine: interne`, `verifie: false` : le
+ * devis affiche donc « confirmation requise » et nomme le transporteur à
+ * confirmer — jamais « confirmé ». La direction vérifie, corrige ou remplace
+ * chaque ligne depuis le centre de contrôle (`enregistrerTarif`).
+ */
+const BAREME_INTERNE_V1: {
+  mode: VdMode;
+  parKm: number;
+  fixe: number;
+  minimum: number;
+  delai: [number, number];
+  coef: Record<VdCategorie, number>;
+}[] = [
+  { mode: "plateau", parKm: 1.2, fixe: 60, minimum: 150, delai: [1, 4], coef: { moto: 0.6, citadine: 1, berline: 1.1, suv: 1.2, utilitaire: 1.25, fourgon: 1.5, camion: 1, engin: 1, bus: 1 } },
+  { mode: "camion_porte_voitures", parKm: 0.55, fixe: 90, minimum: 220, delai: [3, 10], coef: { moto: 0.6, citadine: 1, berline: 1.1, suv: 1.2, utilitaire: 1.25, fourgon: 1, camion: 1, engin: 1, bus: 1 } },
+  { mode: "porte_engins", parKm: 2.4, fixe: 250, minimum: 600, delai: [2, 7], coef: { moto: 1, citadine: 1, berline: 1, suv: 1, utilitaire: 1, fourgon: 1, camion: 1, engin: 1.4, bus: 1.2 } },
+  { mode: "convoyage_chauffeur", parKm: 0.85, fixe: 120, minimum: 250, delai: [1, 5], coef: { moto: 1, citadine: 1, berline: 1, suv: 1.1, utilitaire: 1.1, fourgon: 1.2, camion: 1.6, engin: 1, bus: 1.6 } },
+  { mode: "train", parKm: 0.4, fixe: 180, minimum: 350, delai: [5, 15], coef: { moto: 1, citadine: 1, berline: 1.1, suv: 1.2, utilitaire: 1.2, fourgon: 1, camion: 1, engin: 1, bus: 1 } },
+  { mode: "roro_maritime", parKm: 0, fixe: 1100, minimum: 1100, delai: [15, 45], coef: { moto: 1, citadine: 1, berline: 1.1, suv: 1.3, utilitaire: 1.3, fourgon: 1.6, camion: 2.8, engin: 3.2, bus: 3 } },
+  { mode: "conteneur_maritime", parKm: 0, fixe: 1900, minimum: 1900, delai: [20, 50], coef: { moto: 0.4, citadine: 1, berline: 1.1, suv: 1.2, utilitaire: 1.2, fourgon: 1, camion: 1, engin: 1.6, bus: 1 } },
+  { mode: "avion_cargo", parKm: 0, fixe: 6500, minimum: 6500, delai: [3, 8], coef: { moto: 0.25, citadine: 1, berline: 1.1, suv: 1.3, utilitaire: 1.3, fourgon: 1, camion: 1, engin: 1, bus: 1 } },
+];
+
+const ETAPES_FIXES_V1: { etape: VdEtape; fixe: number; delai: [number, number] }[] = [
+  { etape: "enlevement", fixe: 80, delai: [0, 2] },
+  { etape: "livraison_finale", fixe: 80, delai: [0, 2] },
+  { etape: "remise_pv", fixe: 0, delai: [0, 0] },
+];
+
+/**
+ * Pose le barème interne de départ si — et seulement si — aucun barème n'existe.
+ * Idempotent : un registre déjà gouverné n'est jamais écrasé.
+ */
+export async function initialiserBaremes(): Promise<{ inseres: number }> {
+  const [t] = await db.select({ n: sql<number>`count(*)::int` }).from(vdTarifs);
+  if ((t?.n ?? 0) > 0) return { inseres: 0 };
+
+  const lignes: (typeof vdTarifs.$inferInsert)[] = [];
+  for (const b of BAREME_INTERNE_V1) {
+    for (const categorie of VD_CATEGORIES) {
+      if (!MODES_PAR_CATEGORIE[categorie].includes(b.mode)) continue;
+      const coef = b.coef[categorie];
+      lignes.push({
+        mode: b.mode,
+        categorie,
+        etape: "transport_principal",
+        prixFixe: (b.fixe * coef).toFixed(2),
+        prixParKm: (b.parKm * coef).toFixed(4),
+        prixMinimum: (b.minimum * coef).toFixed(2),
+        devise: "EUR",
+        delaiJoursMin: b.delai[0],
+        delaiJoursMax: b.delai[1],
+        origine: "interne",
+        source: SOURCE_BAREME_INTERNE,
+        verifie: false,
+        actif: true,
+      });
+      for (const f of ETAPES_FIXES_V1) {
+        lignes.push({
+          mode: b.mode,
+          categorie,
+          etape: f.etape,
+          prixFixe: f.fixe.toFixed(2),
+          prixParKm: "0",
+          prixMinimum: f.fixe.toFixed(2),
+          devise: "EUR",
+          delaiJoursMin: f.delai[0],
+          delaiJoursMax: f.delai[1],
+          origine: "interne",
+          source: SOURCE_BAREME_INTERNE,
+          verifie: false,
+          actif: true,
+        });
+      }
+    }
+  }
+  await db.insert(vdTarifs).values(lignes);
+  await emitSafe({
+    source: "livraison_vehicule",
+    type: "livraison_vehicule.baremes_initialises",
+    payload: { baremes: lignes.length, verifies: 0, source: SOURCE_BAREME_INTERNE },
+  });
+  return { inseres: lignes.length };
+}
+
 export async function controlCenterFeed() {
   const [t] = await db
     .select({
@@ -729,21 +820,26 @@ export async function controlCenterFeed() {
     .from(vdTarifs);
   const [e] = await db.select({ n: sql<number>`count(*)::int` }).from(vdExpeditions);
 
+  const total = t?.total ?? 0;
+  const verifies = t?.verifies ?? 0;
   const manques: string[] = [
     "Connecteur d'itinéraire (distance réelle entre deux adresses)",
     "Barème douanier par pays (droits, taxes, commissionnaire)",
     "Grilles contractuelles transporteurs par corridor",
   ];
+  if (total > 0 && verifies < total) {
+    manques.unshift(`${total - verifies} barèmes internes non encore vérifiés par la direction (devis rendus « confirmation requise »)`);
+  }
 
   return {
     version: "1",
-    health: (t?.total ?? 0) === 0 ? ("degraded" as const) : ("ok" as const),
+    health: total === 0 ? ("degraded" as const) : ("ok" as const),
     resume:
-      (t?.total ?? 0) === 0
+      total === 0
         ? "Aucun barème enregistré : le moteur refuse d'afficher un prix de livraison véhicule plutôt que d'en inventer un."
-        : `${t.total} barèmes dont ${t.verifies} vérifiés et ${t.contractuels} contractuels ; ${e?.n ?? 0} expéditions.`,
-    baremes: t?.total ?? 0,
-    baremesVerifies: t?.verifies ?? 0,
+        : `${total} barèmes dont ${verifies} vérifiés et ${t.contractuels} contractuels ; ${e?.n ?? 0} expéditions.`,
+    baremes: total,
+    baremesVerifies: verifies,
     expeditions: e?.n ?? 0,
     manques,
   };

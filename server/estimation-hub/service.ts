@@ -351,6 +351,10 @@ export async function controlCenterFeed() {
   const [pieces] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(partCompatibilities);
+  const [catalogue] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(partsCatalog)
+    .where(eq(partsCatalog.active, true));
   const [publiees] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(annonces)
@@ -363,15 +367,28 @@ export async function controlCenterFeed() {
   ];
 
   const compat = Number(pieces?.n ?? 0);
+  const pieceActives = Number(catalogue?.n ?? 0);
+  const nbPubliees = Number(publiees?.n ?? 0);
+
+  // Santé ≠ volume : un marché de pièces encore vide n'est pas une panne du
+  // moteur. La panne, c'est un catalogue rempli dont aucune pièce n'est reliée
+  // à un modèle — la déclaration de compatibilité ne fonctionne alors pas.
+  const compatibiliteCassee = pieceActives > 0 && compat === 0;
+  if (pieceActives === 0) {
+    manques.unshift("Aucune pièce publiée par les boutiques : le budget entretien reste « non mesuré » jusqu'à la première pièce compatible");
+  }
+
   return {
     version: "1",
-    health: compat === 0 ? ("degraded" as const) : ("ok" as const),
-    resume:
-      compat === 0
-        ? "Aucune compatibilité pièce/modèle enregistrée : le budget entretien est renvoyé « non mesuré » au lieu d'être estimé au hasard."
-        : `${compat} compatibilités pièce/modèle et ${Number(publiees?.n ?? 0)} annonces publiées alimentent les estimations.`,
+    health: compatibiliteCassee ? ("degraded" as const) : ("ok" as const),
+    resume: compatibiliteCassee
+      ? `${pieceActives} pièces actives mais aucune compatibilité pièce/modèle déclarée : la déclaration de compatibilité du Moteur Pièces ne remonte pas.`
+      : compat === 0
+        ? `Moteur opérationnel, marché de pièces vide (${nbPubliees} annonces publiées) : le budget entretien est renvoyé « non mesuré » au lieu d'être estimé au hasard.`
+        : `${compat} compatibilités pièce/modèle et ${nbPubliees} annonces publiées alimentent les estimations.`,
     compatibilitesPieces: compat,
-    annoncesPubliees: Number(publiees?.n ?? 0),
+    piecesActives: pieceActives,
+    annoncesPubliees: nbPubliees,
     manques,
   };
 }
