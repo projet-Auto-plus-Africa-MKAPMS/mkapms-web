@@ -5,6 +5,7 @@ import { router, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { messageThreads, messages, annonces, users } from "../schema.js";
 import { assertCanSend } from "../messaging-os/index.js";
+import { notifyEvent } from "../notification-os/triggers.js";
 
 /**
  * Messagerie interne MKA.P-MS — conversations liées à une annonce et à un
@@ -173,6 +174,11 @@ export const messagesRouter = router({
         .update(messageThreads)
         .set({ lastMessageAt: new Date() })
         .where(eq(messageThreads.id, input.threadId));
+      await notifyEvent({
+        userId: recipientId,
+        event: "message_nouveau",
+        url: `/messagerie?thread=${input.threadId}`,
+      }).catch(() => undefined);
       return { id: msg.id };
     }),
 

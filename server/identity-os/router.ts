@@ -28,6 +28,7 @@ import {
   adminProcedure,
 } from "../trpc.js";
 import { db } from "../db.js";
+import { getUserLanguagePref } from "../language-os/index.js";
 import { users } from "../schema.js";
 import { identities } from "./schema.js";
 import {
@@ -130,6 +131,9 @@ export const identityRouter = router({
       { type, email: ctx.user.email, roles },
       { createIfMissing: true },
     );
+    const langue = identity && !identity.languageCode
+      ? (await getUserLanguagePref(ctx.user.uid)).preferredLanguage
+      : null;
     return {
       authenticated: true,
       identity: identity
@@ -142,7 +146,7 @@ export const identityRouter = router({
             email: identity.email,
             displayName: identity.displayName,
             countryCode: identity.countryCode,
-            languageCode: identity.languageCode,
+            languageCode: identity.languageCode ?? langue,
             createdAt: identity.createdAt,
             lastLoginAt: identity.lastLoginAt,
           }

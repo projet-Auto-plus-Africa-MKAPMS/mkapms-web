@@ -9,11 +9,36 @@
  * Le rapprochement est la pièce qui manquait : un paiement encaissé sans
  * écriture, c'est de l'argent en banque absent des comptes.
  */
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { payments } from "../schema.js";
 import { comptaEcritures } from "../modules/comptabilite.js";
 import { comptaRapprochements } from "./schema.js";
+import { paymentTransactions } from "../payment-engine/schema.js";
+
+/** Statuts du Payment Engine qui valent encaissement réel. */
+const STATUTS_ENCAISSES = ["recu", "valide"] as const;
+
+/**
+ * Transactions du Payment Engine encaissées mais sans lien vers un paiement
+ * historique : elles échappent au rapprochement et doivent être comptées.
+ */
+export async function engineTransactionsHorsRapprochement(limit = 100) {
+  return db
+    .select({
+      id: paymentTransactions.id,
+      reference: paymentTransactions.reference,
+      amount: paymentTransactions.amount,
+      currency: paymentTransactions.currency,
+      status: paymentTransactions.status,
+      univers: paymentTransactions.univers,
+      createdAt: paymentTransactions.createdAt,
+    })
+    .from(paymentTransactions)
+    .where(and(inArray(paymentTransactions.status, [...STATUTS_ENCAISSES]), isNull(paymentTransactions.legacyPaymentId)))
+    .orderBy(desc(paymentTransactions.createdAt))
+    .limit(limit);
+}
 
 /** Traduction du type de paiement vers le type d'écriture comptable. */
 const ECRITURE_TYPE: Record<string, "abonnement" | "vente_vehicule" | "commission" | "facture_client"> = {
@@ -147,8 +172,13 @@ export async function internalAccountingHealth(): Promise<InternalAccountingHeal
     .from(comptaEcritures)
     .where(eq(comptaEcritures.statut, "a_valider"));
 
-  const nonRapproches = Number(notReconciled?.n ?? 0);
+  const horsRapprochement = await engineTransactionsHorsRapprochement(1000);
+
+  const nonRapproches = Number(notReconciled?.n ?? 0) + horsRapprochement.length;
   const details = [
+    ...(horsRapprochement.length
+      ? [`${horsRapprochement.length} transaction(s) du Payment Engine encaissée(s) sans paiement historique lié : hors périmètre du rapprochement.`]
+      : []),
     `${Number(paid?.n ?? 0)} paiement(s) encaissé(s), ${nonRapproches} sans écriture comptable.`,
     `${Number(aValider?.n ?? 0)} écriture(s) en attente de validation humaine.`,
   ];

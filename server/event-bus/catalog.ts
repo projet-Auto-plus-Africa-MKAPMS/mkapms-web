@@ -363,6 +363,33 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     champs: ["rdvId", "nouvelleDate", "motif"],
     emetteurs: ["atelier"],
   },
+  {
+    code: "intelligences.domaine",
+    domaine: "moteur",
+    label: "Domaine d'Intelligence ouvert ou fermé",
+    description:
+      "Le PDG a ouvert ou fermé un domaine de l'assistant. Un domaine fermé sans trace est une réponse refusée sans que personne sache pourquoi.",
+    champs: ["code", "actif"],
+    emetteurs: ["intelligences"],
+  },
+  {
+    code: "media.analyse",
+    domaine: "contenu",
+    label: "Média analysé",
+    description:
+      "Un média (photo, pièce justificative) a reçu son niveau d'authenticité et son score. Un média douteux non signalé finit publié.",
+    champs: ["mediaId", "niveau", "score"],
+    emetteurs: ["media_authenticity"],
+  },
+  {
+    code: "media.decision",
+    domaine: "contenu",
+    label: "Décision humaine sur un média",
+    description:
+      "Un incident média a été tranché par un humain (accepté, rejeté). Sans cette trace, la décision n'est ni auditable ni apprise.",
+    champs: ["mediaId", "decision"],
+    emetteurs: ["media_authenticity"],
+  },
 ];
 
 export interface SubscriptionSpec {

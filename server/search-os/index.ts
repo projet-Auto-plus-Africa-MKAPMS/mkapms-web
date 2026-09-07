@@ -36,6 +36,17 @@ export function normalize(s: string): string {
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 }
 
+/**
+ * Groupes de termes : chaque terme saisi devient un groupe (lui + ses synonymes).
+ * Un résultat doit satisfaire chaque groupe, avec n'importe quel membre du groupe.
+ */
+export function termGroups(q: string): string[][] {
+  return normalize(q)
+    .split(/\s+/)
+    .filter((t) => t.length >= 2)
+    .map((t) => Array.from(new Set([t, ...(SYNONYMS[t] ?? []).map(normalize)])));
+}
+
 /** Découpe la requête en tokens significatifs + étend avec les synonymes. */
 export function expandTokens(q: string): string[] {
   const base = normalize(q).split(/\s+/).filter((t) => t.length >= 2);

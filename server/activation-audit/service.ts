@@ -11,6 +11,7 @@
  */
 import { desc, eq } from "drizzle-orm";
 import { db } from "../db.js";
+import { raiseAlert } from "../smart-engine/services/alert-engine.js";
 import {
   activationAuditItems,
   activationAuditRuns,
@@ -264,6 +265,8 @@ export async function runActivationAudit(options?: {
     );
   }
 
+  await signalerHorsService(items);
+
   return {
     runId: run.id,
     checkedAt: new Date().toISOString(),
@@ -273,6 +276,35 @@ export async function runActivationAudit(options?: {
     items,
     espacesOrphelins,
   };
+}
+
+/**
+ * Chaque domaine constaté « ne fonctionne pas » ou « non connecté » devient une
+ * alerte de direction du Système Intelligent, dédupliquée par domaine : la
+ * direction n'a pas à ouvrir l'audit pour découvrir qu'un moteur est mort.
+ */
+async function signalerHorsService(items: AuditItem[]) {
+  const niveaux: Partial<Record<ActivationState, "critical" | "important">> = {
+    hors_service: "critical",
+    non_connectee: "important",
+  };
+  for (const item of items) {
+    const level = niveaux[item.etat];
+    if (!level) continue;
+    try {
+      await raiseAlert({
+        category: "activation_audit",
+        level,
+        title: `${item.label} — ${ACTIVATION_STATE_LABELS[item.etat]}`,
+        description: item.motif,
+        targetType: "domaine",
+        signature: `activation:${item.domain}:${item.etat}`,
+        lastOccurredAt: new Date(),
+      });
+    } catch {
+      /* l'alerte ne bloque jamais l'enregistrement de l'audit */
+    }
+  }
 }
 
 /** Dernière photographie enregistrée, sans relancer l'audit. */

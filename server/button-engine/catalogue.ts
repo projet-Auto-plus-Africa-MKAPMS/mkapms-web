@@ -97,14 +97,6 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
 
   // ── Garage — pièces et contrats ───────────────────────────────────────
   {
-    code: "garage_commande_piece",
-    libelle: "Commander la pièce",
-    ecran: "/garage/commandes-automatiques",
-    genre: "navigation",
-    cible: "/garage/panier-pieces",
-    cleRedirection: "bouton_garage_panier_pieces",
-  },
-  {
     code: "garage_reappro_auto",
     libelle: "Activer le réapprovisionnement automatique",
     ecran: "/garage/commandes-automatiques",
@@ -269,20 +261,6 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
     genre: "navigation",
     cible: "/garage/demande-devis",
     cleRedirection: "bouton_garage_devis",
-  },
-
-  // ── Garage — contact équipe et clients ────────────────────────────────
-  {
-    code: "garage_appeler_client",
-    libelle: "Appeler",
-    ecran: "/garage",
-    genre: "appel",
-  },
-  {
-    code: "garage_email_equipe",
-    libelle: "Email",
-    ecran: "/garage",
-    genre: "email",
   },
 ];
 

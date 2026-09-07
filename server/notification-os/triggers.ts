@@ -17,6 +17,7 @@ import { inArray } from "drizzle-orm";
 import { db } from "../db.js";
 import { notifications, users } from "../schema.js";
 import { dispatch, getUserPrefs } from "./index.js";
+import { getUserLanguagePref } from "../language-os/index.js";
 
 export type NotifChannel = "email" | "sms" | "push" | "inapp";
 
@@ -68,6 +69,27 @@ export const NOTIFICATION_TRIGGERS: Record<string, TriggerDef> = {
   message_nouveau: { category: "messagerie", channels: ["push", "inapp"], inappType: "message", title: "Nouveau message", body: "Vous avez reçu un message." },
   devis: { category: "documents", channels: ["email", "inapp"], inappType: "devis", title: "Nouveau devis", body: "Un devis {{reference}} vous a été transmis." },
   facture: { category: "documents", channels: ["email", "inapp"], inappType: "facture", title: "Nouvelle facture", body: "Votre facture {{reference}} est disponible." },
+  devis_demande_envoyee: {
+    category: "documents",
+    channels: ["email", "inapp"],
+    inappType: "devis",
+    title: "Votre demande de devis #{{reference}}",
+    body: "Votre demande de devis pour « {{intervention}} » a été envoyée. Vous serez notifié dès qu'un garage répond.",
+  },
+  devis_statut: {
+    category: "documents",
+    channels: ["email", "inapp"],
+    inappType: "devis",
+    title: "Devis #{{reference}} — {{statut}}",
+    body: "{{detail}}",
+  },
+  transport_reservation: {
+    category: "reservations",
+    channels: ["email", "inapp"],
+    inappType: "reservation",
+    title: "Réservation transport {{reference}}",
+    body: "Votre demande de trajet {{trajet}} a été transmise à {{societe}}.",
+  },
   // ── Compte professionnel ────────────────────────────────────────────────
   pro_dossier_recu: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Dossier professionnel reçu", body: "Votre dossier {{metier}} ({{pays}}) est en cours de vérification." },
   pro_dossier_decision: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Dossier professionnel — {{decision}}", body: "{{note}}" },
@@ -89,6 +111,21 @@ export const NOTIFICATION_TRIGGERS: Record<string, TriggerDef> = {
   avis_reponse_a_traiter: { category: "compte", channels: ["email", "inapp"], inappType: "systeme", title: "Avis à traiter — {{note}}/5", body: "{{extrait}} Vous pouvez répondre publiquement depuis votre espace.", },
   // ── Intelligence financière ─────────────────────────────────────────────
   anomalie_financiere: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Anomalie financière — {{severite}}", body: "{{detail}}", adminAlert: true },
+  // ── Suivi de service (garage, pièces, carte grise, VO, litiges, dépôt-vente) ──
+  garage_statut: { category: "reservations", channels: ["email", "push", "inapp"], inappType: "garage", title: "Garage — {{statut}}", body: "{{detail}}" },
+  garage_rdv_reporte: { category: "reservations", channels: ["email", "push", "inapp"], inappType: "garage", title: "Garage — rendez-vous reporté", body: "Votre rendez-vous est reporté au {{date}}. Motif : {{motif}}" },
+  commande_pieces_creee: { category: "commandes", channels: ["email", "inapp"], inappType: "commande", title: "Commande {{reference}} créée", body: "{{detail}}" },
+  commande_pieces_confirmee: { category: "commandes", channels: ["email", "inapp"], inappType: "commande", title: "Commande {{reference}} confirmée", body: "Votre commande a été confirmée et sera préparée prochainement." },
+  commande_pieces_statut: { category: "commandes", channels: ["email", "push", "inapp"], inappType: "commande", title: "Commande {{reference}} — {{statut}}", body: "{{detail}}" },
+  support_reponse: { category: "support", channels: ["email", "inapp"], inappType: "support", title: "Réponse du support MKA.P-MS", body: "« {{sujet}} » — {{extrait}}" },
+  carte_grise_document: { category: "documents", channels: ["email", "inapp"], inappType: "carte_grise", title: "{{reference}} — {{decision}}", body: "{{detail}}" },
+  carte_grise_statut: { category: "documents", channels: ["email", "inapp"], inappType: "carte_grise", title: "{{reference}} — {{statut}}", body: "{{detail}}" },
+  vo_statut: { category: "vo", channels: ["inapp"], inappType: "vo", title: "{{vehicule}} — {{statut}}", body: "{{detail}}" },
+  depannage_devis_recu: { category: "reservations", channels: ["email", "push", "inapp"], inappType: "depannage", title: "Dépannage — devis reçu", body: "Un dépanneur propose {{montant}} pour votre demande #{{reference}}." },
+  depannage_intervention: { category: "reservations", channels: ["push", "inapp"], inappType: "depannage", title: "Dépannage — {{statut}}", body: "{{detail}}" },
+  litige_mis_a_jour: { category: "support", channels: ["email", "inapp"], inappType: "dispute", title: "Litige {{reference}} mis à jour", body: "Nouveau statut : {{statut}}{{resolution}}" },
+  depot_vente_enregistre: { category: "annonces", channels: ["email", "inapp"], inappType: "depot_vente", title: "Dépôt-vente #DV-{{id}} enregistré", body: "Votre demande de dépôt-vente pour {{vehicule}} a été reçue. Nous vous contacterons pour l'expertise." },
+  depot_vente_statut: { category: "annonces", channels: ["email", "inapp"], inappType: "depot_vente", title: "Dépôt-vente #DV-{{id}} — {{statut}}", body: "{{detail}}" },
   // ── Système / admin ─────────────────────────────────────────────────────
   erreur_importante: { category: "systeme", channels: ["email", "inapp"], inappType: "systeme", title: "Erreur importante", body: "{{message}}", adminAlert: true },
   partenaire_candidature_recue: { category: "systeme", channels: ["inapp"], inappType: "systeme", title: "Nouvelle candidature partenaire — {{metier}}", body: "{{societe}} ({{zone}}) attend une décision.", adminAlert: true },
@@ -200,7 +237,14 @@ async function deliver(
     } catch { /* best-effort */ }
   }
 
-  // 2. Canaux externes (email / sms / push) via le dispatch existant
+  // 2. Canaux externes (email / sms / push) via le dispatch existant, dans la
+  //    langue choisie par l'utilisateur au Language OS si l'appelant n'en impose pas.
+  let language = input.language;
+  if (!language) {
+    try {
+      language = (await getUserLanguagePref(input.userId)).preferredLanguage;
+    } catch { /* repli sur la langue par défaut du dispatch */ }
+  }
   for (const channel of wanted) {
     if (channel === "inapp") continue;
     try {
@@ -208,7 +252,7 @@ async function deliver(
         userId: input.userId,
         templateKey: input.event,
         channel,
-        language: input.language,
+        language,
         vars,
         category: def.category,
       });

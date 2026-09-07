@@ -12,6 +12,7 @@
  */
 import { and, desc, eq, gte, lte, sql, type SQL } from "drizzle-orm";
 import { db } from "../db.js";
+import { requireOpenCountry } from "../country-os/index.js";
 import { notifyEvent } from "../notification-os/triggers.js";
 import { auctionBids, auctionEvents, auctions } from "./schema.js";
 
@@ -59,6 +60,7 @@ export async function createAuction(input: CreateAuctionInput) {
   if (input.startPrice <= 0) {
     throw new Error("Le prix de départ doit être supérieur à zéro.");
   }
+  const pays = await requireOpenCountry(input.countryCode);
   const reference = `ENC-${Date.now().toString(36).toUpperCase()}`;
   const [row] = await db
     .insert(auctions)
@@ -71,7 +73,7 @@ export async function createAuction(input: CreateAuctionInput) {
       description: input.description ?? null,
       countryCode: input.countryCode.toUpperCase(),
       city: input.city ?? null,
-      currency: input.currency ?? "EUR",
+      currency: input.currency ?? pays.defaultCurrency,
       startPrice: String(input.startPrice),
       reservePrice: input.reservePrice === null || input.reservePrice === undefined ? null : String(input.reservePrice),
       increment: String(input.increment ?? 100),

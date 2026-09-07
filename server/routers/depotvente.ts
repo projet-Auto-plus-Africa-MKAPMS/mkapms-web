@@ -2,8 +2,8 @@ import { z } from "zod";
 import { desc, eq } from "drizzle-orm";
 import { router, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
+import { notifyEvent } from "../notification-os/triggers.js";
 import { depotVente, serviceTracking } from "../schema.js";
-import { notifications } from "../modules/core.js";
 
 const statusLabels: Record<string, string> = {
   demande: "Demande reçue",
@@ -53,11 +53,10 @@ export const depotVenteRouter = router({
         status: "demande",
         statusLabel: "Demande reçue",
       });
-      await db.insert(notifications).values({
+      await notifyEvent({
         userId: ctx.user.uid,
-        type: "depot_vente",
-        title: `Dépôt-vente #DV-${created.id} enregistré`,
-        body: `Votre demande de dépôt-vente pour ${input.marque} ${input.modele} a été reçue. Nous vous contacterons pour l'expertise.`,
+        event: "depot_vente_enregistre",
+        vars: { id: created.id, vehicule: `${input.marque} ${input.modele}` },
         url: "/compte",
       });
       return created;
@@ -98,11 +97,14 @@ export const depotVenteRouter = router({
         statusLabel: statusLabels[input.status] ?? input.status,
         detail: input.detail,
       });
-      await db.insert(notifications).values({
+      await notifyEvent({
         userId: dv.clientId,
-        type: "depot_vente",
-        title: `Dépôt-vente #DV-${dv.id} — ${statusLabels[input.status]}`,
-        body: input.detail ?? `Votre dépôt-vente est maintenant : ${statusLabels[input.status]}`,
+        event: "depot_vente_statut",
+        vars: {
+          id: dv.id,
+          statut: statusLabels[input.status],
+          detail: input.detail ?? `Votre dépôt-vente est maintenant : ${statusLabels[input.status]}`,
+        },
         url: "/compte",
       });
       return { ok: true };

@@ -2,11 +2,11 @@ import { z } from "zod";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { router, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
+import { notifyEvent } from "../notification-os/triggers.js";
 import {
   cgDossiers, cgDocuments, cgAgences, cgAgenceMembres, cgAbonnements,
   cgPacks, cgCredits, cgEtapes, cgAuditLog, serviceTracking, comptaEcritures,
 } from "../schema.js";
-import { notifications } from "../modules/core.js";
 import { createPaymentCheckout } from "../payment-engine/checkout.js";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -170,10 +170,15 @@ export const carteGriseRouter = router({
       // Notify client
       const [dossier] = await db.select().from(cgDossiers).where(eq(cgDossiers.id, input.dossierId)).limit(1);
       if (dossier?.clientId) {
-        const title = input.action === "valide" ? `${dossier.reference} — Document validé` : `${dossier.reference} — Document refusé`;
-        await db.insert(notifications).values({
-          userId: dossier.clientId, type: "carte_grise", title,
-          body: detail, url: "/carte-grise",
+        await notifyEvent({
+          userId: dossier.clientId,
+          event: "carte_grise_document",
+          vars: {
+            reference: dossier.reference,
+            decision: input.action === "valide" ? "Document validé" : "Document refusé",
+            detail,
+          },
+          url: "/carte-grise",
         });
       }
       // Update dossier status if document refused
@@ -216,10 +221,14 @@ export const carteGriseRouter = router({
       await logAudit(input.id, "changement_statut", `Statut → ${STATUS_LABELS[input.status]} ${input.commentaire ? `(${input.commentaire})` : ""}`, ctx.user.uid, ctx.user.email ?? undefined);
       // Notify
       if (dossier.clientId) {
-        await db.insert(notifications).values({
-          userId: dossier.clientId, type: "carte_grise",
-          title: `${dossier.reference} — ${STATUS_LABELS[input.status]}`,
-          body: input.commentaire ?? `Votre dossier est maintenant : ${STATUS_LABELS[input.status]}`,
+        await notifyEvent({
+          userId: dossier.clientId,
+          event: "carte_grise_statut",
+          vars: {
+            reference: dossier.reference,
+            statut: STATUS_LABELS[input.status],
+            detail: input.commentaire ?? `Votre dossier est maintenant : ${STATUS_LABELS[input.status]}`,
+          },
           url: "/carte-grise",
         });
       }

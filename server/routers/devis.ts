@@ -3,7 +3,7 @@ import { desc, eq } from "drizzle-orm";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { devisGarageRequests, devisItems, serviceTracking } from "../schema.js";
-import { notifications } from "../modules/core.js";
+import { notifyEvent } from "../notification-os/triggers.js";
 import { createPaymentCheckout } from "../payment-engine/checkout.js";
 import { getCountry } from "../country-os/index.js";
 
@@ -48,11 +48,10 @@ export const devisRouter = router({
         status: "nouveau",
         statusLabel: "Demande envoyée",
       });
-      await db.insert(notifications).values({
+      await notifyEvent({
         userId: ctx.user.uid,
-        type: "devis",
-        title: `Votre demande de devis #DEV-${created.id}`,
-        body: `Votre demande de devis pour "${input.typeIntervention}" a été envoyée. Vous serez notifié dès qu'un garage répond.`,
+        event: "devis_demande_envoyee",
+        vars: { reference: `DEV-${created.id}`, intervention: input.typeIntervention },
         url: "/compte",
       });
       return created;
@@ -98,11 +97,14 @@ export const devisRouter = router({
         statusLabel: statusLabels[input.status] ?? input.status,
         detail: input.detail,
       });
-      await db.insert(notifications).values({
-        userId: devis.userId!,
-        type: "devis",
-        title: `Devis #DEV-${devis.id} — ${statusLabels[input.status]}`,
-        body: input.detail ?? `Votre devis est maintenant : ${statusLabels[input.status]}`,
+      await notifyEvent({
+        userId: devis.userId,
+        event: "devis_statut",
+        vars: {
+          reference: `DEV-${devis.id}`,
+          statut: statusLabels[input.status] ?? input.status,
+          detail: input.detail ?? `Votre devis est maintenant : ${statusLabels[input.status] ?? input.status}`,
+        },
         url: "/compte",
       });
       return { ok: true };

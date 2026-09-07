@@ -9,6 +9,7 @@
 import { and, desc, eq, sql, type SQL } from "drizzle-orm";
 import { db } from "../db.js";
 import { accountantProfiles, accountantRequests } from "./schema.js";
+import { requireOpenCountry } from "../country-os/index.js";
 
 export interface AccountantSearch {
   countryCode: string;
@@ -68,6 +69,7 @@ export async function upsertProfile(input: {
   availability?: string;
   bio?: string | null;
 }) {
+  const pays = await requireOpenCountry(input.countryCode);
   const existing = await db
     .select({ id: accountantProfiles.id })
     .from(accountantProfiles)
@@ -84,7 +86,7 @@ export async function upsertProfile(input: {
     specialties: input.specialties ?? [],
     languages: input.languages ?? ["fr"],
     hourlyRate: input.hourlyRate === null || input.hourlyRate === undefined ? null : String(input.hourlyRate),
-    currency: input.currency ?? "EUR",
+    currency: input.currency ?? pays.defaultCurrency,
     availability: input.availability ?? "disponible",
     bio: input.bio ?? null,
     updatedAt: new Date(),
@@ -129,6 +131,7 @@ export async function createRequest(input: {
   specialty?: string | null;
   message?: string | null;
 }) {
+  await requireOpenCountry(input.countryCode);
   const [row] = await db
     .insert(accountantRequests)
     .values({

@@ -14,6 +14,7 @@ import { activationTestEvidence } from "../activation-audit/schema.js";
 import { ctResults, ctRuns } from "../continuous-test/schema.js";
 import { rsPipelineRuns } from "../resilience/schema.js";
 import { latestActivationAudit, runActivationAudit, type AuditItem } from "../activation-audit/service.js";
+import { raiseAlert } from "../smart-engine/services/alert-engine.js";
 import { cpDomainVerdicts, cpSnapshots, cpWorkReports } from "./schema.js";
 import {
   DOMAINES,
@@ -239,6 +240,7 @@ export async function evaluer(options?: {
 
   let snapshotId: number | null = null;
   if (options?.persister !== false) {
+    await signalerRegressions(verdicts);
     const [snap] = await db
       .insert(cpSnapshots)
       .values({
@@ -276,6 +278,36 @@ export async function evaluer(options?: {
     verdicts,
     resteAFaire,
   };
+}
+
+/**
+ * Un domaine déclaré TERMINÉ à la photographie précédente et qui ne l'est plus
+ * est une régression : elle remonte au Système Intelligent avec le motif.
+ */
+async function signalerRegressions(verdicts: VerdictDomaine[]) {
+  const [prev] = await db.select({ id: cpSnapshots.id }).from(cpSnapshots).orderBy(desc(cpSnapshots.id)).limit(1);
+  if (!prev) return;
+  const anciens = await db
+    .select({ domaine: cpDomainVerdicts.domaine, termine: cpDomainVerdicts.termine })
+    .from(cpDomainVerdicts)
+    .where(eq(cpDomainVerdicts.snapshotId, prev.id));
+  const terminesAvant = new Set(anciens.filter((a) => a.termine).map((a) => a.domaine));
+  for (const v of verdicts) {
+    if (v.termine || !terminesAvant.has(v.domaine)) continue;
+    try {
+      await raiseAlert({
+        category: "completion",
+        level: "important",
+        title: `${v.label} n'est plus TERMINÉ`,
+        description: v.motif,
+        targetType: "domaine",
+        signature: `completion:regression:${v.domaine}`,
+        lastOccurredAt: new Date(),
+      });
+    } catch {
+      /* l'alerte ne bloque pas l'évaluation */
+    }
+  }
 }
 
 /** Dernière photographie enregistrée, sans recalcul. */

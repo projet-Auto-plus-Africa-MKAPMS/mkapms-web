@@ -3,6 +3,7 @@ import { and, desc, eq, ilike, sql, gte, lte, or, isNull } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure, proProcedure, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
+import { notifyEvent } from "../notification-os/triggers.js";
 import { createPaymentCheckout } from "../payment-engine/checkout.js";
 import {
   partsShops,
@@ -18,7 +19,6 @@ import {
   deliveryPricing,
   devisItems,
 } from "../schema.js";
-import { notifications } from "../modules/core.js";
 import { requestReviewAfterCompletion } from "../reputation-engine/service.js";
 import { emitSafe } from "../event-bus/service.js";
 
@@ -479,11 +479,13 @@ export const piecesRouter = router({
       });
 
       // Notification client
-      await db.insert(notifications).values({
+      await notifyEvent({
         userId: ctx.user.uid,
-        type: "commande",
-        title: `Commande ${ref} créée`,
-        body: `Votre commande de ${itemDetails.length} pièce(s) a été créée. ${input.modeRetrait === "retrait" ? "Retrait en magasin." : `Livraison par ${input.livraisonType ?? "standard"}.`}`,
+        event: "commande_pieces_creee",
+        vars: {
+          reference: ref,
+          detail: `Votre commande de ${itemDetails.length} pièce(s) a été créée. ${input.modeRetrait === "retrait" ? "Retrait en magasin." : `Livraison par ${input.livraisonType ?? "standard"}.`}`,
+        },
         url: `/compte`,
       });
 
@@ -509,7 +511,7 @@ export const piecesRouter = router({
         .where(eq(partsOrders.id, input.orderId)).returning();
 
       await db.insert(partsOrderTracking).values({ orderId: input.orderId, status: "confirme", label: "Commande confirmée", detail: "Votre commande a été confirmée par le vendeur." });
-      await db.insert(notifications).values({ userId: order.buyerId, type: "commande", title: `Commande ${order.reference} confirmée`, body: "Votre commande a été confirmée et sera préparée prochainement.", url: "/compte" });
+      await notifyEvent({ userId: order.buyerId, event: "commande_pieces_confirmee", vars: { reference: order.reference ?? `CMD-${order.id}` }, url: "/compte" });
       await db.insert(serviceTracking).values({ userId: order.buyerId, serviceType: "commande_pieces", serviceId: order.id, reference: order.reference, titre: `Commande pièces ${order.reference}`, status: "confirme", statusLabel: "Commande confirmée" });
 
       return order;
@@ -561,7 +563,7 @@ export const piecesRouter = router({
             : input.status === "annule"
               ? "Votre commande a été annulée."
               : `Statut mis à jour : ${statusLabels[input.status]}`;
-      await db.insert(notifications).values({ userId: order.buyerId, type: "commande", title: `Commande ${order.reference} — ${statusLabels[input.status]}`, body: notifBody, url: "/compte" });
+      await notifyEvent({ userId: order.buyerId, event: "commande_pieces_statut", vars: { reference: order.reference ?? `CMD-${order.id}`, statut: statusLabels[input.status], detail: notifBody }, url: "/compte" });
       await db.insert(serviceTracking).values({ userId: order.buyerId, serviceType: "commande_pieces", serviceId: order.id, reference: order.reference, titre: `Commande pièces ${order.reference}`, status: input.status, statusLabel: statusLabels[input.status] });
 
       // If cancelled, release reserved stock
