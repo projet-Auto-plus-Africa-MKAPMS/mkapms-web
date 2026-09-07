@@ -5490,7 +5490,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 78,
-        "mots": 556
+        "mots": 561
       },
       {
         "fichier": "client/src/pages/GlobalCountryEngine.tsx",
@@ -5847,7 +5847,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "public"
     ],
     "textes": 357,
-    "mots": 1465,
+    "mots": 1470,
     "battement": "contrat",
     "manques": []
   },
@@ -10320,6 +10320,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "evenementsPublies": [
       "livraison_vehicule.acceptee",
+      "livraison_vehicule.baremes_initialises",
       "livraison_vehicule.etape_bloquee",
       "livraison_vehicule.prix_indisponible"
     ],
