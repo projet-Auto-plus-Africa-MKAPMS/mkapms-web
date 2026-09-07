@@ -53,7 +53,7 @@ export default function InscriptionProVente() {
       {step === 1 && (
         <div className="mx-4 mt-4 rounded-xl bg-white border border-[#E5E7EB] p-4 space-y-3">
           <h3 className="text-sm font-bold text-[#111]">Identité du dirigeant</h3>
-          {[["Prénom *", "Moussa"], ["Nom *", "Konaté"], ["Date de naissance *", "01/01/1990"], ["Téléphone *", "+33 6 12 34 56 78"], ["Email *", "moussa@email.com"], ["Adresse *", "12 Rue de la Paix, Paris"]].map(([l, p]) => (
+          {[["Prénom *", "Votre prénom"], ["Nom *", "Votre nom"], ["Date de naissance *", "JJ/MM/AAAA"], ["Téléphone *", "Votre numéro"], ["Email *", "votre@email.com"], ["Adresse *", "Votre adresse complète"]].map(([l, p]) => (
             <div key={l}><label className="text-xs text-[#6B7280]">{l}</label><input type="text" placeholder={p} className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm" /></div>
           ))}
           <h4 className="text-xs font-bold text-[#111] pt-2">Documents dirigeant</h4>

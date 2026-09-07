@@ -35,6 +35,12 @@ import { verifiedExperience } from "../reputation-engine/service.js";
 import { analyzeNewReview } from "../reputation-engine/fraud.js";
 import { isTargetOwner, ownerOfTarget } from "../reputation-engine/ownership.js";
 import { notifyDirection } from "../notification-os/triggers.js";
+import { IDENTITE_OFFICIELLE, ROLES_DIRECTION } from "../identity-os/identite-officielle.js";
+
+// Un compte de direction n'expose jamais son identité personnelle au public.
+const rolesDirection = sql.join([...ROLES_DIRECTION].map((r) => sql`${r}`), sql`, `);
+const nomPublicSql = sql<string | null>`case when ${users.role} in (${rolesDirection}) then ${IDENTITE_OFFICIELLE.nom} else ${users.name} end`;
+const prenomPublicSql = sql<string | null>`case when ${users.role} in (${rolesDirection}) then ${IDENTITE_OFFICIELLE.nom} else ${users.firstName} end`;
 
 // ═══════════════════════════════════════════
 // HELPERS
@@ -266,8 +272,8 @@ export const reviewsV2Router = router({
         .select({
           id: reviewsV2.id,
           authorId: reviewsV2.authorId,
-          authorName: users.name,
-          authorFirstName: users.firstName,
+          authorName: nomPublicSql,
+          authorFirstName: prenomPublicSql,
           authorAvatar: users.avatarUrl,
           authorDisplayMode: reviewsV2.authorDisplayMode,
           ratingGlobal: reviewsV2.ratingGlobal,
@@ -422,7 +428,7 @@ export const reviewsV2Router = router({
         .select({
           id: reviewsV2.id,
           authorId: reviewsV2.authorId,
-          authorName: users.name,
+          authorName: nomPublicSql,
           authorDisplayMode: reviewsV2.authorDisplayMode,
           ratingGlobal: reviewsV2.ratingGlobal,
           criterias: reviewsV2.criterias,

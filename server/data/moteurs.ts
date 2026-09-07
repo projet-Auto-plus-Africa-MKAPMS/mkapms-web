@@ -90,11 +90,12 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 88;
-export const MANQUES_TOTAL = 692;
+export const MANQUES_TOTAL = 694;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "destination_inconnue": 57,
   "ecran_sans_contenu": 355,
   "bouton_sans_action": 198,
+  "dependance_non_declaree": 2,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
   "dependance_sans_preuve": 64,
@@ -436,6 +437,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "estimation",
       "event_bus",
+      "identity",
       "livraison_vehicule",
       "messaging",
       "notification",
@@ -455,6 +457,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "estimation",
       "event_bus",
+      "identity",
       "livraison_vehicule",
       "messaging",
       "notification",
@@ -490,6 +493,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "event_bus": [
         "routers/annonces.ts importe event-bus/service.ts",
         "routers/annonces.ts publie des événements"
+      ],
+      "identity": [
+        "routers/annonces.ts importe identity-os/identite-officielle.ts"
       ],
       "livraison_vehicule": [
         "routers/reservations.ts importe vehicle-delivery/service.ts"
@@ -1084,6 +1090,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Refuser » client/src/pages/superadmin/AdminModerationAnnonces.tsx:54"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "identity — routers/annonces.ts importe identity-os/identite-officielle.ts"
       }
     ]
   },
@@ -3045,6 +3055,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecteur_google_business",
       "core",
       "depannage",
+      "identity",
       "livraison",
       "notification",
       "pieces",
@@ -3056,6 +3067,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "country",
       "depannage",
+      "identity",
       "livraison",
       "notification",
       "pieces",
@@ -3075,6 +3087,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "depannage": [
         "reputation-engine/ownership.ts importe modules/depannage.ts",
         "reputation-engine/responses.ts importe modules/depannage.ts"
+      ],
+      "identity": [
+        "routers/reviews.ts importe identity-os/identite-officielle.ts",
+        "routers/reviewsV2.ts importe identity-os/identite-officielle.ts"
       ],
       "livraison": [
         "reputation-engine/ownership.ts importe modules/livraison.ts",
@@ -3363,6 +3379,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "destination_inconnue",
         "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/AvisVendeurs.tsx:12"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "identity — routers/reviews.ts importe identity-os/identite-officielle.ts"
       },
       {
         "genre": "dependance_sans_preuve",
@@ -4565,7 +4585,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 2,
         "textes": 656,
-        "mots": 1517
+        "mots": 1516
       },
       {
         "fichier": "client/src/pages/comptabilite/ComptaAnalytique.tsx",
@@ -4689,7 +4709,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte"
     ],
     "textes": 1215,
-    "mots": 2830,
+    "mots": 2829,
     "battement": "sonde",
     "manques": [
       {
@@ -8569,7 +8589,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "suppressionCompte",
       "preferencesUtilisateur"
     ],
-    "fichiersServeur": 14,
+    "fichiersServeur": 15,
     "dependancesDeclarees": [
       "account_routing",
       "audit",
@@ -8635,9 +8655,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "account_routing",
       "accounting_marketplace",
+      "achat",
       "ai_learning",
       "assurance",
       "audit",
+      "avis_reputation",
       "backup",
       "cartegrise",
       "command_center",
@@ -11878,7 +11900,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity": [
         "messaging-os/index.ts importe identity-os/contract.ts",
         "messaging-os/index.ts exige une session Identity (procédure protégée)",
-        "routers/messages.ts exige une session Identity (procédure protégée)"
+        "routers/messages.ts importe identity-os/identite-officielle.ts"
       ],
       "notification": [
         "routers/messages.ts importe notification-os/triggers.ts",

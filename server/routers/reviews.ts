@@ -3,6 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { reviews, users, notifications } from "../schema.js";
+import { IDENTITE_OFFICIELLE, estDirection } from "../identity-os/identite-officielle.js";
 
 // Avis clients (Partie 6) — système unique relié aux comptes : un avis peut cibler
 // un vendeur, un garage, un loueur, etc. L'agrégat (note + nombre) est recalculé
@@ -36,13 +37,17 @@ export const reviewsRouter = router({
           comment: reviews.comment,
           createdAt: reviews.createdAt,
           authorName: users.name,
+          authorRole: users.role,
         })
         .from(reviews)
         .leftJoin(users, eq(users.id, reviews.authorId))
         .where(and(eq(reviews.targetUserId, input.targetUserId), eq(reviews.hidden, false)))
         .orderBy(desc(reviews.createdAt))
         .limit(input.limit);
-      return rows;
+      return rows.map(({ authorRole, ...r }) => ({
+        ...r,
+        authorName: estDirection(authorRole) ? IDENTITE_OFFICIELLE.nom : r.authorName,
+      }));
     }),
 
   // Laisser un avis sur un vendeur / pro. Un avis par auteur et par cible.
