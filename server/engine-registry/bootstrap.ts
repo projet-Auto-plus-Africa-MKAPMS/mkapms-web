@@ -15,6 +15,9 @@
  *
  * 100 % additif — n'écrit que dans les tables engine_* du registre.
  */
+import { emitSafe } from "../event-bus/service.js";
+import { seedLivraisons } from "../intelligences/livraisons.js";
+import { retenir } from "../intelligences/memoire.js";
 import { notifyDirection } from "../notification-os/triggers.js";
 import { ENGINE_CONTRACTS, type EngineContract } from "./contracts.js";
 import { recordState, remember } from "./memory.js";
@@ -57,6 +60,9 @@ async function checkDependencies(contract: EngineContract): Promise<DependencyCh
   return { ok: missing.length === 0 && inactive.length === 0, missing, inactive };
 }
 
+/** Message de l'échec de migration du processus courant, s'il y en a eu un. */
+let migrationFailure: string | null = null;
+
 /** Enregistre un moteur et signale sa santé selon l'état de ses dépendances. */
 async function bootEngine(contract: EngineContract): Promise<void> {
   // 1. Auto-enregistrement (idempotent : met à jour métadonnées + version,
@@ -81,7 +87,15 @@ async function bootEngine(contract: EngineContract): Promise<void> {
     });
   }
 
-  // 3. Vérifier les dépendances.
+  // 3. Vérifier les dépendances. Le Core porte le schéma : tant que les
+  //    migrations ont échoué dans ce processus, il reste hors service.
+  if (contract.id === "core" && migrationFailure) {
+    await heartbeat(contract.id, "down", {
+      message: `Échec des migrations au démarrage : ${migrationFailure}`,
+      version: contract.version,
+    });
+    return;
+  }
   const deps = await checkDependencies(contract);
   if (deps.ok) {
     await heartbeat(contract.id, "ok", {
@@ -246,6 +260,66 @@ async function probeBusinessEngines(): Promise<void> {
 }
 
 /**
+ * Un échec de migration au démarrage laisse la base sans une partie de ses
+ * tables : chaque sonde métier le constatera ensuite table par table, mais la
+ * cause racine doit être nommée une seule fois, au Core, à la direction et au
+ * Système Intelligent — pas retrouvée à la main dans les journaux serveur.
+ */
+export async function reportMigrationFailure(message: string): Promise<void> {
+  migrationFailure = message;
+  const detail = `Échec des migrations au démarrage : ${message}`;
+  try {
+    await heartbeat("core", "down", { message: detail });
+    const state = await recordState("core", "down", detail);
+    if (state.changed) {
+      await remember({
+        engineKey: "core",
+        scope: "anomalie",
+        kind: "migration_echouee",
+        refKey: message.slice(0, 200),
+        label: detail,
+        value: { message },
+      });
+      await notifyDirection(
+        "moteur_hors_service",
+        { moteur: "core", detail },
+        "/admin/moteurs",
+      );
+    }
+    await publishEvent({
+      source: "core",
+      type: "engine.migration_failed",
+      payload: { engine: "core", health: "down", message },
+      targets: ["smart", "core", "intelligences"],
+    });
+    // Bus central : le Système Intelligent ouvre l'alerte critique et
+    // MKA.P-MS Intelligences mémorise l'événement à la remise.
+    await emitSafe({
+      source: "core",
+      type: "moteur.migration_echouee",
+      payload: { moteur: "core", etat: "down", detail: message },
+    });
+    // Expérience retenue immédiatement : la remise du bus peut attendre le
+    // prochain cycle, la cause exacte ne doit pas.
+    await retenir({
+      domaine: "moteurs",
+      probleme: `Migrations de schéma échouées au démarrage — ${message}`,
+      diagnostic:
+        "Drizzle n'applique une migration que si son horodatage dépasse la dernière enregistrée en base ; un fichier absent du journal ou un horodatage en retard rend ses tables inexistantes, et les sondes des moteurs concernés les déclarent dégradés ou hors service à juste titre.",
+      solution:
+        "Vérifier drizzle/meta/_journal.json (npm run check:migrations), rétablir l'ordre, redéployer. Ne jamais forcer un moteur au vert : la table manque réellement.",
+      resultat: "signale",
+      blocage: "Correction du journal nécessaire avant tout redémarrage strict.",
+    });
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] signalement de l'échec de migration impossible:",
+      (err as Error).message,
+    );
+  }
+}
+
+/**
  * Point d'entrée appelé au démarrage du serveur. Ne lève jamais d'exception :
  * toute erreur est journalisée mais n'interrompt pas le démarrage de la plateforme.
  */
@@ -295,6 +369,20 @@ export async function bootstrapEngines(): Promise<void> {
     );
   }
 
+  // Ce que les agents ont livré entre dans la connaissance de MKA.P-MS
+  // Intelligences à chaque déploiement, pas seulement dans l'historique git.
+  try {
+    const r = await seedLivraisons();
+    if (r.nouvelles > 0) {
+      console.log(`[MKA.P-MS] Intelligences : ${r.nouvelles} livraison(s) apprise(s).`);
+    }
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] apprentissage des livraisons échoué:",
+      (err as Error).message,
+    );
+  }
+
   // Aligne les états sur les preuves du dernier audit d'activation (jamais sur
   // une simple déclaration). Aucun audit exécuté ici : le démarrage reste court.
   try {
@@ -340,6 +428,11 @@ export async function bootstrapEngines(): Promise<void> {
  * Cette passe périodique fait vivre les moteurs sans intervention humaine.
  */
 export async function superviseEngines(): Promise<void> {
+  if (migrationFailure) {
+    await heartbeat("core", "down", {
+      message: `Échec des migrations au démarrage : ${migrationFailure}`,
+    });
+  }
   try {
     await bridgeOsEngines();
   } catch (err) {

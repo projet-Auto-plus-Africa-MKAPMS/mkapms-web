@@ -62,12 +62,14 @@ const handlers: Record<string, Handler> = {
   async smart_alerte(payload) {
     const moteur = texte(payload, "moteur");
     const etat = texte(payload, "etat") || "inconnu";
+    const detail = texte(payload, "detail");
     if (!moteur) throw new Error("Charge invalide : « moteur » absent.");
     const cree = await raiseAlert({
       category: "moteur",
       title: `Moteur ${moteur} en état « ${etat} »`,
       description:
-        "Signalé par le bus d'événements. Tant que la cause n'est pas traitée, les services qui dépendent de ce moteur restent incertains.",
+        (detail ? `Cause relevée par la sonde : ${detail}. ` : "Signalé par le bus d'événements. ") +
+        "Tant que la cause n'est pas traitée, les services qui dépendent de ce moteur restent incertains.",
       level: etat === "down" ? "critical" : "important",
       targetType: "engine",
       signature: `bus:moteur:${moteur}:${etat}`,
@@ -150,6 +152,7 @@ const handlers: Record<string, Handler> = {
     const ECHECS: Record<string, string> = {
       "paiement.echoue": "paiement",
       "moteur.degrade": "moteurs",
+      "moteur.migration_echouee": "moteurs",
       "bouton.casse": "code",
       "seo.erreur": "seo",
     };
