@@ -12,7 +12,7 @@ import { annonces, users, notifications } from "./schema.js";
 import { sql, and, lt, eq } from "drizzle-orm";
 import { sendEmail, emailAnnonceExpiree } from "./services/email.js";
 import { seedStructure } from "./seed.js";
-import { bootstrapEngines } from "./engine-registry/bootstrap.js";
+import { bootstrapEngines, reportMigrationFailure } from "./engine-registry/bootstrap.js";
 import {
   googleFileTokens,
   refreshVerificationTokens,
@@ -378,6 +378,7 @@ if (isProd) {
 }
 
 async function bootstrap() {
+  let migrationError: string | null = null;
   // Les migrations sont toujours appliquées au démarrage — la condition AUTO_MIGRATE
   // est supprimée pour garantir que la base est à jour avant tout autre traitement.
   if (env.DATABASE_URL) {
@@ -392,6 +393,7 @@ async function bootstrap() {
       // On refuse désormais de démarrer avec la DB dans cet état, sauf si
       // AUTO_MIGRATE_STRICT est explicitement mis à "false" (mode secours).
       console.error("[MKA.P-MS] échec migrations:", (err as Error).message);
+      migrationError = (err as Error).message;
       if (process.env.AUTO_MIGRATE_STRICT !== "false") {
         console.error("[MKA.P-MS] arrêt du démarrage pour préserver la cohérence des données.");
         console.error("[MKA.P-MS] pour forcer un démarrage en mode secours: AUTO_MIGRATE_STRICT=false");
@@ -434,6 +436,7 @@ async function bootstrap() {
     // dans le registre : vérification de contrat, dépendances et santé.
     // Ne bloque jamais le démarrage (erreurs journalisées).
     try {
+      if (migrationError) await reportMigrationFailure(migrationError);
       await bootstrapEngines();
       console.log("[MKA.P-MS] moteurs enregistrés dans le registre");
     } catch (err) {

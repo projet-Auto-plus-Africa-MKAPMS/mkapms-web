@@ -9454,7 +9454,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 22,
+    "fichiersServeur": 23,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -18561,6 +18561,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "livraison_vehicule.etape_bloquee",
       "livraison_vehicule.prix_indisponible",
       "moteur.degrade",
+      "moteur.migration_echouee",
       "moteur.retabli",
       "paiement.echoue",
       "vehicule.risque_import"
@@ -18568,6 +18569,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "abonnements": [
       {
         "eventType": "moteur.degrade",
+        "handler": "smart_alerte"
+      },
+      {
+        "eventType": "moteur.migration_echouee",
         "handler": "smart_alerte"
       },
       {

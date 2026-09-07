@@ -38,12 +38,29 @@ export interface RegisterInput {
 }
 
 /**
+ * Dépendances réelles d'un moteur : le catalogue de référence (source de
+ * l'inventaire des moteurs) réuni à ce que déclare l'appelant. Un contrat ou
+ * un pont OS qui en connaît moins que le catalogue ne peut plus en effacer.
+ */
+function resolveDependencies(name: string, declared?: string[]): string[] {
+  const catalog = ENGINE_CATALOG.find((e) => e.name === name)?.dependencies ?? [];
+  return Array.from(new Set([...catalog, ...(declared ?? [])])).filter(
+    (d) => d !== name,
+  );
+}
+
+function sameList(a: string[] | null, b: string[]): boolean {
+  return a !== null && a.length === b.length && a.every((x, i) => x === b[i]);
+}
+
+/**
  * Enregistre (ou met à jour) un moteur. Idempotent : si le moteur existe déjà,
  * on met à jour label/version/description/dépendances mais on NE force PAS
  * l'état (l'état est piloté par le PDG via setState).
  */
 export async function registerEngine(input: RegisterInput) {
   const now = new Date();
+  const dependencies = resolveDependencies(input.name, input.dependencies);
   const [existing] = await db
     .select()
     .from(engineRegistry)
@@ -58,7 +75,7 @@ export async function registerEngine(input: RegisterInput) {
         category: input.category ?? existing.category,
         version: input.version ?? existing.version,
         description: input.description ?? existing.description,
-        dependencies: input.dependencies ?? existing.dependencies,
+        dependencies,
         updatedAt: now,
       })
       .where(eq(engineRegistry.id, existing.id))
@@ -75,7 +92,7 @@ export async function registerEngine(input: RegisterInput) {
       version: input.version ?? "0.0.0",
       state: input.state ?? "active",
       description: input.description ?? null,
-      dependencies: input.dependencies ?? [],
+      dependencies,
       createdAt: now,
       updatedAt: now,
     })
@@ -85,13 +102,26 @@ export async function registerEngine(input: RegisterInput) {
 
 /**
  * Amorce le registre à partir du catalogue de référence. Idempotent :
- * n'ajoute que les moteurs manquants, ne touche pas aux moteurs existants.
+ * ajoute les moteurs manquants et réaligne les dépendances des moteurs déjà
+ * présents sur le catalogue ; ne touche jamais à l'état (décision du PDG).
  */
 export async function ensureSeeded() {
-  const rows = await db.select({ name: engineRegistry.name }).from(engineRegistry);
-  const known = new Set(rows.map((r) => r.name));
+  const rows = await db
+    .select({ name: engineRegistry.name, dependencies: engineRegistry.dependencies })
+    .from(engineRegistry);
+  const known = new Map(rows.map((r) => [r.name, r.dependencies]));
   for (const e of ENGINE_CATALOG) {
-    if (known.has(e.name)) continue;
+    if (known.has(e.name)) {
+      const current = known.get(e.name) ?? null;
+      const wanted = resolveDependencies(e.name, current ?? undefined);
+      if (!sameList(current, wanted)) {
+        await db
+          .update(engineRegistry)
+          .set({ dependencies: wanted, updatedAt: new Date() })
+          .where(eq(engineRegistry.name, e.name));
+      }
+      continue;
+    }
     await db.insert(engineRegistry).values({
       name: e.name,
       label: e.label,
@@ -189,7 +219,11 @@ export async function heartbeat(
       return { ok: true };
     }
     if (status === "degraded" || status === "down") {
-      await emitSafe({ source: "engine_registry", type: "moteur.degrade", payload: { moteur: name, etat: status } });
+      await emitSafe({
+        source: "engine_registry",
+        type: "moteur.degrade",
+        payload: { moteur: name, etat: status, detail: opts?.message ?? "" },
+      });
     } else if (status === "ok") {
       await emitSafe({ source: "engine_registry", type: "moteur.retabli", payload: { moteur: name } });
     }

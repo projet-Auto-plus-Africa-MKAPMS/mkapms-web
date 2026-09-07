@@ -92,6 +92,15 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     emetteurs: ["engine_registry", "monitoring"],
   },
   {
+    code: "moteur.migration_echouee",
+    domaine: "moteur",
+    label: "Migrations de schéma échouées au démarrage",
+    description:
+      "Le Core n'a pas pu appliquer les migrations : les tables attendues par les moteurs peuvent manquer. Le Système Intelligent ouvre une alerte critique, MKA.P-MS Intelligences retient la cause exacte.",
+    champs: ["moteur", "etat", "detail"],
+    emetteurs: ["core"],
+  },
+  {
     code: "moteur.retabli",
     domaine: "moteur",
     label: "Moteur rétabli",
@@ -428,6 +437,12 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     eventType: "moteur.degrade",
     handler: "smart_alerte",
     effet: "Ouvre une alerte de niveau élevé, dédupliquée par moteur.",
+  },
+  {
+    engine: "smart",
+    eventType: "moteur.migration_echouee",
+    handler: "smart_alerte",
+    effet: "Ouvre une alerte critique portant la cause exacte de l'échec des migrations.",
   },
   {
     engine: "smart",

@@ -109,7 +109,7 @@ export const ENGINE_CONTRACTS: EngineContract[] = [
       "Exposer l'état global aux administrateurs.",
     ],
     dependencies: [],
-    eventsPublished: ["core.engine.registered", "core.engine.state_changed"],
+    eventsPublished: ["core.engine.registered", "core.engine.state_changed", "engine.migration_failed", "moteur.migration_echouee"],
     eventsConsumed: ["*"],
     endpoints: ["coreEngine.*", "engineRegistry.*"],
     tables: [
