@@ -40,12 +40,13 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2580;
+export const CLIQUABLES_TOTAL = 2581;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/components/AssistantFlottant.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
+  { fichier: "client/src/components/AssistantFlottant.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/avis/BlocAvis.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
+  { fichier: "client/src/components/BoutonIntelligences.tsx", total: 2, moteur: 1, liens: 0, boutonsLocaux: 0, sansAction: 0, zones: 1 },
   { fichier: "client/src/components/CountrySelectModal.tsx", total: 4, moteur: 0, liens: 0, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/components/DocumentPDF.tsx", total: 8, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 2 },
   { fichier: "client/src/components/FileUpload.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 0, sansAction: 0, zones: 1 },
@@ -729,6 +730,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
 ];
 
 export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
+  { fichier: "client/src/components/BoutonIntelligences.tsx", ligne: 22, genre: "moteur", libelle: "BoutonMoteur sans code littéral", motif: "code_non_declare" },
   { fichier: "client/src/pages/depot-annonce/OptionsAnnonce.tsx", ligne: 26, genre: "lien", libelle: "/depot-annonce/analyse-ia", motif: "destination_inconnue" },
   { fichier: "client/src/pages/garage/ContratsFlottes.tsx", ligne: 15, genre: "lien", libelle: "/garage/professionnel", motif: "destination_inconnue" },
   { fichier: "client/src/pages/garage/DossiersFlottes.tsx", ligne: 12, genre: "lien", libelle: "/garage/flottes", motif: "destination_inconnue" },

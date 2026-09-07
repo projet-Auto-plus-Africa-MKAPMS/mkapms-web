@@ -6,14 +6,18 @@
  * même encadrement que la page dédiée (domaines ouverts par le PDG, refus motivé
  * plutôt qu'une réponse inventée).
  *
- * Il ne s'affiche pas quand aucun domaine n'est ouvert au public, ni sur les
- * écrans de direction : ceux-ci ont leur propre côté « direction ».
+ * Il s'ouvre depuis le bouton rond noir posé à côté du micro dans la barre de
+ * recherche (signal `ouvrirIntelligences`) — aucun bouton flottant qui viendrait
+ * se poser sur Compte / Messages. Il ne s'affiche pas quand aucun domaine n'est
+ * ouvert au public, ni sur les écrans de direction : ceux-ci ont leur propre
+ * côté « direction ».
  */
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AlertTriangle, Mic, MicOff, Send, Sparkles, X } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { speechRecognitionConstructor, startDictation } from "../lib/speech";
+import { useOrdreIntelligences } from "../lib/assistantIntelligences";
 
 interface Bulle {
   role: "moi" | "assistant";
@@ -48,6 +52,10 @@ export default function AssistantFlottant() {
   }, [ouverts, domaine]);
 
   useEffect(() => () => dicteeRef.current?.stop(), []);
+
+  useOrdreIntelligences(
+    useCallback((ordre) => setOuvert(ordre === "ouvrir"), []),
+  );
 
   const assistant = trpc.intelligences.assistant.useMutation({
     onSuccess: (r) => {
@@ -95,18 +103,7 @@ export default function AssistantFlottant() {
     setDictee(true);
   }
 
-  if (!ouvert) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOuvert(true)}
-        aria-label="Ouvrir MKA.P-MS Intelligences"
-        className="fixed bottom-[76px] right-3 z-50 inline-flex items-center gap-2 rounded-full bg-[#111] px-4 py-3 text-[12px] font-bold text-[#D4AF37] shadow-lg lg:bottom-5"
-      >
-        <Sparkles className="h-4 w-4" /> Intelligences
-      </button>
-    );
-  }
+  if (!ouvert) return null;
 
   return (
     <div className="fixed bottom-[76px] right-3 z-50 flex max-h-[70vh] w-[min(24rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-black/10 bg-white shadow-2xl lg:bottom-5">

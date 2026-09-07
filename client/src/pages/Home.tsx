@@ -8,13 +8,14 @@ import {
   Truck, Zap, FileText, CreditCard, Phone, Settings, Eye, Navigation,
   Briefcase, Building2, Stethoscope, BadgeCheck, CarFront, Bus, HardHat,
   Fuel, History, Lock, Hammer, Receipt, Scale, Banknote, CircleDollarSign,
-  BookOpen, Cog, Sparkles, Play, Bell, MessageSquare, Wallet, User,
+  BookOpen, Cog, Play, Bell, MessageSquare, Wallet, User,
   Facebook, Instagram, Youtube, Linkedin, QrCode, RefreshCw, ThumbsUp,
   SlidersHorizontal, ChevronUp
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { SmartLink } from "../lib/redirect";
 import MicroVocal from "../components/MicroVocal";
+import BoutonIntelligences from "../components/BoutonIntelligences";
 import { ALL_BRANDS_AUTO, getModelsForBrand } from "../lib/vehicleData";
 import { useAuth } from "../lib/auth";
 import { getAnnonceUrl } from "../lib/annonceUrl";
@@ -790,7 +791,7 @@ export default function Home() {
                   }}
                   className="shrink-0"
                 />
-                <Sparkles size={14} className="text-[#D4AF37] shrink-0" />
+                <BoutonIntelligences code="accueil_intelligences_ouvrir" />
               </div>
             </div>
           </section>
