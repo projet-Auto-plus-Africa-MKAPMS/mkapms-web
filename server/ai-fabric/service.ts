@@ -24,6 +24,7 @@ import { createSnapshot, requestRestore } from "../backup-os/index.js";
 import { impactOf } from "../engine-registry/dependencies.js";
 import { getHealthLog } from "../engine-registry/service.js";
 import { registryOverview, type EngineReadiness } from "../engine-registry/readiness.js";
+import { overview as monitoringOverview, type MonitoringOverview } from "../monitoring-os/index.js";
 import { akeNodes, akeSources } from "../knowledge-engine/schema.js";
 import { rsFailureLessons } from "../resilience/schema.js";
 import { smartActionTasks } from "../smart-engine/schema.js";
@@ -958,9 +959,12 @@ export async function supervision(): Promise<{
   parEtat: Record<string, number>;
   moteurs: SupervisedEngine[];
   aTraiter: number;
+  /** Santé plateforme consolidée par le Monitoring OS (null si le moteur ne répond pas). */
+  plateforme: MonitoringOverview | null;
   checkedAt: string;
 }> {
   const overview = await registryOverview();
+  const plateforme = await monitoringOverview().catch(() => null);
   const moteurs: SupervisedEngine[] = [];
 
   for (const m of overview.moteurs) {
@@ -999,6 +1003,7 @@ export async function supervision(): Promise<{
     parEtat: overview.parEtat,
     moteurs,
     aTraiter: moteurs.filter((m) => m.operational !== "ok").length,
+    plateforme,
     checkedAt: overview.checkedAt,
   };
 }

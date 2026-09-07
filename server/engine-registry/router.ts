@@ -10,6 +10,7 @@
 import { z } from "zod";
 import { router, adminProcedure, directionProcedure, pdgProcedure } from "../trpc.js";
 import { MEMORY_SCOPES, memorySummary, recall } from "./memory.js";
+import { MANQUES_PAR_GENRE, MANQUES_TOTAL, MOTEURS, MOTEURS_TOTAL, perimetreDe } from "../data/moteurs.js";
 import { engineReadiness, OPERATIONAL_STATE_LABELS, registryOverview } from "./readiness.js";
 import {
   dependencyGraph,
@@ -288,6 +289,36 @@ export const engineRegistryRouter = router({
   }),
 
   operationalStateLabels: directionProcedure.query(() => OPERATIONAL_STATE_LABELS),
+
+  // ── Inventaire calculé depuis le code (scripts/gen-moteurs.mjs) ────────
+  /** Résumé par moteur : dépendances, dépendants, boutons, écrans, manques. */
+  inventaire: directionProcedure.query(() => ({
+    total: MOTEURS_TOTAL,
+    manques: MANQUES_TOTAL,
+    manquesParGenre: MANQUES_PAR_GENRE,
+    moteurs: MOTEURS.map((m) => ({
+      moteur: m.moteur,
+      label: m.label,
+      categorie: m.categorie,
+      etatDeclare: m.etatDeclare,
+      dependances: m.dependances.length,
+      dependants: m.dependants.length,
+      boutons: m.boutons.length,
+      ecrans: m.ecrans.length,
+      routes: m.routes.length,
+      evenementsPublies: m.evenementsPublies.length,
+      evenementsConsommes: m.evenementsConsommes.length,
+      textes: m.textes,
+      mots: m.mots,
+      battement: m.battement,
+      manques: m.manques.length,
+    })),
+  })),
+
+  /** Fiche complète d'un moteur : ce qu'il reconnaît et ce qui lui manque. */
+  inventaireMoteur: directionProcedure
+    .input(z.object({ moteur: z.string().min(1).max(64) }))
+    .query(({ input }) => perimetreDe(input.moteur) ?? null),
 
   readiness: directionProcedure
     .input(z.object({ name: z.string().min(1).max(64) }))

@@ -3,8 +3,8 @@ import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
+import { notifyEvent } from "../notification-os/triggers.js";
 import { deliveryProfiles, deliveryMissions, deliveryPricing, deliveryTracking, serviceTracking } from "../schema.js";
-import { notifications } from "../modules/core.js";
 import { createPaymentCheckout } from "../payment-engine/checkout.js";
 import { requestReviewAfterCompletion } from "../reputation-engine/service.js";
 
@@ -185,11 +185,13 @@ export const livraisonRouter = router({
         statusLabel: statusLabels[input.status] ?? input.status,
         detail: input.detail,
       });
-      await db.insert(notifications).values({
+      await notifyEvent({
         userId: mission.clientId,
-        type: "livraison",
-        title: `Livraison LIV-${mission.id} — ${statusLabels[input.status]}`,
-        body: input.detail ?? `Votre livraison est maintenant : ${statusLabels[input.status]}`,
+        event: "livraison",
+        vars: {
+          reference: `LIV-${mission.id}`,
+          statut: input.detail ?? statusLabels[input.status],
+        },
         url: "/compte",
       });
 

@@ -75,6 +75,27 @@ export async function getCountry(code: string) {
   return row ?? null;
 }
 
+/**
+ * Pays ouvert dans le Country OS : le seul référentiel qui dit où la
+ * plateforme opère. Un code inconnu ou désactivé est refusé, le moteur
+ * appelant ne peut pas ouvrir une enchère, une borne ou un partenaire dans
+ * un pays que la direction n'a pas ouvert.
+ */
+export async function requireOpenCountry(code: string) {
+  const pays = await getCountry(code);
+  if (!pays || !pays.active) {
+    throw new Error(`Pays ${code.toUpperCase()} non ouvert dans le Country OS.`);
+  }
+  return pays;
+}
+
+/** Devise du pays selon le Country OS, ou null si le pays n'est pas référencé. */
+export async function countryCurrency(code: string | null | undefined): Promise<string | null> {
+  if (!code) return null;
+  const pays = await getCountry(code);
+  return pays?.defaultCurrency ?? null;
+}
+
 export async function upsertCountry(input: {
   code: string; code3?: string; nameFr: string; nameEn?: string;
   defaultLanguage?: string; availableLanguages?: string[];

@@ -12,8 +12,10 @@
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "../db.js";
+import { ctResults } from "../continuous-test/schema.js";
+import { smartAlerts } from "../smart-engine/schema.js";
 import { cgEdges, cgLessons, cgNodes, cgObservations, cgSnapshots } from "./schema.js";
 
 const CHEMIN = path.resolve(process.cwd(), "server/data/code-graph.json");
@@ -605,25 +607,30 @@ export async function apprendre(): Promise<{
 
   // 2) Régressions nommées par le contrôle continu.
   try {
-    const rows = await db.execute<Record<string, unknown>>(
-      sql.raw(
-        `SELECT "id", "scenario", "domaine", "label", "observe", "attendu"
-           FROM "ct_results" WHERE "statut" = 'echec' AND "regression" IS NOT NULL
-           ORDER BY "id" DESC LIMIT 100`,
-      ),
-    );
-    for (const r of (rows as unknown as { rows?: Record<string, unknown>[] }).rows ?? []) {
+    const rows = await db
+      .select({
+        scenario: ctResults.scenario,
+        domaine: ctResults.domaine,
+        label: ctResults.label,
+        observe: ctResults.observe,
+        attendu: ctResults.attendu,
+      })
+      .from(ctResults)
+      .where(and(eq(ctResults.statut, "echec"), isNotNull(ctResults.regression)))
+      .orderBy(desc(ctResults.id))
+      .limit(100);
+    for (const r of rows) {
       await upsert({
-        classe: classer(`${String(r.label)} ${String(r.observe)} régression`),
+        classe: classer(`${r.label} ${r.observe} régression`),
         source: "regression",
-        sourceRef: `ct:${String(r.scenario)}`,
-        probleme: `${String(r.label)} — observé : ${String(r.observe)}`,
-        proposition: `Attendu : ${String(r.attendu)}`,
+        sourceRef: `ct:${r.scenario}`,
+        probleme: `${r.label} — observé : ${r.observe}`,
+        proposition: `Attendu : ${r.attendu}`,
         correctif: null,
-        tests: String(r.scenario),
+        tests: r.scenario,
         validation: "en_attente",
         resultat: "Régression : ce contrôle passait avant.",
-        moteurs: r.domaine ? [String(r.domaine)] : [],
+        moteurs: r.domaine ? [r.domaine] : [],
       });
       sources.regression += 1;
     }
@@ -633,25 +640,29 @@ export async function apprendre(): Promise<{
 
   // 3) Alertes réellement traitées : la correction validée par un humain.
   try {
-    const rows = await db.execute<Record<string, unknown>>(
-      sql.raw(
-        `SELECT "id", "category", "title", "description"
-           FROM "smart_alerts" WHERE "status" = 'resolved'
-           ORDER BY "resolved_at" DESC NULLS LAST LIMIT 100`,
-      ),
-    );
-    for (const r of (rows as unknown as { rows?: Record<string, unknown>[] }).rows ?? []) {
+    const rows = await db
+      .select({
+        id: smartAlerts.id,
+        category: smartAlerts.category,
+        title: smartAlerts.title,
+        description: smartAlerts.description,
+      })
+      .from(smartAlerts)
+      .where(eq(smartAlerts.status, "resolved"))
+      .orderBy(sql`${smartAlerts.resolvedAt} desc nulls last`)
+      .limit(100);
+    for (const r of rows) {
       await upsert({
-        classe: classer(`${String(r.title)} ${String(r.description ?? "")}`),
+        classe: classer(`${r.title} ${r.description ?? ""}`),
         source: "alerte",
-        sourceRef: `alerte:${String(r.id)}`,
-        probleme: String(r.title),
-        proposition: r.description ? String(r.description) : null,
+        sourceRef: `alerte:${r.id}`,
+        probleme: r.title,
+        proposition: r.description,
         correctif: null,
         tests: null,
         validation: "validee",
         resultat: "Alerte traitée puis refermée.",
-        moteurs: r.category ? [String(r.category)] : [],
+        moteurs: r.category ? [r.category] : [],
       });
       sources.alerte += 1;
     }

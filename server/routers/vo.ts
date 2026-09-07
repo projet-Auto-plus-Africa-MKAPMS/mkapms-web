@@ -2,11 +2,11 @@ import { z } from "zod";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { router, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
+import { notifyEvent } from "../notification-os/triggers.js";
 import {
   voVehicules, voDocuments, voEtapes, voDiagnostics, voReparations, voLavage,
   serviceTracking, comptaEcritures,
 } from "../schema.js";
-import { notifications } from "../modules/core.js";
 
 const VO_STATUS_LABELS: Record<string, string> = {
   achat_enregistre: "Achat enregistré",
@@ -173,11 +173,14 @@ export const voRouter = router({
       });
       // Notifier le créateur
       if (v.createdBy) {
-        await db.insert(notifications).values({
+        await notifyEvent({
           userId: v.createdBy,
-          type: "vo",
-          title: `VO-${v.id} ${v.marque} ${v.modele} — ${VO_STATUS_LABELS[input.status]}`,
-          body: input.commentaire ?? `Le véhicule est maintenant : ${VO_STATUS_LABELS[input.status]}`,
+          event: "vo_statut",
+          vars: {
+            vehicule: `VO-${v.id} ${v.marque} ${v.modele}`,
+            statut: VO_STATUS_LABELS[input.status],
+            detail: input.commentaire ?? `Le véhicule est maintenant : ${VO_STATUS_LABELS[input.status]}`,
+          },
           url: "/admin/vo",
         });
       }

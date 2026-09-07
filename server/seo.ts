@@ -19,6 +19,7 @@ import { resolveDomain, type DomainKey } from "./domain.js";
 import { STATIC_SEO, breadcrumbSchema, homeSchema } from "./seo-static.js";
 import { reputationJsonLdBlock } from "./reputation-engine/seo.js";
 import { env } from "./env.js";
+import { listLanguages } from "./language-os/index.js";
 import {
   PROVIDER_META_NAME,
   VERIFICATION_PROVIDERS,
@@ -170,12 +171,32 @@ const HREFLANG_DOMAINS: ReadonlyArray<{ hreflang: string; origin: string }> = [
 ];
 
 /**
+ * Langues publiques actives selon le Language OS : une langue désactivée par
+ * la direction ne doit plus être annoncée à Google. Rafraîchi à chaque rendu
+ * SSR (best-effort : sans base, toutes les langues déclarées restent servies).
+ */
+let languesActives: ReadonlySet<string> | null = null;
+let languesActivesLuesA = 0;
+async function refreshPublicLanguages(): Promise<void> {
+  if (Date.now() - languesActivesLuesA < 60_000) return;
+  languesActivesLuesA = Date.now();
+  try {
+    const rows = await listLanguages(true);
+    languesActives = rows.length ? new Set(rows.map((r) => r.code)) : null;
+  } catch {
+    languesActives = null;
+  }
+}
+
+/**
  * Construit les balises <link rel="alternate" hreflang> pour un chemin donné,
  * afin que chaque langue soit indexée indépendamment (P2 — SEO par langue).
  */
 function hreflangLinks(path: string): string {
   const clean = path.startsWith("/") ? path : `/${path}`;
-  return HREFLANG_DOMAINS.map(
+  return HREFLANG_DOMAINS.filter(
+    (d) => d.hreflang === "x-default" || !languesActives || languesActives.has(d.hreflang),
+  ).map(
     (d) => `<link rel="alternate" hreflang="${d.hreflang}" href="${escapeHtml(`${d.origin}${clean}`)}" />`,
   ).join("\n    ");
 }
@@ -612,6 +633,7 @@ export function siteVerificationMeta(req?: Request): string {
  * Le nom est conservé pour compatibilité avec les appels existants.
  */
 export async function injectAnnonceSeo(req: Request, html: string): Promise<string> {
+  await refreshPublicLanguages();
   const host = hostFrom(req);
   const domainKey = resolveDomain(host);
   const meta = DOMAIN_SEO[domainKey];

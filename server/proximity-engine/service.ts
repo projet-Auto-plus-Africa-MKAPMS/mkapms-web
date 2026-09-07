@@ -10,6 +10,7 @@
  */
 import { sql } from "drizzle-orm";
 import { db } from "../db.js";
+import { getCountry } from "../country-os/index.js";
 import { LOCAL_SERVICES, findService } from "./sources.js";
 import { PRODUCT_CATALOG } from "../payment-engine/products.js";
 import { NOTIFICATION_TRIGGERS } from "../notification-os/triggers.js";
@@ -96,6 +97,18 @@ export async function nearby(input: NearbyInput): Promise<NearbyResult> {
 
   const s = svc.source;
   const country = (input.countryCode ?? "FR").toUpperCase();
+  const paysOs = await getCountry(country);
+  if (!paysOs || !paysOs.active) {
+    return {
+      service: svc.code,
+      label: svc.label,
+      path: svc.path,
+      mode: "non_configure",
+      explication: `Le pays ${country} n'est pas ouvert dans le Country OS : aucun prestataire de proximité n'y est proposé.`,
+      classement: "aucun",
+      results: [],
+    };
+  }
   const limit = Math.min(input.limit ?? 20, 100);
   const radius = input.radiusKm ?? 50;
 

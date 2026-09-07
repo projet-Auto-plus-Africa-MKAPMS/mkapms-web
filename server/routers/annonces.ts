@@ -17,6 +17,29 @@ import { checkDuplicates } from "../smart-engine/services/duplicate-detection.js
 import { logActivity } from "../smart-engine/services/activity-log.js";
 import { emitSafe } from "../event-bus/service.js";
 import { ingest as ingestVisibility } from "../visibility-os/index.js";
+import { resolvePermission } from "../permission-engine/intelligence.js";
+import { termGroups } from "../search-os/index.js";
+import type { UserRole } from "@shared/roles.js";
+
+/**
+ * Les politiques contextuelles du Permission Engine (refus par pays, par
+ * ancienneté de compte, gel décidé par le PDG) s'appliquent en plus du
+ * contrôle de propriété : un refus explicite l'emporte toujours.
+ */
+async function refusParPolitique(
+  user: { uid: number; role: string },
+  action: "creer" | "modifier" | "supprimer" | "publier",
+  pays?: string | null,
+) {
+  const decision = await resolvePermission(
+    { userId: user.uid, role: user.role as UserRole, countryCode: pays ?? null, universe: "auto" },
+    "annonces",
+    action,
+  );
+  if (!decision.allowed && decision.reason === "policy_deny") {
+    throw new TRPCError({ code: "FORBIDDEN", message: decision.humanExplanation });
+  }
+}
 
 /**
  * Auto-heal — si un déploiement précédent a laissé une colonne JSONB manquante
@@ -254,15 +277,24 @@ export const annoncesRouter = router({
         conds.push(or(eq(annonces.pays, input.pays), isNull(annonces.pays))!);
       }
       if (input.q) {
-        const like = `%${input.q}%`;
-        conds.push(
-          or(
-            ilike(annonces.titre, like),
-            ilike(annonces.marque, like),
-            ilike(annonces.modele, like),
-            ilike(annonces.version, like),
-          )!,
-        );
+        // Search OS : accents neutralisés et synonymes (« 4x4 » → « suv »…).
+        // Chaque terme saisi doit être trouvé (lui ou un synonyme) dans un champ.
+        const groupes = termGroups(input.q);
+        for (const groupe of groupes.length ? groupes : [[input.q]]) {
+          conds.push(
+            or(
+              ...groupe.flatMap((t) => {
+                const like = `%${t}%`;
+                return [
+                  ilike(annonces.titre, like),
+                  ilike(annonces.marque, like),
+                  ilike(annonces.modele, like),
+                  ilike(annonces.version, like),
+                ];
+              }),
+            )!,
+          );
+        }
       }
       const where = and(...conds);
       const rows = await selectAnnoncesResilient(() =>
@@ -819,6 +851,7 @@ export const annoncesRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { photos, pointsForts, equipements, imperfections, garanties, confort, multimedia, securite, videos360, videosNormales, categorieAnnonce: inputCatAnnonce, onBehalfOfUserId, ...rest } = input;
+      await refusParPolitique(ctx.user, "creer", rest.pays ?? null);
 
       // Déterminer la catégorie d'annonce — vérifier le rôle ACTUEL en DB (le JWT peut être périmé)
       const [freshUser] = await db.select({ role: users.role, staffPosition: users.staffPosition }).from(users).where(eq(users.id, ctx.user.uid)).limit(1);
@@ -1079,6 +1112,7 @@ export const annoncesRouter = router({
       if (!a || (a.ownerId !== ctx.user.uid && !isAdmin)) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
+      await refusParPolitique(ctx.user, "modifier", a.pays);
       const { id, categorieAnnonce, photos: inputPhotos, ...updates } = input;
       const filtered: Record<string, unknown> = Object.fromEntries(Object.entries(updates).filter(([, v]) => v !== undefined));
 
@@ -1162,6 +1196,7 @@ export const annoncesRouter = router({
       if (!a || (a.ownerId !== ctx.user.uid && !isAdmin)) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
+      await refusParPolitique(ctx.user, "supprimer", a.pays);
       await db.update(annonces).set({ status: "archivee" }).where(eq(annonces.id, input.id));
       await logAction(ctx.user.uid, "annonce.delete", "annonce", input.id, {
         reason: input.reason,

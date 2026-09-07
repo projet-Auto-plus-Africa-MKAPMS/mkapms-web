@@ -8,6 +8,7 @@
  */
 import { and, asc, desc, eq, gte, ilike, sql } from "drizzle-orm";
 import { db } from "../db.js";
+import { requireOpenCountry } from "../country-os/index.js";
 import { notifyDirection } from "../notification-os/triggers.js";
 import {
   CHARGING_ACCESS,
@@ -149,6 +150,7 @@ export interface DeclarePointInput {
 
 /** Une déclaration n'est jamais publiée automatiquement. */
 export async function declareChargingPoint(input: DeclarePointInput) {
+  await requireOpenCountry(input.countryCode);
   const [row] = await db
     .insert(chargingPoints)
     .values({

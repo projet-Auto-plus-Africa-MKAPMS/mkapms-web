@@ -3,11 +3,14 @@ import { and, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure, proProcedure } from "../trpc.js";
 import { db } from "../db.js";
+import { notifyEvent } from "../notification-os/triggers.js";
 import { garagesPublics, rdvGarage, serviceTracking } from "../schema.js";
-import { notifications } from "../modules/core.js";
 import { ingest as ingestVisibility } from "../visibility-os/index.js";
 import { requestReviewAfterCompletion } from "../reputation-engine/service.js";
 import { tracerReportRdv } from "../atelier-engine/service.js";
+import { scheduleTask } from "../scheduler-os/index.js";
+
+const RAPPEL_RDV_AVANT_MS = 24 * 3600000;
 
 /**
  * Un professionnel n'agit que sur les rendez-vous de ses propres garages.
@@ -198,11 +201,13 @@ export const garagesRouter = router({
       });
 
       // Notification client
-      await db.insert(notifications).values({
+      await notifyEvent({
         userId: rdv.clientId,
-        type: "garage",
-        title: `Garage — ${statusLabels[input.status]}`,
-        body: input.detail ?? `Votre véhicule est maintenant : ${statusLabels[input.status]}.`,
+        event: "garage_statut",
+        vars: {
+          statut: statusLabels[input.status],
+          detail: input.detail ?? `Votre véhicule est maintenant : ${statusLabels[input.status]}.`,
+        },
         url: "/compte",
       });
 
@@ -288,6 +293,15 @@ export const garagesRouter = router({
         parUser: ctx.user.uid,
       });
 
+      if (nouvelleDate.getTime() - Date.now() > RAPPEL_RDV_AVANT_MS) {
+        await scheduleTask({
+          taskType: "rappel_rdv",
+          runAt: new Date(nouvelleDate.getTime() - RAPPEL_RDV_AVANT_MS),
+          userId: rdv.clientId,
+          payload: { vars: { date: nouvelleDate.toLocaleString("fr-FR") }, url: "/compte", rdvId: rdv.id },
+        });
+      }
+
       await db.insert(serviceTracking).values({
         userId: rdv.clientId,
         serviceType: "garage",
@@ -299,11 +313,10 @@ export const garagesRouter = router({
         detail: `Nouvelle date : ${nouvelleDate.toLocaleString("fr-FR")}. Motif : ${input.motif}`,
       });
 
-      await db.insert(notifications).values({
+      await notifyEvent({
         userId: rdv.clientId,
-        type: "garage",
-        title: "Garage — rendez-vous reporté",
-        body: `Votre rendez-vous est reporté au ${nouvelleDate.toLocaleString("fr-FR")}. Motif : ${input.motif}`,
+        event: "garage_rdv_reporte",
+        vars: { date: nouvelleDate.toLocaleString("fr-FR"), motif: input.motif },
         url: "/compte",
       });
 

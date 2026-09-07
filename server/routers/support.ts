@@ -2,7 +2,8 @@ import { z } from "zod";
 import { desc, eq } from "drizzle-orm";
 import { router, publicProcedure, protectedProcedure, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { supportTickets, notifications } from "../schema.js";
+import { notifyEvent } from "../notification-os/triggers.js";
+import { supportTickets } from "../schema.js";
 import { logAction, clientMeta } from "../audit.js";
 
 // Centre d'aide / contact + messagerie support (§11.4)
@@ -62,11 +63,10 @@ export const supportRouter = router({
         .where(eq(supportTickets.id, input.id))
         .returning();
       if (t?.userId) {
-        await db.insert(notifications).values({
+        await notifyEvent({
           userId: t.userId,
-          type: "support",
-          title: "Réponse du support MKA.P-MS",
-          body: `« ${t.sujet} » — ${input.response.slice(0, 80)}`,
+          event: "support_reponse",
+          vars: { sujet: t.sujet, extrait: input.response.slice(0, 80) },
           url: "/compte",
         });
       }

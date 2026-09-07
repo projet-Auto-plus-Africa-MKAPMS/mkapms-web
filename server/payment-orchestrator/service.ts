@@ -13,6 +13,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../db.js";
 import { env } from "../env.js";
+import { getCountry } from "../country-os/index.js";
 import { paymentProviders, paymentRoutingDecisions } from "./schema.js";
 
 export const NO_PROVIDER_REASON = "PAYS CONFIGURÉ — PRESTATAIRE DE PAIEMENT MANQUANT";
@@ -58,6 +59,15 @@ function matches(list: string[] | null | undefined, value: string | null | undef
  * encore initialisée) : il évite de casser les paiements en cours.
  */
 export async function selectProvider(query: ProviderQuery): Promise<ProviderDecision> {
+  const pays = await getCountry(query.countryCode);
+  if (!pays || !pays.active) {
+    return {
+      providerCode: null,
+      providerLabel: null,
+      reason: `Pays ${query.countryCode.toUpperCase()} non ouvert dans le Country OS — aucun paiement routé`,
+      rejected: [],
+    };
+  }
   const rows = await db
     .select()
     .from(paymentProviders)

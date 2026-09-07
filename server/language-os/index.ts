@@ -12,6 +12,7 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { bigserial, boolean, integer, jsonb, pgTable, text, timestamp, unique, varchar } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { db } from "../db.js";
+import { getCountry } from "../country-os/index.js";
 import { publicProcedure, protectedProcedure, adminProcedure, router } from "../trpc.js";
 import type { ControlCenterFeed, EngineDashboard, MaturityLevel } from "../identity-os/contract.js";
 
@@ -171,6 +172,23 @@ export async function setUserLanguagePref(userId: number, patch: Partial<{ prefe
  * Détection meilleure langue disponible pour un utilisateur donné, à partir
  * de : préférence explicite → header Accept-Language → pays → 'fr' par défaut.
  */
+/** Langues d'un pays selon le Country OS (défaut en premier), vides si pays inconnu. */
+export async function languagesForCountry(countryCode: string | null | undefined): Promise<string[]> {
+  if (!countryCode) return [];
+  const pays = await getCountry(countryCode);
+  if (!pays) return [];
+  return Array.from(new Set([pays.defaultLanguage, ...(pays.availableLanguages ?? [])]));
+}
+
+/** Détection complète : préférence → en-tête navigateur → langues du pays (Country OS). */
+export async function detectLanguageForCountry(input: { userPref?: string | null; acceptLanguage?: string | null; countryCode?: string | null }): Promise<string> {
+  return detectLanguage({
+    userPref: input.userPref,
+    acceptLanguage: input.acceptLanguage,
+    countryLanguages: await languagesForCountry(input.countryCode),
+  });
+}
+
 export function detectLanguage(input: { userPref?: string | null; acceptLanguage?: string | null; countryLanguages?: string[] | null }): string {
   if (input.userPref) return input.userPref;
   if (input.acceptLanguage) {
@@ -239,8 +257,12 @@ export const languageOsRouter = router({
     .query(({ input }) => t(input.namespace, input.key, input.language)),
 
   detect: publicProcedure
-    .input(z.object({ userPref: z.string().nullable().optional(), acceptLanguage: z.string().nullable().optional(), countryLanguages: z.array(z.string()).nullable().optional() }))
-    .query(({ input }) => ({ language: detectLanguage(input) })),
+    .input(z.object({ userPref: z.string().nullable().optional(), acceptLanguage: z.string().nullable().optional(), countryLanguages: z.array(z.string()).nullable().optional(), countryCode: z.string().min(2).max(4).nullable().optional() }))
+    .query(async ({ input }) => ({
+      language: input.countryLanguages?.length
+        ? detectLanguage(input)
+        : await detectLanguageForCountry(input),
+    })),
 
   upsert: adminProcedure
     .input(z.object({

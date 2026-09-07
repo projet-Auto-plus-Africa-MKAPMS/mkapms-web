@@ -14,6 +14,7 @@
  */
 import { and, count, desc, eq, gte, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "../db.js";
+import { requireOpenCountry } from "../country-os/index.js";
 import { newsletterSubscribers, partners, seoPages } from "../schema.js";
 import { smartSearchLogs } from "../smart-engine/schema.js";
 import { notifyDirection, notifyEvent } from "../notification-os/triggers.js";
@@ -77,6 +78,7 @@ export interface ApplyResult {
 /** « Devenir partenaire MKA.P-MS » — entrée commerciale publique du portail Pro. */
 export async function applyAsPartner(input: ApplyInput): Promise<ApplyResult> {
   const services = input.services.filter((s) => findPartnerService(s) !== undefined);
+  await requireOpenCountry(input.countryCode);
   const [app] = await db
     .insert(partnerApplications)
     .values({

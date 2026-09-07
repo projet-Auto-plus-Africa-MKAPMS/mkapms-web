@@ -3,6 +3,10 @@ import { and, desc, eq, isNull, or } from "drizzle-orm";
 import { router, publicProcedure, protectedProcedure, proProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { transportCompanies, drivers, transportVehicles, transportBookings } from "../schema.js";
+import { notifyEvent } from "../notification-os/triggers.js";
+import { scheduleTask } from "../scheduler-os/index.js";
+
+const RAPPEL_AVANT_MS = 24 * 3600000;
 
 // Univers VTC / TAXI (Plan Partie 2 §3 / Partie 3 §7).
 export const transportRouter = router({
@@ -70,6 +74,22 @@ export const transportRouter = router({
         dateService: input.dateService,
         status: "demande",
       }).returning();
+      const [societe] = await db.select({ nom: transportCompanies.nom }).from(transportCompanies).where(eq(transportCompanies.id, input.companyId)).limit(1);
+      const trajet = [input.depart, input.arrivee].filter(Boolean).join(" → ") || "à préciser";
+      await notifyEvent({
+        userId: ctx.user.uid,
+        event: "transport_reservation",
+        vars: { reference: `TR-${b.id}`, trajet, societe: societe?.nom ?? `#${input.companyId}` },
+        url: "/compte",
+      });
+      if (input.dateService && input.dateService.getTime() - Date.now() > RAPPEL_AVANT_MS) {
+        await scheduleTask({
+          taskType: "rappel_rdv",
+          runAt: new Date(input.dateService.getTime() - RAPPEL_AVANT_MS),
+          userId: ctx.user.uid,
+          payload: { vars: { date: input.dateService.toLocaleString("fr-FR") }, url: "/compte", bookingId: b.id },
+        });
+      }
       return b;
     }),
 

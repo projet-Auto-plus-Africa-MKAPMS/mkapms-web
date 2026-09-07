@@ -22,6 +22,8 @@ import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { bigserial, boolean, integer, jsonb, numeric, pgTable, serial, text, timestamp, unique, varchar } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { db } from "../db.js";
+import { getCountry } from "../country-os/index.js";
+import { detectLanguage, getUserLanguagePref } from "../language-os/index.js";
 import { publicProcedure, protectedProcedure, adminProcedure, router } from "../trpc.js";
 import type { ControlCenterFeed, EngineDashboard, MaturityLevel } from "../identity-os/contract.js";
 
@@ -180,9 +182,17 @@ export async function createDocument(input: {
       sql`extract(year from ${docDocuments.createdAt}) = ${new Date().getFullYear()}`,
     ));
   const reference = makeDocRef(input.typeCode, Number(seqRow?.n ?? 0) + 1);
+  const pays = input.countryCode ? await getCountry(input.countryCode) : null;
+  const prefLangue = input.ownerUserId ? await getUserLanguagePref(input.ownerUserId) : null;
+  const language =
+    input.language ??
+    detectLanguage({
+      userPref: prefLangue?.preferredLanguage ?? null,
+      countryLanguages: pays ? [pays.defaultLanguage, ...(pays.availableLanguages ?? [])] : null,
+    });
   const [row] = await db.insert(docDocuments).values({
     reference, typeCode: input.typeCode,
-    language: input.language ?? "fr", countryCode: input.countryCode ?? null,
+    language, countryCode: input.countryCode ?? null,
     ownerUserId: input.ownerUserId ?? null,
     counterpartyUserId: input.counterpartyUserId ?? null,
     authorUserId: input.authorUserId ?? input.ownerUserId ?? null,
@@ -190,7 +200,7 @@ export async function createDocument(input: {
     linkedEntityId: input.linkedEntityId ?? null,
     amountHt: input.amountHt !== undefined ? String(input.amountHt) : null,
     amountTtc: input.amountTtc !== undefined ? String(input.amountTtc) : null,
-    currency: input.currency ?? null,
+    currency: input.currency ?? pays?.defaultCurrency ?? null,
     status: "brouillon",
     version: 1,
     qrPayload: verificationUrl(reference),

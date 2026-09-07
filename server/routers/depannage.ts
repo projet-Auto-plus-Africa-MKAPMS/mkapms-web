@@ -6,6 +6,13 @@ import { db } from "../db.js";
 import { breakdownProviders, breakdownRequests, breakdownQuotes, breakdownMissions } from "../schema.js";
 import { createPaymentCheckout } from "../payment-engine/checkout.js";
 import { requestReviewAfterCompletion } from "../reputation-engine/service.js";
+import { notifyEvent } from "../notification-os/triggers.js";
+
+async function notifierClient(requestId: number, event: "depannage_devis_recu" | "depannage_intervention", vars: Record<string, string | number>) {
+  const [r] = await db.select({ clientId: breakdownRequests.clientId }).from(breakdownRequests).where(eq(breakdownRequests.id, requestId)).limit(1);
+  if (!r?.clientId) return;
+  await notifyEvent({ userId: r.clientId, event, vars, url: "/utilisateurs/historique-depannages" }).catch(() => undefined);
+}
 
 // Univers Dépannage / Assistance (Plan Partie 2 §8).
 export const depannageRouter = router({
@@ -78,6 +85,7 @@ export const depannageRouter = router({
         description: input.description,
       }).returning();
       await db.update(breakdownRequests).set({ status: "devis_envoye", updatedAt: new Date() }).where(eq(breakdownRequests.id, input.requestId));
+      await notifierClient(input.requestId, "depannage_devis_recu", { montant: `${input.montant} €`, reference: input.requestId });
       return q;
     }),
 
@@ -95,6 +103,7 @@ export const depannageRouter = router({
         startedAt: new Date(),
       }).returning();
       await db.update(breakdownRequests).set({ status: "en_intervention", updatedAt: new Date() }).where(eq(breakdownRequests.id, input.requestId));
+      await notifierClient(input.requestId, "depannage_intervention", { statut: "intervention en cours", detail: `Le dépanneur est en route pour votre demande #${input.requestId}.` });
       return m;
     }),
 

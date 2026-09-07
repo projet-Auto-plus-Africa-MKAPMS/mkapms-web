@@ -5,6 +5,7 @@ import { z } from "zod";
 import { desc, eq, sql } from "drizzle-orm";
 import { router, publicProcedure, protectedProcedure, adminProcedure, directionProcedure } from "../trpc.js";
 import { db } from "../db.js";
+import { notifyEvent } from "../notification-os/triggers.js";
 import {
   disputes,
   disputeEvidence,
@@ -13,7 +14,6 @@ import {
   warehouseMovements,
   countryConfigs,
   users,
-  notifications,
   loyaltyAccounts,
   loyaltyTransactions,
   userDocuments,
@@ -222,11 +222,14 @@ export const disputesRouter = router({
           updatedAt: new Date(),
         })
         .where(eq(disputes.id, input.id));
-      await db.insert(notifications).values({
+      await notifyEvent({
         userId: d.openedBy,
-        type: "dispute",
-        title: `Litige ${d.reference ?? d.id} mis à jour`,
-        body: `Nouveau statut : ${input.status}${input.resolution ? ` — ${input.resolution.slice(0, 80)}` : ""}`,
+        event: "litige_mis_a_jour",
+        vars: {
+          reference: d.reference ?? d.id,
+          statut: input.status,
+          resolution: input.resolution ? ` — ${input.resolution.slice(0, 80)}` : "",
+        },
         url: "/compte",
       });
       await logAction(ctx.user.uid, `dispute.${input.status}`, "dispute", input.id, undefined, clientMeta(ctx.req));

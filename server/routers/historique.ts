@@ -3,6 +3,16 @@ import { desc, eq } from "drizzle-orm";
 import { router, publicProcedure, protectedProcedure, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { vehicleReports, suggestions, signalements } from "../schema.js";
+import { raiseAlert } from "../smart-engine/services/alert-engine.js";
+
+const SIGNALEMENT_LABELS: Record<string, string> = {
+  bug: "Bug signalé",
+  fraude: "Fraude signalée",
+  annonce_suspecte: "Annonce suspecte signalée",
+  paiement: "Problème de paiement signalé",
+  compte: "Problème de compte signalé",
+  comportement: "Comportement signalé",
+};
 
 // Historique véhicule (rapports payants) + Suggestions/Signalements
 // (Plan Partie 2 §9/§19 + Partie 3 §12/§20).
@@ -57,6 +67,16 @@ export const historiqueRouter = router({
         refId: input.refId,
         status: "ouvert",
       }).returning();
+      await raiseAlert({
+        category: "signalement",
+        level: input.type === "fraude" || input.type === "annonce_suspecte" ? "critical" : "important",
+        title: `${SIGNALEMENT_LABELS[input.type] ?? "Signalement"} #${s.id}`,
+        description: input.description,
+        targetType: input.refType,
+        targetId: input.refId,
+        signature: `signalement:${input.type}:${input.refType ?? "-"}:${input.refId ?? s.id}`,
+        lastOccurredAt: new Date(),
+      }).catch(() => undefined);
       return { id: s.id };
     }),
 

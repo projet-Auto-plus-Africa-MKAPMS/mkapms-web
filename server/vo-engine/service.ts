@@ -12,6 +12,7 @@
 import { and, avg, count, desc, eq, gte, ilike, lte, sql, type SQL } from "drizzle-orm";
 import { db } from "../db.js";
 import { annonces } from "../schema.js";
+import { countryCurrency, requireOpenCountry } from "../country-os/index.js";
 import { voDossierItems, voEstimations, voRepriseRequests } from "./schema.js";
 
 export interface EstimateInput {
@@ -70,6 +71,7 @@ function baremeFallback(input: EstimateInput): number {
 
 export async function estimate(input: EstimateInput): Promise<EstimateResult> {
   const country = (input.countryCode ?? "FR").toUpperCase();
+  const currency = (await countryCurrency(country)) ?? "EUR";
 
   // 1) Marché local : annonces publiées du même modèle, année proche.
   const conds: SQL[] = [
@@ -149,7 +151,7 @@ export async function estimate(input: EstimateInput): Promise<EstimateResult> {
     })
     .returning({ id: voEstimations.id });
 
-  return { id: row.id, low, mid, high, currency: "EUR", method, sampleSize, confidence, disclaimer };
+  return { id: row.id, low, mid, high, currency, method, sampleSize, confidence, disclaimer };
 }
 
 export async function myEstimations(userId: number) {
@@ -169,6 +171,7 @@ export async function createRepriseRequest(input: {
   contactPhone?: string | null;
   message?: string | null;
 }) {
+  await requireOpenCountry(input.countryCode);
   const reference = `VO-${Date.now().toString(36).toUpperCase()}`;
   const [row] = await db
     .insert(voRepriseRequests)
