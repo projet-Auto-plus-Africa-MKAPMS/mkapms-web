@@ -262,6 +262,14 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
     cible: "/garage/demande-devis",
     cleRedirection: "bouton_garage_devis",
   },
+
+  // ── Accueil — barre de recherche universelle ──────────────────────────
+  {
+    code: "accueil_intelligences_ouvrir",
+    libelle: "Ouvrir MKA.P-MS Intelligences (à côté du micro)",
+    ecran: "/",
+    genre: "formulaire",
+  },
 ];
 
 const PAR_CODE = new Map(ACTIONS_BOUTONS.map((a) => [a.code, a]));

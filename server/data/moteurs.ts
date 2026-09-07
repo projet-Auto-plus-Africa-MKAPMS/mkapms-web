@@ -90,7 +90,7 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 88;
-export const MANQUES_TOTAL = 691;
+export const MANQUES_TOTAL = 692;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "destination_inconnue": 57,
   "ecran_sans_contenu": 355,
@@ -98,6 +98,7 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
   "dependance_sans_preuve": 64,
+  "bouton_declare_absent_ecran": 1,
   "emission_dynamique": 1
 };
 
@@ -5471,7 +5472,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "evenementsConsommes": [],
     "abonnements": [],
     "sourcesEmission": [],
-    "boutons": [],
+    "boutons": [
+      {
+        "code": "accueil_intelligences_ouvrir",
+        "libelle": "Ouvrir MKA.P-MS Intelligences (à côté du micro)",
+        "genre": "formulaire",
+        "ecran": "/",
+        "fichier": "",
+        "ligne": 0
+      }
+    ],
     "routes": [
       "/",
       "/admin",
@@ -5849,7 +5859,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 357,
     "mots": 1470,
     "battement": "contrat",
-    "manques": []
+    "manques": [
+      {
+        "genre": "bouton_declare_absent_ecran",
+        "detail": "accueil_intelligences_ouvrir déclaré pour / mais aucun écran ne l'utilise"
+      }
+    ]
   },
   {
     "moteur": "country",
@@ -9454,7 +9469,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 23,
+    "fichiersServeur": 24,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",

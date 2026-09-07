@@ -25,6 +25,7 @@ import {
   type Cote,
 } from "./regles.js";
 import { appeler, verifierAcces } from "./provider.js";
+import { lireRegistre, reponseCourtoisie } from "./registre.js";
 import { engineRegistry } from "../engine-registry/schema.js";
 import { smartAlerts } from "../smart-engine/schema.js";
 import { emitSafe } from "../event-bus/service.js";
@@ -323,6 +324,43 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     consigneDomaine = etat.spec.consigne;
   }
 
+  // Lecture du registre : comment le visiteur parle décide du ton de la réponse.
+  // Une pure politesse (merci, salut, au revoir) reçoit l'honneur qu'elle mérite
+  // directement du moteur, sans consommer le plafond ni dépendre du fournisseur.
+  const lecture = input.cote === "public" ? lireRegistre(question) : null;
+  const courtoisie = lecture ? reponseCourtoisie(lecture, NOM_MOTEUR, question) : null;
+  if (lecture && courtoisie) {
+    await db.insert(inMessages).values({
+      sessionId,
+      cote: input.cote,
+      role: "moteur",
+      contenu: courtoisie,
+      fournisseur: "moteur",
+      modele: `registre:${lecture.intention}/${lecture.registre}`,
+      ok: true,
+      motif: "",
+      jetonsEntree: 0,
+      jetonsSortie: 0,
+      dureeMs: 0,
+      contexte: [],
+    });
+    await db
+      .update(inSessions)
+      .set({ messages: sql`${inSessions.messages} + 2`, dernierAt: new Date() })
+      .where(eq(inSessions.id, sessionId));
+    return {
+      sessionId,
+      ok: true,
+      reponse: courtoisie,
+      motif: "",
+      fournisseur: "moteur",
+      modele: `registre:${lecture.intention}/${lecture.registre}`,
+      contexte: [],
+      jetons: 0,
+      dureeMs: 0,
+    };
+  }
+
   const consommes = await appelsDuJour(input.cote);
   if (consommes >= PLAFOND_JOUR[input.cote]) {
     return echec(
@@ -365,7 +403,9 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     systeme:
       input.cote === "direction"
         ? CONSIGNE_DIRECTION
-        : [CONSIGNE_PUBLIC, consigneDomaine].filter((c) => c.length > 0).join("\n\n"),
+        : [CONSIGNE_PUBLIC, consigneDomaine, lecture ? `Registre du visiteur (lu par le moteur) :\n${lecture.consigneTon}` : ""]
+            .filter((c) => c.length > 0)
+            .join("\n\n"),
     message,
     // Côté public la question peut contenir des éléments personnels : le niveau
     // déclaré est plus strict, et la Fabrique Intelligence peut donc refuser un fournisseur.
