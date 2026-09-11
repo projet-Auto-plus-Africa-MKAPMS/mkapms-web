@@ -186,6 +186,24 @@ export const LIVRAISONS: Livraison[] = [
       "Aucune donnée personnelle réelle ne sert d'exemple de saisie ni de donnée de démonstration : un placeholder décrit le champ, il ne le remplit pas. L'identité de la direction appartient à Identity OS ; ce que le public voit d'un compte de direction est la marque, décidé par le serveur (rôle), jamais par l'écran. Le garde-fou est au build, pas dans la vigilance d'un agent.",
     domaine: "identite",
   },
+  {
+    cle: "branche-stabilisation-moteurs-cycles",
+    titre: "Distinction dépendance métier / intégration technique dans le détecteur de cycles",
+    moteurs: ["core", "engine_registry", "identity", "audit", "smart", "ai_learning", "visibility", "comptabilite", "accounting_internal"],
+    quoi:
+      "Deux corrections au registre de dépendances. (1) comptabilite déclarait accounting_internal sans aucune preuve d'usage dans le code (dependance_sans_preuve) alors que la relation réelle est l'inverse (accounting_internal importe comptabilite, avec preuve) : la déclaration non prouvée a été retirée. (2) Le détecteur de cycles (server/engine-registry/dependencies.ts) exemptait tout core.dependencies en bloc (« le socle démarre en premier ») pour éviter 150+ fausses boucles. Remplacé par server/engine-registry/technical-integrations.ts : une liste vérifiée à la main des dépendances qui ne sont que des intégrations techniques transversales (session Identity, journal d'audit, télémétrie Monitoring/Visibility/Smart, résumé Ai Learning) plutôt que des dépendances métier. dependencyGraph() expose maintenant dependsOn (tout, pour l'impact en cascade) et dependsOnMetier (sous-ensemble métier, seul utilisé par findCycles).",
+    pourquoi:
+      "La direction a demandé de ne pas garder le cycle géant autour de core comme exception globale ni de router systématiquement par le bus d'événements, mais de séparer explicitement dépendance métier et intégration technique transversale (identité/session, audit, monitoring/télémétrie, sécurité), avec un contrat/port neutre pour chaque intégration technique plutôt qu'un import direct comptant comme dépendance de premier rang.",
+    ou: [
+      "server/engine-registry/technical-integrations.ts",
+      "server/engine-registry/dependencies.ts",
+      "server/engine-registry/catalog.ts",
+      "server/data/moteurs.ts",
+    ],
+    lecon:
+      "Corriger core ne suffit pas à vider un cycle géant : sur les 88 moteurs, retirer les 5 dépendances techniques de core ne fait sortir que core et ai_learning d'une composante fortement connexe de 55 moteurs (elle retombe à 53, pas à 0). La vraie cause est distribuée sur des dizaines de couples et chaînes indépendants de core (identity↔country, smart↔monitoring↔event_bus↔intelligences↔ai_fabric, payment↔achat↔search↔avis_reputation↔…) : chacun doit être vérifié un par un, avec preuve d'usage dans les deux sens, avant de décider s'il est réellement bidirectionnel (contrat neutre nécessaire) ou juste une déclaration non prouvée (à retirer, comme comptabilite↔accounting_internal).",
+    domaine: "moteurs",
+  },
 ];
 
 /**

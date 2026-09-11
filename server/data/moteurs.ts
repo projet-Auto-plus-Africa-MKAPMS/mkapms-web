@@ -5382,7 +5382,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "meta"
     ],
-    "fichiersServeur": 36,
+    "fichiersServeur": 37,
     "dependancesDeclarees": [
       "ai_learning",
       "audit",
