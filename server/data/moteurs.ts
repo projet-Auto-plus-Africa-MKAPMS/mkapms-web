@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 88;
-export const MANQUES_TOTAL = 675;
+export const MANQUES_TOTAL = 671;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "destination_inconnue": 56,
   "ecran_sans_contenu": 355,
   "bouton_sans_action": 198,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
-  "dependance_sans_preuve": 46,
+  "dependance_sans_preuve": 42,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1
 };
@@ -2015,10 +2015,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "fichiersServeur": 3,
     "dependancesDeclarees": [
       "core",
-      "document",
       "identity",
-      "notification",
-      "partner_engine"
+      "notification"
     ],
     "dependancesDetectees": [
       "core",
@@ -2027,10 +2025,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependances": [
       "core",
-      "document",
       "identity",
-      "notification",
-      "partner_engine"
+      "notification"
     ],
     "integrationsTechniques": [
       "identity"
@@ -2103,16 +2099,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 29,
     "mots": 124,
     "battement": "sonde",
-    "manques": [
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "partner_engine"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "document"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "atelier",
@@ -2132,10 +2119,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "event_bus",
       "garage",
-      "intelligences",
       "notification",
       "permission",
-      "redirection",
       "smart"
     ],
     "dependancesDetectees": [
@@ -2154,10 +2139,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "event_bus",
       "garage",
-      "intelligences",
       "notification",
       "permission",
-      "redirection",
       "smart"
     ],
     "integrationsTechniques": [
@@ -2709,14 +2692,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Fin » client/src/pages/garage/TempsIntervention.tsx:15"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "redirection"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "intelligences"
       }
     ]
   },
@@ -5278,7 +5253,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "moteur": "controle_technique",
     "label": "Contrôle Technique Engine",
     "categorie": "service",
-    "etatDeclare": "active",
+    "etatDeclare": "staging",
     "dossiers": [],
     "routeurs": [],
     "fichiersServeur": 0,
@@ -6829,7 +6804,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "assurance",
       "cartegrise",
       "comptabilite",
       "contract",
@@ -7420,7 +7394,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "moteur": "finance",
     "label": "Financement Engine",
     "categorie": "service",
-    "etatDeclare": "active",
+    "etatDeclare": "staging",
     "dossiers": [
       "modules/financeplus.ts"
     ],
@@ -9681,7 +9655,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     },
     "dependants": [
       "ai_fabric",
-      "atelier",
       "auto_branchement",
       "command_center",
       "continuous_test",
@@ -12855,9 +12828,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "partner-engine/service.ts importe visibility-os/index.ts"
       ]
     },
-    "dependants": [
-      "assurance"
-    ],
+    "dependants": [],
     "evenementsPublies": [],
     "evenementsConsommes": [],
     "abonnements": [],
@@ -17487,7 +17458,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat",
       "activation_audit",
       "analytics",
-      "atelier",
       "auto_branchement",
       "boutons",
       "comptabilite",

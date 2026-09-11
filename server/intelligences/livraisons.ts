@@ -431,6 +431,19 @@ export const LIVRAISONS: Livraison[] = [
       "Un scénario de contrôle continu qui importe directement le service d'un autre moteur (plutôt que de l'interroger par HTTP public) crée une vraie dépendance de code, pas seulement une preuve de test : elle doit être déclarée comme telle. Les scénarios purement HTTP (page_publique) ne créent aucune dépendance détectable, puisqu'ils interrogent le serveur de l'extérieur comme le ferait un visiteur.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-lot9-atelier-assurance-controle-technique-finance",
+    titre: "Vérification demandée par la direction sur atelier et assurance + 2 moteurs « actifs » sans aucun backend réel corrigés",
+    moteurs: ["atelier", "assurance", "controle_technique", "finance"],
+    quoi:
+      "Suite à la demande directe de vérifier que chaque service a son propre moteur bien complet et connecté (exemples cités : garage pour les véhicules, pieces pour les pièces — déjà corrects). Vérification faite service par service (category: service au catalogue). atelier et assurance existent déjà comme moteurs dédiés, avec du vrai code (atelier-engine, insurance-engine, dizaines de routes réelles) : 4 dépendances sans aucune preuve d'usage retirées (atelier -> redirection, atelier -> intelligences ; assurance -> partner_engine, assurance -> document — aucun de ces quatre moteurs n'est jamais importé dans le code réel d'atelier ou d'assurance). En élargissant la vérification aux autres moteurs de category service : controle_technique et finance sont déclarés « active » alors qu'ils n'ont ni dossier serveur ni routeur déclaré (comme les sous-sections *_pro/*_particulier/*_officiel, mais eux sont honnêtement marqués « staging ») — leurs 4 dépendances chacun sont sans aucune preuve, confirmant l'absence totale de backend. finance a un fichier de schéma de tables (modules/financeplus.ts) mais aucune procédure serveur ne l'exploite. Les deux corrigés en state: \"staging\" pour refléter la réalité (ce n'était pas un mensonge délibéré, juste jamais mis à jour depuis leur création), sans toucher à leurs dépendances déclarées qui restent l'intention pour leur construction en Phase 2.",
+    pourquoi:
+      "Demande explicite de la direction : que chaque service ait son propre moteur, et que les moteurs déjà créés soient réellement complets et connectés à toutes les parties nécessaires — pas seulement déclarés.",
+    ou: ["server/engine-registry/catalog.ts"],
+    lecon:
+      "Un moteur marqué « active » sans un seul dossier serveur ni routeur déclaré, et dont 100% des dépendances déclarées sont sans preuve, n'est pas actif : c'est un moteur pas encore construit auquel on a oublié de changer l'état, contrairement aux sous-sections *_pro qui, elles, sont honnêtement « staging ». Point non résolu à signaler à la direction plutôt qu'à trancher seul (changement de responsabilité majeur, pas une réparation) : encheres (category service, state active, 0 dossier, 0 routeur, mais dépend de auction_engine) et auction_engine (le vrai moteur construit, avec son propre dossier auction-engine et sa route /encheres/live) semblent couvrir le même domaine en double — à clarifier : encheres doit-il rester une simple façade univers au-dessus d'auction_engine, ou les deux devraient-ils fusionner ?",
+    domaine: "moteurs",
+  },
 ];
 
 /**
