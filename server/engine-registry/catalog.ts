@@ -158,6 +158,16 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    // Dépendance mutuelle avec pro_account, acceptée et documentée (pas un
+    // oubli) : pro_portal->pro_account n'est pas un import serveur direct —
+    // la preuve réelle est client/src/pages/pro/DossierPro.tsx, un écran du
+    // parcours pro qui appelle à la fois trpc.proPortal et trpc.proAccount.
+    // Le sens inverse (pro_account->pro_portal) est lui un vrai import
+    // serveur : server/pro-account/service.ts importe
+    // server/pro-portal/contract.ts (requirementsFor) pour savoir quels
+    // justificatifs réunir avant l'activation d'un dossier. La boucle ne
+    // bloque pas le démarrage (un seul processus) ; le registre la signale
+    // déjà comme « à surveiller », pas comme une erreur.
     name: "pro_portal",
     label: "Pro Portal Engine",
     category: "transversal",
@@ -167,6 +177,10 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    // Dépendance réelle et vérifiée vers pro_portal : server/pro-account/
+    // service.ts importe server/pro-portal/contract.ts (requirementsFor).
+    // Voir le commentaire sur pro_portal ci-dessus pour le sens inverse
+    // (dépendance mutuelle acceptée, pas un oubli).
     name: "pro_account",
     label: "Pro Account Engine",
     category: "transversal",

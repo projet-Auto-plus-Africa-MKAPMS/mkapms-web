@@ -45,6 +45,11 @@ export const PATH_ALIASES: PathAlias[] = [
   { from: "/aide-support", to: "/aide", label: "Chemin — Aide support → Centre d'aide" },
   { from: "/support", to: "/aide", label: "Chemin — Support → Centre d'aide" },
   { from: "/contact", to: "/aide", label: "Chemin — Contact → Centre d'aide" },
+  // "/france" : slug pays réellement enregistré (server/seo-generator.ts,
+  // { slug: "france", name: "France" }), servi par /pays/:slug
+  // (SeoLandingPage) — un visiteur tapant "/france" cherchait cette page,
+  // pas une destination inexistante.
+  { from: "/france", to: "/pays/france", label: "Chemin — France → Page pays" },
 ];
 
 /**

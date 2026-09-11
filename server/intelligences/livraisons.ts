@@ -470,6 +470,19 @@ export const LIVRAISONS: Livraison[] = [
       "Le même piège se répète : un champ de données nommé comme un moteur (paymentId, countryCode, document, redirection en tant que texte de réponse) n'est pas une preuve de dépendance — seul un import réel du module de l'autre moteur compte. knowledge (smart, seo, country non prouvés) et location (permission non prouvé) ont été examinés mais laissés tels quels : ce sont des univers réels avec du contenu réel (guides, formations) ou une orchestration réelle (routes /louer/* nombreuses, routeurs partagés), où le manque de preuve représente une intégration future légitime, pas une déclaration fausse — la différence avec les 7 corrigés ici est qu'eux avaient une preuve concrète du contraire (le nom du champ trouvé n'était jamais le moteur visé), alors qu'ici l'absence de preuve reste juste une absence.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-lot12-redirection-france-et-cycle-pro-formalise",
+    titre: "Alias /france ajouté au moteur de redirection + cycle pro_account/pro_portal formalisé comme coopération acceptée",
+    moteurs: ["redirection", "pro_account", "pro_portal"],
+    quoi:
+      "Deux points explicitement demandés par la direction. 1) La clé de redirection sans destination identifiée pour /france : recherche du slug dans le code réel — server/seo-generator.ts déclare { slug: \"france\", name: \"France\" } et /pays/:slug (SeoLandingPage) sert déjà les pages pays. Un visiteur tapant /france cherchait cette page, pas une destination inexistante ; alias ajouté (/france -> /pays/france). 2) Le cycle pro_account <-> pro_portal, examiné en détail avant de le documenter : les deux sens ne sont pas symétriques. pro_account -> pro_portal est un vrai import serveur (server/pro-account/service.ts importe server/pro-portal/contract.ts, requirementsFor) — déjà formalisé lors d'un lot précédent par l'extraction de ce contrat. pro_portal -> pro_account n'est PAS un import serveur : sa seule preuve est client/src/pages/pro/DossierPro.tsx, un écran qui appelle à la fois trpc.proPortal et trpc.proAccount — un couplage réel mais côté écran, pas côté moteur. Les deux catalog.ts portent maintenant un commentaire expliquant cette asymétrie exacte, pour qu'un futur lot ne la reprenne pas comme un défaut non résolu. Le registre traitait déjà cette boucle comme « à surveiller » (pas critique) dans registryAnomalies() — rien à changer côté code, seulement la documenter comme vue et acceptée.",
+    pourquoi:
+      "Réponse directe à la demande de la direction de traiter ces deux points avant l'envoi des prochaines tâches.",
+    ou: ["server/redirection-engine/catalog.ts", "server/engine-registry/catalog.ts"],
+    lecon:
+      "Une « dépendance mutuelle » déclarée à deux endroits n'est pas forcément symétrique dans le code réel : ici un sens est un import serveur direct, l'autre n'est qu'un écran partagé qui appelle les deux API. Documenter l'asymétrie exacte évite qu'un futur passage tente de « corriger » le sens le plus faible en le prenant pour une erreur, ou au contraire lui suppose la même solidité que l'autre sens.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
