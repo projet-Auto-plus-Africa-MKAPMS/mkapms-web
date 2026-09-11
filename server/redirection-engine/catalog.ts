@@ -96,6 +96,11 @@ export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
   { key: "service_atelier_pro", label: "Service — Atelier pro", kind: "service", target: "/atelier-pro", priority: 60 },
 
   // ── Boutons / CTA principaux ──────────────────────────────────────────
+  // "accueil" : réclamée par le bouton livraison_vehicule_retour
+  // (server/button-engine/catalogue.ts, écran /livraison-vehicule) sans
+  // aucune règle — le bouton fonctionnait déjà via son repli codé en dur
+  // (cible: "/"), mais le PDG ne pouvait pas la reconfigurer.
+  { key: "accueil", label: "Retour à l'accueil", kind: "button", target: "/", priority: 120 },
   { key: "bouton_deposer_annonce", label: "Bouton — Déposer une annonce", kind: "button", target: "/vendre", priority: 120 },
   { key: "bouton_devenir_pro", label: "Bouton — Devenir professionnel", kind: "button", target: "/espace-pro", priority: 120 },
   { key: "bouton_devenir_partenaire", label: "Bouton — Devenir partenaire", kind: "button", target: "/espace-pro", priority: 120 },

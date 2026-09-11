@@ -113,9 +113,7 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
-export const ROUTES_SANS_MOTEUR: readonly string[] = [
-  "/livraison-vehicule"
-];
+export const ROUTES_SANS_MOTEUR: readonly string[] = [];
 
 /** Routeurs tRPC montés qu'aucun moteur ne revendique. */
 export const ROUTEURS_SANS_MOTEUR: readonly string[] = [];
@@ -10514,7 +10512,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_accepter",
         "libelle": "Accepter le devis et créer l'expédition",
         "genre": "formulaire",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 281
       },
@@ -10522,7 +10520,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_choisir_mode",
         "libelle": "Choisir un mode d'acheminement",
         "genre": "formulaire",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 169
       },
@@ -10530,7 +10528,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_connexion",
         "libelle": "Se connecter pour commander ou suivre",
         "genre": "navigation",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 277
       },
@@ -10538,7 +10536,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_connexion",
         "libelle": "Se connecter pour commander ou suivre",
         "genre": "navigation",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 322
       },
@@ -10546,7 +10544,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_onglet_devis",
         "libelle": "Onglet Devis",
         "genre": "formulaire",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 116
       },
@@ -10554,7 +10552,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_onglet_suivi",
         "libelle": "Onglet Suivi",
         "genre": "formulaire",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 117
       },
@@ -10562,12 +10560,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_retour",
         "libelle": "Retour à l'accueil",
         "genre": "navigation",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 110
       }
     ],
     "routes": [
+      "/livraison-vehicule",
       "/louer/livraison",
       "/suivi-vehicule"
     ],
@@ -10575,6 +10574,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "routes": [
+          "/livraison-vehicule",
           "/louer/livraison"
         ],
         "cliquables": 7,
