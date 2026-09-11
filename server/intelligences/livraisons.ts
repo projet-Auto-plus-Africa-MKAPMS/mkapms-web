@@ -369,6 +369,24 @@ export const LIVRAISONS: Livraison[] = [
       "Un mécanisme qui se documente comme « idempotent, réaligne sur le catalogue » doit être vérifié ligne à ligne pour confirmer qu'il fait vraiment ce qu'il dit — ici l'union avec l'état courant produisait un comportement strictement additif malgré la documentation contraire. Limite honnête, non vérifiable depuis cet environnement : impossible de confirmer contre la vraie base de production que ce correctif fait effectivement disparaître les dépendances fantômes déjà accumulées (accès PostgreSQL direct bloqué) — seule la logique est vérifiée (typecheck, lecture de code, cohérence avec resolveDependencies). À confirmer après déploiement et redémarrage du service en production : les dépendants de core, et plus généralement des moteurs déjà corrigés cette session, devraient refléter l'état réel du catalogue au prochain boot.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-lot5-livraison-achat-avis-boutons",
+    titre: "Lot de 5 : livraison/livraison_vehicule -> boutons ajoutées + premiers scénarios de contrôle continu",
+    moteurs: ["livraison", "livraison_vehicule", "boutons", "achat", "avis_reputation"],
+    quoi:
+      "Dernières dependance_non_declaree du lot vente/achat/avis_reputation : livraison et livraison_vehicule utilisent réellement BoutonMoteur (client/src/pages/Livraison.tsx, LivraisonVehicule.tsx) sans déclarer boutons — ajouté dans catalog.ts. En même temps (nouvelle règle : au moins 5 moteurs testés par lot), créé server/continuous-test/scenarios-univers.ts et branché dans catalog.ts : 5 premiers scénarios réels pour des moteurs qui avaient 0 preuve de test dans l'audit d'activation (livraison, livraison_vehicule, achat, avis_reputation, boutons — sur 71 moteurs à 0 preuve avant ce lot). Quatre scénarios interrogent une vraie page publique (http() + estIntrouvable()) ; le cinquième (boutons.catalogue_coherent) vérifie ACTIONS_BOUTONS en mémoire, sans réseau ni base — exécuté ici même : 39 boutons déclarés, tous uniques.",
+    pourquoi:
+      "Continuité directe des lots précédents (dependance_non_declaree) et nouvelle règle de travail de la direction : chaque lot de correction inclut désormais au moins 5 moteurs testés, via le système de contrôle continu déjà existant (server/continuous-test/), pas un système parallèle.",
+    ou: [
+      "server/engine-registry/catalog.ts",
+      "server/continuous-test/scenarios-univers.ts",
+      "server/continuous-test/catalog.ts",
+      "server/data/moteurs.ts",
+    ],
+    lecon:
+      "Les scénarios HTTP (livraison, livraison_vehicule, achat, avis_reputation) ne peuvent pas être exécutés depuis cet environnement (pas d'accès réseau à l'URL publique déployée) : leur syntaxe et leur logique sont vérifiées par lecture et par typecheck, mais leur premier vrai résultat n'arrivera qu'après déploiement, quand le moteur continuous_test les exécutera pour de vrai contre la plateforme réelle et déposera la preuve dans l'audit d'activation (point 91). Seul boutons.catalogue_coherent a pu être exécuté et vérifié ici, sans réseau ni base. 66 moteurs restent à 0 preuve de test après ce lot — à continuer, 5 par 5, à chaque prochain lot de correction.",
+    domaine: "moteurs",
+  },
 ];
 
 /**

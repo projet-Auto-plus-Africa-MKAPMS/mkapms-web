@@ -100,7 +100,7 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 88;
-export const MANQUES_TOTAL = 686;
+export const MANQUES_TOTAL = 684;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "destination_inconnue": 56,
   "ecran_sans_contenu": 355,
@@ -109,8 +109,7 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "sans_ecran": 4,
   "dependance_sans_preuve": 55,
   "bouton_declare_absent_ecran": 3,
-  "emission_dynamique": 1,
-  "dependance_non_declaree": 2
+  "emission_dynamique": 1
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
@@ -4996,7 +4995,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "continuousTest"
     ],
-    "fichiersServeur": 9,
+    "fichiersServeur": 10,
     "dependancesDeclarees": [
       "activation_audit",
       "auto_branchement",
@@ -5045,7 +5044,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "continuous-test/scenarios-parcours.ts charge auto-branchement/service.ts"
       ],
       "boutons": [
-        "continuous-test/scenarios-parcours.ts importe data/boutons-sans-action.ts"
+        "continuous-test/scenarios-parcours.ts importe data/boutons-sans-action.ts",
+        "continuous-test/scenarios-univers.ts charge button-engine/catalogue.ts"
       ],
       "code_graph": [
         "continuous-test/impact.ts importe code-graph/service.ts",
@@ -10305,6 +10305,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "fichiersServeur": 2,
     "dependancesDeclarees": [
       "avis_reputation",
+      "boutons",
       "core",
       "identity",
       "notification",
@@ -10418,10 +10419,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "battement": "sonde",
     "manques": [
       {
-        "genre": "dependance_non_declaree",
-        "detail": "boutons — client/src/pages/Livraison.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
-      },
-      {
         "genre": "dependance_sans_preuve",
         "detail": "scheduler"
       },
@@ -10444,6 +10441,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "fichiersServeur": 3,
     "dependancesDeclarees": [
+      "boutons",
       "core",
       "country",
       "event_bus",
@@ -10633,12 +10631,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 70,
     "mots": 279,
     "battement": "pont_os",
-    "manques": [
-      {
-        "genre": "dependance_non_declaree",
-        "detail": "boutons — client/src/pages/LivraisonVehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "location",
