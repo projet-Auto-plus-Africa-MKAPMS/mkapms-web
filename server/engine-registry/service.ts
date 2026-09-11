@@ -104,6 +104,18 @@ export async function registerEngine(input: RegisterInput) {
  * Amorce le registre à partir du catalogue de référence. Idempotent :
  * ajoute les moteurs manquants et réaligne les dépendances des moteurs déjà
  * présents sur le catalogue ; ne touche jamais à l'état (décision du PDG).
+ *
+ * Correctif (point 91 bis) : réaligner voulait dire ici « union avec ce qui
+ * est déjà en base », donc une dépendance ne pouvait plus jamais être
+ * retirée une fois seedée — même après avoir corrigé une déclaration fausse
+ * ou inversée dans catalog.ts (ex. comptabilite <-> accounting_internal,
+ * seo, politique_pays <-> smart), la base vivante gardait l'ancienne valeur
+ * pour toujours. resolveDependencies(name, declared) reste nécessaire pour
+ * registerEngine() — un contrat qui déclare ses propres dépendances au
+ * démarrage ne doit pas pouvoir en connaître MOINS que le catalogue — mais
+ * ensureSeeded() n'a pas de "declared" propre à protéger : le catalogue EST
+ * la seule source de vérité ici, donc c'est lui, et seulement lui, qui doit
+ * être écrit.
  */
 export async function ensureSeeded() {
   const rows = await db
@@ -113,7 +125,7 @@ export async function ensureSeeded() {
   for (const e of ENGINE_CATALOG) {
     if (known.has(e.name)) {
       const current = known.get(e.name) ?? null;
-      const wanted = resolveDependencies(e.name, current ?? undefined);
+      const wanted = resolveDependencies(e.name, undefined);
       if (!sameList(current, wanted)) {
         await db
           .update(engineRegistry)

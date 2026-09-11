@@ -356,6 +356,19 @@ export const LIVRAISONS: Livraison[] = [
       "matchRoutes() consulte maintenant en premier les routes déclarées dans server/data/moteurs.ts, comme matchRouter(). Il reste 8 moteurs sans route déclarée du tout après ce correctif (media_authenticity, boutons, payment_orchestrator, financial_intelligence, connecteur_google_business, media, ai_learning, risque_import) : ce n'est probablement pas un défaut à corriger pour la plupart — ce sont des moteurs transversaux consommés par d'autres écrans (ex. boutons, un composant partagé) plutôt que des univers avec leur propre page. À vérifier au cas par cas, pas à connecter de force. Deux défauts du même type trouvés coup sur coup (matchRouter puis matchRoutes) suggèrent de relire tout le reste de server/activation-audit/ (accessible, testé, utilisé, Système Intelligent) avec la même question : cet audit réinvente-t-il une correspondance que le registre connaît déjà ailleurs ?",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-ensureSeeded-realignement-reel",
+    titre: "ensureSeeded() n'effaçait jamais une dépendance retirée du catalogue — corrigé",
+    moteurs: ["core", "engine_registry"],
+    quoi:
+      "Autorisé explicitement par la direction (sujet dépendants, pas un test de moteur, priorité immédiate). server/engine-registry/service.ts, ensureSeeded() calculait wanted = resolveDependencies(e.name, current) = UNION(catalog.dependencies, ce qui est déjà en base) au lieu de réaligner sur le catalogue seul. Conséquence : une dépendance retirée de catalog.ts ne pouvait plus jamais être effacée de la base vivante une fois seedée — chaque correctif de cycle de cette session (comptabilite<->accounting_internal, les 5 vers seo, politique_pays<->smart_audit, country<->workflow) est correct dans le code et dans server/data/moteurs.ts, mais restait potentiellement invisible dans le registre réellement lu par server/engine-registry/dependencies.ts (dependencyGraph, findCycles, requiredBy) en production, puisque la base ne se nettoie jamais toute seule. Corrigé : wanted = resolveDependencies(e.name, undefined) = catalogue seul, comme le documente déjà la fonction (« réaligne les dépendances des moteurs déjà présents sur le catalogue »). resolveDependencies(name, declared) reste utilisée telle quelle pour registerEngine() (les 4 contrats démarrés individuellement — Core, Smart, Permission, Redirection) : eux ont un declared propre à protéger contre un oubli, ensureSeeded() n'en a pas, le catalogue est sa seule source.",
+    pourquoi:
+      "La direction a explicitement demandé de corriger ce point avant l'envoi des prochaines instructions, en le distinguant du travail de tests de moteurs (qui suit sa propre règle : au moins 5 moteurs testés à chaque futur lot de correction).",
+    ou: ["server/engine-registry/service.ts"],
+    lecon:
+      "Un mécanisme qui se documente comme « idempotent, réaligne sur le catalogue » doit être vérifié ligne à ligne pour confirmer qu'il fait vraiment ce qu'il dit — ici l'union avec l'état courant produisait un comportement strictement additif malgré la documentation contraire. Limite honnête, non vérifiable depuis cet environnement : impossible de confirmer contre la vraie base de production que ce correctif fait effectivement disparaître les dépendances fantômes déjà accumulées (accès PostgreSQL direct bloqué) — seule la logique est vérifiée (typecheck, lecture de code, cohérence avec resolveDependencies). À confirmer après déploiement et redémarrage du service en production : les dépendants de core, et plus généralement des moteurs déjà corrigés cette session, devraient refléter l'état réel du catalogue au prochain boot.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
