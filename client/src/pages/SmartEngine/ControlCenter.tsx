@@ -197,7 +197,7 @@ function DashboardTab({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
       {/* Activité */}
       <div className="grid grid-cols-2 gap-2">
         <StatCard label="Actions système" value={data.activity?.total ?? 0} color="purple" icon={Activity} onClick={() => onNavigate("journal")} />
-        <StatCard label="À valider" value={data.activity?.needsValidation ?? 0} color="orange" icon={CheckCircle2} onClick={() => onNavigate("validations")} />
+        <StatCard label="À valider" value={data.activity?.needsValidation ?? 0} color="orange" icon={CheckCircle2} onClick={() => onNavigate("journal")} />
       </div>
 
       {/* Pulse temps réel */}
@@ -2347,9 +2347,23 @@ function SanteTab() {
    ═══════════════════════════════════════════════════════════ */
 function JournalTab() {
   const { data, isLoading } = trpc.smartEngine.activityLog.useQuery({ limit: 50, offset: 0 });
+  const validateDecision = trpc.smartEngine.validateActivityDecision.useMutation();
+  const utils = trpc.useUtils();
 
   if (isLoading) return <Loading />;
   if (!data || data.length === 0) return <Empty msg="Aucune activité enregistrée" />;
+
+  const onDecision = (id: number, approved: boolean) => {
+    validateDecision.mutate(
+      { id, approved },
+      {
+        onSuccess: () => {
+          utils.smartEngine.activityLog.invalidate();
+          utils.smartEngine.dashboard.invalidate();
+        },
+      },
+    );
+  };
 
   return (
     <div className="space-y-3">
@@ -2364,6 +2378,30 @@ function JournalTab() {
           </div>
           {a.targetType && <p className="text-[10px] text-[#6B7280]">{a.targetType} #{a.targetId}</p>}
           {a.proposedDecision && <p className="mt-1 text-[10px] text-blue-600">{a.proposedDecision}</p>}
+          {a.proposedDecision && a.humanValidation == null && (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-700">À valider</span>
+              <button
+                onClick={() => onDecision(a.id, true)}
+                disabled={validateDecision.isPending}
+                className="rounded-lg bg-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-700 disabled:opacity-50"
+              >
+                Valider
+              </button>
+              <button
+                onClick={() => onDecision(a.id, false)}
+                disabled={validateDecision.isPending}
+                className="rounded-lg bg-red-100 px-2 py-1 text-[10px] font-bold text-red-700 disabled:opacity-50"
+              >
+                Refuser
+              </button>
+            </div>
+          )}
+          {a.proposedDecision && a.humanValidation != null && (
+            <p className="mt-1 text-[10px] font-bold text-[#9CA3AF]">
+              {a.humanValidation ? "Validé" : "Refusé"} par la direction
+            </p>
+          )}
           <p className="mt-1 text-[10px] text-[#9CA3AF]">{new Date(a.createdAt).toLocaleString("fr-FR")}</p>
         </div>
       ))}
