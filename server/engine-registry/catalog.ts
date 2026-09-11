@@ -170,7 +170,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "pro_account",
     label: "Pro Account Engine",
     category: "transversal",
-    dependencies: ["core","country","payment","notification","pro_portal"],
+    dependencies: ["core","country","notification","pro_portal"],
     description:
       "Dossier professionnel légal par pays et par métier : exigences variables, vérification humaine, paiement séparé et activation contrôlée.",
     state: "active",
@@ -281,7 +281,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "vo_espaces",
     label: "VO Espaces — cloisonnement officiel / pro / particulier",
     category: "univers",
-    dependencies: ["core","permission","payment","redirection","document","identity","pro_portal","country"],
+    dependencies: ["core","payment","document","identity","pro_portal","country"],
     description:
       "Décide côté serveur quel espace VO est ouvert (officiel réservé à l'équipe, professionnel sur abonnement VO actif, particulier fermé) et limite chaque stock à son propriétaire.",
     state: "staging",
@@ -348,7 +348,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "comptabilite",
     label: "Comptabilité Engine",
     category: "univers",
-    dependencies: ["core","identity","payment","document","redirection"],
+    dependencies: ["core","identity","payment","redirection"],
     description: "Factures, paiements, TVA, rapports.",
     state: "active",
   },
@@ -498,7 +498,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "avis_reputation",
     label: "Reviews & Reputation Engine",
     category: "service",
-    dependencies: ["core","country","notification","connecteur_google_business","depannage","livraison","pieces","smart","workflow","identity"],
+    dependencies: ["core","notification","connecteur_google_business","depannage","livraison","pieces","smart","workflow","identity"],
     description:
       "Avis multi-univers par pays, expériences vérifiées après transaction réelle, réponses professionnelles et officielles, réputation consolidée.",
     state: "active",
@@ -676,7 +676,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "auction_engine",
     label: "Auction Engine",
     category: "service",
-    dependencies: ["core", "payment", "notification", "visibility", "country"],
+    dependencies: ["core", "notification", "visibility", "country"],
     description:
       "Moteur d'enchères particuliers et professionnels : lots, offres validées côté serveur, prix de réserve, anti-sniping, adjudication, historique et notifications.",
     state: "active",
@@ -777,7 +777,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "estimation",
     label: "Estimation Hub",
     category: "transversal",
-    dependencies: ["core","smart","vo","livraison_vehicule","risque_import","event_bus","pieces","vo_engine"],
+    dependencies: ["core","smart","livraison_vehicule","risque_import","event_bus","pieces","vo_engine"],
     description: "Coût total d'acquisition assemblé à partir des moteurs existants.",
     state: "active",
   },

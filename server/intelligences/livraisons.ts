@@ -457,6 +457,19 @@ export const LIVRAISONS: Livraison[] = [
       "Le contrôle du connecteur Google Business illustre la règle permanente sur les clés externes manquantes : le test ne vérifie jamais qu'une clé réelle est présente, seulement que le code se comporte honnêtement dans les deux cas (avec ou sans clé) — un connecteur qui se prétendrait « actif » sans jeton réel serait le vrai défaut, pas l'absence de la clé elle-même.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-lot11-balayage-final-dependances-sans-preuve",
+    titre: "Balayage complet des 42 dependance_sans_preuve restantes : 7 nouvelles fausses déclarations trouvées et retirées",
+    moteurs: ["avis_reputation", "comptabilite", "pro_account", "vo_espaces", "auction_engine", "estimation"],
+    quoi:
+      "En réponse à la question directe de la direction (tout est-il complété ?), balayage complet des 42 dependance_sans_preuve restantes pour distinguer, moteur par moteur, les vraies fausses déclarations des moteurs sous-section de phase 2 pas encore construits (achat_pro/particulier/officiel, vente_pro/particulier/officiel, location_pro/particulier, controle_technique, finance — laissés tels quels, déjà traités). 7 nouvelles fausses déclarations trouvées sur des moteurs réels et actifs, toutes causées par la même confusion : un nom de champ de données qui ressemble au nom d'un moteur, sans aucun import réel de ce moteur. avis_reputation -> country (countryCode n'est qu'une colonne de données, jamais un import du moteur country) ; comptabilite -> document (comptaDocuments/cabinetDocuments sont les tables DE comptabilite elle-même, pas le moteur document) ; pro_account -> payment (paymentStatus/paymentReference sont des colonnes, jamais un import de payment-engine) ; vo_espaces -> permission et -> redirection (le mot « redirection » n'apparaît que dans un commentaire et un champ de réponse serveur, jamais useRedirection/redirectionEngine) ; auction_engine -> payment (paymentId est une colonne, jamais un import de payment-engine) ; estimation -> vo (estimation importe réellement vo-engine/service.ts, un moteur distinct malgré le nom proche — le seul import réel vers « vo » est le mot utilisé comme étiquette d'affichage dans une réponse, pas un import du moteur vo lui-même). Toutes retirées. dependance_sans_preuve : 42 -> 35, composante cyclique inchangée (39 moteurs, ces dépendances n'étaient pas des arêtes de cycle).",
+    pourquoi:
+      "La direction a demandé une confirmation explicite que tout défaut repéré (dépendants, connexions) est traité avant l'envoi de nouvelles tâches — ce balayage final vérifie qu'aucune fausse dépendance n'a été oubliée parmi les moteurs réellement construits, avant de répondre.",
+    ou: ["server/engine-registry/catalog.ts"],
+    lecon:
+      "Le même piège se répète : un champ de données nommé comme un moteur (paymentId, countryCode, document, redirection en tant que texte de réponse) n'est pas une preuve de dépendance — seul un import réel du module de l'autre moteur compte. knowledge (smart, seo, country non prouvés) et location (permission non prouvé) ont été examinés mais laissés tels quels : ce sont des univers réels avec du contenu réel (guides, formations) ou une orchestration réelle (routes /louer/* nombreuses, routeurs partagés), où le manque de preuve représente une intégration future légitime, pas une déclaration fausse — la différence avec les 7 corrigés ici est qu'eux avaient une preuve concrète du contraire (le nom du champ trouvé n'était jamais le moteur visé), alors qu'ici l'absence de preuve reste juste une absence.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
