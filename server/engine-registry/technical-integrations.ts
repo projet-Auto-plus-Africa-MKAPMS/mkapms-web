@@ -32,11 +32,26 @@
  * métier et elle reste dans le graphe de cycles.
  */
 
+import { MOTEURS } from "../data/moteurs.js";
+
 /**
- * Pour chaque moteur, les dépendances qu'il déclare mais qui ne comptent que
- * comme intégrations techniques (exclues du graphe de cycles métier, mais
- * toujours visibles pour l'impact en cascade — la coupure réelle existe
- * toujours en cas de panne).
+ * Intégrations techniques calculées automatiquement par
+ * scripts/gen-moteurs.mjs : toute dépendance déclarée dont TOUTES les
+ * preuves détectées ne sont qu'une vérification de session/rôle, une
+ * écriture d'audit ou un import du contrat public d'un OS (voir
+ * MOTIFS_INTEGRATION_TECHNIQUE dans le générateur). Se régénère avec
+ * `npm run gen:moteurs` — ne pas dupliquer cette logique ici à la main.
+ */
+const INTEGRATIONS_CALCULEES: Readonly<Record<string, readonly string[]>> = Object.fromEntries(
+  MOTEURS.map((m) => [m.moteur, m.integrationsTechniques]),
+);
+
+/**
+ * Cas résiduels vérifiés à la main : une dépendance purement technique dont
+ * la preuve (un import direct, pas un motif générique reconnu par le
+ * générateur) ne peut pas être classée automatiquement. Chaque entrée exige
+ * la même lecture de code que pour un cas calculé — voir le commentaire
+ * détaillé sous `core` ci-dessous.
  */
 export const TECHNICAL_INTEGRATIONS: Readonly<Record<string, readonly string[]>> = {
   // core (l'orchestrateur central) ne consomme aucune logique métier
@@ -57,7 +72,10 @@ export const TECHNICAL_INTEGRATIONS: Readonly<Record<string, readonly string[]>>
   core: ["identity", "audit", "smart", "ai_learning", "visibility"],
 };
 
-/** Vrai si la dépendance déclarée `from -> to` est une intégration technique connue. */
+/** Vrai si la dépendance déclarée `from -> to` est une intégration technique connue — calculée ou vérifiée à la main. */
 export function isTechnicalIntegration(from: string, to: string): boolean {
-  return (TECHNICAL_INTEGRATIONS[from] ?? []).includes(to);
+  return (
+    (INTEGRATIONS_CALCULEES[from] ?? []).includes(to) ||
+    (TECHNICAL_INTEGRATIONS[from] ?? []).includes(to)
+  );
 }

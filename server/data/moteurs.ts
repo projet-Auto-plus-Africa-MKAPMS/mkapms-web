@@ -69,6 +69,16 @@ export interface PerimetreMoteur {
   readonly dependancesDetectees: readonly string[];
   /** Déclarées ∪ détectées : c'est cette liste que le registre applique. */
   readonly dependances: readonly string[];
+  /**
+   * Sous-ensemble de dependances dont TOUTES les preuves détectées ne sont
+   * qu'une intégration technique transversale (session/rôle, audit, contrat
+   * public d'un OS) — jamais une dépendance métier. Exclu du graphe de
+   * cycles métier par server/engine-registry/dependencies.ts, mais toujours
+   * un couplage réel pour l'impact en cascade. Preuves plafonnées à 3 par
+   * dépendance (voir preuve() plus haut) : une 4e preuve métier non
+   * capturée resterait invisible ici, comme pour dependance_sans_preuve.
+   */
+  readonly integrationsTechniques: readonly string[];
   readonly preuvesDependances: Readonly<Record<string, readonly string[]>>;
   readonly dependants: readonly string[];
   readonly evenementsPublies: readonly string[];
@@ -139,6 +149,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependances": [
       "core",
+      "identity",
+      "permission"
+    ],
+    "integrationsTechniques": [
       "identity",
       "permission"
     ],
@@ -253,6 +267,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "payment"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "comptabilite": [
         "accounting-internal/service.ts importe modules/comptabilite.ts"
@@ -334,6 +349,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependances": [
       "core",
       "country",
+      "identity"
+    ],
+    "integrationsTechniques": [
       "identity"
     ],
     "preuvesDependances": {
@@ -471,6 +489,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smart",
       "visibility"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "audit": [
         "routers/annonces.ts importe audit.ts"
@@ -1133,6 +1152,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "messaging",
       "risque_import"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
         "client/src/pages/Vehicule.tsx appelle trpc.annonces",
@@ -1254,6 +1274,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "messaging",
       "risque_import"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
         "client/src/pages/Vehicule.tsx appelle trpc.annonces",
@@ -1375,6 +1396,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "messaging",
       "risque_import"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
         "client/src/pages/Vehicule.tsx appelle trpc.annonces",
@@ -1488,6 +1510,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "redirection",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "activation-audit/index.ts importe trpc.ts",
@@ -1588,6 +1611,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "resilience",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "backup": [
         "ai-fabric/service.ts importe backup-os/index.ts"
@@ -1797,6 +1821,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "smart"
     ],
+    "integrationsTechniques": [
+      "identity"
+    ],
     "preuvesDependances": {
       "core": [
         "ai-learning-os/index.ts importe db.ts",
@@ -1875,6 +1902,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "seo",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "routers/historique.ts importe trpc.ts",
@@ -2008,6 +2036,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "partner_engine"
     ],
+    "integrationsTechniques": [
+      "identity"
+    ],
     "preuvesDependances": {
       "core": [
         "insurance-engine/index.ts importe trpc.ts",
@@ -2132,6 +2163,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "permission",
       "redirection",
       "smart"
+    ],
+    "integrationsTechniques": [
+      "permission"
     ],
     "preuvesDependances": {
       "achat": [
@@ -2722,6 +2756,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "payment",
       "visibility"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "auction-engine/index.ts importe trpc.ts",
@@ -2819,6 +2854,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependances": [
       "core",
+      "identity"
+    ],
+    "integrationsTechniques": [
       "identity"
     ],
     "preuvesDependances": {
@@ -2948,6 +2986,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "redirection",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "boutons": [
         "auto-branchement/service.ts importe button-engine/catalogue.ts"
@@ -3075,6 +3114,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smart",
       "workflow"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "connecteur_google_business": [
         "reputation-engine/center.ts importe connectors/google-business/schema.ts",
@@ -3415,6 +3455,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "identity"
     ],
+    "integrationsTechniques": [
+      "identity"
+    ],
     "preuvesDependances": {
       "core": [
         "backup-os/index.ts importe db.ts",
@@ -3527,6 +3570,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "redirection",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "button-engine/router.ts importe trpc.ts",
@@ -3722,6 +3766,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "notification",
       "payment"
+    ],
+    "integrationsTechniques": [
+      "audit",
+      "identity"
     ],
     "preuvesDependances": {
       "audit": [
@@ -4206,6 +4254,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "continuous_test": [
         "code-graph/service.ts importe continuous-test/schema.ts"
@@ -4313,6 +4362,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smart",
       "smart_audit"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "code_graph": [
         "command-center/service.ts charge code-graph/service.ts"
@@ -4431,6 +4481,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "resilience",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "activation_audit": [
         "completion/service.ts importe activation-audit/schema.ts",
@@ -4532,6 +4583,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "payment",
       "redirection"
+    ],
+    "integrationsTechniques": [
+      "identity"
     ],
     "preuvesDependances": {
       "core": [
@@ -4783,6 +4837,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "knowledge-engine/discoveries.ts importe db.ts",
@@ -4887,6 +4942,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "avis_reputation",
       "core"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "avis_reputation": [
         "connectors/google-business/service.ts importe reputation-engine/service.ts"
@@ -4983,6 +5039,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "redirection",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "activation_audit": [
         "continuous-test/service.ts importe activation-audit/service.ts"
@@ -5119,6 +5176,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "scheduler"
     ],
+    "integrationsTechniques": [
+      "identity"
+    ],
     "preuvesDependances": {
       "core": [
         "contract-os/index.ts importe db.ts",
@@ -5238,6 +5298,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "payment",
       "scheduler"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {},
     "dependants": [],
     "evenementsPublies": [],
@@ -5404,6 +5465,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smart",
       "visibility"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "ai_learning": [
         "central-engines/index.ts importe ai-learning-os/index.ts"
@@ -5954,6 +6016,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "identity",
       "workflow"
+    ],
+    "integrationsTechniques": [
+      "identity"
     ],
     "preuvesDependances": {
       "core": [
@@ -6596,6 +6661,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "proximity_engine",
       "scheduler"
     ],
+    "integrationsTechniques": [
+      "identity"
+    ],
     "preuvesDependances": {
       "avis_reputation": [
         "routers/depannage.ts importe reputation-engine/service.ts"
@@ -6757,6 +6825,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "language"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "document-os/index.ts importe db.ts",
@@ -6965,6 +7034,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "payment"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {},
     "dependants": [],
     "evenementsPublies": [],
@@ -7038,6 +7108,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "notification"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "charging-engine/index.ts importe trpc.ts",
@@ -7139,6 +7210,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "vo",
       "vo_engine"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "estimation-hub/index.ts importe trpc.ts",
@@ -7266,6 +7338,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "seo",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "audit": [
         "event-bus/handlers.ts importe audit-os/index.ts"
@@ -7385,6 +7458,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "payment"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {},
     "dependants": [],
     "evenementsPublies": [],
@@ -7701,6 +7775,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "payment"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "financial-intelligence/detectors.ts importe db.ts",
@@ -7808,6 +7883,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "seo",
       "support",
       "visibility"
+    ],
+    "integrationsTechniques": [
+      "identity"
     ],
     "preuvesDependances": {
       "achat": [
@@ -8658,6 +8736,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "account_routing": [
         "client/src/pages/MonEspace.tsx appelle trpc.accountRouting"
@@ -9345,6 +9424,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "payment"
     ],
+    "integrationsTechniques": [
+      "identity"
+    ],
     "preuvesDependances": {
       "core": [
         "routers/importafrica.ts importe trpc.ts",
@@ -9448,6 +9530,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "seo",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "audit": [
         "site-verification/router.ts importe audit.ts"
@@ -9575,6 +9658,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smart",
       "support"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "ai_fabric": [
         "intelligences/actions.ts importe ai-fabric/service.ts",
@@ -9813,6 +9897,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "smart"
     ],
+    "integrationsTechniques": [
+      "identity"
+    ],
     "preuvesDependances": {
       "core": [
         "customer-journey-os/index.ts importe db.ts",
@@ -9889,6 +9976,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "seo",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {},
     "dependants": [],
     "evenementsPublies": [],
@@ -10147,6 +10235,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "identity"
     ],
+    "integrationsTechniques": [
+      "identity"
+    ],
     "preuvesDependances": {
       "core": [
         "language-os/index.ts importe db.ts",
@@ -10258,6 +10349,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "payment",
       "proximity_engine",
       "scheduler"
+    ],
+    "integrationsTechniques": [
+      "identity"
     ],
     "preuvesDependances": {
       "avis_reputation": [
@@ -10392,6 +10486,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "politique_pays",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "boutons": [
         "client/src/pages/LivraisonVehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
@@ -10599,6 +10694,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "redirection",
       "seo"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
         "client/src/pages/ListeAttente.tsx embarque components/ReserverLocationButton.tsx (trpc.reservations)",
@@ -11099,6 +11195,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "location"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
         "client/src/pages/LocationParticulier.tsx appelle trpc.annonces",
@@ -11201,6 +11298,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "location"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
         "client/src/pages/LocationPro.tsx appelle trpc.annonces",
@@ -11567,6 +11665,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "seo",
       "smart"
     ],
+    "integrationsTechniques": [
+      "identity"
+    ],
     "preuvesDependances": {
       "core": [
         "routers/marketing.ts importe trpc.ts",
@@ -11844,6 +11945,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "smart"
     ],
+    "integrationsTechniques": [
+      "identity"
+    ],
     "preuvesDependances": {
       "core": [
         "media-os/index.ts importe trpc.ts"
@@ -11925,6 +12029,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "event_bus",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "ai_fabric": [
         "media-authenticity/service.ts importe ai-fabric/service.ts"
@@ -12028,6 +12133,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "notification"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "audit": [
         "messaging-os/index.ts importe audit.ts"
@@ -12177,6 +12283,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smart",
       "visibility"
     ],
+    "integrationsTechniques": [
+      "identity"
+    ],
     "preuvesDependances": {
       "core": [
         "monitoring-os/domaines.ts importe db.ts",
@@ -12305,6 +12414,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "identity",
       "language"
+    ],
+    "integrationsTechniques": [
+      "identity"
     ],
     "preuvesDependances": {
       "core": [
@@ -12792,6 +12904,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smart",
       "visibility"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "partner-engine/index.ts importe trpc.ts",
@@ -13090,6 +13203,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "permission",
       "smart",
       "workflow"
+    ],
+    "integrationsTechniques": [
+      "permission"
     ],
     "preuvesDependances": {
       "achat": [
@@ -13441,6 +13557,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "payment"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "payment-orchestrator/index.ts importe trpc.ts",
@@ -13528,6 +13645,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependances": [
       "core",
+      "identity"
+    ],
+    "integrationsTechniques": [
       "identity"
     ],
     "preuvesDependances": {
@@ -13711,6 +13831,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "payment_orchestrator",
       "product_engine",
       "seo"
+    ],
+    "integrationsTechniques": [
+      "identity"
     ],
     "preuvesDependances": {
       "avis_reputation": [
@@ -14246,6 +14369,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "country-policy/index.ts importe trpc.ts",
@@ -14600,6 +14724,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "payment",
       "pro_portal"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "pro-account/index.ts importe trpc.ts",
@@ -14722,6 +14847,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "payment",
       "pro_account"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "audit": [
         "routers/pro.ts importe audit.ts"
@@ -14994,6 +15120,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "seo",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "product-engine/index.ts importe trpc.ts",
@@ -15101,6 +15228,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "payment"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "avis_reputation": [
         "proximity-engine/service.ts importe reputation-engine/ranking.ts"
@@ -15209,6 +15337,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "energie_recharge",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "connaissance_auto": [
         "rd-lab/service.ts importe knowledge-engine/service.ts"
@@ -17430,6 +17559,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "permission",
       "smart"
     ],
+    "integrationsTechniques": [
+      "identity",
+      "permission"
+    ],
     "preuvesDependances": {
       "core": [
         "redirection-engine/couverture.ts importe db.ts",
@@ -17649,6 +17782,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "redirection",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "resilience/index.ts importe trpc.ts",
@@ -17770,6 +17904,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "politique_pays",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "import-risk/index.ts importe trpc.ts",
@@ -17880,6 +18015,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "identity",
       "notification"
+    ],
+    "integrationsTechniques": [
+      "identity"
     ],
     "preuvesDependances": {
       "core": [
@@ -18226,6 +18364,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "permission"
     ],
+    "integrationsTechniques": [
+      "identity",
+      "permission"
+    ],
     "preuvesDependances": {
       "avis_reputation": [
         "search-os/index.ts importe reputation-engine/ranking.ts"
@@ -18375,6 +18517,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "redirection",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "avis_reputation": [
         "routers/seo.ts importe reputation-engine/seo.ts",
@@ -18626,6 +18769,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "resilience",
       "seo",
       "smart_audit"
+    ],
+    "integrationsTechniques": [
+      "identity"
     ],
     "preuvesDependances": {
       "avis_reputation": [
@@ -19058,6 +19204,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "smart"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "ai_fabric": [
         "smart-audit/service.ts importe ai-fabric/service.ts"
@@ -19159,6 +19306,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "payment",
       "smart"
+    ],
+    "integrationsTechniques": [
+      "identity"
     ],
     "preuvesDependances": {
       "audit": [
@@ -19371,6 +19521,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "payment",
       "scheduler"
     ],
+    "integrationsTechniques": [
+      "identity"
+    ],
     "preuvesDependances": {
       "core": [
         "routers/transport.ts importe trpc.ts",
@@ -19547,6 +19700,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smart",
       "vo_espaces"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
         "client/src/pages/Vendre.tsx appelle trpc.annonces"
@@ -20767,6 +20921,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "vente"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "routers/depotvente.ts importe trpc.ts",
@@ -20846,6 +21001,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smart",
       "vente"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
         "client/src/pages/DepotAnnonce.tsx appelle trpc.annonces",
@@ -20926,6 +21082,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "vente"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {},
     "dependants": [],
     "evenementsPublies": [],
@@ -21035,6 +21192,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "seo",
       "smart"
+    ],
+    "integrationsTechniques": [
+      "identity"
     ],
     "preuvesDependances": {
       "core": [
@@ -21156,6 +21316,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "permission"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "routers/vo.ts importe trpc.ts",
@@ -21256,6 +21417,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "notification"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
         "client/src/pages/VehiculesCertifies.tsx embarque components/ReserverLocationButton.tsx (trpc.reservations)"
@@ -21402,6 +21564,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pro_portal",
       "redirection"
     ],
+    "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
         "vo-espaces/attestations.ts importe db.ts",
@@ -21542,6 +21705,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "permission",
       "scheduler"
+    ],
+    "integrationsTechniques": [
+      "identity",
+      "permission"
     ],
     "preuvesDependances": {
       "audit": [

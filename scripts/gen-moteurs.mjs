@@ -316,6 +316,29 @@ const SYMBOLES_TRANSVERSAUX = [
   [/\b(stripe\.|createCheckout|paymentEngine)\b/, "payment", "déclenche un paiement"],
   [/\bheartbeat\(/, "core", "bat au registre central"],
 ];
+
+/**
+ * Preuves qui n'établissent qu'une intégration technique transversale
+ * (vérification de session/rôle, écriture d'un journal d'audit, usage du
+ * contrat public d'un OS) plutôt qu'une dépendance métier : le moteur
+ * appelant ne consomme pas la logique ou les données d'un autre domaine, il
+ * traverse un port d'infrastructure partagé par toute la plateforme.
+ *
+ * Une dépendance déclarée n'est classée « intégration technique » (exclue du
+ * graphe de cycles métier, voir server/engine-registry/dependencies.ts) que
+ * si TOUTES ses preuves détectées correspondent à l'un de ces motifs — la
+ * moindre preuve d'un usage métier réel (import direct d'un module business,
+ * appel tRPC depuis un écran d'un autre moteur…) la fait rester une
+ * dépendance métier normale.
+ */
+const MOTIFS_INTEGRATION_TECHNIQUE = [
+  /^.+ exige une session Identity \(procédure protégée\)$/,
+  /^.+ filtre par rôle \(procédure pro\/admin\/direction\/PDG\)$/,
+  /^.+ écrit au journal d'audit$/,
+  /^.+ importe .*identity-os\/contract\.ts$/,
+];
+const estPreuveTechnique = (texte) => MOTIFS_INTEGRATION_TECHNIQUE.some((m) => m.test(texte));
+
 const emetteursParEvenement = new Map(EVENT_TYPES.map((e) => [e.code, e.emetteurs ?? []]));
 
 const SOCLE_COMPOSITION = new Set(["router.ts", "index.ts", "migrate.ts", "seed.ts", "db.ts", "trpc.ts", "schema.ts"]);
@@ -492,6 +515,15 @@ for (const p of PERIMETRES) {
   for (const d of declarees) if (!detectees.includes(d) && d !== "core") manques.push({ genre: "dependance_sans_preuve", detail: d });
   for (const d of declarees) if (!nomsMoteurs.has(d)) manques.push({ genre: "dependance_inconnue", detail: d });
 
+  // Intégrations techniques : une dépendance dont TOUTES les preuves ne sont
+  // qu'une vérification de session/rôle, une écriture d'audit ou un usage du
+  // contrat public d'un OS — jamais une dépendance métier. Calculé, pas
+  // déclaré : la moindre preuve d'usage métier réel exclut le moteur cible.
+  const integrationsTechniques = [...dependancesDetectees.entries()]
+    .filter(([, preuves]) => preuves.length > 0 && preuves.every(estPreuveTechnique))
+    .map(([dep]) => dep)
+    .sort();
+
   // Existence et battement.
   if (!fichiers.length) manques.push({ genre: "sans_logique_serveur", detail: "aucun dossier serveur : moteur d'écran seulement" });
   const battement = battementInterne || avecSonde.has(moteur) || avecPont.has(moteur) || avecContrat.has(moteur);
@@ -510,6 +542,7 @@ for (const p of PERIMETRES) {
     dependancesDeclarees: [...declarees].sort(),
     dependancesDetectees: detectees,
     dependances: [...new Set([...declarees, ...detectees])].sort(),
+    integrationsTechniques,
     preuvesDependances: Object.fromEntries([...dependancesDetectees.entries()].sort()),
     dependants: [],
     evenementsPublies: [...evenementsPublies].sort(),
@@ -619,6 +652,16 @@ export interface PerimetreMoteur {
   readonly dependancesDetectees: readonly string[];
   /** Déclarées ∪ détectées : c'est cette liste que le registre applique. */
   readonly dependances: readonly string[];
+  /**
+   * Sous-ensemble de dependances dont TOUTES les preuves détectées ne sont
+   * qu'une intégration technique transversale (session/rôle, audit, contrat
+   * public d'un OS) — jamais une dépendance métier. Exclu du graphe de
+   * cycles métier par server/engine-registry/dependencies.ts, mais toujours
+   * un couplage réel pour l'impact en cascade. Preuves plafonnées à 3 par
+   * dépendance (voir preuve() plus haut) : une 4e preuve métier non
+   * capturée resterait invisible ici, comme pour dependance_sans_preuve.
+   */
+  readonly integrationsTechniques: readonly string[];
   readonly preuvesDependances: Readonly<Record<string, readonly string[]>>;
   readonly dependants: readonly string[];
   readonly evenementsPublies: readonly string[];
