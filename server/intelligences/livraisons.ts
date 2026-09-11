@@ -313,6 +313,23 @@ export const LIVRAISONS: Livraison[] = [
       "Même famille de manque que vente/livraison_vehicule : un garde-fou transversal (ici la protection de l'identité de la direction) peut être utilisé par n'importe quel écran public sans que le moteur propriétaire de cet écran ait pensé à déclarer identity. Reste ouvert pour le prochain lot : livraison -> boutons, livraison_vehicule -> boutons, et la route orpheline /livraison-vehicule.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-smart-engine-carte-a-valider-mal-reliee",
+    titre: "Carte « À valider » du Centre de contrôle reliée au mauvais onglet, sans action de validation nulle part",
+    moteurs: ["smart"],
+    quoi:
+      "Signalé par la direction sur la plateforme réelle : la carte « À valider » (289 alertes, 252+ en croissance) mène à un onglet qui affiche toujours « Aucune donnée à valider ». Cause trouvée : la carte compte activityStats.needsValidation (server/smart-engine/services/activity-log.ts — lignes de smartActivityLog où humanValidation est nul et proposedDecision existe, des décisions proposées par le système en attente d'approbation), mais son clic ouvrait l'onglet « Validations » qui interroge trpc.smartEngine.pendingValidations — une table totalement différente (smartLearnedData, des valeurs de véhicule proposées par les utilisateurs au dépôt d'annonce), vide en ce moment. Pire : la mutation validateActivityDecision qui valide réellement une décision du journal d'activité existait déjà côté serveur (server/smart-engine/router.ts) mais n'était appelée par aucun écran — impossible de valider quoi que ce soit, même en trouvant le bon onglet.",
+    pourquoi:
+      "Bouton relié au mauvais endroit et fonctionnalité serveur existante mais jamais câblée à un écran — exactement les deux catégories de défaut que la phase de stabilisation en cours doit éliminer (« mal connecté → reconnecte-le », « existe mais incomplet → complète-le »).",
+    ou: [
+      "client/src/pages/SmartEngine/ControlCenter.tsx",
+      "server/smart-engine/router.ts",
+      "server/smart-engine/services/activity-log.ts",
+    ],
+    lecon:
+      "La carte pointe maintenant vers l'onglet Journal (déjà alimenté par la bonne table, smartActivityLog), et ce même onglet affiche désormais Valider/Refuser sur chaque entrée qui a une proposedDecision non encore tranchée, appelant la mutation validateActivityDecision déjà prête côté serveur. L'onglet Validations (smartLearnedData) n'a pas été supprimé : c'est une fonctionnalité réelle et distincte (confirmation de données véhicule saisies par les utilisateurs), juste mal raccordée à cette carte précise. Un chiffre qui grandit sur un tableau de bord (« 24 », « 252 » puis « 300 et quelques ») sans qu'aucun écran ne permette d'agir dessus est un signal fiable de connexion cassée, pas de fonctionnalité manquante à construire — la logique serveur existait déjà des deux côtés.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
