@@ -100,7 +100,7 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 88;
-export const MANQUES_TOTAL = 692;
+export const MANQUES_TOTAL = 690;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "destination_inconnue": 56,
   "ecran_sans_contenu": 355,
@@ -108,7 +108,7 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "dependance_non_declaree": 6,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
-  "dependance_sans_preuve": 57,
+  "dependance_sans_preuve": 55,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1
 };
@@ -14334,8 +14334,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "fichiersServeur": 3,
     "dependancesDeclarees": [
       "core",
-      "country",
-      "smart"
+      "country"
     ],
     "dependancesDetectees": [
       "core",
@@ -14343,8 +14342,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependances": [
       "core",
-      "country",
-      "smart"
+      "country"
     ],
     "integrationsTechniques": [],
     "preuvesDependances": {
@@ -14662,10 +14660,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/conformite/VentePays.tsx (3 texte(s))"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "smart"
       }
     ]
   },
@@ -18703,8 +18697,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "politique_pays",
       "redirection",
       "resilience",
-      "seo",
-      "smart_audit"
+      "seo"
     ],
     "dependancesDetectees": [
       "avis_reputation",
@@ -18732,8 +18725,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "politique_pays",
       "redirection",
       "resilience",
-      "seo",
-      "smart_audit"
+      "seo"
     ],
     "integrationsTechniques": [
       "identity"
@@ -18818,7 +18810,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "monitoring",
       "partner_engine",
       "payment",
-      "politique_pays",
       "product_engine",
       "rd_lab",
       "redirection",
@@ -19135,12 +19126,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 330,
     "mots": 1665,
     "battement": "contrat",
-    "manques": [
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "smart_audit"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "smart_audit",
@@ -19186,8 +19172,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "command_center",
-      "smart"
+      "command_center"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],

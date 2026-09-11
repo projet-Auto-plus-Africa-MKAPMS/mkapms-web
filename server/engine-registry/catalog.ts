@@ -84,7 +84,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "smart",
     label: "Smart Engine",
     category: "transversal",
-    dependencies: ["core","identity","permission","notification","monitoring","avis_reputation","country","event_bus","politique_pays","redirection","resilience","seo","smart_audit"],
+    dependencies: ["core","identity","permission","notification","monitoring","avis_reputation","country","event_bus","politique_pays","redirection","resilience","seo"],
     description: "Observation, analyse, alertes, apprentissage (sous validation humaine).",
     state: "active",
   },
@@ -532,7 +532,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "politique_pays",
     label: "Country Policy Engine",
     category: "transversal",
-    dependencies: ["core", "country", "smart"],
+    dependencies: ["core", "country"],
     description:
       "Contrôle réglementaire par pays avant exécution : règles confirmées, validité, autorité. Sans règle confirmée, l'action repart en validation humaine.",
     state: "active",
