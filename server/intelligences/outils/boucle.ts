@@ -18,9 +18,10 @@ import { router } from "../routeur.js";
 import type { MessageConversation, SortieStructuree } from "../provider.js";
 import type { Confidentiality } from "../../ai-fabric/service.js";
 import { listerActifs, trouver, versOutilFonction } from "./registre.js";
-import { evaluer, type VerifierPermission } from "./politique.js";
+import { evaluer, type GetCountryFn, type VerifierPermission } from "./politique.js";
 import { executer } from "./executeur.js";
 import { journaliser } from "./audit.js";
+import { getCountry } from "../../country-os/index.js";
 
 /** Injectables uniquement pour les tests — la production utilise toujours les vraies couches. */
 export type RouterFn = typeof router;
@@ -65,6 +66,7 @@ export async function executerAvecOutils(
   routerImpl: RouterFn = router,
   verifierPermission?: VerifierPermission,
   journaliserImpl: JournaliserFn = journaliser,
+  getCountryImpl: GetCountryFn = getCountry,
 ): Promise<ResultatBoucle> {
   const maxIterations = input.maxIterations ?? MAX_ITERATIONS_DEFAUT;
   const actifs = new Set(listerActifs().map((o) => o.toolId));
@@ -137,7 +139,12 @@ export async function executerAvecOutils(
         continue;
       }
 
-      const politique = await evaluer(outil, { role: input.role, moteur: input.moteur }, verifierPermission);
+      const politique = await evaluer(
+        outil,
+        { role: input.role, moteur: input.moteur, countryCode: input.countryCode },
+        verifierPermission,
+        getCountryImpl,
+      );
 
       if (politique.verdict !== "autorise") {
         trace.push({

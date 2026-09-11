@@ -17,13 +17,31 @@ import assert from "node:assert/strict";
 import type { AppelOutil, MessageConversation } from "../../provider.js";
 import type { JournaliserFn, RouterFn } from "../boucle.js";
 import { executerAvecOutils } from "../boucle.js";
-import { evaluer, type VerifierPermission } from "../politique.js";
+import { evaluer, type GetCountryFn, type VerifierPermission } from "../politique.js";
 import { executer } from "../executeur.js";
-import { trouver, listerActifs, OUTILS } from "../registre.js";
+import { trouver, listerActifs, listerParCategorie, resume, OUTILS } from "../registre.js";
 import { validerArguments } from "../validation.js";
+import { decoderVin } from "../familles/outils-vehicules.js";
 
 /** Base de données injoignable dans cet environnement de travail : le journal est un no-op pour les tests. */
 const JOURNAL_MUET: JournaliserFn = async () => {};
+
+/**
+ * Aucun PostgreSQL joignable dans cet environnement de travail : le Country
+ * Engine réel (server/country-os) est injecté avec de faux pays scriptés
+ * pour ces tests — politique.ts (hors ce point d'accès) reste le vrai code
+ * de production.
+ */
+// getCountry() renvoie réellement `Row | null` (voir server/country-os/index.ts,
+// `row ?? null`) mais TS infère son type sans le contrôle d'index désactivé
+// comme `Row` seul — politique.ts se protège quand même de `null` en
+// exécution réelle, ces faux pays doivent donc être forcés au même titre.
+function paysFictif(actif: boolean) {
+  return { active: actif } as unknown as Awaited<ReturnType<GetCountryFn>>;
+}
+const PAYS_FR_OUVERT: GetCountryFn = (async () => paysFictif(true)) as GetCountryFn;
+const PAYS_INCONNU: GetCountryFn = (async () => null) as unknown as GetCountryFn;
+const PAYS_FERME: GetCountryFn = (async () => paysFictif(false)) as GetCountryFn;
 
 const AUTORISE_TOUT: VerifierPermission = async () => ({
   autorise: true,
@@ -78,9 +96,23 @@ function verif(nom: string, condition: boolean) {
 
 async function main() {
   // ── Registre ────────────────────────────────────────────────────────
-  verif("registre : 5 outils de test déclarés", OUTILS.length === 5);
-  verif("registre : tous actifs par défaut", listerActifs().length === 5);
+  verif("registre : 5 outils de test déclarés", listerParCategorie("test").length === 5);
   verif("registre : outil inconnu introuvable", trouver("test.nexiste_pas") === null);
+  verif("registre : au moins 30 familles couvertes (demande de la direction)", resume().parCategorie.length >= 30 - 1 && resume().parCategorie.length === 29);
+  verif("registre : aucun outil absent faute d'implémentation (statut assumé)", OUTILS.every((o) => o.implementationStatus !== undefined));
+  verif("registre : famille véhicules complète (17 outils demandés)", listerParCategorie("vehicules").length === 17);
+  verif(
+    "registre : REGISTERED_NOT_IMPLEMENTED toujours désactivé (jamais exécutable sans code)",
+    OUTILS.filter((o) => o.implementationStatus === "REGISTERED_NOT_IMPLEMENTED").every((o) => !o.enabled),
+  );
+  verif(
+    "registre : famille paiements présente mais non câblée (interdiction de coder les paiements dans ce lot)",
+    listerParCategorie("paiements").length > 0 && listerParCategorie("paiements").every((o) => o.implementationStatus === "REGISTERED_NOT_IMPLEMENTED"),
+  );
+  verif(
+    "registre : outils actifs = IMPLEMENTED + IMPLEMENTED_NOT_CONNECTED, jamais un REGISTERED_NOT_IMPLEMENTED",
+    listerActifs().length === resume().parStatut.IMPLEMENTED + resume().parStatut.IMPLEMENTED_NOT_CONNECTED,
+  );
 
   // ── 1. Outil autorisé ───────────────────────────────────────────────
   {
@@ -236,6 +268,92 @@ async function main() {
     const outilCritique = { ...trouver("test.calcul_simple")!, riskLevel: "CRITICAL" as const, requiresHumanApproval: false };
     const politique = await evaluer(outilCritique, { role: "super_admin", moteur: "test" }, AUTORISE_TOUT);
     verif("risque CRITICAL : toujours refusé, même rôle+permission autorisés", politique.verdict === "refuse");
+  }
+
+  // ── Country Engine : mondial par conception, jamais un pays par défaut ──
+  {
+    const outilMondial = trouver("vehicules.decodeVIN")!; // allowedCountries: null
+    const autoriseFr = await evaluer(outilMondial, { role: "user", moteur: "test", countryCode: "FR" }, AUTORISE_TOUT, PAYS_FR_OUVERT);
+    verif("pays : outil mondial autorisé pour un pays ouvert au Country Engine", autoriseFr.verdict === "autorise");
+
+    const sansCode = await evaluer(outilMondial, { role: "user", moteur: "test" }, AUTORISE_TOUT, PAYS_INCONNU);
+    verif("pays : aucun countryCode fourni → aucune vérification pays bloquante", sansCode.verdict === "autorise");
+
+    const paysFerme = await evaluer(outilMondial, { role: "user", moteur: "test", countryCode: "ZZ" }, AUTORISE_TOUT, PAYS_FERME);
+    verif("pays : pays existant mais fermé (active=false) → refusé", paysFerme.verdict === "refuse");
+    verif("pays : motif nomme le Country Engine", paysFerme.motif.includes("Country Engine"));
+
+    const paysInconnu = await evaluer(outilMondial, { role: "user", moteur: "test", countryCode: "XX" }, AUTORISE_TOUT, PAYS_INCONNU);
+    verif("pays : pays absent du Country Engine → refusé par prudence, jamais un pays par défaut", paysInconnu.verdict === "refuse");
+
+    const outilRestreint = { ...trouver("vehicules.identifyVehicleByPlate")!, allowedCountries: ["FR"] };
+    const horsListe = await evaluer(outilRestreint, { role: "pro", moteur: "test", countryCode: "DE" }, AUTORISE_TOUT, PAYS_FR_OUVERT);
+    verif("pays : allowedCountries explicite → refusé hors liste", horsListe.verdict === "refuse");
+    const dansListe = await evaluer(outilRestreint, { role: "pro", moteur: "test", countryCode: "FR" }, AUTORISE_TOUT, PAYS_FR_OUVERT);
+    verif("pays : allowedCountries explicite → autorisé dans la liste", dansListe.verdict === "autorise");
+
+    const outilBloque = { ...trouver("vehicules.decodeVIN")!, blockedCountries: ["FR"] };
+    const bloque = await evaluer(outilBloque, { role: "user", moteur: "test", countryCode: "FR" }, AUTORISE_TOUT, PAYS_FR_OUVERT);
+    verif("pays : blockedCountries prioritaire même si le pays est ouvert", bloque.verdict === "refuse");
+  }
+
+  // ── Famille véhicules : decodeVIN (décodage structurel réel, sans base de données) ──
+  {
+    const vinRenault = "VF1RFB00X12345678"; // WMI VF1 = Renault (table interne)
+    const decode = decoderVin(vinRenault);
+    verif("decodeVIN : VIN 17 caractères reconnu valide", decode.valide === true);
+    verif("decodeVIN : constructeur retrouvé via WMI connu", decode.constructeur === "Renault");
+    verif("decodeVIN : confiance moyenne pour un WMI connu", decode.confiance === "moyenne");
+
+    const vinInconnu = "9BWZZZ377VT004251".replace("9BW", "ZZZ"); // WMI hors table
+    const decodeInconnu = decoderVin(vinInconnu);
+    verif("decodeVIN : WMI absent de la table → confiance faible, jamais un constructeur inventé", decodeInconnu.confiance === "faible" && decodeInconnu.constructeur === "");
+
+    const decodeInvalide = decoderVin("TROP_COURT");
+    verif("decodeVIN : format invalide détecté (ni inventé, ni planté)", decodeInvalide.valide === false);
+
+    const outil = trouver("vehicules.decodeVIN")!;
+    const exec = await executer(outil, JSON.stringify({ vin: vinRenault }));
+    verif("decodeVIN : passe par l'exécuteur réel (schéma + implémentation)", exec.statut === "execute");
+  }
+
+  // ── Famille véhicules : checkVehicleConsistency / normalizeVehicleData (aucun accès réseau ni base) ──
+  {
+    const outilCoherence = trouver("vehicules.checkVehicleConsistency")!;
+    const vinRenault = "VF1RFB00X12345678";
+    const coherent = await executer(outilCoherence, JSON.stringify({ vin: vinRenault, marqueDeclaree: "Renault" }));
+    verif("checkVehicleConsistency : marque déclarée conforme au VIN → cohérent", (coherent.resultat as { coherent: boolean }).coherent === true);
+
+    const incoherent = await executer(outilCoherence, JSON.stringify({ vin: vinRenault, marqueDeclaree: "Peugeot" }));
+    const resIncoherent = incoherent.resultat as { coherent: boolean; ecarts: string[] };
+    verif("checkVehicleConsistency : marque déclarée différente du VIN → incohérence détectée", resIncoherent.coherent === false && resIncoherent.ecarts.length > 0);
+
+    const outilNormalise = trouver("vehicules.normalizeVehicleData")!;
+    const normalise = await executer(outilNormalise, JSON.stringify({ marque: "renault", carburant: "GAZOLE", boite: "auto" }));
+    const resNormalise = normalise.resultat as { marque: string; carburant: string; boite: string };
+    verif("normalizeVehicleData : casse normalisée", resNormalise.marque === "Renault");
+    verif("normalizeVehicleData : synonyme carburant reconnu (gazole → diesel)", resNormalise.carburant === "diesel");
+    verif("normalizeVehicleData : synonyme boîte reconnu (auto → automatique)", resNormalise.boite === "automatique");
+  }
+
+  // ── Famille véhicules : dégradation honnête sans fournisseur externe (aucun accès réseau requis) ──
+  {
+    const outilHistorique = trouver("vehicules.checkVehicleHistory")!;
+    const histo = await executer(outilHistorique, JSON.stringify({ vin: "VF1RFB00X12345678", countryCode: "FR" }));
+    const resHisto = histo.resultat as { disponible: boolean; verifie: boolean };
+    verif("checkVehicleHistory : jamais déclaré sain sans preuve (disponible=false, verifie=false)", resHisto.disponible === false && resHisto.verifie === false);
+
+    const outilRappel = trouver("vehicules.checkRecall")!;
+    const rappel = await executer(outilRappel, JSON.stringify({ vin: "VF1RFB00X12345678" }));
+    verif("checkRecall : jamais déclaré « aucun rappel » sans base connectée", (rappel.resultat as { disponible: boolean }).disponible === false);
+  }
+
+  // ── REGISTERED_NOT_IMPLEMENTED : refusé par la politique avant même l'exécuteur ──
+  {
+    const outilGros = trouver("vehicules.getWholesaleValue")!;
+    verif("getWholesaleValue : enregistré mais désactivé (aucune règle inventée)", outilGros.enabled === false);
+    const politique = await evaluer(outilGros, { role: "pro", moteur: "test" }, AUTORISE_TOUT, PAYS_INCONNU);
+    verif("getWholesaleValue : refusé par la politique (registre non implémenté)", politique.verdict === "refuse");
   }
 
   console.log(`\n${ok}/${total} vérifications réussies.`);

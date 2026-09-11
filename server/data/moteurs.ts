@@ -100,7 +100,7 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 88;
-export const MANQUES_TOTAL = 664;
+export const MANQUES_TOTAL = 666;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "destination_inconnue": 56,
   "ecran_sans_contenu": 355,
@@ -109,7 +109,8 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "sans_ecran": 4,
   "dependance_sans_preuve": 35,
   "bouton_declare_absent_ecran": 3,
-  "emission_dynamique": 1
+  "emission_dynamique": 1,
+  "dependance_non_declaree": 2
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
@@ -6011,6 +6012,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "garage",
       "identity",
       "importafrica",
+      "intelligences",
       "knowledge",
       "language",
       "livraison_vehicule",
@@ -9535,7 +9537,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 31,
+    "fichiersServeur": 35,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -9559,12 +9561,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connaissance_auto",
       "continuous_test",
       "core",
+      "country",
       "event_bus",
       "identity",
       "monitoring",
       "resilience",
       "smart",
-      "support"
+      "support",
+      "vo_engine"
     ],
     "dependances": [
       "ai_fabric",
@@ -9574,12 +9578,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connaissance_auto",
       "continuous_test",
       "core",
+      "country",
       "event_bus",
       "identity",
       "monitoring",
       "resilience",
       "smart",
-      "support"
+      "support",
+      "vo_engine"
     ],
     "integrationsTechniques": [],
     "preuvesDependances": {
@@ -9613,6 +9619,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "intelligences/actions.ts importe engine-registry/service.ts",
         "intelligences/autonomie.ts importe db.ts"
       ],
+      "country": [
+        "intelligences/outils/boucle.ts importe country-os/index.ts",
+        "intelligences/outils/boucle.ts lit la règle pays",
+        "intelligences/outils/familles/outils-vehicules.ts charge country-os/index.ts"
+      ],
       "event_bus": [
         "intelligences/moteurs.ts importe event-bus/catalog.ts",
         "intelligences/service.ts importe event-bus/service.ts",
@@ -9636,6 +9647,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "support": [
         "client/src/pages/CentreIntelligences.tsx appelle trpc.supportOs"
+      ],
+      "vo_engine": [
+        "intelligences/outils/familles/outils-vehicules.ts importe vo-engine/service.ts",
+        "intelligences/outils/familles/outils-vehicules.ts importe vo-engine/schema.ts"
       ]
     },
     "dependants": [
@@ -9803,7 +9818,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 206,
     "mots": 1200,
     "battement": "sonde",
-    "manques": []
+    "manques": [
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "country — intelligences/outils/boucle.ts importe country-os/index.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "vo_engine — intelligences/outils/familles/outils-vehicules.ts importe vo-engine/service.ts"
+      }
+    ]
   },
   {
     "moteur": "journey",
@@ -21261,7 +21285,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "estimation"
+      "estimation",
+      "intelligences"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],

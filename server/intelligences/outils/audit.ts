@@ -9,6 +9,7 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "../../db.js";
 import { inOutilsJournal } from "../schema.js";
 import type { VerdictPolitique } from "./politique.js";
+import type { StatutExecution } from "./executeur.js";
 
 /** Longueur tronquée : ce journal trace l'activité, il ne remplace pas un stockage de données. */
 const TRONQUER = 2000;
@@ -18,7 +19,7 @@ export interface EntreeJournal {
   moteur: string;
   role: string | null;
   verdictPolitique: VerdictPolitique;
-  statutExecution: "execute" | "erreur" | "timeout" | "arguments_invalides" | null;
+  statutExecution: StatutExecution | null;
   motif: string;
   arguments: unknown;
   resultat: unknown;
