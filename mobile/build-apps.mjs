@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 /**
  * Produit les paquets Android des applications MKA.P-MS déclarées dans
- * mobile/variants.json — un seul projet, un seul cœur, trois applications.
+ * mobile/variants.json — un seul projet, un seul cœur, quatre applications.
+ * Chaque variante est un « product flavor » Gradle (android/app/build.gradle) :
+ * la tâche à lancer porte donc son nom (ex. bundleProRelease, jamais
+ * bundleRelease tout court une fois des flavors déclarés).
  *
- *   node mobile/build-apps.mjs               # les trois
+ *   node mobile/build-apps.mjs               # les quatre
  *   node mobile/build-apps.mjs pro           # une seule
  *   MOBILE_APP_URL=https://staging… node mobile/build-apps.mjs
  *
@@ -50,28 +53,24 @@ const lancer = (commande, args, env = {}, cwd = racine) =>
     env: { ...process.env, ...env },
   });
 
+const majuscule = (nom) => nom.charAt(0).toUpperCase() + nom.slice(1);
+
 for (const nom of aConstruire) {
   const v = variantes[nom];
+  const flavor = majuscule(nom);
   console.log(`\n[mkapms] ${v.appName} — ${v.appId} (diffusion ${v.distribution})`);
 
   lancer("npx", ["cap", "sync", "android"], { MOBILE_APP_VARIANT: nom });
   lancer(
     "./gradlew",
-    [
-      "bundleRelease",
-      "assembleRelease",
-      `-PmkapmsAppId=${v.appId}`,
-      `-PmkapmsAppName=${v.appName}`,
-      `-PmkapmsAppLinksHost=${v.appLinksHost}`,
-      `-PmkapmsAppLinksHostAlt=${v.appLinksHostAlt}`,
-    ],
+    [`bundle${flavor}Release`, `assemble${flavor}Release`],
     { MOBILE_APP_VARIANT: nom },
     join(racine, "android"),
   );
 
   for (const [source, cible] of [
-    ["android/app/build/outputs/bundle/release/app-release.aab", `${v.appId}.aab`],
-    ["android/app/build/outputs/apk/release/app-release.apk", `${v.appId}.apk`],
+    [`android/app/build/outputs/bundle/${nom}Release/app-${nom}-release.aab`, `${v.appId}.aab`],
+    [`android/app/build/outputs/apk/${nom}/release/app-${nom}-release.apk`, `${v.appId}.apk`],
   ]) {
     if (existsSync(join(racine, source))) {
       copyFileSync(join(racine, source), join(sortie, cible));

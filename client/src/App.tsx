@@ -201,6 +201,7 @@ const CentreProduitsGoogle = lazy(() => import("./pages/CentreProduitsGoogle"));
 const CentreSystemeIntelligent = lazy(() => import("./pages/CentreSystemeIntelligent"));
 const CentreIntelligences = lazy(() => import("./pages/CentreIntelligences"));
 const AssistantIntelligences = lazy(() => import("./pages/AssistantIntelligences"));
+const MKAPMSIntelligence = lazy(() => import("./pages/intelligence"));
 const CentreBusEvenements = lazy(() => import("./pages/CentreBusEvenements"));
 const CentreControleContinu = lazy(() => import("./pages/CentreControleContinu"));
 const CentreAutoBranchement = lazy(() => import("./pages/CentreAutoBranchement"));
@@ -1230,6 +1231,7 @@ export default function App() {
             <Route path="/admin/systeme-intelligent" element={<U name="Système Intelligent — audit & activation"><CentreSystemeIntelligent /></U>} />
             <Route path="/admin/intelligences" element={<U name="MKA.P-MS Intelligences — direction"><CentreIntelligences /></U>} />
             <Route path="/intelligences" element={<U name="MKA.P-MS Intelligences — assistant"><AssistantIntelligences /></U>} />
+            <Route path="/intelligence" element={<U name="MKA.P-MS Intelligence"><MKAPMSIntelligence /></U>} />
             <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
             <Route path="/superadmin/mini-plateformes" element={<U name="Univers en mini-plateformes"><MiniPlateformes /></U>} />
             <Route path="/superadmin/partenaires" element={<U name="Réseau partenaires"><PartenairesPilotage /></U>} />

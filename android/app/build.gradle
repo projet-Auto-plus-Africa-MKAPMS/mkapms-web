@@ -14,16 +14,17 @@ def ksAlias = keystoreProps['keyAlias'] ?: System.getenv("MKAPMS_KEY_ALIAS")
 def ksKeyPassword = keystoreProps['keyPassword'] ?: System.getenv("MKAPMS_KEY_PASSWORD")
 def hasSigning = ksPath != null && file(ksPath).exists()
 
-// Trois applications, un seul projet : l'identifiant et le nom affiché viennent
-// de mobile/variants.json via le script mobile/build-apps.mjs. Sans propriété
-// fournie, on construit l'application grand public.
-def variantAppId = project.findProperty("mkapmsAppId") ?: "com.mkapms.app"
-def variantAppName = project.findProperty("mkapmsAppName") ?: "MKA.P-MS"
-// App Links : une seule application capte les liens du site (voir
-// mobile/variants.json). Les autres reçoivent un hôte inexistant, donc aucun lien.
-def variantLinksHost = project.findProperty("mkapmsAppLinksHost") ?: "www.mkapms.fr"
-def variantLinksHostAlt = project.findProperty("mkapmsAppLinksHostAlt") ?: "mkapms.fr"
-def variantLinksVerify = variantLinksHost.endsWith(".invalid") ? "false" : "true"
+// Quatre applications, un seul projet : mobile/variants.json est l'unique
+// source de vérité (comme pour tout autre catalogue de la plateforme). Chaque
+// entrée devient un « product flavor » Gradle — mécanisme standard Android
+// pour plusieurs applications à partir d'un même code natif, sans le dupliquer.
+// Un flavor hérite automatiquement de src/main/ pour tout ce qu'il ne
+// redéfinit pas, et peut recevoir plus tard ses propres ressources
+// (src/<flavor>/res/ — icône, écran de lancement…) sans toucher aux autres :
+// c'est ce mécanisme, pas une propriété en plus, qui permet à terme une
+// icône, un splash, des liens et des métadonnées propres par application.
+def variantsFile = rootProject.file("../mobile/variants.json")
+def variants = new groovy.json.JsonSlurper().parseText(variantsFile.getText("UTF-8"))
 
 // Version unique : celle de package.json. Le site et les trois applications
 // affichent le même numéro, et versionCode en découle (major*10000 + minor*100 + patch)
@@ -37,16 +38,6 @@ android {
     namespace "com.mkapms.app"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId variantAppId
-        resValue "string", "app_name", variantAppName
-        resValue "string", "title_activity_main", variantAppName
-        resValue "string", "package_name", variantAppId
-        resValue "string", "custom_url_scheme", variantAppId
-        manifestPlaceholders = [
-            appLinksHost: variantLinksHost,
-            appLinksHostAlt: variantLinksHostAlt,
-            appLinksAutoVerify: variantLinksVerify,
-        ]
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode pkgVersionCode
@@ -56,6 +47,28 @@ android {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    // Un flavor par entrée de mobile/variants.json. App Links : une seule
+    // application capte les liens du site (voir ce fichier) ; les autres
+    // reçoivent un hôte inexistant ("*.invalid"), donc aucun lien ne leur est
+    // jamais proposé.
+    flavorDimensions "app"
+    productFlavors {
+        variants.each { key, v ->
+            "$key" {
+                dimension "app"
+                applicationId v.appId
+                resValue "string", "app_name", v.appName
+                resValue "string", "title_activity_main", v.appName
+                resValue "string", "package_name", v.appId
+                resValue "string", "custom_url_scheme", v.appId
+                manifestPlaceholders = [
+                    appLinksHost: v.appLinksHost,
+                    appLinksHostAlt: v.appLinksHostAlt,
+                    appLinksAutoVerify: v.appLinksHost.endsWith(".invalid") ? "false" : "true",
+                ]
+            }
         }
     }
     signingConfigs {

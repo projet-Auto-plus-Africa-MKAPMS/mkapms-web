@@ -25,5 +25,14 @@
     "appLinksHost": "interne.invalid",
     "appLinksHostAlt": "interne.invalid",
     "description": "Application interne PDG et Direction : moteurs, alertes, pays, paiements, système intelligent. Diffusion interne uniquement — jamais en accès public. Aucun lien public n'est capté : le domaine « interne.invalid » n'existe pas et ne peut pas être vérifié, l'application n'ouvre donc jamais un lien du site."
+  },
+  "intelligence": {
+    "appId": "com.mkapms.intelligence",
+    "appName": "MKA.P-MS Intelligence",
+    "startPath": "/intelligence",
+    "distribution": "publique",
+    "appLinksHost": "interne.invalid",
+    "appLinksHostAlt": "interne.invalid",
+    "description": "Application dédiée au produit MKA.P-MS Intelligence (conversation, voix, images, documents, recherche, mémoire, projets, agents, outils, code, automatisations, intégrations) — distincte de l'assistant intégré (AssistantIntelligences.tsx) qui reste dans la plateforme principale. Même moteur Intelligence derrière les deux, aucun doublon. Comme pour « pro » et « command », aucun lien public n'est capté par cette application : seule l'application grand public ouvre https://www.mkapms.fr, pour qu'Android n'ait jamais à demander laquelle utiliser."
   }
 }

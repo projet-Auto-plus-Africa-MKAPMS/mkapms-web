@@ -483,6 +483,27 @@ export const LIVRAISONS: Livraison[] = [
       "Une « dépendance mutuelle » déclarée à deux endroits n'est pas forcément symétrique dans le code réel : ici un sens est un import serveur direct, l'autre n'est qu'un écran partagé qui appelle les deux API. Documenter l'asymétrie exacte évite qu'un futur passage tente de « corriger » le sens le plus faible en le prenant pour une erreur, ou au contraire lui suppose la même solidité que l'autre sens.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-socle-app-mkapms-intelligence",
+    titre: "Socle de la 4e application mobile MKA.P-MS Intelligence — mécanisme multi-flavors, sans module fonctionnel",
+    moteurs: ["intelligences"],
+    quoi:
+      "Demande explicite de la direction : une 4e variante mobile dédiée (com.mkapms.intelligence, route /intelligence), distincte de l'assistant intégré existant (AssistantIntelligences.tsx, route /intelligences inchangée), les deux appelant le même moteur derrière (server/intelligences/). Socle uniquement, aucun module fonctionnel : 1) mobile/variants.json reçoit l'entrée intelligence, même schéma que les 3 autres. 2) android/app/build.gradle converti de l'injection de propriétés (-PmkapmsAppId=...) vers de vrais « product flavors » Gradle, un par entrée de mobile/variants.json lue directement (JsonSlurper) — mécanisme standard qui permet à chaque application, à terme, sa propre icône/splash/liens en déposant des fichiers dans android/app/src/<flavor>/res/ (dossier réservé et documenté pour intelligence, avec un README expliquant comment s'en servir pour les 4 applications), sans dupliquer le projet natif. mobile/build-apps.mjs adapté aux nouveaux noms de tâches (bundle<Flavor>Release, plus jamais bundleRelease une fois des flavors déclarés). 3) client/src/pages/intelligence/ : page racine légère (shell + navigation, aucune grosse logique) affichant 16 modules à l'état de squelette (conversation, voix/temps réel, images, documents, recherche, mémoire, projets, agents, outils, code, automatisations, intégrations, paramètres, permissions, usage/coûts, historique), chacun dans son propre fichier sous modules/ pour que la page racine ne devienne jamais un fichier unique portant tout le produit. niveaux.ts prépare une architecture de 6 niveaux d'accès (public, professionnel, développeur, équipe interne, direction, PDG/super admin), dérivée des rôles déjà existants (userRoleEnum) et de la Plateforme développeur déjà existante — aucun rôle parallèle créé.",
+    pourquoi:
+      "Construire un produit MKA.P-MS Intelligence complet et autonome, sans jamais dupliquer le moteur qui existe déjà derrière l'assistant intégré, et sans que l'application devienne un fichier monolithique en grossissant.",
+    ou: [
+      "mobile/variants.json",
+      "android/app/build.gradle",
+      "mobile/build-apps.mjs",
+      "android/app/src/intelligence/res/README.md",
+      "client/src/pages/intelligence/",
+      "client/src/App.tsx",
+      "server/engine-registry/perimetres.ts",
+    ],
+    lecon:
+      "Vérifié par un vrai build Android (SDK et build-tools installés dans l'environnement de travail, pas seulement une relecture de code) : les 4 variantes (grandpublic, pro, command, intelligence) compilent en debug et en release après la conversion en product flavors, avec l'applicationId et le nom attendus dans chaque APK — la conversion de l'injection de propriétés vers de vrais flavors Gradle ne casse aucune des 3 applications existantes. Un flavor Gradle sans dossier de ressources dédié hérite silencieusement de src/main/ : c'est ce qui permet de réserver le mécanisme (dossier + documentation) sans fabriquer d'icône avant que la direction ne le demande.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
