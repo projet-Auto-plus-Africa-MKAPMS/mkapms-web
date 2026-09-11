@@ -70,6 +70,36 @@ export const TECHNICAL_INTEGRATIONS: Readonly<Record<string, readonly string[]>>
   //     audit.ts → logAction (écriture), auditLogs (lecture pour affichage),
   //     visibility-os/index.ts → ingestVisibility (écriture télémétrie)
   core: ["identity", "audit", "smart", "ai_learning", "visibility"],
+
+  // monitoring -> smart : monitoring-os/domaines.ts lit un résumé de santé
+  // en lecture seule (getPlatformHealth, smart-engine/services/platform-
+  // health.ts) et écrit une alerte (table smartAlerts, importée via
+  // smart-engine/schema.ts). Aucune décision de Smart n'est consommée :
+  // monitoring agrège un signal, il ne délègue rien à Smart. Vérifié le
+  // 2026-09-11.
+  monitoring: ["smart"],
+
+  // event_bus -> smart : event-bus/handlers.ts n'importe smart-engine/
+  // schema.ts que pour la table smartAlerts et smart-engine/services/
+  // alert-engine.ts que pour raiseAlert() — 100 % émission d'alerte
+  // (AlertSink), aucune lecture de logique métier de Smart. Vérifié le
+  // 2026-09-11.
+  event_bus: ["smart"],
+
+  // intelligences -> smart : intelligences/service.ts n'importe smart-
+  // engine/schema.ts que pour smartAlerts (même AlertSink que ci-dessus).
+  // Le 3e signal détecté ("publie intelligences.echange, consommé par
+  // smart") est une preuve d'émission d'événement, pas de consommation :
+  // c'est Smart qui dépend de l'événement d'Intelligences, pas l'inverse.
+  // Vérifié le 2026-09-11.
+  intelligences: ["smart"],
+
+  // ai_fabric -> smart : ai-fabric/service.ts importe smart-engine/schema.ts
+  // pour smartActionTasks (création d'une tâche, même nature d'écriture
+  // technique qu'une alerte) et smart-engine/services/activity-log.ts pour
+  // logActivity() — écriture de télémétrie pure, aucune lecture de logique
+  // métier de Smart. Vérifié le 2026-09-11.
+  ai_fabric: ["smart"],
 };
 
 /** Vrai si la dépendance déclarée `from -> to` est une intégration technique connue — calculée ou vérifiée à la main. */

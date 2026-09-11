@@ -235,6 +235,19 @@ export const LIVRAISONS: Livraison[] = [
       "Un contrat neutre nettoie l'import (pro_account ne dépend plus que d'une surface minimale documentée, pas de l'implémentation entière du panier/paiement de pro_portal) mais NE FAIT PAS disparaître le cycle dans le graphe : les deux dépendances restent réelles et prouvées dans les deux sens, donc classées métier — à juste titre. Le registre lui-même documente déjà cette philosophie (dependencies.ts : « une boucle ne bloque pas le démarrage, elle signale une coopération mutuelle à surveiller »). Forcer ce cycle à zéro aurait exigé de supprimer un appel fonctionnel réel des deux côtés, ce que la direction a explicitement interdit. Décision proposée à la direction plutôt qu'appliquée seul : documenter ce cycle comme coopération mutuelle acceptée (un mécanisme à ajouter au registre, distinct des dépendances non prouvées et des intégrations techniques) au lieu de le compter comme une anomalie à corriger.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-stabilisation-moteurs-mesh-ia",
+    titre: "smart <- event_bus/monitoring/intelligences/ai_fabric : alertes et télémétrie, pas de la logique métier",
+    moteurs: ["smart", "monitoring", "event_bus", "intelligences", "ai_fabric"],
+    quoi:
+      "Vérifié ligne à ligne les 4 arêtes entrant sur smart depuis le maillage observabilité / Intelligences : event_bus (raiseAlert + table smartAlerts via smart-engine/services/alert-engine.ts), monitoring (getPlatformHealth en lecture + écriture d'alerte), intelligences (écriture d'alerte + preuve d'émission d'événement — c'est Smart qui dépend de l'événement d'Intelligences, pas l'inverse), ai_fabric (logActivity, écriture de télémétrie pure, + smartActionTasks). Aucune des quatre ne lit de décision ou de logique métier de Smart : ce sont des écritures d'alerte/télémétrie à sens unique. Généralisé le motif « ouvre une alerte du Système Intelligent » (raiseAlert/smartAlerts) dans scripts/gen-moteurs.mjs comme intégration technique automatique — sans exception, ce motif ne se déclenche que pour ce signal précis. Ajouté les 3 cas résiduels (platform-health, alert-engine.ts, activity-log.ts — imports non couverts par un motif générique) dans technical-integrations.ts.",
+    pourquoi:
+      "Suite demandée de la stabilisation du cycle géant à 42 moteurs, en commençant par le sous-groupe lié à MKA.P-MS Intelligences (event_bus, intelligences, ai_fabric, smart, monitoring) que la direction a signalé vouloir examiner en même temps que les problèmes d'accès aux services externes connectés.",
+    ou: ["scripts/gen-moteurs.mjs", "server/engine-registry/technical-integrations.ts", "server/data/moteurs.ts"],
+    lecon:
+      "Résultat mesuré, honnête : la composante fortement connexe à 42 moteurs NE RÉTRÉCIT PAS après ce lot. smart reste dans la même composante parce que d'autres moteurs du groupe des 42 (hors de ce lot — seo, garage, achat, etc., déjà repérés dans l'inventaire initial) dépendent aussi de smart pour des raisons encore à vérifier, et smart lui-même dépend légitimement de event_bus et monitoring (consomme moteur.degrade/retabli — c'est sa raison d'être, pas une intégration technique). Une classification correcte n'implique pas toujours une baisse du chiffre agrégé : chaque arête retirée est individuellement vraie et vérifiée, mais smart reste un point de passage central tant que ses autres dépendants (hors de ce lot) n'ont pas été vérifiés un par un. event_bus -> intelligences (memoire.ts : ecrire/retenir, service.ts : proposer) N'A PAS été reclassé : c'est le mécanisme réel d'apprentissage de MKA.P-MS Intelligence, une dépendance métier légitime et importante, pas une intégration technique à écarter.",
+    domaine: "moteurs",
+  },
 ];
 
 /**

@@ -336,6 +336,10 @@ const MOTIFS_INTEGRATION_TECHNIQUE = [
   /^.+ filtre par rôle \(procédure pro\/admin\/direction\/PDG\)$/,
   /^.+ écrit au journal d'audit$/,
   /^.+ importe .*identity-os\/contract\.ts$/,
+  // Sans exception : ce motif ne se déclenche que si le fichier référence
+  // raiseAlert() ou la table smartAlerts, toujours pour signaler un
+  // problème au Système Intelligent — jamais pour consommer sa logique.
+  /^.+ ouvre une alerte du Système Intelligent$/,
 ];
 const estPreuveTechnique = (texte) => MOTIFS_INTEGRATION_TECHNIQUE.some((m) => m.test(texte));
 

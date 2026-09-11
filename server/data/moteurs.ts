@@ -9703,9 +9703,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "intelligences/memoire.ts charge resilience/service.ts"
       ],
       "smart": [
+        "intelligences/livraisons.ts ouvre une alerte du Système Intelligent",
         "intelligences/service.ts importe smart-engine/schema.ts",
-        "intelligences/service.ts ouvre une alerte du Système Intelligent",
-        "publie intelligences.echange, consommé par smart"
+        "intelligences/service.ts ouvre une alerte du Système Intelligent"
       ],
       "support": [
         "client/src/pages/CentreIntelligences.tsx appelle trpc.supportOs"
