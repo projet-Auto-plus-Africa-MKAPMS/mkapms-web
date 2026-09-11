@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 88;
-export const MANQUES_TOTAL = 684;
+export const MANQUES_TOTAL = 675;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "destination_inconnue": 56,
   "ecran_sans_contenu": 355,
   "bouton_sans_action": 198,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
-  "dependance_sans_preuve": 55,
+  "dependance_sans_preuve": 46,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1
 };
@@ -2873,9 +2873,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "event_bus",
       "identity",
       "indexation",
-      "media_authenticity",
       "messaging",
-      "monitoring",
       "pro_portal",
       "support",
       "workflow"
@@ -6632,9 +6630,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "identity",
       "notification",
-      "payment",
-      "proximity_engine",
-      "scheduler"
+      "payment"
     ],
     "dependancesDetectees": [
       "avis_reputation",
@@ -6648,9 +6644,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "identity",
       "notification",
-      "payment",
-      "proximity_engine",
-      "scheduler"
+      "payment"
     ],
     "integrationsTechniques": [
       "identity"
@@ -6773,14 +6767,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Envoyer la demande d'assistance » client/src/pages/AssistanceSinistre.tsx:98"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "scheduler"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "proximity_engine"
       }
     ]
   },
@@ -6843,7 +6829,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "contract",
       "finance",
       "importafrica",
-      "media_authenticity",
       "vo_espaces"
     ],
     "evenementsPublies": [],
@@ -7839,7 +7824,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "depannage",
       "identity",
       "notification",
-      "payment",
       "scheduler",
       "support",
       "visibility"
@@ -7868,7 +7852,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "depannage",
       "identity",
       "notification",
-      "payment",
       "scheduler",
       "support",
       "visibility"
@@ -8663,10 +8646,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Details » client/src/pages/superadmin/AdminGarage.tsx:75"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "payment"
       }
     ]
   },
@@ -10307,9 +10286,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "identity",
       "notification",
-      "payment",
-      "proximity_engine",
-      "scheduler"
+      "payment"
     ],
     "dependancesDetectees": [
       "avis_reputation",
@@ -10325,9 +10302,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "identity",
       "notification",
-      "payment",
-      "proximity_engine",
-      "scheduler"
+      "payment"
     ],
     "integrationsTechniques": [
       "identity"
@@ -10415,16 +10390,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 25,
     "mots": 108,
     "battement": "sonde",
-    "manques": [
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "scheduler"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "proximity_engine"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "livraison_vehicule",
@@ -11982,9 +11948,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "fichiersServeur": 4,
     "dependancesDeclarees": [
       "ai_fabric",
-      "audit",
       "core",
-      "document",
       "event_bus",
       "smart"
     ],
@@ -11996,9 +11960,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependances": [
       "ai_fabric",
-      "audit",
       "core",
-      "document",
       "event_bus",
       "smart"
     ],
@@ -12060,14 +12022,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "mots": 0,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "document"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "audit"
-      },
       {
         "genre": "sans_ecran",
         "detail": "aucune route client ne mène à ce moteur"
@@ -12228,7 +12182,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "fichiersServeur": 2,
     "dependancesDeclarees": [
-      "audit",
       "core",
       "event_bus",
       "identity",
@@ -12247,7 +12200,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "visibility"
     ],
     "dependances": [
-      "audit",
       "core",
       "event_bus",
       "identity",
@@ -12351,10 +12303,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Voir rapport complet » client/src/pages/superadmin/AdminStatistiques.tsx:40"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "audit"
       }
     ]
   },
@@ -12434,7 +12382,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "vente",
       "vente_officiel",
       "vo",
-      "vo_engine",
       "workflow"
     ],
     "evenementsPublies": [],
@@ -13232,7 +13179,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "encheres",
       "finance",
       "financial_intelligence",
-      "garage",
       "importafrica",
       "livraison",
       "payment_orchestrator",
@@ -15202,10 +15148,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "proximity-engine/service.ts importe payment-engine/products.ts"
       ]
     },
-    "dependants": [
-      "depannage",
-      "livraison"
-    ],
+    "dependants": [],
     "evenementsPublies": [],
     "evenementsConsommes": [],
     "abonnements": [],
@@ -17990,9 +17933,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "contract",
       "controle_technique",
-      "depannage",
       "garage",
-      "livraison",
       "monitoring",
       "transport",
       "workflow"
@@ -21330,8 +21271,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDeclarees": [
       "achat",
       "core",
-      "country",
-      "notification"
+      "country"
     ],
     "dependancesDetectees": [
       "achat",
@@ -21341,8 +21281,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependances": [
       "achat",
       "core",
-      "country",
-      "notification"
+      "country"
     ],
     "integrationsTechniques": [],
     "preuvesDependances": {
@@ -21444,10 +21383,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Négocier » client/src/pages/RepriseVehicule.tsx:52"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "notification"
       }
     ]
   },

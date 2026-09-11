@@ -405,6 +405,19 @@ export const LIVRAISONS: Livraison[] = [
       "Toute correspondance entre un identifiant libre (domaine d'un scénario, table sondée) et le nom d'un moteur au registre doit être vérifiée par égalité exacte contre le catalogue, jamais supposée juste parce qu'elle « ressemble ». Un balayage complet (comparer chaque valeur déclarée aux 88 noms exacts) trouve ce genre de faute plus vite qu'une relecture au cas par cas. Reste à vérifier avec la même méthode : le critère « Utilisée réellement » a déjà été vérifié dans ce lot (server/engine-registry/probes.ts — les 62 noms de moteur sondés correspondent tous exactement au catalogue, aucun défaut trouvé) ; « Système Intelligent connecté » ne dépend d'aucune correspondance de nom (juste lastHeartbeat), donc hors de portée de cette classe de défaut.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-lot7-nettoyage-dependances-sans-preuve",
+    titre: "8 dépendances déclarées sans aucun usage réel retirées — composante cyclique réduite de 41 à 39 moteurs",
+    moteurs: ["livraison", "depannage", "garage", "vo_engine", "monitoring", "media_authenticity"],
+    quoi:
+      "Le générateur signale 55 « dependance_sans_preuve » (une dépendance déclarée au catalogue sans aucun import, événement ou table trouvé dans le code du moteur qui la déclare). La plupart concernent des moteurs sous-section pas encore construits (phase 2, ex. controle_technique, encheres, marketing) — normal, rien à corriger. Six moteurs réellement construits ont été vérifiés un par un (lecture directe des fichiers déclarés dans perimetres.ts, recherche de l'usage exact) : livraison ne référence scheduler ni proximity_engine nulle part (retirés) ; depannage non plus (retirés, mais payment y est bien réellement importé — conservé) ; garage n'importe jamais payment dans routers/garages.ts (retiré, scheduler y reste car réellement prouvé) ; vo_engine n'importe jamais notification (retiré) ; monitoring-os n'importe jamais audit alors qu'il importe bien notification/identity/event_bus (retiré, le reste conservé) ; media_authenticity n'a aucun lien vers les moteurs document ou audit — le mot « document » n'y apparaît que comme valeur d'énumération de type de média (image/vidéo/document), pas comme dépendance réelle (les deux retirés).",
+    pourquoi:
+      "Continuité de l'instruction de la direction : toute anomalie constatée en travaillant les dépendants doit être complétée, y compris dans l'autre sens — une dépendance déclarée qui n'existe pas dans le code réel fausse le graphe de connexions autant qu'une dépendance manquante.",
+    ou: ["server/engine-registry/catalog.ts"],
+    lecon:
+      "Retirer une dépendance sans preuve n'est pas une suppression de fonctionnalité : c'est corriger une déclaration jamais devenue réelle (souvent héritée d'une intention initiale — livrer avec des créneaux planifiés, garages via paiement direct — jamais construite). Effet mesurable : la composante fortement connexe du graphe de dépendances métier passe de 41 à 39 moteurs (document sort entièrement du cycle, n'y étant relié que par cette fausse dépendance de media_authenticity). Il reste 46 dependance_sans_preuve, très majoritairement portées par des moteurs sous-section de phase 2 encore non construits — à revérifier au cas par cas seulement quand ces moteurs seront construits, pas avant.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
