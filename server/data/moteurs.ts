@@ -5999,23 +5999,21 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "country",
       "countries",
-      "currency"
+      "currency",
+      "platformMap"
     ],
     "fichiersServeur": 3,
     "dependancesDeclarees": [
       "core",
-      "identity",
-      "workflow"
+      "identity"
     ],
     "dependancesDetectees": [
       "core",
-      "identity",
-      "workflow"
+      "identity"
     ],
     "dependances": [
       "core",
-      "identity",
-      "workflow"
+      "identity"
     ],
     "integrationsTechniques": [
       "identity"
@@ -6029,9 +6027,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity": [
         "country-os/index.ts importe identity-os/contract.ts",
         "country-os/index.ts exige une session Identity (procédure protégée)"
-      ],
-      "workflow": [
-        "client/src/pages/CarteMondiale.tsx appelle trpc.platformMap"
       ]
     },
     "dependants": [
@@ -6501,7 +6496,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "fichier": "client/src/pages/Admin.tsx",
         "route": "/admin/*",
         "composants": [
-          "trpc.countries"
+          "trpc.countries",
+          "trpc.platformMap"
         ]
       },
       {
@@ -21679,8 +21675,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "quality",
       "hr",
       "procurement",
-      "investor",
-      "platformMap"
+      "investor"
     ],
     "fichiersServeur": 2,
     "dependancesDeclarees": [
@@ -21732,7 +21727,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     },
     "dependants": [
       "avis_reputation",
-      "country",
       "payment"
     ],
     "evenementsPublies": [],
@@ -22182,13 +22176,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "ecransHotes": [
       {
-        "fichier": "client/src/pages/CarteMondiale.tsx",
-        "route": "/carte",
-        "composants": [
-          "trpc.platformMap"
-        ]
-      },
-      {
         "fichier": "client/src/pages/Admin.tsx",
         "route": "/admin/*",
         "composants": [
@@ -22197,8 +22184,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "trpc.quality",
           "trpc.hr",
           "trpc.procurement",
-          "trpc.investor",
-          "trpc.platformMap"
+          "trpc.investor"
         ]
       }
     ],

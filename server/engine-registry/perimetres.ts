@@ -56,7 +56,14 @@ export const PERIMETRES: PerimetreDeclare[] = [
   {
     moteur: "country",
     dossiers: ["country-os", "routers/currency.ts", "data/world.ts"],
-    routeurs: ["country", "countries", "currency"],
+    // platformMap (routers/operations.ts) : carte des sites géolocalisés
+    // (lavage, karting, sites) consommée par CarteMondiale.tsx, l'écran de
+    // ce moteur (/carte). Rattaché ici, pas à workflow où il ne vivait que
+    // par accident de fichier (même fichier que governance/HR/procurement) :
+    // aucun rapport fonctionnel avec workflow, et c'était l'arête qui
+    // refermait le cycle country -> workflow -> notification -> language ->
+    // country (workflow n'a plus aucune raison de dépendre de country).
+    routeurs: ["country", "countries", "currency", "platformMap"],
     routes: ["/superadmin/country-os", "/carte", "/international", "/international/*", "/expansion", "/expansion/*", "/superadmin/admin-carte-moniale"],
   },
   {
@@ -292,7 +299,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
   {
     moteur: "workflow",
     dossiers: ["modules/operations.ts", "routers/operations.ts"],
-    routeurs: ["governance", "platform", "quality", "hr", "procurement", "investor", "platformMap"],
+    routeurs: ["governance", "platform", "quality", "hr", "procurement", "investor"],
     routes: ["/operations", "/operations/*", "/superadmin/admin-general", "/superadmin/admin-objectif", "/superadmin/centre-r-h", "/superadmin/admin-employes", "/superadmin/gestion-employes-m-k-a-p-m-s", "/investisseurs/*", "/recrutement", "/recrutement/*", "/corporate", "/corporate/*", "/mission"],
   },
   {
