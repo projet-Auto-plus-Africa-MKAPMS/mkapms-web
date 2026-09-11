@@ -18,7 +18,7 @@
  */
 import { eq } from "drizzle-orm";
 import { db } from "../db.js";
-import { appeler, type AppelResultat } from "./provider.js";
+import { appeler, type AppelResultat, type OutilFonction, type SortieStructuree } from "./provider.js";
 import { registre, spec, type CodeCapacite } from "./capacites.js";
 import { autorise } from "./autonomie.js";
 import { permissionsDuRole, verifier } from "./permissions.js";
@@ -61,6 +61,10 @@ export interface DemandeCapacite {
   maxTokens?: number;
   /** Domaine du curseur d'autonomie, quand l'appelant en connaît un plus précis. */
   domaineAutonomie?: string;
+  /** Fonctions que le modèle peut demander d'exécuter (capacité "outils"). */
+  outils?: OutilFonction[];
+  /** Réponse garantie conforme à ce schéma (capacité "sortie_structuree"). */
+  sortieStructuree?: SortieStructuree;
 }
 
 export interface ResultatCapacite extends AppelResultat {
@@ -86,6 +90,7 @@ function refus(
     jetonsSortie: 0,
     dureeMs: 0,
     tentatives: [],
+    appelsOutils: [],
   };
 }
 
@@ -184,6 +189,8 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
     countryCode: demande.countryCode ?? null,
     images: demande.images,
     maxTokens: demande.maxTokens,
+    outils: demande.outils,
+    sortieStructuree: demande.sortieStructuree,
   } as const;
 
   /**
