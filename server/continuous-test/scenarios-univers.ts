@@ -100,6 +100,55 @@ export const UNIVERS_SCENARIOS: Scenario[] = [
     label: "Le centre de statistiques (direction) répond avec du contenu réel",
     criticite: "normale",
   }),
+  pagePublique({
+    id: "search.page_publique",
+    domaine: "search",
+    route: "/rechercher",
+    label: "La page de recherche répond avec du contenu réel",
+    criticite: "critique",
+  }),
+  pagePublique({
+    id: "support.page_aide",
+    domaine: "support",
+    route: "/aide",
+    label: "La page d'aide répond avec du contenu réel",
+    criticite: "normale",
+  }),
+  pagePublique({
+    id: "messaging.page_messagerie",
+    domaine: "messaging",
+    route: "/messagerie",
+    label: "La page de messagerie répond avec du contenu réel",
+    criticite: "normale",
+  }),
+  pagePublique({
+    id: "atelier.page_publique",
+    domaine: "atelier",
+    route: "/atelier-pro",
+    label: "La page Atelier Pro répond avec du contenu réel",
+    criticite: "normale",
+  }),
+  {
+    id: "estimation.sante_calculee",
+    domaine: "estimation",
+    label: "L'état de santé du Estimation Hub est calculé, pas simulé",
+    criticite: "critique",
+    attendu: "controlCenterFeed() répond sans erreur et ne signale pas de compatibilité pièce/modèle cassée.",
+    async run(): Promise<Observation> {
+      try {
+        const { controlCenterFeed } = await import("../estimation-hub/service.js");
+        const r = await controlCenterFeed();
+        if (r.health === "degraded")
+          return { statut: "echec", observe: r.resume };
+        return { statut: "reussi", observe: r.resume };
+      } catch (e) {
+        return {
+          statut: "echec",
+          observe: `Estimation Hub n'a pas répondu : ${e instanceof Error ? e.message : "erreur inconnue"}`,
+        };
+      }
+    },
+  },
   {
     id: "boutons.catalogue_coherent",
     domaine: "boutons",

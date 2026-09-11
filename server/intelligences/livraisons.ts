@@ -418,6 +418,19 @@ export const LIVRAISONS: Livraison[] = [
       "Retirer une dépendance sans preuve n'est pas une suppression de fonctionnalité : c'est corriger une déclaration jamais devenue réelle (souvent héritée d'une intention initiale — livrer avec des créneaux planifiés, garages via paiement direct — jamais construite). Effet mesurable : la composante fortement connexe du graphe de dépendances métier passe de 41 à 39 moteurs (document sort entièrement du cycle, n'y étant relié que par cette fausse dépendance de media_authenticity). Il reste 46 dependance_sans_preuve, très majoritairement portées par des moteurs sous-section de phase 2 encore non construits — à revérifier au cas par cas seulement quand ces moteurs seront construits, pas avant.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-lot8-search-support-messaging-atelier-estimation",
+    titre: "Lot de 5 : couverture de test pour search, support, messaging, atelier, estimation",
+    moteurs: ["search", "support", "messaging", "atelier", "estimation", "continuous_test"],
+    quoi:
+      "Cinq scénarios réels ajoutés dans server/continuous-test/scenarios-univers.ts : quatre pages publiques (search /rechercher, support /aide, messaging /messagerie, atelier /atelier-pro — même méthode, HTTP 200 réel + pas d'écran introuvable) et un contrôle en process pour estimation (import direct de estimation-hub/service.ts, controlCenterFeed(), échec si l'état de santé calculé est « degraded »). Ce dernier import a créé une dépendance réelle continuous_test -> estimation, détectée par le générateur au prochain gen:moteurs (dependance_non_declaree) — déclarée dans catalog.ts, même règle que la dépendance continuous_test -> boutons déjà existante pour la même raison (import direct d'un catalogue pour le tester).",
+    pourquoi:
+      "Continuité de la règle de travail (au moins 5 moteurs testés par lot) et de l'instruction de compléter toute anomalie constatée en travaillant — ici, une dépendance non déclarée créée par le travail de test lui-même, corrigée dans le même lot plutôt que laissée pour un lot séparé.",
+    ou: ["server/continuous-test/scenarios-univers.ts", "server/engine-registry/catalog.ts"],
+    lecon:
+      "Un scénario de contrôle continu qui importe directement le service d'un autre moteur (plutôt que de l'interroger par HTTP public) crée une vraie dépendance de code, pas seulement une preuve de test : elle doit être déclarée comme telle. Les scénarios purement HTTP (page_publique) ne créent aucune dépendance détectable, puisqu'ils interrogent le serveur de l'extérieur comme le ferait un visiteur.",
+    domaine: "moteurs",
+  },
 ];
 
 /**

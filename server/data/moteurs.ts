@@ -4999,6 +4999,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "code_graph",
       "completion_center",
       "core",
+      "estimation",
       "event_bus",
       "intelligences",
       "payment",
@@ -5012,6 +5013,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "code_graph",
       "completion_center",
       "core",
+      "estimation",
       "event_bus",
       "intelligences",
       "payment",
@@ -5025,6 +5027,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "code_graph",
       "completion_center",
       "core",
+      "estimation",
       "event_bus",
       "intelligences",
       "payment",
@@ -5054,6 +5057,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "continuous-test/helpers.ts importe db.ts",
         "continuous-test/helpers.ts importe env.ts",
         "continuous-test/index.ts importe trpc.ts"
+      ],
+      "estimation": [
+        "continuous-test/scenarios-univers.ts charge estimation-hub/service.ts"
       ],
       "event_bus": [
         "continuous-test/catalog.ts charge event-bus/service.ts",
@@ -7217,7 +7223,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat",
       "achat_officiel",
       "achat_particulier",
-      "achat_pro"
+      "achat_pro",
+      "continuous_test"
     ],
     "evenementsPublies": [
       "estimation.incomplete"
