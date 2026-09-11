@@ -381,7 +381,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "achat",
     label: "Univers Achat Engine",
     category: "univers",
-    dependencies: ["core","permission","search","audit","avis_reputation","country","event_bus","livraison_vehicule","messaging","notification","payment","risque_import","smart","visibility","estimation","redirection","seo"],
+    dependencies: ["core","permission","search","audit","avis_reputation","country","event_bus","livraison_vehicule","messaging","notification","payment","risque_import","smart","visibility","estimation","redirection","seo","identity"],
     description: "Univers Achat : parcours acheteur, filtres, favoris, mise en relation.",
     state: "active",
   },
@@ -498,7 +498,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "avis_reputation",
     label: "Reviews & Reputation Engine",
     category: "service",
-    dependencies: ["core","country","notification","connecteur_google_business","depannage","livraison","pieces","smart","workflow"],
+    dependencies: ["core","country","notification","connecteur_google_business","depannage","livraison","pieces","smart","workflow","identity"],
     description:
       "Avis multi-univers par pays, expériences vérifiées après transaction réelle, réponses professionnelles et officielles, réputation consolidée.",
     state: "active",

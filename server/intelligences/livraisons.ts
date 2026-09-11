@@ -300,6 +300,19 @@ export const LIVRAISONS: Livraison[] = [
       "dependance_non_declaree est le signal miroir de dependance_sans_preuve : au lieu d'une fausse déclaration à retirer, c'est un vrai usage à déclarer. Les deux méritent le même balayage systématique. Reste ouvert, non traité dans ce lot pour respecter la limite de 1-2 moteurs : achat -> identity, avis_reputation -> identity (routers/annonces.ts et routers/reviews.ts importent identity-os/identite-officielle.ts), livraison -> boutons, livraison_vehicule -> boutons — 4 dépendances du même type, prouvées, à ajouter dans un prochain lot. Noté aussi : /livraison-vehicule reste une route sans moteur (le même écran, mais une 3e route, ni sous vente ni sous livraison_vehicule) — à vérifier si c'est voulu ou un doublon de route à nettoyer.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-stabilisation-moteurs-achat-avis-identity",
+    titre: "achat et avis_reputation utilisent réellement identity sans le déclarer",
+    moteurs: ["achat", "avis_reputation", "identity"],
+    quoi:
+      "Suite du lot précédent sur les dependance_non_declaree. routers/annonces.ts (achat) et routers/reviews.ts (avis_reputation) importent tous les deux IDENTITE_OFFICIELLE et estDirection depuis identity-os/identite-officielle.ts — le garde-fou qui masque l'identité personnelle de la direction sur les écrans publics (annonces, avis). Ni achat ni avis_reputation ne déclaraient identity. Ajouté dans catalog.ts pour les deux, preuve de code directe.",
+    pourquoi:
+      "Poursuite du balayage dependance_non_declaree commencé au lot précédent (vente), maximum 2 moteurs par lot.",
+    ou: ["server/engine-registry/catalog.ts", "server/data/moteurs.ts"],
+    lecon:
+      "Même famille de manque que vente/livraison_vehicule : un garde-fou transversal (ici la protection de l'identité de la direction) peut être utilisé par n'importe quel écran public sans que le moteur propriétaire de cet écran ait pensé à déclarer identity. Reste ouvert pour le prochain lot : livraison -> boutons, livraison_vehicule -> boutons, et la route orpheline /livraison-vehicule.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
