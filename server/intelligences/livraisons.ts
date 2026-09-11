@@ -261,6 +261,32 @@ export const LIVRAISONS: Livraison[] = [
       "Deux causes de nature différente à ne pas confondre : un vrai bug de code (nom de modèle fictif, corrigé) et une absence de configuration en production (clés Google/Anthropic/Mistral non fournies à Railway, hors de portée d'un agent qui n'a pas mandat pour écrire des secrets). Le second point n'est pas « corrigé » par ce lot — seulement diagnostiqué et remonté à la direction, qui gère les secrets Railway. Vérifié sans jamais lire ni écrire de valeur de secret : uniquement la liste des noms de variables présentes.",
     domaine: "intelligences",
   },
+  {
+    cle: "branche-stabilisation-moteurs-seo-orphelines",
+    titre: "5 dépendances vers seo déclarées sans aucune preuve, dont 2 fausses inverses",
+    moteurs: ["garage", "indexation", "pieces", "product_engine", "visibility", "seo"],
+    quoi:
+      "garage, indexation, pieces, product_engine et visibility déclaraient tous une dépendance vers seo sans la moindre preuve d'usage dans le code (dependance_sans_preuve). Vérifié dans les deux sens pour chacun : garage -> seo était l'inverse de la vraie relation (seo -> garage est prouvé : GaragePublicFiche.tsx appelle trpc.garages) ; indexation -> seo pareil (seo -> indexation est prouvé : seo-hooks.ts importe indexation/service.ts). pieces -> seo, product_engine -> seo et visibility -> seo n'ont aucune contrepartie prouvée dans l'autre sens non plus : déclarations orphelines, sans lien réel constaté dans le code actuel. Les 5 retirées de catalog.ts.",
+    pourquoi:
+      "Suite de la stabilisation des 88 moteurs, en cherchant d'autres dependance_sans_preuve dans la composante à 42 moteurs après le succès de la même méthode sur comptabilite<->accounting_internal.",
+    ou: ["server/engine-registry/catalog.ts", "server/data/moteurs.ts"],
+    lecon:
+      "Le même schéma qu'un lot précédent (comptabilite <-> accounting_internal) se reproduit à plus grande échelle : cinq déclarations orphelines ou inversées d'un coup vers le même moteur cible (seo), sans doute ajoutées ensemble sans vérification individuelle. Chercher systématiquement dependance_sans_preuve avant de chercher des cycles complexes : c'est le signal le plus fiable et le moins ambigu — soit la preuve existe dans l'autre sens (déclaration inversée à corriger), soit elle n'existe nulle part (déclaration orpheline à retirer), jamais un vrai choix d'architecture à trancher. N'a pas fait bouger la taille de la composante à 42 moteurs (garage, indexation, pieces, product_engine, visibility y restent reliés par d'autres arêtes bien réelles) : la métrique agrégée n'est pas le bon indicateur pour juger un lot précis.",
+    domaine: "moteurs",
+  },
+  {
+    cle: "branche-stabilisation-moteurs-politique-pays-smart-audit",
+    titre: "politique_pays -> smart et smart -> smart_audit : deux dépendances inversées corrigées, le reste du grand chantier n'est PAS traité",
+    moteurs: ["politique_pays", "smart", "smart_audit"],
+    quoi:
+      "Deux dépendances déclarées sans preuve, toutes deux inversées (même schéma que seo) : politique_pays -> smart n'a aucune preuve, alors que smart -> politique_pays est prouvé (smart-engine/services/action-tasks.ts importe country-policy/service.ts). smart -> smart_audit n'a aucune preuve, alors que smart_audit -> smart est prouvé (smart-audit/service.ts importe 3 services de smart-engine). Les deux corrigées dans catalog.ts. Résultat mesuré : la composante fortement connexe passe de 42 à 41 moteurs (politique_pays en sort).",
+    pourquoi:
+      "Recherche systématique de dependance_sans_preuve dans tout le registre (pas seulement la composante à 42), pour continuer à finir ce qui peut l'être avant la phase de construction réelle demandée par la direction.",
+    ou: ["server/engine-registry/catalog.ts", "server/data/moteurs.ts"],
+    lecon:
+      "IMPORTANT — décision délibérée de ne PAS traiter le reste de la liste dependance_sans_preuve (une cinquantaine d'entrées restantes, sur des moteurs comme finance, controle_technique, encheres, location, vente, knowledge…). Vérifié : ces moteurs n'ont presque aucun fichier serveur réel (0 à 4 fichiers, plusieurs marqués sans_logique_serveur — finance n'a qu'un seul fichier, controle_technique aucun). Leurs dépendances déclarées sans preuve ne sont pas des erreurs comme comptabilite<->accounting_internal ou seo : ce sont des intentions d'architecture pour des moteurs pas encore construits. Les retirer effacerait à tort ce qu'ils devront réellement utiliser une fois développés — c'est exactement le travail de « construction et développement réel de chaque moteur » que la direction a explicitement mis dans la phase suivante, pas dans la stabilisation en cours. Règle à retenir : dependance_sans_preuve n'est un signal fiable de correction immédiate QUE lorsque le moteur source a une vraie implémentation serveur (plusieurs fichiers, d'autres dépendances prouvées) ; sur un moteur-écran ou un stub, c'est un manque de construction, pas un défaut de registre.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
