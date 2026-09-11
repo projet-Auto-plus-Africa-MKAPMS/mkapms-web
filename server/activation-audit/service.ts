@@ -98,8 +98,16 @@ function matchRouter(engineName: string, routers: RouterSurface[]): RouterSurfac
   return fallback;
 }
 
+/** Routes client déclarées par moteur dans perimetres.ts (mêmes limites que ROUTEURS_DECLARES ci-dessus). */
+const ROUTES_DECLAREES = new Map(MOTEURS.map((m) => [m.moteur, m.routes]));
+
 /** Familles de routes visiteur rattachables à ce moteur. */
 function matchRoutes(engineName: string, families: RouteFamily[]): string[] {
+  const declarees = ROUTES_DECLAREES.get(engineName);
+  if (declarees && declarees.length > 0) return [...declarees];
+
+  // Repli : approximation par segment d'URL, pour un moteur pas encore
+  // déclaré dans perimetres.ts.
   const variants = keyVariants(engineName);
   const routes: string[] = [];
   for (const family of families) {

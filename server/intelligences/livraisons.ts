@@ -343,6 +343,19 @@ export const LIVRAISONS: Livraison[] = [
       "matchRouter() consulte maintenant en premier les routeurs déclarés dans server/data/moteurs.ts (généré depuis perimetres.ts), et ne retombe sur la ressemblance de texte qu'en repli pour un moteur pas encore déclaré. Vérifié statiquement (introspection réelle de appRouter, aucune base de données requise) : 24 -> 11 candidats sans routeur trouvé. IMPORTANT, honnêteté sur la limite : cette vérification ne couvre que la sous-cause « aucun routeur trouvé ». non_connectee peut aussi venir de engine.missingDependencies (dépendances du registre vivant, calculées en base) — donnée que je ne peux pas lire depuis cet environnement (accès PostgreSQL direct bloqué). Les 12 corrigés ici devraient repasser verts au prochain audit SI leurs dépendances vivantes sont par ailleurs saines ; à confirmer après déploiement, pas garanti à 100% depuis ici. Les 11 restants (vente, achat_officiel/pro/particulier, vente_pro/particulier, location_pro/particulier, controle_technique, finance, encheres) n'ont réellement aucun routeur : ce sont des moteurs-écran sans logique serveur, confirmé dans un lot précédent — ils ont besoin d'une vraie construction (phase suivante), pas d'une reconnexion.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-activation-audit-matchroutes-perimetres",
+    titre: "Critère « Accessible » : 32 moteurs supplémentaires avaient déjà une route déclarée, mal détectée",
+    moteurs: ["activation_audit"],
+    quoi:
+      "Même défaut que matchRouter (lot précédent), sur matchRoutes() cette fois : il devine les routes visiteur d'un moteur en comparant son nom au premier segment d'URL (« acheter », « garages »…), alors que server/data/moteurs.ts (généré depuis perimetres.ts) déclare déjà, moteur par moteur, la liste exacte de ses routes. Vérifié statiquement : 40 des 88 moteurs échouaient le critère « accessible » avec l'ancienne méthode ; 32 d'entre eux ont en réalité une route déclarée que la comparaison de segment ne pouvait pas deviner (account_routing, visibility, payment, search, monitoring, analytics, event_bus, scheduler, journey, achat_officiel/pro/particulier, location_pro/particulier, energie_recharge, politique_pays, et 16 autres).",
+    pourquoi:
+      "Suite directe de la demande de la direction sur les moteurs mal connectés, en vérifiant si le même défaut touchait aussi le critère Accessible.",
+    ou: ["server/activation-audit/service.ts"],
+    lecon:
+      "matchRoutes() consulte maintenant en premier les routes déclarées dans server/data/moteurs.ts, comme matchRouter(). Il reste 8 moteurs sans route déclarée du tout après ce correctif (media_authenticity, boutons, payment_orchestrator, financial_intelligence, connecteur_google_business, media, ai_learning, risque_import) : ce n'est probablement pas un défaut à corriger pour la plupart — ce sont des moteurs transversaux consommés par d'autres écrans (ex. boutons, un composant partagé) plutôt que des univers avec leur propre page. À vérifier au cas par cas, pas à connecter de force. Deux défauts du même type trouvés coup sur coup (matchRouter puis matchRoutes) suggèrent de relire tout le reste de server/activation-audit/ (accessible, testé, utilisé, Système Intelligent) avec la même question : cet audit réinvente-t-il une correspondance que le registre connaît déjà ailleurs ?",
+    domaine: "moteurs",
+  },
 ];
 
 /**
