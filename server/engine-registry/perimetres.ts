@@ -264,7 +264,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
     moteur: "intelligences",
     dossiers: ["intelligences"],
     routeurs: ["intelligences"],
-    routes: ["/admin/intelligences", "/intelligences"],
+    routes: ["/admin/intelligences", "/intelligences", "/intelligence"],
   },
   {
     moteur: "smart_audit",

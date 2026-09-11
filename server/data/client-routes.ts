@@ -299,6 +299,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/import-africa",
   "/inscription",
   "/inscription-pro-vo",
+  "/intelligence",
   "/intelligences",
   "/international",
   "/international/multi-devises",
