@@ -517,6 +517,32 @@ export const LIVRAISONS: Livraison[] = [
       "Un bouton de fonctionnalité peut être honnêtement déclaré (spécification complète, permission, précaution) sans qu'aucune ligne de code ne l'exécute réellement — l'état affiché (« activable ») ne prouvait que la présence d'une clé de fournisseur pour la capacité texte générique, jamais l'existence du code qui ferait la différence. Reste à faire, volontairement pas construit ici : aucune boucle d'exécution d'outil n'existe encore (demander un appel, l'exécuter, renvoyer le résultat au modèle pour la réponse finale), ni de Tool Registry recensant quelles fonctions MKA.P-MS sont exposables à qui — décision sensible aux permissions, à traiter comme son propre lot. Non vérifiable depuis cet environnement (aucune clé fournisseur réelle) : à confirmer par un vrai appel après déploiement, avec au moins un scénario de contrôle continu dédié.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-tool-registry-boucle-execution",
+    titre: "Tool Registry + boucle d'exécution d'outils — brique de sécurité et d'orchestration, pas un simple switch de function calling",
+    moteurs: ["intelligences"],
+    quoi:
+      "Construit sur la plomberie du lot précédent (outils/sortieStructuree dans provider.ts) sans jamais y ajouter de logique métier — provider.ts reste la couche fournisseur. Quatre couches séparées dans server/intelligences/outils/ : registre.ts (ce qui existe — 5 outils de test non destructifs, chacun avec tool_id, description, version, schema_input/output, allowed_roles, required_permissions, requires_human_approval, risk_level parmi READ_ONLY/LOW/MEDIUM/HIGH/CRITICAL, idempotent, timeout, source, enabled, audit_category) ; politique.ts (qui peut — vérifie l'activation, le rôle, la permission via server/intelligences/permissions.ts, puis applique une règle non négociable : risque HIGH/CRITICAL toujours refusé quels que soient rôle et permission, et requiresHumanApproval renvoie « en attente d'approbation humaine » sans jamais exécuter, faute de mécanisme d'approbation construit) ; executeur.ts (exécute réellement — valide les arguments contre le schéma, applique le timeout déclaré, rattrape l'erreur de l'outil sans jamais inventer un résultat) ; audit.ts (journalise systématiquement dans une nouvelle table in_outils_journal, y compris les refus et les outils inconnus — l'échec du journal ne casse jamais la boucle, comme la mesure d'appels existante). boucle.ts enchaîne le tout via server/intelligences/routeur.ts (jamais provider.ts directement) : plusieurs appels d'outils par tour, plusieurs tours, limite d'itérations non négociable (5 par défaut) pour empêcher toute boucle sans fin, retour propre au modèle à chaque étape (jamais un silence). provider.ts reçoit un nouveau champ historique pour porter les tours assistant/tool successifs sans connaître le sens métier de ce qu'il transporte.",
+    pourquoi:
+      "Demande explicite et très précisément cadrée de la direction : jamais un simple tool-call → exécuter direct. Permissions, validations et journalisation doivent être au milieu, avec une séparation nette registre / politique / exécuteur / audit, et aucun outil réel (paiement, suppression, production, rôles, Railway, fournisseurs, VIN, transport) tant que le mécanisme n'est pas validé sur des outils sans risque.",
+    ou: [
+      "server/intelligences/outils/registre.ts",
+      "server/intelligences/outils/politique.ts",
+      "server/intelligences/outils/executeur.ts",
+      "server/intelligences/outils/validation.ts",
+      "server/intelligences/outils/outils-test.ts",
+      "server/intelligences/outils/audit.ts",
+      "server/intelligences/outils/boucle.ts",
+      "server/intelligences/outils/__tests__/boucle.test.ts",
+      "server/intelligences/provider.ts",
+      "server/intelligences/routeur.ts",
+      "server/intelligences/schema.ts",
+      "drizzle/0110_intelligences_outils_journal.sql",
+    ],
+    lecon:
+      "32 vérifications exécutées et réussies (npx tsx .../boucle.test.ts) : outil autorisé, outil désactivé, mauvais rôle, permission refusée (distincte du mauvais rôle), arguments invalides, outil inconnu au milieu d'une boucle réelle, outil en erreur (division par zéro, propagée telle quelle), un outil rapide jamais faussement chronométré, deux appels d'outils dans le même tour, boucle bloquée proprement à la limite déclarée (jamais un texte inventé à la place), sortie structurée obtenue après un appel d'outil, validation humaine qui bloque réellement l'exécution, et risque CRITICAL toujours refusé même avec rôle et permission autorisés. Aucun accès réseau ni base de données réels dans cet environnement de travail (PostgreSQL injoignable — une tentative de connexion sans garde-fou peut rester bloquée plutôt que d'échouer vite, contrairement à ce qu'on pourrait attendre) : le modèle et la vérification de permission sont injectés avec de faux comportements scriptés pour les tests, jamais en production (paramètres optionnels avec la vraie implémentation en valeur par défaut) — la boucle, le registre, la politique et l'exécuteur testés sont le vrai code de production. Reste volontairement non construit : le mécanisme d'approbation humaine en boucle (donc HIGH/CRITICAL et requiresHumanApproval restent bloqués sans exception dans ce lot), tout outil métier réel, et le branchement de cette boucle à un module de l'application MKA.P-MS Intelligence ou à l'assistant intégré — aucun des deux ne l'appelle encore.",
+    domaine: "moteurs",
+  },
 ];
 
 /**

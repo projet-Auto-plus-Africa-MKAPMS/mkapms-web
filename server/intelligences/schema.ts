@@ -425,6 +425,37 @@ export const inDevAppels = pgTable(
   }),
 );
 
+/**
+ * Journal d'audit du Tool Registry (server/intelligences/outils/). Une ligne
+ * par outil demandé par un modèle, quelle qu'en soit l'issue — un outil
+ * refusé ou en attente d'approbation est tracé au même titre qu'un outil
+ * exécuté : c'est la seule façon de savoir ce qu'un modèle a tenté de faire.
+ */
+export const inOutilsJournal = pgTable(
+  "in_outils_journal",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    toolId: varchar("tool_id", { length: 80 }).notNull(),
+    moteur: varchar("moteur", { length: 48 }).notNull(),
+    role: varchar("role", { length: 24 }),
+    /** `autorise` | `refuse` | `attente_approbation_humaine`. */
+    verdictPolitique: varchar("verdict_politique", { length: 32 }).notNull(),
+    /** `execute` | `erreur` | `timeout` | `arguments_invalides` | null si non exécuté. */
+    statutExecution: varchar("statut_execution", { length: 24 }),
+    motif: text("motif").notNull().default(""),
+    /** Arguments et résultat tronqués : ce journal ne doit pas devenir un second entrepôt de données. */
+    argumentsJson: text("arguments_json"),
+    resultatJson: text("resultat_json"),
+    dureeMs: integer("duree_ms").notNull().default(0),
+    auditCategory: varchar("audit_category", { length: 40 }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parOutil: index("in_outils_journal_tool_idx").on(t.toolId, t.createdAt),
+    parMoteur: index("in_outils_journal_moteur_idx").on(t.moteur, t.createdAt),
+  }),
+);
+
 /** Point 150 — étapes du plan de détachement des fournisseurs, décidées par le PDG. */
 export const inPlanAutonomie = pgTable("in_plan_autonomie", {
   id: serial("id").primaryKey(),

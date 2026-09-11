@@ -18,7 +18,13 @@
  */
 import { eq } from "drizzle-orm";
 import { db } from "../db.js";
-import { appeler, type AppelResultat, type OutilFonction, type SortieStructuree } from "./provider.js";
+import {
+  appeler,
+  type AppelResultat,
+  type MessageConversation,
+  type OutilFonction,
+  type SortieStructuree,
+} from "./provider.js";
 import { registre, spec, type CodeCapacite } from "./capacites.js";
 import { autorise } from "./autonomie.js";
 import { permissionsDuRole, verifier } from "./permissions.js";
@@ -65,6 +71,8 @@ export interface DemandeCapacite {
   outils?: OutilFonction[];
   /** Réponse garantie conforme à ce schéma (capacité "sortie_structuree"). */
   sortieStructuree?: SortieStructuree;
+  /** Tours déjà échangés, pour poursuivre après un appel d'outil (voir provider.ts). */
+  historique?: MessageConversation[];
 }
 
 export interface ResultatCapacite extends AppelResultat {
@@ -191,6 +199,7 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
     maxTokens: demande.maxTokens,
     outils: demande.outils,
     sortieStructuree: demande.sortieStructuree,
+    historique: demande.historique,
   } as const;
 
   /**

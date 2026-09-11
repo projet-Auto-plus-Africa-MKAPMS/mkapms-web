@@ -9535,7 +9535,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 24,
+    "fichiersServeur": 31,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -9788,6 +9788,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "in_messages",
       "in_mission_etapes",
       "in_missions",
+      "in_outils_journal",
       "in_permissions",
       "in_plan_autonomie",
       "in_sessions",
