@@ -128,6 +128,80 @@ export const UNIVERS_SCENARIOS: Scenario[] = [
     label: "La page Atelier Pro répond avec du contenu réel",
     criticite: "normale",
   }),
+  pagePublique({
+    id: "depannage.page_publique",
+    domaine: "depannage",
+    route: "/depannage",
+    label: "La page Dépannage répond avec du contenu réel",
+    criticite: "normale",
+  }),
+  pagePublique({
+    id: "vo_engine.page_publique",
+    domaine: "vo_engine",
+    route: "/louer/certifies",
+    label: "La page VO certifiés répond avec du contenu réel",
+    criticite: "normale",
+  }),
+  pagePublique({
+    id: "energie_recharge.page_publique",
+    domaine: "energie_recharge",
+    route: "/labs/energy-recharge",
+    label: "La page Recharge répond avec du contenu réel",
+    criticite: "normale",
+  }),
+  {
+    id: "media_authenticity.etat_calcule",
+    domaine: "media_authenticity",
+    label: "L'état du contrôle d'authenticité des médias est calculé, pas simulé",
+    criticite: "critique",
+    attendu: "etat() répond sans erreur et rapporte une couverture de détecteurs cohérente (operationnels <= total).",
+    async run(): Promise<Observation> {
+      try {
+        const { etat } = await import("../media-authenticity/service.js");
+        const r = await etat();
+        if (r.couverture.operationnels > r.couverture.total) {
+          return {
+            statut: "echec",
+            observe: `Couverture incohérente : ${r.couverture.operationnels} opérationnels sur ${r.couverture.total} détecteurs.`,
+          };
+        }
+        return {
+          statut: "reussi",
+          observe: `${r.medias} média(s) analysé(s), ${r.couverture.operationnels}/${r.couverture.total} détecteur(s) opérationnel(s), ${r.incidentsOuverts} incident(s) ouvert(s).`,
+        };
+      } catch (e) {
+        return {
+          statut: "echec",
+          observe: `Media Authenticity n'a pas répondu : ${e instanceof Error ? e.message : "erreur inconnue"}`,
+        };
+      }
+    },
+  },
+  {
+    id: "connecteur_google_business.etat_gracieux",
+    domaine: "connecteur_google_business",
+    label: "Le connecteur Google Business répond honnêtement, avec ou sans identifiants",
+    criticite: "normale",
+    attendu: "connectorStatus() répond sans erreur, qu'une clé réelle soit fournie ou non (jamais un faux « actif »).",
+    async run(): Promise<Observation> {
+      try {
+        const { connectorStatus } = await import("../connectors/google-business/service.js");
+        const r = await connectorStatus();
+        if (r.state === "actif" && !r.credentials.refreshToken) {
+          return {
+            statut: "echec",
+            observe: "État « actif » annoncé sans jeton d'actualisation réel : faux positif.",
+          };
+        }
+        return { statut: "reussi", observe: `État : ${r.state}. ${r.message}` };
+      } catch (e) {
+        return {
+          statut: "echec",
+          observe: `Connecteur Google Business n'a pas répondu : ${e instanceof Error ? e.message : "erreur inconnue"}`,
+        };
+      }
+    },
+  },
   {
     id: "estimation.sante_calculee",
     domaine: "estimation",

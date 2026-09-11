@@ -4920,7 +4920,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "avis_reputation"
+      "avis_reputation",
+      "continuous_test"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -4973,10 +4974,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "boutons",
       "code_graph",
       "completion_center",
+      "connecteur_google_business",
       "core",
       "estimation",
       "event_bus",
       "intelligences",
+      "media_authenticity",
       "payment",
       "redirection",
       "smart"
@@ -4987,10 +4990,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "boutons",
       "code_graph",
       "completion_center",
+      "connecteur_google_business",
       "core",
       "estimation",
       "event_bus",
       "intelligences",
+      "media_authenticity",
       "payment",
       "redirection",
       "smart"
@@ -5001,10 +5006,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "boutons",
       "code_graph",
       "completion_center",
+      "connecteur_google_business",
       "core",
       "estimation",
       "event_bus",
       "intelligences",
+      "media_authenticity",
       "payment",
       "redirection",
       "smart"
@@ -5028,6 +5035,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "completion_center": [
         "continuous-test/scenarios-moteurs-centraux.ts charge completion/service.ts"
       ],
+      "connecteur_google_business": [
+        "continuous-test/scenarios-univers.ts charge connectors/google-business/service.ts"
+      ],
       "core": [
         "continuous-test/helpers.ts importe db.ts",
         "continuous-test/helpers.ts importe env.ts",
@@ -5042,6 +5052,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "intelligences": [
         "continuous-test/scenarios-intelligences.ts charge intelligences/provider.ts"
+      ],
+      "media_authenticity": [
+        "continuous-test/scenarios-univers.ts charge media-authenticity/service.ts"
       ],
       "payment": [
         "continuous-test/catalog.ts charge lib/stripe.ts",
@@ -11964,6 +11977,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "continuous_test",
       "identity"
     ],
     "evenementsPublies": [

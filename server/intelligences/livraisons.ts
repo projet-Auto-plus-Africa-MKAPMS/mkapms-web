@@ -444,6 +444,19 @@ export const LIVRAISONS: Livraison[] = [
       "Un moteur marqué « active » sans un seul dossier serveur ni routeur déclaré, et dont 100% des dépendances déclarées sont sans preuve, n'est pas actif : c'est un moteur pas encore construit auquel on a oublié de changer l'état, contrairement aux sous-sections *_pro qui, elles, sont honnêtement « staging ». Point non résolu à signaler à la direction plutôt qu'à trancher seul (changement de responsabilité majeur, pas une réparation) : encheres (category service, state active, 0 dossier, 0 routeur, mais dépend de auction_engine) et auction_engine (le vrai moteur construit, avec son propre dossier auction-engine et sa route /encheres/live) semblent couvrir le même domaine en double — à clarifier : encheres doit-il rester une simple façade univers au-dessus d'auction_engine, ou les deux devraient-ils fusionner ?",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-lot10-depannage-vo-energie-media-google-business",
+    titre: "Lot de 5 : couverture de test pour depannage, vo_engine, energie_recharge, media_authenticity, connecteur_google_business",
+    moteurs: ["depannage", "vo_engine", "energie_recharge", "media_authenticity", "connecteur_google_business", "continuous_test"],
+    quoi:
+      "Cinq scénarios réels ajoutés dans scenarios-univers.ts. Trois pages publiques (depannage /depannage, vo_engine /louer/certifies, energie_recharge /labs/energy-recharge — même méthode que les lots précédents). Deux contrôles en process, choisis parce que ces deux moteurs n'exposent aucune route visiteur (backend pur) : media_authenticity.etat_calcule importe directement service.ts et vérifie que etat() répond avec une couverture de détecteurs cohérente (jamais plus d'opérationnels que de détecteurs déclarés) ; connecteur_google_business.etat_gracieux importe directement service.ts et vérifie que connectorStatus() répond honnêtement — échoue seulement si l'état affiché est « actif » sans jeton d'actualisation réel (le connecteur est censé rester « non configuré » tant que les clés Google ne sont pas fournies, jamais se prétendre actif sans elles). Les deux imports directs ont créé 2 dépendances réelles (continuous_test -> media_authenticity, continuous_test -> connecteur_google_business), déclarées dans catalog.ts, même raison que continuous_test -> boutons et -> estimation déjà déclarées.",
+    pourquoi:
+      "Continuité de la règle des 5 moteurs testés par lot, en priorisant des moteurs sans aucune route visiteur (donc invisibles aux scénarios HTTP habituels) pour élargir la méthode de contrôle en process déjà validée avec estimation.",
+    ou: ["server/continuous-test/scenarios-univers.ts", "server/engine-registry/catalog.ts"],
+    lecon:
+      "Le contrôle du connecteur Google Business illustre la règle permanente sur les clés externes manquantes : le test ne vérifie jamais qu'une clé réelle est présente, seulement que le code se comporte honnêtement dans les deux cas (avec ou sans clé) — un connecteur qui se prétendrait « actif » sans jeton réel serait le vrai défaut, pas l'absence de la clé elle-même.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
