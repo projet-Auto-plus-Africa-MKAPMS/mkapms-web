@@ -757,6 +757,13 @@
       "when": 1788232001000,
       "tag": "0109_tables_sans_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 108,
+      "version": "7",
+      "when": 1788232002000,
+      "tag": "0110_intelligences_outils_journal",
+      "breakpoints": true
     }
   ]
 }

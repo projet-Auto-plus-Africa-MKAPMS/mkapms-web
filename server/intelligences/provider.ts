@@ -47,6 +47,19 @@ export interface SortieStructuree {
   strict?: boolean;
 }
 
+/**
+ * Un tour de conversation, tel que le fournisseur l'attend. Ce fichier ne
+ * construit et n'interprète jamais le contenu métier d'un tour "tool" — il le
+ * relaie tel quel. La boucle qui enchaîne les tours (server/intelligences/
+ * outils/boucle.ts) est seule responsable de ce qu'elle y écrit.
+ */
+export interface MessageConversation {
+  role: "user" | "assistant" | "tool";
+  content?: string | null;
+  tool_calls?: { id: string; type: "function"; function: { name: string; arguments: string } }[];
+  tool_call_id?: string;
+}
+
 export interface AppelInput {
   /** Capacité Fabrique Intelligence : "ia_texte" ou "ia_vision". */
   capacite: "ia_texte" | "ia_vision";
@@ -67,6 +80,13 @@ export interface AppelInput {
   outils?: OutilFonction[];
   /** Réponse garantie conforme à ce schéma (capacité "sortie_structuree"). */
   sortieStructuree?: SortieStructuree;
+  /**
+   * Tours déjà échangés (assistant + tool), pour poursuivre une conversation
+   * après un appel d'outil. Quand fourni, remplace le tour utilisateur unique
+   * construit à partir de `message` — `message` doit alors être vide, le
+   * dernier tour utile est déjà dans `historique`.
+   */
+  historique?: MessageConversation[];
   /**
    * Point 147 — fournisseur imposé par le propriétaire, ou moteur candidat en
    * mode shadow. Quand il est fourni, le routage habituel n'est pas consulté.
@@ -347,7 +367,7 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
         model: resolu.modele,
         messages: [
           { role: "system", content: input.systeme },
-          { role: "user", content: contenu },
+          ...(input.historique ?? [{ role: "user", content: contenu }]),
         ],
         max_completion_tokens: input.maxTokens ?? 1200,
         ...(input.temperature === undefined ? {} : { temperature: input.temperature }),
