@@ -100,7 +100,7 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 88;
-export const MANQUES_TOTAL = 697;
+export const MANQUES_TOTAL = 692;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "destination_inconnue": 56,
   "ecran_sans_contenu": 355,
@@ -108,7 +108,7 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "dependance_non_declaree": 6,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
-  "dependance_sans_preuve": 62,
+  "dependance_sans_preuve": 57,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1
 };
@@ -7846,7 +7846,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "payment",
       "scheduler",
-      "seo",
       "support",
       "visibility"
     ],
@@ -7876,7 +7875,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "payment",
       "scheduler",
-      "seo",
       "support",
       "visibility"
     ],
@@ -8674,10 +8672,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_sans_preuve",
         "detail": "payment"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "seo"
       }
     ]
   },
@@ -9512,7 +9506,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDeclarees": [
       "audit",
       "core",
-      "seo",
       "smart"
     ],
     "dependancesDetectees": [
@@ -9523,7 +9516,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependances": [
       "audit",
       "core",
-      "seo",
       "smart"
     ],
     "integrationsTechniques": [],
@@ -9590,12 +9582,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 40,
     "mots": 172,
     "battement": "sonde",
-    "manques": [
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "seo"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "intelligences",
@@ -13804,8 +13791,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "payment",
       "payment_orchestrator",
-      "product_engine",
-      "seo"
+      "product_engine"
     ],
     "dependancesDetectees": [
       "avis_reputation",
@@ -13825,8 +13811,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "payment",
       "payment_orchestrator",
-      "product_engine",
-      "seo"
+      "product_engine"
     ],
     "integrationsTechniques": [
       "identity"
@@ -14332,10 +14317,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/pieces/RetoursPieces.tsx (2 texte(s))"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "seo"
       }
     ]
   },
@@ -15102,7 +15083,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDeclarees": [
       "core",
       "event_bus",
-      "seo",
       "smart"
     ],
     "dependancesDetectees": [
@@ -15113,7 +15093,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependances": [
       "core",
       "event_bus",
-      "seo",
       "smart"
     ],
     "integrationsTechniques": [],
@@ -15184,12 +15163,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 18,
     "mots": 97,
     "battement": "sonde",
-    "manques": [
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "seo"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "proximity_engine",
@@ -18555,15 +18529,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat",
       "analytics",
       "event_bus",
-      "garage",
-      "indexation",
       "knowledge",
       "location",
       "marketing",
-      "pieces",
-      "product_engine",
-      "smart",
-      "visibility"
+      "smart"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [
@@ -21175,7 +21144,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDeclarees": [
       "core",
       "identity",
-      "seo",
       "smart"
     ],
     "dependancesDetectees": [
@@ -21186,7 +21154,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependances": [
       "core",
       "identity",
-      "seo",
       "smart"
     ],
     "integrationsTechniques": [
@@ -21277,12 +21244,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 31,
     "mots": 145,
     "battement": "pont_os",
-    "manques": [
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "seo"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "vo",

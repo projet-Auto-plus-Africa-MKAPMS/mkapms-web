@@ -261,6 +261,19 @@ export const LIVRAISONS: Livraison[] = [
       "Deux causes de nature différente à ne pas confondre : un vrai bug de code (nom de modèle fictif, corrigé) et une absence de configuration en production (clés Google/Anthropic/Mistral non fournies à Railway, hors de portée d'un agent qui n'a pas mandat pour écrire des secrets). Le second point n'est pas « corrigé » par ce lot — seulement diagnostiqué et remonté à la direction, qui gère les secrets Railway. Vérifié sans jamais lire ni écrire de valeur de secret : uniquement la liste des noms de variables présentes.",
     domaine: "intelligences",
   },
+  {
+    cle: "branche-stabilisation-moteurs-seo-orphelines",
+    titre: "5 dépendances vers seo déclarées sans aucune preuve, dont 2 fausses inverses",
+    moteurs: ["garage", "indexation", "pieces", "product_engine", "visibility", "seo"],
+    quoi:
+      "garage, indexation, pieces, product_engine et visibility déclaraient tous une dépendance vers seo sans la moindre preuve d'usage dans le code (dependance_sans_preuve). Vérifié dans les deux sens pour chacun : garage -> seo était l'inverse de la vraie relation (seo -> garage est prouvé : GaragePublicFiche.tsx appelle trpc.garages) ; indexation -> seo pareil (seo -> indexation est prouvé : seo-hooks.ts importe indexation/service.ts). pieces -> seo, product_engine -> seo et visibility -> seo n'ont aucune contrepartie prouvée dans l'autre sens non plus : déclarations orphelines, sans lien réel constaté dans le code actuel. Les 5 retirées de catalog.ts.",
+    pourquoi:
+      "Suite de la stabilisation des 88 moteurs, en cherchant d'autres dependance_sans_preuve dans la composante à 42 moteurs après le succès de la même méthode sur comptabilite<->accounting_internal.",
+    ou: ["server/engine-registry/catalog.ts", "server/data/moteurs.ts"],
+    lecon:
+      "Le même schéma qu'un lot précédent (comptabilite <-> accounting_internal) se reproduit à plus grande échelle : cinq déclarations orphelines ou inversées d'un coup vers le même moteur cible (seo), sans doute ajoutées ensemble sans vérification individuelle. Chercher systématiquement dependance_sans_preuve avant de chercher des cycles complexes : c'est le signal le plus fiable et le moins ambigu — soit la preuve existe dans l'autre sens (déclaration inversée à corriger), soit elle n'existe nulle part (déclaration orpheline à retirer), jamais un vrai choix d'architecture à trancher. N'a pas fait bouger la taille de la composante à 42 moteurs (garage, indexation, pieces, product_engine, visibility y restent reliés par d'autres arêtes bien réelles) : la métrique agrégée n'est pas le bon indicateur pour juger un lot précis.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
