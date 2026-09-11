@@ -205,6 +205,23 @@ export const LIVRAISONS: Livraison[] = [
       "Corriger core seul ne suffit pas à vider un cycle géant, et une classification manuelle par moteur ne passe pas à l'échelle sur 88 moteurs. Mesuré sur le graphe déclaré réel : la composante fortement connexe brute fait 55 moteurs ; exempter les 5 dépendances techniques de core ne la fait retomber qu'à 53 (seuls core et ai_learning en sortent) ; généraliser la même preuve (session/rôle/audit/contrat) à TOUTES les paires — pas seulement celles de core — la fait retomber à 42, et résout exactement l'exemple cité par la direction (identity → country → identity : country -> identity n'était qu'une vérification de session, jamais une dépendance métier). Il reste une composante de 42 moteurs, un cycle à 5 (country, language, notification, scheduler, workflow) et un cycle à 2 (pro_account, pro_portal, réellement bidirectionnel — nécessite un contrat de domaine Pro partagé, pas un retrait de dépendance). Chaque cycle restant doit être vérifié un par un, avec preuve d'usage dans les deux sens, avant de décider s'il est réellement bidirectionnel (contrat neutre nécessaire) ou juste une déclaration non prouvée (à retirer, comme comptabilite↔accounting_internal).",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-stabilisation-moteurs-cycle-country",
+    titre: "Cycle country -> workflow -> notification -> language -> country : platformMap mal rattaché",
+    moteurs: ["country", "workflow", "notification", "language", "scheduler"],
+    quoi:
+      "Le routeur platformMap (carte des sites géolocalisés : lavage, karting, sites) n'a jamais eu de rapport fonctionnel avec workflow (gouvernance/RH/procurement/investisseurs) : il vivait dans workflow.routeurs uniquement parce qu'il partage le fichier server/routers/operations.ts avec les vrais routeurs de workflow. Or c'est CarteMondiale.tsx — l'écran de country (/carte) — qui l'appelle (trpc.platformMap). Cette proximité de fichier créait une fausse dépendance country -> workflow, qui refermait le cycle country -> workflow -> notification -> language -> country (chaque autre arête de ce cycle est une vraie dépendance métier prouvée : language lit la règle pays, notification traduit dans la langue de l'utilisateur, workflow déclenche notifyEvent). Corrigé en deux temps : (1) server/engine-registry/perimetres.ts déclare maintenant platformMap sous country, pas workflow — aucun fichier déplacé, aucun import changé, seule l'attribution du routeur dans le registre change ; (2) une fois cette preuve disparue, catalog.ts déclarait encore country -> workflow sans plus aucune preuve : dépendance retirée.",
+    pourquoi:
+      "Lot suivant demandé par la direction sur le cycle country/language/notification/scheduler/workflow, en cherchant la cause la plus directe avant de toucher aux autres arêtes (toutes prouvées métier, donc conservées).",
+    ou: [
+      "server/engine-registry/perimetres.ts",
+      "server/engine-registry/catalog.ts",
+      "server/data/moteurs.ts",
+    ],
+    lecon:
+      "Une dépendance entre deux moteurs peut être un pur artefact d'attribution de fichier plutôt qu'un vrai couplage métier ou technique : deux routeurs tRPC qui n'ont rien à voir peuvent partager un fichier serveur pour des raisons historiques, et le générateur attribue alors le routeur au moteur propriétaire du fichier, pas à celui qui l'utilise réellement. Avant de qualifier une arête de « métier » ou « technique », vérifier d'abord si le routeur cible est correctement rattaché : ici, corriger l'attribution (perimetres.ts) a suffi à faire disparaître la fausse dépendance sans toucher à un seul import. workflow -> scheduler reste déclaré sans aucune preuve dans le code, mais workflow est explicitement « à créer (Phase 2) » dans catalog.ts : contrairement à comptabilite -> accounting_internal (moteur actif), ce n'est pas retiré ici — possible déclaration d'intention pour un moteur pas encore construit, pas une incohérence avérée.",
+    domaine: "moteurs",
+  },
 ];
 
 /**

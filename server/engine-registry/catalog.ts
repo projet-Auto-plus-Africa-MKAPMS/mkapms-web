@@ -43,7 +43,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "country",
     label: "Country OS",
     category: "transversal",
-    dependencies: ["core","identity","workflow"],
+    dependencies: ["core","identity"],
     description: "Registre mondial des pays (langues, devises, TVA, univers actifs) — configuration pure.",
     state: "active",
   },
