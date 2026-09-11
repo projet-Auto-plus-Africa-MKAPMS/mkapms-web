@@ -100,12 +100,12 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 88;
-export const MANQUES_TOTAL = 690;
+export const MANQUES_TOTAL = 688;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "destination_inconnue": 56,
   "ecran_sans_contenu": 355,
   "bouton_sans_action": 198,
-  "dependance_non_declaree": 6,
+  "dependance_non_declaree": 4,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
   "dependance_sans_preuve": 55,
@@ -19619,8 +19619,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "fichiersServeur": 0,
     "dependancesDeclarees": [
       "achat",
+      "boutons",
       "core",
       "country",
+      "livraison_vehicule",
       "notification",
       "payment",
       "permission",
@@ -20825,14 +20827,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Refuser » client/src/pages/vente/ReservationsVente.tsx:30"
-      },
-      {
-        "genre": "dependance_non_declaree",
-        "detail": "boutons — client/src/pages/LivraisonVehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
-      },
-      {
-        "genre": "dependance_non_declaree",
-        "detail": "livraison_vehicule — client/src/pages/LivraisonVehicule.tsx appelle trpc.livraisonVehicule"
       },
       {
         "genre": "dependance_sans_preuve",
