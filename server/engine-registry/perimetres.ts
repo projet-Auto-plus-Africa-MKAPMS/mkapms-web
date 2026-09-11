@@ -471,7 +471,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
     moteur: "livraison_vehicule",
     dossiers: ["vehicle-delivery"],
     routeurs: ["livraisonVehicule"],
-    routes: ["/louer/livraison", "/suivi-vehicule", "/suivi-vehicule/*"],
+    routes: ["/louer/livraison", "/livraison-vehicule", "/suivi-vehicule", "/suivi-vehicule/*"],
   },
   {
     moteur: "transport",

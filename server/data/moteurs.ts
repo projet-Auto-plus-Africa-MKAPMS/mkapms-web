@@ -100,7 +100,7 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 88;
-export const MANQUES_TOTAL = 686;
+export const MANQUES_TOTAL = 684;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "destination_inconnue": 56,
   "ecran_sans_contenu": 355,
@@ -109,14 +109,11 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "sans_ecran": 4,
   "dependance_sans_preuve": 55,
   "bouton_declare_absent_ecran": 3,
-  "emission_dynamique": 1,
-  "dependance_non_declaree": 2
+  "emission_dynamique": 1
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
-export const ROUTES_SANS_MOTEUR: readonly string[] = [
-  "/livraison-vehicule"
-];
+export const ROUTES_SANS_MOTEUR: readonly string[] = [];
 
 /** Routeurs tRPC montés qu'aucun moteur ne revendique. */
 export const ROUTEURS_SANS_MOTEUR: readonly string[] = [];
@@ -4996,7 +4993,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "continuousTest"
     ],
-    "fichiersServeur": 9,
+    "fichiersServeur": 10,
     "dependancesDeclarees": [
       "activation_audit",
       "auto_branchement",
@@ -5045,7 +5042,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "continuous-test/scenarios-parcours.ts charge auto-branchement/service.ts"
       ],
       "boutons": [
-        "continuous-test/scenarios-parcours.ts importe data/boutons-sans-action.ts"
+        "continuous-test/scenarios-parcours.ts importe data/boutons-sans-action.ts",
+        "continuous-test/scenarios-univers.ts charge button-engine/catalogue.ts"
       ],
       "code_graph": [
         "continuous-test/impact.ts importe code-graph/service.ts",
@@ -10305,6 +10303,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "fichiersServeur": 2,
     "dependancesDeclarees": [
       "avis_reputation",
+      "boutons",
       "core",
       "identity",
       "notification",
@@ -10418,10 +10417,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "battement": "sonde",
     "manques": [
       {
-        "genre": "dependance_non_declaree",
-        "detail": "boutons — client/src/pages/Livraison.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
-      },
-      {
         "genre": "dependance_sans_preuve",
         "detail": "scheduler"
       },
@@ -10444,6 +10439,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "fichiersServeur": 3,
     "dependancesDeclarees": [
+      "boutons",
       "core",
       "country",
       "event_bus",
@@ -10516,7 +10512,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_accepter",
         "libelle": "Accepter le devis et créer l'expédition",
         "genre": "formulaire",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 281
       },
@@ -10524,7 +10520,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_choisir_mode",
         "libelle": "Choisir un mode d'acheminement",
         "genre": "formulaire",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 169
       },
@@ -10532,7 +10528,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_connexion",
         "libelle": "Se connecter pour commander ou suivre",
         "genre": "navigation",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 277
       },
@@ -10540,7 +10536,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_connexion",
         "libelle": "Se connecter pour commander ou suivre",
         "genre": "navigation",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 322
       },
@@ -10548,7 +10544,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_onglet_devis",
         "libelle": "Onglet Devis",
         "genre": "formulaire",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 116
       },
@@ -10556,7 +10552,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_onglet_suivi",
         "libelle": "Onglet Suivi",
         "genre": "formulaire",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 117
       },
@@ -10564,12 +10560,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "code": "livraison_vehicule_retour",
         "libelle": "Retour à l'accueil",
         "genre": "navigation",
-        "ecran": "/louer/livraison",
+        "ecran": "/livraison-vehicule",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 110
       }
     ],
     "routes": [
+      "/livraison-vehicule",
       "/louer/livraison",
       "/suivi-vehicule"
     ],
@@ -10577,6 +10574,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "routes": [
+          "/livraison-vehicule",
           "/louer/livraison"
         ],
         "cliquables": 7,
@@ -10633,12 +10631,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 70,
     "mots": 279,
     "battement": "pont_os",
-    "manques": [
-      {
-        "genre": "dependance_non_declaree",
-        "detail": "boutons — client/src/pages/LivraisonVehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "location",

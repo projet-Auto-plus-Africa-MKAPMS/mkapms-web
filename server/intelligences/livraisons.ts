@@ -369,6 +369,24 @@ export const LIVRAISONS: Livraison[] = [
       "Un mécanisme qui se documente comme « idempotent, réaligne sur le catalogue » doit être vérifié ligne à ligne pour confirmer qu'il fait vraiment ce qu'il dit — ici l'union avec l'état courant produisait un comportement strictement additif malgré la documentation contraire. Limite honnête, non vérifiable depuis cet environnement : impossible de confirmer contre la vraie base de production que ce correctif fait effectivement disparaître les dépendances fantômes déjà accumulées (accès PostgreSQL direct bloqué) — seule la logique est vérifiée (typecheck, lecture de code, cohérence avec resolveDependencies). À confirmer après déploiement et redémarrage du service en production : les dépendants de core, et plus généralement des moteurs déjà corrigés cette session, devraient refléter l'état réel du catalogue au prochain boot.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-redirection-accueil-et-dependants-boutons",
+    titre: "Clé de redirection « accueil » sans règle, route orpheline et deux dépendances vers boutons non déclarées — corrigés",
+    moteurs: ["redirection", "livraison", "livraison_vehicule", "boutons"],
+    quoi:
+      "Trois défauts distincts trouvés en suivant les captures d'écran envoyées par la direction (moteur de redirection). 1) server/button-engine/catalogue.ts déclare un bouton (livraison_vehicule_retour, écran /livraison-vehicule) avec cleRedirection: \"accueil\", sans aucune règle correspondante dans server/redirection-engine/catalog.ts : le bouton fonctionnait déjà via son repli codé en dur (cible \"/\"), mais la direction ne pouvait pas la reconfigurer depuis le centre de pilotage. Ajouté la règle manquante. 2) La destination /acheter/pro signalée « inexistante » correspond aux moteurs sous-section pas encore construits (achat_pro et apparentés) — pas un bug de connexion, aucune correction faite : c'est un sujet de construction de phase 2, pas de stabilisation. 3) La page /livraison-vehicule (composant client/src/pages/LivraisonVehicule.tsx) était une route orpheline dans server/engine-registry/perimetres.ts — le même composant sert déjà /louer/livraison (moteur livraison_vehicule) et /vente/livraison (moteur vente) ; ajoutée à la liste des routes de livraison_vehicule. 4) La régénération a aussi révélé 2 dépendances non déclarées : livraison et livraison_vehicule embarquent chacun lib/boutonMoteur.tsx (trpc.buttonEngine) sans déclarer boutons dans leurs dépendances — ajouté aux deux dans server/engine-registry/catalog.ts.",
+    pourquoi:
+      "Suite directe des captures d'écran envoyées par la direction sur le moteur de redirection, et de l'instruction de continuer sans s'arrêter à compléter tout ce qui manque en dépendants/connexions entre moteurs, en respectant la règle des lots de plusieurs moteurs testés ensemble.",
+    ou: [
+      "server/redirection-engine/catalog.ts",
+      "server/engine-registry/perimetres.ts",
+      "server/engine-registry/catalog.ts",
+      "server/continuous-test/scenarios-univers.ts",
+    ],
+    lecon:
+      "La même méthode continue de payer : chaque anomalie affichée au centre de pilotage a une cause traçable dans le code (un bouton avec repli codé en dur, un composant partagé entre plusieurs routes, un import direct non déclaré) — aucune n'a nécessité de deviner. Vérification après régénération (npm run gen:moteurs) : 0 route sans moteur, 0 dépendance non déclarée restante. La composante fortement connexe du graphe (41 moteurs) ne change pas de taille avec l'ajout de boutons comme dépendance : boutons y était déjà, ce lot ne l'aggrave pas.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
