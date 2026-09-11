@@ -389,6 +389,22 @@ export const LIVRAISONS: Livraison[] = [
       "La même méthode continue de payer : chaque anomalie affichée au centre de pilotage a une cause traçable dans le code (un bouton avec repli codé en dur, un composant partagé entre plusieurs routes, un import direct non déclaré) — aucune n'a nécessité de deviner. Vérification après régénération (npm run gen:moteurs) : 0 route sans moteur, 0 dépendance non déclarée restante ; la composante fortement connexe du graphe (41 moteurs) ne change pas de taille avec l'ajout de boutons comme dépendance, boutons y était déjà. Les scénarios HTTP (livraison, livraison_vehicule, achat, avis_reputation) ne peuvent pas être exécutés depuis cet environnement (pas d'accès réseau à l'URL publique déployée) : leur syntaxe et leur logique sont vérifiées par lecture et par typecheck, mais leur premier vrai résultat n'arrivera qu'après déploiement, quand le moteur continuous_test les exécutera pour de vrai contre la plateforme réelle et déposera la preuve dans l'audit d'activation (point 91). Seul boutons.catalogue_coherent a pu être exécuté et vérifié ici, sans réseau ni base. 66 moteurs restent à 0 preuve de test après ce lot — à continuer, 5 par 5, à chaque prochain lot de correction.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-lot6-completion-center-identity-garage-pieces-visibility-monitoring",
+    titre: "Lot de 5 : domaine de test mal attribué (completion_center) trouvé et corrigé + 5 nouveaux moteurs couverts",
+    moteurs: ["completion_center", "identity", "garage", "pieces", "visibility", "monitoring"],
+    quoi:
+      "Après les deux défauts de correspondance par approximation de texte déjà trouvés (matchRouter, matchRoutes), même vérification appliquée au critère « Testée » : le scénario central.achevement_calcule déclarait domaine: \"completion\" alors que le moteur réellement inscrit au catalogue s'appelle completion_center — normalizeKey(\"completion\") ne correspond à aucune variante de normalizeKey(\"completion_center\"), donc la preuve de test existait mais ne pouvait jamais être retrouvée par ce moteur dans l'audit d'activation. Corrigé (id et domaine renommés en completion_center). Vérification élargie : comparaison de tous les domaines déclarés dans server/continuous-test/*.ts contre les 88 noms exacts du catalogue — les autres écarts (annonces, central, engine_registry) sont des contrôles transversaux volontaires sur une table ou un sous-système partagé par plusieurs moteurs, pas des fautes de frappe, laissés tels quels. En même temps (règle des 5 moteurs testés par lot), ajouté des scénarios réels dans server/continuous-test/scenarios-univers.ts pour identity (/connexion), garage (/garages), pieces (/pieces), visibility (/superadmin/visibilite-croissance) et monitoring (/superadmin/admin-statistiques) — même méthode que le lot précédent (page publique réelle, code HTTP 200 vérifié, pas d'écran introuvable).",
+    pourquoi:
+      "Suite logique de la leçon retenue au lot précédent : deux défauts du même type trouvés coup sur coup suggéraient de relire tout le reste de l'audit d'activation avec la même question. Continuité de la règle de travail (5 moteurs testés par lot, sans s'arrêter).",
+    ou: [
+      "server/continuous-test/scenarios-moteurs-centraux.ts",
+      "server/continuous-test/scenarios-univers.ts",
+    ],
+    lecon:
+      "Toute correspondance entre un identifiant libre (domaine d'un scénario, table sondée) et le nom d'un moteur au registre doit être vérifiée par égalité exacte contre le catalogue, jamais supposée juste parce qu'elle « ressemble ». Un balayage complet (comparer chaque valeur déclarée aux 88 noms exacts) trouve ce genre de faute plus vite qu'une relecture au cas par cas. Reste à vérifier avec la même méthode : le critère « Utilisée réellement » a déjà été vérifié dans ce lot (server/engine-registry/probes.ts — les 62 noms de moteur sondés correspondent tous exactement au catalogue, aucun défaut trouvé) ; « Système Intelligent connecté » ne dépend d'aucune correspondance de nom (juste lastHeartbeat), donc hors de portée de cette classe de défaut.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
