@@ -1,9 +1,9 @@
 /**
- * Contrôles réels pour cinq moteurs jusqu'ici sans couverture : livraison,
- * livraison_vehicule, achat, avis_reputation, boutons.
+ * Contrôles de vie pour des moteurs jusqu'ici absents du contrôle continu
+ * (0 preuve de test dans l'audit d'activation — point 91).
  *
- * Chaque contrôle interroge la plateforme réellement en service (HTTP public)
- * ou le catalogue statique chargé en mémoire — jamais une simulation.
+ * Même règle que le reste du catalogue : un contrôle observe la plateforme
+ * réellement en service, il ne simule jamais un succès.
  */
 import { http, estIntrouvable, type Observation, type Scenario } from "./helpers.js";
 
@@ -11,91 +11,102 @@ export const UNIVERS_SCENARIOS: Scenario[] = [
   {
     id: "livraison.page_publique",
     domaine: "livraison",
-    label: "Univers Livraison : la page publique répond",
+    label: "La page Livraison répond avec du contenu réel",
     criticite: "normale",
-    attendu: "/livraison sert une vraie page, pas un écran « introuvable ».",
+    attendu: "GET /livraison renvoie 200 et n'est pas la page « introuvable ».",
     async run(): Promise<Observation> {
       const r = await http("/livraison");
-      if (!r.ok)
-        return { statut: "ignore", observe: `Page injoignable : ${r.motif}` };
+      if (!r.ok) {
+        return r.reseau
+          ? { statut: "echec", observe: `Page injoignable : ${r.motif}` }
+          : { statut: "ignore", observe: r.motif };
+      }
+      if (r.status !== 200) return { statut: "echec", observe: `HTTP ${r.status} reçu.` };
       if (estIntrouvable(r.corps))
-        return { statut: "echec", observe: `/livraison renvoie une page introuvable (statut ${r.status}).` };
-      return { statut: "reussi", observe: `/livraison répond (statut ${r.status}).` };
+        return { statut: "echec", observe: "HTTP 200 mais la page affiche « introuvable »." };
+      return { statut: "reussi", observe: `HTTP 200, page servie (${r.corps.length} octets).` };
     },
   },
   {
     id: "livraison_vehicule.page_publique",
     domaine: "livraison_vehicule",
-    label: "Vehicle Delivery Engine : la page publique répond",
+    label: "La page Livraison de véhicule répond avec du contenu réel",
     criticite: "normale",
-    attendu: "/livraison-vehicule sert une vraie page, pas un écran « introuvable ».",
+    attendu: "GET /louer/livraison renvoie 200 et n'est pas la page « introuvable ».",
     async run(): Promise<Observation> {
-      const r = await http("/livraison-vehicule");
-      if (!r.ok)
-        return { statut: "ignore", observe: `Page injoignable : ${r.motif}` };
+      const r = await http("/louer/livraison");
+      if (!r.ok) {
+        return r.reseau
+          ? { statut: "echec", observe: `Page injoignable : ${r.motif}` }
+          : { statut: "ignore", observe: r.motif };
+      }
+      if (r.status !== 200) return { statut: "echec", observe: `HTTP ${r.status} reçu.` };
       if (estIntrouvable(r.corps))
-        return { statut: "echec", observe: `/livraison-vehicule renvoie une page introuvable (statut ${r.status}).` };
-      return { statut: "reussi", observe: `/livraison-vehicule répond (statut ${r.status}).` };
+        return { statut: "echec", observe: "HTTP 200 mais la page affiche « introuvable »." };
+      return { statut: "reussi", observe: `HTTP 200, page servie (${r.corps.length} octets).` };
     },
   },
   {
     id: "achat.page_publique",
     domaine: "achat",
-    label: "Univers Achat : la page publique répond",
+    label: "La page Acheter répond avec du contenu réel",
     criticite: "critique",
-    attendu: "/acheter sert une vraie page, pas un écran « introuvable ».",
+    attendu: "GET /acheter renvoie 200 et n'est pas la page « introuvable ».",
     async run(): Promise<Observation> {
       const r = await http("/acheter");
-      if (!r.ok)
-        return { statut: "ignore", observe: `Page injoignable : ${r.motif}` };
+      if (!r.ok) {
+        return r.reseau
+          ? { statut: "echec", observe: `Page injoignable : ${r.motif}` }
+          : { statut: "ignore", observe: r.motif };
+      }
+      if (r.status !== 200) return { statut: "echec", observe: `HTTP ${r.status} reçu.` };
       if (estIntrouvable(r.corps))
-        return { statut: "echec", observe: `/acheter renvoie une page introuvable (statut ${r.status}).` };
-      return { statut: "reussi", observe: `/acheter répond (statut ${r.status}).` };
+        return { statut: "echec", observe: "HTTP 200 mais la page affiche « introuvable »." };
+      return { statut: "reussi", observe: `HTTP 200, page servie (${r.corps.length} octets).` };
     },
   },
   {
     id: "avis_reputation.page_confiance",
     domaine: "avis_reputation",
-    label: "Reviews & Reputation Engine : la page de confiance répond",
+    label: "La page Confiance (avis consolidés) répond avec du contenu réel",
     criticite: "normale",
-    attendu: "/confiance sert une vraie page, pas un écran « introuvable ».",
+    attendu: "GET /confiance renvoie 200 et n'est pas la page « introuvable ».",
     async run(): Promise<Observation> {
       const r = await http("/confiance");
-      if (!r.ok)
-        return { statut: "ignore", observe: `Page injoignable : ${r.motif}` };
+      if (!r.ok) {
+        return r.reseau
+          ? { statut: "echec", observe: `Page injoignable : ${r.motif}` }
+          : { statut: "ignore", observe: r.motif };
+      }
+      if (r.status !== 200) return { statut: "echec", observe: `HTTP ${r.status} reçu.` };
       if (estIntrouvable(r.corps))
-        return { statut: "echec", observe: `/confiance renvoie une page introuvable (statut ${r.status}).` };
-      return { statut: "reussi", observe: `/confiance répond (statut ${r.status}).` };
+        return { statut: "echec", observe: "HTTP 200 mais la page affiche « introuvable »." };
+      return { statut: "reussi", observe: `HTTP 200, page servie (${r.corps.length} octets).` };
     },
   },
   {
     id: "boutons.catalogue_coherent",
     domaine: "boutons",
-    label: "Button Engine : le catalogue est chargé et sans doublon",
+    label: "Le catalogue du Moteur de boutons est chargé et sans code dupliqué",
     criticite: "critique",
-    attendu: "ACTIONS_BOUTONS contient au moins un bouton et chaque code y est unique.",
+    attendu: "ACTIONS_BOUTONS n'est pas vide et chaque code de bouton est unique.",
     async run(): Promise<Observation> {
-      try {
-        const { ACTIONS_BOUTONS } = await import("../button-engine/catalogue.js");
-        if (ACTIONS_BOUTONS.length === 0)
-          return { statut: "echec", observe: "Le catalogue de boutons est vide." };
-        const codes = ACTIONS_BOUTONS.map((b) => b.code);
-        const doublons = codes.filter((c, i) => codes.indexOf(c) !== i);
-        if (doublons.length > 0)
-          return {
-            statut: "echec",
-            observe: `Code(s) en double dans le catalogue : ${[...new Set(doublons)].join(", ")}.`,
-          };
-        return {
-          statut: "reussi",
-          observe: `${ACTIONS_BOUTONS.length} bouton(s) déclaré(s), tous les codes sont uniques.`,
-        };
-      } catch (e) {
+      const { ACTIONS_BOUTONS } = await import("./../button-engine/catalogue.js");
+      if (ACTIONS_BOUTONS.length === 0) {
+        return { statut: "echec", observe: "Catalogue chargé mais vide : aucun bouton déclaré." };
+      }
+      const codes = ACTIONS_BOUTONS.map((a) => a.code);
+      const doublons = codes.filter((c, i) => codes.indexOf(c) !== i);
+      if (doublons.length > 0) {
         return {
           statut: "echec",
-          observe: `Le catalogue de boutons n'a pas pu être chargé : ${e instanceof Error ? e.message : "erreur inconnue"}`,
+          observe: `${new Set(doublons).size} code(s) de bouton dupliqué(s) : ${[...new Set(doublons)].slice(0, 5).join(", ")}.`,
         };
       }
+      return {
+        statut: "reussi",
+        observe: `${ACTIONS_BOUTONS.length} bouton(s) déclaré(s), tous les codes sont uniques.`,
+      };
     },
   },
 ];
