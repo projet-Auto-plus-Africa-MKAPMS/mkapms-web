@@ -12,7 +12,7 @@
 import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { getCountry } from "../country-os/index.js";
-import { requirementsFor } from "../pro-portal/service.js";
+import { requirementsFor } from "../pro-portal/contract.js";
 import { notifyEvent } from "../notification-os/index.js";
 import { proAccountApplications, proAccountRules } from "./schema.js";
 import type { ProAccountDocument } from "./schema.js";

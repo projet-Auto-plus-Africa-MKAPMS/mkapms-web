@@ -222,6 +222,19 @@ export const LIVRAISONS: Livraison[] = [
       "Une dépendance entre deux moteurs peut être un pur artefact d'attribution de fichier plutôt qu'un vrai couplage métier ou technique : deux routeurs tRPC qui n'ont rien à voir peuvent partager un fichier serveur pour des raisons historiques, et le générateur attribue alors le routeur au moteur propriétaire du fichier, pas à celui qui l'utilise réellement. Avant de qualifier une arête de « métier » ou « technique », vérifier d'abord si le routeur cible est correctement rattaché : ici, corriger l'attribution (perimetres.ts) a suffi à faire disparaître la fausse dépendance sans toucher à un seul import. workflow -> scheduler reste déclaré sans aucune preuve dans le code, mais workflow est explicitement « à créer (Phase 2) » dans catalog.ts : contrairement à comptabilite -> accounting_internal (moteur actif), ce n'est pas retiré ici — possible déclaration d'intention pour un moteur pas encore construit, pas une incohérence avérée.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-stabilisation-moteurs-pro-contract",
+    titre: "pro_account <-> pro_portal : contrat neutre au lieu d'un import direct, cycle non forcé",
+    moteurs: ["pro_account", "pro_portal"],
+    quoi:
+      "Vérifié preuve par preuve dans les deux sens, contrairement aux deux cycles précédents (comptabilite<->accounting_internal, country<->workflow) : ici les DEUX arêtes sont des besoins métier réels. pro_account -> pro_portal : pro-account/service.ts appelle requirementsFor() pour savoir quels justificatifs réunir pour un métier+pays donnés — une vraie donnée de catalogue que possède le portail (table proPortalProfessions). pro_portal -> pro_account : l'écran DossierPro.tsx (route /pro/dossier, dans le périmètre de pro_portal) appelle trpc.proAccount.{mine,requirements,check,save,submit} pour que l'utilisateur remplisse et soumette son dossier — l'écran orchestre, mais l'état et la soumission appartiennent à pro_account. Créé server/pro-portal/contract.ts (même doctrine que identity-os/contract.ts et permission-engine/contract.ts : seule porte d'entrée autorisée pour un moteur voisin) qui réexporte uniquement requirementsFor. pro-account/service.ts importe maintenant ce contrat au lieu de service.ts en entier (qui expose aussi panier/paiement/composition d'offre, hors sujet pour pro_account).",
+    pourquoi:
+      "La direction a demandé de casser ce cycle par une couche contractuelle neutre, pas en supprimant un appel fonctionnel, et de vérifier d'abord qu'une abstraction équivalente n'existe pas déjà (vérifié : aucun contract.ts sous pro-portal avant ce lot).",
+    ou: ["server/pro-portal/contract.ts", "server/pro-account/service.ts", "server/data/moteurs.ts"],
+    lecon:
+      "Un contrat neutre nettoie l'import (pro_account ne dépend plus que d'une surface minimale documentée, pas de l'implémentation entière du panier/paiement de pro_portal) mais NE FAIT PAS disparaître le cycle dans le graphe : les deux dépendances restent réelles et prouvées dans les deux sens, donc classées métier — à juste titre. Le registre lui-même documente déjà cette philosophie (dependencies.ts : « une boucle ne bloque pas le démarrage, elle signale une coopération mutuelle à surveiller »). Forcer ce cycle à zéro aurait exigé de supprimer un appel fonctionnel réel des deux côtés, ce que la direction a explicitement interdit. Décision proposée à la direction plutôt qu'appliquée seul : documenter ce cycle comme coopération mutuelle acceptée (un mécanisme à ajouter au registre, distinct des dépendances non prouvées et des intégrations techniques) au lieu de le compter comme une anomalie à corriger.",
+    domaine: "moteurs",
+  },
 ];
 
 /**

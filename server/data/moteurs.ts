@@ -14735,7 +14735,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "pro-account/service.ts déclenche notifyEvent"
       ],
       "pro_portal": [
-        "pro-account/service.ts importe pro-portal/service.ts"
+        "pro-account/service.ts importe pro-portal/contract.ts"
       ]
     },
     "dependants": [
@@ -14821,7 +14821,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "api",
       "formation"
     ],
-    "fichiersServeur": 8,
+    "fichiersServeur": 9,
     "dependancesDeclarees": [
       "audit",
       "core",
