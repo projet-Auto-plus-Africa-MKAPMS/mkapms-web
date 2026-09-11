@@ -9,9 +9,9 @@
  */
 import type { OutilSpec } from "./registre.js";
 import { validerArguments } from "./validation.js";
-import { IMPLEMENTATIONS } from "./outils-test.js";
+import { IMPLEMENTATIONS } from "./implementations.js";
 
-export type StatutExecution = "execute" | "erreur" | "timeout" | "arguments_invalides";
+export type StatutExecution = "execute" | "erreur" | "timeout" | "arguments_invalides" | "non_implemente";
 
 export interface ResultatExecution {
   statut: StatutExecution;
@@ -60,10 +60,17 @@ export async function executer(outil: OutilSpec, argumentsJson: string): Promise
 
   const implementation = IMPLEMENTATIONS[outil.toolId];
   if (!implementation) {
+    // Statut distinct de "erreur" : REGISTERED_NOT_IMPLEMENTED est un état
+    // du registre assumé (la fiche existe, le code n'est pas encore écrit),
+    // pas un bug — sauf si le registre le déclare pourtant IMPLEMENTED, ce
+    // que le motif dit explicitement pour distinguer les deux cas.
+    const attendu = outil.implementationStatus !== "REGISTERED_NOT_IMPLEMENTED";
     return {
-      statut: "erreur",
+      statut: "non_implemente",
       resultat: null,
-      motif: `« ${outil.name} » est déclaré au registre mais n'a aucune implémentation.`,
+      motif: attendu
+        ? `« ${outil.name} » est déclaré « ${outil.implementationStatus} » au registre mais n'a aucune implémentation : incohérence à corriger.`
+        : `« ${outil.name} » est enregistré (REGISTERED_NOT_IMPLEMENTED) mais pas encore câblé.`,
       dureeMs: Date.now() - debut,
     };
   }
