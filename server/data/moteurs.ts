@@ -90,7 +90,7 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 88;
-export const MANQUES_TOTAL = 698;
+export const MANQUES_TOTAL = 697;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "destination_inconnue": 56,
   "ecran_sans_contenu": 355,
@@ -98,7 +98,7 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "dependance_non_declaree": 6,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
-  "dependance_sans_preuve": 63,
+  "dependance_sans_preuve": 62,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1
 };
@@ -267,7 +267,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "comptabilite",
       "finance"
     ],
     "evenementsPublies": [],
@@ -4515,7 +4514,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "fichiersServeur": 2,
     "dependancesDeclarees": [
-      "accounting_internal",
       "core",
       "document",
       "identity",
@@ -4529,7 +4527,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "redirection"
     ],
     "dependances": [
-      "accounting_internal",
       "core",
       "document",
       "identity",
@@ -4756,10 +4753,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_sans_preuve",
         "detail": "document"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "accounting_internal"
       }
     ]
   },

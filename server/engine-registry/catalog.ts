@@ -348,7 +348,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "comptabilite",
     label: "Comptabilité Engine",
     category: "univers",
-    dependencies: ["core","identity","payment","document","accounting_internal","redirection"],
+    dependencies: ["core","identity","payment","document","redirection"],
     description: "Factures, paiements, TVA, rapports.",
     state: "active",
   },
