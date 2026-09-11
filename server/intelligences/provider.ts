@@ -78,17 +78,28 @@ export interface AppelResultat {
   tentatives: Tentative[];
 }
 
-/** Points d'entrée par fournisseur. Aucune clé n'est écrite ici. */
+/**
+ * Points d'entrée par fournisseur. Aucune clé n'est écrite ici.
+ *
+ * modeleParDefaut n'est utilisé que dans deux cas : comme préférence lors de
+ * la découverte dynamique du modèle (resoudre() interroge /v1/models et
+ * garde ce nom s'il apparaît dans la liste réelle du compte), et comme repli
+ * final si cette découverte échoue (réseau indisponible, clé sans droit de
+ * lister les modèles). Il doit donc TOUJOURS être un identifiant de modèle
+ * réel chez le fournisseur : "gpt-5.6-terra" (avant ce correctif) n'a jamais
+ * existé chez OpenAI, ce qui ne cassait rien tant que la découverte
+ * réussissait, mais garantissait un appel voué à l'échec dès qu'elle ratait.
+ */
 const ENDPOINTS: Record<string, { url: string; envKey: string; modeleParDefaut: string }> = {
   openai: {
     url: "https://api.openai.com/v1/chat/completions",
     envKey: "OPENAI_API_KEY",
-    modeleParDefaut: "gpt-5.6-terra",
+    modeleParDefaut: "gpt-4o-mini",
   },
   openai_vision: {
     url: "https://api.openai.com/v1/chat/completions",
     envKey: "OPENAI_API_KEY",
-    modeleParDefaut: "gpt-5.6-terra",
+    modeleParDefaut: "gpt-4o-mini",
   },
   mistral: {
     url: "https://api.mistral.ai/v1/chat/completions",

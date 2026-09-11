@@ -248,6 +248,19 @@ export const LIVRAISONS: Livraison[] = [
       "Résultat mesuré, honnête : la composante fortement connexe à 42 moteurs NE RÉTRÉCIT PAS après ce lot. smart reste dans la même composante parce que d'autres moteurs du groupe des 42 (hors de ce lot — seo, garage, achat, etc., déjà repérés dans l'inventaire initial) dépendent aussi de smart pour des raisons encore à vérifier, et smart lui-même dépend légitimement de event_bus et monitoring (consomme moteur.degrade/retabli — c'est sa raison d'être, pas une intégration technique). Une classification correcte n'implique pas toujours une baisse du chiffre agrégé : chaque arête retirée est individuellement vraie et vérifiée, mais smart reste un point de passage central tant que ses autres dépendants (hors de ce lot) n'ont pas été vérifiés un par un. event_bus -> intelligences (memoire.ts : ecrire/retenir, service.ts : proposer) N'A PAS été reclassé : c'est le mécanisme réel d'apprentissage de MKA.P-MS Intelligence, une dépendance métier légitime et importante, pas une intégration technique à écarter.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-diagnostic-apis-externes",
+    titre: "Diagnostic des intégrations externes signalées en panne : MKA.P-MS Intelligences, Google Search Console, Google Merchant",
+    moteurs: ["intelligences", "ai_fabric", "seo", "product_engine"],
+    quoi:
+      "Diagnostic demandé par la direction (« les API connectées ne fonctionnent pas »), sans accès à la base de données ni aux journaux d'exécution en production depuis cet environnement. Deux constats distincts, tous deux vérifiés sans jamais lire une valeur de secret : (1) la liste des NOMS de variables d'environnement réellement configurées sur le service Railway de production ne contient ni ANTHROPIC_API_KEY, ni MISTRAL_API_KEY (repli IA absent — un seul fournisseur, OPENAI_API_KEY, est configuré), ni GOOGLE_SEARCH_CONSOLE_KEY (server/seo-dashboard.ts calcule connected = !!env.GOOGLE_SEARCH_CONSOLE_KEY : sans elle, le tableau de bord SEO affiche « Google Search Console non connecté » par conception, ce n'est pas un bug), ni GOOGLE_CLIENT_ID/SECRET, GOOGLE_MAPS_API_KEY, GOOGLE_MERCHANT_CREDENTIALS/ACCOUNT_ID (product_engine, service.ts ligne 73). (2) Un vrai défaut de code corrigé : server/intelligences/provider.ts déclarait modeleParDefaut: \"gpt-5.6-terra\" pour OpenAI — un nom de modèle qui n'a jamais existé chez OpenAI, présent depuis le premier commit du fichier (33ca622), jamais corrigé. Sans effet tant que la découverte dynamique du modèle (appel à /v1/models) réussit, mais un appel voué à l'échec garanti dès qu'elle échoue (réseau, clé sans droit de listage). Remplacé par gpt-4o-mini, un identifiant réel et stable.",
+    pourquoi:
+      "La direction a demandé de vérifier en même temps que la stabilisation des cycles pourquoi les API connectées (MKA.P-MS Intelligences, Google, SEO) ne fonctionnent pas.",
+    ou: ["server/intelligences/provider.ts"],
+    lecon:
+      "Deux causes de nature différente à ne pas confondre : un vrai bug de code (nom de modèle fictif, corrigé) et une absence de configuration en production (clés Google/Anthropic/Mistral non fournies à Railway, hors de portée d'un agent qui n'a pas mandat pour écrire des secrets). Le second point n'est pas « corrigé » par ce lot — seulement diagnostiqué et remonté à la direction, qui gère les secrets Railway. Vérifié sans jamais lire ni écrire de valeur de secret : uniquement la liste des noms de variables présentes.",
+    domaine: "intelligences",
+  },
 ];
 
 /**
