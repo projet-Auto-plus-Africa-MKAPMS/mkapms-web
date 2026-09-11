@@ -12,6 +12,7 @@
 import { desc, eq } from "drizzle-orm";
 import { db } from "../db.js";
 import { raiseAlert } from "../smart-engine/services/alert-engine.js";
+import { MOTEURS } from "../data/moteurs.js";
 import {
   activationAuditItems,
   activationAuditRuns,
@@ -62,8 +63,28 @@ export interface AuditItem {
   manquant: string[];
 }
 
-/** Trouve l'espace tRPC correspondant à un moteur, sans table de correspondance figée. */
+/**
+ * Routeurs tRPC déclarés par moteur dans server/engine-registry/perimetres.ts
+ * (généré dans server/data/moteurs.ts). C'est la source de vérité déjà
+ * utilisée par le reste du registre pour l'attribution moteur ↔ routeur —
+ * pas une table figée inventée ici : beaucoup de moteurs ont un nom français
+ * (« avis_reputation », « energie_recharge », « politique_pays »…) porté par
+ * un routeur au nom anglais ou différent (« reputationEngine »,
+ * « chargingEngine », « countryPolicy »…), qu'aucune correspondance de texte
+ * ne peut deviner sans le savoir déjà déclaré ailleurs.
+ */
+const ROUTEURS_DECLARES = new Map(MOTEURS.map((m) => [m.moteur, new Set(m.routeurs)]));
+
+/** Trouve l'espace tRPC correspondant à un moteur. */
 function matchRouter(engineName: string, routers: RouterSurface[]): RouterSurface | null {
+  const declares = ROUTEURS_DECLARES.get(engineName);
+  if (declares) {
+    const trouve = routers.find((r) => declares.has(r.namespace));
+    if (trouve) return trouve;
+  }
+
+  // Repli : approximation de texte, pour un moteur pas encore déclaré dans
+  // perimetres.ts (ou dont le routeur vient d'être monté).
   const variants = new Set(keyVariants(engineName));
   let fallback: RouterSurface | null = null;
   for (const r of routers) {

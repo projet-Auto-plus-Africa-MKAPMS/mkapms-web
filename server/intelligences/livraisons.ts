@@ -330,6 +330,19 @@ export const LIVRAISONS: Livraison[] = [
       "La carte pointe maintenant vers l'onglet Journal (déjà alimenté par la bonne table, smartActivityLog), et ce même onglet affiche désormais Valider/Refuser sur chaque entrée qui a une proposedDecision non encore tranchée, appelant la mutation validateActivityDecision déjà prête côté serveur. L'onglet Validations (smartLearnedData) n'a pas été supprimé : c'est une fonctionnalité réelle et distincte (confirmation de données véhicule saisies par les utilisateurs), juste mal raccordée à cette carte précise. Un chiffre qui grandit sur un tableau de bord (« 24 », « 252 » puis « 300 et quelques ») sans qu'aucun écran ne permette d'agir dessus est un signal fiable de connexion cassée, pas de fonctionnalité manquante à construire — la logique serveur existait déjà des deux côtés.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-activation-audit-matchrouter-perimetres",
+    titre: "24 moteurs « Existe mais non connectée » : 13 avaient déjà un vrai routeur, mal détecté",
+    moteurs: ["boutons", "workflow", "analytics", "achat", "location", "assurance", "energie_recharge", "avis_reputation", "connecteur_google_business", "connaissance_auto", "politique_pays", "journey"],
+    quoi:
+      "Remonté par la direction avec captures d'écran du Centre de contrôle : l'audit d'activation (point 91, server/activation-audit/) affichait 24 moteurs « Existe mais non connectée — aucune procédure tRPC ne l'expose ». Cause trouvée : matchRouter() dans service.ts devine le routeur d'un moteur par ressemblance de texte (« sans table de correspondance figée », commentaire d'origine), alors que server/engine-registry/perimetres.ts déclare déjà, moteur par moteur, la liste exacte des routeurs qui lui appartiennent — la même source que gen-moteurs.mjs utilise pour tout le reste du registre. Beaucoup de moteurs ont un nom français porté par un routeur au nom anglais que la ressemblance de texte ne peut pas deviner : avis_reputation -> reputationEngine/reviews, energie_recharge -> chargingEngine, politique_pays -> countryPolicy, connecteur_google_business -> googleBusiness, journey -> customerJourneyOs, achat -> annonces/favoris/reservations/devis, location -> lavage/karting, boutons -> buttonEngine, assurance -> insuranceEngine, connaissance_auto -> knowledgeEngine, analytics -> historique, workflow -> governance/platform/quality/hr/procurement/investor. Ces 12 moteurs avaient un vrai routeur monté et appelable ; l'audit se trompait, pas le code métier.",
+    pourquoi:
+      "Priorité immédiate demandée par la direction sur les 24 moteurs « non connectée » vus en production, avant toute autre tâche.",
+    ou: ["server/activation-audit/service.ts"],
+    lecon:
+      "matchRouter() consulte maintenant en premier les routeurs déclarés dans server/data/moteurs.ts (généré depuis perimetres.ts), et ne retombe sur la ressemblance de texte qu'en repli pour un moteur pas encore déclaré. Vérifié statiquement (introspection réelle de appRouter, aucune base de données requise) : 24 -> 11 candidats sans routeur trouvé. IMPORTANT, honnêteté sur la limite : cette vérification ne couvre que la sous-cause « aucun routeur trouvé ». non_connectee peut aussi venir de engine.missingDependencies (dépendances du registre vivant, calculées en base) — donnée que je ne peux pas lire depuis cet environnement (accès PostgreSQL direct bloqué). Les 12 corrigés ici devraient repasser verts au prochain audit SI leurs dépendances vivantes sont par ailleurs saines ; à confirmer après déploiement, pas garanti à 100% depuis ici. Les 11 restants (vente, achat_officiel/pro/particulier, vente_pro/particulier, location_pro/particulier, controle_technique, finance, encheres) n'ont réellement aucun routeur : ce sont des moteurs-écran sans logique serveur, confirmé dans un lot précédent — ils ont besoin d'une vraie construction (phase suivante), pas d'une reconnexion.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
