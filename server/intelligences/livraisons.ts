@@ -186,6 +186,25 @@ export const LIVRAISONS: Livraison[] = [
       "Aucune donnée personnelle réelle ne sert d'exemple de saisie ni de donnée de démonstration : un placeholder décrit le champ, il ne le remplit pas. L'identité de la direction appartient à Identity OS ; ce que le public voit d'un compte de direction est la marque, décidé par le serveur (rôle), jamais par l'écran. Le garde-fou est au build, pas dans la vigilance d'un agent.",
     domaine: "identite",
   },
+  {
+    cle: "branche-stabilisation-moteurs-cycles",
+    titre: "Distinction dépendance métier / intégration technique dans le détecteur de cycles",
+    moteurs: ["core", "engine_registry", "identity", "audit", "smart", "ai_learning", "visibility", "permission", "country", "comptabilite", "accounting_internal"],
+    quoi:
+      "Trois corrections liées au registre de dépendances. (1) comptabilite déclarait accounting_internal sans aucune preuve d'usage dans le code (dependance_sans_preuve) alors que la relation réelle est l'inverse (accounting_internal importe comptabilite, avec preuve) : déclaration non prouvée retirée. (2) Le détecteur de cycles (server/engine-registry/dependencies.ts) exemptait tout core.dependencies en bloc (« le socle démarre en premier ») pour éviter 150+ fausses boucles — exception globale exactement du type que la direction a demandé de ne pas garder. Remplacé par un mécanisme précis à deux niveaux dans server/engine-registry/technical-integrations.ts : (a) une classification AUTOMATIQUE, calculée par scripts/gen-moteurs.mjs (nouveau champ integrationsTechniques par moteur) — toute dépendance déclarée dont TOUTES les preuves détectées ne sont qu'une vérification de session/rôle (procédure protégée, filtre de rôle), une écriture d'audit, ou un import du contrat public d'un OS (identity-os/contract.ts) ; (b) une liste résiduelle vérifiée à la main pour les cas qu'un motif générique ne peut pas capturer (core -> smart/ai_learning/visibility/audit, preuves par import direct de fichiers de lecture de statut). dependencyGraph() expose dependsOn (tout, pour l'impact en cascade réel) et dependsOnMetier (sous-ensemble métier, seul utilisé par findCycles).",
+    pourquoi:
+      "La direction a demandé de séparer explicitement dépendance métier et intégration technique transversale (identité/session, audit, monitoring/télémétrie, sécurité), avec un contrat/port neutre par intégration technique plutôt qu'un import direct comptant comme dépendance de premier rang, et de ne jamais garder un cycle comme exception globale non justifiée.",
+    ou: [
+      "server/engine-registry/technical-integrations.ts",
+      "server/engine-registry/dependencies.ts",
+      "scripts/gen-moteurs.mjs",
+      "server/engine-registry/catalog.ts",
+      "server/data/moteurs.ts",
+    ],
+    lecon:
+      "Corriger core seul ne suffit pas à vider un cycle géant, et une classification manuelle par moteur ne passe pas à l'échelle sur 88 moteurs. Mesuré sur le graphe déclaré réel : la composante fortement connexe brute fait 55 moteurs ; exempter les 5 dépendances techniques de core ne la fait retomber qu'à 53 (seuls core et ai_learning en sortent) ; généraliser la même preuve (session/rôle/audit/contrat) à TOUTES les paires — pas seulement celles de core — la fait retomber à 42, et résout exactement l'exemple cité par la direction (identity → country → identity : country -> identity n'était qu'une vérification de session, jamais une dépendance métier). Il reste une composante de 42 moteurs, un cycle à 5 (country, language, notification, scheduler, workflow) et un cycle à 2 (pro_account, pro_portal, réellement bidirectionnel — nécessite un contrat de domaine Pro partagé, pas un retrait de dépendance). Chaque cycle restant doit être vérifié un par un, avec preuve d'usage dans les deux sens, avant de décider s'il est réellement bidirectionnel (contrat neutre nécessaire) ou juste une déclaration non prouvée (à retirer, comme comptabilite↔accounting_internal).",
+    domaine: "moteurs",
+  },
 ];
 
 /**

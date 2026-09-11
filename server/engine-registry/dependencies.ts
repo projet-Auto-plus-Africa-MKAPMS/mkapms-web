@@ -24,6 +24,7 @@ import { db } from "../db.js";
 import { engineAdminLog, engineRegistry } from "./schema.js";
 import { setState, type EngineState } from "./service.js";
 import { registryOverview, type EngineReadiness } from "./readiness.js";
+import { isTechnicalIntegration } from "./technical-integrations.js";
 
 export interface DependencyNode {
   name: string;
@@ -31,8 +32,17 @@ export interface DependencyNode {
   category: string;
   state: string;
   health: string;
-  /** Moteurs dont celui-ci a besoin. */
+  /** Moteurs dont celui-ci a besoin, métier + intégrations techniques confondues. */
   dependsOn: string[];
+  /**
+   * Sous-ensemble de dependsOn qui est une dépendance métier réelle (le
+   * moteur a besoin de la logique/données d'un autre domaine). C'est ce
+   * sous-graphe, pas dependsOn, que la détection de cycle utilise : une
+   * intégration technique (session, audit, télémétrie — voir
+   * technical-integrations.ts) reste un couplage réel pour l'impact en
+   * cascade, mais n'est pas une dépendance de démarrage de premier rang.
+   */
+  dependsOnMetier: string[];
   /** Moteurs qui ont besoin de celui-ci. */
   requiredBy: string[];
 }
@@ -45,9 +55,6 @@ export interface DependencyGraph {
   /** Cycles détectés (A → B → A) : une boucle empêche tout démarrage ordonné. */
   cycles: string[][];
 }
-
-/** Moteur socle : tous les autres en dépendent, il démarre en premier. */
-const SOCLE = "core";
 
 /** Graphe complet des dépendances entre moteurs. */
 export async function dependencyGraph(): Promise<DependencyGraph> {
@@ -69,28 +76,33 @@ export async function dependencyGraph(): Promise<DependencyGraph> {
     }
   }
 
-  const nodes: DependencyNode[] = rows.map((r) => ({
-    name: r.name,
-    label: r.label,
-    category: r.category,
-    state: r.state,
-    health: r.health,
-    dependsOn: (r.dependencies ?? []).filter((d) => byName.has(d)),
-    requiredBy: requiredBy.get(r.name) ?? [],
-  }));
+  const nodes: DependencyNode[] = rows.map((r) => {
+    const declared = (r.dependencies ?? []).filter((d) => byName.has(d));
+    return {
+      name: r.name,
+      label: r.label,
+      category: r.category,
+      state: r.state,
+      health: r.health,
+      dependsOn: declared,
+      dependsOnMetier: declared.filter((d) => !isTechnicalIntegration(r.name, d)),
+      requiredBy: requiredBy.get(r.name) ?? [],
+    };
+  });
 
   return { nodes, edges, missing, cycles: findCycles(nodes) };
 }
 
-/** Détection des dépendances circulaires (parcours en profondeur). */
+/** Détection des dépendances circulaires (parcours en profondeur), sur le sous-graphe métier uniquement. */
 function findCycles(nodes: DependencyNode[]): string[][] {
-  // Le socle démarre en premier et coordonne les moteurs qu'il liste : ses
-  // propres liens sortants sont des liens d'orchestration, pas des prérequis
-  // de démarrage. Les compter comme arêtes créait 150+ « boucles » fictives
-  // (chaque moteur → core → smart → core…) qui noyaient les vraies anomalies.
-  const deps = new Map(
-    nodes.map((n) => [n.name, n.name === SOCLE ? [] : n.dependsOn]),
-  );
+  // Une intégration technique transversale (session Identity, journal
+  // d'audit, télémétrie Monitoring/Visibility — voir technical-integrations.ts)
+  // n'est pas comptée comme prérequis de démarrage : c'est un port neutre vers
+  // un service d'infrastructure, pas un couplage fonctionnel entre deux
+  // domaines. Ne détecter les cycles que sur dependsOnMetier évite les
+  // dizaines de « boucles » fictives que produisait le comptage brut de
+  // toutes les arêtes déclarées, sans dissimuler les cycles métier réels.
+  const deps = new Map(nodes.map((n) => [n.name, n.dependsOnMetier]));
   const cycles: string[][] = [];
   const seen = new Set<string>();
   const stack: string[] = [];
