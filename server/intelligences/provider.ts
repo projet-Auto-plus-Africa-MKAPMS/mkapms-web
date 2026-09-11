@@ -20,6 +20,33 @@ import { afCostEntries } from "../ai-fabric/schema.js";
 import { chooseProvider, markProviderUsed, type Confidentiality } from "../ai-fabric/service.js";
 import { enregistrer as enregistrerAppel } from "./evaluation.js";
 
+/** Une fonction que le modèle peut demander à exécuter (appel d'outils). */
+export interface OutilFonction {
+  type: "function";
+  function: {
+    name: string;
+    description: string;
+    /** Schéma JSON des arguments attendus. */
+    parameters: Record<string, unknown>;
+    strict?: boolean;
+  };
+}
+
+/** Ce que le modèle a demandé d'exécuter — l'appelant décide, jamais ce fichier. */
+export interface AppelOutil {
+  id: string;
+  nom: string;
+  /** Arguments tels que renvoyés par le fournisseur (JSON brut, non validé ici). */
+  arguments: string;
+}
+
+/** Exige une réponse conforme à un schéma JSON, au lieu d'une phrase à deviner. */
+export interface SortieStructuree {
+  nom: string;
+  schema: Record<string, unknown>;
+  strict?: boolean;
+}
+
 export interface AppelInput {
   /** Capacité Fabrique Intelligence : "ia_texte" ou "ia_vision". */
   capacite: "ia_texte" | "ia_vision";
@@ -36,6 +63,10 @@ export interface AppelInput {
   images?: string[];
   maxTokens?: number;
   temperature?: number;
+  /** Fonctions que le modèle peut demander d'exécuter (capacité "outils"). */
+  outils?: OutilFonction[];
+  /** Réponse garantie conforme à ce schéma (capacité "sortie_structuree"). */
+  sortieStructuree?: SortieStructuree;
   /**
    * Point 147 — fournisseur imposé par le propriétaire, ou moteur candidat en
    * mode shadow. Quand il est fourni, le routage habituel n'est pas consulté.
@@ -76,6 +107,8 @@ export interface AppelResultat {
    * fournisseur est tombé — cette liste le dit.
    */
   tentatives: Tentative[];
+  /** Outils que le modèle demande à exécuter — vide quand aucun n'a été proposé ou demandé. */
+  appelsOutils: AppelOutil[];
 }
 
 /**
@@ -220,6 +253,7 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
     jetonsSortie: 0,
     dureeMs: 0,
     tentatives: [],
+    appelsOutils: [],
   };
 
   const rang: Rang = input.rang ?? "principal";
@@ -317,6 +351,19 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
         ],
         max_completion_tokens: input.maxTokens ?? 1200,
         ...(input.temperature === undefined ? {} : { temperature: input.temperature }),
+        ...(input.outils?.length ? { tools: input.outils, tool_choice: "auto" } : {}),
+        ...(input.sortieStructuree
+          ? {
+              response_format: {
+                type: "json_schema",
+                json_schema: {
+                  name: input.sortieStructuree.nom,
+                  schema: input.sortieStructuree.schema,
+                  strict: input.sortieStructuree.strict ?? true,
+                },
+              },
+            }
+          : {}),
       }),
       signal: AbortSignal.timeout(90_000),
     });
@@ -337,14 +384,25 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
     }
 
     const corps = JSON.parse(brut) as {
-      choices?: { message?: { content?: string } }[];
+      choices?: {
+        message?: {
+          content?: string | null;
+          tool_calls?: { id: string; type: string; function: { name: string; arguments: string } }[];
+        };
+      }[];
       usage?: { prompt_tokens?: number; completion_tokens?: number };
     };
-    const texte = corps.choices?.[0]?.message?.content ?? "";
+    const message = corps.choices?.[0]?.message;
+    const texte = message?.content ?? "";
+    const appelsOutils: AppelOutil[] = (message?.tool_calls ?? [])
+      .filter((t) => t.type === "function")
+      .map((t) => ({ id: t.id, nom: t.function.name, arguments: t.function.arguments }));
     const jetonsEntree = corps.usage?.prompt_tokens ?? 0;
     const jetonsSortie = corps.usage?.completion_tokens ?? 0;
 
-    if (texte.trim().length === 0) {
+    // Un modèle qui ne fait qu'appeler un outil (aucun texte) est une réponse
+    // valide, pas un échec : c'est justement le but de la capacité "outils".
+    if (texte.trim().length === 0 && appelsOutils.length === 0) {
       return replier(
         `${providerLabel} a répondu sans contenu utilisable.`,
         Date.now() - debut,
@@ -384,6 +442,7 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
       jetonsSortie,
       dureeMs: tentative.dureeMs,
       tentatives: [tentative],
+      appelsOutils,
     };
   } catch (e) {
     return replier(

@@ -504,6 +504,19 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié par un vrai build Android (SDK et build-tools installés dans l'environnement de travail, pas seulement une relecture de code) : les 4 variantes (grandpublic, pro, command, intelligence) compilent en debug et en release après la conversion en product flavors, avec l'applicationId et le nom attendus dans chaque APK — la conversion de l'injection de propriétés vers de vrais flavors Gradle ne casse aucune des 3 applications existantes. Un flavor Gradle sans dossier de ressources dédié hérite silencieusement de src/main/ : c'est ce qui permet de réserver le mécanisme (dossier + documentation) sans fabriquer d'icône avant que la direction ne le demande.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-provider-outils-sortie-structuree",
+    titre: "Appel d'outils et sortie structurée réellement câblés dans la couche d'appel unique",
+    moteurs: ["intelligences"],
+    quoi:
+      "Corrige le défaut trouvé pendant l'audit demandé par la direction : dans server/intelligences/fonctions.ts, les fonctionnalités appel_outils et sortie_structuree pouvaient être basculées sur « actif » dans l'écran sans que ça ne change quoi que ce soit, faute d'implémentation réelle dans provider.ts (qui n'envoyait jamais tools ni response_format, et n'appelait que /v1/chat/completions en texte simple). Corrigé au niveau de la couche d'appel unique : AppelInput accepte désormais outils (fonctions exposables au modèle) et sortieStructuree (schéma JSON exigé) ; la requête les transmet réellement (tools/tool_choice, response_format json_schema) ; la réponse est analysée pour en extraire les appels d'outils demandés (appelsOutils) au lieu de ne lire que le texte — une réponse qui ne contient qu'un appel d'outil, sans texte, est désormais traitée comme un succès et non comme une réponse vide en échec. server/intelligences/routeur.ts relaie ces deux champs de bout en bout, sans donner à un moteur métier un chemin parallèle vers le fournisseur.",
+    pourquoi:
+      "Préalable nécessaire à toute construction future (application MKA.P-MS Intelligence dédiée, modules Agents/Outils/Conversation) : ces modules ont besoin que ce câblage existe réellement avant d'avoir un sens à construire.",
+    ou: ["server/intelligences/provider.ts", "server/intelligences/routeur.ts"],
+    lecon:
+      "Un bouton de fonctionnalité peut être honnêtement déclaré (spécification complète, permission, précaution) sans qu'aucune ligne de code ne l'exécute réellement — l'état affiché (« activable ») ne prouvait que la présence d'une clé de fournisseur pour la capacité texte générique, jamais l'existence du code qui ferait la différence. Reste à faire, volontairement pas construit ici : aucune boucle d'exécution d'outil n'existe encore (demander un appel, l'exécuter, renvoyer le résultat au modèle pour la réponse finale), ni de Tool Registry recensant quelles fonctions MKA.P-MS sont exposables à qui — décision sensible aux permissions, à traiter comme son propre lot. Non vérifiable depuis cet environnement (aucune clé fournisseur réelle) : à confirmer par un vrai appel après déploiement, avec au moins un scénario de contrôle continu dédié.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
