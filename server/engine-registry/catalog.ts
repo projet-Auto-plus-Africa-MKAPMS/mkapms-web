@@ -75,7 +75,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "media_authenticity",
     label: "Media Authenticity Engine",
     category: "transversal",
-    dependencies: ["core","document","smart","audit","ai_fabric","event_bus"],
+    dependencies: ["core","smart","ai_fabric","event_bus"],
     description:
       "Provenance des photos, vidéos et justificatifs : empreinte, métadonnées, réutilisation, signature C2PA. Constate, n'authentifie pas un document administratif — la décision reste humaine.",
     state: "staging",
@@ -117,7 +117,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "atelier",
     label: "Moteur d'Atelier",
     category: "service",
-    dependencies: ["core","boutons","redirection","event_bus","smart","intelligences","permission","achat","garage","notification"],
+    dependencies: ["core","boutons","event_bus","smart","permission","achat","garage","notification"],
     description:
       "Capacités serveur de l'atelier : validation interne et contrôle qualité opposables, stock de pièces avec un mouvement par écriture, réapprovisionnement gouverné (seuil → proposition persistante → décision humaine → commande fournisseur sous plafond mensuel → réception en stock), report de rendez-vous tracé. Chaque écriture est publiée à l'Event Bus, supervisée par le Système Intelligent et mémorisée par MKA.P-MS Intelligences.",
     state: "active",
@@ -158,6 +158,16 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    // Dépendance mutuelle avec pro_account, acceptée et documentée (pas un
+    // oubli) : pro_portal->pro_account n'est pas un import serveur direct —
+    // la preuve réelle est client/src/pages/pro/DossierPro.tsx, un écran du
+    // parcours pro qui appelle à la fois trpc.proPortal et trpc.proAccount.
+    // Le sens inverse (pro_account->pro_portal) est lui un vrai import
+    // serveur : server/pro-account/service.ts importe
+    // server/pro-portal/contract.ts (requirementsFor) pour savoir quels
+    // justificatifs réunir avant l'activation d'un dossier. La boucle ne
+    // bloque pas le démarrage (un seul processus) ; le registre la signale
+    // déjà comme « à surveiller », pas comme une erreur.
     name: "pro_portal",
     label: "Pro Portal Engine",
     category: "transversal",
@@ -167,10 +177,14 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    // Dépendance réelle et vérifiée vers pro_portal : server/pro-account/
+    // service.ts importe server/pro-portal/contract.ts (requirementsFor).
+    // Voir le commentaire sur pro_portal ci-dessus pour le sens inverse
+    // (dépendance mutuelle acceptée, pas un oubli).
     name: "pro_account",
     label: "Pro Account Engine",
     category: "transversal",
-    dependencies: ["core","country","payment","notification","pro_portal"],
+    dependencies: ["core","country","notification","pro_portal"],
     description:
       "Dossier professionnel légal par pays et par métier : exigences variables, vérification humaine, paiement séparé et activation contrôlée.",
     state: "active",
@@ -247,7 +261,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "monitoring",
     label: "Monitoring Engine",
     category: "transversal",
-    dependencies: ["core","smart","notification","audit","event_bus","identity","scheduler","visibility"],
+    dependencies: ["core","smart","notification","event_bus","identity","scheduler","visibility"],
     description: "Surveillance santé/performances consolidée (Monitoring OS).",
     state: "active",
   },
@@ -272,7 +286,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "vo_engine",
     label: "VO Engine — estimation & reprise",
     category: "univers",
-    dependencies: ["core","country","notification","achat"],
+    dependencies: ["core","country","achat"],
     description:
       "Amont client du VO : estimation en fourchette sur le marché local, demande de reprise et dossier VO de confiance.",
     state: "active",
@@ -281,7 +295,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "vo_espaces",
     label: "VO Espaces — cloisonnement officiel / pro / particulier",
     category: "univers",
-    dependencies: ["core","permission","payment","redirection","document","identity","pro_portal","country"],
+    dependencies: ["core","payment","document","identity","pro_portal","country"],
     description:
       "Décide côté serveur quel espace VO est ouvert (officiel réservé à l'équipe, professionnel sur abonnement VO actif, particulier fermé) et limite chaque stock à son propriétaire.",
     state: "staging",
@@ -308,7 +322,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "garage",
     label: "Garage Engine",
     category: "univers",
-    dependencies: ["core","identity","notification","payment","scheduler","achat","atelier","avis_reputation","boutons","depannage","support","visibility","country"],
+    dependencies: ["core","identity","notification","scheduler","achat","atelier","avis_reputation","boutons","depannage","support","visibility","country"],
     description: "Fiches garage, devis, réservations, interventions.",
     state: "active",
   },
@@ -324,7 +338,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "depannage",
     label: "Dépannage Engine",
     category: "univers",
-    dependencies: ["core","identity","notification","payment","scheduler","proximity_engine","avis_reputation"],
+    dependencies: ["core","identity","notification","payment","avis_reputation"],
     description: "Demandes d'intervention, affectation, suivi.",
     state: "active",
   },
@@ -332,7 +346,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "livraison",
     label: "Livraison Engine",
     category: "univers",
-    dependencies: ["core","identity","notification","payment","scheduler","proximity_engine","avis_reputation","boutons"],
+    dependencies: ["core","identity","notification","payment","avis_reputation","boutons"],
     description: "Livraison véhicules/pièces, transport, suivi.",
     state: "active",
   },
@@ -348,7 +362,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "comptabilite",
     label: "Comptabilité Engine",
     category: "univers",
-    dependencies: ["core","identity","payment","document","redirection"],
+    dependencies: ["core","identity","payment","redirection"],
     description: "Factures, paiements, TVA, rapports.",
     state: "active",
   },
@@ -474,14 +488,14 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     label: "Contrôle Technique Engine",
     category: "service",
     dependencies: ["core", "identity", "scheduler", "notification", "payment"],
-    description: "Prise de RDV, centres agréés, résultats, rappels d'échéance.",
-    state: "active",
+    description: "Prise de RDV, centres agréés, résultats, rappels d'échéance — à construire (Phase 2).",
+    state: "staging",
   },
   {
     name: "assurance",
     label: "Assurance Engine",
     category: "service",
-    dependencies: ["core", "identity", "partner_engine", "document", "notification"],
+    dependencies: ["core", "identity", "notification"],
     description: "Devis assurance, contrats, sinistres, partenaires.",
     state: "active",
   },
@@ -498,7 +512,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "avis_reputation",
     label: "Reviews & Reputation Engine",
     category: "service",
-    dependencies: ["core","country","notification","connecteur_google_business","depannage","livraison","pieces","smart","workflow","identity"],
+    dependencies: ["core","notification","connecteur_google_business","depannage","livraison","pieces","smart","workflow","identity"],
     description:
       "Avis multi-univers par pays, expériences vérifiées après transaction réelle, réponses professionnelles et officielles, réputation consolidée.",
     state: "active",
@@ -588,7 +602,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "continuous_test",
     label: "Contrôle continu de la plateforme",
     category: "transversal",
-    dependencies: ["core","smart","event_bus","activation_audit","auto_branchement","code_graph","completion_center","intelligences","payment","boutons","redirection"],
+    dependencies: ["core","smart","event_bus","activation_audit","auto_branchement","code_graph","completion_center","intelligences","payment","boutons","redirection","estimation","media_authenticity","connecteur_google_business"],
     description:
       "Exécute réellement des contrôles sur la plateforme en service et dépose la preuve datée qui autorise un domaine à passer au vert. Un contrôle non exécutable est marqué ignoré, jamais réussi, et un contrôle qui passait puis échoue est signalé comme régression.",
     state: "active",
@@ -661,8 +675,8 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     label: "Financement Engine",
     category: "service",
     dependencies: ["core", "identity", "payment", "document", "accounting_internal"],
-    description: "Financement / crédit / LOA, simulations, dossiers.",
-    state: "active",
+    description: "Financement / crédit / LOA, simulations, dossiers — à construire (Phase 2) : le schéma de tables existe (modules/financeplus.ts), aucune procédure serveur ne l'exploite encore.",
+    state: "staging",
   },
   {
     name: "encheres",
@@ -676,7 +690,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "auction_engine",
     label: "Auction Engine",
     category: "service",
-    dependencies: ["core", "payment", "notification", "visibility", "country"],
+    dependencies: ["core", "notification", "visibility", "country"],
     description:
       "Moteur d'enchères particuliers et professionnels : lots, offres validées côté serveur, prix de réserve, anti-sniping, adjudication, historique et notifications.",
     state: "active",
@@ -777,7 +791,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "estimation",
     label: "Estimation Hub",
     category: "transversal",
-    dependencies: ["core","smart","vo","livraison_vehicule","risque_import","event_bus","pieces","vo_engine"],
+    dependencies: ["core","smart","livraison_vehicule","risque_import","event_bus","pieces","vo_engine"],
     description: "Coût total d'acquisition assemblé à partir des moteurs existants.",
     state: "active",
   },

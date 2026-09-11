@@ -389,6 +389,100 @@ export const LIVRAISONS: Livraison[] = [
       "La même méthode continue de payer : chaque anomalie affichée au centre de pilotage a une cause traçable dans le code (un bouton avec repli codé en dur, un composant partagé entre plusieurs routes, un import direct non déclaré) — aucune n'a nécessité de deviner. Vérification après régénération (npm run gen:moteurs) : 0 route sans moteur, 0 dépendance non déclarée restante ; la composante fortement connexe du graphe (41 moteurs) ne change pas de taille avec l'ajout de boutons comme dépendance, boutons y était déjà. Les scénarios HTTP (livraison, livraison_vehicule, achat, avis_reputation) ne peuvent pas être exécutés depuis cet environnement (pas d'accès réseau à l'URL publique déployée) : leur syntaxe et leur logique sont vérifiées par lecture et par typecheck, mais leur premier vrai résultat n'arrivera qu'après déploiement, quand le moteur continuous_test les exécutera pour de vrai contre la plateforme réelle et déposera la preuve dans l'audit d'activation (point 91). Seul boutons.catalogue_coherent a pu être exécuté et vérifié ici, sans réseau ni base. 66 moteurs restent à 0 preuve de test après ce lot — à continuer, 5 par 5, à chaque prochain lot de correction.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-lot6-completion-center-identity-garage-pieces-visibility-monitoring",
+    titre: "Lot de 5 : domaine de test mal attribué (completion_center) trouvé et corrigé + 5 nouveaux moteurs couverts",
+    moteurs: ["completion_center", "identity", "garage", "pieces", "visibility", "monitoring"],
+    quoi:
+      "Après les deux défauts de correspondance par approximation de texte déjà trouvés (matchRouter, matchRoutes), même vérification appliquée au critère « Testée » : le scénario central.achevement_calcule déclarait domaine: \"completion\" alors que le moteur réellement inscrit au catalogue s'appelle completion_center — normalizeKey(\"completion\") ne correspond à aucune variante de normalizeKey(\"completion_center\"), donc la preuve de test existait mais ne pouvait jamais être retrouvée par ce moteur dans l'audit d'activation. Corrigé (id et domaine renommés en completion_center). Vérification élargie : comparaison de tous les domaines déclarés dans server/continuous-test/*.ts contre les 88 noms exacts du catalogue — les autres écarts (annonces, central, engine_registry) sont des contrôles transversaux volontaires sur une table ou un sous-système partagé par plusieurs moteurs, pas des fautes de frappe, laissés tels quels. En même temps (règle des 5 moteurs testés par lot), ajouté des scénarios réels dans server/continuous-test/scenarios-univers.ts pour identity (/connexion), garage (/garages), pieces (/pieces), visibility (/superadmin/visibilite-croissance) et monitoring (/superadmin/admin-statistiques) — même méthode que le lot précédent (page publique réelle, code HTTP 200 vérifié, pas d'écran introuvable).",
+    pourquoi:
+      "Suite logique de la leçon retenue au lot précédent : deux défauts du même type trouvés coup sur coup suggéraient de relire tout le reste de l'audit d'activation avec la même question. Continuité de la règle de travail (5 moteurs testés par lot, sans s'arrêter).",
+    ou: [
+      "server/continuous-test/scenarios-moteurs-centraux.ts",
+      "server/continuous-test/scenarios-univers.ts",
+    ],
+    lecon:
+      "Toute correspondance entre un identifiant libre (domaine d'un scénario, table sondée) et le nom d'un moteur au registre doit être vérifiée par égalité exacte contre le catalogue, jamais supposée juste parce qu'elle « ressemble ». Un balayage complet (comparer chaque valeur déclarée aux 88 noms exacts) trouve ce genre de faute plus vite qu'une relecture au cas par cas. Reste à vérifier avec la même méthode : le critère « Utilisée réellement » a déjà été vérifié dans ce lot (server/engine-registry/probes.ts — les 62 noms de moteur sondés correspondent tous exactement au catalogue, aucun défaut trouvé) ; « Système Intelligent connecté » ne dépend d'aucune correspondance de nom (juste lastHeartbeat), donc hors de portée de cette classe de défaut.",
+    domaine: "moteurs",
+  },
+  {
+    cle: "branche-lot7-nettoyage-dependances-sans-preuve",
+    titre: "8 dépendances déclarées sans aucun usage réel retirées — composante cyclique réduite de 41 à 39 moteurs",
+    moteurs: ["livraison", "depannage", "garage", "vo_engine", "monitoring", "media_authenticity"],
+    quoi:
+      "Le générateur signale 55 « dependance_sans_preuve » (une dépendance déclarée au catalogue sans aucun import, événement ou table trouvé dans le code du moteur qui la déclare). La plupart concernent des moteurs sous-section pas encore construits (phase 2, ex. controle_technique, encheres, marketing) — normal, rien à corriger. Six moteurs réellement construits ont été vérifiés un par un (lecture directe des fichiers déclarés dans perimetres.ts, recherche de l'usage exact) : livraison ne référence scheduler ni proximity_engine nulle part (retirés) ; depannage non plus (retirés, mais payment y est bien réellement importé — conservé) ; garage n'importe jamais payment dans routers/garages.ts (retiré, scheduler y reste car réellement prouvé) ; vo_engine n'importe jamais notification (retiré) ; monitoring-os n'importe jamais audit alors qu'il importe bien notification/identity/event_bus (retiré, le reste conservé) ; media_authenticity n'a aucun lien vers les moteurs document ou audit — le mot « document » n'y apparaît que comme valeur d'énumération de type de média (image/vidéo/document), pas comme dépendance réelle (les deux retirés).",
+    pourquoi:
+      "Continuité de l'instruction de la direction : toute anomalie constatée en travaillant les dépendants doit être complétée, y compris dans l'autre sens — une dépendance déclarée qui n'existe pas dans le code réel fausse le graphe de connexions autant qu'une dépendance manquante.",
+    ou: ["server/engine-registry/catalog.ts"],
+    lecon:
+      "Retirer une dépendance sans preuve n'est pas une suppression de fonctionnalité : c'est corriger une déclaration jamais devenue réelle (souvent héritée d'une intention initiale — livrer avec des créneaux planifiés, garages via paiement direct — jamais construite). Effet mesurable : la composante fortement connexe du graphe de dépendances métier passe de 41 à 39 moteurs (document sort entièrement du cycle, n'y étant relié que par cette fausse dépendance de media_authenticity). Il reste 46 dependance_sans_preuve, très majoritairement portées par des moteurs sous-section de phase 2 encore non construits — à revérifier au cas par cas seulement quand ces moteurs seront construits, pas avant.",
+    domaine: "moteurs",
+  },
+  {
+    cle: "branche-lot8-search-support-messaging-atelier-estimation",
+    titre: "Lot de 5 : couverture de test pour search, support, messaging, atelier, estimation",
+    moteurs: ["search", "support", "messaging", "atelier", "estimation", "continuous_test"],
+    quoi:
+      "Cinq scénarios réels ajoutés dans server/continuous-test/scenarios-univers.ts : quatre pages publiques (search /rechercher, support /aide, messaging /messagerie, atelier /atelier-pro — même méthode, HTTP 200 réel + pas d'écran introuvable) et un contrôle en process pour estimation (import direct de estimation-hub/service.ts, controlCenterFeed(), échec si l'état de santé calculé est « degraded »). Ce dernier import a créé une dépendance réelle continuous_test -> estimation, détectée par le générateur au prochain gen:moteurs (dependance_non_declaree) — déclarée dans catalog.ts, même règle que la dépendance continuous_test -> boutons déjà existante pour la même raison (import direct d'un catalogue pour le tester).",
+    pourquoi:
+      "Continuité de la règle de travail (au moins 5 moteurs testés par lot) et de l'instruction de compléter toute anomalie constatée en travaillant — ici, une dépendance non déclarée créée par le travail de test lui-même, corrigée dans le même lot plutôt que laissée pour un lot séparé.",
+    ou: ["server/continuous-test/scenarios-univers.ts", "server/engine-registry/catalog.ts"],
+    lecon:
+      "Un scénario de contrôle continu qui importe directement le service d'un autre moteur (plutôt que de l'interroger par HTTP public) crée une vraie dépendance de code, pas seulement une preuve de test : elle doit être déclarée comme telle. Les scénarios purement HTTP (page_publique) ne créent aucune dépendance détectable, puisqu'ils interrogent le serveur de l'extérieur comme le ferait un visiteur.",
+    domaine: "moteurs",
+  },
+  {
+    cle: "branche-lot9-atelier-assurance-controle-technique-finance",
+    titre: "Vérification demandée par la direction sur atelier et assurance + 2 moteurs « actifs » sans aucun backend réel corrigés",
+    moteurs: ["atelier", "assurance", "controle_technique", "finance"],
+    quoi:
+      "Suite à la demande directe de vérifier que chaque service a son propre moteur bien complet et connecté (exemples cités : garage pour les véhicules, pieces pour les pièces — déjà corrects). Vérification faite service par service (category: service au catalogue). atelier et assurance existent déjà comme moteurs dédiés, avec du vrai code (atelier-engine, insurance-engine, dizaines de routes réelles) : 4 dépendances sans aucune preuve d'usage retirées (atelier -> redirection, atelier -> intelligences ; assurance -> partner_engine, assurance -> document — aucun de ces quatre moteurs n'est jamais importé dans le code réel d'atelier ou d'assurance). En élargissant la vérification aux autres moteurs de category service : controle_technique et finance sont déclarés « active » alors qu'ils n'ont ni dossier serveur ni routeur déclaré (comme les sous-sections *_pro/*_particulier/*_officiel, mais eux sont honnêtement marqués « staging ») — leurs 4 dépendances chacun sont sans aucune preuve, confirmant l'absence totale de backend. finance a un fichier de schéma de tables (modules/financeplus.ts) mais aucune procédure serveur ne l'exploite. Les deux corrigés en state: \"staging\" pour refléter la réalité (ce n'était pas un mensonge délibéré, juste jamais mis à jour depuis leur création), sans toucher à leurs dépendances déclarées qui restent l'intention pour leur construction en Phase 2.",
+    pourquoi:
+      "Demande explicite de la direction : que chaque service ait son propre moteur, et que les moteurs déjà créés soient réellement complets et connectés à toutes les parties nécessaires — pas seulement déclarés.",
+    ou: ["server/engine-registry/catalog.ts"],
+    lecon:
+      "Un moteur marqué « active » sans un seul dossier serveur ni routeur déclaré, et dont 100% des dépendances déclarées sont sans preuve, n'est pas actif : c'est un moteur pas encore construit auquel on a oublié de changer l'état, contrairement aux sous-sections *_pro qui, elles, sont honnêtement « staging ». Point non résolu à signaler à la direction plutôt qu'à trancher seul (changement de responsabilité majeur, pas une réparation) : encheres (category service, state active, 0 dossier, 0 routeur, mais dépend de auction_engine) et auction_engine (le vrai moteur construit, avec son propre dossier auction-engine et sa route /encheres/live) semblent couvrir le même domaine en double — à clarifier : encheres doit-il rester une simple façade univers au-dessus d'auction_engine, ou les deux devraient-ils fusionner ?",
+    domaine: "moteurs",
+  },
+  {
+    cle: "branche-lot10-depannage-vo-energie-media-google-business",
+    titre: "Lot de 5 : couverture de test pour depannage, vo_engine, energie_recharge, media_authenticity, connecteur_google_business",
+    moteurs: ["depannage", "vo_engine", "energie_recharge", "media_authenticity", "connecteur_google_business", "continuous_test"],
+    quoi:
+      "Cinq scénarios réels ajoutés dans scenarios-univers.ts. Trois pages publiques (depannage /depannage, vo_engine /louer/certifies, energie_recharge /labs/energy-recharge — même méthode que les lots précédents). Deux contrôles en process, choisis parce que ces deux moteurs n'exposent aucune route visiteur (backend pur) : media_authenticity.etat_calcule importe directement service.ts et vérifie que etat() répond avec une couverture de détecteurs cohérente (jamais plus d'opérationnels que de détecteurs déclarés) ; connecteur_google_business.etat_gracieux importe directement service.ts et vérifie que connectorStatus() répond honnêtement — échoue seulement si l'état affiché est « actif » sans jeton d'actualisation réel (le connecteur est censé rester « non configuré » tant que les clés Google ne sont pas fournies, jamais se prétendre actif sans elles). Les deux imports directs ont créé 2 dépendances réelles (continuous_test -> media_authenticity, continuous_test -> connecteur_google_business), déclarées dans catalog.ts, même raison que continuous_test -> boutons et -> estimation déjà déclarées.",
+    pourquoi:
+      "Continuité de la règle des 5 moteurs testés par lot, en priorisant des moteurs sans aucune route visiteur (donc invisibles aux scénarios HTTP habituels) pour élargir la méthode de contrôle en process déjà validée avec estimation.",
+    ou: ["server/continuous-test/scenarios-univers.ts", "server/engine-registry/catalog.ts"],
+    lecon:
+      "Le contrôle du connecteur Google Business illustre la règle permanente sur les clés externes manquantes : le test ne vérifie jamais qu'une clé réelle est présente, seulement que le code se comporte honnêtement dans les deux cas (avec ou sans clé) — un connecteur qui se prétendrait « actif » sans jeton réel serait le vrai défaut, pas l'absence de la clé elle-même.",
+    domaine: "moteurs",
+  },
+  {
+    cle: "branche-lot11-balayage-final-dependances-sans-preuve",
+    titre: "Balayage complet des 42 dependance_sans_preuve restantes : 7 nouvelles fausses déclarations trouvées et retirées",
+    moteurs: ["avis_reputation", "comptabilite", "pro_account", "vo_espaces", "auction_engine", "estimation"],
+    quoi:
+      "En réponse à la question directe de la direction (tout est-il complété ?), balayage complet des 42 dependance_sans_preuve restantes pour distinguer, moteur par moteur, les vraies fausses déclarations des moteurs sous-section de phase 2 pas encore construits (achat_pro/particulier/officiel, vente_pro/particulier/officiel, location_pro/particulier, controle_technique, finance — laissés tels quels, déjà traités). 7 nouvelles fausses déclarations trouvées sur des moteurs réels et actifs, toutes causées par la même confusion : un nom de champ de données qui ressemble au nom d'un moteur, sans aucun import réel de ce moteur. avis_reputation -> country (countryCode n'est qu'une colonne de données, jamais un import du moteur country) ; comptabilite -> document (comptaDocuments/cabinetDocuments sont les tables DE comptabilite elle-même, pas le moteur document) ; pro_account -> payment (paymentStatus/paymentReference sont des colonnes, jamais un import de payment-engine) ; vo_espaces -> permission et -> redirection (le mot « redirection » n'apparaît que dans un commentaire et un champ de réponse serveur, jamais useRedirection/redirectionEngine) ; auction_engine -> payment (paymentId est une colonne, jamais un import de payment-engine) ; estimation -> vo (estimation importe réellement vo-engine/service.ts, un moteur distinct malgré le nom proche — le seul import réel vers « vo » est le mot utilisé comme étiquette d'affichage dans une réponse, pas un import du moteur vo lui-même). Toutes retirées. dependance_sans_preuve : 42 -> 35, composante cyclique inchangée (39 moteurs, ces dépendances n'étaient pas des arêtes de cycle).",
+    pourquoi:
+      "La direction a demandé une confirmation explicite que tout défaut repéré (dépendants, connexions) est traité avant l'envoi de nouvelles tâches — ce balayage final vérifie qu'aucune fausse dépendance n'a été oubliée parmi les moteurs réellement construits, avant de répondre.",
+    ou: ["server/engine-registry/catalog.ts"],
+    lecon:
+      "Le même piège se répète : un champ de données nommé comme un moteur (paymentId, countryCode, document, redirection en tant que texte de réponse) n'est pas une preuve de dépendance — seul un import réel du module de l'autre moteur compte. knowledge (smart, seo, country non prouvés) et location (permission non prouvé) ont été examinés mais laissés tels quels : ce sont des univers réels avec du contenu réel (guides, formations) ou une orchestration réelle (routes /louer/* nombreuses, routeurs partagés), où le manque de preuve représente une intégration future légitime, pas une déclaration fausse — la différence avec les 7 corrigés ici est qu'eux avaient une preuve concrète du contraire (le nom du champ trouvé n'était jamais le moteur visé), alors qu'ici l'absence de preuve reste juste une absence.",
+    domaine: "moteurs",
+  },
+  {
+    cle: "branche-lot12-redirection-france-et-cycle-pro-formalise",
+    titre: "Alias /france ajouté au moteur de redirection + cycle pro_account/pro_portal formalisé comme coopération acceptée",
+    moteurs: ["redirection", "pro_account", "pro_portal"],
+    quoi:
+      "Deux points explicitement demandés par la direction. 1) La clé de redirection sans destination identifiée pour /france : recherche du slug dans le code réel — server/seo-generator.ts déclare { slug: \"france\", name: \"France\" } et /pays/:slug (SeoLandingPage) sert déjà les pages pays. Un visiteur tapant /france cherchait cette page, pas une destination inexistante ; alias ajouté (/france -> /pays/france). 2) Le cycle pro_account <-> pro_portal, examiné en détail avant de le documenter : les deux sens ne sont pas symétriques. pro_account -> pro_portal est un vrai import serveur (server/pro-account/service.ts importe server/pro-portal/contract.ts, requirementsFor) — déjà formalisé lors d'un lot précédent par l'extraction de ce contrat. pro_portal -> pro_account n'est PAS un import serveur : sa seule preuve est client/src/pages/pro/DossierPro.tsx, un écran qui appelle à la fois trpc.proPortal et trpc.proAccount — un couplage réel mais côté écran, pas côté moteur. Les deux catalog.ts portent maintenant un commentaire expliquant cette asymétrie exacte, pour qu'un futur lot ne la reprenne pas comme un défaut non résolu. Le registre traitait déjà cette boucle comme « à surveiller » (pas critique) dans registryAnomalies() — rien à changer côté code, seulement la documenter comme vue et acceptée.",
+    pourquoi:
+      "Réponse directe à la demande de la direction de traiter ces deux points avant l'envoi des prochaines tâches.",
+    ou: ["server/redirection-engine/catalog.ts", "server/engine-registry/catalog.ts"],
+    lecon:
+      "Une « dépendance mutuelle » déclarée à deux endroits n'est pas forcément symétrique dans le code réel : ici un sens est un import serveur direct, l'autre n'est qu'un écran partagé qui appelle les deux API. Documenter l'asymétrie exacte évite qu'un futur passage tente de « corriger » le sens le plus faible en le prenant pour une erreur, ou au contraire lui suppose la même solidité que l'autre sens.",
+    domaine: "moteurs",
+  },
 ];
 
 /**

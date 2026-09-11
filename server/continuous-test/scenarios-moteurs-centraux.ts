@@ -271,8 +271,8 @@ export const MOTEURS_CENTRAUX_SCENARIOS: Scenario[] = [
     },
   },
   {
-    id: "central.achevement_calcule",
-    domaine: "completion",
+    id: "completion_center.achevement_calcule",
+    domaine: "completion_center",
     label: "État d'achèvement calculé et récent",
     criticite: "normale",
     attendu:
