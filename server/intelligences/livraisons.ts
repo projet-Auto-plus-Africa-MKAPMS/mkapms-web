@@ -287,6 +287,19 @@ export const LIVRAISONS: Livraison[] = [
       "IMPORTANT — décision délibérée de ne PAS traiter le reste de la liste dependance_sans_preuve (une cinquantaine d'entrées restantes, sur des moteurs comme finance, controle_technique, encheres, location, vente, knowledge…). Vérifié : ces moteurs n'ont presque aucun fichier serveur réel (0 à 4 fichiers, plusieurs marqués sans_logique_serveur — finance n'a qu'un seul fichier, controle_technique aucun). Leurs dépendances déclarées sans preuve ne sont pas des erreurs comme comptabilite<->accounting_internal ou seo : ce sont des intentions d'architecture pour des moteurs pas encore construits. Les retirer effacerait à tort ce qu'ils devront réellement utiliser une fois développés — c'est exactement le travail de « construction et développement réel de chaque moteur » que la direction a explicitement mis dans la phase suivante, pas dans la stabilisation en cours. Règle à retenir : dependance_sans_preuve n'est un signal fiable de correction immédiate QUE lorsque le moteur source a une vraie implémentation serveur (plusieurs fichiers, d'autres dépendances prouvées) ; sur un moteur-écran ou un stub, c'est un manque de construction, pas un défaut de registre.",
     domaine: "moteurs",
   },
+  {
+    cle: "branche-stabilisation-moteurs-vente-connexions-manquantes",
+    titre: "vente utilise réellement livraison_vehicule et boutons sans les déclarer",
+    moteurs: ["vente", "livraison_vehicule", "boutons"],
+    quoi:
+      "Priorisé ce lot plutôt que product_engine/repli de modèle (cité en exemple par la direction) après un balayage de tout le registre : dependance_non_declaree (une dépendance détectée dans le code mais absente de catalog.ts — le sens inverse des lots précédents) signale un vrai défaut de connexion, plus structurel qu'une clé externe déjà diagnostiquée. client/src/pages/LivraisonVehicule.tsx est monté sous 3 routes : /louer/livraison (livraison_vehicule, déjà déclaré), /livraison-vehicule (orpheline, aucun moteur), et /vente/livraison — cette dernière capturée par la route générique /vente/* de vente. Le même écran y appelle réellement trpc.livraisonVehicule.{catalogue,devis,mesExpeditions,accepter} et utilise BoutonMoteur partout (composant du moteur boutons). vente ne déclarait ni l'un ni l'autre. Ajoutés dans catalog.ts : preuve de code directe (imports et appels réels), aucune invention.",
+    pourquoi:
+      "Après avoir mergé les lots sur les cycles, balayage demandé pour trouver le risque structurel le plus important avant de traiter l'exemple product_engine/repli de modèle cité par la direction — trouvé un défaut de connexion réel (registre incomplet, pas juste une clé absente) plus prioritaire.",
+    ou: ["server/engine-registry/catalog.ts", "server/data/moteurs.ts"],
+    lecon:
+      "dependance_non_declaree est le signal miroir de dependance_sans_preuve : au lieu d'une fausse déclaration à retirer, c'est un vrai usage à déclarer. Les deux méritent le même balayage systématique. Reste ouvert, non traité dans ce lot pour respecter la limite de 1-2 moteurs : achat -> identity, avis_reputation -> identity (routers/annonces.ts et routers/reviews.ts importent identity-os/identite-officielle.ts), livraison -> boutons, livraison_vehicule -> boutons — 4 dépendances du même type, prouvées, à ajouter dans un prochain lot. Noté aussi : /livraison-vehicule reste une route sans moteur (le même écran, mais une 3e route, ni sous vente ni sous livraison_vehicule) — à vérifier si c'est voulu ou un doublon de route à nettoyer.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
