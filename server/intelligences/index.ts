@@ -11,7 +11,7 @@
  */
 import { z } from "zod";
 import { createHash } from "node:crypto";
-import { pdgProcedure, publicProcedure, router } from "../trpc.js";
+import { pdgProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
 import { COMMANDES, NOM_MOTEUR, REGLES } from "./regles.js";
 import {
   CAPACITES,
@@ -118,6 +118,9 @@ import {
 } from "./chantier/service.js";
 import { arborescence as arborescenceChantier } from "./chantier/fs.js";
 import { statut as statutApercuChantier, verifierReponse as verifierReponseApercuChantier } from "./chantier/preview.js";
+import { registre as registreUnivers, univers as universDetail } from "./univers/registre.js";
+import { rapportCouverture } from "./univers/couverture.js";
+import { resoudreContexte } from "./contexte/service.js";
 
 export const INTELLIGENCES_META = {
   code: "intelligences",
@@ -723,4 +726,46 @@ export const intelligencesRouter = router({
       const reponseVerifiee = etat.statut === "en_cours" ? await verifierReponseApercuChantier(projet.id) : null;
       return { ...etat, reponseVerifiee };
     }),
+
+  // ------------------------------------------------------- LOT IA01 — Universe Registry / Context Engine
+  //
+  // Cartographie complète de la plateforme (Universe Registry) et résolution
+  // de contexte (Context Engine) — lot de connexion, ne reconstruit aucun
+  // moteur métier. Voir server/intelligences/univers/ et contexte/.
+
+  /** Cartographie complète : tous les univers, leur statut de connexion Intelligence réel. */
+  universRegistre: pdgProcedure.query(() => registreUnivers()),
+
+  universDetail: pdgProcedure
+    .input(z.object({ universeId: z.string().min(1).max(64) }))
+    .query(({ input }) => universDetail(input.universeId)),
+
+  /** Rapport « Intelligence Coverage » (point 20 du chantier maître). */
+  couvertureIntelligence: pdgProcedure.query(() => rapportCouverture()),
+
+  /**
+   * Context Engine — résout en un appel qui est l'utilisateur, dans quel
+   * univers/pays/projet il se trouve. Ouvert à tout compte authentifié (pas
+   * seulement PDG) : c'est le socle destiné à terme à l'assistant embarqué
+   * public, pas seulement au côté direction.
+   */
+  contexte: protectedProcedure
+    .input(
+      z.object({
+        route: z.string().max(300).optional(),
+        application: z.string().max(32).optional(),
+        sessionId: z.number().int().positive().nullable().optional(),
+        countryCode: z.string().max(8).nullable().optional(),
+      }),
+    )
+    .query(({ input, ctx }) =>
+      resoudreContexte({
+        userId: ctx.user?.uid ?? null,
+        role: ctx.user?.role ?? null,
+        application: input.application ?? null,
+        route: input.route ?? null,
+        sessionId: input.sessionId ?? null,
+        countryCode: input.countryCode ?? null,
+      }),
+    ),
 });

@@ -38,7 +38,8 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:migrate": "tsx server/migrate.ts",
-    "seed": "SEED_DIRECT=1 tsx server/seed.ts"
+    "seed": "SEED_DIRECT=1 tsx server/seed.ts",
+    "audit:intelligence-coverage": "tsx scripts/gen-intelligence-coverage.ts"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.1",
