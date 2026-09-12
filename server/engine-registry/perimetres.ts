@@ -145,6 +145,16 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routeurs: ["contractOs", "contracts"],
     routes: ["/conformite/contrats-adaptes", "/entreprises/contrats-entreprises"],
   },
+  // Droit économique temporaire univers+pays+durée (application Investisseur,
+  // priorité de la direction) — jamais à confondre avec le moteur "workflow"
+  // (routeur investorRouter, /investisseurs/*) qui reste un tableau de bord
+  // interne de croissance pour investisseurs en capital, sans rapport.
+  {
+    moteur: "investment",
+    dossiers: ["investment"],
+    routeurs: ["investment"],
+    routes: [],
+  },
   {
     moteur: "journey",
     dossiers: ["customer-journey-os"],
