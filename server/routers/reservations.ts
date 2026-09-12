@@ -385,4 +385,19 @@ export const reservationsRouter = router({
         payments: pays,
       };
     }),
+
+  // Historique réel des paiements de l'utilisateur (table `payments`,
+  // alimentée par createPaymentCheckout depuis tout le serveur — dépannage,
+  // devis, réservation, abonnement, etc.). Manquait tout court : aucune
+  // procédure ne permettait à un client de voir ses propres paiements.
+  mesPaiements: protectedProcedure
+    .input(z.object({ limit: z.number().min(1).max(200).default(100) }).optional())
+    .query(async ({ ctx, input }) => {
+      return db
+        .select()
+        .from(payments)
+        .where(eq(payments.userId, ctx.user.uid))
+        .orderBy(desc(payments.createdAt))
+        .limit(input?.limit ?? 100);
+    }),
 });

@@ -1,16 +1,16 @@
 import { Link } from "react-router-dom";
 import { FileText, Users, Shield, Car, Copy, MapPin, Globe, Layers, Key, Award, Phone, Star, ChevronRight } from "lucide-react";
 const SERVICES = [
-  { label: "Carte grise", icon: FileText, to: "/demarches/carte-grise", color: "bg-[#D4AF37]" },
+  { label: "Carte grise", icon: FileText, to: "/demarches/carte-grise-demarche", color: "bg-[#D4AF37]" },
   { label: "Changement titulaire", icon: Users, to: "/demarches/changement-titulaire", color: "bg-blue-600" },
-  { label: "Déclaration cession", icon: Shield, to: "/demarches/cession", color: "bg-green-600" },
+  { label: "Déclaration cession", icon: Shield, to: "/demarches/declaration-cession", color: "bg-green-600" },
   { label: "Immatriculation provisoire", icon: Car, to: "/demarches/immatriculation-provisoire", color: "bg-purple-600" },
-  { label: "WW Garage", icon: Key, to: "/demarches/ww-garage", color: "bg-gray-700" },
-  { label: "Duplicata", icon: Copy, to: "/demarches/duplicata", color: "bg-orange-600" },
+  { label: "WW Garage", icon: Key, to: "/demarches/w-w-garage", color: "bg-gray-700" },
+  { label: "Duplicata", icon: Copy, to: "/demarches/duplicata-demarche", color: "bg-orange-600" },
   { label: "Changement adresse", icon: MapPin, to: "/demarches/changement-adresse", color: "bg-cyan-600" },
-  { label: "Véhicule importé", icon: Globe, to: "/demarches/importation", color: "bg-red-600" },
-  { label: "Succession", icon: Layers, to: "/demarches/succession", color: "bg-indigo-600" },
-  { label: "Plaques", icon: Award, to: "/demarches/plaques", color: "bg-pink-600" },
+  { label: "Véhicule importé", icon: Globe, to: "/demarches/importation-vehicule", color: "bg-red-600" },
+  { label: "Succession", icon: Layers, to: "/demarches/succession-vehicule", color: "bg-indigo-600" },
+  { label: "Plaques", icon: Award, to: "/demarches/plaques-immatriculation", color: "bg-pink-600" },
 ];
 export default function DemarchesGenerale() {
   return (

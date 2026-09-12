@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ChevronLeft, BarChart3, Car, AlertTriangle, Users, Clock, ChevronRight } from "lucide-react";
 const STATS = [{ label: "Présents", value: "6", icon: Car }, { label: "En retard", value: "1", icon: AlertTriangle }, { label: "Dispo", value: "2", icon: Users }, { label: "Urgents", value: "2", icon: Clock }];
-const MENU = [{ label: "Planning", to: "/garage/planning" }, { label: "Ponts", to: "/garage/ponts" }, { label: "Mécaniciens", to: "/garage/mecaniciens" }, { label: "File d'attente", to: "/garage/file-attente" }, { label: "Outillage", to: "/garage/outillage" }, { label: "Rentabilité", to: "/garage/rentabilite" }];
+const MENU = [{ label: "Planning", to: "/garage/planning-atelier" }, { label: "Ponts", to: "/garage/gestion-ponts" }, { label: "Mécaniciens", to: "/garage/gestion-mecaniciens" }, { label: "File d'attente", to: "/garage/file-attente-atelier" }, { label: "Outillage", to: "/garage/gestion-outillage" }, { label: "Rentabilité", to: "/garage/rentabilite-atelier" }];
 export default function TableauBordChefAtelier() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">

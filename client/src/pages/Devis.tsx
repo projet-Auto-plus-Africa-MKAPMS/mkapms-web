@@ -177,52 +177,6 @@ const REPAIR_TYPES = [
   },
 ];
 
-/* ═══════════════════════════════════════════════════════════
-   GARAGES PARTENAIRES (demo)
-   ═══════════════════════════════════════════════════════════ */
-const GARAGES = [
-  {
-    id: 1, nom: "Garage AutoPlus", adresse: "12 Rue de la République, 92000 Nanterre",
-    note: 4.8, avis: 128, tel: "01 42 00 00 01", distance: "1.2 km",
-    photo: "/categories/loc_berline.jpg",
-    services: ["Révision et entretien", "Freinage", "Pneumatiques", "Climatisation", "Diagnostic électronique"],
-    horaires: "Ouvert · Ferme à 18h30", certifie: true, garantie: "Garantie constructeur préservée",
-    prixMin: 180,
-  },
-  {
-    id: 2, nom: "Speedy Service", adresse: "45 Avenue Jean Jaurès, 92100 Boulogne",
-    note: 4.6, avis: 96, tel: "01 46 00 00 02", distance: "2.1 km",
-    photo: "/categories/loc_suv.jpg",
-    services: ["Freinage", "Pneus", "Révision", "Échappement", "Batterie"],
-    horaires: "Ouvert · Ferme à 19h00", certifie: true, garantie: "Pièces garanties 24 mois",
-    prixMin: 160,
-  },
-  {
-    id: 3, nom: "Techni Auto", adresse: "8 Boulevard de la Défense, 92400 Courbevoie",
-    note: 4.7, avis: 75, tel: "01 47 00 00 03", distance: "2.8 km",
-    photo: "/categories/util_grand_fourgon.jpg",
-    services: ["Diagnostic avancé", "Électricité", "Moteur", "Turbo", "Boîte de vitesse"],
-    horaires: "Ouvert · Ferme à 18h00", certifie: true, garantie: "Garantie 12 mois pièces et main-d'œuvre",
-    prixMin: 190,
-  },
-  {
-    id: 4, nom: "MécaPro Express", adresse: "22 Rue de Sèvres, 92310 Sèvres",
-    note: 4.5, avis: 62, tel: "01 45 00 00 04", distance: "4.5 km",
-    photo: "/categories/loc_citadine.jpg",
-    services: ["Révision", "Freinage", "Suspension", "Carrosserie", "Climatisation"],
-    horaires: "Ouvert · Ferme à 18h00", certifie: false, garantie: "Pièces garanties 12 mois",
-    prixMin: 150,
-  },
-  {
-    id: 5, nom: "Garage du Pont", adresse: "3 Rue du Commerce, 75015 Paris",
-    note: 4.9, avis: 204, tel: "01 48 00 00 05", distance: "5.2 km",
-    photo: "/categories/pro_premium.jpg",
-    services: ["Toutes marques", "Véhicules premium", "Hybrides & Électriques", "Diagnostic", "Entretien"],
-    horaires: "Ouvert · Ferme à 19h30", certifie: true, garantie: "Garantie constructeur préservée",
-    prixMin: 200,
-  },
-];
-
 const CRENEAUX = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
 
 export default function Devis() {
@@ -261,7 +215,14 @@ export default function Devis() {
   const [selectedCreneau, setSelectedCreneau] = useState("");
 
   const selectedRepair = REPAIR_TYPES.find((r) => r.id === selectedRepairId);
-  const selectedGarage = GARAGES.find((g) => g.id === selectedGarageId);
+
+  /* Garages partenaires réels (server/routers/garages.ts) — jamais une liste inventée. */
+  const garagesQuery = trpc.garages.list.useQuery(
+    { city: positionSearch || undefined, limit: 20 },
+    { enabled: step >= 5 },
+  );
+  const garages = garagesQuery.data?.items ?? [];
+  const selectedGarage = garages.find((g) => g.id === selectedGarageId);
 
   /* Estimation */
   const estimation = useMemo(() => {
@@ -935,22 +896,18 @@ export default function Devis() {
               <option value="20">20 km</option>
               <option value="50">50 km</option>
             </select>
-            <button className="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-bold text-white">Filtrer</button>
+            <button onClick={() => garagesQuery.refetch()} className="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-bold text-white">Filtrer</button>
           </div>
+          <p className="mt-2 text-[10px] text-[#9CA3AF] text-center">Le rayon de recherche n'est pas encore un filtre réel côté moteur : la ville, oui.</p>
 
-          <div className="mt-4 grid md:grid-cols-2 gap-4">
-            {/* Carte */}
-            <div className="rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm h-72 md:h-auto">
-              <img
-                src="/categories/loc_suv.jpg"
-                alt="Carte garages"
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            {/* Liste garages */}
+          <div className="mt-4">
+            {/* Liste garages — annuaire réel trpc.garages.list, jamais une liste inventée */}
             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-              {GARAGES.map((g) => (
+              {garagesQuery.isFetching && <p className="text-sm text-[#6B7280] text-center py-6">Recherche des garages partenaires…</p>}
+              {!garagesQuery.isFetching && garages.length === 0 && (
+                <p className="text-sm text-[#6B7280] text-center py-6">Aucun garage partenaire trouvé pour le moment{positionSearch ? ` à « ${positionSearch} »` : ""}.</p>
+              )}
+              {garages.map((g) => (
                 <div
                   key={g.id}
                   className={`rounded-2xl border-2 bg-white p-4 cursor-pointer transition hover:shadow-md ${
@@ -959,20 +916,19 @@ export default function Devis() {
                   onClick={() => setSelectedGarageId(g.id)}
                 >
                   <div className="flex items-start gap-3">
-                    <img src={g.photo} alt={g.nom} className="h-16 w-20 rounded-xl object-cover shrink-0" />
+                    <img src={g.coverUrl || "/categories/loc_berline.jpg"} alt={g.name} className="h-16 w-20 rounded-xl object-cover shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-[#111] truncate">{g.nom}</h3>
-                        {g.certifie && <Shield size={12} className="text-green-500 shrink-0" />}
+                        <h3 className="text-sm font-bold text-[#111] truncate">{g.name}</h3>
+                        {g.featured && <Shield size={12} className="text-green-500 shrink-0" />}
                       </div>
                       <div className="flex items-center gap-1 mt-0.5">
                         <Star size={10} className="text-[#D4AF37] fill-[#D4AF37]" />
-                        <span className="text-xs font-bold text-[#111]">{g.note}</span>
-                        <span className="text-[10px] text-[#6B7280]">({g.avis} avis)</span>
-                        <span className="text-[10px] text-[#6B7280] ml-2">{g.distance}</span>
+                        <span className="text-xs font-bold text-[#111]">{Number(g.rating).toFixed(1)}</span>
+                        <span className="text-[10px] text-[#6B7280]">({g.reviewCount} avis)</span>
                       </div>
-                      <p className="text-[10px] text-[#6B7280] mt-0.5">{g.horaires}</p>
-                      {estimation && <p className="text-xs font-bold text-[#111] mt-1">À partir de {g.prixMin} €</p>}
+                      <p className="text-[10px] text-[#6B7280] mt-0.5">{g.city ?? g.addressLine ?? ""}</p>
+                      {g.hours && <p className="text-[10px] text-[#6B7280] mt-0.5">{g.hours}</p>}
                     </div>
                     <button
                       className="rounded-lg bg-[#D4AF37] px-3 py-1.5 text-[10px] font-bold text-white shrink-0"
@@ -983,9 +939,6 @@ export default function Devis() {
                   </div>
                 </div>
               ))}
-              <button className="w-full rounded-xl border border-[#E5E7EB] py-2.5 text-sm font-semibold text-[#6B7280] hover:bg-[#F3F4F6]">
-                Voir plus de garages
-              </button>
             </div>
           </div>
         </div>
@@ -1001,27 +954,24 @@ export default function Devis() {
           </h1>
 
           <div className="mt-6 grid md:grid-cols-2 gap-6">
-            {/* Photo + infos */}
+            {/* Photo + infos réelles (garages_publics) */}
             <div className="rounded-2xl bg-white border border-[#E5E7EB] overflow-hidden shadow-sm">
-              <img src={selectedGarage.photo} alt={selectedGarage.nom} className="w-full h-48 object-cover" />
+              <img src={selectedGarage.coverUrl || "/categories/loc_berline.jpg"} alt={selectedGarage.name} className="w-full h-48 object-cover" />
               <div className="p-5">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-extrabold text-[#111]">{selectedGarage.nom}</h2>
-                  {selectedGarage.certifie && <Shield size={16} className="text-green-500" />}
+                  <h2 className="text-lg font-extrabold text-[#111]">{selectedGarage.name}</h2>
+                  {selectedGarage.featured && <Shield size={16} className="text-green-500" />}
                 </div>
                 <div className="flex items-center gap-1 mt-1">
                   <Star size={12} className="text-[#D4AF37] fill-[#D4AF37]" />
-                  <span className="text-sm font-bold text-[#111]">{selectedGarage.note}</span>
-                  <span className="text-xs text-[#6B7280]">({selectedGarage.avis} avis) · Garage certifié</span>
+                  <span className="text-sm font-bold text-[#111]">{Number(selectedGarage.rating).toFixed(1)}</span>
+                  <span className="text-xs text-[#6B7280]">({selectedGarage.reviewCount} avis)</span>
                 </div>
-                <p className="mt-2 text-xs text-[#6B7280] flex items-center gap-1"><MapPin size={12} className="text-red-500" /> {selectedGarage.adresse}</p>
-                <p className="mt-1 text-xs text-[#6B7280]">{selectedGarage.distance} de votre position</p>
-                <p className="mt-1 text-xs text-green-600 font-semibold">{selectedGarage.horaires}</p>
-                {selectedGarage.garantie && (
-                  <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-[10px] font-bold text-green-700">
-                    <CheckCircle size={10} /> {selectedGarage.garantie}
-                  </p>
+                {(selectedGarage.addressLine || selectedGarage.city) && (
+                  <p className="mt-2 text-xs text-[#6B7280] flex items-center gap-1"><MapPin size={12} className="text-red-500" /> {[selectedGarage.addressLine, selectedGarage.city].filter(Boolean).join(", ")}</p>
                 )}
+                {selectedGarage.hours && <p className="mt-1 text-xs text-green-600 font-semibold">{selectedGarage.hours}</p>}
+                {selectedGarage.description && <p className="mt-2 text-xs text-[#6B7280]">{selectedGarage.description}</p>}
               </div>
             </div>
 
@@ -1030,11 +980,12 @@ export default function Devis() {
               <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
                 <h3 className="text-sm font-bold text-[#111] mb-3">Services proposés</h3>
                 <ul className="space-y-2">
-                  {selectedGarage.services.map((s) => (
+                  {(selectedGarage.services ?? "").split(",").map((s) => s.trim()).filter(Boolean).map((s) => (
                     <li key={s} className="flex items-center gap-2 text-xs text-[#374151]">
                       <CheckCircle size={12} className="text-[#D4AF37] shrink-0" /> {s}
                     </li>
                   ))}
+                  {!selectedGarage.services && <li className="text-xs text-[#9CA3AF]">Ce garage n'a pas encore renseigné ses services.</li>}
                 </ul>
               </div>
 
@@ -1053,9 +1004,13 @@ export default function Devis() {
                   <Calendar size={16} /> Réserver un rendez-vous
                 </button>
                 <div className="grid grid-cols-2 gap-2">
-                  <a href={`tel:${selectedGarage.tel}`} className="rounded-xl border border-[#E5E7EB] py-2.5 text-sm font-semibold text-[#111] flex items-center justify-center gap-2">
-                    <Phone size={14} className="text-red-500" /> Appeler
-                  </a>
+                  {selectedGarage.phone ? (
+                    <a href={`tel:${selectedGarage.phone}`} className="rounded-xl border border-[#E5E7EB] py-2.5 text-sm font-semibold text-[#111] flex items-center justify-center gap-2">
+                      <Phone size={14} className="text-red-500" /> Appeler
+                    </a>
+                  ) : (
+                    <span className="rounded-xl border border-[#E5E7EB] py-2.5 text-xs text-[#9CA3AF] flex items-center justify-center">Pas de téléphone renseigné</span>
+                  )}
                   <button className="rounded-xl border border-[#E5E7EB] py-2.5 text-sm font-semibold text-[#111] flex items-center justify-center gap-2" onClick={() => navigate("/messages")}>
                     <MessageSquare size={14} className="text-red-500" /> Message
                   </button>
@@ -1066,8 +1021,6 @@ export default function Devis() {
                 {[
                   { icon: FileText, text: "Devis gratuit" },
                   { icon: Eye, text: "Prix transparents" },
-                  { icon: Shield, text: "Pièces de qualité" },
-                  { icon: Shield, text: "Garantie 12 mois" },
                 ].map((a) => (
                   <div key={a.text} className="rounded-xl bg-white border border-[#E5E7EB] p-2 text-center">
                     <a.icon size={14} className="text-[#D4AF37] mx-auto" />
@@ -1141,19 +1094,20 @@ export default function Devis() {
             <div className="space-y-4">
               {selectedGarage && (
                 <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
-                  <h3 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider mb-3">Garage sélectionné</h3>
+                  <h3 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider mb-3">Garage consulté</h3>
                   <div className="flex items-center gap-3">
-                    <img src={selectedGarage.photo} alt={selectedGarage.nom} className="h-14 w-20 rounded-xl object-cover shrink-0" />
+                    <img src={selectedGarage.coverUrl || "/categories/loc_berline.jpg"} alt={selectedGarage.name} className="h-14 w-20 rounded-xl object-cover shrink-0" />
                     <div>
-                      <p className="text-sm font-bold text-[#111]">{selectedGarage.nom}</p>
-                      <p className="text-[10px] text-[#6B7280]">{selectedGarage.adresse}</p>
+                      <p className="text-sm font-bold text-[#111]">{selectedGarage.name}</p>
+                      <p className="text-[10px] text-[#6B7280]">{[selectedGarage.addressLine, selectedGarage.city].filter(Boolean).join(", ")}</p>
                       <div className="flex items-center gap-1 mt-0.5">
                         <Star size={8} className="text-[#D4AF37] fill-[#D4AF37]" />
-                        <span className="text-[10px] font-bold">{selectedGarage.note}</span>
-                        <span className="text-[10px] text-[#6B7280]">({selectedGarage.avis} avis) · {selectedGarage.distance}</span>
+                        <span className="text-[10px] font-bold">{Number(selectedGarage.rating).toFixed(1)}</span>
+                        <span className="text-[10px] text-[#6B7280]">({selectedGarage.reviewCount} avis)</span>
                       </div>
                     </div>
                   </div>
+                  <p className="mt-2 text-[10px] text-[#9CA3AF]">Votre demande sera transmise à l'ensemble des garages partenaires de votre secteur, celui-ci compris.</p>
                 </div>
               )}
 
@@ -1260,7 +1214,7 @@ export default function Devis() {
           </div>
           <h1 className="mt-6 text-2xl font-black text-[#111]">Demande envoyée !</h1>
           <p className="mt-2 text-sm text-[#6B7280]">
-            Votre demande de devis a été transmise{selectedGarage ? ` à ${selectedGarage.nom}` : ""}. Vous serez notifié dès qu'un garage répond.
+            Votre demande de devis a été transmise aux garages partenaires de votre secteur{selectedGarage ? ` (dont ${selectedGarage.name})` : ""}. Vous serez notifié dès qu'un garage répond.
           </p>
           <div className="mt-6 space-y-3">
             <button onClick={() => navigate("/compte")} className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white">

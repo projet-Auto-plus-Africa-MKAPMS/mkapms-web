@@ -8,6 +8,7 @@
 import { z } from "zod";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
 import {
+  accepterOffreReprise,
   addDossierItem,
   createRepriseRequest,
   DOSSIER_CATEGORIES,
@@ -16,6 +17,7 @@ import {
   listRepriseRequests,
   myEstimations,
   myRepriseRequests,
+  negocierOffreReprise,
   offerReprise,
   updateRepriseStatus,
   voEngineHealth,
@@ -80,6 +82,16 @@ export const voEngineRouter = router({
       }),
     )
     .mutation(({ input }) => updateRepriseStatus(input.id, input.status)),
+
+  /** Le client accepte l'offre : réservé au propriétaire de la demande. */
+  accepterOffre: protectedProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(({ ctx, input }) => accepterOffreReprise(input.id, ctx.user.uid)),
+
+  /** Le client négocie : réservé au propriétaire de la demande. */
+  negocierOffre: protectedProcedure
+    .input(z.object({ id: z.number().int().positive(), message: z.string().min(1).max(2000) }))
+    .mutation(({ ctx, input }) => negocierOffreReprise(input.id, ctx.user.uid, input.message)),
 
   // ── Dossier VO (point 33) ────────────────────────────────────────────
   dossier: publicProcedure

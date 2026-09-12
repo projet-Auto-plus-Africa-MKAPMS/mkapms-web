@@ -100,11 +100,11 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 89;
-export const MANQUES_TOTAL = 657;
+export const MANQUES_TOTAL = 630;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "ecran_sans_contenu": 355,
-  "bouton_sans_action": 198,
-  "destination_inconnue": 47,
+  "ecran_sans_contenu": 342,
+  "destination_inconnue": 46,
+  "bouton_sans_action": 185,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
   "dependance_sans_preuve": 35,
@@ -425,12 +425,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "fichiersServeur": 4,
     "dependancesDeclarees": [
+      "analytics",
       "audit",
       "avis_reputation",
       "core",
       "country",
       "estimation",
       "event_bus",
+      "garage",
       "identity",
       "livraison_vehicule",
       "messaging",
@@ -445,12 +447,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "visibility"
     ],
     "dependancesDetectees": [
+      "analytics",
       "audit",
       "avis_reputation",
       "core",
       "country",
       "estimation",
       "event_bus",
+      "garage",
       "identity",
       "livraison_vehicule",
       "messaging",
@@ -465,12 +469,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "visibility"
     ],
     "dependances": [
+      "analytics",
       "audit",
       "avis_reputation",
       "core",
       "country",
       "estimation",
       "event_bus",
+      "garage",
       "identity",
       "livraison_vehicule",
       "messaging",
@@ -486,6 +492,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "integrationsTechniques": [],
     "preuvesDependances": {
+      "analytics": [
+        "client/src/pages/HistoriqueVehiculeVente.tsx appelle trpc.historique"
+      ],
       "audit": [
         "routers/annonces.ts importe audit.ts"
       ],
@@ -508,6 +517,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "event_bus": [
         "routers/annonces.ts importe event-bus/service.ts",
         "routers/annonces.ts publie des événements"
+      ],
+      "garage": [
+        "client/src/pages/Devis.tsx appelle trpc.garages"
       ],
       "identity": [
         "routers/annonces.ts importe identity-os/identite-officielle.ts",
@@ -560,8 +572,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat_officiel",
       "achat_particulier",
       "achat_pro",
+      "analytics",
       "atelier",
       "garage",
+      "identity",
       "location",
       "location_particulier",
       "location_pro",
@@ -617,33 +631,33 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/devis"
         ],
-        "cliquables": 27,
+        "cliquables": 26,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 203,
-        "mots": 706
+        "sansAction": 0,
+        "textes": 198,
+        "mots": 714
       },
       {
         "fichier": "client/src/pages/Favoris.tsx",
         "routes": [
           "/favoris"
         ],
-        "cliquables": 6,
+        "cliquables": 4,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 26,
-        "mots": 77
+        "textes": 8,
+        "mots": 25
       },
       {
         "fichier": "client/src/pages/HistoriqueVehiculeVente.tsx",
         "routes": [
           "/acheter/historique-vehicule"
         ],
-        "cliquables": 3,
+        "cliquables": 6,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 16,
-        "mots": 43
+        "sansAction": 0,
+        "textes": 20,
+        "mots": 87
       },
       {
         "fichier": "client/src/pages/MotoOccasion.tsx",
@@ -956,6 +970,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/HistoriqueConsultations.tsx",
+        "route": "/historique-consultations",
+        "composants": [
+          "trpc.annonces"
+        ]
+      },
+      {
         "fichier": "client/src/pages/Compte.tsx",
         "route": "/compte/*",
         "composants": [
@@ -1013,6 +1034,58 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "composants": [
           "trpc.devis"
         ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/CentreFavorisUtilisateur.tsx",
+        "route": "/utilisateurs/centre-favoris-utilisateur",
+        "composants": [
+          "trpc.favoris"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/FacturesUtilisateur.tsx",
+        "route": "/utilisateurs/factures-utilisateur",
+        "composants": [
+          "trpc.reservations"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/HistoriqueAchats.tsx",
+        "route": "/utilisateurs/historique-achats",
+        "composants": [
+          "trpc.reservations"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/HistoriqueLocations.tsx",
+        "route": "/utilisateurs/historique-locations",
+        "composants": [
+          "trpc.reservations"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/MesVehicules.tsx",
+        "route": "/utilisateurs/mes-vehicules",
+        "composants": [
+          "trpc.annonces"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/ObjectifUtilisateur.tsx",
+        "route": "/utilisateurs/objectif-utilisateur",
+        "composants": [
+          "trpc.annonces",
+          "trpc.favoris"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/TableauBordPerso.tsx",
+        "route": "/utilisateurs/tableau-bord-perso",
+        "composants": [
+          "trpc.annonces",
+          "trpc.favoris",
+          "trpc.reservations"
+        ]
       }
     ],
     "procedures": [
@@ -1026,6 +1099,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "incrementView",
       "list",
       "lookupPlate",
+      "mesPaiements",
       "mine",
       "montantAPayer",
       "myList",
@@ -1044,22 +1118,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1434,
+    "textes": 1415,
     "mots": 4780,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Filtrer » client/src/pages/Devis.tsx:938"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Voir plus de garages » client/src/pages/Devis.tsx:986"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Télécharger le rapport PDF » client/src/pages/HistoriqueVehiculeVente.tsx:54"
-      },
       {
         "genre": "destination_inconnue",
         "detail": "/vente-moto client/src/pages/MotoOccasion.tsx:107"
@@ -1874,6 +1936,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "fichiersServeur": 2,
     "dependancesDeclarees": [
+      "achat",
       "core",
       "monitoring",
       "redirection",
@@ -1881,10 +1944,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smart"
     ],
     "dependancesDetectees": [
+      "achat",
       "core",
       "smart"
     ],
     "dependances": [
+      "achat",
       "core",
       "monitoring",
       "redirection",
@@ -1893,6 +1958,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "integrationsTechniques": [],
     "preuvesDependances": {
+      "achat": [
+        "client/src/pages/HistoriqueConsultations.tsx appelle trpc.annonces"
+      ],
       "core": [
         "routers/historique.ts importe trpc.ts",
         "routers/historique.ts importe db.ts",
@@ -1900,10 +1968,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "smart": [
         "routers/historique.ts importe smart-engine/services/alert-engine.ts",
-        "routers/historique.ts ouvre une alerte du Système Intelligent"
+        "routers/historique.ts ouvre une alerte du Système Intelligent",
+        "client/src/pages/HistoriqueConsultations.tsx appelle trpc.smartEngine"
       ]
     },
-    "dependants": [],
+    "dependants": [
+      "achat"
+    ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
     "abonnements": [],
@@ -1930,14 +2001,29 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/historique-consultations"
         ],
-        "cliquables": 6,
+        "cliquables": 2,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 25,
-        "mots": 80
+        "textes": 6,
+        "mots": 18
       }
     ],
-    "ecransHotes": [],
+    "ecransHotes": [
+      {
+        "fichier": "client/src/pages/HistoriqueVehiculeVente.tsx",
+        "route": "/acheter/historique-vehicule",
+        "composants": [
+          "trpc.historique"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/Compte.tsx",
+        "route": "/compte/*",
+        "composants": [
+          "trpc.historique"
+        ]
+      }
+    ],
     "procedures": [
       "listSignalements",
       "listSuggestions",
@@ -1959,8 +2045,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 282,
-    "mots": 918,
+    "textes": 263,
+    "mots": 856,
     "battement": "sonde",
     "manques": [
       {
@@ -5157,7 +5243,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "investment"
+      "investment",
+      "notification"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -5192,7 +5279,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 6
       }
     ],
-    "ecransHotes": [],
+    "ecransHotes": [
+      {
+        "fichier": "client/src/pages/notifications/SignaturesGlobales.tsx",
+        "route": "/notifications/signatures-globales",
+        "composants": [
+          "trpc.contracts"
+        ]
+      }
+    ],
     "procedures": [
       "all",
       "controlCenterFeed",
@@ -6644,7 +6739,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     },
     "dependants": [
       "avis_reputation",
-      "garage"
+      "garage",
+      "identity"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -6662,22 +6758,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/assistance"
         ],
-        "cliquables": 5,
+        "cliquables": 4,
         "parMoteur": 0,
-        "sansAction": 4,
+        "sansAction": 0,
         "textes": 22,
-        "mots": 59
+        "mots": 85
       },
       {
         "fichier": "client/src/pages/Depannage.tsx",
         "routes": [
           "/depannage"
         ],
-        "cliquables": 14,
+        "cliquables": 12,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 79,
-        "mots": 343
+        "textes": 71,
+        "mots": 354
       },
       {
         "fichier": "client/src/pages/superadmin/AdminDepannage.tsx",
@@ -6695,6 +6791,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/garage/DepannageGarage.tsx",
         "route": "/garage/depannage-garage",
+        "composants": [
+          "trpc.depannage"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/HistoriqueDepannages.tsx",
+        "route": "/utilisateurs/historique-depannages",
         "composants": [
           "trpc.depannage"
         ]
@@ -6721,27 +6824,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 111,
-    "mots": 425,
+    "textes": 103,
+    "mots": 462,
     "battement": "sonde",
-    "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Appeler » client/src/pages/AssistanceSinistre.tsx:47"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Modifier » client/src/pages/AssistanceSinistre.tsx:77"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Photo » client/src/pages/AssistanceSinistre.tsx:90"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Envoyer la demande d'assistance » client/src/pages/AssistanceSinistre.tsx:98"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "document",
@@ -6846,11 +6932,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/controle-documents"
         ],
-        "cliquables": 4,
+        "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 3,
-        "textes": 16,
-        "mots": 61
+        "sansAction": 1,
+        "textes": 13,
+        "mots": 86
       },
       {
         "fichier": "client/src/pages/DossierVehiculeNumerique.tsx",
@@ -6936,21 +7022,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 358,
-    "mots": 1078,
+    "textes": 355,
+    "mots": 1103,
     "battement": "pont_os",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« Ajouter » client/src/pages/ControleDocuments.tsx:82"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Corriger » client/src/pages/ControleDocuments.tsx:85"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/ControleDocuments.tsx:94"
+        "detail": "« (sans texte) » client/src/pages/ControleDocuments.tsx:151"
       },
       {
         "genre": "bouton_sans_action",
@@ -7870,7 +7948,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "achat",
       "atelier",
+      "identity",
       "seo"
     ],
     "evenementsPublies": [],
@@ -8482,6 +8562,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "ecransHotes": [
       {
+        "fichier": "client/src/pages/Devis.tsx",
+        "route": "/devis",
+        "composants": [
+          "trpc.garages"
+        ]
+      },
+      {
         "fichier": "client/src/pages/garage/GaragePublicFiche.tsx",
         "route": "/garages/:slug",
         "composants": [
@@ -8491,6 +8578,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/garage/PlanningAtelier.tsx",
         "route": "/garage/planning-atelier",
+        "composants": [
+          "trpc.garages"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/HistoriqueEntretiens.tsx",
+        "route": "/utilisateurs/historique-entretiens",
         "composants": [
           "trpc.garages"
         ]
@@ -8551,10 +8645,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Ajouter fournisseur » client/src/pages/garage/FournisseursGarage.tsx:14"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/garage/devis client/src/pages/garage/GarageGenerale.tsx:56"
       },
       {
         "genre": "destination_inconnue",
@@ -8629,38 +8719,70 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "fichiersServeur": 15,
     "dependancesDeclarees": [
       "account_routing",
+      "achat",
       "audit",
       "core",
       "country",
+      "depannage",
+      "garage",
       "language",
       "media_authenticity",
+      "messaging",
       "notification",
-      "smart"
+      "payment",
+      "pieces",
+      "pro_portal",
+      "search",
+      "smart",
+      "support"
     ],
     "dependancesDetectees": [
       "account_routing",
+      "achat",
       "audit",
       "core",
       "country",
+      "depannage",
+      "garage",
       "language",
       "media_authenticity",
+      "messaging",
       "notification",
-      "smart"
+      "payment",
+      "pieces",
+      "pro_portal",
+      "search",
+      "smart",
+      "support"
     ],
     "dependances": [
       "account_routing",
+      "achat",
       "audit",
       "core",
       "country",
+      "depannage",
+      "garage",
       "language",
       "media_authenticity",
+      "messaging",
       "notification",
-      "smart"
+      "payment",
+      "pieces",
+      "pro_portal",
+      "search",
+      "smart",
+      "support"
     ],
     "integrationsTechniques": [],
     "preuvesDependances": {
       "account_routing": [
         "client/src/pages/MonEspace.tsx appelle trpc.accountRouting"
+      ],
+      "achat": [
+        "client/src/pages/utilisateurs/CentreFavorisUtilisateur.tsx appelle trpc.favoris",
+        "client/src/pages/utilisateurs/FacturesUtilisateur.tsx appelle trpc.reservations",
+        "client/src/pages/utilisateurs/HistoriqueAchats.tsx appelle trpc.reservations"
       ],
       "audit": [
         "account-deletion/service.ts importe audit.ts",
@@ -8675,19 +8797,44 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country": [
         "client/src/pages/Confidentialite.tsx embarque lib/currency.tsx (trpc.currency)"
       ],
+      "depannage": [
+        "client/src/pages/utilisateurs/HistoriqueDepannages.tsx appelle trpc.depannage"
+      ],
+      "garage": [
+        "client/src/pages/utilisateurs/HistoriqueEntretiens.tsx appelle trpc.garages"
+      ],
       "language": [
         "identity-os/router.ts importe language-os/index.ts"
       ],
       "media_authenticity": [
         "routers/kyc.ts importe media-authenticity/service.ts"
       ],
+      "messaging": [
+        "client/src/pages/utilisateurs/MessagerieGlobale.tsx appelle trpc.messages",
+        "client/src/pages/utilisateurs/TableauBordPerso.tsx appelle trpc.messages"
+      ],
       "notification": [
         "identity-os/complete.ts importe services/email.ts",
         "identity-os/complete.ts envoie un email",
         "client/src/pages/Parametres.tsx appelle trpc.notificationOs"
       ],
+      "payment": [
+        "client/src/pages/utilisateurs/AbonnementsUtilisateur.tsx appelle trpc.abonnements"
+      ],
+      "pieces": [
+        "client/src/pages/utilisateurs/HistoriqueDemarches.tsx appelle trpc.pieces"
+      ],
+      "pro_portal": [
+        "client/src/pages/utilisateurs/CompteProUtilisateur.tsx appelle trpc.pro"
+      ],
+      "search": [
+        "client/src/pages/utilisateurs/CentreAlertesUtilisateur.tsx appelle trpc.searches"
+      ],
       "smart": [
         "routers/auth.ts importe smart-engine/services/activity-log.ts"
+      ],
+      "support": [
+        "client/src/pages/utilisateurs/CentreSupportUtilisateur.tsx appelle trpc.support"
       ]
     },
     "dependants": [
@@ -8913,44 +9060,44 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/utilisateurs/abonnements-utilisateur"
         ],
-        "cliquables": 1,
+        "cliquables": 3,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 5
+        "textes": 7,
+        "mots": 23
       },
       {
         "fichier": "client/src/pages/utilisateurs/CentreAlertesUtilisateur.tsx",
         "routes": [
           "/utilisateurs/centre-alertes-utilisateur"
         ],
-        "cliquables": 1,
+        "cliquables": 3,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 7
+        "textes": 4,
+        "mots": 17
       },
       {
         "fichier": "client/src/pages/utilisateurs/CentreFavorisUtilisateur.tsx",
         "routes": [
           "/utilisateurs/centre-favoris-utilisateur"
         ],
-        "cliquables": 1,
+        "cliquables": 2,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 7
+        "textes": 4,
+        "mots": 15
       },
       {
         "fichier": "client/src/pages/utilisateurs/CentreSupportUtilisateur.tsx",
         "routes": [
           "/utilisateurs/centre-support-utilisateur"
         ],
-        "cliquables": 1,
+        "cliquables": 3,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 5
+        "textes": 7,
+        "mots": 14
       },
       {
         "fichier": "client/src/pages/utilisateurs/CompteParticulier.tsx",
@@ -8968,22 +9115,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/utilisateurs/compte-pro-utilisateur"
         ],
-        "cliquables": 1,
+        "cliquables": 2,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 7
+        "textes": 7,
+        "mots": 23
       },
       {
         "fichier": "client/src/pages/utilisateurs/DocumentsPersonnels.tsx",
         "routes": [
           "/utilisateurs/documents-personnels"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 7
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/utilisateurs/EmployesUtilisateur.tsx",
@@ -9004,8 +9151,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 1,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 5
+        "textes": 9,
+        "mots": 19
       },
       {
         "fichier": "client/src/pages/utilisateurs/HistoriqueAchats.tsx",
@@ -9015,8 +9162,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 1,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 7
+        "textes": 10,
+        "mots": 25
       },
       {
         "fichier": "client/src/pages/utilisateurs/HistoriqueDemarches.tsx",
@@ -9026,8 +9173,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 1,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 7
+        "textes": 5,
+        "mots": 19
       },
       {
         "fichier": "client/src/pages/utilisateurs/HistoriqueDepannages.tsx",
@@ -9037,8 +9184,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 1,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 7
+        "textes": 4,
+        "mots": 15
       },
       {
         "fichier": "client/src/pages/utilisateurs/HistoriqueEntretiens.tsx",
@@ -9048,8 +9195,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 1,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 7
+        "textes": 5,
+        "mots": 17
       },
       {
         "fichier": "client/src/pages/utilisateurs/HistoriqueLocations.tsx",
@@ -9059,19 +9206,19 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 1,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 7
+        "textes": 7,
+        "mots": 23
       },
       {
         "fichier": "client/src/pages/utilisateurs/MesVehicules.tsx",
         "routes": [
           "/utilisateurs/mes-vehicules"
         ],
-        "cliquables": 1,
+        "cliquables": 2,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 7
+        "textes": 5,
+        "mots": 23
       },
       {
         "fichier": "client/src/pages/utilisateurs/MessagerieGlobale.tsx",
@@ -9081,8 +9228,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 1,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 5
+        "textes": 4,
+        "mots": 10
       },
       {
         "fichier": "client/src/pages/utilisateurs/ObjectifUtilisateur.tsx",
@@ -9092,19 +9239,19 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 1,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 7
+        "textes": 8,
+        "mots": 28
       },
       {
         "fichier": "client/src/pages/utilisateurs/SecuriteUtilisateur.tsx",
         "routes": [
           "/utilisateurs/securite-utilisateur"
         ],
-        "cliquables": 1,
+        "cliquables": 6,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 5
+        "textes": 13,
+        "mots": 49
       },
       {
         "fichier": "client/src/pages/utilisateurs/TableauBordPerso.tsx",
@@ -9114,14 +9261,21 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 1,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 9
+        "textes": 8,
+        "mots": 20
       }
     ],
     "ecransHotes": [
       {
         "fichier": "client/src/pages/CentreDocuments.tsx",
         "route": "/documents",
+        "composants": [
+          "trpc.kyc"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/ControleDocuments.tsx",
+        "route": "/louer/controle-documents",
         "composants": [
           "trpc.kyc"
         ]
@@ -9217,8 +9371,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 408,
-    "mots": 1809,
+    "textes": 464,
+    "mots": 2038,
     "battement": "pont_os",
     "manques": [
       {
@@ -9247,71 +9401,23 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/AbonnementsUtilisateur.tsx (3 texte(s))"
+        "detail": "client/src/pages/utilisateurs/CentreAlertesUtilisateur.tsx (4 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/CentreAlertesUtilisateur.tsx (3 texte(s))"
+        "detail": "client/src/pages/utilisateurs/CentreFavorisUtilisateur.tsx (4 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/CentreFavorisUtilisateur.tsx (3 texte(s))"
+        "detail": "client/src/pages/utilisateurs/DocumentsPersonnels.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/CentreSupportUtilisateur.tsx (3 texte(s))"
+        "detail": "client/src/pages/utilisateurs/HistoriqueDepannages.tsx (4 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/CompteProUtilisateur.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/DocumentsPersonnels.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/FacturesUtilisateur.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/HistoriqueAchats.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/HistoriqueDemarches.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/HistoriqueDepannages.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/HistoriqueEntretiens.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/HistoriqueLocations.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/MesVehicules.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/MessagerieGlobale.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/ObjectifUtilisateur.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/SecuriteUtilisateur.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/utilisateurs/TableauBordPerso.tsx (3 texte(s))"
+        "detail": "client/src/pages/utilisateurs/MessagerieGlobale.tsx (4 texte(s))"
       }
     ]
   },
@@ -9621,7 +9727,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "identity": [
         "intelligences/api-v1.ts importe auth.ts",
-        "intelligences/index.ts exige une session Identity (procédure protégée)"
+        "intelligences/index.ts exige une session Identity (procédure protégée)",
+        "intelligences/livraisons.ts exige une session Identity (procédure protégée)"
       ],
       "monitoring": [
         "client/src/pages/CentreIntelligences.tsx appelle trpc.monitoringOs"
@@ -10754,9 +10861,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
+        "client/src/pages/Favoris.tsx appelle trpc.favoris",
         "client/src/pages/ListeAttente.tsx embarque components/ReserverLocationButton.tsx (trpc.reservations)",
-        "client/src/pages/LocationMKAPMS.tsx appelle trpc.annonces",
-        "client/src/pages/ProduitLocation.tsx appelle trpc.annonces"
+        "client/src/pages/LocationMKAPMS.tsx appelle trpc.annonces"
       ],
       "core": [
         "client/src/pages/superadmin/AdminLocation.tsx appelle trpc.admin"
@@ -10858,11 +10965,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/favoris"
         ],
-        "cliquables": 6,
+        "cliquables": 4,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 26,
-        "mots": 77
+        "textes": 8,
+        "mots": 25
       },
       {
         "fichier": "client/src/pages/HistoriqueLocation.tsx",
@@ -11102,8 +11209,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 905,
-    "mots": 2934,
+    "textes": 887,
+    "mots": 2882,
     "battement": "sonde",
     "manques": [
       {
@@ -11281,9 +11388,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 8,
         "parMoteur": 0,
-        "sansAction": 3,
-        "textes": 102,
-        "mots": 327
+        "sansAction": 2,
+        "textes": 108,
+        "mots": 404
       },
       {
         "fichier": "client/src/pages/ProduitParticulier.tsx",
@@ -11301,21 +11408,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 198,
-    "mots": 672,
+    "textes": 204,
+    "mots": 749,
     "battement": "sonde",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« Appliquer les filtres » client/src/pages/LocationParticulier.tsx:334"
+        "detail": "« (sans texte) » client/src/pages/LocationParticulier.tsx:575"
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/LocationParticulier.tsx:534"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Voir les véhicules proches » client/src/pages/LocationParticulier.tsx:561"
+        "detail": "« Voir les véhicules proches » client/src/pages/LocationParticulier.tsx:602"
       },
       {
         "genre": "bouton_sans_action",
@@ -12203,7 +12306,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat",
       "achat_officiel",
       "achat_particulier",
-      "achat_pro"
+      "achat_pro",
+      "identity"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -12251,6 +12355,20 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/Vehicule.tsx",
         "route": "/vehicule/:id",
+        "composants": [
+          "trpc.messages"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/MessagerieGlobale.tsx",
+        "route": "/utilisateurs/messagerie-globale",
+        "composants": [
+          "trpc.messages"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/TableauBordPerso.tsx",
+        "route": "/utilisateurs/tableau-bord-perso",
         "composants": [
           "trpc.messages"
         ]
@@ -12441,16 +12559,19 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "fichiersServeur": 4,
     "dependancesDeclarees": [
+      "contract",
       "core",
       "identity",
       "language"
     ],
     "dependancesDetectees": [
+      "contract",
       "core",
       "identity",
       "language"
     ],
     "dependances": [
+      "contract",
       "core",
       "identity",
       "language"
@@ -12459,6 +12580,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity"
     ],
     "preuvesDependances": {
+      "contract": [
+        "client/src/pages/notifications/SignaturesGlobales.tsx appelle trpc.contracts"
+      ],
       "core": [
         "notification-os/index.ts importe db.ts",
         "notification-os/index.ts importe trpc.ts",
@@ -12548,121 +12672,121 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/notifications/alertes-urgentes"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/AnnoncesImportantes.tsx",
         "routes": [
           "/notifications/annonces-importantes"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/CanauxCommunication.tsx",
         "routes": [
           "/notifications/canaux-communication"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 8
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/CoffreFortNumerique.tsx",
         "routes": [
           "/notifications/coffre-fort-numerique"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/DocumentsEntreprises.tsx",
         "routes": [
           "/notifications/documents-entreprises"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/DocumentsPersonnelsGlobal.tsx",
         "routes": [
           "/notifications/documents-personnels-global"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/DocumentsVehicules.tsx",
         "routes": [
           "/notifications/documents-vehicules"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/HistoriqueNotifications.tsx",
         "routes": [
           "/notifications/historique-notifications"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsDemarches.tsx",
         "routes": [
           "/notifications/notifications-demarches"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsDepannage.tsx",
         "routes": [
           "/notifications/notifications-depannage"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsGarage.tsx",
         "routes": [
           "/notifications/notifications-garage"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsGenerale.tsx",
@@ -12680,77 +12804,77 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/notifications/notifications-location"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsMessages.tsx",
         "routes": [
           "/notifications/notifications-messages"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsPaiements.tsx",
         "routes": [
           "/notifications/notifications-paiements"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsVente.tsx",
         "routes": [
           "/notifications/notifications-vente"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/ObjectifNotifications.tsx",
         "routes": [
           "/notifications/objectif-notifications"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/ParametresNotifications.tsx",
         "routes": [
           "/notifications/parametres-notifications"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 4
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/RappelsAutomatiques.tsx",
         "routes": [
           "/notifications/rappels-automatiques"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/SignaturesGlobales.tsx",
@@ -12760,8 +12884,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 1,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 7,
+        "mots": 31
       }
     ],
     "ecransHotes": [
@@ -12784,6 +12908,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/parametres",
         "composants": [
           "trpc.notificationOs"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/TableauBordPerso.tsx",
+        "route": "/utilisateurs/tableau-bord-perso",
+        "composants": [
+          "trpc.notifications"
         ]
       }
     ],
@@ -12819,53 +12950,53 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 72,
-    "mots": 149,
+    "textes": 22,
+    "mots": 66,
     "battement": "pont_os",
     "manques": [
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/AlertesUrgentes.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/AlertesUrgentes.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/AnnoncesImportantes.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/AnnoncesImportantes.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/CanauxCommunication.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/CanauxCommunication.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/CoffreFortNumerique.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/CoffreFortNumerique.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/DocumentsEntreprises.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/DocumentsEntreprises.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/DocumentsPersonnelsGlobal.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/DocumentsPersonnelsGlobal.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/DocumentsVehicules.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/DocumentsVehicules.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/HistoriqueNotifications.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/HistoriqueNotifications.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsDemarches.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsDemarches.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsDepannage.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsDepannage.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsGarage.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsGarage.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
@@ -12873,35 +13004,31 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsLocation.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsLocation.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsMessages.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsMessages.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsPaiements.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsPaiements.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsVente.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsVente.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/ObjectifNotifications.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/ObjectifNotifications.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/ParametresNotifications.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/ParametresNotifications.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/RappelsAutomatiques.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/SignaturesGlobales.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/RappelsAutomatiques.tsx (0 texte(s))"
       }
     ]
   },
@@ -13295,6 +13422,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "encheres",
       "finance",
       "financial_intelligence",
+      "identity",
       "importafrica",
       "livraison",
       "payment_orchestrator",
@@ -13460,6 +13588,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/compte/*",
         "composants": [
           "trpc.wallet",
+          "trpc.abonnements"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/AbonnementsUtilisateur.tsx",
+        "route": "/utilisateurs/abonnements-utilisateur",
+        "composants": [
           "trpc.abonnements"
         ]
       }
@@ -13898,7 +14033,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     },
     "dependants": [
       "avis_reputation",
-      "estimation"
+      "estimation",
+      "identity"
     ],
     "evenementsPublies": [
       "piece.modifiee"
@@ -14207,6 +14343,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/admin/*",
         "composants": [
           "trpc.warehouses"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/HistoriqueDemarches.tsx",
+        "route": "/utilisateurs/historique-demarches",
+        "composants": [
+          "trpc.pieces"
         ]
       }
     ],
@@ -14883,6 +15026,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "identity",
       "partner_engine",
       "pro_account",
       "vo_espaces"
@@ -15007,6 +15151,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/admin/*",
         "composants": [
           "trpc.formation"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/CompteProUtilisateur.tsx",
+        "route": "/utilisateurs/compte-pro-utilisateur",
+        "composants": [
+          "trpc.pro"
         ]
       },
       {
@@ -18386,7 +18537,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "achat"
+      "achat",
+      "identity"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -18437,6 +18589,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/Compte.tsx",
         "route": "/compte/*",
+        "composants": [
+          "trpc.searches"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/CentreAlertesUtilisateur.tsx",
+        "route": "/utilisateurs/centre-alertes-utilisateur",
         "composants": [
           "trpc.searches"
         ]
@@ -19022,6 +19181,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "composants": [
           "trpc.smartEngine"
         ]
+      },
+      {
+        "fichier": "client/src/pages/HistoriqueConsultations.tsx",
+        "route": "/historique-consultations",
+        "composants": [
+          "trpc.smartEngine"
+        ]
       }
     ],
     "procedures": [
@@ -19317,6 +19483,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     },
     "dependants": [
       "garage",
+      "identity",
       "intelligences"
     ],
     "evenementsPublies": [],
@@ -19404,6 +19571,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/admin/intelligences",
         "composants": [
           "trpc.supportOs"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/utilisateurs/CentreSupportUtilisateur.tsx",
+        "route": "/utilisateurs/centre-support-utilisateur",
+        "composants": [
+          "trpc.support"
         ]
       }
     ],
@@ -21422,11 +21596,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/reprise"
         ],
-        "cliquables": 7,
+        "cliquables": 5,
         "parMoteur": 0,
-        "sansAction": 3,
-        "textes": 10,
-        "mots": 33
+        "sansAction": 0,
+        "textes": 15,
+        "mots": 45
       },
       {
         "fichier": "client/src/pages/VehiculesCertifies.tsx",
@@ -21442,12 +21616,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "ecransHotes": [],
     "procedures": [
+      "accepterOffre",
       "addDossierItem",
       "dossier",
       "estimate",
       "health",
       "myEstimations",
       "myRepriseRequests",
+      "negocierOffre",
       "offerReprise",
       "repriseQueue",
       "requestReprise",
@@ -21463,23 +21639,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 50,
-    "mots": 177,
+    "textes": 55,
+    "mots": 189,
     "battement": "sonde",
-    "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/RepriseVehicule.tsx:29"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Accepter » client/src/pages/RepriseVehicule.tsx:51"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Négocier » client/src/pages/RepriseVehicule.tsx:52"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "vo_espaces",

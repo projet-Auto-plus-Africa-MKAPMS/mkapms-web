@@ -238,6 +238,33 @@ export async function updateRepriseStatus(id: number, status: string) {
   return row ?? null;
 }
 
+/** Le client accepte l'offre ferme posée par un humain — jamais l'inverse. */
+export async function accepterOffreReprise(id: number, userId: number) {
+  const [existing] = await db.select().from(voRepriseRequests).where(eq(voRepriseRequests.id, id)).limit(1);
+  if (!existing || existing.userId !== userId) return null;
+  if (existing.status !== "offre_proposee") return existing;
+  const [row] = await db
+    .update(voRepriseRequests)
+    .set({ status: "acceptee", updatedAt: new Date() })
+    .where(eq(voRepriseRequests.id, id))
+    .returning();
+  return row ?? null;
+}
+
+/** Le client refuse l'offre et laisse un message de négociation pour ré-étude humaine. */
+export async function negocierOffreReprise(id: number, userId: number, message: string) {
+  const [existing] = await db.select().from(voRepriseRequests).where(eq(voRepriseRequests.id, id)).limit(1);
+  if (!existing || existing.userId !== userId) return null;
+  if (existing.status !== "offre_proposee") return existing;
+  const historique = `${existing.message ? `${existing.message}\n---\n` : ""}Négociation client : ${message}`;
+  const [row] = await db
+    .update(voRepriseRequests)
+    .set({ status: "en_etude", message: historique.slice(0, 4000), updatedAt: new Date() })
+    .where(eq(voRepriseRequests.id, id))
+    .returning();
+  return row ?? null;
+}
+
 // ── Dossier VO (point 33) ──────────────────────────────────────────────
 
 export const DOSSIER_CATEGORIES = [

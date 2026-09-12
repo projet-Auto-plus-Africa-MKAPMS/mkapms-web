@@ -1235,7 +1235,7 @@ const HEALTH_TARGET: Record<string, { tab?: Tab; path?: string }> = {
   apis: { tab: "sante" },
   paiements: { path: "/superadmin/admin-paiements" },
   notifications: { path: "/superadmin/notification-os" },
-  messages: { path: "/messages" },
+  messages: { path: "/messagerie" },
   redirections: { path: "/superadmin/redirection-engine" },
   images: { tab: "annonces" },
   seo: { path: "/superadmin/admin-s-e-o" },

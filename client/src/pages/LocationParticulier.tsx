@@ -169,6 +169,26 @@ export default function LocationParticulier() {
   });
   const resultatsRef = useRef<HTMLDivElement | null>(null);
 
+  // Filtres avancés — cases cochées puis appliquées explicitement (bouton
+  // « Appliquer les filtres »), jamais appliquées à la frappe.
+  const [filtresCoches, setFiltresCoches] = useState<Set<string>>(new Set());
+  const [filtresAppliques, setFiltresAppliques] = useState<Set<string>>(new Set());
+  const toggleFiltre = (label: string) =>
+    setFiltresCoches((prev) => {
+      const next = new Set(prev);
+      next.has(label) ? next.delete(label) : next.add(label);
+      return next;
+    });
+
+  const BOITE_PAR_FILTRE: Record<string, string> = { "Boîte automatique": "automatique", "Boîte manuelle": "manuelle" };
+  const CARBURANT_PAR_FILTRE: Record<string, string> = { Essence: "essence", Diesel: "diesel", Hybride: "hybride", Électrique: "electrique" };
+  const EQUIPEMENT_PAR_FILTRE: Record<string, string> = { GPS: "GPS", "Siège bébé": "Siège bébé" };
+
+  const boiteAppliquee = [...filtresAppliques].map((f) => BOITE_PAR_FILTRE[f]).find(Boolean);
+  const carburantsAppliques = [...filtresAppliques].map((f) => CARBURANT_PAR_FILTRE[f]).filter(Boolean);
+  const equipementsAppliques = [...filtresAppliques].map((f) => EQUIPEMENT_PAR_FILTRE[f]).filter(Boolean);
+  const placesAppliquees = filtresAppliques.has("7 places") ? 7 : undefined;
+
   // Vraies annonces particulier location — additif aux mocks (best-effort).
   const { country } = useCurrency();
   const realAnnonces = trpc.annonces.list.useQuery(
@@ -179,6 +199,10 @@ export default function LocationParticulier() {
       ville: criteres.ville,
       q: criteres.q,
       limit: 24,
+      boite: boiteAppliquee,
+      carburants: carburantsAppliques.length > 0 ? carburantsAppliques : undefined,
+      equipements: equipementsAppliques.length > 0 ? equipementsAppliques : undefined,
+      places: placesAppliquees,
     },
     { retry: false },
   );
@@ -327,11 +351,22 @@ export default function LocationParticulier() {
               "Kilométrage illimité", "Disponible immédiatement",
             ].map((f) => (
               <label key={f} className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" className="h-4 w-4 rounded border-[#D4AF37] text-[#D4AF37] accent-[#D4AF37]" />
+                <input
+                  type="checkbox"
+                  checked={filtresCoches.has(f)}
+                  onChange={() => toggleFiltre(f)}
+                  className="h-4 w-4 rounded border-[#D4AF37] text-[#D4AF37] accent-[#D4AF37]"
+                />
                 <span className="text-sm text-[#111]">{f}</span>
               </label>
             ))}
-            <button className="w-full rounded-lg bg-[#D4AF37] py-2.5 text-sm font-bold text-white mt-2">
+            <p className="text-[10px] text-[#9CA3AF]">
+              « Kilométrage illimité » et « Disponible immédiatement » ne correspondent pas encore à un champ recherchable côté moteur — cochées mais sans effet sur les résultats pour l'instant.
+            </p>
+            <button
+              onClick={() => { setFiltresAppliques(new Set(filtresCoches)); resultatsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+              className="w-full rounded-lg bg-[#D4AF37] py-2.5 text-sm font-bold text-white mt-2"
+            >
               Appliquer les filtres
             </button>
           </div>
@@ -344,14 +379,20 @@ export default function LocationParticulier() {
           des annonces réelles existent en base pour cet univers.
           ═══════════════════════════════════════════════════════════════════ */}
       <div ref={resultatsRef} />
-      {criteres.ville || criteres.q ? (
+      {criteres.ville || criteres.q || filtresAppliques.size > 0 ? (
         <div className="px-4 mt-6">
           <div className="flex items-center justify-between rounded-xl bg-white border border-[#E5E7EB] px-3 py-2">
             <p className="text-xs text-[#6B7280]">
-              Recherche : <span className="font-bold text-[#111]">{[criteres.q, criteres.ville].filter(Boolean).join(" · ")}</span>
+              Recherche : <span className="font-bold text-[#111]">{[criteres.q, criteres.ville, ...filtresAppliques].filter(Boolean).join(" · ") || "tous les véhicules"}</span>
               {realAnnonces.isFetching ? " — en cours…" : ` — ${annoncesTrouvees.length} résultat(s)`}
             </p>
-            <button type="button" onClick={() => setCriteres({})} className="text-xs font-bold text-[#D4AF37]">Effacer</button>
+            <button
+              type="button"
+              onClick={() => { setCriteres({}); setFiltresCoches(new Set()); setFiltresAppliques(new Set()); }}
+              className="text-xs font-bold text-[#D4AF37]"
+            >
+              Effacer
+            </button>
           </div>
           {!realAnnonces.isFetching && (annoncesTrouvees.length) === 0 && (
             <p className="mt-2 text-xs text-[#6B7280]">Aucun véhicule ne correspond à ces critères pour le moment.</p>

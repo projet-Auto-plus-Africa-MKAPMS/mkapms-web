@@ -54,6 +54,8 @@ export const depannageRouter = router({
         lat: z.number().optional(),
         lng: z.number().optional(),
         urgent: z.boolean().default(false),
+        // URLs déjà uploadées (voir FileUpload côté client) — jamais un fichier brut ici.
+        photos: z.array(z.string()).max(10).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -66,6 +68,7 @@ export const depannageRouter = router({
         lat: input.lat != null ? String(input.lat) : undefined,
         lng: input.lng != null ? String(input.lng) : undefined,
         urgent: input.urgent,
+        photos: input.photos && input.photos.length > 0 ? JSON.stringify(input.photos) : undefined,
         status: "demande",
       }).returning();
       return r;

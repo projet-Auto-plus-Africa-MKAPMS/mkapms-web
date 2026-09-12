@@ -1,14 +1,14 @@
 import { Link } from "react-router-dom";
 import { Users, Wrench, Car, Home, Truck, Shield, Package, Paintbrush, MapPin, ChevronRight, Phone } from "lucide-react";
 const CATS = [
-  { label: "Garages", icon: Wrench, to: "/partenaires/inscription" },
-  { label: "Vendeurs VO", icon: Car, to: "/partenaires/inscription" },
-  { label: "Loueurs", icon: Home, to: "/partenaires/inscription" },
-  { label: "Dépanneurs", icon: Truck, to: "/partenaires/inscription" },
-  { label: "Centres CT", icon: Shield, to: "/partenaires/inscription" },
-  { label: "Transporteurs", icon: Truck, to: "/partenaires/inscription" },
-  { label: "Vendeurs pièces", icon: Package, to: "/partenaires/inscription" },
-  { label: "Préparateurs", icon: Paintbrush, to: "/partenaires/inscription" },
+  { label: "Garages", icon: Wrench, to: "/partenaires/inscription-partenaire" },
+  { label: "Vendeurs VO", icon: Car, to: "/partenaires/inscription-partenaire" },
+  { label: "Loueurs", icon: Home, to: "/partenaires/inscription-partenaire" },
+  { label: "Dépanneurs", icon: Truck, to: "/partenaires/inscription-partenaire" },
+  { label: "Centres CT", icon: Shield, to: "/partenaires/inscription-partenaire" },
+  { label: "Transporteurs", icon: Truck, to: "/partenaires/inscription-partenaire" },
+  { label: "Vendeurs pièces", icon: Package, to: "/partenaires/inscription-partenaire" },
+  { label: "Préparateurs", icon: Paintbrush, to: "/partenaires/inscription-partenaire" },
 ];
 export default function PartenairesGenerale() {
   return (

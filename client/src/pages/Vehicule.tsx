@@ -2817,10 +2817,9 @@ export default function Vehicule({ univers }: { univers?: string }) {
                 {[
                   { text: "Véhicules disponibles VTC", sub: "Voir la sélection", to: "/louer?segment=vtc", bg: "bg-[#111]", tc: "text-white", sc: "text-[#D4AF37]" },
                   { text: "Location longue durée", sub: "Solutions sur mesure", to: "/finance", bg: "bg-blue-800", tc: "text-white", sc: "text-blue-200" },
-                  { text: "Assurance professionnelle", sub: "Protégez votre activité", to: "/assurance", bg: "bg-emerald-700", tc: "text-white", sc: "text-emerald-200" },
                   { text: "Gestion flotte", sub: "Optimisez votre parc", to: "/pro", bg: "bg-slate-800", tc: "text-white", sc: "text-slate-300" },
-                  { text: "Documents chauffeur", sub: "Vérifier vos documents", to: "/compte/documents", bg: "bg-[#D4AF37]", tc: "text-[#111]", sc: "text-[#111]/70" },
-                  { text: "Comptabilité Pro", sub: "Factures et exports", to: "/compte/factures", bg: "bg-orange-600", tc: "text-white", sc: "text-orange-100" },
+                  { text: "Documents chauffeur", sub: "Vérifier vos documents", to: "/compte?tab=coffre", bg: "bg-[#D4AF37]", tc: "text-[#111]", sc: "text-[#111]/70" },
+                  { text: "Comptabilité Pro", sub: "Factures et exports", to: "/utilisateurs/factures-utilisateur", bg: "bg-orange-600", tc: "text-white", sc: "text-orange-100" },
                 ].map((ad) => (
                   <Link key={ad.text} to={ad.to} className={`rounded-xl ${ad.bg} p-4 transition hover:opacity-90`}>
                     <p className={`text-xs font-bold ${ad.tc}`}>{ad.text}</p>
@@ -2832,7 +2831,6 @@ export default function Vehicule({ univers }: { univers?: string }) {
               /* Pubs internes Location normale */
               <>
                 {[
-                  { text: "Assurance location", sub: "Roulez couvert", to: "/assurance", bg: "bg-blue-700", tc: "text-white", sc: "text-blue-200" },
                   { text: "Dépannage", sub: "Assistance 24h/24", to: "/garages", bg: "bg-red-600", tc: "text-white", sc: "text-red-100" },
                   { text: "Historique véhicule", sub: "Transparence totale", to: "/historique", bg: "bg-emerald-700", tc: "text-white", sc: "text-emerald-200" },
                   { text: "Pièces auto", sub: "Commander en ligne", to: "/pieces", bg: "bg-slate-800", tc: "text-white", sc: "text-slate-300" },
