@@ -309,10 +309,10 @@ function ModalCentreDocuments({ onClose }: { onClose: () => void }) {
         </div>
         <div className="space-y-2">
           {[
-            { label: "Véhicules → Historiques", sub: "Tous vos rapports historiques", path: "/compte/documents/historiques" },
-            { label: "Véhicules → Contrôles techniques", sub: "Vos contrôles techniques", path: "/compte/documents/ct" },
-            { label: "Factures & Reçus", sub: "Vos factures de rapports", path: "/compte/documents/factures" },
-            { label: "Documents administratifs", sub: "Cartes grises, assurances…", path: "/compte/documents/admin" },
+            { label: "Véhicules → Historiques", sub: "Tous vos rapports historiques", path: "/compte?tab=rapports" },
+            { label: "Véhicules → Contrôles techniques", sub: "Vos contrôles techniques", path: "/compte?tab=coffre" },
+            { label: "Factures & Reçus", sub: "Vos factures de rapports", path: "/utilisateurs/factures-utilisateur" },
+            { label: "Documents administratifs", sub: "Cartes grises, assurances…", path: "/compte?tab=coffre" },
           ].map((d) => (
             <button key={d.label} onClick={() => { navigate(d.path); onClose(); }}
               className="flex w-full items-center gap-3 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] p-3 text-left hover:border-[#D4AF37]/30 hover:bg-white transition">
@@ -629,11 +629,11 @@ export default function Historique() {
             </h4>
             <div className="mt-3 space-y-2">
               {[
-                { label: "Espace utilisateur → Mes rapports historiques", path: "/compte/rapports" },
+                { label: "Espace utilisateur → Mes rapports historiques", path: "/compte?tab=rapports" },
                 { label: "Notifications MKA.P-MS (notification envoyée dans la plateforme)", path: null },
-                { label: "Centre documents → Véhicules → Historiques", path: "/compte/documents/historiques" },
+                { label: "Centre documents → Véhicules → Historiques", path: "/compte?tab=coffre" },
                 { label: "Rapport disponible en texte et en PDF", path: null },
-                { label: "Facture et reçu dans votre espace", path: "/compte/documents/factures" },
+                { label: "Facture et reçu dans votre espace", path: "/utilisateurs/factures-utilisateur" },
               ].map((item) => (
                 item.path ? (
                   <button key={item.label} onClick={() => navigate(item.path!)}

@@ -269,7 +269,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "analytics",
     label: "Analytics Engine",
     category: "transversal",
-    dependencies: ["core", "seo", "smart", "redirection", "monitoring"],
+    dependencies: ["core", "seo", "smart", "redirection", "monitoring", "achat"],
     description: "Analyse d'usage et comportement (recherches, activité, parcours).",
     state: "active",
   },

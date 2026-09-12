@@ -14,10 +14,7 @@ import FileUpload from "../components/FileUpload";
 
 type Tab = "annonces" | "toutes-annonces" | "publicites" | "favoris" | "recherches" | "reservations" | "devis" | "abonnements" | "litiges" | "fidelite" | "coffre" | "vehicules" | "rapports" | "services" | "profil" | "notifications" | "wallet" | "notes" | "version";
 
-const DEMO_RAPPORTS = [
-  { id: 1, plaque: "AB-123-CD", vinPartiel: "VF1KR****567890", type: "Rapport Complet", prix: "7,99 \u20ac", date: "28/05/2024", statut: "Disponible" },
-  { id: 2, plaque: "EF-456-GH", vinPartiel: "WBA8E****123456", type: "Rapport Express", prix: "4,99 \u20ac", date: "15/04/2024", statut: "Disponible" },
-];
+const RAPPORT_STATUT_LABEL: Record<string, string> = { en_attente: "En attente", pret: "Pr\u00eat", echec: "Indisponible" };
 
 const ALL_SERVICES = [
   { label: "Acheter un v\u00e9hicule", to: "/acheter", emoji: "\ud83d\ude97", desc: "Parcourez les annonces et trouvez votre v\u00e9hicule id\u00e9al" },
@@ -175,6 +172,7 @@ export default function Compte() {
   const abos = trpc.abonnements.mine.useQuery(undefined, { enabled: !!user && tab === "abonnements" });
   const recherches = trpc.searches.list.useQuery(undefined, { enabled: !!user && tab === "recherches" });
   const litiges = trpc.disputes.mine.useQuery(undefined, { enabled: !!user && tab === "litiges" });
+  const rapports = trpc.historique.myReports.useQuery(undefined, { enabled: !!user && tab === "rapports" });
   const utils = trpc.useUtils();
   const setAlert = trpc.searches.setAlert.useMutation({ onSuccess: () => utils.searches.list.invalidate() });
   const removeSearch = trpc.searches.remove.useMutation({ onSuccess: () => utils.searches.list.invalidate() });
@@ -912,20 +910,21 @@ export default function Compte() {
               </Link>
             </div>
             <div className="mt-4 space-y-3">
-              {DEMO_RAPPORTS.map((r) => (
-                <div key={r.id} onClick={() => navigate(`/historique?plaque=${r.plaque}`)} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 cursor-pointer hover:border-[#D4AF37] hover:shadow-md transition">
+              {rapports.isLoading && <p className="text-xs text-slate-400">Chargement…</p>}
+              {(rapports.data ?? []).map((r) => (
+                <div key={r.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4">
                   <div>
-                    <p className="text-sm font-bold text-[#111]">{r.plaque}</p>
-                    <p className="text-[10px] text-slate-400">VIN : {r.vinPartiel}</p>
-                    <p className="text-[10px] text-slate-500">{r.type} · {r.prix} · {r.date}</p>
+                    <p className="text-sm font-bold text-[#111]">{r.searchType === "plate" ? "Plaque" : "VIN"} : {r.searchValue}</p>
+                    <p className="text-[10px] text-slate-500">{new Date(r.createdAt).toLocaleDateString("fr-FR")}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded bg-green-50 px-2 py-0.5 text-[9px] font-bold text-green-700">{r.statut}</span>
-                    <button onClick={(e) => { e.stopPropagation(); navigate(`/historique?plaque=${r.plaque}`); }} className="rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-bold text-[#111] hover:bg-slate-50">Voir</button>
-                    <button onClick={(e) => { e.stopPropagation(); navigate(`/historique?plaque=${r.plaque}&pdf=1`); }} className="rounded-lg border border-slate-200 px-3 py-1.5 text-[10px] font-bold text-[#111] hover:bg-slate-50">PDF</button>
-                  </div>
+                  <span className={`rounded px-2 py-0.5 text-[9px] font-bold ${r.status === "pret" ? "bg-green-50 text-green-700" : r.status === "echec" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}>
+                    {RAPPORT_STATUT_LABEL[r.status] ?? r.status}
+                  </span>
                 </div>
               ))}
+              {!rapports.isLoading && (rapports.data ?? []).length === 0 && (
+                <p className="text-xs text-slate-400">Aucun rapport demandé pour le moment.</p>
+              )}
             </div>
             <p className="mt-4 text-[10px] text-slate-400 italic">Vos rapports sont aussi disponibles dans : Messagerie interne, Centre documents {'>'} Véhicules {'>'} Historiques.</p>
           </div>

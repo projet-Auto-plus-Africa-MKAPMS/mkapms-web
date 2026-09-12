@@ -1,16 +1,16 @@
 import { Link } from "react-router-dom";
 import { Package, Search, Settings, Circle, Battery, Droplets, Headphones, Paintbrush, Lightbulb, Disc, Cog, Phone, Star, MapPin } from "lucide-react";
 const CATS = [
-  { label: "Pièces auto", icon: Settings, to: "/pieces/moteur", color: "bg-[#D4AF37]" },
-  { label: "Pneus", icon: Circle, to: "/pieces/pneumatiques", color: "bg-gray-700" },
-  { label: "Batteries", icon: Battery, to: "/pieces/batteries", color: "bg-green-600" },
-  { label: "Huiles", icon: Droplets, to: "/pieces/huiles", color: "bg-amber-600" },
-  { label: "Accessoires", icon: Headphones, to: "/pieces/accessoires", color: "bg-purple-600" },
-  { label: "Carrosserie", icon: Paintbrush, to: "/pieces/carrosserie", color: "bg-pink-600" },
-  { label: "Éclairage", icon: Lightbulb, to: "/pieces/eclairage", color: "bg-yellow-500" },
-  { label: "Freinage", icon: Disc, to: "/pieces/freinage", color: "bg-red-600" },
-  { label: "Suspension", icon: Cog, to: "/pieces/suspension", color: "bg-blue-600" },
-  { label: "Moteur", icon: Settings, to: "/pieces/moteur", color: "bg-orange-600" },
+  { label: "Pièces auto", icon: Settings, to: "/pieces", color: "bg-[#D4AF37]" },
+  { label: "Pneus", icon: Circle, to: "/pieces/pieces-pneumatiques", color: "bg-gray-700" },
+  { label: "Batteries", icon: Battery, to: "/pieces/pieces-batteries", color: "bg-green-600" },
+  { label: "Huiles", icon: Droplets, to: "/pieces/pieces-huiles", color: "bg-amber-600" },
+  { label: "Accessoires", icon: Headphones, to: "/pieces/pieces-accessoires", color: "bg-purple-600" },
+  { label: "Carrosserie", icon: Paintbrush, to: "/pieces/pieces-carrosserie", color: "bg-pink-600" },
+  { label: "Éclairage", icon: Lightbulb, to: "/pieces/pieces-eclairage", color: "bg-yellow-500" },
+  { label: "Freinage", icon: Disc, to: "/pieces/pieces-freinage", color: "bg-red-600" },
+  { label: "Suspension", icon: Cog, to: "/pieces/pieces-suspension", color: "bg-blue-600" },
+  { label: "Moteur", icon: Settings, to: "/pieces/pieces-moteur", color: "bg-orange-600" },
 ];
 export default function PiecesGenerale() {
   return (

@@ -3,8 +3,8 @@ import { Search, Home, ChevronRight } from "lucide-react";
 import MetaSEO from "../components/MetaSEO";
 
 const TYPES = [
-  { label: "Location particulier", to: "/location-particulier", desc: "Citadines, berlines, SUV pour vos trajets" },
-  { label: "Location professionnelle", to: "/location-pro", desc: "Flottes, longue durée, entreprises" },
+  { label: "Location particulier", to: "/louer/particulier", desc: "Citadines, berlines, SUV pour vos trajets" },
+  { label: "Location professionnelle", to: "/louer/pro", desc: "Flottes, longue durée, entreprises" },
   { label: "Location VTC / Taxi", to: "/vtc-taxi", desc: "Véhicules adaptés VTC et Taxi" },
 ];
 

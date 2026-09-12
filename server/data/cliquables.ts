@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2586;
+export const CLIQUABLES_TOTAL = 2577;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -133,7 +133,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/comptabilite/TVA.tsx", total: 12, moteur: 0, liens: 1, boutonsLocaux: 9, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/comptabilite/WalletAdmin.tsx", total: 6, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/ComptaDirigeant.tsx", total: 24, moteur: 0, liens: 1, boutonsLocaux: 19, sansAction: 0, zones: 4 },
-  { fichier: "client/src/pages/Compte.tsx", total: 62, moteur: 0, liens: 12, boutonsLocaux: 41, sansAction: 0, zones: 9 },
+  { fichier: "client/src/pages/Compte.tsx", total: 59, moteur: 0, liens: 12, boutonsLocaux: 39, sansAction: 0, zones: 8 },
   { fichier: "client/src/pages/compte/MesAvis.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Confiance.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Confidentialite.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -234,7 +234,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/expansion/PhaseOceanie.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/expansion/TableauBordMondial.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/expansion/VisionFinale.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/Favoris.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/Favoris.tsx", total: 4, moteur: 0, liens: 2, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Finance.tsx", total: 32, moteur: 0, liens: 2, boutonsLocaux: 30, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/finance/AcompteFinance.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/finance/AlertesPaiements.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -322,7 +322,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/GestionFranchises.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/GlobalCountryEngine.tsx", total: 19, moteur: 0, liens: 0, boutonsLocaux: 18, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/Historique.tsx", total: 48, moteur: 0, liens: 3, boutonsLocaux: 33, sansAction: 2, zones: 10 },
-  { fichier: "client/src/pages/HistoriqueConsultations.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/HistoriqueConsultations.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/HistoriqueLocation.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/HistoriqueVehiculeVente.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Home.tsx", total: 15, moteur: 0, liens: 12, boutonsLocaux: 2, sansAction: 0, zones: 1 },
@@ -723,7 +723,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/garage/DossiersFlottes.tsx", ligne: 12, genre: "lien", libelle: "/garage/flottes", motif: "destination_inconnue" },
   { fichier: "client/src/pages/garage/FichesTechniciens.tsx", ligne: 7, genre: "lien", libelle: "/garage/mecaniciens", motif: "destination_inconnue" },
   { fichier: "client/src/pages/garage/FlottesEntreprises.tsx", ligne: 11, genre: "lien", libelle: "/garage/professionnel", motif: "destination_inconnue" },
-  { fichier: "client/src/pages/garage/GarageGenerale.tsx", ligne: 56, genre: "lien", libelle: "/garage/devis", motif: "destination_inconnue" },
   { fichier: "client/src/pages/garage/GarageProfessionnel.tsx", ligne: 27, genre: "lien", libelle: "/garage/devis", motif: "destination_inconnue" },
   { fichier: "client/src/pages/Historique.tsx", ligne: 511, genre: "lien", libelle: "/auth?redirect=/historique", motif: "destination_inconnue" },
   { fichier: "client/src/pages/Historique.tsx", ligne: 514, genre: "lien", libelle: "/auth?mode=register&redirect=/historique", motif: "destination_inconnue" },

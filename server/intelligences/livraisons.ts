@@ -750,6 +750,37 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié réellement : typecheck inchangé (54 erreurs préexistantes, aucune dans les fichiers touchés — deux erreurs introduites puis corrigées : photoPrincipale absent d'annonces.mine, type optionnel du retour de mfa.setup), tous les checks du dépôt verts, gen:moteurs recalculé avec 10 dependance_non_declaree de moins (achat, depannage, garage, messaging, payment, pieces, pro_portal, search, support ajoutés à identity ; analytics ajouté à achat) et un faux positif détecté et corrigé : le scanner de dépendances repère tout appel textuel à la fonction notifyEvent, y compris dans une chaîne de description ; la précédente entrée de mémoire technique nommait cette fonction avec ses parenthèses d'appel, ce que le scanner ne pouvait pas distinguer d'un vrai appel — reformulé sans les parenthèses pour ne plus déclencher la détection, sans toucher au scanner lui-même. Build serveur et client complets réussis. Avant de conclure qu'une capacité manque (comme pour l'historique véhicule dans le lot précédent), chercher par le nom de la table ou du concept métier (ici `vehicle_reports`) et pas seulement par les routeurs déjà visités — une conclusion « aucun moteur réel » doit rester révisable.",
     domaine: "moteurs",
   },
+  {
+    cle: "u071-liens-dynamiques-audit-27-fichiers",
+    titre: "U-071 point 1 — audit des liens dynamiques (to={variable}, le point mort du scanner) : dizaines de destinations mortes corrigées, deux écrans encore simulés découverts et reliés à de vrais moteurs",
+    moteurs: ["achat", "analytics", "garage", "demarches", "finance", "pieces", "partenaires"],
+    quoi:
+      "Audit systématique des 35 fichiers utilisant `to={variable}` (le point mort connu du scanner de liens, qui ne lit que les chaînes littérales `to=\"/...\"`) : extraction de chaque valeur littérale assignée à to/url/link/chemin/path dans un tableau ou objet, comparaison avec le registre réel des 708 routes. Corrigées : GarageGenerale.tsx (7 liens : /garage/devis→/garage/demande-devis, /garage/rendez-vous→/garage/prise-rendez-vous, etc.), TableauBordChefAtelier.tsx (6 liens vers les vraies routes -atelier/gestion-*), DemarchesGenerale.tsx (7 liens vers les vraies routes -demarche/declaration-*), FinanceGenerale.tsx (6 liens), PiecesGenerale.tsx (9 liens vers pieces-*), PartenairesGenerale.tsx (8 occurrences du même lien mort /partenaires/inscription→/partenaires/inscription-partenaire), LocationVoiture.tsx (/location-particulier, /location-pro → /louer/particulier, /louer/pro), HomePro.tsx et TableauBordProVente.tsx/TableauBordVendeur.tsx (routes vers un composant jamais monté sous ce chemin), SmartEngine/ControlCenter.tsx (/messages→/messagerie), Vehicule.tsx (/assurance : aucune fiche assurance particulier n'existe nulle part sur la plateforme, ni côté route ni côté moteur — les 2 cartes publicitaires \"Assurance\" ont été retirées plutôt que pointées vers rien ; /compte/documents et /compte/factures qui ne correspondent à aucun onglet reconnu par Compte.tsx → /compte?tab=coffre et /comptabilite). Historique.tsx : 5 liens vers /compte/documents/* (jamais reconnus par Compte.tsx, qui ne lit que le paramètre ?tab=, jamais un segment de chemin) → corrigés vers /compte?tab=rapports, /compte?tab=coffre, /utilisateurs/factures-utilisateur. Découverte au passage, en vérifiant le contexte de ces liens : Favoris.tsx (écran /favoris, distinct de celui déjà refait dans Mon espace) et HistoriqueConsultations.tsx étaient entièrement simulés — véhicules, garages et carrosseries fictifs avec photos de stock Unsplash présentées comme de vraies annonces, notes inventées. Favoris.tsx reconstruit sur le vrai moteur trpc.favoris (mine/toggle) — qui ne couvre que les véhicules (table favoris, colonne annonceId unique) : les catégories garage/carrosserie/enchère/pièce n'ont aucune contrepartie réelle, retirées plutôt que maintenues fictives. HistoriqueConsultations.tsx reconstruit sur une découverte : trpc.annonces.get appelle déjà recordView() à chaque consultation réelle d'une fiche véhicule (server/smart-engine/services/user-memory.ts, table smart_user_memory), exposé via trpc.smartEngine.myMemory({type:\"view\"}) — jamais utilisé par aucun écran jusqu'ici. Compte.tsx : l'onglet \"rapports\" (Mes rapports historiques) affichait un DEMO_RAPPORTS de 2 plaques inventées — relié à trpc.historique.myReports (le même vrai moteur de demande de rapport découvert dans le lot précédent).",
+    pourquoi:
+      "Le point 1 de la clôture U-071 demandait explicitement l'audit des liens dynamiques en ne corrigeant que ceux réellement morts. Vérifier le contexte de chaque lien (pas seulement sa destination) a révélé, comme le prévoyait la consigne de clôture, deux écrans supplémentaires affichant des données inventées comme réelles — corrigés avec les mêmes moteurs réels déjà utilisés ailleurs (favoris, smart-engine, historique), jamais un nouveau système inventé.",
+    ou: [
+      "client/src/pages/garage/GarageGenerale.tsx",
+      "client/src/pages/garage/TableauBordChefAtelier.tsx",
+      "client/src/pages/demarches/DemarchesGenerale.tsx",
+      "client/src/pages/finance/FinanceGenerale.tsx",
+      "client/src/pages/pieces/PiecesGenerale.tsx",
+      "client/src/pages/partenaires/PartenairesGenerale.tsx",
+      "client/src/pages/LocationVoiture.tsx",
+      "client/src/pages/HomePro.tsx",
+      "client/src/pages/TableauBordProVente.tsx",
+      "client/src/pages/vente/TableauBordVendeur.tsx",
+      "client/src/pages/SmartEngine/ControlCenter.tsx",
+      "client/src/pages/Vehicule.tsx",
+      "client/src/pages/Historique.tsx",
+      "client/src/pages/Compte.tsx",
+      "client/src/pages/Favoris.tsx",
+      "client/src/pages/HistoriqueConsultations.tsx",
+      "server/engine-registry/catalog.ts",
+    ],
+    lecon:
+      "Vérifié réellement : typecheck inchangé (54 erreurs préexistantes, aucune dans les fichiers touchés), tous les checks du dépôt verts, gen:moteurs recalculé avec destination_inconnue -1 et dependance_non_declaree temporairement +1 (achat ajouté à analytics pour couvrir trpc.annonces depuis HistoriqueConsultations.tsx) — retour à la ligne de base. Build serveur et client complets réussis. Le point mort du scanner (`to={variable}`) cache deux catégories différentes derrière la même syntaxe : une destination fixe mais mal orthographiée (corrigible mécaniquement par comparaison au registre) et un tableau de données entièrement inventées dont chaque `to` n'est que le symptôme le plus visible — la seconde catégorie n'apparaît qu'en lisant le contexte autour du lien, jamais par la seule comparaison de chaînes.",
+    domaine: "moteurs",
+  },
 ];
 
 /**

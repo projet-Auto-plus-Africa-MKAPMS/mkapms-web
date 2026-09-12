@@ -308,7 +308,7 @@ export default function HomePro() {
             {[
               { icon: Car, label: "Déposer une annonce", to: "/depot-annonce", color: "text-[#D4AF37]" },
               { icon: Users, label: "Espace Pro", to: "/espace-pro", color: "text-blue-400" },
-              { icon: TrendingUp, label: "Tableau de bord", to: "/vente/tableau-bord-vendeur", color: "text-green-400" },
+              { icon: TrendingUp, label: "Tableau de bord", to: "/vente/resume-vendeur", color: "text-green-400" },
               { icon: Handshake, label: "Devenir partenaire", to: "/partenaires/inscription-partenaire", color: "text-purple-400" },
             ].map((item) => (
               <Link

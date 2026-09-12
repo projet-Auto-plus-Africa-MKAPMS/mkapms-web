@@ -57,7 +57,7 @@ export default function TableauBordProVente() {
     { label: "Messages clients", icon: MessageSquare, to: "/messagerie", count: null, color: "bg-purple-600" },
     { label: "Réservations", icon: Calendar, to: "/vente/reservations", count: c?.reservees, color: "bg-amber-600" },
     { label: "Abonnements", icon: Star, to: "/vente/abonnements", count: null, color: "bg-[#D4AF37]" },
-    { label: "Factures", icon: Euro, to: "/vente/factures", count: null, color: "bg-teal-600" },
+    { label: "Factures", icon: Euro, to: "/comptabilite", count: null, color: "bg-teal-600" },
     { label: "Documents société", icon: Shield, to: "/vente/documents-societe", count: null, color: "bg-cyan-600" },
     { label: "Employés", icon: Users, to: "/vente/employes", count: null, color: "bg-orange-600" },
     { label: "Statistiques", icon: BarChart3, to: "/vente/statistiques", count: null, color: "bg-pink-600" },

@@ -2,16 +2,16 @@ import { Link } from "react-router-dom";
 import { Wrench, FileText, Calendar, AlertTriangle, Shield, Circle, Search, Car, Paintbrush, Users, Phone, ChevronRight, Star, MapPin } from "lucide-react";
 
 const SERVICES = [
-  { label: "Demander un devis", icon: FileText, to: "/garage/devis", color: "bg-[#D4AF37]" },
-  { label: "Prendre rendez-vous", icon: Calendar, to: "/garage/rendez-vous", color: "bg-blue-600" },
-  { label: "Dépannage", icon: AlertTriangle, to: "/garage/depannage", color: "bg-red-600" },
+  { label: "Demander un devis", icon: FileText, to: "/garage/demande-devis", color: "bg-[#D4AF37]" },
+  { label: "Prendre rendez-vous", icon: Calendar, to: "/garage/prise-rendez-vous", color: "bg-blue-600" },
+  { label: "Dépannage", icon: AlertTriangle, to: "/garage/depannage-garage", color: "bg-red-600" },
   { label: "Contrôle technique", icon: Shield, to: "/garage/controle-technique", color: "bg-green-600" },
   { label: "Pneus", icon: Circle, to: "/garage/pneumatiques", color: "bg-gray-700" },
-  { label: "Diagnostic", icon: Search, to: "/garage/diagnostic", color: "bg-purple-600" },
-  { label: "Entretien", icon: Wrench, to: "/garage/particulier", color: "bg-cyan-600" },
+  { label: "Diagnostic", icon: Search, to: "/garage/diagnostic-garage", color: "bg-purple-600" },
+  { label: "Entretien", icon: Wrench, to: "/garage/garage-particulier", color: "bg-cyan-600" },
   { label: "Réparation", icon: Wrench, to: "/garage/ordre-reparation", color: "bg-orange-600" },
-  { label: "Carrosserie", icon: Paintbrush, to: "/garage/carrosserie", color: "bg-pink-600" },
-  { label: "Flottes professionnelles", icon: Users, to: "/garage/professionnel", color: "bg-indigo-600" },
+  { label: "Carrosserie", icon: Paintbrush, to: "/garage/carrosserie-garage", color: "bg-pink-600" },
+  { label: "Flottes professionnelles", icon: Users, to: "/garage/garage-professionnel", color: "bg-indigo-600" },
 ];
 
 const AVANTAGES = [
@@ -53,7 +53,7 @@ export default function GarageGenerale() {
 
       {/* CTA */}
       <div className="px-4 mt-6">
-        <Link to="/garage/devis" className="block w-full rounded-xl bg-[#D4AF37] py-4 text-center text-base font-extrabold text-white active:scale-[0.98] transition shadow-lg">
+        <Link to="/garage/demande-devis" className="block w-full rounded-xl bg-[#D4AF37] py-4 text-center text-base font-extrabold text-white active:scale-[0.98] transition shadow-lg">
           Demander un devis gratuit
         </Link>
       </div>

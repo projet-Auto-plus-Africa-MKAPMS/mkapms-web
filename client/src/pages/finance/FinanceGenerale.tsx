@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
 import { Euro, CreditCard, Clock, Shield, FileText, BarChart3, Phone, ChevronRight } from "lucide-react";
 const SERVICES = [
-  { label: "Paiement comptant", icon: Euro, to: "/finance/comptant", color: "bg-[#D4AF37]" },
-  { label: "Paiement en plusieurs fois", icon: CreditCard, to: "/finance/fractionne", color: "bg-blue-600" },
-  { label: "LOA", icon: Clock, to: "/finance/loa", color: "bg-purple-600" },
-  { label: "Dépôt de garantie", icon: Shield, to: "/finance/garantie", color: "bg-green-600" },
-  { label: "Suivi paiements", icon: BarChart3, to: "/finance/echeancier", color: "bg-orange-600" },
-  { label: "Factures", icon: FileText, to: "/finance/factures", color: "bg-gray-700" },
+  { label: "Paiement comptant", icon: Euro, to: "/finance/paiement-comptant", color: "bg-[#D4AF37]" },
+  { label: "Paiement en plusieurs fois", icon: CreditCard, to: "/finance/paiement-fractionne", color: "bg-blue-600" },
+  { label: "LOA", icon: Clock, to: "/finance/l-o-a-finance", color: "bg-purple-600" },
+  { label: "Dépôt de garantie", icon: Shield, to: "/finance/depot-garantie-finance", color: "bg-green-600" },
+  { label: "Suivi paiements", icon: BarChart3, to: "/finance/centre-echeancier", color: "bg-orange-600" },
+  { label: "Factures", icon: FileText, to: "/finance/centre-factures", color: "bg-gray-700" },
 ];
 export default function FinanceGenerale() {
   return (
