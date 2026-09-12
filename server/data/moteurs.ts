@@ -100,9 +100,9 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 89;
-export const MANQUES_TOTAL = 644;
+export const MANQUES_TOTAL = 643;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "ecran_sans_contenu": 355,
+  "ecran_sans_contenu": 354,
   "destination_inconnue": 47,
   "bouton_sans_action": 185,
   "sans_logique_serveur": 12,
@@ -5151,7 +5151,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "investment"
+      "investment",
+      "notification"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -5186,7 +5187,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 6
       }
     ],
-    "ecransHotes": [],
+    "ecransHotes": [
+      {
+        "fichier": "client/src/pages/notifications/SignaturesGlobales.tsx",
+        "route": "/notifications/signatures-globales",
+        "composants": [
+          "trpc.contracts"
+        ]
+      }
+    ],
     "procedures": [
       "all",
       "controlCenterFeed",
@@ -9605,7 +9614,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "identity": [
         "intelligences/api-v1.ts importe auth.ts",
-        "intelligences/index.ts exige une session Identity (procédure protégée)"
+        "intelligences/index.ts exige une session Identity (procédure protégée)",
+        "intelligences/livraisons.ts exige une session Identity (procédure protégée)"
       ],
       "monitoring": [
         "client/src/pages/CentreIntelligences.tsx appelle trpc.monitoringOs"
@@ -12421,16 +12431,19 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "fichiersServeur": 4,
     "dependancesDeclarees": [
+      "contract",
       "core",
       "identity",
       "language"
     ],
     "dependancesDetectees": [
+      "contract",
       "core",
       "identity",
       "language"
     ],
     "dependances": [
+      "contract",
       "core",
       "identity",
       "language"
@@ -12439,6 +12452,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity"
     ],
     "preuvesDependances": {
+      "contract": [
+        "client/src/pages/notifications/SignaturesGlobales.tsx appelle trpc.contracts"
+      ],
       "core": [
         "notification-os/index.ts importe db.ts",
         "notification-os/index.ts importe trpc.ts",
@@ -12528,121 +12544,121 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/notifications/alertes-urgentes"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/AnnoncesImportantes.tsx",
         "routes": [
           "/notifications/annonces-importantes"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/CanauxCommunication.tsx",
         "routes": [
           "/notifications/canaux-communication"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 8
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/CoffreFortNumerique.tsx",
         "routes": [
           "/notifications/coffre-fort-numerique"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/DocumentsEntreprises.tsx",
         "routes": [
           "/notifications/documents-entreprises"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/DocumentsPersonnelsGlobal.tsx",
         "routes": [
           "/notifications/documents-personnels-global"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/DocumentsVehicules.tsx",
         "routes": [
           "/notifications/documents-vehicules"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/HistoriqueNotifications.tsx",
         "routes": [
           "/notifications/historique-notifications"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsDemarches.tsx",
         "routes": [
           "/notifications/notifications-demarches"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsDepannage.tsx",
         "routes": [
           "/notifications/notifications-depannage"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsGarage.tsx",
         "routes": [
           "/notifications/notifications-garage"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsGenerale.tsx",
@@ -12660,77 +12676,77 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/notifications/notifications-location"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsMessages.tsx",
         "routes": [
           "/notifications/notifications-messages"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsPaiements.tsx",
         "routes": [
           "/notifications/notifications-paiements"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/NotificationsVente.tsx",
         "routes": [
           "/notifications/notifications-vente"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/ObjectifNotifications.tsx",
         "routes": [
           "/notifications/objectif-notifications"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/ParametresNotifications.tsx",
         "routes": [
           "/notifications/parametres-notifications"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 4
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/RappelsAutomatiques.tsx",
         "routes": [
           "/notifications/rappels-automatiques"
         ],
-        "cliquables": 1,
+        "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 0,
+        "mots": 0
       },
       {
         "fichier": "client/src/pages/notifications/SignaturesGlobales.tsx",
@@ -12740,8 +12756,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 1,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 3,
-        "mots": 6
+        "textes": 7,
+        "mots": 31
       }
     ],
     "ecransHotes": [
@@ -12799,53 +12815,53 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 72,
-    "mots": 149,
+    "textes": 22,
+    "mots": 66,
     "battement": "pont_os",
     "manques": [
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/AlertesUrgentes.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/AlertesUrgentes.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/AnnoncesImportantes.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/AnnoncesImportantes.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/CanauxCommunication.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/CanauxCommunication.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/CoffreFortNumerique.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/CoffreFortNumerique.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/DocumentsEntreprises.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/DocumentsEntreprises.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/DocumentsPersonnelsGlobal.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/DocumentsPersonnelsGlobal.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/DocumentsVehicules.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/DocumentsVehicules.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/HistoriqueNotifications.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/HistoriqueNotifications.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsDemarches.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsDemarches.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsDepannage.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsDepannage.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsGarage.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsGarage.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
@@ -12853,35 +12869,31 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsLocation.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsLocation.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsMessages.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsMessages.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsPaiements.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsPaiements.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/NotificationsVente.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/NotificationsVente.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/ObjectifNotifications.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/ObjectifNotifications.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/ParametresNotifications.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/ParametresNotifications.tsx (0 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/RappelsAutomatiques.tsx (3 texte(s))"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/notifications/SignaturesGlobales.tsx (3 texte(s))"
+        "detail": "client/src/pages/notifications/RappelsAutomatiques.tsx (0 texte(s))"
       }
     ]
   },

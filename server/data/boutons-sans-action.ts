@@ -101,8 +101,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/LocationUtilitaires.tsx", ligne: 139, libelle: "Rechercher un utilitaire" },
   { fichier: "client/src/pages/Louer.tsx", ligne: 492, libelle: "Voir sur la carte" },
   { fichier: "client/src/pages/Louer.tsx", ligne: 495, libelle: "Véhicules disponibles" },
-  { fichier: "client/src/pages/Notifications.tsx", ligne: 225, libelle: "Marquer lu" },
-  { fichier: "client/src/pages/Notifications.tsx", ligne: 228, libelle: "Imprimer" },
   { fichier: "client/src/pages/pieces/AbonnementsProPieces.tsx", ligne: 17, libelle: "Choisir" },
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 10, libelle: "" },
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 13, libelle: "Réserver le montage" },

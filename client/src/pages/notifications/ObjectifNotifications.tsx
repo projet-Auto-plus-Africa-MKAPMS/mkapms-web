@@ -1,10 +1,15 @@
-import { Link } from "react-router-dom";
-import { ChevronLeft, Bell } from "lucide-react";
+import NotificationPreferences from "../NotificationPreferences";
+
+/* "Objectif" = à quel rythme vous voulez être notifié : regroupement (digest)
+   et heures de silence — les deux seuls réglages réels de rythme sur
+   trpc.notificationOs.preferences (les canaux eux-mêmes sont sur l'écran
+   Canaux de communication). */
 export default function ObjectifNotifications() {
   return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-[#111] px-4 pt-6 pb-5"><Link to="/notifications" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Notifications</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Bell size={20} className="text-[#D4AF37]" /> Objectif notifications</h1></div>
-      <div className="mx-4 mt-4 rounded-xl bg-white border border-[#E5E7EB] p-4"><p className="text-sm text-[#6B7280] text-center">Module Objectif notifications</p></div>
-    </div>
+    <NotificationPreferences
+      titre="Rythme des notifications"
+      sousTitre="Regroupement et heures de silence"
+      sections={["digest", "silence"]}
+    />
   );
 }

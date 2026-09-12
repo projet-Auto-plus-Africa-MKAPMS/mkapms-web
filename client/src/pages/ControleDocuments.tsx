@@ -17,7 +17,7 @@ import FileUpload from "../components/FileUpload";
    ══════════════════════════════════════════════════════════════════════════ */
 
 const LABEL_STATUT: Record<string, string> = {
-  non_verifie: "Non commencé",
+  non_demarre: "Non commencé",
   en_cours: "En cours",
   en_validation: "En cours d'examen",
   valide: "Validé",
@@ -34,7 +34,7 @@ export default function ControleDocuments() {
   const documents = monProfil.data?.documents ?? [];
   const aIdentite = documents.some((d) => d.docType === "piece_identite");
   const aPermis = documents.some((d) => d.docType === "permis_conduire");
-  const statutDossier = monProfil.data?.profile?.status ?? "non_verifie";
+  const statutDossier = monProfil.data?.profile?.status ?? "non_demarre";
   const dossierValide = statutDossier === "valide";
 
   const envoyer = () => {

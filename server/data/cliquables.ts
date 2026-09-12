@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2585;
+export const CLIQUABLES_TOTAL = 2571;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -197,6 +197,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/DepotAnnonce.tsx", total: 22, moteur: 0, liens: 2, boutonsLocaux: 20, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/DepotVente.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Devis.tsx", total: 26, moteur: 0, liens: 0, boutonsLocaux: 25, sansAction: 0, zones: 1 },
+  { fichier: "client/src/pages/DocumentsVault.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/DossierClient.tsx", total: 21, moteur: 0, liens: 3, boutonsLocaux: 16, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/DossierVehiculeNumerique.tsx", total: 10, moteur: 0, liens: 6, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Encheres.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
@@ -495,25 +496,8 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/MosControlCenter/EngineControlCenter.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/MotoOccasion.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/NotFound.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/Notifications.tsx", total: 10, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 2, zones: 2 },
-  { fichier: "client/src/pages/notifications/AlertesUrgentes.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/AnnoncesImportantes.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/CanauxCommunication.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/CoffreFortNumerique.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/DocumentsEntreprises.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/DocumentsPersonnelsGlobal.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/DocumentsVehicules.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/HistoriqueNotifications.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/NotificationsDemarches.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/NotificationsDepannage.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/NotificationsGarage.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/NotificationsLocation.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/NotificationsMessages.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/NotificationsPaiements.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/NotificationsVente.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/ObjectifNotifications.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/ParametresNotifications.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/notifications/RappelsAutomatiques.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/NotificationPreferences.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/Notifications.tsx", total: 8, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/notifications/SignaturesGlobales.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/operations/Ambassadeurs.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/operations/CentreAcquisition.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -864,8 +848,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/LocationUtilitaires.tsx", ligne: 139, genre: "bouton", libelle: "Rechercher un utilitaire", motif: "sans_action" },
   { fichier: "client/src/pages/Louer.tsx", ligne: 492, genre: "bouton", libelle: "Voir sur la carte", motif: "sans_action" },
   { fichier: "client/src/pages/Louer.tsx", ligne: 495, genre: "bouton", libelle: "Véhicules disponibles", motif: "sans_action" },
-  { fichier: "client/src/pages/Notifications.tsx", ligne: 225, genre: "bouton", libelle: "Marquer lu", motif: "sans_action" },
-  { fichier: "client/src/pages/Notifications.tsx", ligne: 228, genre: "bouton", libelle: "Imprimer", motif: "sans_action" },
   { fichier: "client/src/pages/pieces/AbonnementsProPieces.tsx", ligne: 17, genre: "bouton", libelle: "Choisir", motif: "sans_action" },
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 10, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 13, genre: "bouton", libelle: "Réserver le montage", motif: "sans_action" },

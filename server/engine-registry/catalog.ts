@@ -59,7 +59,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "notification",
     label: "Notification OS",
     category: "transversal",
-    dependencies: ["core", "identity", "language"],
+    dependencies: ["core", "identity", "language", "contract"],
     description: "Multi-canaux (email, SMS, push, in-app), templates multi-langues, préférences utilisateur, dispatch avec journal.",
     state: "active",
   },
