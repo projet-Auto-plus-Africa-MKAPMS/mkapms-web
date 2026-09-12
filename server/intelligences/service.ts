@@ -287,6 +287,9 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
   });
 
   const echec = async (motif: string): Promise<DemandeResultat> => {
+    // Ces motifs sont des règles métier (question vide, domaine fermé, plafond
+    // atteint) — jamais un détail fournisseur : sûrs à renvoyer tels quels aux
+    // deux côtés, contrairement au motif d'un appel de modèle qui échoue.
     await db.insert(inMessages).values({
       sessionId,
       cote: input.cote,
@@ -294,6 +297,7 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
       contenu: "",
       ok: false,
       motif,
+      motifPublic: motif,
     });
     await compter(input.cote, false, 0);
     return {
@@ -423,6 +427,7 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     modele: r.modele,
     ok: r.ok,
     motif: r.motif,
+    motifPublic: r.motifPublic,
     jetonsEntree: r.jetonsEntree,
     jetonsSortie: r.jetonsSortie,
     dureeMs: r.dureeMs,
@@ -440,13 +445,18 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     payload: { sessionId, cote: input.cote, ok: r.ok, fournisseur: r.fournisseur },
   });
 
+  // LOT IA02A — le côté direction (PDG) garde le détail technique complet ;
+  // le côté public ne reçoit jamais fournisseur, modèle ni motif brut, même
+  // dans une réponse réussie (une réponse API n'est pas seulement ce que
+  // l'écran affiche : le JSON lui-même ne doit pas les porter).
+  const cotePublic = input.cote === "public";
   return {
     sessionId,
     ok: r.ok,
     reponse: r.texte,
-    motif: r.motif,
-    fournisseur: r.fournisseur,
-    modele: r.modele,
+    motif: cotePublic ? r.motifPublic : r.motif,
+    fournisseur: cotePublic ? null : r.fournisseur,
+    modele: cotePublic ? null : r.modele,
     contexte,
     jetons: r.jetonsEntree + r.jetonsSortie,
     dureeMs: r.dureeMs,

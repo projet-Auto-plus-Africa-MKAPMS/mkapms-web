@@ -3,15 +3,17 @@
  *
  * Automobile, vie quotidienne, travail, et les domaines que le PDG a ouverts.
  * Encadré côté serveur : aucun accès aux moteurs, au code, aux comptes ni aux
- * données internes. Quand aucun fournisseur ne répond, l'écran affiche le motif
- * réel au lieu d'une réponse inventée.
+ * données internes. LOT IA02A : quand le service ne répond pas, l'écran
+ * affiche un motif générique MKA.P-MS Intelligence — jamais le fournisseur,
+ * le modèle ou le détail technique de l'échec (server/intelligences/
+ * provider.ts::motifPublic).
  */
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, ChevronLeft, Mic, MicOff, MessageCircle, Send, Sparkles } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { speechRecognitionConstructor, startDictation } from "../lib/speech";
-import { IaConfigWarning } from "../components/IaConfigWarning";
+import { EtatServiceIntelligence } from "../components/EtatServiceIntelligence";
 
 interface Bulle {
   role: "moi" | "assistant";
@@ -114,7 +116,7 @@ export default function AssistantIntelligences() {
         <ChevronLeft className="h-4 w-4" /> Accueil
       </Link>
 
-      <IaConfigWarning />
+      <EtatServiceIntelligence />
 
       <header className="rounded-2xl border border-black/5 bg-white p-4">
         <h1 className="flex items-center gap-2 text-xl font-black text-[#111]">

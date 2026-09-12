@@ -17,8 +17,9 @@
  */
 import { db } from "../db.js";
 import { afCostEntries } from "../ai-fabric/schema.js";
-import { chooseProvider, markProviderUsed, type Confidentiality } from "../ai-fabric/service.js";
+import { chooseProvider, markProviderUsed, providerStates, type Confidentiality } from "../ai-fabric/service.js";
 import { enregistrer as enregistrerAppel } from "./evaluation.js";
+import { MOTIF_PUBLIC_INDISPONIBLE, NOM_PRODUIT, type EtatServicePublic } from "./identite.js";
 
 /** Une fonction que le modèle peut demander à exécuter (appel d'outils). */
 export interface OutilFonction {
@@ -116,8 +117,18 @@ export interface AppelResultat {
   texte: string;
   fournisseur: string | null;
   modele: string | null;
-  /** Motif exact quand l'appel n'a pas eu lieu ou a échoué. */
+  /**
+   * Motif exact quand l'appel n'a pas eu lieu ou a échoué — détail technique
+   * complet (fournisseur, modèle, code HTTP, message brut) : réservé aux
+   * zones internes autorisées (direction, journaux, audit). Ne jamais
+   * renvoyer ce champ à une surface publique — voir `motifPublic`.
+   */
   motif: string;
+  /**
+   * LOT IA02A — motif générique, sans aucun détail fournisseur, destiné à
+   * toute surface publique ou utilisateur. Vide quand `ok` est vrai.
+   */
+  motifPublic: string;
   jetonsEntree: number;
   jetonsSortie: number;
   dureeMs: number;
@@ -177,7 +188,10 @@ interface ChoixModele {
  * le fournisseur pour prendre un modèle réellement disponible sur ce compte,
  * plutôt que d'échouer sur un nom de modèle périmé.
  */
-async function resoudre(providerCode: string): Promise<ChoixModele | { erreur: string }> {
+async function resoudre(
+  providerCode: string,
+  fetchImpl: typeof fetch,
+): Promise<ChoixModele | { erreur: string }> {
   const spec = ENDPOINTS[providerCode];
   if (!spec) {
     return { erreur: `Fournisseur « ${providerCode} » sans point d'entrée d'appel connu.` };
@@ -193,7 +207,7 @@ async function resoudre(providerCode: string): Promise<ChoixModele | { erreur: s
     return { url: `${cle.replace(/\/$/, "")}/v1/chat/completions`, cle: "", modele: spec.modeleParDefaut };
   }
 
-  const modele = await modeleDisponible(providerCode, spec, cle);
+  const modele = await modeleDisponible(providerCode, spec, cle, fetchImpl);
   return { url: spec.url, cle, modele };
 }
 
@@ -203,13 +217,14 @@ async function modeleDisponible(
   providerCode: string,
   spec: { url: string; modeleParDefaut: string },
   cle: string,
+  fetchImpl: typeof fetch,
 ): Promise<string> {
   const enCache = cacheModele.get(providerCode);
   if (enCache && enCache.expire > Date.now()) return enCache.modele;
 
   const base = spec.url.replace(/\/chat\/completions$/, "/models");
   try {
-    const reponse = await fetch(base, { headers: { Authorization: `Bearer ${cle}` } });
+    const reponse = await fetchImpl(base, { headers: { Authorization: `Bearer ${cle}` } });
     if (reponse.ok) {
       const corps = (await reponse.json()) as { data?: { id?: string }[] };
       const ids = (corps.data ?? []).map((m) => m.id ?? "").filter(Boolean);
@@ -261,7 +276,7 @@ async function mesurer(
  * Appelle réellement un modèle. Ne jette pas : l'échec est une donnée, il doit
  * pouvoir s'afficher.
  */
-export async function appeler(input: AppelInput): Promise<AppelResultat> {
+export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch): Promise<AppelResultat> {
   const debut = Date.now();
   const vide: AppelResultat = {
     ok: false,
@@ -269,6 +284,7 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
     fournisseur: null,
     modele: null,
     motif: "",
+    motifPublic: MOTIF_PUBLIC_INDISPONIBLE,
     jetonsEntree: 0,
     jetonsSortie: 0,
     dureeMs: 0,
@@ -304,6 +320,10 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
    * Point 147 — un fournisseur qui tombe ne fait pas tomber la tâche : on
    * essaie le suivant, à condition qu'il soit lui aussi habilité (la liste des
    * replis vient du routage, qui a déjà filtré confidentialité et pays).
+   *
+   * LOT IA02A — `motifPublic` reste TOUJOURS le même message générique, quel
+   * que soit le nombre de replis essayés : le détail (qui a été essayé,
+   * pourquoi) reste dans `motif`, jamais dans `motifPublic`.
    */
   const replier = async (motifEchec: string, dureeEchec: number): Promise<AppelResultat> => {
     const tentative: Tentative = {
@@ -326,22 +346,26 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
       };
     }
 
-    const secours = await appeler({
-      ...input,
-      fournisseurImpose: suivant,
-      exclure: [...(input.exclure ?? []), providerCode ?? ""],
-      rang: "repli",
-    });
+    const secours = await appeler(
+      {
+        ...input,
+        fournisseurImpose: suivant,
+        exclure: [...(input.exclure ?? []), providerCode ?? ""],
+        rang: "repli",
+      },
+      fetchImpl,
+    );
     return {
       ...secours,
       motif: secours.ok
         ? `Repli sur ${suivant} après échec de ${providerLabel} : ${motifEchec}`
         : `${motifEchec} Repli ${suivant} également indisponible : ${secours.motif}`,
+      motifPublic: secours.ok ? "" : MOTIF_PUBLIC_INDISPONIBLE,
       tentatives: [tentative, ...secours.tentatives],
     };
   };
 
-  const resolu = await resoudre(providerCode);
+  const resolu = await resoudre(providerCode, fetchImpl);
   if ("erreur" in resolu) {
     return replier(
       `${providerLabel} est routable mais l'appel est impossible : ${resolu.erreur}`,
@@ -357,7 +381,7 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
     : input.message;
 
   try {
-    const reponse = await fetch(resolu.url, {
+    const reponse = await fetchImpl(resolu.url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -458,6 +482,7 @@ export async function appeler(input: AppelInput): Promise<AppelResultat> {
       fournisseur: providerCode,
       modele: resolu.modele,
       motif: "",
+      motifPublic: "",
       jetonsEntree,
       jetonsSortie,
       dureeMs: tentative.dureeMs,
@@ -529,6 +554,32 @@ export function etatConfiguration(): {
         ? `Aucune clé n'est configurée pour MKA.P-MS Intelligence. Ajoute au moins ${premiere} dans les variables Railway pour que l'assistant, le Centre de Commandes et les moteurs Intelligence puissent répondre.`
         : `${active.length}/${providers.length} fournisseur(s) opérationnel(s). Ajoute d'autres clés pour bénéficier du repli automatique en cas de panne.`,
   };
+}
+
+export interface EtatServiceIntelligencePublic {
+  etat: EtatServicePublic;
+  nom: string;
+}
+
+/**
+ * LOT IA02A — état public, sans aucun détail fournisseur : ni label, ni
+ * variable d'environnement, ni URL. Calculé uniquement à partir de
+ * fournisseurs réellement `CONNECTED_AND_TESTED` (jamais un candidat
+ * simplement configuré mais non câblé) — c'est la seule fonction que les
+ * surfaces publiques ou utilisateur ont le droit d'appeler pour connaître la
+ * disponibilité du service.
+ */
+export async function etatServicePublic(): Promise<EtatServiceIntelligencePublic> {
+  const etats = await providerStates();
+  const utilisables = etats.filter(
+    (s) =>
+      (s.capability === "ia_texte" || s.capability === "ia_vision") &&
+      s.wireStatus === "CONNECTED_AND_TESTED" &&
+      (s.status === "actif" || s.status === "configure"),
+  );
+  const etat: EtatServicePublic =
+    utilisables.length === 0 ? "unavailable" : utilisables.length === 1 ? "degraded" : "available";
+  return { etat, nom: NOM_PRODUIT };
 }
 
 /** Contrôle de bout en bout : la clé configurée répond-elle vraiment ? */

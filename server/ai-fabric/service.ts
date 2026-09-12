@@ -56,6 +56,24 @@ export const CAPABILITIES: { code: string; label: string; critique: boolean }[] 
 export const CONFIDENTIALITY_LEVELS = ["publique", "interne", "personnelle", "confidentielle"] as const;
 export type Confidentiality = (typeof CONFIDENTIALITY_LEVELS)[number];
 
+/**
+ * LOT IA02A — état de câblage réel d'un fournisseur, indépendant de la
+ * présence d'une clé d'environnement. Une clé configurée pour un fournisseur
+ * `REGISTERED` (ex. Anthropic, catalogué mais sans point d'entrée d'appel
+ * dans server/intelligences/provider.ts) ne le rend jamais sélectionnable —
+ * c'est ce champ, pas la présence de la clé, qui gouverne `chooseProvider()`.
+ * Règle non négociable : la capacité reste enregistrée avec son vrai statut,
+ * elle n'est jamais retirée du registre faute d'être câblée.
+ */
+export const WIRE_STATUSES = [
+  "REGISTERED",
+  "IMPLEMENTED_NOT_CONNECTED",
+  "CONNECTED_NOT_TESTED",
+  "CONNECTED_AND_TESTED",
+  "DISABLED",
+] as const;
+export type WireStatus = (typeof WIRE_STATUSES)[number];
+
 function levelIndex(c: string): number {
   const i = (CONFIDENTIALITY_LEVELS as readonly string[]).indexOf(c);
   return i < 0 ? 0 : i;
@@ -76,6 +94,8 @@ export const PROVIDER_CATALOG: {
   unitCostCents: number | null;
   unitLabel: string | null;
   switchingNote: string;
+  /** Sans objet (`undefined`) pour les fournisseurs hors capacités de modèle (hébergement, base de données…). */
+  wireStatus?: WireStatus;
 }[] = [
   {
     code: "openai",
@@ -88,6 +108,7 @@ export const PROVIDER_CATALOG: {
     unitLabel: "1000 jetons",
     switchingNote:
       "Remplaçable : les appels passent par cette couche, aucun moteur métier n'appelle le fournisseur directement.",
+    wireStatus: "CONNECTED_AND_TESTED",
   },
   {
     code: "anthropic",
@@ -99,6 +120,10 @@ export const PROVIDER_CATALOG: {
     unitCostCents: null,
     unitLabel: "1000 jetons",
     switchingNote: "Remplaçable : même contrat d'appel que les autres fournisseurs de texte.",
+    // Catalogué de longue date, mais server/intelligences/provider.ts n'a aucun point d'entrée
+    // d'appel pour lui (ENDPOINTS ne le liste pas) — jamais sélectionnable tant que ça reste vrai,
+    // quelle que soit la clé d'environnement fournie. Voir LOT IA02A.
+    wireStatus: "REGISTERED",
   },
   {
     code: "mistral",
@@ -111,6 +136,7 @@ export const PROVIDER_CATALOG: {
     unitLabel: "1000 jetons",
     switchingNote:
       "Résidence européenne des données : seul candidat acceptable aujourd'hui pour une donnée personnelle.",
+    wireStatus: "CONNECTED_AND_TESTED",
   },
   {
     code: "modele_local",
@@ -123,6 +149,7 @@ export const PROVIDER_CATALOG: {
     unitLabel: "appel",
     switchingNote:
       "Indépendance totale une fois hébergé. Tant qu'il n'existe pas, aucune donnée confidentielle ne peut être traitée par un modèle.",
+    wireStatus: "CONNECTED_AND_TESTED",
   },
   {
     code: "openai_vision",
@@ -134,6 +161,9 @@ export const PROVIDER_CATALOG: {
     unitCostCents: null,
     unitLabel: "image",
     switchingNote: "Remplaçable par tout fournisseur de vision exposant la même interface.",
+    // Même mécanisme d'appel que "openai" (provider.ts::appeler), testé génériquement par le
+    // même test d'indépendance — aucun scénario dédié à la vision dans ce lot.
+    wireStatus: "CONNECTED_AND_TESTED",
   },
   {
     code: "railway",
@@ -372,6 +402,8 @@ export interface ProviderState {
   unitLabel: string | null;
   switchingNote: string | null;
   lastUsedAt: Date | null;
+  /** LOT IA02A — état de câblage réel ; `undefined` pour les fournisseurs hors capacités de modèle. */
+  wireStatus?: WireStatus;
 }
 
 /**
@@ -423,6 +455,7 @@ export async function providerStates(): Promise<ProviderState[]> {
       unitLabel: r.unitLabel,
       switchingNote: r.switchingNote,
       lastUsedAt: r.lastUsedAt,
+      wireStatus: PROVIDER_CATALOG.find((p) => p.code === r.code)?.wireStatus,
     });
   }
   return states;
@@ -537,17 +570,27 @@ export async function chooseProvider(input: RouteInput): Promise<RouteDecision> 
 
   const states = await providerStates();
   const pour = states.filter((s) => s.capability === input.capability);
-  const utilisables = pour.filter((s) => s.status === "actif" || s.status === "configure");
+  // LOT IA02A — règle non négociable : un fournisseur dont le câblage réel
+  // (server/intelligences/provider.ts) n'est pas CONNECTED_AND_TESTED n'est
+  // jamais sélectionné, même si sa clé d'environnement est configurée. La
+  // capacité reste au registre avec son vrai statut ; elle n'est simplement
+  // jamais choisie tant qu'elle n'est pas connectée et testée.
+  const utilisables = pour.filter(
+    (s) => (s.status === "actif" || s.status === "configure") && s.wireStatus === "CONNECTED_AND_TESTED",
+  );
 
   if (utilisables.length === 0) {
+    const nonCables = pour.filter((s) => s.wireStatus && s.wireStatus !== "CONNECTED_AND_TESTED");
     return journalise({
       verdict: "aucun_fournisseur",
       providerCode: null,
       providerLabel: null,
       reason:
-        pour.length > 0
-          ? `Aucun fournisseur branché pour cette capacité. Candidats au catalogue sans accès fourni : ${pour.map((p) => p.label).join(", ")}.`
-          : "Aucun fournisseur au catalogue pour cette capacité.",
+        nonCables.length > 0
+          ? `Aucun fournisseur connecté et testé pour cette capacité. Candidat(s) enregistré(s) sans câblage réel : ${nonCables.map((p) => `${p.label} (${p.wireStatus})`).join(", ")}.`
+          : pour.length > 0
+            ? `Aucun fournisseur branché pour cette capacité. Candidats au catalogue sans accès fourni : ${pour.map((p) => p.label).join(", ")}.`
+            : "Aucun fournisseur au catalogue pour cette capacité.",
       candidates: pour.map((p) => p.code),
     });
   }

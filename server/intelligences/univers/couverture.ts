@@ -13,6 +13,7 @@
  */
 import { MOTEURS } from "../../data/moteurs.js";
 import { OUTILS } from "../outils/registre.js";
+import { providerStates } from "../../ai-fabric/service.js";
 import { registre, type StatutConnexion, type UniversConstate } from "./registre.js";
 
 export interface RapportCouverture {
@@ -35,6 +36,12 @@ export interface RapportCouverture {
     actifs: number;
     enregistresNonImplementes: number;
   };
+  /** LOT IA02A — voir server/intelligences/identite.ts et ai-fabric/service.ts::WireStatus. */
+  fournisseurs: {
+    /** Fournisseur de modèle configuré (clé présente) mais pas CONNECTED_AND_TESTED — ne doit jamais dépasser 0 : `chooseProvider()` ne le sélectionnerait de toute façon jamais, ce compteur dit s'il faut s'en inquiéter (clé posée pour rien) ou le câbler enfin. */
+    routableNonConnecte: number;
+    detailRoutableNonConnecte: string[];
+  };
   detail: UniversConstate[];
 }
 
@@ -43,7 +50,7 @@ function totalRoutesDeclarees(): number {
   return new Set(MOTEURS.flatMap((m) => m.routes)).size;
 }
 
-export function rapportCouverture(): RapportCouverture {
+export async function rapportCouverture(): Promise<RapportCouverture> {
   const univers = registre();
 
   const parStatut: Record<StatutConnexion, number> = {
@@ -78,6 +85,23 @@ export function rapportCouverture(): RapportCouverture {
       actifs: OUTILS.filter((o) => o.enabled && o.implementationStatus !== "REGISTERED_NOT_IMPLEMENTED").length,
       enregistresNonImplementes: OUTILS.filter((o) => o.implementationStatus === "REGISTERED_NOT_IMPLEMENTED").length,
     },
+    fournisseurs: await fournisseursRoutablesNonConnectes(),
     detail: univers,
+  };
+}
+
+/** LOT IA02A — fournisseur(s) de modèle configuré(s) sans être CONNECTED_AND_TESTED : jamais sélectionnés, mais une clé posée pour rien mérite d'être vue. */
+async function fournisseursRoutablesNonConnectes(): Promise<RapportCouverture["fournisseurs"]> {
+  const etats = await providerStates();
+  const concernes = etats.filter(
+    (s) =>
+      (s.capability === "ia_texte" || s.capability === "ia_vision") &&
+      s.wireStatus !== undefined &&
+      s.wireStatus !== "CONNECTED_AND_TESTED" &&
+      (s.status === "actif" || s.status === "configure"),
+  );
+  return {
+    routableNonConnecte: concernes.length,
+    detailRoutableNonConnecte: concernes.map((s) => `${s.label} (${s.wireStatus}) — clé configurée mais jamais sélectionnable`),
   };
 }

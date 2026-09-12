@@ -93,6 +93,11 @@ function refus(
     fournisseur: null,
     modele: null,
     motif,
+    // Ces refus sont des règles métier du routeur (permission, confidentialité,
+    // capacité désactivée, domaine non constaté disponible) — jamais un détail
+    // fournisseur : sûrs à exposer tels quels, contrairement au motif d'un
+    // appel de modèle qui échoue réellement (server/intelligences/provider.ts).
+    motifPublic: motif,
     repli,
     jetonsEntree: 0,
     jetonsSortie: 0,
