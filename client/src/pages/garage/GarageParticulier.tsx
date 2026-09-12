@@ -22,7 +22,7 @@ export default function GarageParticulier() {
         <p className="mt-1 text-sm text-white/60">Entretien et réparation pour particuliers</p>
       </div>
       <div className="px-4 mt-4 space-y-2">{SERVICES.map((s) => (
-        <Link key={s.label} to="/garage/devis" className="flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-4 active:scale-[0.99] transition">
+        <Link key={s.label} to="/garage/demande-devis" className="flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-4 active:scale-[0.99] transition">
           <div className="flex-1">
             <h3 className="text-sm font-bold text-[#111]">{s.label}</h3>
             <div className="mt-1 flex gap-3 text-[10px] text-[#6B7280]"><span className="flex items-center gap-0.5"><Euro size={8} /> {s.prix}</span><span className="flex items-center gap-0.5"><Clock size={8} /> {s.delai}</span></div>
@@ -31,7 +31,7 @@ export default function GarageParticulier() {
         </Link>
       ))}</div>
       <div className="px-4 mt-4">
-        <Link to="/garage/rendez-vous" className="block w-full rounded-xl bg-[#D4AF37] py-3 text-center text-sm font-bold text-white active:scale-[0.98]">Prendre rendez-vous</Link>
+        <Link to="/garage/prise-rendez-vous" className="block w-full rounded-xl bg-[#D4AF37] py-3 text-center text-sm font-bold text-white active:scale-[0.98]">Prendre rendez-vous</Link>
       </div>
     </div>
   );

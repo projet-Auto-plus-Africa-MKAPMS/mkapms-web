@@ -587,6 +587,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/reparer",
   "/rewards",
   "/seo-abonnements",
+  "/services",
   "/suivi-vehicule",
   "/superadmin",
   "/superadmin/admin-abonnements",
