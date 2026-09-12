@@ -99,14 +99,14 @@ export interface PerimetreMoteur {
   readonly manques: readonly ManqueMoteur[];
 }
 
-export const MOTEURS_TOTAL = 88;
-export const MANQUES_TOTAL = 657;
+export const MOTEURS_TOTAL = 89;
+export const MANQUES_TOTAL = 658;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 355,
   "bouton_sans_action": 198,
   "destination_inconnue": 47,
   "sans_logique_serveur": 12,
-  "sans_ecran": 4,
+  "sans_ecran": 5,
   "dependance_sans_preuve": 35,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1,
@@ -2834,6 +2834,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "event_bus",
       "identity",
       "indexation",
+      "investment",
       "messaging",
       "pro_portal",
       "support",
@@ -5155,7 +5156,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "contract-os/index.ts importe scheduler-os/index.ts"
       ]
     },
-    "dependants": [],
+    "dependants": [
+      "investment"
+    ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
     "abonnements": [],
@@ -5492,6 +5495,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "importafrica",
       "indexation",
       "intelligences",
+      "investment",
       "journey",
       "knowledge",
       "language",
@@ -6005,6 +6009,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "importafrica",
       "intelligences",
+      "investment",
       "knowledge",
       "language",
       "livraison_vehicule",
@@ -8707,6 +8712,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "garage",
       "importafrica",
       "intelligences",
+      "investment",
       "journey",
       "language",
       "livraison",
@@ -9810,6 +9816,107 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_non_declaree",
         "detail": "vo_engine — intelligences/outils/familles/outils-vehicules.ts importe vo-engine/service.ts"
+      }
+    ]
+  },
+  {
+    "moteur": "investment",
+    "label": "Investment Engine",
+    "categorie": "univers",
+    "etatDeclare": "staging",
+    "dossiers": [
+      "investment"
+    ],
+    "routeurs": [
+      "investment"
+    ],
+    "fichiersServeur": 6,
+    "dependancesDeclarees": [
+      "audit",
+      "contract",
+      "core",
+      "country",
+      "identity"
+    ],
+    "dependancesDetectees": [
+      "audit",
+      "contract",
+      "core",
+      "country",
+      "identity"
+    ],
+    "dependances": [
+      "audit",
+      "contract",
+      "core",
+      "country",
+      "identity"
+    ],
+    "integrationsTechniques": [
+      "identity"
+    ],
+    "preuvesDependances": {
+      "audit": [
+        "investment/router.ts importe audit.ts"
+      ],
+      "contract": [
+        "investment/contrat.ts importe modules/contracts.ts"
+      ],
+      "core": [
+        "investment/contrat.ts importe db.ts",
+        "investment/contrat.ts importe schema.ts",
+        "investment/health.ts importe db.ts"
+      ],
+      "country": [
+        "investment/router.ts importe country-os/index.ts",
+        "investment/router.ts lit la règle pays"
+      ],
+      "identity": [
+        "investment/health.ts importe identity-os/contract.ts",
+        "investment/router.ts exige une session Identity (procédure protégée)"
+      ]
+    },
+    "dependants": [],
+    "evenementsPublies": [],
+    "evenementsConsommes": [],
+    "abonnements": [],
+    "sourcesEmission": [],
+    "boutons": [],
+    "routes": [],
+    "ecrans": [],
+    "ecransHotes": [],
+    "procedures": [
+      "activer",
+      "creerBrouillon",
+      "devenirInvestisseur",
+      "expirerSiEcheance",
+      "historiqueStatuts",
+      "mesInvestissements",
+      "mesVersements",
+      "monLedger",
+      "transitionner",
+      "universUnivestissables",
+      "verifierConflit"
+    ],
+    "tables": [
+      "investment_status_history",
+      "investments",
+      "investor_ledger",
+      "investor_organizations",
+      "investor_payouts",
+      "investors"
+    ],
+    "acces": [
+      "admin",
+      "connecte"
+    ],
+    "textes": 0,
+    "mots": 0,
+    "battement": "pont_os",
+    "manques": [
+      {
+        "genre": "sans_ecran",
+        "detail": "aucune route client ne mène à ce moteur"
       }
     ]
   },

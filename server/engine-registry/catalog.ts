@@ -724,6 +724,14 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "investment",
+    label: "Investment Engine",
+    category: "univers",
+    dependencies: ["core","country","contract","audit","identity"],
+    description: "Droit économique temporaire univers+pays+durée : Contract Engine, Ownership Router, Revenue Engine, Ledger — distinct du tableau de bord croissance interne (investorRouter).",
+    state: "staging",
+  },
+  {
     name: "journey",
     label: "Customer Journey OS",
     category: "transversal",

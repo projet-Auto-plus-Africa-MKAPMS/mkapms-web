@@ -98,6 +98,13 @@ const OS_ENGINES: OsEngineBinding[] = [
     loadFeed: async () => (await import("../contract-os/index.js")).controlCenterFeed(),
   },
   {
+    name: "investment",
+    label: "Investment Engine",
+    category: "univers",
+    dependencies: ["core", "country", "contract", "identity"],
+    loadFeed: async () => (await import("../investment/health.js")).controlCenterFeed(),
+  },
+  {
     name: "journey",
     label: "Customer Journey OS",
     category: "transversal",

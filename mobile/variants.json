@@ -34,5 +34,14 @@
     "appLinksHost": "interne.invalid",
     "appLinksHostAlt": "interne.invalid",
     "description": "Application dédiée au produit MKA.P-MS Intelligence (conversation, voix, images, documents, recherche, mémoire, projets, agents, outils, code, automatisations, intégrations) — distincte de l'assistant intégré (AssistantIntelligences.tsx) qui reste dans la plateforme principale. Même moteur Intelligence derrière les deux, aucun doublon. Comme pour « pro » et « command », aucun lien public n'est capté par cette application : seule l'application grand public ouvre https://www.mkapms.fr, pour qu'Android n'ait jamais à demander laquelle utiliser."
+  },
+  "investor": {
+    "appId": "com.mkapms.investor",
+    "appName": "MKA.P-MS Investisseur",
+    "startPath": "/investissement",
+    "distribution": "restreinte",
+    "appLinksHost": "interne.invalid",
+    "appLinksHostAlt": "interne.invalid",
+    "description": "Application dédiée aux investisseurs : droit économique temporaire sur un univers + pays + durée (server/investment/), jamais une propriété de MKA.P-MS. Distincte du « Mode Investisseurs » interne masqué (investorRouter, /investisseurs/*), qui reste un tableau de bord de croissance pour investisseurs en capital, sans rapport. /investissement n'a pas encore d'écran (moteurs construits avant l'interface, lot suivant) : la variante build déjà, l'écran arrive dans le lot d'interface. Comme pour « pro », « command » et « intelligence », aucun lien public n'est capté par cette application."
   }
 }

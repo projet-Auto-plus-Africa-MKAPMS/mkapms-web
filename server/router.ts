@@ -1,4 +1,5 @@
 import { router } from "./trpc.js";
+import { investmentRouter } from "./investment/router.js";
 import { authRouter } from "./routers/auth.js";
 import { annoncesRouter } from "./routers/annonces.js";
 import { garagesRouter } from "./routers/garages.js";
@@ -184,6 +185,10 @@ export const appRouter = router({
   hr: hrRouter,
   quality: qualityRouter,
   investor: investorRouter,
+  // Investissement (droit économique temporaire univers+pays+durée) — jamais
+  // à confondre avec "investor" ci-dessus (tableau de bord croissance pour
+  // investisseurs en capital) : voir server/investment/schema.ts.
+  investment: investmentRouter,
   media: mediaRouter,
   partnerApi: partnerApiRouter,
   // Univers Lavage / Karting / Formation (complets, masqués au public) + carte plateforme

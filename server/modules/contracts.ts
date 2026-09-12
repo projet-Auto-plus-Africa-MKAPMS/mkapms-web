@@ -22,6 +22,7 @@ export const contractTypeEnum = pgEnum("contract_type", [
   "import_export",
   "depot_vente",
   "partenariat_fournisseur",
+  "investissement",
 ]);
 export const contractStatusEnum = pgEnum("contract_status", [
   "brouillon",
