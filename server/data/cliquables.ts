@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2588;
+export const CLIQUABLES_TOTAL = 2585;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -154,7 +154,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/conformite/TaxesAutomatiques.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/conformite/VentePays.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Connexion.tsx", total: 6, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/ControleDocuments.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 3, zones: 0 },
+  { fichier: "client/src/pages/ControleDocuments.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/DemandePublicite.tsx", total: 13, moteur: 0, liens: 2, boutonsLocaux: 11, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/DemandesSuppression.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/demarches/AlertesDemarches.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -196,7 +196,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/depot-annonce/VideosAnnonce.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/DepotAnnonce.tsx", total: 22, moteur: 0, liens: 2, boutonsLocaux: 20, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/DepotVente.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/Devis.tsx", total: 27, moteur: 0, liens: 0, boutonsLocaux: 24, sansAction: 2, zones: 1 },
+  { fichier: "client/src/pages/Devis.tsx", total: 26, moteur: 0, liens: 0, boutonsLocaux: 25, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/DossierClient.tsx", total: 21, moteur: 0, liens: 3, boutonsLocaux: 16, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/DossierVehiculeNumerique.tsx", total: 10, moteur: 0, liens: 6, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Encheres.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
@@ -323,7 +323,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/Historique.tsx", total: 48, moteur: 0, liens: 3, boutonsLocaux: 33, sansAction: 2, zones: 10 },
   { fichier: "client/src/pages/HistoriqueConsultations.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/HistoriqueLocation.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/HistoriqueVehiculeVente.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/HistoriqueVehiculeVente.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Home.tsx", total: 15, moteur: 0, liens: 12, boutonsLocaux: 2, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/HomePro.tsx", total: 5, moteur: 0, liens: 5, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/HomeSite.tsx", total: 4, moteur: 0, liens: 3, boutonsLocaux: 1, sansAction: 0, zones: 0 },
@@ -593,7 +593,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/RemplacementVehicule.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 3, zones: 0 },
   { fichier: "client/src/pages/RenouvellementFlotte.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 3, zones: 0 },
   { fichier: "client/src/pages/RenouvellementLocation.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 2, zones: 0 },
-  { fichier: "client/src/pages/RepriseVehicule.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 3, zones: 0 },
+  { fichier: "client/src/pages/RepriseVehicule.tsx", total: 5, moteur: 0, liens: 2, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/ReservationMulti.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/ReservationRecurrente.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 3, zones: 0 },
   { fichier: "client/src/pages/Rewards.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
@@ -790,9 +790,7 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/CentrePenalites.tsx", ligne: 101, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1002, genre: "bouton", libelle: "Consommation energetique 12 450 kWh", motif: "sans_action" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1019, genre: "bouton", libelle: "Prochaines echeances 12 dossiers", motif: "sans_action" },
-  { fichier: "client/src/pages/ControleDocuments.tsx", ligne: 82, genre: "bouton", libelle: "Ajouter", motif: "sans_action" },
-  { fichier: "client/src/pages/ControleDocuments.tsx", ligne: 85, genre: "bouton", libelle: "Corriger", motif: "sans_action" },
-  { fichier: "client/src/pages/ControleDocuments.tsx", ligne: 94, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
+  { fichier: "client/src/pages/ControleDocuments.tsx", ligne: 151, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/demarches/ChangementAdresse.tsx", ligne: 11, genre: "bouton", libelle: "Télécharger", motif: "sans_action" },
   { fichier: "client/src/pages/demarches/ChangementAdresse.tsx", ligne: 12, genre: "bouton", libelle: "Valider le changement", motif: "sans_action" },
   { fichier: "client/src/pages/demarches/ChangementTitulaire.tsx", ligne: 15, genre: "bouton", libelle: "Soumettre le dossier", motif: "sans_action" },
@@ -812,8 +810,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/demarches/WWGarage.tsx", ligne: 17, genre: "bouton", libelle: "Nouvelle demande WW", motif: "sans_action" },
   { fichier: "client/src/pages/depot-annonce/ExpirationAnnonce.tsx", ligne: 23, genre: "bouton", libelle: "Renouveler automatiquement", motif: "sans_action" },
   { fichier: "client/src/pages/depot-annonce/ModificationAnnonce.tsx", ligne: 18, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/Devis.tsx", ligne: 938, genre: "bouton", libelle: "Filtrer", motif: "sans_action" },
-  { fichier: "client/src/pages/Devis.tsx", ligne: 986, genre: "bouton", libelle: "Voir plus de garages", motif: "sans_action" },
   { fichier: "client/src/pages/EspaceProVente.tsx", ligne: 50, genre: "bouton", libelle: "Choisir", motif: "sans_action" },
   { fichier: "client/src/pages/EtatVehicule.tsx", ligne: 91, genre: "bouton", libelle: "Voir les photos", motif: "sans_action" },
   { fichier: "client/src/pages/EtatVehicule.tsx", ligne: 155, genre: "bouton", libelle: "Signer le contrat", motif: "sans_action" },
@@ -846,7 +842,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/GestionFranchises.tsx", ligne: 89, genre: "bouton", libelle: "Appliquer la franchise", motif: "sans_action" },
   { fichier: "client/src/pages/Historique.tsx", ligne: 291, genre: "bouton", libelle: "Confirmer l'ajout", motif: "sans_action" },
   { fichier: "client/src/pages/Historique.tsx", ligne: 885, genre: "bouton", libelle: "Acheter", motif: "sans_action" },
-  { fichier: "client/src/pages/HistoriqueVehiculeVente.tsx", ligne: 54, genre: "bouton", libelle: "Télécharger le rapport PDF", motif: "sans_action" },
   { fichier: "client/src/pages/InscriptionProVente.tsx", ligne: 61, genre: "bouton", libelle: "Télécharger", motif: "sans_action" },
   { fichier: "client/src/pages/InscriptionProVente.tsx", ligne: 81, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/InspectionNumerique.tsx", ligne: 75, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
@@ -894,9 +889,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/RenouvellementFlotte.tsx", ligne: 92, genre: "bouton", libelle: "Renouveler toute ma flotte", motif: "sans_action" },
   { fichier: "client/src/pages/RenouvellementLocation.tsx", ligne: 126, genre: "bouton", libelle: "Prolonger ma location", motif: "sans_action" },
   { fichier: "client/src/pages/RenouvellementLocation.tsx", ligne: 171, genre: "bouton", libelle: "Confirmer le retrait / retour", motif: "sans_action" },
-  { fichier: "client/src/pages/RepriseVehicule.tsx", ligne: 29, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/RepriseVehicule.tsx", ligne: 51, genre: "bouton", libelle: "Accepter", motif: "sans_action" },
-  { fichier: "client/src/pages/RepriseVehicule.tsx", ligne: 52, genre: "bouton", libelle: "Négocier", motif: "sans_action" },
   { fichier: "client/src/pages/ReservationMulti.tsx", ligne: 97, genre: "bouton", libelle: "Réserver véhicules", motif: "sans_action" },
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 75, genre: "bouton", libelle: "Prolonger", motif: "sans_action" },
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 76, genre: "bouton", libelle: "Modifier", motif: "sans_action" },

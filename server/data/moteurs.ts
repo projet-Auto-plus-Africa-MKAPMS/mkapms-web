@@ -100,11 +100,11 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 89;
-export const MANQUES_TOTAL = 652;
+export const MANQUES_TOTAL = 644;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 355,
-  "bouton_sans_action": 193,
   "destination_inconnue": 47,
+  "bouton_sans_action": 185,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
   "dependance_sans_preuve": 35,
@@ -431,6 +431,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "estimation",
       "event_bus",
+      "garage",
       "identity",
       "livraison_vehicule",
       "messaging",
@@ -451,6 +452,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "estimation",
       "event_bus",
+      "garage",
       "identity",
       "livraison_vehicule",
       "messaging",
@@ -471,6 +473,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "estimation",
       "event_bus",
+      "garage",
       "identity",
       "livraison_vehicule",
       "messaging",
@@ -508,6 +511,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "event_bus": [
         "routers/annonces.ts importe event-bus/service.ts",
         "routers/annonces.ts publie des événements"
+      ],
+      "garage": [
+        "client/src/pages/Devis.tsx appelle trpc.garages"
       ],
       "identity": [
         "routers/annonces.ts importe identity-os/identite-officielle.ts",
@@ -617,11 +623,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/devis"
         ],
-        "cliquables": 27,
+        "cliquables": 26,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 203,
-        "mots": 706
+        "sansAction": 0,
+        "textes": 198,
+        "mots": 714
       },
       {
         "fichier": "client/src/pages/Favoris.tsx",
@@ -639,11 +645,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/historique-vehicule"
         ],
-        "cliquables": 3,
+        "cliquables": 4,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 16,
-        "mots": 43
+        "sansAction": 0,
+        "textes": 10,
+        "mots": 86
       },
       {
         "fichier": "client/src/pages/MotoOccasion.tsx",
@@ -1044,22 +1050,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1434,
-    "mots": 4780,
+    "textes": 1423,
+    "mots": 4831,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Filtrer » client/src/pages/Devis.tsx:938"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Voir plus de garages » client/src/pages/Devis.tsx:986"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Télécharger le rapport PDF » client/src/pages/HistoriqueVehiculeVente.tsx:54"
-      },
       {
         "genre": "destination_inconnue",
         "detail": "/vente-moto client/src/pages/MotoOccasion.tsx:107"
@@ -6829,11 +6823,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/controle-documents"
         ],
-        "cliquables": 4,
+        "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 3,
-        "textes": 16,
-        "mots": 61
+        "sansAction": 1,
+        "textes": 13,
+        "mots": 86
       },
       {
         "fichier": "client/src/pages/DossierVehiculeNumerique.tsx",
@@ -6919,21 +6913,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 358,
-    "mots": 1078,
+    "textes": 355,
+    "mots": 1103,
     "battement": "pont_os",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« Ajouter » client/src/pages/ControleDocuments.tsx:82"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Corriger » client/src/pages/ControleDocuments.tsx:85"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/ControleDocuments.tsx:94"
+        "detail": "« (sans texte) » client/src/pages/ControleDocuments.tsx:151"
       },
       {
         "genre": "bouton_sans_action",
@@ -7853,6 +7839,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "achat",
       "atelier",
       "seo"
     ],
@@ -8464,6 +8451,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       }
     ],
     "ecransHotes": [
+      {
+        "fichier": "client/src/pages/Devis.tsx",
+        "route": "/devis",
+        "composants": [
+          "trpc.garages"
+        ]
+      },
       {
         "fichier": "client/src/pages/garage/GaragePublicFiche.tsx",
         "route": "/garages/:slug",
@@ -9105,6 +9099,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/CentreDocuments.tsx",
         "route": "/documents",
+        "composants": [
+          "trpc.kyc"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/ControleDocuments.tsx",
+        "route": "/louer/controle-documents",
         "composants": [
           "trpc.kyc"
         ]
@@ -21401,11 +21402,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/reprise"
         ],
-        "cliquables": 7,
+        "cliquables": 5,
         "parMoteur": 0,
-        "sansAction": 3,
-        "textes": 10,
-        "mots": 33
+        "sansAction": 0,
+        "textes": 15,
+        "mots": 45
       },
       {
         "fichier": "client/src/pages/VehiculesCertifies.tsx",
@@ -21421,12 +21422,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "ecransHotes": [],
     "procedures": [
+      "accepterOffre",
       "addDossierItem",
       "dossier",
       "estimate",
       "health",
       "myEstimations",
       "myRepriseRequests",
+      "negocierOffre",
       "offerReprise",
       "repriseQueue",
       "requestReprise",
@@ -21442,23 +21445,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 50,
-    "mots": 177,
+    "textes": 55,
+    "mots": 189,
     "battement": "sonde",
-    "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/RepriseVehicule.tsx:29"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Accepter » client/src/pages/RepriseVehicule.tsx:51"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Négocier » client/src/pages/RepriseVehicule.tsx:52"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "vo_espaces",

@@ -395,7 +395,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "achat",
     label: "Univers Achat Engine",
     category: "univers",
-    dependencies: ["core","permission","search","audit","avis_reputation","country","event_bus","livraison_vehicule","messaging","notification","payment","risque_import","smart","visibility","estimation","redirection","seo","identity"],
+    dependencies: ["core","permission","search","audit","avis_reputation","country","event_bus","livraison_vehicule","messaging","notification","payment","risque_import","smart","visibility","estimation","redirection","seo","identity","garage"],
     description: "Univers Achat : parcours acheteur, filtres, favoris, mise en relation.",
     state: "active",
   },
