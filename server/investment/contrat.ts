@@ -19,6 +19,7 @@ import {
   investmentStatusHistory,
   type investmentStatusEnum,
 } from "./schema.js";
+import { investisseurEligible } from "./kyc.js";
 
 export type StatutInvestissement = (typeof investmentStatusEnum.enumValues)[number];
 
@@ -65,6 +66,14 @@ export async function transitionner(
       ok: false,
       motif: `Transition ${investissement.status} → ${vers} refusée (autorisées depuis ${investissement.status} : ${autorisees?.join(", ") || "aucune, statut terminal"}).`,
     };
+  }
+
+  // KYC réel exigé avant de proposer la signature — jamais un contrat signé par une identité non vérifiée.
+  if (vers === "AWAITING_SIGNATURE") {
+    const eligibilite = await investisseurEligible(investissement.investorId);
+    if (!eligibilite.eligible) {
+      return { ok: false, motif: `Passage en AWAITING_SIGNATURE refusé : ${eligibilite.motif}` };
+    }
   }
 
   const [mis] = await db

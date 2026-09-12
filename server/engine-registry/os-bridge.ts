@@ -101,7 +101,7 @@ const OS_ENGINES: OsEngineBinding[] = [
     name: "investment",
     label: "Investment Engine",
     category: "univers",
-    dependencies: ["core", "country", "contract", "identity"],
+    dependencies: ["core", "country", "contract", "identity", "intelligences"],
     loadFeed: async () => (await import("../investment/health.js")).controlCenterFeed(),
   },
   {

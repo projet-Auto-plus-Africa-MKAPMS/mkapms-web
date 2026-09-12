@@ -26,6 +26,9 @@ import {
 } from "./schema.js";
 import { activer, expirerSiEcheance, transitionner } from "./contrat.js";
 import { verifierConflit } from "./ownership.js";
+import { verificationInvestisseur } from "./kyc.js";
+import { confirmerVersement, creerPayoutPourPeriode, historiquePayout, marquerEchec, ouvrirLitige, reessayer } from "./payout.js";
+import { poserQuestion } from "./assistant.js";
 
 async function investisseurDeUtilisateur(userId: number) {
   const [inv] = await db.select().from(investors).where(eq(investors.userId, userId)).limit(1);
@@ -63,6 +66,65 @@ export const investmentRouter = router({
     if (!inv) return [];
     return db.select().from(investorPayouts).where(eq(investorPayouts.investorId, inv.id)).orderBy(investorPayouts.periodeDebut);
   }),
+
+  /** Statut KYC/KYB réel (kycProfiles) — jamais un statut dupliqué. */
+  monStatutKyc: protectedProcedure.query(async ({ ctx }) => {
+    const inv = await investisseurDeUtilisateur(ctx.user.uid);
+    if (!inv) return null;
+    return verificationInvestisseur(inv.id);
+  }),
+
+  /** MKA.P-MS Intelligence, cloisonné aux seules données de l'appelant. */
+  poserQuestion: protectedProcedure
+    .input(z.object({ question: z.string().min(1).max(2000) }))
+    .mutation(async ({ ctx, input }) => {
+      const inv = await investisseurDeUtilisateur(ctx.user.uid);
+      if (!inv) return { ok: false, reponse: "", motif: "Devenez investisseur avant de poser une question." };
+      const res = await poserQuestion(inv.id, input.question);
+      await logAction(ctx.user.uid, "investment.poser_question", "investor", inv.id, { ok: res.ok }, clientMeta(ctx.req));
+      return res;
+    }),
+
+  historiquePayout: adminProcedure
+    .input(z.object({ payoutId: z.number().int().positive() }))
+    .query(({ input }) => historiquePayout(input.payoutId)),
+
+  creerPayoutPourPeriode: adminProcedure
+    .input(
+      z.object({
+        investmentId: z.number().int().positive(),
+        investorId: z.number().int().positive(),
+        contractDocumentId: z.number().int().positive().optional(),
+        periodeDebut: z.coerce.date(),
+        periodeFin: z.coerce.date(),
+        datePrevue: z.coerce.date(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const res = await creerPayoutPourPeriode(input.investmentId, input.investorId, input.contractDocumentId ?? null, input.periodeDebut, input.periodeFin, input.datePrevue);
+      await logAction(ctx.user.uid, "investment.creer_payout", "investment", input.investmentId, { ok: res.ok }, clientMeta(ctx.req));
+      return res;
+    }),
+
+  confirmerVersement: adminProcedure
+    .input(z.object({ payoutId: z.number().int().positive(), reference: z.string().min(1).max(128), preuveUrl: z.string().max(512).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const res = await confirmerVersement(input.payoutId, input.reference, input.preuveUrl ?? null, ctx.user.uid);
+      await logAction(ctx.user.uid, "investment.confirmer_versement", "payout", input.payoutId, { ok: res.ok }, clientMeta(ctx.req));
+      return res;
+    }),
+
+  marquerEchecVersement: adminProcedure
+    .input(z.object({ payoutId: z.number().int().positive(), motifEchec: z.string().min(1).max(255) }))
+    .mutation(({ ctx, input }) => marquerEchec(input.payoutId, input.motifEchec, ctx.user.uid)),
+
+  reessayerVersement: adminProcedure
+    .input(z.object({ payoutId: z.number().int().positive() }))
+    .mutation(({ ctx, input }) => reessayer(input.payoutId, ctx.user.uid)),
+
+  ouvrirLitigeVersement: adminProcedure
+    .input(z.object({ payoutId: z.number().int().positive(), motif: z.string().min(1).max(255) }))
+    .mutation(({ ctx, input }) => ouvrirLitige(input.payoutId, input.motif, ctx.user.uid)),
 
   universUnivestissables: adminProcedure.query(() => INVESTABLE_UNIVERSES),
 

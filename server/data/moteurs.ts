@@ -100,13 +100,13 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 89;
-export const MANQUES_TOTAL = 658;
+export const MANQUES_TOTAL = 657;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 355,
   "bouton_sans_action": 198,
   "destination_inconnue": 47,
   "sans_logique_serveur": 12,
-  "sans_ecran": 5,
+  "sans_ecran": 4,
   "dependance_sans_preuve": 35,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1,
@@ -9648,7 +9648,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "auto_branchement",
       "command_center",
       "continuous_test",
-      "event_bus"
+      "event_bus",
+      "investment"
     ],
     "evenementsPublies": [
       "intelligences.domaine",
@@ -9830,27 +9831,30 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "investment"
     ],
-    "fichiersServeur": 6,
+    "fichiersServeur": 9,
     "dependancesDeclarees": [
       "audit",
       "contract",
       "core",
       "country",
-      "identity"
+      "identity",
+      "intelligences"
     ],
     "dependancesDetectees": [
       "audit",
       "contract",
       "core",
       "country",
-      "identity"
+      "identity",
+      "intelligences"
     ],
     "dependances": [
       "audit",
       "contract",
       "core",
       "country",
-      "identity"
+      "identity",
+      "intelligences"
     ],
     "integrationsTechniques": [
       "identity"
@@ -9863,9 +9867,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "investment/contrat.ts importe modules/contracts.ts"
       ],
       "core": [
+        "investment/assistant.ts importe db.ts",
         "investment/contrat.ts importe db.ts",
-        "investment/contrat.ts importe schema.ts",
-        "investment/health.ts importe db.ts"
+        "investment/contrat.ts importe schema.ts"
       ],
       "country": [
         "investment/router.ts importe country-os/index.ts",
@@ -9874,6 +9878,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity": [
         "investment/health.ts importe identity-os/contract.ts",
         "investment/router.ts exige une session Identity (procédure protégée)"
+      ],
+      "intelligences": [
+        "investment/assistant.ts importe intelligences/routeur.ts"
       ]
     },
     "dependants": [],
@@ -9882,18 +9889,40 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "abonnements": [],
     "sourcesEmission": [],
     "boutons": [],
-    "routes": [],
-    "ecrans": [],
+    "routes": [
+      "/investissement"
+    ],
+    "ecrans": [
+      {
+        "fichier": "client/src/pages/investissement/index.tsx",
+        "routes": [
+          "/investissement"
+        ],
+        "cliquables": 1,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 9,
+        "mots": 24
+      }
+    ],
     "ecransHotes": [],
     "procedures": [
       "activer",
+      "confirmerVersement",
       "creerBrouillon",
+      "creerPayoutPourPeriode",
       "devenirInvestisseur",
       "expirerSiEcheance",
+      "historiquePayout",
       "historiqueStatuts",
+      "marquerEchecVersement",
       "mesInvestissements",
       "mesVersements",
       "monLedger",
+      "monStatutKyc",
+      "ouvrirLitigeVersement",
+      "poserQuestion",
+      "reessayerVersement",
       "transitionner",
       "universUnivestissables",
       "verifierConflit"
@@ -9903,6 +9932,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "investments",
       "investor_ledger",
       "investor_organizations",
+      "investor_payout_history",
       "investor_payouts",
       "investors"
     ],
@@ -9910,15 +9940,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "connecte"
     ],
-    "textes": 0,
-    "mots": 0,
+    "textes": 9,
+    "mots": 24,
     "battement": "pont_os",
-    "manques": [
-      {
-        "genre": "sans_ecran",
-        "detail": "aucune route client ne mène à ce moteur"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "journey",

@@ -305,6 +305,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/international/multi-devises",
   "/international/multi-langues",
   "/international/multi-pays",
+  "/investissement",
   "/investisseurs/espace-investisseurs",
   "/investisseurs/objectif-global",
   "/journal-activite",
