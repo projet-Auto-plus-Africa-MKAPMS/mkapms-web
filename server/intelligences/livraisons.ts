@@ -781,6 +781,25 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié réellement : typecheck inchangé (54 erreurs préexistantes, aucune dans les fichiers touchés), tous les checks du dépôt verts, gen:moteurs recalculé avec destination_inconnue -1 et dependance_non_declaree temporairement +1 (achat ajouté à analytics pour couvrir trpc.annonces depuis HistoriqueConsultations.tsx) — retour à la ligne de base. Build serveur et client complets réussis. Le point mort du scanner (`to={variable}`) cache deux catégories différentes derrière la même syntaxe : une destination fixe mais mal orthographiée (corrigible mécaniquement par comparaison au registre) et un tableau de données entièrement inventées dont chaque `to` n'est que le symptôme le plus visible — la seconde catégorie n'apparaît qu'en lisant le contexte autour du lien, jamais par la seule comparaison de chaînes.",
     domaine: "moteurs",
   },
+  {
+    cle: "u071-isolation-pro-particulier-64-routes-gardees",
+    titre: "U-071 point 2 — isolation Pro/Particulier : 64 routes professionnelles/internes verrouillées par rôle, réutilisant le Permission Engine déjà construit",
+    moteurs: ["identity", "achat"],
+    quoi:
+      "Audit du web (une seule application React pour les 4 profils — l'isolement mobile ne vient que du startPath par variante Android, jamais d'un cloisonnement web) : aucune route professionnelle/interne n'était protégée côté client au-delà du cas VO Interne (VoProGate, déjà réel et server-verifié). /superadmin/* (46 routes), /comptabilite* et /compta-dirigeant (14), /atelier-pro, /catalogue-technique, /suivi-vehicule, /dossier-client, /journal-activite (1 chacune) rendaient leur composant réel pour n'importe quel visiteur tapant l'URL — seule leur visibilité dans le menu Compte.tsx était déjà filtrée par canAccessServicePath, jamais la route elle-même. Nouveau composant client/src/components/RequirePermission.tsx : réutilise exactement le Permission Engine déjà construit et partagé client/serveur (shared/permissions.ts, MODULE_ACCESS/canAccessModule) — aucune nouvelle règle d'accès inventée, seulement appliquée là où elle ne l'était pas. Nouveau wrapper `<P module=\"...\" name=\"...\">` dans App.tsx (même famille que `<U>`/`<V>` déjà existants) appliqué mécaniquement aux 64 routes concernées, script one-shot vérifiant la correspondance route→module contre le registre réel plutôt qu'une saisie manuelle. Les 46 routes /superadmin/* verrouillées sur le module \"back_office\" (accessible employee/admin/super_admin, jamais user/pro/garage/society) plutôt que \"super_admin\" (réservé PDG) — un verrouillage trop strict aurait cassé l'accès déjà fonctionnel du personnel admin/employé, hypothèse vérifiée contre la matrice MODULE_ACCESS existante avant d'écrire le code. Trois destinations \"Comptabilité Pro / Factures\" pointées par erreur vers /comptabilite (lot précédent) corrigées vers /utilisateurs/factures-utilisateur (écran personnel réel, ouvert à tout compte authentifié) puisque /comptabilite est réservé admin/PDG, pas accessible à un simple compte pro/vendeur.",
+    pourquoi:
+      "Consigne explicite de la direction : ne pas supprimer le contenu Pro visible depuis l'app Particulier (cartes publicitaires, CTA \"devenir professionnel\"…) mais empêcher tout accès réel aux espaces de travail professionnels — l'audit a montré que ce n'était déjà plus vrai dès qu'un particulier tapait directement l'URL, malgré le menu correctement filtré.",
+    ou: [
+      "client/src/components/RequirePermission.tsx",
+      "client/src/App.tsx",
+      "client/src/pages/Vehicule.tsx",
+      "client/src/pages/TableauBordProVente.tsx",
+      "client/src/pages/vente/TableauBordVendeur.tsx",
+    ],
+    lecon:
+      "Vérifié réellement, pas seulement relu : base Postgres locale jetable montée dans cet environnement (aucune donnée réelle touchée, aucun identifiant Railway utilisé), 111 migrations appliquées, serveur et client lancés en développement, un vrai compte particulier et un vrai compte professionnel (profil pro_vente) créés par le vrai formulaire d'inscription — 26/27 vérifications automatisées réussies par navigateur piloté (Playwright) : le compte particulier accède à ses 12 écrans réels (recherche, favoris, Mon espace, notifications, sécurité, garage, dépannage, coffre KYC…) et se voit bloqué avec le verrou « Espace professionnel » sur les 9 routes désormais gardées ; le compte pro_vente reste également bloqué sur /comptabilite et /superadmin (réservés admin), et obtient le vrai verdict serveur VoProGate sur /vente. Le seul échec (1/27) était un bogue du script de test lui-même (sélecteur ambigu entre le menu devise et le menu type de compte), pas un bogue de l'application — corrigé et revérifié. Une visibilité de menu déjà filtrée ne prouve rien sur l'accès réel à la route : les deux doivent être vérifiés séparément, et le filtre de menu existant (canAccessServicePath) reste un bon indicateur de quel module chaque route protégée doit utiliser plutôt que de deviner.",
+    domaine: "moteurs",
+  },
 ];
 
 /**

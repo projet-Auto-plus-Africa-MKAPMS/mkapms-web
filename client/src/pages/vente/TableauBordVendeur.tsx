@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ChevronLeft, BarChart3, Package, Calendar, Euro, MessageSquare, FileText, TrendingUp, ChevronRight } from "lucide-react";
 const STATS = [{ label: "Stock", value: "24", icon: Package }, { label: "Réservations", value: "3", icon: Calendar }, { label: "Ventes mois", value: "8", icon: TrendingUp }, { label: "CA mois", value: "186k €", icon: Euro }];
-const MENU = [{ label: "Stock", to: "/vente/stock" }, { label: "Réservations", to: "/vente/reservations" }, { label: "Messages", to: "/messagerie" }, { label: "Documents", to: "/documents" }, { label: "Factures", to: "/comptabilite" }, { label: "Statistiques", to: "/vente/statistiques" }];
+const MENU = [{ label: "Stock", to: "/vente/stock" }, { label: "Réservations", to: "/vente/reservations" }, { label: "Messages", to: "/messagerie" }, { label: "Documents", to: "/documents" }, { label: "Factures", to: "/utilisateurs/factures-utilisateur" }, { label: "Statistiques", to: "/vente/statistiques" }];
 export default function TableauBordVendeur() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">

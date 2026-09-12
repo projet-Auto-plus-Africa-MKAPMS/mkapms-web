@@ -11,6 +11,8 @@ import HomeSite from "./pages/HomeSite";
 import NotFound from "./pages/NotFound";
 import UniversBoundary from "./components/UniversBoundary";
 import VoProGate from "./components/VoProGate";
+import RequirePermission from "./components/RequirePermission";
+import type { PermissionModule } from "@shared/permissions";
 import InstallPrompt from "./components/InstallPrompt";
 import CountrySelectModal from "./components/CountrySelectModal";
 import SmartRouter from "./components/SmartRouter";
@@ -770,6 +772,21 @@ function V({ name, children }: { name: string; children: React.ReactNode }) {
   );
 }
 
+/**
+ * Écrans professionnels / internes MKA.P-MS (comptabilité, atelier,
+ * superadmin, catalogue technique, suivi véhicule, dossier client, journal
+ * d'activité) : le rôle réel de l'utilisateur décide de l'accès avant tout
+ * affichage, via le Permission Engine déjà construit (shared/permissions.ts).
+ * Une adresse tapée à la main depuis l'app Particulier ne doit plus suffire.
+ */
+function P({ name, module, children }: { name: string; module: PermissionModule; children: React.ReactNode }) {
+  return (
+    <UniversBoundary name={name}>
+      <RequirePermission module={module}>{children}</RequirePermission>
+    </UniversBoundary>
+  );
+}
+
 function PageLoader() {
   return (
     <div className="flex min-h-[40vh] items-center justify-center">
@@ -910,7 +927,7 @@ export default function App() {
             <Route path="/vente/workflow/:id?" element={<V name="Workflow VO"><WorkflowAchatVO /></V>} />
             <Route path="/vente/attestation/:id?" element={<V name="Attestation de vente"><AttestationVente /></V>} />
             <Route path="/vente/mes-annonces" element={<U name="Mes Annonces"><MesAnnonces /></U>} />
-            <Route path="/comptabilite" element={<U name="Factures"><Comptabilite /></U>} />
+            <Route path="/comptabilite" element={<P module="comptabilite" name="Factures"><Comptabilite /></P>} />
             <Route path="/vente/abonnements" element={<U name="Abonnements"><Abonnements /></U>} />
             <Route path="/vente/documents-societe" element={<V name="Documents"><CentreDocuments /></V>} />
             <Route path="/vente/statistiques" element={<V name="Statistiques"><CentrePerformances /></V>} />
@@ -987,7 +1004,7 @@ export default function App() {
             <Route path="/carte" element={<U name="Carte mondiale"><CarteMondiale /></U>} />
             <Route path="/depot-vente" element={<U name="Dépôt-Vente"><DepotVente /></U>} />
             <Route path="/vo" element={<U name="VO Interne"><VOInterne /></U>} />
-            <Route path="/comptabilite" element={<U name="Comptabilité"><Comptabilite /></U>} />
+            <Route path="/comptabilite" element={<P module="comptabilite" name="Comptabilité"><Comptabilite /></P>} />
             <Route path="/carte-grise" element={<U name="Carte Grise"><CarteGrise /></U>} />
             <Route path="/abonnements" element={<U name="Abonnements"><Abonnements /></U>} />
             <Route path="/aide" element={<Aide />} />
@@ -1014,24 +1031,24 @@ export default function App() {
             <Route path="/favoris" element={<U name="Favoris"><Favoris /></U>} />
             <Route path="/comparateur" element={<U name="Comparateur"><Comparateur /></U>} />
             <Route path="/historique-consultations" element={<U name="Historique"><HistoriqueConsultationsUniv /></U>} />
-            <Route path="/dossier-client" element={<U name="Dossier Client"><DossierClientUniv /></U>} />
+            <Route path="/dossier-client" element={<P module="dossier_client" name="Dossier Client"><DossierClientUniv /></P>} />
             <Route path="/dossier-vehicule-numerique" element={<U name="Dossier V\u00e9hicule"><DossierVehiculeNumerique /></U>} />
-            <Route path="/atelier-pro" element={<U name="Atelier Pro"><AtelierPro /></U>} />
-            <Route path="/catalogue-technique" element={<U name="Catalogue Technique"><CatalogueTechniqueStandalone /></U>} />
+            <Route path="/atelier-pro" element={<P module="atelier" name="Atelier Pro"><AtelierPro /></P>} />
+            <Route path="/catalogue-technique" element={<P module="catalogue_technique" name="Catalogue Technique"><CatalogueTechniqueStandalone /></P>} />
             <Route path="/rewards" element={<U name="Rewards"><Rewards /></U>} />
-            <Route path="/compta-dirigeant" element={<U name="Comptabilit\u00e9"><ComptaDirigeant /></U>} />
-            <Route path="/comptabilite/tva" element={<U name="Comptabilit\u00e9"><ComptaTVA /></U>} />
-            <Route path="/comptabilite/analytique" element={<U name="Comptabilit\u00e9"><ComptaAnalytique /></U>} />
-            <Route path="/comptabilite/paiements" element={<U name="Comptabilit\u00e9"><ComptaPaiements /></U>} />
-            <Route path="/comptabilite/facturation" element={<U name="Comptabilit\u00e9"><ComptaFacturation /></U>} />
-            <Route path="/comptabilite/abonnements" element={<U name="Comptabilit\u00e9"><ComptaAbonnements /></U>} />
-            <Route path="/comptabilite/publicites" element={<U name="Comptabilit\u00e9"><ComptaPublicites /></U>} />
-            <Route path="/comptabilite/centre-pilotage" element={<U name="Centre de Pilotage"><CentrePilotage /></U>} />
-            <Route path="/comptabilite/alertes" element={<U name="Comptabilit\u00e9"><ComptaAlertes /></U>} />
-            <Route path="/comptabilite/rapports" element={<U name="Comptabilit\u00e9"><ComptaRapports /></U>} />
-            <Route path="/comptabilite/wallets" element={<U name="Portefeuilles"><WalletAdmin /></U>} />
-            <Route path="/suivi-vehicule" element={<U name="Suivi v\u00e9hicule"><SuiviVehicule /></U>} />
-            <Route path="/journal-activite" element={<U name="Journal"><JournalActivite /></U>} />
+            <Route path="/compta-dirigeant" element={<P module="comptabilite" name="Comptabilit\u00e9"><ComptaDirigeant /></P>} />
+            <Route path="/comptabilite/tva" element={<P module="comptabilite" name="Comptabilit\u00e9"><ComptaTVA /></P>} />
+            <Route path="/comptabilite/analytique" element={<P module="comptabilite" name="Comptabilit\u00e9"><ComptaAnalytique /></P>} />
+            <Route path="/comptabilite/paiements" element={<P module="comptabilite" name="Comptabilit\u00e9"><ComptaPaiements /></P>} />
+            <Route path="/comptabilite/facturation" element={<P module="comptabilite" name="Comptabilit\u00e9"><ComptaFacturation /></P>} />
+            <Route path="/comptabilite/abonnements" element={<P module="comptabilite" name="Comptabilit\u00e9"><ComptaAbonnements /></P>} />
+            <Route path="/comptabilite/publicites" element={<P module="comptabilite" name="Comptabilit\u00e9"><ComptaPublicites /></P>} />
+            <Route path="/comptabilite/centre-pilotage" element={<P module="comptabilite" name="Centre de Pilotage"><CentrePilotage /></P>} />
+            <Route path="/comptabilite/alertes" element={<P module="comptabilite" name="Comptabilit\u00e9"><ComptaAlertes /></P>} />
+            <Route path="/comptabilite/rapports" element={<P module="comptabilite" name="Comptabilit\u00e9"><ComptaRapports /></P>} />
+            <Route path="/comptabilite/wallets" element={<P module="comptabilite" name="Portefeuilles"><WalletAdmin /></P>} />
+            <Route path="/suivi-vehicule" element={<P module="suivi_vehicule" name="Suivi v\u00e9hicule"><SuiviVehicule /></P>} />
+            <Route path="/journal-activite" element={<P module="journal_activite" name="Journal"><JournalActivite /></P>} />
             <Route path="/mk-direction" element={<AccesPDG />} />
             <Route path="/mk-global-engine" element={<U name="Global Country Engine"><GlobalCountryEngine /></U>} />
             <Route path="/compte/validation" element={<U name="Validation"><Validation /></U>} />
@@ -1176,43 +1193,43 @@ export default function App() {
             <Route path="/finance/remboursements-finance" element={<U name="Finance"><RemboursementsFinance /></U>} />
             <Route path="/finance/tableau-bord-finance" element={<U name="Finance"><TableauBordFinance /></U>} />
             {/* Super Admin */}
-            <Route path="/superadmin/admin-abonnements" element={<U name="Super Admin"><AdminAbonnements /></U>} />
-            <Route path="/superadmin/admin-badges" element={<U name="Super Admin"><AdminBadges /></U>} />
-            <Route path="/superadmin/admin-carte-moniale" element={<U name="Super Admin"><AdminCarteMoniale /></U>} />
-            <Route path="/superadmin/admin-commissions" element={<U name="Super Admin"><AdminCommissions /></U>} />
-            <Route path="/superadmin/admin-comptes-pro" element={<U name="Super Admin"><AdminComptesPro /></U>} />
-            <Route path="/superadmin/admin-demarches" element={<U name="Super Admin"><AdminDemarches /></U>} />
-            <Route path="/superadmin/admin-depannage" element={<U name="Super Admin"><AdminDepannage /></U>} />
-            <Route path="/superadmin/admin-employes" element={<U name="Super Admin"><AdminEmployes /></U>} />
-            <Route path="/superadmin/admin-fraude" element={<U name="Super Admin"><AdminFraude /></U>} />
-            <Route path="/superadmin/admin-garage" element={<U name="Super Admin"><AdminGarage /></U>} />
-            <Route path="/superadmin/admin-general" element={<U name="Super Admin"><AdminGeneral /></U>} />
-            <Route path="/superadmin/admin-journal" element={<U name="Super Admin"><AdminJournal /></U>} />
-            <Route path="/superadmin/admin-litiges" element={<U name="Super Admin"><AdminLitiges /></U>} />
-            <Route path="/superadmin/admin-location" element={<U name="Super Admin"><AdminLocation /></U>} />
-            <Route path="/superadmin/admin-moderation-annonces" element={<U name="Super Admin"><AdminModerationAnnonces /></U>} />
-            <Route path="/superadmin/admin-moderation-avis" element={<U name="Super Admin"><AdminModerationAvis /></U>} />
-            <Route path="/superadmin/admin-objectif" element={<U name="Super Admin"><AdminObjectif /></U>} />
-            <Route path="/superadmin/admin-paiements" element={<U name="Super Admin"><AdminPaiements /></U>} />
-            <Route path="/superadmin/admin-pieces" element={<U name="Super Admin"><AdminPieces /></U>} />
-            <Route path="/superadmin/admin-s-e-o" element={<U name="Super Admin"><AdminSEO /></U>} />
-            <Route path="/superadmin/admin-sauvegardes" element={<U name="Super Admin"><AdminSauvegardes /></U>} />
-            <Route path="/superadmin/admin-securite" element={<U name="Super Admin"><AdminSecurite /></U>} />
-            <Route path="/superadmin/admin-statistiques" element={<U name="Super Admin"><AdminStatistiques /></U>} />
-            <Route path="/superadmin/admin-support" element={<U name="Super Admin"><AdminSupport /></U>} />
-            <Route path="/superadmin/admin-utilisateurs" element={<U name="Super Admin"><AdminUtilisateurs /></U>} />
-            <Route path="/superadmin/admin-vente" element={<U name="Super Admin"><AdminVente /></U>} />
-            <Route path="/superadmin/admin-validation-docs" element={<U name="Super Admin"><AdminValidationDocs /></U>} />
-            <Route path="/superadmin/centre-r-h" element={<U name="Super Admin"><CentreRH /></U>} />
-            <Route path="/superadmin/centre-tickets" element={<U name="Super Admin"><CentreTickets /></U>} />
-            <Route path="/superadmin/comptabilite-complete" element={<U name="Super Admin"><ComptabiliteComplete /></U>} />
-            <Route path="/superadmin/gestion-employes-m-k-a-p-m-s" element={<U name="Super Admin"><GestionEmployesMKAPMS /></U>} />
-            <Route path="/superadmin" element={<U name="Super Admin"><SuperAdminDashboard /></U>} />
-            <Route path="/superadmin/core-engine-beta" element={<U name="Super Admin"><CoreEngineBeta /></U>} />
-            <Route path="/superadmin/smart-engine" element={<U name="Système Intelligent"><SmartEngineControlCenter /></U>} />
-            <Route path="/superadmin/visibilite-croissance" element={<U name="Visibilité & Croissance"><VisibilityControlCenter /></U>} />
-            <Route path="/superadmin/permission-engine" element={<U name="Moteur de Permissions"><PermissionEngineControlCenter /></U>} />
-            <Route path="/superadmin/redirection-engine" element={<U name="Moteur de Redirection"><RedirectionEngineControlCenter /></U>} />
+            <Route path="/superadmin/admin-abonnements" element={<P module="back_office" name="Super Admin"><AdminAbonnements /></P>} />
+            <Route path="/superadmin/admin-badges" element={<P module="back_office" name="Super Admin"><AdminBadges /></P>} />
+            <Route path="/superadmin/admin-carte-moniale" element={<P module="back_office" name="Super Admin"><AdminCarteMoniale /></P>} />
+            <Route path="/superadmin/admin-commissions" element={<P module="back_office" name="Super Admin"><AdminCommissions /></P>} />
+            <Route path="/superadmin/admin-comptes-pro" element={<P module="back_office" name="Super Admin"><AdminComptesPro /></P>} />
+            <Route path="/superadmin/admin-demarches" element={<P module="back_office" name="Super Admin"><AdminDemarches /></P>} />
+            <Route path="/superadmin/admin-depannage" element={<P module="back_office" name="Super Admin"><AdminDepannage /></P>} />
+            <Route path="/superadmin/admin-employes" element={<P module="back_office" name="Super Admin"><AdminEmployes /></P>} />
+            <Route path="/superadmin/admin-fraude" element={<P module="back_office" name="Super Admin"><AdminFraude /></P>} />
+            <Route path="/superadmin/admin-garage" element={<P module="back_office" name="Super Admin"><AdminGarage /></P>} />
+            <Route path="/superadmin/admin-general" element={<P module="back_office" name="Super Admin"><AdminGeneral /></P>} />
+            <Route path="/superadmin/admin-journal" element={<P module="back_office" name="Super Admin"><AdminJournal /></P>} />
+            <Route path="/superadmin/admin-litiges" element={<P module="back_office" name="Super Admin"><AdminLitiges /></P>} />
+            <Route path="/superadmin/admin-location" element={<P module="back_office" name="Super Admin"><AdminLocation /></P>} />
+            <Route path="/superadmin/admin-moderation-annonces" element={<P module="back_office" name="Super Admin"><AdminModerationAnnonces /></P>} />
+            <Route path="/superadmin/admin-moderation-avis" element={<P module="back_office" name="Super Admin"><AdminModerationAvis /></P>} />
+            <Route path="/superadmin/admin-objectif" element={<P module="back_office" name="Super Admin"><AdminObjectif /></P>} />
+            <Route path="/superadmin/admin-paiements" element={<P module="back_office" name="Super Admin"><AdminPaiements /></P>} />
+            <Route path="/superadmin/admin-pieces" element={<P module="back_office" name="Super Admin"><AdminPieces /></P>} />
+            <Route path="/superadmin/admin-s-e-o" element={<P module="back_office" name="Super Admin"><AdminSEO /></P>} />
+            <Route path="/superadmin/admin-sauvegardes" element={<P module="back_office" name="Super Admin"><AdminSauvegardes /></P>} />
+            <Route path="/superadmin/admin-securite" element={<P module="back_office" name="Super Admin"><AdminSecurite /></P>} />
+            <Route path="/superadmin/admin-statistiques" element={<P module="back_office" name="Super Admin"><AdminStatistiques /></P>} />
+            <Route path="/superadmin/admin-support" element={<P module="back_office" name="Super Admin"><AdminSupport /></P>} />
+            <Route path="/superadmin/admin-utilisateurs" element={<P module="back_office" name="Super Admin"><AdminUtilisateurs /></P>} />
+            <Route path="/superadmin/admin-vente" element={<P module="back_office" name="Super Admin"><AdminVente /></P>} />
+            <Route path="/superadmin/admin-validation-docs" element={<P module="back_office" name="Super Admin"><AdminValidationDocs /></P>} />
+            <Route path="/superadmin/centre-r-h" element={<P module="back_office" name="Super Admin"><CentreRH /></P>} />
+            <Route path="/superadmin/centre-tickets" element={<P module="back_office" name="Super Admin"><CentreTickets /></P>} />
+            <Route path="/superadmin/comptabilite-complete" element={<P module="back_office" name="Super Admin"><ComptabiliteComplete /></P>} />
+            <Route path="/superadmin/gestion-employes-m-k-a-p-m-s" element={<P module="back_office" name="Super Admin"><GestionEmployesMKAPMS /></P>} />
+            <Route path="/superadmin" element={<P module="back_office" name="Super Admin"><SuperAdminDashboard /></P>} />
+            <Route path="/superadmin/core-engine-beta" element={<P module="back_office" name="Super Admin"><CoreEngineBeta /></P>} />
+            <Route path="/superadmin/smart-engine" element={<P module="back_office" name="Système Intelligent"><SmartEngineControlCenter /></P>} />
+            <Route path="/superadmin/visibilite-croissance" element={<P module="back_office" name="Visibilité & Croissance"><VisibilityControlCenter /></P>} />
+            <Route path="/superadmin/permission-engine" element={<P module="back_office" name="Moteur de Permissions"><PermissionEngineControlCenter /></P>} />
+            <Route path="/superadmin/redirection-engine" element={<P module="back_office" name="Moteur de Redirection"><RedirectionEngineControlCenter /></P>} />
             <Route path="/admin/moteurs" element={<U name="Moteurs MKA.P-MS"><EngineRegistryControlCenter /></U>} />
             <Route path="/admin/demandes-suppression" element={<U name="Demandes de suppression"><DemandesSuppression /></U>} />
             <Route path="/admin/reputation" element={<U name="Réputation & Avis"><CentreReputation /></U>} />
@@ -1237,16 +1254,16 @@ export default function App() {
             <Route path="/intelligence" element={<U name="MKA.P-MS Intelligence"><MKAPMSIntelligence /></U>} />
             <Route path="/investissement" element={<U name="Investissement"><EspaceInvestissement /></U>} />
             <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
-            <Route path="/superadmin/mini-plateformes" element={<U name="Univers en mini-plateformes"><MiniPlateformes /></U>} />
-            <Route path="/superadmin/partenaires" element={<U name="Réseau partenaires"><PartenairesPilotage /></U>} />
+            <Route path="/superadmin/mini-plateformes" element={<P module="back_office" name="Univers en mini-plateformes"><MiniPlateformes /></P>} />
+            <Route path="/superadmin/partenaires" element={<P module="back_office" name="Réseau partenaires"><PartenairesPilotage /></P>} />
             {/* MOS Control Center — routes dédiées PDG + Direction */}
-            <Route path="/superadmin/identity-os" element={<U name="Identity OS"><MosEngineControlCenter engineKey="identity" /></U>} />
-            <Route path="/superadmin/country-os" element={<U name="Country OS"><MosEngineControlCenter engineKey="country" /></U>} />
-            <Route path="/superadmin/language-os" element={<U name="Language OS"><MosEngineControlCenter engineKey="language" /></U>} />
-            <Route path="/superadmin/permission-os" element={<U name="Permission OS"><MosEngineControlCenter engineKey="permissionEngine" /></U>} />
-            <Route path="/superadmin/notification-os" element={<U name="Notification OS"><MosEngineControlCenter engineKey="notificationOs" /></U>} />
-            <Route path="/superadmin/document-os" element={<U name="Document OS"><MosEngineControlCenter engineKey="documentOs" /></U>} />
-            <Route path="/superadmin/validation-documents-complete" element={<U name="Super Admin"><ValidationDocumentsComplete /></U>} />
+            <Route path="/superadmin/identity-os" element={<P module="back_office" name="Identity OS"><MosEngineControlCenter engineKey="identity" /></P>} />
+            <Route path="/superadmin/country-os" element={<P module="back_office" name="Country OS"><MosEngineControlCenter engineKey="country" /></P>} />
+            <Route path="/superadmin/language-os" element={<P module="back_office" name="Language OS"><MosEngineControlCenter engineKey="language" /></P>} />
+            <Route path="/superadmin/permission-os" element={<P module="back_office" name="Permission OS"><MosEngineControlCenter engineKey="permissionEngine" /></P>} />
+            <Route path="/superadmin/notification-os" element={<P module="back_office" name="Notification OS"><MosEngineControlCenter engineKey="notificationOs" /></P>} />
+            <Route path="/superadmin/document-os" element={<P module="back_office" name="Document OS"><MosEngineControlCenter engineKey="documentOs" /></P>} />
+            <Route path="/superadmin/validation-documents-complete" element={<P module="back_office" name="Super Admin"><ValidationDocumentsComplete /></P>} />
             {/* Utilisateurs */}
             <Route path="/utilisateurs/abonnements-utilisateur" element={<U name="Utilisateurs"><AbonnementsUtilisateur /></U>} />
             <Route path="/utilisateurs/centre-alertes-utilisateur" element={<U name="Utilisateurs"><CentreAlertesUtilisateur /></U>} />

@@ -2819,7 +2819,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
                   { text: "Location longue durée", sub: "Solutions sur mesure", to: "/finance", bg: "bg-blue-800", tc: "text-white", sc: "text-blue-200" },
                   { text: "Gestion flotte", sub: "Optimisez votre parc", to: "/pro", bg: "bg-slate-800", tc: "text-white", sc: "text-slate-300" },
                   { text: "Documents chauffeur", sub: "Vérifier vos documents", to: "/compte?tab=coffre", bg: "bg-[#D4AF37]", tc: "text-[#111]", sc: "text-[#111]/70" },
-                  { text: "Comptabilité Pro", sub: "Factures et exports", to: "/comptabilite", bg: "bg-orange-600", tc: "text-white", sc: "text-orange-100" },
+                  { text: "Comptabilité Pro", sub: "Factures et exports", to: "/utilisateurs/factures-utilisateur", bg: "bg-orange-600", tc: "text-white", sc: "text-orange-100" },
                 ].map((ad) => (
                   <Link key={ad.text} to={ad.to} className={`rounded-xl ${ad.bg} p-4 transition hover:opacity-90`}>
                     <p className={`text-xs font-bold ${ad.tc}`}>{ad.text}</p>
