@@ -133,6 +133,12 @@ import {
   historique as historiqueAudits,
   prochaineEcheance,
 } from "../governance/audit-semestriel.js";
+import {
+  alertesMigration,
+  couverture as couvertureDependances,
+  detail as detailDependance,
+  registre as registreDependances,
+} from "../governance/dependencies.js";
 
 export const INTELLIGENCES_META = {
   code: "intelligences",
@@ -867,4 +873,20 @@ export const intelligencesRouter = router({
   gouvernanceDeclencherAudit: pdgProcedure
     .input(z.object({ type: z.enum(["semestriel", "urgence"]).default("semestriel"), motif: z.string().min(3).max(600) }))
     .mutation(({ input, ctx }) => declencherAudit({ type: input.type, motif: input.motif, actorId: ctx.user?.uid ?? null })),
+
+  // ------------------------------------------------------- Provider Registry (LOT IA02D)
+  //
+  // Direction → Intelligence → Dependencies (point 14). Vue strictement
+  // interne : détail fournisseur explicitement autorisé ici, voir
+  // server/governance/dependencies.ts.
+
+  dependancesRegistre: pdgProcedure.query(() => registreDependances()),
+
+  dependanceDetail: pdgProcedure
+    .input(z.object({ providerId: z.string().min(1).max(48) }))
+    .query(({ input }) => detailDependance(input.providerId)),
+
+  dependancesCouverture: pdgProcedure.query(() => couvertureDependances()),
+
+  dependancesAlertes: pdgProcedure.query(() => alertesMigration()),
 });

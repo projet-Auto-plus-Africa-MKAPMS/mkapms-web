@@ -15,6 +15,7 @@
 import { execFileSync } from "node:child_process";
 import { rapportCouverture } from "../server/intelligences/univers/couverture.js";
 import { demander, supprimerConversation, verifierProprieteConversation } from "../server/intelligences/service.js";
+import { couverture as couvertureDependances, alertesMigration, registre as registreDependances } from "../server/governance/dependencies.js";
 
 /** Point 15 (LOT IA02B) — un autre compte ne doit jamais accéder à une conversation qu'il n'a pas créée. */
 async function verifierIsolationConversation(): Promise<number> {
@@ -59,6 +60,7 @@ async function main() {
   const testE2eConversation = executer("npx", ["tsx", "server/intelligences/__tests__/conversation-e2e.test.ts"]);
   const testBoucleOutils = executer("npx", ["tsx", "server/intelligences/outils/__tests__/boucle.test.ts"]);
   const testGenerationCode = executer("npx", ["tsx", "server/intelligences/__tests__/generation-code.test.ts"]);
+  const testIndependanceOpenai = executer("npx", ["tsx", "server/intelligences/__tests__/independance-openai.test.ts"]);
 
   const gate = {
     public_provider_names_visible: compte(fuitesPubliques.sortie, "public_provider_names_visible"),
@@ -138,6 +140,48 @@ async function main() {
   if (!testBoucleOutils.ok) console.log(testBoucleOutils.sortie);
   console.log(`test de génération de code (règle permanente n°6) : ${testGenerationCode.ok ? "réussi" : "ÉCHOUÉ — voir détail ci-dessous"}`);
   if (!testGenerationCode.ok) console.log(testGenerationCode.sortie);
+  console.log(`test d'indépendance OpenAI (LOT IA02D, point 19) : ${testIndependanceOpenai.ok ? "réussi" : "ÉCHOUÉ — voir détail ci-dessous"}`);
+  if (testIndependanceOpenai.sortie) console.log(testIndependanceOpenai.sortie);
+
+  const couvertureDep = await couvertureDependances();
+  const registreDep = await registreDependances();
+  const alertes = await alertesMigration();
+  console.log("\n=== LOT IA02D — Provider Registry / indépendance API (échéance 27 mars 2027) ===");
+  console.log(`external_dependencies_inventoried_pct=${couvertureDep.external_dependencies_inventoried_pct}`);
+  console.log(`dependencies_without_adapter=${couvertureDep.dependencies_without_adapter}`);
+  console.log(`critical_dependency_without_fallback=${couvertureDep.critical_dependency_without_fallback}`);
+  console.log(`dependency_without_exit_plan=${couvertureDep.dependency_without_exit_plan}`);
+  console.log(`dependency_without_target_date=${couvertureDep.dependency_without_target_date}`);
+  console.log(`independence_test_stale=${couvertureDep.independence_test_stale}`);
+  console.log(`dependency_past_target_date=${couvertureDep.dependency_past_target_date}`);
+  console.log(`direct_provider_calls=${providersDirects.ok ? 0 : 1}`);
+  console.log(`public_provider_leakage=${compte(fuitesPubliques.sortie, "public_provider_names_visible")}`);
+  if (couvertureDep.detail.length > 0) {
+    console.log("  anomalies (affichées, jamais masquées) :");
+    for (const d of couvertureDep.detail) console.log(`    - ${d}`);
+  }
+  console.log("\nDétail par dépendance :");
+  for (const l of registreDep) {
+    console.log(
+      `  ${l.providerId} — ${l.internalName} — statut migration ${l.statutMigration} — readiness ${l.readiness.pourcentage} % — échéance ${l.targetDisconnectDate ? l.targetDisconnectDate.toLocaleDateString("fr-FR") : "aucune"}`,
+    );
+    for (const b of l.readiness.bloquants) console.log(`      bloquant : ${b}`);
+  }
+  if (alertes.length > 0) {
+    console.log("\nAlertes migration (point 15) :");
+    for (const a of alertes) console.log(`  - ${a}`);
+  }
+
+  const gateEnEchecDep =
+    couvertureDep.critical_dependency_without_fallback > 0 ||
+    couvertureDep.dependency_without_target_date > 0 ||
+    couvertureDep.dependency_past_target_date > 0 ||
+    !providersDirects.ok;
+  console.log(
+    gateEnEchecDep
+      ? "\n[intelligence-coverage] ÉCHEC : au moins un compteur critique du Provider Registry n'est pas à zéro."
+      : "\n[intelligence-coverage] Gate Provider Registry (indicateurs critiques) au vert. dependencies_without_adapter et independence_test_stale restent informationnels : voir détail ci-dessus.",
+  );
 
   const { resume: resumeReglages } = await import("../server/governance/settings-registry.js");
   const { prochaineEcheance } = await import("../server/governance/audit-semestriel.js");
@@ -163,7 +207,7 @@ async function main() {
 
   console.log("Cartographie des univers : rapport informationnel, jamais un gate de build (voir en-tête du fichier).");
 
-  if (gateEnEchec || gateConversationEnEchec) process.exitCode = 1;
+  if (gateEnEchec || gateConversationEnEchec || gateEnEchecDep) process.exitCode = 1;
 }
 
 main();

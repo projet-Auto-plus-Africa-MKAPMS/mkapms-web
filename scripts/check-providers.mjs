@@ -27,6 +27,9 @@ const AUTORISES = new Set([
   // absent, enregistré non connecté), sans jamais émettre l'appel réseau
   // (fetch est injecté). Référencer le nom d'une variable n'est pas l'appeler.
   join("server", "intelligences", "__tests__", "fuite-fournisseurs.test.ts"),
+  // LOT IA02D — test d'indépendance OpenAI : même principe, mêmes garanties
+  // (fetch injecté, jamais un appel réseau réel) que le test ci-dessus.
+  join("server", "intelligences", "__tests__", "independance-openai.test.ts"),
 ]);
 
 const INTERDITS = [
