@@ -800,6 +800,36 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié réellement, pas seulement relu : base Postgres locale jetable montée dans cet environnement (aucune donnée réelle touchée, aucun identifiant Railway utilisé), 111 migrations appliquées, serveur et client lancés en développement, un vrai compte particulier et un vrai compte professionnel (profil pro_vente) créés par le vrai formulaire d'inscription — 26/27 vérifications automatisées réussies par navigateur piloté (Playwright) : le compte particulier accède à ses 12 écrans réels (recherche, favoris, Mon espace, notifications, sécurité, garage, dépannage, coffre KYC…) et se voit bloqué avec le verrou « Espace professionnel » sur les 9 routes désormais gardées ; le compte pro_vente reste également bloqué sur /comptabilite et /superadmin (réservés admin), et obtient le vrai verdict serveur VoProGate sur /vente. Le seul échec (1/27) était un bogue du script de test lui-même (sélecteur ambigu entre le menu devise et le menu type de compte), pas un bogue de l'application — corrigé et revérifié. Une visibilité de menu déjà filtrée ne prouve rien sur l'accès réel à la route : les deux doivent être vérifiés séparément, et le filtre de menu existant (canAccessServicePath) reste un bon indicateur de quel module chaque route protégée doit utiliser plutôt que de deviner.",
     domaine: "moteurs",
   },
+  {
+    cle: "u002-cloture-residu-18-liens-morts-particulier",
+    titre: "U-002 clôture — balayage final des destination_inconnue restantes : 18 liens morts strictement Particulier corrigés, le reste (Pro/Vente/Garage) explicitement hors périmètre",
+    moteurs: ["achat", "location", "vente", "pieces", "depot_annonce"],
+    quoi:
+      "Avant de clore U-002, relecture complète des 46 destination_inconnue du registre réel (server/data/cliquables.ts) plutôt que de s'arrêter aux fichiers déjà audités. Triées par appartenance réelle à l'app Particulier : MotoOccasion.tsx (2 liens vers /vente-moto, jamais créée — le vrai composant renommé vit sur /acheter/moto, déjà réel et lisant les mêmes paramètres de recherche transmis) ; Historique.tsx (2 liens /auth?redirect=… vers une route qui n'a jamais existé — /connexion, qui ne lit de toute façon aucun paramètre redirect/mode, donc pas de fonctionnalité perdue) ; Louer.tsx et VenteGenerale.tsx (/messages → /messagerie, même faute que dans le lot précédent, deux occurrences supplémentaires) ; les 9 écrans pieces/Pieces*.tsx (/pieces/recherche → /pieces/recherche-intelligente-pieces, vrai écran de recherche) ; VtcTaxi.tsx (CTA « Devenir partenaire » vers /inscription-pro, jamais créée — /connexion, où le profil VTC/Taxi est déjà sélectionnable au formulaire d'inscription réel) ; depot-annonce/OptionsAnnonce.tsx (/depot-annonce/analyse-ia → /depot-annonce/analyse-i-a, le sigle de MKA.P-MS Intelligences étant toujours découpé lettre par lettre par le générateur de routes). TableauBordProVente.tsx (/profil → /compte?tab=profil, onglet réel de Compte.tsx) corrigé au passage bien que ce tableau de bord soit un écran Pro, la ligne était déjà ouverte. Les 28 destination_inconnue restantes (vente/*.tsx vers /vente/tableau-de-bord-pro, garage/*.tsx vers des routes de gestion de flotte) appartiennent toutes à l'app Pro/Vente/Garage — explicitement laissées pour le futur lot Pro, pas ouvertes ici pour ne pas empiler un chantier non demandé sur celui-ci.",
+    pourquoi:
+      "Consigne de clôture stricte de la direction : une partie commencée se ferme à 100 % de ce qui est faisable avant d'en ouvrir une autre — un balayage final du registre réel (pas seulement des fichiers déjà visités) était nécessaire pour vérifier qu'aucune anomalie strictement Particulier ne restait derrière avant de déclarer U-002 terminé.",
+    ou: [
+      "client/src/pages/MotoOccasion.tsx",
+      "client/src/pages/Historique.tsx",
+      "client/src/pages/Louer.tsx",
+      "client/src/pages/VenteGenerale.tsx",
+      "client/src/pages/pieces/PiecesAccessoires.tsx",
+      "client/src/pages/pieces/PiecesBatteries.tsx",
+      "client/src/pages/pieces/PiecesCarrosserie.tsx",
+      "client/src/pages/pieces/PiecesEclairage.tsx",
+      "client/src/pages/pieces/PiecesFreinage.tsx",
+      "client/src/pages/pieces/PiecesHuiles.tsx",
+      "client/src/pages/pieces/PiecesMoteur.tsx",
+      "client/src/pages/pieces/PiecesPneumatiques.tsx",
+      "client/src/pages/pieces/PiecesSuspension.tsx",
+      "client/src/pages/VtcTaxi.tsx",
+      "client/src/pages/depot-annonce/OptionsAnnonce.tsx",
+      "client/src/pages/TableauBordProVente.tsx",
+    ],
+    lecon:
+      "Vérifié réellement : typecheck inchangé (54 erreurs préexistantes), tous les checks du dépôt verts, gen:moteurs recalculé — destination_inconnue passe de 46 à 28, exactement les 18 corrections attendues, aucune régression. Build serveur et client complets réussis. Un audit qui s'arrête aux fichiers déjà repérés par le fil des tâches précédentes laisse toujours un résidu : relire le registre généré au complet, une seule fois à la fin, coûte peu et referme ce que l'audit progressif avait manqué.",
+    domaine: "moteurs",
+  },
 ];
 
 /**

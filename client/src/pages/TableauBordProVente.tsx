@@ -100,7 +100,7 @@ export default function TableauBordProVente() {
               )}
             </Link>
             <Link
-              to="/profil"
+              to="/compte?tab=profil"
               className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center"
             >
               <Settings size={16} className="text-white" />

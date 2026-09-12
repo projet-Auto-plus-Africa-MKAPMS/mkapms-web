@@ -582,7 +582,7 @@ export default function Louer() {
           <a href="tel:0970705050" className="rounded-xl bg-[#D4AF37] px-5 py-2.5 text-xs font-bold text-white">
             Appeler
           </a>
-          <Link to="/messages" className="rounded-xl bg-white/10 border border-white/20 px-5 py-2.5 text-xs font-bold text-white">
+          <Link to="/messagerie" className="rounded-xl bg-white/10 border border-white/20 px-5 py-2.5 text-xs font-bold text-white">
             Messagerie
           </Link>
         </div>
