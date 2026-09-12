@@ -15,6 +15,13 @@
  * identité qui investit), jamais un remplacement du rôle de base — un compte
  * "pro" doit pouvoir devenir aussi investisseur sans perdre son rôle Pro.
  *
+ * KYC/KYB : ne duplique PAS le moteur déjà existant (kycProfiles/kycDocuments,
+ * server/schema.ts + server/routers/kyc.ts, avec contrôle d'authenticité des
+ * pièces via media-authenticity/service.ts). investors.userId et
+ * investorOrganizations.proprietaireUserId sont la clé vers ce même
+ * kycProfiles.userId — aucun statut de vérification dupliqué ici, voir
+ * kyc.ts::verificationInvestisseur() qui lit kycProfiles directement.
+ *
  * Hors du périmètre de drizzle.config.ts (qui ne lit que server/schema.ts,
  * comme pour vo-engine/, country-os/, intelligences/) : migration écrite à la
  * main dans drizzle/, comme pour ces modules.
@@ -57,13 +64,6 @@ export const investorTypeEnum = pgEnum("investor_type", [
   "STRATEGIC_PARTNER",
 ]);
 
-export const investorKycStatusEnum = pgEnum("investor_kyc_status", [
-  "non_verifie",
-  "en_cours",
-  "verifie",
-  "refuse",
-]);
-
 /** Cycle de vie complet du contrat d'investissement (12 statuts non négociables). */
 export const investmentStatusEnum = pgEnum("investment_status", [
   "DRAFT",
@@ -103,26 +103,25 @@ export const payoutStatusEnum = pgEnum("investor_payout_status", [
   "en_attente",
   "paye",
   "echoue",
+  "litige",
   "annule",
 ]);
 
-/** Société que l'investisseur représente (KYB) — distincte de investorOrganizations d'un futur système d'organisations généraliste, qui n'existe pas encore dans ce dépôt. */
+/** Société que l'investisseur représente (KYB) — la vérification elle-même reste kycProfiles (server/schema.ts), jamais un statut dupliqué ici. */
 export const investorOrganizations = pgTable("investor_organizations", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   nom: varchar("nom", { length: 192 }).notNull(),
   proprietaireUserId: integer("proprietaire_user_id").notNull(),
-  kybStatus: investorKycStatusEnum("kyb_status").notNull().default("non_verifie"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-/** Capacité additive : une identité MKA.P-MS existante devient aussi investisseur, sans perdre son rôle de base. */
+/** Capacité additive : une identité MKA.P-MS existante devient aussi investisseur, sans perdre son rôle de base. La vérification KYC reste kycProfiles (server/schema.ts), jamais un statut dupliqué ici. */
 export const investors = pgTable("investors", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   userId: integer("user_id").notNull().unique(),
   investorType: investorTypeEnum("investor_type").notNull().default("PASSIVE_INVESTOR"),
   organizationId: integer("organization_id"),
-  kycStatus: investorKycStatusEnum("kyc_status").notNull().default("non_verifie"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -189,12 +188,22 @@ export const investorLedger = pgTable("investor_ledger", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-/** Versements réels à l'investisseur. */
+/**
+ * Versements réels à l'investisseur — champs minimums exigés : payout_id
+ * (id), investor_id, investment_id, contract_id (contractDocumentId,
+ * dénormalisé depuis l'investissement), brut, déductions, net, devise, date
+ * prévue, date réelle, statut, référence, preuve, historique (voir
+ * investorPayoutHistory).
+ */
 export const investorPayouts = pgTable("investor_payouts", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   investorId: integer("investor_id").notNull(),
+  investmentId: integer("investment_id").notNull(),
+  contractDocumentId: integer("contract_document_id"),
   periodeDebut: timestamp("periode_debut", { withTimezone: true }).notNull(),
   periodeFin: timestamp("periode_fin", { withTimezone: true }).notNull(),
+  datePrevue: timestamp("date_prevue", { withTimezone: true }).notNull(),
+  dateReelle: timestamp("date_reelle", { withTimezone: true }),
   montantBrut: numeric("montant_brut", { precision: 14, scale: 2 }).notNull(),
   deductions: numeric("deductions", { precision: 14, scale: 2 }).notNull().default("0"),
   montantNet: numeric("montant_net", { precision: 14, scale: 2 }).notNull(),
@@ -202,5 +211,19 @@ export const investorPayouts = pgTable("investor_payouts", {
   statut: payoutStatusEnum("statut").notNull().default("en_attente"),
   reference: varchar("reference", { length: 128 }),
   preuveUrl: varchar("preuve_url", { length: 512 }),
+  motifEchec: varchar("motif_echec", { length: 255 }),
+  tentatives: integer("tentatives").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Historique immuable des versements — chaque changement de statut (échec, retry, litige, paiement) reste tracé, jamais écrasé. */
+export const investorPayoutHistory = pgTable("investor_payout_history", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  payoutId: integer("payout_id").notNull(),
+  fromStatus: payoutStatusEnum("from_status"),
+  toStatus: payoutStatusEnum("to_status").notNull(),
+  motif: varchar("motif", { length: 255 }),
+  changedBy: integer("changed_by"),
+  changedAt: timestamp("changed_at", { withTimezone: true }).notNull().defaultNow(),
 });

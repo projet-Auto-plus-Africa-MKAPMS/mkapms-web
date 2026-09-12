@@ -641,6 +641,36 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié réellement, pas seulement relu : les 5 variantes (grandpublic/pro/command/intelligence/investor) compilées avec succès en debug ET en release avec l'outillage déjà en place (SDK Android 36, AGP 8.2.1, aucune mise à jour nécessaire), .aab générés pour les 5 applications via le script canonique mobile/build-apps.mjs, confirmation par aapt dump badging que l'APK investor embarque bien compileSdkVersion=36, targetSdkVersion=36, versionCode=10705 et applicationId=com.mkapms.investor. Tous les checks du dépôt et le build serveur inchangés. Non réalisable depuis cet environnement, par construction : la fiche Google Play Console de cette nouvelle application (elle n'existe encore nulle part sur Play), sa signature de production et son import — le trousseau de production n'est jamais présent dans ce dépôt ni dans cet environnement de travail.",
     domaine: "moteurs",
   },
+  {
+    cle: "investment-continuer-sans-sarreter-sur-acces-externes",
+    titre: "Application Investisseur — continuer au maximum sans s'arrêter sur les accès externes : KYC réutilisé, Payout, Assistant, interface réelle, HANDOFF DEVAN",
+    moteurs: ["investment"],
+    quoi:
+      "Correction avant que ça merge : le lot précédent avait ajouté un statut KYC/KYB dupliqué (investorKycStatusEnum) alors qu'un vrai moteur KYC générique existe déjà (kycProfiles/kycDocuments, server/routers/kyc.ts, contrôle d'authenticité des pièces via media-authenticity/service.ts, validation humaine). Supprimé, remplacé par server/investment/kyc.ts qui lit kycProfiles.status directement pour investors.userId (et investorOrganizations.proprietaireUserId pour le KYB) — aucun statut à tenir synchrone, un investisseur soumet ses pièces via le trpc.kyc.submitDocuments déjà en production. investisseurEligible() bloque désormais réellement le passage en AWAITING_SIGNATURE tant que le dossier n'est pas \"valide\". Investor Payout complété (payout.ts) : creerPayoutPourPeriode (agrège les vrais mouvements du Ledger sur une période, jamais un montant estimé), confirmerVersement (marque le Ledger \"verse\" seulement à la confirmation réelle), marquerEchec/reessayer/ouvrirLitige, historique immuable (investorPayoutHistory). Table investorPayouts enrichie (investmentId, contractDocumentId, datePrevue/dateReelle, motifEchec, tentatives) pour couvrir les champs minimums exigés. Accès Investisseur à MKA.P-MS Intelligence construit (assistant.ts::poserQuestion) : passe par server/intelligences/routeur.ts (jamais provider.ts), le contexte envoyé au modèle ne contient QUE les données déjà agrégées de cet investisseur (ses investissements, son Ledger, ses versements) — le cloisonnement vient du périmètre du prompt, pas d'une consigne demandée au modèle. Interface web réelle construite (client/src/pages/investissement/, route /investissement) : Dashboard (KPIs réels + onboarding \"devenir investisseur\"), MesInvestissements, Ledger, Versements, Assistant (question libre), Kyc (réutilise le vrai FileUpload + trpc.kyc.submitDocuments) — aucun écran factice, chaque module interroge le vrai routeur investment. 5e variante Android : android/app/src/investor/res/README.md documente le mécanisme d'icône/splash par flavor (identique à intelligence) et l'absence de mécanisme de permissions par variante (pré-existant, partagé par les 5 apps). 3 documents de passage de relais écrits pour tout ce qui dépend réellement d'un accès externe : docs/handoff/google-play-preparation.md (tableau de contrôle des 5 applications, rempli uniquement de faits vérifiables depuis le code), docs/handoff/signature-production.md, docs/handoff/publication-play-console.md.",
+    pourquoi:
+      "Consigne explicite de la direction : un accès manquant (Google Play Console, keystore de production) ne doit bloquer QUE l'étape qui l'exige, jamais le reste du projet — tout ce qui est techniquement faisable dans cet environnement doit être terminé, et pour chaque blocage réel un HANDOFF DEVAN complet doit être prêt à copier-coller, avec les étapes exactes, pour qu'un agent disposant des accès puisse terminer sans refaire l'audit.",
+    ou: [
+      "server/investment/schema.ts",
+      "server/investment/kyc.ts",
+      "server/investment/payout.ts",
+      "server/investment/assistant.ts",
+      "server/investment/contrat.ts",
+      "server/investment/router.ts",
+      "server/modules/contracts.ts",
+      "drizzle/0111_investment_engine.sql",
+      "client/src/pages/investissement/index.tsx",
+      "client/src/pages/investissement/modules/",
+      "client/src/App.tsx",
+      "server/engine-registry/perimetres.ts",
+      "android/app/src/investor/res/README.md",
+      "docs/handoff/google-play-preparation.md",
+      "docs/handoff/signature-production.md",
+      "docs/handoff/publication-play-console.md",
+    ],
+    lecon:
+      "Vérifié réellement : typecheck inchangé (54 erreurs préexistantes), tous les checks du dépôt verts, 25/25 vérifications réussies sur la logique pure du moteur, build web+serveur complet réussi, la nouvelle interface /investissement build et charge dans le bundle client réel (confirmé par recherche du texte de la page dans dist/public/assets). Découverte d'architecture qui change la lecture des .aab : les 5 applications Android chargent leur interface à distance (server.url de Capacitor vers www.mkapms.fr/<chemin>, voir capacitor.config.ts) — le .aab n'embarque que la coque native, jamais le contenu web ; c'est pourquoi les 5 .aab (empreintes SHA-256 documentées dans google-play-preparation.md) sont restés strictement identiques avant et après la construction de l'interface Investisseur. Aucun adapter Stripe Connect construit pour les versements réels : vérifié qu'aucun moteur de la plateforme n'en a un non plus (le Wallet Pro existant, server/routers/wallet.ts::requestPayout, s'arrête lui aussi à une demande tracée, jamais un virement automatisé) — investorPayouts suit exactement le même niveau de maturité déjà établi, ce n'est pas une lacune propre à ce lot. Non réalisable depuis cet environnement, par construction (aucun accès Google Play Console, aucun keystore de production) : les 3 HANDOFF DEVAN listent les étapes exactes plutôt que de laisser un simple constat de blocage. Reste à construire, non bloqué par un accès externe : les écrans squelettes détectés dans l'audit U-002 (centre de notifications, Mon espace), le lot Command/PDG/Comptabilité/Direction, le lot Pro, l'audit croisé final des quatre applications.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
