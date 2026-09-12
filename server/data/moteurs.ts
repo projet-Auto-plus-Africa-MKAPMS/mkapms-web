@@ -9608,12 +9608,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "categorie": "transversal",
     "etatDeclare": "active",
     "dossiers": [
-      "intelligences"
+      "intelligences",
+      "governance"
     ],
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 49,
+    "fichiersServeur": 53,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -9691,9 +9692,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/CentreIntelligences.tsx appelle trpc.continuousTest"
       ],
       "core": [
-        "intelligences/actions.ts importe db.ts",
-        "intelligences/actions.ts importe engine-registry/service.ts",
-        "intelligences/autonomie.ts importe db.ts"
+        "governance/audit-semestriel.ts importe db.ts",
+        "governance/versions.ts importe db.ts",
+        "intelligences/actions.ts importe db.ts"
       ],
       "country": [
         "intelligences/contexte/service.ts importe country-os/index.ts",
@@ -9845,6 +9846,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "fil",
       "filPublic",
       "fonctions",
+      "gouvernanceAudit",
+      "gouvernanceDeclencherAudit",
+      "gouvernanceEnregistrerRelease",
+      "gouvernanceHistoriqueVersions",
+      "gouvernanceReglages",
+      "gouvernanceVersions",
       "interpreterRecherche",
       "journalActions",
       "journalPermissions",
@@ -9878,6 +9885,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "universRegistre"
     ],
     "tables": [
+      "gv_audits",
+      "gv_settings_etat",
+      "gv_versions",
       "in_actions",
       "in_appels",
       "in_autonomie",

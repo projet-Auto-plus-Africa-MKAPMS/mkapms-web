@@ -125,6 +125,14 @@ import { statut as statutApercuChantier, verifierReponse as verifierReponseAperc
 import { registre as registreUnivers, univers as universDetail } from "./univers/registre.js";
 import { rapportCouverture } from "./univers/couverture.js";
 import { resoudreContexte } from "./contexte/service.js";
+import { enregistrerRelease, historique as historiqueVersions, registre as registreVersions } from "../governance/versions.js";
+import { SETTINGS_REGISTRY, resume as resumeReglages } from "../governance/settings-registry.js";
+import {
+  declencher as declencherAudit,
+  dernierAudit,
+  historique as historiqueAudits,
+  prochaineEcheance,
+} from "../governance/audit-semestriel.js";
 
 export const INTELLIGENCES_META = {
   code: "intelligences",
@@ -812,4 +820,51 @@ export const intelligencesRouter = router({
         countryCode: input.countryCode ?? null,
       }),
     ),
+
+  // ------------------------------------------------------- Gouvernance (règles permanentes, clôture LOT IA02B)
+  //
+  // Registre de versions par application, Settings Registry, audit global
+  // semestriel — voir server/governance/. Ajouté à la clôture d'IA02B comme
+  // règle transversale permanente, pas comme un lot métier séparé.
+
+  /** Point 1 — chaque application déclarée avec sa dernière release réelle. */
+  gouvernanceVersions: pdgProcedure.query(() => registreVersions()),
+
+  gouvernanceHistoriqueVersions: pdgProcedure
+    .input(z.object({ appId: z.string().min(1).max(64), limit: z.number().int().min(1).max(200).default(40) }).optional())
+    .query(({ input }) => (input?.appId ? historiqueVersions(input.appId, input.limit ?? 40) : [])),
+
+  /** Consigne une release réelle. N'augmente jamais toutes les applications aveuglément (choix explicite de l'appelant). */
+  gouvernanceEnregistrerRelease: pdgProcedure
+    .input(
+      z.object({
+        appId: z.string().min(1).max(64),
+        currentVersion: z.string().max(24).optional(),
+        buildNumber: z.number().int().min(0).optional(),
+        releaseReason: z.string().min(3).max(600),
+        affectedModules: z.array(z.string().max(80)).max(50).optional(),
+        engineChanges: z.array(z.string().max(120)).max(50).optional(),
+        apiChanges: z.array(z.string().max(120)).max(50).optional(),
+        intelligenceChanges: z.array(z.string().max(120)).max(50).optional(),
+        databaseMigrations: z.array(z.string().max(120)).max(50).optional(),
+        compatibilityStatus: z.enum(["compatible", "compatible_avec_reserve", "incompatible", "non_evaluee"]).optional(),
+        releaseNotes: z.string().max(4000).optional(),
+      }),
+    )
+    .mutation(({ input, ctx }) => enregistrerRelease({ ...input, actorId: ctx.user?.uid ?? null })),
+
+  /** Point 3 — Settings Registry : catalogue progressif, jamais fictif. */
+  gouvernanceReglages: pdgProcedure.query(() => ({ registre: SETTINGS_REGISTRY, resume: resumeReglages() })),
+
+  /** Point 2 — dernier audit réel, prochaine échéance calculée, historique. */
+  gouvernanceAudit: pdgProcedure.query(async () => ({
+    dernier: await dernierAudit(),
+    prochaine: await prochaineEcheance(),
+    historique: await historiqueAudits(20),
+  })),
+
+  /** Déclenche réellement les contrôles (semestriel ou hors cycle — faille, API cassée, panne fournisseur…). */
+  gouvernanceDeclencherAudit: pdgProcedure
+    .input(z.object({ type: z.enum(["semestriel", "urgence"]).default("semestriel"), motif: z.string().min(3).max(600) }))
+    .mutation(({ input, ctx }) => declencherAudit({ type: input.type, motif: input.motif, actorId: ctx.user?.uid ?? null })),
 });

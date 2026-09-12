@@ -272,7 +272,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
   },
   {
     moteur: "intelligences",
-    dossiers: ["intelligences"],
+    dossiers: ["intelligences", "governance"],
     routeurs: ["intelligences"],
     routes: ["/admin/intelligences", "/intelligences", "/intelligence"],
   },
