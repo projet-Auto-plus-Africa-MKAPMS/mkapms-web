@@ -9613,7 +9613,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 44,
+    "fichiersServeur": 48,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -9696,9 +9696,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "intelligences/autonomie.ts importe db.ts"
       ],
       "country": [
-        "intelligences/outils/boucle.ts importe country-os/index.ts",
-        "intelligences/outils/boucle.ts lit la règle pays",
-        "intelligences/outils/familles/outils-vehicules.ts charge country-os/index.ts"
+        "intelligences/contexte/service.ts importe country-os/index.ts",
+        "intelligences/contexte/service.ts lit la règle pays",
+        "intelligences/outils/boucle.ts importe country-os/index.ts"
       ],
       "event_bus": [
         "intelligences/moteurs.ts importe event-bus/catalog.ts",
@@ -9827,7 +9827,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "coder",
       "comparaisonsShadow",
       "configStatus",
+      "contexte",
       "conversations",
+      "couvertureIntelligence",
       "creerCleDeveloppeur",
       "demander",
       "detachementFournisseur",
@@ -9868,7 +9870,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "reglerShadow",
       "regles",
       "revoquerCleDeveloppeur",
-      "shadow"
+      "shadow",
+      "universDetail",
+      "universRegistre"
     ],
     "tables": [
       "in_actions",
@@ -9897,6 +9901,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "in_usage"
     ],
     "acces": [
+      "connecte",
       "pdg",
       "public"
     ],
@@ -9906,7 +9911,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "manques": [
       {
         "genre": "dependance_non_declaree",
-        "detail": "country — intelligences/outils/boucle.ts importe country-os/index.ts"
+        "detail": "country — intelligences/contexte/service.ts importe country-os/index.ts"
       },
       {
         "genre": "dependance_non_declaree",
