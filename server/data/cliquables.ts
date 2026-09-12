@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2591;
+export const CLIQUABLES_TOTAL = 2588;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -72,7 +72,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/AccesPDG.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Acheter.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Admin.tsx", total: 106, moteur: 0, liens: 27, boutonsLocaux: 74, sansAction: 0, zones: 5 },
-  { fichier: "client/src/pages/AssistanceSinistre.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 4, zones: 0 },
+  { fichier: "client/src/pages/AssistanceSinistre.tsx", total: 4, moteur: 0, liens: 2, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/AssistantIntelligences.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/AtelierPro.tsx", total: 46, moteur: 0, liens: 10, boutonsLocaux: 36, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/AuditActivation.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
@@ -178,7 +178,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/demarches/SuiviDossier.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/demarches/VerificationIA.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/demarches/WWGarage.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 2, zones: 0 },
-  { fichier: "client/src/pages/Depannage.tsx", total: 14, moteur: 0, liens: 0, boutonsLocaux: 14, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/Depannage.tsx", total: 12, moteur: 0, liens: 0, boutonsLocaux: 12, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/depot-annonce/AnalyseIA.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/depot-annonce/ConseilsIA.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/depot-annonce/DescriptionAnnonce.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
@@ -479,7 +479,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/LocationLOA.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/LocationMinibus.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 3, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/LocationMKAPMS.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 2, zones: 0 },
-  { fichier: "client/src/pages/LocationParticulier.tsx", total: 8, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 3, zones: 0 },
+  { fichier: "client/src/pages/LocationParticulier.tsx", total: 8, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 2, zones: 0 },
   { fichier: "client/src/pages/LocationPro.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 4, zones: 0 },
   { fichier: "client/src/pages/LocationUtilitaires.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 3, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/Louer.tsx", total: 8, moteur: 0, liens: 4, boutonsLocaux: 2, sansAction: 2, zones: 0 },
@@ -784,10 +784,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/VtcTaxi.tsx", ligne: 390, genre: "lien", libelle: "/inscription-pro", motif: "destination_inconnue" },
   { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 77, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 114, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/AssistanceSinistre.tsx", ligne: 47, genre: "bouton", libelle: "Appeler", motif: "sans_action" },
-  { fichier: "client/src/pages/AssistanceSinistre.tsx", ligne: 77, genre: "bouton", libelle: "Modifier", motif: "sans_action" },
-  { fichier: "client/src/pages/AssistanceSinistre.tsx", ligne: 90, genre: "bouton", libelle: "Photo", motif: "sans_action" },
-  { fichier: "client/src/pages/AssistanceSinistre.tsx", ligne: 98, genre: "bouton", libelle: "Envoyer la demande d'assistance", motif: "sans_action" },
   { fichier: "client/src/pages/CalendrierDispo.tsx", ligne: 119, genre: "bouton", libelle: "Réserver les dates disponibles", motif: "sans_action" },
   { fichier: "client/src/pages/CentrePenalites.tsx", ligne: 99, genre: "bouton", libelle: "Payer", motif: "sans_action" },
   { fichier: "client/src/pages/CentrePenalites.tsx", ligne: 100, genre: "bouton", libelle: "Contester", motif: "sans_action" },
@@ -864,9 +860,8 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/LocationMinibus.tsx", ligne: 124, genre: "bouton", libelle: "Rechercher un minibus", motif: "sans_action" },
   { fichier: "client/src/pages/LocationMKAPMS.tsx", ligne: 232, genre: "bouton", libelle: "Rechercher un véhicule MKA.P-MS", motif: "sans_action" },
   { fichier: "client/src/pages/LocationMKAPMS.tsx", ligne: 335, genre: "bouton", libelle: "Réserver ce véhicule", motif: "sans_action" },
-  { fichier: "client/src/pages/LocationParticulier.tsx", ligne: 334, genre: "bouton", libelle: "Appliquer les filtres", motif: "sans_action" },
-  { fichier: "client/src/pages/LocationParticulier.tsx", ligne: 534, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/LocationParticulier.tsx", ligne: 561, genre: "bouton", libelle: "Voir les véhicules proches", motif: "sans_action" },
+  { fichier: "client/src/pages/LocationParticulier.tsx", ligne: 575, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
+  { fichier: "client/src/pages/LocationParticulier.tsx", ligne: 602, genre: "bouton", libelle: "Voir les véhicules proches", motif: "sans_action" },
   { fichier: "client/src/pages/LocationPro.tsx", ligne: 235, genre: "bouton", libelle: "Rechercher", motif: "sans_action" },
   { fichier: "client/src/pages/LocationPro.tsx", ligne: 299, genre: "bouton", libelle: "Appliquer les filtres", motif: "sans_action" },
   { fichier: "client/src/pages/LocationPro.tsx", ligne: 496, genre: "bouton", libelle: "Voir les véhicules proches", motif: "sans_action" },

@@ -3,6 +3,8 @@ import {
   AlertTriangle, MapPin, Car, Camera, CreditCard, CheckCircle, Phone, MessageSquare,
   Clock, Star, Navigation, Wrench, Battery, Fuel, Truck, ChevronRight, Shield,
 } from "lucide-react";
+import { trpc } from "../lib/trpc";
+import { useAuth } from "../lib/auth";
 
 const TYPES_PANNE = [
   { id: "moteur", label: "Panne moteur", icon: Wrench, desc: "Le moteur ne démarre pas ou cale" },
@@ -15,27 +17,26 @@ const TYPES_PANNE = [
   { id: "autre", label: "Autre", icon: Wrench, desc: "Autre type de panne" },
 ];
 
-const DEPANNEURS = [
-  { id: 1, nom: "Dépannage Express IDF", zone: "Paris & Île-de-France", note: 4.8, avis: 342, tel: "01 45 67 89 00", distance: "2.3 km", dispo: true },
-  { id: 2, nom: "SOS Auto 24/7", zone: "Paris 75", note: 4.6, avis: 218, tel: "01 42 33 44 55", distance: "3.1 km", dispo: true },
-  { id: 3, nom: "Rapide Dépannage", zone: "Seine-Saint-Denis 93", note: 4.5, avis: 156, tel: "01 48 22 33 44", distance: "5.7 km", dispo: true },
-  { id: 4, nom: "AutoSecours France", zone: "Val-de-Marne 94", note: 4.7, avis: 289, tel: "01 43 55 66 77", distance: "7.2 km", dispo: false },
-  { id: 5, nom: "Dépannage Belloy-Auto", zone: "Val-d'Oise 95", note: 4.9, avis: 87, tel: "01 30 11 22 33", distance: "12 km", dispo: true },
-];
-
 const STEPS = ["Type de panne", "Localisation", "Véhicule", "Photos", "Paiement", "Validation"];
 
-const MISSION_STATUTS = [
-  { label: "Recherche en cours", desc: "Recherche du dépanneur le plus proche…", color: "bg-blue-500" },
-  { label: "Dépanneur trouvé", desc: "Un dépanneur a été identifié", color: "bg-indigo-500" },
-  { label: "Mission acceptée", desc: "Le dépanneur a accepté votre demande", color: "bg-purple-500" },
-  { label: "En route", desc: "Le dépanneur est en route vers vous", color: "bg-amber-500" },
-  { label: "Arrivé sur place", desc: "Le dépanneur est arrivé", color: "bg-orange-500" },
-  { label: "Intervention en cours", desc: "Réparation ou remorquage en cours", color: "bg-[#D4AF37]" },
-  { label: "Terminé", desc: "Intervention terminée avec succès", color: "bg-green-500" },
-];
+/**
+ * Reflète le vrai cycle de statut (server/modules/depannage.ts::breakdownStatusEnum).
+ * Jamais une progression simulée : l'étape affichée dépend du statut réel
+ * renvoyé par trpc.depannage.myRequests.
+ */
+const STATUT_AFFICHAGE: Record<string, { label: string; desc: string; color: string; ordre: number }> = {
+  demande: { label: "Demande envoyée", desc: "Votre demande a été transmise aux dépanneurs du secteur.", color: "bg-blue-500", ordre: 0 },
+  en_recherche: { label: "Recherche en cours", desc: "Recherche du dépanneur le plus proche…", color: "bg-blue-500", ordre: 0 },
+  devis_envoye: { label: "Devis reçu", desc: "Un dépanneur a envoyé un devis — validez-le pour continuer.", color: "bg-indigo-500", ordre: 1 },
+  acceptee: { label: "Mission acceptée", desc: "Le dépanneur a accepté votre demande.", color: "bg-purple-500", ordre: 2 },
+  en_intervention: { label: "Intervention en cours", desc: "Le dépanneur est sur place ou en route.", color: "bg-[#D4AF37]", ordre: 3 },
+  terminee: { label: "Terminé", desc: "Intervention terminée avec succès.", color: "bg-green-500", ordre: 4 },
+  annulee: { label: "Annulée", desc: "La demande a été annulée.", color: "bg-slate-400", ordre: 0 },
+  litige: { label: "Litige en cours", desc: "Un litige est ouvert sur cette demande.", color: "bg-red-500", ordre: 3 },
+};
 
 export default function Depannage() {
+  const { user } = useAuth();
   const [mode, setMode] = useState<"home" | "demande" | "suivi">("home");
   const [step, setStep] = useState(0);
 
@@ -46,30 +47,36 @@ export default function Depannage() {
   const [adresse, setAdresse] = useState("");
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsResult, setGpsResult] = useState("");
+  const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
   // Step 3 — Véhicule
   const [plaque, setPlaque] = useState("");
   const [marque, setMarque] = useState("");
   const [modele, setModele] = useState("");
   const [couleur, setCouleur] = useState("");
-  // Step 4 — Photos
+  // Step 4 — Photos (libellés indicatifs — l'upload réel de fichiers n'est pas encore branché ici, voir FileUpload pour un futur lot)
   const [photos, setPhotos] = useState<string[]>([]);
-  // Step 5 — Paiement
+  // Step 5 — Paiement (préférence transmise au dépanneur ; le paiement réel se fait au moment du devis, voir payQuote)
   const [paiement, setPaiement] = useState("");
-  // Step 6 — Validation
-  const [submitted, setSubmitted] = useState(false);
-  // Suivi
-  const [currentStatut, setCurrentStatut] = useState(0);
-  // Notation
-  const [showRating, setShowRating] = useState(false);
-  const [ratings, setRatings] = useState({ ponctualite: 0, professionnalisme: 0, accueil: 0, qualite: 0 });
+  // Suivi — id de la demande réellement créée côté serveur
+  const [requestId, setRequestId] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
+  const providers = trpc.depannage.providers.useQuery({});
+  const myRequests = trpc.depannage.myRequests.useQuery(undefined, { enabled: !!user, refetchInterval: mode === "suivi" ? 8000 : false });
+  const demandeActuelle = myRequests.data?.find((r) => r.id === requestId) ?? null;
+  const quotes = trpc.depannage.quotes.useQuery({ requestId: requestId ?? 0 }, { enabled: !!requestId, refetchInterval: mode === "suivi" ? 8000 : false });
+  const createRequest = trpc.depannage.createRequest.useMutation();
+  const payQuote = trpc.depannage.payQuote.useMutation({
+    onSuccess: (r) => { if (r.url) window.location.href = r.url; },
+  });
 
   const handleGPS = () => {
     setGpsLoading(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
+          setGpsCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
           setGpsResult(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
           setGpsLoading(false);
         },
@@ -87,19 +94,33 @@ export default function Depannage() {
   };
 
   const handleSubmit = () => {
-    setSubmitted(true);
-    setMode("suivi");
-    // Simulate progression
-    let s = 0;
-    const timer = setInterval(() => {
-      s++;
-      if (s >= MISSION_STATUTS.length) {
-        clearInterval(timer);
-        setShowRating(true);
-      } else {
-        setCurrentStatut(s);
-      }
-    }, 3000);
+    if (!user) {
+      showToast("Connectez-vous pour envoyer votre demande de dépannage.");
+      return;
+    }
+    const vehicule = [plaque, marque, modele, couleur].filter(Boolean).join(" — ");
+    const descriptionParts = [
+      couleur ? `Couleur : ${couleur}.` : null,
+      photos.length > 0 ? `Photos signalées : ${photos.join(", ")}.` : null,
+      paiement ? `Paiement préféré : ${paiement === "cb" ? "carte bancaire" : paiement === "especes" ? "espèces" : "après intervention"}.` : null,
+    ].filter(Boolean);
+    createRequest.mutate(
+      {
+        typePanne: TYPES_PANNE.find((t) => t.id === typePanne)?.label,
+        description: descriptionParts.join(" ") || undefined,
+        vehicule: vehicule || undefined,
+        adresse: !useGPS && adresse ? adresse : undefined,
+        lat: useGPS && gpsCoords ? gpsCoords.lat : undefined,
+        lng: useGPS && gpsCoords ? gpsCoords.lng : undefined,
+      },
+      {
+        onSuccess: (r) => {
+          setRequestId(r.id);
+          setMode("suivi");
+        },
+        onError: (e) => showToast(`Échec de la demande : ${e.message}`),
+      },
+    );
   };
 
   const canNext = () => {
@@ -121,85 +142,74 @@ export default function Depannage() {
             </div>
             <div>
               <h1 className="text-xl font-extrabold text-[#111]">Suivi de votre dépannage</h1>
-              <p className="text-xs text-slate-500">Mission #DEP-{Date.now().toString().slice(-6)}</p>
+              <p className="text-xs text-slate-500">Demande #{requestId ?? "…"}</p>
             </div>
           </div>
 
-          {/* Timeline */}
-          <div className="mt-6 space-y-0">
-            {MISSION_STATUTS.map((s, i) => {
-              const done = i <= currentStatut;
-              const active = i === currentStatut;
-              return (
-                <div key={i} className="flex gap-3">
-                  <div className="flex flex-col items-center">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-full text-white text-xs font-bold ${done ? s.color : "bg-slate-200"}`}>
-                      {done ? <CheckCircle size={14} /> : i + 1}
-                    </div>
-                    {i < MISSION_STATUTS.length - 1 && <div className={`h-8 w-0.5 ${done ? "bg-[#D4AF37]" : "bg-slate-200"}`} />}
+          {myRequests.isLoading && <p className="mt-6 text-sm text-slate-500 text-center">Chargement…</p>}
+
+          {!myRequests.isLoading && !demandeActuelle && (
+            <p className="mt-6 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500 text-center">
+              Demande introuvable. Elle a peut-être été annulée.
+            </p>
+          )}
+
+          {demandeActuelle && (
+            <>
+              {/* Statut réel — jamais une progression simulée */}
+              <div className="mt-6 rounded-xl border border-[#D4AF37]/20 bg-white p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full text-white ${STATUT_AFFICHAGE[demandeActuelle.status]?.color ?? "bg-slate-400"}`}>
+                    <Clock size={14} />
                   </div>
-                  <div className={`pb-4 ${active ? "" : ""}`}>
-                    <p className={`text-sm font-bold ${done ? "text-[#111]" : "text-slate-400"}`}>{s.label}</p>
-                    <p className={`text-xs ${done ? "text-slate-600" : "text-slate-300"}`}>{s.desc}</p>
-                    {active && !showRating && (
-                      <div className="mt-1 flex items-center gap-1 text-[10px] text-[#D4AF37] font-semibold">
-                        <Clock size={10} className="animate-spin" /> En cours…
-                      </div>
-                    )}
+                  <div>
+                    <p className="text-sm font-bold text-[#111]">{STATUT_AFFICHAGE[demandeActuelle.status]?.label ?? demandeActuelle.status}</p>
+                    <p className="text-xs text-slate-500">{STATUT_AFFICHAGE[demandeActuelle.status]?.desc ?? ""}</p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Info dépanneur */}
-          {currentStatut >= 1 && (
-            <div className="mt-4 rounded-xl border border-[#D4AF37]/20 bg-[#D4AF37]/5 p-4">
-              <h3 className="text-sm font-bold text-[#111]">Votre dépanneur</h3>
-              <p className="mt-1 text-sm text-slate-700 font-semibold">Dépannage Express IDF</p>
-              <div className="mt-2 flex gap-3">
-                <a href="tel:0145678900" className="flex items-center gap-1.5 rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-white">
-                  <Phone size={12} /> Appeler
-                </a>
-                <button onClick={() => showToast("Message envoye au depanneur")} className="flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-3 py-1.5 text-xs font-bold text-white">
-                  <MessageSquare size={12} /> Message
-                </button>
               </div>
-              {currentStatut >= 3 && (
-                <p className="mt-2 text-xs text-slate-500 flex items-center gap-1"><Clock size={10} /> Arrivée estimée : ~8 min</p>
-              )}
-            </div>
-          )}
 
-          {/* Notation */}
-          {showRating && (
-            <div className="mt-6 rounded-xl border border-green-200 bg-green-50 p-5">
-              <h3 className="text-sm font-bold text-green-800 flex items-center gap-2"><CheckCircle size={16} /> Intervention terminée !</h3>
-              <p className="mt-1 text-xs text-green-700">Notez votre dépanneur pour aider la communauté.</p>
-              <div className="mt-4 space-y-3">
-                {(["ponctualite", "professionnalisme", "accueil", "qualite"] as const).map((key) => {
-                  const labels: Record<string, string> = { ponctualite: "Ponctualité", professionnalisme: "Professionnalisme", accueil: "Accueil", qualite: "Qualité du service" };
-                  return (
-                    <div key={key}>
-                      <label className="text-xs font-semibold text-slate-700">{labels[key]}</label>
-                      <div className="mt-1 flex gap-1">
-                        {[1, 2, 3, 4, 5].map((n) => (
-                          <button key={n} type="button" onClick={() => setRatings((r) => ({ ...r, [key]: n }))}>
-                            <Star size={20} className={n <= ratings[key] ? "fill-amber-400 text-amber-400" : "text-slate-300"} />
+              {/* Devis réellement reçus — jamais un dépanneur ni un tarif inventé */}
+              {(quotes.data?.length ?? 0) > 0 && demandeActuelle.status !== "terminee" && (
+                <div className="mt-4 space-y-2">
+                  <h3 className="text-sm font-bold text-[#111]">Devis reçus</h3>
+                  {quotes.data!.map((q) => (
+                    <div key={q.id} className="rounded-xl border border-[#E5E7EB] bg-white p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-bold text-[#111]">{Number(q.montant).toFixed(2)} {q.currency}</p>
+                        {q.accepte ? (
+                          <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">Accepté</span>
+                        ) : (
+                          <button
+                            onClick={() => payQuote.mutate({ quoteId: q.id })}
+                            disabled={payQuote.isPending}
+                            className="rounded-lg bg-[#111] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+                          >
+                            {payQuote.isPending ? "…" : "Payer ce devis"}
                           </button>
-                        ))}
+                        )}
                       </div>
+                      {q.description && <p className="mt-1 text-xs text-slate-500">{q.description}</p>}
                     </div>
-                  );
-                })}
-              </div>
-              <button onClick={() => { showToast("Merci pour votre avis ! Note moyenne: " + (Object.values(ratings).reduce((a,b) => a+b, 0) / 4).toFixed(1) + "/5"); setShowRating(false); }} className="mt-4 w-full rounded-lg bg-green-600 py-2.5 text-sm font-bold text-white hover:bg-green-700">
-                Envoyer mon avis
-              </button>
-            </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Intervention terminée : renvoi vers le vrai système d'avis, jamais un formulaire dupliqué */}
+              {demandeActuelle.status === "terminee" && (
+                <div className="mt-6 rounded-xl border border-green-200 bg-green-50 p-5 text-center">
+                  <CheckCircle size={24} className="mx-auto text-green-600" />
+                  <h3 className="mt-2 text-sm font-bold text-green-800">Intervention terminée</h3>
+                  <p className="mt-1 text-xs text-green-700">Votre avis est attendu dans votre espace « Mes avis ».</p>
+                  <a href="/compte/avis" className="mt-3 inline-block rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700">
+                    Déposer mon avis
+                  </a>
+                </div>
+              )}
+            </>
           )}
 
-          <button onClick={() => { setMode("home"); setStep(0); setSubmitted(false); setCurrentStatut(0); setShowRating(false); }} className="mt-6 w-full rounded-lg border border-slate-200 py-2 text-sm font-semibold text-slate-600">
+          <button onClick={() => { setMode("home"); setStep(0); setRequestId(null); }} className="mt-6 w-full rounded-lg border border-slate-200 py-2 text-sm font-semibold text-slate-600">
             Retour à l'accueil dépannage
           </button>
         </div>
@@ -406,9 +416,9 @@ export default function Depannage() {
                 Suivant <ChevronRight size={14} className="inline ml-1" />
               </button>
             ) : (
-              <button type="button" onClick={handleSubmit}
-                className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-bold text-white hover:bg-red-700">
-                Valider ma demande
+              <button type="button" onClick={handleSubmit} disabled={createRequest.isPending}
+                className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50">
+                {createRequest.isPending ? "Envoi…" : "Valider ma demande"}
               </button>
             )}
           </div>
@@ -447,34 +457,34 @@ export default function Depannage() {
         </div>
       </div>
 
-      {/* Dépanneurs disponibles */}
+      {/* Dépanneurs partenaires — données réelles (server/routers/depannage.ts::providers), jamais une liste inventée */}
       <div className="mt-8">
-        <h2 className="text-lg font-bold text-[#111]">Dépanneurs disponibles</h2>
-        <p className="mt-1 text-xs text-slate-500">Les dépanneurs les plus proches et les mieux notés</p>
+        <h2 className="text-lg font-bold text-[#111]">Dépanneurs partenaires</h2>
+        <p className="mt-1 text-xs text-slate-500">Envoyez votre demande : les dépanneurs de votre secteur vous répondent avec un devis.</p>
+        {providers.isLoading && <p className="mt-4 text-sm text-slate-500">Chargement…</p>}
+        {!providers.isLoading && (providers.data?.length ?? 0) === 0 && (
+          <p className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
+            Aucun dépanneur partenaire enregistré pour le moment. Envoyez tout de même votre demande — elle sera transmise dès qu'un dépanneur rejoint la plateforme dans votre secteur.
+          </p>
+        )}
         <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {DEPANNEURS.map((d) => (
-            <div key={d.id} className={`rounded-xl border p-4 ${d.dispo ? "border-slate-200 bg-white" : "border-slate-100 bg-slate-50 opacity-60"}`}>
+          {(providers.data ?? []).map((d) => (
+            <div key={d.id} className="rounded-xl border border-slate-200 bg-white p-4">
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-[#111]">{d.nom}</h3>
-                  <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500"><MapPin size={10} /> {d.zone}</p>
+                  {d.zone && <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500"><MapPin size={10} /> {d.zone}</p>}
                 </div>
-                <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${d.dispo ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-500"}`}>
-                  {d.dispo ? "Disponible" : "Occupé"}
-                </span>
+                <span className="rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-bold text-green-700">Actif</span>
               </div>
-              <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
-                <span className="flex items-center gap-1"><Star size={10} className="fill-amber-400 text-amber-400" /> {d.note} ({d.avis} avis)</span>
-                <span className="flex items-center gap-1"><Navigation size={10} /> {d.distance}</span>
-              </div>
-              <div className="mt-3 flex gap-2">
-                <a href={`tel:${d.tel.replace(/\s/g, "")}`} className="flex items-center gap-1 rounded-lg bg-[#111] px-3 py-1.5 text-[10px] font-bold text-white">
-                  <Phone size={10} /> Appeler
-                </a>
-                <button onClick={() => setMode("demande")} className="flex items-center gap-1 rounded-lg bg-[#D4AF37] px-3 py-1.5 text-[10px] font-bold text-white">
-                  <Wrench size={10} /> Demander
-                </button>
-              </div>
+              {d.rating != null && (
+                <div className="mt-2 flex items-center gap-1 text-xs text-slate-500">
+                  <Star size={10} className="fill-amber-400 text-amber-400" /> {Number(d.rating).toFixed(1)}
+                </div>
+              )}
+              <button onClick={() => setMode("demande")} className="mt-3 flex items-center gap-1 rounded-lg bg-[#D4AF37] px-3 py-1.5 text-[10px] font-bold text-white">
+                <Wrench size={10} /> Demander
+              </button>
             </div>
           ))}
         </div>

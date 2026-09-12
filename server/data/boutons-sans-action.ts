@@ -21,10 +21,6 @@ export interface BoutonSansAction {
 }
 
 export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
-  { fichier: "client/src/pages/AssistanceSinistre.tsx", ligne: 47, libelle: "Appeler" },
-  { fichier: "client/src/pages/AssistanceSinistre.tsx", ligne: 77, libelle: "Modifier" },
-  { fichier: "client/src/pages/AssistanceSinistre.tsx", ligne: 90, libelle: "Photo" },
-  { fichier: "client/src/pages/AssistanceSinistre.tsx", ligne: 98, libelle: "Envoyer la demande d'assistance" },
   { fichier: "client/src/pages/CalendrierDispo.tsx", ligne: 119, libelle: "Réserver les dates disponibles" },
   { fichier: "client/src/pages/CentrePenalites.tsx", ligne: 99, libelle: "Payer" },
   { fichier: "client/src/pages/CentrePenalites.tsx", ligne: 100, libelle: "Contester" },
@@ -101,9 +97,8 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/LocationMinibus.tsx", ligne: 124, libelle: "Rechercher un minibus" },
   { fichier: "client/src/pages/LocationMKAPMS.tsx", ligne: 232, libelle: "Rechercher un véhicule MKA.P-MS" },
   { fichier: "client/src/pages/LocationMKAPMS.tsx", ligne: 335, libelle: "Réserver ce véhicule" },
-  { fichier: "client/src/pages/LocationParticulier.tsx", ligne: 334, libelle: "Appliquer les filtres" },
-  { fichier: "client/src/pages/LocationParticulier.tsx", ligne: 534, libelle: "" },
-  { fichier: "client/src/pages/LocationParticulier.tsx", ligne: 561, libelle: "Voir les véhicules proches" },
+  { fichier: "client/src/pages/LocationParticulier.tsx", ligne: 575, libelle: "" },
+  { fichier: "client/src/pages/LocationParticulier.tsx", ligne: 602, libelle: "Voir les véhicules proches" },
   { fichier: "client/src/pages/LocationPro.tsx", ligne: 235, libelle: "Rechercher" },
   { fichier: "client/src/pages/LocationPro.tsx", ligne: 299, libelle: "Appliquer les filtres" },
   { fichier: "client/src/pages/LocationPro.tsx", ligne: 496, libelle: "Voir les véhicules proches" },

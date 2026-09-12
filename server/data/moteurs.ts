@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 89;
-export const MANQUES_TOTAL = 657;
+export const MANQUES_TOTAL = 652;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 355,
-  "bouton_sans_action": 198,
+  "bouton_sans_action": 193,
   "destination_inconnue": 47,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
@@ -6662,22 +6662,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/assistance"
         ],
-        "cliquables": 5,
+        "cliquables": 4,
         "parMoteur": 0,
-        "sansAction": 4,
+        "sansAction": 0,
         "textes": 22,
-        "mots": 59
+        "mots": 85
       },
       {
         "fichier": "client/src/pages/Depannage.tsx",
         "routes": [
           "/depannage"
         ],
-        "cliquables": 14,
+        "cliquables": 12,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 79,
-        "mots": 343
+        "textes": 71,
+        "mots": 354
       },
       {
         "fichier": "client/src/pages/superadmin/AdminDepannage.tsx",
@@ -6721,27 +6721,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 111,
-    "mots": 425,
+    "textes": 103,
+    "mots": 462,
     "battement": "sonde",
-    "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Appeler » client/src/pages/AssistanceSinistre.tsx:47"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Modifier » client/src/pages/AssistanceSinistre.tsx:77"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Photo » client/src/pages/AssistanceSinistre.tsx:90"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Envoyer la demande d'assistance » client/src/pages/AssistanceSinistre.tsx:98"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "document",
@@ -11281,9 +11264,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 8,
         "parMoteur": 0,
-        "sansAction": 3,
-        "textes": 102,
-        "mots": 327
+        "sansAction": 2,
+        "textes": 108,
+        "mots": 404
       },
       {
         "fichier": "client/src/pages/ProduitParticulier.tsx",
@@ -11301,21 +11284,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 198,
-    "mots": 672,
+    "textes": 204,
+    "mots": 749,
     "battement": "sonde",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« Appliquer les filtres » client/src/pages/LocationParticulier.tsx:334"
+        "detail": "« (sans texte) » client/src/pages/LocationParticulier.tsx:575"
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/LocationParticulier.tsx:534"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Voir les véhicules proches » client/src/pages/LocationParticulier.tsx:561"
+        "detail": "« Voir les véhicules proches » client/src/pages/LocationParticulier.tsx:602"
       },
       {
         "genre": "bouton_sans_action",
