@@ -806,6 +806,13 @@
       "when": 1788232008000,
       "tag": "0116_governance_versions_audits_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 115,
+      "version": "7",
+      "when": 1788232009000,
+      "tag": "0117_governance_dependencies",
+      "breakpoints": true
     }
   ]
 }

@@ -9614,7 +9614,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 53,
+    "fichiersServeur": 54,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -9667,9 +9667,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "integrationsTechniques": [],
     "preuvesDependances": {
       "ai_fabric": [
+        "governance/dependencies.ts importe ai-fabric/service.ts",
         "intelligences/actions.ts importe ai-fabric/service.ts",
-        "intelligences/capacites.ts importe ai-fabric/schema.ts",
-        "intelligences/capacites.ts importe ai-fabric/service.ts"
+        "intelligences/capacites.ts importe ai-fabric/schema.ts"
       ],
       "code_graph": [
         "intelligences/memoire.ts charge code-graph/service.ts",
@@ -9693,8 +9693,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "core": [
         "governance/audit-semestriel.ts importe db.ts",
-        "governance/versions.ts importe db.ts",
-        "intelligences/actions.ts importe db.ts"
+        "governance/dependencies.ts importe db.ts",
+        "governance/versions.ts importe db.ts"
       ],
       "country": [
         "intelligences/contexte/service.ts importe country-os/index.ts",
@@ -9834,6 +9834,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "couvertureIntelligence",
       "creerCleDeveloppeur",
       "demander",
+      "dependanceDetail",
+      "dependancesAlertes",
+      "dependancesCouverture",
+      "dependancesRegistre",
       "detachementFournisseur",
       "developpeur",
       "domaines",
@@ -9886,6 +9890,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "tables": [
       "gv_audits",
+      "gv_dependencies",
       "gv_settings_etat",
       "gv_versions",
       "in_actions",

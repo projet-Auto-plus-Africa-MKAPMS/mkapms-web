@@ -1,14 +1,87 @@
 /**
- * MKA.P-MS Intelligence — module Usage & coûts (LOT IA02B).
+ * MKA.P-MS Intelligence — module Usage & coûts (LOT IA02B), complété du
+ * Provider Registry en LOT IA02D (Direction → Intelligence → Dependencies,
+ * point 14).
  *
- * Vue direction réelle (server/intelligences/service.ts::etat) : accès,
- * fournisseurs, usage et plafonds. Détail fournisseur volontairement présent
- * ici — c'est la vue direction, pas une surface publique — pour que la
- * direction puisse suivre coût, état et remplacement de chaque fournisseur
- * avant l'échéance d'indépendance de mars 2027.
+ * Vue direction réelle (server/intelligences/service.ts::etat,
+ * server/governance/dependencies.ts) : accès, fournisseurs, usage, plafonds,
+ * et maintenant readiness de déconnexion par dépendance de modèle externe. Détail
+ * fournisseur volontairement présent ici — c'est la vue direction, pas une
+ * surface publique — pour que la direction puisse suivre coût, état et
+ * remplacement de chaque fournisseur avant l'échéance d'indépendance du 27
+ * mars 2027.
  */
-import { Gauge } from "lucide-react";
+import { Gauge, ShieldAlert } from "lucide-react";
 import { trpc } from "../../../lib/trpc";
+
+const LABEL_MIGRATION: Record<string, string> = {
+  ON_TRACK: "Dans les temps",
+  AT_RISK: "À risque",
+  BLOCKED: "Bloqué",
+  READY_TO_DISCONNECT: "Prêt à déconnecter",
+  DISCONNECTED: "Déconnecté",
+};
+
+const CLASSE_MIGRATION: Record<string, string> = {
+  ON_TRACK: "bg-[#E9F7EF] text-[#1a7f37]",
+  AT_RISK: "bg-[#FFFBEA] text-[#8B7500]",
+  BLOCKED: "bg-red-50 text-red-600",
+  READY_TO_DISCONNECT: "bg-[#E9F7EF] text-[#1a7f37]",
+  DISCONNECTED: "bg-black/5 text-black/40",
+};
+
+function DependancesIndependance() {
+  const registre = trpc.intelligences.dependancesRegistre.useQuery();
+  const alertes = trpc.intelligences.dependancesAlertes.useQuery();
+
+  return (
+    <div className="rounded-xl border border-black/10 p-4">
+      <div className="mb-3 flex items-center gap-2">
+        <ShieldAlert className="h-5 w-5 text-black/40" />
+        <h2 className="text-base font-black text-[#111]">Indépendance API — échéance 27 mars 2027</h2>
+      </div>
+
+      {registre.isLoading && <p className="text-sm text-black/40">Chargement…</p>}
+      <div className="space-y-2">
+        {registre.data?.map((d) => (
+          <div key={d.providerId} className="rounded-lg border border-black/5 bg-[#FAFAFA] p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-sm font-bold text-[#111]">{d.internalName}</span>
+              <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${CLASSE_MIGRATION[d.statutMigration] ?? "bg-black/5 text-black/50"}`}>
+                {LABEL_MIGRATION[d.statutMigration] ?? d.statutMigration}
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-black/50">
+              Readiness de déconnexion : <span className="font-bold">{d.readiness.pourcentage} %</span>
+              {d.targetDisconnectDate && ` — échéance ${new Date(d.targetDisconnectDate).toLocaleDateString("fr-FR")}`}
+            </p>
+            <p className="mt-0.5 text-[11px] text-black/40">
+              Capacités utilisées : {d.capabilitiesUsed.join(", ") || "aucune"} · repli : {d.fallback}
+            </p>
+            {d.readiness.bloquants.length > 0 && (
+              <ul className="mt-1.5 list-inside list-disc text-[11px] text-black/50">
+                {d.readiness.bloquants.map((b, i) => (
+                  <li key={i}>{b}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {alertes.data && alertes.data.length > 0 && (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p className="mb-1 text-xs font-bold text-amber-900">Alertes migration</p>
+          <ul className="list-inside list-disc text-[11px] text-amber-800">
+            {alertes.data.map((a, i) => (
+              <li key={i}>{a}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function UsageCouts() {
   const etat = trpc.intelligences.etat.useQuery();
@@ -20,6 +93,8 @@ export function UsageCouts() {
 
   return (
     <div className="space-y-4">
+      <DependancesIndependance />
+
       <div className="rounded-xl border border-black/10 p-4">
         <div className="mb-3 flex items-center gap-2">
           <Gauge className="h-5 w-5 text-black/40" />

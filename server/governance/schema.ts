@@ -7,7 +7,7 @@
  * duplique une table existante (`in_sessions`/`in_messages` restent la
  * conversation, `audit_logs`/`audit-os` restent le journal d'action).
  */
-import { bigserial, integer, jsonb, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { bigserial, boolean, integer, jsonb, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 /** Point 1 (règles permanentes) — une ligne par release réelle d'une application. */
 export const gvVersions = pgTable("gv_versions", {
@@ -48,5 +48,44 @@ export const gvSettingsEtat = pgTable("gv_settings_etat", {
   cle: varchar("cle", { length: 80 }).notNull().unique(),
   etat: varchar("etat", { length: 24 }).notNull(),
   motif: text("motif").notNull().default(""),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+/**
+ * LOT IA02D — Provider Registry / Dependency Registry, source centrale de
+ * vérité pour les dépendances de modèles externes en vue de l'échéance du 27 mars
+ * 2027. Ne remplace ni ne duplique ai-fabric (catalogue et état réel des
+ * fournisseurs), capacites.ts (capacités et remplacement MKA.P-MS visé) ni
+ * shadow.ts (preuves de montée en charge du remplacement interne) : ce
+ * registre les RELIE et porte ce qu'aucun des trois ne portait encore —
+ * calendrier de sortie, disconnect readiness, droits sur les données.
+ */
+export const gvDependencies = pgTable("gv_dependencies", {
+  id: serial("id").primaryKey(),
+  providerId: varchar("provider_id", { length: 48 }).notNull().unique(),
+  internalName: varchar("internal_name", { length: 120 }).notNull(),
+  category: varchar("category", { length: 32 }).notNull().default("ia_modele"),
+  adapterId: varchar("adapter_id", { length: 160 }).notNull(),
+  capabilitiesAvailable: jsonb("capabilities_available").$type<string[]>().notNull().default([]),
+  capabilitiesUsed: jsonb("capabilities_used").$type<string[]>().notNull().default([]),
+  authenticationType: varchar("authentication_type", { length: 40 }).notNull().default("api_key"),
+  fallback: text("fallback").notNull().default(""),
+  alternativeProvider: varchar("alternative_provider", { length: 48 }),
+  /** Nature réelle de ce qui est envoyé au fournisseur — écrit, jamais déduit automatiquement. */
+  dataDependency: text("data_dependency").notNull().default(""),
+  internalReplacement: varchar("internal_replacement", { length: 160 }).notNull().default(""),
+  internalReplacementStatus: varchar("internal_replacement_status", { length: 40 }).notNull().default("external_primary"),
+  migrationPriority: varchar("migration_priority", { length: 16 }).notNull().default("moyenne"),
+  targetDisconnectDate: timestamp("target_disconnect_date"),
+  lastIndependenceTest: timestamp("last_independence_test"),
+  lastIndependenceTestOk: boolean("last_independence_test_ok"),
+  /** Inconnu tant qu'aucune revue juridique n'a eu lieu — jamais supposé favorable. */
+  trainingRights: varchar("training_rights", { length: 24 }).notNull().default("LEGAL_RIGHTS_UNKNOWN"),
+  redistributionRights: varchar("redistribution_rights", { length: 24 }).notNull().default("LEGAL_RIGHTS_UNKNOWN"),
+  retentionPolicy: text("retention_policy").notNull().default(""),
+  cachePolicy: text("cache_policy").notNull().default(""),
+  countryConstraints: jsonb("country_constraints").$type<string[]>().notNull().default([]),
+  status: varchar("status", { length: 32 }).notNull().default("REGISTERED"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
