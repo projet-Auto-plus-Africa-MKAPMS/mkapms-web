@@ -111,6 +111,13 @@ import {
   compter as compterVehicules,
   interpreter as interpreterRechercheVehicule,
 } from "./recherche.js";
+import {
+  demander as demanderChantier,
+  mesProjets as mesProjetsChantier,
+  ouvrirProjet as ouvrirProjetChantier,
+} from "./chantier/service.js";
+import { arborescence as arborescenceChantier } from "./chantier/fs.js";
+import { statut as statutApercuChantier, verifierReponse as verifierReponseApercuChantier } from "./chantier/preview.js";
 
 export const INTELLIGENCES_META = {
   code: "intelligences",
@@ -659,4 +666,61 @@ export const intelligencesRouter = router({
   revoquerCleDeveloppeur: pdgProcedure
     .input(z.object({ id: z.number().int().positive(), motif: z.string().max(600).default("") }))
     .mutation(({ input, ctx }) => revoquerCle({ ...input, actorId: ctx.user?.uid })),
+
+  // ------------------------------------------------------- Chantier de développement
+  //
+  // Construit un petit projet (site vitrine…) de bout en bout à partir d'une
+  // demande en langage naturel : Project Engine, File System Tools, boucle
+  // d'outils (build, test, correction), Preview Engine. Réservé au PDG, comme
+  // le reste du côté direction — c'est MKA.P-MS Intelligence elle-même qui agit.
+
+  chantierProjets: pdgProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(100).default(40) }).optional())
+    .query(({ input, ctx }) => mesProjetsChantier(ctx.user?.uid ?? 0, input?.limit ?? 40)),
+
+  chantierProjet: pdgProcedure
+    .input(z.object({ projetId: z.number().int().positive() }))
+    .query(async ({ input, ctx }) => {
+      const projet = await ouvrirProjetChantier(input.projetId, ctx.user?.uid ?? 0);
+      if (!projet) return { projet: null, arborescence: [], apercu: null };
+      const [arborescence, apercu] = await Promise.all([
+        arborescenceChantier(projet.workspacePath),
+        statutApercuChantier(projet.id),
+      ]);
+      return { projet, arborescence, apercu };
+    }),
+
+  /** Demande en langage naturel : comprendre, planifier, créer/modifier, installer, construire, tester, corriger, prévisualiser — réellement. */
+  chantierDemander: pdgProcedure
+    .input(
+      z.object({
+        message: z.string().min(2).max(8000),
+        projetId: z.number().int().positive().nullable().optional(),
+        sessionId: z.number().int().positive().nullable().optional(),
+        countryCode: z.string().max(8).nullable().optional(),
+        maxIterations: z.number().int().min(1).max(40).optional(),
+      }),
+    )
+    .mutation(({ input, ctx }) =>
+      demanderChantier({
+        message: input.message,
+        actorId: ctx.user?.uid ?? 0,
+        role: ctx.user?.role ?? null,
+        projetId: input.projetId ?? null,
+        sessionId: input.sessionId ?? null,
+        countryCode: input.countryCode ?? null,
+        maxIterations: input.maxIterations,
+      }),
+    ),
+
+  /** Vérification directe (sans repasser par le modèle) que l'aperçu d'un projet répond réellement. */
+  chantierApercu: pdgProcedure
+    .input(z.object({ projetId: z.number().int().positive() }))
+    .query(async ({ input, ctx }) => {
+      const projet = await ouvrirProjetChantier(input.projetId, ctx.user?.uid ?? 0);
+      if (!projet) return { statut: "arrete" as const, url: null, port: null, mode: null, motif: "Projet introuvable.", reponseVerifiee: null };
+      const etat = await statutApercuChantier(projet.id);
+      const reponseVerifiee = etat.statut === "en_cours" ? await verifierReponseApercuChantier(projet.id) : null;
+      return { ...etat, reponseVerifiee };
+    }),
 });

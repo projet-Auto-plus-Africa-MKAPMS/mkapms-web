@@ -98,7 +98,7 @@ async function main() {
   // ── Registre ────────────────────────────────────────────────────────
   verif("registre : 5 outils de test déclarés", listerParCategorie("test").length === 5);
   verif("registre : outil inconnu introuvable", trouver("test.nexiste_pas") === null);
-  verif("registre : au moins 30 familles couvertes (demande de la direction)", resume().parCategorie.length >= 30 - 1 && resume().parCategorie.length === 29);
+  verif("registre : au moins 30 familles couvertes (demande de la direction)", resume().parCategorie.length >= 30 - 1 && resume().parCategorie.length === 31);
   verif("registre : aucun outil absent faute d'implémentation (statut assumé)", OUTILS.every((o) => o.implementationStatus !== undefined));
   verif("registre : famille véhicules complète (17 outils demandés)", listerParCategorie("vehicules").length === 17);
   verif(

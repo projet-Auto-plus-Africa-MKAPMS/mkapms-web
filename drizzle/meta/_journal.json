@@ -778,6 +778,13 @@
       "when": 1788232004000,
       "tag": "0112_investment_kyc_payout_fix",
       "breakpoints": true
+    },
+    {
+      "idx": 111,
+      "version": "7",
+      "when": 1788232005000,
+      "tag": "0113_intelligences_chantier",
+      "breakpoints": true
     }
   ]
 }

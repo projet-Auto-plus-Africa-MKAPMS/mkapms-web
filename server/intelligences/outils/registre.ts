@@ -22,6 +22,7 @@ import type { Permission } from "../capacites.js";
 import type { OutilFonction } from "../provider.js";
 import { OUTILS_VEHICULES } from "./familles/vehicules.js";
 import { OUTILS_GLOBAUX } from "./familles/globales.js";
+import { OUTILS_CHANTIER } from "./familles/chantier.js";
 
 export const NIVEAUX_RISQUE = ["READ_ONLY", "LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
 export type NiveauRisque = (typeof NIVEAUX_RISQUE)[number];
@@ -67,6 +68,8 @@ export const CATEGORIES = [
   "api_externes",
   "futurs_moteurs",
   "test", // outils de test du socle (server/intelligences/outils/outils-test.ts)
+  "projets", // Chantier de développement — Project Engine + File System Tools (server/intelligences/chantier/)
+  "developpement", // Chantier de développement — code/shell/build/test/preview (server/intelligences/chantier/)
 ] as const;
 export type Categorie = (typeof CATEGORIES)[number];
 
@@ -260,7 +263,7 @@ const OUTILS_TEST: OutilSpec[] = [
   },
 ];
 
-export const OUTILS: OutilSpec[] = [...OUTILS_TEST, ...OUTILS_VEHICULES, ...OUTILS_GLOBAUX];
+export const OUTILS: OutilSpec[] = [...OUTILS_TEST, ...OUTILS_VEHICULES, ...OUTILS_GLOBAUX, ...OUTILS_CHANTIER];
 
 export function trouver(toolId: string): OutilSpec | null {
   return OUTILS.find((o) => o.toolId === toolId) ?? null;

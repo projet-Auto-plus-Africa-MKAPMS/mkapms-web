@@ -10,6 +10,7 @@
 import type { OutilSpec } from "./registre.js";
 import { validerArguments } from "./validation.js";
 import { IMPLEMENTATIONS } from "./implementations.js";
+import type { ContexteExecution } from "./outils-test.js";
 
 export type StatutExecution = "execute" | "erreur" | "timeout" | "arguments_invalides" | "non_implemente";
 
@@ -40,7 +41,11 @@ async function avecTimeout<T>(promesse: Promise<T>, timeoutMs: number): Promise<
   }
 }
 
-export async function executer(outil: OutilSpec, argumentsJson: string): Promise<ResultatExecution> {
+export async function executer(
+  outil: OutilSpec,
+  argumentsJson: string,
+  contexte?: ContexteExecution,
+): Promise<ResultatExecution> {
   const debut = Date.now();
 
   const brut = argumentsBruts(argumentsJson);
@@ -77,7 +82,7 @@ export async function executer(outil: OutilSpec, argumentsJson: string): Promise
 
   try {
     const resultat = await avecTimeout(
-      implementation(brut.valeurs as Record<string, unknown>),
+      implementation(brut.valeurs as Record<string, unknown>, contexte),
       outil.timeoutMs,
     );
     return { statut: "execute", resultat, motif: "", dureeMs: Date.now() - debut };

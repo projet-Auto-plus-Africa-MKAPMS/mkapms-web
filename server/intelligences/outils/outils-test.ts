@@ -6,7 +6,24 @@
  * ajoutera les outils métier dans des fichiers séparés du même genre
  * (ex. outils-vehicules.ts) sans toucher à executeur.ts.
  */
-export type ImplementationOutil = (args: Record<string, unknown>) => Promise<unknown>;
+/**
+ * Contexte de l'appelant, transmis en plus des arguments — jamais fourni par
+ * le modèle lui-même (il vient de la session authentifiée qui a lancé la
+ * boucle d'outils). Introduit pour le Chantier de développement
+ * (server/intelligences/chantier/) : une implémentation qui a besoin de
+ * savoir QUI appelle (isolation par projet) le lit ici, jamais dans les
+ * arguments JSON que le modèle pourrait falsifier.
+ */
+export interface ContexteExecution {
+  role: string | null;
+  moteur: string;
+  actorId?: number | null;
+}
+
+export type ImplementationOutil = (
+  args: Record<string, unknown>,
+  contexte?: ContexteExecution,
+) => Promise<unknown>;
 
 export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   "test.lire_info_interne": async () => ({

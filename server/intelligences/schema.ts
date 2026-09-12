@@ -34,6 +34,8 @@ export const inSessions = pgTable("in_sessions", {
   /** Domaine d'assistance réellement appliqué à la session (côté public). */
   domaine: varchar("domaine", { length: 48 }).notNull().default("automobile"),
   messages: integer("messages").notNull().default(0),
+  /** Projet Chantier actif pour cette session — le PDG n'a jamais à le redire. */
+  projetActifId: integer("projet_actif_id"),
   dernierAt: timestamp("dernier_at").notNull().defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -55,6 +57,95 @@ export const inMessages = pgTable("in_messages", {
   /** Éléments de contexte réellement injectés : traçabilité de ce qu'a vu le modèle. */
   contexte: jsonb("contexte").$type<string[]>().notNull().default([]),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+/**
+ * Chantier de développement — projet de site/atelier de code ouvert par le PDG
+ * depuis MKA.P-MS Intelligence. Un espace de travail réel sur disque, isolé par
+ * propriétaire : deux projets ne partagent jamais un même dossier, et aucun
+ * outil filesystem/shell/preview n'agit hors de `workspacePath`.
+ *
+ * Nommé « projets » (et non « atelier », déjà pris par le moteur d'atelier
+ * garage — server/atelier-engine/schema.ts, sans rapport).
+ */
+export const inProjets = pgTable(
+  "in_projets",
+  {
+    id: serial("id").primaryKey(),
+    ownerId: integer("owner_id").notNull(),
+    nom: varchar("nom", { length: 120 }).notNull(),
+    description: text("description").notNull().default(""),
+    /** `site_vitrine` pour ce lot ; d'autres types de projet s'ajouteront sans migration de celui-ci. */
+    typeProjet: varchar("type_projet", { length: 32 }).notNull().default("site_vitrine"),
+    /** Chemin réel sur disque, hors du dépôt git, propre à ce projet. */
+    workspacePath: varchar("workspace_path", { length: 300 }).notNull(),
+    /** `cree` | `en_cours` | `pret` | `erreur` | `archive`. */
+    statut: varchar("statut", { length: 24 }).notNull().default("cree"),
+    countryCode: varchar("country_code", { length: 8 }),
+    /** Permissions techniques effectives observées à la création (traçabilité, pas une source de vérité). */
+    permissions: jsonb("permissions").$type<string[]>().notNull().default([]),
+    /** Contexte fournisseur (capacité/fournisseur utilisés pour la génération) — jamais un secret. */
+    providerContext: jsonb("provider_context").$type<Record<string, unknown>>().notNull().default({}),
+    /** `non_deploye` pour tout ce lot : aucun déploiement public n'est fait ici. */
+    deploymentStatus: varchar("deployment_status", { length: 24 }).notNull().default("non_deploye"),
+    /** Session Intelligence direction depuis laquelle le projet a été ouvert, si connue. */
+    sessionId: integer("session_id"),
+    dernierPlan: text("dernier_plan").notNull().default(""),
+    actorId: integer("actor_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parProprietaire: index("in_projets_owner_idx").on(t.ownerId, t.createdAt),
+  }),
+);
+
+/**
+ * Exécutions du Chantier (shell, install, build, test, lint, typecheck) —
+ * une ligne par commande réellement lancée. Le résumé est tronqué comme le
+ * reste des journaux du Tool Registry ; la sortie complète reste un fichier
+ * réel dans le workspace du projet (`.mkapms/logs/`), jamais recopiée en base.
+ */
+export const inChantierExecutions = pgTable(
+  "in_chantier_executions",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    projetId: integer("projet_id").notNull(),
+    type: varchar("type", { length: 24 }).notNull(),
+    commande: text("commande").notNull().default(""),
+    /** `execute` | `erreur` | `timeout`. */
+    statut: varchar("statut", { length: 24 }).notNull().default("execute"),
+    codeSortie: integer("code_sortie"),
+    dureeMs: integer("duree_ms").notNull().default(0),
+    /** Chemin réel du journal complet dans le workspace du projet. */
+    logPath: varchar("log_path", { length: 400 }),
+    resume: text("resume").notNull().default(""),
+    actorId: integer("actor_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parProjet: index("in_chantier_executions_projet_idx").on(t.projetId, t.createdAt),
+  }),
+);
+
+/**
+ * Aperçu (Preview Engine) — un serveur temporaire par projet, jamais public.
+ * Une ligne par projet : un aperçu en cours en remplace un précédent, il ne
+ * s'en additionne pas.
+ */
+export const inChantierPreviews = pgTable("in_chantier_previews", {
+  id: serial("id").primaryKey(),
+  projetId: integer("projet_id").notNull().unique(),
+  port: integer("port"),
+  pid: integer("pid"),
+  mode: varchar("mode", { length: 24 }).notNull().default("statique"),
+  /** `en_cours` | `arrete` | `erreur`. */
+  statut: varchar("statut", { length: 24 }).notNull().default("arrete"),
+  url: varchar("url", { length: 200 }),
+  motif: text("motif").notNull().default(""),
+  demarreAt: timestamp("demarre_at"),
+  arreteAt: timestamp("arrete_at"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 /** Consommation par jour et par côté : le coût reste visible avant la facture. */
