@@ -14,7 +14,7 @@
  * unique contenant tout le produit.
  */
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
   Bot,
   ChevronLeft,
@@ -104,6 +104,32 @@ export default function MKAPMSIntelligence() {
   const niveau = useMemo(() => niveauDepuis({ role: user?.role ?? null }), [user?.role]);
 
   const Actif = MODULES.find((m) => m.cle === module)?.Composant ?? Conversation;
+
+  // LOT IA02B — le moteur réel derrière chaque module construit dans ce lot
+  // (conversation, historique, mémoire, projets, outils, permissions,
+  // paramètres, intégrations, usage) reste aujourd'hui réservé à la
+  // direction (server/intelligences/index.ts::pdgProcedure) : ouvrir l'accès
+  // aux autres niveaux de l'échelle est un lot suivant, pas une omission de
+  // celui-ci. Même message que le côté direction historique
+  // (CentreIntelligences.tsx) pour ne pas inventer un second discours.
+  if (!user) return <Navigate to="/connexion" replace />;
+  if (niveau !== "pdg") {
+    return (
+      <div className="mx-auto max-w-xl p-6 text-center">
+        <ShieldCheck className="mx-auto h-8 w-8 text-black/30" />
+        <h1 className="mt-3 text-lg font-black text-[#111]">Espace réservé pour l'instant</h1>
+        <p className="mt-2 text-sm text-black/60">
+          Le moteur réel derrière MKA.P-MS Intelligence (conversation, mémoire, projets, outils) est
+          aujourd'hui réservé au compte PDG. Les autres niveaux d'accès (professionnel, développeur,
+          équipe interne, direction) arriveront avec les lots suivants — l'assistant public reste
+          accessible partout ailleurs sur la plateforme.
+        </p>
+        <Link to="/intelligences" className="mt-4 inline-block text-sm font-bold text-[#8B7500]">
+          Ouvrir l'assistant public
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">

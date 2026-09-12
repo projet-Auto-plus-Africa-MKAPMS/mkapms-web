@@ -9788,11 +9788,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/intelligence"
         ],
-        "cliquables": 2,
+        "cliquables": 3,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 21,
-        "mots": 45
+        "textes": 22,
+        "mots": 121
       }
     ],
     "ecransHotes": [
@@ -9906,8 +9906,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 206,
-    "mots": 1200,
+    "textes": 207,
+    "mots": 1276,
     "battement": "sonde",
     "manques": [
       {
