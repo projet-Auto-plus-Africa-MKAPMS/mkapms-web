@@ -165,13 +165,13 @@ export default function GaragePublicFiche() {
         {/* Actions */}
         <div className="grid grid-cols-2 gap-3">
           <Link
-            to="/garage/rendez-vous"
+            to="/garage/prise-rendez-vous"
             className="flex items-center justify-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-bold text-white"
           >
             <Calendar size={15} /> Prendre rendez-vous
           </Link>
           <Link
-            to="/garage/devis"
+            to="/garage/demande-devis"
             className="flex items-center justify-center gap-2 rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-[#111]"
           >
             <FileText size={15} /> Demander un devis

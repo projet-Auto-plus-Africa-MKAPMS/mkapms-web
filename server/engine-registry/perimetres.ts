@@ -356,7 +356,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
     moteur: "achat",
     dossiers: ["routers/annonces.ts", "routers/favoris.ts", "routers/reservations.ts", "routers/devis.ts"],
     routeurs: ["annonces", "favoris", "reservations", "devis"],
-    routes: ["/acheter", "/acheter/camions", "/acheter/camions-engins", "/acheter/minibus", "/acheter/moto", "/acheter/utilitaires", "/acheter/vtc-taxi", "/acheter/promotions", "/acheter/historique-vehicule", "/vehicule/:id", "/voiture-occasion", "/moto-occasion", "/favoris", "/comparateur", "/devis", "/superadmin/admin-moderation-annonces", "/superadmin/admin-fraude"],
+    routes: ["/acheter", "/acheter/camions", "/acheter/camions-engins", "/acheter/minibus", "/acheter/moto", "/acheter/utilitaires", "/acheter/vtc-taxi", "/acheter/promotions", "/acheter/historique-vehicule", "/vehicule/:id", "/voiture-occasion", "/moto-occasion", "/favoris", "/comparateur", "/devis", "/services", "/superadmin/admin-moderation-annonces", "/superadmin/admin-fraude"],
     sourcesBus: ["annonces"],
   },
   {

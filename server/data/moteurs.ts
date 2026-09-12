@@ -100,11 +100,11 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 88;
-export const MANQUES_TOTAL = 666;
+export const MANQUES_TOTAL = 657;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "destination_inconnue": 56,
   "ecran_sans_contenu": 355,
   "bouton_sans_action": 198,
+  "destination_inconnue": 47,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
   "dependance_sans_preuve": 35,
@@ -228,10 +228,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "mots": 87,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "destination_inconnue",
-        "detail": "/profil client/src/pages/TableauBordParticulier.tsx:36"
-      },
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/Univers.tsx (4 texte(s))"
@@ -598,6 +594,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/devis",
       "/favoris",
       "/moto-occasion",
+      "/services",
       "/superadmin/admin-fraude",
       "/superadmin/admin-moderation-annonces",
       "/vehicule/:id",
@@ -658,6 +655,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "sansAction": 0,
         "textes": 37,
         "mots": 79
+      },
+      {
+        "fichier": "client/src/pages/Services.tsx",
+        "routes": [
+          "/services"
+        ],
+        "cliquables": 0,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 10,
+        "mots": 32
       },
       {
         "fichier": "client/src/pages/Vehicule.tsx",
@@ -1036,8 +1044,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1424,
-    "mots": 4748,
+    "textes": 1434,
+    "mots": 4780,
     "battement": "sonde",
     "manques": [
       {
@@ -1059,10 +1067,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "destination_inconnue",
         "detail": "/vente-moto client/src/pages/MotoOccasion.tsx:115"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/services client/src/pages/Vehicule.tsx:924"
       },
       {
         "genre": "bouton_sans_action",
@@ -1219,10 +1223,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "battement": "sonde",
     "manques": [
       {
-        "genre": "destination_inconnue",
-        "detail": "/services client/src/pages/Vehicule.tsx:924"
-      },
-      {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1819"
       },
@@ -1341,10 +1341,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "battement": "sonde",
     "manques": [
       {
-        "genre": "destination_inconnue",
-        "detail": "/services client/src/pages/Vehicule.tsx:924"
-      },
-      {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1819"
       },
@@ -1462,10 +1458,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "mots": 2566,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "destination_inconnue",
-        "detail": "/services client/src/pages/Vehicule.tsx:924"
-      },
       {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1819"
@@ -8558,14 +8550,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "destination_inconnue",
         "detail": "/garage/devis client/src/pages/garage/GarageGenerale.tsx:56"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/garage/devis client/src/pages/garage/GarageParticulier.tsx:25"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/garage/rendez-vous client/src/pages/garage/GarageParticulier.tsx:34"
       },
       {
         "genre": "destination_inconnue",
@@ -18582,16 +18566,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 79,
     "mots": 427,
     "battement": "sonde",
-    "manques": [
-      {
-        "genre": "destination_inconnue",
-        "detail": "/garage/rendez-vous client/src/pages/garage/GaragePublicFiche.tsx:167"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/garage/devis client/src/pages/garage/GaragePublicFiche.tsx:173"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "smart",

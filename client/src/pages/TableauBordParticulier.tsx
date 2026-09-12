@@ -12,13 +12,13 @@ const SECTIONS = [
   { label: "Mes annonces", icon: FileText, to: "/acheter/mes-annonces", color: "bg-blue-600", count: 2 },
   { label: "Mes favoris", icon: Heart, to: "/louer/favoris", color: "bg-red-500", count: 5 },
   { label: "Mes messages", icon: MessageSquare, to: "/messagerie", color: "bg-purple-600", count: 3 },
-  { label: "Mes achats", icon: Package, to: "/acheter/mes-achats", color: "bg-orange-600", count: 1 },
+  { label: "Mes achats", icon: Package, to: "/utilisateurs/historique-achats", color: "bg-orange-600", count: 1 },
   { label: "Mes documents", icon: FileText, to: "/documents", color: "bg-teal-600", count: null },
   { label: "Historique véhicule", icon: History, to: "/acheter/historique-vehicule", color: "bg-indigo-600", count: null },
   { label: "Carte grise", icon: CreditCard, to: "/carte-grise", color: "bg-[#111]", count: null },
   { label: "Mes locations", icon: Car, to: "/louer/historique", color: "bg-amber-600", count: null },
   { label: "Livraison", icon: Truck, to: "/louer/livraison", color: "bg-cyan-600", count: null },
-  { label: "Support", icon: HelpCircle, to: "/support", color: "bg-gray-600", count: null },
+  { label: "Support", icon: HelpCircle, to: "/aide", color: "bg-gray-600", count: null },
 ];
 
 export default function TableauBordParticulier() {
@@ -33,7 +33,7 @@ export default function TableauBordParticulier() {
           </div>
           <div className="flex items-center gap-2">
             <Link to="/notifications" className="relative h-9 w-9 rounded-full bg-white/10 flex items-center justify-center"><Bell size={16} className="text-white" /><span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-[8px] font-bold text-white flex items-center justify-center">3</span></Link>
-            <Link to="/profil" className="h-9 w-9 rounded-full bg-[#D4AF37] flex items-center justify-center"><User size={16} className="text-white" /></Link>
+            <Link to="/compte" className="h-9 w-9 rounded-full bg-[#D4AF37] flex items-center justify-center"><User size={16} className="text-white" /></Link>
           </div>
         </div>
       </div>

@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import { User, Car, ShoppingCart, Home, Wrench, FileText, Euro, Heart, MessageSquare, ChevronRight, Phone } from "lucide-react";
 const MENUS = [
-  { label: "Mon profil", icon: User, to: "/utilisateurs/profil" }, { label: "Mes véhicules", icon: Car, to: "/utilisateurs/vehicules" },
-  { label: "Mes achats", icon: ShoppingCart, to: "/utilisateurs/achats" }, { label: "Mes locations", icon: Home, to: "/utilisateurs/locations" },
-  { label: "Mes réparations", icon: Wrench, to: "/utilisateurs/reparations" }, { label: "Mes démarches", icon: FileText, to: "/utilisateurs/demarches-historique" },
-  { label: "Mes paiements", icon: Euro, to: "/utilisateurs/paiements" }, { label: "Mes documents", icon: FileText, to: "/utilisateurs/documents" },
-  { label: "Mes favoris", icon: Heart, to: "/utilisateurs/favoris" }, { label: "Mes messages", icon: MessageSquare, to: "/utilisateurs/messages" },
+  { label: "Mon profil", icon: User, to: "/compte" }, { label: "Mes véhicules", icon: Car, to: "/utilisateurs/mes-vehicules" },
+  { label: "Mes achats", icon: ShoppingCart, to: "/utilisateurs/historique-achats" }, { label: "Mes locations", icon: Home, to: "/utilisateurs/historique-locations" },
+  { label: "Mes réparations", icon: Wrench, to: "/utilisateurs/historique-entretiens" }, { label: "Mes démarches", icon: FileText, to: "/utilisateurs/historique-demarches" },
+  { label: "Mes paiements", icon: Euro, to: "/utilisateurs/factures-utilisateur" }, { label: "Mes documents", icon: FileText, to: "/utilisateurs/documents-personnels" },
+  { label: "Mes favoris", icon: Heart, to: "/utilisateurs/centre-favoris-utilisateur" }, { label: "Mes messages", icon: MessageSquare, to: "/utilisateurs/messagerie-globale" },
 ];
 export default function CompteParticulier() {
   return (
