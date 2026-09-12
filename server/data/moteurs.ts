@@ -9613,7 +9613,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 35,
+    "fichiersServeur": 44,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -9820,6 +9820,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "auditMoteurs",
       "autonomie",
       "capacites",
+      "chantierApercu",
+      "chantierDemander",
+      "chantierProjet",
+      "chantierProjets",
       "coder",
       "comparaisonsShadow",
       "configStatus",
@@ -9872,6 +9876,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "in_autonomie",
       "in_autonomie_journal",
       "in_capacite_etat",
+      "in_chantier_executions",
+      "in_chantier_previews",
       "in_dev_appels",
       "in_dev_cles",
       "in_domaines",
@@ -9884,6 +9890,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "in_outils_journal",
       "in_permissions",
       "in_plan_autonomie",
+      "in_projets",
       "in_sessions",
       "in_shadow",
       "in_shadow_runs",

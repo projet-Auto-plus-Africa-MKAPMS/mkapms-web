@@ -59,6 +59,14 @@ export interface EntreeBoucle {
   maxTokens?: number;
   sortieStructuree?: SortieStructuree;
   maxIterations?: number;
+  /**
+   * Identité réelle de l'appelant (session authentifiée), jamais fournie par
+   * le modèle — transmise aux implémentations qui doivent vérifier une
+   * appartenance (ex. Chantier de développement : un projet n'appartient
+   * qu'à son propriétaire) sans dépendre d'un argument que le modèle pourrait
+   * falsifier.
+   */
+  actorId?: number | null;
 }
 
 export async function executerAvecOutils(
@@ -170,7 +178,11 @@ export async function executerAvecOutils(
         continue;
       }
 
-      const execution = await executer(outil, appel.arguments);
+      const execution = await executer(outil, appel.arguments, {
+        role: input.role,
+        moteur: input.moteur,
+        actorId: input.actorId ?? null,
+      });
       trace.push({
         toolId: outil.toolId,
         verdictPolitique: politique.verdict,
