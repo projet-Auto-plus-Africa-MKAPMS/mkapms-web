@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2571;
+export const CLIQUABLES_TOTAL = 2586;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -324,7 +324,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/Historique.tsx", total: 48, moteur: 0, liens: 3, boutonsLocaux: 33, sansAction: 2, zones: 10 },
   { fichier: "client/src/pages/HistoriqueConsultations.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/HistoriqueLocation.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/HistoriqueVehiculeVente.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/HistoriqueVehiculeVente.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Home.tsx", total: 15, moteur: 0, liens: 12, boutonsLocaux: 2, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/HomePro.tsx", total: 5, moteur: 0, liens: 5, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/HomeSite.tsx", total: 4, moteur: 0, liens: 3, boutonsLocaux: 1, sansAction: 0, zones: 0 },
@@ -625,12 +625,11 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/TableauBordLoueur.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/TableauBordParticulier.tsx", total: 6, moteur: 0, liens: 6, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/TableauBordProVente.tsx", total: 6, moteur: 0, liens: 6, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/utilisateurs/AbonnementsUtilisateur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/utilisateurs/CentreAlertesUtilisateur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/utilisateurs/CentreFavorisUtilisateur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/utilisateurs/CentreSupportUtilisateur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/utilisateurs/CompteProUtilisateur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/utilisateurs/DocumentsPersonnels.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/utilisateurs/AbonnementsUtilisateur.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/utilisateurs/CentreAlertesUtilisateur.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/utilisateurs/CentreFavorisUtilisateur.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/utilisateurs/CentreSupportUtilisateur.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/utilisateurs/CompteProUtilisateur.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/EmployesUtilisateur.tsx", total: 8, moteur: 0, liens: 1, boutonsLocaux: 7, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/FacturesUtilisateur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/HistoriqueAchats.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -639,9 +638,9 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/utilisateurs/HistoriqueEntretiens.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/HistoriqueLocations.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/MessagerieGlobale.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/utilisateurs/MesVehicules.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/utilisateurs/MesVehicules.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/ObjectifUtilisateur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/utilisateurs/SecuriteUtilisateur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/utilisateurs/SecuriteUtilisateur.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/TableauBordPerso.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Validation.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/Vehicule.tsx", total: 146, moteur: 0, liens: 10, boutonsLocaux: 102, sansAction: 1, zones: 33 },

@@ -1,20 +1,31 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, History, Search, Car, AlertCircle } from "lucide-react";
+import { ChevronLeft, History, Search, Car, FileText, Clock, Check, X } from "lucide-react";
 import { trpc } from "../lib/trpc";
+import { useAuth } from "../lib/auth";
 
 /* ══════════════════════════════════════════════════════════════════════════
    HISTORIQUE VÉHICULE (/acheter/historique-vehicule)
    Identification technique réelle via trpc.annonces.lookupPlate (déjà en
-   production ailleurs sur la plateforme). Le rapport « sinistres / vol /
-   gage / entretiens / propriétaires » n'a aucun moteur réel derrière lui —
-   aucun registre externe (HistoVec, FNI, assureurs, gage) n'est branché.
-   Un écran qui affichait ce rapport comme réel pour n'importe quel VIN
-   saisi était un problème de confiance, pas seulement une lacune : il est
-   remplacé par une divulgation honnête plutôt qu'un faux plus petit.
+   production ailleurs sur la plateforme). Le rapport détaillé (sinistres,
+   contrôles techniques, propriétaires, entretien, rappels constructeur)
+   a un vrai moteur de demande (server/routers/historique.ts, table
+   vehicle_reports) : la demande, le stockage et le statut sont réels.
+   Ce qui reste réellement absent : le vol et le gage n'ont aucun champ
+   dans ce moteur, et aucune connexion à un registre externe (assureurs,
+   fichier des véhicules gagés/volés) ne remplit encore automatiquement
+   les champs du rapport — une demande reste « en attente » jusqu'à
+   traitement, jamais affichée comme un rapport déjà établi.
    ══════════════════════════════════════════════════════════════════════════ */
 
+const STATUT_RAPPORT: Record<string, { label: string; icon: typeof Clock; color: string }> = {
+  en_attente: { label: "En attente de traitement", icon: Clock, color: "text-amber-600 bg-amber-50" },
+  pret: { label: "Rapport prêt", icon: Check, color: "text-green-600 bg-green-50" },
+  echec: { label: "Rapport indisponible", icon: X, color: "text-red-600 bg-red-50" },
+};
+
 export default function HistoriqueVehiculeVente() {
+  const { user } = useAuth();
   const [input, setInput] = useState("");
   const [type, setType] = useState<"plaque" | "vin">("plaque");
   const [recherche, setRecherche] = useState(false);
@@ -23,11 +34,18 @@ export default function HistoriqueVehiculeVente() {
     { type, query: input.trim() },
     { enabled: recherche && input.trim().length >= 4 },
   );
+  const mesRapports = trpc.historique.myReports.useQuery(undefined, { enabled: !!user });
+  const demanderRapport = trpc.historique.requestReport.useMutation({ onSuccess: () => mesRapports.refetch() });
 
   const rechercher = () => {
     if (input.trim().length < 4) return;
     setRecherche(true);
     lookup.refetch();
+  };
+
+  const demander = () => {
+    if (input.trim().length < 4) return;
+    demanderRapport.mutate({ searchType: type === "plaque" ? "plate" : "vin", searchValue: input.trim() });
   };
 
   return (
@@ -79,15 +97,58 @@ export default function HistoriqueVehiculeVente() {
             </div>
           </div>
 
-          <div className="rounded-xl bg-white border border-amber-200 overflow-hidden">
-            <div className="bg-amber-50 px-4 py-2 flex items-center gap-2">
-              <AlertCircle size={14} className="text-amber-700" />
-              <h3 className="text-xs font-bold text-amber-800">Rapport d'historique complet non disponible</h3>
+          <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+            <div className="bg-[#111] px-4 py-2">
+              <h3 className="text-xs font-bold text-[#D4AF37]">Rapport détaillé (sinistres, contrôles techniques, propriétaires, entretien)</h3>
             </div>
             <div className="px-4 py-3 text-xs text-[#6B7280] space-y-2">
-              <p>Ce que MKA.P-MS peut vérifier aujourd'hui : les caractéristiques techniques ci-dessus, transmises par le service d'identification par plaque/VIN.</p>
-              <p>Ce que MKA.P-MS ne vérifie pas encore : sinistres déclarés, déclaration de vol, gage ou opposition, carnet d'entretien, nombre de propriétaires successifs. Ces informations nécessitent une connexion à des registres externes (assureurs, fichier des véhicules gagés/volés, historique constructeur) qui n'est pas encore branchée sur la plateforme.</p>
+              <p>Ce rapport n'est pas généré instantanément : chaque demande est enregistrée puis traitée. Le vol et le gage ne font partie d'aucun champ vérifié aujourd'hui, quel que soit l'état de la demande.</p>
+              {user ? (
+                <button
+                  onClick={demander}
+                  disabled={demanderRapport.isPending}
+                  className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <FileText size={14} /> {demanderRapport.isPending ? "Envoi…" : "Demander le rapport détaillé"}
+                </button>
+              ) : (
+                <p><Link to="/connexion" className="font-bold text-[#D4AF37] underline">Connectez-vous</Link> pour demander un rapport et suivre son traitement.</p>
+              )}
+              {demanderRapport.error && <p className="text-red-600">{demanderRapport.error.message}</p>}
             </div>
+          </div>
+        </div>
+      )}
+
+      {user && (mesRapports.data ?? []).length > 0 && (
+        <div className="px-4 mt-6">
+          <h2 className="text-sm font-bold text-[#111]">Mes demandes de rapport</h2>
+          <div className="mt-2 space-y-2">
+            {(mesRapports.data ?? []).map((r) => {
+              const s = STATUT_RAPPORT[r.status] ?? STATUT_RAPPORT.en_attente;
+              const SIcon = s.icon;
+              return (
+                <div key={r.id} className="rounded-xl bg-white border border-[#E5E7EB] p-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-[#111]">{r.searchType === "plate" ? "Plaque" : "VIN"} : {r.searchValue}</h3>
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${s.color}`}>
+                      <SIcon size={10} /> {s.label}
+                    </span>
+                  </div>
+                  {r.status === "pret" && (
+                    <div className="mt-2 grid grid-cols-2 gap-1.5 text-[10px] text-[#374151]">
+                      {r.kilometrage != null && <p><span className="text-[#9CA3AF]">Kilométrage :</span> {r.kilometrage.toLocaleString("fr-FR")} km</p>}
+                      {r.controlesTechniques && <p><span className="text-[#9CA3AF]">Contrôles techniques :</span> {r.controlesTechniques}</p>}
+                      {r.sinistres && <p><span className="text-[#9CA3AF]">Sinistres :</span> {r.sinistres}</p>}
+                      {r.proprietaires && <p><span className="text-[#9CA3AF]">Propriétaires :</span> {r.proprietaires}</p>}
+                      {r.entretien && <p><span className="text-[#9CA3AF]">Entretien :</span> {r.entretien}</p>}
+                      {r.rappelsConstructeur && <p><span className="text-[#9CA3AF]">Rappels :</span> {r.rappelsConstructeur}</p>}
+                    </div>
+                  )}
+                  <p className="mt-1 text-[10px] text-[#9CA3AF]">{new Date(r.createdAt).toLocaleDateString("fr-FR")}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
