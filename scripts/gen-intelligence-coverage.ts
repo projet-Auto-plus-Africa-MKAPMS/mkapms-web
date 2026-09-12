@@ -58,6 +58,7 @@ async function main() {
   const chatStatique = executer("node", ["scripts/check-intelligence-chat.mjs"]);
   const testE2eConversation = executer("npx", ["tsx", "server/intelligences/__tests__/conversation-e2e.test.ts"]);
   const testBoucleOutils = executer("npx", ["tsx", "server/intelligences/outils/__tests__/boucle.test.ts"]);
+  const testGenerationCode = executer("npx", ["tsx", "server/intelligences/__tests__/generation-code.test.ts"]);
 
   const gate = {
     public_provider_names_visible: compte(fuitesPubliques.sortie, "public_provider_names_visible"),
@@ -76,6 +77,9 @@ async function main() {
     cross_user_conversation_access: await verifierIsolationConversation(),
     conversation_e2e: testE2eConversation.ok ? 0 : 1,
     boucle_outils: testBoucleOutils.ok ? 0 : 1,
+    // Règle permanente n°6 (clôture LOT IA02B) : test de génération de code
+    // dans les contrôles périodiques Intelligence.
+    generation_code: testGenerationCode.ok ? 0 : 1,
   };
   const cibleConversation: Record<string, number> = {
     intelligence_chat_input_real: 1,
@@ -86,6 +90,7 @@ async function main() {
     cross_user_conversation_access: 0,
     conversation_e2e: 0,
     boucle_outils: 0,
+    generation_code: 0,
   };
 
   console.log("=== MKA.P-MS Intelligences — Intelligence Coverage ===\n");
@@ -131,6 +136,21 @@ async function main() {
   if (!testE2eConversation.ok) console.log(testE2eConversation.sortie);
   console.log(`test boucle d'outils : ${testBoucleOutils.ok ? "réussi" : "ÉCHOUÉ — voir détail ci-dessous"}`);
   if (!testBoucleOutils.ok) console.log(testBoucleOutils.sortie);
+  console.log(`test de génération de code (règle permanente n°6) : ${testGenerationCode.ok ? "réussi" : "ÉCHOUÉ — voir détail ci-dessous"}`);
+  if (!testGenerationCode.ok) console.log(testGenerationCode.sortie);
+
+  const { resume: resumeReglages } = await import("../server/governance/settings-registry.js");
+  const { prochaineEcheance } = await import("../server/governance/audit-semestriel.js");
+  const reglages = resumeReglages();
+  const echeance = await prochaineEcheance();
+  console.log("\n=== Gouvernance permanente (clôture LOT IA02B) — informationnel ===");
+  console.log(`Settings Registry : ${reglages.total} réglage(s) catalogués.`);
+  for (const [etat, n] of Object.entries(reglages.parEtat)) if (n > 0) console.log(`  ${etat} : ${n}`);
+  console.log(
+    echeance.date
+      ? `Prochain audit semestriel : ${echeance.date.toLocaleDateString("fr-FR")}${echeance.enRetard ? " — EN RETARD" : ""} (${echeance.motif})`
+      : `Prochain audit semestriel : ${echeance.motif}`,
+  );
 
   const gateConversationEnEchec = Object.entries(gateConversation).some(
     ([cle, valeur]) => Number.isNaN(valeur) || valeur !== cibleConversation[cle],

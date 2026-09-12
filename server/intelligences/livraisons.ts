@@ -915,6 +915,52 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié réellement, sur base Postgres locale jetable, avec de vrais scénarios plutôt qu'une déclaration : 38/38 vérifications dans le nouveau test d'indépendance (server/intelligences/__tests__/fuite-fournisseurs.test.ts), qui exerce le VRAI code de production (appeler() réel, chooseProvider() réel, demander() réel) avec seulement `fetch` injecté — jamais une réimplémentation parallèle — couvrant : réponse normale, HTTP 401/429/500, délai dépassé, aucun fournisseur disponible, un fournisseur enregistré mais jamais connecté (le scénario Anthropic, la clé posée ne suffit plus), repli réussi, repli échoué, utilisateur public anonyme et connecté (fournisseur/modèle toujours rendus null), et côté direction (le détail reste bien transmis, confirmant que la correction ne casse pas ce qui doit rester visible au PDG). 25/25 et 60/60 toujours verts sur les tests existants (aucune régression). Le nouveau garde-fou scripts/check-public-provider-leaks.mjs, ajouté à la chaîne de build, ne trouve plus aucune occurrence hors de sa liste blanche motivée. Anomalie annexe repérée pendant l'audit, sciemment non corrigée ici pour rester strictement dans le périmètre de ce lot (identité Intelligence, pas permissions) : /admin/commandes et /admin/ia-couts (contrairement aux 46 routes /superadmin/* déjà verrouillées dans un lot antérieur) ne portent aujourd'hui aucune garde de rôle côté route — sans conséquence pour ce lot précis puisque les procédures tRPC qu'ils appellent sont maintenant elles-mêmes correctement réservées à la direction (configStatusDirection), mais à traiter dans un futur lot de permissions plutôt qu'ici. Typecheck inchangé (54 erreurs préexistantes), gen:moteurs stable, check:naming et check:providers verts, build serveur et client complets réussis.",
     domaine: "intelligences",
   },
+  {
+    cle: "chantier-maitre-connexion-plateforme-lot-02b-noyau-conversationnel-reel",
+    titre: "Chantier maître — connexion de MKA.P-MS Intelligences à toute la plateforme, LOT 02B : noyau conversationnel réel de /intelligence",
+    moteurs: ["intelligences"],
+    quoi:
+      "/intelligence était encore une coquille (16 modules sur le même socle inerte). Neuf modules mis à niveau sur le moteur direction déjà réel (conversation, historique, mémoire, projets, usage & coûts, permissions, paramètres, intégrations & API, outils) puis, sur feu vert explicite, construction du vrai noyau conversationnel : interface complète (saisie, envoi, régénérer, copier, reprendre une demande, renommer/supprimer une conversation), branchée sur service.ts::demander() qui appelle désormais, côté direction, la boucle d'outils déjà construite pour le Chantier de développement (server/intelligences/outils/boucle.ts) au lieu d'un appel direct au fournisseur — les outils réellement actifs deviennent utilisables en conversation selon permission, sans seconde boucle. Contexte utilisateur réel injecté via le Context Engine du lot précédent (rôle, pays, permissions, projet Chantier actif, univers résolu). Isolation par compte ajoutée et vérifiée en base (une conversation n'est lisible, renommable ou supprimable que par son propriétaire), trace_id partagé entre un message et l'audit des outils qu'il a déclenchés. Fuite d'identité réelle trouvée et corrigée en testant : le refus « capacité non constatée disponible » du routeur transmettait le libellé du fournisseur retenu et sa variable d'environnement manquante jusque dans le motif public — motif public générique restauré pour ce cas précis, sans toucher au détail conservé pour la direction. Deux régressions réelles trouvées et corrigées en testant dans un vrai navigateur : une redirection immédiate vers /connexion avant que la session ait fini de s'hydrater (aurait éjecté un compte PDG réel), et un bandeau d'état placé comme élément de la ligne flex au lieu d'un bandeau pleine largeur (écrasait la colonne de conversation).",
+    pourquoi:
+      "Feu vert explicite de la direction, avec un objectif précis : pouvoir ouvrir /intelligence, écrire un message et recevoir une réponse réelle de MKA.P-MS Intelligence — pas seulement un shell de navigation.",
+    ou: [
+      "client/src/pages/intelligence/modules/Conversation.tsx",
+      "client/src/pages/intelligence/index.tsx",
+      "server/intelligences/service.ts",
+      "server/intelligences/outils/boucle.ts",
+      "server/intelligences/routeur.ts",
+      "server/intelligences/index.ts",
+      "server/intelligences/schema.ts",
+      "server/intelligences/__tests__/conversation-e2e.test.ts",
+      "scripts/check-intelligence-chat.mjs",
+      "drizzle/0115_intelligences_trace_id.sql",
+    ],
+    lecon:
+      "Vérifié réellement : round-trip complet dans Chromium réel (Playwright) — ouverture, saisie, envoi, réponse honnête affichée, aucun nom de fournisseur visible, rendu mobile et desktop. 39/39 sur le test d'indépendance fournisseurs (revérifié après le rebranchement sur la boucle d'outils), 60/60 sur la boucle d'outils, 27/27 sur le nouveau scénario de bout en bout dédié à la conversation (session créée, contexte conservé entre deux messages, rechargement, reprise, refus de permission réel, isolation inter-comptes vérifiée en base, renommage et suppression réels). L'autorisation/refus d'un appel d'outil par le modèle reste couvert par la suite existante de la boucle, non dupliqué. Écart identifié et assumé plutôt que masqué : la compatibilité complète des six niveaux d'accès (public à PDG) attend une extension du système binaire « côté » (direction/public) — hors périmètre de ce lot, PDG seul pour l'instant. Typecheck inchangé (54 erreurs préexistantes), build serveur et client complets réussis. PR #318 mergée, vérifiée après merge.",
+    domaine: "intelligences",
+  },
+  {
+    cle: "gouvernance-permanente-versions-audit-semestriel-settings-registry",
+    titre: "Gouvernance permanente MKA.P-MS Intelligence — registre de versions, audit semestriel, Settings Registry, statuts de connexion réels",
+    moteurs: ["intelligences"],
+    quoi:
+      "Ajout, à la clôture du LOT 02B et avant l'ouverture du lot suivant, de règles transversales permanentes (pas un lot métier, jamais à redéfinir plus tard) : (1) registre de versions par application (server/governance/versions.ts), lisant les applications réelles déjà déclarées dans mobile/variants.json plutôt que d'en inventer une seconde liste — une release n'augmente jamais toutes les applications aveuglément, seul l'appelant décide au cas par cas laquelle est réellement touchée ; (2) audit global semestriel (server/governance/audit-semestriel.ts) qui orchestre les contrôles déjà réels (fuites fournisseurs, boucle d'outils, Intelligence Coverage, typecheck) plutôt que de les réimplémenter, calcule la prochaine échéance depuis le dernier audit réellement consigné, et accepte un déclenchement hors cycle pour incident réel sans jamais attendre les six mois ; (3) Settings Registry progressif (server/governance/settings-registry.ts, 56 réglages catalogués sur quatre catégories) avec un état réellement constaté par réglage — HARDCODED et NOT_CONNECTED assumés comme inventaire honnête, pas comme régression ; (4) test de génération de code permanent (server/intelligences/__tests__/generation-code.test.ts, prompt de référence TVA) ajouté aux contrôles périodiques Intelligence, avec dégradation honnête (vérifications de qualité annoncées ignorées, jamais fabriquées) tant qu'aucun fournisseur n'est câblé et testé dans un environnement donné.",
+    pourquoi:
+      "Consigne explicite de la direction : ces règles ne sont pas un chantier à part, elles deviennent des exigences obligatoires pour tous les lots futurs — versionner ce qui change réellement, auditer périodiquement plutôt que d'attendre qu'un problème se déclare, et rendre visibles les réglages encore dispersés au lieu de les laisser implicites.",
+    ou: [
+      "server/governance/schema.ts",
+      "server/governance/versions.ts",
+      "server/governance/settings-registry.ts",
+      "server/governance/audit-semestriel.ts",
+      "server/intelligences/index.ts",
+      "server/intelligences/__tests__/generation-code.test.ts",
+      "scripts/gen-intelligence-coverage.ts",
+      "drizzle/0116_governance_versions_audits_settings.sql",
+    ],
+    lecon:
+      "Le statut de connexion fournisseur à sept paliers (registered → clé présente → autorisé → point d'entrée joignable → modèle accessible → capacité accessible → test de fumée → connecté et testé) demandé par la direction n'est pas réimplémenté ici en doublon du wireStatus à cinq paliers du lot d'identité : il devient une exigence du prochain lot (Provider Registry), pour ne pas construire deux registres fournisseurs concurrents à quelques jours d'écart. Aucune application n'a reçu de changement de version dans ce commit lui-même (aucune fonctionnalité utilisateur nouvelle) : seule une entrée rétroactive et réelle a été consignée pour l'application Intelligence, reflétant le LOT 02B déjà mergé — conformément à la règle qui vient d'être adoptée, pas d'incrément pour les applications non concernées.",
+    domaine: "intelligences",
+  },
 ];
 
 /**
