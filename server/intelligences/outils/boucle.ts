@@ -22,6 +22,7 @@ import { evaluer, type GetCountryFn, type VerifierPermission } from "./politique
 import { executer } from "./executeur.js";
 import { journaliser } from "./audit.js";
 import { getCountry } from "../../country-os/index.js";
+import { MOTIF_PUBLIC_INDISPONIBLE } from "../identite.js";
 
 /** Injectables uniquement pour les tests — la production utilise toujours les vraies couches. */
 export type RouterFn = typeof router;
@@ -42,6 +43,13 @@ export interface ResultatBoucle {
   ok: boolean;
   texteFinal: string;
   motif: string;
+  /** LOT IA02B — motif générique sans détail fournisseur, pour toute surface conversationnelle (voir server/intelligences/identite.ts). */
+  motifPublic: string;
+  fournisseur: string | null;
+  modele: string | null;
+  jetonsEntree: number;
+  jetonsSortie: number;
+  dureeMs: number;
   iterations: number;
   appelsOutils: AppelOutilTrace[];
   limiteAtteinte: boolean;
@@ -67,6 +75,8 @@ export interface EntreeBoucle {
    * falsifier.
    */
   actorId?: number | null;
+  /** LOT IA02B — identifiant partagé avec le message de conversation à l'origine de cet appel (point 13). */
+  traceId?: string;
 }
 
 export async function executerAvecOutils(
@@ -86,6 +96,11 @@ export async function executerAvecOutils(
 
   const historique: MessageConversation[] = [{ role: "user", content: input.message }];
   const trace: AppelOutilTrace[] = [];
+  let jetonsEntree = 0;
+  let jetonsSortie = 0;
+  let dureeMs = 0;
+  let fournisseur: string | null = null;
+  let modele: string | null = null;
 
   for (let iteration = 1; iteration <= maxIterations; iteration++) {
     const res = await routerImpl({
@@ -101,9 +116,27 @@ export async function executerAvecOutils(
       countryCode: input.countryCode,
       maxTokens: input.maxTokens,
     });
+    jetonsEntree += res.jetonsEntree;
+    jetonsSortie += res.jetonsSortie;
+    dureeMs += res.dureeMs;
+    fournisseur = res.fournisseur;
+    modele = res.modele;
 
     if (!res.ok && res.appelsOutils.length === 0) {
-      return { ok: false, texteFinal: "", motif: res.motif, iterations: iteration, appelsOutils: trace, limiteAtteinte: false };
+      return {
+        ok: false,
+        texteFinal: "",
+        motif: res.motif,
+        motifPublic: res.motifPublic,
+        fournisseur,
+        modele,
+        jetonsEntree,
+        jetonsSortie,
+        dureeMs,
+        iterations: iteration,
+        appelsOutils: trace,
+        limiteAtteinte: false,
+      };
     }
 
     historique.push({
@@ -121,7 +154,20 @@ export async function executerAvecOutils(
     });
 
     if (res.appelsOutils.length === 0) {
-      return { ok: true, texteFinal: res.texte, motif: "", iterations: iteration, appelsOutils: trace, limiteAtteinte: false };
+      return {
+        ok: true,
+        texteFinal: res.texte,
+        motif: "",
+        motifPublic: "",
+        fournisseur,
+        modele,
+        jetonsEntree,
+        jetonsSortie,
+        dureeMs,
+        iterations: iteration,
+        appelsOutils: trace,
+        limiteAtteinte: false,
+      };
     }
 
     for (const appel of res.appelsOutils) {
@@ -142,6 +188,7 @@ export async function executerAvecOutils(
           resultat: null,
           dureeMs: Date.now() - debut,
           auditCategory: null,
+          traceId: input.traceId,
         });
         historique.push({ role: "tool", tool_call_id: appel.id, content: JSON.stringify({ erreur: motif }) });
         continue;
@@ -173,6 +220,7 @@ export async function executerAvecOutils(
           resultat: null,
           dureeMs: Date.now() - debut,
           auditCategory: outil.auditCategory,
+          traceId: input.traceId,
         });
         historique.push({ role: "tool", tool_call_id: appel.id, content: JSON.stringify({ erreur: politique.motif }) });
         continue;
@@ -201,6 +249,7 @@ export async function executerAvecOutils(
         resultat: execution.resultat,
         dureeMs: execution.dureeMs,
         auditCategory: outil.auditCategory,
+        traceId: input.traceId,
       });
       historique.push({
         role: "tool",
@@ -217,6 +266,13 @@ export async function executerAvecOutils(
     ok: false,
     texteFinal: "",
     motif: `Limite de ${maxIterations} itération(s) atteinte sans réponse finale — arrêt pour éviter une boucle sans fin.`,
+    // Règle métier de la boucle elle-même (limite anti-boucle-infinie), jamais un détail fournisseur : sûr à exposer tel quel.
+    motifPublic: MOTIF_PUBLIC_INDISPONIBLE,
+    fournisseur,
+    modele,
+    jetonsEntree,
+    jetonsSortie,
+    dureeMs,
     iterations: maxIterations,
     appelsOutils: trace,
     limiteAtteinte: true,

@@ -59,6 +59,8 @@ export const inMessages = pgTable("in_messages", {
   dureeMs: integer("duree_ms").notNull().default(0),
   /** Éléments de contexte réellement injectés : traçabilité de ce qu'a vu le modèle. */
   contexte: jsonb("contexte").$type<string[]>().notNull().default([]),
+  /** LOT IA02B — identifiant partagé par les deux messages d'un même échange et par les lignes d'audit d'outils qu'il a déclenchées (point 13). */
+  traceId: varchar("trace_id", { length: 40 }).notNull().default(""),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -542,6 +544,8 @@ export const inOutilsJournal = pgTable(
     resultatJson: text("resultat_json"),
     dureeMs: integer("duree_ms").notNull().default(0),
     auditCategory: varchar("audit_category", { length: 40 }),
+    /** LOT IA02B — relie cette ligne d'audit au message de conversation qui a déclenché l'outil (point 13). */
+    traceId: varchar("trace_id", { length: 40 }).notNull().default(""),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => ({

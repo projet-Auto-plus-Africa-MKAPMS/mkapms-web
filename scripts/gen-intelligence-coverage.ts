@@ -1,15 +1,39 @@
 /**
- * LOT IA01/IA02A — rapport « Intelligence Coverage ».
+ * LOT IA01/IA02A/IA02B — rapport « Intelligence Coverage ».
  *
  * Rapport informationnel pour la cartographie des univers (jamais un gate de
  * build : la plupart des univers sont honnêtement encore déconnectés, ce
- * n'est pas une régression). Les cinq compteurs de fuite fournisseur du LOT
- * IA02A, eux, DOIVENT rester à 0 — ils sont vérifiés par de vraies commandes
- * (scripts/check-providers.mjs, scripts/check-public-provider-leaks.mjs, le
- * test d'indépendance dédié) plutôt que réimplémentés ici.
+ * n'est pas une régression). Les compteurs de fuite fournisseur du LOT IA02A
+ * et le gate conversation du LOT IA02B, eux, DOIVENT rester à leur cible —
+ * vérifiés par de vraies commandes (scripts/check-providers.mjs,
+ * scripts/check-public-provider-leaks.mjs, scripts/check-intelligence-chat.mjs,
+ * les tests d'indépendance et E2E dédiés) plutôt que réimplémentés ici, à
+ * l'exception de `cross_user_conversation_access` : lui seul exige une vraie
+ * connexion base, déjà ouverte par ce script (rapportCouverture), donc mesuré
+ * ici plutôt que dans un script Node statique séparé.
  */
 import { execFileSync } from "node:child_process";
 import { rapportCouverture } from "../server/intelligences/univers/couverture.js";
+import { demander, supprimerConversation, verifierProprieteConversation } from "../server/intelligences/service.js";
+
+/** Point 15 (LOT IA02B) — un autre compte ne doit jamais accéder à une conversation qu'il n'a pas créée. */
+async function verifierIsolationConversation(): Promise<number> {
+  try {
+    const r = await demander({
+      question: "Vérification gate isolation conversation — LOT IA02B.",
+      cote: "direction",
+      sessionId: null,
+      userId: 4,
+      role: "super_admin",
+    });
+    const acces = await verifierProprieteConversation(r.sessionId, 999999);
+    await supprimerConversation(r.sessionId);
+    return acces.ok ? 1 : 0;
+  } catch {
+    // Ne peut pas prouver 0 sans preuve réelle : ne jamais déclarer un gate vert par défaut.
+    return 1;
+  }
+}
 
 function executer(commande: string, args: string[]): { ok: boolean; sortie: string } {
   try {
@@ -31,6 +55,9 @@ async function main() {
   const providersDirects = executer("node", ["scripts/check-providers.mjs"]);
   const fuitesPubliques = executer("node", ["scripts/check-public-provider-leaks.mjs"]);
   const testIndependance = executer("npx", ["tsx", "server/intelligences/__tests__/fuite-fournisseurs.test.ts"]);
+  const chatStatique = executer("node", ["scripts/check-intelligence-chat.mjs"]);
+  const testE2eConversation = executer("npx", ["tsx", "server/intelligences/__tests__/conversation-e2e.test.ts"]);
+  const testBoucleOutils = executer("npx", ["tsx", "server/intelligences/outils/__tests__/boucle.test.ts"]);
 
   const gate = {
     public_provider_names_visible: compte(fuitesPubliques.sortie, "public_provider_names_visible"),
@@ -38,6 +65,27 @@ async function main() {
     public_provider_env_names: compte(fuitesPubliques.sortie, "public_provider_env_names"),
     public_provider_urls: compte(fuitesPubliques.sortie, "public_provider_urls"),
     routable_unconnected_provider: rapport.fournisseurs.routableNonConnecte,
+  };
+
+  const gateConversation = {
+    intelligence_chat_input_real: compte(chatStatique.sortie, "intelligence_chat_input_real"),
+    intelligence_chat_backend_connected: compte(chatStatique.sortie, "intelligence_chat_backend_connected"),
+    conversation_persistence: compte(chatStatique.sortie, "conversation_persistence"),
+    conversation_context_restored: compte(chatStatique.sortie, "conversation_context_restored"),
+    fake_chat_controls: compte(chatStatique.sortie, "fake_chat_controls"),
+    cross_user_conversation_access: await verifierIsolationConversation(),
+    conversation_e2e: testE2eConversation.ok ? 0 : 1,
+    boucle_outils: testBoucleOutils.ok ? 0 : 1,
+  };
+  const cibleConversation: Record<string, number> = {
+    intelligence_chat_input_real: 1,
+    intelligence_chat_backend_connected: 1,
+    conversation_persistence: 1,
+    conversation_context_restored: 1,
+    fake_chat_controls: 0,
+    cross_user_conversation_access: 0,
+    conversation_e2e: 0,
+    boucle_outils: 0,
   };
 
   console.log("=== MKA.P-MS Intelligences — Intelligence Coverage ===\n");
@@ -76,9 +124,26 @@ async function main() {
       ? "\n[intelligence-coverage] ÉCHEC : au moins un compteur de fuite fournisseur est au-dessus de 0."
       : "\n[intelligence-coverage] Gate fuites fournisseurs au vert.",
   );
+
+  console.log("\n=== LOT IA02B — gate conversation réelle /intelligence ===");
+  for (const [cle, valeur] of Object.entries(gateConversation)) console.log(`${cle}=${valeur}`);
+  console.log(`test E2E conversation : ${testE2eConversation.ok ? "réussi" : "ÉCHOUÉ — voir détail ci-dessous"}`);
+  if (!testE2eConversation.ok) console.log(testE2eConversation.sortie);
+  console.log(`test boucle d'outils : ${testBoucleOutils.ok ? "réussi" : "ÉCHOUÉ — voir détail ci-dessous"}`);
+  if (!testBoucleOutils.ok) console.log(testBoucleOutils.sortie);
+
+  const gateConversationEnEchec = Object.entries(gateConversation).some(
+    ([cle, valeur]) => Number.isNaN(valeur) || valeur !== cibleConversation[cle],
+  );
+  console.log(
+    gateConversationEnEchec
+      ? "\n[intelligence-coverage] ÉCHEC : le gate conversation IA02B n'est pas à sa cible."
+      : "\n[intelligence-coverage] Gate conversation IA02B au vert.",
+  );
+
   console.log("Cartographie des univers : rapport informationnel, jamais un gate de build (voir en-tête du fichier).");
 
-  if (gateEnEchec) process.exitCode = 1;
+  if (gateEnEchec || gateConversationEnEchec) process.exitCode = 1;
 }
 
 main();

@@ -105,6 +105,39 @@ export default function MKAPMSIntelligence() {
 
   const Actif = MODULES.find((m) => m.cle === module)?.Composant ?? Conversation;
 
+  // LOT IA02B — le moteur réel derrière chaque module construit dans ce lot
+  // (conversation, historique, mémoire, projets, outils, permissions,
+  // paramètres, intégrations, usage) reste aujourd'hui réservé à la
+  // direction (server/intelligences/index.ts::pdgProcedure) : ouvrir l'accès
+  // aux autres niveaux de l'échelle est un lot suivant, pas une omission de
+  // celui-ci. Même message que le côté direction historique
+  // (CentreIntelligences.tsx) pour ne pas inventer un second discours.
+  //
+  // Jamais de redirection immédiate vers /connexion ici : `user` reste null
+  // le temps que la session s'hydrate au chargement (AuthProvider), même pour
+  // un PDG déjà connecté — une redirection sur ce court instant renverrait un
+  // compte PDG réel hors de la page avant même que son rôle soit connu. Comme
+  // CentreIntelligences.tsx, on affiche le même écran « réservé » tant que
+  // `user` n'est pas encore résolu ; il se corrige seul dès que la session
+  // charge, sans navigation forcée.
+  if (niveau !== "pdg") {
+    return (
+      <div className="mx-auto max-w-xl p-6 text-center">
+        <ShieldCheck className="mx-auto h-8 w-8 text-black/30" />
+        <h1 className="mt-3 text-lg font-black text-[#111]">Espace réservé pour l'instant</h1>
+        <p className="mt-2 text-sm text-black/60">
+          Le moteur réel derrière MKA.P-MS Intelligence (conversation, mémoire, projets, outils) est
+          aujourd'hui réservé au compte PDG. Les autres niveaux d'accès (professionnel, développeur,
+          équipe interne, direction) arriveront avec les lots suivants — l'assistant public reste
+          accessible partout ailleurs sur la plateforme.
+        </p>
+        <Link to="/intelligences" className="mt-4 inline-block text-sm font-bold text-[#8B7500]">
+          Ouvrir l'assistant public
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <div className="border-b border-black/5 bg-[#0B0B0F] px-4 py-4 text-white">

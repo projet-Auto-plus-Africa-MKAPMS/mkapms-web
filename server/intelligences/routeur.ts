@@ -31,6 +31,7 @@ import { permissionsDuRole, verifier } from "./permissions.js";
 import { candidatSert, configuration, enregistrer as enregistrerComparaison } from "./shadow.js";
 import { inCapaciteEtat } from "./schema.js";
 import type { Confidentiality } from "../ai-fabric/service.js";
+import { MOTIF_PUBLIC_INDISPONIBLE } from "./identite.js";
 
 export { permissionsDuRole };
 
@@ -85,6 +86,15 @@ function refus(
   capacite: CodeCapacite,
   motif: string,
   repli: string,
+  /**
+   * LOT IA02B — la plupart des refus du routeur sont des règles métier pures
+   * (permission, confidentialité, capacité désactivée par la direction) :
+   * sûrs à exposer tels quels. Le refus « capacité non constatée disponible »
+   * fait exception — son motif vient de `capacites.ts::registre()`, qui NOMME
+   * le fournisseur retenu et sa variable d'environnement manquante. Cet appel
+   * doit donc fournir explicitement un motif public sans ce détail.
+   */
+  motifPublic: string = motif,
 ): ResultatCapacite {
   return {
     capacite,
@@ -93,11 +103,7 @@ function refus(
     fournisseur: null,
     modele: null,
     motif,
-    // Ces refus sont des règles métier du routeur (permission, confidentialité,
-    // capacité désactivée, domaine non constaté disponible) — jamais un détail
-    // fournisseur : sûrs à exposer tels quels, contrairement au motif d'un
-    // appel de modèle qui échoue réellement (server/intelligences/provider.ts).
-    motifPublic: motif,
+    motifPublic,
     repli,
     jetonsEntree: 0,
     jetonsSortie: 0,
@@ -177,6 +183,7 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
       demande.capacite,
       constate?.motif ?? "Capacité non constatée disponible.",
       s.repliInterne,
+      MOTIF_PUBLIC_INDISPONIBLE,
     );
   }
 

@@ -9788,11 +9788,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/intelligence"
         ],
-        "cliquables": 2,
+        "cliquables": 3,
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 21,
-        "mots": 45
+        "mots": 204
       }
     ],
     "ecransHotes": [
@@ -9870,8 +9870,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "reglerFonction",
       "reglerShadow",
       "regles",
+      "renommerConversation",
       "revoquerCleDeveloppeur",
       "shadow",
+      "supprimerConversation",
       "universDetail",
       "universRegistre"
     ],
@@ -9907,7 +9909,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "public"
     ],
     "textes": 206,
-    "mots": 1200,
+    "mots": 1359,
     "battement": "sonde",
     "manques": [
       {

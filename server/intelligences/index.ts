@@ -11,6 +11,7 @@
  */
 import { z } from "zod";
 import { createHash } from "node:crypto";
+import { TRPCError } from "@trpc/server";
 import { pdgProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
 import { COMMANDES, NOM_MOTEUR, REGLES } from "./regles.js";
 import {
@@ -105,7 +106,10 @@ import {
   messages,
   proposer,
   reglerDomaine,
+  renommerConversation,
   sessions,
+  supprimerConversation,
+  verifierProprieteConversation,
 } from "./service.js";
 import {
   compter as compterVehicules,
@@ -134,6 +138,20 @@ function empreinte(valeur: string | undefined): string {
     .update(valeur ?? "anonyme")
     .digest("hex")
     .slice(0, 32);
+}
+
+/**
+ * Traduit la vérification testable de service.ts (`verifierProprieteConversation`)
+ * en refus HTTP tRPC. La règle elle-même vit dans le service, pas ici.
+ */
+async function exigerProprieteConversation(sessionId: number, userId: number): Promise<void> {
+  const verdict = await verifierProprieteConversation(sessionId, userId);
+  if (!verdict.ok) {
+    throw new TRPCError({
+      code: verdict.motif === "Conversation introuvable." ? "NOT_FOUND" : "FORBIDDEN",
+      message: verdict.motif,
+    });
+  }
 }
 
 export const intelligencesRouter = router({
@@ -380,23 +398,43 @@ export const intelligencesRouter = router({
         countryCode: z.string().max(8).nullable().optional(),
       }),
     )
-    .mutation(({ input, ctx }) =>
-      demander({
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.user?.uid ?? 0;
+      if (input.sessionId) await exigerProprieteConversation(input.sessionId, userId);
+      return demander({
         question: input.question,
         cote: "direction",
         sessionId: input.sessionId ?? null,
         userId: ctx.user?.uid ?? null,
+        role: ctx.user?.role ?? null,
         countryCode: input.countryCode ?? null,
-      }),
-    ),
+      });
+    }),
 
   conversations: pdgProcedure
     .input(z.object({ cote: z.enum(["direction", "public"]).default("direction") }).optional())
-    .query(({ input }) => sessions(input?.cote ?? "direction")),
+    .query(({ input, ctx }) => sessions(input?.cote ?? "direction", 40, ctx.user?.uid ?? null)),
 
   fil: pdgProcedure
     .input(z.object({ sessionId: z.number().int().positive() }))
-    .query(({ input }) => messages(input.sessionId)),
+    .query(async ({ input, ctx }) => {
+      await exigerProprieteConversation(input.sessionId, ctx.user?.uid ?? 0);
+      return messages(input.sessionId);
+    }),
+
+  renommerConversation: pdgProcedure
+    .input(z.object({ sessionId: z.number().int().positive(), titre: z.string().min(1).max(180) }))
+    .mutation(async ({ input, ctx }) => {
+      await exigerProprieteConversation(input.sessionId, ctx.user?.uid ?? 0);
+      return renommerConversation(input.sessionId, input.titre);
+    }),
+
+  supprimerConversation: pdgProcedure
+    .input(z.object({ sessionId: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      await exigerProprieteConversation(input.sessionId, ctx.user?.uid ?? 0);
+      return supprimerConversation(input.sessionId);
+    }),
 
   /** Ouvre un dossier de développement traçable (Centre de Commandes). */
   proposer: pdgProcedure
