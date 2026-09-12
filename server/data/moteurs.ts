@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 89;
-export const MANQUES_TOTAL = 630;
+export const MANQUES_TOTAL = 612;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 342,
-  "destination_inconnue": 46,
   "bouton_sans_action": 185,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
   "dependance_sans_preuve": 35,
+  "destination_inconnue": 28,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1,
   "dependance_non_declaree": 2
@@ -1123,24 +1123,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "battement": "sonde",
     "manques": [
       {
-        "genre": "destination_inconnue",
-        "detail": "/vente-moto client/src/pages/MotoOccasion.tsx:107"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente-moto client/src/pages/MotoOccasion.tsx:115"
-      },
-      {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1819"
       },
       {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/VenteCamions.tsx:206"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/messages client/src/pages/VenteGenerale.tsx:449"
       },
       {
         "genre": "bouton_sans_action",
@@ -2049,14 +2037,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "mots": 856,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "destination_inconnue",
-        "detail": "/auth?redirect=/historique client/src/pages/Historique.tsx:511"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/auth?mode=register&redirect=/historique client/src/pages/Historique.tsx:514"
-      },
       {
         "genre": "bouton_sans_action",
         "detail": "« Confirmer l'ajout » client/src/pages/Historique.tsx:291"
@@ -11254,10 +11234,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« Rechercher un utilitaire » client/src/pages/LocationUtilitaires.tsx:139"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/messages client/src/pages/Louer.tsx:585"
-      },
-      {
         "genre": "bouton_sans_action",
         "detail": "« Voir sur la carte » client/src/pages/Louer.tsx:492"
       },
@@ -11316,10 +11292,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Choisir un véhicule → » client/src/pages/ReservationRecurrente.tsx:106"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/inscription-pro client/src/pages/VtcTaxi.tsx:390"
       },
       {
         "genre": "bouton_declare_absent_ecran",
@@ -14428,72 +14400,36 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« Commander » client/src/pages/pieces/PanierPiecesDetachees.tsx:16"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/pieces/recherche client/src/pages/pieces/PiecesAccessoires.tsx:14"
-      },
-      {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/pieces/PiecesAccessoires.tsx (2 texte(s))"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/pieces/recherche client/src/pages/pieces/PiecesBatteries.tsx:13"
       },
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/pieces/PiecesBatteries.tsx (2 texte(s))"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/pieces/recherche client/src/pages/pieces/PiecesCarrosserie.tsx:14"
-      },
-      {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/pieces/PiecesCarrosserie.tsx (2 texte(s))"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/pieces/recherche client/src/pages/pieces/PiecesEclairage.tsx:14"
       },
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/pieces/PiecesEclairage.tsx (2 texte(s))"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/pieces/recherche client/src/pages/pieces/PiecesFreinage.tsx:13"
-      },
-      {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/pieces/PiecesFreinage.tsx (2 texte(s))"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/pieces/recherche client/src/pages/pieces/PiecesHuiles.tsx:8"
       },
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/pieces/PiecesHuiles.tsx (2 texte(s))"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/pieces/recherche client/src/pages/pieces/PiecesMoteur.tsx:16"
-      },
-      {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/pieces/PiecesMoteur.tsx (2 texte(s))"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/pieces/recherche client/src/pages/pieces/PiecesPneumatiques.tsx:14"
-      },
-      {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/pieces/PiecesPneumatiques.tsx (2 texte(s))"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/pieces/recherche client/src/pages/pieces/PiecesSuspension.tsx:14"
       },
       {
         "genre": "ecran_sans_contenu",
@@ -20786,10 +20722,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "battement": "sonde",
     "manques": [
       {
-        "genre": "destination_inconnue",
-        "detail": "/profil client/src/pages/TableauBordProVente.tsx:102"
-      },
-      {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/depot-annonce/ConseilsIA.tsx (3 texte(s))"
       },
@@ -20812,10 +20744,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/depot-annonce/ObjectifDepotAnnonce.tsx (3 texte(s))"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/depot-annonce/analyse-ia client/src/pages/depot-annonce/OptionsAnnonce.tsx:26"
       },
       {
         "genre": "destination_inconnue",

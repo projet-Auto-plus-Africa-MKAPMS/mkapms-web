@@ -28,7 +28,7 @@ export default function MotoOccasion() {
   const [kmMax, setKmMax] = useState("");
   const [prixMax, setPrixMax] = useState("");
 
-  // Les résultats motos vivent sur /vente-moto : cette page d'entrée transmet
+  // Les résultats motos vivent sur /acheter/moto : cette page d'entrée transmet
   // les critères au lieu d'afficher une liste inventée.
   function rechercher() {
     const p = new URLSearchParams();
@@ -39,7 +39,7 @@ export default function MotoOccasion() {
     if (annee) p.set("anneeMin", annee);
     if (kmMax) p.set("kmMax", kmMax);
     if (prixMax) p.set("prixMax", prixMax);
-    navigate(`/vente-moto${p.toString() ? `?${p}` : ""}`);
+    navigate(`/acheter/moto${p.toString() ? `?${p}` : ""}`);
   }
 
   return (
@@ -104,7 +104,7 @@ export default function MotoOccasion() {
       <div className="px-4 mt-4">
         <h2 className="text-base font-bold text-[#111]">Par catégorie ({CATEGORIES.length})</h2>
         <div className="mt-3 grid grid-cols-2 gap-1.5">{CATEGORIES.map(c => (
-          <Link key={c.label} to="/vente-moto" className="flex items-center justify-between rounded-xl bg-white border border-[#E5E7EB] px-3 py-2.5 shadow-sm active:scale-[0.98]">
+          <Link key={c.label} to="/acheter/moto" className="flex items-center justify-between rounded-xl bg-white border border-[#E5E7EB] px-3 py-2.5 shadow-sm active:scale-[0.98]">
             <span className="text-xs font-bold text-[#111]">{c.label}</span><span className="text-[9px] font-bold text-red-600">{c.count}</span>
           </Link>
         ))}</div>
@@ -112,7 +112,7 @@ export default function MotoOccasion() {
       <div className="px-4 mt-4">
         <h2 className="text-base font-bold text-[#111]">Par marque</h2>
         <div className="mt-3 flex flex-wrap gap-1.5">{MARQUES.map(m => (
-          <Link key={m} to="/vente-moto" className="rounded-full border border-[#E5E7EB] bg-white px-3 py-1.5 text-[10px] font-bold text-[#111] active:bg-red-600 active:text-white">{m}</Link>
+          <Link key={m} to="/acheter/moto" className="rounded-full border border-[#E5E7EB] bg-white px-3 py-1.5 text-[10px] font-bold text-[#111] active:bg-red-600 active:text-white">{m}</Link>
         ))}</div>
       </div>
     </div>

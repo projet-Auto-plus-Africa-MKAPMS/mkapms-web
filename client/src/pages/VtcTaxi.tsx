@@ -387,7 +387,7 @@ export default function VtcTaxi() {
         <Award size={28} className="text-[#D4AF37] mx-auto" />
         <h2 className="text-lg font-black text-white mt-2">Vous êtes chauffeur VTC ou Taxi ?</h2>
         <p className="text-xs text-white/70 mt-1">Rejoignez MKA.P-MS et accédez aux meilleurs véhicules avec entretien inclus.</p>
-        <Link to="/inscription-pro" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-white">
+        <Link to="/connexion" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-white">
           Devenir partenaire <ArrowRight size={14} />
         </Link>
       </div>

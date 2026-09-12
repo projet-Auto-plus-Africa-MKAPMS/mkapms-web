@@ -508,10 +508,10 @@ export default function Historique() {
             </div>
           </div>
           <div className="p-6 space-y-3">
-            <Link to="/auth?redirect=/historique" className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white hover:bg-[#C5A028] transition">
+            <Link to="/connexion" className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D4AF37] py-3.5 text-sm font-bold text-white hover:bg-[#C5A028] transition">
               <Users size={16} /> Se connecter
             </Link>
-            <Link to="/auth?mode=register&redirect=/historique" className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-[#111] py-3.5 text-sm font-bold text-[#111] hover:bg-[#111] hover:text-white transition">
+            <Link to="/connexion" className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-[#111] py-3.5 text-sm font-bold text-[#111] hover:bg-[#111] hover:text-white transition">
               Créer un compte
             </Link>
             <button onClick={() => setShowLogin(false)} className="w-full text-xs text-slate-400 hover:text-slate-600 py-2 transition">← Retour</button>
