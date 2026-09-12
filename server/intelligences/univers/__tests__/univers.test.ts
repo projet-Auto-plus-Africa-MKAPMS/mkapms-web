@@ -69,13 +69,17 @@ async function main() {
   verif("universDeRoute renvoie null pour une route inconnue", universDeRoute("/route-inexistante-xyz-123") === null);
 
   // ── Intelligence Coverage ──────────────────────────────────────────
-  const rapport = rapportCouverture();
+  const rapport = await rapportCouverture();
   verif("rapportCouverture couvre 89/89 moteurs", rapport.moteurs.couvertsParUnUnivers === 89 && rapport.moteurs.total === 89);
   verif(
     "rapportCouverture : la somme des statuts égale le nombre d'univers",
     Object.values(rapport.univers.parStatut).reduce((a, b) => a + b, 0) === rapport.univers.total,
   );
   verif("rapportCouverture recense les outils réellement actifs", rapport.outils.actifs > 0 && rapport.outils.actifs < rapport.outils.total);
+  verif(
+    "rapportCouverture : aucun fournisseur routable non connecté dans cet environnement (aucune clé Anthropic posée)",
+    rapport.fournisseurs.routableNonConnecte === 0,
+  );
 
   // ── Context Engine (nécessite un accès base réel) ───────────────────
   try {

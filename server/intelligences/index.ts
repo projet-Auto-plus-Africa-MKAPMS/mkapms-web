@@ -20,7 +20,7 @@ import {
   type CodeCapacite,
 } from "./capacites.js";
 import { router as routerCapacite } from "./routeur.js";
-import { etatConfiguration } from "./provider.js";
+import { etatConfiguration, etatServicePublic } from "./provider.js";
 import {
   NIVEAUX_AUTONOMIE,
   PORTEE_NIVEAU,
@@ -144,17 +144,20 @@ export const intelligencesRouter = router({
   })),
 
   /**
-   * État de la configuration MKA.P-MS Intelligence — dit CLAIREMENT ce qui
-   * manque pour que l'Intelligence puisse répondre. Sans ça, l'utilisateur
-   * voyait des refus silencieux (« aucun fournisseur habilité ») sans savoir
-   * quelle clé configurer.
-   *
-   * Public par nécessité : le PDG doit pouvoir vérifier depuis n'importe quelle
-   * page (Centre Commandes, Centre Intelligence) que l'assistant est branché.
-   * Aucune donnée sensible n'est exposée — seulement la présence/absence des
-   * clés.
+   * LOT IA02A — état PUBLIC du service : disponible/dégradé/indisponible,
+   * identité MKA.P-MS Intelligence uniquement. Aucun label de fournisseur,
+   * aucune variable d'environnement, aucune URL — voir `configStatusDirection`
+   * pour la vue détaillée, réservée à la direction.
    */
-  configStatus: publicProcedure.query(() => etatConfiguration()),
+  configStatus: publicProcedure.query(() => etatServicePublic()),
+
+  /**
+   * Vue détaillée (fournisseur, variable d'environnement, URL d'obtention de
+   * clé) — réservée à la direction (Centre Commandes, Centre Intelligence &
+   * Coûts). Distincte de `configStatus`, qui reste la seule procédure que les
+   * écrans publics ou utilisateur ont le droit d'appeler.
+   */
+  configStatusDirection: pdgProcedure.query(() => etatConfiguration()),
 
   /**
    * Domaines d'assistance réellement ouverts au public. La liste sert à
@@ -218,13 +221,16 @@ export const intelligencesRouter = router({
     .input(z.object({ sessionId: z.number().int().positive() }))
     .query(async ({ input }) => {
       const fil = await messages(input.sessionId);
+      // LOT IA02A — motifPublic, jamais motif (détail fournisseur) : cette
+      // procédure est publique, non authentifiée, appelable pour n'importe
+      // quel identifiant de session.
       return fil
         .filter((m) => m.cote === "public")
         .map((m) => ({
           role: m.role,
           contenu: m.contenu,
           ok: m.ok,
-          motif: m.motif,
+          motif: m.motifPublic,
           createdAt: m.createdAt,
         }));
     }),

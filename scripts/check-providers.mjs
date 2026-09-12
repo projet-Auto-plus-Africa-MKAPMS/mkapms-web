@@ -22,6 +22,11 @@ const AUTORISES = new Set([
   // pour constater leur état, sans jamais émettre l'appel du modèle.
   join("server", "ai-fabric", "service.ts"),
   join("server", "env.ts"),
+  // LOT IA02A — test d'indépendance fournisseurs : manipule les variables
+  // d'environnement de clé pour simuler des scénarios réels (configuré,
+  // absent, enregistré non connecté), sans jamais émettre l'appel réseau
+  // (fetch est injecté). Référencer le nom d'une variable n'est pas l'appeler.
+  join("server", "intelligences", "__tests__", "fuite-fournisseurs.test.ts"),
 ]);
 
 const INTERDITS = [

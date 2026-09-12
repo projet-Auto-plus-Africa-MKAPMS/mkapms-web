@@ -50,7 +50,10 @@ export const inMessages = pgTable("in_messages", {
   fournisseur: varchar("fournisseur", { length: 48 }),
   modele: varchar("modele", { length: 64 }),
   ok: boolean("ok").notNull().default(true),
+  /** Motif détaillé (fournisseur, modèle, code HTTP…) — réservé aux lectures internes (direction, `fil`). */
   motif: text("motif").notNull().default(""),
+  /** LOT IA02A — motif générique sans détail fournisseur, seul champ que `filPublic` peut renvoyer. */
+  motifPublic: text("motif_public").notNull().default(""),
   jetonsEntree: integer("jetons_entree").notNull().default(0),
   jetonsSortie: integer("jetons_sortie").notNull().default(0),
   dureeMs: integer("duree_ms").notNull().default(0),

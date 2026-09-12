@@ -1,15 +1,20 @@
 /**
- * Bandeau d'alerte "MKA.P-MS Intelligence non configurée" — présent partout
- * où l'utilisateur peut tenter d'envoyer une commande à l'Intelligence. Sans
- * clé API configurée, chaque envoi échouait silencieusement avec un motif
- * obscur. Ce composant remonte la vraie cause et pointe vers l'action à
- * effectuer.
+ * Bandeau d'alerte "MKA.P-MS Intelligence non configurée" — réservé aux
+ * écrans de direction (Centre de Commandes, Centre Intelligence & Coûts).
+ * Sans clé API configurée, chaque envoi échouait silencieusement avec un
+ * motif obscur. Ce composant remonte la vraie cause et pointe vers l'action
+ * à effectuer.
+ *
+ * LOT IA02A : source `configStatusDirection` (pdgProcedure) — jamais
+ * `configStatus`, qui reste la vue publique sans aucun détail fournisseur.
+ * Ne PAS réutiliser ce composant sur un écran public ou utilisateur ; voir
+ * EtatServiceIntelligence.tsx pour cet usage-là.
  */
 import { AlertTriangle, ExternalLink } from "lucide-react";
 import { trpc } from "../lib/trpc";
 
 export function IaConfigWarning({ compact = false }: { compact?: boolean }) {
-  const status = trpc.intelligences.configStatus.useQuery(undefined, {
+  const status = trpc.intelligences.configStatusDirection.useQuery(undefined, {
     refetchInterval: 60000,
     retry: 1,
   });
