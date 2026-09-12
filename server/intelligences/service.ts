@@ -29,6 +29,9 @@ import { lireRegistre, reponseCourtoisie } from "./registre.js";
 import { engineRegistry } from "../engine-registry/schema.js";
 import { smartAlerts } from "../smart-engine/schema.js";
 import { emitSafe } from "../event-bus/service.js";
+import { executerAvecOutils } from "./outils/boucle.js";
+import { listerActifs } from "./outils/registre.js";
+import { randomUUID } from "node:crypto";
 
 function jourCourant(): string {
   return new Date().toISOString().slice(0, 10);
@@ -68,6 +71,44 @@ async function appelsDuJour(cote: Cote): Promise<number> {
     .where(and(eq(inUsage.jour, jourCourant()), eq(inUsage.cote, cote)))
     .limit(1);
   return ligne?.appels ?? 0;
+}
+
+/**
+ * Point 7 (LOT IA02B) — contexte utilisateur réel injecté via le Context
+ * Engine (server/intelligences/contexte/service.ts, LOT IA01) : qui demande,
+ * avec quel rôle, pays, permissions, projet Chantier actif et univers résolu
+ * pour la route /intelligence. Jamais une seconde lecture de ces mêmes
+ * informations : ce fichier appelle le Context Engine, il ne le duplique pas.
+ */
+async function contexteUtilisateur(input: {
+  userId?: number | null;
+  role?: string | null;
+  countryCode?: string | null;
+  sessionId: number;
+}): Promise<string[]> {
+  try {
+    const ctxEngine = await import("./contexte/service.js");
+    const c = await ctxEngine.resoudreContexte({
+      userId: input.userId ?? null,
+      role: input.role ?? null,
+      application: "intelligence",
+      route: "/intelligence",
+      countryCode: input.countryCode ?? null,
+      sessionId: input.sessionId,
+    });
+    return [
+      `Utilisateur : id ${c.utilisateur.id ?? "inconnu"}, rôle ${c.utilisateur.role ?? "aucun"}, pays ${c.pays.code ?? "non renseigné"}${c.pays.motif ? ` (${c.pays.motif})` : ""}.`,
+      `Modules accessibles à ce rôle : ${c.permissionsModules.join(", ") || "aucun"}.`,
+      c.projetActif
+        ? `Projet Chantier actif : « ${c.projetActif.nom} » (statut ${c.projetActif.statut}).`
+        : "Aucun projet Chantier actif rattaché à cette session.",
+      c.univers.resolu
+        ? `Univers résolu pour /intelligence : ${c.univers.resolu.nom} (${c.univers.resolu.statut}).`
+        : `Univers non résolu : ${c.univers.motif}`,
+    ];
+  } catch (e) {
+    return [`Context Engine illisible : ${e instanceof Error ? e.message : "erreur inconnue"}.`];
+  }
 }
 
 /**
@@ -233,6 +274,8 @@ export interface DemandeInput {
   domaine?: string | null;
   sessionId?: number | null;
   userId?: number | null;
+  /** Rôle réel de l'appelant — gouverne la boucle d'outils côté direction (permissions, autonomie). */
+  role?: string | null;
   visiteur?: string | null;
   countryCode?: string | null;
   langue?: string | null;
@@ -243,11 +286,68 @@ export interface DemandeResultat {
   ok: boolean;
   reponse: string;
   motif: string;
+  /** LOT IA02B — motif générique sans détail fournisseur, pour toute surface conversationnelle. */
+  motifPublic: string;
   fournisseur: string | null;
   modele: string | null;
   contexte: string[];
   jetons: number;
   dureeMs: number;
+  /** Outils réellement demandés par le modèle pendant cette réponse (vide sinon). */
+  appelsOutils: { toolId: string; verdictPolitique: string; statutExecution: string | null; motif: string }[];
+}
+
+/**
+ * Point 12 (LOT IA02B) — propriétaire réel d'une conversation, pour que
+ * chaque appelant (fil, demander, renommer, supprimer) puisse refuser l'accès
+ * à la conversation d'un autre compte avant de lire ou d'écrire quoi que ce
+ * soit. `userId: null` couvre les sessions créées avant le suivi par compte
+ * (public, ou anciennes) : elles restent lisibles, jamais celles d'un tiers.
+ */
+export async function proprietaireSession(
+  sessionId: number,
+): Promise<{ userId: number | null; cote: Cote } | null> {
+  const [ligne] = await db
+    .select({ userId: inSessions.userId, cote: inSessions.cote })
+    .from(inSessions)
+    .where(eq(inSessions.id, sessionId))
+    .limit(1);
+  return ligne ? { userId: ligne.userId, cote: ligne.cote as Cote } : null;
+}
+
+/**
+ * Point 12 — vérification testable indépendamment du transport (tRPC) qui
+ * l'appelle : `server/intelligences/index.ts` la traduit en refus HTTP,
+ * les tests l'appellent directement sur la vraie base.
+ */
+export async function verifierProprieteConversation(
+  sessionId: number,
+  userId: number,
+): Promise<{ ok: boolean; motif: string }> {
+  const proprietaire = await proprietaireSession(sessionId);
+  if (!proprietaire) return { ok: false, motif: "Conversation introuvable." };
+  if (proprietaire.userId !== null && proprietaire.userId !== userId) {
+    return { ok: false, motif: "Cette conversation appartient à un autre compte." };
+  }
+  return { ok: true, motif: "" };
+}
+
+/** Renomme une conversation — la propriété a déjà été vérifiée par l'appelant. */
+export async function renommerConversation(sessionId: number, titre: string): Promise<{ ok: boolean; detail: string }> {
+  const propre = titre.trim().slice(0, 180);
+  if (propre.length < 1) return { ok: false, detail: "Titre vide." };
+  await db.update(inSessions).set({ titre: propre }).where(eq(inSessions.id, sessionId));
+  return { ok: true, detail: "Conversation renommée." };
+}
+
+/**
+ * Supprime réellement une conversation et ses messages — pas un simple
+ * masquage. La propriété a déjà été vérifiée par l'appelant.
+ */
+export async function supprimerConversation(sessionId: number): Promise<{ ok: boolean; detail: string }> {
+  await db.delete(inMessages).where(eq(inMessages.sessionId, sessionId));
+  await db.delete(inSessions).where(eq(inSessions.id, sessionId));
+  return { ok: true, detail: "Conversation et messages supprimés." };
 }
 
 async function session(input: DemandeInput): Promise<number> {
@@ -278,12 +378,14 @@ async function session(input: DemandeInput): Promise<number> {
 export async function demander(input: DemandeInput): Promise<DemandeResultat> {
   const sessionId = await session(input);
   const question = input.question.trim();
+  const traceId = randomUUID();
 
   await db.insert(inMessages).values({
     sessionId,
     cote: input.cote,
     role: "utilisateur",
     contenu: question.slice(0, 8000),
+    traceId,
   });
 
   const echec = async (motif: string): Promise<DemandeResultat> => {
@@ -298,6 +400,7 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
       ok: false,
       motif,
       motifPublic: motif,
+      traceId,
     });
     await compter(input.cote, false, 0);
     return {
@@ -305,11 +408,13 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
       ok: false,
       reponse: "",
       motif,
+      motifPublic: motif,
       fournisseur: null,
       modele: null,
       contexte: [],
       jetons: 0,
       dureeMs: 0,
+      appelsOutils: [],
     };
   };
 
@@ -347,6 +452,7 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
       jetonsSortie: 0,
       dureeMs: 0,
       contexte: [],
+      traceId,
     });
     await db
       .update(inSessions)
@@ -357,11 +463,13 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
       ok: true,
       reponse: courtoisie,
       motif: "",
+      motifPublic: "",
       fournisseur: "moteur",
       modele: `registre:${lecture.intention}/${lecture.registre}`,
       contexte: [],
       jetons: 0,
       dureeMs: 0,
+      appelsOutils: [],
     };
   }
 
@@ -372,7 +480,18 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     );
   }
 
-  const contexte = input.cote === "direction" ? await contexteDirection(question) : [];
+  const contexte =
+    input.cote === "direction"
+      ? [
+          ...(await contexteDirection(question)),
+          ...(await contexteUtilisateur({
+            userId: input.userId,
+            role: input.role,
+            countryCode: input.countryCode,
+            sessionId,
+          })),
+        ]
+      : [];
   const historique = await db
     .select({ role: inMessages.role, contenu: inMessages.contenu })
     .from(inMessages)
@@ -400,23 +519,86 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
           .filter((l) => l.length > 0)
           .join("\n");
 
-  const r = await appeler({
-    capacite: "ia_texte",
-    tache: input.cote === "direction" ? "direction_demande" : "assistant_public",
-    moteur: "intelligences",
-    systeme:
-      input.cote === "direction"
-        ? CONSIGNE_DIRECTION
-        : [CONSIGNE_PUBLIC, consigneDomaine, lecture ? `Registre du visiteur (lu par le moteur) :\n${lecture.consigneTon}` : ""]
-            .filter((c) => c.length > 0)
-            .join("\n\n"),
-    message,
-    // Côté public la question peut contenir des éléments personnels : le niveau
-    // déclaré est plus strict, et la Fabrique Intelligence peut donc refuser un fournisseur.
-    confidentialite: input.cote === "direction" ? "interne" : "interne",
-    countryCode: input.countryCode ?? null,
-    maxTokens: input.cote === "direction" ? 2000 : 900,
-  });
+  // LOT IA02B, point 6 — côté direction, la conversation passe par la même
+  // boucle d'outils que le Chantier de développement (server/intelligences/
+  // outils/boucle.ts) : les outils réellement implémentés et actifs
+  // deviennent utilisables selon permission, sans qu'aucune seconde boucle ne
+  // soit créée pour cette page. Côté public, aucun changement : appel direct
+  // inchangé depuis le LOT IA02A, pour ne rien régresser sur son gate de
+  // fuites fournisseurs déjà vérifié.
+  let appelsOutilsTrace: { toolId: string; verdictPolitique: string; statutExecution: string | null; motif: string }[] = [];
+  let r: {
+    ok: boolean;
+    texte: string;
+    fournisseur: string | null;
+    modele: string | null;
+    motif: string;
+    motifPublic: string;
+    jetonsEntree: number;
+    jetonsSortie: number;
+    dureeMs: number;
+  };
+
+  if (input.cote === "direction") {
+    const boucle = await executerAvecOutils({
+      moteur: "intelligences",
+      role: input.role ?? null,
+      systeme: CONSIGNE_DIRECTION,
+      message,
+      outilsProposes: listerActifs().map((o) => o.toolId),
+      confidentialite: "interne",
+      countryCode: input.countryCode ?? null,
+      maxTokens: 2000,
+      actorId: input.userId ?? null,
+      traceId,
+    });
+    appelsOutilsTrace = boucle.appelsOutils.map((a) => ({
+      toolId: a.toolId,
+      verdictPolitique: a.verdictPolitique,
+      statutExecution: a.statutExecution,
+      motif: a.motif,
+    }));
+    r = {
+      ok: boucle.ok,
+      texte: boucle.texteFinal,
+      fournisseur: boucle.fournisseur,
+      modele: boucle.modele,
+      motif: boucle.motif,
+      motifPublic: boucle.motifPublic,
+      jetonsEntree: boucle.jetonsEntree,
+      jetonsSortie: boucle.jetonsSortie,
+      dureeMs: boucle.dureeMs,
+    };
+  } else {
+    const appel = await appeler({
+      capacite: "ia_texte",
+      tache: "assistant_public",
+      moteur: "intelligences",
+      systeme: [CONSIGNE_PUBLIC, consigneDomaine, lecture ? `Registre du visiteur (lu par le moteur) :\n${lecture.consigneTon}` : ""]
+        .filter((c) => c.length > 0)
+        .join("\n\n"),
+      message,
+      // Côté public la question peut contenir des éléments personnels : le niveau
+      // déclaré est plus strict, et la Fabrique Intelligence peut donc refuser un fournisseur.
+      confidentialite: "interne",
+      countryCode: input.countryCode ?? null,
+      maxTokens: 900,
+    });
+    r = appel;
+  }
+
+  // Point 13 — traçabilité des outils réellement appelés, visible dans le
+  // même champ `contexte` que le reste de ce qui a été injecté au modèle :
+  // aucune colonne supplémentaire nécessaire pour un premier lot honnête.
+  const contexteAvecOutils =
+    appelsOutilsTrace.length > 0
+      ? [
+          ...contexte,
+          ...appelsOutilsTrace.map(
+            (a) => `Outil appelé : ${a.toolId} — ${a.verdictPolitique}${a.statutExecution ? `/${a.statutExecution}` : ""} — ${a.motif}`,
+          ),
+        ]
+      : contexte;
 
   await db.insert(inMessages).values({
     sessionId,
@@ -431,7 +613,8 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     jetonsEntree: r.jetonsEntree,
     jetonsSortie: r.jetonsSortie,
     dureeMs: r.dureeMs,
-    contexte,
+    contexte: contexteAvecOutils,
+    traceId,
   });
   await db
     .update(inSessions)
@@ -455,11 +638,13 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     ok: r.ok,
     reponse: r.texte,
     motif: cotePublic ? r.motifPublic : r.motif,
+    motifPublic: r.motifPublic,
     fournisseur: cotePublic ? null : r.fournisseur,
     modele: cotePublic ? null : r.modele,
-    contexte,
+    contexte: contexteAvecOutils,
     jetons: r.jetonsEntree + r.jetonsSortie,
     dureeMs: r.dureeMs,
+    appelsOutils: appelsOutilsTrace,
   };
 }
 
@@ -598,11 +783,12 @@ export async function actions(limit = 60) {
   return db.select().from(inActions).orderBy(desc(inActions.id)).limit(limit);
 }
 
-export async function sessions(cote: Cote, limit = 40) {
+/** Point 12 — `userId` scope la liste aux conversations réellement possédées par ce compte. */
+export async function sessions(cote: Cote, limit = 40, userId?: number | null) {
   return db
     .select()
     .from(inSessions)
-    .where(eq(inSessions.cote, cote))
+    .where(userId != null ? and(eq(inSessions.cote, cote), eq(inSessions.userId, userId)) : eq(inSessions.cote, cote))
     .orderBy(desc(inSessions.dernierAt))
     .limit(limit);
 }

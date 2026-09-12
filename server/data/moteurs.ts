@@ -9791,8 +9791,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 3,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 22,
-        "mots": 121
+        "textes": 21,
+        "mots": 204
       }
     ],
     "ecransHotes": [
@@ -9870,8 +9870,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "reglerFonction",
       "reglerShadow",
       "regles",
+      "renommerConversation",
       "revoquerCleDeveloppeur",
       "shadow",
+      "supprimerConversation",
       "universDetail",
       "universRegistre"
     ],
@@ -9906,8 +9908,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 207,
-    "mots": 1276,
+    "textes": 206,
+    "mots": 1359,
     "battement": "sonde",
     "manques": [
       {

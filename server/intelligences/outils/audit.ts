@@ -25,6 +25,8 @@ export interface EntreeJournal {
   resultat: unknown;
   dureeMs: number;
   auditCategory: string | null;
+  /** LOT IA02B — relie cette ligne au message de conversation qui a déclenché l'outil (point 13). */
+  traceId?: string;
 }
 
 function tronquer(valeur: unknown): string | null {
@@ -49,6 +51,7 @@ export async function journaliser(entree: EntreeJournal): Promise<void> {
       resultatJson: tronquer(entree.resultat),
       dureeMs: entree.dureeMs,
       auditCategory: entree.auditCategory,
+      traceId: entree.traceId ?? "",
     });
   } catch {
     // L'audit ne doit jamais faire échouer la boucle qu'il observe — comme

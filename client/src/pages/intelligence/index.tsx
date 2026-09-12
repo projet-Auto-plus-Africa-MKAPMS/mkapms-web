@@ -14,7 +14,7 @@
  * unique contenant tout le produit.
  */
 import { useMemo, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Bot,
   ChevronLeft,
@@ -112,7 +112,14 @@ export default function MKAPMSIntelligence() {
   // aux autres niveaux de l'échelle est un lot suivant, pas une omission de
   // celui-ci. Même message que le côté direction historique
   // (CentreIntelligences.tsx) pour ne pas inventer un second discours.
-  if (!user) return <Navigate to="/connexion" replace />;
+  //
+  // Jamais de redirection immédiate vers /connexion ici : `user` reste null
+  // le temps que la session s'hydrate au chargement (AuthProvider), même pour
+  // un PDG déjà connecté — une redirection sur ce court instant renverrait un
+  // compte PDG réel hors de la page avant même que son rôle soit connu. Comme
+  // CentreIntelligences.tsx, on affiche le même écran « réservé » tant que
+  // `user` n'est pas encore résolu ; il se corrige seul dès que la session
+  // charge, sans navigation forcée.
   if (niveau !== "pdg") {
     return (
       <div className="mx-auto max-w-xl p-6 text-center">

@@ -1,26 +1,49 @@
 /**
  * MKA.P-MS Intelligence — module Conversation (LOT IA02B).
  *
- * Premier module réel de l'application dédiée : nouvelle conversation,
- * conversations précédentes (server/intelligences/service.ts::sessions/
- * messages, déjà réel), envoi, historique, régénération, états d'erreur.
- * Réutilise exactement le même moteur que le Centre Intelligence direction
- * (CentreIntelligences.tsx → intelligences.demander) — aucun second cerveau,
- * une seconde façade.
+ * Vrai espace de conversation : nouvelle conversation, conversations
+ * précédentes (renommer, supprimer, reprendre), envoi, régénération, copie
+ * d'une réponse, reprise d'une demande passée, outils réellement appelés,
+ * état de service. Réutilise exactement le même moteur que le Centre
+ * Intelligence direction (CentreIntelligences.tsx → intelligences.demander,
+ * lui-même branché depuis ce lot sur la boucle d'outils déjà construite,
+ * server/intelligences/outils/boucle.ts) — aucun second cerveau, une seconde
+ * façade.
+ *
+ * Identité : cette interface n'affiche jamais un nom de fournisseur ou de
+ * modèle externe, y compris dans ses erreurs — voir `motifPublic` ci-dessous
+ * et server/intelligences/identite.ts (règles du LOT IA02A, reprises ici
+ * explicitement pour la conversation elle-même).
  *
  * Honnêtement absent de ce lot, faute de socle réel derrière (pas fabriqué
  * pour faire joli) :
- *  - réponses en streaming : server/intelligences/provider.ts fait un seul
+ *  - STREAMING_NOT_IMPLEMENTED : server/intelligences/provider.ts fait un seul
  *    appel bloquant, aucun flux token par token n'existe dans ce dépôt ;
  *  - arrêt d'une génération en cours : sans flux, il n'y a rien à interrompre
  *    côté serveur — l'annuler côté client masquerait une réponse qui continue
  *    de se préparer, ce serait un faux bouton ;
- *  - pièces jointes, image, voix, outils, code : modules dédiés séparés,
- *    encore à l'état de socle (voir leur propre fichier).
+ *  - fermeture/archivage d'une conversation : aucun statut d'archive n'existe
+ *    encore dans le schéma (seule la suppression réelle est possible) ;
+ *  - pièces jointes, image, voix, code : modules dédiés séparés, encore à
+ *    l'état de socle (voir leur propre fichier).
  */
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, Menu, Plus, RotateCcw, Send, Sparkles, X } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  Copy,
+  Menu,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Send,
+  Sparkles,
+  Trash2,
+  Wrench,
+  X,
+} from "lucide-react";
 import { trpc } from "../../../lib/trpc";
+import { EtatServiceIntelligence } from "../../../components/EtatServiceIntelligence";
 
 interface Bulle {
   id: string;
@@ -28,10 +51,16 @@ interface Bulle {
   texte: string;
   ok: boolean;
   motif: string;
+  outils: string[];
 }
 
 function idBulle(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/** Les lignes de contexte "Outil appelé : …" (server/intelligences/service.ts) deviennent des puces visibles, sans jamais nommer un fournisseur. */
+function outilsDepuisContexte(contexte: string[]): string[] {
+  return contexte.filter((l) => l.startsWith("Outil appelé :")).map((l) => l.replace("Outil appelé : ", ""));
 }
 
 export function Conversation() {
@@ -40,9 +69,14 @@ export function Conversation() {
   const [question, setQuestion] = useState("");
   const [derniereQuestion, setDerniereQuestion] = useState("");
   const [panneauOuvert, setPanneauOuvert] = useState(false);
+  const [renommageId, setRenommageId] = useState<number | null>(null);
+  const [renommageTitre, setRenommageTitre] = useState("");
+  const [copieId, setCopieId] = useState<string | null>(null);
   const sessionChargee = useRef<number | null>(null);
   const finDuFil = useRef<HTMLDivElement>(null);
+  const zoneSaisie = useRef<HTMLTextAreaElement>(null);
 
+  const utils = trpc.useUtils();
   const conversations = trpc.intelligences.conversations.useQuery(
     { cote: "direction" },
     { refetchOnWindowFocus: false },
@@ -53,9 +87,6 @@ export function Conversation() {
     { enabled: !!sessionId, refetchOnWindowFocus: false },
   );
 
-  // Ne recharge le fil local depuis le serveur qu'au moment où une AUTRE
-  // conversation est sélectionnée dans le panneau — jamais après, sinon un
-  // envoi local optimiste serait écrasé par une réponse serveur en retard.
   useEffect(() => {
     if (!sessionId || !filServeur.data) return;
     if (sessionChargee.current === sessionId) return;
@@ -68,7 +99,8 @@ export function Conversation() {
           role: m.role === "utilisateur" ? "moi" : "moteur",
           texte: m.contenu,
           ok: m.ok,
-          motif: m.motif,
+          motif: m.motifPublic || "Aucune réponse — le service n'a pas communiqué de motif.",
+          outils: outilsDepuisContexte(m.contexte ?? []),
         })),
     );
   }, [sessionId, filServeur.data]);
@@ -80,12 +112,47 @@ export function Conversation() {
   const demander = trpc.intelligences.demander.useMutation({
     onSuccess: (r) => {
       setSessionId(r.sessionId);
-      sessionChargee.current = r.sessionId; // déjà à jour localement, pas besoin du fil serveur
-      setFil((f) => [...f, { id: idBulle(), role: "moteur", texte: r.reponse, ok: r.ok, motif: r.motif }]);
+      sessionChargee.current = r.sessionId;
+      setFil((f) => [
+        ...f,
+        {
+          id: idBulle(),
+          role: "moteur",
+          texte: r.reponse,
+          ok: r.ok,
+          // Point 5/02A — jamais le motif interne (fournisseur, modèle, code HTTP) dans cette interface.
+          motif: r.motifPublic || "Aucune réponse — le service n'a pas communiqué de motif.",
+          outils: r.appelsOutils.map((a) => `${a.toolId} — ${a.verdictPolitique}${a.statutExecution ? `/${a.statutExecution}` : ""}`),
+        },
+      ]);
       void conversations.refetch();
     },
-    onError: (e) =>
-      setFil((f) => [...f, { id: idBulle(), role: "moteur", texte: "", ok: false, motif: e.message }]),
+    onError: () =>
+      setFil((f) => [
+        ...f,
+        {
+          id: idBulle(),
+          role: "moteur",
+          texte: "",
+          ok: false,
+          motif: "Le service MKA.P-MS Intelligence est temporairement indisponible. Réessayez dans un instant.",
+          outils: [],
+        },
+      ]),
+  });
+
+  const renommer = trpc.intelligences.renommerConversation.useMutation({
+    onSuccess: () => {
+      setRenommageId(null);
+      void utils.intelligences.conversations.invalidate();
+    },
+  });
+
+  const supprimer = trpc.intelligences.supprimerConversation.useMutation({
+    onSuccess: (_r, variables) => {
+      if (sessionId === variables.sessionId) nouvelleConversation();
+      void utils.intelligences.conversations.invalidate();
+    },
   });
 
   function nouvelleConversation() {
@@ -103,7 +170,7 @@ export function Conversation() {
   function envoyer(texte?: string) {
     const q = (texte ?? question).trim();
     if (q.length < 2 || demander.isPending) return;
-    setFil((f) => [...f, { id: idBulle(), role: "moi", texte: q, ok: true, motif: "" }]);
+    setFil((f) => [...f, { id: idBulle(), role: "moi", texte: q, ok: true, motif: "", outils: [] }]);
     setDerniereQuestion(q);
     setQuestion("");
     demander.mutate({ question: q, sessionId });
@@ -114,11 +181,44 @@ export function Conversation() {
     envoyer(derniereQuestion);
   }
 
+  /** Reprendre/modifier une demande passée : reporte son texte dans la zone de saisie, ne réécrit pas l'historique. */
+  function reprendre(texte: string) {
+    setQuestion(texte);
+    zoneSaisie.current?.focus();
+  }
+
+  async function copier(id: string, texte: string) {
+    try {
+      await navigator.clipboard.writeText(texte);
+      setCopieId(id);
+      setTimeout(() => setCopieId((c) => (c === id ? null : c)), 1500);
+    } catch {
+      // Presse-papiers indisponible (contexte non sécurisé, permission refusée) : aucune fausse confirmation.
+    }
+  }
+
+  function commencerRenommage(id: number, titreActuel: string) {
+    setRenommageId(id);
+    setRenommageTitre(titreActuel);
+  }
+
+  function validerRenommage() {
+    if (renommageId === null || renommageTitre.trim().length < 1) return;
+    renommer.mutate({ sessionId: renommageId, titre: renommageTitre.trim() });
+  }
+
+  function demanderSuppression(id: number) {
+    if (!window.confirm("Supprimer définitivement cette conversation et ses messages ?")) return;
+    supprimer.mutate({ sessionId: id });
+  }
+
   return (
-    <div className="flex h-[calc(100vh-160px)] min-h-[420px] gap-3">
-      {/* Panneau conversations précédentes — capacité 2 de la demande */}
+    <div className="flex h-[calc(100vh-160px)] min-h-[420px] flex-col gap-3">
+      <EtatServiceIntelligence />
+
+      <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
       <aside
-        className={`${panneauOuvert ? "flex" : "hidden"} w-64 shrink-0 flex-col rounded-xl border border-black/10 bg-[#FAFAFA] p-2 md:flex`}
+        className={`${panneauOuvert ? "flex" : "hidden"} w-full shrink-0 flex-col rounded-xl border border-black/10 bg-[#FAFAFA] p-2 md:flex md:w-64`}
       >
         <button
           type="button"
@@ -129,17 +229,61 @@ export function Conversation() {
         </button>
         <div className="flex-1 space-y-1 overflow-y-auto">
           {(conversations.data ?? []).map((c) => (
-            <button
+            <div
               key={c.id}
-              type="button"
-              onClick={() => ouvrirConversation(c.id)}
-              className={`w-full truncate rounded-lg px-2.5 py-2 text-left text-xs font-semibold ${
-                sessionId === c.id ? "bg-black/10 text-black" : "text-black/60 hover:bg-black/5"
+              className={`group flex items-center gap-1 rounded-lg px-1.5 py-1 ${
+                sessionId === c.id ? "bg-black/10" : "hover:bg-black/5"
               }`}
-              title={c.titre}
             >
-              {c.titre || "Sans titre"}
-            </button>
+              {renommageId === c.id ? (
+                <>
+                  <input
+                    value={renommageTitre}
+                    onChange={(e) => setRenommageTitre(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") validerRenommage();
+                      if (e.key === "Escape") setRenommageId(null);
+                    }}
+                    autoFocus
+                    className="min-w-0 flex-1 rounded border border-black/10 bg-white px-1.5 py-1 text-xs"
+                  />
+                  <button type="button" onClick={validerRenommage} aria-label="Valider le nouveau titre" className="shrink-0 p-1">
+                    <Check className="h-3.5 w-3.5 text-[#1a7f37]" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => ouvrirConversation(c.id)}
+                    className={`min-w-0 flex-1 truncate rounded px-1 py-1 text-left text-xs font-semibold ${
+                      sessionId === c.id ? "text-black" : "text-black/60"
+                    }`}
+                    title={c.titre}
+                  >
+                    {c.titre || "Sans titre"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => commencerRenommage(c.id, c.titre)}
+                    aria-label="Renommer cette conversation"
+                    title="Renommer"
+                    className="hidden shrink-0 p-1 text-black/40 hover:text-black/70 group-hover:block"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => demanderSuppression(c.id)}
+                    aria-label="Supprimer cette conversation"
+                    title="Supprimer"
+                    className="hidden shrink-0 p-1 text-black/40 hover:text-red-600 group-hover:block"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </>
+              )}
+            </div>
           ))}
           {conversations.data?.length === 0 && (
             <p className="px-2 py-4 text-center text-[11px] text-black/40">Aucune conversation encore.</p>
@@ -171,7 +315,7 @@ export function Conversation() {
             fil.map((b) => (
               <div
                 key={b.id}
-                className={`max-w-[85%] rounded-xl border p-3 text-sm ${
+                className={`group relative max-w-[85%] rounded-xl border p-3 text-sm ${
                   b.role === "moi"
                     ? "ml-auto border-black/5 bg-[#FAFAFA]"
                     : b.ok
@@ -184,9 +328,47 @@ export function Conversation() {
                 ) : (
                   <p className="flex items-start gap-2 text-red-700">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>{b.motif || "Aucune réponse — motif non communiqué."}</span>
+                    <span>{b.motif}</span>
                   </p>
                 )}
+
+                {b.outils.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {b.outils.map((o, i) => (
+                      <span
+                        key={i}
+                        className="flex items-center gap-1 rounded-full bg-black/5 px-2 py-0.5 text-[10px] font-bold text-black/50"
+                      >
+                        <Wrench className="h-2.5 w-2.5" /> {o}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-1 hidden justify-end gap-2 group-hover:flex">
+                  {b.role === "moteur" && b.ok && (
+                    <button
+                      type="button"
+                      onClick={() => copier(b.id, b.texte)}
+                      aria-label="Copier cette réponse"
+                      title="Copier"
+                      className="text-black/30 hover:text-black/60"
+                    >
+                      {copieId === b.id ? <Check className="h-3.5 w-3.5 text-[#1a7f37]" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                  )}
+                  {b.role === "moi" && (
+                    <button
+                      type="button"
+                      onClick={() => reprendre(b.texte)}
+                      aria-label="Reprendre cette demande"
+                      title="Reprendre / modifier"
+                      className="text-black/30 hover:text-black/60"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
             ))
           )}
@@ -201,6 +383,7 @@ export function Conversation() {
         <div className="border-t border-black/5 p-3">
           <div className="flex items-end gap-2">
             <textarea
+              ref={zoneSaisie}
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={(e) => {
@@ -210,7 +393,8 @@ export function Conversation() {
                 }
               }}
               rows={2}
-              placeholder="Votre demande…"
+              maxLength={8000}
+              placeholder="Votre demande… (Entrée pour envoyer, Maj+Entrée pour un retour à la ligne)"
               className="flex-1 rounded-xl border border-black/10 p-2 text-sm outline-none focus:border-[#8B7500]"
             />
             {derniereQuestion && !demander.isPending && (
@@ -233,7 +417,11 @@ export function Conversation() {
               <Send className="h-4 w-4" />
             </button>
           </div>
+          <p className="mt-1 text-[10px] text-black/30">
+            Réponse envoyée en un seul bloc (streaming non disponible dans ce lot — aucun arrêt de génération n'est donc proposé).
+          </p>
         </div>
+      </div>
       </div>
     </div>
   );

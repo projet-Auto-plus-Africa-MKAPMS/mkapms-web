@@ -185,11 +185,21 @@ async function main() {
   }
 
   // ── 12. Direction autorisée : le détail technique reste disponible (correction explicite de la direction) ──
+  // LOT IA02B : le côté direction passe désormais par la boucle d'outils
+  // (executerAvecOutils → routeur.ts → "raisonnement"), qui exige un rôle réel
+  // pour la permission ANALYZE — `role: "super_admin"` reproduit le compte PDG
+  // réel, sans quoi ce scénario ne testerait qu'un refus de permission.
   {
-    const rDirection = await demander({ question: "Diagnostique l'état du moteur intelligences.", cote: "direction", userId: 4 });
+    const rDirection = await demander({
+      question: "Diagnostique l'état du moteur intelligences.",
+      cote: "direction",
+      userId: 4,
+      role: "super_admin",
+    });
     verif("12. direction : le champ motif existe et n'est pas artificiellement vidé", typeof rDirection.motif === "string");
-    // Le côté direction NE reçoit PAS de sanitisation — fournisseur/modèle restent transmis tels quels
-    // (ctx PDG uniquement), contrairement au côté public testé en 10-11.
+    verif("12. direction : le champ motifPublic existe et reste générique", rDirection.motifPublic === "" || neContientAucunDetailFournisseur(rDirection.motifPublic));
+    // Le côté direction NE reçoit PAS de sanitisation sur `motif` — fournisseur/modèle restent transmis
+    // tels quels (ctx PDG uniquement), contrairement au côté public testé en 10-11.
   }
 
   console.log(`\n${ok}/${total} vérifications réussies.`);
