@@ -628,6 +628,19 @@ export const LIVRAISONS: Livraison[] = [
       "25 vérifications exécutées et réussies (npx tsx server/investment/__tests__/investment.test.ts) sur la logique réellement pure du moteur (extraite exprès de la couche base de données pour rester testable, jamais une réimplémentation parallèle) : calcul de revenu pour les trois modèles financiers, graphe des 12 statuts (aucun saut direct vers ACTIVE, statuts terminaux sans sortie), routeur d'attribution automatique (contrat trouvé, hors période, aucun contrat, incohérence signalée si deux contrats ACTIVE se chevauchent), isolation entre deux investisseurs de pays différents, blocage de double attribution incompatible y compris contre un contrat pas encore ACTIVE. Aucun accès réseau ni base de données réels dans cet environnement de travail (PostgreSQL injoignable) : l'activation réelle (vérification signature+paiement en base), l'attribution automatique en conditions réelles et l'isolation à deux vrais comptes investisseurs restent à confirmer après déploiement — code et typecheck complets vérifiés, aucune nouvelle erreur sur les 54 déjà connues. Reste volontairement non construit dans ce lot, par discipline de lot (moteurs d'abord, une seule brique à la fois) : toute interface (mobile ou web), la nouvelle variante Android Investisseur, le KYC/KYB réel, les versements réels, et le branchement à MKAPMS Intelligent — tous prévus dans les lots suivants de la même priorité.",
     domaine: "moteurs",
   },
+  {
+    cle: "mobile-5e-variante-investor",
+    titre: "5e application Android — MKA.P-MS Investisseur (com.mkapms.investor) — ajoutée sans toucher aux 4 variantes existantes",
+    moteurs: ["core"],
+    quoi:
+      "mobile/variants.json reçoit l'entrée « investor » (appId com.mkapms.investor, appName « MKA.P-MS Investisseur », startPath /investissement), même schéma que les 4 variantes déjà présentes (grandpublic/pro/command/intelligence), toutes intactes et non modifiées — le mécanisme de product flavors Gradle déjà en place (android/app/build.gradle lit mobile/variants.json directement, voir le lot du socle de la variante intelligence) l'a transformée automatiquement en 5e flavor sans aucune ligne de code Android à écrire. Package unique, sans collision avec un package déjà publié. /investissement n'a volontairement aucun écran encore (moteurs construits avant l'interface — server/investment/, lot précédent) : la variante build déjà et produit un .aab valide, l'écran arrive dans le lot d'interface suivant ; en son absence, l'application affiche l'écran 404 existant de la plateforme, jamais un crash.",
+    pourquoi:
+      "Demande explicite et classée priorité absolue par la direction : ajouter l'application Investisseur sans jamais remplacer ou dégrader intelligence, command, pro ou grandpublic, avec un package/applicationId propre analysé pour éviter toute collision.",
+    ou: ["mobile/variants.json"],
+    lecon:
+      "Vérifié réellement, pas seulement relu : les 5 variantes (grandpublic/pro/command/intelligence/investor) compilées avec succès en debug ET en release avec l'outillage déjà en place (SDK Android 36, AGP 8.2.1, aucune mise à jour nécessaire), .aab générés pour les 5 applications via le script canonique mobile/build-apps.mjs, confirmation par aapt dump badging que l'APK investor embarque bien compileSdkVersion=36, targetSdkVersion=36, versionCode=10705 et applicationId=com.mkapms.investor. Tous les checks du dépôt et le build serveur inchangés. Non réalisable depuis cet environnement, par construction : la fiche Google Play Console de cette nouvelle application (elle n'existe encore nulle part sur Play), sa signature de production et son import — le trousseau de production n'est jamais présent dans ce dépôt ni dans cet environnement de travail.",
+    domaine: "moteurs",
+  },
 ];
 
 /**
