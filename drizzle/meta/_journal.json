@@ -813,6 +813,13 @@
       "when": 1788232009000,
       "tag": "0117_governance_dependencies",
       "breakpoints": true
+    },
+    {
+      "idx": 116,
+      "version": "7",
+      "when": 1788232010000,
+      "tag": "0118_fix_delivery_pricing_shape",
+      "breakpoints": true
     }
   ]
 }

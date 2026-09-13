@@ -23,6 +23,7 @@ import type { OutilFonction } from "../provider.js";
 import { OUTILS_VEHICULES } from "./familles/vehicules.js";
 import { OUTILS_GLOBAUX } from "./familles/globales.js";
 import { OUTILS_CHANTIER } from "./familles/chantier.js";
+import { OUTILS_ESTIMATIONS } from "./familles/estimations.js";
 
 export const NIVEAUX_RISQUE = ["READ_ONLY", "LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
 export type NiveauRisque = (typeof NIVEAUX_RISQUE)[number];
@@ -33,8 +34,18 @@ export type NiveauRisque = (typeof NIVEAUX_RISQUE)[number];
  *   dépend d'un fournisseur externe ou d'une source pas encore configurée.
  * `REGISTERED_NOT_IMPLEMENTED` : la fiche existe, aucun code d'exécution
  *   n'a encore été écrit.
+ * `BUSINESS_ENGINE_MISSING` (LOT IA02E) : le code d'exécution existe et
+ *   répond réellement — mais aucun moteur métier MKA.P-MS ne calcule cette
+ *   valeur aujourd'hui (ex. LOA, VTC, droits de douane). Distinct de
+ *   `REGISTERED_NOT_IMPLEMENTED` : ici l'outil s'exécute et déclare
+ *   honnêtement l'absence, il n'attend pas d'être câblé.
  */
-export const STATUTS_IMPLEMENTATION = ["IMPLEMENTED", "IMPLEMENTED_NOT_CONNECTED", "REGISTERED_NOT_IMPLEMENTED"] as const;
+export const STATUTS_IMPLEMENTATION = [
+  "IMPLEMENTED",
+  "IMPLEMENTED_NOT_CONNECTED",
+  "REGISTERED_NOT_IMPLEMENTED",
+  "BUSINESS_ENGINE_MISSING",
+] as const;
 export type StatutImplementation = (typeof STATUTS_IMPLEMENTATION)[number];
 
 /** Les familles couvertes au minimum (demande de la direction) — toute nouvelle famille s'ajoute ici. */
@@ -70,6 +81,7 @@ export const CATEGORIES = [
   "test", // outils de test du socle (server/intelligences/outils/outils-test.ts)
   "projets", // Chantier de développement — Project Engine + File System Tools (server/intelligences/chantier/)
   "developpement", // Chantier de développement — code/shell/build/test/preview (server/intelligences/chantier/)
+  "estimations", // LOT IA02E — Estimate Gateway (server/estimate-gateway/) : porte d'entrée unique vers les moteurs de prix
 ] as const;
 export type Categorie = (typeof CATEGORIES)[number];
 
@@ -263,7 +275,7 @@ const OUTILS_TEST: OutilSpec[] = [
   },
 ];
 
-export const OUTILS: OutilSpec[] = [...OUTILS_TEST, ...OUTILS_VEHICULES, ...OUTILS_GLOBAUX, ...OUTILS_CHANTIER];
+export const OUTILS: OutilSpec[] = [...OUTILS_TEST, ...OUTILS_VEHICULES, ...OUTILS_GLOBAUX, ...OUTILS_CHANTIER, ...OUTILS_ESTIMATIONS];
 
 export function trouver(toolId: string): OutilSpec | null {
   return OUTILS.find((o) => o.toolId === toolId) ?? null;

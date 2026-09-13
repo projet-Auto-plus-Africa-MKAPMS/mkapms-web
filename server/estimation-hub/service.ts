@@ -65,7 +65,8 @@ const DEVISE = "EUR";
  * Sans pièce compatible publiée, aucun budget n'est avancé — un budget
  * d'entretien inventé pousse à l'achat sur une base fausse.
  */
-async function voletPieces(
+/** Exporté pour l'Estimate Gateway (LOT IA02E) — même calcul, aucune duplication. */
+export async function voletPieces(
   marque: string | null,
   modele: string | null,
   annee: number | null,

@@ -98,7 +98,7 @@ async function main() {
   // ── Registre ────────────────────────────────────────────────────────
   verif("registre : 5 outils de test déclarés", listerParCategorie("test").length === 5);
   verif("registre : outil inconnu introuvable", trouver("test.nexiste_pas") === null);
-  verif("registre : au moins 30 familles couvertes (demande de la direction)", resume().parCategorie.length >= 30 - 1 && resume().parCategorie.length === 31);
+  verif("registre : au moins 30 familles couvertes (demande de la direction)", resume().parCategorie.length >= 30 - 1 && resume().parCategorie.length === 32);
   verif("registre : aucun outil absent faute d'implémentation (statut assumé)", OUTILS.every((o) => o.implementationStatus !== undefined));
   verif("registre : famille véhicules complète (17 outils demandés)", listerParCategorie("vehicules").length === 17);
   verif(
@@ -110,8 +110,13 @@ async function main() {
     listerParCategorie("paiements").length > 0 && listerParCategorie("paiements").every((o) => o.implementationStatus === "REGISTERED_NOT_IMPLEMENTED"),
   );
   verif(
-    "registre : outils actifs = IMPLEMENTED + IMPLEMENTED_NOT_CONNECTED, jamais un REGISTERED_NOT_IMPLEMENTED",
-    listerActifs().length === resume().parStatut.IMPLEMENTED + resume().parStatut.IMPLEMENTED_NOT_CONNECTED,
+    // LOT IA02E : BUSINESS_ENGINE_MISSING s'exécute réellement et répond honnêtement
+    // (aucun moteur métier derrière, jamais un faux résultat) — actif au même titre
+    // qu'IMPLEMENTED/IMPLEMENTED_NOT_CONNECTED ; seul REGISTERED_NOT_IMPLEMENTED
+    // (aucun code d'exécution) reste toujours désactivé.
+    "registre : outils actifs = IMPLEMENTED + IMPLEMENTED_NOT_CONNECTED + BUSINESS_ENGINE_MISSING, jamais un REGISTERED_NOT_IMPLEMENTED",
+    listerActifs().length ===
+      resume().parStatut.IMPLEMENTED + resume().parStatut.IMPLEMENTED_NOT_CONNECTED + resume().parStatut.BUSINESS_ENGINE_MISSING,
   );
 
   // ── 1. Outil autorisé ───────────────────────────────────────────────
