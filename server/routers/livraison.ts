@@ -48,6 +48,69 @@ function vehicleTypeForParcel(poidsKg?: number, l?: number, w?: number, h?: numb
   return recommendVehicle(poidsKg, l, w, h, heavyPart).vehicle;
 }
 
+const FALLBACK_BASE: Record<DeliveryVehicle, number> = { moto: 5, utilitaire: 15, fourgon: 25, camion: 45 };
+const FALLBACK_PAR_KM: Record<DeliveryVehicle, number> = { moto: 0.8, utilitaire: 1.5, fourgon: 2, camion: 2.8 };
+
+async function tarifPourVehicule(vehicleType: DeliveryVehicle): Promise<{ base: number; perKm: number }> {
+  const conds = [eq(deliveryPricing.vehicleType, vehicleType), eq(deliveryPricing.active, true)];
+  const [pricing] = await db.select().from(deliveryPricing).where(and(...conds)).limit(1);
+  return {
+    base: pricing ? Number(pricing.prixBase) : FALLBACK_BASE[vehicleType],
+    perKm: pricing ? Number(pricing.prixParKm) : FALLBACK_PAR_KM[vehicleType],
+  };
+}
+
+/**
+ * Calcul du tarif d'un colis à partir de ses dimensions — utilisé par le
+ * devis public (`quote`) et par l'Estimate Gateway (LOT IA02E). Seule
+ * fonction qui connaît la formule : aucune duplication ailleurs.
+ */
+export async function calculerTarifColis(input: {
+  poidsKg?: number | null;
+  longueurCm?: number | null;
+  largeurCm?: number | null;
+  hauteurCm?: number | null;
+  distanceKm?: number | null;
+  urgent?: boolean;
+  heavyPart?: boolean;
+}): Promise<{ recommendedVehicleType: DeliveryVehicle; tarif: number | null; motoAllowed: boolean; reason: string | null; manque?: string }> {
+  const rec = recommendVehicle(input.poidsKg ?? undefined, input.longueurCm ?? undefined, input.largeurCm ?? undefined, input.hauteurCm ?? undefined, input.heavyPart);
+  const recommended = rec.vehicle;
+  if (input.distanceKm == null) {
+    return {
+      recommendedVehicleType: recommended,
+      tarif: null,
+      motoAllowed: rec.motoAllowed,
+      reason: rec.reason,
+      manque: "Distance entre les deux adresses non connue : le montant ne peut pas être calculé.",
+    };
+  }
+  const { base, perKm } = await tarifPourVehicule(recommended);
+  const mult = input.urgent ? 1.5 : 1;
+  const tarif = Math.round((base + perKm * input.distanceKm) * mult * 100) / 100;
+  return { recommendedVehicleType: recommended, tarif, motoAllowed: rec.motoAllowed, reason: rec.reason };
+}
+
+/**
+ * Montant réellement dû pour une mission déjà créée — recalculé à partir des
+ * champs enregistrés à la création (jamais depuis un montant transmis par le
+ * client). Utilisé par `payMission` et par l'Estimate Gateway.
+ */
+export async function calculerTarifMission(mission: {
+  vehicleTypeRequis: string | null;
+  distanceKm: string | null;
+  urgent: boolean | null;
+}): Promise<{ tarif: number | null; manque?: string }> {
+  const distanceKm = mission.distanceKm != null ? Number(mission.distanceKm) : null;
+  if (distanceKm === null) {
+    return { tarif: null, manque: "Distance de la mission non connue : le montant ne peut pas être calculé." };
+  }
+  const vehicleType = (mission.vehicleTypeRequis as DeliveryVehicle) ?? "moto";
+  const { base, perKm } = await tarifPourVehicule(vehicleType);
+  const mult = mission.urgent ? 1.5 : 1;
+  return { tarif: Math.round((base + perKm * distanceKm) * mult * 100) / 100 };
+}
+
 export const livraisonRouter = router({
   providers: publicProcedure
     .input(z.object({ country: z.string().optional(), limit: z.number().min(1).max(100).default(30) }).default({}))
@@ -87,17 +150,7 @@ export const livraisonRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      const rec = recommendVehicle(input.poidsKg, input.longueurCm, input.largeurCm, input.hauteurCm, input.heavyPart);
-      const recommended = rec.vehicle;
-      const conds = [eq(deliveryPricing.vehicleType, recommended), eq(deliveryPricing.active, true)];
-      const [pricing] = await db.select().from(deliveryPricing).where(and(...conds)).limit(1);
-      const fallbackBase: Record<DeliveryVehicle, number> = { moto: 5, utilitaire: 15, fourgon: 25, camion: 45 };
-      const fallbackPerKm: Record<DeliveryVehicle, number> = { moto: 0.8, utilitaire: 1.5, fourgon: 2, camion: 2.8 };
-      const base = pricing ? Number(pricing.prixBase) : fallbackBase[recommended];
-      const perKm = pricing ? Number(pricing.prixParKm) : fallbackPerKm[recommended];
-      const mult = input.urgent ? 1.5 : 1;
-      const tarif = Math.round((base + perKm * input.distanceKm) * mult * 100) / 100;
-      return { recommendedVehicleType: recommended, tarif, motoAllowed: rec.motoAllowed, reason: rec.reason };
+      return calculerTarifColis(input);
     }),
 
   createMission: protectedProcedure
@@ -220,19 +273,28 @@ export const livraisonRouter = router({
     }),
 
   // Paiement d'une mission de livraison par le client.
-  // Reprend le devis (quote) pour calculer le montant à payer.
+  // Le montant est TOUJOURS recalculé ici depuis les champs de la mission
+  // (distance, gabarit, urgence) — jamais depuis une valeur transmise par le
+  // navigateur. Une mission sans distance connue n'est pas payable.
   payMission: protectedProcedure
-    .input(z.object({ missionId: z.number(), amount: z.number().positive() }))
+    .input(z.object({ missionId: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const [m] = await db.select().from(deliveryMissions).where(eq(deliveryMissions.id, input.missionId)).limit(1);
       if (!m) throw new TRPCError({ code: "NOT_FOUND", message: "Mission introuvable" });
       if (m.clientId !== ctx.user.uid) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Mission d'un autre client" });
       }
+      const { tarif, manque } = await calculerTarifMission(m);
+      if (tarif === null) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: manque ?? "Montant non calculable pour cette mission : le paiement est refusé plutôt que d'encaisser un chiffre inventé.",
+        });
+      }
       const res = await createPaymentCheckout({
         userId: ctx.user.uid,
         kind: "livraison_mission",
-        amount: input.amount,
+        amount: tarif,
         currency: "EUR",
         label: `Livraison LIV-${m.id} — ${m.typeColis ?? "Colis"}`,
         metadata: { missionId: m.id, vehicleType: m.vehicleTypeRequis ?? "" },

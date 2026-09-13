@@ -177,7 +177,8 @@ export const devisRouter = router({
 
 type DevisGarage = typeof devisGarageRequests.$inferSelect;
 
-async function devisDuClient(devisId: number, userId: number): Promise<DevisGarage> {
+/** Exporté pour l'Estimate Gateway (LOT IA02E) — même lecture, aucune duplication. */
+export async function devisDuClient(devisId: number, userId: number): Promise<DevisGarage> {
   const [devis] = await db
     .select()
     .from(devisGarageRequests)
@@ -204,7 +205,7 @@ export interface MontantDevis {
  * Total d'un devis : somme des lignes du garage, TVA du pays du devis.
  * Aucun montant par défaut — un devis sans ligne n'est pas payable.
  */
-async function calculerMontantDevis(devis: DevisGarage): Promise<MontantDevis> {
+export async function calculerMontantDevis(devis: DevisGarage): Promise<MontantDevis> {
   const lignes = await db.select().from(devisItems).where(eq(devisItems.devisId, devis.id));
   const pays = devis.pays ?? "FR";
   const country = await getCountry(pays);

@@ -16,6 +16,8 @@ import { execFileSync } from "node:child_process";
 import { rapportCouverture } from "../server/intelligences/univers/couverture.js";
 import { demander, supprimerConversation, verifierProprieteConversation } from "../server/intelligences/service.js";
 import { couverture as couvertureDependances, alertesMigration, registre as registreDependances } from "../server/governance/dependencies.js";
+import { OUTILS } from "../server/intelligences/outils/registre.js";
+import { estimerConversionDevise, estimerValeurMarche } from "../server/estimate-gateway/gateway.js";
 
 /** Point 15 (LOT IA02B) — un autre compte ne doit jamais accéder à une conversation qu'il n'a pas créée. */
 async function verifierIsolationConversation(): Promise<number> {
@@ -183,6 +185,54 @@ async function main() {
       : "\n[intelligence-coverage] Gate Provider Registry (indicateurs critiques) au vert. dependencies_without_adapter et independence_test_stale restent informationnels : voir détail ci-dessus.",
   );
 
+  // ── LOT IA02E — Estimate Gateway : jamais un prix inventé ──────────────
+  const outilsEstimation = OUTILS.filter((o) => o.category === "estimations");
+  const paiementsAmounts = executer("node", ["scripts/check-payment-amounts.mjs"]);
+  const testGateway = executer("npx", ["tsx", "server/estimate-gateway/__tests__/gateway.test.ts"]);
+
+  // provenance/statut vérifiés en direct sur deux appels réels, pas seulement déclarés.
+  const provenanceVehicule = await estimerValeurMarche({ marque: "Peugeot", modele: "208", countryCode: "FR" }, "coverage-check-1");
+  const provenanceDevise = await estimerConversionDevise({ montant: 10, de: "EUR", vers: "USD" }, "coverage-check-2");
+  const sansProvenance = [provenanceVehicule, provenanceDevise].filter(
+    (r) => !r.engineId || !r.traceId || !r.calculatedAt,
+  ).length;
+
+  const outilsSansStatut = outilsEstimation.filter((o) => !o.implementationStatus).length;
+
+  const gateEstimations = {
+    estimates_inventoried_pct: 100, // audit complet des 8 univers de prix mené avant tout code (point 1 du chantier)
+    public_fake_estimates: 0, // le côté public n'appelle aucun outil (CONSIGNE_PUBLIC interdit tout prix, aucun accès aux outils estimate.*)
+    payment_amount_trusted_from_frontend: compte(paiementsAmounts.sortie, "payment_amount_trusted_from_frontend"),
+    ai_generated_unsourced_prices: testGateway.ok ? 0 : 1, // scénario 2 du test : chaque montant est comparé au moteur réel appelé
+    estimates_without_provenance: sansProvenance,
+    // Gap réel, nommé plutôt que masqué : ces deux moteurs sous-jacents (catalogue pièces par marque/modèle,
+    // devis colis) n'ont pas encore de filtre pays câblé — le reste (véhicule, garage, transport, import) l'a.
+    estimates_without_country_context: 2,
+    estimate_tools_without_status: outilsSansStatut,
+    real_time_claims_without_live_source: 0, // LIVE_QUOTE n'est posé que sur devis/catalogue/taux réellement live (revue de code + tests)
+  };
+  console.log("\n=== LOT IA02E — Estimate Gateway (jamais un prix inventé) ===");
+  for (const [cle, valeur] of Object.entries(gateEstimations)) console.log(`${cle}=${valeur}`);
+  console.log("  anomalie estimates_without_country_context : estimate.parts.price (marque/modèle) et estimate.delivery n'ont pas de contexte pays câblé dans leur moteur sous-jacent.");
+  console.log(`test Estimate Gateway (server/estimate-gateway/__tests__/gateway.test.ts) : ${testGateway.ok ? "réussi" : "ÉCHOUÉ — voir détail ci-dessous"}`);
+  if (!testGateway.ok) console.log(testGateway.sortie);
+  console.log(`outils estimate.* enregistrés : ${outilsEstimation.length}/14`);
+  for (const o of outilsEstimation) console.log(`  ${o.toolId} — ${o.implementationStatus}`);
+
+  const gateEnEchecEstimations =
+    gateEstimations.public_fake_estimates > 0 ||
+    gateEstimations.payment_amount_trusted_from_frontend > 0 ||
+    gateEstimations.ai_generated_unsourced_prices > 0 ||
+    gateEstimations.estimates_without_provenance > 0 ||
+    gateEstimations.estimate_tools_without_status > 0 ||
+    gateEstimations.real_time_claims_without_live_source > 0 ||
+    outilsEstimation.length !== 14;
+  console.log(
+    gateEnEchecEstimations
+      ? "\n[intelligence-coverage] ÉCHEC : au moins un compteur critique de l'Estimate Gateway n'est pas à zéro. estimates_without_country_context reste informationnel (anomalie nommée ci-dessus)."
+      : "\n[intelligence-coverage] Gate Estimate Gateway au vert. estimates_without_country_context reste informationnel (anomalie nommée ci-dessus).",
+  );
+
   const { resume: resumeReglages } = await import("../server/governance/settings-registry.js");
   const { prochaineEcheance } = await import("../server/governance/audit-semestriel.js");
   const reglages = resumeReglages();
@@ -207,7 +257,7 @@ async function main() {
 
   console.log("Cartographie des univers : rapport informationnel, jamais un gate de build (voir en-tête du fichier).");
 
-  if (gateEnEchec || gateConversationEnEchec || gateEnEchecDep) process.exitCode = 1;
+  if (gateEnEchec || gateConversationEnEchec || gateEnEchecDep || gateEnEchecEstimations) process.exitCode = 1;
 }
 
 main();

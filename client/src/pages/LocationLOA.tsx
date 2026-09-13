@@ -38,6 +38,13 @@ export default function LocationLOA() {
         <p className="mt-1 text-sm text-white/60">Louez aujourd'hui, achetez demain</p>
       </div>
 
+      {/* LOT IA02E — aucun moteur de calcul LOA n'existe encore côté serveur : ces chiffres sont des exemples, jamais un devis. */}
+      <div className="mx-4 mt-4 rounded-xl bg-amber-50 border border-amber-300 p-3">
+        <p className="text-xs text-amber-800">
+          Exemples à titre indicatif, non contractuels. Le calcul personnalisé d'une mensualité LOA n'est pas encore disponible sur la plateforme — contactez-nous pour une offre réelle.
+        </p>
+      </div>
+
       {/* Info banner */}
       <div className="mx-4 mt-4 rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a1a] border border-[#D4AF37]/30 p-4">
         <h2 className="text-sm font-bold text-[#D4AF37]">Comment ça marche ?</h2>
@@ -90,7 +97,7 @@ export default function LocationLOA() {
                   <div className="rounded-lg bg-[#F5F3EF] p-1.5"><p className="text-[8px] text-[#6B7280]">Durée</p><p className="text-[11px] font-bold">{v.duree} mois</p></div>
                   <div className="rounded-lg bg-[#F5F3EF] p-1.5"><p className="text-[8px] text-[#6B7280]">Km/an</p><p className="text-[11px] font-bold">{v.km}</p></div>
                 </div>
-                <button className="mt-3 w-full rounded-xl bg-[#D4AF37] py-2.5 text-sm font-bold text-white active:scale-[0.98] transition">Simuler ma LOA</button>
+                <button disabled title="Calcul personnalisé non disponible — chiffres indicatifs uniquement" className="mt-3 w-full rounded-xl bg-[#D4AF37]/40 py-2.5 text-sm font-bold text-white/70 cursor-not-allowed">Simulation indisponible</button>
               </div>
             </div>
           ))}

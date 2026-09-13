@@ -42,15 +42,21 @@ async function fetchLiveRates(): Promise<RatesCache> {
   }
 }
 
+/** Taux courants (cache 1h + repli statique) — utilisé par le router et par l'Estimate Gateway (LOT IA02E). */
+export async function getRates(): Promise<RatesCache> {
+  if (!cache || Date.now() - cache.fetchedAt > ONE_HOUR) {
+    cache = await fetchLiveRates();
+  }
+  return cache;
+}
+
 export const currencyRouter = router({
   // Catalogue des devises supportées (symbole, locale).
   list: publicProcedure.query(() => CURRENCIES),
 
   // Taux de change dynamiques (1 EUR = X), avec cache et repli.
   rates: publicProcedure.query(async () => {
-    if (!cache || Date.now() - cache.fetchedAt > ONE_HOUR) {
-      cache = await fetchLiveRates();
-    }
-    return { base: "EUR", rates: cache.rates, live: cache.live, fetchedAt: cache.fetchedAt };
+    const c = await getRates();
+    return { base: "EUR", rates: c.rates, live: c.live, fetchedAt: c.fetchedAt };
   }),
 });

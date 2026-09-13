@@ -100,9 +100,9 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 89;
-export const MANQUES_TOTAL = 612;
+export const MANQUES_TOTAL = 616;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "ecran_sans_contenu": 342,
+  "ecran_sans_contenu": 341,
   "bouton_sans_action": 185,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
@@ -110,7 +110,7 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "destination_inconnue": 28,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1,
-  "dependance_non_declaree": 2
+  "dependance_non_declaree": 7
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
@@ -576,6 +576,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "atelier",
       "garage",
       "identity",
+      "intelligences",
       "location",
       "location_particulier",
       "location_pro",
@@ -7245,7 +7246,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat_officiel",
       "achat_particulier",
       "achat_pro",
-      "continuous_test"
+      "continuous_test",
+      "intelligences"
     ],
     "evenementsPublies": [
       "estimation.incomplete"
@@ -7579,8 +7581,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 2,
         "parMoteur": 0,
         "sansAction": 1,
-        "textes": 4,
-        "mots": 9
+        "textes": 5,
+        "mots": 21
       },
       {
         "fichier": "client/src/pages/finance/ObjectifFinance.tsx",
@@ -7660,8 +7662,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "finplus_vehicules"
     ],
     "acces": [],
-    "textes": 55,
-    "mots": 148,
+    "textes": 56,
+    "mots": 160,
     "battement": "sonde",
     "manques": [
       {
@@ -7694,11 +7696,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« Simuler ma LOA » client/src/pages/finance/LOAFinance.tsx:9"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/finance/LOAFinance.tsx (4 texte(s))"
+        "detail": "« Simulation indisponible » client/src/pages/finance/LOAFinance.tsx:11"
       },
       {
         "genre": "ecran_sans_contenu",
@@ -9609,12 +9607,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "etatDeclare": "active",
     "dossiers": [
       "intelligences",
-      "governance"
+      "governance",
+      "estimate-gateway"
     ],
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 54,
+    "fichiersServeur": 58,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -9631,6 +9630,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "support"
     ],
     "dependancesDetectees": [
+      "achat",
       "ai_fabric",
       "code_graph",
       "command_center",
@@ -9639,15 +9639,20 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "continuous_test",
       "core",
       "country",
+      "estimation",
       "event_bus",
       "identity",
+      "livraison",
+      "livraison_vehicule",
       "monitoring",
       "resilience",
+      "risque_import",
       "smart",
       "support",
       "vo_engine"
     ],
     "dependances": [
+      "achat",
       "ai_fabric",
       "code_graph",
       "command_center",
@@ -9656,16 +9661,23 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "continuous_test",
       "core",
       "country",
+      "estimation",
       "event_bus",
       "identity",
+      "livraison",
+      "livraison_vehicule",
       "monitoring",
       "resilience",
+      "risque_import",
       "smart",
       "support",
       "vo_engine"
     ],
     "integrationsTechniques": [],
     "preuvesDependances": {
+      "achat": [
+        "estimate-gateway/gateway.ts importe routers/devis.ts"
+      ],
       "ai_fabric": [
         "governance/dependencies.ts importe ai-fabric/service.ts",
         "intelligences/actions.ts importe ai-fabric/service.ts",
@@ -9692,14 +9704,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/CentreIntelligences.tsx appelle trpc.continuousTest"
       ],
       "core": [
-        "governance/audit-semestriel.ts importe db.ts",
-        "governance/dependencies.ts importe db.ts",
-        "governance/versions.ts importe db.ts"
+        "estimate-gateway/gateway.ts importe db.ts",
+        "estimate-gateway/gateway.ts importe schema.ts",
+        "governance/audit-semestriel.ts importe db.ts"
       ],
       "country": [
+        "estimate-gateway/gateway.ts importe routers/currency.ts",
         "intelligences/contexte/service.ts importe country-os/index.ts",
-        "intelligences/contexte/service.ts lit la règle pays",
-        "intelligences/outils/boucle.ts importe country-os/index.ts"
+        "intelligences/contexte/service.ts lit la règle pays"
+      ],
+      "estimation": [
+        "estimate-gateway/gateway.ts importe estimation-hub/service.ts"
       ],
       "event_bus": [
         "intelligences/moteurs.ts importe event-bus/catalog.ts",
@@ -9711,12 +9726,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "intelligences/index.ts exige une session Identity (procédure protégée)",
         "intelligences/livraisons.ts exige une session Identity (procédure protégée)"
       ],
+      "livraison": [
+        "estimate-gateway/gateway.ts importe routers/livraison.ts"
+      ],
+      "livraison_vehicule": [
+        "estimate-gateway/gateway.ts importe vehicle-delivery/service.ts",
+        "estimate-gateway/gateway.ts importe vehicle-delivery/schema.ts"
+      ],
       "monitoring": [
         "client/src/pages/CentreIntelligences.tsx appelle trpc.monitoringOs"
       ],
       "resilience": [
         "intelligences/actions.ts importe resilience/service.ts",
         "intelligences/memoire.ts charge resilience/service.ts"
+      ],
+      "risque_import": [
+        "estimate-gateway/gateway.ts importe import-risk/service.ts"
       ],
       "smart": [
         "intelligences/livraisons.ts ouvre une alerte du Système Intelligent",
@@ -9727,6 +9752,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/CentreIntelligences.tsx appelle trpc.supportOs"
       ],
       "vo_engine": [
+        "estimate-gateway/gateway.ts importe vo-engine/service.ts",
         "intelligences/outils/familles/outils-vehicules.ts importe vo-engine/service.ts",
         "intelligences/outils/familles/outils-vehicules.ts importe vo-engine/schema.ts"
       ]
@@ -9929,11 +9955,31 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "manques": [
       {
         "genre": "dependance_non_declaree",
-        "detail": "country — intelligences/contexte/service.ts importe country-os/index.ts"
+        "detail": "achat — estimate-gateway/gateway.ts importe routers/devis.ts"
       },
       {
         "genre": "dependance_non_declaree",
-        "detail": "vo_engine — intelligences/outils/familles/outils-vehicules.ts importe vo-engine/service.ts"
+        "detail": "country — estimate-gateway/gateway.ts importe routers/currency.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "estimation — estimate-gateway/gateway.ts importe estimation-hub/service.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "livraison — estimate-gateway/gateway.ts importe routers/livraison.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "livraison_vehicule — estimate-gateway/gateway.ts importe vehicle-delivery/service.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "risque_import — estimate-gateway/gateway.ts importe import-risk/service.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "vo_engine — estimate-gateway/gateway.ts importe vo-engine/service.ts"
       }
     ]
   },
@@ -10567,7 +10613,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "avis_reputation"
+      "avis_reputation",
+      "intelligences"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -10693,6 +10740,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "achat",
       "estimation",
+      "intelligences",
       "payment",
       "vente"
     ],
@@ -11022,8 +11070,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 4,
         "parMoteur": 0,
         "sansAction": 1,
-        "textes": 26,
-        "mots": 72
+        "textes": 27,
+        "mots": 96
       },
       {
         "fichier": "client/src/pages/LocationMKAPMS.tsx",
@@ -11219,8 +11267,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 887,
-    "mots": 2882,
+    "textes": 888,
+    "mots": 2906,
     "battement": "sonde",
     "manques": [
       {
@@ -11245,7 +11293,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« Simuler ma LOA » client/src/pages/LocationLOA.tsx:93"
+        "detail": "« Simulation indisponible » client/src/pages/LocationLOA.tsx:100"
       },
       {
         "genre": "bouton_sans_action",
@@ -18052,7 +18100,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat_officiel",
       "achat_particulier",
       "achat_pro",
-      "estimation"
+      "estimation",
+      "intelligences"
     ],
     "evenementsPublies": [
       "vehicule.risque_import"
