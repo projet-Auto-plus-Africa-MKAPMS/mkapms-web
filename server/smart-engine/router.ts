@@ -280,9 +280,9 @@ export const smartEngineRouter = router({
 
   // ── 9. Journal d'activité ──────────────────────────────────────────
   activityLog: directionProcedure
-    .input(z.object({ limit: z.number().default(100), offset: z.number().default(0) }).optional())
+    .input(z.object({ limit: z.number().default(100), offset: z.number().default(0), needsValidationOnly: z.boolean().default(false) }).optional())
     .query(async ({ input }) => {
-      return getActivityLog(input?.limit ?? 100, input?.offset ?? 0);
+      return getActivityLog(input?.limit ?? 100, input?.offset ?? 0, input?.needsValidationOnly ?? false);
     }),
 
   activityStats: directionProcedure

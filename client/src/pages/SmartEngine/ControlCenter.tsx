@@ -83,6 +83,11 @@ const TABS: { key: Tab; label: string; icon: typeof Brain }[] = [
 export default function ControlCenter() {
   const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("dashboard");
+  const [journalPendingOnly, setJournalPendingOnly] = useState(false);
+  function navigate(t: Tab, opts?: { journalPendingOnly?: boolean }) {
+    if (t === "journal") setJournalPendingOnly(opts?.journalPendingOnly ?? false);
+    setTab(t);
+  }
 
   // Visible des deux côtés : PDG (super_admin) + Directeur/Direction (admin).
   // Les décisions sensibles restent réservées au PDG (voir isPdg plus bas).
@@ -133,7 +138,7 @@ export default function ControlCenter() {
 
       {/* Content */}
       <div className="px-4">
-        {tab === "dashboard" && <DashboardTab onNavigate={setTab} />}
+        {tab === "dashboard" && <DashboardTab onNavigate={navigate} />}
         {tab === "rapport" && <RapportTab onNavigate={setTab} />}
         {tab === "etat" && <EtatPlateformeTab onNavigate={setTab} />}
         {tab === "qualite" && <QualiteTab />}
@@ -151,7 +156,7 @@ export default function ControlCenter() {
         {tab === "annonces" && <AnnoncesTab />}
         {tab === "badges" && <BadgesTab />}
         {tab === "sante" && <SanteTab />}
-        {tab === "journal" && <JournalTab />}
+        {tab === "journal" && <JournalTab pendingOnly={journalPendingOnly} onClearFilter={() => setJournalPendingOnly(false)} />}
         {tab === "validations" && <ValidationsTab />}
         {tab === "avis" && <AvisTab />}
         {tab === "comportement" && <ComportementTab />}
@@ -163,7 +168,7 @@ export default function ControlCenter() {
 /* ═══════════════════════════════════════════════════════════
    TAB : Vue d'ensemble (Dashboard)
    ═══════════════════════════════════════════════════════════ */
-function DashboardTab({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
+function DashboardTab({ onNavigate }: { onNavigate: (tab: Tab, opts?: { journalPendingOnly?: boolean }) => void }) {
   const { data, isLoading } = trpc.smartEngine.dashboard.useQuery();
 
   if (isLoading) return <Loading />;
@@ -197,7 +202,7 @@ function DashboardTab({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
       {/* Activité */}
       <div className="grid grid-cols-2 gap-2">
         <StatCard label="Actions système" value={data.activity?.total ?? 0} color="purple" icon={Activity} onClick={() => onNavigate("journal")} />
-        <StatCard label="À valider" value={data.activity?.needsValidation ?? 0} color="orange" icon={CheckCircle2} onClick={() => onNavigate("journal")} />
+        <StatCard label="À valider" value={data.activity?.needsValidation ?? 0} color="orange" icon={CheckCircle2} onClick={() => onNavigate("journal", { journalPendingOnly: true })} />
       </div>
 
       {/* Pulse temps réel */}
@@ -2345,13 +2350,15 @@ function SanteTab() {
 /* ═══════════════════════════════════════════════════════════
    TAB : Journal d'activité
    ═══════════════════════════════════════════════════════════ */
-function JournalTab() {
-  const { data, isLoading } = trpc.smartEngine.activityLog.useQuery({ limit: 50, offset: 0 });
+function JournalTab({ pendingOnly = false, onClearFilter }: { pendingOnly?: boolean; onClearFilter?: () => void }) {
+  const { data, isLoading } = trpc.smartEngine.activityLog.useQuery({ limit: pendingOnly ? 100 : 50, offset: 0, needsValidationOnly: pendingOnly });
   const validateDecision = trpc.smartEngine.validateActivityDecision.useMutation();
   const utils = trpc.useUtils();
 
   if (isLoading) return <Loading />;
-  if (!data || data.length === 0) return <Empty msg="Aucune activité enregistrée" />;
+  if (!data || data.length === 0) {
+    return <Empty msg={pendingOnly ? "Aucune action en attente de validation" : "Aucune activité enregistrée"} />;
+  }
 
   const onDecision = (id: number, approved: boolean) => {
     validateDecision.mutate(
@@ -2367,7 +2374,14 @@ function JournalTab() {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-base font-bold text-[#111]">Journal d'activité du système</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">{pendingOnly ? "Actions à valider" : "Journal d'activité du système"}</h2>
+        {pendingOnly && onClearFilter && (
+          <button onClick={onClearFilter} className="text-xs font-bold text-[#8B7500] underline">
+            Voir tout le journal
+          </button>
+        )}
+      </div>
       {data.map((a: any) => (
         <div key={a.id} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
           <div className="flex items-center justify-between">
