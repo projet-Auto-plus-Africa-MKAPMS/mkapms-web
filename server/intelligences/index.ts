@@ -139,6 +139,12 @@ import {
   detail as detailDependance,
   registre as registreDependances,
 } from "../governance/dependencies.js";
+import * as memoireUtilisateur from "./memoire-utilisateur.js";
+import * as memoireProjet from "./memoire-projet.js";
+import * as fichiers from "./fichiers.js";
+import * as connaissance from "./connaissance.js";
+import { rechercherGlobale, type SourceRecherche } from "./recherche-globale.js";
+import { retrieve as ragRetrieveInterne, answer as ragAnswerInterne } from "./rag.js";
 
 export const INTELLIGENCES_META = {
   code: "intelligences",
@@ -889,4 +895,126 @@ export const intelligencesRouter = router({
   dependancesCouverture: pdgProcedure.query(() => couvertureDependances()),
 
   dependancesAlertes: pdgProcedure.query(() => alertesMigration()),
+
+  // ── LOT IA02F — Mémoire, fichiers, recherche et RAG ──────────────────────
+  // Toutes les procédures ci-dessous sont pdgProcedure : /intelligence est
+  // aujourd'hui strictement réservé au PDG (client/src/pages/intelligence/
+  // index.tsx). Le paramètre `userId` n'est donc jamais lu depuis l'entrée :
+  // toujours `ctx.user.uid`, jamais une valeur transmise par l'appelant —
+  // même logique que verifierProprieteConversation ci-dessus.
+
+  memoireUtilisateurListe: pdgProcedure
+    .input(z.object({ categorie: z.string().max(48).optional() }).optional())
+    .query(({ input, ctx }) => memoireUtilisateur.lister(ctx.user.uid, input?.categorie)),
+
+  memoireUtilisateurEcrire: pdgProcedure
+    .input(
+      z.object({
+        categorie: z.string().max(48),
+        cle: z.string().min(1).max(160),
+        contenu: z.string().min(1).max(8000),
+        source: z.enum(["utilisateur", "deduit", "import"]).optional(),
+        confiance: z.enum(["haute", "moyenne", "faible"]).optional(),
+        visibilite: z.enum(["prive", "projet", "entreprise"]).optional(),
+        retentionJours: z.number().int().min(1).max(3650).nullable().optional(),
+      }),
+    )
+    .mutation(({ input, ctx }) => memoireUtilisateur.ecrire({ ...input, userId: ctx.user.uid, actorId: ctx.user.uid })),
+
+  memoireUtilisateurModifier: pdgProcedure
+    .input(z.object({ id: z.number().int(), contenu: z.string().max(8000).optional(), visibilite: z.string().max(24).optional(), confiance: z.string().max(16).optional() }))
+    .mutation(({ input, ctx }) => memoireUtilisateur.modifier({ ...input, userId: ctx.user.uid })),
+
+  memoireUtilisateurSupprimer: pdgProcedure
+    .input(z.object({ id: z.number().int() }))
+    .mutation(({ input, ctx }) => memoireUtilisateur.supprimer(input.id, ctx.user.uid).then(() => ({ ok: true }))),
+
+  memoireProjetLire: pdgProcedure
+    .input(z.object({ projetId: z.number().int(), type: z.string().max(24).optional() }))
+    .query(({ input, ctx }) => memoireProjet.lire(input.projetId, ctx.user.uid, input.type as never)),
+
+  memoireProjetEcrire: pdgProcedure
+    .input(
+      z.object({
+        projetId: z.number().int(),
+        type: z.enum(memoireProjet.TYPES_MEMOIRE_PROJET),
+        titre: z.string().max(200),
+        contenu: z.string().min(1).max(8000),
+        statut: z.enum(["actif", "resolu", "abandonne"]).optional(),
+      }),
+    )
+    .mutation(({ input, ctx }) => memoireProjet.ecrire({ ...input, ownerId: ctx.user.uid })),
+
+  fichiersListe: pdgProcedure
+    .input(z.object({ projetId: z.number().int().nullable().optional() }).optional())
+    .query(({ input, ctx }) => fichiers.mesFichiers(ctx.user.uid, input?.projetId)),
+
+  fichierDeposer: pdgProcedure
+    .input(
+      z.object({
+        nom: z.string().min(1).max(260),
+        typeMime: z.string().max(120),
+        donneesBase64: z.string().min(1),
+        projetId: z.number().int().nullable().optional(),
+      }),
+    )
+    .mutation(({ input, ctx }) => fichiers.deposer({ ownerId: ctx.user.uid, projetId: input.projetId, nom: input.nom, typeMime: input.typeMime, donneesBase64: input.donneesBase64 })),
+
+  fichierLire: pdgProcedure.input(z.object({ id: z.number().int() })).query(({ input, ctx }) => fichiers.lireFichier(input.id, ctx.user.uid)),
+
+  fichierSupprimer: pdgProcedure
+    .input(z.object({ id: z.number().int() }))
+    .mutation(({ input, ctx }) => fichiers.supprimerFichier(input.id, ctx.user.uid).then(() => ({ ok: true }))),
+
+  fichierRechercher: pdgProcedure
+    .input(z.object({ q: z.string().min(1).max(300) }))
+    .query(({ input, ctx }) => fichiers.rechercherDansFichiers(input.q, ctx.user.uid)),
+
+  connaissanceListe: pdgProcedure
+    .input(z.object({ categorie: z.enum(connaissance.CATEGORIES_CONNAISSANCE).optional() }).optional())
+    .query(({ input }) => connaissance.lister(input?.categorie, ["interne", "pdg_uniquement"])),
+
+  connaissanceEcrire: pdgProcedure
+    .input(
+      z.object({
+        categorie: z.enum(connaissance.CATEGORIES_CONNAISSANCE),
+        titre: z.string().min(1).max(220),
+        contenu: z.string().min(1).max(40000),
+        source: z.string().max(2000).optional(),
+        version: z.string().max(24).optional(),
+        auteur: z.string().max(120).optional(),
+        statut: z.enum(["propose", "confirme", "obsolete"]).optional(),
+      }),
+    )
+    .mutation(({ input, ctx }) => connaissance.ecrire({ ...input, actorId: ctx.user.uid })),
+
+  connaissanceRechercher: pdgProcedure
+    .input(z.object({ q: z.string().min(1).max(300) }))
+    .query(({ input }) => connaissance.rechercher(input.q, ["interne", "pdg_uniquement"])),
+
+  rechercheGlobale: pdgProcedure
+    .input(
+      z.object({
+        q: z.string().min(1).max(300),
+        sources: z.array(z.enum(["conversation", "memoire", "fichier", "connaissance"])).optional(),
+        sessionId: z.number().int().nullable().optional(),
+        projetId: z.number().int().nullable().optional(),
+      }),
+    )
+    .query(({ input, ctx }) =>
+      rechercherGlobale(input.q, ctx.user.uid, {
+        sources: input.sources as SourceRecherche[] | undefined,
+        visibiliteConnaissance: ["interne", "pdg_uniquement"],
+        sessionId: input.sessionId,
+        projetId: input.projetId,
+      }),
+    ),
+
+  ragRetrieve: pdgProcedure
+    .input(z.object({ q: z.string().min(1).max(300) }))
+    .query(({ input, ctx }) => ragRetrieveInterne({ query: input.q, userId: ctx.user.uid, visibiliteConnaissance: ["interne", "pdg_uniquement"] })),
+
+  ragRepondre: pdgProcedure
+    .input(z.object({ q: z.string().min(1).max(300) }))
+    .mutation(({ input, ctx }) => ragAnswerInterne({ query: input.q, userId: ctx.user.uid, visibiliteConnaissance: ["interne", "pdg_uniquement"] })),
 });

@@ -19,6 +19,7 @@ import {
   serial,
   text,
   timestamp,
+  uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
 
@@ -564,3 +565,175 @@ export const inPlanAutonomie = pgTable("in_plan_autonomie", {
   actorId: integer("actor_id"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+/**
+ * LOT IA02F — Mémoire, fichiers, recherche et RAG.
+ *
+ * Cinq types de contexte, cinq tables séparées (aucun mélange sauvage) :
+ * mémoire utilisateur (durable, éditable), mémoire projet (append-only, isolée
+ * par `in_projets`), résumé de conversation (additif à la fenêtre brute
+ * existante, jamais un remplacement), fichiers + leurs morceaux indexés, et
+ * base de connaissances plateforme (distincte du graphe automobile de
+ * server/knowledge-engine/, qui reste la source pour le domaine automobile).
+ */
+
+/** Point 4 — mémoire utilisateur : provenance, source, confiance, visibilité, rétention, éditable. */
+export const inMemoireUtilisateur = pgTable(
+  "in_memoire_utilisateur",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").notNull(),
+    categorie: varchar("categorie", { length: 48 }).notNull().default("preference"),
+    cle: varchar("cle", { length: 160 }).notNull(),
+    contenu: text("contenu").notNull().default(""),
+    /** `utilisateur` (saisi/confirmé), `deduit` (extrait d'une conversation), `import`. */
+    source: varchar("source", { length: 24 }).notNull().default("utilisateur"),
+    confiance: varchar("confiance", { length: 16 }).notNull().default("haute"),
+    /** `prive` (l'utilisateur seul), `projet`, `entreprise` — jamais accédé hors de ce niveau. */
+    visibilite: varchar("visibilite", { length: 24 }).notNull().default("prive"),
+    /** Nombre de jours avant purge automatique ; `null` = pas de purge. */
+    retentionJours: integer("retention_jours"),
+    actorId: integer("actor_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parUtilisateur: index("in_memoire_utilisateur_user_idx").on(t.userId, t.categorie),
+    cleUnique: uniqueIndex("in_memoire_utilisateur_user_cle_idx").on(t.userId, t.cle),
+  }),
+);
+
+/** Point 5 — mémoire projet : journal structuré et append-only, isolé par projet (in_projets.ownerId). */
+export const inMemoireProjet = pgTable(
+  "in_memoire_projet",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    projetId: integer("projet_id").notNull(),
+    /** objectif | architecture | decision | convention | tache | erreur | environnement | dependance */
+    type: varchar("type", { length: 24 }).notNull(),
+    titre: varchar("titre", { length: 200 }).notNull().default(""),
+    contenu: text("contenu").notNull().default(""),
+    statut: varchar("statut", { length: 24 }).notNull().default("actif"),
+    actorId: integer("actor_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parProjet: index("in_memoire_projet_projet_idx").on(t.projetId, t.type),
+  }),
+);
+
+/** Point 3 — résumé de conversation, additif à la fenêtre brute de messages : jamais un remplacement. */
+export const inConversationResume = pgTable("in_conversation_resume", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").notNull().unique(),
+  resume: text("resume").notNull().default(""),
+  faitsImportants: jsonb("faits_importants").$type<string[]>().notNull().default([]),
+  couvertJusquauMessageId: integer("couvert_jusquau_message_id").notNull().default(0),
+  nbMessagesCouverts: integer("nb_messages_couverts").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+/**
+ * Point 6-8 — un fichier déposé, son pipeline honnête (uploaded → validated →
+ * parsed → chunked → indexed → searchable → ready_for_rag, ou failed avec
+ * l'erreur réelle) et son contenu texte extrait. `donnees` suit la même
+ * convention que kyc_documents/annonces (base64) : aucun objet de stockage
+ * (S3) n'existe dans ce dépôt, ce lot n'en invente pas un.
+ */
+export const inFichiers = pgTable(
+  "in_fichiers",
+  {
+    id: serial("id").primaryKey(),
+    ownerId: integer("owner_id").notNull(),
+    projetId: integer("projet_id"),
+    nom: varchar("nom", { length: 260 }).notNull(),
+    typeMime: varchar("type_mime", { length: 120 }).notNull().default(""),
+    extension: varchar("extension", { length: 16 }).notNull().default(""),
+    tailleOctets: integer("taille_octets").notNull().default(0),
+    hashSha256: varchar("hash_sha256", { length: 64 }).notNull(),
+    donnees: text("donnees").notNull(),
+    contenuTexte: text("contenu_texte"),
+    langue: varchar("langue", { length: 8 }),
+    nbPages: integer("nb_pages"),
+    statutPipeline: varchar("statut_pipeline", { length: 24 }).notNull().default("uploaded"),
+    erreur: text("erreur").notNull().default(""),
+    visibilite: varchar("visibilite", { length: 24 }).notNull().default("prive"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parProprietaire: index("in_fichiers_owner_idx").on(t.ownerId, t.createdAt),
+    parHash: index("in_fichiers_hash_idx").on(t.hashSha256),
+  }),
+);
+
+/** Morceaux indexés d'un fichier — un GIN plein texte est posé dessus par la migration (0119). */
+export const inFichierMorceaux = pgTable(
+  "in_fichier_morceaux",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    fichierId: integer("fichier_id").notNull(),
+    ordre: integer("ordre").notNull().default(0),
+    contenu: text("contenu").notNull().default(""),
+    page: integer("page"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parFichier: index("in_fichier_morceaux_fichier_idx").on(t.fichierId, t.ordre),
+  }),
+);
+
+/**
+ * Point 16-17 — base de connaissances plateforme (documentation, règles,
+ * procédures, produits, moteurs, conformité, support, connaissances
+ * validées, et un espace architecture-seule pour la connaissance islamique —
+ * aucun contenu religieux massif n'est chargé dans ce lot). Distincte du
+ * graphe automobile technique de server/knowledge-engine/ (ake_nodes), qui
+ * reste la source pour ce domaine précis et n'est pas dupliqué ici.
+ */
+export const inConnaissance = pgTable(
+  "in_connaissance",
+  {
+    id: serial("id").primaryKey(),
+    categorie: varchar("categorie", { length: 48 }).notNull(),
+    titre: varchar("titre", { length: 220 }).notNull(),
+    contenu: text("contenu").notNull().default(""),
+    source: text("source").notNull().default(""),
+    version: varchar("version", { length: 24 }).notNull().default("1"),
+    auteur: varchar("auteur", { length: 120 }).notNull().default(""),
+    /** propose | confirme | obsolete */
+    statut: varchar("statut", { length: 24 }).notNull().default("propose"),
+    /** interne | pdg_uniquement — la connaissance islamique reste pdg_uniquement tant qu'aucune revue n'a eu lieu. */
+    visibilite: varchar("visibilite", { length: 24 }).notNull().default("interne"),
+    validite: varchar("validite", { length: 24 }).notNull().default("permanente"),
+    actorId: integer("actor_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parCategorie: index("in_connaissance_categorie_idx").on(t.categorie, t.statut),
+  }),
+);
+
+/** Point 23 — trace de chaque retrieval (mémoire, fichier, connaissance, conversation). */
+export const inRetrievalAudit = pgTable(
+  "in_retrieval_audit",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    userId: integer("user_id"),
+    projetId: integer("projet_id"),
+    sessionId: integer("session_id"),
+    source: varchar("source", { length: 24 }).notNull(),
+    requete: text("requete").notNull().default(""),
+    resultIds: jsonb("result_ids").$type<(number | string)[]>().notNull().default([]),
+    scores: jsonb("scores").$type<number[]>().notNull().default([]),
+    permissionsAppliquees: text("permissions_appliquees").notNull().default(""),
+    dureeMs: integer("duree_ms").notNull().default(0),
+    traceId: varchar("trace_id", { length: 40 }).notNull().default(""),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    parTrace: index("in_retrieval_audit_trace_idx").on(t.traceId),
+  }),
+);

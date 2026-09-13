@@ -24,6 +24,8 @@ import { OUTILS_VEHICULES } from "./familles/vehicules.js";
 import { OUTILS_GLOBAUX } from "./familles/globales.js";
 import { OUTILS_CHANTIER } from "./familles/chantier.js";
 import { OUTILS_ESTIMATIONS } from "./familles/estimations.js";
+import { OUTILS_MEMOIRE } from "./familles/memoire.js";
+import { OUTILS_FICHIERS_RAG } from "./familles/fichiers-rag.js";
 
 export const NIVEAUX_RISQUE = ["READ_ONLY", "LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
 export type NiveauRisque = (typeof NIVEAUX_RISQUE)[number];
@@ -82,6 +84,7 @@ export const CATEGORIES = [
   "projets", // Chantier de développement — Project Engine + File System Tools (server/intelligences/chantier/)
   "developpement", // Chantier de développement — code/shell/build/test/preview (server/intelligences/chantier/)
   "estimations", // LOT IA02E — Estimate Gateway (server/estimate-gateway/) : porte d'entrée unique vers les moteurs de prix
+  "memoire", // LOT IA02F — mémoire utilisateur et mémoire projet (server/intelligences/memoire-utilisateur.ts, memoire-projet.ts)
 ] as const;
 export type Categorie = (typeof CATEGORIES)[number];
 
@@ -275,7 +278,15 @@ const OUTILS_TEST: OutilSpec[] = [
   },
 ];
 
-export const OUTILS: OutilSpec[] = [...OUTILS_TEST, ...OUTILS_VEHICULES, ...OUTILS_GLOBAUX, ...OUTILS_CHANTIER, ...OUTILS_ESTIMATIONS];
+export const OUTILS: OutilSpec[] = [
+  ...OUTILS_TEST,
+  ...OUTILS_VEHICULES,
+  ...OUTILS_GLOBAUX,
+  ...OUTILS_CHANTIER,
+  ...OUTILS_ESTIMATIONS,
+  ...OUTILS_MEMOIRE,
+  ...OUTILS_FICHIERS_RAG,
+];
 
 export function trouver(toolId: string): OutilSpec | null {
   return OUTILS.find((o) => o.toolId === toolId) ?? null;
