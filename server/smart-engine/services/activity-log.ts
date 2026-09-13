@@ -6,7 +6,7 @@
  */
 import { db } from "../../db.js";
 import { smartActivityLog } from "../schema.js";
-import { desc, eq, and, gte, sql } from "drizzle-orm";
+import { desc, eq, and, gte, isNull, isNotNull, sql } from "drizzle-orm";
 
 interface ActivityInput {
   action: string;
@@ -34,10 +34,24 @@ export async function logActivity(input: ActivityInput) {
   return row;
 }
 
-export async function getActivityLog(limit = 100, offset = 0) {
+/**
+ * `needsValidationOnly` isole les actions réellement en attente d'une
+ * décision humaine (humanValidation null + proposedDecision renseigné) —
+ * sans ce filtre, la carte "À valider" du tableau de bord (Smart Engine)
+ * renvoyait vers ce même journal borné aux 50 dernières lignes toutes
+ * confondues : avec 929 actions en attente sur un total de plusieurs
+ * milliers, elles étaient presque toujours absentes des 50 plus récentes,
+ * donnant l'impression d'un écran vide malgré un compteur non nul.
+ */
+export async function getActivityLog(limit = 100, offset = 0, needsValidationOnly = false) {
   return db
     .select()
     .from(smartActivityLog)
+    .where(
+      needsValidationOnly
+        ? and(isNull(smartActivityLog.humanValidation), isNotNull(smartActivityLog.proposedDecision))
+        : undefined,
+    )
     .orderBy(desc(smartActivityLog.createdAt))
     .limit(limit)
     .offset(offset);
