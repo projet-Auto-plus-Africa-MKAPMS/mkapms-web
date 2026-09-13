@@ -30,6 +30,9 @@ import { ouvrirProjet as ouvrirProjetChantier } from "../chantier/service.js";
 import type { Projet } from "../chantier/projets.js";
 import { trouver as trouverOutil } from "../outils/registre.js";
 import { universDeRoute, type UniversConstate } from "../univers/registre.js";
+import { contexteInjectable as memoireUtilisateurInjectable } from "../memoire-utilisateur.js";
+import { contexteInjectable as memoireProjetInjectable } from "../memoire-projet.js";
+import { resumeActif, contexteInjectable as resumeInjectable } from "../conversation-resume.js";
 
 export interface ContexteResolu {
   utilisateur: {
@@ -60,6 +63,14 @@ export interface ContexteResolu {
   historiquePertinent: { role: string; contenu: string }[];
   moteursDisponibles: string[];
   outilsDisponibles: { toolId: string; enabled: boolean; implementationStatus: string }[];
+  /**
+   * LOT IA02F — Memory Router : mémoire utilisateur (point 4) et mémoire du
+   * projet actif (point 5), déjà réduites à quelques lignes injectables.
+   * Additif : aucun champ existant ci-dessus n'est retiré ni changé de sens.
+   */
+  memoireUtilisateur: string[];
+  memoireProjetActif: string[];
+  conversationResume: string[];
 }
 
 export interface EntreeContexte {
@@ -170,6 +181,10 @@ export async function resoudreContexte(entree: EntreeContexte): Promise<Contexte
     .filter((o) => o.allowedRoles.includes(utilisateur.role ?? ""))
     .map((o) => ({ toolId: o.toolId, enabled: o.enabled, implementationStatus: o.implementationStatus }));
 
+  const memoireUtilisateur = utilisateur.id ? await memoireUtilisateurInjectable(utilisateur.id) : [];
+  const memoireProjetActif = projetActif && utilisateur.id ? await memoireProjetInjectable(projetActif.id, utilisateur.id) : [];
+  const conversationResume = resumeInjectable(entree.sessionId ? await resumeActif(entree.sessionId) : null);
+
   return {
     utilisateur,
     pays,
@@ -181,6 +196,9 @@ export async function resoudreContexte(entree: EntreeContexte): Promise<Contexte
     historiquePertinent: await historiquePertinent(entree.sessionId),
     moteursDisponibles,
     outilsDisponibles,
+    memoireUtilisateur,
+    memoireProjetActif,
+    conversationResume,
   };
 }
 

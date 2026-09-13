@@ -32,6 +32,7 @@ import { emitSafe } from "../event-bus/service.js";
 import { executerAvecOutils } from "./outils/boucle.js";
 import { listerActifs } from "./outils/registre.js";
 import { randomUUID } from "node:crypto";
+import { resumerSiNecessaire } from "./conversation-resume.js";
 
 function jourCourant(): string {
   return new Date().toISOString().slice(0, 10);
@@ -105,6 +106,10 @@ async function contexteUtilisateur(input: {
       c.univers.resolu
         ? `Univers résolu pour /intelligence : ${c.univers.resolu.nom} (${c.univers.resolu.statut}).`
         : `Univers non résolu : ${c.univers.motif}`,
+      // LOT IA02F — Memory Router : additif, jamais un remplacement des lignes ci-dessus.
+      ...c.conversationResume,
+      ...(c.memoireUtilisateur.length ? [`Mémoire utilisateur : ${c.memoireUtilisateur.join(" | ")}`] : []),
+      ...(c.memoireProjetActif.length ? [`Mémoire du projet actif : ${c.memoireProjetActif.join(" | ")}`] : []),
     ];
   } catch (e) {
     return [`Context Engine illisible : ${e instanceof Error ? e.message : "erreur inconnue"}.`];
@@ -627,6 +632,12 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     type: "intelligences.echange",
     payload: { sessionId, cote: input.cote, ok: r.ok, fournisseur: r.fournisseur },
   });
+
+  // LOT IA02F, point 3 — résumé de conversation additif, jamais bloquant :
+  // un échec ici ne doit jamais faire échouer l'échange lui-même.
+  if (input.cote === "direction") {
+    await resumerSiNecessaire(sessionId, traceId);
+  }
 
   // LOT IA02A — le côté direction (PDG) garde le détail technique complet ;
   // le côté public ne reçoit jamais fournisseur, modèle ni motif brut, même

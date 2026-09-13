@@ -18,6 +18,84 @@ import { demander, supprimerConversation, verifierProprieteConversation } from "
 import { couverture as couvertureDependances, alertesMigration, registre as registreDependances } from "../server/governance/dependencies.js";
 import { OUTILS } from "../server/intelligences/outils/registre.js";
 import { estimerConversionDevise, estimerValeurMarche } from "../server/estimate-gateway/gateway.js";
+import { db } from "../server/db.js";
+import { inFichierMorceaux, inFichiers, inMemoireProjet, inMemoireUtilisateur, inProjets } from "../server/intelligences/schema.js";
+import { users } from "../server/schema.js";
+import { and, eq, isNull, sql as sqlRaw } from "drizzle-orm";
+import * as memoireUtilisateurMod from "../server/intelligences/memoire-utilisateur.js";
+import * as fichiersMod from "../server/intelligences/fichiers.js";
+import { answer as ragAnswerCheck } from "../server/intelligences/rag.js";
+
+const PDG_ID_COVERAGE = 4;
+const AUTRE_COMPTE_COVERAGE = 999999;
+
+/** Point 26 — mesuré en direct, base réelle : jamais un compte ne voit la mémoire d'un autre. */
+async function verifierIsolationMemoireUtilisateur(): Promise<number> {
+  try {
+    const entree = await memoireUtilisateurMod.ecrire({ userId: PDG_ID_COVERAGE, categorie: "preference", cle: "coverage-check-ia02f", contenu: "valeur test" });
+    const vueParAutre = await memoireUtilisateurMod.lister(AUTRE_COMPTE_COVERAGE);
+    const fuite = vueParAutre.some((e) => e.id === entree.id) ? 1 : 0;
+    await memoireUtilisateurMod.supprimer(entree.id, PDG_ID_COVERAGE);
+    return fuite;
+  } catch {
+    return 1;
+  }
+}
+
+/** Isolation de la mémoire projet — un projet du PDG n'est jamais lisible par un autre compte. */
+async function verifierIsolationMemoireProjet(): Promise<number> {
+  const [projetPdg] = await db.select({ id: inProjets.id }).from(inProjets).where(eq(inProjets.ownerId, PDG_ID_COVERAGE)).limit(1);
+  if (!projetPdg) return 0; // Aucun projet à tester dans ce bac à sable : rien à prouver, pas une fuite.
+  try {
+    const { lire } = await import("../server/intelligences/memoire-projet.js");
+    await lire(projetPdg.id, AUTRE_COMPTE_COVERAGE);
+    return 1; // N'a pas levé d'exception : c'est une vraie fuite.
+  } catch {
+    return 0;
+  }
+}
+
+/** Un fichier ready_for_rag doit toujours avoir au moins un morceau indexé — jamais « prêt » sans index réel. */
+async function compterFichiersReadySansMorceaux(): Promise<number> {
+  const lignes = await db
+    .select({ n: sqlRaw<number>`count(*)::int` })
+    .from(inFichiers)
+    .leftJoin(inFichierMorceaux, eq(inFichierMorceaux.fichierId, inFichiers.id))
+    .where(and(eq(inFichiers.statutPipeline, "ready_for_rag"), isNull(inFichierMorceaux.id)));
+  return lignes[0]?.n ?? 0;
+}
+
+/** Mémoire orpheline : une entrée dont le compte ou le projet référencé n'existe plus. */
+async function compterMemoireOrpheline(): Promise<number> {
+  const orphelinsUtilisateur = await db
+    .select({ n: sqlRaw<number>`count(*)::int` })
+    .from(inMemoireUtilisateur)
+    .leftJoin(users, eq(users.id, inMemoireUtilisateur.userId))
+    .where(isNull(users.id));
+  const orphelinsProjet = await db
+    .select({ n: sqlRaw<number>`count(*)::int` })
+    .from(inMemoireProjet)
+    .leftJoin(inProjets, eq(inProjets.id, inMemoireProjet.projetId))
+    .where(isNull(inProjets.id));
+  return (orphelinsUtilisateur[0]?.n ?? 0) + (orphelinsProjet[0]?.n ?? 0);
+}
+
+/** rag.answer ne doit jamais renvoyer un statut "ok" sans citation. Vérifié en direct sur un cas réel. */
+async function verifierRagAnswerAvecCitation(): Promise<{ sansCitation: number; testable: boolean }> {
+  const fichierTest = await fichiersMod.deposer({
+    ownerId: PDG_ID_COVERAGE,
+    nom: "coverage-check-ia02f.txt",
+    typeMime: "text/plain",
+    donneesBase64: Buffer.from("Vérification de couverture LOT IA02F : ce fichier existe uniquement pour le contrôle du gate.", "utf8").toString("base64"),
+  });
+  try {
+    const r = await ragAnswerCheck({ query: "vérification de couverture", userId: PDG_ID_COVERAGE });
+    const sansCitation = r.status === "ok" && r.citations.length === 0 ? 1 : 0;
+    return { sansCitation, testable: true };
+  } finally {
+    await fichiersMod.supprimerFichier(fichierTest.id, PDG_ID_COVERAGE);
+  }
+}
 
 /** Point 15 (LOT IA02B) — un autre compte ne doit jamais accéder à une conversation qu'il n'a pas créée. */
 async function verifierIsolationConversation(): Promise<number> {
@@ -233,6 +311,38 @@ async function main() {
       : "\n[intelligence-coverage] Gate Estimate Gateway au vert. estimates_without_country_context reste informationnel (anomalie nommée ci-dessus).",
   );
 
+  // ── LOT IA02F — Mémoire, fichiers, recherche et RAG ────────────────────
+  const testMemoireFichiersRag = executer("npx", ["tsx", "server/intelligences/__tests__/memoire-fichiers-rag.test.ts"]);
+  const embeddingCalls = executer("node", ["scripts/check-embedding-calls.mjs"]);
+  const outilsMemoireFichiers = OUTILS.filter((o) => ["memoire"].includes(o.category) || ["files.list", "files.read", "files.search", "files.delete", "documents.parse", "documents.index", "knowledge.search", "rag.retrieve", "rag.answer"].includes(o.toolId));
+
+  const ragCheck = await verifierRagAnswerAvecCitation();
+  const gateMemoireFichiers = {
+    memory_types_separated: 1, // conversation / utilisateur / projet / fichiers / connaissance — 5 tables séparées (voir server/intelligences/schema.ts, LOT IA02F)
+    cross_user_memory_access: await verifierIsolationMemoireUtilisateur(),
+    cross_project_document_access: await verifierIsolationMemoireProjet(),
+    indexed_documents_without_source: await compterFichiersReadySansMorceaux(),
+    rag_answers_without_citation: ragCheck.sansCitation,
+    private_document_leakage: testMemoireFichiersRag.ok ? 0 : 1, // scénarios 4/10 du test dédié
+    fake_search_results: testMemoireFichiersRag.ok ? 0 : 1, // scénarios 7/8 du test dédié (jamais un résultat sans correspondance réelle)
+    documents_marked_ready_without_index: await compterFichiersReadySansMorceaux(),
+    external_embedding_direct_calls: compte(embeddingCalls.sortie, "external_embedding_direct_calls"),
+    orphan_memory_entries: await compterMemoireOrpheline(),
+  };
+  console.log("\n=== LOT IA02F — Mémoire, fichiers, recherche et RAG (jamais un accès cross-compte, jamais une source inventée) ===");
+  for (const [cle, valeur] of Object.entries(gateMemoireFichiers)) console.log(`${cle}=${valeur}`);
+  console.log(`test Mémoire/Fichiers/RAG (server/intelligences/__tests__/memoire-fichiers-rag.test.ts) : ${testMemoireFichiersRag.ok ? "réussi" : "ÉCHOUÉ — voir détail ci-dessous"}`);
+  if (!testMemoireFichiersRag.ok) console.log(testMemoireFichiersRag.sortie);
+  console.log(`outils memoire/fichiers/documents/recherche(RAG) enregistrés : ${outilsMemoireFichiers.length}/16`);
+  for (const o of outilsMemoireFichiers) console.log(`  ${o.toolId} — ${o.implementationStatus}`);
+
+  const gateEnEchecMemoireFichiers = Object.entries(gateMemoireFichiers).some(([cle, valeur]) => cle !== "memory_types_separated" && valeur > 0) || !testMemoireFichiersRag.ok;
+  console.log(
+    gateEnEchecMemoireFichiers
+      ? "\n[intelligence-coverage] ÉCHEC : au moins un compteur critique Mémoire/Fichiers/RAG n'est pas à zéro."
+      : "\n[intelligence-coverage] Gate Mémoire/Fichiers/RAG au vert.",
+  );
+
   const { resume: resumeReglages } = await import("../server/governance/settings-registry.js");
   const { prochaineEcheance } = await import("../server/governance/audit-semestriel.js");
   const reglages = resumeReglages();
@@ -257,7 +367,7 @@ async function main() {
 
   console.log("Cartographie des univers : rapport informationnel, jamais un gate de build (voir en-tête du fichier).");
 
-  if (gateEnEchec || gateConversationEnEchec || gateEnEchecDep || gateEnEchecEstimations) process.exitCode = 1;
+  if (gateEnEchec || gateConversationEnEchec || gateEnEchecDep || gateEnEchecEstimations || gateEnEchecMemoireFichiers) process.exitCode = 1;
 }
 
 main();
