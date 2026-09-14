@@ -866,12 +866,14 @@ function AnomaliesSection() {
       </div>
 
       {(graph.data?.cycles.length ?? 0) > 0 && (
-        <div className="mb-3 rounded-xl border border-red-200 bg-red-50 p-3">
-          <p className="text-[11px] font-bold text-red-800">
-            Dépendance circulaire détectée — aucun ordre de démarrage n'est possible :
+        <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <p className="text-[11px] font-bold text-slate-700">
+            Dépendance mutuelle détectée — les moteurs tournent dans un seul processus, une
+            boucle ne bloque donc pas le démarrage : c'est une coopération à surveiller (une
+            panne de l'un se propage à l'autre dans les deux sens) :
           </p>
           {graph.data?.cycles.map((c, i) => (
-            <p key={i} className="font-mono text-[11px] text-red-700">
+            <p key={i} className="font-mono text-[11px] text-slate-600">
               {c.join(" → ")}
             </p>
           ))}
