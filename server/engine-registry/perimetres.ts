@@ -356,6 +356,9 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/comptabilite", "/comptabilite/*", "/superadmin/comptabilite-complete"],
   },
   {
+    // Manque réel, pas un défaut de déclaration : le module existe
+    // (modules/financeplus.ts) mais aucun routeur tRPC n'a jamais été monté
+    // dessus — Finance.tsx n'appelle aucune procédure.
     moteur: "finance",
     dossiers: ["modules/financeplus.ts"],
     routeurs: [],
@@ -370,24 +373,38 @@ export const PERIMETRES: PerimetreDeclare[] = [
     sourcesBus: ["annonces"],
   },
   {
+    // Vérifié : filtre du catalogue "achat" par categorieAnnonce="officielle"
+    // (client/src/pages/VenteMKAPMS.tsx : trpc.annonces.list). Le routeur
+    // "annonces" reste déclaré uniquement par "achat" (gen-moteurs.mjs
+    // impose un routeur = un seul moteur propriétaire) : ce n'est pas un
+    // manque de connexion, c'est une infrastructure partagée avec le parent.
     moteur: "achat_officiel",
     dossiers: [],
     routeurs: [],
     routes: ["/acheter/mkapms-officiel", "/acheter/mkapms-officiel/*"],
   },
   {
+    // Vérifié : filtre du catalogue "achat" par categorieAnnonce="professionnelle"
+    // (client/src/pages/VentePro.tsx : trpc.annonces.list) — même remarque
+    // que achat_officiel ci-dessus.
     moteur: "achat_pro",
     dossiers: [],
     routeurs: [],
     routes: ["/acheter/professionnel", "/acheter/professionnel/*"],
   },
   {
+    // Vérifié : filtre du catalogue "achat" par categorieAnnonce="particulier"
+    // (client/src/pages/VenteParticulier.tsx : trpc.annonces.list) — même
+    // remarque que achat_officiel ci-dessus.
     moteur: "achat_particulier",
     dossiers: [],
     routeurs: [],
     routes: ["/acheter/particulier", "/acheter/particulier/*"],
   },
   {
+    // Vérifié : dépôt et gestion d'annonces (client/src/pages/Vendre.tsx :
+    // trpc.annonces.create/update) — même infrastructure partagée que
+    // "achat" (routeur "annonces"), voir remarque ci-dessus.
     moteur: "vente",
     dossiers: [],
     routeurs: [],
@@ -400,12 +417,20 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/depot-vente"],
   },
   {
+    // Vérifié : inscription pro vente (client/src/pages/
+    // InscriptionProVente.tsx) utilise réellement kyc.submitDocuments +
+    // pro.createProfile — mais ces routeurs sont déjà déclarés par
+    // "identity" et "pro_portal" (gen-moteurs.mjs : un routeur = un seul
+    // moteur propriétaire). Infrastructure partagée, pas un manque.
     moteur: "vente_pro",
     dossiers: [],
     routeurs: [],
     routes: ["/acheter/espace-pro", "/acheter/inscription-pro", "/vente/resume-vendeur"],
   },
   {
+    // Vérifié : dépôt et suivi des annonces du particulier
+    // (client/src/pages/MesAnnonces.tsx : trpc.annonces.myList/update/
+    // remove/prolong) — même infrastructure partagée que "achat" ci-dessus.
     moteur: "vente_particulier",
     dossiers: [],
     routeurs: [],
@@ -418,12 +443,18 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/location/:slug", "/louer", "/louer/vtc-taxi", "/louer/vtc-taxi/*", "/louer/camions", "/louer/camions/*", "/louer/minibus", "/louer/minibus/*", "/louer/utilitaires", "/louer/utilitaires/*", "/louer/mkapms", "/louer/mkapms/*", "/louer/loa", "/louer/comparateur", "/louer/favoris", "/louer/historique", "/louer/calendrier", "/louer/liste-attente", "/louer/penalites", "/louer/remplacement", "/louer/renouvellement", "/louer/multi-vehicules", "/louer/reservations-recurrentes", "/louer/score-confiance", "/louer/programme-vtc", "/superadmin/admin-location", "/vtc-taxi", "/location-*"],
   },
   {
+    // Vérifié : catalogue location filtré profil pro
+    // (client/src/pages/LocationPro.tsx : trpc.annonces.list) — même
+    // infrastructure partagée que "achat" ci-dessus (routeur "annonces").
     moteur: "location_pro",
     dossiers: [],
     routeurs: [],
     routes: ["/louer/pro", "/louer/pro/*", "/louer/conducteurs", "/louer/franchises", "/louer/renouvellement-flotte", "/louer/tableau-bord-loueur", "/louer/score-loueur", "/entreprises", "/entreprises/*"],
   },
   {
+    // Vérifié : catalogue location filtré profil particulier
+    // (client/src/pages/LocationParticulier.tsx : trpc.annonces.list) —
+    // même remarque que location_pro ci-dessus.
     moteur: "location_particulier",
     dossiers: [],
     routeurs: [],
@@ -521,6 +552,9 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/carte-grise", "/carte-grise/*", "/demarches", "/demarches/*", "/superadmin/admin-demarches"],
   },
   {
+    // Manque réel, pas un défaut de déclaration : les 3 écrans
+    // (garage/ControleTechnique.tsx, EtatVehicule.tsx, InspectionNumerique.tsx)
+    // n'appellent aucune procédure tRPC — aucun backend n'existe encore.
     moteur: "controle_technique",
     dossiers: [],
     routeurs: [],
@@ -575,6 +609,10 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/superadmin/admin-comptes-pro"],
   },
   {
+    // Manque réel, pas un défaut de déclaration : VenteEncheres.tsx (page
+    // de vitrine à /acheter/encheres) n'appelle aucune procédure tRPC —
+    // aucun backend n'existe encore pour ce catalogue (distinct
+    // d'auction_engine, qui lui gère les enchères en direct à /encheres/live).
     moteur: "encheres",
     dossiers: [],
     routeurs: [],
