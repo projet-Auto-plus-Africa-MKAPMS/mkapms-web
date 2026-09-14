@@ -10,7 +10,7 @@ const EXPORTS = [
 export default function CentreExport() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/tableau-de-bord-pro" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Download size={20} /> Export</h1></div>
+      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/resume-vendeur" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Download size={20} /> Export</h1></div>
       <div className="px-4 mt-4 space-y-2">{EXPORTS.map(e => (
         <div key={e.label} className="rounded-xl bg-white border border-[#E5E7EB] p-4">
           <h3 className="text-sm font-bold text-[#111] mb-2">{e.label}</h3>

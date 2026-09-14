@@ -9,7 +9,7 @@ const VERIFS = [
 export default function CentreDetectionFraude() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-red-700 px-4 pt-6 pb-5"><Link to="/vente/tableau-de-bord-pro" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Shield size={20} /> Détection fraude</h1><p className="mt-1 text-sm text-white/80">Analyse automatique</p></div>
+      <div className="bg-red-700 px-4 pt-6 pb-5"><Link to="/vente/resume-vendeur" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Shield size={20} /> Détection fraude</h1><p className="mt-1 text-sm text-white/80">Analyse automatique</p></div>
       <div className="px-4 mt-4 space-y-2">{VERIFS.map(v => (
         <div key={v.label} className={`rounded-xl bg-white border p-4 flex items-center gap-3 ${v.statut === "alerte" ? "border-red-300" : "border-[#E5E7EB]"}`}>
           {v.statut === "ok" ? <Check size={16} className="text-green-600" /> : <AlertTriangle size={16} className="text-red-500" />}

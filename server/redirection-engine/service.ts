@@ -345,6 +345,11 @@ export async function ensureDefaultRules(): Promise<{ inserted: number; existing
  */
 const CORRECTIFS_CIBLES_OBSOLETES: { key: string; ancienneCible: string; nouvelleCible: string }[] = [
   { key: "acheter_pro", ancienneCible: "/acheter/pro", nouvelleCible: "/acheter/professionnel" },
+  {
+    key: "service_controle_technique",
+    ancienneCible: "/service/controle-technique",
+    nouvelleCible: "/garage/controle-technique",
+  },
 ];
 
 export async function corrigerCiblesObsoletes(): Promise<{ corrigees: number }> {

@@ -14,7 +14,7 @@ export default function CentreMarges() {
   const pct = Math.round((marge / prixVente) * 100);
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/tableau-de-bord-pro" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Calculator size={20} /> Centre Marges</h1></div>
+      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/resume-vendeur" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Calculator size={20} /> Centre Marges</h1></div>
       <div className="mx-4 mt-4 rounded-xl bg-white border border-[#E5E7EB] p-4 space-y-2">
         <h3 className="text-sm font-bold text-[#111]">Peugeot 3008 GT — Calcul marge</h3>
         {CALCUL.map(c => (<div key={c.label} className="flex justify-between text-sm border-b border-[#F3F4F6] pb-1"><span className="text-[#6B7280]">{c.label}</span><span className="font-semibold text-red-600">- {c.montant.toLocaleString("fr-FR")} €</span></div>))}

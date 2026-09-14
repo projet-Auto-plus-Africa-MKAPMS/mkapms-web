@@ -8,7 +8,7 @@ const SITES = [
 export default function MultiSites() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/tableau-de-bord-pro" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Building2 size={20} /> Multi-Sites</h1></div>
+      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/resume-vendeur" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Building2 size={20} /> Multi-Sites</h1></div>
       <div className="px-4 mt-4 space-y-2">{SITES.map(s => (
         <div key={s.nom} className="rounded-xl bg-white border border-[#E5E7EB] p-4">
           <div className="flex items-center gap-2"><MapPin size={14} className="text-blue-600" /><h3 className="text-sm font-bold text-[#111]">{s.nom}</h3></div>

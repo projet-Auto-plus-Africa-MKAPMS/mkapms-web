@@ -12,7 +12,7 @@ const BADGES = [
 export default function CentreBadgesVendeurs() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/tableau-de-bord-pro" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Award size={20} /> Badges vendeur</h1></div>
+      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/resume-vendeur" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Award size={20} /> Badges vendeur</h1></div>
       <div className="px-4 mt-4 space-y-2">{BADGES.map(b => { const Icon = b.icon; return (
         <div key={b.label} className={`rounded-xl bg-white border p-4 flex items-center gap-3 ${b.ok ? "border-[#E5E7EB]" : "border-[#E5E7EB] opacity-50"}`}>
           <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${b.ok ? b.color : "bg-gray-200"}`}><Icon size={16} className="text-white" /></div>

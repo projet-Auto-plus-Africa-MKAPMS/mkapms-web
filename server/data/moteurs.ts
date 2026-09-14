@@ -100,14 +100,13 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 89;
-export const MANQUES_TOTAL = 616;
+export const MANQUES_TOTAL = 588;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "bouton_sans_action": 183,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
   "dependance_sans_preuve": 35,
-  "destination_inconnue": 28,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1,
   "dependance_non_declaree": 9
@@ -2730,10 +2729,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« Validation responsable » client/src/pages/garage/ControleQualiteGarage.tsx:16"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/garage/mecaniciens client/src/pages/garage/FichesTechniciens.tsx:7"
-      },
-      {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/garage/FileAttenteAtelier.tsx (2 texte(s))"
       },
@@ -3439,10 +3434,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Supprimer » client/src/pages/superadmin/AdminModerationAvis.tsx:50"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/AvisVendeurs.tsx:12"
       }
     ]
   },
@@ -8593,10 +8584,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« Rechercher » client/src/pages/garage/CarrosserieGarage.tsx:663"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/garage/professionnel client/src/pages/garage/ContratsFlottes.tsx:15"
-      },
-      {
         "genre": "bouton_sans_action",
         "detail": "« Capture écran » client/src/pages/garage/DiagnosticAvance.tsx:17"
       },
@@ -8609,24 +8596,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "client/src/pages/garage/DiagnosticAvance.tsx (4 texte(s))"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/garage/flottes client/src/pages/garage/DossiersFlottes.tsx:12"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/garage/professionnel client/src/pages/garage/FlottesEntreprises.tsx:11"
-      },
-      {
         "genre": "bouton_sans_action",
         "detail": "« Ajouter un véhicule » client/src/pages/garage/FlottesEntreprises.tsx:17"
       },
       {
         "genre": "bouton_sans_action",
         "detail": "« Ajouter fournisseur » client/src/pages/garage/FournisseursGarage.tsx:14"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/garage/devis client/src/pages/garage/GarageProfessionnel.tsx:27"
       },
       {
         "genre": "bouton_sans_action",
@@ -20865,20 +20840,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "client/src/pages/depot-annonce/ObjectifDepotAnnonce.tsx (3 texte(s))"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/AchatExpress.tsx:7"
-      },
-      {
         "genre": "bouton_sans_action",
         "detail": "« Commencer un achat express » client/src/pages/vente/AchatExpress.tsx:9"
       },
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/vente/AchatExpress.tsx (4 texte(s))"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/AlertesAuto.tsx:13"
       },
       {
         "genre": "bouton_sans_action",
@@ -20897,40 +20864,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« Créer l'alerte » client/src/pages/vente/CentreAlertesRecherche.tsx:21"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentreArchives.tsx:11"
-      },
-      {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/vente/CentreArchives.tsx (4 texte(s))"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentreBadgesVendeurs.tsx:15"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentreCampagnes.tsx:10"
       },
       {
         "genre": "bouton_sans_action",
         "detail": "« Nouvelle campagne » client/src/pages/vente/CentreCampagnes.tsx:16"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentreClientsVente.tsx:12"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentreControleQualite.tsx:13"
-      },
-      {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/vente/CentreControleQualite.tsx:20"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentreDetectionFraude.tsx:12"
       },
       {
         "genre": "bouton_sans_action",
@@ -20939,10 +20882,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Réserver l'essai » client/src/pages/vente/CentreEssaiRoutier.tsx:11"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentreExport.tsx:13"
       },
       {
         "genre": "bouton_sans_action",
@@ -20957,14 +20896,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« (sans texte) » client/src/pages/vente/CentreFavorisVente.tsx:16"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentreFinancement.tsx:12"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentreFournisseurs.tsx:12"
-      },
-      {
         "genre": "bouton_sans_action",
         "detail": "« Ajouter fournisseur » client/src/pages/vente/CentreFournisseurs.tsx:18"
       },
@@ -20973,20 +20904,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "client/src/pages/vente/CentreGarantieOccasion.tsx (2 texte(s))"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentreMarges.tsx:17"
-      },
-      {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/vente/CentreNegociation.tsx:20"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentreObjectifs.tsx:11"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentrePerformances.tsx:12"
       },
       {
         "genre": "bouton_sans_action",
@@ -20995,10 +20914,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Valider les photos » client/src/pages/vente/CentrePhotosMedias.tsx:15"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentrePublicites.tsx:11"
       },
       {
         "genre": "bouton_sans_action",
@@ -21017,10 +20932,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "client/src/pages/vente/CentreRetourClient.tsx (4 texte(s))"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/CentreSecurite.tsx:13"
-      },
-      {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/vente/CentreVisiteVehicule.tsx:15"
       },
@@ -21029,16 +20940,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« Confirmer la visite » client/src/pages/vente/CentreVisiteVehicule.tsx:16"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/DossierClient.tsx:11"
-      },
-      {
         "genre": "bouton_sans_action",
         "detail": "« Enregistrer les droits » client/src/pages/vente/DroitsAcces.tsx:15"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/GestionEmployes.tsx:29"
       },
       {
         "genre": "bouton_sans_action",
@@ -21053,20 +20956,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« Enregistrer » client/src/pages/vente/GestionEmployes.tsx:129"
       },
       {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/MultiSites.tsx:11"
-      },
-      {
         "genre": "bouton_sans_action",
         "detail": "« Ajouter un site » client/src/pages/vente/MultiSites.tsx:17"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/QualiteVendeur.tsx:9"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/ReservationsVente.tsx:14"
       },
       {
         "genre": "bouton_sans_action",
@@ -21345,10 +21236,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Choisir » client/src/pages/EspaceProVente.tsx:50"
-      },
-      {
-        "genre": "destination_inconnue",
-        "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/TableauBordVendeur.tsx:8"
       },
       {
         "genre": "dependance_non_declaree",
