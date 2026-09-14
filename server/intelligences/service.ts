@@ -553,7 +553,13 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
       outilsProposes: listerActifs().map((o) => o.toolId),
       confidentialite: "interne",
       countryCode: input.countryCode ?? null,
-      maxTokens: 2000,
+      // 2000 jetons se sont révélés trop justes en usage réel : sur un
+      // modèle à raisonnement interne, les jetons de raisonnement sont
+      // comptés dans ce budget — une synthèse d'état plateforme (plusieurs
+      // appels d'outils + rédaction) peut l'épuiser avant tout texte
+      // visible ("répondu sans contenu utilisable" / timeout observés en
+      // production sur ce chemin précis, côté direction).
+      maxTokens: 4000,
       actorId: input.userId ?? null,
       traceId,
     });

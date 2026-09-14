@@ -429,14 +429,20 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
 
     const corps = JSON.parse(brut) as {
       choices?: {
+        finish_reason?: string | null;
         message?: {
           content?: string | null;
           tool_calls?: { id: string; type: string; function: { name: string; arguments: string } }[];
         };
       }[];
-      usage?: { prompt_tokens?: number; completion_tokens?: number };
+      usage?: {
+        prompt_tokens?: number;
+        completion_tokens?: number;
+        completion_tokens_details?: { reasoning_tokens?: number };
+      };
     };
-    const message = corps.choices?.[0]?.message;
+    const choix = corps.choices?.[0];
+    const message = choix?.message;
     const texte = message?.content ?? "";
     const appelsOutils: AppelOutil[] = (message?.tool_calls ?? [])
       .filter((t) => t.type === "function")
@@ -447,8 +453,22 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
     // Un modèle qui ne fait qu'appeler un outil (aucun texte) est une réponse
     // valide, pas un échec : c'est justement le but de la capacité "outils".
     if (texte.trim().length === 0 && appelsOutils.length === 0) {
+      // "length" + jetons de raisonnement proches du budget = le modèle a
+      // épuisé max_completion_tokens en raisonnement interne avant d'écrire
+      // une seule ligne visible — un budget trop juste, pas une vraie panne
+      // fournisseur. Le dire explicitement évite de deviner à chaque
+      // occurrence future.
+      const raisonnement = corps.usage?.completion_tokens_details?.reasoning_tokens;
+      const cause =
+        choix?.finish_reason === "length"
+          ? raisonnement
+            ? ` (arrêté par limite de jetons : ${raisonnement} jeton(s) de raisonnement sur ${jetonsSortie} alloué(s))`
+            : " (arrêté par limite de jetons avant tout contenu visible)"
+          : choix?.finish_reason
+            ? ` (finish_reason: ${choix.finish_reason})`
+            : "";
       return replier(
-        `${providerLabel} a répondu sans contenu utilisable.`,
+        `${providerLabel} a répondu sans contenu utilisable${cause}.`,
         Date.now() - debut,
       );
     }
