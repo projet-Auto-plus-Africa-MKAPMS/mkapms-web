@@ -256,7 +256,15 @@ export default function VenteGenerale() {
           )}
           {/* Bouton */}
           <Link
-            to={`/acheter${q ? `?q=${encodeURIComponent(q)}` : ""}${budget ? `&prixMax=${budget}` : ""}${typeVeh ? `&categorie=${typeVeh}` : ""}${zone ? `&zone=${zone}` : ""}`}
+            to={(() => {
+              const params = new URLSearchParams();
+              if (q) params.set("q", q);
+              if (budget) params.set("prixMax", budget);
+              if (typeVeh) params.set("categorie", typeVeh);
+              if (zone) params.set("zone", zone);
+              const qs = params.toString();
+              return `/acheter${qs ? `?${qs}` : ""}`;
+            })()}
             className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md"
           >
             <Search size={16} /> Rechercher un véhicule

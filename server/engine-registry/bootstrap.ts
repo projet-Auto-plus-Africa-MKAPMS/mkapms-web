@@ -20,6 +20,7 @@ import { seedLivraisons } from "../intelligences/livraisons.js";
 import { initialiserBaremes } from "../vehicle-delivery/service.js";
 import { retenir } from "../intelligences/memoire.js";
 import { notifyDirection } from "../notification-os/triggers.js";
+import { raiseAlert } from "../smart-engine/services/alert-engine.js";
 import { ENGINE_CONTRACTS, type EngineContract } from "./contracts.js";
 import { recordState, remember } from "./memory.js";
 import { bridgeOsEngines } from "./os-bridge.js";
@@ -250,6 +251,17 @@ async function probeBusinessEngines(): Promise<void> {
           payload: { engine: probe.engine, health: result.health, ...result.metrics },
           targets: ["smart", "core"],
         });
+        // Sans cette alerte, une anomalie de santé constatée par la sonde ne
+        // devenait jamais visible dans le tableau d'alertes de la direction
+        // (smart_alerts) — voir continuous-test "central.alertes_remontees".
+        await raiseAlert({
+          category: "moteur",
+          title: `${probe.engine} — santé ${result.health}`,
+          description: result.message,
+          level: result.health === "down" ? "critical" : "important",
+          signature: `moteur:${result.health}:${probe.engine}`,
+          lastOccurredAt: new Date(),
+        });
       }
     } catch (err) {
       console.error(
@@ -296,6 +308,16 @@ async function probeContractEngines(): Promise<void> {
           { moteur: contract.id, detail: message },
           contract.controlCenter,
         );
+      }
+      if (health === "degraded") {
+        await raiseAlert({
+          category: "moteur",
+          title: `${contract.publicName} — dépendances manquantes`,
+          description: message,
+          level: "important",
+          signature: `moteur:degraded:${contract.id}`,
+          lastOccurredAt: new Date(),
+        });
       }
     } catch (err) {
       console.error(
