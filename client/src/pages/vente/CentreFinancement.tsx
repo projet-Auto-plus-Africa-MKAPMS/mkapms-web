@@ -9,7 +9,7 @@ const MODES = [
 export default function CentreFinancement() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/tableau-de-bord-pro" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><CreditCard size={20} /> Financement</h1></div>
+      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/resume-vendeur" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><CreditCard size={20} /> Financement</h1></div>
       <div className="px-4 mt-4 space-y-2">{MODES.map(m => { const Icon = m.icon; return (
         <div key={m.label} className="rounded-xl bg-white border border-[#E5E7EB] p-4 flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50"><Icon size={16} className="text-blue-700" /></div>

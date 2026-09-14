@@ -10,7 +10,7 @@
  * le motif exact. Jamais `reussi`.
  */
 import { BOUTONS_SANS_ACTION, ecransConcernes } from "../data/boutons-sans-action.js";
-import { CLIENT_ROUTES } from "../data/client-routes.js";
+import { CLIENT_ROUTES, isRoutablePath } from "../data/client-routes.js";
 import { estIntrouvable, http, lignes, type Observation, type Scenario } from "./helpers.js";
 
 /** Un placeholder non résolu (`:id`, `undefined`, `[object`) est un bouton mort. */
@@ -94,7 +94,6 @@ export const PARCOURS_SCENARIOS: Scenario[] = [
         return { statut: "ignore", observe: "Table des règles de redirection absente." };
       if (rows.length === 0)
         return { statut: "ignore", observe: "Aucune règle de redirection enregistrée." };
-      const connues = new Set(CLIENT_ROUTES);
       const morts: string[] = [];
       for (const r of rows) {
         const t = (r.target || "").trim();
@@ -107,9 +106,11 @@ export const PARCOURS_SCENARIOS: Scenario[] = [
           morts.push(`${r.key} → ${t} (paramètre non résolu)`);
           continue;
         }
+        // isRoutablePath (pas une simple liste littérale) : une cible comme
+        // "/pays/france" est réelle mais ne figure jamais telle quelle dans
+        // CLIENT_ROUTES, seul le patron "/pays/:slug" y est déclaré.
         const chemin = t.split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
-        if (!connues.has(chemin) && !connues.has(`${chemin}/`))
-          morts.push(`${r.key} → ${chemin} (route inconnue)`);
+        if (!isRoutablePath(chemin)) morts.push(`${r.key} → ${chemin} (route inconnue)`);
       }
       return morts.length === 0
         ? {

@@ -8,7 +8,7 @@ const OBJECTIFS = [
 export default function CentreObjectifs() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/tableau-de-bord-pro" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Target size={20} /> Objectifs</h1></div>
+      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/resume-vendeur" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Target size={20} /> Objectifs</h1></div>
       <div className="px-4 mt-4 space-y-3">{OBJECTIFS.map(o => { const pct = Math.round((o.actuel / o.objectif) * 100); return (
         <div key={o.label} className="rounded-xl bg-white border border-[#E5E7EB] p-4">
           <div className="flex justify-between text-sm"><span className="font-bold text-[#111]">{o.label}</span><span className="font-black text-blue-700">{o.actuel.toLocaleString("fr-FR")}{o.unite} / {o.objectif.toLocaleString("fr-FR")}{o.unite}</span></div>

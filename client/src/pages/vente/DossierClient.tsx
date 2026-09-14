@@ -8,7 +8,7 @@ const DOCS_CLIENT = [
 export default function DossierClient() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/tableau-de-bord-pro" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><User size={20} /> Dossier Client</h1><p className="mt-1 text-sm text-white/80">Marie L. — Peugeot 3008 GT</p></div>
+      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/resume-vendeur" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><User size={20} /> Dossier Client</h1><p className="mt-1 text-sm text-white/80">Marie L. — Peugeot 3008 GT</p></div>
       <div className="px-4 mt-4 space-y-2">{DOCS_CLIENT.map((d) => (
         <div key={d.label} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center gap-3">
           <FileText size={14} className={d.statut === "valide" ? "text-green-600" : d.statut === "en_cours" ? "text-amber-500" : "text-[#9CA3AF]"} />

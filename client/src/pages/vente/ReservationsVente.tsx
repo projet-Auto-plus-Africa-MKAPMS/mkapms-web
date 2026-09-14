@@ -11,7 +11,7 @@ export default function ReservationsVente() {
   const [modalDoc, setModalDoc] = useState<any>(null);
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/tableau-de-bord-pro" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Calendar size={20} /> Réservations Vente</h1></div>
+      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/resume-vendeur" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Calendar size={20} /> Réservations Vente</h1></div>
       <div className="px-4 mt-4 space-y-2">{RESERVATIONS.map((r) => (
         <div key={r.id} className="rounded-xl bg-white border border-[#E5E7EB] p-4">
           <div className="flex justify-between"><div><h3 className="text-sm font-bold text-[#111]">{r.client}</h3><p className="text-[10px] text-[#6B7280]">{r.vehicule} · {r.date}</p></div>

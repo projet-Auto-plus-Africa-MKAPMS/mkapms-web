@@ -10,7 +10,7 @@ const JOURNAL = [
 export default function CentreSecurite() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/tableau-de-bord-pro" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Shield size={20} /> Sécurité</h1><p className="mt-1 text-sm text-white/80">Journal d'activité</p></div>
+      <div className="bg-blue-800 px-4 pt-6 pb-5"><Link to="/vente/resume-vendeur" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Dashboard</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Shield size={20} /> Sécurité</h1><p className="mt-1 text-sm text-white/80">Journal d'activité</p></div>
       <div className="px-4 mt-4 space-y-1.5">{JOURNAL.map((j, i) => (
         <div key={i} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center gap-3">
           {j.action.includes("Connexion") ? <Eye size={12} className="text-blue-600" /> : j.action.includes("Modification") ? <Edit size={12} className="text-amber-500" /> : j.action.includes("Suppression") ? <Trash2 size={12} className="text-red-500" /> : <Check size={12} className="text-green-600" />}

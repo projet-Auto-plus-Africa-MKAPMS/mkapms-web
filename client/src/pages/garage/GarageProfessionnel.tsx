@@ -24,7 +24,7 @@ export default function GarageProfessionnel() {
           <div className="flex-1"><h3 className="text-sm font-bold text-[#111]">{f.label}</h3><p className="text-[10px] text-[#6B7280]">{f.desc}</p></div>
         </div>
       ); })}</div>
-      <div className="px-4 mt-4"><Link to="/garage/devis" className="block w-full rounded-xl bg-blue-800 py-3 text-center text-sm font-bold text-white active:scale-[0.98]">Demander un devis flotte</Link></div>
+      <div className="px-4 mt-4"><Link to="/garage/demande-devis" className="block w-full rounded-xl bg-blue-800 py-3 text-center text-sm font-bold text-white active:scale-[0.98]">Demander un devis flotte</Link></div>
     </div>
   );
 }

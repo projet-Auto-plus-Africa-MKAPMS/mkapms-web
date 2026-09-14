@@ -94,7 +94,7 @@ export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
   { key: "louer_pro", label: "Louer — Professionnel", kind: "route", target: "/louer/pro", priority: 80 },
 
   // ── Services automobiles principaux ───────────────────────────────────
-  { key: "service_controle_technique", label: "Service — Contrôle technique", kind: "service", target: "/service/controle-technique", priority: 70 },
+  { key: "service_controle_technique", label: "Service — Contrôle technique", kind: "service", target: "/garage/controle-technique", priority: 70 },
   { key: "service_carte_grise", label: "Service — Carte grise", kind: "service", target: "/carte-grise", priority: 70 },
   { key: "service_devis_garage", label: "Service — Devis garage", kind: "service", target: "/devis", priority: 70 },
   { key: "service_demarches", label: "Service — Démarches administratives", kind: "service", target: "/demarches", priority: 70 },
