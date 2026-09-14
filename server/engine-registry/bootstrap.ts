@@ -261,6 +261,52 @@ async function probeBusinessEngines(): Promise<void> {
 }
 
 /**
+ * Rafraîchit le battement des 5 moteurs à contrat (Core, Smart, Permission,
+ * Redirection, Boutons).
+ *
+ * `bootEngine` ne s'exécute qu'au démarrage du processus : sans repasse
+ * périodique, leur `lastHeartbeat` ne bougeait plus jamais ensuite, et le
+ * détecteur d'anomalies (`STALE_HEARTBEAT_MS` = 15 min, voir
+ * central-engines/index.ts) les signalait donc en permanence « sans signal »
+ * dès que le serveur tournait depuis plus d'un quart d'heure — une fausse
+ * alerte de surveillance, pas une vraie panne. Cette passe ne fait que
+ * revérifier les dépendances et re-battre le cœur (comme `probeBusinessEngines`
+ * le fait déjà pour les 30 autres moteurs) : elle ne réenregistre pas le
+ * moteur et n'écrit pas d'entrée « boot » dans le journal admin, réservée au
+ * vrai démarrage du processus.
+ */
+async function probeContractEngines(): Promise<void> {
+  for (const contract of ENGINE_CONTRACTS) {
+    try {
+      const deps = await checkDependencies(contract);
+      const health: EngineHealth = deps.ok ? "ok" : "degraded";
+      const message = deps.ok
+        ? "Dépendances satisfaites."
+        : `Dépendances manquantes (${[
+            deps.missing.length ? `absentes: ${deps.missing.join(", ")}` : "",
+            deps.inactive.length ? `inactives: ${deps.inactive.join(", ")}` : "",
+          ]
+            .filter(Boolean)
+            .join(" ; ")}).`;
+      await heartbeat(contract.id, health, { message, version: contract.version });
+      const state = await recordState(contract.id, health, message);
+      if (state.changed && health === "degraded") {
+        await notifyDirection(
+          "moteur_hors_service",
+          { moteur: contract.id, detail: message },
+          contract.controlCenter,
+        );
+      }
+    } catch (err) {
+      console.error(
+        `[MKA.P-MS] battement moteur à contrat ${contract.id} échoué:`,
+        (err as Error).message,
+      );
+    }
+  }
+}
+
+/**
  * Un échec de migration au démarrage laisse la base sans une partie de ses
  * tables : chaque sonde métier le constatera ensuite table par table, mais la
  * cause racine doit être nommée une seule fois, au Core, à la direction et au
@@ -453,5 +499,6 @@ export async function superviseEngines(): Promise<void> {
   } catch (err) {
     console.error("[MKA.P-MS] supervision OS échouée:", (err as Error).message);
   }
+  await probeContractEngines();
   await probeBusinessEngines();
 }
