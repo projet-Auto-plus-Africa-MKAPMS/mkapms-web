@@ -477,9 +477,11 @@ async function bootstrap() {
     // par défaut manquantes (univers, sous-sections, services, boutons/CTA).
     // Idempotent, non destructif : ne réécrase jamais une règle du PDG.
     try {
-      const { ensureDefaultRules } = await import("./redirection-engine/index.js");
+      const { ensureDefaultRules, corrigerCiblesObsoletes } = await import("./redirection-engine/index.js");
       const r = await ensureDefaultRules();
       console.log(`[MKA.P-MS] Redirection: ${r.inserted} règle(s) ajoutée(s), ${r.existing} déjà présente(s)`);
+      const c = await corrigerCiblesObsoletes();
+      if (c.corrigees > 0) console.log(`[MKA.P-MS] Redirection: ${c.corrigees} cible(s) obsolète(s) corrigée(s)`);
     } catch (err) {
       console.error("[MKA.P-MS] échec seed règles de redirection:", (err as Error).message);
     }
