@@ -103,14 +103,14 @@ export const MOTEURS_TOTAL = 89;
 export const MANQUES_TOTAL = 616;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
-  "bouton_sans_action": 185,
+  "bouton_sans_action": 183,
   "sans_logique_serveur": 12,
   "sans_ecran": 4,
   "dependance_sans_preuve": 35,
   "destination_inconnue": 28,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1,
-  "dependance_non_declaree": 7
+  "dependance_non_declaree": 9
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
@@ -5657,7 +5657,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 78,
-        "mots": 561
+        "mots": 588
       },
       {
         "fichier": "client/src/pages/GlobalCountryEngine.tsx",
@@ -6014,7 +6014,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "public"
     ],
     "textes": 357,
-    "mots": 1470,
+    "mots": 1497,
     "battement": "contrat",
     "manques": [
       {
@@ -8855,6 +8855,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smart",
       "support",
       "transport",
+      "vente_pro",
       "visibility",
       "vo_espaces",
       "workflow"
@@ -9254,6 +9255,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/ControleDocuments.tsx",
         "route": "/louer/controle-documents",
+        "composants": [
+          "trpc.kyc"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/InscriptionProVente.tsx",
+        "route": "/acheter/inscription-pro",
         "composants": [
           "trpc.kyc"
         ]
@@ -15067,6 +15075,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "partner_engine",
       "pro_account",
+      "vente_pro",
       "vo_espaces"
     ],
     "evenementsPublies": [],
@@ -15177,6 +15186,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       }
     ],
     "ecransHotes": [
+      {
+        "fichier": "client/src/pages/InscriptionProVente.tsx",
+        "route": "/acheter/inscription-pro",
+        "composants": [
+          "trpc.pro"
+        ]
+      },
       {
         "fichier": "client/src/pages/InscriptionProVO.tsx",
         "route": "/inscription-pro-vo",
@@ -21253,13 +21269,25 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "vente"
     ],
-    "dependancesDetectees": [],
+    "dependancesDetectees": [
+      "identity",
+      "pro_portal"
+    ],
     "dependances": [
       "core",
+      "identity",
+      "pro_portal",
       "vente"
     ],
     "integrationsTechniques": [],
-    "preuvesDependances": {},
+    "preuvesDependances": {
+      "identity": [
+        "client/src/pages/InscriptionProVente.tsx appelle trpc.kyc"
+      ],
+      "pro_portal": [
+        "client/src/pages/InscriptionProVente.tsx appelle trpc.pro"
+      ]
+    },
     "dependants": [],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -21290,9 +21318,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 8,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 22,
-        "mots": 58
+        "sansAction": 0,
+        "textes": 38,
+        "mots": 187
       },
       {
         "fichier": "client/src/pages/vente/TableauBordVendeur.tsx",
@@ -21310,8 +21338,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 53,
-    "mots": 113,
+    "textes": 69,
+    "mots": 242,
     "battement": "sonde",
     "manques": [
       {
@@ -21319,16 +21347,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« Choisir » client/src/pages/EspaceProVente.tsx:50"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Télécharger » client/src/pages/InscriptionProVente.tsx:61"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/InscriptionProVente.tsx:81"
-      },
-      {
         "genre": "destination_inconnue",
         "detail": "/vente/tableau-de-bord-pro client/src/pages/vente/TableauBordVendeur.tsx:8"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "identity — client/src/pages/InscriptionProVente.tsx appelle trpc.kyc"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "pro_portal — client/src/pages/InscriptionProVente.tsx appelle trpc.pro"
       },
       {
         "genre": "dependance_sans_preuve",

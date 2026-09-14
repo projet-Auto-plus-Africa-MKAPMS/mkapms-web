@@ -242,7 +242,7 @@ export async function buildUrlSample(options?: InventoryOptions): Promise<Famill
   });
   const proCandidats: UrlCandidate[] = [
     { url: "/espace-pro", famille: "pro", pipeline: "page", source: "route:/espace-pro" },
-    { url: "/pro/portail", famille: "pro", pipeline: "page", source: "route:/pro/portail" },
+    { url: "/pro/demarrer", famille: "pro", pipeline: "page", source: "route:/pro/demarrer" },
     ...(pros ?? []).slice(0, 1).map((p) => ({
       url: `/garages/${p.slug ?? p.id}`,
       famille: "pro" as Famille,
