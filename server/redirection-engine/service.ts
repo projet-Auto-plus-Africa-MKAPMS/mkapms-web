@@ -332,3 +332,29 @@ export async function ensureDefaultRules(): Promise<{ inserted: number; existing
 
   return { inserted: toInsert.length, existing: existing.size };
 }
+
+/**
+ * Corrige les cibles par défaut qui se sont révélées fausses après coup
+ * (ex : "acheter_pro" pointait vers "/acheter/pro", une page qui n'a jamais
+ * existé — la vraie route est "/acheter/professionnel"). `ensureDefaultRules`
+ * n'insère que les clés absentes et ne touche jamais une ligne déjà présente,
+ * donc corriger `catalog.ts` seul ne répare pas les lignes déjà en base
+ * (dev, staging, production). Cette correction ne s'applique QUE si la cible
+ * en base est encore exactement l'ancienne valeur fausse : si le PDG a
+ * personnalisé la règle entre-temps, sa valeur n'est jamais écrasée.
+ */
+const CORRECTIFS_CIBLES_OBSOLETES: { key: string; ancienneCible: string; nouvelleCible: string }[] = [
+  { key: "acheter_pro", ancienneCible: "/acheter/pro", nouvelleCible: "/acheter/professionnel" },
+];
+
+export async function corrigerCiblesObsoletes(): Promise<{ corrigees: number }> {
+  let corrigees = 0;
+  for (const c of CORRECTIFS_CIBLES_OBSOLETES) {
+    const res = await db
+      .update(redirRules)
+      .set({ target: c.nouvelleCible })
+      .where(and(eq(redirRules.key, c.key), eq(redirRules.target, c.ancienneCible)));
+    corrigees += res.rowCount ?? 0;
+  }
+  return { corrigees };
+}

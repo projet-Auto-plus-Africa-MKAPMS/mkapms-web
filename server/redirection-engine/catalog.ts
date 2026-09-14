@@ -89,7 +89,7 @@ export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
 
   // ── Sous-sections (isolables : achat/vente/location officiel/pro/particulier)
   { key: "acheter_particulier", label: "Acheter — Particulier", kind: "route", target: "/acheter/particulier", priority: 80 },
-  { key: "acheter_pro", label: "Acheter — Professionnel", kind: "route", target: "/acheter/pro", priority: 80 },
+  { key: "acheter_pro", label: "Acheter — Professionnel", kind: "route", target: "/acheter/professionnel", priority: 80 },
   { key: "louer_particulier", label: "Louer — Particulier", kind: "route", target: "/louer/particulier", priority: 80 },
   { key: "louer_pro", label: "Louer — Professionnel", kind: "route", target: "/louer/pro", priority: 80 },
 
