@@ -36,6 +36,11 @@ export const CONTRACT_PARTIES = [
   "partenariat",
   "investisseur",
   "employe",
+  // LOT 1 du Plan Maître Fournisseurs — signature contrat fournisseur/transporteur
+  // (server/supplier-engine). Le contrat lui-même reste dans Document OS /
+  // generated_documents ; cette liste ne fait qu'ouvrir le cycle de vie.
+  "fournisseur",
+  "transporteur",
 ] as const;
 export type ContractParty = (typeof CONTRACT_PARTIES)[number];
 

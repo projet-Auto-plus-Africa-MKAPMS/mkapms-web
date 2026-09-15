@@ -99,17 +99,18 @@ export interface PerimetreMoteur {
   readonly manques: readonly ManqueMoteur[];
 }
 
-export const MOTEURS_TOTAL = 89;
-export const MANQUES_TOTAL = 588;
+export const MOTEURS_TOTAL = 90;
+export const MANQUES_TOTAL = 593;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "bouton_sans_action": 183,
   "sans_logique_serveur": 12,
-  "sans_ecran": 4,
-  "dependance_sans_preuve": 35,
+  "sans_ecran": 5,
+  "dependance_sans_preuve": 36,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1,
-  "dependance_non_declaree": 9
+  "dependance_non_declaree": 11,
+  "sans_battement": 1
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
@@ -5596,6 +5597,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "seo",
       "smart",
       "smart_audit",
+      "supplier_engine",
       "support",
       "transport",
       "vente",
@@ -6095,6 +6097,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "risque_import",
       "seo",
       "smart",
+      "supplier_engine",
       "vente",
       "vo_engine",
       "vo_espaces"
@@ -8828,6 +8831,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "scheduler",
       "search",
       "smart",
+      "supplier_engine",
       "support",
       "transport",
       "vente_pro",
@@ -13151,7 +13155,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "partner-engine/service.ts importe visibility-os/index.ts"
       ]
     },
-    "dependants": [],
+    "dependants": [
+      "supplier_engine"
+    ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
     "abonnements": [],
@@ -19442,6 +19448,128 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "manques": []
   },
   {
+    "moteur": "supplier_engine",
+    "label": "Supplier Engine",
+    "categorie": "transversal",
+    "etatDeclare": "staging",
+    "dossiers": [
+      "supplier-engine"
+    ],
+    "routeurs": [
+      "supplierEngine"
+    ],
+    "fichiersServeur": 4,
+    "dependancesDeclarees": [
+      "core",
+      "country",
+      "partner_engine"
+    ],
+    "dependancesDetectees": [
+      "core",
+      "country",
+      "identity",
+      "workflow"
+    ],
+    "dependances": [
+      "core",
+      "country",
+      "identity",
+      "partner_engine",
+      "workflow"
+    ],
+    "integrationsTechniques": [
+      "identity"
+    ],
+    "preuvesDependances": {
+      "core": [
+        "supplier-engine/index.ts importe trpc.ts",
+        "supplier-engine/service.ts importe db.ts"
+      ],
+      "country": [
+        "supplier-engine/service.ts importe country-os/index.ts",
+        "supplier-engine/service.ts lit la règle pays"
+      ],
+      "identity": [
+        "supplier-engine/service.ts importe identity-os/contract.ts"
+      ],
+      "workflow": [
+        "supplier-engine/service.ts importe modules/operations.ts"
+      ]
+    },
+    "dependants": [],
+    "evenementsPublies": [],
+    "evenementsConsommes": [],
+    "abonnements": [],
+    "sourcesEmission": [],
+    "boutons": [],
+    "routes": [],
+    "ecrans": [],
+    "ecransHotes": [],
+    "procedures": [
+      "activer",
+      "ajouterContact",
+      "auditLog",
+      "avancerEtape",
+      "connectionMethods",
+      "controlCenterFeed",
+      "creer",
+      "dashboard",
+      "definirMapping",
+      "definirTerritoires",
+      "desactiver",
+      "detail",
+      "enregistrerConnexion",
+      "enregistrerContratSigne",
+      "healthStatus",
+      "liste",
+      "meta",
+      "reactiver",
+      "suspendre",
+      "testerConnexion",
+      "validerParDirection",
+      "verifierEntreprise"
+    ],
+    "tables": [
+      "supplier_audit_log",
+      "supplier_connections",
+      "supplier_contacts",
+      "supplier_health_log",
+      "supplier_mappings",
+      "supplier_onboarding_steps",
+      "supplier_profiles"
+    ],
+    "acces": [
+      "admin",
+      "direction",
+      "public"
+    ],
+    "textes": 0,
+    "mots": 0,
+    "battement": "aucun",
+    "manques": [
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "identity — supplier-engine/service.ts importe identity-os/contract.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "workflow — supplier-engine/service.ts importe modules/operations.ts"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "partner_engine"
+      },
+      {
+        "genre": "sans_battement",
+        "detail": "ni sonde, ni pont OS, ni contrat, ni heartbeat dans le code"
+      },
+      {
+        "genre": "sans_ecran",
+        "detail": "aucune route client ne mène à ce moteur"
+      }
+    ]
+  },
+  {
     "moteur": "support",
     "label": "Support OS",
     "categorie": "transversal",
@@ -21784,7 +21912,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     },
     "dependants": [
       "avis_reputation",
-      "payment"
+      "payment",
+      "supplier_engine"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],

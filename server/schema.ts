@@ -1182,6 +1182,7 @@ export * from "./accounting-marketplace/schema"; // Marketplace comptables indé
 export * from "./auction-engine/schema"; // Auction Engine — enchères particuliers et professionnels (isolé)
 export * from "./pro-account/schema"; // Pro Account Engine — dossier professionnel légal et activation (isolé)
 export * from "./partner-engine/schema"; // Partner Engine — réseau partenaires et acquisition (isolé)
+export * from "./supplier-engine/schema"; // Supplier Engine — registre fournisseur, onboarding, connecteurs, mapping (isolé)
 export * from "./insurance-engine/schema"; // Insurance Engine — assureurs référencés et demandes de couverture (isolé)
 export * from "./charging-engine/schema"; // Charging Engine — annuaire des bornes de recharge (isolé)
 export * from "./vehicle-delivery/schema"; // Vehicle Delivery Engine — acheminement des véhicules (isolé, distinct des colis)

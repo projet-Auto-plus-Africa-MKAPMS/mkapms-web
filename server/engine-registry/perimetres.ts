@@ -597,6 +597,16 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/partenaires", "/partenaires/*", "/superadmin/partenaires"],
   },
   {
+    // LOT 1 du Plan Maître Fournisseurs — registre, onboarding, connecteurs,
+    // mapping. Pas encore d'écran dédié (LOT 7 "Portails") : routes vides,
+    // honnêtement déclaré en staging tant que la Direction n'a pas validé un
+    // premier fournisseur réel de bout en bout.
+    moteur: "supplier_engine",
+    dossiers: ["supplier-engine"],
+    routeurs: ["supplierEngine"],
+    routes: [],
+  },
+  {
     moteur: "pro_portal",
     dossiers: ["pro-portal", "modules/pro.ts", "routers/pro.ts", "routers/api.ts", "services/apiIntegration.ts"],
     routeurs: ["proPortal", "pro", "api", "formation"],

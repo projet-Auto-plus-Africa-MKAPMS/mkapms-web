@@ -319,6 +319,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "active",
   },
   {
+    name: "supplier_engine",
+    label: "Supplier Engine",
+    category: "transversal",
+    dependencies: ["core", "country", "partner_engine"],
+    description:
+      "LOT 1 du Plan Maître Fournisseurs : registre fournisseur (au-dessus d'un partenaire déjà existant), onboarding avec validation Direction obligatoire, Connector Engine et Universal Mapping Engine. Staging tant qu'aucun fournisseur réel n'a été activé de bout en bout.",
+    state: "staging",
+  },
+  {
     name: "garage",
     label: "Garage Engine",
     category: "univers",
