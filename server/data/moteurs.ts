@@ -99,17 +99,17 @@ export interface PerimetreMoteur {
   readonly manques: readonly ManqueMoteur[];
 }
 
-export const MOTEURS_TOTAL = 92;
-export const MANQUES_TOTAL = 602;
+export const MOTEURS_TOTAL = 93;
+export const MANQUES_TOTAL = 607;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "bouton_sans_action": 183,
   "sans_logique_serveur": 12,
-  "sans_ecran": 7,
-  "dependance_sans_preuve": 39,
+  "sans_ecran": 8,
+  "dependance_sans_preuve": 40,
   "bouton_declare_absent_ecran": 3,
-  "emission_dynamique": 1,
-  "dependance_non_declaree": 16
+  "emission_dynamique": 2,
+  "dependance_non_declaree": 18
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
@@ -5570,6 +5570,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "location",
       "location_particulier",
       "location_pro",
+      "logistics_engine",
       "marketing",
       "media",
       "media_authenticity",
@@ -6085,6 +6086,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "location",
       "location_particulier",
       "location_pro",
+      "logistics_engine",
       "partner_engine",
       "parts_engine",
       "payment",
@@ -7371,6 +7373,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "estimation",
       "intelligences",
       "livraison_vehicule",
+      "logistics_engine",
       "media_authenticity",
       "monitoring",
       "parts_engine",
@@ -8824,6 +8827,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "journey",
       "language",
       "livraison",
+      "logistics_engine",
       "marketing",
       "media",
       "messaging",
@@ -10759,6 +10763,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat",
       "estimation",
       "intelligences",
+      "logistics_engine",
       "payment",
       "vente"
     ],
@@ -11858,6 +11863,145 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "sans_logique_serveur",
         "detail": "aucun dossier serveur : moteur d'écran seulement"
+      }
+    ]
+  },
+  {
+    "moteur": "logistics_engine",
+    "label": "Logistics Engine",
+    "categorie": "transversal",
+    "etatDeclare": "staging",
+    "dossiers": [
+      "logistics-engine"
+    ],
+    "routeurs": [
+      "logisticsEngine"
+    ],
+    "fichiersServeur": 5,
+    "dependancesDeclarees": [
+      "core",
+      "country",
+      "event_bus",
+      "livraison_vehicule",
+      "supplier_engine"
+    ],
+    "dependancesDetectees": [
+      "core",
+      "event_bus",
+      "identity",
+      "livraison_vehicule",
+      "supplier_engine",
+      "vehicle_engine"
+    ],
+    "dependances": [
+      "core",
+      "country",
+      "event_bus",
+      "identity",
+      "livraison_vehicule",
+      "supplier_engine",
+      "vehicle_engine"
+    ],
+    "integrationsTechniques": [
+      "identity"
+    ],
+    "preuvesDependances": {
+      "core": [
+        "logistics-engine/index.ts importe trpc.ts",
+        "logistics-engine/service.ts importe db.ts"
+      ],
+      "event_bus": [
+        "logistics-engine/service.ts importe event-bus/service.ts",
+        "logistics-engine/service.ts publie des événements"
+      ],
+      "identity": [
+        "logistics-engine/service.ts importe identity-os/contract.ts"
+      ],
+      "livraison_vehicule": [
+        "logistics-engine/service.ts importe vehicle-delivery/service.ts"
+      ],
+      "supplier_engine": [
+        "logistics-engine/contract.ts importe supplier-engine/contract.ts"
+      ],
+      "vehicle_engine": [
+        "logistics-engine/contract.ts importe vehicle-engine/contract.ts"
+      ]
+    },
+    "dependants": [],
+    "evenementsPublies": [
+      "delivery.booked",
+      "delivery.disputed",
+      "delivery.failed",
+      "delivery.quote.created"
+    ],
+    "evenementsConsommes": [],
+    "abonnements": [],
+    "sourcesEmission": [
+      "logistics_engine"
+    ],
+    "boutons": [],
+    "routes": [],
+    "ecrans": [],
+    "ecransHotes": [],
+    "procedures": [
+      "auditLog",
+      "carrierCatalog",
+      "choisirOption",
+      "controlCenterFeed",
+      "creerCleApi",
+      "creerExpedition",
+      "dashboard",
+      "detail",
+      "enregistrerConnexion",
+      "genererDevis",
+      "healthStatus",
+      "liste",
+      "listerClesApi",
+      "listerConnexions",
+      "meta",
+      "mettreAJourStatut",
+      "reserverExpedition",
+      "testerConnexion"
+    ],
+    "tables": [
+      "logistics_api_keys",
+      "logistics_audit_log",
+      "logistics_carrier_connections",
+      "logistics_health_log",
+      "logistics_legs",
+      "logistics_quotes",
+      "logistics_shipments",
+      "logistics_tracking_events",
+      "logistics_webhook_log"
+    ],
+    "acces": [
+      "admin",
+      "direction",
+      "public"
+    ],
+    "textes": 0,
+    "mots": 0,
+    "battement": "sonde",
+    "manques": [
+      {
+        "genre": "emission_dynamique",
+        "detail": "1 émission(s) au type calculé, non vérifiable statiquement"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "identity — logistics-engine/service.ts importe identity-os/contract.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "vehicle_engine — logistics-engine/contract.ts importe vehicle-engine/contract.ts"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "country"
+      },
+      {
+        "genre": "sans_ecran",
+        "detail": "aucune route client ne mène à ce moteur"
       }
     ]
   },
@@ -19668,6 +19812,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "logistics_engine",
       "parts_engine",
       "vehicle_engine"
     ],
@@ -20205,7 +20350,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "vehicle-engine/service.ts importe supplier-engine/service.ts"
       ]
     },
-    "dependants": [],
+    "dependants": [
+      "logistics_engine"
+    ],
     "evenementsPublies": [
       "vehicule.controle_qualite",
       "vehicule.doublon_detecte",
