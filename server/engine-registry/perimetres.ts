@@ -332,6 +332,12 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: [],
   },
   {
+    moteur: "payout_engine",
+    dossiers: ["payout-engine"],
+    routeurs: ["payoutEngine"],
+    routes: [],
+  },
+  {
     moteur: "financial_intelligence",
     dossiers: ["financial-intelligence"],
     routeurs: ["financialIntelligence"],

@@ -766,6 +766,51 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     champs: ["shipmentId", "legId", "reason"],
     emetteurs: ["logistics_engine"],
   },
+  // LOT 5 du Plan Maître Fournisseurs — Payout Engine et compléments Payment
+  // Engine (§45 du plan cite exactement ces codes). Coexistent volontairement
+  // avec `paiement.reussi`/`paiement.echoue` (domaine identique, convention
+  // historique conservée) : aucune capacité existante n'est renommée, seules
+  // les capacités manquantes sont ajoutées.
+  {
+    code: "payout.eligible",
+    domaine: "paiement",
+    label: "Versement partenaire éligible",
+    description: "Une étape d'un versement (fournisseur ou transporteur) vient d'atteindre son déclencheur métier. En attente de validation humaine si la politique l'exige.",
+    champs: ["scheduleId", "targetType", "trigger", "amount", "currency"],
+    emetteurs: ["payout_engine"],
+  },
+  {
+    code: "payout.released",
+    domaine: "paiement",
+    label: "Versement partenaire libéré",
+    description: "Le montant d'une étape est passé du solde bloqué au solde disponible du fournisseur/transporteur — il devient réellement retirable.",
+    champs: ["scheduleId", "targetType", "trigger", "amount", "currency"],
+    emetteurs: ["payout_engine"],
+  },
+  {
+    code: "dispute.opened",
+    domaine: "paiement",
+    label: "Litige de paiement ouvert",
+    description: "Stripe (ou un autre prestataire) a signalé une contestation (chargeback) sur un encaissement.",
+    champs: ["reference"],
+    emetteurs: ["payment"],
+  },
+  {
+    code: "dispute.closed",
+    domaine: "paiement",
+    label: "Litige de paiement clos",
+    description: "Le litige est tranché (gagné ou perdu par la plateforme).",
+    champs: ["reference", "outcome"],
+    emetteurs: ["payment"],
+  },
+  {
+    code: "refund.completed",
+    domaine: "paiement",
+    label: "Remboursement effectué",
+    description: "Un remboursement a été confirmé par le prestataire de paiement.",
+    champs: ["reference"],
+    emetteurs: ["payment"],
+  },
 ];
 
 export interface SubscriptionSpec {
@@ -967,6 +1012,25 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     handler: "audit_trace",
     effet:
       "Trace chaque événement remis, quel que soit son type : sans journal, aucune remise n'est vérifiable.",
+  },
+  {
+    engine: "payout_engine",
+    eventType: "vehicule.vendu",
+    handler: "payout_vehicule_vendu",
+    effet:
+      "Ouvre le versement dû au fournisseur du véhicule vendu (Ledger : montant net bloqué, commission créditée à la plateforme).",
+  },
+  {
+    engine: "payout_engine",
+    eventType: "pickup.completed",
+    handler: "payout_logistics_leg_stage",
+    effet: "Déclenche l'étape « enlèvement » du versement transporteur du leg concerné (aucun effet sur un leg interne).",
+  },
+  {
+    engine: "payout_engine",
+    eventType: "delivery.completed",
+    handler: "payout_logistics_leg_stage",
+    effet: "Déclenche l'étape « livraison » du versement transporteur du leg concerné (aucun effet sur un leg interne).",
   },
 ];
 

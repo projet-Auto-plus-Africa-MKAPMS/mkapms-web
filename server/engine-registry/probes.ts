@@ -66,6 +66,7 @@ export const ENGINE_PROBES: EngineProbe[] = [
   { engine: "vehicle_engine", tables: ["vehicle_items", "vehicle_territories", "vehicle_availability", "vehicle_pricing", "vehicle_duplicates"] },
   { engine: "parts_engine", tables: ["parts_supplier_items", "parts_canonical", "parts_pricing", "parts_stock_ledger", "parts_compatibility_checks"] },
   { engine: "logistics_engine", tables: ["logistics_shipments", "logistics_legs", "logistics_carrier_connections", "logistics_quotes", "logistics_tracking_events"] },
+  { engine: "payout_engine", tables: ["payout_policies", "payout_schedules", "payout_audit_log"] },
 
   // ── Univers ──
   { engine: "vo", tables: ["vehicules", "vehicule_dossiers", "vehicule_historique"] },

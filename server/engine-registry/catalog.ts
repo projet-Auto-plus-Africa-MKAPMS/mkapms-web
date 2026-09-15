@@ -234,6 +234,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "staging",
   },
   {
+    name: "payout_engine",
+    label: "Payout Engine",
+    category: "transversal",
+    dependencies: ["core","permission","payment","payment_orchestrator","event_bus","supplier_engine","vehicle_engine","logistics_engine"],
+    description:
+      "LOT 5 du Plan Maître Fournisseurs (§32) : politiques de versement fournisseur/transporteur (immédiat/enlèvement/livraison/documents/étape, 50/50, 30/70, 100 %), déclenchées par l'Event Bus (vente véhicule, leg logistique) — en staging tant qu'aucun versement réel n'a été validé par la Direction.",
+    state: "staging",
+  },
+  {
     name: "search",
     label: "Search Engine",
     category: "transversal",

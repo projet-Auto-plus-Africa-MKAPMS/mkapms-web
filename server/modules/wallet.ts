@@ -1,7 +1,20 @@
 // ===== MODULE: WALLET PROFESSIONNEL =====
 // Plan Partie 2 §12 + Partie 3 §15. Stripe Connect recommandé.
+//
+// LOT 5 du Plan Maître Fournisseurs (§29 INTERNAL LEDGER) : ce Ledger était
+// jusqu'ici réservé aux utilisateurs plateforme (`userId`). Le plan exige
+// aussi un « Solde fournisseur » et un « Solde transporteur » — un
+// fournisseur/transporteur n'a pas toujours de compte utilisateur classique.
+// Extension additive : `ownerType` distingue le porteur du wallet,
+// `supplierProfileId`/`carrierCode` référencent respectivement le Supplier
+// Engine (LOT 1) et le catalogue transporteur du Logistics Engine (LOT 4) en
+// lecture seule, sans FK dure (même principe que le reste du plan). `userId`
+// devient nullable : un wallet fournisseur/transporteur/plateforme n'a pas
+// nécessairement d'utilisateur associé. Aucune ligne existante n'est
+// modifiée par ce changement (défaut `ownerType = 'user'`).
 import {
   boolean,
+  index,
   integer,
   numeric,
   pgEnum,
@@ -23,22 +36,35 @@ export const walletTxTypeEnum = pgEnum("wallet_tx_type", [
 ]);
 export const payoutStatusEnum = pgEnum("payout_status", ["demande", "en_cours", "paye", "echoue", "annule"]);
 export const payoutFrequencyEnum = pgEnum("payout_frequency", ["manuel", "hebdomadaire", "mensuel"]);
+/** Porteur du wallet (§29) : un utilisateur plateforme, un fournisseur (LOT 1), un transporteur (LOT 4), ou le solde MKA.P-MS lui-même. */
+export const walletOwnerTypeEnum = pgEnum("wallet_owner_type", ["user", "supplier", "carrier", "platform"]);
 
-export const wallets = pgTable("wallets", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  soldeDisponible: numeric("solde_disponible", { precision: 14, scale: 2 }).notNull().default("0"),
-  soldeAttente: numeric("solde_attente", { precision: 14, scale: 2 }).notNull().default("0"),
-  soldeBloque: numeric("solde_bloque", { precision: 14, scale: 2 }).notNull().default("0"),
-  currency: varchar("currency", { length: 4 }).notNull().default("EUR"),
-  stripeConnectId: varchar("stripe_connect_id", { length: 96 }),
-  payoutFrequency: payoutFrequencyEnum("payout_frequency").notNull().default("manuel"),
-  nextPayoutDate: timestamp("next_payout_date"),
-  totalEncaisse: numeric("total_encaisse", { precision: 14, scale: 2 }).notNull().default("0"),
-  totalVire: numeric("total_vire", { precision: 14, scale: 2 }).notNull().default("0"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export const wallets = pgTable(
+  "wallets",
+  {
+    id: serial("id").primaryKey(),
+    ownerType: walletOwnerTypeEnum("owner_type").notNull().default("user"),
+    userId: integer("user_id"),
+    /** Fournisseur du Supplier Engine (LOT 1), si `ownerType = 'supplier'`. */
+    supplierProfileId: integer("supplier_profile_id"),
+    /** Code du catalogue transporteur (Logistics Engine, LOT 4), si `ownerType = 'carrier'`. */
+    carrierCode: varchar("carrier_code", { length: 32 }),
+    soldeDisponible: numeric("solde_disponible", { precision: 14, scale: 2 }).notNull().default("0"),
+    soldeAttente: numeric("solde_attente", { precision: 14, scale: 2 }).notNull().default("0"),
+    soldeBloque: numeric("solde_bloque", { precision: 14, scale: 2 }).notNull().default("0"),
+    currency: varchar("currency", { length: 4 }).notNull().default("EUR"),
+    stripeConnectId: varchar("stripe_connect_id", { length: 96 }),
+    payoutFrequency: payoutFrequencyEnum("payout_frequency").notNull().default("manuel"),
+    nextPayoutDate: timestamp("next_payout_date"),
+    totalEncaisse: numeric("total_encaisse", { precision: 14, scale: 2 }).notNull().default("0"),
+    totalVire: numeric("total_vire", { precision: 14, scale: 2 }).notNull().default("0"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    ownerIdx: index("wallets_owner_idx").on(t.ownerType, t.userId, t.supplierProfileId, t.carrierCode),
+  }),
+);
 
 export const walletTransactions = pgTable("wallet_transactions", {
   id: serial("id").primaryKey(),
