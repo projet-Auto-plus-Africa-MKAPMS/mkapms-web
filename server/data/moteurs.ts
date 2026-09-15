@@ -100,15 +100,15 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 619;
+export const MANQUES_TOTAL = 622;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "bouton_sans_action": 183,
   "sans_logique_serveur": 11,
   "sans_ecran": 10,
   "dependance_sans_preuve": 43,
+  "dependance_non_declaree": 29,
   "bouton_declare_absent_ecran": 3,
-  "dependance_non_declaree": 26,
   "emission_dynamique": 2
 };
 
@@ -2786,7 +2786,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "preuvesDependances": {
       "core": [
         "auction-engine/index.ts importe trpc.ts",
-        "auction-engine/service.ts importe db.ts"
+        "auction-engine/service.ts importe db.ts",
+        "auction-engine/service.ts importe schema.ts"
       ],
       "country": [
         "auction-engine/service.ts importe country-os/index.ts"
@@ -2799,7 +2800,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "auction-engine/service.ts charge visibility-os/index.ts"
       ]
     },
-    "dependants": [],
+    "dependants": [
+      "comptabilite"
+    ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
     "abonnements": [],
@@ -2834,9 +2837,18 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 646
       }
     ],
-    "ecransHotes": [],
+    "ecransHotes": [
+      {
+        "fichier": "client/src/pages/comptabilite/CentrePilotage.tsx",
+        "route": "/comptabilite/centre-pilotage",
+        "composants": [
+          "trpc.auctionEngine"
+        ]
+      }
+    ],
     "procedures": [
       "bid",
+      "businessStats",
       "buyerProfiles",
       "cancel",
       "catalogCategories",
@@ -2859,6 +2871,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "acces": [
       "admin",
       "connecte",
+      "direction",
       "public"
     ],
     "textes": 216,
@@ -4599,12 +4612,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "redirection"
     ],
     "dependancesDetectees": [
+      "auction_engine",
       "core",
       "identity",
       "payment",
       "redirection"
     ],
     "dependances": [
+      "auction_engine",
       "core",
       "identity",
       "payment",
@@ -4614,6 +4629,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity"
     ],
     "preuvesDependances": {
+      "auction_engine": [
+        "client/src/pages/comptabilite/CentrePilotage.tsx appelle trpc.auctionEngine"
+      ],
       "core": [
         "routers/comptabilite.ts importe trpc.ts",
         "routers/comptabilite.ts importe db.ts",
@@ -4694,8 +4712,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 28,
         "parMoteur": 0,
         "sansAction": 2,
-        "textes": 656,
-        "mots": 1516
+        "textes": 655,
+        "mots": 1514
       },
       {
         "fichier": "client/src/pages/comptabilite/ComptaAnalytique.tsx",
@@ -4818,17 +4836,21 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "acces": [
       "connecte"
     ],
-    "textes": 1215,
-    "mots": 2829,
+    "textes": 1214,
+    "mots": 2827,
     "battement": "sonde",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« Consommation energetique 12 450 kWh » client/src/pages/comptabilite/CentrePilotage.tsx:1002"
+        "detail": "« Consommation energetique 12 450 kWh » client/src/pages/comptabilite/CentrePilotage.tsx:1010"
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« Prochaines echeances 12 dossiers » client/src/pages/comptabilite/CentrePilotage.tsx:1019"
+        "detail": "« Prochaines echeances 12 dossiers » client/src/pages/comptabilite/CentrePilotage.tsx:1027"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "auction_engine — client/src/pages/comptabilite/CentrePilotage.tsx appelle trpc.auctionEngine"
       }
     ]
   },
@@ -7070,6 +7092,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "document",
       "event_bus",
+      "identity",
       "payout_engine",
       "permission",
       "smart"
@@ -7079,6 +7102,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "document",
       "event_bus",
+      "identity",
       "payout_engine",
       "permission",
       "smart",
@@ -7087,6 +7111,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "integrationsTechniques": [
       "audit",
+      "identity",
       "permission"
     ],
     "preuvesDependances": {
@@ -7106,6 +7131,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "event_bus": [
         "document-engine/service.ts importe event-bus/service.ts",
         "document-engine/service.ts publie des événements"
+      ],
+      "identity": [
+        "document-engine/service.ts importe identity-os/contract.ts"
       ],
       "payout_engine": [
         "publie document.custody.received, consommé par payout_engine"
@@ -7176,6 +7204,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_non_declaree",
         "detail": "audit — document-engine/index.ts écrit au journal d'audit"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "identity — document-engine/service.ts importe identity-os/contract.ts"
       },
       {
         "genre": "dependance_non_declaree",
@@ -8967,6 +8999,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "depannage",
       "document",
+      "document_engine",
       "finance",
       "garage",
       "importafrica",
@@ -8982,6 +9015,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "monitoring",
       "notification",
       "parts_engine",
+      "payout_engine",
       "permission",
       "pieces",
       "redirection",
@@ -14356,6 +14390,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "audit",
       "core",
       "event_bus",
+      "identity",
       "logistics_engine",
       "payment",
       "permission",
@@ -14365,6 +14400,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "audit",
       "core",
       "event_bus",
+      "identity",
       "logistics_engine",
       "payment",
       "payment_orchestrator",
@@ -14374,6 +14410,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "integrationsTechniques": [
       "audit",
+      "identity",
       "permission"
     ],
     "preuvesDependances": {
@@ -14389,6 +14426,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "payout-engine/service.ts importe event-bus/service.ts",
         "payout-engine/service.ts publie des événements",
         "abonné au bus"
+      ],
+      "identity": [
+        "payout-engine/service.ts importe identity-os/contract.ts"
       ],
       "logistics_engine": [
         "consomme delivery.completed émis par logistics_engine",
@@ -14478,6 +14518,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_non_declaree",
         "detail": "audit — payout-engine/index.ts écrit au journal d'audit"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "identity — payout-engine/service.ts importe identity-os/contract.ts"
       },
       {
         "genre": "dependance_sans_preuve",

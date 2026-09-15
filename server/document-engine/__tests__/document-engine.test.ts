@@ -208,6 +208,15 @@ async function main() {
   const health = await docEngine.healthStatus();
   verif("9. healthStatus renvoie un statut ok", health.status === "ok");
 
+  // ── 10. Tableau de bord (MOS trio) ─────────────────────────────────────
+  const board = await docEngine.dashboard();
+  verif("10a. dashboard() rapporte le health/statut MOS standard", board.engine === "document_engine" && ["ok", "degraded", "down"].includes(board.health));
+  verif("10b. dashboard() rapporte des métriques métier réelles (jamais vides)", Object.keys(board.businessMetrics).length > 0);
+  verif(
+    "10c. dashboard() compte les réceptions réelles encore en possession de ce test (custody1 a été remis au 156, donc 3 sur 4)",
+    Number(board.businessMetrics.possession_en_possession ?? 0) >= 3,
+  );
+
   await nettoyer();
 
   console.log(`\n${ok}/${total} vérifications réussies.`);

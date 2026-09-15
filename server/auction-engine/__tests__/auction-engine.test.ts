@@ -10,6 +10,7 @@
 import assert from "node:assert/strict";
 import { eq, inArray } from "drizzle-orm";
 import { db } from "../../db.js";
+import { users } from "../../schema.js";
 import { auctions, auctionBids, auctionEvents } from "../schema.js";
 import * as auction from "../service.js";
 import { appRouter } from "../../router.js";
@@ -27,7 +28,10 @@ const SELLER_ID = 930001;
 const BIDDER_A = 930002;
 const BIDDER_B = 930003;
 
+const ACHETEUR_EMAIL = "test-auction-engine-acheteur@mkapms.invalid";
+
 let idsAuctions: number[] = [];
+let idAcheteur: number | null = null;
 
 async function nettoyer() {
   for (const id of idsAuctions) {
@@ -36,6 +40,8 @@ async function nettoyer() {
     await db.delete(auctions).where(eq(auctions.id, id));
   }
   idsAuctions = [];
+  await db.delete(users).where(eq(users.email, ACHETEUR_EMAIL));
+  idAcheteur = null;
 }
 
 async function main() {
@@ -112,10 +118,41 @@ async function main() {
   verif("4b. le détail liste les offres réelles triées par montant", detail!.bids.length === 2 && Number(detail!.bids[0].amount) === 8500);
   verif("4c. le prix de réserve n'est jamais exposé", !("reservePrice" in detail!.auction));
 
+  // ── 4d. Statistiques Direction (business stats) — jamais un chiffre inventé ──
+  const [acheteur] = await db
+    .insert(users)
+    .values({ email: ACHETEUR_EMAIL, name: "Acheteur Test Auction Engine" })
+    .returning({ id: users.id });
+  idAcheteur = acheteur.id;
+
+  const lotAAdjuger = await auction.createAuction({
+    sellerId: SELLER_ID,
+    audience: "professionnel",
+    title: "Lot pour clôture réelle",
+    countryCode: "FR",
+    startPrice: 5000,
+    startsAt: ilYA1h,
+    endsAt: new Date(Date.now() - 1000),
+    category: "stock",
+  });
+  idsAuctions.push(lotAAdjuger.id);
+  await auction.publishAuction(lotAAdjuger.id, SELLER_ID);
+  await db.update(auctions).set({ endsAt: new Date(Date.now() + 3600 * 1000) }).where(eq(auctions.id, lotAAdjuger.id));
+  await auction.placeBid({ auctionId: lotAAdjuger.id, bidderId: idAcheteur, amount: 5500 });
+  await db.update(auctions).set({ endsAt: new Date(Date.now() - 1000) }).where(eq(auctions.id, lotAAdjuger.id));
+  const cloture = await auction.closeAuction(lotAAdjuger.id);
+  verif("4d. le lot est bien adjugé au vrai acheteur de test", cloture?.status === "adjugee" && cloture.winnerId === idAcheteur);
+
+  const stats = await auction.auctionBusinessStats();
+  verif("4e. businessStats compte au moins le lot adjugé au test 4d", stats.vendus >= 1 && stats.revenus >= 5500);
+  const ligneAcheteur = stats.meilleursAcheteurs.find((a) => a.acheteurId === idAcheteur);
+  verif("4f. businessStats identifie l'acheteur par son vrai nom de compte (jamais un nom inventé)", ligneAcheteur?.nom === "Acheteur Test Auction Engine");
+  verif("4g. businessStats totalise le vrai montant remporté par cet acheteur", ligneAcheteur?.montantTotal === 5500);
+
   // ── 5. Exposition du router ─────────────────────────────────────────────
   const procs = (appRouter as unknown as { _def?: { procedures?: Record<string, unknown> } })._def?.procedures ?? {};
   const keys = Object.keys(procs);
-  for (const sub of ["auctionEngine.list", "auctionEngine.create", "auctionEngine.bid", "auctionEngine.catalogCategories", "auctionEngine.buyerProfiles"]) {
+  for (const sub of ["auctionEngine.list", "auctionEngine.create", "auctionEngine.bid", "auctionEngine.catalogCategories", "auctionEngine.buyerProfiles", "auctionEngine.businessStats"]) {
     verif(`Router : expose « ${sub} »`, keys.includes(sub));
   }
 

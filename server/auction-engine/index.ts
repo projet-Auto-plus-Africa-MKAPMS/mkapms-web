@@ -6,8 +6,9 @@
  * pas par l'écran.
  */
 import { z } from "zod";
-import { adminProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { adminProcedure, directionProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
 import {
+  auctionBusinessStats,
   auctionDetail,
   auctionHealth,
   cancelAuction,
@@ -136,6 +137,9 @@ export const auctionEngineRouter = router({
   closeExpired: adminProcedure.mutation(() => closeExpiredAuctions()),
 
   health: adminProcedure.query(() => auctionHealth()),
+
+  /** Vue Direction (Centre de pilotage) : jamais un chiffre ni un nom inventé. */
+  businessStats: directionProcedure.query(() => auctionBusinessStats()),
 });
 
 export { closeExpiredAuctions, auctionHealth } from "./service.js";

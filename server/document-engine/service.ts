@@ -10,6 +10,7 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { docTypes, createDocument } from "../document-os/index.js";
 import { emitSafe } from "../event-bus/service.js";
+import type { ControlCenterFeed, EngineDashboard, MaturityLevel } from "../identity-os/contract.js";
 import {
   supplierDocuments,
   vehicleDocuments,
@@ -31,6 +32,8 @@ import {
   type CustodyEntityType,
   type CustodyStepCheck,
 } from "./contract.js";
+
+const MATURITY: MaturityLevel = "sprint_1_minimal";
 
 async function audit(entityType: string | null, entityId: number | null, action: string, actorId: number | null, detail: Record<string, unknown>) {
   await db.insert(documentEngineAuditLog).values({ entityType, entityId, action, actorId, detail });
@@ -348,12 +351,32 @@ export async function healthStatus() {
   return report;
 }
 
-export async function controlCenterFeed() {
-  const rows = await db.select().from(documentEngineAuditLog).orderBy(desc(documentEngineAuditLog.createdAt)).limit(20);
-  return rows;
+export async function controlCenterFeed(): Promise<ControlCenterFeed> {
+  const startedAt = Date.now();
+  const h = await healthStatus();
+  return {
+    engine: DOCUMENT_ENGINE_META.name,
+    label: DOCUMENT_ENGINE_META.label,
+    version: DOCUMENT_ENGINE_META.version,
+    maturityLevel: MATURITY,
+    health: h.status,
+    load: { events5m: 0, events24h: 0 },
+    performance: { lastResponseMs: Date.now() - startedAt },
+    errors: { last24h: 0 },
+    lastSyncAt: new Date().toISOString(),
+    status: "staging",
+  };
 }
 
-export async function dashboard() {
+export async function dashboard(): Promise<EngineDashboard> {
+  const feed = await controlCenterFeed();
   const blocked = await db.select({ n: sql<number>`count(*)::int` }).from(custodyRecords).where(eq(custodyRecords.status, "attendu"));
-  return { attendus: blocked[0]?.n ?? 0 };
+  const parStatutCustody = await db
+    .select({ status: custodyRecords.status, n: sql<number>`count(*)::int` })
+    .from(custodyRecords)
+    .groupBy(custodyRecords.status);
+  const businessMetrics: Record<string, number | string | null> = {};
+  for (const r of parStatutCustody) businessMetrics[`possession_${r.status}`] = Number(r.n);
+  businessMetrics.custody_attendus = blocked[0]?.n ?? 0;
+  return { ...feed, businessMetrics, recentEvents: [], recentErrors: [] };
 }
