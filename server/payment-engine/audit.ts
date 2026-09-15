@@ -61,8 +61,16 @@ export const HANDLED_WEBHOOK_EVENTS = [
   "payment_intent.payment_failed",
   "invoice.paid",
   "invoice.payment_failed",
+  "customer.subscription.created",
   "customer.subscription.updated",
   "customer.subscription.deleted",
+  // LOT 5 du Plan Maître Fournisseurs — litiges, reversements Stripe Connect,
+  // mise à jour de compte connecté (voir stripeWebhook.ts).
+  "charge.dispute.created",
+  "charge.dispute.closed",
+  "transfer.created",
+  "transfer.reversed",
+  "account.updated",
 ] as const;
 
 /** Événements webhook attendus au cahier des charges (Phase 35). */
@@ -80,7 +88,10 @@ export const REQUIRED_WEBHOOK_EVENTS: { event: string; label: string }[] = [
   { event: "charge.dispute.closed", label: "Litige fermé" },
   { event: "account.updated", label: "Compte professionnel vérifié" },
   { event: "transfer.created", label: "Reversement effectué" },
-  { event: "transfer.failed", label: "Reversement échoué" },
+  // Stripe n'émet pas de "transfer.failed" (corrigé lors du LOT 5, vérifié
+  // contre les types Stripe officiels) : l'échec/l'annulation d'un transfert
+  // existant est notifiée par "transfer.reversed".
+  { event: "transfer.reversed", label: "Reversement échoué ou annulé" },
 ];
 
 export interface PaymentAuditItem {

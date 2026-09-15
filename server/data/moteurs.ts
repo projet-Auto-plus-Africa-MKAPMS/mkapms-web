@@ -99,17 +99,17 @@ export interface PerimetreMoteur {
   readonly manques: readonly ManqueMoteur[];
 }
 
-export const MOTEURS_TOTAL = 93;
-export const MANQUES_TOTAL = 607;
+export const MOTEURS_TOTAL = 94;
+export const MANQUES_TOTAL = 615;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "bouton_sans_action": 183,
   "sans_logique_serveur": 12,
-  "sans_ecran": 8,
-  "dependance_sans_preuve": 40,
+  "sans_ecran": 9,
+  "dependance_sans_preuve": 42,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 2,
-  "dependance_non_declaree": 18
+  "dependance_non_declaree": 23
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
@@ -2898,6 +2898,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "indexation",
       "investment",
       "messaging",
+      "payout_engine",
       "pro_portal",
       "support",
       "workflow"
@@ -5581,6 +5582,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "parts_engine",
       "payment",
       "payment_orchestrator",
+      "payout_engine",
       "permission",
       "pieces",
       "politique_pays",
@@ -7326,17 +7328,23 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "audit",
       "core",
       "intelligences",
+      "logistics_engine",
+      "payout_engine",
       "product_engine",
       "seo",
-      "smart"
+      "smart",
+      "vehicle_engine"
     ],
     "dependances": [
       "audit",
       "core",
       "intelligences",
+      "logistics_engine",
+      "payout_engine",
       "product_engine",
       "seo",
-      "smart"
+      "smart",
+      "vehicle_engine"
     ],
     "integrationsTechniques": [],
     "preuvesDependances": {
@@ -7352,6 +7360,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "event-bus/handlers.ts importe intelligences/memoire.ts",
         "event-bus/handlers.ts charge intelligences/service.ts"
       ],
+      "logistics_engine": [
+        "event-bus/handlers.ts importe logistics-engine/schema.ts"
+      ],
+      "payout_engine": [
+        "event-bus/handlers.ts importe payout-engine/service.ts"
+      ],
       "product_engine": [
         "event-bus/handlers.ts importe product-engine/service.ts"
       ],
@@ -7362,6 +7376,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "event-bus/handlers.ts importe smart-engine/schema.ts",
         "event-bus/handlers.ts importe smart-engine/services/alert-engine.ts",
         "event-bus/handlers.ts ouvre une alerte du Système Intelligent"
+      ],
+      "vehicle_engine": [
+        "event-bus/handlers.ts importe vehicle-engine/schema.ts"
       ]
     },
     "dependants": [
@@ -7378,6 +7395,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "monitoring",
       "parts_engine",
       "payment",
+      "payout_engine",
       "pieces",
       "product_engine",
       "risque_import",
@@ -7433,6 +7451,18 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "emission_dynamique",
         "detail": "1 émission(s) au type calculé, non vérifiable statiquement"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "logistics_engine — event-bus/handlers.ts importe logistics-engine/schema.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "payout_engine — event-bus/handlers.ts importe payout-engine/service.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "vehicle_engine — event-bus/handlers.ts importe vehicle-engine/schema.ts"
       }
     ]
   },
@@ -11927,7 +11957,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "logistics-engine/contract.ts importe vehicle-engine/contract.ts"
       ]
     },
-    "dependants": [],
+    "dependants": [
+      "event_bus",
+      "payout_engine"
+    ],
     "evenementsPublies": [
       "delivery.booked",
       "delivery.disputed",
@@ -13713,7 +13746,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "installments",
       "abonnements"
     ],
-    "fichiersServeur": 17,
+    "fichiersServeur": 18,
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -13757,8 +13790,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "core": [
         "lib/stripe.ts importe env.ts",
-        "payment-engine/audit.ts importe db.ts",
-        "payment-engine/chain-audit.ts importe db.ts"
+        "payment-engine/abandoned.ts importe db.ts",
+        "payment-engine/abandoned.ts importe modules/core.ts"
       ],
       "country": [
         "payment-engine/router.ts lit la règle pays",
@@ -13805,6 +13838,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "importafrica",
       "livraison",
       "payment_orchestrator",
+      "payout_engine",
       "pieces",
       "pro_portal",
       "proximity_engine",
@@ -13814,8 +13848,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "vo_espaces"
     ],
     "evenementsPublies": [
+      "dispute.closed",
+      "dispute.opened",
       "paiement.echoue",
-      "paiement.reussi"
+      "paiement.reussi",
+      "refund.completed"
     ],
     "evenementsConsommes": [],
     "abonnements": [],
@@ -14123,6 +14160,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     },
     "dependants": [
       "payment",
+      "payout_engine",
       "pieces"
     ],
     "evenementsPublies": [],
@@ -14168,6 +14206,162 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "mots": 0,
     "battement": "sonde",
     "manques": []
+  },
+  {
+    "moteur": "payout_engine",
+    "label": "Payout Engine",
+    "categorie": "transversal",
+    "etatDeclare": "staging",
+    "dossiers": [
+      "payout-engine"
+    ],
+    "routeurs": [
+      "payoutEngine"
+    ],
+    "fichiersServeur": 4,
+    "dependancesDeclarees": [
+      "core",
+      "event_bus",
+      "logistics_engine",
+      "payment",
+      "payment_orchestrator",
+      "permission",
+      "supplier_engine",
+      "vehicle_engine"
+    ],
+    "dependancesDetectees": [
+      "audit",
+      "core",
+      "event_bus",
+      "logistics_engine",
+      "payment",
+      "permission",
+      "vehicle_engine"
+    ],
+    "dependances": [
+      "audit",
+      "core",
+      "event_bus",
+      "logistics_engine",
+      "payment",
+      "payment_orchestrator",
+      "permission",
+      "supplier_engine",
+      "vehicle_engine"
+    ],
+    "integrationsTechniques": [
+      "audit",
+      "permission"
+    ],
+    "preuvesDependances": {
+      "audit": [
+        "payout-engine/index.ts écrit au journal d'audit",
+        "payout-engine/service.ts écrit au journal d'audit"
+      ],
+      "core": [
+        "payout-engine/index.ts importe trpc.ts",
+        "payout-engine/service.ts importe db.ts"
+      ],
+      "event_bus": [
+        "payout-engine/service.ts importe event-bus/service.ts",
+        "payout-engine/service.ts publie des événements",
+        "abonné au bus"
+      ],
+      "logistics_engine": [
+        "consomme delivery.completed émis par logistics_engine",
+        "consomme pickup.completed émis par logistics_engine"
+      ],
+      "payment": [
+        "payout-engine/service.ts importe modules/wallet.ts"
+      ],
+      "permission": [
+        "payout-engine/index.ts filtre par rôle (procédure pro/admin/direction/PDG)"
+      ],
+      "vehicle_engine": [
+        "consomme vehicule.vendu émis par vehicle_engine"
+      ]
+    },
+    "dependants": [
+      "event_bus",
+      "vehicle_engine"
+    ],
+    "evenementsPublies": [
+      "payout.eligible",
+      "payout.released"
+    ],
+    "evenementsConsommes": [
+      "delivery.completed",
+      "pickup.completed",
+      "vehicule.vendu"
+    ],
+    "abonnements": [
+      {
+        "eventType": "vehicule.vendu",
+        "handler": "payout_vehicule_vendu"
+      },
+      {
+        "eventType": "pickup.completed",
+        "handler": "payout_logistics_leg_stage"
+      },
+      {
+        "eventType": "delivery.completed",
+        "handler": "payout_logistics_leg_stage"
+      }
+    ],
+    "sourcesEmission": [
+      "payout_engine"
+    ],
+    "boutons": [],
+    "routes": [],
+    "ecrans": [],
+    "ecransHotes": [],
+    "procedures": [
+      "auditLog",
+      "controlCenterFeed",
+      "createPolicy",
+      "dashboard",
+      "detail",
+      "healthStatus",
+      "listPolicies",
+      "listSchedules",
+      "meta",
+      "setPolicyActive",
+      "splitPresets",
+      "triggerStage",
+      "validateStage"
+    ],
+    "tables": [
+      "payout_audit_log",
+      "payout_health_log",
+      "payout_policies",
+      "payout_schedules"
+    ],
+    "acces": [
+      "admin",
+      "direction",
+      "public"
+    ],
+    "textes": 0,
+    "mots": 0,
+    "battement": "sonde",
+    "manques": [
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "audit — payout-engine/index.ts écrit au journal d'audit"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "payment_orchestrator"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "supplier_engine"
+      },
+      {
+        "genre": "sans_ecran",
+        "detail": "aucune route client ne mène à ce moteur"
+      }
+    ]
   },
   {
     "moteur": "permission",
@@ -14216,6 +14410,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "atelier",
       "location",
       "payment",
+      "payout_engine",
       "redirection",
       "search",
       "smart",
@@ -19814,6 +20009,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "logistics_engine",
       "parts_engine",
+      "payout_engine",
       "vehicle_engine"
     ],
     "evenementsPublies": [],
@@ -20306,6 +20502,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "event_bus",
       "identity",
+      "payout_engine",
       "politique_pays",
       "smart",
       "supplier_engine"
@@ -20315,6 +20512,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "event_bus",
       "identity",
+      "payout_engine",
       "politique_pays",
       "smart",
       "supplier_engine"
@@ -20339,6 +20537,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity": [
         "vehicle-engine/service.ts importe identity-os/contract.ts"
       ],
+      "payout_engine": [
+        "publie vehicule.vendu, consommé par payout_engine"
+      ],
       "politique_pays": [
         "vehicle-engine/service.ts importe country-policy/service.ts"
       ],
@@ -20351,7 +20552,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "logistics_engine"
+      "event_bus",
+      "logistics_engine",
+      "payout_engine"
     ],
     "evenementsPublies": [
       "vehicule.controle_qualite",
@@ -20430,6 +20633,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_non_declaree",
         "detail": "identity — vehicle-engine/service.ts importe identity-os/contract.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "payout_engine — publie vehicule.vendu, consommé par payout_engine"
       },
       {
         "genre": "dependance_non_declaree",

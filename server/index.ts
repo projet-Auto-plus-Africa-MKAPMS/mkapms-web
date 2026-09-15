@@ -783,6 +783,24 @@ async function bootstrap() {
   }
   setInterval(() => void reconcileTick(), 60 * 60 * 1000);
 
+  // Abandoned Payment Engine (LOT 5, §31) — un paiement commencé et jamais
+  // terminé doit relancer le client (24 h/48 h/72 h) puis libérer la
+  // réservation associée. Sans ce cycle, un panier resterait bloqué et le
+  // client ne serait jamais relancé.
+  async function abandonedPaymentTick() {
+    try {
+      const { scanAbandonedPayments } = await import("./payment-engine/abandoned.js");
+      const r = await scanAbandonedPayments();
+      const relances = r.notified.reduce((s, n) => s + n.count, 0);
+      if (relances > 0 || r.expired > 0) {
+        console.log(`[payment] ${relances} relance(s) d'abandon, ${r.expired} réservation(s) expirée(s)`);
+      }
+    } catch (e) {
+      console.error("[payment:abandoned]", (e as Error).message);
+    }
+  }
+  setInterval(() => void abandonedPaymentTick(), 60 * 60 * 1000);
+
   // Auction Engine — clôture des enchères échues. Sans ce cycle, une enchère
   // terminée resterait « en cours » sans jamais désigner de gagnant.
   async function auctionTick() {

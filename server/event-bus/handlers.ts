@@ -14,6 +14,9 @@ import { onPieceChanged } from "../product-engine/service.js";
 import { raiseAlert } from "../smart-engine/services/alert-engine.js";
 import { record as auditRecord } from "../audit-os/index.js";
 import { ecrire as memoriser, retenir } from "../intelligences/memoire.js";
+import { vehicleItems, vehiclePricing } from "../vehicle-engine/schema.js";
+import { logisticsLegs } from "../logistics-engine/schema.js";
+import { findScheduleBySource, openPayoutSchedule, triggerStage } from "../payout-engine/service.js";
 
 export type Charge = Record<string, unknown>;
 
@@ -601,6 +604,63 @@ const handlers: Record<string, Handler> = {
     return cree
       ? `Alerte plafond ${depasse ? "dépassé" : "proche"} ouverte pour le garage ${garageId}.`
       : `Alerte plafond déjà ouverte pour le garage ${garageId}.`;
+  },
+
+  /**
+   * LOT 5 du Plan Maître Fournisseurs (§32 PAYOUT ENGINE) — une vente
+   * véhicule ouvre le versement dû au fournisseur. Sans prix calculé
+   * (`vehicle_pricing`), la vente ne peut pas être chiffrée : l'échec est
+   * remonté à la remise, jamais avalé en silence.
+   */
+  async payout_vehicule_vendu(payload) {
+    const vehicleItemId = nombre(payload, "vehicleItemId");
+    if (vehicleItemId === null) throw new Error("Charge invalide : « vehicleItemId » absent ou non numérique.");
+    const existing = await findScheduleBySource("vehicle_sale", vehicleItemId);
+    if (existing) return `Versement déjà planifié pour le véhicule ${vehicleItemId} (#${existing.id}) : remise ignorée (idempotence).`;
+    const [item] = await db.select().from(vehicleItems).where(eq(vehicleItems.id, vehicleItemId)).limit(1);
+    if (!item) throw new Error(`Véhicule fournisseur ${vehicleItemId} introuvable.`);
+    const [pricing] = await db.select().from(vehiclePricing).where(eq(vehiclePricing.vehicleItemId, vehicleItemId)).limit(1);
+    if (!pricing) throw new Error(`Véhicule ${vehicleItemId} vendu sans prix calculé (vehicle_pricing) : versement impossible à planifier.`);
+    const schedule = await openPayoutSchedule({
+      sourceType: "vehicle_sale",
+      sourceId: vehicleItemId,
+      targetType: "supplier",
+      supplierProfileId: item.supplierProfileId,
+      grossAmount: Number(pricing.publicPrice ?? pricing.supplierPrice),
+      commissionRatePct: Number(pricing.commissionRatePct),
+      currency: pricing.publicCurrency ?? pricing.supplierCurrency,
+    });
+    return `Versement #${schedule.id} planifié pour le fournisseur du véhicule ${vehicleItemId} (net ${schedule.netAmount} ${schedule.currency}).`;
+  },
+
+  /**
+   * LOT 5 — un leg logistique réellement enlevé ou livré fait avancer son
+   * versement transporteur. Le leg "interne" (véhicule convoyé par MKA.P-MS
+   * elle-même) n'a pas de transporteur externe à payer : aucun versement.
+   */
+  async payout_logistics_leg_stage(payload, ctx) {
+    const legId = nombre(payload, "legId");
+    if (legId === null) throw new Error("Charge invalide : « legId » absent ou non numérique.");
+    const [leg] = await db.select().from(logisticsLegs).where(eq(logisticsLegs.id, legId)).limit(1);
+    if (!leg) throw new Error(`Leg logistique ${legId} introuvable.`);
+    if (leg.carrierCode === "interne") return `Leg ${legId} interne : aucun versement transporteur à planifier.`;
+    if (!leg.tarif || Number(leg.tarif) <= 0) return `Leg ${legId} sans tarif connu : aucun versement à planifier.`;
+
+    let schedule = await findScheduleBySource("logistics_leg", legId);
+    if (!schedule) {
+      schedule = await openPayoutSchedule({
+        sourceType: "logistics_leg",
+        sourceId: legId,
+        targetType: "carrier",
+        carrierCode: leg.carrierCode,
+        grossAmount: Number(leg.tarif),
+        commissionRatePct: 0,
+        currency: leg.devise,
+      });
+    }
+    const trigger = ctx.type === "pickup.completed" ? "enlevement" : "livraison";
+    await triggerStage(schedule.id, trigger);
+    return `Étape "${trigger}" déclenchée sur le versement transporteur #${schedule.id} (leg ${legId}).`;
   },
 
   async audit_trace(payload, ctx) {

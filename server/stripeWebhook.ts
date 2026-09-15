@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import type Stripe from "stripe";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "./db.js";
 import {
   payments,
@@ -10,6 +10,8 @@ import {
   users,
   partsOrders,
   partsOrderTracking,
+  wallets,
+  payouts as ledgerPayouts,
 } from "./schema.js";
 import { notifications } from "./modules/core.js";
 import { getStripe } from "./lib/stripe.js";
@@ -245,8 +247,117 @@ export async function handleStripeWebhook(req: Request, res: Response) {
               targetId: refunded.id,
               result: "success",
             });
+            await emitSafe({
+              source: "payment",
+              type: "refund.completed",
+              payload: { reference: String(refunded.id) },
+            });
           }
         }
+        break;
+      }
+      // LOT 5 du Plan Maître Fournisseurs — litiges (§28 PAYMENT ORCHESTRATOR
+      // : "Litige"). `payments.status` n'est jamais modifié ici : son enum
+      // (pending/paid/failed/refunded/cancelled) appartient à la table
+      // historique, 100 % additive par doctrine du Payment Engine — un litige
+      // est un fait à côté du statut d'encaissement, pas un nouveau statut de
+      // paiement. Il est journalisé (Smart Engine + Event Bus) sans jamais
+      // fabriquer une issue : "closed" ne dit "gagné/perdu" que si Stripe le
+      // dit explicitement (`dispute.status`).
+      case "charge.dispute.created": {
+        const dispute = event.data.object as Stripe.Dispute;
+        const [related] = dispute.payment_intent
+          ? await db.select().from(payments).where(eq(payments.stripePaymentIntentId, dispute.payment_intent as string)).limit(1)
+          : [];
+        await superviserPaiement({
+          userId: related?.userId ?? null,
+          title: "Litige ouvert sur un paiement",
+          body: "Un litige a été ouvert sur l'un de vos paiements par votre banque. La Direction a été informée.",
+          url: "/compte",
+          action: "payment_dispute_opened",
+          targetId: related?.id ?? null,
+          data: { disputeId: dispute.id, reason: dispute.reason ?? null, amount: dispute.amount },
+          result: "failure",
+        });
+        await emitSafe({
+          source: "payment",
+          type: "dispute.opened",
+          payload: { reference: String(related?.id ?? dispute.id) },
+        });
+        break;
+      }
+      case "charge.dispute.closed": {
+        const dispute = event.data.object as Stripe.Dispute;
+        const [related] = dispute.payment_intent
+          ? await db.select().from(payments).where(eq(payments.stripePaymentIntentId, dispute.payment_intent as string)).limit(1)
+          : [];
+        const outcome = dispute.status; // "won" | "lost" | autre statut Stripe réel — jamais déduit.
+        await superviserPaiement({
+          userId: related?.userId ?? null,
+          title: "Litige clos",
+          body: `Le litige sur votre paiement est clos (issue : ${outcome}).`,
+          url: "/compte",
+          action: "payment_dispute_closed",
+          targetId: related?.id ?? null,
+          data: { disputeId: dispute.id, outcome },
+          result: outcome === "won" ? "success" : "failure",
+        });
+        await emitSafe({
+          source: "payment",
+          type: "dispute.closed",
+          payload: { reference: String(related?.id ?? dispute.id), outcome },
+        });
+        break;
+      }
+      // LOT 5 — reversements Stripe Connect vers les wallets fournisseur/
+      // transporteur (Ledger, `payouts.stripePayoutId`). Sans transfert Stripe
+      // réellement initié depuis ce payout (Sprint 2 : aucun connecteur
+      // n'appelle encore `stripe.transfers.create`), ce cas ne trouve
+      // honnêtement rien à mettre à jour — jamais un succès fabriqué.
+      // Note : Stripe n'émet pas de "transfer.failed" — l'échec/l'annulation
+      // d'un transfert existant est notifié par "transfer.reversed".
+      case "transfer.created":
+      case "transfer.reversed": {
+        const transfer = event.data.object as Stripe.Transfer;
+        const [related] = await db.select().from(ledgerPayouts).where(eq(ledgerPayouts.stripePayoutId, transfer.id)).limit(1);
+        if (related) {
+          const newStatus = event.type === "transfer.created" ? "paye" : "echoue";
+          await db
+            .update(ledgerPayouts)
+            .set({ status: newStatus, processedAt: newStatus === "paye" ? new Date() : undefined, updatedAt: new Date() })
+            .where(eq(ledgerPayouts.id, related.id));
+          if (newStatus === "paye") {
+            await db
+              .update(wallets)
+              .set({ totalVire: sql`${wallets.totalVire} + ${related.montant}`, updatedAt: new Date() })
+              .where(eq(wallets.id, related.walletId));
+          }
+          await logActivity({
+            action: newStatus === "paye" ? "payout_transfer_completed" : "payout_transfer_failed",
+            targetType: "payout",
+            targetId: related.id,
+            data: { stripeTransferId: transfer.id },
+            result: newStatus === "paye" ? "success" : "failure",
+          });
+        }
+        break;
+      }
+      // Compte Stripe Connect d'un fournisseur/transporteur mis à jour
+      // (KYC, capacités d'encaissement). Journalisé pour la Direction ;
+      // aucune capacité de versement n'est activée automatiquement ici —
+      // décision humaine (§32 "Validation humaine possible").
+      case "account.updated": {
+        const account = event.data.object as Stripe.Account;
+        await logActivity({
+          action: "stripe_connect_account_updated",
+          targetType: "stripe_account",
+          data: {
+            accountId: account.id,
+            chargesEnabled: account.charges_enabled ?? null,
+            payoutsEnabled: account.payouts_enabled ?? null,
+          },
+          result: "success",
+        });
         break;
       }
       case "checkout.session.expired": {
@@ -358,6 +469,21 @@ export async function handleStripeWebhook(req: Request, res: Response) {
               result: "failure",
             });
           }
+        }
+        break;
+      }
+      case "customer.subscription.created": {
+        // Synchronisation défensive : la création normale passe par
+        // checkout.session.completed (qui insère déjà la ligne `subscriptions`).
+        // Ce cas ne fait que réaligner le statut si Stripe livre l'événement
+        // avant, ou pour une souscription créée hors du parcours checkout.
+        const sub = event.data.object as Stripe.Subscription;
+        const mapped = sub.status === "active" || sub.status === "trialing" ? "active" : null;
+        if (mapped) {
+          await db
+            .update(subscriptions)
+            .set({ status: mapped, updatedAt: new Date() })
+            .where(eq(subscriptions.stripeSubscriptionId, sub.id));
         }
         break;
       }
