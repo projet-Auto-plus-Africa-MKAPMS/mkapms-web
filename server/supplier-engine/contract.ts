@@ -120,9 +120,17 @@ export const CANONICAL_VEHICLE_FIELDS = [
 export const CANONICAL_PART_FIELDS = [
   "supplierPartId", "referenceFournisseur", "referenceOem", "referenceAftermarket",
   "eanGtin", "marquePiece", "fabricant", "categorie", "sousCategorie",
-  "description", "compatibilites", "prixFournisseur", "devise", "stock",
+  "nomPiece", "description", "compatibilites", "prixFournisseur", "devise", "stock",
   "delai", "poids", "dimensions", "photos", "garantie", "etatPiece",
   "paysOrigine", "disponibilite",
+  // Ajoutés pour le LOT 3 du plan (point "MODÈLE CANONIQUE PIÈCE") — Parts
+  // Engine : compatibilité véhicule structurée, dimensions détaillées, stock
+  // détaillé par statut, prix public, TVA, cycle de synchronisation.
+  "generation", "codeMoteur", "codeBoite", "anneeDebut", "anneeFin",
+  "attributsTechniques", "longueur", "largeur", "hauteur", "documents",
+  "qualiteGrade", "entrepot", "stockDisponible", "stockReserve",
+  "prixPublic", "statutTva", "dateReapprovisionnement",
+  "derniereMajFournisseur", "derniereSyncMkapms",
 ] as const;
 
 /** Bus d'événements typés (règle MOS #12). */

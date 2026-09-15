@@ -848,6 +848,20 @@
       "when": 1788232014000,
       "tag": "0122_annonces_identity_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 121,
+      "version": "7",
+      "when": 1788232015000,
+      "tag": "0123_parts_engine",
+      "breakpoints": true
+    },
+    {
+      "idx": 122,
+      "version": "7",
+      "when": 1788232016000,
+      "tag": "0124_parts_stock_columns_fix",
+      "breakpoints": true
     }
   ]
 }

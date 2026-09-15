@@ -12,7 +12,7 @@
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db.js";
-import { annonces, garages, garagesPublics } from "../schema.js";
+import { annonces, garages, garagesPublics, partsCatalog } from "../schema.js";
 import { reputationForTargets } from "../reputation-engine/ranking.js";
 import { publicProcedure, adminProcedure, router } from "../trpc.js";
 import type { ControlCenterFeed, EngineDashboard, MaturityLevel } from "../identity-os/contract.js";
@@ -58,7 +58,7 @@ export function expandTokens(q: string): string[] {
   return Array.from(new Set([...base, ...extra]));
 }
 
-export type SearchType = "annonce" | "garage" | "ville" | "service";
+export type SearchType = "annonce" | "garage" | "ville" | "service" | "piece";
 
 export interface SearchHit {
   type: SearchType;
@@ -153,6 +153,44 @@ async function searchGarages(tokens: string[], limit: number): Promise<SearchHit
   });
 }
 
+// LOT 3 du Plan Maître Fournisseurs — la marketplace pièces (`parts_catalog`,
+// alimentée par server/routers/pieces.ts et par le Parts Engine) n'était
+// jusqu'ici indexée nulle part : "Pièces détachées" n'existait qu'en lien
+// statique (SERVICES ci-dessus). Réutilise Search OS au lieu de recréer un
+// moteur de recherche pièces séparé.
+async function searchPieces(tokens: string[], limit: number): Promise<SearchHit[]> {
+  if (tokens.length === 0) return [];
+  const conds = tokens.flatMap((t) => [
+    ilike(partsCatalog.nom, `%${t}%`),
+    ilike(partsCatalog.categorie, `%${t}%`),
+    ilike(partsCatalog.marquePiece, `%${t}%`),
+    ilike(partsCatalog.referenceOem, `%${t}%`),
+    ilike(partsCatalog.referenceInterne, `%${t}%`),
+    ilike(partsCatalog.codeBarre, `%${t}%`),
+  ]);
+  const rows = await db
+    .select({
+      id: partsCatalog.id,
+      nom: partsCatalog.nom,
+      marquePiece: partsCatalog.marquePiece,
+      categorie: partsCatalog.categorie,
+      prixTtc: partsCatalog.prixTtc,
+      prixHt: partsCatalog.prixHt,
+    })
+    .from(partsCatalog)
+    .where(and(eq(partsCatalog.active, true), or(...conds)))
+    .orderBy(desc(partsCatalog.updatedAt))
+    .limit(limit);
+  return rows.map((r) => ({
+    type: "piece" as const,
+    id: r.id,
+    title: r.nom,
+    subtitle: [r.marquePiece ?? undefined, r.categorie ?? undefined].filter(Boolean).join(" · "),
+    url: `/pieces/${r.id}`,
+    score: 1,
+  }));
+}
+
 function searchServices(tokens: string[]): SearchHit[] {
   if (tokens.length === 0) return [];
   const hits: SearchHit[] = [];
@@ -199,15 +237,16 @@ export async function search(q: string, opts?: { types?: SearchType[]; limit?: n
   const limit = opts?.limit ?? 10;
   const want = (t: SearchType) => !opts?.types || opts.types.includes(t);
 
-  const [annoncesHits, garagesHits, villesHits] = await Promise.all([
+  const [annoncesHits, garagesHits, villesHits, piecesHits] = await Promise.all([
     want("annonce") ? searchAnnonces(tokens, limit) : Promise.resolve([]),
     want("garage") ? searchGarages(tokens, limit) : Promise.resolve([]),
     want("ville") ? searchVilles(tokens, 5) : Promise.resolve([]),
+    want("piece") ? searchPieces(tokens, limit) : Promise.resolve([]),
   ]);
   const servicesHits = want("service") ? searchServices(tokens) : [];
 
-  const results = [...servicesHits, ...annoncesHits, ...garagesHits, ...villesHits].sort((a, b) => b.score - a.score);
-  const byType: Record<SearchType, number> = { annonce: annoncesHits.length, garage: garagesHits.length, ville: villesHits.length, service: servicesHits.length };
+  const results = [...servicesHits, ...annoncesHits, ...garagesHits, ...villesHits, ...piecesHits].sort((a, b) => b.score - a.score);
+  const byType: Record<SearchType, number> = { annonce: annoncesHits.length, garage: garagesHits.length, ville: villesHits.length, service: servicesHits.length, piece: piecesHits.length };
   return { query: q, tokens, total: results.length, results, byType };
 }
 
@@ -278,7 +317,7 @@ export const searchOsRouter = router({
   query: publicProcedure
     .input(z.object({
       q: z.string().min(1).max(120),
-      types: z.array(z.enum(["annonce", "garage", "ville", "service"])).optional(),
+      types: z.array(z.enum(["annonce", "garage", "ville", "service", "piece"])).optional(),
       limit: z.number().int().min(1).max(50).default(10),
     }))
     .query(({ input }) => search(input.q, { types: input.types, limit: input.limit })),

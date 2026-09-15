@@ -1191,6 +1191,7 @@ export * from "./pro-account/schema"; // Pro Account Engine — dossier professi
 export * from "./partner-engine/schema"; // Partner Engine — réseau partenaires et acquisition (isolé)
 export * from "./supplier-engine/schema"; // Supplier Engine — registre fournisseur, onboarding, connecteurs, mapping (isolé)
 export * from "./vehicle-engine/schema"; // Vehicle Engine — LOT 2 : ingestion, mapping, doublons, prix, territoires, publication (isolé)
+export * from "./parts-engine/schema"; // Parts Engine — LOT 3 : ingestion, canonique multi-fournisseurs, OEM/compatibilité, prix, stock, territoires, publication (isolé)
 export * from "./insurance-engine/schema"; // Insurance Engine — assureurs référencés et demandes de couverture (isolé)
 export * from "./charging-engine/schema"; // Charging Engine — annuaire des bornes de recharge (isolé)
 export * from "./vehicle-delivery/schema"; // Vehicle Delivery Engine — acheminement des véhicules (isolé, distinct des colis)

@@ -64,6 +64,7 @@ export const ENGINE_PROBES: EngineProbe[] = [
   { engine: "partner_engine", tables: ["partners", "partner_coverage", "partner_applications", "partner_opportunities"] },
   { engine: "supplier_engine", tables: ["supplier_profiles", "supplier_connections", "supplier_mappings", "supplier_onboarding_steps"] },
   { engine: "vehicle_engine", tables: ["vehicle_items", "vehicle_territories", "vehicle_availability", "vehicle_pricing", "vehicle_duplicates"] },
+  { engine: "parts_engine", tables: ["parts_supplier_items", "parts_canonical", "parts_pricing", "parts_stock_ledger", "parts_compatibility_checks"] },
 
   // ── Univers ──
   { engine: "vo", tables: ["vehicules", "vehicule_dossiers", "vehicule_historique"] },
