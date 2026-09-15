@@ -243,6 +243,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "staging",
   },
   {
+    name: "document_engine",
+    label: "Document Engine",
+    category: "transversal",
+    dependencies: ["core","permission","document","event_bus","supplier_engine","vehicle_engine","payout_engine"],
+    description:
+      "LOT 6 du Plan Maître Fournisseurs (§33-35) : Supplier Document Engine (conventions/annexes/RGPD), Vehicle Document Engine (contrôle technique/COC/garantie/export/douane) et Document Custody Engine (original/copie, détenteur, remise tracée, blocage d'étape par document manquant). Consomme le Document OS existant comme registre unique — n'en recrée aucun.",
+    state: "staging",
+  },
+  {
     name: "search",
     label: "Search Engine",
     category: "transversal",

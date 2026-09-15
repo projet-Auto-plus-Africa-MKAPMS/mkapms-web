@@ -478,6 +478,15 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec seed templates Document OS:", (err as Error).message);
     }
+    // Document Engine (LOT 6) — types de documents fournisseur/véhicule
+    // enregistrés dans le registre Document OS. Idempotent.
+    try {
+      const { seedDocumentTypes } = await import("./document-engine/index.js");
+      const r = await seedDocumentTypes();
+      console.log(`[MKA.P-MS] Document Engine: ${r.inserted} type(s) de document ajouté(s)`);
+    } catch (err) {
+      console.error("[MKA.P-MS] échec seed types Document Engine:", (err as Error).message);
+    }
     // Moteur de Redirection — connecte toute la plateforme : insère les règles
     // par défaut manquantes (univers, sous-sections, services, boutons/CTA).
     // Idempotent, non destructif : ne réécrase jamais une règle du PDG.
