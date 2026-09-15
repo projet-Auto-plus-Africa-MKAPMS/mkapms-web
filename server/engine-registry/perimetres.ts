@@ -607,6 +607,16 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: [],
   },
   {
+    // LOT 2 du Plan Maître Fournisseurs — véhicules uniquement (jamais Pièces
+    // [LOT 3] ni Transport/Livraison [LOT 4]). Pas encore d'écran dédié (LOT 7
+    // "Portails") : routes vides, staging tant qu'aucun véhicule fournisseur
+    // réel n'a été publié de bout en bout.
+    moteur: "vehicle_engine",
+    dossiers: ["vehicle-engine"],
+    routeurs: ["vehicleEngine"],
+    routes: [],
+  },
+  {
     moteur: "pro_portal",
     dossiers: ["pro-portal", "modules/pro.ts", "routers/pro.ts", "routers/api.ts", "services/apiIntegration.ts"],
     routeurs: ["proPortal", "pro", "api", "formation"],

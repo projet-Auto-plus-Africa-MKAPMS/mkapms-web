@@ -105,6 +105,7 @@ import { auctionEngineRouter } from "./auction-engine/index.js";
 import { proximityEngineRouter } from "./proximity-engine/index.js";
 import { partnerEngineRouter } from "./partner-engine/index.js";
 import { supplierEngineRouter } from "./supplier-engine/index.js";
+import { vehicleEngineRouter } from "./vehicle-engine/index.js";
 import { insuranceEngineRouter } from "./insurance-engine/index.js";
 import { chargingEngineRouter } from "./charging-engine/index.js";
 import { vehicleDeliveryRouter } from "./vehicle-delivery/index.js";
@@ -260,6 +261,7 @@ export const appRouter = router({
   proximity: proximityEngineRouter,
   partnerEngine: partnerEngineRouter,
   supplierEngine: supplierEngineRouter,
+  vehicleEngine: vehicleEngineRouter,
   // Point 45 — assurance auto (mise en relation) et bornes de recharge (annuaire)
   insuranceEngine: insuranceEngineRouter,
   chargingEngine: chargingEngineRouter,

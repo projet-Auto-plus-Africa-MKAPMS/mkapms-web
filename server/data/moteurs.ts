@@ -99,18 +99,17 @@ export interface PerimetreMoteur {
   readonly manques: readonly ManqueMoteur[];
 }
 
-export const MOTEURS_TOTAL = 90;
-export const MANQUES_TOTAL = 593;
+export const MOTEURS_TOTAL = 91;
+export const MANQUES_TOTAL = 596;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "bouton_sans_action": 183,
   "sans_logique_serveur": 12,
-  "sans_ecran": 5,
+  "sans_ecran": 6,
   "dependance_sans_preuve": 36,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1,
-  "dependance_non_declaree": 11,
-  "sans_battement": 1
+  "dependance_non_declaree": 14
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
@@ -5600,6 +5599,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "supplier_engine",
       "support",
       "transport",
+      "vehicle_engine",
       "vente",
       "vente_officiel",
       "vente_particulier",
@@ -6098,6 +6098,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "seo",
       "smart",
       "supplier_engine",
+      "vehicle_engine",
       "vente",
       "vo_engine",
       "vo_espaces"
@@ -7375,7 +7376,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "product_engine",
       "risque_import",
       "seo",
-      "smart"
+      "smart",
+      "vehicle_engine"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -8834,6 +8836,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "supplier_engine",
       "support",
       "transport",
+      "vehicle_engine",
       "vente_pro",
       "visibility",
       "vo_espaces",
@@ -14577,7 +14580,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "livraison_vehicule",
       "risque_import",
-      "smart"
+      "smart",
+      "vehicle_engine"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -19040,6 +19044,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "seo",
       "smart_audit",
       "support",
+      "vehicle_engine",
       "vente",
       "vente_particulier",
       "visibility"
@@ -19496,7 +19501,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "supplier-engine/service.ts importe modules/operations.ts"
       ]
     },
-    "dependants": [],
+    "dependants": [
+      "vehicle_engine"
+    ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
     "abonnements": [],
@@ -19545,7 +19552,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "textes": 0,
     "mots": 0,
-    "battement": "aucun",
+    "battement": "sonde",
     "manques": [
       {
         "genre": "dependance_non_declaree",
@@ -19558,10 +19565,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_sans_preuve",
         "detail": "partner_engine"
-      },
-      {
-        "genre": "sans_battement",
-        "detail": "ni sonde, ni pont OS, ni contrat, ni heartbeat dans le code"
       },
       {
         "genre": "sans_ecran",
@@ -19965,6 +19968,166 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_sans_preuve",
         "detail": "payment"
+      }
+    ]
+  },
+  {
+    "moteur": "vehicle_engine",
+    "label": "Vehicle Engine",
+    "categorie": "transversal",
+    "etatDeclare": "staging",
+    "dossiers": [
+      "vehicle-engine"
+    ],
+    "routeurs": [
+      "vehicleEngine"
+    ],
+    "fichiersServeur": 4,
+    "dependancesDeclarees": [
+      "core",
+      "country",
+      "event_bus",
+      "supplier_engine"
+    ],
+    "dependancesDetectees": [
+      "core",
+      "country",
+      "event_bus",
+      "identity",
+      "politique_pays",
+      "smart",
+      "supplier_engine"
+    ],
+    "dependances": [
+      "core",
+      "country",
+      "event_bus",
+      "identity",
+      "politique_pays",
+      "smart",
+      "supplier_engine"
+    ],
+    "integrationsTechniques": [
+      "identity"
+    ],
+    "preuvesDependances": {
+      "core": [
+        "vehicle-engine/index.ts importe trpc.ts",
+        "vehicle-engine/service.ts importe db.ts",
+        "vehicle-engine/service.ts importe schema.ts"
+      ],
+      "country": [
+        "vehicle-engine/service.ts importe country-os/index.ts",
+        "vehicle-engine/service.ts lit la règle pays"
+      ],
+      "event_bus": [
+        "vehicle-engine/service.ts importe event-bus/service.ts",
+        "vehicle-engine/service.ts publie des événements"
+      ],
+      "identity": [
+        "vehicle-engine/service.ts importe identity-os/contract.ts"
+      ],
+      "politique_pays": [
+        "vehicle-engine/service.ts importe country-policy/service.ts"
+      ],
+      "smart": [
+        "vehicle-engine/service.ts importe smart-engine/services/duplicate-detection.ts"
+      ],
+      "supplier_engine": [
+        "vehicle-engine/contract.ts importe supplier-engine/contract.ts",
+        "vehicle-engine/service.ts importe supplier-engine/service.ts"
+      ]
+    },
+    "dependants": [],
+    "evenementsPublies": [
+      "vehicule.controle_qualite",
+      "vehicule.doublon_detecte",
+      "vehicule.erreur_sync",
+      "vehicule.importe",
+      "vehicule.indisponible",
+      "vehicule.mappe",
+      "vehicule.pret_a_publier",
+      "vehicule.prix_calcule",
+      "vehicule.publie",
+      "vehicule.reserve",
+      "vehicule.retire",
+      "vehicule.territoires_definis",
+      "vehicule.vendu"
+    ],
+    "evenementsConsommes": [],
+    "abonnements": [],
+    "sourcesEmission": [
+      "vehicle_engine"
+    ],
+    "boutons": [],
+    "routes": [],
+    "ecrans": [],
+    "ecransHotes": [],
+    "procedures": [
+      "ajouterRapportEtat",
+      "analyserDonnees",
+      "analyserIA",
+      "assurerDisponibilite",
+      "auditLog",
+      "calculerPrix",
+      "controlCenterFeed",
+      "controlerQualite",
+      "dashboard",
+      "deciderDoublon",
+      "definirTerritoires",
+      "detail",
+      "detecterDoublons",
+      "healthStatus",
+      "ingerer",
+      "libererReservation",
+      "liste",
+      "mapperEtNormaliser",
+      "marquerVendu",
+      "meta",
+      "preparerPourPublication",
+      "reserver",
+      "retirer",
+      "signalerErreurSync",
+      "signalerIndisponibilite",
+      "synchroniser",
+      "validerEtPublier"
+    ],
+    "tables": [
+      "vehicle_audit_log",
+      "vehicle_availability",
+      "vehicle_condition_reports",
+      "vehicle_duplicates",
+      "vehicle_health_log",
+      "vehicle_items",
+      "vehicle_pricing",
+      "vehicle_publication_log",
+      "vehicle_quality_checks",
+      "vehicle_territories"
+    ],
+    "acces": [
+      "admin",
+      "direction",
+      "public"
+    ],
+    "textes": 0,
+    "mots": 0,
+    "battement": "sonde",
+    "manques": [
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "identity — vehicle-engine/service.ts importe identity-os/contract.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "politique_pays — vehicle-engine/service.ts importe country-policy/service.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "smart — vehicle-engine/service.ts importe smart-engine/services/duplicate-detection.ts"
+      },
+      {
+        "genre": "sans_ecran",
+        "detail": "aucune route client ne mène à ce moteur"
       }
     ]
   },

@@ -215,6 +215,13 @@ export const annonces = pgTable("annonces", {
   createdByEmployeeId: integer("created_by_employee_id"),
   // Propriétaire réel (client) quand l'annonce est créée par un employé
   onBehalfOfUserId: integer("on_behalf_of_user_id"),
+  // VIN / plaque d'immatriculation — déjà lus par la détection de doublons
+  // (server/smart-engine/services/duplicate-detection.ts) mais jamais portés
+  // par le schéma jusqu'ici (2 des 3 règles de doublon restaient inertes).
+  // Alimentés par le Vehicle Engine (LOT 2) à la publication ; nullables car
+  // une annonce déposée par un particulier ne les fournit pas forcément.
+  vin: varchar("vin", { length: 17 }),
+  plaque: varchar("plaque", { length: 16 }),
 });
 
 export const auditLogs = pgTable("audit_logs", {
@@ -1183,6 +1190,7 @@ export * from "./auction-engine/schema"; // Auction Engine — enchères particu
 export * from "./pro-account/schema"; // Pro Account Engine — dossier professionnel légal et activation (isolé)
 export * from "./partner-engine/schema"; // Partner Engine — réseau partenaires et acquisition (isolé)
 export * from "./supplier-engine/schema"; // Supplier Engine — registre fournisseur, onboarding, connecteurs, mapping (isolé)
+export * from "./vehicle-engine/schema"; // Vehicle Engine — LOT 2 : ingestion, mapping, doublons, prix, territoires, publication (isolé)
 export * from "./insurance-engine/schema"; // Insurance Engine — assureurs référencés et demandes de couverture (isolé)
 export * from "./charging-engine/schema"; // Charging Engine — annuaire des bornes de recharge (isolé)
 export * from "./vehicle-delivery/schema"; // Vehicle Delivery Engine — acheminement des véhicules (isolé, distinct des colis)

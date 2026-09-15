@@ -1105,3 +1105,261 @@ Elles doivent être prévues dans l'architecture puis activées ou bloquées par
 
 Chaque LOT commencé doit être terminé, testé et validé à 100 % avant de
 passer au suivant.
+
+---
+
+## ADDENDUM (PDG) — RENFORCEMENT DE LA DOCTRINE
+
+> Ce qui suit complète le document ci-dessus. Rien n'est retiré, rien n'est
+> simplifié : c'est un ajout. Rappel du PDG à l'origine de cet addendum :
+> « Ce qui sont déjà en place, tu les complètes ; ce qui ne sont pas, tu les
+> rajoutes. » Avant tout développement, chaque agent doit auditer l'existant
+> (fournisseurs déjà en base, tables/modèles, routes/API, permissions,
+> moteurs réutilisables, stocks, paiements/ledger, documents, audit/logs, IA,
+> transport/livraison, intégrations externes, parties incomplètes ou non
+> connectées) et ne **jamais recréer** un moteur, un registre, une table, une
+> permission ou un système qui existe déjà : on conserve, on fusionne, on
+> renforce, on complète.
+
+### 64. RÈGLE MAJEURE — UN MOTEUR POUR CHAQUE DOMAINE
+
+Aucun domaine important de MKA.P-MS ne doit être piloté par de simples
+services dispersés. Chaque grand domaine — fournisseurs, véhicules, pièces,
+IA, logistique, paiements, documents, pays, notifications, audit,
+permissions — doit être piloté par son **propre moteur MKA.P-MS dédié**,
+relié au hub central. Les sections 1 à 63 de ce document constituent déjà ce
+catalogue de moteurs dédiés (un moteur = une section) ; cette règle en fait
+une exigence formelle et permanente, pas seulement une convention de
+rédaction :
+
+- Aucune nouvelle fonctionnalité de ces domaines ne doit être ajoutée comme
+  simple fonction utilitaire ou route isolée « au cas par cas » : elle doit
+  rejoindre le moteur de son domaine, ou un nouveau moteur dédié si aucun
+  moteur existant ne la couvre.
+- Si un moteur listé dans ce plan existe déjà dans le code (même partiellement,
+  même sous un autre nom technique), il ne doit **pas** être recréé : il doit
+  être audité, complété puis relié au hub central.
+- Un domaine peut être implémenté par un seul module technique tant que ses
+  sous-fonctions restent des **sous-moteurs fonctionnellement distincts**,
+  chacun testable et pilotable séparément (voir §65 pour l'exemple du
+  Supplier Engine déjà livré en LOT 1).
+
+### 65. SUPPLIER ENGINE — DÉCOMPOSITION FONCTIONNELLE (LOT 1, déjà livré)
+
+Le LOT 1 (`server/supplier-engine/`) applique la règle du §64 : il est
+implémenté comme un seul module MOS-conforme, mais regroupe des sous-moteurs
+fonctionnellement séparés, chacun avec son propre état, ses propres
+événements d'audit et ses propres tests — au lieu d'un service générique
+« fournisseurs » :
+
+- **Supplier Registry / Supplier Engine** — identité légale, statuts,
+  cycle de vie (`supplier_profiles`).
+- **Supplier Onboarding Engine** — les 15 étapes d'intégration, historisées
+  (`supplier_onboarding_steps`).
+- **Supplier Verification / KYB Engine** — vérification entreprise
+  (`verifierEntreprise`, statuts `KYB_STATUSES`).
+- **Supplier Contract Engine** — contrat signé, réutilise le **Contract OS**
+  existant (`enregistrerContratSigne`, `CONTRACT_PARTIES` étendu avec
+  `fournisseur`/`transporteur`), sans dupliquer la gestion de contrat.
+- **Supplier Territory Engine** — territoires autorisés/exclus, validés
+  contre le **Country OS** existant (`definirTerritoires`).
+- **Connector Engine** — 22 méthodes de connexion cataloguées, statut
+  honnête `not_connected` sans secret réel (`supplier_connections`).
+- **Universal Mapping Engine** — correspondance champ fournisseur → champ
+  canonique, versionnée sans écrasement (`supplier_mappings`).
+- **Audit Engine** (`supplier_audit_log`) — chaque décision journalisée avec
+  son auteur.
+
+Ces sous-moteurs communiquent uniquement par les fonctions publiques de
+`server/supplier-engine/service.ts` et par les types partagés de
+`contract.ts` — jamais par accès direct aux tables d'un autre sous-moteur.
+Cette séparation est ce qui permettra de brancher proprement, sans
+réécriture, les moteurs futurs listés au §64 : **Vehicle Engine**, **Parts
+Engine**, **Logistics Engine**, **Payment Engine**, **Document Engine**,
+**Country Engine** (déjà réutilisé, pas dupliqué) et les **AI Engines** —
+chacun consommera le Supplier Registry via `partnerId`/`supplierProfileId`
+sans jamais avoir à modifier le Supplier Engine lui-même.
+
+---
+
+## ADDENDUM (PDG) — ARCHITECTURE LIVRAISON / TRANSPORT (OBLIGATOIRE)
+
+> La partie livraison doit être pensée comme une vraie plateforme API
+> multi-transporteurs, pas comme quelques intégrations isolées. Ce qui suit
+> détaille et complète les sections 20 à 25 ci-dessus (Transport /
+> Livraison) — il ne les remplace pas.
+
+### 66. DELIVERY / LOGISTICS API GATEWAY
+
+Aucun transporteur ne doit être codé en dur dans la plateforme (interdiction
+explicite de coder autour de DHL, DPD ou tout autre fournisseur en
+particulier). Chaque transporteur possède son propre adaptateur. Flux
+obligatoire :
+
+```
+Transporteur → Adapter API → Logistics API Gateway → Logistics Engine
+             → Delivery Quote Engine / Delivery Routing Engine
+             → Tracking Engine → Payment Engine
+```
+
+Le Logistics API Gateway est la seule porte d'entrée/sortie vers les
+transporteurs : le reste de MKA.P-MS (moteurs métier, portails, IA) ne parle
+jamais directement à un transporteur. Ajouter un nouveau transporteur = un
+nouvel adaptateur, jamais une modification du Gateway ou des moteurs en aval.
+
+Catégories de transporteurs à supporter (agnostique, extensible) :
+
+- **Colis / pièces** — DHL, DHL Express, DPD, Geopost, Chronopost, UPS,
+  FedEx, GLS, Colissimo, Mondial Relay, Sendcloud, Cainiao…
+- **Fret / palettes** — DHL Freight, CEVA, DB Schenker, transporteurs
+  régionaux, fret aérien, fret maritime.
+- **Véhicules** — Hiflow, CEVA, MOSOLF, AGL, Grimaldi, convoyeurs,
+  partenaires RoRo.
+
+### 67. CARRIER CONNECTOR — CAPACITÉS ATTENDUES
+
+Chaque adaptateur transporteur doit, à terme, exposer :
+
+- Services disponibles, tarif, délai, disponibilité.
+- Création d'expédition / mission.
+- Réservation, modification, annulation d'enlèvement.
+- Étiquette, bordereau, documents douaniers.
+- Tracking, géolocalisation, événements.
+- Preuves d'enlèvement, de handover, de livraison, signature, photos.
+- Anomalies, réclamations, assurance, retour, remboursement.
+- Facturation.
+
+Une capacité non disponible chez un transporteur donné doit être déclarée
+absente proprement (jamais simulée) — même principe d'honnêteté que le
+Connector Engine du Supplier Engine (§65) : pas de succès fabriqué sans
+connexion réelle.
+
+### 68. MÉTHODES TECHNIQUES DE CONNEXION TRANSPORTEUR
+
+- REST
+- GraphQL
+- SOAP (legacy)
+- Webhooks
+- SFTP / FTP
+- CSV / XML / JSON (échange fichier)
+- EDI
+- Import manuel de secours (aucune capacité ne doit être bloquée par
+  l'absence d'intégration technique)
+
+### 69. DELIVERY QUOTE ENGINE
+
+Entrées : origine, destination, poids, dimensions, type de marchandise, type
+de véhicule, valeur, assurance, contraintes douanières, disponibilité
+transporteur, historique, score transporteur (reprend les critères déjà
+listés en §22).
+
+Sorties : toujours au moins trois propositions structurées —
+**ÉCONOMIQUE**, **RECOMMANDÉ**, **EXPRESS** — chacune avec transporteur,
+prix, délai, fiabilité.
+
+### 70. DELIVERY ROUTING ENGINE
+
+Sélection du transporteur multi-facteurs — jamais uniquement au prix le plus
+bas. Facteurs : prix, délai, fiabilité/score historique, disponibilité
+réelle, capacité de la méthode de connexion, contraintes pays/douane,
+préférence contractuelle du fournisseur/client, risque.
+
+### 71. MULTI-LEG ENGINE — DÉTAIL
+
+Une expédition complexe est modélisée comme :
+
+```
+MASTER SHIPMENT
+ ├─ LEG 1 (transporteur, origine, destination, tarif, délai, statut,
+ │          documents, preuves, responsabilité, condition de paiement)
+ ├─ LEG 2 (idem)
+ ├─ LEG 3 (idem)
+ └─ LEG 4 (idem)
+```
+
+Chaque leg a son propre transporteur, son propre statut, ses propres
+documents/preuves, sa propre responsabilité juridique et sa propre condition
+de paiement — le Master Shipment agrège l'état global sans jamais fusionner
+la responsabilité des legs entre eux.
+
+### 72. TRACKING ENGINE — STATUTS NORMALISÉS
+
+Tous les transporteurs, quelle que soit leur méthode technique (§68), sont
+ramenés à un statut normalisé unique côté MKA.P-MS :
+
+```
+CREATED, BOOKED, PICKUP_SCHEDULED, PICKED_UP, IN_TRANSIT, AT_HUB, AT_PORT,
+CUSTOMS_EXPORT, HANDED_OVER, ON_VESSEL, ARRIVED_PORT, CUSTOMS_IMPORT,
+LAST_MILE, OUT_FOR_DELIVERY, DELIVERED, FAILED, RETURNED, DISPUTED
+```
+
+### 73. ÉVÉNEMENTS WEBHOOK TRANSPORT (bus interne)
+
+```
+delivery.quote.created, delivery.booked, pickup.scheduled,
+pickup.completed, shipment.in_transit, shipment.handover.completed,
+shipment.at_port, shipment.customs.started, shipment.customs.completed,
+shipment.on_vessel, shipment.arrived, delivery.out_for_delivery,
+delivery.completed, delivery.failed, delivery.disputed,
+carrier.payout.eligible, carrier.payout.completed
+```
+
+Ces événements passent par l'**Event Bus** déjà existant (section 45) —
+aucun bus d'événements séparé pour la logistique.
+
+### 74. API MKA.P-MS POUR TRANSPORTEURS
+
+MKA.P-MS expose aussi sa propre API pour qu'un transporteur puisse se
+connecter directement (sans que MKA.P-MS ait à consommer son API) :
+
+```
+POST /logistics/quotes
+POST /logistics/shipments
+GET  /logistics/shipments/{id}
+POST /logistics/shipments/{id}/accept
+POST /logistics/shipments/{id}/pickup
+POST /logistics/shipments/{id}/handover
+POST /logistics/shipments/{id}/status
+POST /logistics/shipments/{id}/delivery
+POST /logistics/shipments/{id}/incident
+POST /logistics/shipments/{id}/proof
+POST /logistics/webhooks
+```
+
+### 75. RÈGLE DE SÉCURITÉ — CLÉS API (absolue)
+
+**Aucune clé ne doit être exposée : frontend ; mobile ; logs publics ;
+dépôt GitHub.**
+
+Toute clé/secret transporteur ou fournisseur vit uniquement côté serveur
+(variables d'environnement / gestionnaire de secrets), n'est jamais renvoyée
+dans une réponse API consommée par le frontend ou le mobile, n'est jamais
+écrite dans un log accessible publiquement, et n'est jamais committée dans
+le dépôt. Une clé manquante ne bloque jamais le développement : l'adaptateur
+complet (interface, schéma, variables d'environnement, gestion « clé
+manquante », sandbox/mock, tests, documentation, erreurs propres) est livré
+sans clé réelle ; la connexion réelle s'active seulement quand une clé
+réelle est fournie.
+
+---
+
+## ADDENDUM (PDG) — ACTIVATION DES CAPACITÉS (mise à jour, ne remplace rien)
+
+La liste de dimensions d'activation/blocage donnée plus haut dans ce
+document (permissions, abonnement, pays, contrat, fournisseur, risque,
+validation) est complétée, non remplacée, par deux dimensions explicitement
+ajoutées par le PDG :
+
+- **Rôle** — l'activation peut dépendre du rôle de l'utilisateur (PDG,
+  direction, admin, fournisseur, transporteur, comptable…), pas seulement de
+  la permission technique.
+- **Juridiction** — l'activation peut dépendre de la juridiction légale
+  applicable (au-delà du simple pays), notamment pour les documents
+  douaniers, la fiscalité et les contrats transporteurs internationaux.
+- **Validation humaine** — précision explicite : la validation mentionnée
+  plus haut est une validation humaine, jamais une décision automatique,
+  pour toute activation de fournisseur, transporteur, ou capacité sensible.
+
+Liste complète des dimensions d'activation/blocage après cet addendum :
+permissions, rôle, abonnement, fournisseur, contrat, pays, juridiction,
+risque, validation humaine.
