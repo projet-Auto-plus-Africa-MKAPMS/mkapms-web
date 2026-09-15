@@ -91,7 +91,7 @@ export const vehicleEngineRouter = router({
     .input(z.object({ vehicleItemId: z.number().int().positive() }))
     .mutation(({ ctx, input }) => controlerQualite(input.vehicleItemId, ctx.user.uid)),
 
-  // ── 7. Vehicle AI Engine ─────────────────────────────────────────────
+  // ── 7. Vehicle Intelligence Engine ────────────────────────────────────
   analyserIA: adminProcedure
     .input(z.object({ vehicleItemId: z.number().int().positive() }))
     .mutation(({ ctx, input }) => analyserIA(input.vehicleItemId, ctx.user.uid)),
