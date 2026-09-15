@@ -328,6 +328,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "staging",
   },
   {
+    name: "vehicle_engine",
+    label: "Vehicle Engine",
+    category: "transversal",
+    dependencies: ["core", "country", "supplier_engine", "event_bus"],
+    description:
+      "LOT 2 du Plan Maître Fournisseurs (véhicules uniquement) : ingestion d'un véhicule fournisseur déjà actif (Supplier Engine), mapping/normalisation, détection de doublons, analyse VIN/qualité, tarification, territoires (Country OS + Country Policy Engine), disponibilité, publication vers la marketplace existante (`annonces`), synchronisation continue. Staging tant qu'aucun véhicule fournisseur réel n'a été publié de bout en bout.",
+    state: "staging",
+  },
+  {
     name: "garage",
     label: "Garage Engine",
     category: "univers",
