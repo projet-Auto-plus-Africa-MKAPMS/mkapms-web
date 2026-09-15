@@ -11,7 +11,7 @@
  */
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "../../db.js";
 import {
   logisticsApiKeys,
@@ -23,6 +23,8 @@ import {
   logisticsTrackingEvents,
   logisticsWebhookLog,
 } from "../schema.js";
+import { wallets, walletTransactions } from "../../modules/wallet.js";
+import { payoutSchedules, payoutAuditLog } from "../../payout-engine/schema.js";
 import * as logistics from "../service.js";
 import { appRouter } from "../../router.js";
 
@@ -46,6 +48,21 @@ let idsDevisTest: number[] = [];
 
 async function nettoyer() {
   for (const id of idsExpeditionsTest) {
+    // LOT 5 : mettreAJourStatutLeg émet désormais pickup.completed/
+    // delivery.completed, que le Payout Engine écoute réellement — un leg de
+    // test livré/enlevé ouvre un vrai versement transporteur (Ledger
+    // compris). Sans ce nettoyage, chaque exécution laisserait un versement
+    // et un wallet transporteur de test résiduels.
+    const legs = await db.select({ id: logisticsLegs.id }).from(logisticsLegs).where(eq(logisticsLegs.shipmentId, id));
+    for (const leg of legs) {
+      const versements = await db.select().from(payoutSchedules).where(and(eq(payoutSchedules.sourceType, "logistics_leg"), eq(payoutSchedules.sourceId, leg.id)));
+      for (const v of versements) {
+        await db.delete(payoutAuditLog).where(eq(payoutAuditLog.scheduleId, v.id));
+        await db.delete(walletTransactions).where(eq(walletTransactions.walletId, v.targetWalletId));
+        await db.delete(wallets).where(eq(wallets.id, v.targetWalletId));
+        await db.delete(payoutSchedules).where(eq(payoutSchedules.id, v.id));
+      }
+    }
     await db.delete(logisticsTrackingEvents).where(eq(logisticsTrackingEvents.shipmentId, id));
     await db.delete(logisticsAuditLog).where(eq(logisticsAuditLog.shipmentId, id));
     await db.delete(logisticsLegs).where(eq(logisticsLegs.shipmentId, id));

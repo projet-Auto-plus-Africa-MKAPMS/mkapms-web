@@ -8,10 +8,12 @@
  * Lancement : `npx tsx server/vehicle-engine/__tests__/vehicle-engine.test.ts`
  */
 import assert from "node:assert/strict";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../../db.js";
 import { annonces } from "../../schema.js";
 import { partners } from "../../modules/operations.js";
+import { wallets, walletTransactions } from "../../modules/wallet.js";
+import { payoutSchedules, payoutAuditLog } from "../../payout-engine/schema.js";
 import {
   supplierAuditLog,
   supplierConnections,
@@ -58,6 +60,18 @@ async function nettoyer() {
         for (const vi of vitems) {
           const [item] = await db.select({ annonceId: vehicleItems.annonceId }).from(vehicleItems).where(eq(vehicleItems.id, vi.id));
           if (item?.annonceId) await db.delete(annonces).where(eq(annonces.id, item.annonceId));
+          // LOT 5 : marquerVendu émet désormais vehicule.vendu, que le Payout
+          // Engine écoute réellement — une vente de test ouvre un vrai
+          // versement fournisseur (Ledger compris). Sans ce nettoyage, chaque
+          // exécution de cette suite laisserait un versement et un wallet
+          // fournisseur de test résiduels.
+          const versements = await db.select().from(payoutSchedules).where(and(eq(payoutSchedules.sourceType, "vehicle_sale"), eq(payoutSchedules.sourceId, vi.id)));
+          for (const v of versements) {
+            await db.delete(payoutAuditLog).where(eq(payoutAuditLog.scheduleId, v.id));
+            await db.delete(walletTransactions).where(eq(walletTransactions.walletId, v.targetWalletId));
+            await db.delete(wallets).where(eq(wallets.id, v.targetWalletId));
+            await db.delete(payoutSchedules).where(eq(payoutSchedules.id, v.id));
+          }
           await db.delete(vehicleAuditLog).where(eq(vehicleAuditLog.vehicleItemId, vi.id));
           await db.delete(vehiclePublicationLog).where(eq(vehiclePublicationLog.vehicleItemId, vi.id));
           await db.delete(vehicleQualityChecks).where(eq(vehicleQualityChecks.vehicleItemId, vi.id));
