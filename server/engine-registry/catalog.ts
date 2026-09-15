@@ -346,6 +346,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "staging",
   },
   {
+    name: "logistics_engine",
+    label: "Logistics Engine",
+    category: "transversal",
+    dependencies: ["core", "country", "supplier_engine", "event_bus", "livraison_vehicule"],
+    description:
+      "LOT 4 du Plan Maître Fournisseurs (transport/livraison) : Delivery/Logistics API Gateway, Carrier Connector Engine (catalogue de transporteurs, honnêtement NOT_CONNECTED sans clé réelle), Delivery Quote Engine (délègue au Vehicle Delivery Engine pour les véhicules, sinon NOT_CONNECTED), Delivery Routing Engine, Multi-Leg Engine (MASTER SHIPMENT + LEG 1-4), Tracking Engine (statuts normalisés, webhooks), API MKA.P-MS pour transporteurs (`/api/logistics/*`, clé API dédiée). Staging tant qu'aucun transporteur réel n'est connecté.",
+    state: "staging",
+  },
+  {
     name: "garage",
     label: "Garage Engine",
     category: "univers",

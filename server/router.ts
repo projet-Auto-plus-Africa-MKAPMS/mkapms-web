@@ -107,6 +107,7 @@ import { partnerEngineRouter } from "./partner-engine/index.js";
 import { supplierEngineRouter } from "./supplier-engine/index.js";
 import { vehicleEngineRouter } from "./vehicle-engine/index.js";
 import { partsEngineRouter } from "./parts-engine/index.js";
+import { logisticsEngineRouter } from "./logistics-engine/index.js";
 import { insuranceEngineRouter } from "./insurance-engine/index.js";
 import { chargingEngineRouter } from "./charging-engine/index.js";
 import { vehicleDeliveryRouter } from "./vehicle-delivery/index.js";
@@ -264,6 +265,7 @@ export const appRouter = router({
   supplierEngine: supplierEngineRouter,
   vehicleEngine: vehicleEngineRouter,
   partsEngine: partsEngineRouter,
+  logisticsEngine: logisticsEngineRouter,
   // Point 45 — assurance auto (mise en relation) et bornes de recharge (annuaire)
   insuranceEngine: insuranceEngineRouter,
   chargingEngine: chargingEngineRouter,

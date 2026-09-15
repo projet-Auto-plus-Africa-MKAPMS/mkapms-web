@@ -105,7 +105,7 @@ export const CONNECTION_STATUSES = [
 ] as const;
 export type ConnectionStatus = (typeof CONNECTION_STATUSES)[number];
 
-export const MAPPING_ENTITY_TYPES = ["vehicule", "piece"] as const;
+export const MAPPING_ENTITY_TYPES = ["vehicule", "piece", "expedition"] as const;
 export type MappingEntityType = (typeof MAPPING_ENTITY_TYPES)[number];
 
 /** Champs canoniques minimaux (point 6 et point 10 du plan) que le mapping peut cibler. */
@@ -131,6 +131,22 @@ export const CANONICAL_PART_FIELDS = [
   "qualiteGrade", "entrepot", "stockDisponible", "stockReserve",
   "prixPublic", "statutTva", "dateReapprovisionnement",
   "derniereMajFournisseur", "derniereSyncMkapms",
+] as const;
+
+/**
+ * Champs canoniques minimaux pour une expédition/mission de transport
+ * fournisseur (LOT 4, §67-69 de l'addendum). Un transporteur enregistré via
+ * le Supplier Engine (`supplierType: "transport"`) mappe ses données vers
+ * ces champs — jamais interprétés en dur ici, seulement validés par nom.
+ */
+export const CANONICAL_SHIPMENT_FIELDS = [
+  "supplierShipmentId", "carrierCode", "service", "categorie",
+  "origineVille", "origineCodePostal", "originePays",
+  "destinationVille", "destinationCodePostal", "destinationPays",
+  "poids", "longueur", "largeur", "hauteur", "valeurDeclaree", "devise",
+  "assurance", "referenceCommande", "delaiJoursMin", "delaiJoursMax",
+  "tarif", "statutTransporteur", "numeroSuivi", "urlSuivi",
+  "dateEnlevementPrevue", "dateLivraisonPrevue", "documents", "preuves",
 ] as const;
 
 /** Bus d'événements typés (règle MOS #12). */

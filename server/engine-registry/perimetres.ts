@@ -627,6 +627,16 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: [],
   },
   {
+    // LOT 4 du Plan Maître Fournisseurs — transport/livraison. Gateway,
+    // Carrier Connectors, Quote/Routing/Multi-Leg/Tracking Engines. Aucune
+    // vraie clé transporteur aujourd'hui (NOT_CONNECTED honnête). Pas encore
+    // d'écran dédié (LOT 7 "Portails") : routes vides.
+    moteur: "logistics_engine",
+    dossiers: ["logistics-engine"],
+    routeurs: ["logisticsEngine"],
+    routes: [],
+  },
+  {
     moteur: "pro_portal",
     dossiers: ["pro-portal", "modules/pro.ts", "routers/pro.ts", "routers/api.ts", "services/apiIntegration.ts"],
     routeurs: ["proPortal", "pro", "api", "formation"],

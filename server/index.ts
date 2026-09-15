@@ -38,6 +38,7 @@ import { aiAnswersFeed } from "./visibility-os/geo-engine.js";
 import { domainMiddleware, domainHandler, domainsListHandler } from "./domain.js";
 import { publicWriteGate } from "./resilience/gate.js";
 import { apiV1 } from "./intelligences/api-v1.js";
+import { logisticsApi } from "./logistics-engine/api.js";
 import { env, isProd } from "./env.js";
 import { readFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
@@ -279,6 +280,10 @@ app.get("/api/health/db", async (_req, res) => {
 // Point 127 — API interne versionnée des capacités MKA.P-MS Intelligences.
 // Les moteurs et les applications demandent une capacité, jamais un fournisseur.
 app.use("/api/v1", publicWriteGate, apiV1);
+
+// LOT 4 du Plan Maître Fournisseurs — API MKA.P-MS pour transporteurs (§74).
+// Authentification par clé API dédiée (x-mka-carrier-key), jamais la session plateforme.
+app.use("/api/logistics", publicWriteGate, logisticsApi);
 
 app.use(
   "/api/trpc",
