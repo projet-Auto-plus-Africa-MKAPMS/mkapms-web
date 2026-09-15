@@ -733,20 +733,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "staging",
   },
   {
-    name: "encheres",
-    label: "Enchères Engine",
-    category: "service",
-    dependencies: ["core","payment","auction_engine"],
-    description: "Ventes aux enchères : lots, offres, adjudication.",
-    state: "active",
-  },
-  {
+    // Fusionné avec l'ancien "encheres" (LOT 7 : la vitrine /acheter/encheres
+    // n'appelait aucune procédure et affichait un catalogue fabriqué — un
+    // seul et même backend, jamais deux moteurs pour un seul domaine).
     name: "auction_engine",
     label: "Auction Engine",
     category: "service",
-    dependencies: ["core", "notification", "visibility", "country"],
+    dependencies: ["core", "payment", "notification", "visibility", "country"],
     description:
-      "Moteur d'enchères particuliers et professionnels : lots, offres validées côté serveur, prix de réserve, anti-sniping, adjudication, historique et notifications.",
+      "Moteur d'enchères particuliers et professionnels : lots (catalogue et enchères en direct), offres validées côté serveur, prix de réserve, anti-sniping, adjudication, historique et notifications.",
     state: "active",
   },
   // ── Moteurs OS reliés par le pont MOS (os-bridge.ts) ──────────────────

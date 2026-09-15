@@ -661,19 +661,16 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/superadmin/admin-comptes-pro"],
   },
   {
-    // Manque réel, pas un défaut de déclaration : VenteEncheres.tsx (page
-    // de vitrine à /acheter/encheres) n'appelle aucune procédure tRPC —
-    // aucun backend n'existe encore pour ce catalogue (distinct
-    // d'auction_engine, qui lui gère les enchères en direct à /encheres/live).
-    moteur: "encheres",
-    dossiers: [],
-    routeurs: [],
-    routes: ["/encheres", "/encheres/*", "/acheter/encheres"],
-  },
-  {
+    // Fusionné avec "encheres" : c'était le même backend, jamais branché
+    // côté écran (VenteEncheres.tsx, /acheter/encheres, appelait 0
+    // procédure tRPC et affichait un catalogue entièrement fabriqué).
+    // Auction Engine porte désormais les deux surfaces client réelles :
+    // le catalogue (/acheter/encheres) ET les enchères en direct
+    // (/encheres/live) — un seul et même moteur, jamais deux déclarations
+    // pour un seul backend.
     moteur: "auction_engine",
     dossiers: ["auction-engine"],
     routeurs: ["auctionEngine"],
-    routes: ["/encheres/live"],
+    routes: ["/acheter/encheres", "/encheres", "/encheres/*", "/encheres/live"],
   },
 ];
