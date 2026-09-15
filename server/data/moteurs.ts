@@ -99,17 +99,17 @@ export interface PerimetreMoteur {
   readonly manques: readonly ManqueMoteur[];
 }
 
-export const MOTEURS_TOTAL = 91;
-export const MANQUES_TOTAL = 596;
+export const MOTEURS_TOTAL = 92;
+export const MANQUES_TOTAL = 602;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "bouton_sans_action": 183,
   "sans_logique_serveur": 12,
-  "sans_ecran": 6,
-  "dependance_sans_preuve": 36,
+  "sans_ecran": 7,
+  "dependance_sans_preuve": 39,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1,
-  "dependance_non_declaree": 14
+  "dependance_non_declaree": 16
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
@@ -3116,7 +3116,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "livraison",
       "notification",
-      "pieces",
       "smart",
       "workflow"
     ],
@@ -3159,10 +3158,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "reputation-engine/service.ts importe notification-os/triggers.ts",
         "reputation-engine/service.ts déclenche notifyEvent",
         "routers/reviewsV2.ts importe notification-os/triggers.ts"
-      ],
-      "pieces": [
-        "reputation-engine/ownership.ts importe modules/pieces.ts",
-        "reputation-engine/responses.ts importe modules/pieces.ts"
       ],
       "smart": [
         "reputation-engine/audience.ts importe smart-engine/schema.ts",
@@ -3434,6 +3429,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Supprimer » client/src/pages/superadmin/AdminModerationAvis.tsx:50"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "pieces"
       }
     ]
   },
@@ -5578,6 +5577,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "monitoring",
       "notification",
       "partner_engine",
+      "parts_engine",
       "payment",
       "payment_orchestrator",
       "permission",
@@ -6086,6 +6086,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "location_particulier",
       "location_pro",
       "partner_engine",
+      "parts_engine",
       "payment",
       "payment_orchestrator",
       "politique_pays",
@@ -7195,7 +7196,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "event_bus",
       "livraison_vehicule",
-      "pieces",
       "risque_import",
       "smart",
       "vo_engine"
@@ -7222,9 +7222,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "livraison_vehicule": [
         "estimation-hub/service.ts importe vehicle-delivery/service.ts"
-      ],
-      "pieces": [
-        "estimation-hub/service.ts importe modules/pieces.ts"
       ],
       "risque_import": [
         "estimation-hub/service.ts importe import-risk/service.ts"
@@ -7296,7 +7293,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 0,
     "mots": 0,
     "battement": "pont_os",
-    "manques": []
+    "manques": [
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "pieces"
+      }
+    ]
   },
   {
     "moteur": "event_bus",
@@ -7371,6 +7373,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "livraison_vehicule",
       "media_authenticity",
       "monitoring",
+      "parts_engine",
       "payment",
       "pieces",
       "product_engine",
@@ -8826,6 +8829,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "messaging",
       "monitoring",
       "notification",
+      "parts_engine",
       "permission",
       "pieces",
       "redirection",
@@ -13379,6 +13383,171 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ]
   },
   {
+    "moteur": "parts_engine",
+    "label": "Parts Engine",
+    "categorie": "transversal",
+    "etatDeclare": "staging",
+    "dossiers": [
+      "parts-engine"
+    ],
+    "routeurs": [
+      "partsEngine"
+    ],
+    "fichiersServeur": 4,
+    "dependancesDeclarees": [
+      "core",
+      "country",
+      "event_bus",
+      "pieces",
+      "supplier_engine"
+    ],
+    "dependancesDetectees": [
+      "core",
+      "country",
+      "event_bus",
+      "identity",
+      "politique_pays",
+      "supplier_engine"
+    ],
+    "dependances": [
+      "core",
+      "country",
+      "event_bus",
+      "identity",
+      "pieces",
+      "politique_pays",
+      "supplier_engine"
+    ],
+    "integrationsTechniques": [
+      "identity"
+    ],
+    "preuvesDependances": {
+      "core": [
+        "parts-engine/index.ts importe trpc.ts",
+        "parts-engine/service.ts importe db.ts",
+        "parts-engine/service.ts importe schema.ts"
+      ],
+      "country": [
+        "parts-engine/service.ts importe country-os/index.ts",
+        "parts-engine/service.ts lit la règle pays"
+      ],
+      "event_bus": [
+        "parts-engine/service.ts importe event-bus/service.ts",
+        "parts-engine/service.ts publie des événements"
+      ],
+      "identity": [
+        "parts-engine/service.ts importe identity-os/contract.ts"
+      ],
+      "politique_pays": [
+        "parts-engine/service.ts importe country-policy/service.ts"
+      ],
+      "supplier_engine": [
+        "parts-engine/contract.ts importe supplier-engine/contract.ts",
+        "parts-engine/service.ts importe supplier-engine/service.ts"
+      ]
+    },
+    "dependants": [],
+    "evenementsPublies": [
+      "part.compatibility.checked",
+      "part.imported",
+      "part.low_stock",
+      "part.mapping.completed",
+      "part.normalized",
+      "part.out_of_stock",
+      "part.price.changed",
+      "part.published",
+      "part.ready",
+      "part.removed",
+      "part.stock.changed",
+      "part.sync.failed",
+      "part.updated",
+      "part.validation.required"
+    ],
+    "evenementsConsommes": [],
+    "abonnements": [],
+    "sourcesEmission": [
+      "parts_engine"
+    ],
+    "boutons": [],
+    "routes": [],
+    "ecrans": [],
+    "ecransHotes": [],
+    "procedures": [
+      "analyserCompatibilite",
+      "analyserIA",
+      "auditLog",
+      "calculerPrix",
+      "consommerReservationStock",
+      "controlCenterFeed",
+      "controlerQualite",
+      "dashboard",
+      "deciderCorrespondanceCanonique",
+      "deciderEquivalence",
+      "declarerEquivalence",
+      "definirStock",
+      "definirTerritoires",
+      "detail",
+      "healthStatus",
+      "identifierPieceEtCanonique",
+      "ingerer",
+      "libererReservationStock",
+      "libererReservationsExpirees",
+      "liste",
+      "mapperEtNormaliser",
+      "marquerDiscontinued",
+      "meta",
+      "preparerPourPublication",
+      "rechercherEquivalences",
+      "reserverStock",
+      "retirer",
+      "signalerErreurSync",
+      "synchroniser",
+      "validerCompatibilite",
+      "validerEtPublier"
+    ],
+    "tables": [
+      "parts_audit_log",
+      "parts_canonical",
+      "parts_compatibility_checks",
+      "parts_health_log",
+      "parts_oem_cross_references",
+      "parts_pricing",
+      "parts_publication_log",
+      "parts_quality_checks",
+      "parts_stock_ledger",
+      "parts_stock_reservations",
+      "parts_supplier_items",
+      "parts_supplier_shop_links",
+      "parts_territories"
+    ],
+    "acces": [
+      "admin",
+      "direction",
+      "public"
+    ],
+    "textes": 0,
+    "mots": 0,
+    "battement": "sonde",
+    "manques": [
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "identity — parts-engine/service.ts importe identity-os/contract.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "politique_pays — parts-engine/service.ts importe country-policy/service.ts"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "pieces"
+      },
+      {
+        "genre": "sans_ecran",
+        "detail": "aucune route client ne mène à ce moteur"
+      }
+    ]
+  },
+  {
     "moteur": "payment",
     "label": "Payment Engine",
     "categorie": "transversal",
@@ -14100,7 +14269,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "avis_reputation",
       "estimation",
-      "identity"
+      "identity",
+      "parts_engine"
     ],
     "evenementsPublies": [
       "piece.modifiee"
@@ -14456,12 +14626,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "tables": [
       "part_compatibilities",
-      "part_references",
-      "parts_catalog",
-      "parts_order_items",
-      "parts_orders",
-      "parts_shops",
-      "parts_stock"
+      "part_references"
     ],
     "acces": [
       "admin",
@@ -14579,6 +14744,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     },
     "dependants": [
       "livraison_vehicule",
+      "parts_engine",
       "risque_import",
       "smart",
       "vehicle_engine"
@@ -19502,6 +19668,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "parts_engine",
       "vehicle_engine"
     ],
     "evenementsPublies": [],

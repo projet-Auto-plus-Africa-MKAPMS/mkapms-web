@@ -10,8 +10,7 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { reviewsV2 } from "../modules/reviews.js";
-import { garagesPublics } from "../schema.js";
-import { partsShops } from "../modules/pieces.js";
+import { garagesPublics, partsShops } from "../schema.js";
 import { deliveryProfiles } from "../modules/livraison.js";
 import { breakdownProviders } from "../modules/depannage.js";
 

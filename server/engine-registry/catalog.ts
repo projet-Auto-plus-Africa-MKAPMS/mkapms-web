@@ -337,6 +337,15 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     state: "staging",
   },
   {
+    name: "parts_engine",
+    label: "Parts Engine",
+    category: "transversal",
+    dependencies: ["core", "country", "supplier_engine", "event_bus", "pieces"],
+    description:
+      "LOT 3 du Plan Maître Fournisseurs (pièces automobiles uniquement) : ingestion d'une pièce fournisseur déjà active (Supplier Engine), mapping/normalisation, identité canonique multi-fournisseurs, OEM/Cross-Reference Engine, Parts Compatibility Engine, tarification, stock (ledger + réservations temporaires), territoires (Country OS + Country Policy Engine), contrôle qualité, publication vers la marketplace pièces existante (`parts_catalog`/`parts_stock`/`parts_compatibility`), synchronisation continue. Staging tant qu'aucune pièce fournisseur réelle n'a été publiée de bout en bout.",
+    state: "staging",
+  },
+  {
     name: "garage",
     label: "Garage Engine",
     category: "univers",
