@@ -72,6 +72,13 @@ export const engineRegistryRouter = router({
     return getStats();
   }),
 
+  // LOT 7 (§40) — vue business agrégée : fournisseurs, véhicules, pièces,
+  // logistique, versements, documents, paiements, comptabilité.
+  businessDashboard: directionProcedure.query(async () => {
+    const { businessDashboard } = await import("./business-dashboard.js");
+    return businessDashboard();
+  }),
+
   get: directionProcedure
     .input(z.object({ name: z.string().min(1).max(64) }))
     .query(async ({ input }) => {

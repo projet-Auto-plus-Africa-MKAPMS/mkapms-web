@@ -5475,7 +5475,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "meta"
     ],
-    "fichiersServeur": 37,
+    "fichiersServeur": 38,
     "dependancesDeclarees": [
       "ai_learning",
       "audit",
@@ -13899,6 +13899,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "lib/stripe.ts",
       "lib/payment-errors.ts",
       "modules/wallet.ts",
+      "modules/wallet-ledger.ts",
       "routers/wallet.ts",
       "modules/installments.ts",
       "routers/installments.ts",
@@ -13910,7 +13911,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "installments",
       "abonnements"
     ],
-    "fichiersServeur": 18,
+    "fichiersServeur": 19,
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -13954,8 +13955,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "core": [
         "lib/stripe.ts importe env.ts",
-        "payment-engine/abandoned.ts importe db.ts",
-        "payment-engine/abandoned.ts importe modules/core.ts"
+        "modules/wallet-ledger.ts importe db.ts",
+        "payment-engine/abandoned.ts importe db.ts"
       ],
       "country": [
         "payment-engine/router.ts lit la règle pays",
@@ -14133,8 +14134,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 1,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 7,
-        "mots": 18
+        "textes": 9,
+        "mots": 83
       },
       {
         "fichier": "client/src/pages/superadmin/AdminPaiements.tsx",
@@ -14203,6 +14204,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "myRibs",
       "openPortal",
       "payouts",
+      "payoutsFor",
       "pending",
       "pendingBankTransfers",
       "productPrice",
@@ -14220,10 +14222,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "stats",
       "transaction",
       "transactions",
+      "transactionsFor",
       "upsertCountryRule",
       "upsertProduct",
       "validate",
-      "verifyRib"
+      "verifyRib",
+      "walletForCarrier",
+      "walletForSupplier"
     ],
     "tables": [
       "bank_accounts",
@@ -14249,8 +14254,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 205,
-    "mots": 645,
+    "textes": 207,
+    "mots": 710,
     "battement": "sonde",
     "manques": [
       {
@@ -14436,7 +14441,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "consomme pickup.completed émis par logistics_engine"
       ],
       "payment": [
-        "payout-engine/service.ts importe modules/wallet.ts"
+        "payout-engine/service.ts importe modules/wallet.ts",
+        "payout-engine/service.ts importe modules/wallet-ledger.ts"
       ],
       "permission": [
         "payout-engine/index.ts filtre par rôle (procédure pro/admin/direction/PDG)"

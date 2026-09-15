@@ -3,6 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { router, protectedProcedure, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { wallets, walletTransactions, payouts, bankAccounts } from "../schema.js";
+import { findOrCreateWallet, findWallet } from "../modules/wallet-ledger.js";
 
 // ─── Helper : créer ou récupérer le wallet de l'utilisateur ──────────────────
 async function ensureWallet(userId: number) {
@@ -235,4 +236,31 @@ export const walletRouter = router({
         .returning();
       return updated;
     }),
+
+  // ── LOT 7 — Ledger fournisseur/transporteur (Direction/Comptabilité) ────
+  // Lecture seule : un wallet n'apparaît que s'il a déjà été créé par un
+  // versement réel (Payout Engine, LOT 5). Jamais de wallet fabriqué juste
+  // pour peupler un écran.
+  walletForSupplier: adminProcedure
+    .input(z.object({ supplierProfileId: z.number().int().positive() }))
+    .query(({ input }) => findWallet({ ownerType: "supplier", supplierProfileId: input.supplierProfileId })),
+
+  walletForCarrier: adminProcedure
+    .input(z.object({ carrierCode: z.string().min(1).max(32) }))
+    .query(({ input }) => findWallet({ ownerType: "carrier", carrierCode: input.carrierCode })),
+
+  transactionsFor: adminProcedure
+    .input(z.object({ walletId: z.number().int().positive(), limit: z.number().min(1).max(200).default(50) }))
+    .query(({ input }) =>
+      db
+        .select()
+        .from(walletTransactions)
+        .where(eq(walletTransactions.walletId, input.walletId))
+        .orderBy(desc(walletTransactions.createdAt))
+        .limit(input.limit),
+    ),
+
+  payoutsFor: adminProcedure
+    .input(z.object({ walletId: z.number().int().positive() }))
+    .query(({ input }) => db.select().from(payouts).where(eq(payouts.walletId, input.walletId)).orderBy(desc(payouts.createdAt))),
 });

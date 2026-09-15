@@ -10,6 +10,7 @@
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { wallets, walletTransactions, payouts as ledgerPayouts } from "../modules/wallet.js";
+import { findOrCreateWallet as findOrCreateLedgerWallet, findOrCreatePlatformWallet } from "../modules/wallet-ledger.js";
 import { emitSafe } from "../event-bus/service.js";
 import {
   payoutPolicies,
@@ -39,31 +40,13 @@ export interface WalletOwnerRef {
 }
 
 async function findOrCreateWallet(owner: WalletOwnerRef, currency = "EUR") {
-  const conditions =
-    owner.targetType === "supplier"
-      ? and(eq(wallets.ownerType, "supplier"), eq(wallets.supplierProfileId, owner.supplierProfileId!))
-      : and(eq(wallets.ownerType, "carrier"), eq(wallets.carrierCode, owner.carrierCode!));
-  const [existing] = await db.select().from(wallets).where(conditions).limit(1);
-  if (existing) return existing;
-  const [created] = await db
-    .insert(wallets)
-    .values({
-      ownerType: owner.targetType,
-      supplierProfileId: owner.targetType === "supplier" ? owner.supplierProfileId : null,
-      carrierCode: owner.targetType === "carrier" ? owner.carrierCode : null,
-      currency,
-    })
-    .returning();
-  return created;
+  return findOrCreateLedgerWallet(
+    { ownerType: owner.targetType, supplierProfileId: owner.supplierProfileId, carrierCode: owner.carrierCode },
+    currency,
+  );
 }
 
-/** Wallet plateforme unique (solde MKA.P-MS, §29) — créé au premier besoin. */
-export async function findOrCreatePlatformWallet(currency = "EUR") {
-  const [existing] = await db.select().from(wallets).where(eq(wallets.ownerType, "platform")).limit(1);
-  if (existing) return existing;
-  const [created] = await db.insert(wallets).values({ ownerType: "platform", currency }).returning();
-  return created;
-}
+export { findOrCreatePlatformWallet };
 
 async function blockOnWallet(walletId: number, amount: number, opts: { reference: string; description: string; sourceType: string; sourceId: number }) {
   await db.insert(walletTransactions).values({
