@@ -12,8 +12,7 @@
  */
 import { and, eq, ilike, isNull, or, sql, type SQL } from "drizzle-orm";
 import { db } from "../db.js";
-import { annonces } from "../schema.js";
-import { partCompatibilities, partsCatalog } from "../modules/pieces.js";
+import { annonces, partsCatalog, partsCompatibility } from "../schema.js";
 import { diagnostiquer } from "../import-risk/service.js";
 import { categorieDeTransport, devis as devisAcheminement } from "../vehicle-delivery/service.js";
 import { estimate as estimerValeur } from "../vo-engine/service.js";
@@ -92,15 +91,15 @@ export async function voletPieces(
 
   const conds: SQL[] = [
     eq(partsCatalog.active, true),
-    ilike(partCompatibilities.marque, marque),
-    ilike(partCompatibilities.modele, modele),
+    ilike(partsCompatibility.marque, marque),
+    ilike(partsCompatibility.modele, modele),
   ];
   if (annee) {
     conds.push(
-      or(isNull(partCompatibilities.anneeDebut), sql`${partCompatibilities.anneeDebut} <= ${annee}`)!,
+      or(isNull(partsCompatibility.anneeDebut), sql`${partsCompatibility.anneeDebut} <= ${annee}`)!,
     );
     conds.push(
-      or(isNull(partCompatibilities.anneeFin), sql`${partCompatibilities.anneeFin} >= ${annee}`)!,
+      or(isNull(partsCompatibility.anneeFin), sql`${partsCompatibility.anneeFin} >= ${annee}`)!,
     );
   }
 
@@ -112,7 +111,7 @@ export async function voletPieces(
       p75: sql<number>`percentile_cont(0.75) within group (order by ${partsCatalog.prixHt})`,
     })
     .from(partsCatalog)
-    .innerJoin(partCompatibilities, eq(partCompatibilities.catalogId, partsCatalog.id))
+    .innerJoin(partsCompatibility, eq(partsCompatibility.catalogId, partsCatalog.id))
     .where(and(...conds));
 
   const n = Number(stats?.n ?? 0);
@@ -351,7 +350,7 @@ export async function estimationComplete(input: {
 export async function controlCenterFeed() {
   const [pieces] = await db
     .select({ n: sql<number>`count(*)::int` })
-    .from(partCompatibilities);
+    .from(partsCompatibility);
   const [catalogue] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(partsCatalog)

@@ -100,13 +100,13 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 91;
-export const MANQUES_TOTAL = 596;
+export const MANQUES_TOTAL = 598;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "bouton_sans_action": 183,
   "sans_logique_serveur": 12,
   "sans_ecran": 6,
-  "dependance_sans_preuve": 36,
+  "dependance_sans_preuve": 38,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 1,
   "dependance_non_declaree": 14
@@ -3116,7 +3116,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity",
       "livraison",
       "notification",
-      "pieces",
       "smart",
       "workflow"
     ],
@@ -3159,10 +3158,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "reputation-engine/service.ts importe notification-os/triggers.ts",
         "reputation-engine/service.ts déclenche notifyEvent",
         "routers/reviewsV2.ts importe notification-os/triggers.ts"
-      ],
-      "pieces": [
-        "reputation-engine/ownership.ts importe modules/pieces.ts",
-        "reputation-engine/responses.ts importe modules/pieces.ts"
       ],
       "smart": [
         "reputation-engine/audience.ts importe smart-engine/schema.ts",
@@ -3434,6 +3429,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Supprimer » client/src/pages/superadmin/AdminModerationAvis.tsx:50"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "pieces"
       }
     ]
   },
@@ -7195,7 +7194,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "event_bus",
       "livraison_vehicule",
-      "pieces",
       "risque_import",
       "smart",
       "vo_engine"
@@ -7222,9 +7220,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "livraison_vehicule": [
         "estimation-hub/service.ts importe vehicle-delivery/service.ts"
-      ],
-      "pieces": [
-        "estimation-hub/service.ts importe modules/pieces.ts"
       ],
       "risque_import": [
         "estimation-hub/service.ts importe import-risk/service.ts"
@@ -7296,7 +7291,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 0,
     "mots": 0,
     "battement": "pont_os",
-    "manques": []
+    "manques": [
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "pieces"
+      }
+    ]
   },
   {
     "moteur": "event_bus",
@@ -14456,12 +14456,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "tables": [
       "part_compatibilities",
-      "part_references",
-      "parts_catalog",
-      "parts_order_items",
-      "parts_orders",
-      "parts_shops",
-      "parts_stock"
+      "part_references"
     ],
     "acces": [
       "admin",
