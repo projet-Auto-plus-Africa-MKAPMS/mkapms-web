@@ -32,6 +32,7 @@ import {
   publishEvent,
   journalAdmin,
   ensureSeeded,
+  retireOrphanEngines,
   setState,
   hasManualStateDecision,
   type EngineHealth,
@@ -401,6 +402,22 @@ export async function bootstrapEngines(): Promise<void> {
   } catch (err) {
     console.error(
       "[MKA.P-MS] seed du catalogue échoué:",
+      (err as Error).message,
+    );
+  }
+
+  // Retire les lignes d'un moteur fusionné/retiré du catalogue (ex. l'ancien
+  // "encheres", fusionné dans "auction_engine") : sans cela, la ligne seedée
+  // avant la fusion reste orpheline en base et réapparaît comme moteur
+  // fantôme "non connecté" dans l'audit d'activation.
+  try {
+    const orphans = await retireOrphanEngines();
+    if (orphans.length > 0) {
+      console.log(`[MKA.P-MS] moteurs orphelins retirés du registre: ${orphans.join(", ")}`);
+    }
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] retrait des moteurs orphelins échoué:",
       (err as Error).message,
     );
   }

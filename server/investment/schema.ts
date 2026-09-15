@@ -47,7 +47,7 @@ export const INVESTABLE_UNIVERSES = [
   "garage",
   "atelier",
   "depannage",
-  "encheres",
+  "auction_engine",
   "controle_technique",
   "livraison",
   "livraison_vehicule",

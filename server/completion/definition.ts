@@ -97,7 +97,7 @@ export const DOMAINES: DomaineCompletion[] = [
   { cle: "location", label: "Location", moteurs: ["location"], testDomaines: ["location"] },
   { cle: "pieces", label: "Pièces", moteurs: ["pieces"], testDomaines: ["pieces"] },
   { cle: "pro", label: "Professionnels", moteurs: ["pro_portal", "pro_account"], testDomaines: ["pro"] },
-  { cle: "encheres", label: "Enchères", moteurs: ["auction_engine", "encheres"], testDomaines: ["encheres"] },
+  { cle: "encheres", label: "Enchères", moteurs: ["auction_engine"], testDomaines: ["encheres"] },
   {
     cle: "comptabilite",
     label: "Comptabilité",
