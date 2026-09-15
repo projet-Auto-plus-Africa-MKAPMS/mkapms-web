@@ -82,8 +82,8 @@ Ce que ce moteur ajoute (rien n'existait avant, voir audit pré-LOT 3) :
 8. **Parts Data Quality Engine** (`parts_quality_checks`) — champs requis,
    format EAN/GTIN, état de la pièce contre l'énumération réelle de la
    marketplace.
-9. **Parts AI Engine** — `analyserIA()` répond honnêtement `NOT_CONNECTED` :
-   aucun moteur IA pièces n'est branché aujourd'hui.
+9. **Parts Intelligence Engine** — `analyserIA()` répond honnêtement `NOT_CONNECTED` :
+   aucune brique MKA.P-MS Intelligences dédiée aux pièces n'est branchée aujourd'hui.
 10. **Publication/Search Engine** (`parts_publication_log` + `searchPieces`
     dans Search OS) — historique complet des transitions, recherche pièces
     réellement indexée.
@@ -157,5 +157,5 @@ audit log complet, non-régression Supplier Engine et Vehicle Engine.
   intégration TecDoc ou source équivalente pour élever des compatibilités
   `LIKELY_COMPATIBLE` vers `VERIFIED_COMPATIBLE` sans validation humaine
   systématique.
-- **Sprint 3** — Parts AI Engine réellement connecté (nettoyage titre,
+- **Sprint 3** — Parts Intelligence Engine réellement connecté (nettoyage titre,
   traduction, détection OEM automatique).

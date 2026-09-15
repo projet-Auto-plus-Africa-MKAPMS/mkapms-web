@@ -1,7 +1,7 @@
 /**
  * Vehicle Engine — LOT 2 du Plan Maître Fournisseurs (véhicules uniquement) :
  * tests réels, base de données réelle. Couvre ingestion, mapping, doublons,
- * analyse/qualité, IA (honnête), prix, territoires, disponibilité,
+ * analyse/qualité, MKA.P-MS Intelligences (honnête), prix, territoires, disponibilité,
  * préparation, publication réelle vers `annonces`, réservation/vente/retrait,
  * audit.
  *
@@ -201,9 +201,9 @@ async function main() {
   const apresQualiteInvalide = await vehicle.obtenirVehiculeDetail(itemInvalide.id);
   verif("6. statut ERROR réellement posé quand le contrôle qualité échoue", apresQualiteInvalide.item.status === "ERROR");
 
-  // ── 7. Vehicle AI Engine : honnête, jamais inventé ─────────────────────
+  // ── 7. Vehicle Intelligence Engine : honnête, jamais inventé ────────────
   const ia = await vehicle.analyserIA(item1.id, ACTOR_ID);
-  verif("7. IA véhicule honnêtement NOT_CONNECTED (aucun moteur IA branché)", ia.status === "NOT_CONNECTED" && ia.suggestions === null);
+  verif("7. Analyse véhicule honnêtement NOT_CONNECTED (aucune brique MKA.P-MS Intelligences branchée)", ia.status === "NOT_CONNECTED" && ia.suggestions === null);
 
   // ── 8. Vehicle Pricing Engine : conversion réelle via Country OS ───────
   const prix = await vehicle.calculerPrix({ vehicleItemId: item1.id, supplierPrice: 12000, supplierCurrency: "EUR", commissionRatePct: 10, actorId: ACTOR_ID });

@@ -6,9 +6,9 @@
  *
  * Pipeline (point "OBJECTIF LOT 2" du plan) : ingestion → mapping →
  * normalisation → détection doublon → analyse VIN/données → contrôle
- * qualité → analyse IA → contrôle prix → contrôle territoires → contrôle
- * disponibilité → préparation annonce → validation → publication →
- * synchronisation continue → réservation → vente → retrait.
+ * qualité → analyse MKA.P-MS Intelligences → contrôle prix → contrôle
+ * territoires → contrôle disponibilité → préparation annonce → validation →
+ * publication → synchronisation continue → réservation → vente → retrait.
  *
  * Aucune étape n'invente une donnée : un contrôle qui ne peut pas conclure
  * répond honnêtement (avertissement, erreur, NOT_CONNECTED) plutôt que de
@@ -399,19 +399,19 @@ export async function controlerQualite(vehicleItemId: number, actorId?: number |
   return { resultat: pire, checks };
 }
 
-// ───────────────────── 7. Vehicle AI Engine (honnête) ─────────────────────
+// ───────────────────── 7. Vehicle Intelligence Engine (honnête) ─────────────────────
 
 /**
- * Point d'intégration IA : aucune clé/modèle dédié "description auto" ou
- * "score qualité photo" n'est branché aujourd'hui (voir audit LOT 2). Répond
- * honnêtement NOT_CONNECTED plutôt que d'inventer une suggestion — ne bloque
- * jamais le reste du pipeline.
+ * Point d'intégration MKA.P-MS Intelligences : aucune clé/modèle dédié
+ * "description auto" ou "score qualité photo" n'est branché aujourd'hui (voir
+ * audit LOT 2). Répond honnêtement NOT_CONNECTED plutôt que d'inventer une
+ * suggestion — ne bloque jamais le reste du pipeline.
  */
 export async function analyserIA(vehicleItemId: number, actorId?: number | null) {
   const item = await obtenirVehicule(vehicleItemId);
   const aiData = {
     status: "NOT_CONNECTED" as const,
-    reason: "Aucun moteur IA véhicule (description automatique, score qualité photo) branché pour l'instant — voir server/intelligences/outils/familles/vehicules.ts.",
+    reason: "Aucune brique MKA.P-MS Intelligences dédiée au véhicule (description automatique, score qualité photo) branchée pour l'instant — voir server/intelligences/outils/familles/vehicules.ts.",
     suggestions: null,
   };
   await db.update(vehicleItems).set({ aiData, updatedAt: new Date() }).where(eq(vehicleItems.id, vehicleItemId));

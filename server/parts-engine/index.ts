@@ -124,7 +124,7 @@ export const partsEngineRouter = router({
   // ── Parts Data Quality Engine ────────────────────────────────────────
   controlerQualite: adminProcedure.input(z.object({ supplierItemId: z.number().int().positive() })).mutation(({ ctx, input }) => controlerQualite(input.supplierItemId, ctx.user.uid)),
 
-  // ── Parts AI Engine ──────────────────────────────────────────────────
+  // ── Parts Intelligence Engine ────────────────────────────────────────
   analyserIA: adminProcedure.input(z.object({ supplierItemId: z.number().int().positive() })).mutation(({ ctx, input }) => analyserIA(input.supplierItemId, ctx.user.uid)),
 
   // ── Parts Pricing Engine ─────────────────────────────────────────────

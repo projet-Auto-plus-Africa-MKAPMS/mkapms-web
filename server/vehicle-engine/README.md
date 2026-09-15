@@ -50,7 +50,7 @@ Ce que ce moteur ajoute (rien n'existait avant, voir audit) :
 1. **Vehicle Supplier Engine** (`vehicle_items`) — fiche canonique d'un
    véhicule fourni, avec séparation stricte : `rawData` (jamais modifiée),
    `normalizedData` (mapping appliqué), `enrichedData` (VIN, contrôles
-   déterministes), `aiData` (suggestions IA seules, jamais une valeur
+   déterministes), `aiData` (suggestions MKA.P-MS Intelligences seules, jamais une valeur
    contractuelle), `validatedData` (corrections humaines, toujours
    prioritaires). Cycle de statut complet : `IMPORTED → ANALYSIS_PENDING →
    VALIDATION_PENDING → READY_TO_PUBLISH → PUBLISHED → RESERVED → SOLD` (ou
@@ -75,8 +75,8 @@ Ce que ce moteur ajoute (rien n'existait avant, voir audit) :
 8. **Vehicle Data Quality Engine** (`vehicle_quality_checks`) — contrôles
    déterministes (champs requis, VIN, prix, valeurs d'énumération de la
    marketplace) journalisés un par un, jamais un simple booléen final.
-9. **Vehicle AI Engine** — `analyserIA()` répond honnêtement
-   `NOT_CONNECTED` : aucun moteur IA véhicule (description automatique,
+9. **Vehicle Intelligence Engine** — `analyserIA()` répond honnêtement
+   `NOT_CONNECTED` : aucune brique MKA.P-MS Intelligences dédiée au véhicule (description automatique,
    score qualité photo) n'est branché aujourd'hui (voir audit). Ne bloque
    jamais le pipeline, n'invente jamais une donnée.
 10. **Vehicle Publication Engine** (`vehicle_publication_log`) — historique
@@ -87,8 +87,8 @@ Ce que ce moteur ajoute (rien n'existait avant, voir audit) :
 
 `decoderVinStructurel()` revalide localement le format ISO 3779 (longueur,
 alphabet). C'est volontairement distinct de `vehicules.decodeVIN` du Tool
-Registry IA (`server/intelligences/outils/familles/vehicules.ts`), qui sert
-l'agent conversationnel via le système d'exécution d'outils IA — un
+Registry MKA.P-MS Intelligences (`server/intelligences/outils/familles/vehicules.ts`), qui sert
+l'agent conversationnel via le système d'exécution d'outils MKA.P-MS Intelligences — un
 consommateur différent. Duplication limitée à un algorithme d'une quinzaine
 de lignes, sans état, documentée ici plutôt que masquée.
 
@@ -141,5 +141,5 @@ peuplé à chaque étape.
   Health/Feed/Dashboard.
 - **Sprint 2** — premier véhicule fournisseur réel publié de bout en bout,
   connecteurs API réels (LOT 1) branchés à une ingestion automatique.
-- **Sprint 3** — Vehicle AI Engine réellement connecté (description,
+- **Sprint 3** — Vehicle Intelligence Engine réellement connecté (description,
   score qualité photo).
