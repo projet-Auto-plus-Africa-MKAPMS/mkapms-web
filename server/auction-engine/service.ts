@@ -10,11 +10,12 @@
  *  - le prix de réserve n'est jamais exposé aux enchérisseurs ;
  *  - une enchère close sous la réserve est « sans suite », pas « adjugée ».
  */
-import { and, desc, eq, gte, lte, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte, sql, type SQL } from "drizzle-orm";
 import { db } from "../db.js";
 import { requireOpenCountry } from "../country-os/index.js";
 import { notifyEvent } from "../notification-os/triggers.js";
 import { auctionBids, auctionEvents, auctions } from "./schema.js";
+import type { CatalogCategory, LotDetails } from "./contract.js";
 
 /** Prolongation anti-sniping : une offre de dernière minute repousse la fin. */
 const ANTI_SNIPING_WINDOW_MS = 2 * 60 * 1000;
@@ -51,6 +52,8 @@ export interface CreateAuctionInput {
   endsAt: Date;
   allowedProfiles?: string[];
   photos?: string[];
+  category?: CatalogCategory;
+  lotDetails?: LotDetails;
 }
 
 export async function createAuction(input: CreateAuctionInput) {
@@ -81,6 +84,8 @@ export async function createAuction(input: CreateAuctionInput) {
       endsAt: input.endsAt,
       allowedProfiles: input.allowedProfiles ?? [],
       photos: input.photos ?? [],
+      category: input.category ?? null,
+      lotDetails: (input.lotDetails ?? {}) as Record<string, unknown>,
       status: "brouillon",
     })
     .returning();
@@ -328,12 +333,14 @@ export async function listAuctions(input: {
   audience?: AuctionAudience;
   countryCode?: string;
   status?: string;
+  category?: string;
   limit?: number;
 }) {
   const conditions: SQL[] = [eq(auctions.published, true)];
   if (input.audience) conditions.push(eq(auctions.audience, input.audience));
   if (input.countryCode) conditions.push(eq(auctions.countryCode, input.countryCode.toUpperCase()));
   if (input.status) conditions.push(eq(auctions.status, input.status));
+  if (input.category) conditions.push(eq(auctions.category, input.category));
 
   const rows = await db
     .select()
@@ -341,7 +348,30 @@ export async function listAuctions(input: {
     .where(and(...conditions))
     .orderBy(desc(auctions.endsAt))
     .limit(input.limit ?? 50);
-  return rows.map(toPublic);
+  if (rows.length === 0) return [];
+
+  // Prix courant et nombre d'enchérisseurs réels — jamais recalculés côté
+  // navigateur, une seule requête groupée pour tout le lot de résultats.
+  const ids = rows.map((r) => r.id);
+  const agg = await db
+    .select({
+      auctionId: auctionBids.auctionId,
+      meilleureOffre: sql<string>`max(${auctionBids.amount}::numeric)`,
+      encherisseurs: sql<number>`count(distinct ${auctionBids.bidderId})::int`,
+    })
+    .from(auctionBids)
+    .where(and(inArray(auctionBids.auctionId, ids), eq(auctionBids.status, "acceptee")))
+    .groupBy(auctionBids.auctionId);
+  const parAuction = new Map(agg.map((a) => [a.auctionId, a]));
+
+  return rows.map((row) => {
+    const stats = parAuction.get(row.id);
+    return {
+      ...toPublic(row),
+      currentPrice: stats ? Number(stats.meilleureOffre) : Number(row.startPrice),
+      bidderCount: stats?.encherisseurs ?? 0,
+    };
+  });
 }
 
 export async function auctionDetail(id: number) {
@@ -375,6 +405,22 @@ export async function myAuctions(sellerId: number) {
     .where(eq(auctions.sellerId, sellerId))
     .orderBy(desc(auctions.createdAt))
     .limit(100);
+}
+
+/**
+ * Enchères remportées par l'appelant — scopé côté serveur (`winnerId =
+ * bidderId`), jamais reconstruit côté écran à partir de données publiques :
+ * `winnerId` reste absent de `list`/`detail` (§ toPublic) pour ne jamais
+ * révéler l'identité du gagnant à un autre enchérisseur. Ici, l'appelant
+ * demande seulement ses propres victoires : aucune fuite possible.
+ */
+export async function myWonAuctions(bidderId: number) {
+  const rows = await db
+    .select()
+    .from(auctions)
+    .where(and(eq(auctions.status, "adjugee"), eq(auctions.winnerId, bidderId)))
+    .orderBy(desc(auctions.closedAt));
+  return rows.map(({ reservePrice, ...rest }) => ({ ...rest, hasReserve: reservePrice !== null }));
 }
 
 export async function myBids(bidderId: number) {

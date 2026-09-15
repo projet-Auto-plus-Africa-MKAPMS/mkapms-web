@@ -13,6 +13,31 @@ import {
 import { useAuth } from "../lib/auth";
 import { DocumentView, buildFactureData } from "../components/DocumentPDF";
 import { imprimerFeuille } from "../lib/documents";
+import { trpc } from "../lib/trpc";
+
+/** Ligne réelle renvoyée par `auctionEngine.list`/`detail` (server/auction-engine/). */
+interface AuctionRow {
+  id: number;
+  title: string;
+  description: string | null;
+  category: string | null;
+  lotDetails: Record<string, unknown> | null;
+  startPrice: string | number;
+  increment: string | number | null;
+  currentPrice?: number;
+  bidCount: number;
+  bidderCount?: number;
+  startsAt: Date;
+  endsAt: Date;
+  photos: string[];
+  city: string | null;
+  countryCode: string;
+  allowedProfiles: string[];
+  sellerId: number;
+  winnerId?: number | null;
+  winningAmount?: string | number | null;
+  status: string;
+}
 
 /* ═══════════════════════════════════════════════════════════
    ACHETEURS AUTORISÉS
@@ -55,7 +80,7 @@ const ETAT_LABELS: Record<EtatStatut, { label: string; color: string; icon: type
 };
 
 /* ═══════════════════════════════════════════════════════════
-   LOTS DEMO ENRICHIS
+   TYPES LOT (peuplés depuis l'Auction Engine, voir toLotType ci-dessous)
    ═══════════════════════════════════════════════════════════ */
 interface VehiculeLot { marque: string; modele: string; annee: number; km: number; etat: string; }
 interface EtatVehicule {
@@ -84,188 +109,63 @@ interface LotType {
   palier: number;
 }
 
-const LOTS: LotType[] = [
-  {
-    id: 1, titre: "Lot 5 véhicules — Reprises garage",
-    categorie: "lot", nbVehicules: 5, miseDepart: 8500, offreActuelle: 12400,
-    encheres: 14, encherisseurs: 6,
-    heureDebut: "09/06/2026 10:00", heureFin: "11/06/2026 18:00", fin: "2j 0h",
-    photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&h=400&fit=crop",
-    photos: [
-      "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80",
-      "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80",
-      "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=600&q=80",
-      "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80",
-    ],
-    marque: "Diverses", modele: "Lot mixte", version: "Voir détails", annee: "2016-2020",
-    km: "85 000 - 180 000", energie: "Diesel / Essence", boite: "Manuelle / Auto",
-    puissance: "90 - 150 ch", typeVehicule: "auto", vin: "VF1****", localisation: "Nanterre (92)",
-    etatGeneral: "À remettre en état", roulant: false,
-    etatDetail: { mecanique: "a_reparer", carrosserie: "moyen", interieur: "bon", pneus: "a_prevoir", vitrage: "bon", electronique: "moyen", documents: "bon", roulage: "a_reparer" },
-    photosCategories: { exterieur: ["https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80", "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80"], interieur: ["https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80"], moteur: ["https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=600&q=80"], coffre: [], tableau_bord: ["https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80"], dommages: ["https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80"], documents: [], pneus: [] },
-    description: "Lot de 5 véhicules de reprise nécessitant des travaux mécaniques et carrosserie. Idéal pour garages, marchands ou exportateurs.",
-    rapportDefauts: ["Distribution à faire sur 2 véhicules", "Embrayage usé (Mégane)", "Turbo HS (C4 Cactus)", "Boîte de vitesse bruyante (Golf)", "Moteur consommation d'huile (Focus)"],
-    rapportTravaux: ["Distribution x2 : ~1 200 €", "Embrayage : ~800 €", "Turbo remplacement : ~1 500 €", "Boîte reconditionnée : ~1 800 €", "Moteur à réviser : ~600 €"],
-    rapportEstimation: 5900,
-    rapportDocuments: ["Carte grise x5", "Contrôle technique x3 (2 sans)", "Carnet entretien x2"],
-    rapportRemarques: ["Véhicules stockés en extérieur", "Kilométrages vérifiés HistoVec", "Lot non divisible"],
-    vehicules: [
-      { marque: "Peugeot", modele: "308 SW", annee: 2018, km: 95000, etat: "Distribution à faire" },
-      { marque: "Renault", modele: "Mégane IV", annee: 2019, km: 85000, etat: "Embrayage usé" },
-      { marque: "Citroën", modele: "C4 Cactus", annee: 2017, km: 110000, etat: "Turbo HS" },
-      { marque: "Volkswagen", modele: "Golf VII", annee: 2016, km: 140000, etat: "Boîte bruyante" },
-      { marque: "Ford", modele: "Focus III", annee: 2018, km: 105000, etat: "Consommation d'huile" },
-    ],
-    badges: ["LOT PRO", "NON ROULANT", "REPRISE CLIENT"],
-    palier: 200,
-  },
-  {
-    id: 2, titre: "BMW 320d — Accident léger AVD",
-    categorie: "accidente", nbVehicules: 1, miseDepart: 6000, offreActuelle: 8200,
-    encheres: 8, encherisseurs: 4,
-    heureDebut: "09/06/2026 14:00", heureFin: "12/06/2026 14:00", fin: "3j 0h",
-    photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&h=400&fit=crop",
-    photos: [
-      "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80",
-      "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80",
-    ],
-    marque: "BMW", modele: "Série 3", version: "320d Sport", annee: "2019",
-    km: "78 000", energie: "Diesel", boite: "Automatique", puissance: "190 ch",
-    typeVehicule: "auto", vin: "WBA8****", localisation: "Boulogne (92)",
-    etatGeneral: "Accident léger avant-droit", roulant: true,
-    etatDetail: { mecanique: "bon", carrosserie: "a_reparer", interieur: "bon", pneus: "bon", vitrage: "a_prevoir", electronique: "bon", documents: "bon", roulage: "bon" },
-    photosCategories: { exterieur: ["https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80"], interieur: ["https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80"], moteur: [], coffre: [], tableau_bord: [], dommages: ["https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80"], documents: [], pneus: [] },
-    description: "BMW 320d accidentée côté avant droit. Mécanique parfaite, carrosserie à refaire. Très bonne affaire pour carrossier.",
-    rapportDefauts: ["Aile avant droite enfoncée", "Pare-chocs avant fissuré", "Phare AV droit cassé", "Léger décalage capot"],
-    rapportTravaux: ["Aile AV droite : ~350 €", "Pare-chocs AV : ~280 €", "Phare AV droit : ~400 €", "Peinture : ~600 €", "Main d'œuvre : ~500 €"],
-    rapportEstimation: 2130,
-    rapportDocuments: ["Carte grise", "Contrôle technique OK", "Carnet entretien BMW", "Factures entretien"],
-    rapportRemarques: ["Mécanique parfaite", "Entretien BMW suivi", "Pneus neufs", "Boîte auto ZF 8HP parfaite"],
-    vehicules: [{ marque: "BMW", modele: "320d Sport", annee: 2019, km: 78000, etat: "Aile + pare-chocs + phare AVD" }],
-    badges: ["ENCHÈRE PRO", "CARROSSERIE", "ROULANT"],
-    palier: 200,
-  },
-  {
-    id: 3, titre: "Renault Clio V — Bielle coulée",
-    categorie: "mecanique", nbVehicules: 1, miseDepart: 2500, offreActuelle: 3800,
-    encheres: 11, encherisseurs: 7,
-    heureDebut: "08/06/2026 10:00", heureFin: "10/06/2026 18:00", fin: "1j 0h",
-    photo: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=600&h=400&fit=crop",
-    photos: [
-      "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=600&q=80",
-      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80",
-    ],
-    marque: "Renault", modele: "Clio V", version: "1.0 TCe 100", annee: "2021",
-    km: "45 000", energie: "Essence", boite: "Manuelle", puissance: "100 ch",
-    typeVehicule: "auto", vin: "VF1R****", localisation: "Courbevoie (92)",
-    etatGeneral: "Panne moteur — bielle coulée", roulant: false,
-    etatDetail: { mecanique: "a_reparer", carrosserie: "bon", interieur: "bon", pneus: "bon", vitrage: "bon", electronique: "bon", documents: "bon", roulage: "a_reparer" },
-    photosCategories: { exterieur: ["https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=600&q=80"], interieur: [], moteur: ["https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80"], coffre: [], tableau_bord: [], dommages: ["https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=600&q=80"], documents: [], pneus: [] },
-    description: "Clio V récente, panne moteur importante. Carrosserie et intérieur impeccables. Idéale pour garage spécialisé ou exportateur.",
-    rapportDefauts: ["Bielle coulée — moteur hors service", "Voyant moteur allumé", "Huile dans liquide de refroidissement"],
-    rapportTravaux: ["Moteur échange standard : ~2 500 €", "Main d'œuvre : ~800 €", "Fluides et filtres : ~150 €"],
-    rapportEstimation: 3450,
-    rapportDocuments: ["Carte grise", "Pas de CT (véhicule récent)", "Carnet entretien Renault"],
-    rapportRemarques: ["Carrosserie impeccable", "Intérieur comme neuf", "45 000 km réels vérifiés"],
-    vehicules: [{ marque: "Renault", modele: "Clio V", annee: 2021, km: 45000, etat: "Bielle coulée — moteur HS" }],
-    badges: ["ENCHÈRE PRO", "MÉCANIQUE", "NON ROULANT"],
-    palier: 100,
-  },
-  {
-    id: 4, titre: "Lot 3 — Fin de flotte location",
-    categorie: "flotte", nbVehicules: 3, miseDepart: 15000, offreActuelle: 19500,
-    encheres: 6, encherisseurs: 3,
-    heureDebut: "09/06/2026 08:00", heureFin: "13/06/2026 18:00", fin: "4j 0h",
-    photo: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&h=400&fit=crop",
-    photos: [
-      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80",
-      "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80",
-      "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80",
-    ],
-    marque: "Diverses", modele: "Flotte MKA.P-MS", version: "", annee: "2021-2022",
-    km: "120 000 - 160 000", energie: "Diesel", boite: "Manuelle / Auto",
-    puissance: "110 - 180 ch", typeVehicule: "auto", vin: "VF1****", localisation: "Nanterre (92)",
-    etatGeneral: "Fin de cycle — amortis", roulant: true,
-    etatDetail: { mecanique: "moyen", carrosserie: "moyen", interieur: "moyen", pneus: "a_prevoir", vitrage: "bon", electronique: "bon", documents: "bon", roulage: "bon" },
-    photosCategories: { exterieur: ["https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80", "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80"], interieur: ["https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80"], moteur: [], coffre: [], tableau_bord: [], dommages: [], documents: [], pneus: [] },
-    description: "3 véhicules flotte location MKA.P-MS en fin de cycle. Entretien constructeur suivi. Parfait pour revente ou export.",
-    rapportDefauts: ["Kilométrage élevé", "Traces d'usure normales location", "Pneus à remplacer sur 2 véhicules", "Distribution à prévoir (C5 Aircross)"],
-    rapportTravaux: ["Pneus x8 : ~520 €", "Distribution C5 Aircross : ~650 €", "Révision complète x3 : ~450 €"],
-    rapportEstimation: 1620,
-    rapportDocuments: ["Cartes grises x3", "CT OK x3", "Carnet entretien constructeur x3", "Historique location"],
-    rapportRemarques: ["Entretien constructeur suivi", "Kilométrages réels vérifiés", "Lot non divisible"],
-    vehicules: [
-      { marque: "Peugeot", modele: "3008 GT", annee: 2021, km: 125000, etat: "Entretien OK — pneus à changer" },
-      { marque: "Renault", modele: "Kadjar", annee: 2022, km: 135000, etat: "Révision complète faite" },
-      { marque: "Citroën", modele: "C5 Aircross", annee: 2021, km: 155000, etat: "Distribution à prévoir" },
-    ],
-    badges: ["LOT PRO", "FLOTTE", "ROULANT"],
-    palier: 500,
-  },
-  {
-    id: 5, titre: "Mercedes Classe A 180d — Export",
-    categorie: "export", nbVehicules: 1, miseDepart: 9000, offreActuelle: 11200,
-    encheres: 9, encherisseurs: 5,
-    heureDebut: "09/06/2026 10:00", heureFin: "12/06/2026 10:00", fin: "3j 0h",
-    photo: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&h=400&fit=crop",
-    photos: [
-      "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80",
-      "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80",
-    ],
-    marque: "Mercedes", modele: "Classe A", version: "180d AMG Line", annee: "2022",
-    km: "140 000", energie: "Diesel", boite: "Automatique", puissance: "116 ch",
-    typeVehicule: "auto", vin: "WDD1****", localisation: "Sèvres (92)",
-    etatGeneral: "Fin de contrat location — haute km", roulant: true,
-    etatDetail: { mecanique: "bon", carrosserie: "moyen", interieur: "moyen", pneus: "a_prevoir", vitrage: "bon", electronique: "bon", documents: "bon", roulage: "bon" },
-    photosCategories: { exterieur: ["https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80"], interieur: ["https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80"], moteur: [], coffre: [], tableau_bord: [], dommages: [], documents: [], pneus: [] },
-    description: "Mercedes Classe A 180d AMG Line, retour location longue durée. Kilométrage élevé mais mécanique irréprochable. Export possible.",
-    rapportDefauts: ["Kilométrage élevé", "Micro-rayures carrosserie", "Siège conducteur légèrement usé", "Pneus avant à remplacer"],
-    rapportTravaux: ["Pneus avant x2 : ~300 €", "Lustrage carrosserie : ~200 €", "Nettoyage cuir : ~100 €"],
-    rapportEstimation: 600,
-    rapportDocuments: ["Carte grise", "CT OK", "Carnet entretien Mercedes", "Historique complet"],
-    rapportRemarques: ["Mécanique Mercedes irréprochable", "Boîte DCT parfaite", "Idéal export Afrique"],
-    vehicules: [{ marque: "Mercedes", modele: "Classe A 180d AMG Line", annee: 2022, km: 140000, etat: "Fin de location — bon état" }],
-    badges: ["ENCHÈRE PRO", "EXPORT", "STOCK MKA.P-MS"],
-    palier: 200,
-  },
-  {
-    id: 6, titre: "Citroën C3 Aircross — Carrosserie",
-    categorie: "carrosserie", nbVehicules: 1, miseDepart: 4000, offreActuelle: 5100,
-    encheres: 5, encherisseurs: 3,
-    heureDebut: "09/06/2026 08:00", heureFin: "11/06/2026 18:00", fin: "2j 0h",
-    photo: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&h=400&fit=crop",
-    photos: [
-      "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80",
-      "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80",
-    ],
-    marque: "Citroën", modele: "C3 Aircross", version: "1.2 PureTech 110", annee: "2020",
-    km: "92 000", energie: "Essence", boite: "Manuelle", puissance: "110 ch",
-    typeVehicule: "auto", vin: "VF7S****", localisation: "Levallois (92)",
-    etatGeneral: "Carrosserie endommagée — mécanique OK", roulant: true,
-    etatDetail: { mecanique: "bon", carrosserie: "a_reparer", interieur: "bon", pneus: "moyen", vitrage: "bon", electronique: "bon", documents: "bon", roulage: "bon" },
-    photosCategories: { exterieur: ["https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80"], interieur: [], moteur: [], coffre: [], tableau_bord: [], dommages: ["https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80", "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80"], documents: [], pneus: [] },
-    description: "C3 Aircross avec carrosserie endommagée sur côté gauche. Mécanique parfaitement fonctionnelle.",
-    rapportDefauts: ["Porte AVG enfoncée", "Aile AVG rayée", "Rétroviseur AVG cassé", "Peinture à refaire côté gauche"],
-    rapportTravaux: ["Porte AVG : ~400 €", "Aile AVG : ~250 €", "Rétroviseur : ~120 €", "Peinture côté G : ~600 €", "Main d'œuvre : ~350 €"],
-    rapportEstimation: 1720,
-    rapportDocuments: ["Carte grise", "CT OK", "Carnet entretien"],
-    rapportRemarques: ["Mécanique parfaite", "Intérieur propre", "Roulant sans problème"],
-    vehicules: [{ marque: "Citroën", modele: "C3 Aircross", annee: 2020, km: 92000, etat: "Carrosserie AVG endommagée" }],
-    badges: ["ENCHÈRE PRO", "CARROSSERIE", "ROULANT"],
-    palier: 100,
-  },
-];
+/**
+ * Traduit une ligne réelle de l'Auction Engine (server/auction-engine/) vers
+ * la forme d'écran `LotType`. Le contenu descriptif riche (véhicules
+ * groupés, état par sous-système, galeries de photos catégorisées) vit dans
+ * `lotDetails` (jsonb) côté serveur — un lot qui n'a pas encore renseigné un
+ * champ optionnel affiche honnêtement une valeur vide, jamais une donnée
+ * inventée. Le prix, les enchères et le palier viennent toujours des
+ * colonnes réelles de `auctions`, jamais de `lotDetails`.
+ */
+function toLotType(row: AuctionRow): LotType {
+  const d = (row.lotDetails ?? {}) as Record<string, any>;
+  const photosCategoriesVides = { exterieur: [], interieur: [], moteur: [], coffre: [], tableau_bord: [], dommages: [], documents: [], pneus: [] };
+  const etatDetailVide = { mecanique: "non_controle", carrosserie: "non_controle", interieur: "non_controle", pneus: "non_controle", vitrage: "non_controle", electronique: "non_controle", documents: "non_controle", roulage: "non_controle" };
+  const finMs = new Date(row.endsAt).getTime() - Date.now();
+  const finLabel = finMs <= 0 ? "Terminée" : `${Math.floor(finMs / 86400000)}j ${Math.floor((finMs % 86400000) / 3600000)}h`;
+  return {
+    id: row.id,
+    titre: row.title,
+    categorie: row.category ?? "",
+    nbVehicules: d.nbVehicules ?? 1,
+    miseDepart: Number(row.startPrice),
+    offreActuelle: row.currentPrice ?? Number(row.startPrice),
+    encheres: row.bidCount ?? 0,
+    encherisseurs: row.bidderCount ?? 0,
+    heureDebut: new Date(row.startsAt).toLocaleString("fr-FR"),
+    heureFin: new Date(row.endsAt).toLocaleString("fr-FR"),
+    fin: finLabel,
+    photo: row.photos?.[0] ?? "",
+    photos: row.photos ?? [],
+    photosCategories: { ...photosCategoriesVides, ...(d.photosCategories ?? {}) },
+    marque: d.marque ?? "", modele: d.modele ?? "", version: d.version ?? "", annee: d.annee ?? "",
+    km: d.km ?? "", energie: d.energie ?? "", boite: d.boite ?? "", puissance: d.puissance ?? "",
+    typeVehicule: d.typeVehicule ?? "auto",
+    cylindree: d.cylindree, nbRoues: d.nbRoues, ptac: d.ptac, nbEssieux: d.nbEssieux, hauteur: d.hauteur,
+    vin: d.vin ?? "",
+    localisation: [row.city, row.countryCode].filter(Boolean).join(" — "),
+    etatGeneral: d.etatGeneral ?? "Non renseigné",
+    roulant: d.roulant ?? true,
+    etatDetail: { ...etatDetailVide, ...(d.etatDetail ?? {}) },
+    description: row.description ?? "",
+    rapportDefauts: d.rapportDefauts ?? [],
+    rapportTravaux: d.rapportTravaux ?? [],
+    rapportEstimation: d.rapportEstimation ?? 0,
+    rapportDocuments: d.rapportDocuments ?? [],
+    rapportRemarques: d.rapportRemarques ?? [],
+    vehicules: d.vehicules ?? [],
+    badges: d.badges ?? [],
+    palier: Number(row.increment ?? 100),
+  };
+}
 
-/* Enchères remportées demo */
+
+/* Enchère remportée par l'utilisateur (issue de auctionEngine.myWonAuctions) */
 interface EnchereRemportee {
   lotId: number; titre: string; montant: number; date: string;
   statut: "remportee" | "paiement_attente" | "paye" | "retrait_programme" | "livre" | "cloture";
 }
-const MES_ENCHERES_DEMO: EnchereRemportee[] = [
-  { lotId: 10, titre: "Peugeot 208 — Reprise client", montant: 4200, date: "05/06/2026", statut: "paye" },
-  { lotId: 11, titre: "Lot 2 utilitaires — Flotte", montant: 8900, date: "02/06/2026", statut: "livre" },
-  { lotId: 12, titre: "Dacia Duster — Mécanique", montant: 3100, date: "31/05/2026", statut: "cloture" },
-];
 
 const STATUT_LABELS: Record<string, { label: string; color: string }> = {
   remportee: { label: "Enchère remportée", color: "text-green-700 bg-green-50" },
@@ -283,13 +183,40 @@ export default function VenteEncheres() {
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
+  // ── Données réelles (Auction Engine) ─────────────────────────────────
+  const catalogueQuery = trpc.auctionEngine.list.useQuery({ audience: "professionnel", status: "en_cours" });
+  const prochainesQuery = trpc.auctionEngine.list.useQuery({ audience: "professionnel", status: "programmee" });
+  const wonAuctionsQuery = trpc.auctionEngine.myWonAuctions.useQuery(undefined, { enabled: !!user });
+  const myBidsQuery = trpc.auctionEngine.myBids.useQuery(undefined, { enabled: !!user });
+
+  const lots = useMemo<LotType[]>(() => ((catalogueQuery.data ?? []) as AuctionRow[]).map(toLotType), [catalogueQuery.data]);
+  const prochainesLots = useMemo<LotType[]>(() => ((prochainesQuery.data ?? []) as AuctionRow[]).map(toLotType), [prochainesQuery.data]);
+
+  /**
+   * Lots remportés : `myWonAuctions` est scopée côté serveur
+   * (`winnerId = moi`), jamais reconstruite depuis des données publiques —
+   * `winnerId` n'apparaît jamais dans le catalogue public. Sans virement/
+   * livraison suivis par un moteur aujourd'hui, le statut reste honnêtement
+   * "remportee" — jamais "livre"/"retrait_programme" : rien ne le prouve
+   * encore (voir Document Custody Engine, LOT 6, à terme).
+   */
+  const mesEncheres = useMemo<EnchereRemportee[]>(() => {
+    return ((wonAuctionsQuery.data ?? []) as AuctionRow[]).map((a) => ({
+      lotId: a.id,
+      titre: a.title,
+      montant: Number(a.winningAmount ?? 0),
+      date: new Date(a.endsAt).toLocaleDateString("fr-FR"),
+      statut: "remportee" as const,
+    }));
+  }, [wonAuctionsQuery.data]);
+
   /**
    * Bordereau du lot remporté : les pièces d'origine (carte grise, PV) ne sont
    * pas archivées dans la plateforme, on édite donc le bordereau réellement
    * connu et on le dit, au lieu d'annoncer un fichier qui n'existe pas.
    */
   function imprimerBordereau(e: EnchereRemportee) {
-    const lot = LOTS.find((l) => l.id === e.lotId);
+    const lot = lots.find((l) => l.id === e.lotId);
     const ok = imprimerFeuille({
       typeDocument: "bordereau_enchere",
       titre: "Bordereau d'adjudication",
@@ -378,26 +305,49 @@ export default function VenteEncheres() {
   /* Enchère */
   const [enchereInput, setEnchereInput] = useState("");
   const [showBidConfirm, setShowBidConfirm] = useState(false);
-  const [bidHistory] = useState<{ montant: number; heure: string; pro: string }[]>([
-    { montant: 12400, heure: "14:32", pro: "Enchérisseur #7" },
-    { montant: 12200, heure: "14:15", pro: "Enchérisseur #3" },
-    { montant: 12000, heure: "13:48", pro: "Enchérisseur #5" },
-    { montant: 11500, heure: "12:20", pro: "Enchérisseur #7" },
-    { montant: 11000, heure: "11:05", pro: "Enchérisseur #2" },
-    { montant: 10500, heure: "10:30", pro: "Enchérisseur #3" },
-    { montant: 10000, heure: "10:00", pro: "Enchérisseur #5" },
-  ]);
 
   /* Photo viewer */
   const [photoIdx, setPhotoIdx] = useState(0);
   const [photoCat, setPhotoCat] = useState("exterieur");
   const [selectedVehiculeIdx, setSelectedVehiculeIdx] = useState<number | null>(null);
 
-  const selectedLot = LOTS.find((l) => l.id === selectedLotId);
+  const selectedLot = lots.find((l) => l.id === selectedLotId) ?? prochainesLots.find((l) => l.id === selectedLotId);
   const isPro = user?.accountType === "professionnel" || user?.accountType === "admin";
 
+  /**
+   * Historique des offres du lot ouvert — issu de `auctionDetail`, jamais
+   * fabriqué. Le serveur ne renvoie que les offres acceptées ; `bidderId`
+   * reste le seul identifiant disponible, affiché comme un numéro anonyme.
+   */
+  const detailQuery = trpc.auctionEngine.detail.useQuery(
+    { id: selectedLotId ?? 0 },
+    { enabled: selectedLotId !== null },
+  );
+  const bidHistory = useMemo(() => {
+    const bids = (detailQuery.data?.bids ?? []) as { bidderId: number; amount: string | number; createdAt: Date }[];
+    return bids.map((b) => ({
+      montant: Number(b.amount),
+      heure: new Date(b.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+      pro: `Enchérisseur #${b.bidderId}`,
+    }));
+  }, [detailQuery.data]);
+
+  const bidMutation = trpc.auctionEngine.bid.useMutation({
+    onSuccess: (result) => {
+      if (result.accepted) {
+        showToast(`Enchere de ${Number(result.amount ?? 0).toLocaleString("fr-FR")} EUR confirmee !`);
+        setEnchereInput("");
+        catalogueQuery.refetch();
+        detailQuery.refetch();
+      } else {
+        showToast(result.reason ?? "Enchere refusee.");
+      }
+    },
+    onError: (err) => showToast(err.message || "Erreur lors de l'enchere."),
+  });
+
   const filteredLots = useMemo(() => {
-    return LOTS.filter((l) => {
+    return lots.filter((l) => {
       if (filterCat && l.categorie !== filterCat) return false;
       if (filterMarque && !l.marque.toLowerCase().includes(filterMarque.toLowerCase())) return false;
       if (filterEnergie && !l.energie.toLowerCase().includes(filterEnergie.toLowerCase())) return false;
@@ -406,7 +356,31 @@ export default function VenteEncheres() {
       if (filterPrixMax && l.miseDepart > Number(filterPrixMax)) return false;
       return true;
     });
-  }, [filterCat, filterMarque, filterEnergie, filterRoulant, filterPrixMax]);
+  }, [lots, filterCat, filterMarque, filterEnergie, filterRoulant, filterPrixMax]);
+
+  /**
+   * Stats du tableau de bord "Mes enchères" — dérivées des offres réelles de
+   * l'utilisateur (`myBids`) croisées avec le catalogue actif et les lots
+   * remportés. "En cours" = offre acceptée sur un lot toujours actif,
+   * "Perdue" = offre acceptée sur un lot clos que l'utilisateur n'a pas
+   * remporté. Aucune de ces valeurs n'est déclarée sans preuve serveur.
+   */
+  const mesEncheresStats = useMemo(() => {
+    const accepted = ((myBidsQuery.data ?? []) as { auctionId: number; status: string }[]).filter(
+      (b) => b.status === "acceptee",
+    );
+    const auctionIdsBid = new Set(accepted.map((b) => b.auctionId));
+    const wonIds = new Set(mesEncheres.map((e) => e.lotId));
+    const activeIds = new Set(lots.map((l) => l.id));
+    let enCours = 0;
+    let perdues = 0;
+    auctionIdsBid.forEach((id) => {
+      if (wonIds.has(id)) return;
+      if (activeIds.has(id)) enCours++;
+      else perdues++;
+    });
+    return { suivies: watchList.length, enCours, gagnees: mesEncheres.length, perdues };
+  }, [myBidsQuery.data, mesEncheres, lots, watchList]);
 
   const ToastEl = toast ? (
     <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] rounded-xl bg-purple-600 px-6 py-3 text-sm font-bold text-white shadow-2xl animate-pulse max-w-sm text-center">{toast}</div>
@@ -511,10 +485,10 @@ export default function VenteEncheres() {
         <div className="px-4 md:px-8 max-w-6xl mx-auto mt-12 mb-12">
           <div className="grid grid-cols-4 gap-4">
             {[
-              { val: `${LOTS.length}`, label: "Lots en cours" },
-              { val: `${LOTS.reduce((s, l) => s + l.encherisseurs, 0)}`, label: "Enchérisseurs" },
-              { val: `${LOTS.reduce((s, l) => s + l.nbVehicules, 0)}`, label: "Véhicules" },
-              { val: `${Math.round(LOTS.reduce((s, l) => s + l.offreActuelle, 0) / 1000)}k €`, label: "Volume" },
+              { val: `${lots.length}`, label: "Lots en cours" },
+              { val: `${lots.reduce((s, l) => s + l.encherisseurs, 0)}`, label: "Enchérisseurs" },
+              { val: `${lots.reduce((s, l) => s + l.nbVehicules, 0)}`, label: "Véhicules" },
+              { val: `${Math.round(lots.reduce((s, l) => s + l.offreActuelle, 0) / 1000)}k €`, label: "Volume" },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p className="text-2xl font-black text-[#D4AF37]">{s.val}</p>
@@ -572,10 +546,10 @@ export default function VenteEncheres() {
         {/* Stats */}
         <div className="px-4 mt-6 grid grid-cols-4 gap-2">
           {[
-            { val: "3", label: "Suivies", color: "text-blue-400" },
-            { val: "2", label: "En cours", color: "text-purple-400" },
-            { val: "1", label: "Gagnées", color: "text-green-400" },
-            { val: "2", label: "Perdues", color: "text-red-400" },
+            { val: `${mesEncheresStats.suivies}`, label: "Suivies", color: "text-blue-400" },
+            { val: `${mesEncheresStats.enCours}`, label: "En cours", color: "text-purple-400" },
+            { val: `${mesEncheresStats.gagnees}`, label: "Gagnées", color: "text-green-400" },
+            { val: `${mesEncheresStats.perdues}`, label: "Perdues", color: "text-red-400" },
           ].map((s) => (
             <div key={s.label} className="rounded-xl bg-white/5 border border-white/10 p-3 text-center">
               <p className={`text-xl font-black ${s.color}`}>{s.val}</p>
@@ -588,7 +562,10 @@ export default function VenteEncheres() {
         <div className="px-4 mt-6 space-y-4">
           <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
             <h3 className="text-sm font-bold text-white mb-3">Enchères suivies</h3>
-            {LOTS.slice(0, 3).map((l) => (
+            {lots.filter((l) => watchList.includes(l.id)).length === 0 && (
+              <p className="text-xs text-white/30 py-2">Aucun lot ajouté à votre liste de suivi.</p>
+            )}
+            {lots.filter((l) => watchList.includes(l.id)).map((l) => (
               <div key={l.id} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0 cursor-pointer" onClick={() => { setSelectedLotId(l.id); setMode("detail"); }}>
                 <img src={l.photo} alt="" className="h-10 w-14 rounded-lg object-cover shrink-0" />
                 <div className="flex-1 min-w-0"><p className="text-xs font-bold text-white truncate">{l.titre}</p><p className="text-[10px] text-white/40">{l.fin} restant</p></div>
@@ -607,7 +584,8 @@ export default function VenteEncheres() {
 
           <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
             <h3 className="text-sm font-bold text-white mb-3">Factures et documents</h3>
-            {MES_ENCHERES_DEMO.filter((e) => e.statut !== "paiement_attente").map((e) => (
+            {mesEncheres.length === 0 && <p className="text-xs text-white/30 py-2">Aucune enchère remportée pour le moment.</p>}
+            {mesEncheres.filter((e) => e.statut !== "paiement_attente").map((e) => (
               <div key={e.lotId} onClick={() => setMode("remportes")} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0 cursor-pointer hover:bg-white/5 transition rounded-lg px-2">
                 <Receipt size={14} className="text-white/40" />
                 <div className="flex-1"><p className="text-xs font-bold text-white">{e.titre}</p><p className="text-[10px] text-white/40">{e.date} — {e.montant.toLocaleString("fr-FR")} €</p></div>
@@ -631,7 +609,10 @@ export default function VenteEncheres() {
           <h1 className="text-xl font-black text-white flex items-center gap-2"><Award size={20} className="text-[#D4AF37]" /> Véhicules remportés</h1>
         </div>
         <div className="px-4 mt-6 space-y-3">
-          {MES_ENCHERES_DEMO.map((e) => {
+          {mesEncheres.length === 0 && (
+            <p className="text-center text-white/30 py-12">Aucun véhicule remporté pour le moment.</p>
+          )}
+          {mesEncheres.map((e) => {
             const st = STATUT_LABELS[e.statut];
             return (
               <div key={e.lotId} className="rounded-2xl bg-white/5 border border-white/10 p-5">
@@ -677,24 +658,23 @@ export default function VenteEncheres() {
           <h1 className="text-xl font-black text-white flex items-center gap-2"><Calendar size={20} className="text-blue-400" /> Prochaines ventes</h1>
         </div>
         <div className="px-4 mt-6 space-y-4">
-          {[
-            { date: "15/06/2026", titre: "Vente lot reprises #24", lots: 8, vehicules: 15, desc: "Reprises garage juin 2026" },
-            { date: "20/06/2026", titre: "Vente flotte location MKA.P-MS", lots: 5, vehicules: 12, desc: "Véhicules de location amortis Q2 2026" },
-            { date: "25/06/2026", titre: "Vente export Afrique #12", lots: 6, vehicules: 10, desc: "Véhicules préparés pour l'export" },
-          ].map((v) => (
-            <div key={v.date} className="rounded-2xl bg-white/5 border border-white/10 p-5">
+          {prochainesLots.length === 0 && (
+            <p className="text-center text-white/30 py-12">Aucune vente programmée pour le moment.</p>
+          )}
+          {prochainesLots.map((v) => (
+            <div key={v.id} className="rounded-2xl bg-white/5 border border-white/10 p-5">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-bold text-white">{v.titre}</p>
-                  <p className="text-[10px] text-white/40 mt-0.5">{v.desc}</p>
+                  <p className="text-[10px] text-white/40 mt-0.5">{v.localisation}</p>
                 </div>
-                <span className="rounded-full bg-blue-500/20 px-3 py-1 text-[10px] font-bold text-blue-400">{v.date}</span>
+                <span className="rounded-full bg-blue-500/20 px-3 py-1 text-[10px] font-bold text-blue-400">{v.heureDebut}</span>
               </div>
               <div className="mt-3 flex gap-4 text-xs">
-                <span className="text-white/60">{v.lots} lots</span>
-                <span className="text-white/60">{v.vehicules} véhicules</span>
+                <span className="text-white/60">{v.nbVehicules} véhicule(s)</span>
+                <span className="text-white/60">Mise à prix : {v.miseDepart.toLocaleString("fr-FR")} €</span>
               </div>
-              <button onClick={() => showToast('Inscription confirmee — vous serez notifie le jour de la vente')} className="mt-3 rounded-xl bg-purple-600 px-4 py-2 text-xs font-bold text-white hover:bg-purple-700 transition">S'inscrire a la vente</button>
+              <button onClick={() => { setSelectedLotId(v.id); setMode("detail"); }} className="mt-3 rounded-xl bg-purple-600 px-4 py-2 text-xs font-bold text-white hover:bg-purple-700 transition">Voir le lot</button>
             </div>
           ))}
         </div>
@@ -1067,9 +1047,14 @@ export default function VenteEncheres() {
                 <p className="text-[10px] text-amber-400 flex items-start gap-1"><AlertTriangle size={10} className="mt-0.5 shrink-0" /> En confirmant, votre enchère est irrévocable. Si vous remportez le lot, le paiement est obligatoire sous 48h.</p>
               </div>
               <div className="space-y-2">
-                <button className="w-full rounded-xl bg-purple-600 py-3 text-sm font-bold text-white hover:bg-purple-700 transition"
-                  onClick={() => { setShowBidConfirm(false); showToast(`Enchere de ${Number(enchereInput).toLocaleString('fr-FR')} EUR confirmee !`); setEnchereInput(""); }}>
-                  Confirmer l'enchère — {Number(enchereInput).toLocaleString("fr-FR")} €
+                <button className="w-full rounded-xl bg-purple-600 py-3 text-sm font-bold text-white hover:bg-purple-700 disabled:opacity-50 transition"
+                  disabled={bidMutation.isPending}
+                  onClick={() => {
+                    if (!selectedLot) return;
+                    setShowBidConfirm(false);
+                    bidMutation.mutate({ auctionId: selectedLot.id, amount: Number(enchereInput) });
+                  }}>
+                  {bidMutation.isPending ? "Envoi…" : `Confirmer l'enchère — ${Number(enchereInput).toLocaleString("fr-FR")} €`}
                 </button>
                 <button className="w-full rounded-xl bg-white/5 border border-white/10 py-3 text-sm font-semibold text-white/60" onClick={() => setShowBidConfirm(false)}>Annuler</button>
               </div>

@@ -99,14 +99,14 @@ export interface PerimetreMoteur {
   readonly manques: readonly ManqueMoteur[];
 }
 
-export const MOTEURS_TOTAL = 95;
-export const MANQUES_TOTAL = 621;
+export const MOTEURS_TOTAL = 94;
+export const MANQUES_TOTAL = 619;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "bouton_sans_action": 183,
-  "sans_logique_serveur": 12,
+  "sans_logique_serveur": 11,
   "sans_ecran": 10,
-  "dependance_sans_preuve": 44,
+  "dependance_sans_preuve": 43,
   "bouton_declare_absent_ecran": 3,
   "dependance_non_declaree": 26,
   "emission_dynamique": 2
@@ -2761,11 +2761,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "auctionEngine"
     ],
-    "fichiersServeur": 3,
+    "fichiersServeur": 4,
     "dependancesDeclarees": [
       "core",
       "country",
       "notification",
+      "payment",
       "visibility"
     ],
     "dependancesDetectees": [
@@ -2778,6 +2779,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "country",
       "notification",
+      "payment",
       "visibility"
     ],
     "integrationsTechniques": [],
@@ -2797,15 +2799,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "auction-engine/service.ts charge visibility-os/index.ts"
       ]
     },
-    "dependants": [
-      "encheres"
-    ],
+    "dependants": [],
     "evenementsPublies": [],
     "evenementsConsommes": [],
     "abonnements": [],
     "sourcesEmission": [],
     "boutons": [],
     "routes": [
+      "/acheter/encheres",
+      "/encheres",
       "/encheres/live"
     ],
     "ecrans": [
@@ -2819,12 +2821,25 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "sansAction": 0,
         "textes": 11,
         "mots": 51
+      },
+      {
+        "fichier": "client/src/pages/VenteEncheres.tsx",
+        "routes": [
+          "/acheter/encheres"
+        ],
+        "cliquables": 38,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 205,
+        "mots": 646
       }
     ],
     "ecransHotes": [],
     "procedures": [
       "bid",
+      "buyerProfiles",
       "cancel",
+      "catalogCategories",
       "close",
       "closeExpired",
       "create",
@@ -2833,6 +2848,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "list",
       "myAuctions",
       "myBids",
+      "myWonAuctions",
       "publish"
     ],
     "tables": [
@@ -2845,10 +2861,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 11,
-    "mots": 51,
+    "textes": 216,
+    "mots": 697,
     "battement": "sonde",
-    "manques": []
+    "manques": [
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "payment"
+      }
+    ]
   },
   {
     "moteur": "audit",
@@ -5553,7 +5574,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "depannage",
       "document",
       "document_engine",
-      "encheres",
       "energie_recharge",
       "estimation",
       "event_bus",
@@ -7172,72 +7192,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "sans_ecran",
         "detail": "aucune route client ne mène à ce moteur"
-      }
-    ]
-  },
-  {
-    "moteur": "encheres",
-    "label": "Enchères Engine",
-    "categorie": "service",
-    "etatDeclare": "active",
-    "dossiers": [],
-    "routeurs": [],
-    "fichiersServeur": 0,
-    "dependancesDeclarees": [
-      "auction_engine",
-      "core",
-      "payment"
-    ],
-    "dependancesDetectees": [],
-    "dependances": [
-      "auction_engine",
-      "core",
-      "payment"
-    ],
-    "integrationsTechniques": [],
-    "preuvesDependances": {},
-    "dependants": [],
-    "evenementsPublies": [],
-    "evenementsConsommes": [],
-    "abonnements": [],
-    "sourcesEmission": [],
-    "boutons": [],
-    "routes": [
-      "/acheter/encheres",
-      "/encheres"
-    ],
-    "ecrans": [
-      {
-        "fichier": "client/src/pages/VenteEncheres.tsx",
-        "routes": [
-          "/acheter/encheres"
-        ],
-        "cliquables": 38,
-        "parMoteur": 0,
-        "sansAction": 0,
-        "textes": 221,
-        "mots": 682
-      }
-    ],
-    "ecransHotes": [],
-    "procedures": [],
-    "tables": [],
-    "acces": [],
-    "textes": 221,
-    "mots": 682,
-    "battement": "sonde",
-    "manques": [
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "payment"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "auction_engine"
-      },
-      {
-        "genre": "sans_logique_serveur",
-        "detail": "aucun dossier serveur : moteur d'écran seulement"
       }
     ]
   },
@@ -13991,12 +13945,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "accounting_internal",
       "achat",
+      "auction_engine",
       "cartegrise",
       "comptabilite",
       "continuous_test",
       "controle_technique",
       "depannage",
-      "encheres",
       "finance",
       "financial_intelligence",
       "identity",

@@ -49,6 +49,21 @@ export const auctions = pgTable(
     /** Restrictions d'accès (profils autorisés côté professionnel). */
     allowedProfiles: jsonb("allowed_profiles").$type<string[]>().notNull().default([]),
     photos: jsonb("photos").$type<string[]>().notNull().default([]),
+    /**
+     * Catégorie du catalogue (reprise/stock/flotte/accidenté/mécanique/
+     * carrosserie/export/lot/roulant/non_roulant) — voir CATALOG_CATEGORIES,
+     * contract.ts. Distinct de `audience` : la catégorie décrit l'origine et
+     * l'état du lot, pas qui peut enchérir.
+     */
+    category: varchar("category", { length: 24 }),
+    /**
+     * Contenu descriptif riche du lot (véhicules groupés, état détaillé par
+     * sous-système, galeries de photos par catégorie, rapports défauts/
+     * travaux/estimation) — voir LotDetails, contract.ts. Jamais utilisé
+     * pour le calcul du prix ou de l'adjudication (toujours `auctions.*`
+     * ci-dessus) : ce champ est descriptif, pas transactionnel.
+     */
+    lotDetails: jsonb("lot_details").$type<Record<string, unknown>>().notNull().default({}),
     bidCount: integer("bid_count").notNull().default(0),
     published: boolean("published").notNull().default(false),
     closedAt: timestamp("closed_at"),
@@ -58,6 +73,7 @@ export const auctions = pgTable(
   (t) => ({
     liveIdx: index("auctions_live_idx").on(t.status, t.endsAt),
     audienceIdx: index("auctions_audience_idx").on(t.audience, t.countryCode, t.published),
+    categoryIdx: index("auctions_category_idx").on(t.category, t.published),
   }),
 );
 
