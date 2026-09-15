@@ -1194,6 +1194,7 @@ export * from "./vehicle-engine/schema"; // Vehicle Engine — LOT 2 : ingestion
 export * from "./parts-engine/schema"; // Parts Engine — LOT 3 : ingestion, canonique multi-fournisseurs, OEM/compatibilité, prix, stock, territoires, publication (isolé)
 export * from "./logistics-engine/schema"; // Logistics Engine — LOT 4 : Gateway, Carrier Connectors, Quote/Routing/Multi-Leg/Tracking, API transporteurs (isolé)
 export * from "./payout-engine/schema"; // Payout Engine — LOT 5 : politiques et calendriers de versement fournisseur/transporteur (isolé)
+export * from "./document-engine/schema"; // Document Engine — LOT 6 : documents fournisseur/véhicule, chaîne de possession (isolé)
 export * from "./insurance-engine/schema"; // Insurance Engine — assureurs référencés et demandes de couverture (isolé)
 export * from "./charging-engine/schema"; // Charging Engine — annuaire des bornes de recharge (isolé)
 export * from "./vehicle-delivery/schema"; // Vehicle Delivery Engine — acheminement des véhicules (isolé, distinct des colis)

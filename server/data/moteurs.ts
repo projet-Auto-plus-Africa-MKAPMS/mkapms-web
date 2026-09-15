@@ -99,17 +99,17 @@ export interface PerimetreMoteur {
   readonly manques: readonly ManqueMoteur[];
 }
 
-export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 615;
+export const MOTEURS_TOTAL = 95;
+export const MANQUES_TOTAL = 621;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "bouton_sans_action": 183,
   "sans_logique_serveur": 12,
-  "sans_ecran": 9,
-  "dependance_sans_preuve": 42,
+  "sans_ecran": 10,
+  "dependance_sans_preuve": 44,
   "bouton_declare_absent_ecran": 3,
-  "emission_dynamique": 2,
-  "dependance_non_declaree": 23
+  "dependance_non_declaree": 26,
+  "emission_dynamique": 2
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
@@ -2893,6 +2893,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat",
       "cartegrise",
       "core",
+      "document_engine",
       "event_bus",
       "identity",
       "indexation",
@@ -5551,6 +5552,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "country",
       "depannage",
       "document",
+      "document_engine",
       "encheres",
       "energie_recharge",
       "estimation",
@@ -6865,6 +6867,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "cartegrise",
       "contract",
+      "document_engine",
       "finance",
       "importafrica",
       "vo_espaces"
@@ -7018,6 +7021,157 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Refuser » client/src/pages/superadmin/ValidationDocumentsComplete.tsx:38"
+      }
+    ]
+  },
+  {
+    "moteur": "document_engine",
+    "label": "Document Engine",
+    "categorie": "transversal",
+    "etatDeclare": "staging",
+    "dossiers": [
+      "document-engine"
+    ],
+    "routeurs": [
+      "documentEngine"
+    ],
+    "fichiersServeur": 4,
+    "dependancesDeclarees": [
+      "core",
+      "document",
+      "event_bus",
+      "payout_engine",
+      "permission",
+      "supplier_engine",
+      "vehicle_engine"
+    ],
+    "dependancesDetectees": [
+      "audit",
+      "core",
+      "document",
+      "event_bus",
+      "payout_engine",
+      "permission",
+      "smart"
+    ],
+    "dependances": [
+      "audit",
+      "core",
+      "document",
+      "event_bus",
+      "payout_engine",
+      "permission",
+      "smart",
+      "supplier_engine",
+      "vehicle_engine"
+    ],
+    "integrationsTechniques": [
+      "audit",
+      "permission"
+    ],
+    "preuvesDependances": {
+      "audit": [
+        "document-engine/index.ts écrit au journal d'audit",
+        "document-engine/service.ts écrit au journal d'audit"
+      ],
+      "core": [
+        "document-engine/index.ts importe trpc.ts",
+        "document-engine/service.ts importe db.ts"
+      ],
+      "document": [
+        "document-engine/index.ts produit un document via Document OS",
+        "document-engine/service.ts importe document-os/index.ts",
+        "document-engine/service.ts produit un document via Document OS"
+      ],
+      "event_bus": [
+        "document-engine/service.ts importe event-bus/service.ts",
+        "document-engine/service.ts publie des événements"
+      ],
+      "payout_engine": [
+        "publie document.custody.received, consommé par payout_engine"
+      ],
+      "permission": [
+        "document-engine/index.ts filtre par rôle (procédure pro/admin/direction/PDG)"
+      ],
+      "smart": [
+        "publie document.requirement.blocked, consommé par smart"
+      ]
+    },
+    "dependants": [
+      "event_bus"
+    ],
+    "evenementsPublies": [
+      "document.custody.handed_over",
+      "document.custody.received",
+      "document.requirement.blocked",
+      "document.supplier.registered",
+      "document.vehicle.registered"
+    ],
+    "evenementsConsommes": [],
+    "abonnements": [],
+    "sourcesEmission": [
+      "document_engine"
+    ],
+    "boutons": [],
+    "routes": [],
+    "ecrans": [],
+    "ecransHotes": [],
+    "procedures": [
+      "auditLog",
+      "checkStepBlocking",
+      "checkVehicleExportReadiness",
+      "controlCenterFeed",
+      "dashboard",
+      "defineCustodyRequirement",
+      "handOverCustody",
+      "healthStatus",
+      "listCustodyRecords",
+      "listCustodyRequirements",
+      "listSupplierDocuments",
+      "listVehicleDocuments",
+      "meta",
+      "receiveCustody",
+      "registerSupplierDocument",
+      "registerVehicleDocument",
+      "supplierDocumentGaps",
+      "vehicleDocumentGaps"
+    ],
+    "tables": [
+      "custody_records",
+      "custody_requirements",
+      "document_engine_audit_log",
+      "document_engine_health_log",
+      "supplier_documents",
+      "vehicle_documents"
+    ],
+    "acces": [
+      "admin",
+      "direction",
+      "public"
+    ],
+    "textes": 0,
+    "mots": 0,
+    "battement": "sonde",
+    "manques": [
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "audit — document-engine/index.ts écrit au journal d'audit"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "smart — publie document.requirement.blocked, consommé par smart"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "supplier_engine"
+      },
+      {
+        "genre": "dependance_sans_preuve",
+        "detail": "vehicle_engine"
+      },
+      {
+        "genre": "sans_ecran",
+        "detail": "aucune route client ne mène à ce moteur"
       }
     ]
   },
@@ -7327,6 +7481,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDetectees": [
       "audit",
       "core",
+      "document_engine",
       "intelligences",
       "logistics_engine",
       "payout_engine",
@@ -7338,6 +7493,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependances": [
       "audit",
       "core",
+      "document_engine",
       "intelligences",
       "logistics_engine",
       "payout_engine",
@@ -7355,6 +7511,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "event-bus/handlers.ts importe db.ts",
         "event-bus/index.ts importe trpc.ts",
         "event-bus/service.ts importe db.ts"
+      ],
+      "document_engine": [
+        "event-bus/handlers.ts importe document-engine/service.ts"
       ],
       "intelligences": [
         "event-bus/handlers.ts importe intelligences/memoire.ts",
@@ -7387,6 +7546,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "auto_branchement",
       "boutons",
       "continuous_test",
+      "document_engine",
       "estimation",
       "intelligences",
       "livraison_vehicule",
@@ -7451,6 +7611,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "emission_dynamique",
         "detail": "1 émission(s) au type calculé, non vérifiable statiquement"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "document_engine — event-bus/handlers.ts importe document-engine/service.ts"
       },
       {
         "genre": "dependance_non_declaree",
@@ -14282,6 +14446,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "document_engine",
       "event_bus",
       "vehicle_engine"
     ],
@@ -14291,6 +14456,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "evenementsConsommes": [
       "delivery.completed",
+      "document.custody.received",
       "pickup.completed",
       "vehicule.vendu"
     ],
@@ -14306,6 +14472,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "eventType": "delivery.completed",
         "handler": "payout_logistics_leg_stage"
+      },
+      {
+        "eventType": "document.custody.received",
+        "handler": "payout_document_trigger"
       }
     ],
     "sourcesEmission": [
@@ -14408,6 +14578,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "account_routing",
       "achat",
       "atelier",
+      "document_engine",
       "location",
       "payment",
       "payout_engine",
@@ -19527,6 +19698,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connaissance_auto",
       "continuous_test",
       "core",
+      "document_engine",
       "estimation",
       "event_bus",
       "identity",
@@ -19567,6 +19739,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "bouton.sans_action",
       "cliquable.destination_morte",
       "cliquables.audit_termine",
+      "document.requirement.blocked",
       "ecrans.vides_recenses",
       "estimation.incomplete",
       "intelligences.echange",
@@ -19667,6 +19840,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "eventType": "atelier.reappro_plafond_proche",
         "handler": "smart_atelier_plafond"
+      },
+      {
+        "eventType": "document.requirement.blocked",
+        "handler": "smart_document_requirement_blocked"
       }
     ],
     "sourcesEmission": [],
@@ -20007,6 +20184,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "document_engine",
       "logistics_engine",
       "parts_engine",
       "payout_engine",
@@ -20552,6 +20730,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "document_engine",
       "event_bus",
       "logistics_engine",
       "payout_engine"

@@ -17,6 +17,7 @@ import { ecrire as memoriser, retenir } from "../intelligences/memoire.js";
 import { vehicleItems, vehiclePricing } from "../vehicle-engine/schema.js";
 import { logisticsLegs } from "../logistics-engine/schema.js";
 import { findScheduleBySource, openPayoutSchedule, triggerStage } from "../payout-engine/service.js";
+import { checkStepBlocking } from "../document-engine/service.js";
 
 export type Charge = Record<string, unknown>;
 
@@ -661,6 +662,51 @@ const handlers: Record<string, Handler> = {
     const trigger = ctx.type === "pickup.completed" ? "enlevement" : "livraison";
     await triggerStage(schedule.id, trigger);
     return `Étape "${trigger}" déclenchée sur le versement transporteur #${schedule.id} (leg ${legId}).`;
+  },
+
+  /**
+   * LOT 6 — relie le déclencheur "documents" du Payout Engine (§32, jusqu'ici
+   * purement déclaratif, voir PAYOUT_TRIGGERS) à une réception réelle de
+   * document (Document Custody Engine, §35). N'agit que sur les possessions
+   * rattachées à un versement (entityType "payout_schedule") : la réception
+   * d'un document fournisseur ou véhicule ordinaire n'a aucun effet ici.
+   */
+  async payout_document_trigger(payload) {
+    const entityType = texte(payload, "entityType");
+    const entityId = nombre(payload, "entityId");
+    if (entityType !== "payout_schedule" || entityId === null) {
+      return "Réception de document hors versement : aucun effet sur le Payout Engine.";
+    }
+    const check = await checkStepBlocking({ entityType: "payout_schedule", entityId, step: "versement" });
+    if (check.blocked) {
+      return `Versement #${entityId} : encore ${check.missing.length} document(s) manquant(s), étape "documents" non déclenchée.`;
+    }
+    await triggerStage(entityId, "documents");
+    return `Versement #${entityId} : toutes les pièces exigées sont en possession, étape "documents" déclenchée.`;
+  },
+
+  /**
+   * Une étape bloquée faute de document n'est pas un détail technique : un
+   * versement ou une publication qui n'avance pas parce qu'une pièce manque
+   * doit remonter à la direction, dédupliquée par entité et par étape.
+   */
+  async smart_document_requirement_blocked(payload) {
+    const entityType = texte(payload, "entityType") || "entité inconnue";
+    const entityId = nombre(payload, "entityId");
+    const step = texte(payload, "step") || "étape non précisée";
+    const missing = texte(payload, "missing") || "documents manquants non précisés";
+    const cree = await raiseAlert({
+      category: "service",
+      title: `Étape « ${step} » bloquée par un document manquant — ${entityType}#${entityId ?? "?"}`,
+      description: `Documents manquants : ${missing}. Tant qu'ils ne sont pas reçus (Document Custody Engine), cette étape ne peut pas avancer.`,
+      level: "important",
+      targetType: entityType,
+      targetId: entityId ?? undefined,
+      signature: `bus:document_bloque:${entityType}:${entityId}:${step}`,
+    });
+    return cree
+      ? `Alerte ouverte : ${entityType}#${entityId} bloqué à l'étape ${step}.`
+      : `Alerte déjà ouverte pour ${entityType}#${entityId} à l'étape ${step}.`;
   },
 
   async audit_trace(payload, ctx) {

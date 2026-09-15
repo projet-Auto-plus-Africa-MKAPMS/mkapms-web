@@ -21,6 +21,7 @@ export const DOMAINES = [
   "service",
   "vehicule",
   "logistique",
+  "document",
 ] as const;
 
 export type Domaine = (typeof DOMAINES)[number];
@@ -811,6 +812,50 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     champs: ["reference"],
     emetteurs: ["payment"],
   },
+  // LOT 6 du Plan Maître Fournisseurs — Document Engine (Supplier Document
+  // Engine §33, Vehicle Document Engine §34, Document Custody Engine §35).
+  // Nouveau domaine "document" : aucun des moteurs existants (Document OS
+  // inclus) ne publiait déjà ce type d'événement.
+  {
+    code: "document.supplier.registered",
+    domaine: "document",
+    label: "Document fournisseur enregistré",
+    description: "Un document contractuel fournisseur (convention, annexe, RGPD…) vient d'être enregistré dans le Document OS.",
+    champs: ["supplierProfileId", "docType"],
+    emetteurs: ["document_engine"],
+  },
+  {
+    code: "document.vehicle.registered",
+    domaine: "document",
+    label: "Document véhicule enregistré",
+    description: "Un document véhicule (contrôle technique, COC, garantie…) vient d'être enregistré dans le Document OS.",
+    champs: ["vehicleItemId", "docType"],
+    emetteurs: ["document_engine"],
+  },
+  {
+    code: "document.custody.received",
+    domaine: "document",
+    label: "Document reçu en possession",
+    description: "Un document (original ou copie) est réellement entré en possession d'un détenteur déclaré.",
+    champs: ["entityType", "entityId", "docType"],
+    emetteurs: ["document_engine"],
+  },
+  {
+    code: "document.custody.handed_over",
+    domaine: "document",
+    label: "Document remis",
+    description: "Un document a été remis à un destinataire, avec preuve — jamais une remise silencieuse.",
+    champs: ["entityType", "entityId", "docType", "recipient"],
+    emetteurs: ["document_engine"],
+  },
+  {
+    code: "document.requirement.blocked",
+    domaine: "document",
+    label: "Étape bloquée par un document manquant",
+    description: "Une étape déclarée comme exigeant un document ne peut pas avancer : au moins un document obligatoire n'est pas en possession.",
+    champs: ["entityType", "entityId", "step", "missing"],
+    emetteurs: ["document_engine"],
+  },
 ];
 
 export interface SubscriptionSpec {
@@ -1031,6 +1076,19 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     eventType: "delivery.completed",
     handler: "payout_logistics_leg_stage",
     effet: "Déclenche l'étape « livraison » du versement transporteur du leg concerné (aucun effet sur un leg interne).",
+  },
+  {
+    engine: "payout_engine",
+    eventType: "document.custody.received",
+    handler: "payout_document_trigger",
+    effet:
+      "LOT 6 : relie enfin le déclencheur « documents » du Payout Engine (jusqu'ici purement déclaratif) à une réception réelle — ne déclenche l'étape que si toutes les pièces exigées pour ce versement sont désormais en possession.",
+  },
+  {
+    engine: "smart",
+    eventType: "document.requirement.blocked",
+    handler: "smart_document_requirement_blocked",
+    effet: "Ouvre une alerte de direction dédupliquée par entité/étape : un flux bloqué faute de document ne doit pas rester silencieux.",
   },
 ];
 
