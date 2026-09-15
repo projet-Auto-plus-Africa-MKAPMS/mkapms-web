@@ -62,6 +62,7 @@ export const ENGINE_PROBES: EngineProbe[] = [
   // locaux des univers. Sa santé dépend donc de la disponibilité de ces annuaires.
   { engine: "proximity_engine", tables: ["garages_publics", "accountant_profiles", "parts_shops"] },
   { engine: "partner_engine", tables: ["partners", "partner_coverage", "partner_applications", "partner_opportunities"] },
+  { engine: "supplier_engine", tables: ["supplier_profiles", "supplier_connections", "supplier_mappings", "supplier_onboarding_steps"] },
 
   // ── Univers ──
   { engine: "vo", tables: ["vehicules", "vehicule_dossiers", "vehicule_historique"] },
