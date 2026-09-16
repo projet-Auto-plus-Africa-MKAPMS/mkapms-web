@@ -1037,6 +1037,41 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié réellement, sur base Postgres locale : 33/33 vérifications dans le nouveau test dédié, et 60/60, 27/27, 39/39, 53/53 toujours verts sur les suites existantes (aucune régression, une seule mise à jour de compteur attendue : 32→33 familles, une nouvelle catégorie ajoutée). Vérification navigateur réelle en plus des tests service (pas seulement une revue de code) : upload d'un vrai fichier texte, indexation observée jusqu'à « Prêt pour le RAG », recherche plein texte retrouvant l'extrait exact, suppression confirmée en base — les trois modules client étaient des placeholders purs avant ce lot, aucune régression visuelle sur le module Mémoire déjà réel (compteurs par catégorie inchangés à l'écran). Un vrai bug trouvé en testant, pas en relisant le code : la première version du retrieval utilisait `plainto_tsquery` (ET logique entre tous les mots) — une question en langage naturel contenant ne serait-ce qu'un mot absent du document échouait à zéro résultat même quand la réponse était clairement présente ; corrigé par une requête en OU logique avec préfixe (server/intelligences/recherche-texte.ts), qui laisse `ts_rank` faire le tri par pertinence plutôt que d'exiger une correspondance totale. Choix de sécurité assumé : xlsx (SheetJS) écarté malgré sa popularité pour une vulnérabilité de prototype pollution non corrigée sur le registre npm public ; exceljs retenu à la place (une seule alerte modérée, sans rapport avec un contenu attaquant). Portée assumée et documentée, pas silencieuse : OCR explicitement hors périmètre (images acceptées mais sans extraction de texte, déclaré tel quel dans le pipeline) ; aucun fournisseur d'embeddings connecté, retrieval purement lexical mais réel, jamais présenté comme sémantique ; /intelligence restant strictement réservé au PDG (LOT IA02B), l'isolation multi-utilisateur de la mémoire/des fichiers est réelle et testée avec un second identifiant de compte fictif, mais n'a pas encore de second utilisateur réel pour l'exercer en production. Les 10 compteurs de couverture demandés sont tous à zéro (aucune anomalie non nulle à assumer pour ce lot, contrairement aux lots précédents). Typecheck : aucune nouvelle erreur (fichiers touchés tous propres), erreurs préexistantes hors périmètre inchangées (55). Build serveur et client complets réussis.",
     domaine: "intelligences",
   },
+  {
+    cle: "vo-tableaux-cliquables-cartes-moteur",
+    titre: "Tableaux de bord VO — chaque carte compteur déclarée et calculée par le moteur, cliquable vers sa liste filtrée",
+    moteurs: ["vo", "vo_espaces", "boutons", "redirection"],
+    quoi:
+      "Le moteur VO interne (server/routers/vo.ts) déclare CARTES_TABLEAU_VO : pour chaque carte (total, en_stock, en_reparation, en_vente, en_location, vendus, total_achats, total_ventes, marges_nettes) le libellé, le genre (nombre/montant) et les statuts qu'elle ouvre ; la procédure stats renvoie `cartes` avec la valeur calculée côté serveur. Le moteur des espaces VO professionnels (server/vo-espaces/service.ts) déclare CARTES_TABLEAU_PRO (stock, actives, reservees, vendues, ventes_mois, ca_mois) avec le tableau où elle s'affiche, la cible et le statut ; compteursPro renvoie `cartes`. Six actions ajoutées au Moteur de boutons (vo_interne_carte_compteur, vente_pro_factures, vente_pro_profil, vente_pro_resume_vendeur, vente_resume_factures, vente_resume_retour_tableau) et quatre règles + trois alias au Moteur de redirection (/vente/factures, /profil, /vente/tableau-de-bord). Les trois écrans (VOInterne, TableauBordProVente, TableauBordVendeur) ne font plus qu'afficher stats.cartes / compteurs.cartes ; GestionStockVO lit ?statut= pour ouvrir la liste déjà filtrée. Les chiffres de démonstration en dur du Résumé vendeur (24 / 3 / 8 / 186k €) sont supprimés.",
+    pourquoi:
+      "Les trois tableaux de bord VO affichaient des compteurs non cliquables, et le Résumé vendeur affichait des valeurs inventées. Règle de la direction : la puissance s'ajoute dans le calculateur, pas sur la carrosserie — c'est le moteur qui sait quelle carte ouvre quels statuts, l'écran n'est que le tableau de bord.",
+    ou: [
+      "server/routers/vo.ts",
+      "server/vo-espaces/service.ts",
+      "server/button-engine/catalogue.ts",
+      "server/redirection-engine/catalog.ts",
+      "client/src/pages/VOInterne.tsx",
+      "client/src/pages/TableauBordProVente.tsx",
+      "client/src/pages/vente/TableauBordVendeur.tsx",
+      "client/src/pages/vente/GestionStockVO.tsx",
+    ],
+    lecon:
+      "Une carte de tableau de bord est une capacité du moteur (code, statuts ouverts, cible), jamais un tableau statique de l'écran. Quand un écran a besoin d'un lien compteur → liste, on l'ajoute au contrat du moteur, puis au Moteur de boutons et au Moteur de redirection, et l'écran le consomme. Point à confirmer avec la direction : ventes_mois/ca_mois utilisent updatedAt et la colonne prix des annonces vendues, faute de date de vente dédiée.",
+    domaine: "moteurs",
+  },
+  {
+    cle: "intelligences-domaine-religion-direction-seule",
+    titre: "Assistant public MKA.P-MS AI — domaine religieux retiré du côté public, réservé à la direction par le moteur",
+    moteurs: ["intelligences"],
+    quoi:
+      "Chaque domaine de server/intelligences/domaines.ts porte désormais `cotes` (public / direction). Le domaine religion n'a que « direction » : domainesPublics ne le renvoie plus au guide public, et le service refuse explicitement toute demande publique sur un domaine réservé (contrôle serveur, pas seulement visuel). La procédure direction accepte un domaine facultatif et peut l'interroger. Le domaine n'est pas supprimé du catalogue interne.",
+    pourquoi:
+      "Décision de la direction : l'assistant ouvert au public depuis la barre de recherche est un guide commercial neutre ; la partie religieuse reste disponible uniquement pour le PDG.",
+    ou: ["server/intelligences/domaines.ts", "server/intelligences/index.ts", "server/intelligences/service.ts"],
+    lecon:
+      "Un cloisonnement public/direction se décide dans le moteur (propriété du domaine + refus serveur), jamais en cachant un onglet dans l'écran : sinon l'interrupteur d'un domaine ouvert suffisait à le rendre visible.",
+    domaine: "intelligences",
+  },
 ];
 
 /**

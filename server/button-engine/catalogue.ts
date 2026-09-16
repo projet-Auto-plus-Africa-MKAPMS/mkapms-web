@@ -352,7 +352,7 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
     libelle: "Factures",
     ecran: "/vente",
     genre: "navigation",
-    cible: "/vente/factures",
+    cible: "/utilisateurs/factures-utilisateur",
     cleRedirection: "bouton_vente_factures",
   },
   {
@@ -360,7 +360,7 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
     libelle: "Mon profil professionnel",
     ecran: "/vente",
     genre: "navigation",
-    cible: "/profil",
+    cible: "/compte?tab=profil",
     cleRedirection: "bouton_vente_profil",
   },
   {
@@ -376,7 +376,7 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
     libelle: "Factures",
     ecran: "/vente/resume-vendeur",
     genre: "navigation",
-    cible: "/vente/factures",
+    cible: "/utilisateurs/factures-utilisateur",
     cleRedirection: "bouton_vente_factures",
   },
   {
