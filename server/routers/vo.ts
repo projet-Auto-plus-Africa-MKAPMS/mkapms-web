@@ -38,6 +38,38 @@ const VO_STATUS_LABELS: Record<string, string> = {
   archive: "Archivé",
 };
 
+const HORS_STOCK = ["vendu", "archive", "exporte"];
+const TOUS_STATUTS_VO = Object.keys(VO_STATUS_LABELS);
+
+export type CodeCarteVo =
+  | "total" | "en_stock" | "en_reparation" | "en_vente" | "en_location"
+  | "vendus" | "total_achats" | "total_ventes" | "marges_nettes";
+
+export interface CarteTableauVo {
+  readonly code: CodeCarteVo;
+  readonly libelle: string;
+  readonly genre: "compte" | "montant";
+  /** Statuts que la carte ouvre dans la liste (vide = tous les véhicules). */
+  readonly statuts: readonly string[];
+}
+
+/**
+ * Tableau de bord VO : le moteur déclare chaque carte et les statuts qu'elle
+ * couvre. L'écran ne fait qu'afficher les cartes et ouvrir la liste filtrée
+ * sur ces statuts ; aucune carte n'est un chiffre mort.
+ */
+export const CARTES_TABLEAU_VO: readonly CarteTableauVo[] = [
+  { code: "total", libelle: "Total véhicules", genre: "compte", statuts: [] },
+  { code: "en_stock", libelle: "En stock", genre: "compte", statuts: TOUS_STATUTS_VO.filter((s) => !HORS_STOCK.includes(s)) },
+  { code: "en_reparation", libelle: "En réparation", genre: "compte", statuts: ["en_reparation", "en_attente_pieces", "diagnostic_en_cours"] },
+  { code: "en_vente", libelle: "En vente", genre: "compte", statuts: ["en_vente"] },
+  { code: "en_location", libelle: "En location", genre: "compte", statuts: ["en_location", "loue"] },
+  { code: "vendus", libelle: "Vendus", genre: "compte", statuts: ["vendu"] },
+  { code: "total_achats", libelle: "Total achats", genre: "montant", statuts: [] },
+  { code: "total_ventes", libelle: "Total ventes", genre: "montant", statuts: ["vendu"] },
+  { code: "marges_nettes", libelle: "Marges nettes", genre: "montant", statuts: ["vendu"] },
+];
+
 // Protected = Admin/Employé/Super Admin only (trpc protectedProcedure checks auth).
 export const voRouter = router({
   // ── Créer un véhicule VO (Étape 1: Achat) ────────────────────────────
@@ -441,15 +473,26 @@ export const voRouter = router({
   // ── Stats dashboard VO ─────────────────────────────────────────────────
   stats: adminProcedure.query(async () => {
     const all = await db.select().from(voVehicules);
+    const statutsDe = (code: CodeCarteVo) => CARTES_TABLEAU_VO.find((c) => c.code === code)!.statuts;
+    const compte = (code: CodeCarteVo) => {
+      const statuts = statutsDe(code);
+      return statuts.length ? all.filter((v) => statuts.includes(v.status)).length : all.length;
+    };
     const total = all.length;
-    const enStock = all.filter((v) => !["vendu", "archive", "exporte"].includes(v.status)).length;
-    const vendus = all.filter((v) => v.status === "vendu").length;
-    const enReparation = all.filter((v) => ["en_reparation", "en_attente_pieces", "diagnostic_en_cours"].includes(v.status)).length;
-    const enVente = all.filter((v) => v.status === "en_vente").length;
-    const enLocation = all.filter((v) => ["en_location", "loue"].includes(v.status)).length;
+    const enStock = all.filter((v) => !HORS_STOCK.includes(v.status)).length;
+    const vendus = compte("vendus");
+    const enReparation = compte("en_reparation");
+    const enVente = compte("en_vente");
+    const enLocation = compte("en_location");
     const totalAchats = all.reduce((s, v) => s + Number(v.prixAchat ?? 0), 0);
     const totalVentes = all.filter((v) => v.status === "vendu").reduce((s, v) => s + Number(v.prixVenteEffectif ?? 0), 0);
     const totalMarges = all.filter((v) => v.status === "vendu").reduce((s, v) => s + Number(v.margeNette ?? 0), 0);
-    return { total, enStock, vendus, enReparation, enVente, enLocation, totalAchats, totalVentes, totalMarges };
+    const valeurs: Record<CodeCarteVo, number> = {
+      total, en_stock: enStock, en_reparation: enReparation, en_vente: enVente, en_location: enLocation,
+      vendus, total_achats: totalAchats, total_ventes: totalVentes, marges_nettes: totalMarges,
+    };
+    const cartes = CARTES_TABLEAU_VO.map((c) => ({ ...c, valeur: valeurs[c.code] }));
+    return { total, enStock, vendus, enReparation, enVente, enLocation, totalAchats, totalVentes, totalMarges, cartes };
   }),
 });
+

@@ -17,6 +17,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
+import { BoutonMoteur } from "../lib/boutonMoteur";
 import { trpc } from "../lib/trpc";
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -36,17 +37,20 @@ export default function TableauBordProVente() {
   const chargement = compteurs.isLoading;
   const val = (n: number | undefined) => (chargement ? "…" : String(n ?? 0));
 
-  const stats = [
-    { label: "Stock", value: val(c?.stock), color: "text-blue-600", to: "/vente/stock" },
-    { label: "Actives", value: val(c?.actives), color: "text-green-600", to: "/vente/mes-annonces" },
-    {
-      label: "Réservées",
-      value: val(c?.reservees),
-      color: "text-amber-600",
-      to: "/vente/reservations",
-    },
-    { label: "Vendues", value: val(c?.vendues), color: "text-[#D4AF37]", to: "/vente/mes-annonces" },
-  ];
+  const couleurs: Record<string, string> = {
+    stock: "text-blue-600",
+    actives: "text-green-600",
+    reservees: "text-amber-600",
+    vendues: "text-[#D4AF37]",
+  };
+  const stats = (c?.cartes ?? [])
+    .filter((k) => k.tableaux.includes("pro"))
+    .map((k) => ({
+      label: k.libelle,
+      value: val(k.valeur),
+      color: couleurs[k.code] ?? "text-[#111]",
+      to: k.statut ? `${k.cible}?statut=${encodeURIComponent(k.statut)}` : k.cible,
+    }));
 
   const menu = [
     { label: "Mes annonces", icon: FileText, to: "/vente/mes-annonces", count: c?.actives, color: "bg-blue-600" },
@@ -57,7 +61,8 @@ export default function TableauBordProVente() {
     { label: "Messages clients", icon: MessageSquare, to: "/messagerie", count: null, color: "bg-purple-600" },
     { label: "Réservations", icon: Calendar, to: "/vente/reservations", count: c?.reservees, color: "bg-amber-600" },
     { label: "Abonnements", icon: Star, to: "/vente/abonnements", count: null, color: "bg-[#D4AF37]" },
-    { label: "Factures", icon: Euro, to: "/utilisateurs/factures-utilisateur", count: null, color: "bg-teal-600" },
+    { label: "Factures", icon: Euro, code: "vente_pro_factures", count: null, color: "bg-teal-600" },
+    { label: "Résumé vendeur", icon: BarChart3, code: "vente_pro_resume_vendeur", count: null, color: "bg-slate-600" },
     { label: "Documents société", icon: Shield, to: "/vente/documents-societe", count: null, color: "bg-cyan-600" },
     { label: "Employés", icon: Users, to: "/vente/employes", count: null, color: "bg-orange-600" },
     { label: "Statistiques", icon: BarChart3, to: "/vente/statistiques", count: null, color: "bg-pink-600" },
@@ -99,12 +104,12 @@ export default function TableauBordProVente() {
                 </span>
               )}
             </Link>
-            <Link
-              to="/compte?tab=profil"
+            <BoutonMoteur
+              code="vente_pro_profil"
               className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center"
             >
               <Settings size={16} className="text-white" />
-            </Link>
+            </BoutonMoteur>
           </div>
         </div>
       </div>
@@ -143,12 +148,8 @@ export default function TableauBordProVente() {
       <div className="px-4 mt-4 space-y-1.5">
         {menu.map((m) => {
           const Icon = m.icon;
-          return (
-            <Link
-              key={m.label}
-              to={m.to}
-              className="flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-3 active:scale-[0.99] transition"
-            >
+          const contenu = (
+            <>
               <div
                 className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${m.color}`}
               >
@@ -161,6 +162,17 @@ export default function TableauBordProVente() {
                 </span>
               )}
               <ChevronRight size={14} className="text-red-500" />
+            </>
+          );
+          const classe =
+            "flex w-full items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-3 text-left active:scale-[0.99] transition";
+          return "code" in m && typeof m.code === "string" ? (
+            <BoutonMoteur key={m.label} code={m.code} className={classe}>
+              {contenu}
+            </BoutonMoteur>
+          ) : (
+            <Link key={m.label} to={"to" in m && typeof m.to === "string" ? m.to : "/vente"} className={classe}>
+              {contenu}
             </Link>
           );
         })}

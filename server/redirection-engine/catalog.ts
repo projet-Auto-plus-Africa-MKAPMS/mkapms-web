@@ -50,6 +50,9 @@ export const PATH_ALIASES: PathAlias[] = [
   // (SeoLandingPage) — un visiteur tapant "/france" cherchait cette page,
   // pas une destination inexistante.
   { from: "/france", to: "/pays/france", label: "Chemin — France → Page pays" },
+  { from: "/vente/factures", to: "/utilisateurs/factures-utilisateur", label: "Chemin — Factures vente → Mes factures" },
+  { from: "/profil", to: "/compte", label: "Chemin — Profil → Mon compte" },
+  { from: "/vente/tableau-de-bord", to: "/vente", label: "Chemin — Tableau de bord vente → Vente" },
 ];
 
 /**
@@ -173,6 +176,10 @@ export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
   { key: "bouton_garage_facturation", label: "Bouton — Facturation du dossier atelier", kind: "button", target: "/comptabilite/facturation", priority: 90 },
   { key: "bouton_garage_stock", label: "Bouton — Stock de pièces du garage", kind: "button", target: "/garage/stock-pieces", priority: 90 },
   { key: "bouton_garage_suivi", label: "Bouton — Suivi des interventions garage", kind: "button", target: "/compte", priority: 90 },
+  { key: "vente_tableau_de_bord_pro", label: "Vente — Tableau de bord professionnel", kind: "route", target: "/vente", priority: 80 },
+  { key: "vente_resume_vendeur", label: "Vente — Résumé vendeur", kind: "route", target: "/vente/resume-vendeur", priority: 80 },
+  { key: "bouton_vente_factures", label: "Bouton — Factures du professionnel", kind: "button", target: "/utilisateurs/factures-utilisateur", priority: 90 },
+  { key: "bouton_vente_profil", label: "Bouton — Profil du professionnel", kind: "button", target: "/compte", priority: 90 },
   { key: "bouton_livraison_vehicule_connexion", label: "Bouton — Connexion depuis Livraison véhicule", kind: "button", target: "/connexion", priority: 90 },
 
   // ── Alias de chemins (auto-résolution des 404) ────────────────────────
