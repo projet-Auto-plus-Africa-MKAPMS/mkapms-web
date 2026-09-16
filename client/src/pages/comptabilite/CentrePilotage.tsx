@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { imprimerFeuille } from "../../lib/documents";
+import { trpc } from "../../lib/trpc";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ChevronLeft, Crown, Globe, Building2, Wrench, Users, TrendingUp,
@@ -577,6 +578,13 @@ export default function CentrePilotage() {
   const navigate = useNavigate();
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
+  /**
+   * Onglet Enchères : seule section de ce centre de pilotage branchée à un
+   * moteur réel (Auction Engine) au moment de cette reconnexion. Chargée
+   * seulement à l'ouverture de l'onglet, jamais en arrière-plan.
+   */
+  const encheresStatsQuery = trpc.auctionEngine.businessStats.useQuery(undefined, { enabled: tab === "encheres" });
+
   /* Rapport global reellement imprimable, assemble depuis les tableaux affiches. */
   function imprimerRapportGlobal() {
     const ok = imprimerFeuille({
@@ -1023,19 +1031,29 @@ export default function CentrePilotage() {
         {/* ━━━━ ENCHERES ━━━━ */}
         {tab === "encheres" && (
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { label: "Encheres en cours", value: "8", color: "text-[#D4AF37]" },
-                { label: "Vehicules vendus", value: "12", color: "text-green-600" },
-                { label: "Prix moyen", value: "38 500 EUR", color: "text-blue-600" },
-                { label: "Revenus", value: "28 950 EUR", color: "text-[#D4AF37]" },
-              ].map(s => <StatCard key={s.label} {...s} />)}
-            </div>
-            <SectionCard title="Meilleurs acheteurs" icon={Users}>
-              {["Pierre K. — 3 vehicules", "Marc D. — 2 vehicules", "Top Auto — 2 vehicules"].map(b => (
-                <div key={b} className="px-3 py-2 border-b border-[#F3F4F6] last:border-0 text-xs text-[#111]">{b}</div>
-              ))}
-            </SectionCard>
+            {encheresStatsQuery.isLoading && <p className="text-xs text-[#6B7280] px-1">Chargement des données réelles…</p>}
+            {encheresStatsQuery.isError && <p className="text-xs text-red-600 px-1">Données indisponibles : {encheresStatsQuery.error.message}</p>}
+            {encheresStatsQuery.data && (
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  <StatCard label="Encheres en cours" value={String(encheresStatsQuery.data.enCours)} color="text-[#D4AF37]" />
+                  <StatCard label="Vehicules vendus" value={String(encheresStatsQuery.data.vendus)} color="text-green-600" />
+                  <StatCard label="Prix moyen" value={`${Math.round(encheresStatsQuery.data.prixMoyen).toLocaleString("fr-FR")} EUR`} color="text-blue-600" />
+                  <StatCard label="Revenus" value={`${Math.round(encheresStatsQuery.data.revenus).toLocaleString("fr-FR")} EUR`} color="text-[#D4AF37]" />
+                </div>
+                <SectionCard title="Meilleurs acheteurs" icon={Users}>
+                  {encheresStatsQuery.data.meilleursAcheteurs.length === 0 && (
+                    <div className="px-3 py-2 text-xs text-[#6B7280]">Aucune enchère adjugée pour le moment.</div>
+                  )}
+                  {encheresStatsQuery.data.meilleursAcheteurs.map(a => (
+                    <div key={a.acheteurId} className="px-3 py-2 border-b border-[#F3F4F6] last:border-0 text-xs text-[#111] flex items-center justify-between">
+                      <span>{a.nom} — {a.lots} lot(s)</span>
+                      <span className="font-bold text-[#D4AF37]">{Math.round(a.montantTotal).toLocaleString("fr-FR")} EUR</span>
+                    </div>
+                  ))}
+                </SectionCard>
+              </>
+            )}
           </div>
         )}
 

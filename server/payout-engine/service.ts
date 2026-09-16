@@ -12,6 +12,7 @@ import { db } from "../db.js";
 import { wallets, walletTransactions, payouts as ledgerPayouts } from "../modules/wallet.js";
 import { findOrCreateWallet as findOrCreateLedgerWallet, findOrCreatePlatformWallet } from "../modules/wallet-ledger.js";
 import { emitSafe } from "../event-bus/service.js";
+import type { ControlCenterFeed, EngineDashboard, MaturityLevel } from "../identity-os/contract.js";
 import {
   payoutPolicies,
   payoutSchedules,
@@ -28,6 +29,8 @@ import {
   type PayoutSourceType,
   type PayoutStageState,
 } from "./contract.js";
+
+const MATURITY: MaturityLevel = "sprint_1_minimal";
 
 // ── Ledger : helpers génériques par type de porteur ───────────────────────
 // Le Payout Engine consomme le Ledger sans jamais dupliquer sa table de
@@ -413,12 +416,25 @@ export async function healthStatus() {
   return report;
 }
 
-export async function controlCenterFeed() {
-  const rows = await db.select().from(payoutSchedules).orderBy(desc(payoutSchedules.updatedAt)).limit(20);
-  return rows;
+export async function controlCenterFeed(): Promise<ControlCenterFeed> {
+  const startedAt = Date.now();
+  const h = await healthStatus();
+  return {
+    engine: PAYOUT_ENGINE_META.name,
+    label: PAYOUT_ENGINE_META.label,
+    version: PAYOUT_ENGINE_META.version,
+    maturityLevel: MATURITY,
+    health: h.status,
+    load: { events5m: 0, events24h: 0 },
+    performance: { lastResponseMs: Date.now() - startedAt },
+    errors: { last24h: 0 },
+    lastSyncAt: new Date().toISOString(),
+    status: "staging",
+  };
 }
 
-export async function dashboard() {
+export async function dashboard(): Promise<EngineDashboard> {
+  const feed = await controlCenterFeed();
   const [byTarget] = await db
     .select({
       totalNet: sql<string>`coalesce(sum(${payoutSchedules.netAmount}), 0)`,
@@ -426,5 +442,15 @@ export async function dashboard() {
     })
     .from(payoutSchedules);
   const policies = await db.select({ count: sql<number>`count(*)::int` }).from(payoutPolicies);
-  return { totals: byTarget, policiesCount: policies[0]?.count ?? 0 };
+  const parStatut = await db
+    .select({ status: payoutSchedules.status, n: sql<number>`count(*)::int` })
+    .from(payoutSchedules)
+    .groupBy(payoutSchedules.status);
+  const businessMetrics: Record<string, number | string | null> = {
+    montant_net_total: byTarget?.totalNet ?? "0",
+    montant_commission_total: byTarget?.totalCommission ?? "0",
+    politiques_configurees: policies[0]?.count ?? 0,
+  };
+  for (const r of parStatut) businessMetrics[`versements_${r.status}`] = Number(r.n);
+  return { ...feed, businessMetrics, recentEvents: [], recentErrors: [] };
 }

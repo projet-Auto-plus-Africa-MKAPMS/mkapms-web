@@ -225,6 +225,15 @@ async function main() {
   const scheduleInterne = await payout.findScheduleBySource("logistics_leg", legInterne.id);
   verif("8c. aucun versement planifié pour un leg interne", scheduleInterne === null);
 
+  // ── 8d. Tableau de bord (MOS trio) ────────────────────────────────────
+  const board = await payout.dashboard();
+  verif("dashboard() rapporte le health/statut MOS standard", board.engine === "payout_engine" && ["ok", "degraded", "down"].includes(board.health));
+  verif("dashboard() rapporte des métriques métier réelles (jamais vides)", Object.keys(board.businessMetrics).length > 0);
+  verif(
+    "dashboard() compte au moins le versement transporteur créé au test 8b",
+    Number(board.businessMetrics[`versements_${scheduleLeg!.status}`] ?? 0) >= 1,
+  );
+
   // ── 9. Exposition du router ──────────────────────────────────────────
   const procs = (appRouter as unknown as { _def?: { procedures?: Record<string, unknown> } })._def?.procedures ?? {};
   const payoutKeys = Object.keys(procs).filter((k) => k.startsWith("payoutEngine."));

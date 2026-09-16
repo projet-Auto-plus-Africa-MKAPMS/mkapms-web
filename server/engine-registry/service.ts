@@ -154,6 +154,30 @@ export async function listEngines() {
 }
 
 /**
+ * Retire du registre les moteurs qui ne sont plus dans le catalogue de
+ * référence — le cas d'un moteur fusionné dans un autre (ex. l'ancien
+ * "encheres", fusionné dans "auction_engine" : sans ce nettoyage, sa ligne
+ * seedée avant la fusion restait indéfiniment en base, jamais mise à jour
+ * par `ensureSeeded()` (qui n'ajoute et ne réaligne que ce qui existe encore
+ * au catalogue), et réapparaissait comme moteur "non connecté" fantôme dans
+ * l'audit d'activation et partout où le registre est lu.
+ *
+ * La ligne est journalisée puis supprimée : `engine_admin_log`/
+ * `engine_health_log` ne référencent le nom que par texte (pas de clé
+ * étrangère), l'historique reste donc intact et daté sous l'ancien nom.
+ */
+export async function retireOrphanEngines(): Promise<string[]> {
+  const known = new Set(ENGINE_CATALOG.map((e) => e.name));
+  const rows = await db.select({ name: engineRegistry.name }).from(engineRegistry);
+  const orphans = rows.map((r) => r.name).filter((name) => !known.has(name));
+  for (const name of orphans) {
+    await journalAdmin(name, "retired_orphan", { fromState: "unknown" });
+    await db.delete(engineRegistry).where(eq(engineRegistry.name, name));
+  }
+  return orphans;
+}
+
+/**
  * Vrai si un humain a déjà décidé de l'état de ce moteur. Sert de garde-fou :
  * une correction automatique ne doit jamais écraser un choix du PDG.
  */

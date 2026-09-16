@@ -276,7 +276,7 @@ const UNIVERSES: UniverseDef[] = [
   { code: "depannage", label: "Dépannage", engines: ["depannage"], tables: ["service_tracking"], accountUniverse: null },
   { code: "livraison", label: "Livraison", engines: ["livraison"], tables: ["delivery_pricing"], accountUniverse: "livraison" },
   { code: "vtc_taxi", label: "VTC / Taxi", engines: ["vtc"], tables: [], accountUniverse: "vtc_taxi" },
-  { code: "encheres", label: "Enchères", engines: ["auction_engine", "encheres"], tables: ["auctions", "auction_bids"], accountUniverse: null },
+  { code: "encheres", label: "Enchères", engines: ["auction_engine"], tables: ["auctions", "auction_bids"], accountUniverse: null },
   { code: "vo", label: "VO / reprise", engines: ["vo_engine", "vo"], tables: ["vo_estimations", "vehicules"], accountUniverse: null },
   { code: "comptabilite", label: "Comptabilité", engines: ["accounting_internal", "accounting_marketplace"], tables: ["accountant_profiles", "compta_ecritures"], accountUniverse: "comptabilite" },
   { code: "professionnels", label: "Portail professionnel", engines: ["pro_portal", "pro_account"], tables: ["pro_portal_modules", "pro_account_applications"], accountUniverse: null },

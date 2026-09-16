@@ -317,7 +317,6 @@ export const MOTEUR_VERS_UNIVERS: Record<string, string> = {
   energie_recharge: "assurance_energie",
 
   // ── Enchères ──
-  encheres: "encheres",
   auction_engine: "encheres",
 
   // ── Support & messagerie ──

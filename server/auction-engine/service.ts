@@ -14,6 +14,7 @@ import { and, desc, eq, gte, inArray, lte, sql, type SQL } from "drizzle-orm";
 import { db } from "../db.js";
 import { requireOpenCountry } from "../country-os/index.js";
 import { notifyEvent } from "../notification-os/triggers.js";
+import { users } from "../schema.js";
 import { auctionBids, auctionEvents, auctions } from "./schema.js";
 import type { CatalogCategory, LotDetails } from "./contract.js";
 
@@ -480,5 +481,63 @@ export async function auctionHealth(): Promise<AuctionHealth> {
     adjugeesSansPaiement: Number(unpaid?.n ?? 0),
     offres24h: Number(recent?.n ?? 0),
     details,
+  };
+}
+
+export interface AuctionBusinessStats {
+  enCours: number;
+  vendus: number;
+  prixMoyen: number;
+  revenus: number;
+  meilleursAcheteurs: Array<{ acheteurId: number; nom: string; lots: number; montantTotal: number }>;
+}
+
+/**
+ * Statistiques métier réelles pour le tableau de bord Direction — jamais un
+ * nom ou un montant inventé. `meilleursAcheteurs` identifie le gagnant par
+ * son propre nom de compte (`users.name`), réservé à la Direction : c'est
+ * une vue interne d'analyse commerciale, pas une donnée publique (§ toPublic
+ * ne l'expose jamais aux autres enchérisseurs).
+ */
+export async function auctionBusinessStats(): Promise<AuctionBusinessStats> {
+  const [enCoursRow] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(auctions)
+    .where(eq(auctions.status, "en_cours"));
+
+  const [vendusRow] = await db
+    .select({
+      n: sql<number>`count(*)::int`,
+      prixMoyen: sql<string>`coalesce(avg(${auctions.winningAmount}::numeric), 0)`,
+      revenus: sql<string>`coalesce(sum(${auctions.winningAmount}::numeric), 0)`,
+    })
+    .from(auctions)
+    .where(eq(auctions.status, "adjugee"));
+
+  const topRows = await db
+    .select({
+      acheteurId: auctions.winnerId,
+      nom: users.name,
+      lots: sql<number>`count(*)::int`,
+      montantTotal: sql<string>`coalesce(sum(${auctions.winningAmount}::numeric), 0)`,
+    })
+    .from(auctions)
+    .innerJoin(users, eq(users.id, auctions.winnerId))
+    .where(eq(auctions.status, "adjugee"))
+    .groupBy(auctions.winnerId, users.name)
+    .orderBy(desc(sql`sum(${auctions.winningAmount}::numeric)`))
+    .limit(5);
+
+  return {
+    enCours: Number(enCoursRow?.n ?? 0),
+    vendus: Number(vendusRow?.n ?? 0),
+    prixMoyen: Number(vendusRow?.prixMoyen ?? 0),
+    revenus: Number(vendusRow?.revenus ?? 0),
+    meilleursAcheteurs: topRows.map((r) => ({
+      acheteurId: r.acheteurId as number,
+      nom: r.nom,
+      lots: Number(r.lots),
+      montantTotal: Number(r.montantTotal),
+    })),
   };
 }
