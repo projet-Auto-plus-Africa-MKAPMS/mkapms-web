@@ -83,7 +83,7 @@ Ce que ce moteur ajoute (rien n'existait avant, voir audit pré-LOT 3) :
    format EAN/GTIN, état de la pièce contre l'énumération réelle de la
    marketplace.
 9. **Parts Intelligence Engine** — `analyserIA()` répond honnêtement `NOT_CONNECTED` :
-   aucune brique MKA.P-MS Intelligences dédiée aux pièces n'est branchée aujourd'hui.
+   aucune brique MKA.P-MS AI dédiée aux pièces n'est branchée aujourd'hui.
 10. **Publication/Search Engine** (`parts_publication_log` + `searchPieces`
     dans Search OS) — historique complet des transitions, recherche pièces
     réellement indexée.

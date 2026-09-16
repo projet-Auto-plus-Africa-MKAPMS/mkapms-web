@@ -14,7 +14,7 @@ au LOT 5, jamais implémentés ici.
 
 `npm run build` échoue si le mot isolé « IA »/« AI » apparaît dans le code
 (`scripts/check-naming.mjs`) — c'est ce qui a bloqué tout déploiement Railway
-des LOT 2/3 (voir PR #335). Le nom officiel est **MKA.P-MS Intelligences**.
+des LOT 2/3 (voir PR #335). Le nom officiel est **MKA.P-MS AI**.
 Ce moteur ne mentionne aucun concept d'intelligence artificielle, donc rien
 à respecter ici en pratique — mais toute évolution future (score
 transporteur, détection d'anomalie tracking) devra s'y conformer dès la

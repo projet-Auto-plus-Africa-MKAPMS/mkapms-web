@@ -16,7 +16,7 @@ empreinte SHA-256 avant/après).
 
 | Champ | grandpublic | pro | command | intelligence | investor |
 |---|---|---|---|---|---|
-| Nom de l'application | MKA.P-MS | MKA.P-MS PRO | MKA.P-MS COMMAND | MKA.P-MS Intelligence | MKA.P-MS Investisseur |
+| Nom de l'application | MKA.P-MS | MKA.P-MS PRO | MKA.P-MS COMMAND | MKA.P-MS AI | MKA.P-MS Investisseur |
 | `applicationId` | com.mkapms.app | com.mkapms.pro | com.mkapms.command | com.mkapms.intelligence | com.mkapms.investor |
 | `versionName` | 1.7.5 | 1.7.5 | 1.7.5 | 1.7.5 | 1.7.5 |
 | `versionCode` | 10705 | 10705 | 10705 | 10705 | 10705 |
