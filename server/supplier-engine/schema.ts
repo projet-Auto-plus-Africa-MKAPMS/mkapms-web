@@ -231,3 +231,35 @@ export const supplierHealthLog = pgTable("supplier_health_log", {
   metrics: jsonb("metrics"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/**
+ * LOT 7 (suite) — RBAC Fournisseur/Transporteur.
+ *
+ * Un compte de connexion (`users.id`) lié à exactement une fiche —
+ * fournisseur (`supplier_profiles.id`) ou partenaire transporteur
+ * (`partners.id`, type "transporteur") — jamais les deux à la fois, jamais
+ * une seconde ligne pour le même compte (contrainte unique sur `userId`).
+ * Chaque requête du portail fournisseur/transporteur résout SA propre
+ * ligne, jamais un identifiant fourni par le client : c'est cette
+ * résolution qui garantit l'isolement strict par entreprise.
+ *
+ * `status` par défaut "ready_for_onboarding" : la ligne déclare une
+ * capacité prête, jamais un accès déjà accordé. Seul `grantSupplierAccess`
+ * / `grantCarrierAccess` (server/supplier-engine/access.ts), appelés par
+ * un PDG, font réellement passer un compte à "active".
+ */
+export const supplierCarrierAccounts = pgTable("supplier_carrier_accounts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  /** "supplier" | "carrier" */
+  accountType: varchar("account_type", { length: 16 }).notNull(),
+  supplierProfileId: integer("supplier_profile_id"),
+  partnerId: integer("partner_id"),
+  /** "ready_for_onboarding" | "active" | "suspended" | "revoked" */
+  status: varchar("status", { length: 24 }).notNull().default("ready_for_onboarding"),
+  grantedBy: integer("granted_by").notNull(),
+  revokedBy: integer("revoked_by"),
+  revokedAt: timestamp("revoked_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});

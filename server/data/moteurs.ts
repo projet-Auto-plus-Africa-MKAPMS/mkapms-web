@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 618;
+export const MANQUES_TOTAL = 617;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "bouton_sans_action": 182,
   "sans_logique_serveur": 11,
   "sans_ecran": 9,
   "dependance_sans_preuve": 41,
-  "dependance_non_declaree": 29,
+  "dependance_non_declaree": 28,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 2
 };
@@ -20227,15 +20227,18 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "categorie": "transversal",
     "etatDeclare": "staging",
     "dossiers": [
-      "supplier-engine"
+      "supplier-engine",
+      "routers/supplier-portal.ts"
     ],
     "routeurs": [
-      "supplierEngine"
+      "supplierEngine",
+      "supplierPortal"
     ],
-    "fichiersServeur": 4,
+    "fichiersServeur": 6,
     "dependancesDeclarees": [
       "core",
       "country",
+      "identity",
       "partner_engine"
     ],
     "dependancesDetectees": [
@@ -20256,17 +20259,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "preuvesDependances": {
       "core": [
-        "supplier-engine/index.ts importe trpc.ts",
-        "supplier-engine/service.ts importe db.ts"
+        "routers/supplier-portal.ts importe trpc.ts",
+        "routers/supplier-portal.ts importe db.ts",
+        "supplier-engine/access.ts importe db.ts"
       ],
       "country": [
         "supplier-engine/service.ts importe country-os/index.ts",
         "supplier-engine/service.ts lit la règle pays"
       ],
       "identity": [
+        "routers/supplier-portal.ts exige une session Identity (procédure protégée)",
+        "supplier-engine/index.ts exige une session Identity (procédure protégée)",
         "supplier-engine/service.ts importe identity-os/contract.ts"
       ],
       "workflow": [
+        "routers/supplier-portal.ts importe modules/operations.ts",
+        "supplier-engine/access.ts importe modules/operations.ts",
         "supplier-engine/service.ts importe modules/operations.ts"
       ]
     },
@@ -20300,10 +20308,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "detail",
       "enregistrerConnexion",
       "enregistrerContratSigne",
+      "grantCarrier",
+      "grantSupplier",
       "healthStatus",
       "liste",
       "meta",
       "reactiver",
+      "revoquer",
       "suspendre",
       "testerConnexion",
       "validerParDirection",
@@ -20311,6 +20322,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "tables": [
       "supplier_audit_log",
+      "supplier_carrier_accounts",
       "supplier_connections",
       "supplier_contacts",
       "supplier_health_log",
@@ -20321,6 +20333,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "acces": [
       "admin",
       "direction",
+      "pdg",
       "public"
     ],
     "textes": 0,
@@ -20329,11 +20342,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "manques": [
       {
         "genre": "dependance_non_declaree",
-        "detail": "identity — supplier-engine/service.ts importe identity-os/contract.ts"
-      },
-      {
-        "genre": "dependance_non_declaree",
-        "detail": "workflow — supplier-engine/service.ts importe modules/operations.ts"
+        "detail": "workflow — routers/supplier-portal.ts importe modules/operations.ts"
       },
       {
         "genre": "dependance_sans_preuve",

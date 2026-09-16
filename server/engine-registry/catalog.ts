@@ -340,9 +340,9 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "supplier_engine",
     label: "Supplier Engine",
     category: "transversal",
-    dependencies: ["core", "country", "partner_engine"],
+    dependencies: ["core", "country", "partner_engine", "identity"],
     description:
-      "LOT 1 du Plan Maître Fournisseurs : registre fournisseur (au-dessus d'un partenaire déjà existant), onboarding avec validation Direction obligatoire, Connector Engine et Universal Mapping Engine. Staging tant qu'aucun fournisseur réel n'a été activé de bout en bout.",
+      "LOT 1 du Plan Maître Fournisseurs : registre fournisseur (au-dessus d'un partenaire déjà existant), onboarding avec validation Direction obligatoire, Connector Engine et Universal Mapping Engine. LOT 7 (suite) : RBAC Fournisseur/Transporteur (supplier_carrier_accounts) — rôles isolés, jamais dans ADMIN_ROLES/DIRECTION_ROLES/PRO_ROLES, aucun compte réel ouvert sans octroi PDG explicite. Staging tant qu'aucun fournisseur réel n'a été activé de bout en bout.",
     state: "staging",
   },
   {
