@@ -186,6 +186,45 @@ async function main() {
   const verifApresReservation = await publicCaller.verifierPanier({ catalogIds: [piece6.id] });
   verif("verifierPanier détecte une rupture réelle après réservation complète du stock", verifApresReservation[0]?.disponible === 0);
 
+  // ── 9. Idempotence : un double clic (même clé) ne crée jamais deux commandes ──
+  const piece7 = await caller.addPart({
+    shopId: shop.id,
+    nom: "Alternateur test idempotence",
+    referenceInterne: `${REF_PREFIX}7`,
+    prixHt: 200,
+    quantiteInitiale: 10,
+  });
+  const cleIdempotence = `TEST-IDEMP-${Date.now()}`;
+  const commandeA = await buyerCaller.createOrder({ shopId: shop.id, items: [{ catalogId: piece7.id, quantite: 2 }], idempotencyKey: cleIdempotence });
+  const commandeB = await buyerCaller.createOrder({ shopId: shop.id, items: [{ catalogId: piece7.id, quantite: 2 }], idempotencyKey: cleIdempotence });
+  verif("createOrder rejoué avec la même clé renvoie la commande déjà créée (jamais une seconde)", commandeA.id === commandeB.id);
+
+  const commandesAvecCle = await db.select().from(partsOrders).where(eq(partsOrders.idempotencyKey, cleIdempotence));
+  verif("une seule commande existe réellement en base pour cette clé", commandesAvecCle.length === 1);
+
+  const verifApresIdempotence = await publicCaller.verifierPanier({ catalogIds: [piece7.id] });
+  verif("le stock n'a été réservé qu'une seule fois malgré le rejeu (10 − 2, pas 10 − 4)", verifApresIdempotence[0]?.disponible === 8);
+
+  // ── 10. Concurrence réelle : deux commandes simultanées sur un stock unitaire ne survendent jamais ──
+  const piece8 = await caller.addPart({
+    shopId: shop.id,
+    nom: "Turbo test concurrence",
+    referenceInterne: `${REF_PREFIX}8`,
+    prixHt: 500,
+    quantiteInitiale: 1,
+  });
+  const [resultatConcurrent1, resultatConcurrent2] = await Promise.allSettled([
+    buyerCaller.createOrder({ shopId: shop.id, items: [{ catalogId: piece8.id, quantite: 1 }] }),
+    buyerCaller.createOrder({ shopId: shop.id, items: [{ catalogId: piece8.id, quantite: 1 }] }),
+  ]);
+  const reussies = [resultatConcurrent1, resultatConcurrent2].filter((r) => r.status === "fulfilled");
+  const echouees = [resultatConcurrent1, resultatConcurrent2].filter((r) => r.status === "rejected");
+  verif("sur deux commandes simultanées et un seul exemplaire en stock, une seule réussit", reussies.length === 1);
+  verif("l'autre échoue explicitement pour stock insuffisant, jamais une survente silencieuse", echouees.length === 1 && /[Ss]tock insuffisant/.test(String((echouees[0] as PromiseRejectedResult).reason?.message)));
+
+  const verifApresConcurrence = await publicCaller.verifierPanier({ catalogIds: [piece8.id] });
+  verif("le stock réel ne descend jamais sous zéro après la course", verifApresConcurrence[0]?.disponible === 0);
+
   await nettoyer();
 
   console.log(`\n${ok}/${total} assertions réussies.`);
