@@ -573,6 +573,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat_pro",
       "analytics",
       "atelier",
+      "controle_technique",
       "garage",
       "identity",
       "intelligences",
@@ -996,6 +997,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/garage/CarrosserieGarage.tsx",
         "route": "/garage/carrosserie-garage",
+        "composants": [
+          "trpc.devis"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/garage/ControleTechnique.tsx",
+        "route": "/garage/controle-technique",
         "composants": [
           "trpc.devis"
         ]
@@ -5383,14 +5391,18 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [],
     "fichiersServeur": 0,
     "dependancesDeclarees": [
+      "achat",
       "core",
       "identity",
       "notification",
       "payment",
       "scheduler"
     ],
-    "dependancesDetectees": [],
+    "dependancesDetectees": [
+      "achat"
+    ],
     "dependances": [
+      "achat",
       "core",
       "identity",
       "notification",
@@ -5398,7 +5410,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "scheduler"
     ],
     "integrationsTechniques": [],
-    "preuvesDependances": {},
+    "preuvesDependances": {
+      "achat": [
+        "client/src/pages/garage/ControleTechnique.tsx appelle trpc.devis"
+      ]
+    },
     "dependants": [],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -5441,16 +5457,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 2,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 6,
-        "mots": 11
+        "textes": 10,
+        "mots": 63
       }
     ],
     "ecransHotes": [],
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 57,
-    "mots": 152,
+    "textes": 61,
+    "mots": 204,
     "battement": "sonde",
     "manques": [
       {

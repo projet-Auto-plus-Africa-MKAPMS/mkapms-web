@@ -541,8 +541,9 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "controle_technique",
     label: "Contrôle Technique Engine",
     category: "service",
-    dependencies: ["core", "identity", "scheduler", "notification", "payment"],
-    description: "Prise de RDV, centres agréés, résultats, rappels d'échéance — à construire (Phase 2).",
+    dependencies: ["core", "identity", "scheduler", "notification", "payment", "achat"],
+    description:
+      "Aucun registre officiel de contrôle technique accessible aujourd'hui : le statut CT n'est jamais affiché comme connu. Prise de RDV réelle (devisRouter) et historique des demandes réellement envoyées ; centres agréés, résultats officiels et rappels d'échéance restent à construire (Phase 2, dépend d'un accès externe).",
     state: "staging",
   },
   {
