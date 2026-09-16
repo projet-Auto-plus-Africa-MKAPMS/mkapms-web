@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — module Projets (LOT IA02B).
+ * MKA.P-MS AI — module Projets (LOT IA02B).
  *
  * Liste réelle des projets du Chantier de développement
  * (server/intelligences/chantier/projets.ts::mesProjets) — même moteur que

@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — Tool Registry, famille "estimations" (LOT IA02E).
+ * MKA.P-MS AI — Tool Registry, famille "estimations" (LOT IA02E).
  *
  * Porte d'entrée unique, pour un modèle, vers toute question de prix ou de
  * valeur. Chaque outil ici appelle l'Estimate Gateway

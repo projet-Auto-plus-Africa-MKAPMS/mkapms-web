@@ -266,7 +266,7 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
   // ── Accueil — barre de recherche universelle ──────────────────────────
   {
     code: "accueil_intelligences_ouvrir",
-    libelle: "Ouvrir MKA.P-MS Intelligences (à côté du micro)",
+    libelle: "Ouvrir MKA.P-MS AI (à côté du micro)",
     ecran: "/",
     genre: "formulaire",
   },

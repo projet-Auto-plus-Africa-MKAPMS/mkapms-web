@@ -8,7 +8,7 @@
  * Il sert au module d'auto-branchement : chaque écran est compté par genre de
  * cliquable, et chaque anomalie est nommée avec son fichier et sa ligne, de
  * sorte que le Moteur de boutons, le Moteur de Redirection, le contrôle
- * continu, le Système Intelligent et MKA.P-MS Intelligences travaillent sur des
+ * continu, le Système Intelligent et MKA.P-MS AI travaillent sur des
  * faits et non sur une impression d'écran.
  */
 

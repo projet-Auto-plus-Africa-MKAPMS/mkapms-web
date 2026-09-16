@@ -1,5 +1,5 @@
 /**
- * Point 151 — plateforme développeur MKA.P-MS Intelligences.
+ * Point 151 — plateforme développeur MKA.P-MS AI.
  *
  * Elle n'ouvre pas un second chemin vers les capacités : elle donne un accès
  * **nommé, borné et révocable** à l'API `/api/v1` qui existe déjà. Trois règles

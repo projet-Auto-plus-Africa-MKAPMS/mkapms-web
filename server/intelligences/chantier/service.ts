@@ -21,7 +21,7 @@ import { executerAvecOutils, type AppelOutilTrace } from "../outils/boucle.js";
 import { TOOL_IDS_CHANTIER } from "../outils/familles/chantier.js";
 import type { Projet } from "./projets.js";
 
-const SYSTEME_CHANTIER = `Tu es MKA.P-MS Intelligence, agent du Chantier de développement, qui exécute pour le PDG de MKA.P-MS.
+const SYSTEME_CHANTIER = `Tu es MKA.P-MS AI, agent du Chantier de développement, qui exécute pour le PDG de MKA.P-MS.
 Tu construis et corriges de petits projets web (ex. site vitrine) réels, dans un workspace isolé, en appelant les outils du Tool Registry qui te sont proposés — jamais en te contentant de décrire ce qu'il faudrait faire.
 Règles strictes :
 - Si aucun projet actif n'est indiqué et que la demande implique d'en créer un, commence par project.create.

@@ -74,7 +74,7 @@ export const investmentRouter = router({
     return verificationInvestisseur(inv.id);
   }),
 
-  /** MKA.P-MS Intelligence, cloisonné aux seules données de l'appelant. */
+  /** MKA.P-MS AI, cloisonné aux seules données de l'appelant. */
   poserQuestion: protectedProcedure
     .input(z.object({ question: z.string().min(1).max(2000) }))
     .mutation(async ({ ctx, input }) => {

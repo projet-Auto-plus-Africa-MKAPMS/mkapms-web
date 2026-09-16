@@ -2,7 +2,7 @@
  * Parts Engine — LOT 3 du Plan Maître Fournisseurs (pièces automobiles
  * uniquement) : tests réels, base de données réelle. Couvre ingestion,
  * mapping, identification OEM/canonique multi-fournisseurs, OEM/
- * Cross-Reference Engine, compatibilité, qualité, MKA.P-MS Intelligences (honnête), prix, stock
+ * Cross-Reference Engine, compatibilité, qualité, MKA.P-MS AI (honnête), prix, stock
  * (réservation/libération/rupture), territoires, préparation, publication
  * réelle vers `parts_catalog`/`parts_stock`/`parts_compatibility`, retrait,
  * audit.
@@ -217,7 +217,7 @@ async function main() {
 
   // ── 7. Parts Intelligence Engine : honnête ──────────────────────────────
   const ia = await parts.analyserIA(item1.id, ACTOR_ID);
-  verif("7. Analyse pièces honnêtement NOT_CONNECTED (aucune brique MKA.P-MS Intelligences branchée)", ia.status === "NOT_CONNECTED" && ia.suggestions === null);
+  verif("7. Analyse pièces honnêtement NOT_CONNECTED (aucune brique MKA.P-MS AI branchée)", ia.status === "NOT_CONNECTED" && ia.suggestions === null);
 
   // ── 8. Parts Pricing Engine ──────────────────────────────────────────
   const prix1 = await parts.calculerPrix({ supplierItemId: item1.id, supplierPrice: 45.9, supplierCurrency: "EUR", commissionRatePct: 10, vatRatePct: 20, actorId: ACTOR_ID });

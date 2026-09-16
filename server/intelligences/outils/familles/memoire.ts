@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — Tool Registry, famille "memoire" (LOT IA02F).
+ * MKA.P-MS AI — Tool Registry, famille "memoire" (LOT IA02F).
  *
  * Réutilise les moteurs déjà écrits dans ce même lot (memoire-utilisateur.ts,
  * memoire-projet.ts, in_messages pour la recherche de conversation) — aucune

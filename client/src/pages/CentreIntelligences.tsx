@@ -1,11 +1,11 @@
 /**
- * MKA.P-MS Intelligences — côté direction (PDG seul).
+ * MKA.P-MS AI — côté direction (PDG seul).
  *
  * Un seul écran pour : parler au système, voir s'il peut réellement répondre,
  * voir tous les moteurs, connaître les commandes et les règles, ouvrir un
  * dossier de développement et demander l'écriture d'un correctif.
  *
- * L'ancienne appellation n'apparaît pas : le moteur s'appelle MKA.P-MS Intelligences.
+ * L'ancienne appellation n'apparaît pas : le moteur s'appelle MKA.P-MS AI.
  */
 import { useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
@@ -427,7 +427,7 @@ export default function CentreIntelligences() {
         <ShieldCheck className="mx-auto h-8 w-8 text-black/30" />
         <h1 className="mt-3 text-lg font-black text-[#111]">Espace réservé</h1>
         <p className="mt-2 text-sm text-black/60">
-          Le côté direction de MKA.P-MS Intelligences est réservé au compte PDG. L'assistant public
+          Le côté direction de MKA.P-MS AI est réservé au compte PDG. L'assistant public
           reste accessible à tous.
         </p>
         <Link to="/intelligences" className="mt-4 inline-block text-sm font-bold text-[#8B7500]">
@@ -465,7 +465,7 @@ export default function CentreIntelligences() {
           <div>
             <p className="text-[11px] uppercase tracking-wide text-black/40">Côté direction — PDG</p>
             <h1 className="flex items-center gap-2 text-xl font-black text-[#111]">
-              <Sparkles className="h-5 w-5 text-[#8B7500]" /> MKA.P-MS Intelligences
+              <Sparkles className="h-5 w-5 text-[#8B7500]" /> MKA.P-MS AI
             </h1>
             <p className="mt-1 text-sm text-black/60">
               Elle lit l'état réel des moteurs, la mémoire du code et les alertes avant de répondre.
@@ -528,7 +528,7 @@ export default function CentreIntelligences() {
                 }`}
               >
                 <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-black/40">
-                  {b.role === "moi" ? "Vous" : "MKA.P-MS Intelligences"}
+                  {b.role === "moi" ? "Vous" : "MKA.P-MS AI"}
                   {b.role === "moteur" && b.fournisseur ? ` — ${b.fournisseur} / ${b.modele}` : ""}
                 </p>
                 {b.ok ? (
@@ -1757,7 +1757,7 @@ export default function CentreIntelligences() {
                     ))}
                   </ul>
                   <p className="mt-1 text-[11px] text-black/45">
-                    {m.appels} appel(s) mesuré(s) auprès de MKA.P-MS Intelligences
+                    {m.appels} appel(s) mesuré(s) auprès de MKA.P-MS AI
                     {m.dernierAppel
                       ? ` — dernier le ${new Date(m.dernierAppel).toLocaleString("fr-FR")}`
                       : " — aucun appel mesuré"}

@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Investissement — accès Investisseur à MKA.P-MS Intelligence.
+ * MKA.P-MS Investissement — accès Investisseur à MKA.P-MS AI.
  *
  * Passe uniquement par server/intelligences/routeur.ts (jamais provider.ts
  * directement, comme tout le reste de la plateforme). Le système ne reçoit
@@ -68,7 +68,7 @@ export async function poserQuestion(investorId: number, question: string): Promi
     moteur: "investment",
     role: "user",
     systeme:
-      "Tu es l'assistant MKA.P-MS Intelligence de l'espace Investisseur. Réponds UNIQUEMENT à partir des données fournies ci-dessous, qui appartiennent exclusivement à cet investisseur. Ne révèle jamais de données d'un autre investisseur, aucun secret MKA.P-MS, aucune donnée Direction : tu ne les connais pas. Si l'information demandée n'apparaît pas dans le contexte, dis-le clairement plutôt que de deviner. Ne promets jamais un rendement futur.",
+      "Tu es l'assistant MKA.P-MS AI de l'espace Investisseur. Réponds UNIQUEMENT à partir des données fournies ci-dessous, qui appartiennent exclusivement à cet investisseur. Ne révèle jamais de données d'un autre investisseur, aucun secret MKA.P-MS, aucune donnée Direction : tu ne les connais pas. Si l'information demandée n'apparaît pas dans le contexte, dis-le clairement plutôt que de deviner. Ne promets jamais un rendement futur.",
     message: `Contexte (données de cet investisseur uniquement) :\n${contexte}\n\nQuestion de l'investisseur : ${question}`,
   });
 

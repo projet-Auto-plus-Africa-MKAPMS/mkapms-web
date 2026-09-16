@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligences — présence sur toutes les pages.
+ * MKA.P-MS AI — présence sur toutes les pages.
  *
  * Un moteur qui n'est accessible que depuis une page n'assiste personne : ce
  * panneau rend l'assistant joignable partout où le visiteur se trouve, avec le
@@ -109,7 +109,7 @@ export default function AssistantFlottant() {
     <div className="fixed bottom-[76px] right-3 z-50 flex max-h-[70vh] w-[min(24rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-black/10 bg-white shadow-2xl lg:bottom-5">
       <div className="flex items-center justify-between gap-2 border-b border-black/5 px-3 py-2">
         <p className="flex items-center gap-1.5 text-[12px] font-black text-[#111]">
-          <Sparkles className="h-4 w-4 text-[#8B7500]" /> MKA.P-MS Intelligences
+          <Sparkles className="h-4 w-4 text-[#8B7500]" /> MKA.P-MS AI
         </p>
         <button
           type="button"

@@ -409,12 +409,12 @@ export async function controlerQualite(supplierItemId: number, actorId?: number 
 
 // ───────────────────── 7. Parts Intelligence Engine (honnête) ─────────────────────
 
-/** Aucune brique MKA.P-MS Intelligences dédiée aux pièces (nettoyage titre, traduction, détection OEM, comparaison d'offres) n'est branchée aujourd'hui. Répond honnêtement, ne bloque jamais le pipeline. */
+/** Aucune brique MKA.P-MS AI dédiée aux pièces (nettoyage titre, traduction, détection OEM, comparaison d'offres) n'est branchée aujourd'hui. Répond honnêtement, ne bloque jamais le pipeline. */
 export async function analyserIA(supplierItemId: number, actorId?: number | null) {
   await obtenirPiece(supplierItemId);
   const aiData = {
     status: "NOT_CONNECTED" as const,
-    reason: "Aucune brique MKA.P-MS Intelligences dédiée aux pièces (nettoyage titre, traduction, classification, détection OEM, comparaison d'offres) branchée pour l'instant.",
+    reason: "Aucune brique MKA.P-MS AI dédiée aux pièces (nettoyage titre, traduction, classification, détection OEM, comparaison d'offres) branchée pour l'instant.",
     suggestions: null,
   };
   await db.update(partsSupplierItems).set({ aiData, updatedAt: new Date() }).where(eq(partsSupplierItems.id, supplierItemId));

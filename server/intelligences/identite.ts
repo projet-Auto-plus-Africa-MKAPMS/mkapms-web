@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligences — identité publique centralisée (LOT IA02A).
+ * MKA.P-MS AI — identité publique centralisée (LOT IA02A).
  *
  * Une seule source pour le nom que voit un utilisateur et pour le texte
  * générique affiché quand un appel de modèle échoue. Aucune interface
@@ -9,10 +9,10 @@
  * autorisées (Centre Intelligence & Coûts, journaux, Chantier de
  * développement — toutes réservées à la direction).
  */
-export const NOM_PRODUIT = "MKA.P-MS Intelligence";
+export const NOM_PRODUIT = "MKA.P-MS AI";
 
 export const MOTIF_PUBLIC_INDISPONIBLE =
-  "Le service MKA.P-MS Intelligence est temporairement indisponible. Réessayez dans un instant.";
+  "Le service MKA.P-MS AI est temporairement indisponible. Réessayez dans un instant.";
 
 /**
  * États produit honnêtes, sans aucun détail fournisseur.

@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — module Usage & coûts (LOT IA02B), complété du
+ * MKA.P-MS AI — module Usage & coûts (LOT IA02B), complété du
  * Provider Registry en LOT IA02D (Direction → Intelligence → Dependencies,
  * point 14).
  *

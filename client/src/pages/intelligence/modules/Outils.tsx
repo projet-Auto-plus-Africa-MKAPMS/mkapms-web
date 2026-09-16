@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — module Outils (LOT IA02B).
+ * MKA.P-MS AI — module Outils (LOT IA02B).
  *
  * Lecture réelle de la fiche Universe Registry du produit Intelligence
  * lui-même (server/intelligences/univers, LOT IA01, universeId

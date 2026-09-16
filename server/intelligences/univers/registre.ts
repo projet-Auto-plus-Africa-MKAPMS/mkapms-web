@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligences — Universe Registry (lecture calculée).
+ * MKA.P-MS AI — Universe Registry (lecture calculée).
  *
  * Combine la déclaration manuelle (mapping.ts) avec les données déjà réelles
  * du dépôt — jamais une resaisie :

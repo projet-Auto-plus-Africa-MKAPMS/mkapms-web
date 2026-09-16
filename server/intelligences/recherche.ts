@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligences — lecture d'une recherche véhicule dictée ou écrite
+ * MKA.P-MS AI — lecture d'une recherche véhicule dictée ou écrite
  * en langage naturel.
  *
  * Règle tenue ici : on n'extrait **que** des critères que la base sait

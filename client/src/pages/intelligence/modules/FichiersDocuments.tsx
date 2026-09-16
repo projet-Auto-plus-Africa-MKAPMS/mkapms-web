@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — module Fichiers & documents (LOT IA02F).
+ * MKA.P-MS AI — module Fichiers & documents (LOT IA02F).
  *
  * Pipeline réel (server/intelligences/fichiers.ts) : uploaded → validated →
  * parsed → chunked → indexed → searchable → ready_for_rag, ou `failed` avec

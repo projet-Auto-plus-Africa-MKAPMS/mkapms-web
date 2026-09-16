@@ -1,5 +1,5 @@
 /**
- * Points 126, 147 — registre central des capacités de MKA.P-MS Intelligences.
+ * Points 126, 147 — registre central des capacités de MKA.P-MS AI.
  *
  * Une capacité n'est pas un mot sur un écran : c'est un fournisseur joignable,
  * un moteur MKA responsable, une permission exigée, un repli, et un état

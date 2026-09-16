@@ -1,6 +1,6 @@
 /**
  * Points 136 et 137 — registre obligatoire, et connexion de **tous** les
- * moteurs à MKA.P-MS Intelligences.
+ * moteurs à MKA.P-MS AI.
  *
  * Le registre central existe déjà (`server/engine-registry`) : il n'est pas
  * refait ici. Ce fichier répond à la question que le registre seul ne tranche

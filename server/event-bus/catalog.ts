@@ -99,7 +99,7 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     domaine: "moteur",
     label: "Migrations de schéma échouées au démarrage",
     description:
-      "Le Core n'a pas pu appliquer les migrations : les tables attendues par les moteurs peuvent manquer. Le Système Intelligent ouvre une alerte critique, MKA.P-MS Intelligences retient la cause exacte.",
+      "Le Core n'a pas pu appliquer les migrations : les tables attendues par les moteurs peuvent manquer. Le Système Intelligent ouvre une alerte critique, MKA.P-MS AI retient la cause exacte.",
     champs: ["moteur", "etat", "detail"],
     emetteurs: ["core"],
   },
@@ -114,9 +114,9 @@ export const EVENT_TYPES: EventTypeSpec[] = [
   {
     code: "intelligences.echange",
     domaine: "contenu",
-    label: "Échange MKA.P-MS Intelligences",
+    label: "Échange MKA.P-MS AI",
     description:
-      "Une question a été posée à MKA.P-MS Intelligences (côté direction ou côté public) et une réponse a été tentée. L'événement porte le résultat réel : un appel refusé par le fournisseur est un signal, pas un silence.",
+      "Une question a été posée à MKA.P-MS AI (côté direction ou côté public) et une réponse a été tentée. L'événement porte le résultat réel : un appel refusé par le fournisseur est un signal, pas un silence.",
     champs: ["sessionId", "cote", "ok"],
     emetteurs: ["intelligences"],
   },
@@ -921,7 +921,7 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     effet:
       "Ne fait rien tant que les appels aboutissent ; ouvre une alerte quand le fournisseur de modèle refuse les appels, car l'assistant public et la génération de code deviennent alors muets.",
   },
-  // Point 138 — MKA.P-MS Intelligences entend le bus. Elle n'agit pas : elle
+  // Point 138 — MKA.P-MS AI entend le bus. Elle n'agit pas : elle
   // mémorise l'événement et, pour un signal d'échec, en fait une expérience
   // réutilisable (point 139). L'exécution reste gouvernée par le curseur
   // d'autonomie.
@@ -972,7 +972,7 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     eventType: "bouton.sans_action",
     handler: "smart_bouton_sans_action",
     effet:
-      "Ouvre une alerte dédupliquée par code de bouton et demande à MKA.P-MS Intelligences la correction à apporter : c'est la liste des écrans qui déçoivent réellement un utilisateur, classée par clics.",
+      "Ouvre une alerte dédupliquée par code de bouton et demande à MKA.P-MS AI la correction à apporter : c'est la liste des écrans qui déçoivent réellement un utilisateur, classée par clics.",
   },
   {
     engine: "smart",
@@ -986,7 +986,7 @@ export const SUBSCRIPTIONS: SubscriptionSpec[] = [
     eventType: "cliquable.destination_morte",
     handler: "smart_cliquable_destination_morte",
     effet:
-      "Ouvre une alerte dédupliquée par destination et demande à MKA.P-MS Intelligences si la page doit être créée ou la destination redirigée.",
+      "Ouvre une alerte dédupliquée par destination et demande à MKA.P-MS AI si la page doit être créée ou la destination redirigée.",
   },
   {
     engine: "smart",

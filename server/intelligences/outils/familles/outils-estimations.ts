@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — implémentations réelles de la famille "estimations"
+ * MKA.P-MS AI — implémentations réelles de la famille "estimations"
  * (server/intelligences/outils/familles/estimations.ts).
  *
  * Chaque outil ne fait qu'appeler l'Estimate Gateway

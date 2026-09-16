@@ -8,7 +8,7 @@
  * n'est pas fourni (même principe que le Connector Engine du LOT 1).
  *
  * Rappel impératif (cause du blocage de déploiement Railway des LOT 2/3,
- * voir PR #335) : le nom officiel du système est MKA.P-MS Intelligences,
+ * voir PR #335) : le nom officiel du système est MKA.P-MS AI,
  * jamais une autre appellation abrégée pour la même idée.
  */
 import { CANONICAL_SHIPMENT_FIELDS, CONNECTION_METHODS } from "../supplier-engine/contract.js";

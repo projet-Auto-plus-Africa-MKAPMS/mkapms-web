@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligences — surface tRPC.
+ * MKA.P-MS AI — surface tRPC.
  *
  * Deux côtés, deux niveaux d'accès contrôlés côté serveur :
  *  - `direction` : réservé au compte PDG (`pdgProcedure`). Contexte interne,
@@ -183,7 +183,7 @@ export const intelligencesRouter = router({
 
   /**
    * LOT IA02A — état PUBLIC du service : disponible/dégradé/indisponible,
-   * identité MKA.P-MS Intelligence uniquement. Aucun label de fournisseur,
+   * identité MKA.P-MS AI uniquement. Aucun label de fournisseur,
    * aucune variable d'environnement, aucune URL — voir `configStatusDirection`
    * pour la vue détaillée, réservée à la direction.
    */
@@ -739,7 +739,7 @@ export const intelligencesRouter = router({
   // Construit un petit projet (site vitrine…) de bout en bout à partir d'une
   // demande en langage naturel : Project Engine, File System Tools, boucle
   // d'outils (build, test, correction), Preview Engine. Réservé au PDG, comme
-  // le reste du côté direction — c'est MKA.P-MS Intelligence elle-même qui agit.
+  // le reste du côté direction — c'est MKA.P-MS AI elle-même qui agit.
 
   chantierProjets: pdgProcedure
     .input(z.object({ limit: z.number().int().min(1).max(100).default(40) }).optional())

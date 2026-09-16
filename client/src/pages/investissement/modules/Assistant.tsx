@@ -24,7 +24,7 @@ export function Assistant() {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-xs text-[#6B7280]">
-        Posez une question sur vos investissements (revenus, échéances, performance). MKA.P-MS Intelligence ne connaît que vos propres données.
+        Posez une question sur vos investissements (revenus, échéances, performance). MKA.P-MS AI ne connaît que vos propres données.
       </p>
       <div className="space-y-3">
         {echanges.map((e, i) => (

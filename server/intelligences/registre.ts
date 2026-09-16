@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligences — lecture du registre de conversation.
+ * MKA.P-MS AI — lecture du registre de conversation.
  *
  * Avant de répondre, le moteur lit *comment* le visiteur lui parle : est-ce un
  * remerciement, une salutation, un au revoir ? Est-il courtois, familier,

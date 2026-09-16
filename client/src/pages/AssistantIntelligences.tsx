@@ -1,10 +1,10 @@
 /**
- * MKA.P-MS Intelligences — côté public : assistant mondial.
+ * MKA.P-MS AI — côté public : assistant mondial.
  *
  * Automobile, vie quotidienne, travail, et les domaines que le PDG a ouverts.
  * Encadré côté serveur : aucun accès aux moteurs, au code, aux comptes ni aux
  * données internes. LOT IA02A : quand le service ne répond pas, l'écran
- * affiche un motif générique MKA.P-MS Intelligence — jamais le fournisseur,
+ * affiche un motif générique MKA.P-MS AI — jamais le fournisseur,
  * le modèle ou le détail technique de l'échec (server/intelligences/
  * provider.ts::motifPublic).
  */
@@ -121,7 +121,7 @@ export default function AssistantIntelligences() {
       <header className="rounded-2xl border border-black/5 bg-white p-4">
         <h1 className="flex items-center gap-2 text-xl font-black text-[#111]">
           <Sparkles className="h-5 w-5 text-[#8B7500]" />
-          {presentation.data?.nom ?? "MKA.P-MS Intelligences"}
+          {presentation.data?.nom ?? "MKA.P-MS AI"}
         </h1>
         <p className="mt-1 text-sm text-black/60">
           Assistance quotidienne et professionnelle, partout dans le monde. Choisissez le domaine :
@@ -189,7 +189,7 @@ export default function AssistantIntelligences() {
                 }`}
               >
                 <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-black/40">
-                  {b.role === "moi" ? "Vous" : presentation.data?.nom ?? "MKA.P-MS Intelligences"}
+                  {b.role === "moi" ? "Vous" : presentation.data?.nom ?? "MKA.P-MS AI"}
                 </p>
                 {b.ok ? (
                   <p className="whitespace-pre-wrap text-[#111]">{b.texte}</p>

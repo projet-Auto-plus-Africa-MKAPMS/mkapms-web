@@ -4,7 +4,7 @@
  * Ce moteur ne calcule rien lui-même : il interroge les moteurs propriétaires
  * (VO pour la valeur, Vehicle Delivery pour l'acheminement, Import Risk pour
  * l'importation, catalogue de pièces pour l'entretien) et assemble une réponse
- * unique pour l'acheteur, le vendeur et MKA.P-MS Intelligences.
+ * unique pour l'acheteur, le vendeur et MKA.P-MS AI.
  *
  * Règle : chaque volet porte sa source et sa qualité. Un volet dont la source
  * manque est renvoyé « non mesuré » avec le connecteur nommé — jamais complété

@@ -1253,9 +1253,9 @@ export default function App() {
             <Route path="/admin/memoire-technique" element={<U name="Mémoire technique du code"><MemoireTechnique /></U>} />
             <Route path="/admin/completion" element={<U name="Completion Center"><CompletionCenter /></U>} />
             <Route path="/admin/systeme-intelligent" element={<U name="Système Intelligent — audit & activation"><CentreSystemeIntelligent /></U>} />
-            <Route path="/admin/intelligences" element={<U name="MKA.P-MS Intelligences — direction"><CentreIntelligences /></U>} />
-            <Route path="/intelligences" element={<U name="MKA.P-MS Intelligences — assistant"><AssistantIntelligences /></U>} />
-            <Route path="/intelligence" element={<U name="MKA.P-MS Intelligence"><MKAPMSIntelligence /></U>} />
+            <Route path="/admin/intelligences" element={<U name="MKA.P-MS AI — direction"><CentreIntelligences /></U>} />
+            <Route path="/intelligences" element={<U name="MKA.P-MS AI — assistant"><AssistantIntelligences /></U>} />
+            <Route path="/intelligence" element={<U name="MKA.P-MS AI"><MKAPMSIntelligence /></U>} />
             <Route path="/investissement" element={<U name="Investissement"><EspaceInvestissement /></U>} />
             <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
             <Route path="/superadmin/mini-plateformes" element={<P module="back_office" name="Univers en mini-plateformes"><MiniPlateformes /></P>} />
@@ -1410,7 +1410,7 @@ export default function App() {
             <Route path="/entreprises" element={<U name="Entreprises et flottes"><SectionAccueil /></U>} />
             <Route path="/expansion" element={<U name="Expansion internationale"><SectionAccueil /></U>} />
             <Route path="/formations" element={<U name="Formations"><SectionAccueil /></U>} />
-            <Route path="/ia" element={<U name="MKA.P-MS Intelligences"><SectionAccueil /></U>} />
+            <Route path="/ia" element={<U name="MKA.P-MS AI"><SectionAccueil /></U>} />
             <Route path="/international" element={<U name="International"><SectionAccueil /></U>} />
             <Route path="/labs" element={<U name="Laboratoires MKA.P-MS"><SectionAccueil /></U>} />
             <Route path="/marketing" element={<U name="Marketing"><SectionAccueil /></U>} />

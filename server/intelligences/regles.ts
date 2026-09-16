@@ -1,7 +1,7 @@
 /**
- * MKA.P-MS Intelligences — règles et commandes.
+ * MKA.P-MS AI — règles et commandes.
  *
- * Le nom du moteur est « MKA.P-MS Intelligences » — jamais l'ancienne appellation,
+ * Le nom du moteur est « MKA.P-MS AI » — jamais l'ancienne appellation,
  * ni en français ni en anglais. Le respect du nom n'est pas laissé à la
  * vigilance : `scripts/check-naming.mjs` échoue le build s'il réapparaît.
  *
@@ -10,7 +10,7 @@
  * écrite ici n'est pas ouverte.
  */
 
-export const NOM_MOTEUR = "MKA.P-MS Intelligences";
+export const NOM_MOTEUR = "MKA.P-MS AI";
 
 export type Cote = "direction" | "public";
 
@@ -147,7 +147,7 @@ export const REGLES: { code: string; regle: string; application: string }[] = [
   },
   {
     code: "nom",
-    regle: "Le moteur s'appelle MKA.P-MS Intelligences.",
+    regle: "Le moteur s'appelle MKA.P-MS AI.",
     application:
       "Aucune mention « IA » ni « AI » dans les écrans : le contrôle scripts/check-naming.mjs échoue le build si l'ancienne appellation réapparaît.",
   },

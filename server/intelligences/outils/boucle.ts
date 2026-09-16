@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — boucle d'exécution des outils.
+ * MKA.P-MS AI — boucle d'exécution des outils.
  *
  * La seule porte d'entrée qui enchaîne un appel modèle avec des outils.
  * Chaque outil demandé traverse toujours, dans cet ordre :

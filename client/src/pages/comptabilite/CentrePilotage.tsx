@@ -64,7 +64,7 @@ const TABS: { id: MainTab; label: string; icon: typeof Crown }[] = [
   { id: "carrosserie", label: "Carrosserie", icon: Wrench },
   { id: "alertes", label: "Alertes", icon: Bell },
   { id: "journal", label: "Journal", icon: Clock },
-  { id: "ia", label: "MKA.P-MS Intelligences", icon: Brain },
+  { id: "ia", label: "MKA.P-MS AI", icon: Brain },
   { id: "parametres", label: "Parametres", icon: Settings },
   { id: "conseil", label: "Conseil d'Admin", icon: Shield },
   { id: "automatisation", label: "Automatisation", icon: Cog },
@@ -100,7 +100,7 @@ const TABS: { id: MainTab; label: string; icon: typeof Crown }[] = [
   { id: "observation", label: "Observation Marche", icon: LineChart },
   { id: "experience", label: "Experience Client", icon: Heart },
   { id: "rewards", label: "Rewards", icon: Gift },
-  { id: "ia_centre", label: "MKA.P-MS Intelligences Centre", icon: Cpu },
+  { id: "ia_centre", label: "MKA.P-MS AI Centre", icon: Cpu },
   { id: "personnalisation", label: "Personnalisation", icon: Palette },
   { id: "indicateurs", label: "Indicateurs Exec.", icon: Gauge },
   { id: "connecteurs", label: "Connecteurs", icon: Plug },
@@ -312,9 +312,9 @@ const INNOVATION_PROJETS = [
 
 /* ---------- Partie 4 data (42-55) ---------- */
 const RD_PROJETS = [
-  { nom: "Intelligence Detection fraude v2", categorie: "MKA.P-MS Intelligences", responsable: "Karim B.", budget: "45 000 EUR", priorite: "Haute", avancement: 55, cible: "Q4 2026", validation: "Approuve" },
+  { nom: "Intelligence Detection fraude v2", categorie: "MKA.P-MS AI", responsable: "Karim B.", budget: "45 000 EUR", priorite: "Haute", avancement: 55, cible: "Q4 2026", validation: "Approuve" },
   { nom: "App Garage+ standalone", categorie: "Applications mobiles", responsable: "Ahmed T.", budget: "80 000 EUR", priorite: "Haute", avancement: 25, cible: "Q1 2027", validation: "En attente" },
-  { nom: "Moteur de recommandation", categorie: "MKA.P-MS Intelligences", responsable: "Data Team", budget: "35 000 EUR", priorite: "Moyenne", avancement: 15, cible: "Q2 2027", validation: "Approuve" },
+  { nom: "Moteur de recommandation", categorie: "MKA.P-MS AI", responsable: "Data Team", budget: "35 000 EUR", priorite: "Moyenne", avancement: 15, cible: "Q2 2027", validation: "Approuve" },
   { nom: "Inspection vehicule AR", categorie: "Objets connectes", responsable: "Innovation", budget: "120 000 EUR", priorite: "Basse", avancement: 5, cible: "2028", validation: "Planifie" },
   { nom: "Dashboard Electric+ v2", categorie: "Electric+", responsable: "Awa S.", budget: "20 000 EUR", priorite: "Moyenne", avancement: 40, cible: "Q3 2026", validation: "Approuve" },
   { nom: "API Marketplace externe", categorie: "Outils internes", responsable: "Tech", budget: "15 000 EUR", priorite: "Haute", avancement: 60, cible: "Q3 2026", validation: "Approuve" },
@@ -1121,7 +1121,7 @@ export default function CentrePilotage() {
           </div>
         )}
 
-        {/* ━━━━ MKA.P-MS Intelligences ━━━━ */}
+        {/* ━━━━ MKA.P-MS AI ━━━━ */}
         {tab === "ia" && (
           <div className="space-y-3">
             <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4">
@@ -2307,7 +2307,7 @@ export default function CentrePilotage() {
           </div>
         )}
 
-        {/* 63. MKA.P-MS Intelligences CENTRE */}
+        {/* 63. MKA.P-MS AI CENTRE */}
         {tab === "ia_centre" && (
           <div className="space-y-3">
             <div className="rounded-xl bg-gradient-to-r from-[#111] to-[#1a1a2e] p-4 text-white">

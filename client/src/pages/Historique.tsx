@@ -69,7 +69,7 @@ const RAPPORTS = [
     border: "border-purple-200",
     features: [
       "Tout le Rapport Complet",
-      "Analyse MKA.P-MS Intelligences",
+      "Analyse MKA.P-MS AI",
       "Estimation valeur marché",
       "Points de vigilance",
       "Documents administratifs si disponibles",
@@ -1416,7 +1416,7 @@ export default function Historique() {
                       <p className="text-[9px] text-white/40">MKA.P-MS — Technologie Intelligence</p>
                     </div>
                   </div>
-                  <p className="text-xs text-white/60 leading-relaxed">MKA.P-MS Intelligences analyse des millions de données pour vous fournir un rapport fiable et objectif. Détection automatique des anomalies, estimation de la valeur marché et recommandation d'achat personnalisée.</p>
+                  <p className="text-xs text-white/60 leading-relaxed">MKA.P-MS AI analyse des millions de données pour vous fournir un rapport fiable et objectif. Détection automatique des anomalies, estimation de la valeur marché et recommandation d'achat personnalisée.</p>
                   <div className="mt-4 grid grid-cols-3 gap-2">
                     {[
                       { label: "Précision", value: "99,2%" },

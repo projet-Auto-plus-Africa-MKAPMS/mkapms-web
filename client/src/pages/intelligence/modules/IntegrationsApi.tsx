@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — module Intégrations & API (LOT IA02B).
+ * MKA.P-MS AI — module Intégrations & API (LOT IA02B).
  *
  * Plateforme développeur réelle (server/intelligences/developpeur.ts) :
  * contrat public /api/v1, clés existantes (secret jamais réaffiché après sa

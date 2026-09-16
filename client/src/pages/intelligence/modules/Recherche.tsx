@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — module Recherche (LOT IA02F).
+ * MKA.P-MS AI — module Recherche (LOT IA02F).
  *
  * Recherche unifiée réelle (server/intelligences/recherche-globale.ts) dans
  * les sources réellement autorisées à l'appelant — jamais un résultat

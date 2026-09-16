@@ -1,5 +1,5 @@
 /**
- * Contrôles de MKA.P-MS Intelligences.
+ * Contrôles de MKA.P-MS AI.
  *
  * Le point sensible n'est pas « le code existe » mais « la clé répond » et
  * « le côté public ne voit rien d'interne ». Ces deux contrôles-là auraient

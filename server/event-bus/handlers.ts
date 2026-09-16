@@ -130,7 +130,7 @@ const handlers: Record<string, Handler> = {
     const fournisseur = texte(payload, "fournisseur") || "aucun fournisseur routable";
     const cree = await raiseAlert({
       category: "moteur",
-      title: `MKA.P-MS Intelligences sans réponse (${cote})`,
+      title: `MKA.P-MS AI sans réponse (${cote})`,
       description: `Un appel au fournisseur de modèle n'a pas abouti (${fournisseur}). Côté public, l'assistant reste muet ; côté direction, la génération de code est refusée. Vérifier la clé du fournisseur et le plafond journalier.`,
       level: cote === "public" ? "critical" : "important",
       signature: `bus:intelligences:${cote}`,
@@ -141,7 +141,7 @@ const handlers: Record<string, Handler> = {
   },
 
   /**
-   * Point 138 — MKA.P-MS Intelligences entend le bus, et point 139 — elle en
+   * Point 138 — MKA.P-MS AI entend le bus, et point 139 — elle en
    * apprend. L'événement va en mémoire technique ; un événement d'échec devient
    * en plus une expérience que la prochaine mission consultera avant de repartir
    * de zéro. Aucune action corrective n'est déclenchée ici : écouter n'est pas
@@ -291,7 +291,7 @@ const handlers: Record<string, Handler> = {
 
   /**
    * Un bouton qui ne mène à rien : le Système Intelligent ouvre l'alerte, et
-   * MKA.P-MS Intelligences ouvre le dossier de développement correspondant —
+   * MKA.P-MS AI ouvre le dossier de développement correspondant —
    * une seule fois par bouton, à la première alerte, pour que 500 clics ne
    * fassent pas 500 dossiers.
    */

@@ -23,7 +23,7 @@ const TITRES = {
   "/entreprises": "Entreprises et flottes",
   "/expansion": "Expansion internationale",
   "/formations": "Formations",
-  "/ia": "MKA.P-MS Intelligences",
+  "/ia": "MKA.P-MS AI",
   "/international": "International",
   "/labs": "Laboratoires MKA.P-MS",
   "/marketing": "Marketing",

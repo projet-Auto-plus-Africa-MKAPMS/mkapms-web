@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — implémentations réelles de la famille "vehicules"
+ * MKA.P-MS AI — implémentations réelles de la famille "vehicules"
  * (server/intelligences/outils/familles/vehicules.ts).
  *
  * Réutilise les moteurs déjà existants (vo-engine, country-os, annonces) —

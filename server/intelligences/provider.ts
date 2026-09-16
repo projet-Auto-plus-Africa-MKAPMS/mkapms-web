@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligences — couche d'appel réelle aux fournisseurs de modèles.
+ * MKA.P-MS AI — couche d'appel réelle aux fournisseurs de modèles.
  *
  * Jusqu'ici la plateforme savait *choisir* un fournisseur (Fabrique Intelligence) mais
  * n'appelait personne : aucun moteur ne pouvait donc réellement raisonner,
@@ -571,7 +571,7 @@ export function etatConfiguration(): {
     providers,
     guidance:
       active.length === 0
-        ? `Aucune clé n'est configurée pour MKA.P-MS Intelligence. Ajoute au moins ${premiere} dans les variables Railway pour que l'assistant, le Centre de Commandes et les moteurs Intelligence puissent répondre.`
+        ? `Aucune clé n'est configurée pour MKA.P-MS AI. Ajoute au moins ${premiere} dans les variables Railway pour que l'assistant, le Centre de Commandes et les moteurs Intelligence puissent répondre.`
         : `${active.length}/${providers.length} fournisseur(s) opérationnel(s). Ajoute d'autres clés pour bénéficier du repli automatique en cas de panne.`,
   };
 }
@@ -614,7 +614,7 @@ export async function verifierAcces(): Promise<{
     tache: "verification_acces",
     moteur: "intelligences",
     systeme: "Réponds exactement le mot OK, sans ponctuation.",
-    message: "Test d'accès MKA.P-MS Intelligences.",
+    message: "Test d'accès MKA.P-MS AI.",
     maxTokens: 16,
   });
 

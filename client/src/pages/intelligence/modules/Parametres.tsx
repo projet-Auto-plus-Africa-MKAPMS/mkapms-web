@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — module Paramètres (LOT IA02B).
+ * MKA.P-MS AI — module Paramètres (LOT IA02B).
  *
  * Lecture réelle des règles maîtres et des commandes déclarées
  * (server/intelligences/regles.ts) — référence, pas un formulaire : ces

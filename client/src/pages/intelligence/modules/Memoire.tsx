@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — module Mémoire (LOT IA02B + LOT IA02F).
+ * MKA.P-MS AI — module Mémoire (LOT IA02B + LOT IA02F).
  *
  * Mémoire fédérée réelle (server/intelligences/memoire.ts) : état par
  * catégorie (volume constaté, ou « non mesuré » quand le détenteur ne répond

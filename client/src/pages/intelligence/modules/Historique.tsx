@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — module Historique (LOT IA02B).
+ * MKA.P-MS AI — module Historique (LOT IA02B).
  *
  * Journal réel des dix-neuf actions de direction (server/intelligences/actions.ts
  * ::journal, déjà utilisé par le Centre Intelligence direction) — pas un second

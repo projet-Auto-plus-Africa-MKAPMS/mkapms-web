@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — module Conversation (LOT IA02B).
+ * MKA.P-MS AI — module Conversation (LOT IA02B).
  *
  * Vrai espace de conversation : nouvelle conversation, conversations
  * précédentes (renommer, supprimer, reprendre), envoi, régénération, copie
@@ -135,7 +135,7 @@ export function Conversation() {
           role: "moteur",
           texte: "",
           ok: false,
-          motif: "Le service MKA.P-MS Intelligence est temporairement indisponible. Réessayez dans un instant.",
+          motif: "Le service MKA.P-MS AI est temporairement indisponible. Réessayez dans un instant.",
           outils: [],
         },
       ]),
@@ -374,7 +374,7 @@ export function Conversation() {
           )}
           {demander.isPending && (
             <div className="max-w-[85%] rounded-xl border border-black/5 bg-[#FAFAFA] p-3 text-sm text-black/40">
-              MKA.P-MS Intelligence réfléchit…
+              MKA.P-MS AI réfléchit…
             </div>
           )}
           <div ref={finDuFil} />

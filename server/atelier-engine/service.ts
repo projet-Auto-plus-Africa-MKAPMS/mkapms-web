@@ -12,7 +12,7 @@
  *
  * Il ne décide rien à la place de l'atelier et ne prononce aucune conformité
  * tout seul. Chaque écriture est publiée à l'Event Bus : le Système Intelligent
- * ouvre l'alerte, MKA.P-MS Intelligences en garde la mémoire technique.
+ * ouvre l'alerte, MKA.P-MS AI en garde la mémoire technique.
  */
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db.js";
