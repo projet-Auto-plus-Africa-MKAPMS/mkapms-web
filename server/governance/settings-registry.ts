@@ -102,6 +102,8 @@ export const SETTINGS_REGISTRY: Reglage[] = [
   { cle: "plateforme.domaines", categorie: "plateforme", libelle: "Domaines", etat: "CENTRALIZED", source: "server/country-os/domain.ts", motif: "" },
   { cle: "plateforme.versions", categorie: "plateforme", libelle: "Versions", etat: "CENTRALIZED", source: "server/governance/versions.ts (LOT IA02B)", motif: "Nouvellement centralisé — une seule version de dépôt sert les cinq applications aujourd'hui." },
   { cle: "plateforme.compatibilite", categorie: "plateforme", libelle: "Compatibilité", etat: "PARTIAL", source: "server/governance/schema.ts (compatibilityStatus)", motif: "Champ enregistré à chaque release ; calcul automatique de compatibilité non construit." },
+  { cle: "pieces.type_vehicule", categorie: "plateforme", libelle: "Pièces — type de véhicule", etat: "CONNECTED_AND_TESTED", source: "server/schema.ts (partsVehicleTypeEnum), shared/partsCategories.ts (PARTS_VEHICLE_TYPES)", motif: "Architecture 3 : sélecteur homepage Pièces (voiture/utilitaire/moto/agricole/engin_chantier/bateau) ; défaut \"voiture\" pour tout le catalogue préexistant." },
+  { cle: "pieces.identification_plaque", categorie: "plateforme", libelle: "Pièces — identification par plaque/VIN", etat: "NOT_CONNECTED", source: "—", motif: "WAITING_EXTERNAL_ACCESS : nécessite une base d'immatriculation externe non disponible aujourd'hui. Seule la saisie manuelle marque/modèle/année (server/routers/pieces.ts::catalog) existe." },
 ];
 
 export function parCategorie(categorie: CategorieReglage): Reglage[] {
