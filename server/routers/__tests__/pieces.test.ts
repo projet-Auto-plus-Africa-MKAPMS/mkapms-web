@@ -4,7 +4,7 @@
  * explicite sur la fiche produit (shared/partsCategories.ts::
  * evaluerCompatibilite) + correctif du filtre catalog sur année (une
  * compatibilité sans borne d'année déclarée ne doit plus être exclue à
- * tort). Base de données réelle.
+ * tort) + garde-fou anti-survente sur createOrder. Base de données réelle.
  *
  * Couvre : valeur par défaut "voiture" à la création (compatibilité
  * ascendante avec tout le catalogue existant), filtrage du catalogue par
@@ -19,7 +19,7 @@
 import assert from "node:assert/strict";
 import { eq, inArray } from "drizzle-orm";
 import { db } from "../../db.js";
-import { partsShops, partsCatalog, partsCompatibility } from "../../schema.js";
+import { partsShops, partsCatalog, partsCompatibility, partsOrders, partsOrderItems, partsOrderTracking, serviceTracking } from "../../schema.js";
 import { piecesRouter } from "../pieces.js";
 import { PARTS_VEHICLE_TYPES, evaluerCompatibilite } from "../../../shared/partsCategories.js";
 import { recordTestEvidence } from "../../activation-audit/service.js";
@@ -34,15 +34,25 @@ function verif(nom: string, condition: boolean) {
 }
 
 const OWNER_ID = 900101;
+const BUYER_ID = 900102;
 const REF_PREFIX = "TEST-TYPEVEHICULE-";
 
 const caller = piecesRouter.createCaller({ req: {} as never, res: {} as never, user: { uid: OWNER_ID, role: "pro", email: "pro-test-pieces@mkapms.local" } });
 const publicCaller = piecesRouter.createCaller({ req: {} as never, res: {} as never, user: null });
+const buyerCaller = piecesRouter.createCaller({ req: {} as never, res: {} as never, user: { uid: BUYER_ID, role: "user", email: "acheteur-test-pieces@mkapms.local" } });
 
 async function nettoyer() {
   const shops = await db.select({ id: partsShops.id }).from(partsShops).where(eq(partsShops.ownerId, OWNER_ID));
   const shopIds = shops.map((s) => s.id);
+  const orders = shopIds.length > 0 ? await db.select({ id: partsOrders.id }).from(partsOrders).where(inArray(partsOrders.shopId, shopIds)) : [];
+  const orderIds = orders.map((o) => o.id);
+  if (orderIds.length > 0) {
+    await db.delete(partsOrderItems).where(inArray(partsOrderItems.orderId, orderIds));
+    await db.delete(partsOrderTracking).where(inArray(partsOrderTracking.orderId, orderIds));
+  }
+  await db.delete(serviceTracking).where(eq(serviceTracking.userId, BUYER_ID));
   if (shopIds.length > 0) {
+    await db.delete(partsOrders).where(inArray(partsOrders.shopId, shopIds));
     await db.delete(partsCatalog).where(inArray(partsCatalog.shopId, shopIds));
   }
   await db.delete(partsShops).where(eq(partsShops.ownerId, OWNER_ID));
@@ -127,6 +137,35 @@ async function main() {
   await db.insert(partsCompatibility).values({ catalogId: piece4.id, marque: "Toyota" }); // anneeDebut/anneeFin volontairement absents
   const catalogueAnneeSeule = await publicCaller.catalog({ shopId: shop.id, marqueVehicule: "Toyota", anneeVehicule: 1999 });
   verif("catalog(anneeVehicule) n'exclut pas une compatibilité sans borne d'année déclarée", catalogueAnneeSeule.items.some((p) => p.id === piece4.id));
+
+  // ── 7. createOrder refuse une quantité supérieure au stock réellement disponible ──
+  const piece5 = await caller.addPart({
+    shopId: shop.id,
+    nom: "Filtre à huile test stock",
+    referenceInterne: `${REF_PREFIX}5`,
+    prixHt: 15,
+    quantiteInitiale: 3,
+  });
+  let stockRefuse = false;
+  try {
+    await buyerCaller.createOrder({ shopId: shop.id, items: [{ catalogId: piece5.id, quantite: 4 }] });
+  } catch (e) {
+    stockRefuse = e instanceof Error && /[Ss]tock insuffisant/.test(e.message);
+  }
+  verif("createOrder refuse une quantité supérieure au stock disponible (correctif anti-survente)", stockRefuse);
+
+  const commandeOk = await buyerCaller.createOrder({ shopId: shop.id, items: [{ catalogId: piece5.id, quantite: 2 }] });
+  verif("createOrder accepte une quantité dans la limite du stock disponible", commandeOk.id > 0);
+
+  const commandeRefuseApres = await (async () => {
+    try {
+      await buyerCaller.createOrder({ shopId: shop.id, items: [{ catalogId: piece5.id, quantite: 2 }] });
+      return false;
+    } catch (e) {
+      return e instanceof Error && /[Ss]tock insuffisant/.test(e.message);
+    }
+  })();
+  verif("createOrder tient compte de la réservation de la commande précédente (1 restant sur 3)", commandeRefuseApres);
 
   await nettoyer();
 
