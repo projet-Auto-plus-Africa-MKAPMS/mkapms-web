@@ -86,6 +86,10 @@ export default function AuditActivation() {
     { limit: 10 },
     { enabled: !!isDirection, refetchOnWindowFocus: false },
   );
+  const causes = trpc.activationAudit.matriceCauses.useQuery(undefined, {
+    enabled: !!isDirection,
+    refetchOnWindowFocus: false,
+  });
 
   const lancer = trpc.activationAudit.run.useMutation({
     onSuccess: (r) => {
@@ -171,6 +175,28 @@ export default function AuditActivation() {
                 valeur={new Date(rapport.checkedAt).toLocaleString("fr-FR")}
               />
             </div>
+
+            {causes.data && causes.data.lignes.length > 0 && (
+              <div className="mt-4 rounded-xl border border-black/5 bg-white p-3">
+                <p className="text-[11px] uppercase tracking-wide text-black/40">
+                  Matrice de causes — {causes.data.lignes.length} domaine(s) non résolu(s)
+                </p>
+                <p className="mt-0.5 text-[11px] text-black/45">
+                  Un domaine peut cumuler plusieurs causes ; « aucune donnée réelle » n&apos;est pas en soi un défaut
+                  (peut être légitimement opérationnel mais encore sans usage réel).
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {Object.entries(causes.data.parCause)
+                    .filter(([, n]) => n > 0)
+                    .map(([code, n]) => (
+                      <div key={code} className="rounded-lg bg-black/5 px-2.5 py-1.5">
+                        <p className="text-[10px] font-bold text-black/70">{code}</p>
+                        <p className="text-sm font-black text-[#111]">{n}</p>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
 
             <div className="mt-4 flex flex-wrap gap-2">
               <button

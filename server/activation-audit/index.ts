@@ -14,6 +14,7 @@ import {
   recordTestEvidence,
   runActivationAudit,
 } from "./service.js";
+import { matriceCauses } from "./causes.js";
 
 export const ACTIVATION_AUDIT_META = {
   code: "activation_audit",
@@ -40,6 +41,17 @@ export const activationAuditRouter = router({
   history: adminProcedure
     .input(z.object({ limit: z.number().min(1).max(100).default(20) }).optional())
     .query(({ input }) => auditHistory(input?.limit ?? 20)),
+
+  /**
+   * Matrice de causes : classe chaque domaine non résolu selon le manque
+   * réellement observé par la dernière photographie (jamais un recalcul,
+   * jamais un nouveau jugement — la même donnée que `latest`, nommée).
+   */
+  matriceCauses: adminProcedure.query(async () => {
+    const rapport = await latestActivationAudit();
+    if (!rapport) return null;
+    return matriceCauses(rapport.items);
+  }),
 
   /** Dépôt d'une preuve de test (Continuous Test Engine, agent, PDG). */
   recordTest: adminProcedure
