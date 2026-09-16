@@ -3648,8 +3648,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "boutons"
     ],
     "boutons": [],
-    "routes": [],
-    "ecrans": [],
+    "routes": [
+      "/superadmin/moteur-boutons"
+    ],
+    "ecrans": [
+      {
+        "fichier": "client/src/pages/superadmin/MoteurBoutons.tsx",
+        "routes": [
+          "/superadmin/moteur-boutons"
+        ],
+        "cliquables": 2,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 12,
+        "mots": 82
+      }
+    ],
     "ecransHotes": [
       {
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
@@ -3767,8 +3781,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 0,
-    "mots": 0,
+    "textes": 12,
+    "mots": 82,
     "battement": "code",
     "manques": []
   },
@@ -5750,8 +5764,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 24,
-        "mots": 50
+        "textes": 25,
+        "mots": 53
       }
     ],
     "ecransHotes": [
@@ -6074,8 +6088,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 372,
-    "mots": 1573,
+    "textes": 373,
+    "mots": 1576,
     "battement": "contrat",
     "manques": [
       {
