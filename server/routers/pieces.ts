@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, desc, eq, ilike, sql, gte, lte, or, isNull } from "drizzle-orm";
+import { and, desc, eq, ilike, sql, gte, lte, or, isNull, inArray } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure, proProcedure, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
@@ -147,11 +147,17 @@ export const piecesRouter = router({
         if (input.marqueVehicule) compatConds.push(ilike(partsCompatibility.marque, `%${input.marqueVehicule}%`));
         if (input.modeleVehicule) compatConds.push(ilike(partsCompatibility.modele, `%${input.modeleVehicule}%`));
         if (input.anneeVehicule) {
+          // Une compatibilité sans borne d'année déclarée (anneeDebut/anneeFin
+          // NULL) vaut « aucune restriction d'année », pas « exclue » : avant
+          // ce correctif, isNull() manquait et ces lignes disparaissaient dès
+          // qu'un millésime était recherché.
           compatConds.push(or(
+            isNull(partsCompatibility.anneeDebut),
             eq(partsCompatibility.anneeDebut, 0),
             lte(partsCompatibility.anneeDebut, input.anneeVehicule),
           )!);
           compatConds.push(or(
+            isNull(partsCompatibility.anneeFin),
             eq(partsCompatibility.anneeFin, 0),
             gte(partsCompatibility.anneeFin, input.anneeVehicule),
           )!);
@@ -160,7 +166,7 @@ export const piecesRouter = router({
           .from(partsCompatibility).where(and(...compatConds));
         const ids = compatIds.map(c => c.catalogId);
         if (ids.length === 0) return { total: 0, items: [] };
-        conds.push(sql`${partsCatalog.id} = ANY(${ids})`);
+        conds.push(inArray(partsCatalog.id, ids));
       }
 
       const where = and(...conds);

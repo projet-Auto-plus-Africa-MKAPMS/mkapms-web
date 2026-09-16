@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import {
   MapPin, Phone, Package, Search, Filter, ShoppingCart, ChevronDown, ChevronUp,
   Car, Tag, Truck, CheckCircle, Store, Plus, Minus, X, Warehouse,
-  Clock, MapPinned, Bell, ClipboardList, CreditCard,
+  Clock, MapPinned, Bell, ClipboardList, CreditCard, XCircle, HelpCircle,
 } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
-import { PARTS_CATEGORIES, PARTS_VEHICLE_TYPES } from "@shared/partsCategories";
+import { PARTS_CATEGORIES, PARTS_VEHICLE_TYPES, evaluerCompatibilite } from "@shared/partsCategories";
 import { useReportNavigation } from "../lib/redirect";
 
 const CONDITIONS = [
@@ -639,9 +639,32 @@ export default function Pieces() {
                   </div>
                 </div>
 
-                {partDetail.data.compatibilites.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700"><Car size={14} /> Compatibilité véhicule</h3>
+                <div className="mt-4">
+                  <h3 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700"><Car size={14} /> Compatibilité véhicule</h3>
+                  {(() => {
+                    const etat = evaluerCompatibilite(partDetail.data.compatibilites, {
+                      marque: marqueVehicule || undefined,
+                      modele: modeleVehicule || undefined,
+                      annee: anneeVehicule ? parseInt(anneeVehicule) : undefined,
+                    });
+                    if (etat === "compatible") return (
+                      <div className="mb-2 flex items-center gap-2 rounded-lg bg-success/10 px-3 py-2 text-sm font-semibold text-success">
+                        <CheckCircle size={16} /> Compatible avec {marqueVehicule} {modeleVehicule} {anneeVehicule}
+                      </div>
+                    );
+                    if (etat === "non_compatible") return (
+                      <div className="mb-2 flex items-center gap-2 rounded-lg bg-danger/10 px-3 py-2 text-sm font-semibold text-danger">
+                        <XCircle size={16} /> Non compatible avec {marqueVehicule} {modeleVehicule} {anneeVehicule}
+                      </div>
+                    );
+                    if (etat === "non_renseignee") return (
+                      <div className="mb-2 flex items-center gap-2 rounded-lg bg-warning/10 px-3 py-2 text-sm font-semibold text-warning">
+                        <HelpCircle size={16} /> Compatibilité non renseignée par le vendeur — vérifiez avant l'achat
+                      </div>
+                    );
+                    return null;
+                  })()}
+                  {partDetail.data.compatibilites.length > 0 && (
                     <div className="space-y-1">
                       {partDetail.data.compatibilites.map((c) => (
                         <div key={c.id} className="flex items-center gap-2 rounded bg-info/5 px-3 py-1.5 text-sm">
@@ -653,8 +676,8 @@ export default function Pieces() {
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {(partDetail.data.poidsKg || partDetail.data.longueurCm) && (
                   <div className="mt-4">
