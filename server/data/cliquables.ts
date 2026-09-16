@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2608;
+export const CLIQUABLES_TOTAL = 2610;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -539,7 +539,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/partenaires/SuspensionPartenaires.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/PartenairesPilotage.tsx", total: 6, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/PermissionEngine/ControlCenter.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/Pieces.tsx", total: 19, moteur: 0, liens: 0, boutonsLocaux: 16, sansAction: 0, zones: 3 },
+  { fichier: "client/src/pages/Pieces.tsx", total: 21, moteur: 0, liens: 0, boutonsLocaux: 18, sansAction: 0, zones: 3 },
   { fichier: "client/src/pages/pieces/AbonnementsProPieces.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/pieces/AvisProduitsPieces.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/pieces/FournisseursPieces.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },

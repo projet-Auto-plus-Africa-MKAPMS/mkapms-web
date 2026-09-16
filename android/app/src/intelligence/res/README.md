@@ -1,4 +1,4 @@
-# Ressources propres à l'application MKA.P-MS Intelligence
+# Ressources propres à l'application MKA.P-MS AI
 
 Ce dossier est le point d'entrée du mécanisme qui permet à chaque application
 mobile (`mobile/variants.json`) d'avoir un jour sa propre icône, son propre
@@ -12,7 +12,7 @@ Rien n'est déposé ici pour l'instant : l'application Intelligence utilise
 donc l'icône et le splash screen communs (`src/main/res/`), comme les trois
 autres applications.
 
-Pour donner une identité visuelle propre à MKA.P-MS Intelligence plus tard,
+Pour donner une identité visuelle propre à MKA.P-MS AI plus tard,
 déposer ici les mêmes chemins que dans `src/main/res/` (à adapter avec les
 vraies tailles d'icône adaptative Android) :
 

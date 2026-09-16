@@ -630,6 +630,13 @@ export const partsInvoiceTypeEnum = pgEnum("parts_invoice_type", [
 export const partsInvoiceStatusEnum = pgEnum("parts_invoice_status", [
   "brouillon", "emis", "paye", "annule",
 ]);
+// Architecture 3 — sélecteur de type de véhicule de la maquette homepage Pièces.
+// "voiture" en valeur par défaut : tout le catalogue existant est implicitement
+// automobile (compatibilité marque/modèle/moteur), aucune pièce réelle n'était
+// déclarée pour un autre type avant ce lot.
+export const partsVehicleTypeEnum = pgEnum("parts_vehicle_type", [
+  "voiture", "utilitaire", "moto", "agricole", "engin_chantier", "bateau",
+]);
 
 export const partsShops = pgTable("parts_shops", {
   id: serial("id").primaryKey(),
@@ -674,6 +681,7 @@ export const partsCatalog = pgTable("parts_catalog", {
   codeBarre: varchar("code_barre", { length: 64 }),
   categorie: varchar("categorie", { length: 128 }),
   sousCategorie: varchar("sous_categorie", { length: 128 }),
+  typeVehicule: partsVehicleTypeEnum("type_vehicule").notNull().default("voiture"),
   marquePiece: varchar("marque_piece", { length: 128 }),
   etat: varchar("etat", { length: 16 }),
   condition: partsConditionEnum("condition").notNull().default("neuf"),

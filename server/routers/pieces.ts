@@ -117,6 +117,7 @@ export const piecesRouter = router({
         q: z.string().optional(),
         categorie: z.string().optional(),
         condition: z.enum(["neuf", "occasion", "reconditionne", "echange_standard"]).optional(),
+        typeVehicule: z.enum(["voiture", "utilitaire", "moto", "agricole", "engin_chantier", "bateau"]).optional(),
         marqueVehicule: z.string().optional(),
         modeleVehicule: z.string().optional(),
         anneeVehicule: z.number().optional(),
@@ -129,6 +130,7 @@ export const piecesRouter = router({
       if (input.shopId) conds.push(eq(partsCatalog.shopId, input.shopId));
       if (input.categorie) conds.push(eq(partsCatalog.categorie, input.categorie));
       if (input.condition) conds.push(eq(partsCatalog.condition, input.condition));
+      if (input.typeVehicule) conds.push(eq(partsCatalog.typeVehicule, input.typeVehicule));
       if (input.q) {
         conds.push(or(
           ilike(partsCatalog.nom, `%${input.q}%`),
@@ -197,6 +199,7 @@ export const piecesRouter = router({
         codeBarre: z.string().optional(),
         categorie: z.string().optional(),
         sousCategorie: z.string().optional(),
+        typeVehicule: z.enum(["voiture", "utilitaire", "moto", "agricole", "engin_chantier", "bateau"]).default("voiture"),
         marquePiece: z.string().optional(),
         etat: z.string().optional(),
         condition: z.enum(["neuf", "occasion", "reconditionne", "echange_standard"]).default("neuf"),
@@ -234,6 +237,7 @@ export const piecesRouter = router({
         codeBarre: input.codeBarre,
         categorie: input.categorie,
         sousCategorie: input.sousCategorie,
+        typeVehicule: input.typeVehicule,
         marquePiece: input.marquePiece,
         etat: input.etat,
         condition: input.condition,
@@ -292,6 +296,7 @@ export const piecesRouter = router({
       codeBarre: z.string().optional(),
       categorie: z.string().optional(),
       sousCategorie: z.string().optional(),
+      typeVehicule: z.enum(["voiture", "utilitaire", "moto", "agricole", "engin_chantier", "bateau"]).optional(),
       marquePiece: z.string().optional(),
       etat: z.string().optional(),
       prixHt: z.number().optional(),

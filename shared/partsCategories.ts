@@ -1,6 +1,24 @@
 // Catalogue exhaustif de catégories/sous-catégories pièces auto.
 // Source unique partagée entre frontend (recherche, filtres) et backend (référencement).
 
+// Architecture 3 — types de véhicule du sélecteur homepage Pièces. Doit rester
+// synchronisé avec l'enum partsVehicleTypeEnum de server/schema.ts : une seule
+// liste de vérité, jamais deux valeurs qui divergent.
+export interface PartsVehicleType {
+  code: "voiture" | "utilitaire" | "moto" | "agricole" | "engin_chantier" | "bateau";
+  label: string;
+  icon: string;
+}
+
+export const PARTS_VEHICLE_TYPES: PartsVehicleType[] = [
+  { code: "voiture", label: "Voiture", icon: "🚗" },
+  { code: "utilitaire", label: "Utilitaire / Camion", icon: "🚚" },
+  { code: "moto", label: "Moto / Scooter", icon: "🏍️" },
+  { code: "agricole", label: "Agricole", icon: "🚜" },
+  { code: "engin_chantier", label: "Engin de chantier", icon: "🏗️" },
+  { code: "bateau", label: "Bateau", icon: "⛵" },
+];
+
 export interface PartsSubCategory {
   code: string;
   label: string;

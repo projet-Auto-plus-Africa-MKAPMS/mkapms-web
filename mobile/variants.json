@@ -28,12 +28,12 @@
   },
   "intelligence": {
     "appId": "com.mkapms.intelligence",
-    "appName": "MKA.P-MS Intelligence",
+    "appName": "MKA.P-MS AI",
     "startPath": "/intelligence",
     "distribution": "publique",
     "appLinksHost": "interne.invalid",
     "appLinksHostAlt": "interne.invalid",
-    "description": "Application dédiée au produit MKA.P-MS Intelligence (conversation, voix, images, documents, recherche, mémoire, projets, agents, outils, code, automatisations, intégrations) — distincte de l'assistant intégré (AssistantIntelligences.tsx) qui reste dans la plateforme principale. Même moteur Intelligence derrière les deux, aucun doublon. Comme pour « pro » et « command », aucun lien public n'est capté par cette application : seule l'application grand public ouvre https://www.mkapms.fr, pour qu'Android n'ait jamais à demander laquelle utiliser."
+    "description": "Application dédiée au produit MKA.P-MS AI (conversation, voix, images, documents, recherche, mémoire, projets, agents, outils, code, automatisations, intégrations) — distincte de l'assistant intégré (AssistantIntelligences.tsx) qui reste dans la plateforme principale. Même moteur Intelligence derrière les deux, aucun doublon. Comme pour « pro » et « command », aucun lien public n'est capté par cette application : seule l'application grand public ouvre https://www.mkapms.fr, pour qu'Android n'ait jamais à demander laquelle utiliser."
   },
   "investor": {
     "appId": "com.mkapms.investor",
