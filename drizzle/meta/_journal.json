@@ -890,6 +890,13 @@
       "when": 1788232020000,
       "tag": "0128_encheres_catalogue",
       "breakpoints": true
+    },
+    {
+      "idx": 127,
+      "version": "7",
+      "when": 1788232021000,
+      "tag": "0129_parts_type_vehicule",
+      "breakpoints": true
     }
   ]
 }

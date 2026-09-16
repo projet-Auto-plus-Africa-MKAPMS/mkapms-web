@@ -8,7 +8,7 @@ import {
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../lib/currency";
-import { PARTS_CATEGORIES } from "@shared/partsCategories";
+import { PARTS_CATEGORIES, PARTS_VEHICLE_TYPES } from "@shared/partsCategories";
 import { useReportNavigation } from "../lib/redirect";
 
 const CONDITIONS = [
@@ -29,6 +29,7 @@ export default function Pieces() {
   const navigate = useNavigate();
   const signaler = useReportNavigation();
   const [q, setQ] = useState("");
+  const [typeVehicule, setTypeVehicule] = useState<"" | "voiture" | "utilitaire" | "moto" | "agricole" | "engin_chantier" | "bateau">("");
   const [categorie, setCategorie] = useState("");
   const [sousCategorie, setSousCategorie] = useState("");
   const [condition, setCondition] = useState("");
@@ -51,6 +52,7 @@ export default function Pieces() {
   const catalog = trpc.pieces.catalog.useQuery({
     q: q || undefined,
     categorie: categorie || undefined,
+    typeVehicule: typeVehicule || undefined,
     condition: (condition || undefined) as "neuf" | undefined,
     marqueVehicule: marqueVehicule || undefined,
     modeleVehicule: modeleVehicule || undefined,
@@ -303,6 +305,25 @@ export default function Pieces() {
       {/* CATALOGUE TAB */}
       {tab === "catalogue" && (
         <>
+          {/* Vehicle type selector */}
+          <div className="mt-6 flex flex-wrap gap-2">
+            <button
+              onClick={() => setTypeVehicule("")}
+              className={`rounded-lg border-2 px-3 py-2 text-xs font-semibold transition ${typeVehicule === "" ? "border-gold bg-gold-soft text-gold-dark" : "border-slate-200 text-slate-500 hover:border-gold/40"}`}
+            >
+              Tous véhicules
+            </button>
+            {PARTS_VEHICLE_TYPES.map(v => (
+              <button
+                key={v.code}
+                onClick={() => setTypeVehicule(v.code === typeVehicule ? "" : v.code)}
+                className={`rounded-lg border-2 px-3 py-2 text-xs font-semibold transition ${typeVehicule === v.code ? "border-gold bg-gold-soft text-gold-dark" : "border-slate-200 text-slate-500 hover:border-gold/40"}`}
+              >
+                {v.icon} {v.label}
+              </button>
+            ))}
+          </div>
+
           {/* Search bar */}
           <div className="mt-6 flex flex-wrap gap-3">
             <div className="relative flex-1">
