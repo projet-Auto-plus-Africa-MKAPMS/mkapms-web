@@ -118,6 +118,36 @@ function matchRoutes(engineName: string, families: RouteFamily[]): string[] {
   return Array.from(new Set(routes));
 }
 
+/**
+ * Santé technique réelle d'un moteur — même arbre de décision que
+ * `readiness.ts` (registre central), à une exception près : l'étiquette
+ * administrative « staging » n'y intervient jamais.
+ *
+ * Correctif (point 91 ter) : `readiness.ts` classe tout moteur `staging`
+ * en `non_configure` dès qu'il a un battement de cœur, quelles que soient
+ * ses preuves réelles. `reconcileEngineStatesFromEvidence()` ne promeut un
+ * moteur `staging` en `active` QUE si cet audit le rapporte `operationnelle`
+ * — un moteur `staging` ne pouvait donc JAMAIS être promu sur preuve : le
+ * label qu'il porte pendant qu'il attend sa promotion interdisait
+ * mécaniquement l'évaluation même qui aurait pu la déclencher. Ici, seules
+ * les pannes réelles (désactivé, santé en panne, dépendance absente, aucun
+ * battement) empêchent la preuve — jamais le simple fait d'être en
+ * préproduction.
+ */
+function technicalStatus(
+  engine: Inventory["engines"][number],
+): "hors_service" | "non_configure" | "degrade" | "partiel" | "ok" {
+  if (engine.state === "disabled") return "hors_service";
+  if (engine.health === "down") return "hors_service";
+  if (engine.missingDependencies.length > 0) return "non_configure";
+  if (!engine.lastHeartbeat) return "non_configure";
+  if (engine.health === "degraded") return "degrade";
+  if (engine.unhealthyDependencies.length > 0) return "partiel";
+  if (engine.state === "read_only") return "partiel";
+  if (engine.state === "maintenance") return "partiel";
+  return "ok";
+}
+
 function buildItem(engine: Inventory["engines"][number], inv: Inventory): AuditItem {
   const router = matchRouter(engine.name, inv.routers);
   const routes = matchRoutes(engine.name, inv.routeFamilies);
@@ -132,7 +162,8 @@ function buildItem(engine: Inventory["engines"][number], inv: Inventory): AuditI
   const existe = true; // présent au registre : le domaine est déclaré
   const moteurConnecte = engine.missingDependencies.length === 0;
   const connecte = !!router && moteurConnecte;
-  const active = engine.operational === "ok" || engine.operational === "partiel";
+  const tech = technicalStatus(engine);
+  const active = tech === "ok" || tech === "partiel";
   const accessible = routes.length > 0;
   const utilise = usage ? usage.rows > 0 : false;
   const teste = !!test && test.allSuccess && test.total > 0;
@@ -154,15 +185,19 @@ function buildItem(engine: Inventory["engines"][number], inv: Inventory): AuditI
   if (usage && usage.tablesAbsentes.length > 0) {
     manquant.push(`table(s) absente(s) : ${usage.tablesAbsentes.join(", ")}`);
   }
+  if (tech === "degrade") manquant.push("le moteur signale un fonctionnement dégradé");
 
   let etat: ActivationState;
   let motif: string;
-  if (engine.operational === "hors_service") {
+  if (tech === "hors_service") {
     etat = "hors_service";
-    motif = engine.reason;
-  } else if (engine.operational === "non_configure") {
+    motif = engine.state === "disabled" ? "Désactivé par la direction." : "Le moteur signale une panne.";
+  } else if (tech === "non_configure") {
     etat = "non_configuree";
-    motif = engine.reason;
+    motif =
+      engine.missingDependencies.length > 0
+        ? `Dépendance absente du registre : ${engine.missingDependencies.join(", ")}.`
+        : "Déclaré mais jamais mis en service : aucun signe de vie reçu.";
   } else if (!connecte) {
     etat = "non_connectee";
     motif = router
