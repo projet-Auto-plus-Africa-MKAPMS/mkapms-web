@@ -368,12 +368,9 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/comptabilite", "/comptabilite/*", "/superadmin/comptabilite-complete"],
   },
   {
-    // Manque réel, pas un défaut de déclaration : le module existe
-    // (modules/financeplus.ts) mais aucun routeur tRPC n'a jamais été monté
-    // dessus — Finance.tsx n'appelle aucune procédure.
     moteur: "finance",
-    dossiers: ["modules/financeplus.ts"],
-    routeurs: [],
+    dossiers: ["modules/financeplus.ts", "routers/financeplus.ts"],
+    routeurs: ["financeplus"],
     routes: ["/finance", "/finance/*"],
   },
   // ── Univers ────────────────────────────────────────────────────────────
