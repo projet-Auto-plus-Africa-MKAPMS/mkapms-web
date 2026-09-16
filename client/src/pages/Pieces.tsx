@@ -70,6 +70,12 @@ export default function Pieces() {
     { enabled: cart.length > 0 && showCart },
   );
 
+  // Vérification rupture de stock / changement de prix pendant le panier (Architecture 3)
+  const verificationPanier = trpc.pieces.verifierPanier.useQuery(
+    { catalogIds: cart.map(c => c.catalogId) },
+    { enabled: cart.length > 0 && showCart, refetchOnWindowFocus: true },
+  );
+
   // My orders
   const myOrders = trpc.pieces.myOrders.useQuery(undefined, { enabled: tab === "commandes" });
 
@@ -116,6 +122,24 @@ export default function Pieces() {
 
   const cartTotal = cart.reduce((s, c) => s + c.prixHt * c.quantite, 0);
   const cartCount = cart.reduce((s, c) => s + c.quantite, 0);
+
+  // Rupture de stock / changement de prix détectés en comparant le panier mémorisé à l'état réel du serveur
+  const alertesPanier = cart.map(c => {
+    const reel = verificationPanier.data?.find(v => v.catalogId === c.catalogId);
+    if (!reel) return null;
+    const prixChange = Number(reel.prixHt) !== c.prixHt;
+    const ruptureTotale = !reel.active || reel.disponible <= 0;
+    const stockInsuffisant = !ruptureTotale && reel.disponible < c.quantite;
+    if (!prixChange && !ruptureTotale && !stockInsuffisant) return null;
+    return { catalogId: c.catalogId, nom: c.nom, prixChange, nouveauPrix: Number(reel.prixHt), ruptureTotale, stockInsuffisant, disponible: reel.disponible };
+  }).filter((a): a is NonNullable<typeof a> => a !== null);
+
+  const appliquerNouveauPrix = (catalogId: number, nouveauPrix: number) => {
+    setCart(prev => prev.map(c => c.catalogId === catalogId ? { ...c, prixHt: nouveauPrix } : c));
+  };
+  const ajusterQuantiteDisponible = (catalogId: number, disponible: number) => {
+    setCart(prev => prev.map(c => c.catalogId === catalogId ? { ...c, quantite: disponible } : c).filter(c => c.quantite > 0));
+  };
   const selectedLivraisonOption = deliveryEstimate.data?.options?.find(o => o.type === selectedLivraison);
   const livraisonPrix = modeRetrait === "retrait" ? 0 : (selectedLivraisonOption?.prix ?? 0);
 
@@ -223,6 +247,30 @@ export default function Pieces() {
                 ))}
               </div>
 
+              {/* Alertes rupture de stock / changement de prix (Architecture 3) */}
+              {alertesPanier.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {alertesPanier.map(a => (
+                    <div key={a.catalogId} className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">
+                      <p className="font-semibold text-noir">{a.nom}</p>
+                      {a.ruptureTotale && <p className="text-xs text-danger">Rupture de stock — retirez cette pièce pour continuer.</p>}
+                      {!a.ruptureTotale && a.stockInsuffisant && (
+                        <div className="mt-1 flex items-center justify-between gap-2">
+                          <p className="text-xs text-danger">Stock insuffisant : {a.disponible} disponible(s) seulement.</p>
+                          <button onClick={() => ajusterQuantiteDisponible(a.catalogId, a.disponible)} className="shrink-0 rounded-full bg-danger/10 px-2 py-1 text-[11px] font-semibold text-danger">Ajuster à {a.disponible}</button>
+                        </div>
+                      )}
+                      {a.prixChange && (
+                        <div className="mt-1 flex items-center justify-between gap-2">
+                          <p className="text-xs text-gold-dark">Le prix a changé : {a.nouveauPrix.toLocaleString("fr-FR")} {cart.find(c => c.catalogId === a.catalogId)?.currency}</p>
+                          <button onClick={() => appliquerNouveauPrix(a.catalogId, a.nouveauPrix)} className="shrink-0 rounded-full bg-gold-soft px-2 py-1 text-[11px] font-semibold text-gold-dark">Appliquer</button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Mode de retrait */}
               <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
                 <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-noir"><Truck size={16} className="text-gold-dark" /> Mode de retrait</h4>
@@ -285,12 +333,15 @@ export default function Pieces() {
                 </div>
                 <button
                   onClick={handleOrder}
-                  disabled={createOrder.isPending || payOrder.isPending || (modeRetrait === "livraison" && !selectedLivraison)}
+                  disabled={createOrder.isPending || payOrder.isPending || (modeRetrait === "livraison" && !selectedLivraison) || alertesPanier.length > 0}
+                  title={alertesPanier.length > 0 ? "Résolvez les alertes de stock/prix ci-dessus avant de commander" : undefined}
                   className="btn-acheter disabled:opacity-50"
                 >
                   {createOrder.isPending || payOrder.isPending
                     ? "Ouverture du paiement…"
-                    : "Commander et payer"}
+                    : alertesPanier.length > 0
+                      ? "Résoudre les alertes pour continuer"
+                      : "Commander et payer"}
                 </button>
               </div>
               {erreurPaiement && (
@@ -374,15 +425,16 @@ export default function Pieces() {
             </div>
           )}
 
-          {/* Quick category chips */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            {PARTS_CATEGORIES.slice(0, 10).map(c => (
+          {/* Grille des catégories (Architecture 3 — sélecteur visuel de la maquette homepage Pièces) */}
+          <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+            {PARTS_CATEGORIES.map(c => (
               <button
                 key={c.code}
                 onClick={() => { setCategorie(c.label === categorie ? "" : c.label); setSousCategorie(""); }}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${categorie === c.label ? "border-gold bg-gold-soft text-gold-dark" : "border-slate-200 text-slate-500 hover:border-gold/40"}`}
+                className={`flex flex-col items-center gap-1 rounded-xl border-2 p-3 text-center transition ${categorie === c.label ? "border-gold bg-gold-soft text-gold-dark" : "border-slate-200 bg-white text-slate-600 hover:border-gold/40"}`}
               >
-                {c.icon} {c.label}
+                <span className="text-2xl">{c.icon}</span>
+                <span className="text-[11px] font-semibold leading-tight">{c.label}</span>
               </button>
             ))}
           </div>

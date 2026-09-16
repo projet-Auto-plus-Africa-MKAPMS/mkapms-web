@@ -15218,7 +15218,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "updateOrderStatus",
       "updatePart",
       "updateShop",
-      "updateStock"
+      "updateStock",
+      "verifierPanier"
     ],
     "tables": [
       "part_compatibilities",

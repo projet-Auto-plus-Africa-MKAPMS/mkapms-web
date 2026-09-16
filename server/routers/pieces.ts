@@ -396,7 +396,7 @@ export const piecesRouter = router({
       const catalogIds = await db.select({ id: partsCatalog.id }).from(partsCatalog).where(eq(partsCatalog.shopId, input.shopId));
       if (catalogIds.length === 0) return { faible: [], rupture: [], surstock: [] };
       const ids = catalogIds.map(c => c.id);
-      const allStock = await db.select().from(partsStock).where(sql`${partsStock.catalogId} = ANY(${ids})`);
+      const allStock = await db.select().from(partsStock).where(inArray(partsStock.catalogId, ids));
       const faible: typeof allStock = [];
       const rupture: typeof allStock = [];
       const surstock: typeof allStock = [];
@@ -410,6 +410,25 @@ export const piecesRouter = router({
     }),
 
   // ── PANIER / COMMANDES ──
+
+  /**
+   * Architecture 3 — gestion de rupture de stock / changement de prix
+   * pendant le panier : l'écran compare ce que le client a mémorisé à ce
+   * qui est réellement en base, jamais l'inverse. Aucune donnée
+   * recalculée ici, seulement l'état réel actuel des pièces demandées.
+   */
+  verifierPanier: publicProcedure
+    .input(z.object({ catalogIds: z.array(z.number()).min(1) }))
+    .query(async ({ input }) => {
+      const items = await db.select().from(partsCatalog).where(inArray(partsCatalog.id, input.catalogIds));
+      const stocks = await db.select().from(partsStock).where(inArray(partsStock.catalogId, input.catalogIds));
+      return items.map((p) => {
+        const stocksPart = stocks.filter((s) => s.catalogId === p.id);
+        const disponible = stocksPart.reduce((s, st) => s + (st.quantite - st.quantiteReservee), 0);
+        return { catalogId: p.id, nom: p.nom, prixHt: p.prixHt, currency: p.currency, disponible, active: p.active };
+      });
+    }),
+
   createOrder: protectedProcedure
     .input(
       z.object({
