@@ -167,6 +167,25 @@ async function main() {
   })();
   verif("createOrder tient compte de la réservation de la commande précédente (1 restant sur 3)", commandeRefuseApres);
 
+  // ── 8. verifierPanier reflète l'état réel du stock/prix (Architecture 3, rupture/prix pendant le panier) ──
+  const piece6 = await caller.addPart({
+    shopId: shop.id,
+    nom: "Batterie test panier",
+    referenceInterne: `${REF_PREFIX}6`,
+    prixHt: 120,
+    quantiteInitiale: 5,
+  });
+  const verifAvant = await publicCaller.verifierPanier({ catalogIds: [piece6.id] });
+  verif("verifierPanier renvoie le prix et le stock réels avant tout changement", verifAvant[0]?.prixHt !== undefined && Number(verifAvant[0].prixHt) === 120 && verifAvant[0].disponible === 5);
+
+  await caller.updatePart({ id: piece6.id, prixHt: 150 });
+  const verifApresPrix = await publicCaller.verifierPanier({ catalogIds: [piece6.id] });
+  verif("verifierPanier détecte réellement un changement de prix", Number(verifApresPrix[0]?.prixHt) === 150);
+
+  await buyerCaller.createOrder({ shopId: shop.id, items: [{ catalogId: piece6.id, quantite: 5 }] });
+  const verifApresReservation = await publicCaller.verifierPanier({ catalogIds: [piece6.id] });
+  verif("verifierPanier détecte une rupture réelle après réservation complète du stock", verifApresReservation[0]?.disponible === 0);
+
   await nettoyer();
 
   console.log(`\n${ok}/${total} assertions réussies.`);
