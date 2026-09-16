@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Calendar, MapPin, Loader2 } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../lib/auth";
@@ -13,6 +13,8 @@ const CRENEAUX = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00",
 
 export default function PriseRendezVous() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const typeIntervention = searchParams.get("type")?.trim() || "Rendez-vous atelier";
   const [garage, setGarage] = useState(0);
   const [date, setDate] = useState("");
   const [creneau, setCreneau] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export default function PriseRendezVous() {
       contactNom: user.name,
       contactEmail: user.email,
       contactTelephone: user.phone ?? undefined,
-      typeIntervention: "Rendez-vous atelier",
+      typeIntervention,
       description: `Rendez-vous demandé chez ${g.nom} le ${date} à ${creneau}.`,
       ville: g.ville,
       codePostal: g.codePostal,
