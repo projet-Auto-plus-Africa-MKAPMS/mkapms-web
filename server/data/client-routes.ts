@@ -632,6 +632,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/superadmin/partenaires",
   "/superadmin/permission-engine",
   "/superadmin/permission-os",
+  "/superadmin/plan-maitre-fournisseurs",
   "/superadmin/redirection-engine",
   "/superadmin/smart-engine",
   "/superadmin/validation-documents-complete",

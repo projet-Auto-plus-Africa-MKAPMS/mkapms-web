@@ -24,6 +24,7 @@ const SECTIONS = [
     { label: "Core Engine (Bêta)", icon: Cpu, to: "/superadmin/core-engine-beta", desc: "15 centres, santé, logs, orchestration" },
   ]},
   { title: "Gestion", items: [
+    { label: "Plan Maître Fournisseurs", icon: Truck, to: "/superadmin/plan-maitre-fournisseurs", desc: "Fournisseurs, véhicules, pièces, logistique, versements, documents" },
     { label: "Finance", icon: Euro, to: "/superadmin/admin-paiements", desc: "Paiements, commissions, CA" },
     { label: "Publicité", icon: Megaphone, to: "/superadmin/admin-moderation-annonces", desc: "Espaces, campagnes, tarifs" },
     { label: "Comptabilité", icon: Calculator, to: "/superadmin/comptabilite-complete", desc: "Revenus, dépenses, résultat" },
