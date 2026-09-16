@@ -1533,7 +1533,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "activationAudit"
     ],
-    "fichiersServeur": 4,
+    "fichiersServeur": 5,
     "dependancesDeclarees": [
       "core",
       "redirection",
@@ -1585,8 +1585,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 4,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 22,
-        "mots": 95
+        "textes": 24,
+        "mots": 129
       }
     ],
     "ecransHotes": [],
@@ -1594,6 +1594,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "domain",
       "history",
       "latest",
+      "matriceCauses",
       "recordTest",
       "run",
       "states"
@@ -1606,8 +1607,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "acces": [
       "admin"
     ],
-    "textes": 22,
-    "mots": 95,
+    "textes": 24,
+    "mots": 129,
     "battement": "sonde",
     "manques": []
   },
