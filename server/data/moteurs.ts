@@ -113,7 +113,9 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
-export const ROUTES_SANS_MOTEUR: readonly string[] = [];
+export const ROUTES_SANS_MOTEUR: readonly string[] = [
+  "/superadmin/plan-maitre-fournisseurs"
+];
 
 /** Routeurs tRPC montés qu'aucun moteur ne revendique. */
 export const ROUTEURS_SANS_MOTEUR: readonly string[] = [];
@@ -5729,8 +5731,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 22,
-        "mots": 44
+        "textes": 23,
+        "mots": 47
       }
     ],
     "ecransHotes": [
@@ -5796,6 +5798,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "composants": [
           "trpc.modules",
           "trpc.admin"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/superadmin/PlanMaitreFournisseurs.tsx",
+        "route": "/superadmin/plan-maitre-fournisseurs",
+        "composants": [
+          "trpc.engineRegistry"
         ]
       },
       {
@@ -6053,8 +6062,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 357,
-    "mots": 1497,
+    "textes": 358,
+    "mots": 1500,
     "battement": "contrat",
     "manques": [
       {
