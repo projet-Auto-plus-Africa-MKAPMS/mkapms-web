@@ -729,8 +729,9 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "finance",
     label: "Financement Engine",
     category: "service",
-    dependencies: ["core", "identity", "payment", "document", "accounting_internal"],
-    description: "Financement / crédit / LOA, simulations, dossiers — à construire (Phase 2) : le schéma de tables existe (modules/financeplus.ts), aucune procédure serveur ne l'exploite encore.",
+    dependencies: ["core", "identity", "payment", "document", "accounting_internal", "politique_pays"],
+    description:
+      "LOA : éligibilité pays réelle avant tout contrat (Country Policy Engine, domaine réglementé « credit ») — aucun taux ni mensualité inventés, une simulation n'est créée que si une règle pays confirmée autorise le crédit. Paiement fractionné : moteur distinct et déjà réel (routers/installments.ts, payment), jamais dupliqué ici. Centres agréés, résultats officiels et dossier complet restent Phase 2.",
     state: "staging",
   },
   {

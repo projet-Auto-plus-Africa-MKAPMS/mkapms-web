@@ -15,6 +15,7 @@ import { supportRouter } from "./routers/support.js";
 import { modulesRouter } from "./routers/modules.js";
 import { rbacRouter } from "./routers/rbac.js";
 import { piecesRouter } from "./routers/pieces.js";
+import { financeplusRouter } from "./routers/financeplus.js";
 import { livraisonRouter } from "./routers/livraison.js";
 import { depannageRouter } from "./routers/depannage.js";
 import { transportRouter } from "./routers/transport.js";
@@ -157,6 +158,7 @@ export const appRouter = router({
   modules: modulesRouter,
   rbac: rbacRouter,
   pieces: piecesRouter,
+  financeplus: financeplusRouter,
   livraison: livraisonRouter,
   depannage: depannageRouter,
   transport: transportRouter,

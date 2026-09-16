@@ -100,13 +100,13 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 621;
+export const MANQUES_TOTAL = 618;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
-  "bouton_sans_action": 183,
+  "bouton_sans_action": 182,
   "sans_logique_serveur": 11,
   "sans_ecran": 9,
-  "dependance_sans_preuve": 43,
+  "dependance_sans_preuve": 41,
   "dependance_non_declaree": 29,
   "bouton_declare_absent_ecran": 3,
   "emission_dynamique": 2
@@ -7674,27 +7674,53 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "categorie": "service",
     "etatDeclare": "staging",
     "dossiers": [
-      "modules/financeplus.ts"
+      "modules/financeplus.ts",
+      "routers/financeplus.ts"
     ],
-    "routeurs": [],
-    "fichiersServeur": 1,
+    "routeurs": [
+      "financeplus"
+    ],
+    "fichiersServeur": 2,
     "dependancesDeclarees": [
       "accounting_internal",
       "core",
       "document",
       "identity",
-      "payment"
+      "payment",
+      "politique_pays"
     ],
-    "dependancesDetectees": [],
+    "dependancesDetectees": [
+      "core",
+      "identity",
+      "payment",
+      "politique_pays"
+    ],
     "dependances": [
       "accounting_internal",
       "core",
       "document",
       "identity",
-      "payment"
+      "payment",
+      "politique_pays"
     ],
-    "integrationsTechniques": [],
-    "preuvesDependances": {},
+    "integrationsTechniques": [
+      "identity"
+    ],
+    "preuvesDependances": {
+      "core": [
+        "routers/financeplus.ts importe trpc.ts",
+        "routers/financeplus.ts importe db.ts"
+      ],
+      "identity": [
+        "routers/financeplus.ts exige une session Identity (procédure protégée)"
+      ],
+      "payment": [
+        "client/src/pages/finance/PaiementFractionne.tsx appelle trpc.installments"
+      ],
+      "politique_pays": [
+        "routers/financeplus.ts importe country-policy/service.ts"
+      ]
+    },
     "dependants": [],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -7845,11 +7871,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/finance/paiement-fractionne"
         ],
-        "cliquables": 3,
+        "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 6,
-        "mots": 18
+        "sansAction": 0,
+        "textes": 9,
+        "mots": 43
       },
       {
         "fichier": "client/src/pages/finance/PaiementsProfessionnels.tsx",
@@ -7886,7 +7912,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       }
     ],
     "ecransHotes": [],
-    "procedures": [],
+    "procedures": [
+      "contrat",
+      "creerSimulation",
+      "eligibilite",
+      "mesContrats",
+      "mesNotifications"
+    ],
     "tables": [
       "finplus_action_logs",
       "finplus_contrats",
@@ -7895,9 +7927,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "finplus_paiements",
       "finplus_vehicules"
     ],
-    "acces": [],
-    "textes": 56,
-    "mots": 160,
+    "acces": [
+      "connecte",
+      "public"
+    ],
+    "textes": 59,
+    "mots": 185,
     "battement": "sonde",
     "manques": [
       {
@@ -7945,10 +7980,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« Payer par virement » client/src/pages/finance/PaiementComptant.tsx:10"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Valider le paiement » client/src/pages/finance/PaiementFractionne.tsx:17"
-      },
-      {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/finance/PaiementsProfessionnels.tsx (3 texte(s))"
       },
@@ -7959,14 +7990,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/finance/TableauBordFinance.tsx (3 texte(s))"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "identity"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "payment"
       },
       {
         "genre": "dependance_sans_preuve",
@@ -14213,6 +14236,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/finance/PaiementFractionne.tsx",
+        "route": "/finance/paiement-fractionne",
+        "composants": [
+          "trpc.installments"
+        ]
+      },
+      {
         "fichier": "client/src/pages/utilisateurs/AbonnementsUtilisateur.tsx",
         "route": "/utilisateurs/abonnements-utilisateur",
         "composants": [
@@ -15309,6 +15339,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "finance",
       "livraison_vehicule",
       "parts_engine",
       "risque_import",
