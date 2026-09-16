@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligences — Context Engine central.
+ * MKA.P-MS AI — Context Engine central.
  *
  * Assemble en un seul appel ce qu'Intelligence doit savoir avant de répondre,
  * pour ne jamais faire réexpliquer son contexte à l'utilisateur : qui il est,

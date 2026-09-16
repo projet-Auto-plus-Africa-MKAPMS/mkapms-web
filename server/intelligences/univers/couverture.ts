@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligences — Intelligence Coverage (audit de couverture).
+ * MKA.P-MS AI — Intelligence Coverage (audit de couverture).
  *
  * Rapport calculé, jamais déclaré : chaque nombre vient d'une lecture réelle
  * du Universe Registry (registre.ts), lui-même calculé depuis le Engine

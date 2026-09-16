@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — agrège les implémentations réelles de toutes les
+ * MKA.P-MS AI — agrège les implémentations réelles de toutes les
  * familles d'outils. Chaque famille garde son fichier d'implémentation
  * propre (outils-test.ts, familles/outils-vehicules.ts, …) ; ce fichier ne
  * fait que les réunir pour executeur.ts, sans logique métier.

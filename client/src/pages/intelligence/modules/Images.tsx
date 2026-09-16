@@ -6,7 +6,7 @@ export function Images() {
     <ModulePlaceholder
       icone={Image}
       titre="Images"
-      description="Comprendre, générer et retoucher des images avec MKA.P-MS Intelligence."
+      description="Comprendre, générer et retoucher des images avec MKA.P-MS AI."
     />
   );
 }

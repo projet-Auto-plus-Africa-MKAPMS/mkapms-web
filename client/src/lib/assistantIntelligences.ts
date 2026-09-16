@@ -1,5 +1,5 @@
 /**
- * Signal d'ouverture de l'assistant MKA.P-MS Intelligences.
+ * Signal d'ouverture de l'assistant MKA.P-MS AI.
  *
  * Le panneau vit dans le Layout ; les boutons qui l'ouvrent vivent dans les
  * écrans (barre de recherche de l'accueil). Ils ne se connaissent pas : ils

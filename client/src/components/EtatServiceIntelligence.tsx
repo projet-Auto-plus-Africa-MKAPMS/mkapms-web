@@ -1,5 +1,5 @@
 /**
- * LOT IA02A — bandeau d'état PUBLIC de MKA.P-MS Intelligence.
+ * LOT IA02A — bandeau d'état PUBLIC de MKA.P-MS AI.
  *
  * Remplace IaConfigWarning (qui affichait le nom de chaque fournisseur, sa
  * variable d'environnement et l'URL pour obtenir une clé) sur les écrans

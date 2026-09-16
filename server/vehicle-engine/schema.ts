@@ -19,7 +19,7 @@
  * `vehicleItems` sépare strictement, par colonne, la donnée originale
  * fournisseur, la donnée normalisée, la donnée enrichie et la donnée validée
  * humainement (point "DONNÉES FOURNISSEUR" du plan) : aucune étape n'écrase
- * la précédente, et MKA.P-MS Intelligences n'a jamais accès en écriture aux
+ * la précédente, et MKA.P-MS AI n'a jamais accès en écriture aux
  * colonnes originale/validée.
  */
 import {
@@ -72,7 +72,7 @@ export const vehicleItems = pgTable(
     normalizedData: jsonb("normalized_data").$type<Record<string, unknown>>().notNull().default({}),
     /** Enrichissements déterministes (décodage VIN, devise convertie…) — jamais un fait inventé. */
     enrichedData: jsonb("enriched_data").$type<Record<string, unknown>>().notNull().default({}),
-    /** Suggestions MKA.P-MS Intelligences seules : descriptions, score qualité — jamais une valeur contractuelle. */
+    /** Suggestions MKA.P-MS AI seules : descriptions, score qualité — jamais une valeur contractuelle. */
     aiData: jsonb("ai_data").$type<Record<string, unknown>>().notNull().default({}),
     /** Corrections/validations humaines explicites — priment toujours sur normalizedData/aiData. */
     validatedData: jsonb("validated_data").$type<Record<string, unknown>>().notNull().default({}),

@@ -95,7 +95,7 @@ export default function CentreAutoBranchement() {
           <p className="mt-1 text-sm text-white/70">
             Le module relit chaque élément cliquable, revérifie chaque destination auprès du Moteur
             de Redirection, et remet chaque défaut à l&apos;Event Bus, au Système Intelligent et à
-            MKA.P-MS Intelligences. Il constate et propose : il ne modifie pas le code.
+            MKA.P-MS AI. Il constate et propose : il ne modifie pas le code.
           </p>
           <button
             type="button"

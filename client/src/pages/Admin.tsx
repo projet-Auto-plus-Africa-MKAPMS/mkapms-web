@@ -591,10 +591,10 @@ export default function Admin() {
       </section>
       )}
 
-      {/* MKA.P-MS Intelligences — côté direction, PDG uniquement */}
+      {/* MKA.P-MS AI — côté direction, PDG uniquement */}
       {user?.role === "super_admin" && (
       <section className="mt-10">
-        <h2 className="text-lg font-bold text-slate-800">MKA.P-MS Intelligences</h2>
+        <h2 className="text-lg font-bold text-slate-800">MKA.P-MS AI</h2>
         <p className="text-xs text-slate-500">Vue compl&egrave;te des moteurs, commandes, r&egrave;gles, consommation et &eacute;criture de code &mdash; c&ocirc;t&eacute; direction r&eacute;serv&eacute; au PDG</p>
         <Link to="/admin/intelligences" className="mt-3 flex items-center gap-4 rounded-xl border-2 border-[#D4AF37] bg-gradient-to-r from-[#111] to-[#1a1a1a] p-5 shadow-lg hover:shadow-xl transition group">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/20">

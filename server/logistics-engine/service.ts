@@ -7,7 +7,7 @@
  * catégorie "vehicules" uniquement : ce moteur ne le duplique pas, il
  * l'orchestre comme un cas particulier du Delivery Quote Engine générique.
  *
- * Rappel impératif : le nom officiel du système est MKA.P-MS Intelligences,
+ * Rappel impératif : le nom officiel du système est MKA.P-MS AI,
  * jamais une autre appellation abrégée pour la même idée (cause du blocage
  * Railway des LOT 2/3, voir PR #335).
  */

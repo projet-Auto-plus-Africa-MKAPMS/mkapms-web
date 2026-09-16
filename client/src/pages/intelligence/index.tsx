@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — application dédiée (4e variante mobile,
+ * MKA.P-MS AI — application dédiée (4e variante mobile,
  * com.mkapms.intelligence, chemin /intelligence).
  *
  * Produit autonome, distinct de l'assistant intégré (AssistantIntelligences.tsx,
@@ -126,7 +126,7 @@ export default function MKAPMSIntelligence() {
         <ShieldCheck className="mx-auto h-8 w-8 text-black/30" />
         <h1 className="mt-3 text-lg font-black text-[#111]">Espace réservé pour l'instant</h1>
         <p className="mt-2 text-sm text-black/60">
-          Le moteur réel derrière MKA.P-MS Intelligence (conversation, mémoire, projets, outils) est
+          Le moteur réel derrière MKA.P-MS AI (conversation, mémoire, projets, outils) est
           aujourd'hui réservé au compte PDG. Les autres niveaux d'accès (professionnel, développeur,
           équipe interne, direction) arriveront avec les lots suivants — l'assistant public reste
           accessible partout ailleurs sur la plateforme.
@@ -146,7 +146,7 @@ export default function MKAPMSIntelligence() {
         </Link>
         <div className="mt-2 flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-[#D4AF37]" />
-          <h1 className="text-lg font-black">MKA.P-MS Intelligence</h1>
+          <h1 className="text-lg font-black">MKA.P-MS AI</h1>
         </div>
         <p className="mt-1 text-xs text-white/50">
           Niveau d'accès : {LABEL_NIVEAU[niveau]}

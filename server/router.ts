@@ -299,7 +299,7 @@ export const appRouter = router({
   continuousTest: continuousTestRouter,
   codeGraph: codeGraphRouter,
   completion: completionRouter,
-  // MKA.P-MS Intelligences : appels réels aux fournisseurs de modèles,
+  // MKA.P-MS AI : appels réels aux fournisseurs de modèles,
   // côté direction (PDG) et assistant public strictement séparés
   intelligences: intelligencesRouter,
   // Suppression de compte : exigence de publication mobile et droit du titulaire

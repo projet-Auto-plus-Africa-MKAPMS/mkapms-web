@@ -11,7 +11,7 @@
  * Rien n'achète tout seul : la plateforme propose, l'atelier décide, et la
  * commande est refusée si elle dépasse le plafond que l'atelier s'est fixé.
  * Chaque étape est publiée à l'Event Bus : Système Intelligent (alertes) et
- * MKA.P-MS Intelligences (mémoire) suivent sans qu'on les appelle à la main.
+ * MKA.P-MS AI (mémoire) suivent sans qu'on les appelle à la main.
  */
 import { and, desc, eq, gte, inArray, ne, sql } from "drizzle-orm";
 import { db } from "../db.js";

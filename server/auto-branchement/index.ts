@@ -13,7 +13,7 @@
  *  - vérifier, à l'exécution, que chaque destination existe encore — ou qu'une
  *    règle du Moteur de Redirection la rattrape ;
  *  - publier chaque défaut à l'Event Bus pour que le Système Intelligent ouvre
- *    l'alerte et que MKA.P-MS Intelligences ouvre le dossier de correction ;
+ *    l'alerte et que MKA.P-MS AI ouvre le dossier de correction ;
  *  - conserver l'état en mémoire technique et battre au registre des moteurs.
  *
  * Ce module ne modifie jamais le code de production : il constate, propose et

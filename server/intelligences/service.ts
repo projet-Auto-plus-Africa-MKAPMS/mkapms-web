@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligences — service.
+ * MKA.P-MS AI — service.
  *
  * Ce moteur n'est pas un second cerveau : il donne enfin la parole à ce qui
  * existe déjà. Le Système Intelligent observe, le registre connaît les moteurs,
@@ -432,7 +432,7 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
     if (!etat) return echec(`Domaine d'assistance inconnu : ${code}.`);
     if (!etat.actif) {
       return echec(
-        `Le domaine « ${etat.spec.libelle} » est construit mais fermé. Seul le PDG peut l'ouvrir depuis le centre MKA.P-MS Intelligences ; tant qu'il est fermé, aucune réponse n'est produite dans ce domaine.`,
+        `Le domaine « ${etat.spec.libelle} » est construit mais fermé. Seul le PDG peut l'ouvrir depuis le centre MKA.P-MS AI ; tant qu'il est fermé, aucune réponse n'est produite dans ce domaine.`,
       );
     }
     consigneDomaine = etat.spec.consigne;

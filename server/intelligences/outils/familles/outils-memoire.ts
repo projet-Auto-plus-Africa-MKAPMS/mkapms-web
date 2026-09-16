@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — implémentations réelles de la famille "memoire"
+ * MKA.P-MS AI — implémentations réelles de la famille "memoire"
  * (server/intelligences/outils/familles/memoire.ts).
  *
  * `contexte.actorId` est l'identifiant de la session authentifiée qui a

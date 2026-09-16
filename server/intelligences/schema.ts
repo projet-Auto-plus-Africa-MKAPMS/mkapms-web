@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligences — persistance propre au moteur.
+ * MKA.P-MS AI — persistance propre au moteur.
  *
  * Deux côtés strictement séparés dans la même table par la colonne `cote` :
  *  - `direction` : le PDG. Contexte interne autorisé, commandes, code.
@@ -67,7 +67,7 @@ export const inMessages = pgTable("in_messages", {
 
 /**
  * Chantier de développement — projet de site/atelier de code ouvert par le PDG
- * depuis MKA.P-MS Intelligence. Un espace de travail réel sur disque, isolé par
+ * depuis MKA.P-MS AI. Un espace de travail réel sur disque, isolé par
  * propriétaire : deux projets ne partagent jamais un même dossier, et aucun
  * outil filesystem/shell/preview n'agit hors de `workspacePath`.
  *

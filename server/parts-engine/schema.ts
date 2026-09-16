@@ -59,7 +59,7 @@ export const partsCanonical = pgTable(
  * Fiche d'ingestion d'une pièce fournisseur — même séparation stricte des
  * origines de données que le Vehicle Engine (LOT 2) : rawData jamais modifiée,
  * normalizedData (mapping appliqué), enrichedData (contrôles déterministes),
- * aiData (suggestions MKA.P-MS Intelligences seules), validatedData
+ * aiData (suggestions MKA.P-MS AI seules), validatedData
  * (corrections humaines, toujours prioritaires).
  */
 export const partsSupplierItems = pgTable(

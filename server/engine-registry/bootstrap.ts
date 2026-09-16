@@ -363,7 +363,7 @@ export async function reportMigrationFailure(message: string): Promise<void> {
       targets: ["smart", "core", "intelligences"],
     });
     // Bus central : le Système Intelligent ouvre l'alerte critique et
-    // MKA.P-MS Intelligences mémorise l'événement à la remise.
+    // MKA.P-MS AI mémorise l'événement à la remise.
     await emitSafe({
       source: "core",
       type: "moteur.migration_echouee",

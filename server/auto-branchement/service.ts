@@ -15,7 +15,7 @@
  *                                  ou une règle peut-elle la rattraper
  *     → Event Bus                : chaque défaut est publié
  *     → Système Intelligent      : alerte de direction dédupliquée
- *     → MKA.P-MS Intelligences   : dossier de correction + mémoire technique
+ *     → MKA.P-MS AI   : dossier de correction + mémoire technique
  *     → registre des moteurs     : battement de cœur daté
  *
  * Deux refus tenus :

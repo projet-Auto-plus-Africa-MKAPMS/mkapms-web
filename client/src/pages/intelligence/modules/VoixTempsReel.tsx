@@ -6,7 +6,7 @@ export function VoixTempsReel() {
     <ModulePlaceholder
       icone={Mic}
       titre="Voix & temps réel"
-      description="Conversation vocale continue avec MKA.P-MS Intelligence — dictée, réponse parlée, échange en temps réel."
+      description="Conversation vocale continue avec MKA.P-MS AI — dictée, réponse parlée, échange en temps réel."
     />
   );
 }

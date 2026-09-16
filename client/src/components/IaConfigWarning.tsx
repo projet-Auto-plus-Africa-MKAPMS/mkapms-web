@@ -1,5 +1,5 @@
 /**
- * Bandeau d'alerte "MKA.P-MS Intelligence non configurée" — réservé aux
+ * Bandeau d'alerte "MKA.P-MS AI non configurée" — réservé aux
  * écrans de direction (Centre de Commandes, Centre Intelligence & Coûts).
  * Sans clé API configurée, chaque envoi échouait silencieusement avec un
  * motif obscur. Ce composant remonte la vraie cause et pointe vers l'action
@@ -30,7 +30,7 @@ export function IaConfigWarning({ compact = false }: { compact?: boolean }) {
       <div className="mb-2 flex items-center gap-2">
         <AlertTriangle size={16} className="text-rose-700" />
         <h3 className="text-sm font-black text-rose-900">
-          Assistant MKA.P-MS Intelligence hors service — aucune clé API configurée
+          Assistant MKA.P-MS AI hors service — aucune clé API configurée
         </h3>
       </div>
       <p className="text-sm text-rose-800">{data.guidance}</p>
@@ -64,7 +64,7 @@ export function IaConfigWarning({ compact = false }: { compact?: boolean }) {
       </div>
       <p className="mt-3 text-xs text-rose-700">
         Coller la clé dans les <strong>Variables Railway</strong> du service backend
-        → Railway redéploie → MKA.P-MS Intelligence remonte automatiquement.
+        → Railway redéploie → MKA.P-MS AI remonte automatiquement.
       </p>
     </div>
   );

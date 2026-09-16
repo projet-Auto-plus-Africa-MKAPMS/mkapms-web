@@ -7,7 +7,7 @@
  *  - un lien dont la destination n'est déclarée dans aucune route (404 garanti) ;
  *  - un bouton qui exécute du code local sans passer par le Moteur de boutons,
  *    donc dont personne — ni Redirection, ni Système Intelligent, ni
- *    MKA.P-MS Intelligences — ne sait ce qu'il fait ;
+ *    MKA.P-MS AI — ne sait ce qu'il fait ;
  *  - un `<BoutonMoteur code="…">` dont le code n'est pas au catalogue du moteur.
  *
  * Ce script relève chaque élément cliquable des écrans, le classe, et nomme les
@@ -225,7 +225,7 @@ const contenu = `/**
  * Il sert au module d'auto-branchement : chaque écran est compté par genre de
  * cliquable, et chaque anomalie est nommée avec son fichier et sa ligne, de
  * sorte que le Moteur de boutons, le Moteur de Redirection, le contrôle
- * continu, le Système Intelligent et MKA.P-MS Intelligences travaillent sur des
+ * continu, le Système Intelligent et MKA.P-MS AI travaillent sur des
  * faits et non sur une impression d'écran.
  */
 

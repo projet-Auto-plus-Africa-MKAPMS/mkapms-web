@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligences — Universe Registry, déclaration manuelle.
+ * MKA.P-MS AI — Universe Registry, déclaration manuelle.
  *
  * Seul fichier à main de ce registre : pour chaque univers (regroupement
  * métier), sa définition (rôle, application, sensibilité) ; pour chaque
@@ -220,7 +220,7 @@ export const UNIVERS_DEFINIS: UniversSpec[] = [
   },
   {
     universeId: "intelligence_produit",
-    nom: "MKA.P-MS Intelligence (produit)",
+    nom: "MKA.P-MS AI (produit)",
     description: "Le moteur Intelligence lui-même : conversation, assistant embarqué, Centre Intelligence direction, Chantier de développement.",
     applications: ["intelligence", "grandpublic", "command"],
     rolesAutorises: ["user", "pro", "garage", "society", "employee", "admin", "super_admin"],

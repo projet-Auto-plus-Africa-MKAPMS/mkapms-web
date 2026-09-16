@@ -90,7 +90,7 @@ export interface ClicInput {
  * Trois moteurs travaillent ici sans qu'un agent soit présent :
  *  - le Moteur de Redirection journalise le parcours ;
  *  - l'Event Bus remet l'échec au Système Intelligent, qui ouvre l'alerte de
- *    direction et demande à MKA.P-MS Intelligences le dossier de correction ;
+ *    direction et demande à MKA.P-MS AI le dossier de correction ;
  *  - le registre des moteurs reçoit le battement de cœur du Moteur de boutons.
  */
 export async function signalerClic(

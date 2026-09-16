@@ -1,14 +1,18 @@
 /**
- * Point 123 — garde-fou de nom : aucune appellation « IA » / « AI » visible.
+ * Garde-fou de nom : aucune régression vers l'ancienne appellation.
  *
- * Le nom officiel du système est MKA.P-MS Intelligences. Un renommage manuel
- * revient toujours en arrière au fil des écrans ajoutés : ce contrôle échoue le
- * build dès qu'une chaîne visible réintroduit l'ancienne appellation.
+ * Le nom officiel du système est désormais MKA.P-MS AI (anciennement
+ * « MKA.P-MS Intelligence(s) »). Un renommage manuel revient toujours en
+ * arrière au fil des écrans ajoutés : ce contrôle échoue le build dès qu'une
+ * chaîne visible réintroduit l'ancienne appellation.
  *
- * Ce qui reste autorisé, parce que ce ne sont pas des noms MKA.P-MS :
- *  - les marques de fournisseurs (« Mistral AI », « OpenAI ») ;
- *  - les clés internes et identifiants techniques (ai_fabric, ia_texte…) ;
- *  - le texte des règles qui interdisent justement ces mots.
+ * Ce qui reste toléré :
+ *  - le journal historique des livraisons (server/intelligences/livraisons.ts)
+ *    et les fichiers générés à partir de sources déjà corrigées
+ *    (server/data/moteurs.ts) : réécrire l'historique serait mentir sur ce
+ *    qui a réellement été livré sous l'ancien nom ;
+ *  - le texte des règles qui citent explicitement l'ancien nom pour
+ *    documenter la migration.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, extname } from "node:path";
@@ -16,23 +20,20 @@ import { join, extname } from "node:path";
 const RACINES = ["client/src", "server", "shared"];
 const EXTENSIONS = new Set([".ts", ".tsx"]);
 
-// Appellations refusées, en tant que mot isolé.
-const MOTIFS = [/\bIA\b/g, /\bAI\b/g, /intelligence artificielle/gi];
+// Ancienne appellation refusée, en tant que chaîne visible.
+const MOTIFS = [/MKA\.P-MS Intelligences?\b/g];
 
-// Un mot isolé peut appartenir à un tiers ou à une phrase de règle : on
-// n'accuse pas une ligne qui contient l'une de ces marques.
+const FICHIERS_TOLERES = [
+  "server/intelligences/livraisons.ts",
+  "server/data/moteurs.ts",
+];
+
 const TOLERE = [
-  /Mistral AI/,
-  /OpenAI/,
-  /Google AI/,
-  /Adobe/,
-  /\bAI Act\b/,
-  /EU AI Act/,
-  // Les règles et consignes du moteur citent les mots interdits pour les interdire.
-  /N'emploie pas les mots/,
-  /Aucune mention/,
-  /appellation/i,
+  // Les règles et consignes de migration citent l'ancien nom pour le documenter.
   /check-naming/,
+  /ancien nom/i,
+  /anciennement/i,
+  /renommage/i,
 ];
 
 const fautes = [];
@@ -46,6 +47,7 @@ function parcourir(chemin) {
       continue;
     }
     if (!EXTENSIONS.has(extname(complet))) continue;
+    if (FICHIERS_TOLERES.includes(complet)) continue;
     const lignes = readFileSync(complet, "utf8").split("\n");
     lignes.forEach((ligne, i) => {
       if (TOLERE.some((t) => t.test(ligne))) return;
@@ -64,13 +66,11 @@ for (const racine of RACINES) parcourir(racine);
 
 if (fautes.length > 0) {
   console.error(
-    `\n[nom] ${fautes.length} appellation(s) « IA » / « AI » restante(s). Le nom officiel est « MKA.P-MS Intelligences » :\n`,
+    `\n[nom] ${fautes.length} occurrence(s) de l'ancienne appellation « MKA.P-MS Intelligence(s) » restante(s). Le nom officiel est désormais « MKA.P-MS AI » :\n`,
   );
   for (const f of fautes) console.error(`  ${f}`);
-  console.error(
-    "\nRemplace l'appellation par « MKA.P-MS Intelligences » (ou « Intelligence » dans un titre déjà préfixé).\n",
-  );
+  console.error("\nRemplace l'appellation par « MKA.P-MS AI ».\n");
   process.exit(1);
 }
 
-console.log("[nom] Aucune appellation « IA » / « AI » : nom officiel respecté.");
+console.log("[nom] Aucune régression vers l'ancien nom : « MKA.P-MS AI » respecté.");

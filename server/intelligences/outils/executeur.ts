@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — Tool Executor.
+ * MKA.P-MS AI — Tool Executor.
  *
  * Exécute réellement un outil déjà autorisé par la politique (politique.ts).
  * Ne décide jamais qui a le droit — reçoit un feu vert et l'exécute, sous

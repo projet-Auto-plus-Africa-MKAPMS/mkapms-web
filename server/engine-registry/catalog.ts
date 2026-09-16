@@ -119,7 +119,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     category: "service",
     dependencies: ["core","boutons","event_bus","smart","permission","achat","garage","notification"],
     description:
-      "Capacités serveur de l'atelier : validation interne et contrôle qualité opposables, stock de pièces avec un mouvement par écriture, réapprovisionnement gouverné (seuil → proposition persistante → décision humaine → commande fournisseur sous plafond mensuel → réception en stock), report de rendez-vous tracé. Chaque écriture est publiée à l'Event Bus, supervisée par le Système Intelligent et mémorisée par MKA.P-MS Intelligences.",
+      "Capacités serveur de l'atelier : validation interne et contrôle qualité opposables, stock de pièces avec un mouvement par écriture, réapprovisionnement gouverné (seuil → proposition persistante → décision humaine → commande fournisseur sous plafond mensuel → réception en stock), report de rendez-vous tracé. Chaque écriture est publiée à l'Event Bus, supervisée par le Système Intelligent et mémorisée par MKA.P-MS AI.",
     state: "active",
   },
   {
@@ -128,7 +128,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     category: "transversal",
     dependencies: ["core", "boutons", "redirection", "event_bus", "smart", "intelligences"],
     description:
-      "Relit l'inventaire généré des éléments cliquables de tous les écrans, revérifie chaque destination auprès du Moteur de Redirection, et remet chaque défaut à l'Event Bus, au Système Intelligent et à MKA.P-MS Intelligences. Il constate et propose : il ne modifie jamais le code de production.",
+      "Relit l'inventaire généré des éléments cliquables de tous les écrans, revérifie chaque destination auprès du Moteur de Redirection, et remet chaque défaut à l'Event Bus, au Système Intelligent et à MKA.P-MS AI. Il constate et propose : il ne modifie jamais le code de production.",
     state: "active",
   },
   {
@@ -681,7 +681,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
   },
   {
     name: "intelligences",
-    label: "MKA.P-MS Intelligences",
+    label: "MKA.P-MS AI",
     category: "transversal",
     dependencies: ["core","smart","ai_fabric","command_center","code_graph","completion_center","connaissance_auto","continuous_test","event_bus","identity","monitoring","resilience","support"],
     description:

@@ -16,7 +16,7 @@
  *
  * Ce fichier ne crée pas un second moteur de permissions : le Permission Engine
  * garde les droits métier des comptes. Ici, il ne s'agit que des permissions
- * techniques des capacités de MKA.P-MS Intelligences.
+ * techniques des capacités de MKA.P-MS AI.
  */
 import { desc, eq } from "drizzle-orm";
 import { db } from "../db.js";

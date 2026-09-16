@@ -277,7 +277,7 @@ app.get("/api/health/db", async (_req, res) => {
   }
 });
 
-// Point 127 — API interne versionnée des capacités MKA.P-MS Intelligences.
+// Point 127 — API interne versionnée des capacités MKA.P-MS AI.
 // Les moteurs et les applications demandent une capacité, jamais un fournisseur.
 app.use("/api/v1", publicWriteGate, apiV1);
 

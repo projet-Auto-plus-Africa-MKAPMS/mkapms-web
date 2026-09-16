@@ -143,7 +143,7 @@ export const SECTIONS_SOMMAIRE: readonly SectionSommaire[] = [
   },
   {
     prefixe: "/ia",
-    titre: "MKA.P-MS Intelligences",
+    titre: "MKA.P-MS AI",
     entrees: [
       { chemin: "/ia/i-a-aide-devis", titre: "Intelligence Aide au devis", vide: true },
       { chemin: "/ia/i-a-analyse-marche", titre: "Intelligence Analyse marché", vide: true },

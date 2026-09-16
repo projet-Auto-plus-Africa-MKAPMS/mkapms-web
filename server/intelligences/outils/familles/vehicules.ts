@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — Tool Registry, famille "vehicules".
+ * MKA.P-MS AI — Tool Registry, famille "vehicules".
  *
  * Premier lot d'implémentation réelle (véhicules / VIN / immatriculation /
  * estimation), choisi par la direction car central pour la marketplace

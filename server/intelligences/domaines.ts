@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligences — domaines d'assistance du côté public.
+ * MKA.P-MS AI — domaines d'assistance du côté public.
  *
  * L'assistant public ne se limite plus à l'automobile : il aide dans la vie
  * quotidienne et dans le travail, partout où la plateforme est ouverte. Chaque

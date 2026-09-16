@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — Audit / Observability des outils.
+ * MKA.P-MS AI — Audit / Observability des outils.
  *
  * Historique complet : une ligne par outil demandé, quelle qu'en soit
  * l'issue. N'exécute rien, ne décide rien — journalise ce que politique.ts et

@@ -584,7 +584,7 @@ export default function Home() {
     navigate(`/acheter?${paramsRecherche().toString()}`);
   }
 
-  /* Dictée → critères réels lus par MKA.P-MS Intelligences. */
+  /* Dictée → critères réels lus par MKA.P-MS AI. */
   const lireDictee = trpc.intelligences.interpreterRecherche.useMutation({
     onSuccess: (lecture) => {
       const c = lecture.criteres;
@@ -832,7 +832,7 @@ export default function Home() {
 
               {rechercheOuverte && (
                 <>
-                  {/* Dictée — MKA.P-MS Intelligences lit les critères énoncés */}
+                  {/* Dictée — MKA.P-MS AI lit les critères énoncés */}
                   <div className="mt-3 flex items-center gap-2 rounded-xl border border-[#D4AF37]/30 bg-white px-3 py-2">
                     <MicroVocal
                       titre="Dicter ma recherche de véhicule"

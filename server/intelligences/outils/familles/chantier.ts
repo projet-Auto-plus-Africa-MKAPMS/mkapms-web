@@ -1,12 +1,12 @@
 /**
  * Tool Registry — famille « Chantier de développement » (server/intelligences/
- * chantier/). Les 24 outils demandés pour que MKA.P-MS Intelligence puisse
+ * chantier/). Les 24 outils demandés pour que MKA.P-MS AI puisse
  * réellement construire un petit projet de bout en bout : comprendre,
  * planifier, créer des fichiers, écrire du code, installer des dépendances,
  * lancer des commandes, tester, corriger, prévisualiser.
  *
  * Réservé au PDG (`allowedRoles: ["super_admin"]`, comme le reste de
- * MKA.P-MS Intelligences côté direction — server/trpc.ts::pdgProcedure) : ce
+ * MKA.P-MS AI côté direction — server/trpc.ts::pdgProcedure) : ce
  * lot construit la capacité pour l'usage direct du PDG depuis le Centre
  * Intelligence, pas encore pour un compte professionnel ou client.
  *

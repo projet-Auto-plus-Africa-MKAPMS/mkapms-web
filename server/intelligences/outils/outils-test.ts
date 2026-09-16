@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — implémentations réelles des outils de test
+ * MKA.P-MS AI — implémentations réelles des outils de test
  * (server/intelligences/outils/registre.ts, préfixe "test.").
  *
  * Aucun effet de bord, aucune donnée réelle, aucune écriture. Un futur lot
@@ -27,7 +27,7 @@ export type ImplementationOutil = (
 
 export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   "test.lire_info_interne": async () => ({
-    info: "MKA.P-MS Intelligence — outil de test, aucune donnée réelle.",
+    info: "MKA.P-MS AI — outil de test, aucune donnée réelle.",
     horodatage: new Date().toISOString(),
   }),
 

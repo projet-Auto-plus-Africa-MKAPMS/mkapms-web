@@ -944,7 +944,7 @@ export default function DepotAnnonce() {
               <Sparkles size={14} className="text-[#D4AF37] shrink-0 mt-0.5" />
               <div>
                 <p className="text-[10px] font-semibold text-[#111]">Estimation marche MKA.P-MS</p>
-                <p className="text-[9px] text-[#6B7280]">MKA.P-MS Intelligences analysera votre prix par rapport au marche apres publication</p>
+                <p className="text-[9px] text-[#6B7280]">MKA.P-MS AI analysera votre prix par rapport au marche apres publication</p>
               </div>
             </div>
           </div>

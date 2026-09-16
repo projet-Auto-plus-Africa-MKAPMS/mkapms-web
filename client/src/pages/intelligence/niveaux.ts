@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — niveaux d'accès de l'application dédiée.
+ * MKA.P-MS AI — niveaux d'accès de l'application dédiée.
  *
  * Six niveaux, du plus ouvert au plus large : ce que chaque module expose
  * dépendra de ce niveau et, plus tard, de l'abonnement — jamais d'un simple

@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — Permission / Policy Engine des outils.
+ * MKA.P-MS AI — Permission / Policy Engine des outils.
  *
  * Décide QUI peut utiliser un outil qui existe (registre.ts). Ne connaît rien
  * à l'exécution réelle (executeur.ts) : il rend un verdict et un motif, jamais

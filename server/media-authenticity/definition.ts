@@ -25,7 +25,7 @@ export type Declaration = (typeof DECLARATIONS)[number];
 export const DECLARATION_LABELS: Record<Declaration, string> = {
   original: "Contenu original, non retouché",
   modifie: "Contenu modifié ou retouché",
-  genere_ia: "Contenu généré ou modifié par MKA.P-MS Intelligences",
+  genere_ia: "Contenu généré ou modifié par MKA.P-MS AI",
   publicite: "Contenu publicitaire",
   professionnel: "Contenu professionnel",
   non_declare: "Aucune déclaration fournie",

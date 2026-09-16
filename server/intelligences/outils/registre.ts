@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — Tool Registry global.
+ * MKA.P-MS AI — Tool Registry global.
  *
  * Ce fichier dit uniquement CE QUI EXISTE : le catalogue complet des outils
  * qu'un modèle peut demander. Il ne décide jamais qui a le droit de les

@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — Tool Registry, familles globales (hors véhicules).
+ * MKA.P-MS AI — Tool Registry, familles globales (hors véhicules).
  *
  * Règle de la direction : toutes les familles prévues doivent être
  * enregistrées dès maintenant, même sans implémentation réelle derrière.

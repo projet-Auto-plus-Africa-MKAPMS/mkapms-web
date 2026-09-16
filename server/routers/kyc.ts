@@ -31,7 +31,7 @@ const PROFILE_TYPES = Object.keys(PROFILES) as [ProfileType, ...ProfileType[]];
  * dossier. « verifie » ne veut pas dire « authentique » : la machine constate
  * ce qui est constatable (empreinte, métadonnées, réutilisation du même
  * fichier ailleurs, provenance signée, cohérence technique, lecture par
- * MKA.P-MS Intelligences quand le fournisseur vision est configuré) et
+ * MKA.P-MS AI quand le fournisseur vision est configuré) et
  * n'établit jamais qu'un KBIS ou une pièce d'identité est un vrai document
  * administratif. Cette décision reste humaine.
  */

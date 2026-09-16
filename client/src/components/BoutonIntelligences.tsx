@@ -1,5 +1,5 @@
 /**
- * Bouton rond noir d'ouverture de MKA.P-MS Intelligences, même gabarit que le
+ * Bouton rond noir d'ouverture de MKA.P-MS AI, même gabarit que le
  * micro de dictée (h-8 w-8) pour se poser à côté de lui dans une barre de
  * recherche. L'action est demandée au Moteur de boutons : il connaît ce bouton,
  * son écran et trace chaque clic.
@@ -24,7 +24,7 @@ export default function BoutonIntelligences({ code, className = "" }: Props) {
         onExecuter={ouvrirIntelligences}
         className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#111] text-[#D4AF37] shadow-sm transition hover:bg-black hover:shadow-md"
       >
-        <Sparkles size={16} aria-label="Ouvrir MKA.P-MS Intelligences" />
+        <Sparkles size={16} aria-label="Ouvrir MKA.P-MS AI" />
       </BoutonMoteur>
     </span>
   );

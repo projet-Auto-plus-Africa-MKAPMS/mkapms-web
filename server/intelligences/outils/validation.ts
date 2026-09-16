@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — validation minimale des arguments d'un outil contre
+ * MKA.P-MS AI — validation minimale des arguments d'un outil contre
  * son schema_input (registre.ts).
  *
  * Volontairement restreint : type "object" à un niveau, propriétés de type

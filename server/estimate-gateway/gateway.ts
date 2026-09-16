@@ -2,7 +2,7 @@
  * MKA.P-MS Estimate Gateway (LOT IA02E).
  *
  * Point d'entrée unique pour toute estimation de prix demandée par
- * MKA.P-MS Intelligences. Ne calcule RIEN elle-même : elle appelle le
+ * MKA.P-MS AI. Ne calcule RIEN elle-même : elle appelle le
  * moteur métier réel déjà propriétaire du calcul (VO Engine, Vehicle
  * Delivery, Import Risk, catalogue pièces, devis garage, devises) et
  * traduit son résultat dans le schéma canonique (`types.ts`).

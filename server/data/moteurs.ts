@@ -5673,7 +5673,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "boutons": [
       {
         "code": "accueil_intelligences_ouvrir",
-        "libelle": "Ouvrir MKA.P-MS Intelligences (à côté du micro)",
+        "libelle": "Ouvrir MKA.P-MS AI (à côté du micro)",
         "genre": "formulaire",
         "ecran": "/",
         "fichier": "",
@@ -9803,7 +9803,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
   },
   {
     "moteur": "intelligences",
-    "label": "MKA.P-MS Intelligences",
+    "label": "MKA.P-MS AI",
     "categorie": "transversal",
     "etatDeclare": "active",
     "dossiers": [

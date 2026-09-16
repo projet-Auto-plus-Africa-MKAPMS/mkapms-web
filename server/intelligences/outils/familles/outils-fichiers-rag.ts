@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — implémentations réelles des familles
+ * MKA.P-MS AI — implémentations réelles des familles
  * "fichiers"/"documents"/"recherche" ajoutées par le LOT IA02F
  * (server/intelligences/outils/familles/fichiers-rag.ts).
  */

@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — Tool Registry, fichiers/documents/RAG (LOT IA02F).
+ * MKA.P-MS AI — Tool Registry, fichiers/documents/RAG (LOT IA02F).
  *
  * `files.*` et `documents.*` réutilisent server/intelligences/fichiers.ts
  * (pipeline réel : uploaded → validated → parsed → chunked → indexed →

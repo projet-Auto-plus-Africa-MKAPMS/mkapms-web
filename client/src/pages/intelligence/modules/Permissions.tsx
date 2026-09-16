@@ -1,5 +1,5 @@
 /**
- * MKA.P-MS Intelligence — module Permissions (LOT IA02B).
+ * MKA.P-MS AI — module Permissions (LOT IA02B).
  *
  * Lecture réelle du tableau des permissions techniques
  * (server/intelligences/permissions.ts::tableau) : par rôle et par moteur.
