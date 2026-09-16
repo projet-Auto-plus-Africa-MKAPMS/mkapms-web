@@ -602,6 +602,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/superadmin/admin-fraude",
   "/superadmin/admin-garage",
   "/superadmin/admin-general",
+  "/superadmin/admin-google-business",
   "/superadmin/admin-journal",
   "/superadmin/admin-litiges",
   "/superadmin/admin-location",

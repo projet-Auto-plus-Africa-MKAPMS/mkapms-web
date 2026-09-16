@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2604;
+export const CLIQUABLES_TOTAL = 2608;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -605,6 +605,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/superadmin/AdminFraude.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 3, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminGarage.tsx", total: 9, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 1, zones: 2 },
   { fichier: "client/src/pages/superadmin/AdminGeneral.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/superadmin/AdminGoogleBusiness.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminJournal.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminLitiges.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 3, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminLocation.tsx", total: 8, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 2 },

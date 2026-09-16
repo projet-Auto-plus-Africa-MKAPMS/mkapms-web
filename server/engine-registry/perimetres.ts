@@ -36,7 +36,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
     moteur: "core",
     dossiers: ["engine-registry", "central-engines", "db.ts", "domain.ts", "env.ts", "index.ts", "migrate.ts", "reference.ts", "router.ts", "schema.ts", "seed.ts", "trpc.ts", "types", "data/moteurs.ts", "modules/core.ts", "modules/coreEngine.ts", "routers/coreEngine.ts", "routers/modules.ts", "routers/admin.ts", "routers/meta.ts"],
     routeurs: ["coreEngine", "engineRegistry", "centralEngines", "modules", "admin", "meta"],
-    routes: ["/", "/admin", "/admin/*", "/superadmin", "/superadmin/core-engine-beta", "/admin/moteurs", "/mk-global-engine"],
+    routes: ["/", "/admin", "/admin/*", "/superadmin", "/superadmin/core-engine-beta", "/superadmin/plan-maitre-fournisseurs", "/admin/moteurs", "/mk-global-engine"],
     sourcesBus: ["engine_registry"],
   },
   {
@@ -594,7 +594,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
     moteur: "connecteur_google_business",
     dossiers: ["connectors/google-business"],
     routeurs: ["googleBusiness"],
-    routes: [],
+    routes: ["/superadmin/admin-google-business"],
   },
   {
     moteur: "proximity_engine",
