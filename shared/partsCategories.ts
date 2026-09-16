@@ -223,6 +223,47 @@ export const PARTS_CATEGORY_OPTIONS = PARTS_CATEGORIES.map(c => ({
   subs: c.subs.map(s => ({ code: s.code, label: s.label })),
 }));
 
+// Architecture 3 — état de compatibilité explicite sur la fiche produit
+// (point « product fiches with explicit compatibility states »). Une ligne
+// de compatibilité sans marque/année déclarée n'exclut jamais un véhicule :
+// l'absence de restriction est une absence de restriction, pas un refus
+// (même principe que le correctif isNull() du filtre catalog côté serveur).
+export type EtatCompatibilite = "compatible" | "non_compatible" | "non_renseignee" | "non_recherchee";
+
+export interface CompatibiliteDeclaree {
+  marque: string;
+  modele?: string | null;
+  moteur?: string | null;
+  anneeDebut?: number | null;
+  anneeFin?: number | null;
+}
+
+export interface VehiculeRecherche {
+  marque?: string;
+  modele?: string;
+  annee?: number;
+}
+
+export function evaluerCompatibilite(
+  compatibilites: CompatibiliteDeclaree[],
+  recherche: VehiculeRecherche,
+): EtatCompatibilite {
+  if (!recherche.marque && !recherche.modele && !recherche.annee) return "non_recherchee";
+  if (compatibilites.length === 0) return "non_renseignee";
+
+  const norm = (s: string) => s.trim().toLowerCase();
+  const correspond = compatibilites.some((c) => {
+    if (recherche.marque && !norm(c.marque).includes(norm(recherche.marque))) return false;
+    if (recherche.modele && c.modele && !norm(c.modele).includes(norm(recherche.modele))) return false;
+    if (recherche.annee) {
+      if (c.anneeDebut && recherche.annee < c.anneeDebut) return false;
+      if (c.anneeFin && recherche.annee > c.anneeFin) return false;
+    }
+    return true;
+  });
+  return correspond ? "compatible" : "non_compatible";
+}
+
 // Search helper: find matching categories/subcategories for a keyword
 export function searchPartsByKeyword(query: string): { category: string; subCategory: string; label: string }[] {
   const q = query.toLowerCase().trim();

@@ -1,21 +1,27 @@
 /**
  * Pièces — Architecture 3 : dimension type de véhicule (server/schema.ts::
- * partsVehicleTypeEnum, partsCatalog.typeVehicule). Base de données réelle.
+ * partsVehicleTypeEnum, partsCatalog.typeVehicule) + état de compatibilité
+ * explicite sur la fiche produit (shared/partsCategories.ts::
+ * evaluerCompatibilite) + correctif du filtre catalog sur année (une
+ * compatibilité sans borne d'année déclarée ne doit plus être exclue à
+ * tort). Base de données réelle.
  *
  * Couvre : valeur par défaut "voiture" à la création (compatibilité
  * ascendante avec tout le catalogue existant), filtrage du catalogue par
  * type de véhicule (server/routers/pieces.ts::catalog), mise à jour du
- * type sur une pièce existante, et alignement de la liste partagée
- * PARTS_VEHICLE_TYPES (shared/partsCategories.ts) avec l'enum serveur.
+ * type sur une pièce existante, alignement de la liste partagée
+ * PARTS_VEHICLE_TYPES (shared/partsCategories.ts) avec l'enum serveur,
+ * logique pure d'évaluation de compatibilité, et non-régression du filtre
+ * catalog sur les compatibilités sans année déclarée.
  *
  * Lancement : `npx tsx server/routers/__tests__/pieces.test.ts`
  */
 import assert from "node:assert/strict";
 import { eq, inArray } from "drizzle-orm";
 import { db } from "../../db.js";
-import { partsShops, partsCatalog } from "../../schema.js";
+import { partsShops, partsCatalog, partsCompatibility } from "../../schema.js";
 import { piecesRouter } from "../pieces.js";
-import { PARTS_VEHICLE_TYPES } from "../../../shared/partsCategories.js";
+import { PARTS_VEHICLE_TYPES, evaluerCompatibilite } from "../../../shared/partsCategories.js";
 import { recordTestEvidence } from "../../activation-audit/service.js";
 
 let ok = 0;
@@ -100,6 +106,27 @@ async function main() {
   await caller.updatePart({ id: piece1.id, typeVehicule: "utilitaire" });
   const [relu] = await db.select().from(partsCatalog).where(eq(partsCatalog.id, piece1.id));
   verif("updatePart change réellement typeVehicule en base", relu.typeVehicule === "utilitaire");
+
+  // ── 5. evaluerCompatibilite (logique pure, fiche produit) ──
+  const compatDeclarees = [{ marque: "Renault", modele: "Clio", moteur: "1.5 dCi", anneeDebut: 2015, anneeFin: 2020 }];
+  verif("evaluerCompatibilite : aucune recherche → \"non_recherchee\"", evaluerCompatibilite(compatDeclarees, {}) === "non_recherchee");
+  verif("evaluerCompatibilite : aucune compatibilité déclarée → \"non_renseignee\"", evaluerCompatibilite([], { marque: "Renault" }) === "non_renseignee");
+  verif("evaluerCompatibilite : marque/modèle/année dans la plage → \"compatible\"", evaluerCompatibilite(compatDeclarees, { marque: "renault", modele: "clio", annee: 2018 }) === "compatible");
+  verif("evaluerCompatibilite : année hors plage → \"non_compatible\"", evaluerCompatibilite(compatDeclarees, { marque: "Renault", annee: 2023 }) === "non_compatible");
+  verif("evaluerCompatibilite : marque différente → \"non_compatible\"", evaluerCompatibilite(compatDeclarees, { marque: "Peugeot" }) === "non_compatible");
+  const compatSansAnnee = [{ marque: "Toyota", modele: null, moteur: null, anneeDebut: null, anneeFin: null }];
+  verif("evaluerCompatibilite : compatibilité sans année déclarée n'exclut jamais → \"compatible\"", evaluerCompatibilite(compatSansAnnee, { marque: "Toyota", annee: 1999 }) === "compatible");
+
+  // ── 6. Non-régression : le filtre catalog n'exclut plus une compatibilité sans année déclarée ──
+  const piece4 = await caller.addPart({
+    shopId: shop.id,
+    nom: "Amortisseur universel test",
+    referenceInterne: `${REF_PREFIX}4`,
+    prixHt: 80,
+  });
+  await db.insert(partsCompatibility).values({ catalogId: piece4.id, marque: "Toyota" }); // anneeDebut/anneeFin volontairement absents
+  const catalogueAnneeSeule = await publicCaller.catalog({ shopId: shop.id, marqueVehicule: "Toyota", anneeVehicule: 1999 });
+  verif("catalog(anneeVehicule) n'exclut pas une compatibilité sans borne d'année déclarée", catalogueAnneeSeule.items.some((p) => p.id === piece4.id));
 
   await nettoyer();
 
