@@ -439,109 +439,158 @@ export const piecesRouter = router({
         livraisonTarif: z.number().optional(),
         devisId: z.number().optional(),
         notes: z.string().optional(),
+        /**
+         * Idempotence : généré une seule fois côté client par tentative de
+         * paiement (persiste tant que la commande n'a pas abouti). Un double
+         * clic ou une reprise réseau renvoie la commande déjà créée au lieu
+         * d'en fabriquer une seconde et de réserver le stock deux fois.
+         */
+        idempotencyKey: z.string().min(8).max(64).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const ref = `MKA-PO-${String(Date.now()).slice(-6)}`;
-      const numColis = `MKA-COL-${String(Date.now()).slice(-8)}`;
-      let totalHt = 0;
-      let totalTtc = 0;
-
-      // Verify stock & compute totals
-      const itemDetails: { catalogId: number; quantite: number; prixHt: number; prixTtc: number }[] = [];
-      for (const it of input.items) {
-        const [part] = await db.select().from(partsCatalog).where(eq(partsCatalog.id, it.catalogId)).limit(1);
-        if (!part) throw new Error(`Pièce #${it.catalogId} introuvable`);
-
-        // Rupture de stock : la quantité demandée ne doit jamais dépasser ce
-        // qui reste réellement disponible (quantité en stock − déjà réservée).
-        // Aucune vérification n'existait avant ce correctif : deux commandes
-        // simultanées pouvaient survendre la même pièce.
-        const stocksPart = await db.select().from(partsStock).where(eq(partsStock.catalogId, it.catalogId));
-        const disponible = stocksPart.reduce((s, st) => s + (st.quantite - st.quantiteReservee), 0);
-        if (disponible < it.quantite) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Stock insuffisant pour « ${part.nom} » : ${disponible} disponible(s), ${it.quantite} demandée(s).`,
-          });
-        }
-
-        const ht = Number(part.prixHt) * it.quantite;
-        const ttc = Number(part.prixTtc ?? part.prixHt) * it.quantite;
-        totalHt += ht;
-        totalTtc += ttc;
-        itemDetails.push({ catalogId: it.catalogId, quantite: it.quantite, prixHt: Number(part.prixHt), prixTtc: Number(part.prixTtc ?? part.prixHt) });
+      if (input.idempotencyKey) {
+        const [existante] = await db
+          .select()
+          .from(partsOrders)
+          .where(and(eq(partsOrders.buyerId, ctx.user.uid), eq(partsOrders.idempotencyKey, input.idempotencyKey)))
+          .limit(1);
+        if (existante) return existante;
       }
 
-      const [order] = await db.insert(partsOrders).values({
-        reference: ref,
-        shopId: input.shopId,
-        buyerId: ctx.user.uid,
-        status: "panier",
-        totalHt: String(totalHt.toFixed(2)),
-        totalTtc: String(totalTtc.toFixed(2)),
-        modeRetrait: input.modeRetrait,
-        livraisonType: input.livraisonType,
-        livraisonTarif: input.livraisonTarif ? String(input.livraisonTarif) : undefined,
-        numeroColis: input.modeRetrait === "livraison" ? numColis : undefined,
-        devisId: input.devisId,
-        notes: input.notes,
-      }).returning();
+      const ref = `MKA-PO-${String(Date.now()).slice(-6)}`;
+      const numColis = `MKA-COL-${String(Date.now()).slice(-8)}`;
 
-      for (const it of itemDetails) {
-        await db.insert(partsOrderItems).values({
-          orderId: order.id,
-          catalogId: it.catalogId,
-          quantite: it.quantite,
-          prixUnitaireHt: String(it.prixHt),
-          totalHt: String((it.prixHt * it.quantite).toFixed(2)),
-        });
+      const creerCommande = async () => db.transaction(async (tx) => {
+        let totalHt = 0;
+        let totalTtc = 0;
 
-        // Reserve stock
-        const stocks = await db.select().from(partsStock).where(eq(partsStock.catalogId, it.catalogId));
-        if (stocks.length > 0) {
-          await db.update(partsStock)
-            .set({ quantiteReservee: stocks[0].quantiteReservee + it.quantite, updatedAt: new Date() })
-            .where(eq(partsStock.id, stocks[0].id));
+        // Prix et stock relus ici, dans la transaction, jamais depuis le
+        // panier envoyé par le client : c'est le serveur qui fait foi au
+        // moment exact de la création de la commande.
+        const itemDetails: { catalogId: number; quantite: number; prixHt: number; prixTtc: number }[] = [];
+        for (const it of input.items) {
+          const [part] = await tx.select().from(partsCatalog).where(eq(partsCatalog.id, it.catalogId)).limit(1);
+          if (!part) throw new Error(`Pièce #${it.catalogId} introuvable`);
+          if (!part.active) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: `« ${part.nom} » n'est plus disponible à la vente.` });
+          }
+
+          // FOR UPDATE verrouille les lignes de stock de cette pièce jusqu'à
+          // la fin de la transaction : deux commandes concurrentes sur la
+          // même pièce ne peuvent plus lire le même stock disponible avant
+          // que l'une des deux ne l'ait réservé — sans ce verrou, la
+          // vérification et la réservation restaient deux étapes séparées
+          // qu'une commande simultanée pouvait intercaler (survente malgré
+          // le contrôle de quantité).
+          const stocksPart = await tx.select().from(partsStock).where(eq(partsStock.catalogId, it.catalogId)).for("update");
+          const disponible = stocksPart.reduce((s, st) => s + (st.quantite - st.quantiteReservee), 0);
+          if (disponible < it.quantite) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `Stock insuffisant pour « ${part.nom} » : ${disponible} disponible(s), ${it.quantite} demandée(s).`,
+            });
+          }
+
+          const ht = Number(part.prixHt) * it.quantite;
+          const ttc = Number(part.prixTtc ?? part.prixHt) * it.quantite;
+          totalHt += ht;
+          totalTtc += ttc;
+          itemDetails.push({ catalogId: it.catalogId, quantite: it.quantite, prixHt: Number(part.prixHt), prixTtc: Number(part.prixTtc ?? part.prixHt) });
         }
 
-        // Le stock réservé change la disponibilité réelle : les destinations
-        // sont actualisées sans reprise manuelle (point 97).
+        const [nouvelleCommande] = await tx.insert(partsOrders).values({
+          reference: ref,
+          shopId: input.shopId,
+          buyerId: ctx.user.uid,
+          status: "panier",
+          totalHt: String(totalHt.toFixed(2)),
+          totalTtc: String(totalTtc.toFixed(2)),
+          modeRetrait: input.modeRetrait,
+          livraisonType: input.livraisonType,
+          livraisonTarif: input.livraisonTarif ? String(input.livraisonTarif) : undefined,
+          numeroColis: input.modeRetrait === "livraison" ? numColis : undefined,
+          devisId: input.devisId,
+          notes: input.notes,
+          idempotencyKey: input.idempotencyKey ?? null,
+        }).returning();
+
+        for (const it of itemDetails) {
+          await tx.insert(partsOrderItems).values({
+            orderId: nouvelleCommande.id,
+            catalogId: it.catalogId,
+            quantite: it.quantite,
+            prixUnitaireHt: String(it.prixHt),
+            totalHt: String((it.prixHt * it.quantite).toFixed(2)),
+          });
+
+          // Réservation : les lignes de stock sont déjà verrouillées (FOR UPDATE ci-dessus).
+          const stocks = await tx.select().from(partsStock).where(eq(partsStock.catalogId, it.catalogId));
+          if (stocks.length > 0) {
+            await tx.update(partsStock)
+              .set({ quantiteReservee: stocks[0].quantiteReservee + it.quantite, updatedAt: new Date() })
+              .where(eq(partsStock.id, stocks[0].id));
+          }
+        }
+
+        await tx.insert(partsOrderTracking).values({
+          orderId: nouvelleCommande.id,
+          status: "panier",
+          label: "Commande créée",
+          detail: input.modeRetrait === "retrait" ? "Retrait en magasin sélectionné" : `Livraison par ${input.livraisonType ?? "standard"}`,
+        });
+
+        await tx.insert(serviceTracking).values({
+          userId: ctx.user.uid,
+          serviceType: "commande_pieces",
+          serviceId: nouvelleCommande.id,
+          reference: ref,
+          titre: `Commande pièces ${ref}`,
+          status: "panier",
+          statusLabel: "Commande en panier",
+        });
+
+        return nouvelleCommande;
+      });
+
+      let order: Awaited<ReturnType<typeof creerCommande>>;
+      try {
+        order = await creerCommande();
+      } catch (e) {
+        // Deux requêtes concurrentes avec la même idempotencyKey (vrai double
+        // clic quasi simultané) : la contrainte unique bloque la seconde
+        // insertion — on renvoie la commande créée par la première plutôt que
+        // de faire échouer la demande.
+        const violationUnique = input.idempotencyKey && e instanceof Error && /idempotency_key/.test(e.message);
+        if (!violationUnique) throw e;
+        const [existanteApresCourse] = await db
+          .select()
+          .from(partsOrders)
+          .where(and(eq(partsOrders.buyerId, ctx.user.uid), eq(partsOrders.idempotencyKey, input.idempotencyKey!)))
+          .limit(1);
+        if (!existanteApresCourse) throw e;
+        return existanteApresCourse;
+      }
+
+      // Effets de bord best-effort, après le commit réel : un échec ici ne
+      // doit jamais annuler une commande déjà valablement enregistrée, et un
+      // retry sur idempotencyKey ne doit jamais les redéclencher (voir le
+      // court-circuit en tête de procédure).
+      for (const it of input.items) {
         await emitSafe({
           source: "pieces",
           type: "piece.modifiee",
           payload: { source: "parts_catalog", sourceId: it.catalogId, declencheur: "vente" },
         });
       }
-
-      // Add initial tracking event
-      await db.insert(partsOrderTracking).values({
-        orderId: order.id,
-        status: "panier",
-        label: "Commande créée",
-        detail: input.modeRetrait === "retrait" ? "Retrait en magasin sélectionné" : `Livraison par ${input.livraisonType ?? "standard"}`,
-      });
-
-      // Notification client
       await notifyEvent({
         userId: ctx.user.uid,
         event: "commande_pieces_creee",
         vars: {
           reference: ref,
-          detail: `Votre commande de ${itemDetails.length} pièce(s) a été créée. ${input.modeRetrait === "retrait" ? "Retrait en magasin." : `Livraison par ${input.livraisonType ?? "standard"}.`}`,
+          detail: `Votre commande de ${input.items.length} pièce(s) a été créée. ${input.modeRetrait === "retrait" ? "Retrait en magasin." : `Livraison par ${input.livraisonType ?? "standard"}.`}`,
         },
         url: `/compte`,
-      });
-
-      // Service tracking
-      await db.insert(serviceTracking).values({
-        userId: ctx.user.uid,
-        serviceType: "commande_pieces",
-        serviceId: order.id,
-        reference: ref,
-        titre: `Commande pièces ${ref}`,
-        status: "panier",
-        statusLabel: "Commande en panier",
       });
 
       return order;

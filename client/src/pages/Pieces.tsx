@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MapPin, Phone, Package, Search, Filter, ShoppingCart, ChevronDown, ChevronUp,
@@ -143,6 +143,12 @@ export default function Pieces() {
   const selectedLivraisonOption = deliveryEstimate.data?.options?.find(o => o.type === selectedLivraison);
   const livraisonPrix = modeRetrait === "retrait" ? 0 : (selectedLivraisonOption?.prix ?? 0);
 
+  // Idempotence commande (Architecture 3) : une clé par tentative de paiement,
+  // stable tant que la commande n'a pas abouti — un double clic ou une reprise
+  // réseau renvoient la même commande au lieu d'en créer une seconde et de
+  // réserver le stock deux fois (garanti côté serveur, voir pieces.ts::createOrder).
+  const idempotencyKeyRef = useRef<string | null>(null);
+
   /**
    * Panier → commande → paiement, sans coupure.
    *
@@ -157,6 +163,9 @@ export default function Pieces() {
       navigate("/connexion?next=/pieces");
       return;
     }
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = crypto.randomUUID();
+    }
     setErreurPaiement(null);
     const shopId = cart[0].shopId;
     let orderId: number;
@@ -167,12 +176,14 @@ export default function Pieces() {
         modeRetrait,
         livraisonType: modeRetrait === "livraison" ? selectedLivraison : undefined,
         livraisonTarif: livraisonPrix,
+        idempotencyKey: idempotencyKeyRef.current,
       });
       orderId = order.id;
     } catch (e) {
       setErreurPaiement(e instanceof Error ? e.message : "Erreur lors de la commande. Veuillez réessayer.");
       return;
     }
+    idempotencyKeyRef.current = null;
     setCart([]);
     setShowCart(false);
     await ouvrirPaiement(orderId);

@@ -744,6 +744,8 @@ export const partsOrders = pgTable("parts_orders", {
   // Devis link
   devisId: integer("devis_id"),
   notes: text("notes"),
+  /** Idempotence : une clé générée une fois par tentative côté client empêche un double clic ou une reprise réseau de créer une seconde commande. */
+  idempotencyKey: varchar("idempotency_key", { length: 64 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
