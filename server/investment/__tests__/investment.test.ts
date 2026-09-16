@@ -1,11 +1,9 @@
 /**
  * Tests du moteur Investissement (server/investment/).
  *
- * Aucun accès base de données réel dans cet environnement de travail
- * (PostgreSQL injoignable) : seule la logique réellement pure — extraite
- * exprès de la couche base de données pour rester testable — est exercée
- * ici. C'est le même code que la production appelle après sa requête SQL,
- * jamais une réimplémentation parallèle.
+ * Exerce la logique réellement pure — extraite exprès de la couche base de
+ * données pour rester testable — jamais une réimplémentation parallèle :
+ * c'est le même code que la production appelle après sa requête SQL.
  *
  * Lancement : `npx tsx server/investment/__tests__/investment.test.ts`
  */
@@ -14,6 +12,7 @@ import { calculerAttribution } from "../revenu.js";
 import { TRANSITIONS_AUTORISEES } from "../contrat.js";
 import { detecterConflit, selectionnerContratActif } from "../ownership.js";
 import type { investments } from "../schema.js";
+import { recordTestEvidence } from "../../activation-audit/service.js";
 
 type Investissement = typeof investments.$inferSelect;
 
@@ -51,7 +50,7 @@ function fauxInvestissement(partiel: Partial<Investissement>): Investissement {
   } as Investissement;
 }
 
-function main() {
+async function main() {
   // ── Investor Revenue Engine : calcul pur, aucune règle de marge inventée ──
   {
     const r1 = calculerAttribution("fixed_price", null, 1000);
@@ -147,7 +146,22 @@ function main() {
   }
 
   console.log(`\n${ok}/${total} vérifications réussies.`);
+
+  await recordTestEvidence({
+    domain: "investment",
+    kind: "unit",
+    scenario: "revenu/contrat/ownership : attribution, transitions, détection de conflit",
+    passed: ok,
+    total,
+    source: "agent",
+  });
+
   if (ok !== total) process.exit(1);
 }
 
-main();
+main()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
