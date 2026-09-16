@@ -6644,6 +6644,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "composants": [
           "lib/currency.tsx"
         ]
+      },
+      {
+        "fichier": "client/src/pages/garage/PriseRendezVous.tsx",
+        "route": "/garage/prise-rendez-vous",
+        "composants": [
+          "lib/currency.tsx"
+        ]
       }
     ],
     "procedures": [
@@ -8160,7 +8167,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routers/garages.ts importe schema.ts"
       ],
       "country": [
-        "client/src/pages/Garages.tsx embarque lib/currency.tsx (trpc.currency)"
+        "client/src/pages/Garages.tsx embarque lib/currency.tsx (trpc.currency)",
+        "client/src/pages/garage/PriseRendezVous.tsx embarque lib/currency.tsx (trpc.currency)"
       ],
       "depannage": [
         "client/src/pages/garage/DepannageGarage.tsx appelle trpc.depannage"
@@ -8689,11 +8697,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/garage/prise-rendez-vous"
         ],
-        "cliquables": 5,
+        "cliquables": 4,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 13,
-        "mots": 40
+        "textes": 14,
+        "mots": 62
       },
       {
         "fichier": "client/src/pages/garage/RecherchePieces.tsx",
@@ -8841,8 +8849,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 643,
-    "mots": 2000,
+    "textes": 644,
+    "mots": 2022,
     "battement": "sonde",
     "manques": [
       {
