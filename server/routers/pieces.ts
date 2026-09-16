@@ -433,6 +433,20 @@ export const piecesRouter = router({
       for (const it of input.items) {
         const [part] = await db.select().from(partsCatalog).where(eq(partsCatalog.id, it.catalogId)).limit(1);
         if (!part) throw new Error(`Pièce #${it.catalogId} introuvable`);
+
+        // Rupture de stock : la quantité demandée ne doit jamais dépasser ce
+        // qui reste réellement disponible (quantité en stock − déjà réservée).
+        // Aucune vérification n'existait avant ce correctif : deux commandes
+        // simultanées pouvaient survendre la même pièce.
+        const stocksPart = await db.select().from(partsStock).where(eq(partsStock.catalogId, it.catalogId));
+        const disponible = stocksPart.reduce((s, st) => s + (st.quantite - st.quantiteReservee), 0);
+        if (disponible < it.quantite) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Stock insuffisant pour « ${part.nom} » : ${disponible} disponible(s), ${it.quantite} demandée(s).`,
+          });
+        }
+
         const ht = Number(part.prixHt) * it.quantite;
         const ttc = Number(part.prixTtc ?? part.prixHt) * it.quantite;
         totalHt += ht;
