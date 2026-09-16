@@ -100,12 +100,12 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 622;
+export const MANQUES_TOTAL = 621;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "bouton_sans_action": 183,
   "sans_logique_serveur": 11,
-  "sans_ecran": 10,
+  "sans_ecran": 9,
   "dependance_sans_preuve": 43,
   "dependance_non_declaree": 29,
   "bouton_declare_absent_ecran": 3,
@@ -113,9 +113,7 @@ export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
 };
 
 /** Routes client qu'aucun moteur ne revendique. */
-export const ROUTES_SANS_MOTEUR: readonly string[] = [
-  "/superadmin/plan-maitre-fournisseurs"
-];
+export const ROUTES_SANS_MOTEUR: readonly string[] = [];
 
 /** Routeurs tRPC montés qu'aucun moteur ne revendique. */
 export const ROUTEURS_SANS_MOTEUR: readonly string[] = [];
@@ -5007,8 +5005,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "abonnements": [],
     "sourcesEmission": [],
     "boutons": [],
-    "routes": [],
-    "ecrans": [],
+    "routes": [
+      "/superadmin/admin-google-business"
+    ],
+    "ecrans": [
+      {
+        "fichier": "client/src/pages/superadmin/AdminGoogleBusiness.tsx",
+        "routes": [
+          "/superadmin/admin-google-business"
+        ],
+        "cliquables": 4,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 17,
+        "mots": 34
+      }
+    ],
     "ecransHotes": [],
     "procedures": [
       "comparer",
@@ -5025,15 +5037,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "acces": [
       "direction"
     ],
-    "textes": 0,
-    "mots": 0,
+    "textes": 17,
+    "mots": 34,
     "battement": "sonde",
-    "manques": [
-      {
-        "genre": "sans_ecran",
-        "detail": "aucune route client ne mène à ce moteur"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "continuous_test",
@@ -5687,7 +5694,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/admin/moteurs",
       "/mk-global-engine",
       "/superadmin",
-      "/superadmin/core-engine-beta"
+      "/superadmin/core-engine-beta",
+      "/superadmin/plan-maitre-fournisseurs"
     ],
     "ecrans": [
       {
@@ -5724,6 +5732,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 180
       },
       {
+        "fichier": "client/src/pages/superadmin/PlanMaitreFournisseurs.tsx",
+        "routes": [
+          "/superadmin/plan-maitre-fournisseurs"
+        ],
+        "cliquables": 2,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 13,
+        "mots": 70
+      },
+      {
         "fichier": "client/src/pages/superadmin/SuperAdminDashboard.tsx",
         "routes": [
           "/superadmin"
@@ -5731,8 +5750,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 0,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 23,
-        "mots": 47
+        "textes": 24,
+        "mots": 50
       }
     ],
     "ecransHotes": [
@@ -5798,13 +5817,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "composants": [
           "trpc.modules",
           "trpc.admin"
-        ]
-      },
-      {
-        "fichier": "client/src/pages/superadmin/PlanMaitreFournisseurs.tsx",
-        "route": "/superadmin/plan-maitre-fournisseurs",
-        "composants": [
-          "trpc.engineRegistry"
         ]
       },
       {
@@ -6062,8 +6074,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 358,
-    "mots": 1500,
+    "textes": 372,
+    "mots": 1573,
     "battement": "contrat",
     "manques": [
       {
