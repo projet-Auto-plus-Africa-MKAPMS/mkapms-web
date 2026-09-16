@@ -3,7 +3,7 @@ import type { CreateExpressContextOptions } from "@trpc/server/adapters/express"
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { verifyToken } from "./auth.js";
-import { isAdmin, isDirection, isPro } from "@shared/roles.js";
+import { isAdmin, isDirection, isPro, isSupplierOrCarrier } from "@shared/roles.js";
 
 export interface AuthUser {
   uid: number;
@@ -79,8 +79,20 @@ const requirePdg = t.middleware(({ ctx, next }) => {
   return next({ ctx: { ...ctx, user: ctx.user } });
 });
 
+// LOT 7 (suite) — RBAC Fournisseur/Transporteur : porte d'accès isolée,
+// jamais cumulée avec requireAdmin/requireDirection/requirePro. Un
+// fournisseur ou un transporteur n'accède qu'aux procédures qui l'exigent
+// explicitement, jamais aux procédures back-office/direction/pro.
+const requireSupplierOrCarrier = t.middleware(({ ctx, next }) => {
+  if (!ctx.user || !isSupplierOrCarrier(ctx.user.role)) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Accès fournisseur/transporteur requis" });
+  }
+  return next({ ctx: { ...ctx, user: ctx.user } });
+});
+
 export const protectedProcedure = publicProcedure.use(requireAuth);
 export const adminProcedure = publicProcedure.use(requireAdmin);
 export const directionProcedure = publicProcedure.use(requireDirection);
 export const proProcedure = publicProcedure.use(requirePro);
 export const pdgProcedure = publicProcedure.use(requirePdg);
+export const supplierCarrierProcedure = publicProcedure.use(requireSupplierOrCarrier);

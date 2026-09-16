@@ -611,8 +611,8 @@ export const PERIMETRES: PerimetreDeclare[] = [
     // honnêtement déclaré en staging tant que la Direction n'a pas validé un
     // premier fournisseur réel de bout en bout.
     moteur: "supplier_engine",
-    dossiers: ["supplier-engine"],
-    routeurs: ["supplierEngine"],
+    dossiers: ["supplier-engine", "routers/supplier-portal.ts"],
+    routeurs: ["supplierEngine", "supplierPortal"],
     routes: [],
   },
   {
