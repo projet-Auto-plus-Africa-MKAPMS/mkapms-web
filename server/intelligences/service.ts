@@ -426,10 +426,15 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
   if (question.length < 2) return echec("Question vide.");
 
   let consigneDomaine = "";
-  if (input.cote === "public") {
+  if (input.cote === "public" || input.domaine) {
     const code = input.domaine ?? DOMAINE_DEFAUT;
     const etat = await domaineOuvert(code);
     if (!etat) return echec(`Domaine d'assistance inconnu : ${code}.`);
+    if (!etat.spec.cotes.includes(input.cote === "public" ? "public" : "direction")) {
+      return echec(
+        `Le domaine « ${etat.spec.libelle} » n'est pas servi du côté ${input.cote === "public" ? "public" : "direction"} : il est réservé à la direction.`,
+      );
+    }
     if (!etat.actif) {
       return echec(
         `Le domaine « ${etat.spec.libelle} » est construit mais fermé. Seul le PDG peut l'ouvrir depuis le centre MKA.P-MS AI ; tant qu'il est fermé, aucune réponse n'est produite dans ce domaine.`,

@@ -6,9 +6,12 @@
  * domaine porte sa propre consigne, sa propre limite, et son propre interrupteur
  * gouverné par le PDG : un domaine construit n'est pas un domaine ouvert.
  *
- * Deux domaines sont volontairement plus stricts que les autres :
- *  - `religion` : aucune source inventée. Une réponse sans référence exacte
- *    (sourate et verset, recueil et numéro) doit être refusée, pas approchée.
+ * Le côté public est strictement commercial : aucun domaine religieux n'y est
+ * proposé ni servi, quel que soit l'interrupteur. Deux domaines sont
+ * volontairement plus stricts que les autres :
+ *  - `religion` : réservé à la direction (PDG). Aucune source inventée. Une
+ *    réponse sans référence exacte (sourate et verset, recueil et numéro) doit
+ *    être refusée, pas approchée.
  *  - `sante` : information générale et orientation vers un professionnel.
  *    Aucun diagnostic, aucune ordonnance, aucune posologie.
  */
@@ -30,6 +33,11 @@ export interface DomaineSpec {
   actifParDefaut: boolean;
   /** Une réponse sans source vérifiable est refusée au lieu d'être rédigée. */
   sourceObligatoire: boolean;
+  /**
+   * Côtés où le domaine peut être servi. Un domaine absent de `public` n'est
+   * jamais proposé ni répondu au visiteur, même ouvert par le PDG.
+   */
+  cotes: readonly ("public" | "direction")[];
 }
 
 export const DOMAINES: DomaineSpec[] = [
@@ -43,6 +51,7 @@ export const DOMAINES: DomaineSpec[] = [
       "Domaine : automobile et usage de la plateforme. Donne les causes probables et invite à faire contrôler par un garage. N'annonce aucun prix, délai ni garantie au nom de MKA.P-MS.",
     actifParDefaut: true,
     sourceObligatoire: false,
+    cotes: ["public", "direction"],
   },
   {
     code: "vie_quotidienne",
@@ -54,6 +63,7 @@ export const DOMAINES: DomaineSpec[] = [
       "Domaine : aide à la vie quotidienne. Sois concret et utile : rédaction, explication, traduction, calcul, organisation, apprentissage. Pour le juridique, le médical et le financier personnel, explique le cadre général puis renvoie vers un professionnel.",
     actifParDefaut: true,
     sourceObligatoire: false,
+    cotes: ["public", "direction"],
   },
   {
     code: "professionnel",
@@ -66,6 +76,7 @@ export const DOMAINES: DomaineSpec[] = [
       "Domaine : travail et activité professionnelle. Produis des documents et des méthodes directement utilisables (devis, facture, relance, annonce, procédure d'atelier, suivi de stock). Rappelle qu'un comptable ou un juriste valide les engagements réglementaires.",
     actifParDefaut: true,
     sourceObligatoire: false,
+    cotes: ["public", "direction"],
   },
   {
     code: "religion",
@@ -85,6 +96,7 @@ export const DOMAINES: DomaineSpec[] = [
     ].join("\n"),
     actifParDefaut: true,
     sourceObligatoire: true,
+    cotes: ["direction"],
   },
   {
     code: "sante",
@@ -99,10 +111,11 @@ export const DOMAINES: DomaineSpec[] = [
       "- Ne pose aucun diagnostic, ne prescris rien, ne donne aucune posologie et ne conseille jamais d'arrêter ou de modifier un traitement.",
       "- Donne une information générale, les signes qui doivent alerter, et invite à consulter un professionnel de santé.",
       "- Devant un signe grave (douleur thoracique, difficulté à respirer, perte de connaissance, saignement important, atteinte d'un enfant ou d'une femme enceinte), demande d'appeler immédiatement les services d'urgence du pays.",
-      "- Quand un conseil traditionnel ou religieux est demandé, distingue clairement ce qui relève du confort et ce qui exige un médecin.",
+      "- Quand un remède traditionnel est évoqué, distingue clairement ce qui relève du confort et ce qui exige un médecin.",
     ].join("\n"),
     actifParDefaut: true,
     sourceObligatoire: false,
+    cotes: ["public", "direction"],
   },
   {
     code: "technique",
@@ -115,6 +128,7 @@ export const DOMAINES: DomaineSpec[] = [
       "Domaine : technique, électronique et industrie. Explique les principes, les architectures et les méthodes de mise au point. Rappelle qu'aucune conception n'est validée sans essais mesurés et homologation ; ne donne pas de valeur de réglage comme si elle était vérifiée.",
     actifParDefaut: false,
     sourceObligatoire: false,
+    cotes: ["public", "direction"],
   },
 ];
 
@@ -125,3 +139,8 @@ export function domaine(code: string): DomaineSpec | null {
 }
 
 export const DOMAINE_DEFAUT = "automobile";
+
+/** Domaines servis sur un côté donné (le public ne voit jamais les domaines de direction). */
+export function domainesDuCote(cote: "public" | "direction"): DomaineSpec[] {
+  return DOMAINES.filter((d) => d.cotes.includes(cote));
+}

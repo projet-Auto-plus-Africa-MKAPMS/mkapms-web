@@ -100,15 +100,15 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 617;
+export const MANQUES_TOTAL = 622;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "bouton_sans_action": 182,
   "sans_logique_serveur": 11,
   "sans_ecran": 9,
   "dependance_sans_preuve": 41,
-  "dependance_non_declaree": 28,
-  "bouton_declare_absent_ecran": 3,
+  "dependance_non_declaree": 31,
+  "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
 
@@ -3646,7 +3646,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "garage",
       "livraison",
       "livraison_vehicule",
-      "vente"
+      "vente",
+      "vente_pro",
+      "vo"
     ],
     "evenementsPublies": [
       "bouton.sans_action"
@@ -3689,6 +3691,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/TableauBordProVente.tsx",
+        "route": "/vente",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "route": "/vente/livraison",
         "composants": [
@@ -3696,8 +3705,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/vente/TableauBordVendeur.tsx",
+        "route": "/vente/resume-vendeur",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
         "fichier": "client/src/pages/Livraison.tsx",
         "route": "/livraison",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/VOInterne.tsx",
+        "route": "/vo",
         "composants": [
           "lib/boutonMoteur.tsx"
         ]
@@ -20986,7 +21009,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "boutons": [
         "client/src/pages/LivraisonVehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
-        "client/src/pages/LivraisonVehicule.tsx utilise BoutonMoteur"
+        "client/src/pages/LivraisonVehicule.tsx utilise BoutonMoteur",
+        "client/src/pages/TableauBordProVente.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       ],
       "core": [
         "client/src/pages/superadmin/AdminVente.tsx appelle trpc.admin"
@@ -21079,6 +21103,30 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "ecran": "/vente/livraison",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 110
+      },
+      {
+        "code": "vente_pro_factures",
+        "libelle": "Factures",
+        "genre": "navigation",
+        "ecran": "/vente",
+        "fichier": "",
+        "ligne": 0
+      },
+      {
+        "code": "vente_pro_profil",
+        "libelle": "Mon profil professionnel",
+        "genre": "navigation",
+        "ecran": "/vente",
+        "fichier": "client/src/pages/TableauBordProVente.tsx",
+        "ligne": 107
+      },
+      {
+        "code": "vente_pro_resume_vendeur",
+        "libelle": "Résumé vendeur",
+        "genre": "navigation",
+        "ecran": "/vente",
+        "fichier": "",
+        "ligne": 0
       }
     ],
     "routes": [
@@ -21191,11 +21239,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vente"
         ],
-        "cliquables": 6,
-        "parMoteur": 0,
+        "cliquables": 7,
+        "parMoteur": 2,
         "sansAction": 0,
-        "textes": 23,
-        "mots": 86
+        "textes": 21,
+        "mots": 70
       },
       {
         "fichier": "client/src/pages/Vendre.tsx",
@@ -21907,8 +21955,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 976,
-    "mots": 3266,
+    "textes": 974,
+    "mots": 3250,
     "battement": "sonde",
     "manques": [
       {
@@ -22062,6 +22110,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Refuser » client/src/pages/vente/ReservationsVente.tsx:30"
+      },
+      {
+        "genre": "bouton_declare_absent_ecran",
+        "detail": "vente_pro_factures déclaré pour /vente mais aucun écran ne l'utilise"
+      },
+      {
+        "genre": "bouton_declare_absent_ecran",
+        "detail": "vente_pro_resume_vendeur déclaré pour /vente mais aucun écran ne l'utilise"
       },
       {
         "genre": "dependance_sans_preuve",
@@ -22257,22 +22313,33 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "vente"
     ],
     "dependancesDetectees": [
+      "boutons",
       "identity",
-      "pro_portal"
+      "pro_portal",
+      "vo_espaces"
     ],
     "dependances": [
+      "boutons",
       "core",
       "identity",
       "pro_portal",
-      "vente"
+      "vente",
+      "vo_espaces"
     ],
     "integrationsTechniques": [],
     "preuvesDependances": {
+      "boutons": [
+        "client/src/pages/vente/TableauBordVendeur.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
+        "client/src/pages/vente/TableauBordVendeur.tsx utilise BoutonMoteur"
+      ],
       "identity": [
         "client/src/pages/InscriptionProVente.tsx appelle trpc.kyc"
       ],
       "pro_portal": [
         "client/src/pages/InscriptionProVente.tsx appelle trpc.pro"
+      ],
+      "vo_espaces": [
+        "client/src/pages/vente/TableauBordVendeur.tsx appelle trpc.voEspaces"
       ]
     },
     "dependants": [],
@@ -22280,7 +22347,24 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "evenementsConsommes": [],
     "abonnements": [],
     "sourcesEmission": [],
-    "boutons": [],
+    "boutons": [
+      {
+        "code": "vente_resume_factures",
+        "libelle": "Factures",
+        "genre": "navigation",
+        "ecran": "/vente/resume-vendeur",
+        "fichier": "client/src/pages/vente/TableauBordVendeur.tsx",
+        "ligne": 75
+      },
+      {
+        "code": "vente_resume_retour_tableau",
+        "libelle": "Retour au tableau de bord",
+        "genre": "navigation",
+        "ecran": "/vente/resume-vendeur",
+        "fichier": "client/src/pages/vente/TableauBordVendeur.tsx",
+        "ligne": 32
+      }
+    ],
     "routes": [
       "/acheter/espace-pro",
       "/acheter/inscription-pro",
@@ -22314,19 +22398,19 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vente/resume-vendeur"
         ],
-        "cliquables": 1,
-        "parMoteur": 0,
+        "cliquables": 2,
+        "parMoteur": 2,
         "sansAction": 0,
-        "textes": 12,
-        "mots": 15
+        "textes": 10,
+        "mots": 17
       }
     ],
     "ecransHotes": [],
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 69,
-    "mots": 242,
+    "textes": 67,
+    "mots": 244,
     "battement": "sonde",
     "manques": [
       {
@@ -22335,11 +22419,19 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "dependance_non_declaree",
+        "detail": "boutons — client/src/pages/vente/TableauBordVendeur.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
+      },
+      {
+        "genre": "dependance_non_declaree",
         "detail": "identity — client/src/pages/InscriptionProVente.tsx appelle trpc.kyc"
       },
       {
         "genre": "dependance_non_declaree",
         "detail": "pro_portal — client/src/pages/InscriptionProVente.tsx appelle trpc.pro"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "vo_espaces — client/src/pages/vente/TableauBordVendeur.tsx appelle trpc.voEspaces"
       },
       {
         "genre": "dependance_sans_preuve",
@@ -22487,17 +22579,23 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "permission"
     ],
     "dependancesDetectees": [
+      "boutons",
       "core",
       "notification",
       "permission"
     ],
     "dependances": [
+      "boutons",
       "core",
       "notification",
       "permission"
     ],
     "integrationsTechniques": [],
     "preuvesDependances": {
+      "boutons": [
+        "client/src/pages/VOInterne.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
+        "client/src/pages/VOInterne.tsx utilise BoutonMoteur"
+      ],
       "core": [
         "routers/vo.ts importe trpc.ts",
         "routers/vo.ts importe db.ts",
@@ -22517,7 +22615,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "evenementsConsommes": [],
     "abonnements": [],
     "sourcesEmission": [],
-    "boutons": [],
+    "boutons": [
+      {
+        "code": "vo_interne_carte_compteur",
+        "libelle": "Carte du tableau de bord VO → liste filtrée",
+        "genre": "formulaire",
+        "ecran": "/vo",
+        "fichier": "client/src/pages/VOInterne.tsx",
+        "ligne": 1201
+      }
+    ],
     "routes": [
       "/vo"
     ],
@@ -22527,11 +22634,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vo"
         ],
-        "cliquables": 19,
-        "parMoteur": 0,
+        "cliquables": 21,
+        "parMoteur": 1,
         "sansAction": 0,
-        "textes": 198,
-        "mots": 703
+        "textes": 196,
+        "mots": 721
       }
     ],
     "ecransHotes": [],
@@ -22561,10 +22668,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "acces": [
       "admin"
     ],
-    "textes": 198,
-    "mots": 703,
+    "textes": 196,
+    "mots": 721,
     "battement": "sonde",
-    "manques": []
+    "manques": [
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "boutons — client/src/pages/VOInterne.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
+      }
+    ]
   },
   {
     "moteur": "vo_engine",
@@ -22748,7 +22860,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
-      "vente"
+      "vente",
+      "vente_pro"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -22789,6 +22902,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/vente/AttestationVente.tsx",
         "route": "/vente/attestation/:id?",
+        "composants": [
+          "trpc.voEspaces"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/vente/TableauBordVendeur.tsx",
+        "route": "/vente/resume-vendeur",
         "composants": [
           "trpc.voEspaces"
         ]

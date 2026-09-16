@@ -204,7 +204,7 @@ export const intelligencesRouter = router({
   domainesPublics: publicProcedure.query(async () => {
     const tous = await domaines();
     return tous
-      .filter((d) => d.actif)
+      .filter((d) => d.actif && d.cotes.includes("public"))
       .map((d) => ({ code: d.code, libelle: d.libelle, effet: d.effet, limite: d.limite }));
   }),
 
@@ -414,6 +414,7 @@ export const intelligencesRouter = router({
     .input(
       z.object({
         question: z.string().min(2).max(8000),
+        domaine: z.string().max(48).optional(),
         sessionId: z.number().int().positive().nullable().optional(),
         countryCode: z.string().max(8).nullable().optional(),
       }),
@@ -424,6 +425,7 @@ export const intelligencesRouter = router({
       return demander({
         question: input.question,
         cote: "direction",
+        domaine: input.domaine ?? null,
         sessionId: input.sessionId ?? null,
         userId: ctx.user?.uid ?? null,
         role: ctx.user?.role ?? null,
