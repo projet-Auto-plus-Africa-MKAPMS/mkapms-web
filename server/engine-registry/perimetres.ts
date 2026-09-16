@@ -112,7 +112,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
     moteur: "boutons",
     dossiers: ["button-engine", "data/boutons-sans-action.ts"],
     routeurs: ["buttonEngine"],
-    routes: [],
+    routes: ["/superadmin/moteur-boutons"],
   },
   {
     moteur: "auto_branchement",
