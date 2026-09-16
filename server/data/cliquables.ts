@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2611;
+export const CLIQUABLES_TOTAL = 2610;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -300,7 +300,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/garage/Pneumatiques.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 2, zones: 0 },
   { fichier: "client/src/pages/garage/PneumatiquesAvance.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/PreparationVenteVO.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
-  { fichier: "client/src/pages/garage/PriseRendezVous.tsx", total: 5, moteur: 0, liens: 2, boutonsLocaux: 3, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/garage/PriseRendezVous.tsx", total: 4, moteur: 0, liens: 2, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/ReceptionVehicule.tsx", total: 3, moteur: 2, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/RecherchePieces.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/garage/RelanceClient.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
