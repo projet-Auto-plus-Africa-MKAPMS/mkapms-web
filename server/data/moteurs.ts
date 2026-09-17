@@ -10326,7 +10326,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "country",
       "identity",
-      "intelligences"
+      "intelligences",
+      "partner_engine",
+      "pro_portal"
     ],
     "dependancesDetectees": [
       "audit",
@@ -10334,7 +10336,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "country",
       "identity",
-      "intelligences"
+      "intelligences",
+      "partner_engine",
+      "pro_portal"
     ],
     "dependances": [
       "audit",
@@ -10342,7 +10346,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "country",
       "identity",
-      "intelligences"
+      "intelligences",
+      "partner_engine",
+      "pro_portal"
     ],
     "integrationsTechniques": [
       "identity"
@@ -10369,6 +10375,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "intelligences": [
         "investment/assistant.ts importe intelligences/routeur.ts"
+      ],
+      "partner_engine": [
+        "client/src/pages/investissement/DevenirInvestisseur.tsx appelle trpc.partnerEngine"
+      ],
+      "pro_portal": [
+        "client/src/pages/investissement/DevenirInvestisseur.tsx appelle trpc.proPortal"
       ]
     },
     "dependants": [],
@@ -10378,19 +10390,31 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "sourcesEmission": [],
     "boutons": [],
     "routes": [
-      "/investissement"
+      "/investissement",
+      "/investissement/devenir-investisseur"
     ],
     "ecrans": [
+      {
+        "fichier": "client/src/pages/investissement/DevenirInvestisseur.tsx",
+        "routes": [
+          "/investissement/devenir-investisseur"
+        ],
+        "cliquables": 2,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 13,
+        "mots": 97
+      },
       {
         "fichier": "client/src/pages/investissement/index.tsx",
         "routes": [
           "/investissement"
         ],
-        "cliquables": 1,
+        "cliquables": 2,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 9,
-        "mots": 24
+        "textes": 11,
+        "mots": 35
       }
     ],
     "ecransHotes": [],
@@ -10428,8 +10452,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "connecte"
     ],
-    "textes": 9,
-    "mots": 24,
+    "textes": 24,
+    "mots": 132,
     "battement": "pont_os",
     "manques": []
   },
@@ -13613,6 +13637,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "investment",
       "supplier_engine"
     ],
     "evenementsPublies": [],
@@ -13763,6 +13788,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "composants": [
           "trpc.partners",
           "trpc.partnerApi"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/investissement/DevenirInvestisseur.tsx",
+        "route": "/investissement/devenir-investisseur",
+        "composants": [
+          "trpc.partnerEngine"
         ]
       }
     ],
@@ -15913,6 +15945,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     },
     "dependants": [
       "identity",
+      "investment",
       "partner_engine",
       "pro_account",
       "vente_pro",
@@ -16045,6 +16078,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/admin/*",
         "composants": [
           "trpc.formation"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/investissement/DevenirInvestisseur.tsx",
+        "route": "/investissement/devenir-investisseur",
+        "composants": [
+          "trpc.proPortal"
         ]
       },
       {
