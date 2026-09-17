@@ -100,12 +100,12 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 611;
+export const MANQUES_TOTAL = 610;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 331,
   "bouton_sans_action": 180,
   "sans_logique_serveur": 11,
-  "sans_ecran": 9,
+  "sans_ecran": 8,
   "dependance_sans_preuve": 41,
   "dependance_non_declaree": 32,
   "bouton_declare_absent_ecran": 5,
@@ -20453,8 +20453,34 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "abonnements": [],
     "sourcesEmission": [],
     "boutons": [],
-    "routes": [],
-    "ecrans": [],
+    "routes": [
+      "/espace-fournisseur",
+      "/espace-transporteur"
+    ],
+    "ecrans": [
+      {
+        "fichier": "client/src/pages/EspaceFournisseur.tsx",
+        "routes": [
+          "/espace-fournisseur"
+        ],
+        "cliquables": 3,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 14,
+        "mots": 39
+      },
+      {
+        "fichier": "client/src/pages/EspaceTransporteur.tsx",
+        "routes": [
+          "/espace-transporteur"
+        ],
+        "cliquables": 1,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 5,
+        "mots": 47
+      }
+    ],
     "ecransHotes": [],
     "procedures": [
       "activer",
@@ -20499,8 +20525,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 0,
-    "mots": 0,
+    "textes": 19,
+    "mots": 86,
     "battement": "sonde",
     "manques": [
       {
@@ -20510,10 +20536,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_sans_preuve",
         "detail": "partner_engine"
-      },
-      {
-        "genre": "sans_ecran",
-        "detail": "aucune route client ne mène à ce moteur"
       }
     ]
   },

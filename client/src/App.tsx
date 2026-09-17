@@ -222,6 +222,8 @@ const Comptabilite = lazy(() => import("./pages/Comptabilite"));
 const CarteGrise = lazy(() => import("./pages/CarteGrise"));
 const Mission = lazy(() => import("./pages/Mission"));
 const EspacePro = lazy(() => import("./pages/EspacePro"));
+const EspaceFournisseur = lazy(() => import("./pages/EspaceFournisseur"));
+const EspaceTransporteur = lazy(() => import("./pages/EspaceTransporteur"));
 const PortailPro = lazy(() => import("./pages/pro/PortailPro"));
 const Comptables = lazy(() => import("./pages/Comptables"));
 const PresDeMoi = lazy(() => import("./pages/PresDeMoi"));
@@ -1019,6 +1021,8 @@ export default function App() {
             <Route path="/confiance" element={<Confiance />} />
             <Route path="/mission" element={<Mission />} />
             <Route path="/espace-pro" element={<U name="Espace Pro"><EspacePro /></U>} />
+            <Route path="/espace-fournisseur" element={<U name="Espace Fournisseur"><EspaceFournisseur /></U>} />
+            <Route path="/espace-transporteur" element={<U name="Espace Transporteur"><EspaceTransporteur /></U>} />
             <Route path="/pro/demarrer" element={<U name="Portail Pro"><PortailPro /></U>} />
             <Route path="/pro/dossier" element={<U name="Dossier Pro"><DossierPro /></U>} />
             {/* Marketplace Comptabilité — annuaire de comptables indépendants */}
