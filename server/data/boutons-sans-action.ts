@@ -53,8 +53,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/EtatVehicule.tsx", ligne: 200, libelle: "" },
   { fichier: "client/src/pages/EtatVehicule.tsx", ligne: 206, libelle: "Valider l'état des lieux" },
   { fichier: "client/src/pages/finance/LOAFinance.tsx", ligne: 11, libelle: "Simulation indisponible" },
-  { fichier: "client/src/pages/finance/PaiementComptant.tsx", ligne: 9, libelle: "Payer par carte" },
-  { fichier: "client/src/pages/finance/PaiementComptant.tsx", ligne: 10, libelle: "Payer par virement" },
   { fichier: "client/src/pages/garage/CarrosserieGarage.tsx", ligne: 663, libelle: "Rechercher" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, libelle: "Validation atelier ✓" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, libelle: "Validation responsable" },
