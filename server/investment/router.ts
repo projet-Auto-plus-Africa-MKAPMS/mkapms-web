@@ -11,11 +11,12 @@
  * dérivé de ctx.user.uid.
  */
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { db } from "../db.js";
 import { adminProcedure, protectedProcedure, router } from "../trpc.js";
 import { getCountry } from "../country-os/index.js";
 import { logAction, clientMeta } from "../audit.js";
+import { users } from "../schema.js";
 import {
   INVESTABLE_UNIVERSES,
   investments,
@@ -127,6 +128,34 @@ export const investmentRouter = router({
     .mutation(({ ctx, input }) => ouvrirLitige(input.payoutId, input.motif, ctx.user.uid)),
 
   universUnivestissables: adminProcedure.query(() => INVESTABLE_UNIVERSES),
+
+  /**
+   * Vue d'ensemble PDG/comptabilité : la plateforme n'exposait aucune liste
+   * (le tableau de bord investisseur n'affiche que ses propres données). Lit
+   * les vraies tables investors/investments/users — aucun chiffre inventé.
+   */
+  investisseurs: adminProcedure.query(async () => {
+    const lignes = await db.select().from(investors).orderBy(desc(investors.createdAt));
+    if (!lignes.length) return [];
+    const userIds = [...new Set(lignes.map((i) => i.userId))];
+    const comptes = await db.select({ id: users.id, name: users.name, email: users.email }).from(users).where(inArray(users.id, userIds));
+    const compteParId = new Map(comptes.map((c) => [c.id, c]));
+    return lignes.map((i) => ({ ...i, utilisateur: compteParId.get(i.userId) ?? null }));
+  }),
+
+  investissements: adminProcedure
+    .input(z.object({ investorId: z.number().int().positive().optional() }).optional())
+    .query(({ input }) =>
+      db.select().from(investments)
+        .where(input?.investorId ? eq(investments.investorId, input.investorId) : undefined)
+        .orderBy(desc(investments.createdAt)),
+    ),
+
+  versementsDe: adminProcedure
+    .input(z.object({ investmentId: z.number().int().positive() }))
+    .query(({ input }) =>
+      db.select().from(investorPayouts).where(eq(investorPayouts.investmentId, input.investmentId)).orderBy(desc(investorPayouts.periodeDebut)),
+    ),
 
   /** Vérifie l'exclusivité avant de créer/approuver un contrat — jamais deviné. */
   verifierConflit: adminProcedure

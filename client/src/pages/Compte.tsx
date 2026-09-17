@@ -31,6 +31,7 @@ const ALL_SERVICES = [
   { label: "Dossier V\u00e9hicule", to: "/dossier-vehicule-numerique", emoji: "\ud83d\udcdd", desc: "Carnet num\u00e9rique entretien, CT, factures" },
   { label: "Notifications", to: "/notifications", emoji: "\ud83d\udd14", desc: "Centre de notifications unifi\u00e9" },
   { label: "Comptabilit\u00e9", to: "/compta-dirigeant", emoji: "\ud83d\udcb9", desc: "Tableau de bord dirigeant CA, finances" },
+  { label: "Investisseur", to: "/investissement", emoji: "\ud83d\udcc8", desc: "Droit \u00e9conomique temporaire, versements, KYC" },
   { label: "D\u00e9pannage", to: "/depannage", emoji: "\ud83d\ude91", desc: "Assistance routi\u00e8re 24h/24, 7j/7" },
   { label: "Carte Grise", to: "/carte-grise", emoji: "\ud83d\udcc4", desc: "D\u00e9marches carte grise en ligne" },
   { label: "Livraison", to: "/livraison", emoji: "\ud83d\ude9a", desc: "Livraison France & Afrique" },
