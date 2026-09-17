@@ -29,13 +29,13 @@ function verif(nom: string, condition: boolean) {
 async function main() {
   // ── Universe Registry ──────────────────────────────────────────────
   const u = registre();
-  verif("registre() calcule sans exception (couverture des 89 moteurs vérifiée en interne)", u.length > 0);
+  verif("registre() calcule sans exception (couverture des 94 moteurs vérifiée en interne)", u.length > 0);
   verif("18 univers définis", u.length === 18);
 
   const moteursCouverts = new Set(u.flatMap((x) => x.engineIds));
   verif("tous les moteurs réels du catalogue sont couverts par un univers", MOTEURS.every((m) => moteursCouverts.has(m.moteur)));
   verif("aucun doublon : chaque moteur n'appartient qu'à un seul univers", moteursCouverts.size === MOTEURS.length);
-  verif("MOTEURS_TOTAL du générateur reste 89 (sinon mapping.ts est périmé)", MOTEURS.length === 89);
+  verif("MOTEURS_TOTAL du générateur reste 94 (sinon mapping.ts est périmé)", MOTEURS.length === 94);
 
   const vtc = univers("vtc_taxi");
   verif("vtc_taxi existe (anomalie réelle : catégorie de facturation sans moteur)", vtc !== null);
@@ -56,8 +56,12 @@ async function main() {
   const infra = univers("plateforme_infrastructure");
   verif("plateforme_infrastructure regroupe les 37 moteurs techniques", infra!.engineIds.length === 37);
   verif(
-    "plateforme_infrastructure n'a que les outils de test du socle (aucun outil métier)",
-    infra!.outilsActifs.every((t) => t.startsWith("test.")),
+    // LOT IA02F : files.*/knowledge.search/rag.* (mémoire, RAG) sont des
+    // capacités transversales réservées à super_admin (server/intelligences/
+    // outils/familles/fichiers-rag.ts), légitimement infra — pas des outils
+    // métier propres à un univers business.
+    "plateforme_infrastructure n'a que les outils de socle (test + mémoire/RAG transversaux), aucun outil métier",
+    infra!.outilsActifs.every((t) => t.startsWith("test.") || t.startsWith("files.") || t.startsWith("knowledge.") || t.startsWith("rag.")),
   );
 
   verif(
@@ -70,7 +74,7 @@ async function main() {
 
   // ── Intelligence Coverage ──────────────────────────────────────────
   const rapport = await rapportCouverture();
-  verif("rapportCouverture couvre 89/89 moteurs", rapport.moteurs.couvertsParUnUnivers === 89 && rapport.moteurs.total === 89);
+  verif("rapportCouverture couvre 94/94 moteurs", rapport.moteurs.couvertsParUnUnivers === 94 && rapport.moteurs.total === 94);
   verif(
     "rapportCouverture : la somme des statuts égale le nombre d'univers",
     Object.values(rapport.univers.parStatut).reduce((a, b) => a + b, 0) === rapport.univers.total,

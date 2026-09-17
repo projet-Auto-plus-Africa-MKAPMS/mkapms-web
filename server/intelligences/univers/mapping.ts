@@ -3,12 +3,12 @@
  *
  * Seul fichier à main de ce registre : pour chaque univers (regroupement
  * métier), sa définition (rôle, application, sensibilité) ; pour chaque
- * moteur du Engine Registry (server/engine-registry/catalog.ts, 89 moteurs),
+ * moteur du Engine Registry (server/engine-registry/catalog.ts, 94 moteurs),
  * l'univers auquel il appartient. Tout le reste (routes, procédures,
  * tables, dépendances) est CALCULÉ par registre.ts à partir de
  * server/data/moteurs.ts (généré) — jamais retapé ici.
  *
- * Une bonne partie des moteurs (37/89) sont de l'infrastructure transversale
+ * Une bonne partie des moteurs (37/94) sont de l'infrastructure transversale
  * pure (bus d'événements, audit, sauvegardes, SEO, surveillance…) : aucun
  * humain ne « travaille dans » ces moteurs au sens conversationnel. Ils sont
  * volontairement regroupés dans un seul univers `plateforme_infrastructure`,
@@ -245,7 +245,7 @@ export const UNIVERS_DEFINIS: UniversSpec[] = [
 
 /**
  * Un moteur → un univers, exactement comme PERIMETRES (server/engine-registry/
- * perimetres.ts) attribue un dossier/route à un seul moteur. Les 89 moteurs du
+ * perimetres.ts) attribue un dossier/route à un seul moteur. Les 94 moteurs du
  * catalogue (server/engine-registry/catalog.ts) doivent tous apparaître ici —
  * registre.ts échoue explicitement si l'un d'eux manque.
  */
@@ -274,6 +274,7 @@ export const MOTEUR_VERS_UNIVERS: Record<string, string> = {
   location_pro: "marketplace_professionnel",
   vo: "marketplace_professionnel",
   vo_espaces: "marketplace_professionnel",
+  vehicle_engine: "marketplace_professionnel",
 
   // ── Garage & atelier ──
   garage: "garage_atelier",
@@ -283,6 +284,7 @@ export const MOTEUR_VERS_UNIVERS: Record<string, string> = {
 
   // ── Pièces & stock ──
   pieces: "pieces_stock",
+  parts_engine: "pieces_stock",
 
   // ── Transport & livraison ──
   transport: "transport_livraison",
@@ -290,17 +292,20 @@ export const MOTEUR_VERS_UNIVERS: Record<string, string> = {
   livraison_vehicule: "transport_livraison",
   importafrica: "transport_livraison",
   risque_import: "transport_livraison",
+  logistics_engine: "transport_livraison",
 
   // ── Carte grise & documents ──
   cartegrise: "cartegrise_documents",
   document: "cartegrise_documents",
   contract: "cartegrise_documents",
+  document_engine: "cartegrise_documents",
 
   // ── Paiements & finance ──
   payment: "paiements_finance",
   payment_orchestrator: "paiements_finance",
   financial_intelligence: "paiements_finance",
   finance: "paiements_finance",
+  payout_engine: "paiements_finance",
 
   // ── Comptabilité ──
   comptabilite: "comptabilite",
@@ -326,6 +331,7 @@ export const MOTEUR_VERS_UNIVERS: Record<string, string> = {
   // ── Partenaires & fournisseurs ──
   partner_engine: "partenaires_fournisseurs",
   proximity_engine: "partenaires_fournisseurs",
+  supplier_engine: "partenaires_fournisseurs",
 
   // ── Investisseur ──
   investment: "investisseur",
