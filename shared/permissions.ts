@@ -151,6 +151,7 @@ export const SERVICE_MODULE_BY_PATH: Record<string, PermissionModule> = {
   "/catalogue-technique": "catalogue_technique",
   "/suivi-vehicule": "suivi_vehicule",
   "/compta-dirigeant": "comptabilite",
+  "/investissement": "comptabilite",
   "/dossier-client": "dossier_client",
   "/journal-activite": "journal_activite",
   "/vo": "vo_interne",

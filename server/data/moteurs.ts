@@ -291,11 +291,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/compta-dirigeant"
         ],
-        "cliquables": 24,
+        "cliquables": 25,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 145,
-        "mots": 318
+        "textes": 146,
+        "mots": 319
       }
     ],
     "ecransHotes": [],
@@ -311,8 +311,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "acces": [
       "admin"
     ],
-    "textes": 145,
-    "mots": 318,
+    "textes": 146,
+    "mots": 319,
     "battement": "sonde",
     "manques": []
   },
@@ -4704,6 +4704,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDeclarees": [
       "core",
       "identity",
+      "investment",
       "payment",
       "redirection"
     ],
@@ -4711,6 +4712,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "auction_engine",
       "core",
       "identity",
+      "investment",
       "payment",
       "redirection"
     ],
@@ -4718,6 +4720,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "auction_engine",
       "core",
       "identity",
+      "investment",
       "payment",
       "redirection"
     ],
@@ -4735,6 +4738,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "identity": [
         "routers/comptabilite.ts exige une session Identity (procédure protégée)"
+      ],
+      "investment": [
+        "client/src/pages/comptabilite/InvestissementAdmin.tsx appelle trpc.investment"
       ],
       "payment": [
         "client/src/pages/comptabilite/WalletAdmin.tsx appelle trpc.wallet"
@@ -4759,6 +4765,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/comptabilite/analytique",
       "/comptabilite/centre-pilotage",
       "/comptabilite/facturation",
+      "/comptabilite/investissement",
       "/comptabilite/paiements",
       "/comptabilite/publicites",
       "/comptabilite/rapports",
@@ -4832,6 +4839,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "sansAction": 0,
         "textes": 68,
         "mots": 129
+      },
+      {
+        "fichier": "client/src/pages/comptabilite/InvestissementAdmin.tsx",
+        "routes": [
+          "/comptabilite/investissement"
+        ],
+        "cliquables": 11,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 53,
+        "mots": 140
       },
       {
         "fichier": "client/src/pages/comptabilite/Paiements.tsx",
@@ -4932,8 +4950,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "acces": [
       "connecte"
     ],
-    "textes": 1214,
-    "mots": 2827,
+    "textes": 1267,
+    "mots": 2967,
     "battement": "sonde",
     "manques": [
       {
@@ -10383,7 +10401,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/investissement/DevenirInvestisseur.tsx appelle trpc.proPortal"
       ]
     },
-    "dependants": [],
+    "dependants": [
+      "comptabilite"
+    ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
     "abonnements": [],
@@ -10417,7 +10437,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 35
       }
     ],
-    "ecransHotes": [],
+    "ecransHotes": [
+      {
+        "fichier": "client/src/pages/comptabilite/InvestissementAdmin.tsx",
+        "route": "/comptabilite/investissement",
+        "composants": [
+          "trpc.investment"
+        ]
+      }
+    ],
     "procedures": [
       "activer",
       "confirmerVersement",
@@ -10427,6 +10455,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "expirerSiEcheance",
       "historiquePayout",
       "historiqueStatuts",
+      "investissements",
+      "investisseurs",
       "marquerEchecVersement",
       "mesInvestissements",
       "mesVersements",
@@ -10437,7 +10467,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "reessayerVersement",
       "transitionner",
       "universUnivestissables",
-      "verifierConflit"
+      "verifierConflit",
+      "versementsDe"
     ],
     "tables": [
       "investment_status_history",

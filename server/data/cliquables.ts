@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2618;
+export const CLIQUABLES_TOTAL = 2630;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -128,12 +128,13 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", total: 28, moteur: 0, liens: 1, boutonsLocaux: 25, sansAction: 2, zones: 0 },
   { fichier: "client/src/pages/comptabilite/ComptaAnalytique.tsx", total: 10, moteur: 0, liens: 1, boutonsLocaux: 7, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/comptabilite/FacturationAvancee.tsx", total: 16, moteur: 0, liens: 1, boutonsLocaux: 13, sansAction: 0, zones: 2 },
+  { fichier: "client/src/pages/comptabilite/InvestissementAdmin.tsx", total: 11, moteur: 0, liens: 0, boutonsLocaux: 10, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/comptabilite/Paiements.tsx", total: 13, moteur: 0, liens: 1, boutonsLocaux: 10, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/comptabilite/PublicitesRevenu.tsx", total: 8, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/comptabilite/Rapports.tsx", total: 13, moteur: 0, liens: 1, boutonsLocaux: 10, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/comptabilite/TVA.tsx", total: 12, moteur: 0, liens: 1, boutonsLocaux: 9, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/comptabilite/WalletAdmin.tsx", total: 6, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/ComptaDirigeant.tsx", total: 24, moteur: 0, liens: 1, boutonsLocaux: 19, sansAction: 0, zones: 4 },
+  { fichier: "client/src/pages/ComptaDirigeant.tsx", total: 25, moteur: 0, liens: 2, boutonsLocaux: 19, sansAction: 0, zones: 4 },
   { fichier: "client/src/pages/Compte.tsx", total: 59, moteur: 0, liens: 12, boutonsLocaux: 39, sansAction: 0, zones: 8 },
   { fichier: "client/src/pages/compte/MesAvis.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Confiance.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },

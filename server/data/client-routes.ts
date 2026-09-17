@@ -90,6 +90,7 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/comptabilite/analytique",
   "/comptabilite/centre-pilotage",
   "/comptabilite/facturation",
+  "/comptabilite/investissement",
   "/comptabilite/paiements",
   "/comptabilite/publicites",
   "/comptabilite/rapports",

@@ -6,7 +6,7 @@ import {
   Users, Clock, Bell, AlertTriangle, CheckCircle, Eye, Download,
   Car, Key, Wrench, Gavel, Megaphone, FileText, Calendar,
   Target, Award, Shield, ArrowUp, ArrowDown, UserCheck,
-  X, Pencil, Trash2, Printer, Phone, Mail, ChevronDown, ChevronRight
+  X, Pencil, Trash2, Printer, Phone, Mail, ChevronDown, ChevronRight, Landmark
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -261,7 +261,10 @@ export default function ComptaDirigeant() {
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-gradient-to-r from-[#111] to-[#1a1a2e] px-4 pt-6 pb-5">
-        <Link to="/compte" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Mon compte</Link>
+        <div className="flex items-center justify-between mb-2">
+          <Link to="/compte" className="flex items-center gap-1 text-sm text-white/60"><ChevronLeft size={14} /> Mon compte</Link>
+          <Link to="/comptabilite/investissement" className="flex items-center gap-1 text-xs font-bold text-[#D4AF37]"><Landmark size={14} /> Investissement</Link>
+        </div>
         <h1 className="text-xl font-black text-white flex items-center gap-2"><BarChart3 size={20} className="text-[#D4AF37]" /> Tableau de bord dirigeant</h1>
         <p className="mt-0.5 text-sm text-white/60">Pilotez toute l'activite MKA.P-MS</p>
 

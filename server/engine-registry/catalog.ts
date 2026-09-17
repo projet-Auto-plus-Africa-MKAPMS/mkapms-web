@@ -416,8 +416,8 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "comptabilite",
     label: "Comptabilité Engine",
     category: "univers",
-    dependencies: ["core","identity","payment","redirection"],
-    description: "Factures, paiements, TVA, rapports.",
+    dependencies: ["core","identity","payment","redirection","investment"],
+    description: "Factures, paiements, TVA, rapports. La vue PDG/comptabilité des contrats d'investissement (/comptabilite/investissement) lit directement l'Investment Engine, jamais une seconde source de vérité.",
     state: "active",
   },
   {
