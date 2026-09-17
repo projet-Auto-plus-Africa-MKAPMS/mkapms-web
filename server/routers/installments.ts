@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { installmentRequests, installmentContracts, installmentPayments } from "../schema.js";
+import { installmentRequests, installmentContracts, installmentPayments, installmentAlerts } from "../schema.js";
 
 // Paiement fractionné (Plan Partie 2 §13). Masqué par défaut, validation admin.
 // Particulier: 10 fois max — Pro: 5 fois max.
@@ -75,5 +75,31 @@ export const installmentsRouter = router({
 
   schedule: protectedProcedure.input(z.object({ contractId: z.number() })).query(async ({ input }) => {
     return db.select().from(installmentPayments).where(eq(installmentPayments.contractId, input.contractId)).orderBy(installmentPayments.numero);
+  }),
+
+  // Échéancier réel du client, tous contrats fractionnés confondus (CentreEcheancier.tsx).
+  // Manquait tout court : aucune procédure ne permettait de voir ses propres échéances
+  // sans connaître l'identifiant de chaque contrat.
+  mesEcheances: protectedProcedure.query(async ({ ctx }) => {
+    const mesRequests = await db.select().from(installmentRequests).where(eq(installmentRequests.clientId, ctx.user.uid));
+    if (!mesRequests.length) return [];
+    const contrats = await db.select().from(installmentContracts).where(inArray(installmentContracts.requestId, mesRequests.map((r) => r.id)));
+    if (!contrats.length) return [];
+    const contratById = new Map(contrats.map((c) => [c.id, c]));
+    const paiements = await db.select().from(installmentPayments)
+      .where(inArray(installmentPayments.contractId, contrats.map((c) => c.id)))
+      .orderBy(installmentPayments.dueDate);
+    return paiements.map((p) => ({ ...p, contractStatus: contratById.get(p.contractId)?.status ?? null }));
+  }),
+
+  // Alertes réelles (retard, relance J-1/J-3/J-7) du client (AlertesPaiements.tsx).
+  mesAlertes: protectedProcedure.query(async ({ ctx }) => {
+    const mesRequests = await db.select().from(installmentRequests).where(eq(installmentRequests.clientId, ctx.user.uid));
+    if (!mesRequests.length) return [];
+    const contrats = await db.select().from(installmentContracts).where(inArray(installmentContracts.requestId, mesRequests.map((r) => r.id)));
+    if (!contrats.length) return [];
+    return db.select().from(installmentAlerts)
+      .where(inArray(installmentAlerts.contractId, contrats.map((c) => c.id)))
+      .orderBy(desc(installmentAlerts.createdAt));
   }),
 });
