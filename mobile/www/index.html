@@ -23,7 +23,7 @@
         padding: 28px;
         text-align: center;
       }
-      img { width: 132px; height: 132px; }
+      svg { width: 132px; height: 132px; }
       h1 { font-size: 19px; margin: 0; letter-spacing: 0.02em; }
       p { font-size: 14px; line-height: 1.5; color: #a1a1aa; margin: 0; max-width: 320px; }
       button {
@@ -40,13 +40,26 @@
   </head>
   <body>
     <main>
-      <img src="icon.png" alt="MKA.P-MS" />
+      <svg width="132" height="132" viewBox="0 0 132 132" role="img" aria-label="MKA.P-MS">
+        <circle cx="66" cy="66" r="62" fill="#0b0b0f" stroke="#ffd700" stroke-width="4" />
+        <text x="66" y="80" text-anchor="middle" font-family="-apple-system, Roboto, sans-serif" font-size="40" font-weight="700" fill="#ffd700">M</text>
+      </svg>
       <h1>Connexion indisponible</h1>
       <p>
         L'application n'a pas pu joindre la plateforme MKA.P-MS. Vérifiez votre
         connexion : aucune donnée n'est perdue, tout est conservé sur votre compte.
       </p>
-      <button onclick="location.replace('https://www.mkapms.fr/')">Réessayer</button>
+      <button id="retry">Réessayer</button>
     </main>
+    <script>
+      // Revient à l'écran qui n'a pas pu se charger (il est dans l'historique de
+      // la WebView) ; à défaut, à l'accueil de la plateforme.
+      function reessayer() {
+        if (history.length > 1) history.back();
+        else location.replace("https://www.mkapms.fr/");
+      }
+      document.getElementById("retry").addEventListener("click", reessayer);
+      window.addEventListener("online", reessayer);
+    </script>
   </body>
 </html>
