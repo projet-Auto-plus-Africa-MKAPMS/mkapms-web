@@ -62,6 +62,9 @@ const config: CapacitorConfig = {
     url: `${baseUrl}${variante.startPath}`,
     cleartext: false,
     androidScheme: "https",
+    // Sans réseau, la WebView affiche l'écran embarqué « Connexion indisponible »
+    // (mobile/www/index.html) au lieu d'une page blanche.
+    errorPath: "index.html",
     allowNavigation: [
       "www.mkapms.fr",
       "mkapms.fr",
