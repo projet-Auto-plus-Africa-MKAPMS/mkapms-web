@@ -5,13 +5,14 @@ import type { CapacitorConfig } from "@capacitor/cli";
 /**
  * Applications Android MKA.P-MS.
  *
- * Trois applications, un seul cœur : l'enveloppe native charge la plateforme
+ * Cinq applications (grandpublic, pro, command, intelligence, investor — voir
+ * mobile/variants.json), un seul cœur : l'enveloppe native charge la plateforme
  * réellement déployée (le domaine détermine l'univers affiché, voir
  * client/src/lib/domain.tsx), donc l'app conserve un vrai domaine d'origine et
  * non un fichier local. Elles ne diffèrent que par leur identifiant, leur nom
  * et leur écran d'entrée — aucun second serveur, aucune donnée dupliquée.
  *
- * MOBILE_APP_VARIANT : grandpublic (défaut) | pro | command
+ * MOBILE_APP_VARIANT : grandpublic (défaut) | pro | command | intelligence | investor
  * MOBILE_APP_URL     : permet de viser une préproduction sans modifier le code.
  */
 interface Variante {
@@ -55,7 +56,7 @@ const config: CapacitorConfig = {
     webContentsDebuggingEnabled: false,
     // Signature lisible par la plateforme : elle permet de masquer ce qui n'a
     // aucun sens dans l'application (invitation à installer le site) et
-    // d'identifier laquelle des trois applications est utilisée.
+    // d'identifier laquelle des cinq applications est utilisée.
     appendUserAgent: `MKAPMSApp/${versionPlateforme} (${nomVariante})`,
   },
   server: {
