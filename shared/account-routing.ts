@@ -20,6 +20,8 @@ export type AccountUniverse =
   | "pieces"
   | "livraison"
   | "flotte"
+  | "fournisseur"
+  | "transporteur"
   | "comptabilite"
   | "administration"
   | "direction"
@@ -65,6 +67,8 @@ export const UNIVERSE_ROUTES: Record<AccountUniverse, RouteDef> = {
   pieces: { universe: "pieces", homePath: "/pieces", label: "Espace pièces" },
   livraison: { universe: "livraison", homePath: "/livraison", label: "Espace livraison" },
   flotte: { universe: "flotte", homePath: "/entreprises/compte-flotte", label: "Espace flotte" },
+  fournisseur: { universe: "fournisseur", homePath: "/espace-fournisseur", label: "Espace fournisseur" },
+  transporteur: { universe: "transporteur", homePath: "/espace-transporteur", label: "Espace transporteur" },
   comptabilite: { universe: "comptabilite", homePath: "/comptabilite", label: "Espace comptabilité" },
   administration: { universe: "administration", homePath: "/admin", label: "Administration" },
   direction: { universe: "direction", homePath: "/admin", label: "Direction" },
@@ -104,6 +108,8 @@ export function resolveUniverse(identity: AccountIdentity): AccountUniverse {
   if (role === "garage") return "garage";
   if (role === "society") return "location";
   if (role === "pro") return "vendeur";
+  if (role === "supplier") return "fournisseur";
+  if (role === "carrier") return "transporteur";
   return "particulier";
 }
 
@@ -116,7 +122,7 @@ export function resolveAccountRoute(identity: AccountIdentity): AccountRoute {
 /** Univers professionnels : ce qui ne doit jamais apparaître chez un particulier. */
 export const PROFESSIONAL_UNIVERSES: AccountUniverse[] = [
   "vendeur", "garage", "carrosserie", "location", "vtc_taxi",
-  "pieces", "livraison", "flotte",
+  "pieces", "livraison", "flotte", "fournisseur", "transporteur",
 ];
 
 /** Univers internes MKA.P-MS : réservés à l'équipe. */

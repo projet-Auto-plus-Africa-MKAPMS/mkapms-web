@@ -613,7 +613,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
     moteur: "supplier_engine",
     dossiers: ["supplier-engine", "routers/supplier-portal.ts"],
     routeurs: ["supplierEngine", "supplierPortal"],
-    routes: [],
+    routes: ["/espace-fournisseur", "/espace-transporteur"],
   },
   {
     // LOT 2 du Plan Maître Fournisseurs — véhicules uniquement (jamais Pièces

@@ -123,6 +123,14 @@ const ALL_MODULES: PermissionModule[] = [
   "super_admin",
 ];
 
+/**
+ * Fournisseur/Transporteur (server/supplier-engine/access.ts) : accès
+ * strictement isolé à leur propre fiche via supplierCarrierProcedure, un
+ * gate séparé de ce Permission Engine — jamais un module comptable,
+ * commercial ou Direction ici.
+ */
+const SUPPLIER_CARRIER_MODULES: PermissionModule[] = ["notifications", "messages", "profil", "support"];
+
 export const MODULE_ACCESS: Record<UserRole, PermissionModule[]> = {
   user: PARTICULIER_MODULES,
   pro: PRO_MODULES,
@@ -131,6 +139,8 @@ export const MODULE_ACCESS: Record<UserRole, PermissionModule[]> = {
   employee: EMPLOYEE_MODULES,
   admin: ADMIN_MODULES,
   super_admin: ALL_MODULES,
+  supplier: SUPPLIER_CARRIER_MODULES,
+  carrier: SUPPLIER_CARRIER_MODULES,
 };
 
 /** Un rôle peut-il voir/utiliser un module ? */

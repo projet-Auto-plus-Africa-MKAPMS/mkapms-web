@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2630;
+export const CLIQUABLES_TOTAL = 2634;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -215,8 +215,10 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/entreprises/HistoriqueFlotte.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/entreprises/ObjectifFlottes.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/entreprises/RapportsEntreprises.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/EspaceFournisseur.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/EspacePro.tsx", total: 3, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/EspaceProVente.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/EspaceTransporteur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/EstimationAuto.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/EtatVehicule.tsx", total: 8, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 4, zones: 0 },
   { fichier: "client/src/pages/expansion/CentreInternational.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
