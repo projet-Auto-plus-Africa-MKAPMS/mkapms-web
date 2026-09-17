@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2611;
+export const CLIQUABLES_TOTAL = 2614;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -241,14 +241,14 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/finance/AlertesPaiements.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/finance/CentreEcheancier.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/finance/CentreFactures.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/finance/ContratsFinanciers.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/finance/ContratsFinanciers.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/finance/DepotGarantieFinance.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/finance/GarantieSecurite.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/finance/LOAFinance.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/finance/ObjectifFinance.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/finance/PaiementComptant.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/finance/PaiementComptant.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 2, zones: 0 },
   { fichier: "client/src/pages/finance/PaiementFractionne.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/finance/PaiementsProfessionnels.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/finance/PaiementsProfessionnels.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/finance/RemboursementsFinance.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/finance/TableauBordFinance.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/formations/Certificats.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -633,7 +633,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/SuppressionCompte.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/TableauBordLoueur.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/TableauBordParticulier.tsx", total: 6, moteur: 0, liens: 6, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/TableauBordProVente.tsx", total: 6, moteur: 0, liens: 6, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/TableauBordProVente.tsx", total: 7, moteur: 2, liens: 5, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/AbonnementsUtilisateur.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/CentreAlertesUtilisateur.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/CentreFavorisUtilisateur.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
@@ -702,7 +702,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/vente/MultiSites.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/vente/QualiteVendeur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/ReservationsVente.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 2, zones: 0 },
-  { fichier: "client/src/pages/vente/TableauBordVendeur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/vente/TableauBordVendeur.tsx", total: 2, moteur: 2, liens: 0, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/WorkflowAchatVO.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/WorkflowCompletAcheteur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/VenteCamions.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 1, zones: 0 },
@@ -719,7 +719,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/VenteVTC.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/VerifyEmail.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/VisibilityEngine/ControlCenter.tsx", total: 10, moteur: 0, liens: 1, boutonsLocaux: 9, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/VOInterne.tsx", total: 19, moteur: 0, liens: 0, boutonsLocaux: 19, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/VOInterne.tsx", total: 21, moteur: 1, liens: 0, boutonsLocaux: 20, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/VoitureOccasion.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/VtcTaxi.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Wallet.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
@@ -727,6 +727,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
 
 export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/components/BoutonIntelligences.tsx", ligne: 22, genre: "moteur", libelle: "BoutonMoteur sans code littéral", motif: "code_non_declare" },
+  { fichier: "client/src/pages/TableauBordProVente.tsx", ligne: 170, genre: "moteur", libelle: "BoutonMoteur sans code littéral", motif: "code_non_declare" },
   { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 77, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 114, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/CalendrierDispo.tsx", ligne: 119, genre: "bouton", libelle: "Réserver les dates disponibles", motif: "sans_action" },
@@ -761,6 +762,8 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/EtatVehicule.tsx", ligne: 200, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/EtatVehicule.tsx", ligne: 206, genre: "bouton", libelle: "Valider l'état des lieux", motif: "sans_action" },
   { fichier: "client/src/pages/finance/LOAFinance.tsx", ligne: 11, genre: "bouton", libelle: "Simulation indisponible", motif: "sans_action" },
+  { fichier: "client/src/pages/finance/PaiementComptant.tsx", ligne: 9, genre: "bouton", libelle: "Payer par carte", motif: "sans_action" },
+  { fichier: "client/src/pages/finance/PaiementComptant.tsx", ligne: 10, genre: "bouton", libelle: "Payer par virement", motif: "sans_action" },
   { fichier: "client/src/pages/garage/CarrosserieGarage.tsx", ligne: 663, genre: "bouton", libelle: "Rechercher", motif: "sans_action" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, genre: "bouton", libelle: "Validation atelier ✓", motif: "sans_action" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, genre: "bouton", libelle: "Validation responsable", motif: "sans_action" },

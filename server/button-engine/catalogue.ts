@@ -338,6 +338,55 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
     cible: "/",
     cleRedirection: "accueil",
   },
+  // ── Tableaux de bord VO (moteur VO + Espaces VO) ──────────────────────
+  // Les cartes chiffrées sont déclarées par les moteurs eux-mêmes
+  // (CARTES_TABLEAU_VO, CARTES_TABLEAU_PRO) ; ici, les boutons d'écran.
+  {
+    code: "vo_interne_carte_compteur",
+    libelle: "Carte du tableau de bord VO → liste filtrée",
+    ecran: "/vo",
+    genre: "formulaire",
+  },
+  {
+    code: "vente_pro_factures",
+    libelle: "Factures",
+    ecran: "/vente",
+    genre: "navigation",
+    cible: "/utilisateurs/factures-utilisateur",
+    cleRedirection: "bouton_vente_factures",
+  },
+  {
+    code: "vente_pro_profil",
+    libelle: "Mon profil professionnel",
+    ecran: "/vente",
+    genre: "navigation",
+    cible: "/compte?tab=profil",
+    cleRedirection: "bouton_vente_profil",
+  },
+  {
+    code: "vente_pro_resume_vendeur",
+    libelle: "Résumé vendeur",
+    ecran: "/vente",
+    genre: "navigation",
+    cible: "/vente/resume-vendeur",
+    cleRedirection: "vente_resume_vendeur",
+  },
+  {
+    code: "vente_resume_factures",
+    libelle: "Factures",
+    ecran: "/vente/resume-vendeur",
+    genre: "navigation",
+    cible: "/utilisateurs/factures-utilisateur",
+    cleRedirection: "bouton_vente_factures",
+  },
+  {
+    code: "vente_resume_retour_tableau",
+    libelle: "Retour au tableau de bord",
+    ecran: "/vente/resume-vendeur",
+    genre: "navigation",
+    cible: "/vente",
+    cleRedirection: "vente_tableau_de_bord_pro",
+  },
 ];
 
 const PAR_CODE = new Map(ACTIONS_BOUTONS.map((a) => [a.code, a]));

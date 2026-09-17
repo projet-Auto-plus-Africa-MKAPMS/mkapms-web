@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BoutonMoteur } from "../lib/boutonMoteur";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 import { canAccessModule } from "@shared/permissions";
@@ -164,6 +165,7 @@ export default function VOInterne() {
   const { user, isSessionLoading } = useAuth();
   const [tab, setTab] = useState<"liste" | "nouveau" | "stats">("liste");
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [statutsCarte, setStatutsCarte] = useState<readonly string[]>([]);
 
   if (isSessionLoading) return <div className="p-8 text-center text-[#6B7280]">Chargement...</div>;
   if (!user) return <div className="p-8 text-center text-[#6B7280]">Connectez-vous pour accéder au module VO.</div>;
@@ -189,9 +191,9 @@ export default function VOInterne() {
         ))}
       </div>
 
-      {tab === "liste" && <VOListe onSelect={setSelectedId} />}
+      {tab === "liste" && <VOListe key={statutsCarte.join("|")} onSelect={setSelectedId} statutsInitiaux={statutsCarte} />}
       {tab === "nouveau" && <VOForm onDone={() => setTab("liste")} />}
-      {tab === "stats" && <VOStats />}
+      {tab === "stats" && <VOStats onOuvrir={(statuts) => { setStatutsCarte(statuts); setTab("liste"); }} />}
     </div>
   );
 }
@@ -199,20 +201,31 @@ export default function VOInterne() {
 /* ═══════════════════════════════════════════════════════════
    LISTE DES VÉHICULES VO
    ═══════════════════════════════════════════════════════════ */
-function VOListe({ onSelect }: { onSelect: (id: number) => void }) {
+function VOListe({ onSelect, statutsInitiaux = [] }: { onSelect: (id: number) => void; statutsInitiaux?: readonly string[] }) {
   const { data: vehicules, isLoading } = trpc.vo.list.useQuery({});
   const [filterStatus, setFilterStatus] = useState("");
+  const [statutsCarte, setStatutsCarte] = useState<readonly string[]>(statutsInitiaux);
 
   if (isLoading) return <div className="py-8 text-center text-[#6B7280]">Chargement...</div>;
   if (!vehicules?.length) return <div className="py-8 text-center text-[#6B7280]">Aucun véhicule VO enregistré.</div>;
 
-  const filtered = filterStatus ? vehicules.filter((v) => v.status === filterStatus) : vehicules;
+  const filtered = filterStatus
+    ? vehicules.filter((v) => v.status === filterStatus)
+    : statutsCarte.length
+      ? vehicules.filter((v) => statutsCarte.includes(v.status))
+      : vehicules;
 
   return (
     <div>
+      {statutsCarte.length > 0 && !filterStatus && (
+        <div className="mb-3 flex items-center justify-between rounded-lg bg-[#FEF9E7] px-3 py-2 text-xs text-[#111]">
+          <span>Filtre du tableau de bord : {statutsCarte.map((s) => STATUS_LABELS[s] ?? s).join(", ")} ({filtered.length})</span>
+          <button type="button" onClick={() => setStatutsCarte([])} className="font-semibold text-[#D4AF37]">Tout afficher</button>
+        </div>
+      )}
       {/* Filtre par statut */}
       <div className="mb-4 flex flex-wrap gap-2">
-        <button onClick={() => setFilterStatus("")} className={`rounded-lg px-3 py-1.5 text-xs font-medium ${!filterStatus ? "bg-[#D4AF37] text-white" : "bg-[#F3F4F6] text-[#6B7280]"}`}>
+        <button onClick={() => { setFilterStatus(""); setStatutsCarte([]); }} className={`rounded-lg px-3 py-1.5 text-xs font-medium ${!filterStatus && !statutsCarte.length ? "bg-[#D4AF37] text-white" : "bg-[#F3F4F6] text-[#6B7280]"}`}>
           Tous ({vehicules.length})
         </button>
         {["achat_enregistre", "en_cours_transport", "diagnostic_en_cours", "en_reparation", "preparation_esthetique", "en_vente", "vendu", "archive"].map((s) => {
@@ -1169,32 +1182,36 @@ function VOForm({ onDone }: { onDone: () => void }) {
 /* ═══════════════════════════════════════════════════════════
    TABLEAU DE BORD / STATS
    ═══════════════════════════════════════════════════════════ */
-function VOStats() {
+function VOStats({ onOuvrir }: { onOuvrir: (statuts: readonly string[]) => void }) {
   const { data: stats, isLoading } = trpc.vo.stats.useQuery();
   if (isLoading) return <div className="py-8 text-center text-[#6B7280]">Chargement...</div>;
   if (!stats) return null;
 
-  const cards = [
-    { label: "Total véhicules", value: stats.total, color: "#111" },
-    { label: "En stock", value: stats.enStock, color: "#2563EB" },
-    { label: "En réparation", value: stats.enReparation, color: "#F59E0B" },
-    { label: "En vente", value: stats.enVente, color: "#D4AF37" },
-    { label: "En location", value: stats.enLocation, color: "#7C3AED" },
-    { label: "Vendus", value: stats.vendus, color: "#16A34A" },
-    { label: "Total achats", value: `${stats.totalAchats.toLocaleString()} €`, color: "#DC2626" },
-    { label: "Total ventes", value: `${stats.totalVentes.toLocaleString()} €`, color: "#16A34A" },
-    { label: "Marges nettes", value: `${stats.totalMarges.toLocaleString()} €`, color: stats.totalMarges >= 0 ? "#16A34A" : "#DC2626" },
-  ];
+  const couleurs: Record<string, string> = {
+    total: "#111", en_stock: "#2563EB", en_reparation: "#F59E0B", en_vente: "#D4AF37",
+    en_location: "#7C3AED", vendus: "#16A34A", total_achats: "#DC2626", total_ventes: "#16A34A",
+    marges_nettes: stats.totalMarges >= 0 ? "#16A34A" : "#DC2626",
+  };
 
   return (
     <div>
       <h2 className="mb-4 text-xl font-bold text-[#111]">Tableau de bord VO</h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((c) => (
-          <div key={c.label} className="rounded-xl border border-[#E5E7EB] bg-white p-5 text-center">
-            <div className="mb-1 text-2xl font-bold" style={{ color: c.color }}>{c.value}</div>
-            <div className="text-sm text-[#6B7280]">{c.label}</div>
-          </div>
+        {stats.cartes.map((c) => (
+          <BoutonMoteur
+            key={c.code}
+            code="vo_interne_carte_compteur"
+            onExecuter={() => onOuvrir(c.statuts)}
+            className="rounded-xl border border-[#E5E7EB] bg-white p-5 text-center transition hover:border-[#D4AF37] hover:shadow-md"
+          >
+            <div className="mb-1 text-2xl font-bold" style={{ color: couleurs[c.code] }}>
+              {c.genre === "montant" ? `${c.valeur.toLocaleString()} €` : c.valeur}
+            </div>
+            <div className="text-sm text-[#6B7280]">{c.libelle}</div>
+            <div className="mt-1 text-[10px] text-[#9CA3AF]">
+              {c.statuts.length ? "Voir ces véhicules" : "Voir tous les véhicules"}
+            </div>
+          </BoutonMoteur>
         ))}
       </div>
     </div>

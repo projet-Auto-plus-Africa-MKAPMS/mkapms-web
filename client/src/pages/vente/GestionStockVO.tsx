@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { getAnnonceUrl } from "../../lib/annonceUrl";
 import {
   ChevronLeft,
@@ -30,7 +30,8 @@ function statutDe(id: string) {
 }
 
 export default function GestionStockVO() {
-  const [filterStatut, setFilterStatut] = useState("tous");
+  const [params] = useSearchParams();
+  const [filterStatut, setFilterStatut] = useState(params.get("statut") || "tous");
   const [selectedVeh, setSelectedVeh] = useState<number | null>(null);
 
   const stock = trpc.voEspaces.stock.useQuery({});

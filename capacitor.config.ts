@@ -37,6 +37,10 @@ if (!variante) {
   );
 }
 
+const versionPlateforme: string = JSON.parse(
+  readFileSync(join(process.cwd(), "package.json"), "utf8"),
+).version;
+
 const baseUrl = (process.env.MOBILE_APP_URL || "https://www.mkapms.fr").replace(/\/$/, "");
 
 const config: CapacitorConfig = {
@@ -52,12 +56,15 @@ const config: CapacitorConfig = {
     // Signature lisible par la plateforme : elle permet de masquer ce qui n'a
     // aucun sens dans l'application (invitation à installer le site) et
     // d'identifier laquelle des trois applications est utilisée.
-    appendUserAgent: `MKAPMSApp/1.6.0 (${nomVariante})`,
+    appendUserAgent: `MKAPMSApp/${versionPlateforme} (${nomVariante})`,
   },
   server: {
     url: `${baseUrl}${variante.startPath}`,
     cleartext: false,
     androidScheme: "https",
+    // Sans réseau, la WebView affiche l'écran embarqué « Connexion indisponible »
+    // (mobile/www/index.html) au lieu d'une page blanche.
+    errorPath: "index.html",
     allowNavigation: [
       "www.mkapms.fr",
       "mkapms.fr",

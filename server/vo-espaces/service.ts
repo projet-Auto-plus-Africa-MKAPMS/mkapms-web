@@ -25,6 +25,34 @@ export interface AbonnementVo {
   quotaAnnonces: number | null;
 }
 
+export type CodeCartePro =
+  | "stock" | "actives" | "reservees" | "vendues" | "ventes_mois" | "ca_mois";
+
+export interface CarteTableauPro {
+  readonly code: CodeCartePro;
+  readonly libelle: string;
+  readonly genre: "compte" | "montant";
+  /** Écrans qui affichent cette carte. */
+  readonly tableaux: readonly ("pro" | "resume_vendeur")[];
+  /** Destination ouverte au clic (statut passé en `?statut=`). */
+  readonly cible: string;
+  readonly statut: string | null;
+  valeur: number;
+}
+
+/**
+ * Cartes des tableaux de bord pro (/vente et /vente/resume-vendeur) : le moteur
+ * déclare libellé, destination et statut ouvert ; l'écran ne fait qu'afficher.
+ */
+export const CARTES_TABLEAU_PRO: readonly Omit<CarteTableauPro, "valeur">[] = [
+  { code: "stock", libelle: "Stock", genre: "compte", tableaux: ["pro", "resume_vendeur"], cible: "/vente/stock", statut: null },
+  { code: "actives", libelle: "Actives", genre: "compte", tableaux: ["pro"], cible: "/vente/stock", statut: "publiee" },
+  { code: "reservees", libelle: "Réservations", genre: "compte", tableaux: ["pro", "resume_vendeur"], cible: "/vente/reservations", statut: null },
+  { code: "vendues", libelle: "Vendues", genre: "compte", tableaux: ["pro"], cible: "/vente/stock", statut: "vendue" },
+  { code: "ventes_mois", libelle: "Ventes mois", genre: "compte", tableaux: ["resume_vendeur"], cible: "/vente/stock", statut: "vendue" },
+  { code: "ca_mois", libelle: "CA mois", genre: "montant", tableaux: ["resume_vendeur"], cible: "/vente/statistiques", statut: null },
+];
+
 export interface AccesVo {
   espace: EspaceVo;
   /** Équipe MKA.P-MS : accès à l'espace officiel, sans abonnement. */
@@ -210,7 +238,13 @@ export interface CompteursPro {
   brouillons: number;
   enValidation: number;
   expirees: number;
+  /** Ventes/locations conclues depuis le 1er du mois (date de dernière mise à jour). */
+  ventesMois: number;
+  /** Chiffre d'affaires du mois en cours : somme des prix des annonces conclues. */
+  caMois: number;
   quotaAnnonces: number | null;
+  /** Cartes du tableau de bord, déclarées par le moteur avec leur destination. */
+  cartes: CarteTableauPro[];
 }
 
 export async function compteursProDe(
@@ -240,7 +274,24 @@ export async function compteursProDe(
       ),
     );
 
-  return {
+  const debutMois = new Date();
+  debutMois.setDate(1);
+  debutMois.setHours(0, 0, 0, 0);
+  const [mois] = await db
+    .select({
+      n: sql<number>`count(*)::int`,
+      ca: sql<string>`coalesce(sum(${annonces.prix}), 0)`,
+    })
+    .from(annonces)
+    .where(
+      and(
+        eq(annonces.ownerId, userId),
+        sql`${annonces.status} IN ('vendue','louee')`,
+        sql`${annonces.updatedAt} >= ${debutMois}`,
+      ),
+    );
+
+  const base = {
     stock: [...parStatut.values()].reduce((a, b) => a + b, 0),
     actives: n("publiee"),
     reservees: Number(reservees?.n ?? 0),
@@ -248,8 +299,15 @@ export async function compteursProDe(
     brouillons: n("brouillon"),
     enValidation: n("en_validation"),
     expirees: n("expiree", "archivee", "refusee"),
+    ventesMois: Number(mois?.n ?? 0),
+    caMois: Number(mois?.ca ?? 0),
     quotaAnnonces,
   };
+  const valeurs: Record<CodeCartePro, number> = {
+    stock: base.stock, actives: base.actives, reservees: base.reservees,
+    vendues: base.vendues, ventes_mois: base.ventesMois, ca_mois: base.caMois,
+  };
+  return { ...base, cartes: CARTES_TABLEAU_PRO.map((c) => ({ ...c, valeur: valeurs[c.code] })) };
 }
 
 /** Contrôle d'appartenance : ce véhicule appartient-il bien à ce pro ? */
