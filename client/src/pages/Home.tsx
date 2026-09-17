@@ -349,6 +349,7 @@ const HOME_MENUS: MegaMenu[] = [
       { label: "Carte des partenaires", to: "/partenaires/carte-partenaires" },
       { label: "Niveaux partenaires", to: "/partenaires/niveaux-partenaires" },
       { label: "Espace Pro", to: "/espace-pro" },
+      { label: "Devenir investisseur", to: "/investissement/devenir-investisseur" },
     ] }],
     promo: { title: "Développez votre activité", sub: "Rejoignez le réseau MKA.P-MS", cta: "Rejoindre", to: "/partenaires/inscription-partenaire" },
   },

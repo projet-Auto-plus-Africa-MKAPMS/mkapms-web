@@ -206,6 +206,7 @@ const CentreIntelligences = lazy(() => import("./pages/CentreIntelligences"));
 const AssistantIntelligences = lazy(() => import("./pages/AssistantIntelligences"));
 const MKAPMSIntelligence = lazy(() => import("./pages/intelligence"));
 const EspaceInvestissement = lazy(() => import("./pages/investissement"));
+const DevenirInvestisseur = lazy(() => import("./pages/investissement/DevenirInvestisseur"));
 const CentreBusEvenements = lazy(() => import("./pages/CentreBusEvenements"));
 const CentreControleContinu = lazy(() => import("./pages/CentreControleContinu"));
 const CentreAutoBranchement = lazy(() => import("./pages/CentreAutoBranchement"));
@@ -1259,6 +1260,7 @@ export default function App() {
             <Route path="/intelligences" element={<U name="MKA.P-MS AI — assistant"><AssistantIntelligences /></U>} />
             <Route path="/intelligence" element={<U name="MKA.P-MS AI"><MKAPMSIntelligence /></U>} />
             <Route path="/investissement" element={<U name="Investissement"><EspaceInvestissement /></U>} />
+            <Route path="/investissement/devenir-investisseur" element={<U name="Investissement"><DevenirInvestisseur /></U>} />
             <Route path="/avis/:univers" element={<U name="Avis & notes"><AvisUnivers /></U>} />
             <Route path="/superadmin/mini-plateformes" element={<P module="back_office" name="Univers en mini-plateformes"><MiniPlateformes /></P>} />
             <Route path="/superadmin/partenaires" element={<P module="back_office" name="Réseau partenaires"><PartenairesPilotage /></P>} />

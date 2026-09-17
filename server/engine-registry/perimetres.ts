@@ -153,7 +153,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
     moteur: "investment",
     dossiers: ["investment"],
     routeurs: ["investment"],
-    routes: ["/investissement"],
+    routes: ["/investissement", "/investissement/devenir-investisseur"],
   },
   {
     moteur: "journey",

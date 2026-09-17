@@ -778,8 +778,8 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "investment",
     label: "Investment Engine",
     category: "univers",
-    dependencies: ["core","country","contract","audit","identity","intelligences"],
-    description: "Droit économique temporaire univers+pays+durée : Contract Engine, Ownership Router, Revenue Engine, Ledger — distinct du tableau de bord croissance interne (investorRouter).",
+    dependencies: ["core","country","contract","audit","identity","intelligences","partner_engine","pro_portal"],
+    description: "Droit économique temporaire univers+pays+durée : Contract Engine, Ownership Router, Revenue Engine, Ledger — distinct du tableau de bord croissance interne (investorRouter). La candidature publique « Devenir investisseur » réutilise le Partner Engine (candidater) et le catalogue pays du Pro Portal, jamais un second moteur de candidature.",
     state: "staging",
   },
   {

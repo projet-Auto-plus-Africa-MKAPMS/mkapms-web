@@ -10,6 +10,7 @@
  * chiffre inventé.
  */
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { LayoutDashboard, Wallet, FileText, Banknote, Sparkles, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 import { Dashboard } from "./modules/Dashboard";
@@ -37,7 +38,13 @@ export default function EspaceInvestissement() {
   if (!user) {
     return (
       <div className="container-page py-16 text-center text-slate-500">
-        Connectez-vous pour accéder à votre espace Investisseur MKA.P-MS.
+        <p>Connectez-vous pour accéder à votre espace Investisseur MKA.P-MS.</p>
+        <p className="mt-3">
+          Pas encore investisseur ?{" "}
+          <Link to="/investissement/devenir-investisseur" className="font-bold text-[#D4AF37] underline">
+            Découvrir comment le devenir
+          </Link>
+        </p>
       </div>
     );
   }

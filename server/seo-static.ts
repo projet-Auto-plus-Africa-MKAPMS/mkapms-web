@@ -136,6 +136,12 @@ export const STATIC_SEO: Record<string, StaticSeo> = {
       "Découvrez les abonnements MKA.P-MS pour particuliers et professionnels : visibilité, outils de gestion, avantages exclusifs.",
     keywords: "abonnement mkapms, offre professionnel auto, abonnement garage",
   },
+  "/investissement/devenir-investisseur": {
+    title: "Devenir investisseur MKA.P-MS",
+    description:
+      "Investissez dans un univers d'activité MKA.P-MS : droit économique temporaire par univers, pays et durée, dossier vérifié avant toute signature. Candidature examinée par l'équipe MKA.P-MS.",
+    keywords: "investir mkapms, devenir investisseur automobile, investissement plateforme auto",
+  },
 };
 
 /** Fil d'Ariane simple → BreadcrumbList Schema.org. */
