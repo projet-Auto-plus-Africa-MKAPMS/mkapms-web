@@ -311,11 +311,24 @@ export async function listHistory(documentId: number) {
     .orderBy(desc(docDocumentHistory.createdAt));
 }
 
+/**
+ * Marqueur visible d'une donnée obligatoire manquante (règle maître
+ * documentaire #8) — jamais un champ silencieusement vide, jamais une
+ * valeur inventée à sa place.
+ */
+export const CHAMP_A_COMPLETER = "[À COMPLÉTER]";
+
 /** Interpole {{variables}} d'un template avec un dict.
  *  Injecte automatiquement les variables de marque MKA.P-MS
  *  (logo_url, brand_name, brand_tagline, issuer_*) si l'appelant
  *  ne les fournit pas. Le logo par défaut est le "logo fermé"
  *  (Version 1 – Terre / Unité), conformément à la charte.
+ *
+ *  Règle maître documentaire #8 : une variable réellement absente du dict
+ *  (jamais fournie, même vide) est rendue "[À COMPLÉTER]", visible dans le
+ *  document — jamais une case blanche silencieuse. Une chaîne vide fournie
+ *  explicitement par l'appelant reste vide (c'est une valeur assumée, pas
+ *  un oubli).
  */
 export function renderDocument(html: string, vars: Record<string, string | number>): string {
   const BRAND_DEFAULTS: Record<string, string> = {
@@ -332,7 +345,7 @@ export function renderDocument(html: string, vars: Record<string, string | numbe
     legal_mentions: "Document généré par MKA.P-MS conformément aux articles L.441-9 et suivants du Code de commerce.",
   };
   const merged: Record<string, string | number> = { ...BRAND_DEFAULTS, ...vars };
-  return html.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, k) => String(merged[k] ?? ""));
+  return html.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, k) => (k in merged ? String(merged[k]) : CHAMP_A_COMPLETER));
 }
 
 export async function listDocuments(ownerUserId?: number, limit = 100) {

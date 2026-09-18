@@ -306,8 +306,21 @@ export function DocumentView({ doc, onClose }: { doc: DocumentData; onClose: () 
               </p>
             </div>
 
-            {/* Signature section */}
+            {/* Signature section — regle maitre documentaire #6 : autre partie a gauche, MKA.P-MS toujours a droite */}
             <div className="grid grid-cols-2 gap-4 mt-3">
+              <div>
+                <p className="text-[8px] font-bold text-[#6B7280] uppercase mb-1">{doc.client.nom} (client)</p>
+                {signed && signatureData ? (
+                  <div className="h-16 rounded-lg bg-green-50 border border-green-200 flex items-center justify-center relative">
+                    <img src={signatureData} alt="Signature" className="max-h-14 max-w-full" />
+                    <CheckCircle size={12} className="absolute top-1 right-1 text-green-500" />
+                  </div>
+                ) : (
+                  <div className="h-16 rounded-lg border-2 border-dashed border-[#E5E7EB] flex items-center justify-center">
+                    <p className="text-[8px] text-[#9CA3AF]">En attente de signature</p>
+                  </div>
+                )}
+              </div>
               <div>
                 <p className="text-[8px] font-bold text-[#6B7280] uppercase mb-1">MKA.P-MS (emetteur)</p>
                 <div className="h-16 rounded-lg bg-[#F5F3EF] border border-[#E5E7EB] flex items-center justify-center">
@@ -322,19 +335,6 @@ export function DocumentView({ doc, onClose }: { doc: DocumentData; onClose: () 
                   </div>
                 </div>
               </div>
-              <div>
-                <p className="text-[8px] font-bold text-[#6B7280] uppercase mb-1">{doc.client.nom} (client)</p>
-                {signed && signatureData ? (
-                  <div className="h-16 rounded-lg bg-green-50 border border-green-200 flex items-center justify-center relative">
-                    <img src={signatureData} alt="Signature" className="max-h-14 max-w-full" />
-                    <CheckCircle size={12} className="absolute top-1 right-1 text-green-500" />
-                  </div>
-                ) : (
-                  <div className="h-16 rounded-lg border-2 border-dashed border-[#E5E7EB] flex items-center justify-center">
-                    <p className="text-[8px] text-[#9CA3AF]">En attente de signature</p>
-                  </div>
-                )}
-              </div>
             </div>
 
             {/* Signature Pad for contracts */}
@@ -345,9 +345,9 @@ export function DocumentView({ doc, onClose }: { doc: DocumentData; onClose: () 
               />
             )}
 
-            {/* Date + page */}
+            {/* Date + page — regle maitre documentaire #7 : pied de page par defaut www.mkapms.site */}
             <div className="flex justify-between mt-4 text-[7px] text-[#9CA3AF]">
-              <span>Document genere le {today()}</span>
+              <span>Document genere le {today()} · www.mkapms.site</span>
               <span>Page 1/1</span>
             </div>
           </div>

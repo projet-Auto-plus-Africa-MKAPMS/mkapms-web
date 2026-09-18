@@ -127,7 +127,7 @@ function wrap(inner: string, docLabel: string): string {
     </div>
     <div class="goldbar" style="height:4px"></div>
     <footer class="page-foot">
-      <span>Document généré par {{brand_name}} — {{brand_tagline}}</span>
+      <span>Document généré par {{brand_name}} — {{brand_tagline}} · www.mkapms.site</span>
       <span>Page 1/1</span>
     </footer>
   </div>
@@ -164,9 +164,10 @@ const BODY_INVOICE = `
       </div>
 
       <div class="legal">{{legal_mentions}}</div>
+      <!-- Règle maître documentaire #6 : autre partie à gauche, MKA.P-MS toujours à droite -->
       <div class="sign">
-        <div class="box"><small>{{brand_name}} (émetteur)</small><br/><img class="emit" src="{{logo_url}}" alt="{{brand_name}}"/><br/><small>Signé électroniquement</small></div>
         <div class="box"><small>{{client_name}} (client)</small>{{signature_block}}</div>
+        <div class="box"><small>{{brand_name}} (émetteur)</small><br/><img class="emit" src="{{logo_url}}" alt="{{brand_name}}"/><br/><small>Signé électroniquement</small></div>
       </div>`;
 
 const BODY_QUOTE = BODY_INVOICE.replace("Facturer à", "Devis pour");
@@ -195,9 +196,10 @@ const BODY_CONTRACT = `
       </div>
 
       <div class="legal">{{legal_mentions}}</div>
+      <!-- Règle maître documentaire #6 : autre partie à gauche, MKA.P-MS toujours à droite -->
       <div class="sign">
-        <div class="box"><small>{{brand_name}} (émetteur)</small><br/><img class="emit" src="{{logo_url}}" alt="{{brand_name}}"/><br/><small>Signé électroniquement</small></div>
         <div class="box"><small>{{client_name}} (signature)</small>{{signature_block}}</div>
+        <div class="box"><small>{{brand_name}} (émetteur)</small><br/><img class="emit" src="{{logo_url}}" alt="{{brand_name}}"/><br/><small>Signé électroniquement</small></div>
       </div>`;
 
 // Registre des templates par défaut (FR).
