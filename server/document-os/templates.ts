@@ -19,10 +19,10 @@ export const COMMON_VARS = [
   "doc_ref",          // numéro du document (ex FAC-2026-000123)
   "doc_date",
   "doc_language",
-  "issuer_name",
+  "brand_origin",     // "République de Guinée" — origine mondiale de MKA.P-MS, jamais un pays d'exploitation par défaut
+  "issuer_name",      // raison sociale de l'entité juridique réelle de l'opération (résolue par legalEntityCode)
   "issuer_address",
-  "issuer_siret",
-  "issuer_vat",
+  "issuer_legal_line", // ex. "RCCM : ... · NIF : ..." (Guinée) ou "SIRET : ... · TVA : ..." (France) — jamais un libellé pays codé en dur
   "client_name",
   "client_address",
   "client_email",
@@ -115,7 +115,7 @@ function wrap(inner: string, docLabel: string): string {
             </g>
           </svg>
           <div class="tagline">PROTÉGER · RELIER · SERVIR LE MONDE ENTIER</div>
-          <div class="issuer">{{issuer_name}}<br/>{{issuer_address}}<br/>SIRET : {{issuer_siret}} · TVA : {{issuer_vat}}</div>
+          <div class="issuer">{{issuer_name}}<br/>{{issuer_address}}<br/>{{issuer_legal_line}}</div>
         </div>
         <div style="text-align:right;">
           <span class="doc-badge">${docLabel}</span>

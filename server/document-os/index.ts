@@ -51,12 +51,45 @@ export const docTemplates = pgTable("doc_templates", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({ uniq: unique("doc_templates_unique").on(t.typeCode, t.language, t.countryCode) }));
 
+/**
+ * Registre des entités juridiques MKA.P-MS (règle maître documentaire #1/#2/#4/#6).
+ *
+ * MKA.P-MS est une identité internationale dont l'origine est la République
+ * de Guinée : "guinee" est l'entité mère historique (isOriginEntity), jamais
+ * un pays parmi d'autres. La France est une entité locale d'exploitation
+ * comme les futures entités pays — elle n'est écrite nulle part comme valeur
+ * par défaut mondiale. Architecture : global_brand → legal_entities[] →
+ * countries[] → document_context, jamais "France → reste du monde".
+ *
+ * Un champ juridique non encore fourni reste NULL (jamais une valeur
+ * inventée) : le rendu de document affiche alors "[À COMPLÉTER]" (règle #8),
+ * et l'émission d'un document juridiquement engageant reste bloquée en
+ * brouillon tant que l'entité n'est pas complète (règle #5).
+ */
+export const docLegalEntities = pgTable("doc_legal_entities", {
+  code: varchar("code", { length: 32 }).primaryKey(), // "guinee", "france", futur : "senegal", "cote_ivoire"...
+  countryCode: varchar("country_code", { length: 2 }).notNull(),
+  isOriginEntity: boolean("is_origin_entity").notNull().default(false),
+  legalName: varchar("legal_name", { length: 200 }), // raison sociale exacte telle qu'enregistrée
+  registrationNumber: varchar("registration_number", { length: 64 }), // RCCM (GN), SIREN/SIRET (FR), etc.
+  taxId: varchar("tax_id", { length: 64 }), // NIF (GN), TVA intracommunautaire (FR), etc.
+  address: text("address"), // siège social officiel
+  legalRepresentative: varchar("legal_representative", { length: 160 }),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const docDocuments = pgTable("doc_documents", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   reference: varchar("reference", { length: 64 }).notNull().unique(),
   typeCode: varchar("type_code", { length: 48 }).notNull(),
   language: varchar("language", { length: 8 }).notNull().default("fr"),
   countryCode: varchar("country_code", { length: 2 }),
+  // Entité juridique qui réalise réellement l'opération (règle #4). Jamais
+  // déduite d'un pays par défaut : fournie explicitement par l'appelant, ou
+  // absente — auquel cas le document reste en brouillon (règle #5).
+  legalEntityCode: varchar("legal_entity_code", { length: 32 }),
   ownerUserId: integer("owner_user_id"),
   counterpartyUserId: integer("counterparty_user_id"),
   linkedEntityType: varchar("linked_entity_type", { length: 32 }),
@@ -167,9 +200,26 @@ export async function upsertTemplate(input: { typeCode: string; language: string
   return row;
 }
 
+/**
+ * Un document portant un montant est juridiquement engageant par nature
+ * (règle #4 : "Facture, contrat, avoir, paiement..."). Les types de contrat
+ * n'en portent pas mais engagent tout autant : listés explicitement plutôt
+ * que déduits, pour ne jamais dépendre d'une convention de nommage fragile.
+ */
+const DOC_TYPES_ENGAGEANTS_SANS_MONTANT = new Set([
+  "contrat", "contrat_vente", "contrat_location", "cgv", "cgu", "mandat_vente", "attestation", "proces_verbal",
+]);
+
+function estJuridiquementEngageant(doc: { typeCode: string; amountHt?: string | number | null; amountTtc?: string | number | null }): boolean {
+  if (doc.amountHt != null || doc.amountTtc != null) return true;
+  return DOC_TYPES_ENGAGEANTS_SANS_MONTANT.has(doc.typeCode);
+}
+
 /** Crée un document — retourne la ligne (référence auto-générée). */
 export async function createDocument(input: {
   typeCode: string; language?: string; countryCode?: string;
+  // Entité juridique réelle qui réalise l'opération (règle #4) — jamais déduite d'un pays par défaut.
+  legalEntityCode?: string | null;
   ownerUserId?: number; counterpartyUserId?: number;
   authorUserId?: number;
   linkedEntityType?: string; linkedEntityId?: number;
@@ -193,6 +243,7 @@ export async function createDocument(input: {
   const [row] = await db.insert(docDocuments).values({
     reference, typeCode: input.typeCode,
     language, countryCode: input.countryCode ?? null,
+    legalEntityCode: input.legalEntityCode ?? null,
     ownerUserId: input.ownerUserId ?? null,
     counterpartyUserId: input.counterpartyUserId ?? null,
     authorUserId: input.authorUserId ?? input.ownerUserId ?? null,
@@ -242,6 +293,8 @@ export async function recordEdition(input: {
   amountTtc?: number;
   currency?: string;
   lignes?: number;
+  // Entité juridique réelle de l'opération, quand l'écran appelant la connaît déjà (chantier #35).
+  legalEntityCode?: string | null;
 }): Promise<{ ok: boolean; reference: string | null }> {
   try {
     const row = await createDocument({
@@ -249,6 +302,7 @@ export async function recordEdition(input: {
       ownerUserId: input.ownerUserId,
       amountTtc: input.amountTtc,
       currency: input.currency,
+      legalEntityCode: input.legalEntityCode ?? null,
       metadata: {
         canal: input.canal,
         ecran: input.ecran.slice(0, 160),
@@ -265,7 +319,21 @@ export async function recordEdition(input: {
   }
 }
 
+/**
+ * Règle maître documentaire #5 : jamais de finalisation silencieuse d'un
+ * document engageant sans entité juridique réelle — le document reste en
+ * brouillon (l'un des deux comportements explicitement autorisés par la
+ * règle, avec le blocage). Jamais un remplacement par une entité par défaut.
+ */
 export async function updateDocumentStatus(id: number, next: "brouillon" | "emis" | "signe" | "annule" | "archive", actorUserId?: number) {
+  const [current] = await db.select().from(docDocuments).where(eq(docDocuments.id, id)).limit(1);
+  if (!current) return null;
+
+  if ((next === "emis" || next === "signe") && estJuridiquementEngageant(current) && !current.legalEntityCode) {
+    await recordHistory(current.id, current.version, "blocked_missing_legal_entity", actorUserId, { attempted: next });
+    return current;
+  }
+
   const patch: any = { status: next };
   if (next === "emis") patch.issuedAt = new Date();
   if (next === "signe") patch.signedAt = new Date();
@@ -277,8 +345,15 @@ export async function updateDocumentStatus(id: number, next: "brouillon" | "emis
   return row ?? null;
 }
 
-/** Signature d'un document (nom + trace) → passe le statut à « signe ». */
+/** Signature d'un document (nom + trace) → passe le statut à « signe ». Bloquée sans entité juridique (règle #5), voir updateDocumentStatus. */
 export async function signDocument(id: number, signature: { name: string; data?: string }, actorUserId?: number) {
+  const [current] = await db.select().from(docDocuments).where(eq(docDocuments.id, id)).limit(1);
+  if (!current) return null;
+  if (estJuridiquementEngageant(current) && !current.legalEntityCode) {
+    await recordHistory(current.id, current.version, "blocked_missing_legal_entity", actorUserId, { attempted: "signe" });
+    return current;
+  }
+
   const [row] = await db.update(docDocuments).set({
     status: "signe",
     signedAt: new Date(),
@@ -318,11 +393,26 @@ export async function listHistory(documentId: number) {
  */
 export const CHAMP_A_COMPLETER = "[À COMPLÉTER]";
 
-/** Interpole {{variables}} d'un template avec un dict.
- *  Injecte automatiquement les variables de marque MKA.P-MS
- *  (logo_url, brand_name, brand_tagline, issuer_*) si l'appelant
- *  ne les fournit pas. Le logo par défaut est le "logo fermé"
- *  (Version 1 – Terre / Unité), conformément à la charte.
+/**
+ * Identité globale MKA.P-MS (règle #1) : marque internationale, origine
+ * République de Guinée. Aucune valeur France ici — la France est une entité
+ * locale d'exploitation comme les autres, jamais l'identité mondiale.
+ */
+const GLOBAL_BRAND_DEFAULTS: Record<string, string> = {
+  logo_url: process.env.MKA_LOGO_URL ?? "/logo-closed.png",
+  brand_name: "MKA.P-MS",
+  brand_tagline: "Auto Plus Africa",
+  brand_scope: "Plateforme internationale",
+  brand_origin: "République de Guinée",
+  currency: "EUR",
+  doc_language: "fr",
+  signature_block: "",
+  legal_mentions: "Document généré par MKA.P-MS.",
+};
+
+/** Interpole {{variables}} d'un template avec un dict. N'injecte que
+ *  l'identité de marque globale (logo, nom, origine) — jamais une identité
+ *  légale de pays par défaut : voir renderDocumentPourEntite() pour ça.
  *
  *  Règle maître documentaire #8 : une variable réellement absente du dict
  *  (jamais fournie, même vide) est rendue "[À COMPLÉTER]", visible dans le
@@ -331,21 +421,130 @@ export const CHAMP_A_COMPLETER = "[À COMPLÉTER]";
  *  un oubli).
  */
 export function renderDocument(html: string, vars: Record<string, string | number>): string {
-  const BRAND_DEFAULTS: Record<string, string> = {
-    logo_url: process.env.MKA_LOGO_URL ?? "/logo-closed.png",
-    brand_name: "MKA.P-MS",
-    brand_tagline: "Auto Plus Africa",
-    issuer_name: "MKA.P-MS SAS",
-    issuer_address: "12 Avenue des Champs-Élysées, 75008 Paris",
-    issuer_siret: "123 456 789 00012",
-    issuer_vat: "FR 12 345678901",
-    currency: "EUR",
-    doc_language: "fr",
-    signature_block: "",
-    legal_mentions: "Document généré par MKA.P-MS conformément aux articles L.441-9 et suivants du Code de commerce.",
-  };
-  const merged: Record<string, string | number> = { ...BRAND_DEFAULTS, ...vars };
+  const merged: Record<string, string | number> = { ...GLOBAL_BRAND_DEFAULTS, ...vars };
   return html.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, k) => (k in merged ? String(merged[k]) : CHAMP_A_COMPLETER));
+}
+
+// ── Registre des entités juridiques (règle #1/#2/#4/#6) ────────────────
+export type LegalEntity = typeof docLegalEntities.$inferSelect;
+
+/**
+ * Entités connues à ce jour. "guinee" est l'entité mère d'origine : ses
+ * champs légaux restent NULL tant que la direction ne fournit pas le
+ * document officiel de création (jamais inventés — voir CHAMP_A_COMPLETER).
+ * "france" reprend les valeurs déjà présentes dans le code AVANT cet audit :
+ * leur authenticité n'a pas été vérifiée par ce lot, à confirmer par la
+ * direction. N'écrase jamais une entité déjà en base (ensureDefaultLegalEntities
+ * est un seed initial, pas une resynchronisation — une donnée juridique saisie
+ * par la direction ne doit jamais être effacée par un redémarrage).
+ */
+export const DEFAULT_LEGAL_ENTITIES: {
+  code: string; countryCode: string; isOriginEntity: boolean;
+  legalName: string | null; registrationNumber: string | null; taxId: string | null;
+  address: string | null; legalRepresentative: string | null;
+}[] = [
+  {
+    code: "guinee", countryCode: "GN", isOriginEntity: true,
+    legalName: null, registrationNumber: null, taxId: null, address: null, legalRepresentative: null,
+  },
+  {
+    code: "france", countryCode: "FR", isOriginEntity: false,
+    // Hérité du code existant avant cet audit — authenticité non vérifiée par ce lot.
+    legalName: "MKA.P-MS SAS", registrationNumber: "123 456 789 00012", taxId: "FR 12 345678901",
+    address: "12 Avenue des Champs-Élysées, 75008 Paris", legalRepresentative: null,
+  },
+];
+
+export async function ensureDefaultLegalEntities(): Promise<{ inserted: number }> {
+  let inserted = 0;
+  for (const e of DEFAULT_LEGAL_ENTITIES) {
+    const [existing] = await db.select({ code: docLegalEntities.code }).from(docLegalEntities).where(eq(docLegalEntities.code, e.code)).limit(1);
+    if (existing) continue;
+    await db.insert(docLegalEntities).values(e);
+    inserted += 1;
+  }
+  return { inserted };
+}
+
+export async function listLegalEntities(activeOnly = true): Promise<LegalEntity[]> {
+  const q = db.select().from(docLegalEntities).orderBy(docLegalEntities.code);
+  return activeOnly ? q.where(eq(docLegalEntities.active, true)) : q;
+}
+
+export async function resolveLegalEntity(code?: string | null): Promise<LegalEntity | null> {
+  if (!code) return null;
+  const [row] = await db.select().from(docLegalEntities)
+    .where(and(eq(docLegalEntities.code, code), eq(docLegalEntities.active, true))).limit(1);
+  return row ?? null;
+}
+
+/**
+ * La direction saisit ici les données réelles quand elles arrivent (ex.
+ * document officiel de création de MKA.P-MS Guinée) — jamais un champ rempli
+ * par ce moteur lui-même. Ne crée jamais silencieusement une entité inconnue
+ * du registre : le code doit être l'un des deux existants ou un nouveau code
+ * pays explicitement ajouté au registre.
+ */
+export async function upsertLegalEntity(input: {
+  code: string; countryCode: string; isOriginEntity?: boolean;
+  legalName?: string | null; registrationNumber?: string | null; taxId?: string | null;
+  address?: string | null; legalRepresentative?: string | null; active?: boolean;
+}): Promise<LegalEntity> {
+  const [row] = await db.insert(docLegalEntities).values({
+    code: input.code, countryCode: input.countryCode.toUpperCase(),
+    isOriginEntity: input.isOriginEntity ?? false,
+    legalName: input.legalName ?? null, registrationNumber: input.registrationNumber ?? null,
+    taxId: input.taxId ?? null, address: input.address ?? null,
+    legalRepresentative: input.legalRepresentative ?? null, active: input.active ?? true,
+  }).onConflictDoUpdate({
+    target: docLegalEntities.code,
+    set: {
+      countryCode: input.countryCode.toUpperCase(),
+      isOriginEntity: input.isOriginEntity ?? false,
+      legalName: input.legalName ?? null, registrationNumber: input.registrationNumber ?? null,
+      taxId: input.taxId ?? null, address: input.address ?? null,
+      legalRepresentative: input.legalRepresentative ?? null, active: input.active ?? true,
+      updatedAt: new Date(),
+    },
+  }).returning();
+  return row;
+}
+
+/**
+ * Ligne d'identifiants légaux formatée selon le pays de l'entité — jamais un
+ * libellé "SIRET"/"TVA" (France) ni "RCCM"/"NIF" (Guinée) codé en dur dans le
+ * HTML du template : c'est ce qui empêchait la France de rester une entité
+ * locale comme une autre. Un pays sans convention connue reste générique.
+ */
+function formatIssuerLegalLine(entity: LegalEntity | null): string {
+  if (!entity) return CHAMP_A_COMPLETER;
+  const reg = entity.registrationNumber ?? CHAMP_A_COMPLETER;
+  const tax = entity.taxId ?? CHAMP_A_COMPLETER;
+  if (entity.countryCode === "FR") return `SIRET : ${reg} · TVA : ${tax}`;
+  if (entity.countryCode === "GN") return `RCCM : ${reg} · NIF : ${tax}`;
+  return `Immatriculation : ${reg} · Identifiant fiscal : ${tax}`;
+}
+
+/**
+ * Rend un template pour l'entité juridique réelle de l'opération (règle #4).
+ * Sans legalEntityCode, ou si l'entité est inconnue/inactive, les champs
+ * légaux restent "[À COMPLÉTER]" — jamais un repli silencieux vers la France
+ * ou une autre entité par défaut.
+ */
+export async function renderDocumentPourEntite(
+  html: string,
+  vars: Record<string, string | number>,
+  legalEntityCode?: string | null,
+): Promise<string> {
+  const entity = await resolveLegalEntity(legalEntityCode);
+  const entityVars: Record<string, string> = {
+    issuer_name: entity?.legalName ?? CHAMP_A_COMPLETER,
+    issuer_address: entity?.address ?? CHAMP_A_COMPLETER,
+    issuer_legal_line: formatIssuerLegalLine(entity),
+  };
+  // L'entité résolue est la source de vérité légale : elle prime sur toute
+  // valeur issuer_* que l'appelant aurait fournie par erreur.
+  return renderDocument(html, { ...vars, ...entityVars });
 }
 
 export async function listDocuments(ownerUserId?: number, limit = 100) {
@@ -435,12 +634,32 @@ export const documentOsRouter = router({
       .mutation(({ input }) => upsertTemplate(input)),
   }),
 
+  legalEntities: router({
+    list: publicProcedure
+      .input(z.object({ activeOnly: z.boolean().default(true) }).optional())
+      .query(({ input }) => listLegalEntities(input?.activeOnly ?? true)),
+    upsert: adminProcedure
+      .input(z.object({
+        code: z.string().min(1).max(32),
+        countryCode: z.string().length(2),
+        isOriginEntity: z.boolean().optional(),
+        legalName: z.string().max(200).nullable().optional(),
+        registrationNumber: z.string().max(64).nullable().optional(),
+        taxId: z.string().max(64).nullable().optional(),
+        address: z.string().max(2000).nullable().optional(),
+        legalRepresentative: z.string().max(160).nullable().optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(({ input }) => upsertLegalEntity(input)),
+  }),
+
   documents: router({
     create: protectedProcedure
       .input(z.object({
         typeCode: z.string().min(1).max(48),
         language: z.string().min(2).max(8).default("fr"),
         countryCode: z.string().length(2).optional(),
+        legalEntityCode: z.string().min(1).max(32).optional(),
         counterpartyUserId: z.number().int().positive().optional(),
         linkedEntityType: z.string().max(32).optional(),
         linkedEntityId: z.number().int().positive().optional(),
@@ -488,6 +707,7 @@ export const documentOsRouter = router({
         amountTtc: z.number().nonnegative().optional(),
         currency: z.string().max(4).optional(),
         lignes: z.number().int().nonnegative().optional(),
+        legalEntityCode: z.string().min(1).max(32).optional(),
       }))
       .mutation(({ ctx, input }) =>
         recordEdition({ ...input, ownerUserId: ctx.user?.uid })),
@@ -503,11 +723,13 @@ export const documentOsRouter = router({
       typeCode: z.string().min(1).max(48),
       language: z.string().min(2).max(8),
       countryCode: z.string().length(2).optional(),
+      legalEntityCode: z.string().min(1).max(32).optional(),
       variables: z.record(z.union([z.string(), z.number()])),
     }))
     .query(async ({ input }) => {
       const tpl = await getTemplate(input.typeCode, input.language, input.countryCode);
       if (!tpl) return { ok: false as const, reason: "template_not_found" };
-      return { ok: true as const, html: renderDocument(tpl.htmlBody, input.variables), template: { typeCode: tpl.typeCode, language: tpl.language, countryCode: tpl.countryCode } };
+      const html = await renderDocumentPourEntite(tpl.htmlBody, input.variables, input.legalEntityCode);
+      return { ok: true as const, html, template: { typeCode: tpl.typeCode, language: tpl.language, countryCode: tpl.countryCode } };
     }),
 });
