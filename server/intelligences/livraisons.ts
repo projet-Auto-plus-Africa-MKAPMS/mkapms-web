@@ -1222,6 +1222,28 @@ export const LIVRAISONS: Livraison[] = [
       "Recherche préalable poussée (agent dédié) avant d'écrire une seule ligne : a évité de fabriquer une catégorisation CA par univers ou des champs RH qui n'existent nulle part, et a permis de découvrir deux fabrications sœurs non traitées ici (AdminEmployes.tsx sous superadmin/, lié depuis cet écran, et CentrePilotage.tsx sous comptabilite/ qui importe trpc sans jamais l'appeler) — sorties en tâches dédiées plutôt que masquées, de même que les deux vrais manques d'infrastructure (CA par univers, revenu par plan d'abonnement) qui nécessitent une vraie extension de schéma, jamais une invention côté écran. Vérifié réellement avec des données insérées puis nettoyées en base locale : un vrai paiement (15 900 EUR) apparaît correctement dans le CA du mois et dans la liste des derniers paiements ; le compte de test réel (rôle PDG) apparaît correctement dans l'onglet Équipe sans aucune donnée inventée ; une vraie alerte Smart Engine insérée apparaît dans l'onglet Alertes, et le bouton « Marquer comme résolue » a réellement mis à jour son statut en base (vérifié par relecture directe de la table). Un vrai bug attrapé par Playwright pendant la vérification, hérité tel quel de l'ancien fichier fabriqué sans jamais avoir été corrigé : un <button> imbriqué dans un <button> (carte CA cliquable contenant les boutons de période J/S/M/A), HTML invalide générant un avertissement React — corrigé en transformant le conteneur en div avec role=button. Un vrai défaut de dépendance non déclarée trouvé par le générateur (accounting_internal → smart, l'ancien fichier n'appelait jamais le Smart Engine) : corrigé dans server/engine-registry/catalog.ts, retombé à la ligne de base (608 manques). Typecheck : 49 erreurs préexistantes hors périmètre, aucune nouvelle. Build client et serveur complets réussis.",
     domaine: "confiance",
   },
+  {
+    cle: "demarches-carte-grise-fin-coquilles-vers-cartegrise-router",
+    titre: "8 écrans demarches/*.tsx orphelins reconnectés au moteur carte grise réel (server/routers/cartegrise.ts)",
+    moteurs: ["cartegrise"],
+    quoi:
+      "ChangementAdresse, ChangementTitulaire, DeclarationCession, DuplicataDemarche, EspaceProDemarches, ImmatriculationProvisoire, ImportationVehicule et WWGarage (client/src/pages/demarches/) étaient des coquilles de 13 à 20 lignes : champs de formulaire sans state React, boutons « Télécharger »/« Soumettre »/« Valider » sans le moindre gestionnaire de clic, listes de documents ou de demandes codées en dur (statuts, dates d'expiration inventés). Le vrai moteur carte grise (server/routers/cartegrise.ts, table cg_dossiers) existe et fonctionne déjà, utilisé par le seul écran honnête client/src/pages/CarteGrise.tsx (onglets Info/Mes dossiers/Nouveau dossier/Espace agence) — jamais trouvé par ces 8 écrans faute d'avoir été branché. Chacun reconnecté à trpc.carteGrise.createDossier avec le type réel de l'énumération cg_dossier_type quand il existe (changement_titulaire, declaration_cession, duplicata, vehicule_etranger, ww_cpi pour l'immatriculation provisoire, w_garage), à trpc.carteGrise.mesDossiers filtré côté client pour l'historique, et à trpc.carteGrise.addDocument + FileUpload (composant réel, /api/upload) pour les pièces jointes. ChangementAdresse n'a aucun type dédié dans le schéma réel : créé en type « autre » avec la nouvelle adresse portée dans le champ notes réel plutôt que d'inventer une colonne. EspaceProDemarches (fausse société « SAS Auto+ » et 3 faux dossiers) reconnecté à trpc.carteGrise.monAgence + dossiersPourAgence, le même moteur agence déjà utilisé par l'onglet Espace agence de CarteGrise.tsx. La fausse « Signature numérique » de DeclarationCession et les statuts de document individuels inventés (valide/en_attente/non_envoyé par pièce) ont été retirés faute de backing réel : le statut réel est celui du dossier entier (cg_dossiers.status), jamais un statut par pièce inventé.",
+    pourquoi:
+      "Poursuite de la tâche de fond déjà identifiée : reconnecter les écrans démarches orphelins au routeur carte grise existant plutôt que d'en laisser huit afficher des formulaires qui ne soumettent jamais rien.",
+    ou: [
+      "client/src/pages/demarches/ChangementAdresse.tsx",
+      "client/src/pages/demarches/ChangementTitulaire.tsx",
+      "client/src/pages/demarches/DeclarationCession.tsx",
+      "client/src/pages/demarches/DuplicataDemarche.tsx",
+      "client/src/pages/demarches/EspaceProDemarches.tsx",
+      "client/src/pages/demarches/ImmatriculationProvisoire.tsx",
+      "client/src/pages/demarches/ImportationVehicule.tsx",
+      "client/src/pages/demarches/WWGarage.tsx",
+    ],
+    lecon:
+      "Vérifié réellement, pas seulement relu : connecté avec un compte particulier réel, un dossier changement_titulaire (réf. CT-…-001) a été réellement créé en base via le formulaire, apparaissant immédiatement dans la liste « Vos dossiers » — puis supprimé après vérification, jamais laissé en base de test. Amélioration mesurée par les générateurs, pas déclarée : 175→163 boutons sans action, 179→167 anomalies cliquables, 608→595 manques moteurs, sans aucune régression. Portée assumée : les 13 autres fichiers du dossier demarches/ (CarteGriseDemarche.tsx et DemarchesGenerale.tsx compris, également à 0 appel trpc) n'ont pas été traités dans ce lot, faute de temps — CarteGrise.tsx expose déjà toutes les démarches de façon générique et pourrait rendre certains de ces doublons obsolètes plutôt qu'à corriger un par un ; à trancher dans un lot dédié plutôt que fabriqué à la hâte ici. Typecheck : 49 erreurs préexistantes hors périmètre, aucune nouvelle. Build client et serveur complets réussis.",
+    domaine: "confiance",
+  },
 ];
 
 /**

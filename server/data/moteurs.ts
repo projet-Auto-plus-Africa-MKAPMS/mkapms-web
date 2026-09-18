@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 608;
+export const MANQUES_TOTAL = 595;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "ecran_sans_contenu": 331,
-  "bouton_sans_action": 178,
+  "ecran_sans_contenu": 330,
+  "bouton_sans_action": 166,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -4038,9 +4038,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/demarches/changement-adresse"
         ],
-        "cliquables": 3,
+        "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 2,
+        "sansAction": 0,
         "textes": 8,
         "mots": 14
       },
@@ -4051,9 +4051,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 7,
-        "mots": 14
+        "sansAction": 0,
+        "textes": 8,
+        "mots": 22
       },
       {
         "fichier": "client/src/pages/demarches/DeclarationCession.tsx",
@@ -4062,7 +4062,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 1,
+        "sansAction": 0,
         "textes": 8,
         "mots": 20
       },
@@ -4082,9 +4082,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/demarches/duplicata-demarche"
         ],
-        "cliquables": 4,
+        "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 2,
+        "sansAction": 0,
         "textes": 6,
         "mots": 10
       },
@@ -4095,20 +4095,20 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 4,
-        "mots": 10
+        "sansAction": 0,
+        "textes": 3,
+        "mots": 6
       },
       {
         "fichier": "client/src/pages/demarches/ImmatriculationProvisoire.tsx",
         "routes": [
           "/demarches/immatriculation-provisoire"
         ],
-        "cliquables": 3,
+        "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 4,
-        "mots": 7
+        "sansAction": 0,
+        "textes": 6,
+        "mots": 20
       },
       {
         "fichier": "client/src/pages/demarches/ImportationVehicule.tsx",
@@ -4117,9 +4117,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 1,
+        "sansAction": 0,
         "textes": 8,
-        "mots": 20
+        "mots": 19
       },
       {
         "fichier": "client/src/pages/demarches/MessagerieDemarches.tsx",
@@ -4225,11 +4225,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/demarches/w-w-garage"
         ],
-        "cliquables": 3,
+        "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 2,
+        "sansAction": 0,
         "textes": 5,
-        "mots": 11
+        "mots": 10
       },
       {
         "fichier": "client/src/pages/superadmin/AdminDemarches.tsx",
@@ -4279,8 +4279,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "acces": [
       "connecte"
     ],
-    "textes": 214,
-    "mots": 640,
+    "textes": 216,
+    "mots": 655,
     "battement": "sonde",
     "manques": [
       {
@@ -4288,52 +4288,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "client/src/pages/demarches/AlertesDemarches.tsx (2 texte(s))"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Télécharger » client/src/pages/demarches/ChangementAdresse.tsx:11"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Valider le changement » client/src/pages/demarches/ChangementAdresse.tsx:12"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Soumettre le dossier » client/src/pages/demarches/ChangementTitulaire.tsx:15"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Valider la cession » client/src/pages/demarches/DeclarationCession.tsx:11"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Télécharger » client/src/pages/demarches/DuplicataDemarche.tsx:13"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Demander le duplicata » client/src/pages/demarches/DuplicataDemarche.tsx:14"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Nouveau dossier » client/src/pages/demarches/EspaceProDemarches.tsx:14"
-      },
-      {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/demarches/EspaceProDemarches.tsx (4 texte(s))"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Télécharger » client/src/pages/demarches/ImmatriculationProvisoire.tsx:9"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Demander WW provisoire » client/src/pages/demarches/ImmatriculationProvisoire.tsx:10"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/demarches/ImmatriculationProvisoire.tsx (4 texte(s))"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Soumettre le dossier import » client/src/pages/demarches/ImportationVehicule.tsx:10"
+        "detail": "client/src/pages/demarches/EspaceProDemarches.tsx (3 texte(s))"
       },
       {
         "genre": "bouton_sans_action",
@@ -4366,14 +4322,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/demarches/VerificationIA.tsx (3 texte(s))"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Renouveler » client/src/pages/demarches/WWGarage.tsx:15"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Nouvelle demande WW » client/src/pages/demarches/WWGarage.tsx:17"
       },
       {
         "genre": "dependance_sans_preuve",
