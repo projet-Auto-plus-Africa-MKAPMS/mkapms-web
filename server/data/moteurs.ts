@@ -18643,7 +18643,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "redirection-engine/router.ts filtre par rôle (procédure pro/admin/direction/PDG)"
       ],
       "smart": [
-        "redirection-engine/service.ts importe smart-engine/services/activity-log.ts"
+        "redirection-engine/service.ts importe smart-engine/services/activity-log.ts",
+        "redirection-engine/service.ts charge smart-engine/services/auto-fix.ts"
       ]
     },
     "dependants": [
