@@ -26,6 +26,11 @@ export const env = {
   // Non branchée tant que la clé n'est pas fournie ; le tableau de bord
   // affiche alors uniquement les métriques mesurées en interne.
   GOOGLE_SEARCH_CONSOLE_KEY: get("GOOGLE_SEARCH_CONSOLE_KEY"),
+  // Calcul de distance routière réelle (livraison/acheminement véhicule,
+  // server/vehicle-delivery/routing.ts) — Google Maps Distance Matrix API.
+  // Tant que la clé n'est pas fournie, aucune distance n'est calculée : le
+  // devis reste honnêtement "non mesuré", jamais une distance approximée.
+  GOOGLE_MAPS_API_KEY: get("GOOGLE_MAPS_API_KEY"),
   // Vérification de propriété Google (Search Console, Merchant Center).
   // Plusieurs jetons possibles, séparés par une virgule, sous la forme
   // « google<jeton>.html », « google<jeton> » ou « <jeton> » : permet de

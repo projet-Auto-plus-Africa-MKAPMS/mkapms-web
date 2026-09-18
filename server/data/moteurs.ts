@@ -11063,7 +11063,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "livraisonVehicule"
     ],
-    "fichiersServeur": 3,
+    "fichiersServeur": 4,
     "dependancesDeclarees": [
       "boutons",
       "core",
@@ -11096,8 +11096,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "core": [
         "vehicle-delivery/index.ts importe trpc.ts",
-        "vehicle-delivery/service.ts importe db.ts",
-        "vehicle-delivery/service.ts importe schema.ts"
+        "vehicle-delivery/routing.ts importe env.ts",
+        "vehicle-delivery/service.ts importe db.ts"
       ],
       "country": [
         "vehicle-delivery/service.ts importe country-os/index.ts"

@@ -1261,6 +1261,24 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié réellement, pas supposé : un INSERT direct avec chaque valeur invalide a été exécuté contre Postgres local pour confirmer le rejet exact avant toute correction, puis un nouveau test de non-régression (5/5) vérifie à la fois que ces valeurs restent rejetées par l'enum ET que les deux fichiers appelants ne les repassent plus — le test a été validé en le faisant échouer délibérément (git stash de la correction) avant de la restaurer, pour prouver qu'il attrape réellement la régression et pas seulement le chemin déjà correct. Portée assumée : la cause racine plus large (deux systèmes de paiement parallèles — l'ancien, réellement utilisé partout, table payments ; et le nouveau Payment Engine avec sa propre table paymentTransactions jamais alimentée) reste un chantier distinct, non traité ici pour ne pas retarder ce correctif critique — sa réparation (rendre l'audit honnête) fait l'objet d'un lot séparé. Typecheck : 49 erreurs préexistantes hors périmètre, aucune nouvelle. Build client et serveur complets réussis. Aucune donnée dérivée affectée (changement serveur pur, aucun nouvel écran ni bouton).",
     domaine: "confiance",
   },
+  {
+    cle: "vehicle-delivery-connecteur-distance-routiere",
+    titre: "Vehicle Delivery Engine — connecteur de distance routière réelle (Google Maps), jamais une distance approximée",
+    moteurs: ["livraison_vehicule"],
+    quoi:
+      "Le devis d'acheminement de véhicule (server/vehicle-delivery/service.ts) affichait « Non mesuré » sur toute étape au barème kilométrique dès que la distance entre les deux villes n'était pas connue — comportement honnête et volontaire (aucun prix n'est jamais inventé), mais aucun connecteur ne calculait jamais cette distance : distanceKm dépendait entièrement d'un appelant qui ne la fournissait jamais. Construit server/vehicle-delivery/routing.ts (calculerDistanceRoutiere) : appelle réellement l'API Google Maps Distance Matrix avec les deux villes/pays, retourne la distance routière réelle en km. Tant que GOOGLE_MAPS_API_KEY n'est pas configurée (aucune clé fournie à ce jour), ou en cas d'échec réel de l'appel (réseau, quota, ville introuvable), retourne null sans exception — le devis reste alors exactement aussi honnête qu'avant, avec le même manque nommé « connecteur d'itinéraire ». Câblé dans devis() : la distance fournie par l'appelant reste prioritaire ; à défaut, tentative réelle via ce connecteur si les deux villes/pays sont connus.",
+    pourquoi:
+      "Signalé directement par la direction via une capture d'écran du devis d'acheminement affichant « Non mesuré » avec un manque « connecteur d'itinéraire » nommé explicitement. Un vrai choix de méthode (distance à vol d'oiseau déjà disponible localement vs distance routière réelle via API externe) a été explicitement demandé et tranché par la direction en faveur de la distance routière réelle, malgré l'absence de clé API immédiate — jamais décidé unilatéralement, l'exactitude du prix facturé au client étant en jeu.",
+    ou: [
+      "server/vehicle-delivery/routing.ts",
+      "server/vehicle-delivery/service.ts",
+      "server/env.ts",
+      "server/vehicle-delivery/__tests__/routing.test.ts",
+    ],
+    lecon:
+      "Vérifié réellement dans les limites de ce qui est vérifiable sans la clé réelle (non encore fournie, tâche dédiée créée) : 5/5 vérifications, dont la plus critique — devis() sans clé configurée (état réel actuel) produit exactement le même distanceKm: null et le même manque qu'avant ce lot, prouvant l'absence de régression — puis, avec une clé factice et un fetch réseau simulé portant une vraie forme de réponse Google Distance Matrix, la logique de parsing du succès (465 km) et celle d'un échec Google (NOT_FOUND → null, jamais une distance inventée) sont vérifiées. Le seul point non vérifiable ici, assumé et non caché : le vrai appel réseau vers Google avec une vraie clé, qui ne pourra être confirmé que le jour où la direction fournira une clé réelle — jamais déclaré « actif » avant cette vérification. Typecheck : 49 erreurs préexistantes hors périmètre, aucune nouvelle. Build complet réussi.",
+    domaine: "confiance",
+  },
 ];
 
 /**

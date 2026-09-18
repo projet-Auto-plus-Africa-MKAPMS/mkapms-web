@@ -22,6 +22,7 @@ import { annonces } from "../schema.js";
 import { countryCountries } from "../country-os/index.js";
 import { evaluateAction, reglesConfirmees } from "../country-policy/service.js";
 import { emitSafe } from "../event-bus/service.js";
+import { calculerDistanceRoutiere } from "./routing.js";
 import {
   VD_CATEGORIES,
   VD_ETAPES,
@@ -371,8 +372,19 @@ export async function devis(input: {
 
   const cat: VdCategorie = categorie ?? "berline";
   const paysArrivee = input.paysArrivee ? input.paysArrivee.toUpperCase() : null;
+  const villeArrivee = input.villeArrivee ?? null;
   const transfrontalier = Boolean(paysDepart && paysArrivee && paysDepart !== paysArrivee);
-  const distanceKm = input.distanceKm ?? null;
+  // Distance fournie par l'appelant en priorité ; sinon, tentative de calcul
+  // routier réel (server/vehicle-delivery/routing.ts) si les deux villes sont
+  // connues. Sans clé configurée ou en cas d'échec réel, reste null — jamais
+  // une distance approximée en remplacement (voir le manque plus bas).
+  let distanceKm = input.distanceKm ?? null;
+  if (distanceKm === null && villeDepart && paysDepart && villeArrivee && paysArrivee) {
+    distanceKm = await calculerDistanceRoutiere(
+      { ville: villeDepart, pays: paysDepart },
+      { ville: villeArrivee, pays: paysArrivee },
+    );
+  }
 
   const compatibles = MODES_PAR_CATEGORIE[cat];
   const mode: VdMode = input.mode && compatibles.includes(input.mode) ? input.mode : compatibles[0];
@@ -458,7 +470,7 @@ export async function devis(input: {
     paysArrivee,
     paysArriveeNom,
     villeDepart,
-    villeArrivee: input.villeArrivee ?? null,
+    villeArrivee,
     transfrontalier,
     distanceKm,
     etapes,
