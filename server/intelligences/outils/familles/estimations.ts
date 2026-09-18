@@ -148,6 +148,21 @@ export const OUTILS_ESTIMATIONS: OutilSpec[] = [
     internalReplacementStatus: "Déjà propriétaire — VO Engine.",
   }),
   outil({
+    toolId: "estimate.vehicle.externalComparison",
+    name: "estimateVehicleExternalComparison",
+    description:
+      "Compare la valeur de marché estimée d'un véhicule à ce qui se vend publiquement à l'extérieur de MKA.P-MS, pays par pays, via une recherche web réelle et une extraction de prix qui ne cite jamais un montant absent des extraits obtenus.",
+    schemaInput: SCHEMA_VEHICULE,
+    schemaOutput: SCHEMA_SORTIE_ESTIMATION,
+    implementationStatus: "IMPLEMENTED",
+    riskLevel: "LOW",
+    allowedRoles: ROLES_LARGES,
+    provider: "recherche_web_externe (Brave Search) + mkapms (ia_texte, via estimate-gateway)",
+    fallback: "Sans WEB_SEARCH_API_KEY, ou sans résultat/prix exploitable : unavailable, jamais un prix inventé.",
+    internalReplacementStatus:
+      "Nouveau — server/market-price-intelligence/service.ts. Recherche web externe : IMPLEMENTED_NOT_CONNECTED tant qu'aucune clé n'est configurée sur ce serveur (voir server/ai-fabric/service.ts).",
+  }),
+  outil({
     toolId: "estimate.garage.repair",
     name: "estimateGarageRepair",
     description: "Montant réel d'un devis garage déjà chiffré par un professionnel. Ne prédit jamais un coût sans devis existant : aucun moteur ne calcule un coût de réparation à partir de symptômes.",

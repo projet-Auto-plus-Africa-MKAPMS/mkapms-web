@@ -12,9 +12,12 @@ import {
   Handshake,
   Store,
   Wrench,
+  Globe2,
+  ExternalLink,
 } from "lucide-react";
 import VehicleIdentification, { type VehicleData } from "../components/VehicleIdentification";
 import { trpc } from "../lib/trpc";
+import { useCurrency } from "../lib/currency";
 
 const ETATS = [
   { value: "excellent", label: "Excellent" },
@@ -36,11 +39,14 @@ function euros(n: number) {
 
 export default function EstimationAuto() {
   const navigate = useNavigate();
+  const { country: paysActuel } = useCurrency();
   const [vehicle, setVehicle] = useState<VehicleData | null>(null);
   const [km, setKm] = useState("");
   const [etat, setEtat] = useState<(typeof ETATS)[number]["value"]>("bon");
   const [erreur, setErreur] = useState<string | null>(null);
   const [repriseEnvoyee, setRepriseEnvoyee] = useState<string | null>(null);
+  const [paysComparaison, setPaysComparaison] = useState(paysActuel ?? "FR");
+  const [comparaisonDemandee, setComparaisonDemandee] = useState(false);
 
   const estimate = trpc.voEngine.estimate.useMutation({
     onError: (e) => setErreur(e.message),
@@ -51,6 +57,16 @@ export default function EstimationAuto() {
   });
 
   const resultat = estimate.data;
+
+  const comparaisonExterne = trpc.voEngine.comparaisonExterne.useQuery(
+    {
+      marque: vehicle?.marque ?? "",
+      modele: vehicle?.modele ?? "",
+      annee: vehicle?.annee ?? undefined,
+      countryCode: paysComparaison || undefined,
+    },
+    { enabled: comparaisonDemandee && Boolean(resultat && vehicle) },
+  );
 
   const lancerEstimation = () => {
     if (!vehicle) return;
@@ -157,6 +173,61 @@ export default function EstimationAuto() {
               </p>
               <p className="text-[11px] text-[#6B7280] mt-0.5">{resultat.disclaimer}</p>
             </div>
+          </div>
+
+          {/* Comparaison de prix externe par pays (LOT IA02G) */}
+          <div className="rounded-xl bg-white border border-[#E5E7EB] p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <Globe2 size={14} className="text-[#6B7280]" />
+              <p className="text-[11px] font-bold text-[#111]">Comparer avec le marche public a l'exterieur</p>
+            </div>
+            <div className="flex gap-2">
+              <input
+                value={paysComparaison}
+                onChange={(e) => { setPaysComparaison(e.target.value.toUpperCase().slice(0, 4)); setComparaisonDemandee(false); }}
+                placeholder="Code pays (ex : FR, CI, MA)"
+                className="flex-1 rounded-lg border border-[#E5E7EB] px-3 py-2 text-xs"
+              />
+              <button
+                type="button"
+                onClick={() => setComparaisonDemandee(true)}
+                disabled={comparaisonExterne.isFetching}
+                className="rounded-lg bg-[#111] px-3 py-2 text-[11px] font-bold text-white disabled:opacity-60"
+              >
+                {comparaisonExterne.isFetching ? "Recherche..." : "Comparer"}
+              </button>
+            </div>
+
+            {comparaisonDemandee && comparaisonExterne.data && (
+              <div className="pt-1">
+                {comparaisonExterne.data.status === "ok" && comparaisonExterne.data.amount !== null ? (
+                  <div>
+                    <p className="text-[11px] text-[#111]">
+                      Prix publics releves sur ce marche : <strong>{comparaisonExterne.data.minAmount} - {comparaisonExterne.data.maxAmount} {comparaisonExterne.data.currency}</strong>
+                    </p>
+                    <p className="text-[10px] text-[#6B7280] mt-0.5">{comparaisonExterne.data.assumptions[0]}</p>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-[#6B7280]">
+                    {comparaisonExterne.data.missingData[0] ?? "Comparaison externe indisponible pour ce marche."}
+                  </p>
+                )}
+                {(comparaisonExterne.data.externalSources?.length ?? 0) > 0 && (
+                  <ul className="mt-2 space-y-1">
+                    {comparaisonExterne.data.externalSources!.map((s) => (
+                      <li key={s.url}>
+                        <a href={s.url} target="_blank" rel="noopener noreferrer nofollow" className="text-[10px] text-[#6B7280] underline flex items-center gap-1">
+                          <ExternalLink size={10} /> {s.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+            {comparaisonDemandee && comparaisonExterne.isError && (
+              <p className="text-[11px] text-red-600">Comparaison externe indisponible pour le moment.</p>
+            )}
           </div>
 
           {/* Les suites possibles */}

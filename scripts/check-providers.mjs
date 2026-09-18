@@ -30,6 +30,10 @@ const AUTORISES = new Set([
   // LOT IA02D — test d'indépendance OpenAI : même principe, mêmes garanties
   // (fetch injecté, jamais un appel réseau réel) que le test ci-dessus.
   join("server", "intelligences", "__tests__", "independance-openai.test.ts"),
+  // LOT IA02G — comparaison de prix externe : mêmes garanties, manipule les
+  // variables de clé pour exercer chooseProvider() dans des scénarios réels,
+  // fetch toujours injecté, jamais un appel réseau réel.
+  join("server", "market-price-intelligence", "__tests__", "service.test.ts"),
 ]);
 
 const INTERDITS = [

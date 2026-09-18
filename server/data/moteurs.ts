@@ -6645,6 +6645,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/EstimationAuto.tsx",
+        "route": "/acheter/estimation",
+        "composants": [
+          "lib/currency.tsx"
+        ]
+      },
+      {
         "fichier": "client/src/pages/Abonnements.tsx",
         "route": "/vente/abonnements",
         "composants": [
@@ -9927,12 +9934,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dossiers": [
       "intelligences",
       "governance",
-      "estimate-gateway"
+      "estimate-gateway",
+      "market-price-intelligence"
     ],
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 72,
+    "fichiersServeur": 73,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -10082,7 +10090,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "command_center",
       "continuous_test",
       "event_bus",
-      "investment"
+      "investment",
+      "vo_engine"
     ],
     "evenementsPublies": [
       "intelligences.domaine",
@@ -22846,17 +22855,20 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDeclarees": [
       "achat",
       "core",
-      "country"
+      "country",
+      "intelligences"
     ],
     "dependancesDetectees": [
       "achat",
       "core",
-      "country"
+      "country",
+      "intelligences"
     ],
     "dependances": [
       "achat",
       "core",
-      "country"
+      "country",
+      "intelligences"
     ],
     "integrationsTechniques": [],
     "preuvesDependances": {
@@ -22869,7 +22881,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "vo-engine/service.ts importe schema.ts"
       ],
       "country": [
-        "vo-engine/service.ts importe country-os/index.ts"
+        "vo-engine/service.ts importe country-os/index.ts",
+        "client/src/pages/EstimationAuto.tsx embarque lib/currency.tsx (trpc.currency)"
+      ],
+      "intelligences": [
+        "vo-engine/index.ts importe market-price-intelligence/service.ts"
       ]
     },
     "dependants": [
@@ -22892,11 +22908,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/estimation"
         ],
-        "cliquables": 6,
+        "cliquables": 7,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 21,
-        "mots": 79
+        "textes": 23,
+        "mots": 93
       },
       {
         "fichier": "client/src/pages/RepriseVehicule.tsx",
@@ -22925,6 +22941,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [
       "accepterOffre",
       "addDossierItem",
+      "comparaisonExterne",
       "dossier",
       "estimate",
       "health",
@@ -22946,8 +22963,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 55,
-    "mots": 189,
+    "textes": 57,
+    "mots": 203,
     "battement": "sonde",
     "manques": []
   },

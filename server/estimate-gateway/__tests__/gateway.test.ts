@@ -15,6 +15,7 @@ import { devisGarageRequests, devisItems, deliveryMissions } from "../../schema.
 import { estimate as estimerVoEngine } from "../../vo-engine/service.js";
 import { calculerTarifMission } from "../../routers/livraison.js";
 import {
+  estimerComparaisonExterne,
   estimerConversionDevise,
   estimerDouane,
   estimerLivraisonColis,
@@ -49,6 +50,7 @@ async function main() {
     "estimate.vehicle.tradeIn",
     "estimate.vehicle.retail",
     "estimate.vehicle.margin",
+    "estimate.vehicle.externalComparison",
     "estimate.garage.repair",
     "estimate.parts.price",
     "estimate.rental",
@@ -63,7 +65,7 @@ async function main() {
   for (const id of TOOL_IDS) {
     verif(`1. ${id} est enregistré`, trouver(id) !== null);
   }
-  verif("1. exactement 14 outils estimate.* enregistrés", OUTILS.filter((o) => o.toolId.startsWith("estimate.")).length === 14);
+  verif("1. exactement 15 outils estimate.* enregistrés", OUTILS.filter((o) => o.toolId.startsWith("estimate.")).length === 15);
   verif(
     "1. rental/loa/vtc/customs sont BUSINESS_ENGINE_MISSING",
     ["estimate.rental", "estimate.loa", "estimate.vtc", "estimate.customs"].every(
@@ -88,6 +90,15 @@ async function main() {
 
   const marge = await estimerMarge(params, "test-trace-4");
   verif("2. marge = haut - bas, calcul arithmétique exact", marge.amount === Math.round((direct.high - direct.low) * 100) / 100);
+
+  // ── 2b. Comparaison externe : sans clé WEB_SEARCH_API_KEY, jamais un prix inventé ──
+  const cleAvant = process.env.WEB_SEARCH_API_KEY;
+  delete process.env.WEB_SEARCH_API_KEY;
+  const comparaisonSansCle = await estimerComparaisonExterne(params, "test-trace-1b");
+  verif("2b. sans clé recherche : status unavailable", comparaisonSansCle.status === "unavailable");
+  verif("2b. sans clé recherche : amount null", comparaisonSansCle.amount === null);
+  verif("2b. sans clé recherche : motif nomme la variable manquante", comparaisonSansCle.missingData.some((m) => m.includes("WEB_SEARCH_API_KEY")));
+  if (cleAvant !== undefined) process.env.WEB_SEARCH_API_KEY = cleAvant;
 
   // ── 3. Garage : sans devis, BUSINESS_ENGINE_MISSING — jamais un coût de réparation inventé ──
   const garageSansDevis = await estimerReparationGarage({ devisId: null, userId: PDG_ID }, "test-trace-5");

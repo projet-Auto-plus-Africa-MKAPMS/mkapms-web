@@ -304,7 +304,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "vo_engine",
     label: "VO Engine — estimation & reprise",
     category: "univers",
-    dependencies: ["core","country","achat"],
+    dependencies: ["core","country","achat","intelligences"],
     description:
       "Amont client du VO : estimation en fourchette sur le marché local, demande de reprise et dossier VO de confiance.",
     state: "active",
