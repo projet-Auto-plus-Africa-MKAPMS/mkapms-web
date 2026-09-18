@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 570;
+export const MANQUES_TOTAL = 563;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 141,
+  "bouton_sans_action": 134,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -11444,7 +11444,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 8,
         "parMoteur": 0,
-        "sansAction": 2,
+        "sansAction": 0,
         "textes": 69,
         "mots": 258
       },
@@ -11633,14 +11633,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« Voir sur la carte » client/src/pages/Louer.tsx:492"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Véhicules disponibles » client/src/pages/Louer.tsx:495"
-      },
-      {
-        "genre": "bouton_sans_action",
         "detail": "« = 4 ? \"bg-[#D4AF37]/10 border border-[#D4AF37]/30\" : \"bg-[#F » client/src/pages/ProduitVtcTaxi.tsx:305"
       },
       {
@@ -11758,7 +11750,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 8,
         "parMoteur": 0,
-        "sansAction": 2,
+        "sansAction": 0,
         "textes": 108,
         "mots": 404
       },
@@ -11782,14 +11774,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "mots": 749,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/LocationParticulier.tsx:575"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Voir les véhicules proches » client/src/pages/LocationParticulier.tsx:602"
-      },
       {
         "genre": "bouton_sans_action",
         "detail": "« = 4 ? \"bg-[#D4AF37]/10 border border-[#D4AF37]/30\" : \"bg-[#F » client/src/pages/ProduitParticulier.tsx:302"
@@ -11892,11 +11876,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/pro"
         ],
-        "cliquables": 7,
+        "cliquables": 8,
         "parMoteur": 0,
-        "sansAction": 4,
-        "textes": 89,
-        "mots": 278
+        "sansAction": 1,
+        "textes": 97,
+        "mots": 465
       },
       {
         "fichier": "client/src/pages/ProduitLocation.tsx",
@@ -12057,8 +12041,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 316,
-    "mots": 1080,
+    "textes": 324,
+    "mots": 1267,
     "battement": "sonde",
     "manques": [
       {
@@ -12083,19 +12067,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« Rechercher » client/src/pages/LocationPro.tsx:235"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Appliquer les filtres » client/src/pages/LocationPro.tsx:299"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Voir les véhicules proches » client/src/pages/LocationPro.tsx:496"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Demander un devis flotte » client/src/pages/LocationPro.tsx:520"
+        "detail": "« Demander un devis flotte » client/src/pages/LocationPro.tsx:599"
       },
       {
         "genre": "bouton_sans_action",

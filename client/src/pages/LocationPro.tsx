@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useCurrency } from "../lib/currency";
@@ -150,6 +150,39 @@ export default function LocationPro() {
   const [typeVehicule, setTypeVehicule] = useState("Tous types");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const resultatsRef = useRef<HTMLDivElement | null>(null);
+
+  // Critères réellement appliqués à la liste (validés par « Rechercher »),
+  // distincts de la saisie en cours dans le formulaire — même pattern que
+  // LocationParticulier.tsx.
+  const [criteres, setCriteres] = useState<{ ville?: string; q?: string }>({});
+
+  // Filtres avancés — cases cochées puis appliquées explicitement (bouton
+  // « Appliquer les filtres »), jamais à la frappe.
+  const [filtresCoches, setFiltresCoches] = useState<Set<string>>(new Set());
+  const [filtresAppliques, setFiltresAppliques] = useState<Set<string>>(new Set());
+  const toggleFiltre = (label: string) =>
+    setFiltresCoches((prev) => {
+      const next = new Set(prev);
+      next.has(label) ? next.delete(label) : next.add(label);
+      return next;
+    });
+  // Seuls "Boîte manuelle"/"Boîte automatique" correspondent à un champ
+  // réellement recherchable (annonces.boite) : les autres filtres pro
+  // (volume utile, charge utile, PTAC, hayon, attelage, frigorifique,
+  // disponible immédiatement) n'ont pas d'équivalent dans le moteur
+  // d'annonces aujourd'hui — cochées mais honnêtement sans effet, comme
+  // "Kilométrage illimité" sur la page Particulier.
+  const BOITE_PAR_FILTRE: Record<string, string> = { "Boîte automatique": "automatique", "Boîte manuelle": "manuelle" };
+  const boiteAppliquee = [...filtresAppliques].map((f) => BOITE_PAR_FILTRE[f]).find(Boolean);
+
+  function lancerRecherche() {
+    setCriteres({
+      ville: lieu.trim() || undefined,
+      q: typeVehicule !== "Tous types" ? typeVehicule : undefined,
+    });
+    resultatsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   const filteredVehicules = selectedCat
     ? VEHICULES_PRO.filter((v) => v.categorie === selectedCat)
@@ -158,9 +191,19 @@ export default function LocationPro() {
   // Vraies annonces pro location — additif aux mocks (best-effort).
   const { country } = useCurrency();
   const realAnnonces = trpc.annonces.list.useQuery(
-    { type: "location", categorieAnnonce: "professionnelle", pays: country ?? undefined, limit: 24 },
+    {
+      type: "location",
+      categorieAnnonce: "professionnelle",
+      pays: country ?? undefined,
+      ville: criteres.ville,
+      q: criteres.q,
+      boite: boiteAppliquee,
+      limit: 24,
+    },
     { retry: false },
   );
+  // `annonces.list` renvoie { total, items } : la liste est dans `items`.
+  const annoncesTrouvees = realAnnonces.data?.items ?? [];
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
@@ -232,7 +275,11 @@ export default function LocationPro() {
               </select>
             </div>
           </div>
-          <button className="w-full rounded-xl bg-blue-800 py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md">
+          <button
+            type="button"
+            onClick={lancerRecherche}
+            className="w-full rounded-xl bg-blue-800 py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md"
+          >
             <Search size={16} /> Rechercher
           </button>
         </div>
@@ -292,11 +339,22 @@ export default function LocationPro() {
               "Charge utile", "PTAC", "Hayon", "Attelage", "Frigorifique", "Disponible immédiatement",
             ].map((f) => (
               <label key={f} className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" className="h-4 w-4 rounded border-blue-800 text-blue-800 accent-blue-800" />
+                <input
+                  type="checkbox"
+                  checked={filtresCoches.has(f)}
+                  onChange={() => toggleFiltre(f)}
+                  className="h-4 w-4 rounded border-blue-800 text-blue-800 accent-blue-800"
+                />
                 <span className="text-sm text-[#111]">{f}</span>
               </label>
             ))}
-            <button className="w-full rounded-lg bg-blue-800 py-2.5 text-sm font-bold text-white mt-2">
+            <p className="text-[10px] text-[#9CA3AF]">
+              Seuls « Boîte manuelle » et « Boîte automatique » filtrent réellement les résultats aujourd'hui : les autres critères ne correspondent pas encore à un champ recherchable côté moteur — cochés mais sans effet sur les résultats pour l'instant.
+            </p>
+            <button
+              onClick={() => { setFiltresAppliques(new Set(filtresCoches)); resultatsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+              className="w-full rounded-lg bg-blue-800 py-2.5 text-sm font-bold text-white mt-2"
+            >
               Appliquer les filtres
             </button>
           </div>
@@ -304,14 +362,35 @@ export default function LocationPro() {
       </div>
 
       {/* Section additive — Dernières vraies annonces pro DB */}
-      {(realAnnonces.data?.length ?? 0) > 0 && (
+      <div ref={resultatsRef} />
+      {(criteres.ville || criteres.q || filtresAppliques.size > 0) && (
+        <div className="px-4 mt-6">
+          <div className="flex items-center justify-between rounded-xl bg-white border border-[#E5E7EB] px-3 py-2">
+            <p className="text-xs text-[#6B7280]">
+              Recherche : <span className="font-bold text-[#111]">{[criteres.q, criteres.ville, ...filtresAppliques].filter(Boolean).join(" · ") || "tous les véhicules"}</span>
+              {realAnnonces.isFetching ? " — en cours…" : ` — ${annoncesTrouvees.length} résultat(s)`}
+            </p>
+            <button
+              type="button"
+              onClick={() => { setCriteres({}); setFiltresCoches(new Set()); setFiltresAppliques(new Set()); }}
+              className="text-xs font-bold text-blue-800"
+            >
+              Effacer
+            </button>
+          </div>
+          {!realAnnonces.isFetching && annoncesTrouvees.length === 0 && (
+            <p className="mt-2 text-xs text-[#6B7280]">Aucun véhicule ne correspond à ces critères pour le moment.</p>
+          )}
+        </div>
+      )}
+      {annoncesTrouvees.length > 0 && (
         <div className="px-4 mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-[#111]">Dernières annonces</h2>
-            <span className="text-xs font-semibold text-[#3B82F6]">{realAnnonces.data?.length} annonce{(realAnnonces.data?.length ?? 0) > 1 ? "s" : ""}</span>
+            <span className="text-xs font-semibold text-[#3B82F6]">{annoncesTrouvees.length} annonce{annoncesTrouvees.length > 1 ? "s" : ""}</span>
           </div>
           <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {realAnnonces.data?.map((a) => (
+            {annoncesTrouvees.map((a) => (
               <Link key={a.id} to={`/louer/pro/vehicule/${a.id}`} className="block rounded-xl bg-white border border-[#3B82F6]/40 overflow-hidden active:scale-[0.99] transition hover:shadow-lg">
                 <div className="relative h-[160px] md:h-[180px] lg:h-[200px] bg-[#F5F3EF]">
                   {a.photoPrincipale && <img src={a.photoPrincipale} alt={a.titre ?? ""} className="w-full h-full object-cover" loading="lazy" />}
@@ -493,9 +572,9 @@ export default function LocationPro() {
           </div>
         </div>
         <div className="px-4 py-3">
-          <button className="w-full rounded-xl bg-blue-800 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1.5 active:scale-[0.98] transition">
-            <Navigation size={12} /> Voir les véhicules proches
-          </button>
+          <Link to="/carte" className="w-full rounded-xl bg-blue-800 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1.5 active:scale-[0.98] transition">
+            <Navigation size={12} /> Voir les agences proches
+          </Link>
         </div>
       </div>
 
