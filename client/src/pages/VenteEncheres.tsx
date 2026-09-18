@@ -242,6 +242,7 @@ export default function VenteEncheres() {
           : "Le detail du lot n'est plus disponible en ligne.",
         "Les pieces originales du vehicule ne sont pas archivees dans la plateforme : elles sont remises lors du retrait. Ce bordereau ne les remplace pas.",
       ],
+      entiteLiee: { type: "enchere", id: e.lotId },
     });
     showToast(ok ? `Bordereau du lot ${e.lotId} ouvert — enregistrable en PDF` : "Le navigateur a bloque la fenetre d'impression");
   }
@@ -285,6 +286,7 @@ export default function VenteEncheres() {
         `Documents annonces : ${lot.rapportDocuments.join(", ")}.`,
         "Rapport etabli sur les constats declares au lot. Il ne remplace pas une expertise contradictoire sur place.",
       ],
+      entiteLiee: { type: "enchere", id: lot.id },
     });
     showToast(ok ? `Rapport du lot ${lot.id} ouvert — enregistrable en PDF` : "Le navigateur a bloque la fenetre d'impression");
   }

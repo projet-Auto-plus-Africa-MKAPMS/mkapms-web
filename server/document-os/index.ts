@@ -295,6 +295,11 @@ export async function recordEdition(input: {
   lignes?: number;
   // Entité juridique réelle de l'opération, quand l'écran appelant la connaît déjà (chantier #35).
   legalEntityCode?: string | null;
+  // Objet métier réel auquel ce document se rattache (règle #10) — annonce, dossier,
+  // enchère, mission... Jamais déduit : fourni explicitement par l'écran appelant,
+  // ou absent quand le document est un rapport agrégé sans objet unique.
+  linkedEntityType?: string;
+  linkedEntityId?: number;
 }): Promise<{ ok: boolean; reference: string | null }> {
   try {
     const row = await createDocument({
@@ -303,6 +308,8 @@ export async function recordEdition(input: {
       amountTtc: input.amountTtc,
       currency: input.currency,
       legalEntityCode: input.legalEntityCode ?? null,
+      linkedEntityType: input.linkedEntityType,
+      linkedEntityId: input.linkedEntityId,
       metadata: {
         canal: input.canal,
         ecran: input.ecran.slice(0, 160),
@@ -708,6 +715,8 @@ export const documentOsRouter = router({
         currency: z.string().max(4).optional(),
         lignes: z.number().int().nonnegative().optional(),
         legalEntityCode: z.string().min(1).max(32).optional(),
+        linkedEntityType: z.string().max(32).optional(),
+        linkedEntityId: z.number().int().positive().optional(),
       }))
       .mutation(({ ctx, input }) =>
         recordEdition({ ...input, ownerUserId: ctx.user?.uid })),

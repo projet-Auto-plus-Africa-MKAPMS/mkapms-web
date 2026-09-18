@@ -684,7 +684,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "intelligences",
     label: "MKA.P-MS AI",
     category: "transversal",
-    dependencies: ["core","smart","ai_fabric","command_center","code_graph","completion_center","connaissance_auto","continuous_test","event_bus","identity","monitoring","resilience","support"],
+    dependencies: ["core","smart","ai_fabric","command_center","code_graph","completion_center","connaissance_auto","continuous_test","document","event_bus","identity","monitoring","resilience","support"],
     description:
       "Seule couche qui appelle réellement un fournisseur de modèle. Deux côtés séparés côté serveur : direction (PDG seul — contexte interne, commandes, écriture de code proposée) et public (assistant automobile encadré, sans accès interne). Chaque échange conserve fournisseur, modèle, jetons, durée et motif d'échec ; un appel impossible affiche sa cause au lieu d'une réponse fabriquée.",
     state: "active",

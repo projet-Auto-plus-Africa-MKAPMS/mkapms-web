@@ -60,6 +60,7 @@ export default function AttestationVente() {
           doc.verification ? `Vérification du document : ${doc.verification}` : "",
         ].filter(Boolean),
         typeDocument: "attestation",
+        entiteLiee: { type: "annonce", id: annonceId },
       });
       if (!ouvert) {
         setMessage(
