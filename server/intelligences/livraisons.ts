@@ -1244,6 +1244,23 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié réellement, pas seulement relu : connecté avec un compte particulier réel, un dossier changement_titulaire (réf. CT-…-001) a été réellement créé en base via le formulaire, apparaissant immédiatement dans la liste « Vos dossiers » — puis supprimé après vérification, jamais laissé en base de test. Amélioration mesurée par les générateurs, pas déclarée : 175→163 boutons sans action, 179→167 anomalies cliquables, 608→595 manques moteurs, sans aucune régression. Portée assumée : les 13 autres fichiers du dossier demarches/ (CarteGriseDemarche.tsx et DemarchesGenerale.tsx compris, également à 0 appel trpc) n'ont pas été traités dans ce lot, faute de temps — CarteGrise.tsx expose déjà toutes les démarches de façon générique et pourrait rendre certains de ces doublons obsolètes plutôt qu'à corriger un par un ; à trancher dans un lot dédié plutôt que fabriqué à la hâte ici. Typecheck : 49 erreurs préexistantes hors périmètre, aucune nouvelle. Build client et serveur complets réussis.",
     domaine: "confiance",
   },
+  {
+    cle: "payment-engine-fix-enum-invalide-devis-cartegrise",
+    titre: "[CRITIQUE] Paiement devis et abonnements/packs carte grise réellement cassés — valeur enum invalide",
+    moteurs: ["payment"],
+    quoi:
+      "devis.ts (payerDevis) et cartegrise.ts (souscrireAbonnement, acheterPack) appelaient createPaymentCheckout() avec un paymentTypeSql explicite (« garage_prestation », « carte_grise ») absent de l'énumération Postgres réelle payment_type (rental_caution, society_acompte, pro_subscription, franchise_subscription, vehicle_boost, vehicle_purchase). Confirmé par un INSERT direct en base locale : Postgres rejette avec « invalid input value for enum payment_type ». Concrètement : tout client réel payant un devis garage accepté, ou toute agence souscrivant un abonnement ou achetant un pack de dossiers carte grise, recevait une erreur serveur au lieu d'un paiement — trois parcours de paiement réels et déjà exposés aux utilisateurs, cassés depuis leur écriture. Corrigé en retirant les trois overrides invalides : le sqlTypeMap déjà présent dans checkout.ts sait mapper ces kinds (garage_prestation, carte_grise_service) vers « vehicle_boost », une valeur réellement acceptée — jamais un nouveau code, juste laisser le mécanisme existant faire son travail.",
+    pourquoi:
+      "Découvert en creusant le signalement direct de la direction sur le Centre de contrôle (écran « Cas de paiement », majoritairement rouge) : l'investigation a révélé que certains cas rouges reflètent un vrai système de paiement (payments/Stripe) invisible à l'audit du Payment Engine (qui n'observe qu'une table paymentTransactions dans laquelle rien n'écrit jamais) plutôt qu'une absence de code — mais elle a aussi mis au jour ce bug d'un tout autre ordre : un paiement réellement câblé qui échoue à chaque tentative réelle.",
+    ou: [
+      "server/routers/devis.ts",
+      "server/routers/cartegrise.ts",
+      "server/payment-engine/__tests__/checkout.test.ts",
+    ],
+    lecon:
+      "Vérifié réellement, pas supposé : un INSERT direct avec chaque valeur invalide a été exécuté contre Postgres local pour confirmer le rejet exact avant toute correction, puis un nouveau test de non-régression (5/5) vérifie à la fois que ces valeurs restent rejetées par l'enum ET que les deux fichiers appelants ne les repassent plus — le test a été validé en le faisant échouer délibérément (git stash de la correction) avant de la restaurer, pour prouver qu'il attrape réellement la régression et pas seulement le chemin déjà correct. Portée assumée : la cause racine plus large (deux systèmes de paiement parallèles — l'ancien, réellement utilisé partout, table payments ; et le nouveau Payment Engine avec sa propre table paymentTransactions jamais alimentée) reste un chantier distinct, non traité ici pour ne pas retarder ce correctif critique — sa réparation (rendre l'audit honnête) fait l'objet d'un lot séparé. Typecheck : 49 erreurs préexistantes hors périmètre, aucune nouvelle. Build client et serveur complets réussis. Aucune donnée dérivée affectée (changement serveur pur, aucun nouvel écran ni bouton).",
+    domaine: "confiance",
+  },
 ];
 
 /**

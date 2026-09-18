@@ -332,7 +332,6 @@ export const carteGriseRouter = router({
         metadata: { abonnementId: input.abonnementId, type: "cg_abonnement" },
         successPath: `/carte-grise/agence?subscribed=${input.abonnementId}`,
         cancelPath: `/carte-grise/agence?canceled=1`,
-        paymentTypeSql: "carte_grise",
       });
       return { url };
     }),
@@ -364,7 +363,6 @@ export const carteGriseRouter = router({
         metadata: { packId: input.packId, type: "cg_pack", nbDossiers: pack.nbDossiers },
         successPath: `/carte-grise/agence?pack=${input.packId}`,
         cancelPath: `/carte-grise/agence?canceled=1`,
-        paymentTypeSql: "carte_grise",
       });
       return { url };
     }),
