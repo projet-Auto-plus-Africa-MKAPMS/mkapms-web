@@ -1351,6 +1351,7 @@ const ALERT_LEVEL_MAP: Record<string, { label: string; dot: string; text: string
 function AlertesTab() {
   const utils = trpc.useUtils();
   const [level, setLevel] = useState<string | undefined>(undefined);
+  const [motifNonCorrige, setMotifNonCorrige] = useState<string | null>(null);
 
   const stats = trpc.smartEngine.alertLevelStats.useQuery();
   const list = trpc.smartEngine.alerts.useQuery({
@@ -1364,10 +1365,23 @@ function AlertesTab() {
     void utils.smartEngine.alertLevelStats.invalidate();
   };
   const scan = trpc.smartEngine.alertScan.useMutation({ onSuccess: refresh });
-  const resolve = trpc.smartEngine.resolveAlert.useMutation({ onSuccess: refresh });
+  // « Résolu » ne ment jamais : si la cause n'a pas pu être réellement
+  // corrigée (ex: bouton toujours sans action dans le code), le serveur
+  // renvoie motifNonCorrige — on l'affiche au lieu de laisser croire que
+  // tout est réglé (l'alerte réapparaîtrait sinon sans explication).
+  const resolve = trpc.smartEngine.resolveAlert.useMutation({
+    onSuccess: (data) => { setMotifNonCorrige(data.motifNonCorrige); refresh(); },
+  });
 
   return (
     <div className="space-y-4">
+      {motifNonCorrige && (
+        <div className="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-[11px] text-amber-900">
+          <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+          <p className="flex-1">{motifNonCorrige}</p>
+          <button onClick={() => setMotifNonCorrige(null)} className="shrink-0 font-bold">✕</button>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h2 className="text-base font-bold text-[#111]">Alertes</h2>
         <button
@@ -1388,7 +1402,11 @@ function AlertesTab() {
         </p>
       )}
 
-      {resolve.data && (
+      {/* Si motifNonCorrige est présent, la bannière ambrée ci-dessus dit déjà
+          précisément pourquoi rien n'a été corrigé : ne pas ajouter ce
+          second message, générique et potentiellement contradictoire
+          (« ne reviendra plus » alors que la cause persiste réellement). */}
+      {resolve.data && !resolve.data.motifNonCorrige && (
         <p className="text-[11px] font-semibold text-green-700">
           Traité.
           {resolve.data.redirectionFixed && resolve.data.redirectionTarget

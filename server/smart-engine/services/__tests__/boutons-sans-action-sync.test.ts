@@ -12,12 +12,12 @@
  * Lancement : `npx tsx server/smart-engine/services/__tests__/boutons-sans-action-sync.test.ts`
  */
 import assert from "node:assert/strict";
-import { and, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../../../db.js";
 import { smartAlerts, smartHealthChecks } from "../../schema.js";
 import { BOUTONS_SANS_ACTION } from "../../../data/boutons-sans-action.js";
 import { syncBoutonsSansAction } from "../health-monitor.js";
-import { runAlertScan } from "../alert-engine.js";
+import { runAlertScan, resolveAlertWithLearning } from "../alert-engine.js";
 
 let ok = 0;
 let total = 0;
@@ -86,6 +86,49 @@ async function main() {
   await runAlertScan();
   const apres = await db.select({ n: sql<number>`count(*)::int` }).from(smartAlerts).where(sql`${smartAlerts.metadata}->>'signature' = ${signaturePremier}`);
   verif("5. un second scan ne recrée pas la même alerte (déduplication réelle)", avant[0].n === apres[0].n);
+
+  // ── 6. « Résolu » sur un bouton toujours mort dans le code : jamais de faux
+  // « ok », jamais de réouverture au scan suivant (bug direction : « je clique
+  // Résolu, je rafraîchis, ça revient direct ») ──────────────────────────────
+  const resolution = await resolveAlertWithLearning({ id: alertePremier!.id, status: "resolved" });
+  verif("6. la résolution d'un bouton toujours mort renvoie un motif honnête", typeof resolution.motifNonCorrige === "string" && resolution.motifNonCorrige.length > 0);
+  verif("6. la résolution d'un bouton toujours mort ne prétend pas avoir corrigé la cause", resolution.causeFixed === false);
+  const [checkApresResolution] = await db
+    .select({ status: smartHealthChecks.status })
+    .from(smartHealthChecks)
+    .where(and(eq(smartHealthChecks.page, premier.fichier), eq(smartHealthChecks.element, `static_L${premier.ligne}`)))
+    .limit(1);
+  verif("6. le contrôle de santé reste « broken » (aucun mensonge d'état)", checkApresResolution?.status === "broken");
+  const [alerteApresResolution] = await db
+    .select({ status: smartAlerts.status })
+    .from(smartAlerts)
+    .where(eq(smartAlerts.id, alertePremier!.id))
+    .limit(1);
+  verif(
+    "6. l'alerte n'est jamais marquée « resolved » pour une cause qui persiste (rétrogradée en « acknowledged »)",
+    alerteApresResolution?.status === "acknowledged",
+  );
+
+  // Un nouveau scan ne doit PAS rouvrir l'alerte (lastCheckedAt inchangé, donc
+  // pas de nouvelle occurrence prouvée après la résolution) — c'est exactement
+  // le bug signalé : avant ce correctif, syncBoutonsSansAction() aurait vu le
+  // contrôle de santé passer de « ok » (faussement) à « broken » avec un
+  // nouveau lastCheckedAt, ce qui rouvrait l'alerte immédiatement.
+  await runAlertScan();
+  const [alerteApresScan] = await db
+    .select({ id: smartAlerts.id, status: smartAlerts.status })
+    .from(smartAlerts)
+    .where(sql`${smartAlerts.metadata}->>'signature' = ${signaturePremier}`)
+    .orderBy(desc(smartAlerts.id))
+    .limit(1);
+  verif(
+    "6. un scan après résolution ne rouvre pas l'alerte (plus de boucle Résolu → revient direct)",
+    alerteApresScan?.status === "acknowledged",
+  );
+
+  // Nettoyage : ne pas laisser une alerte « acknowledged » de ce test bloquer
+  // la ré-ouverture réelle (étape 4) lors d'une prochaine exécution.
+  await db.delete(smartAlerts).where(sql`${smartAlerts.metadata}->>'signature' = ${signaturePremier}`);
 
   console.log(`\n${ok}/${total} vérifications réussies.`);
   if (ok !== total) process.exitCode = 1;
