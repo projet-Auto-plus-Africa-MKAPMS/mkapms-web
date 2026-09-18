@@ -39,11 +39,22 @@ const KEY = `${PREFIX}bouton_demo`;
 const KEY_PATH = `path:/test-redir-inexistante`;
 const TEST_USER = 900201;
 
+// Auto-réparation immédiate (voir plus bas) : clés/chemins réels non testés
+// ailleurs, choisis parce qu'ils n'ont aucune règle/alias préexistant dans
+// cette base et qu'une cible sûre est réellement déductible.
+const KEY_AUTOFIX = "bouton_pieces"; // préfixe connu + route réelle "/pieces"
+const PATH_AUTOFIX = "/favori"; // variante singulier de la route réelle "/favoris"
+const KEY_PATH_AUTOFIX = `path:${PATH_AUTOFIX}`;
+
 async function nettoyer() {
   await db.delete(redirLogs).where(like(redirLogs.key, `${PREFIX}%`));
   await db.delete(redirLogs).where(eq(redirLogs.key, KEY_PATH));
   await db.delete(redirRules).where(like(redirRules.key, `${PREFIX}%`));
   await db.delete(redirRules).where(eq(redirRules.key, KEY_PATH));
+  await db.delete(redirLogs).where(eq(redirLogs.key, KEY_AUTOFIX));
+  await db.delete(redirRules).where(eq(redirRules.key, KEY_AUTOFIX));
+  await db.delete(redirLogs).where(eq(redirLogs.key, KEY_PATH_AUTOFIX));
+  await db.delete(redirRules).where(eq(redirRules.key, KEY_PATH_AUTOFIX));
 }
 
 async function main() {
@@ -91,6 +102,28 @@ async function main() {
   const healInconnu = await resolvePath("/test-redir-jamais-declare-xyz", {});
   verif("resolvePath ne fabrique aucune destination pour un chemin non déclaré", healInconnu.healed === false && healInconnu.target === null);
 
+  // ── 6bis. Auto-réparation IMMÉDIATE (règle direction : dès qu'un problème
+  // survient, le Système Intelligent le résout directement, sans attendre le
+  // prochain scan périodique) : une clé/chemin réel jamais vu, avec une cible
+  // sûre déductible, doit être réparé et résolu dès le tout premier appel ──
+  const autoKey = await resolveKey(KEY_AUTOFIX, { source: "test" });
+  verif(
+    "resolveKey répare immédiatement une clé réelle sans règle vers une route existante",
+    autoKey.matched === true && autoKey.target === "/pieces",
+  );
+  const [regleAutoKey] = await db.select().from(redirRules).where(eq(redirRules.key, KEY_AUTOFIX));
+  verif("resolveKey a réellement créé la règle en base (pas seulement renvoyé une valeur)", !!regleAutoKey && regleAutoKey.target === "/pieces");
+  const autoKeyRejoue = await resolveKey(KEY_AUTOFIX, { source: "test" });
+  verif("un second appel résout via la règle désormais active (idempotent)", autoKeyRejoue.matched === true && autoKeyRejoue.target === "/pieces");
+
+  const autoPath = await resolvePath(PATH_AUTOFIX, { userId: TEST_USER });
+  verif(
+    "resolvePath répare immédiatement un chemin 404 réel vers sa variante existante",
+    autoPath.healed === true && autoPath.target === "/favoris",
+  );
+  const [regleAutoPath] = await db.select().from(redirRules).where(eq(redirRules.key, KEY_PATH_AUTOFIX));
+  verif("resolvePath a réellement créé l'alias en base", !!regleAutoPath && regleAutoPath.target === "/favoris");
+
   // ── 7. Redirections cassées : une clé sans règle apparaît réellement ──
   const KEY_SANS_REGLE = `${PREFIX}sans_regle`;
   await resolveKey(KEY_SANS_REGLE, { source: "test" });
@@ -114,7 +147,7 @@ async function main() {
   await recordTestEvidence({
     domain: "redirection",
     kind: "unit",
-    scenario: "Moteur de redirection : résolution, priorité/désactivation, auto-résolution 404, CRUD, agrégats de direction",
+    scenario: "Moteur de redirection : résolution, priorité/désactivation, auto-réparation immédiate (clé et chemin 404), CRUD, agrégats de direction",
     passed: ok,
     total,
     source: "agent",

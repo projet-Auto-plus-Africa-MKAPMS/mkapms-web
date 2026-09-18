@@ -257,48 +257,69 @@ export async function healRecent404s(opts?: {
   const targets: Array<{ from: string; to: string }> = [];
   for (const r of rows) {
     const from = (r.source ?? "").trim();
-    if (!from || !from.startsWith("/")) continue;
-    if (isKnownRoute(from)) continue; // la page existe déjà — rien à réparer
-
-    const to = inferPathTarget(from);
-    if (!to || to === from) continue;
-
-    const aliasKey = `path:${from}`.slice(0, 128);
-    const [exists] = await db
-      .select({ id: redirRules.id })
-      .from(redirRules)
-      .where(eq(redirRules.key, aliasKey))
-      .limit(1);
-    if (exists) continue;
-
-    await createRule(
-      {
-        key: aliasKey,
-        label: `Auto — chemin ${from} → ${to}`,
-        kind: "route",
-        target: to,
-        active: true,
-        priority: 150,
-        description:
-          "Alias de chemin créé automatiquement par le Système Intelligent (auto-résolution d'une page introuvable). Modifiable par le PDG.",
-      },
-      opts?.userId ?? 0,
-    );
-    await learnFix({
-      problemType: "path_alias",
-      matchKey: aliasKey,
-      action: "create_path_alias",
-      params: { from, to },
-      createdBy: opts?.userId,
-    });
-    targets.push({ from, to });
+    const healed = await healSinglePath(from, opts);
+    if (healed.healed && healed.target) targets.push({ from, to: healed.target });
   }
 
   return { aliasesCreated: targets.length, targets };
 }
 
+/**
+ * Répare UN chemin 404, immédiatement — appelée à la fois par le scan
+ * périodique (ci-dessus, en lot) et par la page 404 elle-même au tout premier
+ * signalement (server/redirection-engine/service.ts::resolvePath), pour que la
+ * toute première personne qui tombe sur une page cassée reparte déjà avec un
+ * alias créé, sans attendre le prochain scan.
+ */
+export async function healSinglePath(
+  from: string,
+  opts?: { userId?: number },
+): Promise<{ healed: boolean; target: string | null }> {
+  if (!from || !from.startsWith("/")) return { healed: false, target: null };
+  if (isKnownRoute(from)) return { healed: false, target: null }; // la page existe déjà — rien à réparer
+
+  const to = inferPathTarget(from);
+  if (!to || to === from) return { healed: false, target: null };
+
+  const aliasKey = `path:${from}`.slice(0, 128);
+  const [exists] = await db
+    .select({ id: redirRules.id, active: redirRules.active })
+    .from(redirRules)
+    .where(eq(redirRules.key, aliasKey))
+    .limit(1);
+  if (exists) {
+    if (!exists.active) {
+      await db.update(redirRules).set({ active: true, updatedAt: new Date() }).where(eq(redirRules.id, exists.id));
+      return { healed: true, target: to };
+    }
+    return { healed: false, target: null }; // déjà réparé
+  }
+
+  await createRule(
+    {
+      key: aliasKey,
+      label: `Auto — chemin ${from} → ${to}`,
+      kind: "route",
+      target: to,
+      active: true,
+      priority: 150,
+      description:
+        "Alias de chemin créé automatiquement par le Système Intelligent (auto-résolution d'une page introuvable). Modifiable par le PDG.",
+    },
+    opts?.userId ?? 0,
+  );
+  await learnFix({
+    problemType: "path_alias",
+    matchKey: aliasKey,
+    action: "create_path_alias",
+    params: { from, to },
+    createdBy: opts?.userId,
+  });
+  return { healed: true, target: to };
+}
+
 /** Déduit une page existante pour un chemin 404 (variantes sûres uniquement). */
-function inferPathTarget(from: string): string | null {
+export function inferPathTarget(from: string): string | null {
   const p = from.replace(/\/+$/, "");
   const variants = new Set<string>();
   // pluriel/singulier du dernier segment

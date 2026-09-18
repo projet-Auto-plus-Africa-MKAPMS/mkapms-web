@@ -29,25 +29,58 @@ export async function resolveKey(
     .orderBy(desc(redirRules.priority), desc(redirRules.updatedAt))
     .limit(1);
 
-  const matched = !!rule;
-
-  await db.insert(redirLogs).values({
-    key,
-    matched,
-    resolvedTo: rule?.target ?? null,
-    source: who?.source ?? null,
-    outcome: matched ? "resolved" : "unmatched",
-    userId: who?.userId ?? null,
-    role: who?.role ?? null,
-  });
-
   if (rule) {
+    await db.insert(redirLogs).values({
+      key,
+      matched: true,
+      resolvedTo: rule.target,
+      source: who?.source ?? null,
+      outcome: "resolved",
+      userId: who?.userId ?? null,
+      role: who?.role ?? null,
+    });
     await db
       .update(redirRules)
       .set({ hitCount: sql`${redirRules.hitCount} + 1` })
       .where(eq(redirRules.id, rule.id));
     return { matched: true, target: rule.target, external: !!rule.external, key };
   }
+
+  // Auto-réparation immédiate (règle direction : « dès qu'il y a un problème,
+  // le Système Intelligent le résout directement ») : plutôt que d'attendre le
+  // prochain scan périodique (jusqu'à 6 h), on tente ici, tout de suite, la
+  // même correction sûre (vers une route client réellement existante
+  // uniquement) que le scan périodique. Import dynamique pour éviter un cycle
+  // (auto-fix.ts importe déjà ce fichier pour createRule).
+  if (key !== "route_404") {
+    try {
+      const { applyRedirectionFix } = await import("../smart-engine/services/auto-fix.js");
+      const fix = await applyRedirectionFix(key, { userId: who?.userId });
+      if (fix.fixed && fix.target) {
+        await db.insert(redirLogs).values({
+          key,
+          matched: true,
+          resolvedTo: fix.target,
+          source: who?.source ?? null,
+          outcome: "resolved",
+          userId: who?.userId ?? null,
+          role: who?.role ?? null,
+        });
+        return { matched: true, target: fix.target, external: false, key };
+      }
+    } catch {
+      /* auto-réparation best-effort : ne bloque jamais la résolution normale */
+    }
+  }
+
+  await db.insert(redirLogs).values({
+    key,
+    matched: false,
+    source: who?.source ?? null,
+    outcome: "unmatched",
+    userId: who?.userId ?? null,
+    role: who?.role ?? null,
+  });
   return { matched: false, target: null, external: false, key };
 }
 
@@ -156,7 +189,31 @@ export async function resolvePath(
     return { healed: true, target: rule.target, source: path };
   }
 
-  // Aucun correctif connu → journaliser le 404 pour apprentissage/supervision.
+  // Aucun alias connu → tenter une réparation immédiate (même heuristique sûre
+  // que le scan périodique : uniquement vers une route client réellement
+  // existante) avant d'abandonner. Ainsi la toute première personne qui tombe
+  // sur une page cassée peut déjà repartir corrigée, sans attendre le prochain
+  // scan (jusqu'à 6 h). Import dynamique pour éviter un cycle.
+  try {
+    const { healSinglePath } = await import("../smart-engine/services/auto-fix.js");
+    const healed = await healSinglePath(path, { userId: who?.userId });
+    if (healed.healed && healed.target) {
+      await db.insert(redirLogs).values({
+        key: `path:${path}`,
+        matched: true,
+        resolvedTo: healed.target,
+        source: path.slice(0, 256),
+        outcome: "auto_healed",
+        userId: who?.userId ?? null,
+        role: who?.role ?? null,
+      });
+      return { healed: true, target: healed.target, source: path };
+    }
+  } catch {
+    /* auto-réparation best-effort : ne bloque jamais la journalisation du 404 */
+  }
+
+  // Aucun correctif possible → journaliser le 404 pour apprentissage/supervision.
   await db.insert(redirLogs).values({
     key: "route_404",
     matched: false,
