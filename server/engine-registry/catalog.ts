@@ -457,7 +457,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "vente",
     label: "Univers Vente Engine",
     category: "univers",
-    dependencies: ["core","permission","achat","notification","payment","smart","vo_espaces","country","boutons","livraison_vehicule"],
+    dependencies: ["core","permission","achat","notification","payment","smart","vo_espaces","country","boutons","livraison_vehicule","garage","messaging"],
     description: "Univers Vente : dépôt d'annonce, gestion, mise en avant, transactions.",
     state: "active",
   },

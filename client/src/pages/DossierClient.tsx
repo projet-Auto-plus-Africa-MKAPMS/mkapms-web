@@ -1,217 +1,208 @@
 import { useState } from "react";
-import { imprimerFeuille } from "../lib/documents";
 import { Link } from "react-router-dom";
+import { imprimerFeuille } from "../lib/documents";
 import { getAnnonceUrl } from "../lib/annonceUrl";
 import {
   ChevronLeft, User, Car, ShoppingCart, Tag, FileText, Calendar,
-  Key, CreditCard, Heart, MessageSquare, Clock,
-  Download, Eye, Wrench, X, CheckCircle, Printer, Phone, Mail
+  Key, CreditCard, Heart, MessageSquare,
+  Download, Eye, Wrench, X, CheckCircle, Printer,
 } from "lucide-react";
-import { DocumentView, buildDevisData, buildFactureData, buildContratData } from "../components/DocumentPDF";
+import { trpc } from "../lib/trpc";
+
+/**
+ * Mon dossier (/dossier-client) — vue centralisée réelle.
+ *
+ * Avant ce lot : chaque onglet (achetés, vendus, devis, réservations,
+ * locations, paiements, favoris, messages) affichait des tableaux
+ * entièrement inventés en dur (véhicules, historiques d'entretien,
+ * documents marqués « Disponible », messages, paiements), sans un seul
+ * appel serveur dans tout le fichier. Chaque onglet reprend maintenant
+ * exactement le moteur réel déjà utilisé par l'écran jumeau honnête
+ * correspondant sous client/src/pages/utilisateurs/ (HistoriqueAchats,
+ * MesVehicules, HistoriqueLocations, FacturesUtilisateur,
+ * HistoriqueEntretiens, MessagerieGlobale, CentreFavorisUtilisateur) et
+ * server/routers/devis.ts — jamais un second registre inventé pour cette
+ * page. Ce qui n'a aucune donnée réelle correspondante (liste de documents
+ * archivés par véhicule, annulation de réservation) a été retiré plutôt
+ * que remplacé par une fabrication.
+ */
 
 type DossierTab = "achetes" | "vendus" | "devis" | "reservations" | "locations" | "paiements" | "favoris" | "messages";
 
-const TABS: { id: DossierTab; label: string; icon: typeof Car; count: number }[] = [
-  { id: "achetes", label: "Achetes", icon: ShoppingCart, count: 2 },
-  { id: "vendus", label: "Vendus", icon: Tag, count: 1 },
-  { id: "devis", label: "Devis", icon: FileText, count: 3 },
-  { id: "reservations", label: "Reservations", icon: Calendar, count: 1 },
-  { id: "locations", label: "Locations", icon: Key, count: 2 },
-  { id: "paiements", label: "Paiements", icon: CreditCard, count: 5 },
-  { id: "favoris", label: "Favoris", icon: Heart, count: 8 },
-  { id: "messages", label: "Messages", icon: MessageSquare, count: 12 },
+const TABS: { id: DossierTab; label: string; icon: typeof Car }[] = [
+  { id: "achetes", label: "Achetés", icon: ShoppingCart },
+  { id: "vendus", label: "Vendus", icon: Tag },
+  { id: "devis", label: "Devis", icon: FileText },
+  { id: "reservations", label: "Réservations", icon: Calendar },
+  { id: "locations", label: "Locations", icon: Key },
+  { id: "paiements", label: "Paiements", icon: CreditCard },
+  { id: "favoris", label: "Favoris", icon: Heart },
+  { id: "messages", label: "Messages", icon: MessageSquare },
 ];
 
-const ACHETES = [
-  { id: 1, nom: "Peugeot 3008 GT Hybrid", prix: "28 500 EUR", date: "15/03/2024", vendeur: "Pro Vente Paris", plaque: "AB-123-CD", km: "15 000 km", photo: "/categories/loc_suv.jpg",
-    historique: [
-      { date: "15/03/2024", event: "Achat sur MKA.P-MS", detail: "Achat auprès de Pro Vente Paris — 28 500 EUR" },
-      { date: "20/03/2024", event: "Carte grise mise à jour", detail: "Nouvelle immatriculation AB-123-CD" },
-      { date: "10/04/2024", event: "Première révision", detail: "Garage Auto Express — vidange + filtres" },
-      { date: "25/05/2024", event: "Contrôle technique", detail: "Résultat : favorable sans contre-visite" },
-    ],
-    documents: [
-      { nom: "Facture d'achat", type: "PDF", date: "15/03/2024", statut: "Disponible" },
-      { nom: "Carte grise", type: "PDF", date: "20/03/2024", statut: "Disponible" },
-      { nom: "Contrôle technique", type: "PDF", date: "25/05/2024", statut: "Disponible" },
-      { nom: "Attestation assurance", type: "PDF", date: "01/04/2024", statut: "Disponible" },
-    ],
-    entretiens: [
-      { date: "10/04/2024", type: "Révision complète", garage: "Garage Auto Express", montant: "350 EUR", statut: "Terminé" },
-      { date: "25/05/2024", type: "Contrôle technique", garage: "CT Auto 93", montant: "75 EUR", statut: "Terminé" },
-      { date: "15/08/2024", type: "Changement plaquettes", garage: "Garage Premium", montant: "280 EUR", statut: "Planifié" },
-    ],
-  },
-  { id: 2, nom: "Renault Clio V TCe", prix: "18 500 EUR", date: "10/01/2024", vendeur: "Particulier", plaque: "EF-456-GH", km: "5 000 km", photo: "/categories/loc_citadine.jpg",
-    historique: [
-      { date: "10/01/2024", event: "Achat sur MKA.P-MS", detail: "Achat auprès d'un particulier — 18 500 EUR" },
-      { date: "15/01/2024", event: "Carte grise mise à jour", detail: "Nouvelle immatriculation EF-456-GH" },
-    ],
-    documents: [
-      { nom: "Facture d'achat", type: "PDF", date: "10/01/2024", statut: "Disponible" },
-      { nom: "Carte grise", type: "PDF", date: "15/01/2024", statut: "Disponible" },
-    ],
-    entretiens: [
-      { date: "15/06/2024", type: "Première révision", garage: "Garage Auto Express", montant: "220 EUR", statut: "Planifié" },
-    ],
-  },
-];
+const PAIEMENT_STATUT: Record<string, { label: string; color: string }> = {
+  paid: { label: "Payé", color: "text-green-600 bg-green-50" },
+  pending: { label: "En attente", color: "text-amber-600 bg-amber-50" },
+  failed: { label: "Échoué", color: "text-red-600 bg-red-50" },
+  refunded: { label: "Remboursé", color: "text-slate-600 bg-slate-100" },
+  cancelled: { label: "Annulé", color: "text-slate-600 bg-slate-100" },
+};
 
-const VENDUS = [
-  { id: 1, nom: "Citroen C3 Aircross", prix: "14 200 EUR", date: "05/02/2024", acheteur: "Particulier via MKA.P-MS", plaque: "IJ-789-KL", photo: "/categories/loc_suv.jpg" },
-];
+const BOOKING_STATUT: Record<string, string> = {
+  pending: "En attente",
+  accepted: "Acceptée",
+  rejected: "Refusée",
+  cancelled: "Annulée",
+  completed: "Terminée",
+};
 
-const DEVIS_LIST = [
-  { id: 1, type: "Revision complete", garage: "Garage Auto Express", montant: "350 EUR", date: "20/05/2024", statut: "Accepte", vehicule: "Peugeot 3008 GT", tel: "01 42 33 44 55", email: "contact@autoexpress.fr" },
-  { id: 2, type: "Changement freins AV", garage: "Garage Premium Motors", montant: "280 EUR", date: "15/04/2024", statut: "En attente", vehicule: "Peugeot 3008 GT", tel: "01 55 66 77 88", email: "info@premiummotors.fr" },
-  { id: 3, type: "Pneus hiver x4", garage: "Garage Auto Express", montant: "520 EUR", date: "01/11/2023", statut: "Termine", vehicule: "Renault Clio V", tel: "01 42 33 44 55", email: "contact@autoexpress.fr" },
-];
+const BOOKING_TYPE_LABEL: Record<string, string> = {
+  test_drive: "Essai routier",
+  purchase_visit: "Visite d'achat",
+  rental: "Location",
+};
 
-const RESERVATIONS = [
-  { id: 1, vehicule: "BMW Serie 5 530e", type: "Achat", acompte: "500 EUR", date: "28/05/2024", statut: "Active", vendeur: "MKA.P-MS Officiel", ref: "RES-2024-0042" },
-];
+const RDV_STATUT: Record<string, string> = {
+  en_attente: "En attente",
+  confirme: "Confirmé",
+  honore: "Honoré",
+  annule_client: "Annulé par vous",
+  annule_garage: "Annulé par le garage",
+  no_show: "Non présenté",
+};
 
-const LOCATIONS_LIST = [
-  { id: 1, vehicule: "Mercedes Classe E Break", duree: "15/03 au 15/04/2024", prix: "1 350 EUR", statut: "Terminee", agence: "MKA.P-MS Location Paris", ref: "LOC-2024-0018" },
-  { id: 2, vehicule: "Peugeot 208", duree: "01/06 au 07/06/2024", prix: "196 EUR", statut: "En cours", agence: "MKA.P-MS Location Lyon", ref: "LOC-2024-0034" },
-];
+const DEVIS_STATUT: Record<string, string> = {
+  nouveau: "Nouveau",
+  recu_par_garages: "Envoyé aux garages",
+  offres_recues: "Offres reçues",
+  accepte: "Accepté",
+  refuse: "Refusé",
+  annule: "Annulé",
+  termine: "Terminé",
+};
 
-const PAIEMENTS = [
-  { id: 1, objet: "Achat Peugeot 3008 GT", montant: "28 500 EUR", date: "15/03/2024", methode: "Virement", statut: "Paye", ref: "PAY-2024-0001" },
-  { id: 2, objet: "Location Mercedes Classe E", montant: "1 350 EUR", date: "15/03/2024", methode: "CB", statut: "Paye", ref: "PAY-2024-0002" },
-  { id: 3, objet: "Revision Garage Auto Express", montant: "350 EUR", date: "20/05/2024", methode: "CB", statut: "Paye", ref: "PAY-2024-0003" },
-  { id: 4, objet: "Abonnement Pro Premium", montant: "89 EUR/mois", date: "01/06/2024", methode: "CB", statut: "Actif", ref: "PAY-2024-0004" },
-  { id: 5, objet: "Acompte BMW Serie 5", montant: "500 EUR", date: "28/05/2024", methode: "CB", statut: "Reserve", ref: "PAY-2024-0005" },
-];
+const ANNONCE_STATUT: Record<string, string> = {
+  brouillon: "Brouillon",
+  en_validation: "En validation",
+  publiee: "En ligne",
+  vendue: "Vendue",
+  louee: "Louée",
+  archivee: "Archivée",
+  refusee: "Refusée",
+  expiree: "Expirée",
+};
 
-const MESSAGES_LIST = [
-  { id: 1, de: "Garage Auto Express", objet: "Votre revision est terminee", date: "Il y a 2h", lu: false },
-  { id: 2, de: "Pro Vente Paris", objet: "Documents de vente disponibles", date: "Hier", lu: false },
-  { id: 3, de: "MKA.P-MS Location", objet: "Rappel: retour vehicule demain", date: "Hier", lu: true },
-  { id: 4, de: "Support MKA.P-MS", objet: "Bienvenue sur la plateforme", date: "Il y a 3 jours", lu: true },
-];
+type Achat = { id: number; vehicleId: number | null; amount: string; currency: string; status: string; createdAt: string | Date };
+type Intervention = { id: number; garageId: number; annonceId: number | null; motif: string | null; status: string; dateHeure: string | Date };
 
 export default function DossierClient() {
   const [tab, setTab] = useState<DossierTab>("achetes");
-  const [expandedItem, setExpandedItem] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
-  /* Historique reellement editable : la feuille imprimee reprend la chronologie. */
-  function imprimerHistorique(v: typeof ACHETES[0]) {
-    const ok = imprimerFeuille({
-      typeDocument: "rapport_historique",
-      titre: "Historique du vehicule",
-      reference: v.plaque,
-      sousTitre: v.nom,
-      informations: [
-        { libelle: "Vehicule", valeur: v.nom },
-        { libelle: "Immatriculation", valeur: v.plaque },
-        { libelle: "Achete le", valeur: v.date },
-        { libelle: "Vendeur", valeur: v.vendeur },
-        { libelle: "Kilometrage", valeur: v.km },
-      ],
-      colonnes: [
-        { cle: "date", titre: "Date" },
-        { cle: "event", titre: "Evenement" },
-        { cle: "detail", titre: "Detail" },
-      ],
-      lignes: v.historique.map(h => ({ date: h.date, event: h.event, detail: h.detail })),
-      mentions: ["MKA.P-MS — Auto Plus Africa. Historique issu du dossier client."],
-    });
-    showToast(ok ? "Historique ouvert — enregistrable en PDF" : "Le navigateur a bloque la fenetre d'impression");
+  const paiementsQuery = trpc.reservations.mesPaiements.useQuery();
+  const paiements = paiementsQuery.data ?? [];
+  const achats = paiements.filter((p) => p.type === "vehicle_purchase");
+
+  const annoncesQuery = trpc.annonces.mine.useQuery();
+  const mesAnnonces = annoncesQuery.data ?? [];
+  const ventes = mesAnnonces.filter((a) => a.status === "vendue");
+
+  const devisQuery = trpc.devis.mine.useQuery();
+  const devis = devisQuery.data ?? [];
+
+  const reservationsQuery = trpc.reservations.mine.useQuery();
+  const bookings = reservationsQuery.data ?? [];
+  const reservationsAchat = bookings.filter((b) => b.type !== "rental");
+  const locations = bookings.filter((b) => b.type === "rental");
+
+  const interventionsQuery = trpc.garages.myInterventions.useQuery();
+  const interventions: Intervention[] = interventionsQuery.data ?? [];
+  const interventionsDuVehicule = (vehicleId: number | null) =>
+    vehicleId ? interventions.filter((r) => r.annonceId === vehicleId) : [];
+
+  const favorisQuery = trpc.favoris.mine.useQuery();
+  const favorisToggle = trpc.favoris.toggle.useMutation({ onSuccess: () => favorisQuery.refetch() });
+  const favoris = favorisQuery.data ?? [];
+
+  const threadsQuery = trpc.messages.listThreads.useQuery();
+  const threads = threadsQuery.data ?? [];
+
+  // Modals
+  const [modalHistorique, setModalHistorique] = useState<Achat | null>(null);
+  const [modalEntretien, setModalEntretien] = useState<Achat | null>(null);
+  const [reservationDetailId, setReservationDetailId] = useState<number | null>(null);
+
+  function historiqueDuVehicule(achat: Achat) {
+    const events = [
+      {
+        date: achat.createdAt,
+        label: "Achat sur MKA.P-MS",
+        detail: `${Number(achat.amount).toLocaleString("fr-FR")} ${achat.currency}`,
+      },
+      ...interventionsDuVehicule(achat.vehicleId).map((r) => ({
+        date: r.dateHeure,
+        label: r.motif ?? "Intervention garage",
+        detail: `${RDV_STATUT[r.status] ?? r.status} — Garage #${r.garageId}`,
+      })),
+    ];
+    return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
 
-  /* Carnet d'entretien : feuille reelle, avec le total depense. */
-  function imprimerCarnet(v: typeof ACHETES[0]) {
+  function imprimerHistorique(achat: Achat) {
+    const events = historiqueDuVehicule(achat);
+    const ok = imprimerFeuille({
+      typeDocument: "rapport_historique",
+      titre: "Historique du véhicule",
+      reference: `ACH-${achat.id}`,
+      sousTitre: `Véhicule #${achat.vehicleId ?? "?"}`,
+      colonnes: [
+        { cle: "date", titre: "Date" },
+        { cle: "label", titre: "Événement" },
+        { cle: "detail", titre: "Détail" },
+      ],
+      lignes: events.map((e) => ({
+        date: new Date(e.date).toLocaleDateString("fr-FR"),
+        label: e.label,
+        detail: e.detail,
+      })),
+      mentions: ["MKA.P-MS — Auto Plus Africa. Historique réel issu de vos paiements et rendez-vous garage enregistrés sur la plateforme."],
+      entiteLiee: achat.vehicleId ? { type: "annonce", id: achat.vehicleId } : undefined,
+    });
+    showToast(ok ? "Historique ouvert — enregistrable en PDF" : "Le navigateur a bloqué la fenêtre d'impression");
+  }
+
+  function imprimerCarnet(achat: Achat) {
+    const rdvs = interventionsDuVehicule(achat.vehicleId);
     const ok = imprimerFeuille({
       typeDocument: "carnet_entretien",
       titre: "Carnet d'entretien",
-      reference: v.plaque,
-      sousTitre: v.nom,
+      reference: `ACH-${achat.id}`,
+      sousTitre: `Véhicule #${achat.vehicleId ?? "?"}`,
       colonnes: [
         { cle: "date", titre: "Date" },
-        { cle: "type", titre: "Intervention" },
+        { cle: "motif", titre: "Intervention" },
         { cle: "garage", titre: "Garage" },
         { cle: "statut", titre: "Statut" },
-        { cle: "montant", titre: "Montant", numerique: true },
       ],
-      lignes: v.entretiens.map(e => ({ date: e.date, type: e.type, garage: e.garage, statut: e.statut, montant: e.montant })),
-      mentions: ["MKA.P-MS — Auto Plus Africa. Carnet issu des interventions enregistrees sur la plateforme."],
+      lignes: rdvs.map((r) => ({
+        date: new Date(r.dateHeure).toLocaleDateString("fr-FR"),
+        motif: r.motif ?? "Rendez-vous garage",
+        garage: `#${r.garageId}`,
+        statut: RDV_STATUT[r.status] ?? r.status,
+      })),
+      mentions: ["MKA.P-MS — Auto Plus Africa. Carnet issu des rendez-vous garage réellement enregistrés sur la plateforme."],
+      entiteLiee: achat.vehicleId ? { type: "annonce", id: achat.vehicleId } : undefined,
     });
-    showToast(ok ? "Carnet ouvert — enregistrable en PDF" : "Le navigateur a bloque la fenetre d'impression");
+    showToast(rdvs.length === 0
+      ? "Aucun rendez-vous garage enregistré pour ce véhicule — feuille ouverte tout de même"
+      : ok ? "Carnet ouvert — enregistrable en PDF" : "Le navigateur a bloqué la fenêtre d'impression");
   }
-
-  /* Les pieces jointes ne sont pas archivees dans la plateforme : on edite la
-     liste des documents du vehicule et on le dit clairement. */
-  function imprimerListeDocuments(v: typeof ACHETES[0]) {
-    const ok = imprimerFeuille({
-      typeDocument: "export_donnees",
-      titre: "Documents du vehicule",
-      reference: v.plaque,
-      sousTitre: v.nom,
-      colonnes: [
-        { cle: "nom", titre: "Document" },
-        { cle: "type", titre: "Type" },
-        { cle: "date", titre: "Date" },
-        { cle: "statut", titre: "Statut" },
-      ],
-      lignes: v.documents.map(d => ({ nom: d.nom, type: d.type, date: d.date, statut: d.statut })),
-      mentions: [
-        "Les fichiers d'origine ne sont pas encore archives dans la plateforme : aucun stockage documentaire n'est connecte.",
-        "Cette feuille recapitule les documents attendus pour ce vehicule.",
-      ],
-    });
-    showToast(
-      ok
-        ? "Recapitulatif ouvert — les fichiers d'origine ne sont pas archives dans la plateforme"
-        : "Le navigateur a bloque la fenetre d'impression",
-    );
-  }
-
-  /* Confirmation de reservation : document reel remis au client. */
-  function imprimerConfirmation(r: typeof RESERVATIONS[0]) {
-    const ok = imprimerFeuille({
-      typeDocument: "reservation",
-      titre: "Confirmation de reservation",
-      reference: r.ref,
-      sousTitre: r.vehicule,
-      informations: [
-        { libelle: "Vehicule", valeur: r.vehicule },
-        { libelle: "Type", valeur: r.type },
-        { libelle: "Vendeur", valeur: r.vendeur },
-        { libelle: "Date", valeur: r.date },
-        { libelle: "Statut", valeur: r.statut },
-      ],
-      colonnes: [
-        { cle: "poste", titre: "Poste" },
-        { cle: "montant", titre: "Montant", numerique: true },
-      ],
-      lignes: [{ poste: "Acompte verse", montant: r.acompte }],
-      mentions: [
-        "MKA.P-MS — Auto Plus Africa. Document a presenter au vendeur lors de la remise du vehicule.",
-        "Le solde et les frais d'acheminement restent dus selon les conditions acceptees.",
-      ],
-    });
-    showToast(ok ? `Confirmation ${r.ref} ouverte — enregistrable en PDF` : "Le navigateur a bloque la fenetre d'impression");
-  }
-
-
-  // Modals
-  const [modalHistorique, setModalHistorique] = useState<typeof ACHETES[0] | null>(null);
-  const [modalDocuments, setModalDocuments] = useState<typeof ACHETES[0] | null>(null);
-  const [modalEntretien, setModalEntretien] = useState<typeof ACHETES[0] | null>(null);
-  const [modalDevis, setModalDevis] = useState<typeof DEVIS_LIST[0] | null>(null);
-  const [modalReservation, setModalReservation] = useState<typeof RESERVATIONS[0] | null>(null);
-  const [modalLocation, setModalLocation] = useState<typeof LOCATIONS_LIST[0] | null>(null);
-  const [modalPaiement, setModalPaiement] = useState<typeof PAIEMENTS[0] | null>(null);
-  const [modalMessage, setModalMessage] = useState<typeof MESSAGES_LIST[0] | null>(null);
-  const [viewFactureVente, setViewFactureVente] = useState<typeof VENDUS[0] | null>(null);
 
   const Overlay = ({ children, onClose }: { children: React.ReactNode; onClose: () => void }) => (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/50" />
-      <div className="relative bg-white w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl" onClick={e => e.stopPropagation()}>
+      <div className="relative bg-white w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-3 right-3 z-10 h-8 w-8 rounded-full bg-[#F5F3EF] grid place-items-center"><X size={16} /></button>
         {children}
       </div>
@@ -223,190 +214,277 @@ export default function DossierClient() {
       <div className="bg-[#111] px-4 pt-6 pb-5">
         <Link to="/compte" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Mon compte</Link>
         <h1 className="text-xl font-black text-white flex items-center gap-2"><User size={20} className="text-[#D4AF37]" /> Mon dossier</h1>
-        <p className="mt-1 text-sm text-white/60">Tout votre historique MKA.P-MS centralise</p>
+        <p className="mt-1 text-sm text-white/60">Tout votre historique MKA.P-MS centralisé</p>
       </div>
 
       {/* Tabs */}
       <div className="px-4 mt-3 flex gap-2 overflow-x-auto scrollbar-hide pb-1">
         {TABS.map((t) => {
           const Icon = t.icon;
+          const count = {
+            achetes: achats.length,
+            vendus: ventes.length,
+            devis: devis.length,
+            reservations: reservationsAchat.length,
+            locations: locations.length,
+            paiements: paiements.length,
+            favoris: favoris.length,
+            messages: threads.length,
+          }[t.id];
           return (
             <button key={t.id} onClick={() => setTab(t.id)} className={`shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${tab === t.id ? "bg-[#111] text-[#D4AF37]" : "bg-white text-[#6B7280] border border-[#E5E7EB]"}`}>
-              <Icon size={12} /> {t.label} <span className="text-[10px] opacity-60">({t.count})</span>
+              <Icon size={12} /> {t.label} <span className="text-[10px] opacity-60">({count})</span>
             </button>
           );
         })}
       </div>
 
       <div className="px-4 mt-4 space-y-3">
-        {/* Vehicules achetes */}
-        {tab === "achetes" && ACHETES.map((v) => (
-          <div key={v.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-            <Link to={getAnnonceUrl(v.id, (v as any).categorieAnnonce, (v as any).vendeurType)} className="flex active:bg-[#F5F3EF] transition">
-              <img src={v.photo} alt={v.nom} className="w-28 h-24 object-cover shrink-0" />
-              <div className="p-3 flex-1">
-                <p className="text-sm font-bold text-[#111]">{v.nom}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{v.plaque} . {v.km}</p>
-                <p className="text-xs text-slate-400">Achete le {v.date} . {v.vendeur}</p>
-                <p className="text-sm font-bold text-[#D4AF37] mt-1">{v.prix}</p>
-              </div>
-            </Link>
-            <div className="border-t border-[#F3F4F6] px-3 py-2 flex gap-2">
-              <button onClick={() => setModalHistorique(v)} className="text-[10px] font-bold text-[#D4AF37] flex items-center gap-1 active:scale-95 transition"><Eye size={10} /> Historique</button>
-              <button onClick={() => setModalDocuments(v)} className="text-[10px] font-bold text-slate-500 flex items-center gap-1 active:scale-95 transition"><FileText size={10} /> Documents</button>
-              <button onClick={() => setModalEntretien(v)} className="text-[10px] font-bold text-slate-500 flex items-center gap-1 active:scale-95 transition"><Wrench size={10} /> Entretien</button>
-            </div>
-          </div>
-        ))}
-
-        {/* Vehicules vendus */}
-        {tab === "vendus" && VENDUS.map((v) => (
-          <div key={v.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-            <button onClick={() => setExpandedItem(expandedItem === v.id + 100 ? null : v.id + 100)} className="w-full text-left">
-              <div className="flex">
-                <img src={v.photo} alt={v.nom} className="w-28 h-24 object-cover shrink-0" />
-                <div className="p-3 flex-1">
-                  <p className="text-sm font-bold text-[#111]">{v.nom}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{v.plaque}</p>
-                  <p className="text-xs text-slate-400">Vendu le {v.date} · {v.acheteur}</p>
-                  <p className="text-sm font-bold text-green-600 mt-1">{v.prix}</p>
+        {/* Véhicules achetés — trpc.reservations.mesPaiements filtré vehicle_purchase */}
+        {tab === "achetes" && (
+          <>
+            {paiementsQuery.isLoading && <p className="text-sm text-[#6B7280] text-center py-6">Chargement…</p>}
+            {achats.map((a) => {
+              const s = PAIEMENT_STATUT[a.status] ?? PAIEMENT_STATUT.pending;
+              return (
+                <div key={a.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
+                  <Link to={`/vehicule/${a.vehicleId}`} className="flex items-center gap-3 p-3 active:bg-[#F5F3EF] transition">
+                    <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-lg bg-slate-100"><Car size={20} className="text-slate-400" /></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[#111]">Véhicule #{a.vehicleId}</p>
+                      <p className="text-xs text-slate-400">Acheté le {new Date(a.createdAt).toLocaleDateString("fr-FR")}</p>
+                      <p className="text-sm font-bold text-[#D4AF37] mt-1">{Number(a.amount).toLocaleString("fr-FR")} {a.currency}</p>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${s.color}`}>{s.label}</span>
+                  </Link>
+                  <div className="border-t border-[#F3F4F6] px-3 py-2 flex gap-3">
+                    <button onClick={() => setModalHistorique(a)} className="text-[10px] font-bold text-[#D4AF37] flex items-center gap-1 active:scale-95 transition"><Eye size={10} /> Historique</button>
+                    <Link to={`/vehicule/${a.vehicleId}`} className="text-[10px] font-bold text-slate-500 flex items-center gap-1 active:scale-95 transition"><FileText size={10} /> Fiche véhicule</Link>
+                    <button onClick={() => setModalEntretien(a)} className="text-[10px] font-bold text-slate-500 flex items-center gap-1 active:scale-95 transition"><Wrench size={10} /> Entretien</button>
+                  </div>
                 </div>
-              </div>
-            </button>
-            {expandedItem === v.id + 100 && (
-              <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2 space-y-2">
-                <div className="grid grid-cols-2 gap-2 text-[10px]">
-                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Plaque</span><p className="font-bold text-[#111]">{v.plaque}</p></div>
-                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Prix vente</span><p className="font-bold text-green-600">{v.prix}</p></div>
-                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Acheteur</span><p className="font-bold text-[#111]">{v.acheteur}</p></div>
-                  <div className="rounded-lg bg-[#F5F3EF] p-2"><span className="text-slate-400">Date</span><p className="font-bold text-[#111]">{v.date}</p></div>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => setViewFactureVente(v)} className="flex-1 rounded-lg bg-[#D4AF37] py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Download size={10} /> Facture</button>
-                  <Link to={getAnnonceUrl(v.id, (v as any).categorieAnnonce, (v as any).vendeurType)} className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[10px] font-bold text-white flex items-center justify-center gap-1"><Eye size={10} /> Voir fiche</Link>
-                </div>
+              );
+            })}
+            {!paiementsQuery.isLoading && achats.length === 0 && (
+              <div className="text-center py-8">
+                <ShoppingCart size={32} className="mx-auto text-[#D4AF37]" />
+                <p className="mt-2 text-sm font-semibold text-[#6B7280]">Aucun achat pour le moment.</p>
               </div>
             )}
-          </div>
-        ))}
-
-        {/* Devis */}
-        {tab === "devis" && DEVIS_LIST.map((d) => (
-          <button key={d.id} onClick={() => setModalDevis(d)} className="w-full rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition">
-            <div className="p-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold text-[#111]">{d.type}</p>
-                  <p className="text-xs text-slate-500">{d.garage} · {d.vehicule}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{d.date}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-[#D4AF37]">{d.montant}</p>
-                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${d.statut === "Accepte" ? "bg-green-50 text-green-700" : d.statut === "Termine" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{d.statut}</span>
-                </div>
-              </div>
-            </div>
-          </button>
-        ))}
-
-        {/* Reservations */}
-        {tab === "reservations" && RESERVATIONS.map((r) => (
-          <button key={r.id} onClick={() => setModalReservation(r)} className="w-full rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition">
-            <div className="p-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold text-[#111]">{r.vehicule}</p>
-                  <p className="text-xs text-slate-500">{r.type} · {r.vendeur}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Acompte: {r.acompte} · {r.date}</p>
-                </div>
-                <span className="rounded-full px-2 py-0.5 text-[9px] font-bold bg-green-50 text-green-700">{r.statut}</span>
-              </div>
-            </div>
-          </button>
-        ))}
-
-        {/* Locations */}
-        {tab === "locations" && LOCATIONS_LIST.map((l) => (
-          <button key={l.id} onClick={() => setModalLocation(l)} className="w-full rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition">
-            <div className="p-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold text-[#111]">{l.vehicule}</p>
-                  <p className="text-xs text-slate-500">{l.agence}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{l.duree}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-[#D4AF37]">{l.prix}</p>
-                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${l.statut === "En cours" ? "bg-green-50 text-green-700" : "bg-slate-100 text-slate-600"}`}>{l.statut}</span>
-                </div>
-              </div>
-            </div>
-          </button>
-        ))}
-
-        {/* Paiements */}
-        {tab === "paiements" && PAIEMENTS.map((p) => (
-          <button key={p.id} onClick={() => setModalPaiement(p)} className="w-full rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition">
-            <div className="p-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold text-[#111]">{p.objet}</p>
-                  <p className="text-xs text-slate-500">{p.methode} · {p.date}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-[#111]">{p.montant}</p>
-                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${p.statut === "Paye" ? "bg-green-50 text-green-700" : p.statut === "Actif" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{p.statut}</span>
-                </div>
-              </div>
-            </div>
-          </button>
-        ))}
-
-        {/* Favoris shortcut */}
-        {tab === "favoris" && (
-          <div className="text-center py-6">
-            <Heart size={32} className="mx-auto text-[#D4AF37]" />
-            <p className="mt-2 text-sm font-semibold text-[#6B7280]">Vos favoris sont centralises</p>
-            <Link to="/favoris" className="mt-4 inline-flex rounded-xl bg-[#D4AF37] px-6 py-2.5 text-sm font-bold text-white">Voir mes favoris</Link>
-          </div>
+          </>
         )}
 
-        {/* Messages */}
-        {tab === "messages" && MESSAGES_LIST.map((m) => (
-          <button key={m.id} onClick={() => setModalMessage(m)} className={`w-full text-left block rounded-xl bg-white border p-3 active:scale-[0.98] transition ${m.lu ? "border-[#E5E7EB]" : "border-[#D4AF37]/40"}`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-[#111] flex items-center gap-2">
-                  {m.de}
-                  {!m.lu && <span className="h-2 w-2 rounded-full bg-[#D4AF37]" />}
-                </p>
-                <p className="text-xs text-slate-500 mt-0.5">{m.objet}</p>
+        {/* Véhicules vendus — trpc.annonces.mine filtré vendue */}
+        {tab === "vendus" && (
+          <>
+            {annoncesQuery.isLoading && <p className="text-sm text-[#6B7280] text-center py-6">Chargement…</p>}
+            {ventes.map((v) => (
+              <Link key={v.id} to={getAnnonceUrl(v.id, v.categorieAnnonce, v.vendeurType)} className="flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-3">
+                <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-lg bg-slate-100"><Car size={20} className="text-slate-400" /></div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-[#111] truncate">{[v.marque, v.modele].filter(Boolean).join(" ")}</p>
+                  {v.plaque && <p className="text-xs text-slate-500">{v.plaque}</p>}
+                  <p className="text-sm font-bold text-green-600 mt-1">{Number(v.prix).toLocaleString("fr-FR")} {v.devise}</p>
+                </div>
+                <span className="rounded-full px-2 py-0.5 text-[10px] font-bold bg-green-50 text-green-700 shrink-0">{ANNONCE_STATUT[v.status] ?? v.status}</span>
+              </Link>
+            ))}
+            {!annoncesQuery.isLoading && ventes.length === 0 && (
+              <div className="text-center py-8">
+                <Tag size={32} className="mx-auto text-[#D4AF37]" />
+                <p className="mt-2 text-sm font-semibold text-[#6B7280]">Aucun véhicule vendu pour le moment.</p>
               </div>
-              <span className="text-[10px] text-[#9CA3AF]">{m.date}</span>
-            </div>
-          </button>
-        ))}
+            )}
+          </>
+        )}
+
+        {/* Devis — trpc.devis.mine (server/routers/devis.ts, table devis_garage_requests) */}
+        {tab === "devis" && (
+          <>
+            {devisQuery.isLoading && <p className="text-sm text-[#6B7280] text-center py-6">Chargement…</p>}
+            {devis.map((d) => (
+              <div key={d.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-[#111]">{d.typeIntervention}</p>
+                    <p className="text-xs text-slate-500">{[d.vehiculeMarque, d.vehiculeModele].filter(Boolean).join(" ") || "Véhicule non précisé"}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{new Date(d.createdAt).toLocaleDateString("fr-FR")}</p>
+                  </div>
+                  <span className="rounded-full px-2 py-0.5 text-[9px] font-bold bg-amber-50 text-amber-700 shrink-0">{DEVIS_STATUT[d.status] ?? d.status}</span>
+                </div>
+              </div>
+            ))}
+            {!devisQuery.isLoading && devis.length === 0 && (
+              <div className="text-center py-8">
+                <FileText size={32} className="mx-auto text-[#D4AF37]" />
+                <p className="mt-2 text-sm font-semibold text-[#6B7280]">Aucune demande de devis pour le moment.</p>
+                <Link to="/devis" className="mt-3 inline-block text-xs font-bold text-[#D4AF37] underline">Demander un devis</Link>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Réservations (visite d'achat / essai routier) — trpc.reservations.mine */}
+        {tab === "reservations" && (
+          <>
+            {reservationsQuery.isLoading && <p className="text-sm text-[#6B7280] text-center py-6">Chargement…</p>}
+            {reservationsAchat.map((r) => (
+              <button key={r.id} onClick={() => setReservationDetailId(r.id)} className="w-full rounded-xl bg-white border border-[#E5E7EB] p-3 text-left active:scale-[0.98] transition">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-[#111]">Véhicule #{r.vehicleId}</p>
+                    <p className="text-xs text-slate-500">{BOOKING_TYPE_LABEL[r.type] ?? r.type}</p>
+                    {r.cautionAmount && <p className="text-[10px] text-slate-400 mt-0.5">Acompte : {Number(r.cautionAmount).toLocaleString("fr-FR")} {r.cautionCurrency ?? "EUR"}</p>}
+                  </div>
+                  <span className="rounded-full px-2 py-0.5 text-[9px] font-bold bg-slate-100 text-slate-600 shrink-0">{BOOKING_STATUT[r.status] ?? r.status}</span>
+                </div>
+              </button>
+            ))}
+            {!reservationsQuery.isLoading && reservationsAchat.length === 0 && (
+              <div className="text-center py-8">
+                <Calendar size={32} className="mx-auto text-[#D4AF37]" />
+                <p className="mt-2 text-sm font-semibold text-[#6B7280]">Aucune réservation pour le moment.</p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Locations — trpc.reservations.mine filtré rental */}
+        {tab === "locations" && (
+          <>
+            {reservationsQuery.isLoading && <p className="text-sm text-[#6B7280] text-center py-6">Chargement…</p>}
+            {locations.map((l) => (
+              <Link key={l.id} to={`/vehicule/${l.vehicleId}`} className="block rounded-xl bg-white border border-[#E5E7EB] p-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-bold text-[#111]">Véhicule #{l.vehicleId}</p>
+                  <span className="rounded-full px-2 py-0.5 text-[9px] font-bold bg-slate-100 text-slate-600">{BOOKING_STATUT[l.status] ?? l.status}</span>
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1">
+                  Du {new Date(l.startDate).toLocaleDateString("fr-FR")}{l.endDate ? ` au ${new Date(l.endDate).toLocaleDateString("fr-FR")}` : ""}
+                </p>
+                {l.cautionAmount && (
+                  <p className="text-[10px] text-slate-400 mt-0.5">Caution : {Number(l.cautionAmount).toLocaleString("fr-FR")} {l.cautionCurrency ?? "EUR"} — {l.cautionStatus}</p>
+                )}
+              </Link>
+            ))}
+            {!reservationsQuery.isLoading && locations.length === 0 && (
+              <div className="text-center py-8">
+                <Key size={32} className="mx-auto text-[#D4AF37]" />
+                <p className="mt-2 text-sm font-semibold text-[#6B7280]">Aucune location pour le moment.</p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Paiements — trpc.reservations.mesPaiements (tous types) */}
+        {tab === "paiements" && (
+          <>
+            {paiementsQuery.isLoading && <p className="text-sm text-[#6B7280] text-center py-6">Chargement…</p>}
+            {paiements.map((p) => {
+              const s = PAIEMENT_STATUT[p.status] ?? PAIEMENT_STATUT.pending;
+              return (
+                <div key={p.id} className="rounded-xl bg-white border border-[#E5E7EB] p-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-[#111]">{p.type.replace(/_/g, " ")}</p>
+                    <p className="text-xs text-slate-500">{new Date(p.createdAt).toLocaleDateString("fr-FR")}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-[#111]">{Number(p.amount).toLocaleString("fr-FR")} {p.currency}</p>
+                    <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${s.color}`}>{s.label}</span>
+                  </div>
+                </div>
+              );
+            })}
+            {!paiementsQuery.isLoading && paiements.length === 0 && (
+              <div className="text-center py-8">
+                <CreditCard size={32} className="mx-auto text-[#D4AF37]" />
+                <p className="mt-2 text-sm font-semibold text-[#6B7280]">Aucun paiement pour le moment.</p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Favoris — trpc.favoris.mine/toggle */}
+        {tab === "favoris" && (
+          <>
+            {favorisQuery.isLoading && <p className="text-sm text-[#6B7280] text-center py-6">Chargement…</p>}
+            {favoris.map(({ annonce }) => (
+              <div key={annonce.id} className="flex items-center gap-3 rounded-xl bg-white border border-[#E5E7EB] p-3">
+                <Link to={`/vehicule/${annonce.id}`} className="flex h-14 w-20 shrink-0 items-center justify-center rounded-lg bg-slate-100 overflow-hidden">
+                  {annonce.photoPrincipale ? <img src={annonce.photoPrincipale} alt="" className="h-full w-full object-cover" /> : <Heart size={20} className="text-slate-400" />}
+                </Link>
+                <Link to={`/vehicule/${annonce.id}`} className="flex-1 min-w-0">
+                  <h3 className="text-sm font-bold text-[#111] truncate">{[annonce.marque, annonce.modele].filter(Boolean).join(" ") || "Véhicule"}</h3>
+                  <p className="text-[10px] text-[#6B7280]">{annonce.prix ? `${Number(annonce.prix).toLocaleString("fr-FR")} €` : ""}</p>
+                </Link>
+                <button
+                  onClick={() => favorisToggle.mutate({ annonceId: annonce.id })}
+                  disabled={favorisToggle.isPending}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#E5E7EB] text-[#D4AF37] disabled:opacity-50"
+                >
+                  <Heart size={14} className="fill-[#D4AF37]" />
+                </button>
+              </div>
+            ))}
+            {!favorisQuery.isLoading && favoris.length === 0 && (
+              <div className="text-center py-6">
+                <Heart size={32} className="mx-auto text-[#D4AF37]" />
+                <p className="mt-2 text-sm font-semibold text-[#6B7280]">Aucun favori pour le moment.</p>
+                <Link to="/favoris" className="mt-4 inline-flex rounded-xl bg-[#D4AF37] px-6 py-2.5 text-sm font-bold text-white">Voir mes favoris</Link>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Messages — trpc.messages.listThreads */}
+        {tab === "messages" && (
+          <>
+            {threadsQuery.isLoading && <p className="text-sm text-[#6B7280] text-center py-6">Chargement…</p>}
+            {threads.map((t) => (
+              <Link key={t.id} to={`/messagerie?thread=${t.id}`} className={`flex items-center gap-3 rounded-xl bg-white border p-3 ${t.unread > 0 ? "border-[#D4AF37]/40" : "border-[#E5E7EB]"}`}>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#D4AF37]/10 text-[#D4AF37] font-bold text-sm">
+                  {t.other.nom?.charAt(0)?.toUpperCase() ?? "?"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-[#111] truncate">{t.other.nom ?? "Utilisateur"}</p>
+                    {t.unread > 0 && <span className="h-2 w-2 rounded-full bg-[#D4AF37]" />}
+                  </div>
+                  {t.annonceTitre && <p className="text-[10px] text-[#9CA3AF] truncate">{t.annonceTitre}</p>}
+                  {t.lastMessage && <p className="text-xs text-slate-500 truncate mt-0.5">{t.lastMessage}</p>}
+                </div>
+                {t.lastMessageAt && <span className="text-[10px] text-[#9CA3AF] shrink-0">{new Date(t.lastMessageAt).toLocaleDateString("fr-FR")}</span>}
+              </Link>
+            ))}
+            {!threadsQuery.isLoading && threads.length === 0 && (
+              <div className="text-center py-8">
+                <MessageSquare size={32} className="mx-auto text-[#D4AF37]" />
+                <p className="mt-2 text-sm font-semibold text-[#6B7280]">Aucune conversation pour le moment.</p>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* ══════════ MODALS ══════════ */}
 
-      {/* Historique vehicule */}
+      {/* Historique véhicule acheté (achat réel + rendez-vous garage réels) */}
       {modalHistorique && (
         <Overlay onClose={() => setModalHistorique(null)}>
           <div className="p-5 pt-10">
             <h2 className="text-lg font-black text-[#111]">Historique</h2>
-            <p className="text-xs text-slate-500 mb-4">{modalHistorique.nom} — {modalHistorique.plaque}</p>
+            <p className="text-xs text-slate-500 mb-4">Véhicule #{modalHistorique.vehicleId}</p>
             <div className="space-y-3">
-              {modalHistorique.historique.map((h, i) => (
+              {historiqueDuVehicule(modalHistorique).map((h, i, arr) => (
                 <div key={i} className="flex gap-3">
                   <div className="flex flex-col items-center">
                     <div className="h-3 w-3 rounded-full bg-[#D4AF37] shrink-0 mt-1" />
-                    {i < modalHistorique.historique.length - 1 && <div className="flex-1 w-px bg-[#E5E7EB]" />}
+                    {i < arr.length - 1 && <div className="flex-1 w-px bg-[#E5E7EB]" />}
                   </div>
                   <div className="pb-3">
-                    <p className="text-xs font-bold text-[#111]">{h.event}</p>
+                    <p className="text-xs font-bold text-[#111]">{h.label}</p>
                     <p className="text-[10px] text-slate-500">{h.detail}</p>
-                    <p className="text-[9px] text-slate-400 mt-0.5">{h.date}</p>
+                    <p className="text-[9px] text-slate-400 mt-0.5">{new Date(h.date).toLocaleDateString("fr-FR")}</p>
                   </div>
                 </div>
               ))}
@@ -416,55 +494,27 @@ export default function DossierClient() {
         </Overlay>
       )}
 
-      {/* Documents vehicule */}
-      {modalDocuments && (
-        <Overlay onClose={() => setModalDocuments(null)}>
-          <div className="p-5 pt-10">
-            <h2 className="text-lg font-black text-[#111]">Documents</h2>
-            <p className="text-xs text-slate-500 mb-4">{modalDocuments.nom} — {modalDocuments.plaque}</p>
-            <div className="space-y-2">
-              {modalDocuments.documents.map((d, i) => (
-                <div key={i} className="flex items-center justify-between rounded-xl bg-[#F5F3EF] p-3">
-                  <div>
-                    <p className="text-xs font-bold text-[#111]">{d.nom}</p>
-                    <p className="text-[10px] text-slate-400">{d.type} · {d.date}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full px-1.5 py-0.5 text-[8px] font-bold bg-green-50 text-green-700">{d.statut}</span>
-                    <button onClick={() => imprimerListeDocuments(modalDocuments)} className="h-7 w-7 rounded-full bg-[#D4AF37] grid place-items-center active:scale-90 transition"><Download size={12} className="text-white" /></button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2 mt-4">
-              <button onClick={() => imprimerListeDocuments(modalDocuments)} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><Download size={14} /> Tout télécharger</button>
-              <button onClick={() => imprimerListeDocuments(modalDocuments)} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Printer size={14} /> Imprimer</button>
-            </div>
-          </div>
-        </Overlay>
-      )}
-
-      {/* Entretien vehicule */}
+      {/* Entretien véhicule acheté — trpc.garages.myInterventions filtré sur ce véhicule */}
       {modalEntretien && (
         <Overlay onClose={() => setModalEntretien(null)}>
           <div className="p-5 pt-10">
             <h2 className="text-lg font-black text-[#111]">Entretien</h2>
-            <p className="text-xs text-slate-500 mb-4">{modalEntretien.nom} — {modalEntretien.plaque}</p>
+            <p className="text-xs text-slate-500 mb-4">Véhicule #{modalEntretien.vehicleId}</p>
             <div className="space-y-2">
-              {modalEntretien.entretiens.map((e, i) => (
-                <div key={i} className="rounded-xl bg-[#F5F3EF] p-3">
+              {interventionsDuVehicule(modalEntretien.vehicleId).map((r) => (
+                <div key={r.id} className="rounded-xl bg-[#F5F3EF] p-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold text-[#111]">{e.type}</p>
-                      <p className="text-[10px] text-slate-500">{e.garage} · {e.date}</p>
+                      <p className="text-xs font-bold text-[#111]">{r.motif ?? "Rendez-vous garage"}</p>
+                      <p className="text-[10px] text-slate-500">Garage #{r.garageId} · {new Date(r.dateHeure).toLocaleDateString("fr-FR")}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs font-bold text-[#D4AF37]">{e.montant}</p>
-                      <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold ${e.statut === "Terminé" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{e.statut}</span>
-                    </div>
+                    <span className="rounded-full px-1.5 py-0.5 text-[8px] font-bold bg-slate-100 text-slate-600">{RDV_STATUT[r.status] ?? r.status}</span>
                   </div>
                 </div>
               ))}
+              {interventionsDuVehicule(modalEntretien.vehicleId).length === 0 && (
+                <p className="text-xs text-slate-400 text-center py-4">Aucun rendez-vous garage enregistré pour ce véhicule.</p>
+              )}
             </div>
             <div className="flex gap-2 mt-4">
               <Link to="/reparer" onClick={() => setModalEntretien(null)} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Wrench size={14} /> Prendre RDV garage</Link>
@@ -474,79 +524,9 @@ export default function DossierClient() {
         </Overlay>
       )}
 
-      {/* Devis detail — PDF visuel */}
-      {modalDevis && (
-        <DocumentView
-          doc={buildDevisData({ type: modalDevis.type, garage: modalDevis.garage, montant: modalDevis.montant, date: modalDevis.date, vehicule: modalDevis.vehicule, client: modalDevis.garage, ref: `DV-${modalDevis.id}` })}
-          onClose={() => setModalDevis(null)}
-        />
-      )}
-
-      {/* Reservation detail */}
-      {modalReservation && (
-        <Overlay onClose={() => setModalReservation(null)}>
-          <div className="p-5 pt-10">
-            <h2 className="text-lg font-black text-[#111]">{modalReservation.vehicule}</h2>
-            <p className="text-xs text-slate-500 mb-4">Réservation {modalReservation.ref}</p>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Type</p><p className="text-sm font-black text-[#111]">{modalReservation.type}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Acompte</p><p className="text-sm font-black text-[#D4AF37]">{modalReservation.acompte}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Vendeur</p><p className="text-sm font-bold text-[#111]">{modalReservation.vendeur}</p></div>
-              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Date</p><p className="text-sm font-bold text-[#111]">{modalReservation.date}</p></div>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => imprimerConfirmation(modalReservation)} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Download size={14} /> Confirmation</button>
-              <button onClick={() => { showToast("Annulation envoyée"); setModalReservation(null); }} className="flex-1 rounded-xl bg-red-500 py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><X size={14} /> Annuler</button>
-            </div>
-          </div>
-        </Overlay>
-      )}
-
-      {/* Location detail — Contrat PDF visuel */}
-      {modalLocation && (
-        <DocumentView
-          doc={buildContratData({ vehicule: modalLocation.vehicule, client: "Titulaire du contrat", type: "Location", duree: modalLocation.duree, prix: modalLocation.prix, ref: modalLocation.ref, agence: modalLocation.agence })}
-          onClose={() => setModalLocation(null)}
-        />
-      )}
-
-      {/* Paiement detail — Facture PDF visuel */}
-      {modalPaiement && (
-        <DocumentView
-          doc={buildFactureData({ ref: modalPaiement.ref, objet: modalPaiement.objet, client: "Client MKA.P-MS", montant: modalPaiement.montant, date: modalPaiement.date, statut: modalPaiement.statut, type: "Paiement" })}
-          onClose={() => setModalPaiement(null)}
-        />
-      )}
-
-      {/* Message detail */}
-      {modalMessage && (
-        <Overlay onClose={() => setModalMessage(null)}>
-          <div className="p-5 pt-10">
-            <div className="flex items-center gap-2 mb-1">
-              {!modalMessage.lu && <span className="h-2 w-2 rounded-full bg-[#D4AF37]" />}
-              <h2 className="text-lg font-black text-[#111]">{modalMessage.de}</h2>
-            </div>
-            <p className="text-xs text-slate-400 mb-4">{modalMessage.date}</p>
-            <div className="rounded-xl bg-[#F5F3EF] p-4 mb-4">
-              <p className="text-sm font-bold text-[#111] mb-2">{modalMessage.objet}</p>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Bonjour, ceci est le contenu complet du message de {modalMessage.de}. Vous pouvez répondre directement depuis cette interface ou contacter l'expéditeur.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => { showToast("Réponse envoyée"); setModalMessage(null); }} className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1"><Mail size={14} /> Répondre</button>
-              <button onClick={() => { showToast("Message marqué comme lu"); setModalMessage(null); }} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1"><CheckCircle size={14} /> Lu</button>
-            </div>
-          </div>
-        </Overlay>
-      )}
-
-      {/* Facture de vente — PDF visuel */}
-      {viewFactureVente && (
-        <DocumentView
-          doc={buildFactureData({ ref: `FA-VENTE-${viewFactureVente.id}`, objet: `Vente ${viewFactureVente.nom}`, client: viewFactureVente.acheteur, montant: viewFactureVente.prix, date: viewFactureVente.date, statut: "Paye", type: "Vente" })}
-          onClose={() => setViewFactureVente(null)}
-        />
+      {/* Détail réservation — trpc.reservations.detail + paiement réel de l'acompte */}
+      {reservationDetailId !== null && (
+        <ReservationDetailModal id={reservationDetailId} onClose={() => setReservationDetailId(null)} onToast={showToast} />
       )}
 
       {/* Toast */}
@@ -559,6 +539,60 @@ export default function DossierClient() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Fiche détaillée d'une réservation — trpc.reservations.detail (booking +
+ * annonce + paiements réels) et trpc.reservations.payCaution pour régler un
+ * acompte réellement en attente. Aucune action « Annuler » : le moteur de
+ * réservation n'expose aucune mutation d'annulation, en inventer une aurait
+ * affiché une confirmation sans effet réel.
+ */
+function ReservationDetailModal({ id, onClose, onToast }: { id: number; onClose: () => void; onToast: (msg: string) => void }) {
+  const detail = trpc.reservations.detail.useQuery({ id });
+  const payCaution = trpc.reservations.payCaution.useMutation({
+    onSuccess: (r) => {
+      if (r.url?.startsWith("http")) window.location.href = r.url;
+      else if (r.url) { onClose(); }
+    },
+    onError: (e) => onToast(e.message),
+  });
+  const booking = detail.data?.booking;
+  const annonce = detail.data?.annonce;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/50" />
+      <div className="relative bg-white w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-5 pt-10" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-3 right-3 z-10 h-8 w-8 rounded-full bg-[#F5F3EF] grid place-items-center"><X size={16} /></button>
+        {detail.isLoading && <p className="py-8 text-center text-sm text-slate-400">Chargement…</p>}
+        {!detail.isLoading && booking && (
+          <>
+            <h2 className="text-lg font-black text-[#111]">{annonce ? [annonce.marque, annonce.modele].filter(Boolean).join(" ") : `Véhicule #${booking.vehicleId}`}</h2>
+            <p className="text-xs text-slate-500 mb-4">{BOOKING_TYPE_LABEL[booking.type] ?? booking.type} — Réservation #{booking.id}</p>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Statut</p><p className="text-sm font-black text-[#111]">{BOOKING_STATUT[booking.status] ?? booking.status}</p></div>
+              {booking.cautionAmount && (
+                <div className="rounded-xl bg-[#F5F3EF] p-3"><p className="text-[10px] text-slate-400">Acompte</p><p className="text-sm font-black text-[#D4AF37]">{Number(booking.cautionAmount).toLocaleString("fr-FR")} {booking.cautionCurrency ?? "EUR"}</p></div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {booking.cautionStatus === "pending" && (
+                <button
+                  onClick={() => payCaution.mutate({ bookingId: booking.id })}
+                  disabled={payCaution.isPending}
+                  className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white disabled:opacity-50"
+                >
+                  {payCaution.isPending ? "Ouverture…" : "Régler l'acompte"}
+                </button>
+              )}
+              <Link to={`/vehicule/${booking.vehicleId}`} onClick={onClose} className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-[#D4AF37] text-center flex items-center justify-center gap-1"><Printer size={14} /> Voir le véhicule</Link>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

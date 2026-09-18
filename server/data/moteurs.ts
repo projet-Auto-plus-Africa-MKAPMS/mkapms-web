@@ -986,6 +986,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/DossierClient.tsx",
+        "route": "/dossier-client",
+        "composants": [
+          "trpc.annonces",
+          "trpc.favoris",
+          "trpc.reservations",
+          "trpc.devis"
+        ]
+      },
+      {
         "fichier": "client/src/pages/Compte.tsx",
         "route": "/compte/*",
         "composants": [
@@ -8261,7 +8271,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat",
       "atelier",
       "identity",
-      "seo"
+      "seo",
+      "vente"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -8881,6 +8892,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/garage/GaragePublicFiche.tsx",
         "route": "/garages/:slug",
+        "composants": [
+          "trpc.garages"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/DossierClient.tsx",
+        "route": "/dossier-client",
         "composants": [
           "trpc.garages"
         ]
@@ -12899,7 +12917,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat_officiel",
       "achat_particulier",
       "achat_pro",
-      "identity"
+      "identity",
+      "vente"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -12947,6 +12966,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/Vehicule.tsx",
         "route": "/vehicule/:id",
+        "composants": [
+          "trpc.messages"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/DossierClient.tsx",
+        "route": "/dossier-client",
         "composants": [
           "trpc.messages"
         ]
@@ -21151,7 +21177,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "boutons",
       "core",
       "country",
+      "garage",
       "livraison_vehicule",
+      "messaging",
       "notification",
       "payment",
       "permission",
@@ -21163,7 +21191,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "boutons",
       "core",
       "country",
+      "garage",
       "livraison_vehicule",
+      "messaging",
       "notification",
       "payment",
       "smart",
@@ -21174,7 +21204,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "boutons",
       "core",
       "country",
+      "garage",
       "livraison_vehicule",
+      "messaging",
       "notification",
       "payment",
       "permission",
@@ -21184,7 +21216,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
-        "client/src/pages/Vendre.tsx appelle trpc.annonces"
+        "client/src/pages/DossierClient.tsx appelle trpc.reservations",
+        "client/src/pages/DossierClient.tsx appelle trpc.annonces",
+        "client/src/pages/DossierClient.tsx appelle trpc.devis"
       ],
       "boutons": [
         "client/src/pages/LivraisonVehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
@@ -21198,8 +21232,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/Abonnements.tsx embarque lib/currency.tsx (trpc.currency)",
         "client/src/pages/Vendre.tsx embarque lib/currency.tsx (trpc.currency)"
       ],
+      "garage": [
+        "client/src/pages/DossierClient.tsx appelle trpc.garages"
+      ],
       "livraison_vehicule": [
         "client/src/pages/LivraisonVehicule.tsx appelle trpc.livraisonVehicule"
+      ],
+      "messaging": [
+        "client/src/pages/DossierClient.tsx appelle trpc.messages"
       ],
       "notification": [
         "client/src/pages/TableauBordProVente.tsx appelle trpc.notifications"
@@ -21396,10 +21436,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/dossier-client"
         ],
-        "cliquables": 21,
+        "cliquables": 18,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 91,
+        "textes": 67,
         "mots": 207
       },
       {
@@ -22134,7 +22174,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 974,
+    "textes": 950,
     "mots": 3250,
     "battement": "sonde",
     "manques": [
