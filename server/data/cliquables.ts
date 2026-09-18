@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2635;
+export const CLIQUABLES_TOTAL = 2599;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -325,7 +325,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/GestionConducteurs.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 4, zones: 0 },
   { fichier: "client/src/pages/GestionFranchises.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/GlobalCountryEngine.tsx", total: 19, moteur: 0, liens: 0, boutonsLocaux: 18, sansAction: 0, zones: 1 },
-  { fichier: "client/src/pages/Historique.tsx", total: 48, moteur: 0, liens: 3, boutonsLocaux: 33, sansAction: 2, zones: 10 },
+  { fichier: "client/src/pages/Historique.tsx", total: 12, moteur: 0, liens: 3, boutonsLocaux: 7, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/HistoriqueConsultations.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/HistoriqueLocation.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/HistoriqueVehiculeVente.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
@@ -787,8 +787,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 66, genre: "bouton", libelle: "Ajouter le conducteur", motif: "sans_action" },
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 85, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/GestionFranchises.tsx", ligne: 89, genre: "bouton", libelle: "Appliquer la franchise", motif: "sans_action" },
-  { fichier: "client/src/pages/Historique.tsx", ligne: 291, genre: "bouton", libelle: "Confirmer l'ajout", motif: "sans_action" },
-  { fichier: "client/src/pages/Historique.tsx", ligne: 885, genre: "bouton", libelle: "Acheter", motif: "sans_action" },
   { fichier: "client/src/pages/InspectionNumerique.tsx", ligne: 75, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/InspectionNumerique.tsx", ligne: 83, genre: "bouton", libelle: "Valider l'inspection", motif: "sans_action" },
   { fichier: "client/src/pages/InspectionNumerique.tsx", ligne: 92, genre: "bouton", libelle: "Voir les photos", motif: "sans_action" },

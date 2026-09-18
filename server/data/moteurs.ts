@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 610;
+export const MANQUES_TOTAL = 608;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 331,
-  "bouton_sans_action": 180,
+  "bouton_sans_action": 178,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -969,6 +969,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/garages",
         "composants": [
           "trpc.devis"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/Historique.tsx",
+        "route": "/historique",
+        "composants": [
+          "trpc.annonces"
         ]
       },
       {
@@ -2006,6 +2013,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
+        "client/src/pages/Historique.tsx appelle trpc.annonces",
         "client/src/pages/HistoriqueConsultations.tsx appelle trpc.annonces"
       ],
       "core": [
@@ -2037,11 +2045,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/historique"
         ],
-        "cliquables": 48,
+        "cliquables": 12,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 257,
-        "mots": 838
+        "sansAction": 0,
+        "textes": 49,
+        "mots": 222
       },
       {
         "fichier": "client/src/pages/HistoriqueConsultations.tsx",
@@ -2092,18 +2100,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 263,
-    "mots": 856,
+    "textes": 55,
+    "mots": 240,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Confirmer l'ajout » client/src/pages/Historique.tsx:291"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Acheter » client/src/pages/Historique.tsx:885"
-      },
       {
         "genre": "dependance_sans_preuve",
         "detail": "seo"
