@@ -14,7 +14,7 @@ def ksAlias = keystoreProps['keyAlias'] ?: System.getenv("MKAPMS_KEY_ALIAS")
 def ksKeyPassword = keystoreProps['keyPassword'] ?: System.getenv("MKAPMS_KEY_PASSWORD")
 def hasSigning = ksPath != null && file(ksPath).exists()
 
-// Quatre applications, un seul projet : mobile/variants.json est l'unique
+// Cinq applications, un seul projet : mobile/variants.json est l'unique
 // source de vérité (comme pour tout autre catalogue de la plateforme). Chaque
 // entrée devient un « product flavor » Gradle — mécanisme standard Android
 // pour plusieurs applications à partir d'un même code natif, sans le dupliquer.

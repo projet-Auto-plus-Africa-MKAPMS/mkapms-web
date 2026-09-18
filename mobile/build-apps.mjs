@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
  * Produit les paquets Android des applications MKA.P-MS déclarées dans
- * mobile/variants.json — un seul projet, un seul cœur, quatre applications.
+ * mobile/variants.json — un seul projet, un seul cœur, cinq applications.
  * Chaque variante est un « product flavor » Gradle (android/app/build.gradle) :
  * la tâche à lancer porte donc son nom (ex. bundleProRelease, jamais
  * bundleRelease tout court une fois des flavors déclarés).
  *
- *   node mobile/build-apps.mjs               # les quatre
+ *   node mobile/build-apps.mjs               # les cinq
  *   node mobile/build-apps.mjs pro           # une seule
  *   MOBILE_APP_URL=https://staging… node mobile/build-apps.mjs
  *
