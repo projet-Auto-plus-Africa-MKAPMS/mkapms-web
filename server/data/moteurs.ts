@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 579;
+export const MANQUES_TOTAL = 570;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 150,
+  "bouton_sans_action": 141,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -3561,11 +3561,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/admin-sauvegardes"
         ],
-        "cliquables": 6,
+        "cliquables": 4,
         "parMoteur": 0,
-        "sansAction": 5,
-        "textes": 9,
-        "mots": 17
+        "sansAction": 0,
+        "textes": 10,
+        "mots": 39
       }
     ],
     "ecransHotes": [],
@@ -3589,31 +3589,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "public"
     ],
-    "textes": 9,
-    "mots": 17,
+    "textes": 10,
+    "mots": 39,
     "battement": "pont_os",
-    "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« 5 Sauvegardes recentes » client/src/pages/superadmin/AdminSauvegardes.tsx:22"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« 11.4 GB Espace total » client/src/pages/superadmin/AdminSauvegardes.tsx:23"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Sauvegarde manuelle maintenant » client/src/pages/superadmin/AdminSauvegardes.tsx:25"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Telecharger » client/src/pages/superadmin/AdminSauvegardes.tsx:38"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Restaurer » client/src/pages/superadmin/AdminSauvegardes.tsx:39"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "boutons",
@@ -20643,11 +20622,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/admin-support"
         ],
-        "cliquables": 5,
+        "cliquables": 4,
         "parMoteur": 0,
-        "sansAction": 4,
-        "textes": 9,
-        "mots": 16
+        "sansAction": 0,
+        "textes": 8,
+        "mots": 24
       },
       {
         "fichier": "client/src/pages/superadmin/CentreTickets.tsx",
@@ -20723,27 +20702,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 42,
-    "mots": 193,
+    "textes": 41,
+    "mots": 201,
     "battement": "pont_os",
-    "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/superadmin/AdminSupport.tsx:30"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Repondre » client/src/pages/superadmin/AdminSupport.tsx:64"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Resoudre » client/src/pages/superadmin/AdminSupport.tsx:65"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Escalader » client/src/pages/superadmin/AdminSupport.tsx:66"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "transport",
