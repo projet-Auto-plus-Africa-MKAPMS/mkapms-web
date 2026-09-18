@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 595;
+export const MANQUES_TOTAL = 579;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 166,
+  "bouton_sans_action": 150,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -804,22 +804,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/admin-fraude"
         ],
-        "cliquables": 4,
+        "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 3,
-        "textes": 5,
-        "mots": 8
+        "sansAction": 0,
+        "textes": 7,
+        "mots": 33
       },
       {
         "fichier": "client/src/pages/superadmin/AdminModerationAnnonces.tsx",
         "routes": [
           "/superadmin/admin-moderation-annonces"
         ],
-        "cliquables": 5,
+        "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 4,
-        "textes": 9,
-        "mots": 32
+        "sansAction": 0,
+        "textes": 8,
+        "mots": 37
       }
     ],
     "ecransHotes": [
@@ -1199,8 +1199,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1415,
-    "mots": 4780,
+    "textes": 1416,
+    "mots": 4810,
     "battement": "sonde",
     "manques": [
       {
@@ -1218,34 +1218,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/VenteVTC.tsx:186"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/superadmin/AdminFraude.tsx:26"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Inspecter » client/src/pages/superadmin/AdminFraude.tsx:46"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Bloquer » client/src/pages/superadmin/AdminFraude.tsx:47"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/superadmin/AdminModerationAnnonces.tsx:27"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Approuver » client/src/pages/superadmin/AdminModerationAnnonces.tsx:52"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Voir » client/src/pages/superadmin/AdminModerationAnnonces.tsx:53"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Refuser » client/src/pages/superadmin/AdminModerationAnnonces.tsx:54"
       }
     ]
   },
@@ -3369,11 +3341,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/admin-moderation-avis"
         ],
-        "cliquables": 4,
+        "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 3,
-        "textes": 5,
-        "mots": 9
+        "sansAction": 0,
+        "textes": 7,
+        "mots": 40
       },
       {
         "fichier": "client/src/pages/vente/AvisVendeurs.tsx",
@@ -3525,22 +3497,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 96,
-    "mots": 606,
+    "textes": 98,
+    "mots": 637,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/superadmin/AdminModerationAvis.tsx:26"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Publier » client/src/pages/superadmin/AdminModerationAvis.tsx:49"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Supprimer » client/src/pages/superadmin/AdminModerationAvis.tsx:50"
-      },
       {
         "genre": "dependance_sans_preuve",
         "detail": "pieces"
@@ -5916,6 +5876,20 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/superadmin/AdminLocation.tsx",
         "route": "/superadmin/admin-location",
+        "composants": [
+          "trpc.admin"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/superadmin/AdminModerationAnnonces.tsx",
+        "route": "/superadmin/admin-moderation-annonces",
+        "composants": [
+          "trpc.admin"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/superadmin/AdminSecurite.tsx",
+        "route": "/superadmin/admin-securite",
         "composants": [
           "trpc.admin"
         ]
@@ -9318,11 +9292,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/admin-securite"
         ],
-        "cliquables": 4,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 3,
+        "sansAction": 0,
         "textes": 6,
-        "mots": 13
+        "mots": 18
       },
       {
         "fichier": "client/src/pages/superadmin/AdminUtilisateurs.tsx",
@@ -9659,7 +9633,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "public"
     ],
     "textes": 464,
-    "mots": 2038,
+    "mots": 2043,
     "battement": "pont_os",
     "manques": [
       {
@@ -9669,18 +9643,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« 0} onClick= > » client/src/pages/Validation.tsx:177"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/superadmin/AdminSecurite.tsx:27"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Investiguer » client/src/pages/superadmin/AdminSecurite.tsx:49"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Bloquer » client/src/pages/superadmin/AdminSecurite.tsx:50"
       },
       {
         "genre": "bouton_sans_action",
@@ -20182,6 +20144,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "composants": [
           "trpc.smartEngine"
         ]
+      },
+      {
+        "fichier": "client/src/pages/superadmin/AdminFraude.tsx",
+        "route": "/superadmin/admin-fraude",
+        "composants": [
+          "trpc.smartEngine"
+        ]
       }
     ],
     "procedures": [
@@ -20663,11 +20632,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/admin-litiges"
         ],
-        "cliquables": 4,
+        "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 3,
+        "sansAction": 0,
         "textes": 8,
-        "mots": 12
+        "mots": 34
       },
       {
         "fichier": "client/src/pages/superadmin/AdminSupport.tsx",
@@ -20755,21 +20724,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "public"
     ],
     "textes": 42,
-    "mots": 171,
+    "mots": 193,
     "battement": "pont_os",
     "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/superadmin/AdminLitiges.tsx:25"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Mediation » client/src/pages/superadmin/AdminLitiges.tsx:51"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Resoudre » client/src/pages/superadmin/AdminLitiges.tsx:52"
-      },
       {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/superadmin/AdminSupport.tsx:30"
