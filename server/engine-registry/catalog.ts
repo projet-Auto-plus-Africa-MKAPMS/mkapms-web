@@ -211,7 +211,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "accounting_internal",
     label: "Internal Accounting Engine",
     category: "transversal",
-    dependencies: ["core", "payment", "comptabilite"],
+    dependencies: ["core", "payment", "comptabilite", "smart"],
     description:
       "Comptabilité interne MKA.P-MS : rapprochement paiement ↔ écriture, commissions, remboursements, abonnements, écarts.",
     state: "active",

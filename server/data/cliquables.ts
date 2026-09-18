@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2596;
+export const CLIQUABLES_TOTAL = 2593;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -134,7 +134,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/comptabilite/Rapports.tsx", total: 13, moteur: 0, liens: 1, boutonsLocaux: 10, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/comptabilite/TVA.tsx", total: 12, moteur: 0, liens: 1, boutonsLocaux: 9, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/comptabilite/WalletAdmin.tsx", total: 6, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/ComptaDirigeant.tsx", total: 25, moteur: 0, liens: 2, boutonsLocaux: 19, sansAction: 0, zones: 4 },
+  { fichier: "client/src/pages/ComptaDirigeant.tsx", total: 22, moteur: 0, liens: 2, boutonsLocaux: 15, sansAction: 0, zones: 5 },
   { fichier: "client/src/pages/Compte.tsx", total: 59, moteur: 0, liens: 12, boutonsLocaux: 39, sansAction: 0, zones: 8 },
   { fichier: "client/src/pages/compte/MesAvis.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Confiance.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },

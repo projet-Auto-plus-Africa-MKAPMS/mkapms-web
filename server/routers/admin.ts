@@ -336,6 +336,7 @@ export const adminRouter = router({
         id: users.id,
         email: users.email,
         name: users.name,
+        phone: users.phone,
         role: users.role,
         staffPosition: users.staffPosition,
         createdAt: users.createdAt,

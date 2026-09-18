@@ -248,17 +248,20 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDeclarees": [
       "comptabilite",
       "core",
-      "payment"
+      "payment",
+      "smart"
     ],
     "dependancesDetectees": [
       "comptabilite",
       "core",
-      "payment"
+      "payment",
+      "smart"
     ],
     "dependances": [
       "comptabilite",
       "core",
-      "payment"
+      "payment",
+      "smart"
     ],
     "integrationsTechniques": [],
     "preuvesDependances": {
@@ -272,6 +275,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "payment": [
         "accounting-internal/service.ts importe payment-engine/schema.ts"
+      ],
+      "smart": [
+        "client/src/pages/ComptaDirigeant.tsx appelle trpc.smartEngine"
       ]
     },
     "dependants": [
@@ -291,11 +297,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/compta-dirigeant"
         ],
-        "cliquables": 25,
+        "cliquables": 22,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 146,
-        "mots": 319
+        "textes": 81,
+        "mots": 226
       }
     ],
     "ecransHotes": [],
@@ -311,8 +317,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "acces": [
       "admin"
     ],
-    "textes": 146,
-    "mots": 319,
+    "textes": 81,
+    "mots": 226,
     "battement": "sonde",
     "manques": []
   },
@@ -5942,6 +5948,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/suppression-compte",
         "composants": [
           "trpc.meta"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/ComptaDirigeant.tsx",
+        "route": "/compta-dirigeant",
+        "composants": [
+          "trpc.admin"
         ]
       },
       {
@@ -19985,6 +19998,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "accounting_internal",
       "achat",
       "activation_audit",
       "ai_fabric",
@@ -20210,6 +20224,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/HistoriqueConsultations.tsx",
         "route": "/historique-consultations",
+        "composants": [
+          "trpc.smartEngine"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/ComptaDirigeant.tsx",
+        "route": "/compta-dirigeant",
         "composants": [
           "trpc.smartEngine"
         ]
