@@ -3696,6 +3696,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "garage",
       "livraison",
       "livraison_vehicule",
+      "smart",
       "vente",
       "vente_pro",
       "vo"
@@ -19848,6 +19849,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "fichiersServeur": 36,
     "dependancesDeclarees": [
       "avis_reputation",
+      "boutons",
       "core",
       "country",
       "event_bus",
@@ -19862,6 +19864,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependancesDetectees": [
       "avis_reputation",
+      "boutons",
       "core",
       "country",
       "event_bus",
@@ -19876,6 +19879,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependances": [
       "avis_reputation",
+      "boutons",
       "core",
       "country",
       "event_bus",
@@ -19896,6 +19900,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "smart-engine/services/alert-engine.ts importe reputation-engine/trends.ts",
         "smart-engine/services/review-analysis.ts importe modules/reviews.ts",
         "smart-engine/services/review-analysis.ts importe reputation-engine/trends.ts"
+      ],
+      "boutons": [
+        "smart-engine/services/health-monitor.ts importe data/boutons-sans-action.ts",
+        "consomme bouton.sans_action émis par boutons"
       ],
       "core": [
         "smart-engine/router.ts importe trpc.ts",

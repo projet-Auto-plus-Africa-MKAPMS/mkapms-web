@@ -84,7 +84,7 @@ export const ENGINE_CATALOG: EngineSeed[] = [
     name: "smart",
     label: "Smart Engine",
     category: "transversal",
-    dependencies: ["core","identity","permission","notification","monitoring","avis_reputation","country","event_bus","politique_pays","redirection","resilience","seo"],
+    dependencies: ["core","identity","permission","notification","monitoring","avis_reputation","country","event_bus","politique_pays","redirection","resilience","seo","boutons"],
     description: "Observation, analyse, alertes, apprentissage (sous validation humaine).",
     state: "active",
   },
