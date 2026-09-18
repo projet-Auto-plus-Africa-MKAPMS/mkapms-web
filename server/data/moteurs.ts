@@ -7184,6 +7184,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "get",
       "healthStatus",
       "history",
+      "list",
       "meta",
       "mine",
       "record",
@@ -7198,6 +7199,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "doc_document_history",
       "doc_documents",
       "doc_health_log",
+      "doc_legal_entities",
       "doc_templates",
       "doc_types"
     ],

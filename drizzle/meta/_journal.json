@@ -918,6 +918,13 @@
       "when": 1788232024000,
       "tag": "0132_parts_orders_idempotency",
       "breakpoints": true
+    },
+    {
+      "idx": 131,
+      "version": "7",
+      "when": 1788232025000,
+      "tag": "0133_document_os_legal_entities",
+      "breakpoints": true
     }
   ]
 }

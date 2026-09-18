@@ -478,6 +478,16 @@ async function bootstrap() {
     } catch (err) {
       console.error("[MKA.P-MS] échec seed templates Document OS:", (err as Error).message);
     }
+    // Document OS — registre des entités juridiques (Guinée = origine, France
+    // = entité locale). Seed initial uniquement : n'écrase jamais une entité
+    // déjà en base (une donnée juridique saisie par la direction est définitive).
+    try {
+      const { ensureDefaultLegalEntities } = await import("./document-os/index.js");
+      const r = await ensureDefaultLegalEntities();
+      console.log(`[MKA.P-MS] Document OS: entités juridiques prêtes (${r.inserted} créée(s))`);
+    } catch (err) {
+      console.error("[MKA.P-MS] échec seed entités juridiques Document OS:", (err as Error).message);
+    }
     // Document Engine (LOT 6) — types de documents fournisseur/véhicule
     // enregistrés dans le registre Document OS. Idempotent.
     try {
