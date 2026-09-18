@@ -168,7 +168,6 @@ export const devisRouter = router({
         metadata: { devisId: devis.id, type: "devis_garage" },
         successPath: `/compte?devis=${devis.id}&paid=1`,
         cancelPath: `/compte?devis=${devis.id}&canceled=1`,
-        paymentTypeSql: "garage_prestation",
         countryCode: devis.pays,
       });
       return { url };
