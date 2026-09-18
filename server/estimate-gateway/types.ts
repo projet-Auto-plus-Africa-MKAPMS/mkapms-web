@@ -54,6 +54,12 @@ export interface ResultatEstimation {
   missingData: string[];
   warnings: string[];
   traceId: string;
+  /**
+   * LOT IA02G — sources publiques externes réellement consultées (titre +
+   * URL telle quelle, jamais reformulée). Absent pour tout moteur qui ne
+   * consulte aucune source externe ; jamais rempli avec une URL inventée.
+   */
+  externalSources?: { title: string; url: string }[];
 }
 
 export function nouvelleEstimationVide(input: {

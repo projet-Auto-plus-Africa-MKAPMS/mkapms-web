@@ -293,7 +293,13 @@ export const PROVIDER_CATALOG: {
     unitCostCents: null,
     unitLabel: "1000 requêtes",
     switchingNote:
-      "Absent : l'assistant ne peut pas sortir chercher une réponse avec sa source. Sans ce fournisseur, une réponse externe serait une réponse inventée.",
+      "Implémenté (Brave Search API) pour la comparaison de prix externe par pays — server/market-price-intelligence/service.ts. " +
+      "Sans clé fournie, la fonction répond honnêtement UNAVAILABLE, jamais un prix ou une source inventée.",
+    // LOT IA02G — code d'appel réel écrit (server/market-price-intelligence/service.ts),
+    // mais sans clé WEB_SEARCH_API_KEY fournie sur ce serveur ni test réel bout-en-bout
+    // effectué : IMPLEMENTED_NOT_CONNECTED, pas CONNECTED_AND_TESTED tant que ces deux
+    // conditions ne sont pas réunies (même règle que pour les fournisseurs de modèle).
+    wireStatus: "IMPLEMENTED_NOT_CONNECTED",
   },
   {
     code: "itineraire_routier",

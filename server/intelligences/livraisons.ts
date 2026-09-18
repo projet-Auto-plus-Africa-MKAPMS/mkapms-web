@@ -1072,6 +1072,33 @@ export const LIVRAISONS: Livraison[] = [
       "Un cloisonnement public/direction se décide dans le moteur (propriété du domaine + refus serveur), jamais en cachant un onglet dans l'écran : sinon l'interrupteur d'un domaine ouvert suffisait à le rendre visible.",
     domaine: "intelligences",
   },
+  {
+    cle: "chantier-maitre-connexion-plateforme-lot-02g-comparaison-prix-externe-pays",
+    titre: "Chantier maître — connexion de MKA.P-MS Intelligences à toute la plateforme, LOT 02G : comparaison de prix externe par pays",
+    moteurs: ["intelligences", "vo_engine"],
+    quoi:
+      "Demande de la direction : partout où la plateforme estime un prix, une seconde intelligence doit comparer ce chiffre à ce qui se vend réellement à l'extérieur, publiquement, pays par pays. Audit préalable de tout point d'estimation existant (server/estimate-gateway/gateway.ts, 14 outils estimate.* déjà réels) : aucun n'interrogeait de source externe — la capacité recherche_web_externe était cataloguée dans server/ai-fabric/service.ts (envKeys WEB_SEARCH_API_KEY) mais son code d'appel n'existait nulle part (wireStatus non renseigné, donc jamais sélectionnable). Nouveau server/market-price-intelligence/service.ts (comparerPrixExterne) : seul point du code qui interroge une source publique hors plateforme, en deux étapes réelles jamais fabriquées — 1) recherche Brave Search (WEB_SEARCH_API_KEY), honnêtement UNAVAILABLE si la clé est absente, si la recherche échoue ou si elle ne retourne rien ; 2) extraction de prix par le modèle de texte déjà connecté (server/intelligences/provider.ts::appeler, capacité ia_texte, sortie structurée stricte), avec un filtre serveur qui rejette tout prix dont l'URL ne correspond pas à un résultat de recherche réellement obtenu — un modèle ne peut donc jamais faire apparaître une source qui n'existe pas. Nouvel outil Tool Registry estimate.vehicle.externalComparison (15e outil de la famille estimations, IMPLEMENTED), nouvelle procédure publique voEngine.comparaisonExterne, nouveau champ optionnel ResultatEstimation.externalSources (titre + URL réelles, jamais reformulées). Écran client EstimationAuto.tsx étendu d'un bloc « Comparer avec le marché public à l'extérieur » (code pays éditable, bouton à la demande — pas d'appel automatique pour ne pas dépenser un appel de recherche à chaque estimation). server/ai-fabric/service.ts : recherche_web_externe passe de wireStatus non renseigné à IMPLEMENTED_NOT_CONNECTED (code réel écrit, mais aucune clé WEB_SEARCH_API_KEY fournie sur ce serveur ni test bout-en-bout réel effectué — pas CONNECTED_AND_TESTED tant que ces deux conditions ne sont pas réunies, même règle que pour les fournisseurs de modèle).",
+    pourquoi:
+      "Feu vert explicite de la direction : chaque estimation de prix (véhicule aujourd'hui, tout autre univers demain) doit pouvoir être mise en regard d'un prix public réel constaté à l'extérieur, par pays, sans jamais présenter un montant externe inventé ou une source qui n'a pas été réellement consultée.",
+    ou: [
+      "server/market-price-intelligence/service.ts",
+      "server/market-price-intelligence/__tests__/service.test.ts",
+      "server/estimate-gateway/types.ts",
+      "server/estimate-gateway/gateway.ts",
+      "server/estimate-gateway/__tests__/gateway.test.ts",
+      "server/intelligences/outils/familles/estimations.ts",
+      "server/intelligences/outils/familles/outils-estimations.ts",
+      "server/vo-engine/index.ts",
+      "server/ai-fabric/service.ts",
+      "server/engine-registry/catalog.ts",
+      "server/engine-registry/perimetres.ts",
+      "scripts/check-providers.mjs",
+      "client/src/pages/EstimationAuto.tsx",
+    ],
+    lecon:
+      "Vérifié réellement, sur base Postgres locale : 19/19 vérifications dans le nouveau test market-price-intelligence (dont le rejet d'une URL de source non recherchée par le modèle), et 60/60, 57/57 (53→57, quatre nouvelles vérifications), 39/39, 25/25, 10/10, 20/20, 7/7 toujours verts sur les suites existantes (aucune régression). Un vrai défaut trouvé par le générateur des moteurs, pas par relecture : ajouter l'import de market-price-intelligence/service.ts dans vo-engine/index.ts a fait apparaître dependance_non_declaree=33 (32→33) — corrigé en déclarant intelligences comme dépendance réelle de vo_engine dans server/engine-registry/catalog.ts, retombé à 32 après régénération. Portée assumée et documentée, pas silencieuse : recherche_web_externe reste IMPLEMENTED_NOT_CONNECTED sur ce serveur faute de clé WEB_SEARCH_API_KEY fournie — la fonction répond honnêtement UNAVAILABLE dans cet état, jamais un prix ou une source inventée ; la comparaison n'est câblée qu'au véhicule (VO Engine) pour ce lot, les autres univers d'estimation (garage, pièces, transport, livraison) pourront réutiliser le même moteur sans doublon le jour où la direction le demandera. Typecheck : 49 erreurs préexistantes hors périmètre, aucune nouvelle dans les fichiers touchés. Build client et serveur complets réussis.",
+    domaine: "intelligences",
+  },
 ];
 
 /**

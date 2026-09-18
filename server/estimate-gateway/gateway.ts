@@ -21,6 +21,7 @@ import { calculerMontantDevis, devisDuClient } from "../routers/devis.js";
 import { voletPieces } from "../estimation-hub/service.js";
 import { diagnostiquer } from "../import-risk/service.js";
 import { getRates } from "../routers/currency.js";
+import { comparerPrixExterne } from "../market-price-intelligence/service.js";
 import { db } from "../db.js";
 import { partsCatalog, partsStock } from "../schema.js";
 import { eq } from "drizzle-orm";
@@ -134,6 +135,18 @@ export async function estimerMarge(input: EstimateInput, traceId: string): Promi
     isBinding: false,
     validUntil: null,
   };
+}
+
+// ── Comparaison de prix externe par pays (LOT IA02G) ───────────────────────
+// Ne recalcule rien : interroge une source publique hors plateforme
+// (server/market-price-intelligence/service.ts) et met le résultat de
+// estimerValeurMarche en regard, jamais à sa place.
+
+export async function estimerComparaisonExterne(
+  input: { marque: string; modele: string; annee?: number | null; countryCode?: string | null },
+  traceId: string,
+): Promise<ResultatEstimation> {
+  return comparerPrixExterne(input, traceId);
 }
 
 // ── Garage / réparation ────────────────────────────────────────────────────

@@ -5,8 +5,10 @@
  * demander une reprise, déposer en enchère (Auction Engine) ou trouver un
  * professionnel. Le moteur ne décide jamais d'un prix ferme.
  */
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { comparerPrixExterne } from "../market-price-intelligence/service.js";
 import {
   accepterOffreReprise,
   addDossierItem,
@@ -50,6 +52,23 @@ export const voEngineRouter = router({
     .mutation(({ ctx, input }) => estimate({ ...input, userId: ctx.user?.uid ?? null })),
 
   myEstimations: protectedProcedure.query(({ ctx }) => myEstimations(ctx.user.uid)),
+
+  /**
+   * LOT IA02G — comparaison publique du prix estimé à ce qui se vend
+   * réellement à l'extérieur, pays par pays. Ne recalcule rien : voir
+   * server/market-price-intelligence/service.ts. Sans clé de recherche
+   * configurée côté serveur, répond honnêtement "unavailable".
+   */
+  comparaisonExterne: publicProcedure
+    .input(
+      z.object({
+        marque: z.string().min(1).max(80),
+        modele: z.string().min(1).max(120),
+        annee: z.number().int().min(1900).max(2100).optional(),
+        countryCode: z.string().min(2).max(4).optional(),
+      }),
+    )
+    .query(({ input }) => comparerPrixExterne(input, randomUUID())),
 
   requestReprise: protectedProcedure
     .input(

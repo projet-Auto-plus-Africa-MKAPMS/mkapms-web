@@ -9,6 +9,7 @@
 import { randomUUID } from "node:crypto";
 import type { ImplementationOutil } from "../outils-test.js";
 import {
+  estimerComparaisonExterne,
   estimerConversionDevise,
   estimerDouane,
   estimerImportation,
@@ -40,6 +41,7 @@ export const IMPLEMENTATIONS: Record<string, ImplementationOutil> = {
   "estimate.vehicle.tradeIn": async (args) => estimerValeurReprise(vehiculeArgs(args), randomUUID()),
   "estimate.vehicle.retail": async (args) => estimerPrixDetail(vehiculeArgs(args), randomUUID()),
   "estimate.vehicle.margin": async (args) => estimerMarge(vehiculeArgs(args), randomUUID()),
+  "estimate.vehicle.externalComparison": async (args) => estimerComparaisonExterne(vehiculeArgs(args), randomUUID()),
 
   "estimate.garage.repair": async (args, contexte) =>
     estimerReparationGarage(
