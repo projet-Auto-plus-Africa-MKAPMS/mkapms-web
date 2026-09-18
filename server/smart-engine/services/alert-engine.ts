@@ -27,6 +27,7 @@ import {
   healRecent404s,
   replayLearnedFixes,
 } from "./auto-fix.js";
+import { syncBoutonsSansAction } from "./health-monitor.js";
 import { reputationTrends, trendSignature } from "../../reputation-engine/trends.js";
 
 export type AlertLevel = "info" | "warning" | "important" | "critical";
@@ -127,6 +128,15 @@ export async function runAlertScan() {
     autoFixed += healed.aliasesCreated;
   } catch {
     /* auto-réparation best-effort, ne bloque jamais le scan */
+  }
+
+  // 0b. Connecte l'inventaire statique des boutons sans action (CI) au
+  // moteur d'alerte en direct : un bouton mort n'est plus visible seulement
+  // en build, il devient une alerte réelle côté direction (boucle 1 ci-dessous).
+  try {
+    await syncBoutonsSansAction();
+  } catch {
+    /* synchronisation best-effort, ne bloque jamais le scan */
   }
 
   // 1. Boutons cassés + 3. Pages vides + éléments manquants (health checks)
