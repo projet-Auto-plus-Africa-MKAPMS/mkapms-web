@@ -1,13 +1,21 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-
+//
+// AGP 8.13.0 (jamais 8.2.1, le défaut du gabarit Capacitor 6) : compileSdk/
+// targetSdk = 36 (variables.gradle) l'exige — AGP 8.2.1 plafonne officiellement
+// à l'API 34 (developer.android.com/build/releases/agp-8-2-0-release-notes),
+// alors que Google Play impose de cibler l'API 36 pour toute nouvelle
+// application depuis le 31/08/2026. AGP 8.13.0 supporte l'API 36.1 tout en
+// restant sur la branche 8.x déjà utilisée par Capacitor 6 (branche 9.x =
+// changements plus larges, non nécessaires ici). Gradle 8.13 assorti dans
+// gradle-wrapper.properties.
 buildscript {
-    
+
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.1'
+        classpath 'com.android.tools.build:gradle:8.13.0'
         classpath 'com.google.gms:google-services:4.4.0'
 
         // NOTE: Do not place your application dependencies here; they belong

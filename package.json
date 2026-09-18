@@ -28,6 +28,7 @@
     "gen:sections": "node scripts/gen-sections.mjs",
     "check:moteurs": "node scripts/gen-moteurs.mjs --check",
     "check:migrations": "node scripts/check-migrations.mjs",
+    "check:android-appids": "node scripts/check-android-appids.mjs",
     "gen:moteurs": "node scripts/gen-moteurs.mjs",
     "build:graph": "node scripts/code-graph.mjs",
     "build": "npm run check:routers && npm run check:naming && npm run check:identite && npm run check:providers && npm run check:public-provider-leaks && npm run check:intelligence-chat && npm run check:routes && npm run check:boutons && npm run check:cliquables && npm run check:sections && npm run check:moteurs && npm run check:migrations && npm run build:graph && npm run build:client && npm run build:server",
