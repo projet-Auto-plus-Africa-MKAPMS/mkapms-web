@@ -489,10 +489,13 @@ export default function Louer() {
           </div>
         </div>
         <div className="px-4 py-3 flex gap-2">
-          <button className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1.5 active:scale-[0.98] transition">
+          <Link to="/carte" className="flex-1 rounded-xl bg-[#111] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1.5 active:scale-[0.98] transition">
             <Navigation size={12} /> Voir sur la carte
-          </button>
-          <button className="flex-1 rounded-xl border-2 border-[#D4AF37] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1.5 active:scale-[0.98] transition">
+          </Link>
+          <button
+            onClick={() => document.getElementById("vehicules-populaires")?.scrollIntoView({ behavior: "smooth" })}
+            className="flex-1 rounded-xl border-2 border-[#D4AF37] py-2.5 text-xs font-bold text-[#D4AF37] flex items-center justify-center gap-1.5 active:scale-[0.98] transition"
+          >
             <CarFront size={12} /> Véhicules disponibles
           </button>
         </div>
@@ -504,7 +507,7 @@ export default function Louer() {
       {/* ═══════════════════════════════════════════════════════════════════
           SECTION 7 — VÉHICULES POPULAIRES
           ═══════════════════════════════════════════════════════════════════ */}
-      <div className="px-4 mt-6">
+      <div id="vehicules-populaires" className="px-4 mt-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#111]">Véhicules populaires</h2>
           <Link to="/louer" className="text-xs font-semibold text-[#D4AF37]">Voir tout →</Link>
