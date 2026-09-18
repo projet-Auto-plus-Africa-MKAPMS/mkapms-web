@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2580;
+export const CLIQUABLES_TOTAL = 2577;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -618,11 +618,11 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/superadmin/AdminObjectif.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminPaiements.tsx", total: 20, moteur: 0, liens: 1, boutonsLocaux: 12, sansAction: 1, zones: 6 },
   { fichier: "client/src/pages/superadmin/AdminPieces.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/superadmin/AdminSauvegardes.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 5, zones: 0 },
+  { fichier: "client/src/pages/superadmin/AdminSauvegardes.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminSecurite.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminSEO.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminStatistiques.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
-  { fichier: "client/src/pages/superadmin/AdminSupport.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 4, zones: 0 },
+  { fichier: "client/src/pages/superadmin/AdminSupport.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminUtilisateurs.tsx", total: 27, moteur: 0, liens: 1, boutonsLocaux: 17, sansAction: 1, zones: 8 },
   { fichier: "client/src/pages/superadmin/AdminValidationDocs.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminVente.tsx", total: 9, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 2 },
@@ -831,16 +831,7 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/superadmin/AdminGarage.tsx", ligne: 75, genre: "bouton", libelle: "Details", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminObjectif.tsx", ligne: 35, genre: "bouton", libelle: "Modifier objectif", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminPaiements.tsx", ligne: 216, genre: "bouton", libelle: "Relancer", motif: "sans_action" },
-  { fichier: "client/src/pages/superadmin/AdminSauvegardes.tsx", ligne: 22, genre: "bouton", libelle: "5 Sauvegardes recentes", motif: "sans_action" },
-  { fichier: "client/src/pages/superadmin/AdminSauvegardes.tsx", ligne: 23, genre: "bouton", libelle: "11.4 GB Espace total", motif: "sans_action" },
-  { fichier: "client/src/pages/superadmin/AdminSauvegardes.tsx", ligne: 25, genre: "bouton", libelle: "Sauvegarde manuelle maintenant", motif: "sans_action" },
-  { fichier: "client/src/pages/superadmin/AdminSauvegardes.tsx", ligne: 38, genre: "bouton", libelle: "Telecharger", motif: "sans_action" },
-  { fichier: "client/src/pages/superadmin/AdminSauvegardes.tsx", ligne: 39, genre: "bouton", libelle: "Restaurer", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminStatistiques.tsx", ligne: 40, genre: "bouton", libelle: "Voir rapport complet", motif: "sans_action" },
-  { fichier: "client/src/pages/superadmin/AdminSupport.tsx", ligne: 30, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/superadmin/AdminSupport.tsx", ligne: 64, genre: "bouton", libelle: "Repondre", motif: "sans_action" },
-  { fichier: "client/src/pages/superadmin/AdminSupport.tsx", ligne: 65, genre: "bouton", libelle: "Resoudre", motif: "sans_action" },
-  { fichier: "client/src/pages/superadmin/AdminSupport.tsx", ligne: 66, genre: "bouton", libelle: "Escalader", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminUtilisateurs.tsx", ligne: 90, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx", ligne: 41, genre: "bouton", libelle: "Ajouter un employé", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/ValidationDocumentsComplete.tsx", ligne: 38, genre: "bouton", libelle: "Valider", motif: "sans_action" },
