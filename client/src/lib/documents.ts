@@ -36,12 +36,19 @@ export type TypeDocument =
  * jamais passer ce que les écrans remettaient réellement au client. La trace
  * est best-effort — elle ne retarde ni ne bloque la remise du document.
  */
+/** Objet métier réel auquel le document se rattache (règle maître documentaire #10). */
+export interface EntiteLiee {
+  type: string;
+  id: number;
+}
+
 export function tracerEdition(entree: {
   typeCode: TypeDocument;
   canal: "impression" | "fichier";
   titre: string;
   referenceEcran?: string;
   lignes?: number;
+  entiteLiee?: EntiteLiee;
 }): void {
   try {
     const token = getToken();
@@ -59,6 +66,8 @@ export function tracerEdition(entree: {
           titre: entree.titre.slice(0, 160),
           referenceEcran: entree.referenceEcran?.slice(0, 64),
           lignes: entree.lignes,
+          linkedEntityType: entree.entiteLiee?.type,
+          linkedEntityId: entree.entiteLiee?.id,
         },
       }),
     }).catch(() => {});
@@ -106,6 +115,7 @@ export function telechargerCSV(
   colonnes: ColonneExport[],
   lignes: LigneExport[],
   typeDocument: TypeDocument = "export_donnees",
+  entiteLiee?: EntiteLiee,
 ): { ok: boolean; nom: string; lignes: number } {
   const entete = colonnes.map((c) => champCSV(c.titre)).join(";");
   const corps = lignes.map((l) => colonnes.map((c) => champCSV(valeur(l, c.cle))).join(";"));
@@ -129,6 +139,7 @@ export function telechargerCSV(
       titre: nomFichier,
       referenceEcran: nom,
       lignes: lignes.length,
+      entiteLiee,
     });
     return { ok: true, nom, lignes: lignes.length };
   } catch {
@@ -158,6 +169,8 @@ export interface FeuilleImprimable {
   mentions?: string[];
   /** Type enregistré au Document OS (défaut : export de données). */
   typeDocument?: TypeDocument;
+  /** Objet métier réel (véhicule, annonce, enchère, mission...) — règle #10. Absent pour un rapport agrégé sans objet unique. */
+  entiteLiee?: EntiteLiee;
 }
 
 function corpsHtml(feuille: FeuilleImprimable): string {
@@ -283,6 +296,7 @@ export function imprimerFeuille(feuille: FeuilleImprimable): boolean {
     titre: feuille.titre,
     referenceEcran: feuille.reference,
     lignes: feuille.lignes?.length,
+    entiteLiee: feuille.entiteLiee,
   });
   return true;
 }

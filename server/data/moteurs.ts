@@ -7070,6 +7070,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "document_engine",
       "finance",
       "importafrica",
+      "intelligences",
       "vo_espaces"
     ],
     "evenementsPublies": [],
@@ -9952,6 +9953,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connaissance_auto",
       "continuous_test",
       "core",
+      "document",
       "event_bus",
       "identity",
       "monitoring",
@@ -9969,6 +9971,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "continuous_test",
       "core",
       "country",
+      "document",
       "estimation",
       "event_bus",
       "identity",
@@ -9991,6 +9994,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "continuous_test",
       "core",
       "country",
+      "document",
       "estimation",
       "event_bus",
       "identity",
@@ -10042,6 +10046,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "estimate-gateway/gateway.ts importe routers/currency.ts",
         "intelligences/contexte/service.ts importe country-os/index.ts",
         "intelligences/contexte/service.ts lit la règle pays"
+      ],
+      "document": [
+        "intelligences/livraisons.ts produit un document via Document OS"
       ],
       "estimation": [
         "estimate-gateway/gateway.ts importe estimation-hub/service.ts"
