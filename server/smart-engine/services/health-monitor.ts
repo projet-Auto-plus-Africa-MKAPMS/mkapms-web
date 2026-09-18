@@ -109,6 +109,21 @@ function elementsUniques(): { fichier: string; ligne: number; libelle: string; e
   });
 }
 
+/**
+ * Vrai si (page, élément) désigne un bouton fantôme TOUJOURS présent dans
+ * l'inventaire statique en direct (server/data/boutons-sans-action.ts).
+ *
+ * Sert à empêcher un mensonge d'état (point 91) : marquer un contrôle de
+ * santé « ok » alors que le code n'a pas changé ne fait que déclencher, au
+ * prochain scan, une remise à « broken » avec un nouveau lastCheckedAt — donc
+ * une réouverture immédiate de l'alerte (le PDG se plaignait : « je clique
+ * Résolu, je rafraîchis, ça revient direct »). resolveAlertWithLearning
+ * (alert-engine.ts) appelle cette fonction avant de faire cette promesse.
+ */
+export function isKnownGhostButton(page: string, element: string): boolean {
+  return elementsUniques().some((b) => b.fichier === page && b.element === element);
+}
+
 export async function syncBoutonsSansAction(): Promise<{ synced: number; resolved: number }> {
   const boutons = elementsUniques();
   const actuels = new Set(boutons.map((b) => `${b.fichier}::${b.element}`));
