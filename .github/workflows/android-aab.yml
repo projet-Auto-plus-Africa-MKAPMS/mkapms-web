@@ -70,10 +70,18 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties', 'android/build.gradle', 'android/app/build.gradle') }}
 
       - name: Restaurer le trousseau de signature (si le secret existe)
-        if: ${{ secrets.MKAPMS_KEYSTORE_BASE64 != '' }}
+        # Le contexte "secrets" n'est pas autorisé dans un "if:" d'étape (erreur
+        # de validation GitHub Actions : "Unrecognized named-value: 'secrets'") —
+        # c'est ce qui empêchait ce workflow de démarrer, sur tout déclenchement,
+        # avant même la planification d'un job. Le test se fait donc dans le
+        # script, où secrets reste accessible via env.
+        env:
+          MKAPMS_KEYSTORE_BASE64: ${{ secrets.MKAPMS_KEYSTORE_BASE64 }}
         run: |
-          echo "${{ secrets.MKAPMS_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/mkapms-release.keystore"
-          echo "MKAPMS_KEYSTORE_FILE=$RUNNER_TEMP/mkapms-release.keystore" >> "$GITHUB_ENV"
+          if [ -n "$MKAPMS_KEYSTORE_BASE64" ]; then
+            echo "$MKAPMS_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/mkapms-release.keystore"
+            echo "MKAPMS_KEYSTORE_FILE=$RUNNER_TEMP/mkapms-release.keystore" >> "$GITHUB_ENV"
+          fi
 
       - name: Construire les Android App Bundles
         env:
