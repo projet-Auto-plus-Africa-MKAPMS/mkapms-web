@@ -93,6 +93,7 @@ export default function ProduitLocation() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showPrices, setShowPrices] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [tierChoisi, setTierChoisi] = useState<number | null>(null);
 
   // Fetch de la vraie annonce si l'id est numérique (annonce réelle) ;
   // sinon on cherche dans VEHICLES_DB (mocks 8001-8010, 7001-7009, 6001-6008…).
@@ -178,13 +179,19 @@ export default function ProduitLocation() {
 
   /* ── Prix calculés ── */
   const PRICE_TIERS = [
-    { label: "Jour", value: v.prixJour },
-    { label: "3 Jours", value: Math.round(v.prixJour * 2.7) },
-    { label: "Semaine", value: v.prixSemaine },
-    { label: "2 Sem.", value: Math.round(v.prixSemaine * 1.8) },
-    { label: "Mois", value: v.prixMois },
-    { label: "3 Mois", value: Math.round(v.prixMois * 2.7) },
+    { label: "Jour", value: v.prixJour, jours: 1 },
+    { label: "3 Jours", value: Math.round(v.prixJour * 2.7), jours: 3 },
+    { label: "Semaine", value: v.prixSemaine, jours: 7 },
+    { label: "2 Sem.", value: Math.round(v.prixSemaine * 1.8), jours: 14 },
+    { label: "Mois", value: v.prixMois, jours: 30 },
+    { label: "3 Mois", value: Math.round(v.prixMois * 2.7), jours: 90 },
   ];
+  const tierSelectionne = tierChoisi !== null ? PRICE_TIERS[tierChoisi] : null;
+  const fmtJour = (d: Date) => d.toISOString().split("T")[0];
+  const dateDebutTier = tierSelectionne ? fmtJour(new Date()) : undefined;
+  const dateFinTier = tierSelectionne
+    ? fmtJour(new Date(Date.now() + tierSelectionne.jours * 24 * 60 * 60 * 1000))
+    : undefined;
 
   /* ── Galerie plein écran ── */
   if (galleryOpen) {
@@ -310,10 +317,13 @@ export default function ProduitLocation() {
             <div className="grid grid-cols-3 gap-2">
               {PRICE_TIERS.map((tier, i) => (
                 <button key={tier.label}
+                  onClick={() => setTierChoisi(i)}
                   className={`rounded-lg p-3 text-center transition hover:scale-[1.03] active:scale-[0.97] ${
-                    i >= 4
-                      ? "bg-[#D4AF37]/10 border border-[#D4AF37]/30"
-                      : "bg-[#F5F3EF]"
+                    tierChoisi === i
+                      ? "bg-[#D4AF37]/20 border-2 border-[#D4AF37]"
+                      : i >= 4
+                        ? "bg-[#D4AF37]/10 border border-[#D4AF37]/30"
+                        : "bg-[#F5F3EF]"
                   }`}
                 >
                   <p className={`text-[10px] uppercase ${i >= 4 ? "text-[#D4AF37] font-semibold" : "text-[#6B7280]"}`}>{tier.label}</p>
@@ -457,7 +467,9 @@ export default function ProduitLocation() {
           univers="location"
           vehiculeRef={id ?? "inconnu"}
           vehiculeTitre={v.titre}
-          montantEstime={v.prixJour}
+          dateDebut={dateDebutTier}
+          dateFin={dateFinTier}
+          montantEstime={tierSelectionne?.value ?? v.prixJour}
           className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white active:scale-[0.98] transition shadow-lg disabled:opacity-60"
         >
           Réserver maintenant
