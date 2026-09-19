@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ChevronLeft, Star, Car, TrendingUp, Euro, Shield,
   RefreshCw, Calculator, Users, Award, ChevronRight, Check
@@ -25,6 +24,7 @@ const OFFRES = [
 ];
 
 export default function ProgrammeVTC() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-[#111] px-4 pt-6 pb-5">
@@ -108,7 +108,10 @@ export default function ProgrammeVTC() {
 
       {/* CTA */}
       <div className="px-4 mt-6">
-        <button className="w-full rounded-xl bg-[#111] py-4 text-base font-extrabold text-[#D4AF37] active:scale-[0.98] transition shadow-lg">
+        <button
+          onClick={() => navigate("/abonnements?categorie=vtc_taxi")}
+          className="w-full rounded-xl bg-[#111] py-4 text-base font-extrabold text-[#D4AF37] active:scale-[0.98] transition shadow-lg"
+        >
           Rejoindre le programme VTC & Taxi
         </button>
       </div>

@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 552;
+export const MANQUES_TOTAL = 551;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 123,
+  "bouton_sans_action": 121,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
-  "dependance_non_declaree": 32,
+  "dependance_non_declaree": 33,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
@@ -6207,6 +6207,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "supplier_engine",
       "vehicle_engine",
       "vente",
+      "vente_pro",
       "vo_engine",
       "vo_espaces"
     ],
@@ -6562,6 +6563,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/EstimationAuto.tsx",
         "route": "/acheter/estimation",
+        "composants": [
+          "lib/currency.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/EspaceProVente.tsx",
+        "route": "/acheter/espace-pro",
         "composants": [
           "lib/currency.tsx"
         ]
@@ -11470,7 +11478,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 2,
+        "sansAction": 1,
         "textes": 23,
         "mots": 84
       },
@@ -11616,10 +11624,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Voir le véhicule » client/src/pages/ProgrammeVTC.tsx:85"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Rejoindre le programme VTC & Taxi » client/src/pages/ProgrammeVTC.tsx:111"
       },
       {
         "genre": "bouton_sans_action",
@@ -22364,6 +22368,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependancesDetectees": [
       "boutons",
+      "country",
       "identity",
       "pro_portal",
       "vo_espaces"
@@ -22371,6 +22376,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependances": [
       "boutons",
       "core",
+      "country",
       "identity",
       "pro_portal",
       "vente",
@@ -22381,6 +22387,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "boutons": [
         "client/src/pages/vente/TableauBordVendeur.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
         "client/src/pages/vente/TableauBordVendeur.tsx utilise BoutonMoteur"
+      ],
+      "country": [
+        "client/src/pages/EspaceProVente.tsx embarque lib/currency.tsx (trpc.currency)"
       ],
       "identity": [
         "client/src/pages/InscriptionProVente.tsx appelle trpc.kyc"
@@ -22428,9 +22437,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 19,
-        "mots": 40
+        "sansAction": 0,
+        "textes": 15,
+        "mots": 32
       },
       {
         "fichier": "client/src/pages/InscriptionProVente.tsx",
@@ -22459,17 +22468,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 67,
-    "mots": 244,
+    "textes": 63,
+    "mots": 236,
     "battement": "sonde",
     "manques": [
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Choisir » client/src/pages/EspaceProVente.tsx:50"
+        "genre": "dependance_non_declaree",
+        "detail": "boutons — client/src/pages/vente/TableauBordVendeur.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       },
       {
         "genre": "dependance_non_declaree",
-        "detail": "boutons — client/src/pages/vente/TableauBordVendeur.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
+        "detail": "country — client/src/pages/EspaceProVente.tsx embarque lib/currency.tsx (trpc.currency)"
       },
       {
         "genre": "dependance_non_declaree",
