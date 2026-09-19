@@ -981,7 +981,7 @@ export default function App() {
             <Route path="/vente/rapports" element={<V name="Rapports v\u00e9hicule"><CentreRapportsVehicule /></V>} />
             <Route path="/vente/achat-distance" element={<V name="Achat \u00e0 distance"><CentreAchatDistance /></V>} />
             <Route path="/vente/livraison-acheteur" element={<V name="Livraison acheteur"><CentreLivraisonAcheteur /></V>} />
-            <Route path="/vente/retour-client" element={<V name="Retour client"><CentreRetourClient /></V>} />
+            <Route path="/vente/retour-client/:id" element={<U name="Retour client"><CentreRetourClient /></U>} />
             <Route path="/vente/badges" element={<V name="Badges vendeurs"><CentreBadgesVendeurs /></V>} />
             <Route path="/vente/fraude" element={<V name="D\u00e9tection fraude"><CentreDetectionFraude /></V>} />
             <Route path="/vente/confiance" element={<V name="Confiance acheteur"><CentreConfianceAcheteur /></V>} />

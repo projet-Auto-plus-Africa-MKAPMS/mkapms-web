@@ -1423,6 +1423,14 @@ export default function Vehicule({ univers }: { univers?: string }) {
             Planifier une visite
           </button>
           )}
+          {!isOwnerOrAdmin && !isDemo && (
+          <button
+            className="mt-2 w-full text-center text-xs font-bold text-[#6B7280] underline"
+            onClick={() => requireLogin(() => navigate(`/vente/retour-client/${annonceId}`))}
+          >
+            Donner mon avis sur le vendeur
+          </button>
+          )}
         </div>{/* fin cage infos (colonne droite desktop) */}
         </div>{/* fin colonne droite (desktop) */}
         </div>{/* fin disposition 2 colonnes (desktop) */}
