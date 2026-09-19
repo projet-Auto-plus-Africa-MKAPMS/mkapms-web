@@ -1112,7 +1112,14 @@ function EvolutionTab({ isPdg }: { isPdg: boolean }) {
     utils.smartEngine.evolutionProposals.invalidate();
   };
   const generate = trpc.smartEngine.generateEvolution.useMutation({ onSuccess: refresh });
-  const review = trpc.smartEngine.reviewEvolution.useMutation({ onSuccess: refresh });
+  const [erreur, setErreur] = useState<{ id: number; message: string } | null>(null);
+  const review = trpc.smartEngine.reviewEvolution.useMutation({
+    onSuccess: (_data, variables) => {
+      setErreur((e) => (e?.id === variables.id ? null : e));
+      refresh();
+    },
+    onError: (err, variables) => setErreur({ id: variables.id, message: err.message }),
+  });
 
   const items = list.data ?? [];
   const s = stats.data;
@@ -1189,6 +1196,23 @@ function EvolutionTab({ isPdg }: { isPdg: boolean }) {
               {it.riskNote && (
                 <p className="mt-1 flex items-start gap-1 text-[11px] text-[#B45309]">
                   <AlertTriangle size={12} className="mt-0.5 shrink-0" /> {it.riskNote}
+                </p>
+              )}
+              {(() => {
+                const meta = (it.metadata ?? {}) as Record<string, unknown>;
+                const execStatus = typeof meta.executionStatus === "string" ? meta.executionStatus : null;
+                const execDetail = typeof meta.executionDetail === "string" ? meta.executionDetail : null;
+                if (!execStatus || execStatus === "termine") return null;
+                return (
+                  <p className="mt-1 flex items-start gap-1 rounded-lg bg-amber-50 p-1.5 text-[11px] text-amber-800">
+                    <AlertTriangle size={12} className="mt-0.5 shrink-0" />
+                    Non réalisé automatiquement ({execStatus}) : {execDetail ?? "aucun exécuteur pour cette action — une intervention humaine reste nécessaire."}
+                  </p>
+                );
+              })()}
+              {erreur?.id === it.id && (
+                <p className="mt-1 flex items-start gap-1 rounded-lg bg-rose-50 p-1.5 text-[11px] text-rose-700">
+                  <AlertTriangle size={12} className="mt-0.5 shrink-0" /> {erreur.message}
                 </p>
               )}
               {isPdg && it.status !== "integre" && it.status !== "rejete" && (

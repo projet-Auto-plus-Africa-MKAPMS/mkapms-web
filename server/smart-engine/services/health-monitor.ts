@@ -124,7 +124,38 @@ export function isKnownGhostButton(page: string, element: string): boolean {
   return elementsUniques().some((b) => b.fichier === page && b.element === element);
 }
 
-export async function syncBoutonsSansAction(): Promise<{ synced: number; resolved: number }> {
+/** Regroupe les libellés de boutons connus par fichier, pour un lookup O(1). Fonction pure, testable sans base. */
+export function libellesParFichier(
+  boutons: readonly { fichier: string; libelle: string }[],
+): Map<string, Set<string>> {
+  const parFichier = new Map<string, Set<string>>();
+  for (const b of boutons) {
+    if (!b.libelle) continue;
+    const set = parFichier.get(b.fichier) ?? new Set<string>();
+    set.add(b.libelle);
+    parFichier.set(b.fichier, set);
+  }
+  return parFichier;
+}
+
+/**
+ * Vrai si une entrée de contrôle de santé obsolète (page + errorDetails
+ * d'une ancienne ligne) désigne un bouton qui existe encore, sous le même
+ * libellé, ailleurs dans l'inventaire actuel du même fichier — c'est-à-dire
+ * un bouton simplement déplacé par une édition du code (numéro de ligne
+ * décalé), jamais réellement corrigé. Fonction pure, testable sans base.
+ */
+export function boutonDeplace(
+  page: string,
+  errorDetails: string | null,
+  libellesActuelsParFichier: Map<string, Set<string>>,
+): boolean {
+  const m = errorDetails?.match(/^Bouton « (.*) » sans gestionnaire/);
+  const ancienLibelle = m ? m[1] : null;
+  return !!ancienLibelle && (libellesActuelsParFichier.get(page)?.has(ancienLibelle) ?? false);
+}
+
+export async function syncBoutonsSansAction(): Promise<{ synced: number; resolved: number; obsoletes: number }> {
   const boutons = elementsUniques();
   const actuels = new Set(boutons.map((b) => `${b.fichier}::${b.element}`));
   let synced = 0;
@@ -159,20 +190,45 @@ export async function syncBoutonsSansAction(): Promise<{ synced: number; resolve
     }
   }
 
+  // Un bouton toujours cassé qui a simplement changé de ligne (une modification
+  // ailleurs dans le même fichier décale toutes les lignes suivantes) ne doit
+  // jamais repasser « ok » : son libellé identifie le même bouton réapparu sous
+  // un nouvel élément static_L<ligne>, déjà inséré/mis à jour « broken »
+  // ci-dessus. Sans ce contrôle, l'ancienne ligne se refermait silencieusement
+  // en « ok » — un bouton jamais corrigé se comptait deux fois (une fois
+  // « broken » sous sa ligne actuelle, une fois « ok » sous son ancienne ligne),
+  // gonflant le nombre de boutons « OK » affiché à la direction sans qu'aucun
+  // code n'ait changé.
+  const libellesActuelsParFichier = libellesParFichier(boutons);
+
   const suivis = await db
-    .select({ id: smartHealthChecks.id, page: smartHealthChecks.page, element: smartHealthChecks.element })
+    .select({
+      id: smartHealthChecks.id,
+      page: smartHealthChecks.page,
+      element: smartHealthChecks.element,
+      errorDetails: smartHealthChecks.errorDetails,
+    })
     .from(smartHealthChecks)
     .where(and(sql`${smartHealthChecks.element} LIKE 'static_L%'`, sql`${smartHealthChecks.status} <> 'ok'`));
 
   let resolved = 0;
+  let obsoletes = 0;
   for (const s of suivis) {
-    if (!actuels.has(`${s.page}::${s.element}`)) {
+    if (actuels.has(`${s.page}::${s.element}`)) continue;
+
+    const deplace = boutonDeplace(s.page, s.errorDetails, libellesActuelsParFichier);
+    if (deplace) {
+      // Toujours cassé ailleurs dans le même fichier : la ligne actuelle porte
+      // déjà l'alerte, cette entrée obsolète est supprimée plutôt que menteuse.
+      await db.delete(smartHealthChecks).where(eq(smartHealthChecks.id, s.id));
+      obsoletes += 1;
+    } else {
       await db.update(smartHealthChecks).set({ status: "ok", lastCheckedAt: new Date() }).where(eq(smartHealthChecks.id, s.id));
       resolved += 1;
     }
   }
 
-  return { synced, resolved };
+  return { synced, resolved, obsoletes };
 }
 
 // Enregistrement initial des éléments critiques à surveiller

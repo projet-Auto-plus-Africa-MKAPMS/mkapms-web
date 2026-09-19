@@ -57,18 +57,51 @@ function dansFormulaireSoumis(source, index) {
   return /onSubmit/.test(source.slice(ouverture, finBalise === -1 ? ouverture : finBalise));
 }
 
+/**
+ * Attributs d'une balise `<button …>`, en repérant le `>` qui la ferme
+ * réellement — pas le premier `>` rencontré. Une expression JSX d'attribut
+ * (`disabled={a.length > 0}`) contient souvent un `>` qui n'a rien à voir
+ * avec la fin de balise ; le ignorer faisait passer certains boutons pour
+ * sans action alors qu'un `onClick` suivait, plus loin dans les attributs.
+ */
+function attributsBalise(source, debut) {
+  let i = debut;
+  let profondeur = 0;
+  let chaine = null;
+  while (i < source.length) {
+    const c = source[i];
+    if (chaine) {
+      if (c === chaine && source[i - 1] !== "\\") chaine = null;
+    } else if (c === '"' || c === "'" || c === "`") {
+      chaine = c;
+    } else if (c === "{") {
+      profondeur++;
+    } else if (c === "}") {
+      profondeur--;
+    } else if (c === ">" && profondeur === 0) {
+      return { attributs: source.slice(debut, i), finBalise: i };
+    }
+    i++;
+  }
+  return null;
+}
+
 const releves = [];
 for (const f of fichiers(RACINE)) {
   if (EXCLUS.has(relative(".", f))) continue;
   const source = readFileSync(f, "utf8");
-  for (const m of source.matchAll(/<button\b([^>]*)>([\s\S]{0,400}?)<\/button>/g)) {
-    const attributs = m[1];
+  for (const m of source.matchAll(/<button\b/g)) {
+    const balise = attributsBalise(source, m.index + m[0].length);
+    if (!balise) continue;
+    const { attributs, finBalise } = balise;
     if (/onClick|onMouseDown|onPointerDown|type="submit"|form=/.test(attributs)) continue;
     if (dansFormulaireSoumis(source, m.index)) continue;
+    const finFermeture = source.indexOf("</button>", finBalise);
+    const corps = source.slice(finBalise + 1, finFermeture === -1 ? finBalise + 1 : finFermeture);
     releves.push({
       fichier: relative(".", f).split("\\").join("/"),
       ligne: source.slice(0, m.index).split("\n").length,
-      libelle: libelle(m[2]),
+      libelle: libelle(corps.slice(0, 400)),
     });
   }
 }
