@@ -1561,6 +1561,27 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié sur base Postgres réelle (migration appliquée à la main, nouvelle suite dédiée, 7/7) : un vendeur ne voit jamais le carnet d'un autre, ne peut jamais supprimer le contact d'un tiers (refusé explicitement), une suppression réelle retire bien la ligne de la base. npm run build rejoué intégralement, check:migrations toujours vert (133 migrations journalisées). Portée assumée, non silencieuse : la panne de `drizzle-kit generate` elle-même n'a pas été réparée (réparer une chaîne de snapshots divergente à la main est un risque disproportionné par rapport à ce lot) — seulement contournée proprement en écrivant la migration à la main selon le format déjà en usage depuis la 0011, comme le fait manifestement déjà l'équipe. 9 écrans restants de la liste #54 suivent le même traitement un par un.",
     domaine: "confiance",
   },
+  {
+    cle: "equipe-vente-et-droits-acces-nouveau-schema-partage-plus-route-corrigee",
+    titre: "GestionEmployes.tsx + DroitsAcces.tsx construits ensemble (nouveau schema partagé) + un vrai défaut de routage corrigé",
+    moteurs: ["vente", "confiance"],
+    quoi:
+      "Troisième et quatrième écrans de la liste des 11 vente/Centre* (tâche #54), traités ensemble car intrinsèquement liés : DroitsAcces.tsx édite les droits d'UN employé de GestionEmployes.tsx, mais sa route (/vente/droits) n'acceptait aucun identifiant — l'écran affichait toujours un employé fictif figé (« Commercial — Jean D. ») quel que soit celui réellement visé, et n'était d'ailleurs référencé nulle part dans l'application (aucun lien ne menait vers lui). Défaut réel corrigé avant toute donnée : route changée en /vente/droits/:id, et un vrai bouton « Gérer les droits d'accès » ajouté dans la fiche employé de GestionEmployes.tsx pour y accéder avec le bon identifiant.\n\nAucun moteur existant ne couvrait « l'équipe propre à un vendeur » (rbacRouter.staffProfiles est l'organigramme interne MKA.P-MS, un sujet différent — vérifié avant d'écrire le code). Nouveau schema partagé vente_employes (nom, poste, email, téléphone, actif, permissions en jsonb) : une seule table sert les deux écrans, les droits étant simplement une colonne de l'employé plutôt qu'un second registre. GestionEmployes.tsx réécrit pour lister/recruter/désactiver de vrais collaborateurs (les employés fictifs Jean Dupont/Marie Curie retirés) ; DroitsAcces.tsx réécrit pour charger et enregistrer les vraies permissions de l'employé réellement visé.",
+    pourquoi:
+      "Corriger DroitsAcces.tsx isolément (juste brancher un formulaire sur une donnée fictive) aurait laissé le vrai défaut intact : l'écran restait inaccessible et incapable de savoir de qui il parle. Remonter à la cause — l'absence d'identifiant dans la route — était la seule façon de rendre les deux écrans réellement utilisables ensemble, pas seulement de faire taire le détecteur de boutons.",
+    ou: [
+      "client/src/App.tsx",
+      "server/modules/pro.ts",
+      "server/routers/pro.ts",
+      "client/src/pages/vente/GestionEmployes.tsx",
+      "client/src/pages/vente/DroitsAcces.tsx",
+      "drizzle/0135_vente_employes.sql",
+      "server/routers/__tests__/vente-employes.test.ts",
+    ],
+    lecon:
+      "Vérifié sur base Postgres réelle (migration appliquée, nouvelle suite dédiée, 11/11) : un vendeur ne voit jamais l'équipe d'un autre, ne peut jamais consulter ni modifier les droits du collaborateur d'un tiers (refusé explicitement dans les deux cas), un droit accordé est réellement relu après enregistrement, une désactivation persiste réellement. Aucune permission accordée par défaut à la création (jamais un accès implicite). Régénération de l'inventaire des routes (gen:routes) après le changement de route, vérifiée par check:routes avant commit. npm run build rejoué intégralement. 8 écrans restants de la liste #54.",
+    domaine: "confiance",
+  },
 ];
 
 /**

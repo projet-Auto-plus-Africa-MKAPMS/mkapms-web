@@ -932,6 +932,13 @@
       "when": 1788232026000,
       "tag": "0134_vente_fournisseurs",
       "breakpoints": true
+    },
+    {
+      "idx": 133,
+      "version": "7",
+      "when": 1788232027000,
+      "tag": "0135_vente_employes",
+      "breakpoints": true
     }
   ]
 }

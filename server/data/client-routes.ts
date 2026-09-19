@@ -686,7 +686,6 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/vente/documents-societe",
   "/vente/dossier-acheteur",
   "/vente/dossier-client",
-  "/vente/droits",
   "/vente/employes",
   "/vente/essai",
   "/vente/export",
@@ -758,6 +757,7 @@ export const CLIENT_ROUTE_PATTERNS: readonly string[] = [
   "/vehicule/:id",
   "/vente/attestation/:id?",
   "/vente/dossier-vehicule/:id?",
+  "/vente/droits/:id",
   "/vente/workflow/:id?",
   "/ville/:slug",
 ];

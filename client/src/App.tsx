@@ -952,7 +952,7 @@ export default function App() {
             <Route path="/vente/alertes" element={<V name="Alertes"><AlertesAuto /></V>} />
             <Route path="/vente/multi-sites" element={<V name="Multi-Sites"><MultiSites /></V>} />
             <Route path="/vente/employes" element={<V name="Employ\u00e9s"><GestionEmployes /></V>} />
-            <Route path="/vente/droits" element={<V name="Droits acc\u00e8s"><DroitsAcces /></V>} />
+            <Route path="/vente/droits/:id" element={<V name="Droits acc\u00e8s"><DroitsAcces /></V>} />
             <Route path="/vente/fournisseurs" element={<V name="Fournisseurs"><CentreFournisseurs /></V>} />
             <Route path="/vente/marges" element={<V name="Marges"><CentreMarges /></V>} />
             <Route path="/vente/objectifs" element={<V name="Objectifs"><CentreObjectifs /></V>} />
