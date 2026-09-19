@@ -1506,6 +1506,24 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié réellement avant toute conclusion : LocationMKAPMS.tsx confirmé en navigateur réel (Playwright) — le clic sur « Réserver ce véhicule » déclenche maintenant une vraie navigation (le catalogue utilise encore des id de démonstration 8001-8006 non reliés à de vraies annonces, limite déjà connue et distincte, non maquillée). CentreFavorisVente.tsx confirmé sans erreur console/page malgré l'impossibilité de dérouler le parcours complet dans ce bac à sable (l'écran est réservé aux comptes pro abonnés, porte d'accès préexistante et non modifiée) — le code réutilise ligne pour ligne le pattern déjà vérifié et fonctionnel de Favoris.tsx. Pour les 9 cas non traités, aucune ligne de câblage n'a été écrite : la liste précise ci-dessus sert de base au prochain lot de construction (tâche #54), plutôt que de laisser la direction deviner ce qui manque réellement derrière chaque bouton rouge.",
     domaine: "confiance",
   },
+  {
+    cle: "sante-plateforme-cartes-cliquables-et-valider-tout",
+    titre: "Les 3 cartes OK/Cassés/Lents deviennent des filtres cliquables + bouton « Valider tout » sur les actions en attente",
+    moteurs: ["smart"],
+    quoi:
+      "Deux demandes directes de la direction sur le Centre de contrôle Smart Engine.\n\n1) Onglet « État plateforme » (SanteTab) : les 3 cartes de résumé (OK/Cassés/Lents) étaient de simples compteurs, pas des boutons — la liste détaillée en dessous affichait toujours tout mélangé, sans moyen de filtrer sur une catégorie précise. Ajout d'un filtre local (statusFilter) : cliquer une carte affiche uniquement les éléments de ce statut, recliquer dessus l'enlève, un bouton « Voir tout » réapparaît pendant qu'un filtre est actif. Le composant StatCard partagé (déjà utilisé ailleurs dans l'écran) reçoit une prop `active` optionnelle pour l'anneau doré de sélection, sans toucher aux autres usages du même composant.\n\n2) Onglet « Actions à valider » (JournalTab, mode pendingOnly) : la direction devait valider un par un un grand nombre d'éléments (« ça prend du temps »). Deux vraies causes trouvées avant d'écrire du code : (a) aucun bouton de validation groupée n'existait ; (b) le nombre réellement en attente peut dépasser les 100 lignes chargées à l'écran (déjà documenté dans un commentaire du moteur : jusqu'à 929 constatées historiquement) — un « Valider tout » qui ne validerait que ce qui est affiché laisserait un reliquat invisible. Ajout d'une vraie fonction serveur `validateAllPending()` (server/smart-engine/services/activity-log.ts) : une seule requête UPDATE ... WHERE humanValidation IS NULL AND proposedDecision IS NOT NULL, sur la table entière, jamais limitée à la page affichée ; exposée via smartEngine.validateAllActivityDecisions (pdgProcedure). Le bouton client affiche le total réel (trpc.smartEngine.activityStats, déjà existant, jamais un second calcul inventé), demande une confirmation explicite avant d'agir (action irréversible sur potentiellement des centaines de lignes), puis invalide activityLog/activityStats/dashboard pour que la liste se vide réellement à l'écran.",
+    pourquoi:
+      "Une carte de résumé qui ne fait qu'afficher un nombre alors que la direction s'attend à cliquer dessus pour voir le détail est exactement le type de défaut que le moteur de boutons est censé traquer ; il se trouve ici dans un écran interne au Smart Engine lui-même, pas dans un écran client. Pour le bouton de validation groupée, la contrainte du volume réel (jusqu'à 929 lignes en attente déjà constatées) imposait un vrai traitement serveur sur l'ensemble de la table plutôt qu'une boucle client sur les seules lignes visibles, qui aurait laissé la direction croire à tort que tout était traité.",
+    ou: [
+      "client/src/pages/SmartEngine/ControlCenter.tsx",
+      "server/smart-engine/services/activity-log.ts",
+      "server/smart-engine/router.ts",
+      "server/smart-engine/services/__tests__/valider-tout.test.ts",
+    ],
+    lecon:
+      "Vérifié réellement sur base Postgres locale (nouvelle suite dédiée, 6/6) : trois cas mélangés dans la même table (une action en attente, une déjà décidée par un autre acteur, une sans décision proposée du tout) — validateAllPending() ne touche que les actions réellement en attente, jamais celles déjà tranchées ni celles qui n'attendaient rien, et rejouer l'appel sur un reliquat vide ne valide rien de plus (idempotent, pas de faux positif). Vérification navigateur réelle en plus (Playwright) : la route reste protégée par la porte d'accès back_office déjà existante (aucune régression d'accès introduite), rendu sans erreur console. npm run build rejoué intégralement.",
+    domaine: "confiance",
+  },
 ];
 
 /**

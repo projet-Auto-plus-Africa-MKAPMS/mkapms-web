@@ -87,3 +87,19 @@ export async function validateActivity(id: number, approved: boolean, validatedB
     .set({ humanValidation: approved, validatedBy })
     .where(eq(smartActivityLog.id, id));
 }
+
+/**
+ * Valide en une seule fois TOUTES les actions en attente (pas seulement les
+ * 100 affichées à l'écran) — même critère exact que needsValidationOnly
+ * (humanValidation null + proposedDecision renseigné), pour que le bouton
+ * « Valider tout » ne laisse jamais de reliquat invisible derrière la
+ * pagination de l'écran.
+ */
+export async function validateAllPending(approved: boolean, validatedBy: number) {
+  const rows = await db
+    .update(smartActivityLog)
+    .set({ humanValidation: approved, validatedBy })
+    .where(and(isNull(smartActivityLog.humanValidation), isNotNull(smartActivityLog.proposedDecision)))
+    .returning({ id: smartActivityLog.id });
+  return { count: rows.length };
+}
