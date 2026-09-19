@@ -1673,6 +1673,22 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié sans base de données (les procédures tRPC réellement montées sont lues directement depuis server/router.ts, aucune donnée à charger) : les 7 moteurs partagés avec « annonces » trouvent désormais ce routeur, vente_pro trouve kyc ou pro, et — point de contrôle négatif essentiel — controle_technique continue à raison de ne trouver aucun routeur (la correction ne masque jamais un vrai manque, elle ne fait que reconnaître une infrastructure déjà prouvée). npm run check:moteurs rejoué : aucune dérive de l'inventaire des moteurs (la nouvelle déclaration ne touche jamais `routeurs`/`dossiers`/`routes`, seulement un repli de détection pour l'auditeur). npm run build rejoué intégralement.",
     domaine: "confiance",
   },
+  {
+    cle: "correction-controle-technique-partiellement-connecte",
+    titre: "Correction : controle_technique n'était pas un témoin négatif propre — garage/ControleTechnique.tsx appelle bien trpc.devis.mine",
+    moteurs: ["controle_technique", "activation_audit"],
+    quoi:
+      "En vérifiant le lot précédent (faux positifs de l'auditeur d'activation), relecture effective des 3 écrans que le commentaire de perimetres.ts affirmait « n'appeler aucune procédure tRPC » : garage/ControleTechnique.tsx appelle en réalité trpc.devis.mine (déjà honnête — n'affiche que les vraies demandes de RDV envoyées, jamais un statut CT officiel fabriqué, faute d'accès à un registre gouvernemental). Seuls EtatVehicule.tsx et InspectionNumerique.tsx n'appellent réellement aucune procédure. Le commentaire et le test précédemment livrés traitaient donc controle_technique comme un témoin négatif propre (aucune connexion) — c'était inexact pour un tiers de son périmètre. Corrigé : controle_technique ajouté à ROUTEURS_PARTAGES (routeur \"devis\"), commentaire de perimetres.ts mis à jour pour distinguer précisément ce qui est déjà connecté (ControleTechnique.tsx) de ce qui reste un manque réel (EtatVehicule.tsx, InspectionNumerique.tsx — tâche #60), et le témoin négatif du test remplacé par un moteur totalement fictif plutôt que par un domaine dont l'état réel était mal connu.",
+    pourquoi:
+      "Un témoin négatif qui s'avère lui-même partiellement faux ne prouve plus rien : il aurait fallu vérifier le code réel des 3 écrans avant de leur faire porter une affirmation aussi précise (« aucune procédure tRPC »), pas seulement faire confiance à un commentaire déjà en place.",
+    ou: [
+      "server/engine-registry/perimetres.ts",
+      "server/activation-audit/__tests__/routeurs-partages.test.ts",
+    ],
+    lecon:
+      "Vérifié sans base de données (10/10, dont le nouveau témoin négatif sur un nom de moteur totalement inventé) : controle_technique trouve désormais le routeur \"devis\", et le témoin négatif ne peut plus jamais être mis en défaut par une découverte future sur un domaine réel. check:moteurs rejoué : aucune dérive. Le manque réel (EtatVehicule.tsx, InspectionNumerique.tsx) reste entièrement à construire — non traité ici, delibérément distinct de cette correction d'audit.",
+    domaine: "confiance",
+  },
 ];
 
 /**
