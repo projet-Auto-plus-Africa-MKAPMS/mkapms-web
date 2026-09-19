@@ -157,10 +157,18 @@ export default function LocationMKAPMS() {
 
   // Vraies annonces officielles MKAPMS location — additif (best-effort).
   const { country } = useCurrency();
+  const [rechercheActive, setRechercheActive] = useState(false);
   const realAnnonces = trpc.annonces.list.useQuery(
-    { type: "location", categorieAnnonce: "officielle", pays: country ?? undefined, limit: 24 },
+    {
+      type: "location",
+      categorieAnnonce: "officielle",
+      pays: country ?? undefined,
+      ville: rechercheActive && lieu ? lieu : undefined,
+      limit: 24,
+    },
     { retry: false },
   );
+  const annoncesTrouvees = realAnnonces.data?.items ?? [];
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
@@ -229,7 +237,13 @@ export default function LocationMKAPMS() {
               </div>
             </div>
           </div>
-          <button className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md">
+          <button
+            onClick={() => {
+              setRechercheActive(true);
+              document.getElementById("resultats-mkapms")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md"
+          >
             <Search size={16} /> Rechercher un véhicule MKA.P-MS
           </button>
         </div>
@@ -270,14 +284,23 @@ export default function LocationMKAPMS() {
       </div>
 
       {/* Section additive — Dernières vraies annonces officielles MKAPMS */}
-      {(realAnnonces.data?.length ?? 0) > 0 && (
-        <div className="px-4 mt-6">
+      <div id="resultats-mkapms" className="px-4 mt-6">
+        {rechercheActive && (
+          <div className="mb-3 flex items-center justify-between rounded-xl bg-[#FFF8E7] border border-[#D4AF37]/30 px-3 py-2">
+            <p className="text-xs text-[#6B7280]">
+              {lieu ? <>Recherche à <b className="text-[#111]">{lieu}</b></> : "Recherche sans lieu précisé"}
+            </p>
+            <button onClick={() => { setRechercheActive(false); setLieu(""); }} className="text-xs font-bold text-[#D4AF37]">Effacer</button>
+          </div>
+        )}
+        {annoncesTrouvees.length > 0 ? (
+          <>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold text-[#111]">Dernières annonces</h2>
-            <span className="text-xs font-semibold text-[#D4AF37]">{realAnnonces.data?.length} annonce{(realAnnonces.data?.length ?? 0) > 1 ? "s" : ""}</span>
+            <span className="text-xs font-semibold text-[#D4AF37]">{annoncesTrouvees.length} annonce{annoncesTrouvees.length > 1 ? "s" : ""}</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {realAnnonces.data?.map((a) => (
+            {annoncesTrouvees.map((a) => (
               <Link key={a.id} to={`/louer/mkapms/vehicule/${a.id}`} className="block rounded-xl bg-white border border-[#111] overflow-hidden active:scale-[0.99] transition hover:shadow-lg">
                 <div className="relative h-[160px] md:h-[180px] lg:h-[200px] bg-[#F5F3EF]">
                   {a.photoPrincipale && <img src={a.photoPrincipale} alt={a.titre ?? ""} className="w-full h-full object-cover" loading="lazy" />}
@@ -294,8 +317,13 @@ export default function LocationMKAPMS() {
               </Link>
             ))}
           </div>
-        </div>
-      )}
+          </>
+        ) : rechercheActive ? (
+          <p className="rounded-xl bg-white border border-[#E5E7EB] p-4 text-center text-xs text-[#6B7280]">
+            Aucune annonce officielle MKA.P-MS ne correspond à cette recherche pour le moment.
+          </p>
+        ) : null}
+      </div>
 
       {/* LISTE DES VÉHICULES */}
       <div className="px-4 mt-4">
