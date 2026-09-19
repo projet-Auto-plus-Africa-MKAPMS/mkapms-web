@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 549;
+export const MANQUES_TOTAL = 547;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 118,
+  "bouton_sans_action": 116,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -978,6 +978,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/vente/ReservationsVente.tsx",
+        "route": "/vente/reservations",
+        "composants": [
+          "trpc.reservations"
+        ]
+      },
+      {
         "fichier": "client/src/pages/vente/CentreFavorisVente.tsx",
         "route": "/vente/favoris",
         "composants": [
@@ -1202,6 +1209,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "list",
       "lookupPlate",
       "mesPaiements",
+      "mesReservationsRecues",
       "mine",
       "montantAPayer",
       "myList",
@@ -1210,6 +1218,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "prolong",
       "quotaStatus",
       "remove",
+      "repondreReservationRecue",
       "requestLocation",
       "toggle",
       "update",
@@ -22003,9 +22012,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 4,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 5,
-        "mots": 10
+        "sansAction": 0,
+        "textes": 8,
+        "mots": 34
       },
       {
         "fichier": "client/src/pages/vente/WorkflowAchatVO.tsx",
@@ -22023,8 +22032,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 950,
-    "mots": 3259,
+    "textes": 953,
+    "mots": 3283,
     "battement": "sonde",
     "manques": [
       {
@@ -22162,14 +22171,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Ajouter un site » client/src/pages/vente/MultiSites.tsx:17"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Valider » client/src/pages/vente/ReservationsVente.tsx:30"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Refuser » client/src/pages/vente/ReservationsVente.tsx:30"
       },
       {
         "genre": "bouton_declare_absent_ecran",

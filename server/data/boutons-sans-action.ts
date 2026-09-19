@@ -134,8 +134,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/vente/GestionEmployes.tsx", ligne: 128, libelle: "Désactiver" },
   { fichier: "client/src/pages/vente/GestionEmployes.tsx", ligne: 129, libelle: "Enregistrer" },
   { fichier: "client/src/pages/vente/MultiSites.tsx", ligne: 17, libelle: "Ajouter un site" },
-  { fichier: "client/src/pages/vente/ReservationsVente.tsx", ligne: 30, libelle: "Valider" },
-  { fichier: "client/src/pages/vente/ReservationsVente.tsx", ligne: 30, libelle: "Refuser" },
 ];
 
 /** Nombre d'écrans concernés. */

@@ -705,7 +705,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/vente/GestionStockVO.tsx", total: 4, moteur: 0, liens: 2, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/MultiSites.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/vente/QualiteVendeur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/vente/ReservationsVente.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 2, zones: 0 },
+  { fichier: "client/src/pages/vente/ReservationsVente.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/TableauBordVendeur.tsx", total: 2, moteur: 2, liens: 0, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/WorkflowAchatVO.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/WorkflowCompletAcheteur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -847,8 +847,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/vente/GestionEmployes.tsx", ligne: 128, genre: "bouton", libelle: "Désactiver", motif: "sans_action" },
   { fichier: "client/src/pages/vente/GestionEmployes.tsx", ligne: 129, genre: "bouton", libelle: "Enregistrer", motif: "sans_action" },
   { fichier: "client/src/pages/vente/MultiSites.tsx", ligne: 17, genre: "bouton", libelle: "Ajouter un site", motif: "sans_action" },
-  { fichier: "client/src/pages/vente/ReservationsVente.tsx", ligne: 30, genre: "bouton", libelle: "Valider", motif: "sans_action" },
-  { fichier: "client/src/pages/vente/ReservationsVente.tsx", ligne: 30, genre: "bouton", libelle: "Refuser", motif: "sans_action" },
 ];
 
 /** Anomalies d'un motif donné. */

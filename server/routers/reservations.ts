@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { bookings, payments, annonces, serviceTracking } from "../schema.js";
+import { bookings, payments, annonces, serviceTracking, users } from "../schema.js";
 import { notifications } from "../modules/core.js";
 import { ACOMPTE_PALIERS } from "@shared/plans.js";
 import { getStripe } from "../lib/stripe.js";
@@ -399,5 +399,65 @@ export const reservationsRouter = router({
         .where(eq(payments.userId, ctx.user.uid))
         .orderBy(desc(payments.createdAt))
         .limit(input?.limit ?? 100);
+    }),
+
+  // ── Côté vendeur : réservations reçues sur SES annonces ────────────────
+  // Le moteur de réservation (create, ci-dessus) n'avait jamais de pendant
+  // vendeur : un professionnel ne pouvait ni voir les demandes reçues sur
+  // son propre stock, ni les valider/refuser — la table réelle (bookings,
+  // type "purchase_visit") existait déjà, seul manquait ce côté du flux.
+  mesReservationsRecues: protectedProcedure.query(async ({ ctx }) => {
+    const rows = await db
+      .select({ booking: bookings, annonce: annonces, acheteurNom: users.name })
+      .from(bookings)
+      .innerJoin(annonces, eq(bookings.vehicleId, annonces.id))
+      .innerJoin(users, eq(bookings.userId, users.id))
+      .where(and(eq(annonces.ownerId, ctx.user.uid), eq(bookings.type, "purchase_visit")))
+      .orderBy(desc(bookings.createdAt));
+    return rows.map((r) => ({
+      id: r.booking.id,
+      client: r.acheteurNom,
+      vehicule: r.annonce.titre,
+      acompte: r.booking.cautionAmount ? Number(r.booking.cautionAmount) : 0,
+      devise: r.booking.cautionCurrency ?? "EUR",
+      statut: r.booking.status,
+      cautionStatus: r.booking.cautionStatus,
+      createdAt: r.booking.createdAt,
+    }));
+  }),
+
+  // Valide ou refuse une réservation reçue — réservé au vendeur propriétaire
+  // de l'annonce concernée, jamais à l'acheteur ni à un tiers.
+  repondreReservationRecue: protectedProcedure
+    .input(z.object({ bookingId: z.number(), accepter: z.boolean(), motifRefus: z.string().max(500).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const [booking] = await db.select().from(bookings).where(eq(bookings.id, input.bookingId)).limit(1);
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Réservation introuvable" });
+      const [annonce] = await db.select().from(annonces).where(eq(annonces.id, booking.vehicleId)).limit(1);
+      if (!annonce || annonce.ownerId !== ctx.user.uid) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Cette réservation ne concerne pas une de vos annonces." });
+      }
+      if (booking.status !== "pending") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Cette réservation a déjà reçu une réponse." });
+      }
+      const [updated] = await db
+        .update(bookings)
+        .set({
+          status: input.accepter ? "accepted" : "rejected",
+          rejectionReason: input.accepter ? null : (input.motifRefus ?? null),
+          updatedAt: new Date(),
+        })
+        .where(eq(bookings.id, input.bookingId))
+        .returning();
+      await db.insert(notifications).values({
+        userId: booking.userId,
+        type: "reservation",
+        title: input.accepter ? "Réservation acceptée" : "Réservation refusée",
+        body: input.accepter
+          ? `Votre réservation pour "${annonce.titre}" a été acceptée par le vendeur.`
+          : `Votre réservation pour "${annonce.titre}" a été refusée${input.motifRefus ? ` : ${input.motifRefus}` : "."}`,
+        url: `/vehicule/${annonce.id}`,
+      });
+      return updated;
     }),
 });
