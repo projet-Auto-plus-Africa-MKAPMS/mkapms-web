@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 558;
+export const MANQUES_TOTAL = 552;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 129,
+  "bouton_sans_action": 123,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -705,9 +705,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/camions"
         ],
-        "cliquables": 4,
+        "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 1,
+        "sansAction": 0,
         "textes": 75,
         "mots": 145
       },
@@ -771,9 +771,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/utilitaires"
         ],
-        "cliquables": 4,
+        "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 1,
+        "sansAction": 0,
         "textes": 50,
         "mots": 116
       },
@@ -782,9 +782,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/vtc-taxi"
         ],
-        "cliquables": 4,
+        "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 1,
+        "sansAction": 0,
         "textes": 48,
         "mots": 111
       },
@@ -1220,18 +1220,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1819"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/VenteCamions.tsx:206"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/VenteUtilitaires.tsx:181"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/VenteVTC.tsx:186"
       }
     ]
   },
@@ -1324,9 +1312,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/mkapms-officiel"
         ],
-        "cliquables": 4,
+        "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 1,
+        "sansAction": 0,
         "textes": 52,
         "mots": 123
       }
@@ -1342,10 +1330,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1819"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/VenteMKAPMS.tsx:209"
       },
       {
         "genre": "sans_logique_serveur",
@@ -1442,9 +1426,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/particulier"
         ],
-        "cliquables": 4,
+        "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 1,
+        "sansAction": 0,
         "textes": 60,
         "mots": 126
       }
@@ -1460,10 +1444,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1819"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/VenteParticulier.tsx:225"
       },
       {
         "genre": "sans_logique_serveur",
@@ -1560,9 +1540,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/professionnel"
         ],
-        "cliquables": 4,
+        "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 1,
+        "sansAction": 0,
         "textes": 54,
         "mots": 111
       }
@@ -1578,10 +1558,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1819"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/VentePro.tsx:212"
       },
       {
         "genre": "sans_logique_serveur",

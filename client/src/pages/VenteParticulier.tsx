@@ -36,12 +36,12 @@ const CATEGORIES = [
 ];
 
 const DEMO_ANNONCES = [
-  { id: 1, nom: "Peugeot 208 Style", annee: 2022, km: 35000, prix: 14500, carburant: "Essence", boite: "Manuelle", region: "Île-de-France", note: 4.5, photo: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=400&h=260&fit=crop", vendeur: "Particulier" },
-  { id: 2, nom: "Renault Clio V Intens", annee: 2023, km: 18000, prix: 16900, carburant: "Essence", boite: "Automatique", region: "Rhône-Alpes", note: 4.7, photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop", vendeur: "Professionnel" },
-  { id: 3, nom: "BMW Série 3 320d", annee: 2021, km: 62000, prix: 27500, carburant: "Diesel", boite: "Automatique", region: "PACA", note: 4.8, photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=260&fit=crop", vendeur: "Professionnel" },
-  { id: 4, nom: "Peugeot 3008 GT Hybrid", annee: 2023, km: 25000, prix: 32000, carburant: "Hybride", boite: "Automatique", region: "Île-de-France", note: 4.6, photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=260&fit=crop", vendeur: "Particulier" },
-  { id: 5, nom: "Volkswagen Golf 8 R-Line", annee: 2022, km: 42000, prix: 24900, carburant: "Essence", boite: "Automatique", region: "Nord", note: 4.4, photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", vendeur: "Professionnel" },
-  { id: 6, nom: "Dacia Sandero Stepway", annee: 2024, km: 8000, prix: 15500, carburant: "GPL", boite: "Manuelle", region: "Bretagne", note: 4.3, photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=260&fit=crop", vendeur: "Particulier" },
+  { id: 1, nom: "Peugeot 208 Style", categorie: "Citadines", annee: 2022, km: 35000, prix: 14500, carburant: "Essence", boite: "Manuelle", region: "Île-de-France", note: 4.5, photo: "https://images.unsplash.com/photo-1604410869154-3c16714cd476?w=400&h=260&fit=crop", vendeur: "Particulier" },
+  { id: 2, nom: "Renault Clio V Intens", categorie: "Citadines", annee: 2023, km: 18000, prix: 16900, carburant: "Essence", boite: "Automatique", region: "Rhône-Alpes", note: 4.7, photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop", vendeur: "Professionnel" },
+  { id: 3, nom: "BMW Série 3 320d", categorie: "Berlines", annee: 2021, km: 62000, prix: 27500, carburant: "Diesel", boite: "Automatique", region: "PACA", note: 4.8, photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=260&fit=crop", vendeur: "Professionnel" },
+  { id: 4, nom: "Peugeot 3008 GT Hybrid", categorie: "SUV & 4x4", annee: 2023, km: 25000, prix: 32000, carburant: "Hybride", boite: "Automatique", region: "Île-de-France", note: 4.6, photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=260&fit=crop", vendeur: "Particulier" },
+  { id: 5, nom: "Volkswagen Golf 8 R-Line", categorie: "Citadines", annee: 2022, km: 42000, prix: 24900, carburant: "Essence", boite: "Automatique", region: "Nord", note: 4.4, photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", vendeur: "Professionnel" },
+  { id: 6, nom: "Dacia Sandero Stepway", categorie: "Citadines", annee: 2024, km: 8000, prix: 15500, carburant: "GPL", boite: "Manuelle", region: "Bretagne", note: 4.3, photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=260&fit=crop", vendeur: "Particulier" },
 ];
 
 const FAQ = [
@@ -65,6 +65,7 @@ export default function VenteParticulier() {
   const realAnnonces = (realData?.items ?? []).map((a: any) => ({
     id: a.id,
     nom: a.titre || `${a.marque} ${a.modele}`,
+    categorie: a.categorie || "",
     annee: a.annee,
     km: a.kilometrage ?? 0,
     prix: Number(a.prix) || 0,
@@ -221,23 +222,32 @@ export default function VenteParticulier() {
       <div className="px-4 mt-6">
         <h2 className="text-base font-bold text-[#111]">Catégories</h2>
         <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.label}
-              className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition"
-            >
-              <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
-              <div className="p-2">
-                <h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3>
-                <p className="text-[8px] text-[#6B7280] truncate">{c.modeles}</p>
-              </div>
-            </button>
-          ))}
+          {CATEGORIES.map((c) => {
+            const estEnergie = c.label === "Hybrides" || c.label === "Électriques";
+            return (
+              <button
+                key={c.label}
+                onClick={() => {
+                  if (estEnergie) search.set("energie", c.label);
+                  else search.set("categorie", c.label);
+                  search.apply();
+                  document.getElementById("annonces-particulier")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition"
+              >
+                <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
+                <div className="p-2">
+                  <h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3>
+                  <p className="text-[8px] text-[#6B7280] truncate">{c.modeles}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* ANNONCES */}
-      <div className="px-4 mt-6">
+      <div id="annonces-particulier" className="px-4 mt-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-bold text-[#111]">Annonces récentes</h2>
           {realData && (

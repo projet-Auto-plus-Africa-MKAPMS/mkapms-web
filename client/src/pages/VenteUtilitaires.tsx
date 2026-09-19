@@ -28,10 +28,10 @@ const CATEGORIES = [
 ];
 
 const ANNONCES = [
-  { id: 1, nom: "Renault Kangoo Van", annee: 2023, km: 35000, prix: 14500, volume: "3.3 m³", charge: "650 kg", photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=400&h=260&fit=crop" },
-  { id: 2, nom: "Citroën Berlingo Van M", annee: 2022, km: 48000, prix: 13200, volume: "3.8 m³", charge: "750 kg", photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=260&fit=crop" },
-  { id: 3, nom: "Renault Master L2H2", annee: 2021, km: 82000, prix: 18500, volume: "10.8 m³", charge: "1 400 kg", photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=260&fit=crop" },
-  { id: 4, nom: "Ford Transit Custom L2", annee: 2023, km: 28000, prix: 24900, volume: "6.8 m³", charge: "1 100 kg", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop" },
+  { id: 1, nom: "Renault Kangoo Van", categorie: "Kangoo / Berlingo", annee: 2023, km: 35000, prix: 14500, volume: "3.3 m³", charge: "650 kg", photo: "https://images.unsplash.com/photo-1549194898-60fd030ecc0f?w=400&h=260&fit=crop" },
+  { id: 2, nom: "Citroën Berlingo Van M", categorie: "Kangoo / Berlingo", annee: 2022, km: 48000, prix: 13200, volume: "3.8 m³", charge: "750 kg", photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=260&fit=crop" },
+  { id: 3, nom: "Renault Master L2H2", categorie: "Master / Boxer", annee: 2021, km: 82000, prix: 18500, volume: "10.8 m³", charge: "1 400 kg", photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=260&fit=crop" },
+  { id: 4, nom: "Ford Transit Custom L2", categorie: "Trafic / Vivaro", annee: 2023, km: 28000, prix: 24900, volume: "6.8 m³", charge: "1 100 kg", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop" },
 ];
 
 const ANNEES = Array.from({ length: 15 }, (_, i) => String(new Date().getFullYear() - i));
@@ -180,7 +180,12 @@ export default function VenteUtilitaires() {
           {CATEGORIES.map((c) => (
             <button
               key={c.label}
-              className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition"
+              onClick={() => {
+                search.set("categorie", c.label);
+                search.apply();
+                document.getElementById("annonces-utilitaires")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className={`shrink-0 w-[120px] rounded-xl bg-white border overflow-hidden text-left active:scale-[0.98] transition ${search.draft.categorie === c.label ? "border-[#D4AF37] ring-2 ring-[#D4AF37]/30" : "border-[#E5E7EB]"}`}
             >
               <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
               <div className="p-2">
@@ -193,7 +198,7 @@ export default function VenteUtilitaires() {
       </div>
 
       {/* ANNONCES */}
-      <div className="px-4 mt-6">
+      <div id="annonces-utilitaires" className="px-4 mt-6">
         <h2 className="text-base font-bold text-[#111]">Annonces utilitaires ({filtered.length})</h2>
         {filtered.length === 0 && (
           <p className="mt-3 rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-[#6B7280]">
