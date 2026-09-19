@@ -1,0 +1,42 @@
+name: Build (comme Railway)
+
+# Empêche la panne du 19/09 de se reproduire en silence : la PR #388 a été
+# mergée avec deux inventaires générés périmés (server/data/cliquables.ts,
+# server/data/moteurs.ts) — `npm run build`, la commande exacte que
+# railway.json fait exécuter, échouait dès lors avant même d'atteindre
+# build:client/build:server. Railway a gardé silencieusement l'ancien
+# déploiement (comportement normal d'un build en échec) : personne n'a été
+# averti pendant 18h, parce qu'aucune vérification ne tournait avant le merge.
+#
+# Ce workflow exécute exactement `npm run build` sur chaque push vers main et
+# chaque pull request : un échec devient un ❌ visible sur le commit/la PR,
+# avant que Railway ne soit même sollicité.
+#
+# Pour qu'un ❌ ici bloque réellement la fusion d'une PR (pas seulement
+# l'affiche), un propriétaire du dépôt doit l'ajouter comme "required status
+# check" dans Settings → Branches — cet ajout dépasse les droits disponibles
+# depuis cette session.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Dépendances npm
+        run: npm ci
+
+      - name: Build complet (identique à railway.json)
+        run: npm run build
