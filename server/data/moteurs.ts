@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 563;
+export const MANQUES_TOTAL = 561;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 134,
+  "bouton_sans_action": 132,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -11459,17 +11459,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 8,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 109,
-        "mots": 462
+        "textes": 110,
+        "mots": 478
       },
       {
         "fichier": "client/src/pages/ProduitVtcTaxi.tsx",
         "routes": [
           "/louer/vtc-taxi/vehicule/:id"
         ],
-        "cliquables": 25,
+        "cliquables": 24,
         "parMoteur": 0,
-        "sansAction": 2,
+        "sansAction": 1,
         "textes": 125,
         "mots": 384
       },
@@ -11587,8 +11587,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 888,
-    "mots": 2906,
+    "textes": 889,
+    "mots": 2922,
     "battement": "sonde",
     "manques": [
       {
@@ -11633,11 +11633,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« = 4 ? \"bg-[#D4AF37]/10 border border-[#D4AF37]/30\" : \"bg-[#F » client/src/pages/ProduitVtcTaxi.tsx:305"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Télécharger » client/src/pages/ProduitVtcTaxi.tsx:486"
+        "detail": "« Télécharger » client/src/pages/ProduitVtcTaxi.tsx:493"
       },
       {
         "genre": "bouton_sans_action",
@@ -11759,9 +11755,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/particulier/vehicule/:id"
         ],
-        "cliquables": 13,
+        "cliquables": 12,
         "parMoteur": 0,
-        "sansAction": 1,
+        "sansAction": 0,
         "textes": 96,
         "mots": 345
       }
@@ -11774,10 +11770,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "mots": 749,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« = 4 ? \"bg-[#D4AF37]/10 border border-[#D4AF37]/30\" : \"bg-[#F » client/src/pages/ProduitParticulier.tsx:302"
-      },
       {
         "genre": "dependance_sans_preuve",
         "detail": "location"
@@ -11890,8 +11882,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 8,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 109,
-        "mots": 462
+        "textes": 110,
+        "mots": 478
       },
       {
         "fichier": "client/src/pages/RenouvellementFlotte.tsx",
@@ -12041,8 +12033,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 324,
-    "mots": 1267,
+    "textes": 325,
+    "mots": 1283,
     "battement": "sonde",
     "manques": [
       {
@@ -20050,8 +20042,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 58,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 271,
-        "mots": 1389
+        "textes": 273,
+        "mots": 1416
       }
     ],
     "ecransHotes": [
@@ -20231,8 +20223,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 332,
-    "mots": 1664,
+    "textes": 334,
+    "mots": 1691,
     "battement": "contrat",
     "manques": []
   },

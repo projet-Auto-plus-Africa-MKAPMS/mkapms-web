@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2579;
+export const CLIQUABLES_TOTAL = 2577;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -571,8 +571,8 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/pro/DossierPro.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/pro/PortailPro.tsx", total: 4, moteur: 0, liens: 2, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/ProduitLocation.tsx", total: 8, moteur: 0, liens: 0, boutonsLocaux: 7, sansAction: 0, zones: 1 },
-  { fichier: "client/src/pages/ProduitParticulier.tsx", total: 13, moteur: 0, liens: 1, boutonsLocaux: 10, sansAction: 1, zones: 1 },
-  { fichier: "client/src/pages/ProduitVtcTaxi.tsx", total: 25, moteur: 0, liens: 1, boutonsLocaux: 21, sansAction: 2, zones: 1 },
+  { fichier: "client/src/pages/ProduitParticulier.tsx", total: 12, moteur: 0, liens: 1, boutonsLocaux: 10, sansAction: 0, zones: 1 },
+  { fichier: "client/src/pages/ProduitVtcTaxi.tsx", total: 24, moteur: 0, liens: 1, boutonsLocaux: 21, sansAction: 1, zones: 1 },
   { fichier: "client/src/pages/ProgrammeVTC.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 2, zones: 0 },
   { fichier: "client/src/pages/PubliciteDetail.tsx", total: 9, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 5, zones: 0 },
   { fichier: "client/src/pages/PubliciteInterne.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
@@ -793,9 +793,7 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 13, genre: "bouton", libelle: "Réserver le montage", motif: "sans_action" },
   { fichier: "client/src/pages/pieces/PanierPiecesDetachees.tsx", ligne: 16, genre: "bouton", libelle: "Commander", motif: "sans_action" },
   { fichier: "client/src/pages/pieces/RechercheIntelligentePieces.tsx", ligne: 10, genre: "bouton", libelle: "Rechercher", motif: "sans_action" },
-  { fichier: "client/src/pages/ProduitParticulier.tsx", ligne: 302, genre: "bouton", libelle: "= 4 ? \"bg-[#D4AF37]/10 border border-[#D4AF37]/30\" : \"bg-[#F", motif: "sans_action" },
-  { fichier: "client/src/pages/ProduitVtcTaxi.tsx", ligne: 305, genre: "bouton", libelle: "= 4 ? \"bg-[#D4AF37]/10 border border-[#D4AF37]/30\" : \"bg-[#F", motif: "sans_action" },
-  { fichier: "client/src/pages/ProduitVtcTaxi.tsx", ligne: 486, genre: "bouton", libelle: "Télécharger", motif: "sans_action" },
+  { fichier: "client/src/pages/ProduitVtcTaxi.tsx", ligne: 493, genre: "bouton", libelle: "Télécharger", motif: "sans_action" },
   { fichier: "client/src/pages/ProgrammeVTC.tsx", ligne: 85, genre: "bouton", libelle: "Voir le véhicule", motif: "sans_action" },
   { fichier: "client/src/pages/ProgrammeVTC.tsx", ligne: 111, genre: "bouton", libelle: "Rejoindre le programme VTC & Taxi", motif: "sans_action" },
   { fichier: "client/src/pages/PubliciteDetail.tsx", ligne: 41, genre: "bouton", libelle: "Approuver", motif: "sans_action" },
