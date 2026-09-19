@@ -1524,6 +1524,23 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié réellement sur base Postgres locale (nouvelle suite dédiée, 6/6) : trois cas mélangés dans la même table (une action en attente, une déjà décidée par un autre acteur, une sans décision proposée du tout) — validateAllPending() ne touche que les actions réellement en attente, jamais celles déjà tranchées ni celles qui n'attendaient rien, et rejouer l'appel sur un reliquat vide ne valide rien de plus (idempotent, pas de faux positif). Vérification navigateur réelle en plus (Playwright) : la route reste protégée par la porte d'accès back_office déjà existante (aucune régression d'accès introduite), rendu sans erreur console. npm run build rejoué intégralement.",
     domaine: "confiance",
   },
+  {
+    cle: "reservations-vente-cote-vendeur-connecte-au-moteur-acompte-existant",
+    titre: "ReservationsVente.tsx (tâche #54) : le vrai moteur d'acompte avait un côté acheteur, jamais de côté vendeur — construit sans en recréer un second",
+    moteurs: ["vente", "confiance"],
+    quoi:
+      "Premier écran traité de la liste des 11 écrans vente/Centre* confirmés sans aucun backend (rapport précédent). Avant d'écrire du code : recherche du moteur réel derrière « réservation avec acompte » plutôt que d'en inventer un — trouvé (server/routers/reservations.ts, table bookings type purchase_visit, déjà utilisé par le bouton « Réserver » côté acheteur, avec Stripe et un vrai statut booking_status pending/accepted/rejected). Il ne manquait qu'un seul côté du même moteur : le vendeur ne pouvait ni voir les réservations reçues sur ses propres annonces, ni les valider/refuser. Ajout de deux procédures dans ce même routeur (jamais un second) : mesReservationsRecues (jointure bookings→annonces→users, filtrée sur annonces.ownerId = vendeur connecté) et repondreReservationRecue (accepte/refuse, vérifie que l'annonce appartient bien à l'appelant, notifie l'acheteur de la vraie décision). ReservationsVente.tsx réécrit pour consommer ces deux procédures au lieu du tableau RESERVATIONS codé en dur (3 clients inventés).",
+    pourquoi:
+      "Exactement la règle rappelée par la direction : ne jamais recréer un moteur qui existe déjà. La table bookings, ses statuts et son intégration Stripe étaient déjà réels et éprouvés côté acheteur — construire un système parallèle de « réservations vente » aurait dédoublé la source de vérité (deux tables pour la même réalité métier) et cassé la cohérence des paiements déjà réels.",
+    ou: [
+      "server/routers/reservations.ts",
+      "client/src/pages/vente/ReservationsVente.tsx",
+      "server/routers/__tests__/reservations-vente.test.ts",
+    ],
+    lecon:
+      "Vérifié sur base Postgres réelle (nouvelle suite dédiée, 8/8) avec deux vendeurs et un acheteur réels : chaque vendeur ne voit que les réservations reçues sur SES propres annonces (jamais celles d'un autre vendeur, testé explicitement en tentant de répondre à la réservation d'un tiers — refusé) ; une réservation déjà tranchée ne peut pas recevoir une seconde décision ; l'acheteur reçoit une vraie notification mentionnant le vrai nom de son véhicule. Vérification navigateur réelle en plus (Playwright) : aucune erreur console, la route reste protégée par la porte d'accès pro déjà existante. npm run build rejoué intégralement. Portée assumée : 10 écrans restants de la même liste (MultiSites, GestionEmployes, DroitsAcces, CentreVisiteVehicule, CentreRetourClient, CentreReservationAchat, CentreRapportsVehicule, CentrePhotosMedias, CentreNegociation, CentreFournisseurs) suivent le même traitement un par un, pas en masse.",
+    domaine: "confiance",
+  },
 ];
 
 /**
