@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 547;
+export const MANQUES_TOTAL = 548;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "ecran_sans_contenu": 330,
-  "bouton_sans_action": 116,
+  "ecran_sans_contenu": 331,
+  "bouton_sans_action": 115,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
-  "dependance_non_declaree": 34,
+  "dependance_non_declaree": 35,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
@@ -15894,6 +15894,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "investment",
       "partner_engine",
       "pro_account",
+      "vente",
       "vente_pro",
       "vo_espaces"
     ],
@@ -16013,6 +16014,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/vente/CentreFournisseurs.tsx",
+        "route": "/vente/fournisseurs",
+        "composants": [
+          "trpc.pro"
+        ]
+      },
+      {
         "fichier": "client/src/pages/InscriptionProVO.tsx",
         "route": "/inscription-pro-vo",
         "composants": [
@@ -16075,6 +16083,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "saveDraft",
       "seed",
       "uploadDocument",
+      "venteFournisseurAjouter",
+      "venteFournisseurSupprimer",
+      "venteFournisseursListe",
       "verifyDocument",
       "vtcAddChauffeur",
       "vtcAddVehicule",
@@ -16099,6 +16110,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pro_portal_modules",
       "pro_portal_professions",
       "pro_profiles",
+      "vente_fournisseurs",
       "vente_pro_vehicules",
       "vtc_chauffeurs",
       "vtc_demandes",
@@ -16108,6 +16120,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "acces": [
       "admin",
       "connecte",
+      "professionnel",
       "public"
     ],
     "textes": 90,
@@ -21054,6 +21067,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "messaging",
       "notification",
       "payment",
+      "pro_portal",
       "smart",
       "vo_espaces"
     ],
@@ -21068,6 +21082,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "payment",
       "permission",
+      "pro_portal",
       "smart",
       "vo_espaces"
     ],
@@ -21104,6 +21119,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "payment": [
         "client/src/pages/Abonnements.tsx appelle trpc.abonnements"
+      ],
+      "pro_portal": [
+        "client/src/pages/vente/CentreFournisseurs.tsx appelle trpc.pro"
       ],
       "smart": [
         "client/src/pages/Abonnements.tsx appelle trpc.smartEngine",
@@ -21734,11 +21752,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vente/fournisseurs"
         ],
-        "cliquables": 2,
+        "cliquables": 5,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 8,
-        "mots": 16
+        "sansAction": 0,
+        "textes": 4,
+        "mots": 6
       },
       {
         "fichier": "client/src/pages/vente/CentreGarantieOccasion.tsx",
@@ -22032,8 +22050,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 953,
-    "mots": 3283,
+    "textes": 949,
+    "mots": 3273,
     "battement": "sonde",
     "manques": [
       {
@@ -22109,8 +22127,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« (sans texte) » client/src/pages/vente/CentreExport.tsx:17"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Ajouter fournisseur » client/src/pages/vente/CentreFournisseurs.tsx:18"
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/vente/CentreFournisseurs.tsx (4 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
@@ -22179,6 +22197,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_declare_absent_ecran",
         "detail": "vente_pro_resume_vendeur déclaré pour /vente mais aucun écran ne l'utilise"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "pro_portal — client/src/pages/vente/CentreFournisseurs.tsx appelle trpc.pro"
       },
       {
         "genre": "dependance_sans_preuve",

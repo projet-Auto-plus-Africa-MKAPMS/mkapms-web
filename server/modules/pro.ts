@@ -352,6 +352,24 @@ export const venteProVehicules = pgTable("vente_pro_vehicules", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// ─── VENTE PRO — carnet de fournisseurs ──────────────────────
+// Répertoire de contacts propre à chaque compte pro (pièces, pneus,
+// transporteurs, partenaires carrosserie…). Volontairement sans compteur de
+// commandes ni de montant total : aucun système de bons de commande
+// n'existe sur la plateforme pour les alimenter honnêtement.
+
+export const venteFournisseurs = pgTable("vente_fournisseurs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  nom: varchar("nom", { length: 255 }).notNull(),
+  type: varchar("type", { length: 64 }),
+  telephone: varchar("telephone", { length: 32 }),
+  email: varchar("email", { length: 255 }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // ─── PRO DASHBOARD STATS (calculées) ────────────────────────
 
 export const proDashboardStats = pgTable("pro_dashboard_stats", {

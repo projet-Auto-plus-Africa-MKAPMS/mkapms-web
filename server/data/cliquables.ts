@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2572;
+export const CLIQUABLES_TOTAL = 2575;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -679,7 +679,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/vente/CentreExport.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/vente/CentreFavorisVente.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreFinancement.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/vente/CentreFournisseurs.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/vente/CentreFournisseurs.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreGarantieOccasion.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreHistoriqueConsultations.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreLivraisonAcheteur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -833,7 +833,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/vente/CentreDetectionFraude.tsx", ligne: 17, genre: "bouton", libelle: "Voir", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreEssaiRoutier.tsx", ligne: 11, genre: "bouton", libelle: "Réserver l'essai", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreExport.tsx", ligne: 17, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/vente/CentreFournisseurs.tsx", ligne: 18, genre: "bouton", libelle: "Ajouter fournisseur", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreNegociation.tsx", ligne: 20, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentrePhotosMedias.tsx", ligne: 9, genre: "bouton", libelle: "{i : }", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentrePhotosMedias.tsx", ligne: 15, genre: "bouton", libelle: "Valider les photos", motif: "sans_action" },

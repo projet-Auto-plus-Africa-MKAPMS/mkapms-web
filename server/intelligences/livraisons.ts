@@ -1541,6 +1541,26 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié sur base Postgres réelle (nouvelle suite dédiée, 8/8) avec deux vendeurs et un acheteur réels : chaque vendeur ne voit que les réservations reçues sur SES propres annonces (jamais celles d'un autre vendeur, testé explicitement en tentant de répondre à la réservation d'un tiers — refusé) ; une réservation déjà tranchée ne peut pas recevoir une seconde décision ; l'acheteur reçoit une vraie notification mentionnant le vrai nom de son véhicule. Vérification navigateur réelle en plus (Playwright) : aucune erreur console, la route reste protégée par la porte d'accès pro déjà existante. npm run build rejoué intégralement. Portée assumée : 10 écrans restants de la même liste (MultiSites, GestionEmployes, DroitsAcces, CentreVisiteVehicule, CentreRetourClient, CentreReservationAchat, CentreRapportsVehicule, CentrePhotosMedias, CentreNegociation, CentreFournisseurs) suivent le même traitement un par un, pas en masse.",
     domaine: "confiance",
   },
+  {
+    cle: "fournisseurs-vente-nouveau-schema-plus-panne-drizzle-generate-decouverte",
+    titre: "CentreFournisseurs.tsx construit (nouveau schema minimal) + panne réelle découverte : drizzle-kit generate cassé depuis la migration 0010",
+    moteurs: ["vente", "confiance"],
+    quoi:
+      "Deuxième écran de la liste des 11 vente/Centre* (tâche #54). Contrairement à ReservationsVente.tsx, aucun moteur existant ne couvrait « le carnet de fournisseurs propre à un vendeur » (le supplier_engine/supplier-portal.ts existant est l'accès plateforme fournisseur/transporteur — un tout autre sujet). Nouveau schema minimal ajouté (vente_fournisseurs : nom, type, téléphone, email, notes) et volontairement SANS les champs « commandes »/« total » que l'écran fabriquait avant : aucun système de bons de commande n'existe sur la plateforme pour les calculer honnêtement.\n\nEn préparant la migration, découverte d'une panne réelle et jusque-là invisible : `npm run db:generate` échoue sur TOUT le dépôt (pas seulement sur ce changement) avec une collision de chaîne de snapshots — les fichiers drizzle/meta/0010 à 0015_snapshot.json partagent tous le même id/prevId, signe que les instantanés se sont arrêtés d'être maintenus à la migration 0010 alors que le journal réel (drizzle/meta/_journal.json) et les fichiers .sql continuent jusqu'à 0133 : quelqu'un a manifestement écrit les migrations suivantes à la main (ou via `drizzle-kit push`, qui n'a pas besoin des instantanés) sans jamais régénérer les instantanés. Vérifié que cette panne ne bloque PAS le build (check:migrations ne lit que le journal et les .sql, jamais les instantanés) ni `drizzle-kit push` (qui introspecte la base en direct) — seule la commande `generate` est inutilisable en l'état. Migration 0134 donc écrite à la main, suivant exactement le format des migrations précédentes (0130-0133), plutôt que de contourner le contrôle en l'ignorant.",
+    pourquoi:
+      "Une nouvelle table ajoutée sans migration durable est exactement le défaut qui a rendu cpe_rules/cpe_evaluations invisibles en production (tâche #59) : mieux valait vérifier tout de suite que le nouvel outil de génération fonctionnait avant d'écrire une seule ligne de routeur, plutôt que de découvrir après coup qu'aucune migration n'avait été produite.",
+    ou: [
+      "server/modules/pro.ts",
+      "server/routers/pro.ts",
+      "client/src/pages/vente/CentreFournisseurs.tsx",
+      "drizzle/0134_vente_fournisseurs.sql",
+      "drizzle/meta/_journal.json",
+      "server/routers/__tests__/vente-fournisseurs.test.ts",
+    ],
+    lecon:
+      "Vérifié sur base Postgres réelle (migration appliquée à la main, nouvelle suite dédiée, 7/7) : un vendeur ne voit jamais le carnet d'un autre, ne peut jamais supprimer le contact d'un tiers (refusé explicitement), une suppression réelle retire bien la ligne de la base. npm run build rejoué intégralement, check:migrations toujours vert (133 migrations journalisées). Portée assumée, non silencieuse : la panne de `drizzle-kit generate` elle-même n'a pas été réparée (réparer une chaîne de snapshots divergente à la main est un risque disproportionné par rapport à ce lot) — seulement contournée proprement en écrivant la migration à la main selon le format déjà en usage depuis la 0011, comme le fait manifestement déjà l'équipe. 9 écrans restants de la liste #54 suivent le même traitement un par un.",
+    domaine: "confiance",
+  },
 ];
 
 /**
