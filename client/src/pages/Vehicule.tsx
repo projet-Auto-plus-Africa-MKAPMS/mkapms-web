@@ -1415,6 +1415,14 @@ export default function Vehicule({ univers }: { univers?: string }) {
             Réserver ce véhicule
           </button>
           )}
+          {!isOwnerOrAdmin && !isDemo && (
+          <button
+            className="mt-2 w-full rounded-xl border-2 border-[#111] py-3 text-sm font-bold text-[#111] transition hover:bg-[#111] hover:text-white"
+            onClick={() => requireLogin(() => navigate(`/vente/visite/${annonceId}`))}
+          >
+            Planifier une visite
+          </button>
+          )}
         </div>{/* fin cage infos (colonne droite desktop) */}
         </div>{/* fin colonne droite (desktop) */}
         </div>{/* fin disposition 2 colonnes (desktop) */}

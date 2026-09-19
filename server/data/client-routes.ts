@@ -718,7 +718,6 @@ export const CLIENT_ROUTES: readonly string[] = [
   "/vente/statistiques",
   "/vente/stock",
   "/vente/transport",
-  "/vente/visite",
   "/verify-email",
   "/vo",
   "/voiture-occasion",
@@ -758,6 +757,7 @@ export const CLIENT_ROUTE_PATTERNS: readonly string[] = [
   "/vente/attestation/:id?",
   "/vente/dossier-vehicule/:id?",
   "/vente/droits/:id",
+  "/vente/visite/:id",
   "/vente/workflow/:id?",
   "/ville/:slug",
 ];

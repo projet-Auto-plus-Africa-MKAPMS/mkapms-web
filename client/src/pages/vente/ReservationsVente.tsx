@@ -56,15 +56,20 @@ export default function ReservationsVente() {
             <div className="flex justify-between">
               <div>
                 <h3 className="text-sm font-bold text-[#111]">{r.client}</h3>
-                <p className="text-[10px] text-[#6B7280]">{r.vehicule} · {new Date(r.createdAt).toLocaleDateString("fr-FR")}</p>
+                <p className="text-[10px] text-[#6B7280]">
+                  <span className="font-semibold">{r.type === "test_drive" ? "Visite" : "Réservation"}</span> · {r.vehicule} · {new Date(r.createdAt).toLocaleDateString("fr-FR")}
+                </p>
+                {r.type === "test_drive" && r.message && <p className="text-[10px] text-[#6B7280] mt-0.5">{r.message}</p>}
               </div>
               <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold h-fit ${STATUT_STYLE[r.statut] ?? "bg-slate-100 text-slate-500"}`}>
                 {STATUT_LABEL[r.statut] ?? r.statut}
               </span>
             </div>
             <div className="mt-2 flex items-center justify-between">
-              <div className="flex items-center gap-2"><Euro size={12} className="text-[#D4AF37]" /><span className="text-sm font-bold text-[#D4AF37]">Acompte: {r.acompte} {r.devise}</span></div>
-              {r.statut === "accepted" && (
+              {r.type !== "test_drive" && (
+                <div className="flex items-center gap-2"><Euro size={12} className="text-[#D4AF37]" /><span className="text-sm font-bold text-[#D4AF37]">Acompte: {r.acompte} {r.devise}</span></div>
+              )}
+              {r.statut === "accepted" && r.type !== "test_drive" && (
                 <button
                   onClick={() => setModalDoc(buildContratData({ vehicule: r.vehicule, client: r.client, type: "Réservation", prix: `${r.acompte} ${r.devise} (Acompte)`, ref: `RES-${r.id}` }))}
                   className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:underline"

@@ -110,7 +110,7 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/superadmin/ValidationDocumentsComplete.tsx", ligne: 38, libelle: "Valider" },
   { fichier: "client/src/pages/superadmin/ValidationDocumentsComplete.tsx", ligne: 38, libelle: "Refuser" },
   { fichier: "client/src/pages/TableauBordLoueur.tsx", ligne: 81, libelle: "Vérifier" },
-  { fichier: "client/src/pages/Vehicule.tsx", ligne: 1819, libelle: "" },
+  { fichier: "client/src/pages/Vehicule.tsx", ligne: 1827, libelle: "" },
   { fichier: "client/src/pages/vente/AchatExpress.tsx", ligne: 9, libelle: "Commencer un achat express" },
   { fichier: "client/src/pages/vente/AlertesAuto.tsx", ligne: 17, libelle: "Traiter" },
   { fichier: "client/src/pages/vente/CentreAchatDistance.tsx", ligne: 10, libelle: "Continuer mon achat" },
@@ -126,8 +126,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/vente/CentreRapportsVehicule.tsx", ligne: 19, libelle: "Télécharger le rapport PDF" },
   { fichier: "client/src/pages/vente/CentreReservationAchat.tsx", ligne: 15, libelle: "Réserver ce véhicule" },
   { fichier: "client/src/pages/vente/CentreRetourClient.tsx", ligne: 14, libelle: "Envoyer mon avis" },
-  { fichier: "client/src/pages/vente/CentreVisiteVehicule.tsx", ligne: 15, libelle: "" },
-  { fichier: "client/src/pages/vente/CentreVisiteVehicule.tsx", ligne: 16, libelle: "Confirmer la visite" },
   { fichier: "client/src/pages/vente/MultiSites.tsx", ligne: 17, libelle: "Ajouter un site" },
 ];
 

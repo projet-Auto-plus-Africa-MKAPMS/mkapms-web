@@ -1582,6 +1582,26 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié sur base Postgres réelle (migration appliquée, nouvelle suite dédiée, 11/11) : un vendeur ne voit jamais l'équipe d'un autre, ne peut jamais consulter ni modifier les droits du collaborateur d'un tiers (refusé explicitement dans les deux cas), un droit accordé est réellement relu après enregistrement, une désactivation persiste réellement. Aucune permission accordée par défaut à la création (jamais un accès implicite). Régénération de l'inventaire des routes (gen:routes) après le changement de route, vérifiée par check:routes avant commit. npm run build rejoué intégralement. 8 écrans restants de la liste #54.",
     domaine: "confiance",
   },
+  {
+    cle: "centre-visite-vehicule-type-test-drive-reutilise-plus-porte-acces-corrigee",
+    titre: "CentreVisiteVehicule.tsx : un type de réservation déclaré depuis toujours mais jamais utilisé, plus deux vrais défauts corrigés avant toute donnée",
+    moteurs: ["vente", "confiance"],
+    quoi:
+      "Cinquième écran de la liste des 11 vente/Centre* (tâche #54). Avant d'écrire une seule ligne, vérifié l'enum bookingTypeEnum (server/schema.ts) : il déclare trois valeurs (test_drive, rental, purchase_visit) mais purchase_visit est le seul réellement utilisé, par le moteur de réservation à acompte existant (reservations.create) ; test_drive n'apparaissait dans AUCUN fichier du dépôt en dehors de sa propre déclaration. Plutôt que de créer un second registre « visites » à côté du registre « réservations », le type existant a été activé : mesReservationsRecues et repondreReservationRecue (déjà construits pour ReservationsVente.tsx) ont été élargis pour couvrir purchase_visit ET test_drive (inArray sur le type), avec un libellé de notification distinct selon le cas (« Visite confirmée » vs « Réservation acceptée »). Une première version dupliquait ces deux procédures sous les noms mesVisitesRecues/repondreVisiteRecue avant d'être supprimée au profit de cet élargissement, en application de la règle : ne jamais reconstruire un moteur déjà existant.\n\nDeux vrais défauts découverts et corrigés en chemin, avant tout branchement de données : (1) la route /vente/visite n'acceptait aucun identifiant de véhicule (comme DroitsAcces.tsx avant elle) et n'était référencée nulle part dans l'application — aucun bouton n'y menait ; route changée en /vente/visite/:id, et un vrai bouton « Planifier une visite » ajouté sur la fiche véhicule (Vehicule.tsx) pour les acheteurs non-propriétaires. (2) l'écran était verrouillé derrière la porte d'accès professionnelle <V> (VoProGate, réservée aux vendeurs abonnés) alors qu'il s'adresse à un acheteur ordinaire souhaitant visiter un véhicule — gate changée en <U>, la porte d'accès générale. Ce même schéma de défaut (écran acheteur verrouillé derrière <V>) a été repéré par grep sur au moins 4 autres écrans du même dossier (CentreRetourClient, CentreReservationAchat, CentreRapportsVehicule, CentreNegociation) — non corrigés dans ce lot, faute d'avoir encore construit leur backend respectif, mais consignés pour traitement à leur tour.",
+    pourquoi:
+      "Corriger uniquement le formulaire de visite sans toucher à la route ni à la porte d'accès aurait produit un écran fonctionnel mais inatteignable par un vrai acheteur : ni lien pour y arriver, ni droit d'y entrer une fois le lien connu. Élargir le moteur existant plutôt que d'en écrire un second évite de dupliquer la logique d'isolation vendeur déjà testée sur les réservations à acompte.",
+    ou: [
+      "server/routers/reservations.ts",
+      "client/src/pages/vente/CentreVisiteVehicule.tsx",
+      "client/src/pages/vente/ReservationsVente.tsx",
+      "client/src/pages/Vehicule.tsx",
+      "client/src/App.tsx",
+      "server/routers/__tests__/reservations-visite.test.ts",
+    ],
+    lecon:
+      "Vérifié sur base Postgres réelle (nouvelle suite dédiée, 9/9, plus les trois suites précédentes rejouées sans régression — 8/8, 11/11, 7/7 — pour confirmer que l'élargissement du type de retour de mesReservationsRecues n'a rien cassé) : une demande de visite crée une vraie réservation test_drive, le vendeur la voit dans SA liste unifiée (jamais un second registre), la confirme via la même mutation que les réservations à acompte, et l'acheteur reçoit une notification au libellé réellement distinct (« Visite confirmée », pas un « Réservation acceptée » générique). Une visite déjà tranchée refuse une seconde décision. Vérifié aussi en navigateur réel : la fiche annonce s'affiche correctement sur /vente/visite/:id, l'état honnête « Véhicule introuvable » s'affiche sur un identifiant invalide, le nouveau bouton apparaît sur la fiche véhicule, et /vente/reservations affiche toujours à bon droit la porte professionnelle (écran resté vendeur-only, lui). En vérifiant, découvert que le serveur de développement local héritait d'une variable DATABASE_URL du conteneur pointant vers le proxy Railway bloqué (dotenv ne réécrit jamais une variable déjà présente dans l'environnement) — sans lien avec ce lot, corrigé uniquement pour la vérification en cours en fixant explicitement la variable au démarrage. 6 écrans restants de la liste #54, plus le schéma de porte d'accès <V>/<U> mal posée à corriger sur les 4 écrans repérés dès que leur backend existera.",
+    domaine: "confiance",
+  },
 ];
 
 /**
