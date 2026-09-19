@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 551;
+export const MANQUES_TOTAL = 552;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
   "bouton_sans_action": 121,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
-  "dependance_non_declaree": 33,
+  "dependance_non_declaree": 34,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
@@ -9896,6 +9896,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "livraison",
       "livraison_vehicule",
       "monitoring",
+      "payment",
       "resilience",
       "risque_import",
       "smart",
@@ -9919,6 +9920,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "livraison",
       "livraison_vehicule",
       "monitoring",
+      "payment",
       "resilience",
       "risque_import",
       "smart",
@@ -9990,6 +9992,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "monitoring": [
         "client/src/pages/CentreIntelligences.tsx appelle trpc.monitoringOs"
+      ],
+      "payment": [
+        "intelligences/livraisons.ts déclenche un paiement"
       ],
       "resilience": [
         "intelligences/actions.ts importe resilience/service.ts",
@@ -10252,6 +10257,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_non_declaree",
         "detail": "livraison_vehicule — estimate-gateway/gateway.ts importe vehicle-delivery/service.ts"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "payment — intelligences/livraisons.ts déclenche un paiement"
       },
       {
         "genre": "dependance_non_declaree",
@@ -14066,6 +14075,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "financial_intelligence",
       "identity",
       "importafrica",
+      "intelligences",
       "livraison",
       "payment_orchestrator",
       "payout_engine",

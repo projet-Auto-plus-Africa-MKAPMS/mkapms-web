@@ -1474,6 +1474,22 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié en navigateur réel (Playwright) : les tarifs affichés sur EspaceProVente correspondent maintenant exactement au catalogue réel une fois convertis en devise locale (49€→52,92$, 89€→96,12$, 149€→160,92$, 249€→268,92$ — même taux de conversion appliqué uniformément, aucune valeur isolée), et le clic sur « Choisir Pro Start » redirige réellement vers /abonnements?categorie=pro_vente ; le clic sur « Rejoindre le programme VTC & Taxi » redirige réellement vers /abonnements?categorie=vtc_taxi. Portée assumée, non maquillée : les véhicules « recommandés » de ProgrammeVTC.tsx et les données de EtatVehicule.tsx/InspectionNumerique.tsx/JournalActivite.tsx/PubliciteDetail.tsx restent fabriqués — ce ne sont pas des boutons mal câblés vers un moteur existant mais des écrans qui nécessitent la construction d'un moteur qui n'existe pas encore (upload photo, signature électronique, caution, journal d'audit réel, workflow d'approbation publicitaire) ; non traités ici pour ne pas les livrer à moitié faits, et reportés explicitement en tâche de suivi plutôt que devinés. npm run build rejoué intégralement. Boutons sans action : 120 → 118.",
     domaine: "confiance",
   },
+  {
+    cle: "decision-pdg-memoire-rag-reste-reservee-pdg",
+    titre: "Décision PDG rendue : mémoire/RAG (files.*/knowledge.search/rag.*) reste strictement réservée au PDG",
+    moteurs: ["intelligences"],
+    quoi:
+      "Décision en attente depuis le LOT 02F (mémoire/fichiers/RAG) : fallait-il ouvrir ces outils au-delà du PDG (super_admin) ? Question posée explicitement à la direction plutôt que devinée, avec les deux options réelles du code (rester PDG seul, ou ouvrir à Direction = admin+PDG, ou plus largement au personnel métier). Réponse de la direction : accès conservé au PDG uniquement.",
+    pourquoi:
+      "Une décision d'accès à de la mémoire d'entreprise et une base de connaissances interne (dont une catégorie forcée pdg_uniquement) est par nature une décision de la direction, jamais une supposition côté code — demander plutôt que fabriquer un choix par défaut, conformément à la doctrine.",
+    ou: [
+      "server/trpc.ts (pdgProcedure, inchangé)",
+      "server/intelligences/outils/familles/fichiers-rag.ts (allowedRoles, inchangé)",
+    ],
+    lecon:
+      "Aucun changement de code nécessaire : l'état actuel du dépôt (pdgProcedure = role === \"super_admin\" ; allowedRoles: [\"super_admin\"] sur files.*/documents.*/knowledge.search/rag.*) correspondait déjà exactement à la décision rendue. Décision actée et tracée ici pour que la question ne soit pas reposée à un futur lot faute de mémoire du choix déjà fait.",
+    domaine: "confiance",
+  },
 ];
 
 /**
