@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 552;
+export const MANQUES_TOTAL = 549;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 121,
+  "bouton_sans_action": 118,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -975,6 +975,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/vente/mes-annonces",
         "composants": [
           "trpc.annonces"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/vente/CentreFavorisVente.tsx",
+        "route": "/vente/favoris",
+        "composants": [
+          "trpc.favoris"
         ]
       },
       {
@@ -11405,9 +11412,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/mkapms"
         ],
-        "cliquables": 5,
+        "cliquables": 4,
         "parMoteur": 0,
-        "sansAction": 1,
+        "sansAction": 0,
         "textes": 54,
         "mots": 154
       },
@@ -11617,10 +11624,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Simulation indisponible » client/src/pages/LocationLOA.tsx:100"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Réserver ce véhicule » client/src/pages/LocationMKAPMS.tsx:363"
       },
       {
         "genre": "bouton_sans_action",
@@ -21701,9 +21704,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 2,
+        "sansAction": 0,
         "textes": 6,
-        "mots": 14
+        "mots": 23
       },
       {
         "fichier": "client/src/pages/vente/CentreFinancement.tsx",
@@ -22020,7 +22023,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "tables": [],
     "acces": [],
     "textes": 950,
-    "mots": 3250,
+    "mots": 3259,
     "battement": "sonde",
     "manques": [
       {
@@ -22094,14 +22097,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/vente/CentreExport.tsx:17"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/vente/CentreFavorisVente.tsx:16"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/vente/CentreFavorisVente.tsx:16"
       },
       {
         "genre": "bouton_sans_action",

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useCurrency } from "../lib/currency";
 import {
@@ -139,6 +139,7 @@ const FAQ = [
 const TYPE_FILTER = ["Tous", "Berline", "SUV", "Hybride", "Électrique", "Premium"];
 
 export default function LocationMKAPMS() {
+  const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [lieu, setLieu] = useState("");
   const [dateDebut, setDateDebut] = useState("");
@@ -360,7 +361,14 @@ export default function LocationMKAPMS() {
                     <p className="text-sm font-black text-[#111]">{v.prixMois} €</p>
                   </div>
                 </div>
-                <button className="mt-3 w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-extrabold text-white flex items-center justify-center gap-1.5">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate(`/louer/mkapms/vehicule/${v.id}`);
+                  }}
+                  className="mt-3 w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-extrabold text-white flex items-center justify-center gap-1.5"
+                >
                   <Heart size={12} /> Réserver ce véhicule
                 </button>
               </div>
