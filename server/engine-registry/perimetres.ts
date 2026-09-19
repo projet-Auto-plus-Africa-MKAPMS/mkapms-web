@@ -48,6 +48,7 @@ export const ROUTEURS_PARTAGES: Record<string, string[]> = {
   vente_particulier: ["annonces"],
   location_pro: ["annonces"],
   location_particulier: ["annonces"],
+  controle_technique: ["devis"],
 };
 
 export const PERIMETRES: PerimetreDeclare[] = [
@@ -581,9 +582,13 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/carte-grise", "/carte-grise/*", "/demarches", "/demarches/*", "/superadmin/admin-demarches"],
   },
   {
-    // Manque réel, pas un défaut de déclaration : les 3 écrans
-    // (garage/ControleTechnique.tsx, EtatVehicule.tsx, InspectionNumerique.tsx)
-    // n'appellent aucune procédure tRPC — aucun backend n'existe encore.
+    // Manque réel PARTIEL : garage/ControleTechnique.tsx appelle bien
+    // trpc.devis.mine (demandes de RDV contrôle technique, honnêtement
+    // affichées sans jamais fabriquer un statut CT officiel — MKA.P-MS n'a
+    // pas accès à un registre gouvernemental). Voir ROUTEURS_PARTAGES.
+    // EtatVehicule.tsx et InspectionNumerique.tsx, eux, n'appellent
+    // toujours aucune procédure tRPC : aucun backend n'existe encore pour
+    // l'état des lieux départ/retour ni la checklist d'inspection.
     moteur: "controle_technique",
     dossiers: [],
     routeurs: [],
