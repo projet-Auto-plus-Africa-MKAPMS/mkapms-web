@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 /**
  * Recherche véhicule partagée par les portails de vente.
@@ -146,10 +146,18 @@ export function useVehicleSearch(
     setDraft((d) => ({ ...d, extra: { ...d.extra, [key]: value } }));
   }, []);
 
-  const draftRef = useRef(draft);
-  draftRef.current = draft;
-
-  const apply = useCallback(() => setApplied(draftRef.current), []);
+  // setDraft(d => { ...; return d }) lit toujours le brouillon le plus récent,
+  // même juste après un set()/setExtra() appelé dans le même gestionnaire
+  // (React ne re-rend pas entre les deux) : un simple `draftRef.current` mis à
+  // jour au rendu restait alors périmé d'un cran, et apply() republiait
+  // l'ancien filtre — le clic sur une carte catégorie (set + apply enchaînés)
+  // ne changeait donc jamais les résultats affichés.
+  const apply = useCallback(() => {
+    setDraft((d) => {
+      setApplied(d);
+      return d;
+    });
+  }, []);
 
   const reset = useCallback(() => {
     setDraft(initial);

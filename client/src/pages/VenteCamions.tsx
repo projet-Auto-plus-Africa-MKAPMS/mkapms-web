@@ -50,9 +50,9 @@ const CATEGORIES = [
 ];
 
 const ANNONCES = [
-  { id: 1, nom: "Iveco Daily Benne 35C14", annee: 2022, km: 55000, prix: 28500, ptac: "3.5 t", photo: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&h=260&fit=crop" },
-  { id: 2, nom: "MAN TGL 12.250 Frigo", annee: 2021, km: 120000, prix: 42000, ptac: "12 t", photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=260&fit=crop" },
-  { id: 3, nom: "Renault Trucks D 7.5t Plateau", annee: 2023, km: 38000, prix: 45000, ptac: "7.5 t", photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=260&fit=crop" },
+  { id: 1, nom: "Iveco Daily Benne 35C14", categorie: "Bennes", annee: 2022, km: 55000, prix: 28500, ptac: "3.5 t", photo: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&h=260&fit=crop" },
+  { id: 2, nom: "MAN TGL 12.250 Frigo", categorie: "Frigorifiques", annee: 2021, km: 120000, prix: 42000, ptac: "12 t", photo: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=260&fit=crop" },
+  { id: 3, nom: "Renault Trucks D 7.5t Plateau", categorie: "Plateaux", annee: 2023, km: 38000, prix: 45000, ptac: "7.5 t", photo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400&h=260&fit=crop" },
 ];
 
 const ANNEES = Array.from({ length: 15 }, (_, i) => String(new Date().getFullYear() - i));
@@ -205,7 +205,12 @@ export default function VenteCamions() {
           {CATEGORIES.map((c) => (
             <button
               key={c.label}
-              className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition"
+              onClick={() => {
+                search.set("categorie", c.label);
+                search.apply();
+                document.getElementById("annonces-camions")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className={`shrink-0 w-[120px] rounded-xl bg-white border overflow-hidden text-left active:scale-[0.98] transition ${search.draft.categorie === c.label ? "border-gray-700 ring-2 ring-gray-700/30" : "border-[#E5E7EB]"}`}
             >
               <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
               <div className="p-2">
@@ -218,7 +223,7 @@ export default function VenteCamions() {
       </div>
 
       {/* ANNONCES */}
-      <div className="px-4 mt-6">
+      <div id="annonces-camions" className="px-4 mt-6">
         <h2 className="text-base font-bold text-[#111]">Annonces camions ({filtered.length})</h2>
         {filtered.length === 0 && (
           <p className="mt-3 rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-[#6B7280]">

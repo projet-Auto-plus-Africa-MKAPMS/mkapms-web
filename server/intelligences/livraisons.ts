@@ -1422,6 +1422,23 @@ export const LIVRAISONS: Livraison[] = [
       "Méthode changée comme demandé : avant ce lot, plusieurs correctifs consécutifs avaient été poussés sans faire tourner `npm run build` en entier, ce qui avait cassé le déploiement Railway pendant 18h (inventaires générés périmés). Cette fois, l'ordre a été inversé : les 3 écrans ont d'abord été vérifiés en conditions réelles dans un navigateur (Playwright, serveur de développement réel) — recherche lancée sur les 3 écrans, bandeau de recherche affiché, message honnête « aucune annonce ne correspond » retourné (aucune vraie annonce ne correspond à « Paris » dans la base locale, comportement correct et non maquillé) — puis seulement après cette vérification, les 3 inventaires générés (boutons, cliquables, moteurs) ont été régénérés ENSEMBLE et `npm run build` a été rejoué intégralement jusqu'au bout avant tout commit. Effet mesuré : boutons sans action 129 → 126. Portée assumée : la baisse du pourcentage \"moteur des boutons\" restera modeste au vu de l'ampleur réelle du chantier (77 écrans sans aucun backend au total) — la suite continue dans l'ordre annoncé (écrans clients d'abord), 3 à la fois, chacun vérifié avant d'être livré plutôt que traité en masse sans preuve.",
     domaine: "confiance",
   },
+  {
+    cle: "vente-camions-utilitaires-categories-bug-hook-partage",
+    titre: "Catégories cliquables câblées (Vente Camions/Utilitaires) — un vrai bug trouvé dans un hook partagé par 11 écrans",
+    moteurs: ["core", "vente"],
+    quoi:
+      "Suite du chantier « ce qu'un client rencontre en premier » : les cartes de catégorie de VenteCamions.tsx et VenteUtilitaires.tsx (ex. « Bennes », « Master / Boxer ») n'avaient aucun gestionnaire de clic, alors qu'une vraie recherche fonctionnelle existe déjà sur ces deux écrans (client/src/lib/vehicleSearch.ts, utilisé par 11 écrans de vente). Câblage évident au premier abord (search.set(\"categorie\", c.label) puis search.apply()) — mais la vérification en navigateur réel (jamais sautée, comme demandé) a montré que le nombre d'annonces affichées ne changeait JAMAIS après le clic, quelle que soit la catégorie choisie.\n\nCause trouvée dans le hook partagé, pas dans les deux écrans : apply() lisait un draftRef mis à jour uniquement au moment du RENDU (draftRef.current = draft, exécuté à chaque rendu). Un clic qui appelle set() puis apply() dans le MÊME gestionnaire ne laisse pas React re-rendre entre les deux appels : apply() republiait donc le filtre précédent, pas celui qui vient d'être posé. Le bouton « Rechercher » existant fonctionnait par coïncidence, car il est cliqué séparément, après que les changements de select ont déjà eu le temps d'être rendus — mais tout code appelant set()+apply() dans le même clic (exactement ce que le câblage des catégories devait faire) était silencieusement inopérant. Corrigé en remplaçant le draftRef par `setDraft(d => { setApplied(d); return d; })`, qui lit toujours le brouillon le plus à jour quel que soit le moment de l'appel — supprime la classe de bug entièrement, pour les 11 écrans qui partagent ce hook, pas seulement les 2 traités ici.",
+    pourquoi:
+      "Exactement le scénario que la direction demandait de traquer : un correctif qui a l'air correct au premier coup d'œil (le bouton réagit, la classe de sélection change visuellement) mais qui ne produit aucun effet réel tant qu'il n'est pas vérifié en conditions réelles. Sans la vérification systématique en navigateur (déjà adoptée depuis l'incident Railway), ce lot aurait été livré avec un bouton « techniquement câblé » mais silencieusement inerte — une nouvelle version du même problème de fond (des indicateurs qui donnent l'illusion d'un travail fait).",
+    ou: [
+      "client/src/lib/vehicleSearch.ts",
+      "client/src/pages/VenteCamions.tsx",
+      "client/src/pages/VenteUtilitaires.tsx",
+    ],
+    lecon:
+      "Vérifié en navigateur réel à chaque étape, pas seulement au typecheck : premier test après câblage → compteur d'annonces inchangé après clic (3→3, 4→4) malgré un clic détecté et un bouton visuellement sélectionné — signal that quelque chose ne marchait pas malgré une apparence correcte. Creusé jusqu'à la cause réelle dans le hook plutôt que de conclure « pas assez d'annonces pour voir la différence ». Après correctif du hook et ajout d'un champ categorie réaliste aux annonces de démonstration (absent jusque-là, ce qui aurait masqué le vrai correctif) : filtrage réellement vérifié (3→1 et 4→1 sur les deux écrans). npm run build rejoué intégralement jusqu'au bout avant commit (leçon du lot précédent appliquée). Boutons sans action : 126 → 124.",
+    domaine: "confiance",
+  },
 ];
 
 /**
