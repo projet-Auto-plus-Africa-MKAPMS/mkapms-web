@@ -2356,20 +2356,32 @@ function BadgesTab() {
    ═══════════════════════════════════════════════════════════ */
 function SanteTab() {
   const { data, isLoading } = trpc.smartEngine.healthStatus.useQuery();
+  const [statusFilter, setStatusFilter] = useState<"ok" | "broken" | "slow" | null>(null);
 
   if (isLoading) return <Loading />;
   if (!data) return <Empty msg="Aucune donnée de santé" />;
 
+  const items = statusFilter ? data.items.filter((h: any) => h.status === statusFilter) : data.items;
+  const toggle = (s: "ok" | "broken" | "slow") => setStatusFilter((cur) => (cur === s ? null : s));
+
   return (
     <div className="space-y-3">
-      <h2 className="text-base font-bold text-[#111]">Santé de la plateforme</h2>
-      <div className="grid grid-cols-3 gap-2">
-        <StatCard label="OK" value={data.ok} color="green" icon={CheckCircle2} />
-        <StatCard label="Cassés" value={data.broken} color="red" icon={XCircle} />
-        <StatCard label="Lents" value={data.slow} color="yellow" icon={Clock} />
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">Santé de la plateforme</h2>
+        {statusFilter && (
+          <button onClick={() => setStatusFilter(null)} className="text-xs font-bold text-[#8B7500] underline">
+            Voir tout
+          </button>
+        )}
       </div>
+      <div className="grid grid-cols-3 gap-2">
+        <StatCard label="OK" value={data.ok} color="green" icon={CheckCircle2} onClick={() => toggle("ok")} active={statusFilter === "ok"} />
+        <StatCard label="Cassés" value={data.broken} color="red" icon={XCircle} onClick={() => toggle("broken")} active={statusFilter === "broken"} />
+        <StatCard label="Lents" value={data.slow} color="yellow" icon={Clock} onClick={() => toggle("slow")} active={statusFilter === "slow"} />
+      </div>
+      {statusFilter && items.length === 0 && <Empty msg="Aucun élément dans cette catégorie" />}
       <div className="space-y-2">
-        {data.items.map((h: any) => (
+        {items.map((h: any) => (
           <div key={h.id} className={`rounded-xl border p-3 ${h.status === "ok" ? "border-emerald-200 bg-emerald-50" : h.status === "broken" ? "border-red-300 bg-red-50" : "border-orange-200 bg-orange-50"}`}>
             <div className="flex items-center justify-between">
               <div>
@@ -2394,8 +2406,16 @@ function SanteTab() {
    ═══════════════════════════════════════════════════════════ */
 function JournalTab({ pendingOnly = false, onClearFilter }: { pendingOnly?: boolean; onClearFilter?: () => void }) {
   const { data, isLoading } = trpc.smartEngine.activityLog.useQuery({ limit: pendingOnly ? 100 : 50, offset: 0, needsValidationOnly: pendingOnly });
+  const stats = trpc.smartEngine.activityStats.useQuery(undefined, { enabled: pendingOnly });
   const validateDecision = trpc.smartEngine.validateActivityDecision.useMutation();
+  const validateAll = trpc.smartEngine.validateAllActivityDecisions.useMutation();
   const utils = trpc.useUtils();
+
+  const refreshAfterValidation = () => {
+    utils.smartEngine.activityLog.invalidate();
+    utils.smartEngine.activityStats.invalidate();
+    utils.smartEngine.dashboard.invalidate();
+  };
 
   if (isLoading) return <Loading />;
   if (!data || data.length === 0) {
@@ -2403,15 +2423,17 @@ function JournalTab({ pendingOnly = false, onClearFilter }: { pendingOnly?: bool
   }
 
   const onDecision = (id: number, approved: boolean) => {
-    validateDecision.mutate(
-      { id, approved },
-      {
-        onSuccess: () => {
-          utils.smartEngine.activityLog.invalidate();
-          utils.smartEngine.dashboard.invalidate();
-        },
-      },
-    );
+    validateDecision.mutate({ id, approved }, { onSuccess: refreshAfterValidation });
+  };
+
+  // Le total réel (activityStats.needsValidation) peut dépasser les 100
+  // lignes affichées à l'écran : « Valider tout » doit purger le reliquat
+  // entier côté serveur, pas seulement ce qui est visible ici.
+  const totalPending = stats.data?.needsValidation ?? data.length;
+
+  const onValidateAll = () => {
+    if (!window.confirm(`Valider les ${totalPending} action(s) en attente ? Cette décision sera enregistrée comme validée par la direction, pour chacune.`)) return;
+    validateAll.mutate({ approved: true }, { onSuccess: refreshAfterValidation });
   };
 
   return (
@@ -2424,6 +2446,15 @@ function JournalTab({ pendingOnly = false, onClearFilter }: { pendingOnly?: bool
           </button>
         )}
       </div>
+      {pendingOnly && totalPending > 0 && (
+        <button
+          onClick={onValidateAll}
+          disabled={validateAll.isPending}
+          className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white active:scale-[0.98] transition disabled:opacity-50"
+        >
+          {validateAll.isPending ? "Validation en cours…" : `Valider tout (${totalPending})`}
+        </button>
+      )}
       {data.map((a: any) => (
         <div key={a.id} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
           <div className="flex items-center justify-between">
@@ -2539,7 +2570,7 @@ function AvisTab() {
    Composants partagés
    ═══════════════════════════════════════════════════════════ */
 
-function StatCard({ label, value, color, icon: Icon, onClick }: { label: string; value: number; color: string; icon: typeof Brain; onClick?: () => void }) {
+function StatCard({ label, value, color, icon: Icon, onClick, active }: { label: string; value: number; color: string; icon: typeof Brain; onClick?: () => void; active?: boolean }) {
   const colorMap: Record<string, string> = {
     red: "bg-red-50 border-red-200 text-red-700",
     green: "bg-emerald-50 border-emerald-200 text-emerald-700",
@@ -2561,7 +2592,7 @@ function StatCard({ label, value, color, icon: Icon, onClick }: { label: string;
   );
   if (onClick) {
     return (
-      <button onClick={onClick} className={`text-left rounded-xl border p-3 transition hover:ring-2 hover:ring-[#D4AF37]/60 active:scale-[0.98] ${cls}`}>
+      <button onClick={onClick} className={`text-left rounded-xl border p-3 transition hover:ring-2 hover:ring-[#D4AF37]/60 active:scale-[0.98] ${cls} ${active ? "ring-2 ring-[#D4AF37]" : ""}`}>
         {inner}
       </button>
     );

@@ -20034,11 +20034,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/smart-engine"
         ],
-        "cliquables": 58,
+        "cliquables": 60,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 273,
-        "mots": 1416
+        "textes": 276,
+        "mots": 1432
       }
     ],
     "ecransHotes": [
@@ -20184,6 +20184,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "unresolvedSuspects",
       "userBehavior",
       "validateActivityDecision",
+      "validateAllActivityDecisions",
       "validateBadges",
       "validateLearned",
       "validateUnivers"
@@ -20218,8 +20219,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 334,
-    "mots": 1691,
+    "textes": 337,
+    "mots": 1707,
     "battement": "contrat",
     "manques": []
   },
