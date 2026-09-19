@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 538;
+export const MANQUES_TOTAL = 530;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 331,
-  "bouton_sans_action": 105,
+  "bouton_sans_action": 97,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -921,10 +921,24 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/EtatVehicule.tsx",
+        "route": "/louer/etats-vehicule",
+        "composants": [
+          "trpc.reservations"
+        ]
+      },
+      {
         "fichier": "client/src/pages/PaiementVehicule.tsx",
         "route": "/paiement-vehicule/:id",
         "composants": [
           "trpc.annonces",
+          "trpc.reservations"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/InspectionNumerique.tsx",
+        "route": "/louer/inspection",
+        "composants": [
           "trpc.reservations"
         ]
       },
@@ -5443,6 +5457,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
+        "client/src/pages/EtatVehicule.tsx appelle trpc.reservations",
+        "client/src/pages/InspectionNumerique.tsx appelle trpc.reservations",
         "client/src/pages/garage/ControleTechnique.tsx appelle trpc.devis"
       ]
     },
@@ -5463,22 +5479,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/etats-vehicule"
         ],
-        "cliquables": 8,
+        "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 4,
-        "textes": 35,
-        "mots": 93
+        "sansAction": 0,
+        "textes": 11,
+        "mots": 57
       },
       {
         "fichier": "client/src/pages/InspectionNumerique.tsx",
         "routes": [
           "/louer/inspection"
         ],
-        "cliquables": 8,
+        "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 4,
-        "textes": 16,
-        "mots": 48
+        "sansAction": 0,
+        "textes": 9,
+        "mots": 39
       },
       {
         "fichier": "client/src/pages/garage/ControleTechnique.tsx",
@@ -5496,42 +5512,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 61,
-    "mots": 204,
+    "textes": 30,
+    "mots": 159,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Voir les photos » client/src/pages/EtatVehicule.tsx:91"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Signer le contrat » client/src/pages/EtatVehicule.tsx:155"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/EtatVehicule.tsx:200"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Valider l'état des lieux » client/src/pages/EtatVehicule.tsx:206"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/InspectionNumerique.tsx:75"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Valider l'inspection » client/src/pages/InspectionNumerique.tsx:83"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Voir les photos » client/src/pages/InspectionNumerique.tsx:92"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Rapport » client/src/pages/InspectionNumerique.tsx:93"
-      },
       {
         "genre": "dependance_sans_preuve",
         "detail": "identity"

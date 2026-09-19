@@ -1689,6 +1689,23 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié sans base de données (10/10, dont le nouveau témoin négatif sur un nom de moteur totalement inventé) : controle_technique trouve désormais le routeur \"devis\", et le témoin négatif ne peut plus jamais être mis en défaut par une découverte future sur un domaine réel. check:moteurs rejoué : aucune dérive. Le manque réel (EtatVehicule.tsx, InspectionNumerique.tsx) reste entièrement à construire — non traité ici, delibérément distinct de cette correction d'audit.",
     domaine: "confiance",
   },
+  {
+    cle: "etat-vehicule-inspection-numerique-fabrication-retiree",
+    titre: "EtatVehicule.tsx et InspectionNumerique.tsx : fabrication retirée, données réelles (honnêtement vides) en attendant le vrai moteur de location",
+    moteurs: ["controle_technique", "location"],
+    quoi:
+      "En corrigeant la classification de controle_technique (lot précédent), découverte que EtatVehicule.tsx et InspectionNumerique.tsx affichaient des réservations de location ENTIÈREMENT fabriquées (réf. LOC-2025-0042, cautions, contrats « signés », checklists). Recherche de la cause : bookingTypeEnum déclare le type \"rental\" depuis toujours, et une table dédiée rental_applications existe même avec ses propres champs de caution — mais AUCUNE procédure, nulle part dans le dépôt, ne crée jamais de réservation de l'un ou l'autre type. Aucun flux de réservation de location individuelle n'existe donc sur la plateforme (le même défaut que \"test_drive\" avant la tâche #54.5, en plus grand : là où activer test_drive ne demandait qu'une mutation de demande, ici tout le parcours de réservation — dates, tarif, paiement — reste à construire, tâche #56 déjà trackée séparément).\n\nPlutôt que d'attendre la construction de ce moteur pour corriger ces deux écrans, la fabrication a été retirée immédiatement : les deux lisent désormais trpc.reservations.mine (déjà réel, déjà utilisé par la vente) filtré sur type=\"rental\", honnêtement vide aujourd'hui pour tout le monde puisqu'aucune réservation de ce type ne peut encore être créée. Un état amical explique pourquoi (« apparaîtra ici dès votre première réservation confirmée ») plutôt que de laisser un écran vide sans explication. Les deux écrans, déjà correctement accessibles aux acheteurs, ont reçu la même porte d'accès conditionnelle qu'ajoutée aux écrans vente/Centre* de ce lot (invitation réelle à se connecter, pas d'appel à une procédure protégée pour un visiteur anonyme).",
+    pourquoi:
+      "Un utilisateur qui ouvre ces écrans aujourd'hui n'a jamais eu la moindre réservation de location — lui montrer un contrat signé et une caution bloquée sur un véhicule qu'il n'a jamais réservé est une fabrication au sens plein du terme, pas un simple manque d'ergonomie. La retirer ne coûte rien et ne peut pas attendre la construction du moteur complet.",
+    ou: [
+      "client/src/pages/EtatVehicule.tsx",
+      "client/src/pages/InspectionNumerique.tsx",
+      "server/routers/__tests__/etat-vehicule-honnete.test.ts",
+    ],
+    lecon:
+      "Vérifié sur base Postgres réelle (nouvelle suite dédiée, 3/3, contre reservations.mine sans le modifier) : un booking d'un autre type (test_drive) n'apparaît jamais dans le filtre \"rental\" (jamais un faux positif visuel), et un vrai booking rental — inséré directement en base pour la démonstration, puisqu'aucune procédure produit ne le crée encore — apparaît avec ses vrais champs de caution, sans aucune donnée inventée autour. Vérifié en navigateur réel : aucune trace des anciennes données fabriquées, invitation réelle à se connecter pour un visiteur anonyme, aucun plantage. L'état des lieux photo, la checklist et la signature numérique restent à construire une fois le moteur de réservation de location (tâche #56) en place — tâche #60 mise à jour pour refléter cette dépendance, non traitée ici.",
+    domaine: "confiance",
+  },
 ];
 
 /**

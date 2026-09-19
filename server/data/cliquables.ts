@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2579;
+export const CLIQUABLES_TOTAL = 2567;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -220,7 +220,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/EspaceProVente.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/EspaceTransporteur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/EstimationAuto.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/EtatVehicule.tsx", total: 8, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 4, zones: 0 },
+  { fichier: "client/src/pages/EtatVehicule.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/expansion/CentreInternational.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/expansion/MultiDevisesGlobal.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/expansion/MultiLanguesGlobal.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -335,7 +335,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/InscriptionParticulier.tsx", total: 5, moteur: 0, liens: 3, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/InscriptionProVente.tsx", total: 8, moteur: 0, liens: 4, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/InscriptionProVO.tsx", total: 7, moteur: 0, liens: 3, boutonsLocaux: 4, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/InspectionNumerique.tsx", total: 8, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 4, zones: 2 },
+  { fichier: "client/src/pages/InspectionNumerique.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/index.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/Conversation.tsx", total: 11, moteur: 0, liens: 0, boutonsLocaux: 11, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/intelligence/modules/FichiersDocuments.tsx", total: 2, moteur: 0, liens: 0, boutonsLocaux: 2, sansAction: 0, zones: 0 },
@@ -748,10 +748,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/demarches/SuccessionVehicule.tsx", ligne: 10, genre: "bouton", libelle: "Soumettre le dossier succession", motif: "sans_action" },
   { fichier: "client/src/pages/depot-annonce/ExpirationAnnonce.tsx", ligne: 23, genre: "bouton", libelle: "Renouveler automatiquement", motif: "sans_action" },
   { fichier: "client/src/pages/depot-annonce/ModificationAnnonce.tsx", ligne: 18, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/EtatVehicule.tsx", ligne: 91, genre: "bouton", libelle: "Voir les photos", motif: "sans_action" },
-  { fichier: "client/src/pages/EtatVehicule.tsx", ligne: 155, genre: "bouton", libelle: "Signer le contrat", motif: "sans_action" },
-  { fichier: "client/src/pages/EtatVehicule.tsx", ligne: 200, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/EtatVehicule.tsx", ligne: 206, genre: "bouton", libelle: "Valider l'état des lieux", motif: "sans_action" },
   { fichier: "client/src/pages/finance/LOAFinance.tsx", ligne: 11, genre: "bouton", libelle: "Simulation indisponible", motif: "sans_action" },
   { fichier: "client/src/pages/garage/CarrosserieGarage.tsx", ligne: 663, genre: "bouton", libelle: "Rechercher", motif: "sans_action" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, genre: "bouton", libelle: "Validation atelier ✓", motif: "sans_action" },
@@ -774,10 +770,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 66, genre: "bouton", libelle: "Ajouter le conducteur", motif: "sans_action" },
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 85, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/GestionFranchises.tsx", ligne: 89, genre: "bouton", libelle: "Appliquer la franchise", motif: "sans_action" },
-  { fichier: "client/src/pages/InspectionNumerique.tsx", ligne: 75, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/InspectionNumerique.tsx", ligne: 83, genre: "bouton", libelle: "Valider l'inspection", motif: "sans_action" },
-  { fichier: "client/src/pages/InspectionNumerique.tsx", ligne: 92, genre: "bouton", libelle: "Voir les photos", motif: "sans_action" },
-  { fichier: "client/src/pages/InspectionNumerique.tsx", ligne: 93, genre: "bouton", libelle: "Rapport", motif: "sans_action" },
   { fichier: "client/src/pages/JournalActivite.tsx", ligne: 212, genre: "bouton", libelle: "Imprimer", motif: "sans_action" },
   { fichier: "client/src/pages/JournalActivite.tsx", ligne: 215, genre: "bouton", libelle: "PDF", motif: "sans_action" },
   { fichier: "client/src/pages/LocationLOA.tsx", ligne: 100, genre: "bouton", libelle: "Simulation indisponible", motif: "sans_action" },
