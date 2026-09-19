@@ -941,7 +941,7 @@ export default function App() {
             <Route path="/vente/transport" element={<V name="Transport"><CentreTransport /></V>} />
             <Route path="/vente/diagnostic" element={<V name="Diagnostic"><CentreDiagnostic /></V>} />
             <Route path="/vente/reparations" element={<V name="R\u00e9parations"><CentreReparations /></V>} />
-            <Route path="/vente/photos" element={<V name="Photos"><CentrePhotosMedias /></V>} />
+            <Route path="/vente/photos/:id" element={<V name="Photos"><CentrePhotosMedias /></V>} />
             <Route path="/vente/reservations" element={<V name="R\u00e9servations Vente"><ReservationsVente /></V>} />
             <Route path="/vente/livraison" element={<V name="Livraison Vente"><LivraisonVehicule /></V>} />
             <Route path="/vente/dossier-client" element={<V name="Dossier Client"><DossierClient /></V>} />
