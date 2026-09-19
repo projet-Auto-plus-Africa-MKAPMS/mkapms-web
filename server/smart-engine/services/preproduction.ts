@@ -83,12 +83,37 @@ export async function getStagingStats() {
  * un exécuteur existe, sinon laissée en attente d'intervention humaine avec la
  * raison écrite. Le `metadata.actionType` de la proposition indique l'action à
  * réaliser ; sans lui, la tâche est marquée non automatisable.
+ *
+ * Constat direction (18/09) : « Marquer intégré » était accessible dès
+ * l'approbation, sans aucun lien avec le résultat réel de la tâche exécutée —
+ * 667 propositions étaient passées « intégré » alors que la quasi-totalité
+ * des corrections de boutons n'ont ni exécuteur ni code réellement changé
+ * (restent honnêtement « manuel_requis » côté Centre d'Actions). Rien
+ * n'empêchait de cliquer « intégré » quand même : le statut mentait sur ce qui
+ * a été fait. Corrigé : le résultat réel de l'exécution est mémorisé sur la
+ * proposition, et passer à « intégré » est refusé tant qu'il n'est pas un
+ * vrai succès (« termine »).
  */
 export async function transitionStaging(
   id: number,
   next: StagingStatus,
   reviewedBy?: number,
 ) {
+  if (next === "integre") {
+    const [current] = await db.select().from(smartStaging).where(eq(smartStaging.id, id)).limit(1);
+    const meta = current?.metadata ?? {};
+    const executionStatus = typeof meta.executionStatus === "string" ? meta.executionStatus : null;
+    if (executionStatus !== "termine") {
+      const detail =
+        typeof meta.executionDetail === "string"
+          ? meta.executionDetail
+          : "Aucune exécution automatique n'a encore réussi pour cette proposition.";
+      throw new Error(
+        `Impossible de marquer « intégré » : ${detail} Corrigez réellement le code (ou l'action) puis relancez l'exécution avant de clore cette proposition — sinon rejetez-la.`,
+      );
+    }
+  }
+
   const [row] = await db
     .update(smartStaging)
     .set({
@@ -120,6 +145,13 @@ export async function transitionStaging(
     countryCode,
     requestedBy: reviewedBy,
   });
-  await validateActionTask(task.id, reviewedBy);
-  return row;
+  const outcome = await validateActionTask(task.id, reviewedBy);
+  await db
+    .update(smartStaging)
+    .set({
+      metadata: { ...meta, executionStatus: outcome.status, executionDetail: outcome.detail },
+      updatedAt: new Date(),
+    })
+    .where(eq(smartStaging.id, row.id));
+  return { ...row, metadata: { ...meta, executionStatus: outcome.status, executionDetail: outcome.detail } };
 }
