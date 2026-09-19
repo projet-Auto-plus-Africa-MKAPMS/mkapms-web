@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { trpc } from "../lib/trpc";
 import {
   ChevronLeft, ChevronRight, Search, MapPin, Calendar, Truck,
   Shield, Lock, Headphones, FileCheck, ChevronDown,
@@ -75,6 +76,13 @@ export default function LocationCamions() {
     return v.categorie === filtre;
   });
 
+  const [rechercheActive, setRechercheActive] = useState(false);
+  const realAnnonces = trpc.annonces.list.useQuery(
+    { type: "location", categorie: "camion", ville: rechercheActive && lieu ? lieu : undefined, limit: 24 },
+    { retry: false },
+  );
+  const annoncesTrouvees = realAnnonces.data?.items ?? [];
+
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
 
@@ -123,11 +131,52 @@ export default function LocationCamions() {
               </div>
             </div>
           </div>
-          <button className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md">
+          <button
+            onClick={() => {
+              setRechercheActive(true);
+              document.getElementById("resultats-camions")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md"
+          >
             <Search size={16} /> Rechercher un camion / engin
           </button>
         </div>
       </div>
+
+      {rechercheActive && (
+        <div id="resultats-camions" className="px-4 mt-6">
+          <div className="mb-3 flex items-center justify-between rounded-xl bg-[#FFF8E7] border border-[#D4AF37]/30 px-3 py-2">
+            <p className="text-xs text-[#6B7280]">
+              {lieu ? <>Recherche à <b className="text-[#111]">{lieu}</b></> : "Recherche sans lieu précisé"}
+            </p>
+            <button onClick={() => { setRechercheActive(false); setLieu(""); }} className="text-xs font-bold text-[#D4AF37]">Effacer</button>
+          </div>
+          {annoncesTrouvees.length > 0 ? (
+            <>
+              <h2 className="text-lg font-bold text-[#111] mb-3">Annonces réelles disponibles</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {annoncesTrouvees.map((a) => (
+                  <Link key={a.id} to={`/louer/camions/vehicule/${a.id}`} className="block rounded-xl bg-white border border-[#111] overflow-hidden active:scale-[0.99] transition hover:shadow-lg">
+                    <div className="relative h-[160px] bg-[#F5F3EF]">
+                      {a.photoPrincipale && <img src={a.photoPrincipale} alt={a.titre ?? ""} className="w-full h-full object-cover" loading="lazy" />}
+                    </div>
+                    <div className="p-3">
+                      <p className="text-sm font-bold text-[#111] truncate">{a.titre || `${a.marque ?? ""} ${a.modele ?? ""}`}</p>
+                      <p className="mt-2 text-base font-black text-[#D4AF37]">
+                        {Math.round(Number(a.prixJour ?? a.prix))} €<span className="text-[10px] font-normal text-[#6B7280]"> / jour</span>
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="rounded-xl bg-white border border-[#E5E7EB] p-4 text-center text-xs text-[#6B7280]">
+              Aucune annonce réelle de camion/engin ne correspond à cette recherche pour le moment — le catalogue ci-dessous reste consultable.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* CATÉGORIES */}
       <div className="px-4 mt-6">

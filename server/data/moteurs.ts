@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 561;
+export const MANQUES_TOTAL = 558;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 132,
+  "bouton_sans_action": 129,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -881,6 +881,20 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/louer/minibus/vehicule/:id",
         "composants": [
           "components/ReserverLocationButton.tsx",
+          "trpc.annonces"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/LocationUtilitaires.tsx",
+        "route": "/louer/utilitaires",
+        "composants": [
+          "trpc.annonces"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/LocationCamions.tsx",
+        "route": "/louer/camions",
+        "composants": [
           "trpc.annonces"
         ]
       },
@@ -11241,7 +11255,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat": [
         "client/src/pages/Favoris.tsx appelle trpc.favoris",
         "client/src/pages/ListeAttente.tsx embarque components/ReserverLocationButton.tsx (trpc.reservations)",
-        "client/src/pages/LocationMKAPMS.tsx appelle trpc.annonces"
+        "client/src/pages/LocationCamions.tsx appelle trpc.annonces"
       ],
       "core": [
         "client/src/pages/superadmin/AdminLocation.tsx appelle trpc.admin"
@@ -11378,9 +11392,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 6,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 60,
-        "mots": 169
+        "sansAction": 0,
+        "textes": 65,
+        "mots": 214
       },
       {
         "fichier": "client/src/pages/LocationLOA.tsx",
@@ -11400,9 +11414,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 5,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 50,
-        "mots": 134
+        "sansAction": 1,
+        "textes": 54,
+        "mots": 154
       },
       {
         "fichier": "client/src/pages/LocationMinibus.tsx",
@@ -11422,9 +11436,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 6,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 66,
-        "mots": 191
+        "sansAction": 0,
+        "textes": 71,
+        "mots": 235
       },
       {
         "fichier": "client/src/pages/LocationVoiture.tsx",
@@ -11587,8 +11601,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 889,
-    "mots": 2922,
+    "textes": 903,
+    "mots": 3031,
     "battement": "sonde",
     "manques": [
       {
@@ -11609,27 +11623,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« Rechercher un camion / engin » client/src/pages/LocationCamions.tsx:126"
-      },
-      {
-        "genre": "bouton_sans_action",
         "detail": "« Simulation indisponible » client/src/pages/LocationLOA.tsx:100"
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« Rechercher un véhicule MKA.P-MS » client/src/pages/LocationMKAPMS.tsx:232"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Réserver ce véhicule » client/src/pages/LocationMKAPMS.tsx:335"
+        "detail": "« Réserver ce véhicule » client/src/pages/LocationMKAPMS.tsx:363"
       },
       {
         "genre": "bouton_sans_action",
         "detail": "« Rechercher un minibus » client/src/pages/LocationMinibus.tsx:124"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Rechercher un utilitaire » client/src/pages/LocationUtilitaires.tsx:139"
       },
       {
         "genre": "bouton_sans_action",
