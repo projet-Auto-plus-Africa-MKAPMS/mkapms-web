@@ -925,6 +925,13 @@
       "when": 1788232025000,
       "tag": "0133_document_os_legal_entities",
       "breakpoints": true
+    },
+    {
+      "idx": 132,
+      "version": "7",
+      "when": 1788232026000,
+      "tag": "0134_vente_fournisseurs",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { desc, eq, and, lt, sql } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure, proProcedure, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { logAction } from "../audit.js";
@@ -15,6 +16,7 @@ import {
   locationCalendrier,
   gpsDevices,
   venteProVehicules,
+  venteFournisseurs,
   proDashboardStats,
   livraisonPiecesRules,
   livraisonPiecesInterdites,
@@ -435,4 +437,41 @@ export const proRouter = router({
       ...activityData,
     };
   }),
+
+  // ─── VENTE PRO — carnet de fournisseurs ──────────────────
+  // Répertoire propre au compte pro connecté, jamais partagé entre
+  // vendeurs. Volontairement sans commandes/total : voir schema.
+  venteFournisseursListe: proProcedure.query(async ({ ctx }) => {
+    return db
+      .select()
+      .from(venteFournisseurs)
+      .where(eq(venteFournisseurs.userId, ctx.user.uid))
+      .orderBy(desc(venteFournisseurs.createdAt));
+  }),
+
+  venteFournisseurAjouter: proProcedure
+    .input(
+      z.object({
+        nom: z.string().min(1).max(255),
+        type: z.string().max(64).optional(),
+        telephone: z.string().max(32).optional(),
+        email: z.string().email().max(255).optional(),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [f] = await db.insert(venteFournisseurs).values({ userId: ctx.user.uid, ...input }).returning();
+      return f;
+    }),
+
+  venteFournisseurSupprimer: proProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const [f] = await db.select().from(venteFournisseurs).where(eq(venteFournisseurs.id, input.id)).limit(1);
+      if (!f || f.userId !== ctx.user.uid) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Fournisseur introuvable" });
+      }
+      await db.delete(venteFournisseurs).where(eq(venteFournisseurs.id, input.id));
+      return { ok: true };
+    }),
 });
