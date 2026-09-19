@@ -120,7 +120,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/vente/CentreDetectionFraude.tsx", ligne: 17, libelle: "Voir" },
   { fichier: "client/src/pages/vente/CentreEssaiRoutier.tsx", ligne: 11, libelle: "Réserver l'essai" },
   { fichier: "client/src/pages/vente/CentreExport.tsx", ligne: 17, libelle: "" },
-  { fichier: "client/src/pages/vente/CentreNegociation.tsx", ligne: 20, libelle: "" },
   { fichier: "client/src/pages/vente/CentrePhotosMedias.tsx", ligne: 9, libelle: "{i : }" },
   { fichier: "client/src/pages/vente/CentrePhotosMedias.tsx", ligne: 15, libelle: "Valider les photos" },
   { fichier: "client/src/pages/vente/CentreRapportsVehicule.tsx", ligne: 19, libelle: "Télécharger le rapport PDF" },
