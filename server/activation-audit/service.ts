@@ -13,6 +13,7 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "../db.js";
 import { raiseAlert } from "../smart-engine/services/alert-engine.js";
 import { MOTEURS } from "../data/moteurs.js";
+import { ROUTEURS_PARTAGES } from "../engine-registry/perimetres.js";
 import {
   activationAuditItems,
   activationAuditRuns,
@@ -76,10 +77,22 @@ export interface AuditItem {
 const ROUTEURS_DECLARES = new Map(MOTEURS.map((m) => [m.moteur, new Set(m.routeurs)]));
 
 /** Trouve l'espace tRPC correspondant à un moteur. */
-function matchRouter(engineName: string, routers: RouterSurface[]): RouterSurface | null {
+export function matchRouter(engineName: string, routers: RouterSurface[]): RouterSurface | null {
   const declares = ROUTEURS_DECLARES.get(engineName);
   if (declares) {
     const trouve = routers.find((r) => declares.has(r.namespace));
+    if (trouve) return trouve;
+  }
+
+  // Infrastructure partagée : un moteur « d'écran » sans routeur propre (ex.
+  // achat_officiel, simple filtre du catalogue "annonces") mais qui appelle
+  // réellement une procédure existante, déclarée dans ROUTEURS_PARTAGES —
+  // jamais dans `routeurs`, qui impose un seul moteur propriétaire par
+  // routeur. Sans ce repli, ces moteurs seraient signalés « non connectée »
+  // alors qu'une vraie procédure tRPC les sert bel et bien.
+  const partages = ROUTEURS_PARTAGES[engineName];
+  if (partages) {
+    const trouve = routers.find((r) => partages.includes(r.namespace));
     if (trouve) return trouve;
   }
 
