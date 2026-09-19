@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2575;
+export const CLIQUABLES_TOTAL = 2579;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -700,8 +700,8 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/vente/CentreVisiteVehicule.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 2, zones: 0 },
   { fichier: "client/src/pages/vente/DossierClient.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/DossierVehicule.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/vente/DroitsAcces.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
-  { fichier: "client/src/pages/vente/GestionEmployes.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 3, zones: 2 },
+  { fichier: "client/src/pages/vente/DroitsAcces.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/vente/GestionEmployes.tsx", total: 11, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 4 },
   { fichier: "client/src/pages/vente/GestionStockVO.tsx", total: 4, moteur: 0, liens: 2, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/MultiSites.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/vente/QualiteVendeur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -841,10 +841,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/vente/CentreRetourClient.tsx", ligne: 14, genre: "bouton", libelle: "Envoyer mon avis", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreVisiteVehicule.tsx", ligne: 15, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreVisiteVehicule.tsx", ligne: 16, genre: "bouton", libelle: "Confirmer la visite", motif: "sans_action" },
-  { fichier: "client/src/pages/vente/DroitsAcces.tsx", ligne: 15, genre: "bouton", libelle: "Enregistrer les droits", motif: "sans_action" },
-  { fichier: "client/src/pages/vente/GestionEmployes.tsx", ligne: 80, genre: "bouton", libelle: "Recruter un collaborateur", motif: "sans_action" },
-  { fichier: "client/src/pages/vente/GestionEmployes.tsx", ligne: 128, genre: "bouton", libelle: "Désactiver", motif: "sans_action" },
-  { fichier: "client/src/pages/vente/GestionEmployes.tsx", ligne: 129, genre: "bouton", libelle: "Enregistrer", motif: "sans_action" },
   { fichier: "client/src/pages/vente/MultiSites.tsx", ligne: 17, genre: "bouton", libelle: "Ajouter un site", motif: "sans_action" },
 ];
 

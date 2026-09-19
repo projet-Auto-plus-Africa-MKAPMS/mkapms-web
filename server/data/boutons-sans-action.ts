@@ -128,10 +128,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/vente/CentreRetourClient.tsx", ligne: 14, libelle: "Envoyer mon avis" },
   { fichier: "client/src/pages/vente/CentreVisiteVehicule.tsx", ligne: 15, libelle: "" },
   { fichier: "client/src/pages/vente/CentreVisiteVehicule.tsx", ligne: 16, libelle: "Confirmer la visite" },
-  { fichier: "client/src/pages/vente/DroitsAcces.tsx", ligne: 15, libelle: "Enregistrer les droits" },
-  { fichier: "client/src/pages/vente/GestionEmployes.tsx", ligne: 80, libelle: "Recruter un collaborateur" },
-  { fichier: "client/src/pages/vente/GestionEmployes.tsx", ligne: 128, libelle: "Désactiver" },
-  { fichier: "client/src/pages/vente/GestionEmployes.tsx", ligne: 129, libelle: "Enregistrer" },
   { fichier: "client/src/pages/vente/MultiSites.tsx", ligne: 17, libelle: "Ajouter un site" },
 ];
 

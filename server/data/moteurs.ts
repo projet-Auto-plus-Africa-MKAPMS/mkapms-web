@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 548;
+export const MANQUES_TOTAL = 545;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "ecran_sans_contenu": 331,
-  "bouton_sans_action": 115,
+  "ecran_sans_contenu": 332,
+  "bouton_sans_action": 111,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -16014,6 +16014,20 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/vente/GestionEmployes.tsx",
+        "route": "/vente/employes",
+        "composants": [
+          "trpc.pro"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/vente/DroitsAcces.tsx",
+        "route": "/vente/droits/:id",
+        "composants": [
+          "trpc.pro"
+        ]
+      },
+      {
         "fichier": "client/src/pages/vente/CentreFournisseurs.tsx",
         "route": "/vente/fournisseurs",
         "composants": [
@@ -16083,6 +16097,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "saveDraft",
       "seed",
       "uploadDocument",
+      "venteEmployeAjouter",
+      "venteEmployeDetail",
+      "venteEmployeModifier",
+      "venteEmployePermissionsModifier",
+      "venteEmployesListe",
       "venteFournisseurAjouter",
       "venteFournisseurSupprimer",
       "venteFournisseursListe",
@@ -16110,6 +16129,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pro_portal_modules",
       "pro_portal_professions",
       "pro_profiles",
+      "vente_employes",
       "vente_fournisseurs",
       "vente_pro_vehicules",
       "vtc_chauffeurs",
@@ -21121,7 +21141,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/Abonnements.tsx appelle trpc.abonnements"
       ],
       "pro_portal": [
-        "client/src/pages/vente/CentreFournisseurs.tsx appelle trpc.pro"
+        "client/src/pages/vente/CentreFournisseurs.tsx appelle trpc.pro",
+        "client/src/pages/vente/DroitsAcces.tsx appelle trpc.pro",
+        "client/src/pages/vente/GestionEmployes.tsx appelle trpc.pro"
       ],
       "smart": [
         "client/src/pages/Abonnements.tsx appelle trpc.smartEngine",
@@ -21263,7 +21285,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/vente/dossier-acheteur",
       "/vente/dossier-client",
       "/vente/dossier-vehicule/:id?",
-      "/vente/droits",
+      "/vente/droits/:id",
       "/vente/employes",
       "/vente/essai",
       "/vente/export",
@@ -21971,24 +21993,24 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/vente/DroitsAcces.tsx",
         "routes": [
-          "/vente/droits"
+          "/vente/droits/:id"
         ],
         "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 5,
-        "mots": 14
+        "sansAction": 0,
+        "textes": 2,
+        "mots": 3
       },
       {
         "fichier": "client/src/pages/vente/GestionEmployes.tsx",
         "routes": [
           "/vente/employes"
         ],
-        "cliquables": 7,
+        "cliquables": 11,
         "parMoteur": 0,
-        "sansAction": 3,
-        "textes": 15,
-        "mots": 40
+        "sansAction": 0,
+        "textes": 8,
+        "mots": 53
       },
       {
         "fichier": "client/src/pages/vente/GestionStockVO.tsx",
@@ -22050,8 +22072,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 949,
-    "mots": 3273,
+    "textes": 939,
+    "mots": 3275,
     "battement": "sonde",
     "manques": [
       {
@@ -22171,20 +22193,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« Confirmer la visite » client/src/pages/vente/CentreVisiteVehicule.tsx:16"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Enregistrer les droits » client/src/pages/vente/DroitsAcces.tsx:15"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Recruter un collaborateur » client/src/pages/vente/GestionEmployes.tsx:80"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Désactiver » client/src/pages/vente/GestionEmployes.tsx:128"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Enregistrer » client/src/pages/vente/GestionEmployes.tsx:129"
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/vente/DroitsAcces.tsx (2 texte(s))"
       },
       {
         "genre": "bouton_sans_action",

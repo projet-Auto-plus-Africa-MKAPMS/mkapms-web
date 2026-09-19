@@ -370,6 +370,25 @@ export const venteFournisseurs = pgTable("vente_fournisseurs", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// ─── VENTE PRO — équipe du vendeur ────────────────────────────
+// Collaborateurs propres à chaque compte pro (Commercial, Comptable,
+// Mécanicien…) — à ne jamais confondre avec rbacRouter.staffProfiles, qui
+// est l'organigramme interne MKA.P-MS. `permissions` est une carte
+// module → autorisé, éditée depuis DroitsAcces.tsx ; les clés possibles
+// sont fixées côté client (MODULES), jamais inventées côté serveur.
+export const venteEmployes = pgTable("vente_employes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  nom: varchar("nom", { length: 255 }).notNull(),
+  poste: varchar("poste", { length: 64 }),
+  email: varchar("email", { length: 255 }),
+  telephone: varchar("telephone", { length: 32 }),
+  actif: boolean("actif").notNull().default(true),
+  permissions: jsonb("permissions").$type<Record<string, boolean>>().notNull().default({}),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // ─── PRO DASHBOARD STATS (calculées) ────────────────────────
 
 export const proDashboardStats = pgTable("pro_dashboard_stats", {
