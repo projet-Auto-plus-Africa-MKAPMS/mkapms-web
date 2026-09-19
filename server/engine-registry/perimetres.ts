@@ -30,6 +30,26 @@ export interface PerimetreDeclare {
   sourcesBus?: string[];
 }
 
+/**
+ * Routeurs tRPC réellement appelés par ce moteur mais possédés par un autre
+ * (infrastructure partagée — ex. un simple filtre du catalogue "annonces").
+ * Jamais dans `routeurs` ci-dessus : gen-moteurs.mjs impose un routeur = un
+ * seul moteur propriétaire, et ces moteurs n'en possèdent aucun en propre.
+ * Sert uniquement à l'audit d'activation (server/activation-audit/service.ts)
+ * pour ne pas signaler « aucune procédure tRPC ne l'expose » alors qu'une
+ * vraie procédure existe bel et bien, juste pas sous son propre nom.
+ */
+export const ROUTEURS_PARTAGES: Record<string, string[]> = {
+  achat_officiel: ["annonces"],
+  achat_pro: ["annonces"],
+  achat_particulier: ["annonces"],
+  vente: ["annonces"],
+  vente_pro: ["kyc", "pro"],
+  vente_particulier: ["annonces"],
+  location_pro: ["annonces"],
+  location_particulier: ["annonces"],
+};
+
 export const PERIMETRES: PerimetreDeclare[] = [
   // ── Core & registre ────────────────────────────────────────────────────
   {
