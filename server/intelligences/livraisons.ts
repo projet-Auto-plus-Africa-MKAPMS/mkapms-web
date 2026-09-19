@@ -1458,6 +1458,38 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié en navigateur réel sur les 4 écrans avant commit (Playwright, serveur de développement réel, requêtes réseau réelles) : nombre de liens d'annonces affichés mesuré avant et après clic sur une carte de catégorie — VenteParticulier 6→4, VenteMKAPMS 5→1, VentePro 4→2, VenteVTC 4→1. Une vraie diminution mesurée sur les 4, pas une supposition. Limite assumée, non maquillée : certains libellés marketing (« Familiales », « Premium », « 7 places », « Pick-up / 4x4 ») ne correspondent à aucune colonne réelle de la base (ni catégorie, ni carburant) — leur clic reste honnête (le filtre s'applique réellement) mais peut légitimement retourner zéro résultat tant qu'aucune vraie catégorie ou dérivation fiable n'est décidée pour eux ; aucune correspondance n'a été inventée pour masquer ce manque. npm run build rejoué intégralement jusqu'au bout avant commit. Boutons sans action : 124 → 120.",
     domaine: "confiance",
   },
+  {
+    cle: "espace-pro-vente-tarifs-fabriques-et-programme-vtc-cta",
+    titre: "EspaceProVente.tsx affichait des tarifs INVENTÉS, différents de ceux réellement facturés — corrigé + CTA Programme VTC reconnectée à l'abonnement réel",
+    moteurs: ["core", "vente", "confiance"],
+    quoi:
+      "En poursuivant la liste des écrans vente sans backend (tâche #57), EspaceProVente.tsx (page publique « Devenir professionnel ») affichait un catalogue d'abonnements 100% codé en dur : Pro Start 29€, Pro Premium 79€, Pro Elite 149€, Pro Business 299€. Comparaison avec la source unique des tarifs réellement facturés (shared/plans.ts, lue par Stripe via abonnements.createCheckout) : AUCUN de ces montants ne correspond à une offre réelle — les vraies offres « pro_vente » sont Pro Start 49€, Pro Premium 89€, Pro Elite 149€ (149€ coïncide par hasard), Pro Max 249€. Un visiteur professionnel voyait donc des prix qui ne seraient jamais ceux facturés au moment de payer, avec un bouton « Choisir » qui de toute façon ne faisait rien (aucun gestionnaire de clic). Corrigé en importantant directement les vrais plans (getPlansByCategory(\"pro_vente\")) au lieu d'un tableau local, et en redirigeant le clic vers le tunnel d'abonnement réel déjà existant (/abonnements?categorie=pro_vente, moteur Stripe déjà opérationnel — aucun nouveau moteur créé).\n\nDans la foulée, le bouton « Rejoindre le programme VTC & Taxi » de ProgrammeVTC.tsx (jusque-là aussi sans effet) a été reconnecté au même moteur réel, sur sa catégorie propre (/abonnements?categorie=vtc_taxi), qui existe déjà (offres VTC/TAXI Start/Premium/Elite/Max).",
+    pourquoi:
+      "Un tarif affiché qui ne correspond pas au tarif réellement facturé n'est pas un simple détail cosmétique — c'est une donnée fabriquée qui aurait pu induire un professionnel en erreur au moment de s'engager, exactement le type de défaut que la doctrine interdit. Le correctif privilégié n'a pas été de construire un nouveau tunnel de paiement pour cette page (un moteur d'abonnement complet existe déjà et fonctionne, vérifié dans ce même lot) mais de la relier à lui, conformément à la règle : ne jamais recréer un moteur existant.",
+    ou: [
+      "client/src/pages/EspaceProVente.tsx",
+      "client/src/pages/ProgrammeVTC.tsx",
+    ],
+    lecon:
+      "Vérifié en navigateur réel (Playwright) : les tarifs affichés sur EspaceProVente correspondent maintenant exactement au catalogue réel une fois convertis en devise locale (49€→52,92$, 89€→96,12$, 149€→160,92$, 249€→268,92$ — même taux de conversion appliqué uniformément, aucune valeur isolée), et le clic sur « Choisir Pro Start » redirige réellement vers /abonnements?categorie=pro_vente ; le clic sur « Rejoindre le programme VTC & Taxi » redirige réellement vers /abonnements?categorie=vtc_taxi. Portée assumée, non maquillée : les véhicules « recommandés » de ProgrammeVTC.tsx et les données de EtatVehicule.tsx/InspectionNumerique.tsx/JournalActivite.tsx/PubliciteDetail.tsx restent fabriqués — ce ne sont pas des boutons mal câblés vers un moteur existant mais des écrans qui nécessitent la construction d'un moteur qui n'existe pas encore (upload photo, signature électronique, caution, journal d'audit réel, workflow d'approbation publicitaire) ; non traités ici pour ne pas les livrer à moitié faits, et reportés explicitement en tâche de suivi plutôt que devinés. npm run build rejoué intégralement. Boutons sans action : 120 → 118.",
+    domaine: "confiance",
+  },
+  {
+    cle: "decision-pdg-memoire-rag-reste-reservee-pdg",
+    titre: "Décision PDG rendue : mémoire/RAG (files.*/knowledge.search/rag.*) reste strictement réservée au PDG",
+    moteurs: ["intelligences"],
+    quoi:
+      "Décision en attente depuis le LOT 02F (mémoire/fichiers/RAG) : fallait-il ouvrir ces outils au-delà du PDG (super_admin) ? Question posée explicitement à la direction plutôt que devinée, avec les deux options réelles du code (rester PDG seul, ou ouvrir à Direction = admin+PDG, ou plus largement au personnel métier). Réponse de la direction : accès conservé au PDG uniquement.",
+    pourquoi:
+      "Une décision d'accès à de la mémoire d'entreprise et une base de connaissances interne (dont une catégorie forcée pdg_uniquement) est par nature une décision de la direction, jamais une supposition côté code — demander plutôt que fabriquer un choix par défaut, conformément à la doctrine.",
+    ou: [
+      "server/trpc.ts (pdgProcedure, inchangé)",
+      "server/intelligences/outils/familles/fichiers-rag.ts (allowedRoles, inchangé)",
+    ],
+    lecon:
+      "Aucun changement de code nécessaire : l'état actuel du dépôt (pdgProcedure = role === \"super_admin\" ; allowedRoles: [\"super_admin\"] sur files.*/documents.*/knowledge.search/rag.*) correspondait déjà exactement à la décision rendue. Décision actée et tracée ici pour que la question ne soit pas reposée à un futur lot faute de mémoire du choix déjà fait.",
+    domaine: "confiance",
+  },
 ];
 
 /**
