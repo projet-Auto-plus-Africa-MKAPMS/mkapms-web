@@ -1706,6 +1706,25 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié sur base Postgres réelle (nouvelle suite dédiée, 3/3, contre reservations.mine sans le modifier) : un booking d'un autre type (test_drive) n'apparaît jamais dans le filtre \"rental\" (jamais un faux positif visuel), et un vrai booking rental — inséré directement en base pour la démonstration, puisqu'aucune procédure produit ne le crée encore — apparaît avec ses vrais champs de caution, sans aucune donnée inventée autour. Vérifié en navigateur réel : aucune trace des anciennes données fabriquées, invitation réelle à se connecter pour un visiteur anonyme, aucun plantage. L'état des lieux photo, la checklist et la signature numérique restent à construire une fois le moteur de réservation de location (tâche #56) en place — tâche #60 mise à jour pour refléter cette dépendance, non traitée ici.",
     domaine: "confiance",
   },
+  {
+    cle: "gestion-annonce-expiration-reutilise-moteur-mesannonces",
+    titre: "Gérer l'annonce + Expiration : deux écrans orphelins reconnectés au moteur déjà utilisé par MesAnnonces.tsx",
+    moteurs: ["vente", "confiance"],
+    quoi:
+      "Signalés par le PDG parmi une série de boutons détectés sans action (« bouton sans gestionnaire de clic »). ModificationAnnonce.tsx (Suspendre/Republier/Supprimer) et ExpirationAnnonce.tsx (renouvellement) n'acceptaient aucun identifiant d'annonce et n'étaient référencés nulle part. Vérifié avant tout code : trpc.annonces.update/remove/prolong existent déjà et sont déjà utilisés par MesAnnonces.tsx pour modifier/supprimer/prolonger — jamais un second moteur. Suspendre/Republier ne sont que le même champ status (\"archivee\"/\"publiee\") déjà géré par update ; Supprimer appelle le même remove (suppression logique, passe déjà à \"archivee\" côté serveur) ; le renouvellement appelle le même prolong (+30 jours).\n\nCorrigé : routes /depot-annonce/modification-annonce/:id et /depot-annonce/expiration-annonce/:id (identifiant manquant avant), points d'entrée réels ajoutés dans MesAnnonces.tsx (bouton « Gérer » et lien sur la date d'expiration, déjà un écran réel utilisant trpc.annonces.myList). Le bouton de renouvellement, qui affichait « Renouveler automatiquement » alors qu'aucun mécanisme de renouvellement récurrent n'existe (seul un prolong manuel de 30 jours est réel), a été renommé « Prolonger de 30 jours » — corriger le libellé pour qu'il dise la vérité sur l'action réelle, pas une réduction de fonctionnalité.",
+    pourquoi:
+      "Construire un second mécanisme de suspension/republication/suppression aurait dupliqué exactement ce que annonces.update/remove font déjà pour MesAnnonces.tsx. Laisser le libellé « automatiquement » sur une action strictement manuelle aurait été une fabrication de plus, du même ordre que les données inventées corrigées dans les lots précédents — juste dans le texte d'un bouton plutôt que dans des données.",
+    ou: [
+      "client/src/App.tsx",
+      "client/src/pages/depot-annonce/ModificationAnnonce.tsx",
+      "client/src/pages/depot-annonce/ExpirationAnnonce.tsx",
+      "client/src/pages/MesAnnonces.tsx",
+      "server/routers/__tests__/gestion-annonce.test.ts",
+    ],
+    lecon:
+      "Vérifié sur base Postgres réelle (nouvelle suite dédiée, 6/6, contre annonces.update/remove/prolong SANS aucune modification de code serveur) : suspendre passe réellement le statut à archivee, republier repasse réellement à publiee, prolonger avance réellement la date d'expiration, supprimer passe réellement à archivee (suppression logique), et un tiers ne peut jamais suspendre ni prolonger l'annonce d'un autre vendeur (refusé explicitement dans les deux cas). Vérifié en navigateur réel : fiche annonce affichée, actions réelles présentes, état honnête « introuvable » sur un identifiant invalide, prolongation réelle disponible.",
+    domaine: "confiance",
+  },
 ];
 
 /**

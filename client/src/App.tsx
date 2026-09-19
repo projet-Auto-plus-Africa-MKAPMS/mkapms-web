@@ -1620,10 +1620,10 @@ export default function App() {
             <Route path="/depot-annonce" element={<U name="Dépôt Annonce"><DepotAnnoncePortail /></U>} />
             <Route path="/depot-annonce/description-annonce" element={<U name="Dépôt Annonce"><DescriptionAnnonce /></U>} />
             <Route path="/depot-annonce/documents-annonce" element={<U name="Dépôt Annonce"><DocumentsAnnonce /></U>} />
-            <Route path="/depot-annonce/expiration-annonce" element={<U name="Dépôt Annonce"><ExpirationAnnonce /></U>} />
+            <Route path="/depot-annonce/expiration-annonce/:id" element={<U name="Dépôt Annonce"><ExpirationAnnonce /></U>} />
             <Route path="/depot-annonce/identification-vehicule" element={<U name="Dépôt Annonce"><IdentificationVehicule /></U>} />
             <Route path="/depot-annonce/informations-principales" element={<U name="Dépôt Annonce"><InformationsPrincipales /></U>} />
-            <Route path="/depot-annonce/modification-annonce" element={<U name="Dépôt Annonce"><ModificationAnnonce /></U>} />
+            <Route path="/depot-annonce/modification-annonce/:id" element={<U name="Dépôt Annonce"><ModificationAnnonce /></U>} />
             <Route path="/depot-annonce/objectif-depot-annonce" element={<U name="Dépôt Annonce"><ObjectifDepotAnnonce /></U>} />
             <Route path="/depot-annonce/options-annonce" element={<U name="Dépôt Annonce"><OptionsAnnonce /></U>} />
             <Route path="/depot-annonce/photos-vehicule" element={<U name="Dépôt Annonce"><PhotosVehicule /></U>} />

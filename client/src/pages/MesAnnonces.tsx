@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getAnnonceUrl } from "../lib/annonceUrl";
-import { ChevronLeft, Edit3, Trash2, Eye, X, Car, FileText, RefreshCw, Clock } from "lucide-react";
+import { ChevronLeft, Edit3, Trash2, Eye, X, Car, FileText, RefreshCw, Clock, Settings } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { DocumentView, buildFactureData } from "../components/DocumentPDF";
 
@@ -107,12 +107,12 @@ export default function MesAnnonces() {
                   {a.status === "publiee" ? "Active" : a.status === "expiree" ? "Expirée" : a.status === "reservee" ? "Réservée" : a.status === "vendue" ? "Vendue" : "Archivée"}
                 </span>
                 {(a as any).expiresAt && (
-                  <p className="mt-1 flex items-center gap-1 text-[10px] text-slate-400">
+                  <Link to={`/depot-annonce/expiration-annonce/${a.id}`} className="mt-1 flex items-center gap-1 text-[10px] text-slate-400 hover:text-slate-600">
                     <Clock size={10} />
                     {new Date((a as any).expiresAt) > new Date()
                       ? `Expire le ${new Date((a as any).expiresAt).toLocaleDateString("fr-FR")}`
                       : "Expirée"}
-                  </p>
+                  </Link>
                 )}
               </div>
             </div>
@@ -136,6 +136,9 @@ export default function MesAnnonces() {
               <button onClick={() => setDeleteId(a.id)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition border-l border-slate-100">
                 <Trash2 size={14} /> Supprimer
               </button>
+              <Link to={`/depot-annonce/modification-annonce/${a.id}`} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition border-l border-slate-100">
+                <Settings size={14} /> Gérer
+              </Link>
             </div>
           </div>
         ))}

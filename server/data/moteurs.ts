@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 530;
+export const MANQUES_TOTAL = 528;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 331,
-  "bouton_sans_action": 97,
+  "bouton_sans_action": 95,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -1237,6 +1237,20 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "trpc.annonces",
           "trpc.favoris",
           "trpc.reservations"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/depot-annonce/ExpirationAnnonce.tsx",
+        "route": "/depot-annonce/expiration-annonce/:id",
+        "composants": [
+          "trpc.annonces"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/depot-annonce/ModificationAnnonce.tsx",
+        "route": "/depot-annonce/modification-annonce/:id",
+        "composants": [
+          "trpc.annonces"
         ]
       }
     ],
@@ -21274,10 +21288,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/depot-annonce/conseils-i-a",
       "/depot-annonce/description-annonce",
       "/depot-annonce/documents-annonce",
-      "/depot-annonce/expiration-annonce",
+      "/depot-annonce/expiration-annonce/:id",
       "/depot-annonce/identification-vehicule",
       "/depot-annonce/informations-principales",
-      "/depot-annonce/modification-annonce",
+      "/depot-annonce/modification-annonce/:id",
       "/depot-annonce/objectif-depot-annonce",
       "/depot-annonce/options-annonce",
       "/depot-annonce/photos-vehicule",
@@ -21453,13 +21467,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/depot-annonce/ExpirationAnnonce.tsx",
         "routes": [
-          "/depot-annonce/expiration-annonce"
+          "/depot-annonce/expiration-annonce/:id"
         ],
         "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 4,
-        "mots": 7
+        "sansAction": 0,
+        "textes": 3,
+        "mots": 6
       },
       {
         "fichier": "client/src/pages/depot-annonce/IdentificationVehicule.tsx",
@@ -21486,11 +21500,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/depot-annonce/ModificationAnnonce.tsx",
         "routes": [
-          "/depot-annonce/modification-annonce"
+          "/depot-annonce/modification-annonce/:id"
         ],
         "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 1,
+        "sansAction": 0,
         "textes": 6,
         "mots": 12
       },
@@ -22094,8 +22108,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 951,
-    "mots": 3314,
+    "textes": 950,
+    "mots": 3313,
     "battement": "sonde",
     "manques": [
       {
@@ -22103,20 +22117,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "client/src/pages/depot-annonce/ConseilsIA.tsx (3 texte(s))"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Renouveler automatiquement » client/src/pages/depot-annonce/ExpirationAnnonce.tsx:23"
-      },
-      {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/depot-annonce/ExpirationAnnonce.tsx (4 texte(s))"
+        "detail": "client/src/pages/depot-annonce/ExpirationAnnonce.tsx (3 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/depot-annonce/IdentificationVehicule.tsx (4 texte(s))"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/depot-annonce/ModificationAnnonce.tsx:18"
       },
       {
         "genre": "ecran_sans_contenu",
@@ -22365,16 +22371,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 16,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 35,
-        "mots": 125
+        "textes": 36,
+        "mots": 126
       }
     ],
     "ecransHotes": [],
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 153,
-    "mots": 766,
+    "textes": 154,
+    "mots": 767,
     "battement": "sonde",
     "manques": [
       {
