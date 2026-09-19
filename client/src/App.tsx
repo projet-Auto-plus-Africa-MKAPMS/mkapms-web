@@ -966,7 +966,7 @@ export default function App() {
             <Route path="/vente/archives" element={<V name="Archives"><CentreArchives /></V>} />
             <Route path="/vente/securite" element={<V name="S\u00e9curit\u00e9"><CentreSecurite /></V>} />
             {/* Marketplace Avanc\u00e9e (51-70) */}
-            <Route path="/vente/negociation" element={<V name="N\u00e9gociation"><CentreNegociation /></V>} />
+            <Route path="/vente/negociation/:id" element={<U name="N\u00e9gociation"><CentreNegociation /></U>} />
             <Route path="/vente/reservation-achat" element={<V name="R\u00e9servation achat"><CentreReservationAchat /></V>} />
             <Route path="/vente/visite/:id" element={<U name="Visite v\u00e9hicule"><CentreVisiteVehicule /></U>} />
             <Route path="/vente/essai" element={<V name="Essai routier"><CentreEssaiRoutier /></V>} />

@@ -810,7 +810,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
               <div className="mt-3 flex items-center justify-center gap-2">
                 <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-bold text-green-700">● Disponible</span>
               </div>
-              <button className="mt-4 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => navigate("/finance"))}>Faire une offre au vendeur</button>
+              <button className="mt-4 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => navigate(`/vente/negociation/${annonceId}`))}>Faire une offre au vendeur</button>
             </div>
           </div>
 
@@ -1546,7 +1546,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
               <div className="mt-3 flex items-center justify-center gap-2">
                 <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-bold text-green-700">● Disponible</span>
               </div>
-              <button className="mt-4 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => navigate("/finance"))}>Faire une offre au vendeur</button>
+              <button className="mt-4 w-full rounded-xl bg-[#111] py-3 text-sm font-bold text-white" onClick={() => requireLogin(() => navigate(`/vente/negociation/${annonceId}`))}>Faire une offre au vendeur</button>
             </div>
           </div>
           )}

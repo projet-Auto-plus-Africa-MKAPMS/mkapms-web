@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 543;
+export const MANQUES_TOTAL = 542;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 332,
-  "bouton_sans_action": 109,
+  "bouton_sans_action": 108,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -982,6 +982,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/vente/reservations",
         "composants": [
           "trpc.reservations"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/vente/CentreNegociation.tsx",
+        "route": "/vente/negociation/:id",
+        "composants": [
+          "trpc.annonces"
         ]
       },
       {
@@ -12821,6 +12828,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "ecransHotes": [
       {
+        "fichier": "client/src/pages/vente/CentreNegociation.tsx",
+        "route": "/vente/negociation/:id",
+        "composants": [
+          "trpc.messages"
+        ]
+      },
+      {
         "fichier": "client/src/pages/Vehicule.tsx",
         "route": "/acheter/particulier/vehicule/:id",
         "composants": [
@@ -21141,7 +21155,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/LivraisonVehicule.tsx appelle trpc.livraisonVehicule"
       ],
       "messaging": [
-        "client/src/pages/DossierClient.tsx appelle trpc.messages"
+        "client/src/pages/DossierClient.tsx appelle trpc.messages",
+        "client/src/pages/vente/CentreNegociation.tsx appelle trpc.messages"
       ],
       "notification": [
         "client/src/pages/TableauBordProVente.tsx appelle trpc.notifications"
@@ -21308,7 +21323,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/vente/livraison-acheteur",
       "/vente/marges",
       "/vente/multi-sites",
-      "/vente/negociation",
+      "/vente/negociation/:id",
       "/vente/objectifs",
       "/vente/performances",
       "/vente/photos",
@@ -21836,12 +21851,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/vente/CentreNegociation.tsx",
         "routes": [
-          "/vente/negociation"
+          "/vente/negociation/:id"
         ],
         "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 5,
+        "sansAction": 0,
+        "textes": 6,
         "mots": 15
       },
       {
@@ -22081,7 +22096,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 938,
+    "textes": 939,
     "mots": 3272,
     "battement": "sonde",
     "manques": [
@@ -22164,10 +22179,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/vente/CentreGarantieOccasion.tsx (2 texte(s))"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/vente/CentreNegociation.tsx:20"
       },
       {
         "genre": "bouton_sans_action",
