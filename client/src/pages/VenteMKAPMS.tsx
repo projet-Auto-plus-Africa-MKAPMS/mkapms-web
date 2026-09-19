@@ -35,11 +35,11 @@ const CATEGORIES_OFFICIEL = [
 ];
 
 const DEMO_ANNONCES = [
-  { vehiculeId: 8001, nom: "Peugeot 308 GT", annee: 2023, km: 12000, prix: 26900, garantie: "24 mois", finance: "380 €/mois", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Historique complet", "Finance+", "Livraison gratuite"], ville: "Paris" },
-  { vehiculeId: 8002, nom: "Renault Austral Iconic", annee: 2024, km: 5000, prix: 34500, garantie: "24 mois", finance: "490 €/mois", photo: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Historique complet", "Finance+", "Garantie MKA.P-MS"], ville: "Lyon" },
-  { vehiculeId: 8003, nom: "Citroën C5 X Shine", annee: 2023, km: 18000, prix: 31900, garantie: "24 mois", finance: "450 €/mois", photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Suspension hydraulique", "Finance+", "Livraison gratuite"], ville: "Marseille" },
-  { vehiculeId: 8004, nom: "Mercedes GLA 200 AMG Line", annee: 2022, km: 22000, prix: 38900, garantie: "24 mois", finance: "550 €/mois", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop", badges: ["Pack AMG Line", "Historique complet", "Finance+", "Garantie MKA.P-MS"], ville: "Bordeaux" },
-  { vehiculeId: 8005, nom: "BMW X1 sDrive18i xLine", annee: 2023, km: 15000, prix: 35500, garantie: "24 mois", finance: "500 €/mois", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=260&fit=crop", badges: ["État impeccable", "Historique complet", "Finance+", "Livraison gratuite"], ville: "Toulouse" },
+  { vehiculeId: 8001, nom: "Peugeot 308 GT", categorie: "Berlines", carburant: "Essence", annee: 2023, km: 12000, prix: 26900, garantie: "24 mois", finance: "380 €/mois", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Historique complet", "Finance+", "Livraison gratuite"], ville: "Paris" },
+  { vehiculeId: 8002, nom: "Renault Austral Iconic", categorie: "SUV & 4x4", carburant: "Hybride", annee: 2024, km: 5000, prix: 34500, garantie: "24 mois", finance: "490 €/mois", photo: "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Historique complet", "Finance+", "Garantie MKA.P-MS"], ville: "Lyon" },
+  { vehiculeId: 8003, nom: "Citroën C5 X Shine", categorie: "Familiales", carburant: "Essence", annee: 2023, km: 18000, prix: 31900, garantie: "24 mois", finance: "450 €/mois", photo: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=260&fit=crop", badges: ["Contrôle 200 pts", "Suspension hydraulique", "Finance+", "Livraison gratuite"], ville: "Marseille" },
+  { vehiculeId: 8004, nom: "Mercedes GLA 200 AMG Line", categorie: "Premium", carburant: "Essence", annee: 2022, km: 22000, prix: 38900, garantie: "24 mois", finance: "550 €/mois", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop", badges: ["Pack AMG Line", "Historique complet", "Finance+", "Garantie MKA.P-MS"], ville: "Bordeaux" },
+  { vehiculeId: 8005, nom: "BMW X1 sDrive18i xLine", categorie: "SUV & 4x4", carburant: "Essence", annee: 2023, km: 15000, prix: 35500, garantie: "24 mois", finance: "500 €/mois", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=260&fit=crop", badges: ["État impeccable", "Historique complet", "Finance+", "Livraison gratuite"], ville: "Toulouse" },
 ];
 
 const AVANTAGES = [
@@ -64,6 +64,8 @@ export default function VenteMKAPMS() {
   const realAnnonces = (realData?.items ?? []).map((a: any) => ({
     vehiculeId: a.id,
     nom: a.titre || `${a.marque} ${a.modele}`,
+    categorie: a.categorie || "",
+    carburant: a.carburant || a.energie || "",
     annee: a.annee,
     km: a.kilometrage ?? 0,
     prix: Number(a.prix) || 0,
@@ -205,23 +207,32 @@ export default function VenteMKAPMS() {
       <div className="px-4 mt-4">
         <h2 className="text-base font-bold text-[#111]">Catégories</h2>
         <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {CATEGORIES_OFFICIEL.map((c) => (
-            <button
-              key={c.label}
-              className="shrink-0 w-[120px] rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden text-left active:scale-[0.98] transition"
-            >
-              <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
-              <div className="p-2">
-                <h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3>
-                <p className="text-[8px] text-[#6B7280]">{c.desc}</p>
-              </div>
-            </button>
-          ))}
+          {CATEGORIES_OFFICIEL.map((c) => {
+            const estEnergie = c.label === "Hybrides" || c.label === "Électriques";
+            return (
+              <button
+                key={c.label}
+                onClick={() => {
+                  if (estEnergie) search.set("energie", c.label);
+                  else search.set("categorie", c.label);
+                  search.apply();
+                  document.getElementById("annonces-mkapms-officiel")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="shrink-0 w-[120px] rounded-xl bg-white border border-[#D4AF37]/30 overflow-hidden text-left active:scale-[0.98] transition"
+              >
+                <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
+                <div className="p-2">
+                  <h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3>
+                  <p className="text-[8px] text-[#6B7280]">{c.desc}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* ANNONCES */}
-      <div className="px-4 mt-6">
+      <div id="annonces-mkapms-officiel" className="px-4 mt-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-bold text-[#111]">Véhicules disponibles</h2>
           {realData && (

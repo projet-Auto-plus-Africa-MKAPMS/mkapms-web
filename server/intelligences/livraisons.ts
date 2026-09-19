@@ -1439,6 +1439,25 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié en navigateur réel à chaque étape, pas seulement au typecheck : premier test après câblage → compteur d'annonces inchangé après clic (3→3, 4→4) malgré un clic détecté et un bouton visuellement sélectionné — signal that quelque chose ne marchait pas malgré une apparence correcte. Creusé jusqu'à la cause réelle dans le hook plutôt que de conclure « pas assez d'annonces pour voir la différence ». Après correctif du hook et ajout d'un champ categorie réaliste aux annonces de démonstration (absent jusque-là, ce qui aurait masqué le vrai correctif) : filtrage réellement vérifié (3→1 et 4→1 sur les deux écrans). npm run build rejoué intégralement jusqu'au bout avant commit (leçon du lot précédent appliquée). Boutons sans action : 126 → 124.",
     domaine: "confiance",
   },
+  {
+    cle: "vente-4-ecrans-categories-bug-comparaison-directionnelle",
+    titre: "Catégories cliquables câblées sur les 4 derniers écrans de vente (MKA.P-MS, Particulier, Pro, VTC) — deuxième vrai bug trouvé dans le même hook partagé",
+    moteurs: ["core", "vente"],
+    quoi:
+      "Suite directe du lot précédent (Vente Camions/Utilitaires) : les cartes de catégorie des 4 écrans de vente restants (VenteMKAPMS.tsx, VenteParticulier.tsx, VentePro.tsx, VenteVTC.tsx) n'avaient elles non plus aucun gestionnaire de clic. Avant de câbler, relecture complète de matchesVehicle() dans le hook partagé (vehicleSearch.ts) comme demandé — « aller dans le moteur avant l'écran ».\n\nDeuxième vrai bug trouvé dans ce même hook, distinct de celui du lot précédent : le filtre catégorie/énergie comparait `contains(valeurBrute, libelléAffiché)` — teste si la valeur COURTE en base (« suv ») CONTIENT le libellé LONG affiché à l'écran (« SUV & 4x4 »), ce qui échoue presque toujours puisqu'une chaîne courte ne peut pas contenir une chaîne plus longue. Le filtre catégorie/énergie était donc structurellement inopérant sur toute vraie annonce dès que son libellé n'était pas un mot unique strictement identique — un défaut qui aurait rendu le câblage des 4 écrans inerte, exactement comme le premier bug l'avait fait pour les 2 précédents. Corrigé par une comparaison dans les deux sens (overlaps()), vérifiée avant tout câblage d'écran.\n\nCâblage ensuite : les 3 écrans à données réelles (VenteMKAPMS, VenteParticulier, VentePro) ne faisaient remonter ni `categorie` ni `carburant`/`energie` depuis trpc.annonces.list dans leur transformation d'annonce — ajoutés. Les libellés « Hybrides »/« Électriques » ne correspondent à aucune valeur de l'énumération annonce_categorie (vérifié dans server/schema.ts) : ils appartiennent en réalité au carburant, donc routés vers le filtre énergie plutôt que catégorie. VenteVTC.tsx (catalogue 100% statique, aucun backend) a reçu directement des champs categorie/energie sur son tableau de démonstration.",
+    pourquoi:
+      "Consigne de la direction suivie à la lettre une deuxième fois : identifier le moteur concerné, corriger le code réel dedans, puis seulement ensuite câbler l'écran et vérifier la redirection — dans cet ordre. La relecture du hook avant tout câblage a évité de livrer 4 boutons « techniquement câblés » mais silencieusement inertes, comme cela avait failli arriver au lot précédent avant que la vérification en navigateur ne révèle le premier bug.",
+    ou: [
+      "client/src/lib/vehicleSearch.ts",
+      "client/src/pages/VenteMKAPMS.tsx",
+      "client/src/pages/VenteParticulier.tsx",
+      "client/src/pages/VentePro.tsx",
+      "client/src/pages/VenteVTC.tsx",
+    ],
+    lecon:
+      "Vérifié en navigateur réel sur les 4 écrans avant commit (Playwright, serveur de développement réel, requêtes réseau réelles) : nombre de liens d'annonces affichés mesuré avant et après clic sur une carte de catégorie — VenteParticulier 6→4, VenteMKAPMS 5→1, VentePro 4→2, VenteVTC 4→1. Une vraie diminution mesurée sur les 4, pas une supposition. Limite assumée, non maquillée : certains libellés marketing (« Familiales », « Premium », « 7 places », « Pick-up / 4x4 ») ne correspondent à aucune colonne réelle de la base (ni catégorie, ni carburant) — leur clic reste honnête (le filtre s'applique réellement) mais peut légitimement retourner zéro résultat tant qu'aucune vraie catégorie ou dérivation fiable n'est décidée pour eux ; aucune correspondance n'a été inventée pour masquer ce manque. npm run build rejoué intégralement jusqu'au bout avant commit. Boutons sans action : 124 → 120.",
+    domaine: "confiance",
+  },
 ];
 
 /**

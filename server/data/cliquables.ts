@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2575;
+export const CLIQUABLES_TOTAL = 2571;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -714,13 +714,13 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/VenteEncheres.tsx", total: 38, moteur: 0, liens: 0, boutonsLocaux: 28, sansAction: 0, zones: 10 },
   { fichier: "client/src/pages/VenteGenerale.tsx", total: 5, moteur: 0, liens: 3, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/VenteMinibus.tsx", total: 5, moteur: 0, liens: 2, boutonsLocaux: 3, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/VenteMKAPMS.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/VenteMKAPMS.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/VenteMoto.tsx", total: 5, moteur: 0, liens: 2, boutonsLocaux: 3, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/VenteParticulier.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 1, zones: 0 },
-  { fichier: "client/src/pages/VentePro.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/VenteParticulier.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/VentePro.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/VentePromotions.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/VenteUtilitaires.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/VenteVTC.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/VenteVTC.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/VerifyEmail.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/VisibilityEngine/ControlCenter.tsx", total: 10, moteur: 0, liens: 1, boutonsLocaux: 9, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/VOInterne.tsx", total: 21, moteur: 1, liens: 0, boutonsLocaux: 20, sansAction: 0, zones: 0 },
@@ -854,10 +854,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/vente/MultiSites.tsx", ligne: 17, genre: "bouton", libelle: "Ajouter un site", motif: "sans_action" },
   { fichier: "client/src/pages/vente/ReservationsVente.tsx", ligne: 30, genre: "bouton", libelle: "Valider", motif: "sans_action" },
   { fichier: "client/src/pages/vente/ReservationsVente.tsx", ligne: 30, genre: "bouton", libelle: "Refuser", motif: "sans_action" },
-  { fichier: "client/src/pages/VenteMKAPMS.tsx", ligne: 209, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/VenteParticulier.tsx", ligne: 225, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/VentePro.tsx", ligne: 212, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/VenteVTC.tsx", ligne: 186, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
 ];
 
 /** Anomalies d'un motif donné. */

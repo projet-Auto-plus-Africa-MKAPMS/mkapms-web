@@ -75,6 +75,20 @@ function contains(haystack: string, needle: string): boolean {
 }
 
 /**
+ * Les libellés de catégorie/énergie affichés (« SUV & 4x4 », « Électriques »)
+ * sont des habillages marketing d'une valeur brute plus courte en base
+ * (« suv », « électrique ») : contains(brut, libellé) échouait presque
+ * toujours (la chaîne la plus courte ne peut pas contenir la plus longue), ce
+ * qui rendait le filtre catégorie/énergie inopérant sur toute vraie annonce
+ * dès que son libellé n'était pas un mot unique identique. Comparé dans les
+ * deux sens : une correspondance dans n'importe quel sens reste une vraie
+ * correspondance, jamais une invention.
+ */
+function overlaps(a: string, b: string): boolean {
+  return contains(a, b) || contains(b, a);
+}
+
+/**
  * Un critère non renseigné n'exclut jamais. Un critère renseigné mais absent de
  * la donnée n'exclut pas non plus : mieux vaut montrer un véhicule dont on
  * ignore le détail que le faire disparaître silencieusement.
@@ -90,12 +104,12 @@ export function matchesVehicle(item: SearchableVehicle, f: VehicleFilters): bool
 
   if (f.categorie) {
     const cat = text(item.cat) || text(item.categorie);
-    if (cat && !contains(cat, f.categorie)) return false;
+    if (cat && !overlaps(cat, f.categorie)) return false;
   }
 
   if (f.energie) {
     const e = text(item.energie) || text(item.carburant);
-    if (e && !contains(e, f.energie)) return false;
+    if (e && !overlaps(e, f.energie)) return false;
   }
 
   const annee = num(item.annee);

@@ -141,10 +141,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/vente/MultiSites.tsx", ligne: 17, libelle: "Ajouter un site" },
   { fichier: "client/src/pages/vente/ReservationsVente.tsx", ligne: 30, libelle: "Valider" },
   { fichier: "client/src/pages/vente/ReservationsVente.tsx", ligne: 30, libelle: "Refuser" },
-  { fichier: "client/src/pages/VenteMKAPMS.tsx", ligne: 209, libelle: "" },
-  { fichier: "client/src/pages/VenteParticulier.tsx", ligne: 225, libelle: "" },
-  { fichier: "client/src/pages/VentePro.tsx", ligne: 212, libelle: "" },
-  { fichier: "client/src/pages/VenteVTC.tsx", ligne: 186, libelle: "" },
 ];
 
 /** Nombre d'écrans concernés. */
