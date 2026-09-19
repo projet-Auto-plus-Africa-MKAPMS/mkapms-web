@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2571;
+export const CLIQUABLES_TOTAL = 2570;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -489,7 +489,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/LocationCamions.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/LocationLOA.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/LocationMinibus.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 3, sansAction: 1, zones: 0 },
-  { fichier: "client/src/pages/LocationMKAPMS.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/LocationMKAPMS.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/LocationParticulier.tsx", total: 8, moteur: 0, liens: 2, boutonsLocaux: 6, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/LocationPro.tsx", total: 8, moteur: 0, liens: 2, boutonsLocaux: 5, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/LocationUtilitaires.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
@@ -677,7 +677,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/vente/CentreDossiersAcheteurs.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreEssaiRoutier.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/vente/CentreExport.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
-  { fichier: "client/src/pages/vente/CentreFavorisVente.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 2, zones: 0 },
+  { fichier: "client/src/pages/vente/CentreFavorisVente.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreFinancement.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreFournisseurs.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/vente/CentreGarantieOccasion.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -782,7 +782,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/JournalActivite.tsx", ligne: 215, genre: "bouton", libelle: "PDF", motif: "sans_action" },
   { fichier: "client/src/pages/LocationLOA.tsx", ligne: 100, genre: "bouton", libelle: "Simulation indisponible", motif: "sans_action" },
   { fichier: "client/src/pages/LocationMinibus.tsx", ligne: 124, genre: "bouton", libelle: "Rechercher un minibus", motif: "sans_action" },
-  { fichier: "client/src/pages/LocationMKAPMS.tsx", ligne: 363, genre: "bouton", libelle: "Réserver ce véhicule", motif: "sans_action" },
   { fichier: "client/src/pages/LocationPro.tsx", ligne: 599, genre: "bouton", libelle: "Demander un devis flotte", motif: "sans_action" },
   { fichier: "client/src/pages/pieces/AbonnementsProPieces.tsx", ligne: 17, genre: "bouton", libelle: "Choisir", motif: "sans_action" },
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 10, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
@@ -834,8 +833,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/vente/CentreDetectionFraude.tsx", ligne: 17, genre: "bouton", libelle: "Voir", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreEssaiRoutier.tsx", ligne: 11, genre: "bouton", libelle: "Réserver l'essai", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreExport.tsx", ligne: 17, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/vente/CentreFavorisVente.tsx", ligne: 16, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/vente/CentreFavorisVente.tsx", ligne: 16, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreFournisseurs.tsx", ligne: 18, genre: "bouton", libelle: "Ajouter fournisseur", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreNegociation.tsx", ligne: 20, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentrePhotosMedias.tsx", ligne: 9, genre: "bouton", libelle: "{i : }", motif: "sans_action" },
