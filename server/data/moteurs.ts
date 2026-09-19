@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 542;
+export const MANQUES_TOTAL = 540;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 332,
-  "bouton_sans_action": 108,
+  "bouton_sans_action": 106,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -973,6 +973,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/MesAnnonces.tsx",
         "route": "/vente/mes-annonces",
+        "composants": [
+          "trpc.annonces"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/vente/CentrePhotosMedias.tsx",
+        "route": "/vente/photos/:id",
         "composants": [
           "trpc.annonces"
         ]
@@ -21326,7 +21333,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/vente/negociation/:id",
       "/vente/objectifs",
       "/vente/performances",
-      "/vente/photos",
+      "/vente/photos/:id",
       "/vente/publicites",
       "/vente/qualite",
       "/vente/rapports",
@@ -21885,13 +21892,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/vente/CentrePhotosMedias.tsx",
         "routes": [
-          "/vente/photos"
+          "/vente/photos/:id"
         ],
-        "cliquables": 3,
+        "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 6,
-        "mots": 17
+        "sansAction": 0,
+        "textes": 14,
+        "mots": 40
       },
       {
         "fichier": "client/src/pages/vente/CentrePublicites.tsx",
@@ -22044,8 +22051,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 4,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 20,
-        "mots": 50
+        "textes": 21,
+        "mots": 51
       },
       {
         "fichier": "client/src/pages/vente/MultiSites.tsx",
@@ -22096,8 +22103,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 939,
-    "mots": 3272,
+    "textes": 948,
+    "mots": 3296,
     "battement": "sonde",
     "manques": [
       {
@@ -22179,14 +22186,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/vente/CentreGarantieOccasion.tsx (2 texte(s))"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« {i : } » client/src/pages/vente/CentrePhotosMedias.tsx:9"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Valider les photos » client/src/pages/vente/CentrePhotosMedias.tsx:15"
       },
       {
         "genre": "bouton_sans_action",

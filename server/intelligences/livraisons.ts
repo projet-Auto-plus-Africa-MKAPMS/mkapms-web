@@ -1620,6 +1620,24 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié sur base Postgres réelle (nouvelle suite dédiée, 7/7, contre le moteur de messagerie EXISTANT sans aucune modification de code serveur) : ouvrir deux fois le même fil ne crée jamais de doublon, une offre envoyée apparaît bien dans l'historique, le vendeur voit et peut répondre à la même conversation, un tiers étranger à l'annonce ne peut jamais lire ce fil (refusé explicitement). Vérifié en navigateur réel : la fiche annonce et le badge négociable s'affichent avant connexion, un acheteur non connecté est invité à se connecter (jamais une erreur brute), un identifiant invalide affiche l'état honnête « introuvable », et le bouton « Faire une offre au vendeur » (vérifié en promouvant temporairement une annonce de test au palier officiel, seul palier où ce bloc s'affiche) mène désormais réellement à la négociation de CE véhicule au lieu de /finance. 5 écrans restants de la liste #54.",
     domaine: "confiance",
   },
+  {
+    cle: "centre-photos-medias-reutilise-update-annonce-plus-point-entree-stock",
+    titre: "CentrePhotosMedias.tsx : upload et remplacement de photos via le moteur d'annonce existant, un vrai point d'entrée ajouté au stock",
+    moteurs: ["vente", "confiance"],
+    quoi:
+      "Septième écran de la liste des 11 vente/Centre* (tâche #54). Contrairement aux six précédents, cet écran était déjà correctement verrouillé derrière la porte professionnelle <V> (un vrai outil vendeur, jamais destiné à un acheteur). Vérifié avant tout code : trpc.annonces.update gère déjà le remplacement complet des photos d'une annonce existante avec un champ categorie libre (server/routers/annonces.ts, déjà utilisé par l'écran d'édition Vendre.tsx), et /api/upload gère déjà l'envoi de fichier avec conversion HEIC et compression (déjà utilisé par le dépôt d'annonce PhotosVehicule.tsx). Aucun des deux n'a été modifié : CentrePhotosMedias.tsx a été réécrit pour les réutiliser tels quels, une zone (« Avant gauche », « Moteur »…) devenant simplement une valeur de categorie. Le même défaut d'écran orphelin que les précédents : /vente/photos n'acceptait aucun identifiant et n'était référencé nulle part — corrigé en route /vente/photos/:id, avec un vrai bouton « Photos » ajouté dans le tableau d'actions de GestionStockVO.tsx (déjà un écran réel, aux côtés de Workflow/Dossier/Attestation qui existaient déjà).",
+    pourquoi:
+      "Construire un second mécanisme d'upload ou un second champ de stockage de photos aurait dupliqué exactement ce que annonces.update et /api/upload font déjà, pour un écran qui ne fait, au fond, que remplir 8 zones précises d'un même jeu de photos. Corriger l'écran sans lui donner de point d'entrée réel (comme les six précédents) l'aurait laissé aussi inatteignable qu'avant.",
+    ou: [
+      "client/src/App.tsx",
+      "client/src/pages/vente/CentrePhotosMedias.tsx",
+      "client/src/pages/vente/GestionStockVO.tsx",
+      "server/routers/__tests__/photos-medias.test.ts",
+    ],
+    lecon:
+      "Vérifié sur base Postgres réelle (nouvelle suite dédiée, 7/7, contre annonces.update SANS aucune modification de code serveur) : une photo écrite pour une zone est bien relue rattachée à cette même zone, ajouter une deuxième zone ne perd jamais la première (annonces.update remplaçant tout le jeu de photos, l'écran envoie systématiquement l'ensemble courant), remplacer la photo d'une zone déjà remplie la remplace réellement sans dupliquer la ligne, un autre vendeur ne peut jamais modifier les photos d'une annonce qui n'est pas la sienne (refusé explicitement — la même règle de propriété que testée pour les écrans précédents). Vérifié en navigateur réel : la porte professionnelle reste correctement active pour un visiteur non connecté (aucune régression), sans crash. 4 écrans restants de la liste #54 (CentreRetourClient, CentreReservationAchat, CentreRapportsVehicule, MultiSites), les trois premiers nécessitant une décision produit avant construction (moteur d'avis existant mais écran orphelin sans contexte de rattachement clair ; modèle de tarification incohérent avec les paliers d'acompte réels ; rapport d'historique véhicule nécessitant une source de données que la plateforme ne possède pas encore).",
+    domaine: "confiance",
+  },
 ];
 
 /**
