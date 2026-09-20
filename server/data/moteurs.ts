@@ -104,10 +104,10 @@ export const MANQUES_TOTAL = 509;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
   "bouton_sans_action": 75,
-  "sans_logique_serveur": 11,
+  "sans_logique_serveur": 10,
   "sans_ecran": 8,
-  "dependance_sans_preuve": 41,
-  "dependance_non_declaree": 37,
+  "dependance_sans_preuve": 40,
+  "dependance_non_declaree": 39,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
@@ -3955,7 +3955,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routers/cartegrise.ts importe payment-engine/checkout.ts"
       ]
     },
-    "dependants": [],
+    "dependants": [
+      "payment"
+    ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
     "abonnements": [],
@@ -11260,12 +11262,15 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "label": "Univers Location Engine",
     "categorie": "univers",
     "etatDeclare": "active",
-    "dossiers": [],
+    "dossiers": [
+      "routers/rentalApplications.ts"
+    ],
     "routeurs": [
       "lavage",
-      "karting"
+      "karting",
+      "rentalApplications"
     ],
-    "fichiersServeur": 0,
+    "fichiersServeur": 1,
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -11278,6 +11283,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat",
       "core",
       "country",
+      "payment",
+      "permission",
       "redirection",
       "seo"
     ],
@@ -11285,11 +11292,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat",
       "core",
       "country",
+      "payment",
       "permission",
       "redirection",
       "seo"
     ],
-    "integrationsTechniques": [],
+    "integrationsTechniques": [
+      "permission"
+    ],
     "preuvesDependances": {
       "achat": [
         "client/src/pages/CentrePenalites.tsx appelle trpc.reservations",
@@ -11297,10 +11307,18 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/ListeAttente.tsx embarque components/ReserverLocationButton.tsx (trpc.reservations)"
       ],
       "core": [
-        "client/src/pages/superadmin/AdminLocation.tsx appelle trpc.admin"
+        "routers/rentalApplications.ts importe trpc.ts",
+        "routers/rentalApplications.ts importe db.ts",
+        "routers/rentalApplications.ts importe schema.ts"
       ],
       "country": [
         "client/src/pages/LocationMKAPMS.tsx embarque lib/currency.tsx (trpc.currency)"
+      ],
+      "payment": [
+        "routers/rentalApplications.ts importe payment-engine/checkout.ts"
+      ],
+      "permission": [
+        "routers/rentalApplications.ts filtre par rôle (procédure pro/admin/direction/PDG)"
       ],
       "redirection": [
         "client/src/pages/SeoLandingPage.tsx embarque lib/redirect.tsx (trpc.redirectionEngine)"
@@ -11637,9 +11655,21 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       }
     ],
-    "procedures": [],
+    "procedures": [
+      "create",
+      "decide",
+      "detail",
+      "list",
+      "mine",
+      "payDeposit",
+      "submit",
+      "updateStep"
+    ],
     "tables": [],
-    "acces": [],
+    "acces": [
+      "admin",
+      "connecte"
+    ],
     "textes": 899,
     "mots": 3079,
     "battement": "sonde",
@@ -11701,12 +11731,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "louer_livraison_vehicule déclaré pour /louer mais aucun écran ne l'utilise"
       },
       {
-        "genre": "dependance_sans_preuve",
-        "detail": "permission"
-      },
-      {
-        "genre": "sans_logique_serveur",
-        "detail": "aucun dossier serveur : moteur d'écran seulement"
+        "genre": "dependance_non_declaree",
+        "detail": "payment — routers/rentalApplications.ts importe payment-engine/checkout.ts"
       }
     ]
   },
@@ -14022,6 +14048,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependancesDetectees": [
       "achat",
+      "cartegrise",
       "core",
       "country",
       "event_bus",
@@ -14033,6 +14060,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependances": [
       "achat",
+      "cartegrise",
       "core",
       "country",
       "event_bus",
@@ -14049,6 +14077,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat": [
         "client/src/pages/PaiementVehicule.tsx appelle trpc.annonces",
         "client/src/pages/PaiementVehicule.tsx appelle trpc.reservations"
+      ],
+      "cartegrise": [
+        "stripeWebhook.ts importe modules/cartegrise.ts"
       ],
       "core": [
         "lib/stripe.ts importe env.ts",
@@ -14100,6 +14131,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "importafrica",
       "intelligences",
       "livraison",
+      "location",
       "payment_orchestrator",
       "payout_engine",
       "pieces",
@@ -14431,6 +14463,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Relancer » client/src/pages/superadmin/AdminPaiements.tsx:216"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "cartegrise — stripeWebhook.ts importe modules/cartegrise.ts"
       }
     ]
   },

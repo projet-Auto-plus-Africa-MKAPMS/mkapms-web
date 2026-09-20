@@ -467,9 +467,13 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/acheter/depot-annonce", "/acheter/mes-annonces", "/vente/mes-annonces"],
   },
   {
+    // Tâche #56 : rentalApplications (server/schema.ts) existait dans le
+    // schéma depuis toujours (candidature/qualification de location flotte,
+    // caution incluse) mais aucun routeur ne le touchait. Réutilisé tel
+    // quel par routers/rentalApplications.ts, jamais une seconde table.
     moteur: "location",
-    dossiers: [],
-    routeurs: ["lavage", "karting"],
+    dossiers: ["routers/rentalApplications.ts"],
+    routeurs: ["lavage", "karting", "rentalApplications"],
     routes: ["/location/:slug", "/louer", "/louer/vtc-taxi", "/louer/vtc-taxi/*", "/louer/camions", "/louer/camions/*", "/louer/minibus", "/louer/minibus/*", "/louer/utilitaires", "/louer/utilitaires/*", "/louer/mkapms", "/louer/mkapms/*", "/louer/loa", "/louer/comparateur", "/louer/favoris", "/louer/historique", "/louer/calendrier", "/louer/liste-attente", "/louer/penalites", "/louer/remplacement", "/louer/renouvellement", "/louer/multi-vehicules", "/louer/reservations-recurrentes", "/louer/score-confiance", "/louer/programme-vtc", "/superadmin/admin-location", "/vtc-taxi", "/location-*"],
   },
   {

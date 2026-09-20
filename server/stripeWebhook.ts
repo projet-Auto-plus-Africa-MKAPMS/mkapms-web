@@ -12,7 +12,9 @@ import {
   partsOrderTracking,
   wallets,
   payouts as ledgerPayouts,
+  rentalApplications,
 } from "./schema.js";
+import { cgDossiers, cgEtapes } from "./modules/cartegrise.js";
 import { notifications } from "./modules/core.js";
 import { getStripe } from "./lib/stripe.js";
 import { getPlan } from "@shared/plans.js";
@@ -212,6 +214,52 @@ export async function handleStripeWebhook(req: Request, res: Response) {
             action: "pieces_order_paid",
             targetType: "parts_order",
             targetId: orderId,
+          });
+        }
+        // Frais de dossier carte grise : le paiement fait réellement avancer
+        // le dossier. Gap découvert lors du chantier location (tâche #56) —
+        // payerDossier (server/routers/cartegrise.ts) crée bien un vrai
+        // checkout Stripe depuis PR #407, mais aucun gestionnaire ici ne
+        // faisait jamais avancer le dossier à la confirmation du paiement :
+        // il restait indéfiniment à son statut d'avant paiement.
+        if (m.payment_kind === "carte_grise_service" && m.dossierId) {
+          const dossierId = Number(m.dossierId);
+          await db
+            .update(cgDossiers)
+            .set({ status: "en_traitement", updatedAt: new Date() })
+            .where(eq(cgDossiers.id, dossierId));
+          await db.insert(cgEtapes).values({
+            dossierId,
+            status: "en_traitement",
+            statusLabel: "Paiement reçu — dossier en traitement",
+          });
+          await superviserPaiement({
+            userId,
+            title: "Paiement carte grise confirmé",
+            body: "Votre paiement a été reçu : votre dossier est maintenant en traitement.",
+            url: `/demarches/messagerie-demarches/${dossierId}`,
+            action: "cg_dossier_paid",
+            targetType: "cg_dossier",
+            targetId: dossierId,
+          });
+        }
+        // Caution/acompte de candidature de location flotte (tâche #56) :
+        // le paiement fait réellement passer la candidature au statut payé,
+        // jamais une simple redirection sans effet en base.
+        if (m.payment_kind === "rental_deposit" && m.applicationId) {
+          const applicationId = Number(m.applicationId);
+          await db
+            .update(rentalApplications)
+            .set({ depositPaid: true, status: "paid", updatedAt: new Date() })
+            .where(eq(rentalApplications.id, applicationId));
+          await superviserPaiement({
+            userId,
+            title: "Caution de location reçue",
+            body: "Votre caution a été payée : votre demande de location est confirmée.",
+            url: "/location/mes-candidatures",
+            action: "rental_deposit_paid",
+            targetType: "rental_application",
+            targetId: applicationId,
           });
         }
         // Boost annonce
