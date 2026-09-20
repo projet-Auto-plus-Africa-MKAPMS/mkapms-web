@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2558;
+export const CLIQUABLES_TOTAL = 2559;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -156,7 +156,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/conformite/TaxesAutomatiques.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/conformite/VentePays.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Connexion.tsx", total: 6, moteur: 0, liens: 0, boutonsLocaux: 6, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/ControleDocuments.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/ControleDocuments.tsx", total: 4, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/DemandePublicite.tsx", total: 13, moteur: 0, liens: 2, boutonsLocaux: 11, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/DemandesSuppression.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/demarches/AlertesDemarches.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -736,7 +736,7 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 114, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1010, genre: "bouton", libelle: "Consommation energetique 12 450 kWh", motif: "sans_action" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1027, genre: "bouton", libelle: "Prochaines echeances 12 dossiers", motif: "sans_action" },
-  { fichier: "client/src/pages/ControleDocuments.tsx", ligne: 151, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
+  { fichier: "client/src/pages/ControleDocuments.tsx", ligne: 159, genre: "bouton", libelle: "Vérifications incomplètes", motif: "sans_action" },
   { fichier: "client/src/pages/finance/LOAFinance.tsx", ligne: 11, genre: "bouton", libelle: "Simulation indisponible", motif: "sans_action" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, genre: "bouton", libelle: "Validation atelier ✓", motif: "sans_action" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, genre: "bouton", libelle: "Validation responsable", motif: "sans_action" },

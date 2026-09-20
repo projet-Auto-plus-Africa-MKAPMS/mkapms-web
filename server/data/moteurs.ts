@@ -7071,7 +7071,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/controle-documents"
         ],
-        "cliquables": 3,
+        "cliquables": 4,
         "parMoteur": 0,
         "sansAction": 1,
         "textes": 13,
@@ -7169,7 +7169,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/ControleDocuments.tsx:151"
+        "detail": "« Vérifications incomplètes » client/src/pages/ControleDocuments.tsx:159"
       },
       {
         "genre": "bouton_sans_action",

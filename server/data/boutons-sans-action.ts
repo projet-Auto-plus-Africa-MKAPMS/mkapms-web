@@ -23,7 +23,7 @@ export interface BoutonSansAction {
 export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1010, libelle: "Consommation energetique 12 450 kWh" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1027, libelle: "Prochaines echeances 12 dossiers" },
-  { fichier: "client/src/pages/ControleDocuments.tsx", ligne: 151, libelle: "" },
+  { fichier: "client/src/pages/ControleDocuments.tsx", ligne: 159, libelle: "Vérifications incomplètes" },
   { fichier: "client/src/pages/finance/LOAFinance.tsx", ligne: 11, libelle: "Simulation indisponible" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, libelle: "Validation atelier ✓" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, libelle: "Validation responsable" },
