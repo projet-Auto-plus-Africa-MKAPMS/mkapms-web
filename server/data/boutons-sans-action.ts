@@ -44,7 +44,7 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 85, libelle: "" },
   { fichier: "client/src/pages/GestionFranchises.tsx", ligne: 89, libelle: "Appliquer la franchise" },
   { fichier: "client/src/pages/LocationLOA.tsx", ligne: 100, libelle: "Simulation indisponible" },
-  { fichier: "client/src/pages/LocationPro.tsx", ligne: 599, libelle: "Demander un devis flotte" },
+  { fichier: "client/src/pages/LocationPro.tsx", ligne: 611, libelle: "Demander un devis flotte" },
   { fichier: "client/src/pages/pieces/AbonnementsProPieces.tsx", ligne: 17, libelle: "Choisir" },
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 10, libelle: "" },
   { fichier: "client/src/pages/pieces/MontageGarage.tsx", ligne: 13, libelle: "Réserver le montage" },

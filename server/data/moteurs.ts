@@ -100,13 +100,13 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 508;
+export const MANQUES_TOTAL = 507;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
   "bouton_sans_action": 74,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
-  "dependance_sans_preuve": 40,
+  "dependance_sans_preuve": 39,
   "dependance_non_declaree": 39,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
@@ -11355,6 +11355,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routes": [
       "/location-voiture",
       "/location/:slug",
+      "/location/mes-candidatures",
       "/louer",
       "/louer/calendrier",
       "/louer/camions",
@@ -11641,6 +11642,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "mots": 200
       },
       {
+        "fichier": "client/src/pages/location/MesCandidaturesLocation.tsx",
+        "routes": [
+          "/location/mes-candidatures"
+        ],
+        "cliquables": 4,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 15,
+        "mots": 43
+      },
+      {
         "fichier": "client/src/pages/superadmin/AdminLocation.tsx",
         "routes": [
           "/superadmin/admin-location"
@@ -11654,11 +11666,19 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "ecransHotes": [
       {
+        "fichier": "client/src/pages/location/CandidatureLocationFlotte.tsx",
+        "route": "/louer/pro/candidature",
+        "composants": [
+          "trpc.rentalApplications"
+        ]
+      },
+      {
         "fichier": "client/src/pages/Admin.tsx",
         "route": "/admin/*",
         "composants": [
           "trpc.lavage",
-          "trpc.karting"
+          "trpc.karting",
+          "trpc.rentalApplications"
         ]
       }
     ],
@@ -11677,8 +11697,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "connecte"
     ],
-    "textes": 784,
-    "mots": 2765,
+    "textes": 799,
+    "mots": 2808,
     "battement": "sonde",
     "manques": [
       {
@@ -11842,7 +11862,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependancesDetectees": [
       "achat",
-      "country"
+      "country",
+      "location"
     ],
     "dependances": [
       "achat",
@@ -11859,6 +11880,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "country": [
         "client/src/pages/LocationPro.tsx embarque lib/currency.tsx (trpc.currency)"
+      ],
+      "location": [
+        "client/src/pages/location/CandidatureLocationFlotte.tsx appelle trpc.rentalApplications"
       ]
     },
     "dependants": [],
@@ -11881,6 +11905,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/louer/conducteurs",
       "/louer/franchises",
       "/louer/pro",
+      "/louer/pro/candidature",
       "/louer/pro/vehicule/:id",
       "/louer/renouvellement-flotte",
       "/louer/score-loueur",
@@ -11914,11 +11939,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/pro"
         ],
-        "cliquables": 8,
+        "cliquables": 9,
         "parMoteur": 0,
         "sansAction": 1,
-        "textes": 97,
-        "mots": 465
+        "textes": 100,
+        "mots": 481
       },
       {
         "fichier": "client/src/pages/ProduitLocation.tsx",
@@ -12073,14 +12098,25 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "sansAction": 0,
         "textes": 3,
         "mots": 6
+      },
+      {
+        "fichier": "client/src/pages/location/CandidatureLocationFlotte.tsx",
+        "routes": [
+          "/louer/pro/candidature"
+        ],
+        "cliquables": 6,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 22,
+        "mots": 104
       }
     ],
     "ecransHotes": [],
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 325,
-    "mots": 1283,
+    "textes": 350,
+    "mots": 1403,
     "battement": "sonde",
     "manques": [
       {
@@ -12105,7 +12141,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« Demander un devis flotte » client/src/pages/LocationPro.tsx:599"
+        "detail": "« Demander un devis flotte » client/src/pages/LocationPro.tsx:611"
       },
       {
         "genre": "bouton_sans_action",
@@ -12162,10 +12198,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/entreprises/RapportsEntreprises.tsx (3 texte(s))"
-      },
-      {
-        "genre": "dependance_sans_preuve",
-        "detail": "location"
       },
       {
         "genre": "sans_logique_serveur",
