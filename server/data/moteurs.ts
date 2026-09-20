@@ -103,11 +103,11 @@ export const MOTEURS_TOTAL = 94;
 export const MANQUES_TOTAL = 508;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 76,
+  "bouton_sans_action": 75,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
-  "dependance_non_declaree": 35,
+  "dependance_non_declaree": 36,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
@@ -694,11 +694,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vehicule/:id"
         ],
-        "cliquables": 148,
+        "cliquables": 149,
         "parMoteur": 0,
         "sansAction": 1,
-        "textes": 610,
-        "mots": 2464
+        "textes": 611,
+        "mots": 2468
       },
       {
         "fichier": "client/src/pages/VenteCamions.tsx",
@@ -1028,6 +1028,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/vente/CentreEssaiRoutier.tsx",
+        "route": "/vente/essai/:id",
+        "composants": [
+          "trpc.annonces",
+          "trpc.reservations"
+        ]
+      },
+      {
         "fichier": "client/src/pages/vente/CentreFavorisVente.tsx",
         "route": "/vente/favoris",
         "composants": [
@@ -1294,13 +1302,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1418,
-    "mots": 4819,
+    "textes": 1419,
+    "mots": 4823,
     "battement": "sonde",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1835"
+        "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1843"
       }
     ]
   },
@@ -1382,11 +1390,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/mkapms-officiel/vehicule/:id"
         ],
-        "cliquables": 148,
+        "cliquables": 149,
         "parMoteur": 0,
         "sansAction": 1,
-        "textes": 610,
-        "mots": 2464
+        "textes": 611,
+        "mots": 2468
       },
       {
         "fichier": "client/src/pages/VenteMKAPMS.tsx",
@@ -1404,13 +1412,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 662,
-    "mots": 2587,
+    "textes": 663,
+    "mots": 2591,
     "battement": "sonde",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1835"
+        "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1843"
       },
       {
         "genre": "sans_logique_serveur",
@@ -1496,11 +1504,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/particulier/vehicule/:id"
         ],
-        "cliquables": 148,
+        "cliquables": 149,
         "parMoteur": 0,
         "sansAction": 1,
-        "textes": 610,
-        "mots": 2464
+        "textes": 611,
+        "mots": 2468
       },
       {
         "fichier": "client/src/pages/VenteParticulier.tsx",
@@ -1518,13 +1526,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 670,
-    "mots": 2590,
+    "textes": 671,
+    "mots": 2594,
     "battement": "sonde",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1835"
+        "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1843"
       },
       {
         "genre": "sans_logique_serveur",
@@ -1610,11 +1618,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/acheter/professionnel/vehicule/:id"
         ],
-        "cliquables": 148,
+        "cliquables": 149,
         "parMoteur": 0,
         "sansAction": 1,
-        "textes": 610,
-        "mots": 2464
+        "textes": 611,
+        "mots": 2468
       },
       {
         "fichier": "client/src/pages/VentePro.tsx",
@@ -1632,13 +1640,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 664,
-    "mots": 2575,
+    "textes": 665,
+    "mots": 2579,
     "battement": "sonde",
     "manques": [
       {
         "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1835"
+        "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1843"
       },
       {
         "genre": "sans_logique_serveur",
@@ -9129,6 +9137,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "support",
       "transport",
       "vehicle_engine",
+      "vente",
       "vente_pro",
       "visibility",
       "vo_espaces",
@@ -9543,6 +9552,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/CentreDocuments.tsx",
         "route": "/vente/documents-societe",
+        "composants": [
+          "trpc.kyc"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/vente/CentreEssaiRoutier.tsx",
+        "route": "/vente/essai/:id",
         "composants": [
           "trpc.kyc"
         ]
@@ -21060,6 +21076,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "country",
       "garage",
+      "identity",
       "livraison_vehicule",
       "messaging",
       "notification",
@@ -21074,6 +21091,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "core",
       "country",
       "garage",
+      "identity",
       "livraison_vehicule",
       "messaging",
       "notification",
@@ -21104,6 +21122,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "garage": [
         "client/src/pages/DossierClient.tsx appelle trpc.garages"
+      ],
+      "identity": [
+        "client/src/pages/vente/CentreEssaiRoutier.tsx appelle trpc.kyc"
       ],
       "livraison_vehicule": [
         "client/src/pages/LivraisonVehicule.tsx appelle trpc.livraisonVehicule"
@@ -21265,7 +21286,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/vente/dossier-vehicule/:id?",
       "/vente/droits/:id",
       "/vente/employes",
-      "/vente/essai",
+      "/vente/essai/:id",
       "/vente/export",
       "/vente/favoris",
       "/vente/financement",
@@ -21706,13 +21727,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/vente/CentreEssaiRoutier.tsx",
         "routes": [
-          "/vente/essai"
+          "/vente/essai/:id"
         ],
         "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 8,
-        "mots": 15
+        "sansAction": 0,
+        "textes": 7,
+        "mots": 13
       },
       {
         "fichier": "client/src/pages/vente/CentreExport.tsx",
@@ -22050,8 +22071,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 950,
-    "mots": 3313,
+    "textes": 949,
+    "mots": 3311,
     "battement": "sonde",
     "manques": [
       {
@@ -22112,10 +22133,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« Réserver l'essai » client/src/pages/vente/CentreEssaiRoutier.tsx:11"
-      },
-      {
-        "genre": "bouton_sans_action",
         "detail": "« (sans texte) » client/src/pages/vente/CentreExport.tsx:17"
       },
       {
@@ -22149,6 +22166,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_declare_absent_ecran",
         "detail": "vente_pro_resume_vendeur déclaré pour /vente mais aucun écran ne l'utilise"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "identity — client/src/pages/vente/CentreEssaiRoutier.tsx appelle trpc.kyc"
       },
       {
         "genre": "dependance_non_declaree",

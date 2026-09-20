@@ -969,7 +969,7 @@ export default function App() {
             <Route path="/vente/negociation/:id" element={<U name="N\u00e9gociation"><CentreNegociation /></U>} />
             <Route path="/vente/reservation-achat" element={<V name="R\u00e9servation achat"><CentreReservationAchat /></V>} />
             <Route path="/vente/visite/:id" element={<U name="Visite v\u00e9hicule"><CentreVisiteVehicule /></U>} />
-            <Route path="/vente/essai" element={<V name="Essai routier"><CentreEssaiRoutier /></V>} />
+            <Route path="/vente/essai/:id" element={<U name="Essai routier"><CentreEssaiRoutier /></U>} />
             <Route path="/vente/dossier-acheteur" element={<V name="Dossier acheteur"><CentreDossiersAcheteurs /></V>} />
             <Route path="/vente/comparaison" element={<V name="Comparaison"><CentreComparaison /></V>} />
             <Route path="/vente/alertes-recherche" element={<V name="Alertes recherche"><CentreAlertesRecherche /></V>} />

@@ -1819,6 +1819,19 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié directement contre la base réelle (server/routers/__tests__/journal-activite.test.ts, 6/6 assertions : une action réellement journalisée via logAction() apparaît bien dans le journal avec le vrai email d'auteur joint et la vraie IP, un employé (accès back-office mais pas Direction) n'a pas accès — directionProcedure —, un anonyme non plus). Vérifié en TypeScript strict. Tâche #60 : les quatre écrans qu'elle listait (EtatVehicule/InspectionNumerique/JournalActivite/PubliciteDetail) ont maintenant tous reçu un traitement honnête.",
     domaine: "confiance",
   },
+  {
+    cle: "essai-routier-reconnecte-moteur-visite-plus-kyc",
+    titre: "CentreEssaiRoutier.tsx : écran orphelin sans identifiant de véhicule reconnecté à reservations.demanderVisite (mode sur_place) et au vrai dossier KYC",
+    moteurs: ["reservations", "kyc"],
+    quoi:
+      "CentreEssaiRoutier.tsx (/vente/essai) n'acceptait aucun identifiant de véhicule, n'était référencé nulle part dans l'application, et était verrouillé derrière la porte VO professionnelle (VoProGate) alors qu'il s'agit d'une action acheteur — exactement le même profil d'écran orphelin que CentreVisiteVehicule.tsx (tâche #54) avant sa correction. Sa checklist « Permis valide / Pièce d'identité / Rendez-vous confirmé » était intégralement fabriquée (toujours ok:true/ok:true/ok:false). Reconnecté : nouvelle route /vente/essai/:id sous la porte d'accès générale (comme la visite véhicule), réutilise exactement reservations.demanderVisite (même moteur bookings/test_drive que CentreVisiteVehicule.tsx, jamais un second registre), figé en mode \"sur_place\" — un essai routier exige une présence physique, contrairement à une visite qui peut se faire en visio. Les deux premières conditions reflètent désormais le vrai dossier KYC de l'acheteur (trpc.kyc.myProfile, même moteur que ControleDocuments.tsx) : permis_conduire et piece_identite réellement envoyés, jamais supposés acquis. Un bouton « Réserver un essai routier » a été ajouté sur Vehicule.tsx, à côté du bouton « Planifier une visite » déjà réel, pour que l'écran soit enfin atteignable.",
+    pourquoi:
+      "Un écran qui prétend nécessiter permis + pièce d'identité pour un essai routier mais coche ces deux cases par défaut sans jamais vérifier quoi que ce soit est une fausse barrière de sécurité. Créer un second moteur de réservation aurait dupliqué exactement ce que demanderVisite fait déjà pour la visite véhicule.",
+    ou: ["client/src/pages/vente/CentreEssaiRoutier.tsx", "client/src/App.tsx", "client/src/pages/Vehicule.tsx"],
+    lecon:
+      "Vérifié directement contre la base réelle (server/routers/__tests__/essai-routier.test.ts, 5/5 assertions) : sans document envoyé, les deux conditions KYC sont honnêtement à faux (jamais 'ok' par défaut) ; une fois le permis réellement envoyé via le moteur KYC, la condition passe à vrai ; la demande d'essai crée une vraie réservation test_drive avec le message \"Visite sur place\" (jamais un mode visio pour un essai routier). Le moteur demanderVisite lui-même reste couvert par reservations-visite.test.ts (déjà existant, non dupliqué). Vérifié en TypeScript strict.",
+    domaine: "confiance",
+  },
 ];
 
 /**
