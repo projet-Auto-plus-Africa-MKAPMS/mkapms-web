@@ -7,7 +7,8 @@
  * n'était utilisé nulle part — aucun routeur ne la touchait. C'est un
  * modèle de candidature/qualification (comme une demande de financement),
  * pas un calendrier de créneaux jour par jour : draft → submitted →
- * approved/rejected → paid (caution réglée) → completed. Réutilisé tel
+ * approved/rejected → paid (acompte encaissé — un vrai paiement immédiat,
+ * jamais une simple autorisation bloquée) → completed. Réutilisé tel
  * quel, aucune seconde table créée.
  */
 import { randomUUID } from "node:crypto";
@@ -97,23 +98,29 @@ export const rentalApplicationsRouter = router({
       return updated;
     }),
 
-  // Règle une caution/acompte réellement fixée par l'agent lors de
-  // l'approbation — jamais un montant calculé ou deviné côté client.
+  // Règle un acompte réellement fixé par l'agent lors de l'approbation —
+  // jamais un montant calculé ou deviné côté client. Le champ s'appelle
+  // depositAmount côté schéma, mais le mécanisme réel est un encaissement
+  // Stripe immédiat (mode "payment"), pas une autorisation bloquée puis
+  // libérée : le texte utilisateur dit "acompte", jamais "caution".
   payDeposit: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const [app] = await db.select().from(rentalApplications).where(eq(rentalApplications.id, input.id)).limit(1);
       if (!app) throw new TRPCError({ code: "NOT_FOUND" });
       if (app.userId !== ctx.user.uid) throw new TRPCError({ code: "FORBIDDEN", message: "Cette candidature ne vous appartient pas." });
-      if (app.status !== "approved") throw new TRPCError({ code: "BAD_REQUEST", message: "La candidature doit être approuvée avant de régler la caution." });
+      if (app.status !== "approved") throw new TRPCError({ code: "BAD_REQUEST", message: "La candidature doit être approuvée avant de régler l'acompte." });
       const amount = app.depositAmount ? parseFloat(app.depositAmount) : 0;
-      if (amount <= 0) throw new TRPCError({ code: "BAD_REQUEST", message: "Le montant de la caution n'a pas encore été fixé par l'agence." });
+      if (amount <= 0) throw new TRPCError({ code: "BAD_REQUEST", message: "Le montant de l'acompte n'a pas encore été fixé par l'agence." });
       const { url } = await createPaymentCheckout({
         userId: ctx.user.uid,
         kind: "rental_deposit",
         amount,
         currency: app.depositCurrency || "EUR",
-        label: `Caution location — candidature #${app.id}`,
+        // "Acompte", jamais "Caution" : ce checkout Stripe encaisse
+        // immédiatement (mode "payment", aucune capture manuelle) — ce
+        // n'est pas une simple autorisation bloquée puis libérée.
+        label: `Acompte de confirmation location — candidature #${app.id}`,
         metadata: { applicationId: app.id },
         successPath: `/location/mes-candidatures?paid=1`,
         cancelPath: `/location/mes-candidatures?canceled=1`,
@@ -163,7 +170,7 @@ export const rentalApplicationsRouter = router({
         title: input.decision === "approved" ? "Candidature de location approuvée" : "Candidature de location refusée",
         body:
           input.decision === "approved"
-            ? "Votre candidature a été approuvée. Réglez la caution pour confirmer votre location."
+            ? "Votre candidature a été approuvée. Réglez l'acompte (encaissé immédiatement) pour confirmer votre location."
             : input.rejectionReason || "Votre candidature de location a été refusée.",
         url: "/location/mes-candidatures",
       });
