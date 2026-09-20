@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 515;
+export const MANQUES_TOTAL = 510;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 83,
+  "bouton_sans_action": 78,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -5857,6 +5857,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "route": "/suppression-compte",
         "composants": [
           "trpc.meta"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/PubliciteDetail.tsx",
+        "route": "/publicite/:id",
+        "composants": [
+          "trpc.admin"
         ]
       },
       {
@@ -12337,11 +12344,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/publicite/:id"
         ],
-        "cliquables": 9,
+        "cliquables": 4,
         "parMoteur": 0,
-        "sansAction": 5,
-        "textes": 28,
-        "mots": 75
+        "sansAction": 0,
+        "textes": 16,
+        "mots": 32
       },
       {
         "fichier": "client/src/pages/PubliciteInterne.tsx",
@@ -12474,30 +12481,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "public"
     ],
-    "textes": 195,
-    "mots": 670,
+    "textes": 183,
+    "mots": 627,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Approuver » client/src/pages/PubliciteDetail.tsx:41"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Refuser » client/src/pages/PubliciteDetail.tsx:44"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Mettre en pause » client/src/pages/PubliciteDetail.tsx:50"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Remettre en ligne » client/src/pages/PubliciteDetail.tsx:54"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Supprimer » client/src/pages/PubliciteDetail.tsx:57"
-      },
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/SectionAccueil.tsx (4 texte(s))"
