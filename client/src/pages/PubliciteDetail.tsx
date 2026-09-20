@@ -79,6 +79,21 @@ export default function PubliciteDetail() {
             <p className="mt-2 rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700">{demande.description || "Aucune description fournie."}</p>
           </div>
 
+          <div className="mt-6">
+            <h2 className="text-sm font-bold text-slate-700">Contenu publicitaire {demande.pays ? `· Pays : ${demande.pays}` : ""}</h2>
+            <div className="mt-2 rounded-xl border border-slate-200 bg-white p-3">
+              {demande.contentType === "video" && demande.mediaUrl ? (
+                <video src={demande.mediaUrl} controls className="w-full max-h-56 rounded-lg" />
+              ) : demande.contentType === "photo" && demande.mediaUrl ? (
+                <img src={demande.mediaUrl} alt="" className="w-full max-h-56 object-cover rounded-lg" />
+              ) : demande.linkUrl ? (
+                <a href={demande.linkUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-[#D4AF37] underline break-all">{demande.linkUrl}</a>
+              ) : (
+                <p className="text-sm text-slate-400">Aucun contenu créatif joint.</p>
+              )}
+            </div>
+          </div>
+
           {demande.refusalReason && (
             <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-3">
               <p className="text-[10px] font-bold uppercase text-red-500">Motif du refus</p>

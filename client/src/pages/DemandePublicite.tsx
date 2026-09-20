@@ -2,6 +2,26 @@ import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Upload, CheckCircle, X, Film, Image as ImageIcon, Loader2 } from "lucide-react";
 import { getToken } from "../lib/auth";
+import { trpc } from "../lib/trpc";
+import { useCurrency } from "../lib/currency";
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DEMANDE DE PUBLICITÉ (/demande-publicite)
+   Formulaire public réel (upload de fichier réel vers /api/upload) mais
+   dont l'envoi final ne faisait que simuler un succès (setTimeout) sans
+   jamais appeler le serveur : le vrai moteur de revue admin (server/routers/
+   admin.ts : pubRequestsList/pubRequestDetail/decidePubRequest/
+   deletePubRequest, table pub_requests) ne recevait donc jamais aucune
+   vraie demande — tâche #62.
+   Corrigé : appelle réellement trpc.marketing.createPubRequest. Les tarifs,
+   auparavant affichés en euros fixes ("50€/jour"), sont désormais convertis
+   dans la devise réelle du visiteur via useCurrency().format() (moteur déjà
+   utilisé ailleurs sur la plateforme, jamais un second moteur de devise
+   créé) — la plateforme est internationale, aucun prix ne doit rester figé
+   en euros à l'affichage. Le pays réel du visiteur (déjà choisi via
+   CountrySelectModal) est transmis au serveur, jamais supposé "FR" par
+   défaut.
+   ══════════════════════════════════════════════════════════════════════════ */
 
 const TYPES_ACTIVITE = [
   { value: "garage", label: "Garage / Réparation automobile" },
@@ -15,23 +35,25 @@ const TYPES_ACTIVITE = [
 ];
 
 const EMPLACEMENTS = [
-  { value: "accueil-1", label: "Page d'accueil — Carrousel #1 (entre annonces)", prix: "50€/jour" },
-  { value: "accueil-2", label: "Page d'accueil — Carrousel #2 (section premium)", prix: "80€/jour" },
-  { value: "produit", label: "Page produit — Bas de page (carrousel)", prix: "30€/jour" },
-  { value: "recherche", label: "Page recherche — Sidebar", prix: "40€/jour" },
-  { value: "resultats", label: "Page résultats — Entre les annonces", prix: "35€/jour" },
+  { value: "accueil-1", label: "Page d'accueil — Carrousel #1 (entre annonces)", prixEur: 50 },
+  { value: "accueil-2", label: "Page d'accueil — Carrousel #2 (section premium)", prixEur: 80 },
+  { value: "produit", label: "Page produit — Bas de page (carrousel)", prixEur: 30 },
+  { value: "recherche", label: "Page recherche — Sidebar", prixEur: 40 },
+  { value: "resultats", label: "Page résultats — Entre les annonces", prixEur: 35 },
 ];
 
 const DUREES = [
-  { value: "1h", label: "1 heure", multi: 1 },
-  { value: "3h", label: "3 heures", multi: 3 },
-  { value: "1j", label: "1 jour (24h)", multi: 10 },
-  { value: "7j", label: "1 semaine", multi: 50 },
-  { value: "30j", label: "1 mois", multi: 150 },
-  { value: "90j", label: "3 mois", multi: 350 },
+  { value: "1h", label: "1 heure" },
+  { value: "3h", label: "3 heures" },
+  { value: "1j", label: "1 jour (24h)" },
+  { value: "7j", label: "1 semaine" },
+  { value: "30j", label: "1 mois" },
+  { value: "90j", label: "3 mois" },
 ];
 
 export default function DemandePublicite() {
+  const { format, country } = useCurrency();
+  const createPub = trpc.marketing.createPubRequest.useMutation();
   const [step, setStep] = useState(1);
   const [type, setType] = useState("");
   const [nom, setNom] = useState("");
@@ -42,19 +64,18 @@ export default function DemandePublicite() {
   const [emplacement, setEmplacement] = useState("");
   const [duree, setDuree] = useState("");
   const [lien, setLien] = useState("");
-  const [submitted, setSubmitted] = useState(false);
   const [contentType, setContentType] = useState<"photo" | "video" | "lien">("photo");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
-  // Champs dynamiques selon le type
   const [sousType, setSousType] = useState("");
+
+  const emplacementChoisi = EMPLACEMENTS.find((e) => e.value === emplacement);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -62,7 +83,6 @@ export default function DemandePublicite() {
     setUploadedFile(file);
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
-    // Upload to server
     setUploading(true);
     try {
       const formData = new FormData();
@@ -100,18 +120,27 @@ export default function DemandePublicite() {
   const handleSubmit = () => {
     if (!type || !societe || !nom) { showToast("Remplissez tous les champs obligatoires"); return; }
     if (!emplacement || !duree) { showToast("Choisissez un emplacement et une durée"); return; }
-    if ((contentType === "photo" || contentType === "video") && !uploadedFile) { showToast("Ajoutez votre visuel ou vidéo"); return; }
+    if ((contentType === "photo" || contentType === "video") && !uploadedUrl) { showToast("Ajoutez votre visuel ou vidéo"); return; }
     if (contentType === "lien" && !lien) { showToast("Ajoutez le lien de votre site"); return; }
-    setSubmitting(true);
-    // Simulate backend processing
-    setTimeout(() => {
-      setSubmitting(false);
-      setSubmitted(true);
-      showToast("Demande de publicité envoyée !");
-    }, 1500);
+    createPub.mutate({
+      entreprise: societe,
+      type: TYPES_ACTIVITE.find((t) => t.value === type)?.label ?? type,
+      emplacement: emplacementChoisi?.label ?? emplacement,
+      description: [desc, sousType ? `Précision : ${sousType}` : null].filter(Boolean).join("\n") || undefined,
+      contactName: nom,
+      contactEmail: email,
+      contactPhone: tel,
+      budget: emplacementChoisi ? `${emplacementChoisi.prixEur} EUR/jour (référence)` : undefined,
+      budgetAmountEur: emplacementChoisi?.prixEur,
+      duree: DUREES.find((d) => d.value === duree)?.label ?? duree,
+      pays: country || undefined,
+      contentType,
+      mediaUrl: contentType !== "lien" ? uploadedUrl ?? undefined : undefined,
+      linkUrl: contentType === "lien" ? lien : undefined,
+    });
   };
 
-  if (submitted) {
+  if (createPub.isSuccess) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -161,7 +190,6 @@ export default function DemandePublicite() {
             </select>
           </div>
 
-          {/* Champs dynamiques selon le type */}
           {type === "garage" && (
             <div>
               <label className="text-sm font-bold text-slate-700">Spécialité du garage</label>
@@ -218,7 +246,7 @@ export default function DemandePublicite() {
             </div>
             <div>
               <label className="text-sm font-bold text-slate-700">Téléphone *</label>
-              <input value={tel} onChange={(e) => setTel(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="06 XX XX XX XX" />
+              <input value={tel} onChange={(e) => setTel(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="Numéro avec indicatif pays" />
             </div>
           </div>
           <div>
@@ -244,7 +272,7 @@ export default function DemandePublicite() {
                     <input type="radio" name="emplacement" value={e.value} checked={emplacement === e.value} onChange={(ev) => setEmplacement(ev.target.value)} className="accent-[#D4AF37]" />
                     <span className="text-sm text-slate-700">{e.label}</span>
                   </div>
-                  <span className="text-xs font-bold text-[#D4AF37]">{e.prix}</span>
+                  <span className="text-xs font-bold text-[#D4AF37]">à partir de {format(e.prixEur)}/jour</span>
                 </label>
               ))}
             </div>
@@ -273,7 +301,6 @@ export default function DemandePublicite() {
       {/* ÉTAPE 3 — Contenu */}
       {step === 3 && (
         <div className="mt-6 space-y-4">
-          {/* Choix type de contenu */}
           <div>
             <label className="text-sm font-bold text-slate-700">Type de contenu publicitaire *</label>
             <div className="mt-2 flex gap-2">
@@ -289,7 +316,6 @@ export default function DemandePublicite() {
             </div>
           </div>
 
-          {/* Hidden file input */}
           <input
             ref={fileInputRef}
             type="file"
@@ -298,7 +324,6 @@ export default function DemandePublicite() {
             onChange={handleFileChange}
           />
 
-          {/* Si lien */}
           {contentType === "lien" && (
             <div>
               <label className="text-sm font-bold text-slate-700">Lien de votre site / page *</label>
@@ -306,14 +331,12 @@ export default function DemandePublicite() {
             </div>
           )}
 
-          {/* Si photo ou vidéo */}
           {(contentType === "photo" || contentType === "video") && (
             <div>
               <label className="text-sm font-bold text-slate-700">
                 {contentType === "video" ? "Vidéo publicitaire *" : "Image / Visuel de la publicité *"}
               </label>
 
-              {/* Preview if file uploaded */}
               {uploadedFile && previewUrl ? (
                 <div className="mt-1 relative rounded-xl border-2 border-[#D4AF37] bg-[#FFFDF5] overflow-hidden">
                   {contentType === "video" ? (
@@ -322,7 +345,9 @@ export default function DemandePublicite() {
                     <img src={previewUrl} alt="Aperçu" className="w-full h-48 object-cover rounded-xl" />
                   )}
                   <div className="p-2 flex items-center justify-between">
-                    <p className="text-xs text-slate-600 truncate flex-1">{uploadedFile.name} ({(uploadedFile.size / 1024 / 1024).toFixed(1)} Mo)</p>
+                    <p className="text-xs text-slate-600 truncate flex-1">
+                      {uploading ? "Envoi en cours…" : uploadedUrl ? `${uploadedFile.name} (${(uploadedFile.size / 1024 / 1024).toFixed(1)} Mo)` : "Échec de l'envoi"}
+                    </p>
                     <button onClick={removeFile} className="flex items-center gap-1 rounded-lg bg-red-50 px-2 py-1 text-[10px] font-bold text-red-600 hover:bg-red-100"><X size={12} /> Supprimer</button>
                   </div>
                   <button onClick={() => fileInputRef.current?.click()} className="w-full py-2 text-xs font-bold text-[#D4AF37] hover:bg-[#D4AF37]/5 border-t border-[#D4AF37]/20">Changer le fichier</button>
@@ -345,29 +370,29 @@ export default function DemandePublicite() {
             </div>
           )}
 
-          {/* Récapitulatif */}
           <div className="rounded-xl border border-[#D4AF37]/30 bg-[#FFFDF5] p-4">
             <p className="text-sm font-bold text-[#111]">Récapitulatif</p>
             <div className="mt-2 space-y-1 text-xs text-slate-600">
               <p>Société : <span className="font-bold">{societe}</span></p>
               <p>Type : <span className="font-bold">{TYPES_ACTIVITE.find((t) => t.value === type)?.label}</span></p>
-              <p>Emplacement : <span className="font-bold">{EMPLACEMENTS.find((e) => e.value === emplacement)?.label}</span></p>
+              <p>Emplacement : <span className="font-bold">{emplacementChoisi?.label}</span></p>
               <p>Durée : <span className="font-bold">{DUREES.find((d) => d.value === duree)?.label}</span></p>
-              <p>Prix estimé : <span className="font-bold text-[#B8960C]">{EMPLACEMENTS.find((e) => e.value === emplacement)?.prix}</span></p>
+              {emplacementChoisi && <p>Tarif indicatif : <span className="font-bold text-[#B8960C]">à partir de {format(emplacementChoisi.prixEur)}/jour</span></p>}
             </div>
           </div>
 
           <p className="text-[10px] text-slate-400">En soumettant cette demande, vous acceptez nos conditions générales. Les publicités liées à l'alcool, au tabac, aux armes ou à tout contenu illicite seront refusées.</p>
 
+          {createPub.error && <p className="text-xs text-red-600 text-center">{createPub.error.message}</p>}
+
           <div className="flex gap-2">
             <button onClick={() => setStep(2)} className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-bold text-slate-600">← Retour</button>
-            <button onClick={handleSubmit} disabled={submitting || uploading} className="flex-1 rounded-xl bg-[#B8960C] py-3 text-sm font-bold text-white hover:bg-[#9a7d0a] disabled:opacity-50 flex items-center justify-center gap-2">
-              {submitting ? <><Loader2 size={14} className="animate-spin" /> Envoi en cours...</> : "Envoyer la demande"}
+            <button onClick={handleSubmit} disabled={createPub.isPending || uploading} className="flex-1 rounded-xl bg-[#B8960C] py-3 text-sm font-bold text-white hover:bg-[#9a7d0a] disabled:opacity-50 flex items-center justify-center gap-2">
+              {createPub.isPending ? <><Loader2 size={14} className="animate-spin" /> Envoi en cours...</> : "Envoyer la demande"}
             </button>
           </div>
         </div>
       )}
-      {/* Toast */}
       {toast && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%]">
           <div className="rounded-xl bg-[#111] px-4 py-3 text-xs font-bold text-white shadow-xl flex items-center gap-2">

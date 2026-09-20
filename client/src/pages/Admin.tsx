@@ -1826,6 +1826,20 @@ export default function Admin() {
                 <p className="text-sm text-slate-700 mt-1">{selectedPubRequest.description || "—"}</p>
               </div>
 
+              {/* Contenu créatif réel (photo/vidéo/lien) */}
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Contenu publicitaire {selectedPubRequest.pays ? `· Pays : ${selectedPubRequest.pays}` : ""}</p>
+                {selectedPubRequest.contentType === "video" && selectedPubRequest.mediaUrl ? (
+                  <video src={selectedPubRequest.mediaUrl} controls className="w-full max-h-48 rounded-lg" />
+                ) : selectedPubRequest.contentType === "photo" && selectedPubRequest.mediaUrl ? (
+                  <img src={selectedPubRequest.mediaUrl} alt="" className="w-full max-h-48 object-cover rounded-lg" />
+                ) : selectedPubRequest.linkUrl ? (
+                  <a href={selectedPubRequest.linkUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-[#D4AF37] underline break-all">{selectedPubRequest.linkUrl}</a>
+                ) : (
+                  <p className="text-xs text-slate-400">Aucun contenu créatif joint.</p>
+                )}
+              </div>
+
               {/* Contact */}
               <div className="rounded-lg bg-slate-50 p-3">
                 <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Coordonnées</p>

@@ -1832,6 +1832,26 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié directement contre la base réelle (server/routers/__tests__/essai-routier.test.ts, 5/5 assertions) : sans document envoyé, les deux conditions KYC sont honnêtement à faux (jamais 'ok' par défaut) ; une fois le permis réellement envoyé via le moteur KYC, la condition passe à vrai ; la demande d'essai crée une vraie réservation test_drive avec le message \"Visite sur place\" (jamais un mode visio pour un essai routier). Le moteur demanderVisite lui-même reste couvert par reservations-visite.test.ts (déjà existant, non dupliqué). Vérifié en TypeScript strict.",
     domaine: "confiance",
   },
+  {
+    cle: "demande-publicite-persistance-reelle-plus-devise-internationale",
+    titre: "DemandePublicite.tsx : le formulaire public simulait un succès sans jamais rien enregistrer — parcours complet reconnecté au vrai moteur pub_requests, tarifs internationalisés",
+    moteurs: ["marketing"],
+    quoi:
+      "DemandePublicite.tsx (formulaire public, upload de fichier réel vers /api/upload avec URL obtenue) ne persistait jamais la demande : son bouton d'envoi final faisait un simple `setTimeout(1500)` puis affichait un faux message de succès, sans jamais appeler le serveur. Pendant ce temps, le moteur de revue admin (server/routers/admin.ts : pubRequestsList/pubRequestDetail/decidePubRequest/deletePubRequest, table pub_requests) était déjà entièrement réel et fonctionnel (utilisé par Admin.tsx et par PubliciteDetail.tsx, corrigé dans un lot précédent) — mais ne recevait jamais aucune vraie demande.\n\nAjout d'une procédure `marketing.createPubRequest` (publique, sans connexion requise — le formulaire collecte lui-même nom/email/téléphone, exactement comme marketing.subscribeNewsletter déjà existant) qui persiste réellement la demande, avec validation serveur (zod .refine : un contenu \"lien\" sans URL de lien, ou une photo/vidéo sans fichier uploadé, est rejeté — jamais un succès affiché sur une demande incomplète). Migration additive sur pub_requests (drizzle/0136, chaîne de journal manuelle car drizzle-kit generate reste cassé — tâche #61, mais le garde-fou check:migrations valide la cohérence) : content_type/media_url/link_url (contenu créatif réel, jamais fabriqué) et pays (ISO 3166-1 alpha-2, même convention que newsletterSubscribers.pays) et budget_amount_eur (montant de référence en euros, devise pivot interne).\n\nAdaptation internationale (la plateforme n'est pas française uniquement) : les tarifs d'emplacement, auparavant affichés en euros fixes (\"50€/jour\") texte en dur dans le JSX, sont désormais convertis dans la devise réelle du visiteur via useCurrency().format() — moteur déjà construit et déjà utilisé ailleurs sur la plateforme (CountrySelectModal, sélection pays/devise/langue), jamais un second moteur de devise créé. Le pays réel du visiteur (déjà choisi via ce même moteur) est transmis et stocké, jamais supposé \"FR\" par défaut. Admin.tsx et PubliciteDetail.tsx affichent désormais le contenu créatif réel (photo/vidéo/lien) et le pays de la demande au lieu de rester muets sur ces champs.",
+    pourquoi:
+      "Un formulaire qui affiche « Demande envoyée ! » sans jamais rien enregistrer est une fausse confirmation faite à un client réel — la pire forme de fabrication, car elle induit un tiers en erreur, pas seulement l'équipe interne. Un second moteur de gestion de publicités aurait dupliqué exactement ce qu'Admin.tsx/PubliciteDetail.tsx font déjà. Des prix figés en euros sur une plateforme internationale auraient été trompeurs pour tout visiteur hors zone euro alors qu'un moteur de conversion réel existe déjà.",
+    ou: [
+      "server/modules/marketing.ts",
+      "server/routers/marketing.ts",
+      "client/src/pages/DemandePublicite.tsx",
+      "client/src/pages/Admin.tsx",
+      "client/src/pages/PubliciteDetail.tsx",
+      "drizzle/0136_pub_requests_contenu_creatif.sql",
+    ],
+    lecon:
+      "Vérifié directement contre la base réelle (server/routers/__tests__/demande-publicite.test.ts, 8/8 assertions) : le serveur refuse une demande \"lien\" sans URL (jamais un succès sur données incomplètes) ; une vraie soumission avec pays hors France (\"CD\") est réellement enregistrée, le pays et le lien réels sont conservés tels quels ; l'admin voit exactement les données réellement soumises ; la décision de l'admin (approbation) est réellement persistée ; une resoumission (double clic) crée une ligne distincte et traçable plutôt qu'une fusion silencieuse. Testé aussi que publicite-detail.test.ts (lot précédent) ne régresse pas avec les nouvelles colonnes. Vérifié en TypeScript strict. npm run build (dont check:migrations) vert de bout en bout. Tâche #62 clôturée.",
+    domaine: "confiance",
+  },
 ];
 
 /**
