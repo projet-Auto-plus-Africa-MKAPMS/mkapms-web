@@ -1793,6 +1793,19 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié en TypeScript strict. Les deux autres boutons désactivés du même type trouvés dans le même balayage — PreparationVenteVO.tsx et CentreControleQualite.tsx — reposent sur des listes de contrôle (CHECKLIST) entièrement fabriquées (aucune donnée réelle par véhicule/annonce), donc non traités ici : ce sont des lacunes de modèle de données plus larges, tracées sous les tâches #53 et #54 comme ControleQualiteGarage.tsx. LOAFinance.tsx et LocationLOA.tsx restent inchangés : déjà honnêtes (bouton désactivé avec motif affiché, aucun calcul inventé).",
     domaine: "confiance",
   },
+  {
+    cle: "publicite-detail-reconnecte-moteur-pub-requests",
+    titre: "PubliciteDetail.tsx : 3 demandes de publicité fabriquées (DEMO_DEMANDES) remplacées par le vrai moteur pub_requests déjà utilisé par Admin.tsx",
+    moteurs: ["marketing"],
+    quoi:
+      "PubliciteDetail.tsx (/publicite/:id) affichait 3 demandes de publicité inventées, avec des champs qui n'existent nulle part en base : SIRET, adresse complète, lien de site, photo, tarif, et des statuts « Mettre en pause »/« Remettre en ligne » sans aucune existence réelle. Or Admin.tsx dispose déjà d'un moteur de revue de publicités entièrement réel et fonctionnel (server/routers/admin.ts : pubRequestsList/pubRequestDetail/decidePubRequest/deletePubRequest, table pub_requests réelle avec entreprise/type/emplacement/description/contactName/contactEmail/contactPhone/budget/duree/status/refusalReason) — jamais utilisé par PubliciteDetail.tsx, resté un doublon orphelin (aucun lien ne pointe vers /publicite/:id nulle part dans l'app). Écran reconnecté à ce moteur réel : mêmes trois actions qu'Admin.tsx (Approuver/Refuser tant que en_attente, Supprimer), aucun second moteur créé. Les champs sans existence réelle (SIRET, adresse, lien, photo, tarif) et les statuts pause/remise en ligne (aucune notion de campagne active/en pause n'existe) ont été retirés plutôt que fabriqués.",
+    pourquoi:
+      "Un second moteur de gestion de publicités aurait dupliqué exactement ce qu'Admin.tsx fait déjà. Les champs et statuts sans existence en base auraient nécessité soit de les inventer (fabrication), soit d'étendre le schéma sans besoin réel démontré — aucune des deux options n'était acceptable ici.",
+    ou: ["client/src/pages/PubliciteDetail.tsx"],
+    lecon:
+      "Vérifié directement contre la base réelle (server/routers/__tests__/publicite-detail.test.ts, 5/5 assertions : accès refusé à un anonyme, détail réel exposé à un admin, refus avec vrai motif persisté et relu, suppression réelle). Vérifié en TypeScript strict. Découverte plus large en cours de route, tracée séparément sous la tâche #62 : DemandePublicite.tsx (formulaire public réel avec upload de fichier réel) ne persiste jamais la demande — son bouton d'envoi final simule juste un succès (setTimeout) sans jamais appeler le serveur, donc le moteur pub_requests réel côté admin ne reçoit aujourd'hui aucune vraie demande. Non corrigé ici : nécessite l'ajout d'une procédure de création et probablement une colonne de schéma pour le contenu créatif, qui se heurtera à la tâche #61 (chaîne de migrations drizzle-kit cassée).",
+    domaine: "confiance",
+  },
 ];
 
 /**

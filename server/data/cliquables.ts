@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2559;
+export const CLIQUABLES_TOTAL = 2554;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -574,7 +574,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/ProduitParticulier.tsx", total: 12, moteur: 0, liens: 1, boutonsLocaux: 10, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/ProduitVtcTaxi.tsx", total: 24, moteur: 0, liens: 1, boutonsLocaux: 21, sansAction: 1, zones: 1 },
   { fichier: "client/src/pages/ProgrammeVTC.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 1, zones: 0 },
-  { fichier: "client/src/pages/PubliciteDetail.tsx", total: 9, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 5, zones: 0 },
+  { fichier: "client/src/pages/PubliciteDetail.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/PubliciteInterne.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/RechercheGeolocalisee.tsx", total: 4, moteur: 0, liens: 0, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/RechercheLocale.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
@@ -768,11 +768,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/pieces/RechercheIntelligentePieces.tsx", ligne: 10, genre: "bouton", libelle: "Rechercher", motif: "sans_action" },
   { fichier: "client/src/pages/ProduitVtcTaxi.tsx", ligne: 493, genre: "bouton", libelle: "Télécharger", motif: "sans_action" },
   { fichier: "client/src/pages/ProgrammeVTC.tsx", ligne: 85, genre: "bouton", libelle: "Voir le véhicule", motif: "sans_action" },
-  { fichier: "client/src/pages/PubliciteDetail.tsx", ligne: 41, genre: "bouton", libelle: "Approuver", motif: "sans_action" },
-  { fichier: "client/src/pages/PubliciteDetail.tsx", ligne: 44, genre: "bouton", libelle: "Refuser", motif: "sans_action" },
-  { fichier: "client/src/pages/PubliciteDetail.tsx", ligne: 50, genre: "bouton", libelle: "Mettre en pause", motif: "sans_action" },
-  { fichier: "client/src/pages/PubliciteDetail.tsx", ligne: 54, genre: "bouton", libelle: "Remettre en ligne", motif: "sans_action" },
-  { fichier: "client/src/pages/PubliciteDetail.tsx", ligne: 57, genre: "bouton", libelle: "Supprimer", motif: "sans_action" },
   { fichier: "client/src/pages/RemplacementVehicule.tsx", ligne: 65, genre: "bouton", libelle: "+ Ajouter des photos", motif: "sans_action" },
   { fichier: "client/src/pages/RemplacementVehicule.tsx", ligne: 68, genre: "bouton", libelle: "Envoyer la demande", motif: "sans_action" },
   { fichier: "client/src/pages/RemplacementVehicule.tsx", ligne: 106, genre: "bouton", libelle: "Accepter", motif: "sans_action" },
