@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2551;
+export const CLIQUABLES_TOTAL = 2550;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -486,7 +486,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/ListeAttente.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Livraison.tsx", total: 2, moteur: 1, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/LivraisonVehicule.tsx", total: 7, moteur: 7, liens: 0, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/LocationCamions.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/LocationCamions.tsx", total: 5, moteur: 0, liens: 2, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/LocationLOA.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/LocationMinibus.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 3, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/LocationMKAPMS.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },

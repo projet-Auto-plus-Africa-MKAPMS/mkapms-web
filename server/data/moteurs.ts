@@ -11447,11 +11447,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/camions"
         ],
-        "cliquables": 6,
+        "cliquables": 5,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 65,
-        "mots": 214
+        "textes": 22,
+        "mots": 93
       },
       {
         "fichier": "client/src/pages/LocationLOA.tsx",
@@ -11670,8 +11670,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "connecte"
     ],
-    "textes": 899,
-    "mots": 3079,
+    "textes": 856,
+    "mots": 2958,
     "battement": "sonde",
     "manques": [
       {
