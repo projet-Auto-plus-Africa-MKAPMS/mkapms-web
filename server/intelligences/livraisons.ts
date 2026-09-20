@@ -1949,6 +1949,27 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié directement contre la base réelle (server/routers/__tests__/vehicules-certifies.test.ts, 3/3) : une annonce location avec selectionMka=true apparaît, une annonce location non certifiée n'apparaît jamais, une annonce certifiée mais de type vente n'apparaît jamais dans le catalogue location (le filtre type + selectionMka se combinent correctement, pas une confusion entre univers). Vérifié en TypeScript strict. Compteur de boutons sans action inchangé (71). npm run build vert.\n\nDécouverte annexe non traitée dans ce lot : ListeAttente.tsx (même dossier location) a le même défaut de catalogue fabriqué (ATTENTES, ids 1-3) mais représente un besoin métier réellement différent (liste d'attente par véhicule avec position et notification de disponibilité) sans moteur existant à réutiliser — nécessite une vraie table dédiée et un déclenchement sur changement de statut d'annonce, pas une simple reconnexion. Ajoutée comme tâche #63 plutôt que corrigée superficiellement.",
     domaine: "confiance",
   },
+  {
+    cle: "rental-contracts-schema-plus-renouvellement-honnete",
+    titre: "Contrat de location actif (nouvelle table rentalContracts) : la pièce manquante entre une candidature payée et un véhicule réellement attribué",
+    moteurs: ["location"],
+    quoi:
+      "Item 2 de la demande utilisateur : RenouvellementFlotte.tsx et RemplacementVehicule.tsx présupposaient l'existence d'un contrat de location actif (véhicule attribué + dates de période) — pièce qui n'existait nulle part dans le schéma. rentalApplications (la candidature) prouve un acompte payé, jamais une attribution datée. Conçue et migrée : rentalContracts (id, applicationId, vehicleId, userId, startDate, endDate nullable, status actif/termine/remplace/renouvele/annule) — drizzle/0137_rental_contracts.sql, contournement établi pour la tâche #61 (journal manuel).\n\nserver/routers/rentalContracts.ts : createContract (adminProcedure — un agent crée le contrat une fois la candidature au statut \"paid\", avec un véhicule et des dates réels fixés explicitement à ce moment, jamais devinés ; vérifie que le véhicule référencé existe réellement ; refuse toute candidature non payée) ; fait passer la candidature à \"completed\" (statut terminal déjà existant, pas une valeur inventée) ; myContracts (protectedProcedure — le locataire voit ses contrats avec le véhicule attaché) ; list (adminProcedure).\n\nRenouvellementFlotte.tsx entièrement reconstruit : plus de CONTRATS_EXPIRATION ni de SUGGESTIONS fabriquées (le \"Sélectionnées automatiquement selon vos besoins\" était un moteur de recommandation qui n'existe pas). Affiche les vrais contrats actifs du locataire (rentalContracts.myContracts), un vrai compte à rebours calculé depuis endDate (jamais une valeur inventée), et pour \"renouveler\" renvoie vers une VRAIE nouvelle candidature (CandidatureLocationFlotte.tsx) plutôt que d'inventer une prolongation instantanée ou un véhicule de remplacement automatique. Lien réel ajouté depuis MesCandidaturesLocation.tsx (statut \"completed\" → \"Voir mon contrat de location\"). Section admin ajoutée dans Admin.tsx (\"Candidatures payées — créer le contrat\") : un agent saisit l'id du véhicule et les dates réelles, jamais un défaut inventé.",
+    pourquoi:
+      "Construire RenouvellementFlotte/RemplacementVehicule sur des dates ou des suggestions inventées aurait juste déplacé le problème de fabrication d'un écran à l'autre. La bonne pièce manquante était plus fondamentale : sans un contrat réellement daté, aucun écran de ce groupe ne peut afficher une échéance vraie. La construire une fois, proprement, débloque plusieurs écrans à la fois plutôt que de rafistoler chacun séparément.",
+    ou: [
+      "server/schema.ts",
+      "drizzle/0137_rental_contracts.sql",
+      "server/routers/rentalContracts.ts",
+      "server/router.ts",
+      "server/engine-registry/perimetres.ts",
+      "client/src/pages/RenouvellementFlotte.tsx",
+      "client/src/pages/location/MesCandidaturesLocation.tsx",
+    ],
+    lecon:
+      "Vérifié par un parcours HTTP complet contre la base réelle (serveur local, JWT signés) : createContract refuse une candidature non payée, refuse un véhicule inexistant, crée réellement le contrat pour une candidature payée + un véhicule réel, fait passer la candidature à completed, et myContracts renvoie le contrat avec le véhicule attaché au bon locataire — jamais à un tiers. server/routers/__tests__/rental-contracts.test.ts (6/6) couvre les mêmes cas contre la base de test. rental-applications.test.ts rejoué sans modification (12/12). node scripts/check-migrations.mjs : 136 migrations, ordre cohérent. Compteur de boutons sans action : 71 → 68 (RenouvellementFlotte.tsx supprimait net 7 boutons morts — suggestions et \"Voir\" fabriqués — pour 1 seul lien réel). npm run build vert de bout en bout.\n\nPoints encore ouverts dans la tâche #56 : RemplacementVehicule.tsx (workflow de remplacement lié à un rentalContracts actif, étapes propres décidées par un agent) et GestionConducteurs.tsx (nouvelle table indépendante) restent à construire.",
+    domaine: "produit",
+  },
 ];
 
 /**

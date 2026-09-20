@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 507;
+export const MANQUES_TOTAL = 504;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 74,
+  "bouton_sans_action": 71,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
@@ -6138,6 +6138,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "rdv_fidelite",
       "rdv_garage",
       "rental_applications",
+      "rental_contracts",
       "reports",
       "reviews",
       "role_permissions",
@@ -11271,14 +11272,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "categorie": "univers",
     "etatDeclare": "active",
     "dossiers": [
-      "routers/rentalApplications.ts"
+      "routers/rentalApplications.ts",
+      "routers/rentalContracts.ts"
     ],
     "routeurs": [
       "lavage",
       "karting",
-      "rentalApplications"
+      "rentalApplications",
+      "rentalContracts"
     ],
-    "fichiersServeur": 1,
+    "fichiersServeur": 2,
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -11326,7 +11329,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routers/rentalApplications.ts importe payment-engine/checkout.ts"
       ],
       "permission": [
-        "routers/rentalApplications.ts filtre par rôle (procédure pro/admin/direction/PDG)"
+        "routers/rentalApplications.ts filtre par rôle (procédure pro/admin/direction/PDG)",
+        "routers/rentalContracts.ts filtre par rôle (procédure pro/admin/direction/PDG)"
       ],
       "redirection": [
         "client/src/pages/SeoLandingPage.tsx embarque lib/redirect.tsx (trpc.redirectionEngine)"
@@ -11647,7 +11651,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/location/mes-candidatures"
         ],
-        "cliquables": 4,
+        "cliquables": 5,
         "parMoteur": 0,
         "sansAction": 0,
         "textes": 15,
@@ -11674,21 +11678,31 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/RenouvellementFlotte.tsx",
+        "route": "/louer/renouvellement-flotte",
+        "composants": [
+          "trpc.rentalContracts"
+        ]
+      },
+      {
         "fichier": "client/src/pages/Admin.tsx",
         "route": "/admin/*",
         "composants": [
           "trpc.lavage",
           "trpc.karting",
-          "trpc.rentalApplications"
+          "trpc.rentalApplications",
+          "trpc.rentalContracts"
         ]
       }
     ],
     "procedures": [
       "create",
+      "createContract",
       "decide",
       "detail",
       "list",
       "mine",
+      "myContracts",
       "payDeposit",
       "submit",
       "updateStep"
@@ -11883,6 +11897,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/LocationPro.tsx embarque lib/currency.tsx (trpc.currency)"
       ],
       "location": [
+        "client/src/pages/RenouvellementFlotte.tsx appelle trpc.rentalContracts",
         "client/src/pages/location/CandidatureLocationFlotte.tsx appelle trpc.rentalApplications"
       ]
     },
@@ -11962,11 +11977,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/renouvellement-flotte"
         ],
-        "cliquables": 4,
+        "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 3,
-        "textes": 15,
-        "mots": 56
+        "sansAction": 0,
+        "textes": 8,
+        "mots": 46
       },
       {
         "fichier": "client/src/pages/ScoreQualiteLoueur.tsx",
@@ -12116,8 +12131,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 350,
-    "mots": 1403,
+    "textes": 343,
+    "mots": 1393,
     "battement": "sonde",
     "manques": [
       {
@@ -12143,18 +12158,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Demander un devis flotte » client/src/pages/LocationPro.tsx:611"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Renouveler avec ce véhicule » client/src/pages/RenouvellementFlotte.tsx:82"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Voir » client/src/pages/RenouvellementFlotte.tsx:83"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Renouveler toute ma flotte » client/src/pages/RenouvellementFlotte.tsx:92"
       },
       {
         "genre": "ecran_sans_contenu",

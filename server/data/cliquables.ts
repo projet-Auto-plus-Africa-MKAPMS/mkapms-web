@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2562;
+export const CLIQUABLES_TOTAL = 2561;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -487,7 +487,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/Livraison.tsx", total: 2, moteur: 1, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/LivraisonVehicule.tsx", total: 7, moteur: 7, liens: 0, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/location/CandidatureLocationFlotte.tsx", total: 6, moteur: 0, liens: 2, boutonsLocaux: 4, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/location/MesCandidaturesLocation.tsx", total: 4, moteur: 0, liens: 3, boutonsLocaux: 1, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/location/MesCandidaturesLocation.tsx", total: 5, moteur: 0, liens: 4, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/LocationCamions.tsx", total: 5, moteur: 0, liens: 2, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/LocationLOA.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/LocationMinibus.tsx", total: 7, moteur: 0, liens: 2, boutonsLocaux: 5, sansAction: 0, zones: 0 },
@@ -587,7 +587,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/recrutement/RechercheTalents.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/RedirectionEngine/ControlCenter.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/RemplacementVehicule.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 3, zones: 0 },
-  { fichier: "client/src/pages/RenouvellementFlotte.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 3, zones: 0 },
+  { fichier: "client/src/pages/RenouvellementFlotte.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/RenouvellementLocation.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 2, zones: 0 },
   { fichier: "client/src/pages/RepriseVehicule.tsx", total: 5, moteur: 0, liens: 2, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/ReservationMulti.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 1, zones: 0 },
@@ -770,9 +770,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/RemplacementVehicule.tsx", ligne: 65, genre: "bouton", libelle: "+ Ajouter des photos", motif: "sans_action" },
   { fichier: "client/src/pages/RemplacementVehicule.tsx", ligne: 68, genre: "bouton", libelle: "Envoyer la demande", motif: "sans_action" },
   { fichier: "client/src/pages/RemplacementVehicule.tsx", ligne: 106, genre: "bouton", libelle: "Accepter", motif: "sans_action" },
-  { fichier: "client/src/pages/RenouvellementFlotte.tsx", ligne: 82, genre: "bouton", libelle: "Renouveler avec ce véhicule", motif: "sans_action" },
-  { fichier: "client/src/pages/RenouvellementFlotte.tsx", ligne: 83, genre: "bouton", libelle: "Voir", motif: "sans_action" },
-  { fichier: "client/src/pages/RenouvellementFlotte.tsx", ligne: 92, genre: "bouton", libelle: "Renouveler toute ma flotte", motif: "sans_action" },
   { fichier: "client/src/pages/RenouvellementLocation.tsx", ligne: 126, genre: "bouton", libelle: "Prolonger ma location", motif: "sans_action" },
   { fichier: "client/src/pages/RenouvellementLocation.tsx", ligne: 171, genre: "bouton", libelle: "Confirmer le retrait / retour", motif: "sans_action" },
   { fichier: "client/src/pages/ReservationMulti.tsx", ligne: 97, genre: "bouton", libelle: "Réserver véhicules", motif: "sans_action" },
