@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 510;
+export const MANQUES_TOTAL = 508;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 78,
+  "bouton_sans_action": 76,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -3071,11 +3071,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/journal-activite"
         ],
-        "cliquables": 5,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 31,
-        "mots": 130
+        "sansAction": 0,
+        "textes": 22,
+        "mots": 106
       },
       {
         "fichier": "client/src/pages/superadmin/AdminJournal.tsx",
@@ -3103,18 +3103,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "public"
     ],
-    "textes": 35,
-    "mots": 138,
+    "textes": 26,
+    "mots": 114,
     "battement": "pont_os",
     "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Imprimer » client/src/pages/JournalActivite.tsx:212"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« PDF » client/src/pages/JournalActivite.tsx:215"
-      },
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/superadmin/AdminJournal.tsx (4 texte(s))"
@@ -5869,6 +5861,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/ComptaDirigeant.tsx",
         "route": "/compta-dirigeant",
+        "composants": [
+          "trpc.admin"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/JournalActivite.tsx",
+        "route": "/journal-activite",
         "composants": [
           "trpc.admin"
         ]
