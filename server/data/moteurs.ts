@@ -960,7 +960,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "fichier": "client/src/pages/VehiculesCertifies.tsx",
         "route": "/louer/certifies",
         "composants": [
-          "components/ReserverLocationButton.tsx"
+          "components/ReserverLocationButton.tsx",
+          "trpc.annonces"
         ]
       },
       {
@@ -22861,6 +22862,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
+        "client/src/pages/VehiculesCertifies.tsx appelle trpc.annonces",
         "client/src/pages/VehiculesCertifies.tsx embarque components/ReserverLocationButton.tsx (trpc.reservations)"
       ],
       "core": [
@@ -22921,8 +22923,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 1,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 19,
-        "mots": 65
+        "textes": 16,
+        "mots": 55
       }
     ],
     "ecransHotes": [],
@@ -22951,8 +22953,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 57,
-    "mots": 203,
+    "textes": 54,
+    "mots": 193,
     "battement": "sonde",
     "manques": []
   },
