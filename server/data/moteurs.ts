@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 504;
+export const MANQUES_TOTAL = 503;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 71,
+  "bouton_sans_action": 70,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
@@ -11685,6 +11685,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/TableauBordLoueur.tsx",
+        "route": "/louer/tableau-bord-loueur",
+        "composants": [
+          "trpc.rentalContracts"
+        ]
+      },
+      {
         "fichier": "client/src/pages/Admin.tsx",
         "route": "/admin/*",
         "composants": [
@@ -11703,6 +11710,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "list",
       "mine",
       "myContracts",
+      "myLoueurStats",
       "payDeposit",
       "submit",
       "updateStep"
@@ -11898,6 +11906,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "location": [
         "client/src/pages/RenouvellementFlotte.tsx appelle trpc.rentalContracts",
+        "client/src/pages/TableauBordLoueur.tsx appelle trpc.rentalContracts",
         "client/src/pages/location/CandidatureLocationFlotte.tsx appelle trpc.rentalApplications"
       ]
     },
@@ -12010,11 +12019,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/tableau-bord-loueur"
         ],
-        "cliquables": 2,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 15,
-        "mots": 45
+        "sansAction": 0,
+        "textes": 12,
+        "mots": 43
       },
       {
         "fichier": "client/src/pages/entreprises/CentreCarburant.tsx",
@@ -12131,8 +12140,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 343,
-    "mots": 1393,
+    "textes": 340,
+    "mots": 1391,
     "battement": "sonde",
     "manques": [
       {
@@ -12162,10 +12171,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/SectionAccueil.tsx (4 texte(s))"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Vérifier » client/src/pages/TableauBordLoueur.tsx:81"
       },
       {
         "genre": "ecran_sans_contenu",
