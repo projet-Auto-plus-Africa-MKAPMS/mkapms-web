@@ -30,6 +30,27 @@ export interface PerimetreDeclare {
   sourcesBus?: string[];
 }
 
+/**
+ * Routeurs tRPC réellement appelés par ce moteur mais possédés par un autre
+ * (infrastructure partagée — ex. un simple filtre du catalogue "annonces").
+ * Jamais dans `routeurs` ci-dessus : gen-moteurs.mjs impose un routeur = un
+ * seul moteur propriétaire, et ces moteurs n'en possèdent aucun en propre.
+ * Sert uniquement à l'audit d'activation (server/activation-audit/service.ts)
+ * pour ne pas signaler « aucune procédure tRPC ne l'expose » alors qu'une
+ * vraie procédure existe bel et bien, juste pas sous son propre nom.
+ */
+export const ROUTEURS_PARTAGES: Record<string, string[]> = {
+  achat_officiel: ["annonces"],
+  achat_pro: ["annonces"],
+  achat_particulier: ["annonces"],
+  vente: ["annonces"],
+  vente_pro: ["kyc", "pro"],
+  vente_particulier: ["annonces"],
+  location_pro: ["annonces"],
+  location_particulier: ["annonces"],
+  controle_technique: ["devis"],
+};
+
 export const PERIMETRES: PerimetreDeclare[] = [
   // ── Core & registre ────────────────────────────────────────────────────
   {
@@ -446,10 +467,14 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/acheter/depot-annonce", "/acheter/mes-annonces", "/vente/mes-annonces"],
   },
   {
+    // Tâche #56 : rentalApplications (server/schema.ts) existait dans le
+    // schéma depuis toujours (candidature/qualification de location flotte,
+    // caution incluse) mais aucun routeur ne le touchait. Réutilisé tel
+    // quel par routers/rentalApplications.ts, jamais une seconde table.
     moteur: "location",
-    dossiers: [],
-    routeurs: ["lavage", "karting"],
-    routes: ["/location/:slug", "/louer", "/louer/vtc-taxi", "/louer/vtc-taxi/*", "/louer/camions", "/louer/camions/*", "/louer/minibus", "/louer/minibus/*", "/louer/utilitaires", "/louer/utilitaires/*", "/louer/mkapms", "/louer/mkapms/*", "/louer/loa", "/louer/comparateur", "/louer/favoris", "/louer/historique", "/louer/calendrier", "/louer/liste-attente", "/louer/penalites", "/louer/remplacement", "/louer/renouvellement", "/louer/multi-vehicules", "/louer/reservations-recurrentes", "/louer/score-confiance", "/louer/programme-vtc", "/superadmin/admin-location", "/vtc-taxi", "/location-*"],
+    dossiers: ["routers/rentalApplications.ts", "routers/rentalContracts.ts"],
+    routeurs: ["lavage", "karting", "rentalApplications", "rentalContracts"],
+    routes: ["/location/:slug", "/location/mes-candidatures", "/louer", "/louer/vtc-taxi", "/louer/vtc-taxi/*", "/louer/camions", "/louer/camions/*", "/louer/minibus", "/louer/minibus/*", "/louer/utilitaires", "/louer/utilitaires/*", "/louer/mkapms", "/louer/mkapms/*", "/louer/loa", "/louer/comparateur", "/louer/favoris", "/louer/historique", "/louer/calendrier", "/louer/liste-attente", "/louer/penalites", "/louer/remplacement", "/louer/renouvellement", "/louer/multi-vehicules", "/louer/reservations-recurrentes", "/louer/score-confiance", "/louer/programme-vtc", "/superadmin/admin-location", "/vtc-taxi", "/location-*"],
   },
   {
     // Vérifié : catalogue location filtré profil pro
@@ -561,9 +586,13 @@ export const PERIMETRES: PerimetreDeclare[] = [
     routes: ["/carte-grise", "/carte-grise/*", "/demarches", "/demarches/*", "/superadmin/admin-demarches"],
   },
   {
-    // Manque réel, pas un défaut de déclaration : les 3 écrans
-    // (garage/ControleTechnique.tsx, EtatVehicule.tsx, InspectionNumerique.tsx)
-    // n'appellent aucune procédure tRPC — aucun backend n'existe encore.
+    // Manque réel PARTIEL : garage/ControleTechnique.tsx appelle bien
+    // trpc.devis.mine (demandes de RDV contrôle technique, honnêtement
+    // affichées sans jamais fabriquer un statut CT officiel — MKA.P-MS n'a
+    // pas accès à un registre gouvernemental). Voir ROUTEURS_PARTAGES.
+    // EtatVehicule.tsx et InspectionNumerique.tsx, eux, n'appellent
+    // toujours aucune procédure tRPC : aucun backend n'existe encore pour
+    // l'état des lieux départ/retour ni la checklist d'inspection.
     moteur: "controle_technique",
     dossiers: [],
     routeurs: [],

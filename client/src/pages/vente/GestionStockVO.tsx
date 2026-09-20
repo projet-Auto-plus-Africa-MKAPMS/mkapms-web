@@ -9,6 +9,7 @@ import {
   Eye,
   FileText,
   FileSignature,
+  Camera,
   Plus,
 } from "lucide-react";
 import { trpc } from "../../lib/trpc";
@@ -154,7 +155,14 @@ export default function GestionStockVO() {
               </button>
               {selectedVeh === v.id && (
                 <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-3 bg-slate-50/50 space-y-2">
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-5 gap-2">
+                    <Link
+                      to={`/vente/photos/${v.id}`}
+                      className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-[#E5E7EB] active:scale-[0.97] transition"
+                    >
+                      <Camera size={16} className="text-blue-600" />
+                      <span className="text-[9px] font-bold text-[#111]">Photos</span>
+                    </Link>
                     <Link
                       to={`/vente/workflow/${v.id}`}
                       className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white border border-[#E5E7EB] active:scale-[0.97] transition"

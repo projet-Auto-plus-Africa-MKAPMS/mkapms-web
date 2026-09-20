@@ -582,7 +582,16 @@ async function bootstrap() {
       }
     }
     void smartAutoWork();
-    setInterval(() => void smartAutoWork(), 6 * 60 * 60 * 1000);
+    // Point critique (demande direction) : un scan toutes les 6 h laissait un
+    // bouton/redirection cassé visible bien trop longtemps avant sa première
+    // tentative de réparation automatique. Les cas les plus fréquents (clic
+    // réel sur un bouton sans règle, 404 réelle) sont désormais réparés
+    // immédiatement au premier signalement (voir redirection-engine/service.ts
+    // resolveKey/resolvePath) ; ce scan périodique reste nécessaire pour le
+    // reste (rejouer une recette supprimée par erreur, boutons fantômes
+    // détectés en CI, bilans de santé) — rapproché à 30 min pour que la
+    // direction ne découvre plus un problème critique des heures après coup.
+    setInterval(() => void smartAutoWork(), 30 * 60 * 1000);
   }
   app.listen(env.PORT, "0.0.0.0", () => {
     console.log(`[MKA.P-MS] serveur démarré sur le port ${env.PORT} (${env.NODE_ENV})`);

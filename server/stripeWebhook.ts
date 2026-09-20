@@ -12,7 +12,9 @@ import {
   partsOrderTracking,
   wallets,
   payouts as ledgerPayouts,
+  rentalApplications,
 } from "./schema.js";
+import { cgDossiers, cgEtapes } from "./modules/cartegrise.js";
 import { notifications } from "./modules/core.js";
 import { getStripe } from "./lib/stripe.js";
 import { getPlan } from "@shared/plans.js";
@@ -63,6 +65,68 @@ async function superviserPaiement(opts: {
   } catch (err) {
     console.error("[payment] journal Smart Engine échoué:", (err as Error).message);
   }
+}
+
+/**
+ * Confirmation réelle d'un paiement de frais de dossier carte grise.
+ * Idempotent : Stripe peut redélivrer le même événement (retry réseau, rejeu
+ * manuel depuis le dashboard) — sans ce garde, chaque redélivrance ajouterait
+ * une nouvelle étape "Paiement reçu" en double dans l'historique du dossier
+ * et renotifierait le client. On ne traite que si le dossier n'est pas déjà
+ * passé par cette transition précise. Exportée pour être vérifiable
+ * directement par un test, sans dépendre d'une signature Stripe simulée.
+ */
+export async function confirmerPaiementCarteGrise(dossierId: number, userId: number | null): Promise<boolean> {
+  const [dossierActuel] = await db.select({ status: cgDossiers.status }).from(cgDossiers).where(eq(cgDossiers.id, dossierId)).limit(1);
+  if (!dossierActuel || dossierActuel.status === "en_traitement") return false;
+  await db
+    .update(cgDossiers)
+    .set({ status: "en_traitement", updatedAt: new Date() })
+    .where(eq(cgDossiers.id, dossierId));
+  await db.insert(cgEtapes).values({
+    dossierId,
+    status: "en_traitement",
+    statusLabel: "Paiement reçu — dossier en traitement",
+  });
+  await superviserPaiement({
+    userId,
+    title: "Paiement carte grise confirmé",
+    body: "Votre paiement a été reçu : votre dossier est maintenant en traitement.",
+    url: `/demarches/messagerie-demarches/${dossierId}`,
+    action: "cg_dossier_paid",
+    targetType: "cg_dossier",
+    targetId: dossierId,
+  });
+  return true;
+}
+
+/**
+ * Confirmation réelle du paiement d'un acompte de candidature de location
+ * flotte. Le champ schéma s'appelle depositAmount/depositPaid, mais le
+ * mécanisme réel (server/payment-engine/checkout.ts, mode "payment", aucune
+ * capture manuelle) est un encaissement immédiat — jamais une simple
+ * autorisation bancaire bloquée puis libérée. Le texte utilisateur dit donc
+ * "acompte", jamais "caution", pour ne pas laisser croire à un blocage
+ * réversible. Idempotent (voir confirmerPaiementCarteGrise ci-dessus) : ne
+ * traite que si l'acompte n'est pas déjà marqué payé.
+ */
+export async function confirmerCautionLocation(applicationId: number, userId: number | null): Promise<boolean> {
+  const [candidatureActuelle] = await db.select({ depositPaid: rentalApplications.depositPaid }).from(rentalApplications).where(eq(rentalApplications.id, applicationId)).limit(1);
+  if (!candidatureActuelle || candidatureActuelle.depositPaid) return false;
+  await db
+    .update(rentalApplications)
+    .set({ depositPaid: true, status: "paid", updatedAt: new Date() })
+    .where(eq(rentalApplications.id, applicationId));
+  await superviserPaiement({
+    userId,
+    title: "Acompte de location reçu",
+    body: "Votre acompte a été encaissé : votre demande de location est confirmée.",
+    url: "/location/mes-candidatures",
+    action: "rental_deposit_paid",
+    targetType: "rental_application",
+    targetId: applicationId,
+  });
+  return true;
 }
 
 // Webhook Stripe — monté AVANT express.json() avec express.raw().
@@ -213,6 +277,21 @@ export async function handleStripeWebhook(req: Request, res: Response) {
             targetType: "parts_order",
             targetId: orderId,
           });
+        }
+        // Frais de dossier carte grise : le paiement fait réellement avancer
+        // le dossier. Gap découvert lors du chantier location (tâche #56) —
+        // payerDossier (server/routers/cartegrise.ts) crée bien un vrai
+        // checkout Stripe depuis PR #407, mais aucun gestionnaire ici ne
+        // faisait jamais avancer le dossier à la confirmation du paiement :
+        // il restait indéfiniment à son statut d'avant paiement.
+        if (m.payment_kind === "carte_grise_service" && m.dossierId) {
+          await confirmerPaiementCarteGrise(Number(m.dossierId), userId);
+        }
+        // Acompte de candidature de location flotte (tâche #56) :
+        // le paiement fait réellement passer la candidature au statut payé,
+        // jamais une simple redirection sans effet en base.
+        if (m.payment_kind === "rental_deposit" && m.applicationId) {
+          await confirmerCautionLocation(Number(m.applicationId), userId);
         }
         // Boost annonce
         if (session.mode === "payment" && m.annonce_id && planCode) {

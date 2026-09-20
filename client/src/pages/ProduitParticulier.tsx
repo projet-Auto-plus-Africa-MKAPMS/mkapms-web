@@ -183,12 +183,12 @@ export default function ProduitParticulier() {
 
   /* ── Prix calculés (6 paliers) ── */
   const PRICE_TIERS = [
-    { label: "Jour", value: VEHICLE.prixJour },
-    { label: "3 Jours", value: Math.round(VEHICLE.prixJour * 2.7) },
-    { label: "Semaine", value: VEHICLE.prixSemaine },
-    { label: "2 Sem.", value: Math.round(VEHICLE.prixSemaine * 1.8) },
-    { label: "Mois", value: VEHICLE.prixMois },
-    { label: "3 Mois", value: Math.round(VEHICLE.prixMois * 2.7) },
+    { label: "Jour", value: VEHICLE.prixJour, jours: 1 },
+    { label: "3 Jours", value: Math.round(VEHICLE.prixJour * 2.7), jours: 3 },
+    { label: "Semaine", value: VEHICLE.prixSemaine, jours: 7 },
+    { label: "2 Sem.", value: Math.round(VEHICLE.prixSemaine * 1.8), jours: 14 },
+    { label: "Mois", value: VEHICLE.prixMois, jours: 30 },
+    { label: "3 Mois", value: Math.round(VEHICLE.prixMois * 2.7), jours: 90 },
   ];
 
   const resvRef = useRef<HTMLDivElement>(null);
@@ -300,6 +300,13 @@ export default function ProduitParticulier() {
               <div className="grid grid-cols-3 gap-2">
                 {PRICE_TIERS.map((tier, i) => (
                   <button key={tier.label}
+                    onClick={() => {
+                      const debut = new Date(dateDebut);
+                      const fin = new Date(debut);
+                      fin.setDate(debut.getDate() + tier.jours);
+                      setDateFin(fmt(fin));
+                      scrollToResv();
+                    }}
                     className={`rounded-lg p-3 text-center transition hover:scale-[1.03] active:scale-[0.97] ${
                       i >= 4 ? "bg-[#D4AF37]/10 border border-[#D4AF37]/30" : "bg-[#F5F3EF]"
                     }`}

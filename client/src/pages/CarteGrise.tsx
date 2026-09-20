@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../lib/auth";
 
@@ -162,6 +163,11 @@ function MesDossiers() {
             {d.acheteurNom && <div><span className="text-[#6B7280]">Acheteur :</span> {d.acheteurNom}</div>}
           </div>
           <div className="mt-2 text-xs text-[#9CA3AF]">Créé le {new Date(d.dateCreation).toLocaleDateString("fr-FR")}</div>
+          <div className="mt-3 flex gap-2 border-t border-[#F3F4F6] pt-3">
+            <Link to={`/demarches/messagerie-demarches/${d.id}`} className="flex-1 rounded-lg border border-[#E5E7EB] py-2 text-center text-xs font-semibold text-[#6B7280] hover:bg-[#F5F3EF]">Suivi</Link>
+            <Link to={`/demarches/signatures-electroniques/${d.id}`} className="flex-1 rounded-lg border border-[#E5E7EB] py-2 text-center text-xs font-semibold text-[#6B7280] hover:bg-[#F5F3EF]">Documents</Link>
+            <Link to={`/demarches/paiement-demarches/${d.id}`} className="flex-1 rounded-lg border border-[#E5E7EB] py-2 text-center text-xs font-semibold text-[#6B7280] hover:bg-[#F5F3EF]">Paiement</Link>
+          </div>
         </div>
       ))}
     </div>

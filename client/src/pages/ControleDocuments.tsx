@@ -148,12 +148,18 @@ export default function ControleDocuments() {
       </div>
 
       <div className="px-4 mt-6">
-        <button
-          className={`w-full rounded-xl py-4 text-base font-extrabold text-white transition ${peutContinuer ? "bg-[#D4AF37] active:scale-[0.98] shadow-lg" : "bg-[#D4D4D4]"}`}
-          disabled={!peutContinuer}
-        >
-          {peutContinuer ? "Continuer vers la réservation" : "Vérifications incomplètes"}
-        </button>
+        {peutContinuer ? (
+          <Link
+            to="/louer"
+            className="block w-full rounded-xl py-4 text-center text-base font-extrabold text-white transition bg-[#D4AF37] active:scale-[0.98] shadow-lg"
+          >
+            Continuer vers la réservation
+          </Link>
+        ) : (
+          <button className="w-full rounded-xl py-4 text-base font-extrabold text-white transition bg-[#D4D4D4]" disabled>
+            Vérifications incomplètes
+          </button>
+        )}
       </div>
     </div>
   );

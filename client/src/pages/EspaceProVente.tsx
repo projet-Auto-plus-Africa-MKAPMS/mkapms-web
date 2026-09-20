@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
-import { ChevronLeft, Building2, Star, Users, BarChart3, Package, Shield, ChevronRight, Check, Eye } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ChevronLeft, Building2, Star, Users, BarChart3, Package, Shield, Eye, Check } from "lucide-react";
+import { useCurrency } from "../lib/currency";
+import { getPlansByCategory } from "@shared/plans";
 
 const AVANTAGES = [
   { label: "Visibilité premium", desc: "Vos annonces mises en avant auprès de milliers d'acheteurs", icon: Eye },
@@ -10,14 +12,17 @@ const AVANTAGES = [
   { label: "Facturation auto", desc: "Factures et TVA générées automatiquement", icon: Star },
 ];
 
-const ABONNEMENTS = [
-  { nom: "Pro Start", prix: 29, annonces: 10, photos: 5, options: ["Badge pro", "Messagerie"] },
-  { nom: "Pro Premium", prix: 79, annonces: 50, photos: 15, options: ["Badge pro", "Messagerie", "Stats", "Boost x2"] },
-  { nom: "Pro Elite", prix: 149, annonces: 200, photos: 30, options: ["Badge pro", "Messagerie", "Stats", "Boost x5", "Multi-employés", "API"] },
-  { nom: "Pro Business", prix: 299, annonces: -1, photos: 50, options: ["Tout inclus", "Illimité", "Conseiller dédié", "API", "Multi-sites"] },
-];
+/**
+ * Les tarifs affichés ici doivent être ceux réellement facturés (Stripe lit
+ * @shared/plans, pas cette page) : un catalogue local aurait pu diverger en
+ * silence, comme c'était le cas avant (29/79/149/299 € affichés ici alors que
+ * les offres réelles sont à 49/89/149/249 €).
+ */
+const ABONNEMENTS = getPlansByCategory("pro_vente");
 
 export default function EspaceProVente() {
+  const navigate = useNavigate();
+  const { format: formatPrice } = useCurrency();
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-blue-800 px-4 pt-6 pb-5">
@@ -39,15 +44,28 @@ export default function EspaceProVente() {
         <h2 className="text-base font-bold text-[#111]">Abonnements Vente</h2>
         <div className="mt-3 space-y-3">
           {ABONNEMENTS.map((a, i) => (
-            <div key={a.nom} className={`rounded-xl bg-white border-2 overflow-hidden ${i === 1 ? "border-blue-600" : "border-[#E5E7EB]"}`}>
-              {i === 1 && <div className="bg-blue-600 px-3 py-1 text-center text-[10px] font-bold text-white">Le plus populaire</div>}
+            <div key={a.code} className={`rounded-xl bg-white border-2 overflow-hidden ${a.highlight ? "border-blue-600" : "border-[#E5E7EB]"}`}>
+              {a.highlight && <div className="bg-blue-600 px-3 py-1 text-center text-[10px] font-bold text-white">Le plus populaire</div>}
               <div className="p-4">
-                <div className="flex items-center justify-between"><h3 className="text-sm font-bold text-[#111]">{a.nom}</h3><span className="text-lg font-black text-blue-800">{a.prix} €<span className="text-xs font-normal text-[#6B7280]">/mois</span></span></div>
-                <div className="mt-2 flex gap-3 text-[10px] text-[#6B7280]"><span>{a.annonces === -1 ? "Illimité" : a.annonces} annonces</span><span>{a.photos} photos/annonce</span></div>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {a.options.map((o) => (<span key={o} className="inline-flex items-center gap-0.5 rounded-full bg-blue-50 px-2 py-0.5 text-[8px] font-semibold text-blue-700"><Check size={8} /> {o}</span>))}
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-[#111]">{a.label}</h3>
+                  <span className="text-lg font-black text-blue-800">
+                    {a.priceEur == null ? "Sur devis" : <>{formatPrice(a.priceEur)}<span className="text-xs font-normal text-[#6B7280]">/mois</span></>}
+                  </span>
                 </div>
-                <button className={`mt-3 w-full rounded-xl py-2.5 text-sm font-bold text-white active:scale-[0.98] transition ${i === 1 ? "bg-blue-600" : "bg-blue-800"}`}>Choisir {a.nom}</button>
+                <div className="mt-2 flex gap-3 text-[10px] text-[#6B7280]">
+                  <span>{a.quotas.maxAnnonces == null ? "Illimité" : a.quotas.maxAnnonces} annonces</span>
+                  {a.quotas.maxPhotos != null && <span>{a.quotas.maxPhotos} photos/annonce</span>}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {a.features.slice(0, 4).map((o) => (<span key={o} className="inline-flex items-center gap-0.5 rounded-full bg-blue-50 px-2 py-0.5 text-[8px] font-semibold text-blue-700"><Check size={8} /> {o}</span>))}
+                </div>
+                <button
+                  onClick={() => navigate(`/abonnements?categorie=pro_vente`)}
+                  className={`mt-3 w-full rounded-xl py-2.5 text-sm font-bold text-white active:scale-[0.98] transition ${i === 1 ? "bg-blue-600" : "bg-blue-800"}`}
+                >
+                  Choisir {a.label}
+                </button>
               </div>
             </div>
           ))}

@@ -1,36 +1,27 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { trpc } from "../lib/trpc";
 import {
-  ChevronLeft, ChevronRight, Search, MapPin, Calendar, Bus,
-  Shield, Lock, Headphones, FileCheck, ChevronDown,
-  Rocket, Ban, ArrowRight, Users, Heart,
-  Building2, Gauge, Star
+  ChevronLeft, ChevronRight, Search, MapPin, Bus,
+  Shield, Lock, Headphones, ChevronDown,
+  Rocket, Ban, ArrowRight, Users, Heart, Building2, Star,
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════
-   PAGE LISTING MINIBUS
+   PAGE LISTING MINIBUS (/louer/minibus)
+   Affichait un catalogue de 8 minibus entièrement fabriqués (ids
+   7001-7008, prix inventés), des sous-catégories à compteurs inventés
+   ("8 véhicules"...), et un bouton "Rechercher" sans aucun gestionnaire de
+   clic. Aucune requête réelle n'existait — contrairement à
+   LocationUtilitaires.tsx/LocationCamions.tsx qui interrogeaient déjà
+   trpc.annonces.list.
+   Il n'existe aucune valeur "minibus" dans categorieEnum côté serveur
+   (citadine/berline/break/suv/coupe/cabriolet/monospace/utilitaire/camion/
+   moto/scooter/quad/luxe/autre) : plutôt que d'approximer avec une
+   catégorie inexacte (fabrication déguisée), le filtre réel utilisé ici est
+   le nombre de places (annonces.places, champ réel à correspondance
+   exacte), bien plus pertinent pour un minibus que sa carrosserie.
    ══════════════════════════════════════════════════════════════════════════ */
-
-const CATEGORIES = [
-  { titre: "7 places", modeles: ["Sharan", "Espace", "Galaxy"], photo: "/categories/minibus_7pl.jpg", count: 8 },
-  { titre: "8 places", modeles: ["Caravelle", "V-Class", "Multivan"], photo: "/categories/minibus_8pl.jpg", count: 12 },
-  { titre: "9 places", modeles: ["Sprinter", "Transporter", "Transit"], photo: "/categories/minibus_9pl.jpg", count: 10 },
-  { titre: "12 places", modeles: ["Master 12pl", "Daily 12pl", "Boxer 12pl"], photo: "/categories/minibus_12pl.jpg", count: 7 },
-  { titre: "17 places", modeles: ["Sprinter 17pl", "Master 17pl", "Transit 17pl"], photo: "/categories/minibus_17pl.jpg", count: 5 },
-  { titre: "Minibus Premium", modeles: ["V-Class VIP", "Sprinter Tourer", "Caravelle Highline"], photo: "/categories/minibus_premium.jpg", count: 6 },
-  { titre: "Minibus Électrique", modeles: ["ID.Buzz", "e-Sprinter", "e-Transit"], photo: "/categories/minibus_electrique.jpg", count: 4 },
-];
-
-const VEHICULES = [
-  { id: 7001, titre: "Volkswagen Caravelle 8pl", annee: 2024, places: 8, boite: "Automatique", prixJour: 95, prixSemaine: 570, prixMois: 2200, photo: "/categories/loc_cover_minibus.jpg", categorie: "8 places" },
-  { id: 7002, titre: "Mercedes Classe V 8pl", annee: 2024, places: 8, boite: "Automatique", prixJour: 120, prixSemaine: 720, prixMois: 2800, photo: "/categories/vtc_minivan.jpg", categorie: "8 places Premium" },
-  { id: 7003, titre: "Mercedes Sprinter 9pl", annee: 2024, places: 9, boite: "Automatique", prixJour: 110, prixSemaine: 660, prixMois: 2500, photo: "/categories/loc_cover_minibus.jpg", categorie: "9 places" },
-  { id: 7004, titre: "Volkswagen Transporter 9pl", annee: 2023, places: 9, boite: "Manuelle", prixJour: 90, prixSemaine: 540, prixMois: 2100, photo: "/categories/vtc_minivan.jpg", categorie: "9 places" },
-  { id: 7005, titre: "Ford Transit 9pl", annee: 2024, places: 9, boite: "Manuelle", prixJour: 85, prixSemaine: 510, prixMois: 1950, photo: "/categories/loc_cover_minibus.jpg", categorie: "9 places" },
-  { id: 7006, titre: "Renault Master 12pl", annee: 2023, places: 12, boite: "Manuelle", prixJour: 130, prixSemaine: 780, prixMois: 3000, photo: "/categories/vtc_minivan.jpg", categorie: "12-17 places" },
-  { id: 7007, titre: "Mercedes Sprinter 17pl", annee: 2024, places: 17, boite: "Automatique", prixJour: 160, prixSemaine: 960, prixMois: 3700, photo: "/categories/loc_cover_minibus.jpg", categorie: "12-17 places" },
-  { id: 7008, titre: "Mercedes V-Class VIP", annee: 2024, places: 7, boite: "Automatique", prixJour: 180, prixSemaine: 1080, prixMois: 4200, photo: "/categories/vtc_minivan.jpg", categorie: "Premium" },
-];
 
 const OCCASIONS = [
   { label: "Mariage", icon: Heart },
@@ -57,21 +48,19 @@ const FAQ = [
   { q: "Location avec chauffeur ?", a: "Option disponible sur demande pour les minibus de plus de 9 places." },
 ];
 
-const TYPE_FILTER = ["Tous", "8 places", "9 places", "12-17 places", "Premium"];
+const PLACES_FILTER = [7, 8, 9, 12, 17];
 
 export default function LocationMinibus() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [lieu, setLieu] = useState("");
-  const [dateDebut, setDateDebut] = useState("");
-  const [dateRetour, setDateRetour] = useState("");
-  const [filtre, setFiltre] = useState("Tous");
-  const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const [rechercheLieu, setRechercheLieu] = useState("");
+  const [placesFiltre, setPlacesFiltre] = useState<number | null>(null);
 
-  const filteredVehicules = VEHICULES.filter((v) => {
-    if (selectedCat && v.categorie !== selectedCat) return false;
-    if (filtre === "Tous") return true;
-    return v.categorie.includes(filtre);
-  });
+  const realAnnonces = trpc.annonces.list.useQuery(
+    { type: "location", places: placesFiltre ?? undefined, ville: rechercheLieu || undefined, limit: 24 },
+    { retry: false },
+  );
+  const annoncesTrouvees = realAnnonces.data?.items ?? [];
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
@@ -95,39 +84,29 @@ export default function LocationMinibus() {
         </div>
       </div>
 
-      {/* BARRE DE RECHERCHE */}
+      {/* BARRE DE RECHERCHE — lieu + nombre de places réels */}
       <div id="search-mini" className="mx-4 -mt-4 relative z-10 rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-md">
-        <div className="space-y-3">
-          <div>
-            <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Lieu de retrait</label>
-            <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
-              <MapPin size={14} className="text-red-500 shrink-0" />
-              <input type="text" placeholder="Ville, gare, aéroport…" value={lieu} onChange={(e) => setLieu(e.target.value)} className="w-full bg-transparent text-sm text-[#111] placeholder:text-[#9CA3AF] outline-none" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Date départ</label>
-              <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
-                <Calendar size={14} className="text-[#D4AF37] shrink-0" />
-                <input type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} className="w-full bg-transparent text-sm text-[#111] outline-none" />
-              </div>
-            </div>
-            <div>
-              <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Date retour</label>
-              <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
-                <Calendar size={14} className="text-[#D4AF37] shrink-0" />
-                <input type="date" value={dateRetour} onChange={(e) => setDateRetour(e.target.value)} className="w-full bg-transparent text-sm text-[#111] outline-none" />
-              </div>
-            </div>
-          </div>
-          <button className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md">
-            <Search size={16} /> Rechercher un minibus
-          </button>
+        <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Lieu de retrait</label>
+        <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
+          <MapPin size={14} className="text-red-500 shrink-0" />
+          <input type="text" placeholder="Ville, gare, aéroport…" value={lieu} onChange={(e) => setLieu(e.target.value)} className="w-full bg-transparent text-sm text-[#111] placeholder:text-[#9CA3AF] outline-none" />
         </div>
+        <label className="mt-3 block text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Nombre de places</label>
+        <div className="mt-1 flex gap-2 flex-wrap">
+          <button onClick={() => setPlacesFiltre(null)} className={`rounded-full px-3 py-1.5 text-xs font-bold ${placesFiltre === null ? "bg-[#D4AF37] text-white" : "bg-[#F5F3EF] text-[#111]"}`}>Toutes</button>
+          {PLACES_FILTER.map((p) => (
+            <button key={p} onClick={() => setPlacesFiltre(p)} className={`rounded-full px-3 py-1.5 text-xs font-bold ${placesFiltre === p ? "bg-[#D4AF37] text-white" : "bg-[#F5F3EF] text-[#111]"}`}>{p} places</button>
+          ))}
+        </div>
+        <button
+          onClick={() => setRechercheLieu(lieu)}
+          className="mt-3 w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md"
+        >
+          <Search size={16} /> Rechercher un minibus
+        </button>
       </div>
 
-      {/* OCCASIONS */}
+      {/* OCCASIONS — informatif, aucune donnée chiffrée */}
       <div className="px-4 mt-6">
         <h2 className="text-lg font-bold text-[#111]">Pour quelle occasion ?</h2>
         <div className="mt-3 flex gap-2 flex-wrap">
@@ -142,83 +121,30 @@ export default function LocationMinibus() {
         </div>
       </div>
 
-      {/* CATÉGORIES */}
+      {/* VÉHICULES — annonces réelles uniquement */}
       <div className="px-4 mt-6">
-        <h2 className="text-lg font-bold text-[#111]">Catégories minibus</h2>
-        <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {CATEGORIES.map((c) => (
-            <button key={c.titre} onClick={() => setSelectedCat(selectedCat === c.titre ? null : c.titre)} className={`shrink-0 w-[140px] md:w-[160px] lg:w-[180px] rounded-xl overflow-hidden border-2 transition active:scale-[0.98] ${selectedCat === c.titre ? "border-[#D4AF37] shadow-md ring-2 ring-[#D4AF37]/30" : "border-[#E5E7EB]"}`}>
-              <img src={c.photo} alt={c.titre} className="h-[80px] w-full object-cover" loading="lazy" />
-              <div className="p-2 bg-white">
-                <p className="text-xs font-bold text-[#111] truncate">{c.titre}</p>
-                <p className="text-[10px] text-[#6B7280]">{c.count} véhicules</p>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* FILTRES */}
-      <div className="px-4 mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        {TYPE_FILTER.map((f) => (
-          <button key={f} onClick={() => setFiltre(f)} className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition ${filtre === f ? "bg-[#D4AF37] text-white" : "bg-white border border-[#E5E7EB] text-[#6B7280]"}`}>
-            {f}
-          </button>
-        ))}
-      </div>
-
-      {/* VÉHICULES */}
-      <div className="px-4 mt-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold text-[#111]">Minibus disponibles</h2>
-          <span className="text-xs text-[#6B7280]">{filteredVehicules.length} résultat{filteredVehicules.length > 1 ? "s" : ""}</span>
+          {realAnnonces.isSuccess && <span className="text-xs text-[#6B7280]">{annoncesTrouvees.length} résultat{annoncesTrouvees.length > 1 ? "s" : ""}</span>}
         </div>
+        {realAnnonces.isLoading && <p className="text-sm text-[#6B7280]">Chargement…</p>}
+        {realAnnonces.isSuccess && annoncesTrouvees.length === 0 && (
+          <p className="rounded-xl bg-white border border-[#E5E7EB] p-4 text-center text-xs text-[#6B7280]">
+            Aucune annonce réelle de minibus ne correspond à cette recherche pour le moment.
+          </p>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredVehicules.map((v) => (
-            <Link key={v.id} to={`/louer/minibus/vehicule/${v.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden active:scale-[0.99] transition hover:shadow-lg">
-              <div className="relative h-[160px] md:h-[180px] lg:h-[200px]">
-                <img src={v.photo} alt={v.titre} className="w-full h-full object-cover" loading="lazy" />
-                <span className="absolute top-2 left-2 rounded-full bg-purple-700 px-2.5 py-0.5 text-[9px] font-bold text-white">{v.categorie}</span>
-                <span className="absolute top-2 right-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-[#111]">{v.places} places</span>
+          {annoncesTrouvees.map((a) => (
+            <Link key={a.id} to={`/louer/minibus/vehicule/${a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden active:scale-[0.99] transition hover:shadow-lg">
+              <div className="relative h-[160px] md:h-[180px] lg:h-[200px] bg-[#F5F3EF]">
+                {a.photoPrincipale && <img src={a.photoPrincipale} alt={a.titre ?? ""} className="w-full h-full object-cover" loading="lazy" />}
+                <span className="absolute top-2 right-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-[#111]">{a.places ? `${a.places} places` : ""}</span>
               </div>
               <div className="p-4">
-                <h3 className="text-base font-bold text-[#111]">{v.titre}</h3>
-                <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-[#6B7280]">
-                  <span className="flex items-center gap-1"><Calendar size={10} /> {v.annee}</span>
-                  <span className="flex items-center gap-1"><Users size={10} /> {v.places} places</span>
-                  <span className="flex items-center gap-1"><Gauge size={10} /> {v.boite}</span>
-                </div>
-                <div className="mt-3 relative">
-                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
-                      <p className="text-[9px] text-[#6B7280] uppercase">Jour</p>
-                      <p className="text-sm font-black text-[#111]">{v.prixJour} €</p>
-                    </div>
-                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
-                      <p className="text-[9px] text-[#6B7280] uppercase">3 Jours</p>
-                      <p className="text-sm font-black text-[#111]">{Math.round(v.prixJour * 2.7)} €</p>
-                    </div>
-                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
-                      <p className="text-[9px] text-[#6B7280] uppercase">Semaine</p>
-                      <p className="text-sm font-black text-[#111]">{v.prixSemaine} €</p>
-                    </div>
-                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
-                      <p className="text-[9px] text-[#6B7280] uppercase">2 Sem.</p>
-                      <p className="text-sm font-black text-[#111]">{Math.round(v.prixSemaine * 1.8)} €</p>
-                    </div>
-                    <div className="shrink-0 rounded-lg bg-purple-700/5 border border-purple-700/20 p-2 text-center min-w-[70px]">
-                      <p className="text-[9px] text-purple-700 uppercase font-semibold">Mois</p>
-                      <p className="text-sm font-black text-purple-700">{v.prixMois} €</p>
-                    </div>
-                    <div className="shrink-0 rounded-lg bg-purple-700/10 border border-purple-700/30 p-2 text-center min-w-[70px]">
-                      <p className="text-[9px] text-purple-700 uppercase font-semibold">3 Mois</p>
-                      <p className="text-sm font-black text-purple-700">{Math.round(v.prixMois * 2.7)} €</p>
-                    </div>
-                  </div>
-                  <div className="absolute right-0 top-0 bottom-1 w-6 bg-gradient-to-l from-white to-transparent pointer-events-none flex items-center justify-end">
-                    <ChevronRight size={14} className="text-red-500" />
-                  </div>
-                </div>
+                <h3 className="text-base font-bold text-[#111] truncate">{a.titre || `${a.marque ?? ""} ${a.modele ?? ""}`}</h3>
+                <p className="mt-2 text-base font-black text-purple-700">
+                  {Math.round(Number(a.prixJour ?? a.prix))} €<span className="text-[10px] font-normal text-[#6B7280]"> / jour</span>
+                </p>
                 <span className="mt-3 w-full rounded-xl bg-purple-700 py-3 text-sm font-bold text-white active:scale-[0.98] transition flex items-center justify-center gap-2">
                   Voir les détails <ArrowRight size={14} />
                 </span>

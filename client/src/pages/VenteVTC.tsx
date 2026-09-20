@@ -26,10 +26,10 @@ const CATEGORIES_VTC = [
 ];
 
 const ANNONCES = [
-  { id: 1, nom: "Mercedes Classe E 220d", annee: 2023, km: 45000, prix: 38000, revenuMois: 4500, conso: "5.2 L/100", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop" },
-  { id: 2, nom: "BMW Série 5 530e", annee: 2023, km: 30000, prix: 48000, revenuMois: 5500, conso: "1.8 L/100", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=260&fit=crop" },
-  { id: 3, nom: "Tesla Model 3 LR", annee: 2024, km: 15000, prix: 38500, revenuMois: 5000, conso: "15 kWh/100", photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=260&fit=crop" },
-  { id: 4, nom: "Toyota Camry Hybride", annee: 2023, km: 35000, prix: 28000, revenuMois: 3800, conso: "4.5 L/100", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop" },
+  { id: 1, nom: "Mercedes Classe E 220d", categorie: "Berline affaires", energie: "Diesel", annee: 2023, km: 45000, prix: 38000, revenuMois: 4500, conso: "5.2 L/100", photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop" },
+  { id: 2, nom: "BMW Série 5 530e", categorie: "Berlines Premium", energie: "Hybride", annee: 2023, km: 30000, prix: 48000, revenuMois: 5500, conso: "1.8 L/100", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=260&fit=crop" },
+  { id: 3, nom: "Tesla Model 3 LR", categorie: "Taxi électrique", energie: "Électrique", annee: 2024, km: 15000, prix: 38500, revenuMois: 5000, conso: "15 kWh/100", photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=260&fit=crop" },
+  { id: 4, nom: "Toyota Camry Hybride", categorie: "Taxi classique", energie: "Hybride", annee: 2023, km: 35000, prix: 28000, revenuMois: 3800, conso: "4.5 L/100", photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop" },
 ];
 
 const ANNEES = Array.from({ length: 15 }, (_, i) => String(new Date().getFullYear() - i));
@@ -182,23 +182,32 @@ export default function VenteVTC() {
       <div className="px-4 mt-4">
         <h2 className="text-base font-bold text-[#111]">Catégories</h2>
         <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {CATEGORIES_VTC.map((c) => (
-            <button
-              key={c.label}
-              className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition"
-            >
-              <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
-              <div className="p-2">
-                <h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3>
-                <p className="text-[8px] text-[#6B7280]">{c.desc}</p>
-              </div>
-            </button>
-          ))}
+          {CATEGORIES_VTC.map((c) => {
+            const estEnergie = c.label === "Électriques" || c.label === "Hybrides";
+            return (
+              <button
+                key={c.label}
+                onClick={() => {
+                  if (estEnergie) search.set("energie", c.label);
+                  else search.set("categorie", c.label);
+                  search.apply();
+                  document.getElementById("annonces-vtc")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition"
+              >
+                <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
+                <div className="p-2">
+                  <h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3>
+                  <p className="text-[8px] text-[#6B7280]">{c.desc}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* ANNONCES */}
-      <div className="px-4 mt-4 space-y-3">
+      <div id="annonces-vtc" className="px-4 mt-4 space-y-3">
         {filtered.length === 0 && (
           <p className="rounded-xl border border-[#E5E7EB] bg-white p-4 text-sm text-[#6B7280]">
             Aucun véhicule ne correspond à ces critères. Modifiez ou effacez les filtres.

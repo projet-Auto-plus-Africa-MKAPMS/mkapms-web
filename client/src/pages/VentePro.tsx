@@ -19,10 +19,10 @@ const MARQUES_PRO = [
 ];
 
 const DEMO_ANNONCES = [
-  { id: 1, nom: "BMW X3 xDrive 20d", annee: 2023, km: 28000, prix: 38500, tva: true, garantie: "24 mois", carb: "Diesel", boite: "Auto", pro: "BMW Premium Selection Paris", note: 4.9, photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=260&fit=crop", ville: "Paris" },
-  { id: 2, nom: "Mercedes GLC 300e AMG", annee: 2023, km: 15000, prix: 52000, tva: true, garantie: "24 mois", carb: "Hybride", boite: "Auto", pro: "Star Auto Lyon", note: 4.8, photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop", ville: "Lyon" },
-  { id: 3, nom: "Audi A4 Avant 40 TDI", annee: 2022, km: 45000, prix: 34900, tva: true, garantie: "12 mois", carb: "Diesel", boite: "Auto", pro: "Audi Approved Marseille", note: 4.7, photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", ville: "Marseille" },
-  { id: 4, nom: "Peugeot 5008 GT Pack", annee: 2024, km: 5000, prix: 36500, tva: false, garantie: "24 mois", carb: "Hybride", boite: "Auto", pro: "Peugeot Webstore", note: 4.6, photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop", ville: "Bordeaux" },
+  { id: 1, nom: "BMW X3 xDrive 20d", categorie: "SUV & 4x4", annee: 2023, km: 28000, prix: 38500, tva: true, garantie: "24 mois", carb: "Diesel", carburant: "Diesel", boite: "Auto", pro: "BMW Premium Selection Paris", note: 4.9, photo: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=260&fit=crop", ville: "Paris" },
+  { id: 2, nom: "Mercedes GLC 300e AMG", categorie: "SUV & 4x4", annee: 2023, km: 15000, prix: 52000, tva: true, garantie: "24 mois", carb: "Hybride", carburant: "Hybride", boite: "Auto", pro: "Star Auto Lyon", note: 4.8, photo: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=400&h=260&fit=crop", ville: "Lyon" },
+  { id: 3, nom: "Audi A4 Avant 40 TDI", categorie: "Breaks", annee: 2022, km: 45000, prix: 34900, tva: true, garantie: "12 mois", carb: "Diesel", carburant: "Diesel", boite: "Auto", pro: "Audi Approved Marseille", note: 4.7, photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=260&fit=crop", ville: "Marseille" },
+  { id: 4, nom: "Peugeot 5008 GT Pack", categorie: "Familiales", annee: 2024, km: 5000, prix: 36500, tva: false, garantie: "24 mois", carb: "Hybride", carburant: "Hybride", boite: "Auto", pro: "Peugeot Webstore", note: 4.6, photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&h=260&fit=crop", ville: "Bordeaux" },
 ];
 
 const CATEGORIES_PRO = [
@@ -60,12 +60,14 @@ export default function VentePro() {
   const realAnnonces = (realData?.items ?? []).map((a: any) => ({
     id: a.id,
     nom: a.titre || `${a.marque} ${a.modele}`,
+    categorie: a.categorie || "",
     annee: a.annee,
     km: a.kilometrage ?? 0,
     prix: Number(a.prix) || 0,
     tva: false,
     garantie: "12 mois",
     carb: a.carburant || a.energie || "",
+    carburant: a.carburant || a.energie || "",
     boite: a.boite || "Auto",
     pro: "Professionnel MKA.P-MS",
     note: 4.7,
@@ -208,23 +210,32 @@ export default function VentePro() {
       <div className="px-4 mt-4">
         <h2 className="text-base font-bold text-[#111]">Catégories</h2>
         <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {CATEGORIES_PRO.map((c) => (
-            <button
-              key={c.label}
-              className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition"
-            >
-              <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
-              <div className="p-2">
-                <h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3>
-                <p className="text-[8px] text-[#6B7280] truncate">{c.modeles}</p>
-              </div>
-            </button>
-          ))}
+          {CATEGORIES_PRO.map((c) => {
+            const estEnergie = c.label === "Hybrides" || c.label === "Électriques";
+            return (
+              <button
+                key={c.label}
+                onClick={() => {
+                  if (estEnergie) search.set("energie", c.label);
+                  else search.set("categorie", c.label);
+                  search.apply();
+                  document.getElementById("annonces-pro")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="shrink-0 w-[120px] rounded-xl bg-white border border-[#E5E7EB] overflow-hidden text-left active:scale-[0.98] transition"
+              >
+                <img src={c.photo} alt={c.label} className="w-full h-[60px] object-cover" loading="lazy" />
+                <div className="p-2">
+                  <h3 className="text-[11px] font-bold text-[#111]">{c.label}</h3>
+                  <p className="text-[8px] text-[#6B7280] truncate">{c.modeles}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* ANNONCES */}
-      <div className="px-4 mt-4">
+      <div id="annonces-pro" className="px-4 mt-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-bold text-[#111]">Annonces professionnelles</h2>
           {realData && (

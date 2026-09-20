@@ -26,7 +26,7 @@ import { learnFromInput, getPendingValidations, validateLearned, getConfirmedVal
 import { checkDuplicates, getUnresolvedDuplicates, resolveDuplicate } from "./services/duplicate-detection.js";
 import { findDuplicatePhotos, indexAllPhotos } from "./services/photo-analysis.js";
 import { checkFraud, getUnresolvedSuspects, resolveSuspect } from "./services/fraud-detection.js";
-import { getActivityLog, getActivityStats, validateActivity } from "./services/activity-log.js";
+import { getActivityLog, getActivityStats, validateActivity, validateAllPending } from "./services/activity-log.js";
 import { analyzeReviews, getReviewAlerts } from "./services/review-analysis.js";
 import { validateAnnonceUnivers, getMisplacedAnnonces } from "./services/annonce-validator.js";
 import { validateBadges, getBadgeAlerts } from "./services/badge-validator.js";
@@ -295,6 +295,14 @@ export const smartEngineRouter = router({
     .input(z.object({ id: z.number(), approved: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
       return validateActivity(input.id, input.approved, ctx.user.uid);
+    }),
+
+  // Valide en un seul clic TOUTES les actions en attente de décision humaine
+  // (pas seulement celles affichées à l'écran) — voir validateAllPending.
+  validateAllActivityDecisions: pdgProcedure
+    .input(z.object({ approved: z.boolean().default(true) }).optional())
+    .mutation(async ({ ctx, input }) => {
+      return validateAllPending(input?.approved ?? true, ctx.user.uid);
     }),
 
   // ── 10. Analyse des avis ───────────────────────────────────────────

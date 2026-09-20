@@ -925,6 +925,34 @@
       "when": 1788232025000,
       "tag": "0133_document_os_legal_entities",
       "breakpoints": true
+    },
+    {
+      "idx": 132,
+      "version": "7",
+      "when": 1788232026000,
+      "tag": "0134_vente_fournisseurs",
+      "breakpoints": true
+    },
+    {
+      "idx": 133,
+      "version": "7",
+      "when": 1788232027000,
+      "tag": "0135_vente_employes",
+      "breakpoints": true
+    },
+    {
+      "idx": 134,
+      "version": "7",
+      "when": 1788232028000,
+      "tag": "0136_pub_requests_contenu_creatif",
+      "breakpoints": true
+    },
+    {
+      "idx": 135,
+      "version": "7",
+      "when": 1788232029000,
+      "tag": "0137_rental_contracts",
+      "breakpoints": true
     }
   ]
 }

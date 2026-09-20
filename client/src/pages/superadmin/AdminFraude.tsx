@@ -1,16 +1,43 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, AlertTriangle, ChevronDown, Ban, Eye } from "lucide-react";
+import { ChevronLeft, AlertTriangle, ChevronDown, Check } from "lucide-react";
+import { trpc } from "../../lib/trpc";
 
-const ALERTES = [
-  { id: 1, type: "Annonce suspecte", detail: "Prix anormalement bas: BMW M3 a 2 500 EUR", user: "compte_fake_92", date: "09/06 15:30", risque: "eleve" },
-  { id: 2, type: "Compte multi", detail: "3 comptes lies a la meme IP et meme adresse", user: "user_345, user_678, user_901", date: "09/06 14:00", risque: "moyen" },
-  { id: 3, type: "Photo volee", detail: "Photo identique detectee sur leboncoin.fr", user: "vendeur_rapide", date: "09/06 10:45", risque: "eleve" },
-  { id: 4, type: "Paiement suspect", detail: "Carte bancaire prepayee utilisee 5x en 1 heure", user: "test_account_3", date: "08/06 23:20", risque: "critique" },
-];
+const SEVERITE_LABEL: Record<string, { label: string; color: string; bg: string }> = {
+  critical: { label: "Critique", color: "text-red-600", bg: "bg-red-100" },
+  important: { label: "Élevé", color: "text-red-600", bg: "bg-red-100" },
+  warning: { label: "Moyen", color: "text-amber-500", bg: "bg-amber-50" },
+  info: { label: "Faible", color: "text-slate-500", bg: "bg-slate-50" },
+};
 
+/**
+ * Anti-fraude (/superadmin/admin-fraude).
+ *
+ * Données réelles : trpc.smartEngine.unresolvedSuspects / resolveSuspect
+ * (server/smart-engine/services/fraud-detection.ts, table
+ * smart_suspect_accounts) — le même moteur de détection de comptes suspects
+ * déjà construit et alimenté par checkFraud(), jamais un second registre
+ * inventé. Le bouton "Bloquer" a été retiré : aucune capacité de suspension
+ * de compte n'existe réellement sur la plateforme (userStatusEnum est
+ * déclaré mais jamais attaché à la table users, et l'authentification ne
+ * revérifie jamais l'état en base) — voir tâche dédiée plutôt qu'un bouton
+ * qui écrirait quelque chose sans aucun effet réel.
+ */
 export default function AdminFraude() {
   const [expanded, setExpanded] = useState<number | null>(null);
+  const utils = trpc.useUtils();
+  const suspects = trpc.smartEngine.unresolvedSuspects.useQuery();
+  const resolve = trpc.smartEngine.resolveSuspect.useMutation({
+    onSuccess: () => utils.smartEngine.unresolvedSuspects.invalidate(),
+  });
+
+  const liste = suspects.data ?? [];
+  const counts = {
+    critique: liste.filter((s) => s.severity === "critical").length,
+    eleve: liste.filter((s) => (s.severity ?? "warning") === "important").length,
+    total: liste.length,
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
       <div className="bg-[#111] px-4 pt-6 pb-5">
@@ -19,38 +46,54 @@ export default function AdminFraude() {
       </div>
       <div className="px-4 mt-4 grid grid-cols-3 gap-2">
         {[
-          { l: "Critiques", v: "1", c: "text-red-500" },
-          { l: "Eleves", v: "3", c: "text-amber-500" },
-          { l: "Bloques", v: "28", c: "text-slate-500" },
+          { l: "Critiques", v: counts.critique, c: "text-red-500" },
+          { l: "Élevés", v: counts.eleve, c: "text-amber-500" },
+          { l: "Non résolus", v: counts.total, c: "text-slate-500" },
         ].map((s) => (
-          <button key={s.l} className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center active:scale-[0.97]">
+          <div key={s.l} className="rounded-xl bg-white border border-[#E5E7EB] p-3 text-center">
             <p className={`text-lg font-black ${s.c}`}>{s.v}</p>
             <p className="text-[9px] text-[#6B7280]">{s.l}</p>
-          </button>
+          </div>
         ))}
       </div>
+
+      {suspects.isLoading && <p className="px-4 mt-6 text-sm text-[#6B7280] text-center">Chargement…</p>}
+
       <div className="px-4 mt-4 space-y-2">
-        {ALERTES.map((a) => {
+        {liste.map((a) => {
           const isExp = expanded === a.id;
+          const sev = SEVERITE_LABEL[a.severity ?? "warning"] ?? SEVERITE_LABEL.warning;
           return (
-            <div key={a.id} className={`rounded-xl bg-white border overflow-hidden ${a.risque === "critique" ? "border-red-300" : "border-[#E5E7EB]"}`}>
+            <div key={a.id} className={`rounded-xl bg-white border overflow-hidden ${a.severity === "critical" ? "border-red-300" : "border-[#E5E7EB]"}`}>
               <button onClick={() => setExpanded(isExp ? null : a.id)} className="w-full text-left p-3 flex items-center gap-3">
-                <div className={`h-8 w-8 rounded-full grid place-items-center ${a.risque === "critique" ? "bg-red-100" : "bg-amber-50"}`}><AlertTriangle size={14} className={a.risque === "critique" ? "text-red-600" : "text-amber-500"} /></div>
-                <div className="flex-1 min-w-0"><p className="text-sm font-bold text-[#111]">{a.type}</p><p className="text-[10px] text-[#6B7280]">{a.user} · {a.date}</p></div>
+                <div className={`h-8 w-8 rounded-full grid place-items-center ${sev.bg}`}><AlertTriangle size={14} className={sev.color} /></div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-[#111]">{a.reason}</p>
+                  <p className="text-[10px] text-[#6B7280]">Utilisateur #{a.userId}{a.createdAt ? ` · ${new Date(a.createdAt).toLocaleString("fr-FR")}` : ""}</p>
+                </div>
+                <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold ${sev.bg} ${sev.color}`}>{sev.label}</span>
                 <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
               </button>
               {isExp && (
                 <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2">
-                  <p className="text-[10px] text-[#6B7280] mb-2">{a.detail}</p>
-                  <div className="flex gap-2">
-                    <button className="flex-1 rounded-lg bg-blue-500 py-1.5 text-[9px] font-bold text-white flex items-center justify-center gap-1"><Eye size={10} /> Inspecter</button>
-                    <button className="flex-1 rounded-lg bg-red-500 py-1.5 text-[9px] font-bold text-white flex items-center justify-center gap-1"><Ban size={10} /> Bloquer</button>
-                  </div>
+                  {a.details !== null && (
+                    <pre className="text-[9px] text-[#6B7280] mb-2 whitespace-pre-wrap break-words">{JSON.stringify(a.details, null, 2)}</pre>
+                  )}
+                  <button
+                    onClick={() => resolve.mutate({ id: a.id })}
+                    disabled={resolve.isPending}
+                    className="w-full rounded-lg bg-green-600 py-1.5 text-[9px] font-bold text-white flex items-center justify-center gap-1 disabled:opacity-50"
+                  >
+                    <Check size={10} /> {resolve.isPending ? "…" : "Marquer résolu"}
+                  </button>
                 </div>
               )}
             </div>
           );
         })}
+        {!suspects.isLoading && liste.length === 0 && (
+          <p className="text-sm text-[#6B7280] text-center py-8">Aucun compte suspect non résolu.</p>
+        )}
       </div>
     </div>
   );

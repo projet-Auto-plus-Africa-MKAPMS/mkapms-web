@@ -1112,7 +1112,14 @@ function EvolutionTab({ isPdg }: { isPdg: boolean }) {
     utils.smartEngine.evolutionProposals.invalidate();
   };
   const generate = trpc.smartEngine.generateEvolution.useMutation({ onSuccess: refresh });
-  const review = trpc.smartEngine.reviewEvolution.useMutation({ onSuccess: refresh });
+  const [erreur, setErreur] = useState<{ id: number; message: string } | null>(null);
+  const review = trpc.smartEngine.reviewEvolution.useMutation({
+    onSuccess: (_data, variables) => {
+      setErreur((e) => (e?.id === variables.id ? null : e));
+      refresh();
+    },
+    onError: (err, variables) => setErreur({ id: variables.id, message: err.message }),
+  });
 
   const items = list.data ?? [];
   const s = stats.data;
@@ -1189,6 +1196,23 @@ function EvolutionTab({ isPdg }: { isPdg: boolean }) {
               {it.riskNote && (
                 <p className="mt-1 flex items-start gap-1 text-[11px] text-[#B45309]">
                   <AlertTriangle size={12} className="mt-0.5 shrink-0" /> {it.riskNote}
+                </p>
+              )}
+              {(() => {
+                const meta = (it.metadata ?? {}) as Record<string, unknown>;
+                const execStatus = typeof meta.executionStatus === "string" ? meta.executionStatus : null;
+                const execDetail = typeof meta.executionDetail === "string" ? meta.executionDetail : null;
+                if (!execStatus || execStatus === "termine") return null;
+                return (
+                  <p className="mt-1 flex items-start gap-1 rounded-lg bg-amber-50 p-1.5 text-[11px] text-amber-800">
+                    <AlertTriangle size={12} className="mt-0.5 shrink-0" />
+                    Non réalisé automatiquement ({execStatus}) : {execDetail ?? "aucun exécuteur pour cette action — une intervention humaine reste nécessaire."}
+                  </p>
+                );
+              })()}
+              {erreur?.id === it.id && (
+                <p className="mt-1 flex items-start gap-1 rounded-lg bg-rose-50 p-1.5 text-[11px] text-rose-700">
+                  <AlertTriangle size={12} className="mt-0.5 shrink-0" /> {erreur.message}
                 </p>
               )}
               {isPdg && it.status !== "integre" && it.status !== "rejete" && (
@@ -1351,6 +1375,7 @@ const ALERT_LEVEL_MAP: Record<string, { label: string; dot: string; text: string
 function AlertesTab() {
   const utils = trpc.useUtils();
   const [level, setLevel] = useState<string | undefined>(undefined);
+  const [motifNonCorrige, setMotifNonCorrige] = useState<string | null>(null);
 
   const stats = trpc.smartEngine.alertLevelStats.useQuery();
   const list = trpc.smartEngine.alerts.useQuery({
@@ -1364,10 +1389,23 @@ function AlertesTab() {
     void utils.smartEngine.alertLevelStats.invalidate();
   };
   const scan = trpc.smartEngine.alertScan.useMutation({ onSuccess: refresh });
-  const resolve = trpc.smartEngine.resolveAlert.useMutation({ onSuccess: refresh });
+  // « Résolu » ne ment jamais : si la cause n'a pas pu être réellement
+  // corrigée (ex: bouton toujours sans action dans le code), le serveur
+  // renvoie motifNonCorrige — on l'affiche au lieu de laisser croire que
+  // tout est réglé (l'alerte réapparaîtrait sinon sans explication).
+  const resolve = trpc.smartEngine.resolveAlert.useMutation({
+    onSuccess: (data) => { setMotifNonCorrige(data.motifNonCorrige); refresh(); },
+  });
 
   return (
     <div className="space-y-4">
+      {motifNonCorrige && (
+        <div className="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-[11px] text-amber-900">
+          <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+          <p className="flex-1">{motifNonCorrige}</p>
+          <button onClick={() => setMotifNonCorrige(null)} className="shrink-0 font-bold">✕</button>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h2 className="text-base font-bold text-[#111]">Alertes</h2>
         <button
@@ -1388,7 +1426,11 @@ function AlertesTab() {
         </p>
       )}
 
-      {resolve.data && (
+      {/* Si motifNonCorrige est présent, la bannière ambrée ci-dessus dit déjà
+          précisément pourquoi rien n'a été corrigé : ne pas ajouter ce
+          second message, générique et potentiellement contradictoire
+          (« ne reviendra plus » alors que la cause persiste réellement). */}
+      {resolve.data && !resolve.data.motifNonCorrige && (
         <p className="text-[11px] font-semibold text-green-700">
           Traité.
           {resolve.data.redirectionFixed && resolve.data.redirectionTarget
@@ -2314,20 +2356,32 @@ function BadgesTab() {
    ═══════════════════════════════════════════════════════════ */
 function SanteTab() {
   const { data, isLoading } = trpc.smartEngine.healthStatus.useQuery();
+  const [statusFilter, setStatusFilter] = useState<"ok" | "broken" | "slow" | null>(null);
 
   if (isLoading) return <Loading />;
   if (!data) return <Empty msg="Aucune donnée de santé" />;
 
+  const items = statusFilter ? data.items.filter((h: any) => h.status === statusFilter) : data.items;
+  const toggle = (s: "ok" | "broken" | "slow") => setStatusFilter((cur) => (cur === s ? null : s));
+
   return (
     <div className="space-y-3">
-      <h2 className="text-base font-bold text-[#111]">Santé de la plateforme</h2>
-      <div className="grid grid-cols-3 gap-2">
-        <StatCard label="OK" value={data.ok} color="green" icon={CheckCircle2} />
-        <StatCard label="Cassés" value={data.broken} color="red" icon={XCircle} />
-        <StatCard label="Lents" value={data.slow} color="yellow" icon={Clock} />
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-[#111]">Santé de la plateforme</h2>
+        {statusFilter && (
+          <button onClick={() => setStatusFilter(null)} className="text-xs font-bold text-[#8B7500] underline">
+            Voir tout
+          </button>
+        )}
       </div>
+      <div className="grid grid-cols-3 gap-2">
+        <StatCard label="OK" value={data.ok} color="green" icon={CheckCircle2} onClick={() => toggle("ok")} active={statusFilter === "ok"} />
+        <StatCard label="Cassés" value={data.broken} color="red" icon={XCircle} onClick={() => toggle("broken")} active={statusFilter === "broken"} />
+        <StatCard label="Lents" value={data.slow} color="yellow" icon={Clock} onClick={() => toggle("slow")} active={statusFilter === "slow"} />
+      </div>
+      {statusFilter && items.length === 0 && <Empty msg="Aucun élément dans cette catégorie" />}
       <div className="space-y-2">
-        {data.items.map((h: any) => (
+        {items.map((h: any) => (
           <div key={h.id} className={`rounded-xl border p-3 ${h.status === "ok" ? "border-emerald-200 bg-emerald-50" : h.status === "broken" ? "border-red-300 bg-red-50" : "border-orange-200 bg-orange-50"}`}>
             <div className="flex items-center justify-between">
               <div>
@@ -2352,8 +2406,16 @@ function SanteTab() {
    ═══════════════════════════════════════════════════════════ */
 function JournalTab({ pendingOnly = false, onClearFilter }: { pendingOnly?: boolean; onClearFilter?: () => void }) {
   const { data, isLoading } = trpc.smartEngine.activityLog.useQuery({ limit: pendingOnly ? 100 : 50, offset: 0, needsValidationOnly: pendingOnly });
+  const stats = trpc.smartEngine.activityStats.useQuery(undefined, { enabled: pendingOnly });
   const validateDecision = trpc.smartEngine.validateActivityDecision.useMutation();
+  const validateAll = trpc.smartEngine.validateAllActivityDecisions.useMutation();
   const utils = trpc.useUtils();
+
+  const refreshAfterValidation = () => {
+    utils.smartEngine.activityLog.invalidate();
+    utils.smartEngine.activityStats.invalidate();
+    utils.smartEngine.dashboard.invalidate();
+  };
 
   if (isLoading) return <Loading />;
   if (!data || data.length === 0) {
@@ -2361,15 +2423,17 @@ function JournalTab({ pendingOnly = false, onClearFilter }: { pendingOnly?: bool
   }
 
   const onDecision = (id: number, approved: boolean) => {
-    validateDecision.mutate(
-      { id, approved },
-      {
-        onSuccess: () => {
-          utils.smartEngine.activityLog.invalidate();
-          utils.smartEngine.dashboard.invalidate();
-        },
-      },
-    );
+    validateDecision.mutate({ id, approved }, { onSuccess: refreshAfterValidation });
+  };
+
+  // Le total réel (activityStats.needsValidation) peut dépasser les 100
+  // lignes affichées à l'écran : « Valider tout » doit purger le reliquat
+  // entier côté serveur, pas seulement ce qui est visible ici.
+  const totalPending = stats.data?.needsValidation ?? data.length;
+
+  const onValidateAll = () => {
+    if (!window.confirm(`Valider les ${totalPending} action(s) en attente ? Cette décision sera enregistrée comme validée par la direction, pour chacune.`)) return;
+    validateAll.mutate({ approved: true }, { onSuccess: refreshAfterValidation });
   };
 
   return (
@@ -2382,6 +2446,15 @@ function JournalTab({ pendingOnly = false, onClearFilter }: { pendingOnly?: bool
           </button>
         )}
       </div>
+      {pendingOnly && totalPending > 0 && (
+        <button
+          onClick={onValidateAll}
+          disabled={validateAll.isPending}
+          className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white active:scale-[0.98] transition disabled:opacity-50"
+        >
+          {validateAll.isPending ? "Validation en cours…" : `Valider tout (${totalPending})`}
+        </button>
+      )}
       {data.map((a: any) => (
         <div key={a.id} className="rounded-xl border border-[#E5E7EB] bg-white p-3">
           <div className="flex items-center justify-between">
@@ -2497,7 +2570,7 @@ function AvisTab() {
    Composants partagés
    ═══════════════════════════════════════════════════════════ */
 
-function StatCard({ label, value, color, icon: Icon, onClick }: { label: string; value: number; color: string; icon: typeof Brain; onClick?: () => void }) {
+function StatCard({ label, value, color, icon: Icon, onClick, active }: { label: string; value: number; color: string; icon: typeof Brain; onClick?: () => void; active?: boolean }) {
   const colorMap: Record<string, string> = {
     red: "bg-red-50 border-red-200 text-red-700",
     green: "bg-emerald-50 border-emerald-200 text-emerald-700",
@@ -2519,7 +2592,7 @@ function StatCard({ label, value, color, icon: Icon, onClick }: { label: string;
   );
   if (onClick) {
     return (
-      <button onClick={onClick} className={`text-left rounded-xl border p-3 transition hover:ring-2 hover:ring-[#D4AF37]/60 active:scale-[0.98] ${cls}`}>
+      <button onClick={onClick} className={`text-left rounded-xl border p-3 transition hover:ring-2 hover:ring-[#D4AF37]/60 active:scale-[0.98] ${cls} ${active ? "ring-2 ring-[#D4AF37]" : ""}`}>
         {inner}
       </button>
     );

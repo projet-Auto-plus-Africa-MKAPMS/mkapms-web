@@ -63,6 +63,8 @@ const LocationCamions = lazy(() => import("./pages/LocationCamions"));
 const LocationMinibus = lazy(() => import("./pages/LocationMinibus"));
 const LocationMKAPMS = lazy(() => import("./pages/LocationMKAPMS"));
 const ProduitLocation = lazy(() => import("./pages/ProduitLocation"));
+const CandidatureLocationFlotte = lazy(() => import("./pages/location/CandidatureLocationFlotte"));
+const MesCandidaturesLocation = lazy(() => import("./pages/location/MesCandidaturesLocation"));
 const CentreDocuments = lazy(() => import("./pages/CentreDocuments"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Messagerie = lazy(() => import("./pages/Messagerie"));
@@ -864,6 +866,8 @@ export default function App() {
             <Route path="/louer/vtc-taxi/vehicule/:id" element={<U name="Produit VTC & Taxi"><ProduitVtcTaxi /></U>} />
             <Route path="/louer/particulier/vehicule/:id" element={<U name="Produit Particulier"><ProduitParticulier /></U>} />
             <Route path="/louer/pro/vehicule/:id" element={<U name="Produit Pro"><ProduitLocation /></U>} />
+            <Route path="/louer/pro/candidature" element={<U name="Candidature location flotte"><CandidatureLocationFlotte /></U>} />
+            <Route path="/location/mes-candidatures" element={<U name="Mes candidatures location"><MesCandidaturesLocation /></U>} />
             <Route path="/louer/utilitaires/vehicule/:id" element={<U name="Produit Utilitaire"><ProduitLocation /></U>} />
             <Route path="/louer/camions/vehicule/:id" element={<U name="Produit Camion"><ProduitLocation /></U>} />
             <Route path="/louer/minibus/vehicule/:id" element={<U name="Produit Minibus"><ProduitLocation /></U>} />
@@ -941,7 +945,7 @@ export default function App() {
             <Route path="/vente/transport" element={<V name="Transport"><CentreTransport /></V>} />
             <Route path="/vente/diagnostic" element={<V name="Diagnostic"><CentreDiagnostic /></V>} />
             <Route path="/vente/reparations" element={<V name="R\u00e9parations"><CentreReparations /></V>} />
-            <Route path="/vente/photos" element={<V name="Photos"><CentrePhotosMedias /></V>} />
+            <Route path="/vente/photos/:id" element={<V name="Photos"><CentrePhotosMedias /></V>} />
             <Route path="/vente/reservations" element={<V name="R\u00e9servations Vente"><ReservationsVente /></V>} />
             <Route path="/vente/livraison" element={<V name="Livraison Vente"><LivraisonVehicule /></V>} />
             <Route path="/vente/dossier-client" element={<V name="Dossier Client"><DossierClient /></V>} />
@@ -952,7 +956,7 @@ export default function App() {
             <Route path="/vente/alertes" element={<V name="Alertes"><AlertesAuto /></V>} />
             <Route path="/vente/multi-sites" element={<V name="Multi-Sites"><MultiSites /></V>} />
             <Route path="/vente/employes" element={<V name="Employ\u00e9s"><GestionEmployes /></V>} />
-            <Route path="/vente/droits" element={<V name="Droits acc\u00e8s"><DroitsAcces /></V>} />
+            <Route path="/vente/droits/:id" element={<V name="Droits acc\u00e8s"><DroitsAcces /></V>} />
             <Route path="/vente/fournisseurs" element={<V name="Fournisseurs"><CentreFournisseurs /></V>} />
             <Route path="/vente/marges" element={<V name="Marges"><CentreMarges /></V>} />
             <Route path="/vente/objectifs" element={<V name="Objectifs"><CentreObjectifs /></V>} />
@@ -966,10 +970,10 @@ export default function App() {
             <Route path="/vente/archives" element={<V name="Archives"><CentreArchives /></V>} />
             <Route path="/vente/securite" element={<V name="S\u00e9curit\u00e9"><CentreSecurite /></V>} />
             {/* Marketplace Avanc\u00e9e (51-70) */}
-            <Route path="/vente/negociation" element={<V name="N\u00e9gociation"><CentreNegociation /></V>} />
+            <Route path="/vente/negociation/:id" element={<U name="N\u00e9gociation"><CentreNegociation /></U>} />
             <Route path="/vente/reservation-achat" element={<V name="R\u00e9servation achat"><CentreReservationAchat /></V>} />
-            <Route path="/vente/visite" element={<V name="Visite v\u00e9hicule"><CentreVisiteVehicule /></V>} />
-            <Route path="/vente/essai" element={<V name="Essai routier"><CentreEssaiRoutier /></V>} />
+            <Route path="/vente/visite/:id" element={<U name="Visite v\u00e9hicule"><CentreVisiteVehicule /></U>} />
+            <Route path="/vente/essai/:id" element={<U name="Essai routier"><CentreEssaiRoutier /></U>} />
             <Route path="/vente/dossier-acheteur" element={<V name="Dossier acheteur"><CentreDossiersAcheteurs /></V>} />
             <Route path="/vente/comparaison" element={<V name="Comparaison"><CentreComparaison /></V>} />
             <Route path="/vente/alertes-recherche" element={<V name="Alertes recherche"><CentreAlertesRecherche /></V>} />
@@ -981,7 +985,7 @@ export default function App() {
             <Route path="/vente/rapports" element={<V name="Rapports v\u00e9hicule"><CentreRapportsVehicule /></V>} />
             <Route path="/vente/achat-distance" element={<V name="Achat \u00e0 distance"><CentreAchatDistance /></V>} />
             <Route path="/vente/livraison-acheteur" element={<V name="Livraison acheteur"><CentreLivraisonAcheteur /></V>} />
-            <Route path="/vente/retour-client" element={<V name="Retour client"><CentreRetourClient /></V>} />
+            <Route path="/vente/retour-client/:id" element={<U name="Retour client"><CentreRetourClient /></U>} />
             <Route path="/vente/badges" element={<V name="Badges vendeurs"><CentreBadgesVendeurs /></V>} />
             <Route path="/vente/fraude" element={<V name="D\u00e9tection fraude"><CentreDetectionFraude /></V>} />
             <Route path="/vente/confiance" element={<V name="Confiance acheteur"><CentreConfianceAcheteur /></V>} />
@@ -1153,11 +1157,11 @@ export default function App() {
             <Route path="/demarches/espace-pro-demarches" element={<U name="Démarches"><EspaceProDemarches /></U>} />
             <Route path="/demarches/immatriculation-provisoire" element={<U name="Démarches"><ImmatriculationProvisoire /></U>} />
             <Route path="/demarches/importation-vehicule" element={<U name="Démarches"><ImportationVehicule /></U>} />
-            <Route path="/demarches/messagerie-demarches" element={<U name="Démarches"><MessagerieDemarches /></U>} />
+            <Route path="/demarches/messagerie-demarches/:id" element={<U name="Démarches"><MessagerieDemarches /></U>} />
             <Route path="/demarches/objectif-demarches" element={<U name="Démarches"><ObjectifDemarches /></U>} />
-            <Route path="/demarches/paiement-demarches" element={<U name="Démarches"><PaiementDemarches /></U>} />
+            <Route path="/demarches/paiement-demarches/:id" element={<U name="Démarches"><PaiementDemarches /></U>} />
             <Route path="/demarches/plaques-immatriculation" element={<U name="Démarches"><PlaquesImmatriculation /></U>} />
-            <Route path="/demarches/signatures-electroniques" element={<U name="Démarches"><SignaturesElectroniques /></U>} />
+            <Route path="/demarches/signatures-electroniques/:id" element={<U name="Démarches"><SignaturesElectroniques /></U>} />
             <Route path="/demarches/statistiques-demarches" element={<U name="Démarches"><StatistiquesDemarches /></U>} />
             <Route path="/demarches/succession-vehicule" element={<U name="Démarches"><SuccessionVehicule /></U>} />
             <Route path="/demarches/suivi-dossier" element={<U name="Démarches"><SuiviDossier /></U>} />
@@ -1620,10 +1624,10 @@ export default function App() {
             <Route path="/depot-annonce" element={<U name="Dépôt Annonce"><DepotAnnoncePortail /></U>} />
             <Route path="/depot-annonce/description-annonce" element={<U name="Dépôt Annonce"><DescriptionAnnonce /></U>} />
             <Route path="/depot-annonce/documents-annonce" element={<U name="Dépôt Annonce"><DocumentsAnnonce /></U>} />
-            <Route path="/depot-annonce/expiration-annonce" element={<U name="Dépôt Annonce"><ExpirationAnnonce /></U>} />
+            <Route path="/depot-annonce/expiration-annonce/:id" element={<U name="Dépôt Annonce"><ExpirationAnnonce /></U>} />
             <Route path="/depot-annonce/identification-vehicule" element={<U name="Dépôt Annonce"><IdentificationVehicule /></U>} />
             <Route path="/depot-annonce/informations-principales" element={<U name="Dépôt Annonce"><InformationsPrincipales /></U>} />
-            <Route path="/depot-annonce/modification-annonce" element={<U name="Dépôt Annonce"><ModificationAnnonce /></U>} />
+            <Route path="/depot-annonce/modification-annonce/:id" element={<U name="Dépôt Annonce"><ModificationAnnonce /></U>} />
             <Route path="/depot-annonce/objectif-depot-annonce" element={<U name="Dépôt Annonce"><ObjectifDepotAnnonce /></U>} />
             <Route path="/depot-annonce/options-annonce" element={<U name="Dépôt Annonce"><OptionsAnnonce /></U>} />
             <Route path="/depot-annonce/photos-vehicule" element={<U name="Dépôt Annonce"><PhotosVehicule /></U>} />

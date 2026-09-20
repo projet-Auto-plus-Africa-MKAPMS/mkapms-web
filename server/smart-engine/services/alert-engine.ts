@@ -27,7 +27,7 @@ import {
   healRecent404s,
   replayLearnedFixes,
 } from "./auto-fix.js";
-import { syncBoutonsSansAction } from "./health-monitor.js";
+import { syncBoutonsSansAction, isKnownGhostButton } from "./health-monitor.js";
 import { reputationTrends, trendSignature } from "../../reputation-engine/trends.js";
 
 export type AlertLevel = "info" | "warning" | "important" | "critical";
@@ -303,6 +303,8 @@ export async function resolveAlertWithLearning(input: {
   aliasesCreated: number;
   causeFixed: boolean;
   signature: string | null;
+  /** Non-null quand la cause n'a PAS pu être corrigée : pourquoi, en clair, pour ne jamais laisser croire au PDG que « Résolu » a réglé quelque chose que le code n'a pas réglé. */
+  motifNonCorrige: string | null;
 }> {
   const [alert] = await db
     .select({ metadata: smartAlerts.metadata })
@@ -310,15 +312,11 @@ export async function resolveAlertWithLearning(input: {
     .where(eq(smartAlerts.id, input.id))
     .limit(1);
 
-  await db
-    .update(smartAlerts)
-    .set({ status: input.status, resolvedBy: input.resolvedBy ?? null, resolvedAt: new Date() })
-    .where(eq(smartAlerts.id, input.id));
-
   let healthChecksFixed = 0;
   let redirectionFixed = false;
   let redirectionTarget: string | null = null;
   let aliasesCreated = 0;
+  let motifNonCorrige: string | null = null;
   const signature =
     alert && alert.metadata && typeof (alert.metadata as Record<string, unknown>).signature === "string"
       ? ((alert.metadata as Record<string, unknown>).signature as string)
@@ -326,18 +324,31 @@ export async function resolveAlertWithLearning(input: {
 
   // On n'agit sur la cause que pour un vrai traitement (pas un simple accusé).
   if (input.status !== "acknowledged" && signature) {
-    // a) Contrôle de santé (bouton/page cassé) → remettre à « ok ».
+    // a) Contrôle de santé (bouton/page cassé) → remettre à « ok », SAUF si
+    // l'élément est un bouton fantôme toujours présent dans l'inventaire
+    // statique en direct : le marquer « ok » sans que le code ait changé
+    // n'est qu'un mensonge d'état (point 91) qui déclenche, au prochain scan
+    // (syncBoutonsSansAction), une remise à « broken » avec un nouveau
+    // lastCheckedAt — donc une réouverture immédiate de l'alerte (« je
+    // clique Résolu, je rafraîchis, ça revient direct »). Dans ce cas précis,
+    // on laisse le contrôle de santé « broken » (l'état réel) et on renvoie
+    // un motif clair au lieu de faire une fausse promesse.
     if (signature.startsWith("health:")) {
       const parts = signature.split(":");
       const page = parts[1];
       const element = parts[2];
       if (page && element) {
-        const res = await db
-          .update(smartHealthChecks)
-          .set({ status: "ok", lastCheckedAt: new Date() })
-          .where(and(eq(smartHealthChecks.page, page), eq(smartHealthChecks.element, element)))
-          .returning({ id: smartHealthChecks.id });
-        healthChecksFixed = res.length;
+        if (element.startsWith("static_L") && isKnownGhostButton(page, element)) {
+          motifNonCorrige =
+            "Ce bouton est toujours sans gestionnaire de clic dans le code (détection statique) : le marquer résolu ici ne changerait rien de réel et l'alerte réapparaîtrait dès le prochain contrôle. Seule une correction du code (le connecter à une action réelle) fait disparaître ce constat.";
+        } else {
+          const res = await db
+            .update(smartHealthChecks)
+            .set({ status: "ok", lastCheckedAt: new Date() })
+            .where(and(eq(smartHealthChecks.page, page), eq(smartHealthChecks.element, element)))
+            .returning({ id: smartHealthChecks.id });
+          healthChecksFixed = res.length;
+        }
       }
     }
 
@@ -358,6 +369,16 @@ export async function resolveAlertWithLearning(input: {
     }
   }
 
+  // Écriture du statut final APRÈS avoir su si la cause est réellement
+  // corrigeable : jamais « resolved » en base pour un défaut qui persiste
+  // dans le code (ce serait un mensonge d'état) — on retombe honnêtement sur
+  // « acknowledged » (vu, pris en compte, mais pas réglé) dans ce cas précis.
+  const statutFinal = motifNonCorrige && input.status === "resolved" ? "acknowledged" : input.status;
+  await db
+    .update(smartAlerts)
+    .set({ status: statutFinal, resolvedBy: input.resolvedBy ?? null, resolvedAt: new Date() })
+    .where(eq(smartAlerts.id, input.id));
+
   const causeFixed = healthChecksFixed > 0 || redirectionFixed || aliasesCreated > 0;
   return {
     ok: true,
@@ -367,6 +388,7 @@ export async function resolveAlertWithLearning(input: {
     aliasesCreated,
     causeFixed,
     signature,
+    motifNonCorrige,
   };
 }
 

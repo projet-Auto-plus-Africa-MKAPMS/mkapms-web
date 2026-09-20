@@ -572,7 +572,11 @@ export default function LocationParticulier() {
           {DESTINATIONS.map((d) => {
             const Icon = d.icon;
             return (
-              <button key={d.label} className={`flex flex-col items-center gap-1.5 rounded-xl p-3 transition active:scale-[0.97] ${d.color}`}>
+              <button
+                key={d.label}
+                onClick={() => document.getElementById("search-part")?.scrollIntoView({ behavior: "smooth" })}
+                className={`flex flex-col items-center gap-1.5 rounded-xl p-3 transition active:scale-[0.97] ${d.color}`}
+              >
                 <Icon size={20} />
                 <span className="text-[10px] font-bold text-center leading-tight">{d.label}</span>
               </button>
@@ -599,9 +603,9 @@ export default function LocationParticulier() {
           </div>
         </div>
         <div className="px-4 py-3">
-          <button className="w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1.5 active:scale-[0.98] transition">
-            <Navigation size={12} /> Voir les véhicules proches
-          </button>
+          <Link to="/carte" className="w-full rounded-xl bg-[#D4AF37] py-2.5 text-xs font-bold text-white flex items-center justify-center gap-1.5 active:scale-[0.98] transition">
+            <Navigation size={12} /> Voir les agences proches
+          </Link>
         </div>
       </div>
 

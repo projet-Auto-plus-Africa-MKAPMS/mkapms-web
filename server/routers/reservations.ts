@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { bookings, payments, annonces, serviceTracking } from "../schema.js";
+import { bookings, payments, annonces, serviceTracking, users } from "../schema.js";
 import { notifications } from "../modules/core.js";
 import { ACOMPTE_PALIERS } from "@shared/plans.js";
 import { getStripe } from "../lib/stripe.js";
@@ -399,5 +399,114 @@ export const reservationsRouter = router({
         .where(eq(payments.userId, ctx.user.uid))
         .orderBy(desc(payments.createdAt))
         .limit(input?.limit ?? 100);
+    }),
+
+  // ── Côté vendeur : réservations ET visites reçues sur SES annonces ──────
+  // Le moteur de réservation (create, ci-dessus) n'avait jamais de pendant
+  // vendeur : un professionnel ne pouvait ni voir les demandes reçues sur
+  // son propre stock, ni les valider/refuser — la table réelle (bookings)
+  // existait déjà pour les deux types (purchase_visit ET test_drive), seul
+  // manquait ce côté du flux. Les deux types partagent le même statut
+  // pending/accepted/rejected : une seule liste, jamais un second registre
+  // pour les visites.
+  mesReservationsRecues: protectedProcedure.query(async ({ ctx }) => {
+    const rows = await db
+      .select({ booking: bookings, annonce: annonces, acheteurNom: users.name })
+      .from(bookings)
+      .innerJoin(annonces, eq(bookings.vehicleId, annonces.id))
+      .innerJoin(users, eq(bookings.userId, users.id))
+      .where(and(eq(annonces.ownerId, ctx.user.uid), inArray(bookings.type, ["purchase_visit", "test_drive"])))
+      .orderBy(desc(bookings.createdAt));
+    return rows.map((r) => ({
+      id: r.booking.id,
+      type: r.booking.type,
+      client: r.acheteurNom,
+      vehicule: r.annonce.titre,
+      acompte: r.booking.cautionAmount ? Number(r.booking.cautionAmount) : 0,
+      devise: r.booking.cautionCurrency ?? "EUR",
+      message: r.booking.message,
+      statut: r.booking.status,
+      cautionStatus: r.booking.cautionStatus,
+      createdAt: r.booking.createdAt,
+    }));
+  }),
+
+  // Valide ou refuse une réservation OU une visite reçue — réservé au
+  // vendeur propriétaire de l'annonce concernée, jamais à l'acheteur ni à
+  // un tiers. Le champ `type` de la réservation décide seul du message
+  // envoyé, jamais un second point d'entrée pour les visites.
+  repondreReservationRecue: protectedProcedure
+    .input(z.object({ bookingId: z.number(), accepter: z.boolean(), motifRefus: z.string().max(500).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const [booking] = await db.select().from(bookings).where(eq(bookings.id, input.bookingId)).limit(1);
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Réservation introuvable" });
+      const [annonce] = await db.select().from(annonces).where(eq(annonces.id, booking.vehicleId)).limit(1);
+      if (!annonce || annonce.ownerId !== ctx.user.uid) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Cette réservation ne concerne pas une de vos annonces." });
+      }
+      if (booking.status !== "pending") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Cette réservation a déjà reçu une réponse." });
+      }
+      const estVisite = booking.type === "test_drive";
+      const [updated] = await db
+        .update(bookings)
+        .set({
+          status: input.accepter ? "accepted" : "rejected",
+          rejectionReason: input.accepter ? null : (input.motifRefus ?? null),
+          updatedAt: new Date(),
+        })
+        .where(eq(bookings.id, input.bookingId))
+        .returning();
+      const nom = estVisite ? "visite" : "réservation";
+      await db.insert(notifications).values({
+        userId: booking.userId,
+        type: "reservation",
+        title: input.accepter ? (estVisite ? "Visite confirmée" : "Réservation acceptée") : (estVisite ? "Visite refusée" : "Réservation refusée"),
+        body: input.accepter
+          ? `Votre ${nom} pour "${annonce.titre}" a été ${estVisite ? "confirmée" : "acceptée"} par le vendeur.`
+          : `Votre ${nom} pour "${annonce.titre}" a été refusée${input.motifRefus ? ` : ${input.motifRefus}` : "."}`,
+        url: `/vehicule/${annonce.id}`,
+      });
+      return updated;
+    }),
+
+  // ── Visite véhicule (test_drive) ────────────────────────────────────────
+  // Le type "test_drive" existait dans bookingTypeEnum depuis toujours mais
+  // n'était utilisé nulle part : CentreVisiteVehicule.tsx proposait un choix
+  // de créneau qui n'aboutissait à rien. Réutilise exactement le même moteur
+  // bookings que les réservations avec acompte (même liste vendeur
+  // mesReservationsRecues, même mutation repondreReservationRecue), jamais
+  // un second registre.
+  demanderVisite: protectedProcedure
+    .input(
+      z.object({
+        annonceId: z.number(),
+        mode: z.enum(["sur_place", "visio", "appel_video"]),
+        date: z.string().min(1),
+        creneau: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [a] = await db.select().from(annonces).where(eq(annonces.id, input.annonceId)).limit(1);
+      if (!a) throw new TRPCError({ code: "NOT_FOUND" });
+      const modeLabel = { sur_place: "Visite sur place", visio: "Visio", appel_video: "Appel vidéo" }[input.mode];
+      const [booking] = await db
+        .insert(bookings)
+        .values({
+          vehicleId: input.annonceId,
+          userId: ctx.user.uid,
+          type: "test_drive",
+          startDate: new Date(`${input.date}T00:00:00`),
+          message: `${modeLabel} — créneau souhaité : ${input.creneau}`,
+        })
+        .returning();
+      await db.insert(notifications).values({
+        userId: a.ownerId,
+        type: "reservation",
+        title: "Demande de visite",
+        body: `Un acheteur souhaite visiter "${a.titre}" (${modeLabel}, créneau ${input.creneau}).`,
+        url: "/vente/reservations",
+      });
+      return booking;
     }),
 });

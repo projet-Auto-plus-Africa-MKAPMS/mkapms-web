@@ -146,43 +146,9 @@ const TRAVAUX_CARROSSERIE = [
   },
 ];
 
-/* ═══════════════════════════════════════════════════════════
-   CARROSSIERS PARTENAIRES (demo)
-   ═══════════════════════════════════════════════════════════ */
-const CARROSSIERS = [
-  {
-    id: 1, nom: "Carrosserie AutoPlus", adresse: "15 Rue de l'Industrie, 92000 Nanterre",
-    note: 4.9, avis: 156, tel: "01 42 00 10 01", distance: "1.5 km",
-    photo: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&q=80",
-    services: ["Débosselage", "Peinture complète", "Pare-chocs", "Passage marbre", "Traitement céramique", "Photos avant/après"],
-    horaires: "Ouvert · Ferme à 18h00", certifie: true, garantie: "Garantie peinture 3 ans",
-    specialites: ["Toutes marques", "Véhicules premium", "Expertise assurance"],
-  },
-  {
-    id: 2, nom: "AD Carrosserie Boulogne", adresse: "28 Avenue du Général Leclerc, 92100 Boulogne",
-    note: 4.7, avis: 98, tel: "01 46 00 10 02", distance: "2.3 km",
-    photo: "https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=400&q=80",
-    services: ["Peinture", "Débosselage", "Remplacement éléments", "Lustrage", "Covering"],
-    horaires: "Ouvert · Ferme à 18h30", certifie: true, garantie: "Pièces garanties 24 mois",
-    specialites: ["Réseau AD", "Véhicule de courtoisie"],
-  },
-  {
-    id: 3, nom: "Fix Auto Courbevoie", adresse: "5 Boulevard de la Défense, 92400 Courbevoie",
-    note: 4.8, avis: 112, tel: "01 47 00 10 03", distance: "3.1 km",
-    photo: "https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=80",
-    services: ["Réparation collision", "Peinture", "Marbre", "Optiques", "Expertise"],
-    horaires: "Ouvert · Ferme à 19h00", certifie: true, garantie: "Garantie constructeur préservée",
-    specialites: ["Agréé assurances", "Véhicules électriques", "PPF"],
-  },
-  {
-    id: 4, nom: "Carrosserie du Parc", adresse: "42 Rue du Parc, 92300 Levallois",
-    note: 4.6, avis: 74, tel: "01 45 00 10 04", distance: "4.0 km",
-    photo: "https://images.unsplash.com/photo-1632823471565-1ecdf5c6da20?w=400&q=80",
-    services: ["Débosselage sans peinture", "Retouches", "Polissage", "Ailes", "Capot"],
-    horaires: "Ouvert · Ferme à 17h30", certifie: false, garantie: "Peinture garantie 12 mois",
-    specialites: ["Débosselage PDR", "Petites réparations rapides"],
-  },
-];
+/* Carrossiers : données réelles via trpc.garages.list (table garages_publics,
+   déjà utilisée par PriseRendezVous.tsx — jamais un second annuaire). Aucun
+   calcul de distance : pas de clé Google Maps configurée (tâche #50). */
 
 export default function CarrosserieGarage() {
   const { user } = useAuth();
@@ -215,6 +181,9 @@ export default function CarrosserieGarage() {
   /* Carrossier */
   const [selectedCarrossierId, setSelectedCarrossierId] = useState<number | null>(null);
   const [positionSearch, setPositionSearch] = useState("");
+  const [rechercheVille, setRechercheVille] = useState("");
+  const carrossiers = trpc.garages.list.useQuery({ city: rechercheVille || undefined, limit: 20 }, { enabled: step === 6 });
+  const CARROSSIERS = carrossiers.data?.items ?? [];
 
   /* RDV */
   const [selectedDate, setSelectedDate] = useState("");
@@ -658,40 +627,50 @@ export default function CarrosserieGarage() {
           <div className="mt-4 flex gap-2">
             <div className="flex-1 flex items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5">
               <MapPin size={16} className="text-[#9CA3AF]" />
-              <input className="flex-1 text-sm text-[#111] outline-none placeholder:text-[#D1D5DB]" placeholder="Votre ville" value={positionSearch} onChange={(e) => setPositionSearch(e.target.value)} />
+              <input className="flex-1 text-sm text-[#111] outline-none placeholder:text-[#D1D5DB]" placeholder="Votre ville" value={positionSearch} onChange={(e) => setPositionSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && setRechercheVille(positionSearch)} />
             </div>
-            <button className="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-bold text-white">Rechercher</button>
+            <button className="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-bold text-white" onClick={() => setRechercheVille(positionSearch)}>Rechercher</button>
           </div>
 
+          {carrossiers.isLoading && <p className="mt-4 text-center text-sm text-[#6B7280]">Recherche…</p>}
+          {!carrossiers.isLoading && CARROSSIERS.length === 0 && (
+            <p className="mt-4 rounded-xl border border-[#E5E7EB] bg-white p-4 text-center text-sm text-[#6B7280]">Aucun garage trouvé{rechercheVille ? ` pour « ${rechercheVille} »` : ""}.</p>
+          )}
+
           <div className="mt-4 space-y-3">
-            {CARROSSIERS.map((c) => (
+            {CARROSSIERS.map((c) => {
+              const specialites = c.specialites ? c.specialites.split(",").map((s) => s.trim()).filter(Boolean) : [];
+              return (
               <div key={c.id} className={`rounded-2xl border-2 bg-white p-4 cursor-pointer transition hover:shadow-md ${selectedCarrossierId === c.id ? "border-[#D4AF37] shadow-md" : "border-[#E5E7EB]"}`} onClick={() => setSelectedCarrossierId(c.id)}>
                 <div className="flex items-start gap-3">
-                  <img src={c.photo} alt={c.nom} className="h-16 w-20 rounded-xl object-cover shrink-0" />
+                  {c.coverUrl && <img src={c.coverUrl} alt={c.name} className="h-16 w-20 rounded-xl object-cover shrink-0" />}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold text-[#111] truncate">{c.nom}</h3>
-                      {c.certifie && <Shield size={12} className="text-green-500 shrink-0" />}
+                      <h3 className="text-sm font-bold text-[#111] truncate">{c.name}</h3>
+                      {c.featured && <Shield size={12} className="text-green-500 shrink-0" />}
                     </div>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Star size={10} className="text-[#D4AF37] fill-[#D4AF37]" />
-                      <span className="text-xs font-bold">{c.note}</span>
-                      <span className="text-[10px] text-[#6B7280]">({c.avis} avis) · {c.distance}</span>
-                    </div>
-                    <p className="text-[10px] text-[#6B7280] mt-0.5">{c.horaires}</p>
+                    {Number(c.rating) > 0 && (
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Star size={10} className="text-[#D4AF37] fill-[#D4AF37]" />
+                        <span className="text-xs font-bold">{c.rating}</span>
+                        <span className="text-[10px] text-[#6B7280]">({c.reviewCount} avis)</span>
+                      </div>
+                    )}
+                    <p className="text-[10px] text-[#6B7280] mt-0.5">{c.addressLine || c.city}{c.hours ? ` · ${c.hours}` : ""}</p>
                     <div className="mt-1 flex flex-wrap gap-1">
-                      {c.specialites.map((s) => <span key={s} className="rounded-full bg-[#D4AF37]/10 px-2 py-0.5 text-[9px] font-semibold text-[#111]">{s}</span>)}
+                      {specialites.map((s) => <span key={s} className="rounded-full bg-[#D4AF37]/10 px-2 py-0.5 text-[9px] font-semibold text-[#111]">{s}</span>)}
                     </div>
                   </div>
                 </div>
                 <div className="mt-3 grid grid-cols-4 gap-2">
                   <button className="rounded-lg bg-[#D4AF37] py-2 text-[10px] font-bold text-white" onClick={(e) => { e.stopPropagation(); setSelectedCarrossierId(c.id); setStep(7); }}>Devis</button>
                   <button className="rounded-lg bg-[#111] py-2 text-[10px] font-bold text-white" onClick={(e) => { e.stopPropagation(); setSelectedCarrossierId(c.id); setStep(7); }}>Réserver</button>
-                  <a href={`tel:${c.tel}`} className="rounded-lg border border-[#E5E7EB] py-2 text-[10px] font-semibold text-[#111] text-center" onClick={(e) => e.stopPropagation()}>Appeler</a>
+                  {c.phone && <a href={`tel:${c.phone}`} className="rounded-lg border border-[#E5E7EB] py-2 text-[10px] font-semibold text-[#111] text-center" onClick={(e) => e.stopPropagation()}>Appeler</a>}
                   <button className="rounded-lg border border-[#E5E7EB] py-2 text-[10px] font-semibold text-[#111]" onClick={(e) => { e.stopPropagation(); navigate("/messages"); }}>Message</button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -723,9 +702,11 @@ export default function CarrosserieGarage() {
               {selectedCarrossier && (
                 <div className="rounded-2xl bg-white border border-[#E5E7EB] p-5 shadow-sm">
                   <h3 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider mb-3">Carrossier</h3>
-                  <p className="text-sm font-bold text-[#111]">{selectedCarrossier.nom}</p>
-                  <p className="text-[10px] text-[#6B7280]">{selectedCarrossier.adresse}</p>
-                  <div className="flex items-center gap-1 mt-1"><Star size={8} className="text-[#D4AF37] fill-[#D4AF37]" /><span className="text-[10px] font-bold">{selectedCarrossier.note}</span></div>
+                  <p className="text-sm font-bold text-[#111]">{selectedCarrossier.name}</p>
+                  <p className="text-[10px] text-[#6B7280]">{selectedCarrossier.addressLine || selectedCarrossier.city}</p>
+                  {Number(selectedCarrossier.rating) > 0 && (
+                    <div className="flex items-center gap-1 mt-1"><Star size={8} className="text-[#D4AF37] fill-[#D4AF37]" /><span className="text-[10px] font-bold">{selectedCarrossier.rating}</span></div>
+                  )}
                 </div>
               )}
 
@@ -766,7 +747,7 @@ export default function CarrosserieGarage() {
         <div className="max-w-md mx-auto px-4 mt-16 text-center">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100"><CheckCircle size={40} className="text-green-500" /></div>
           <h1 className="mt-6 text-2xl font-black text-[#111]">Demande envoyée !</h1>
-          <p className="mt-2 text-sm text-[#6B7280]">Votre demande de devis carrosserie a été transmise{selectedCarrossier ? ` à ${selectedCarrossier.nom}` : ""}.</p>
+          <p className="mt-2 text-sm text-[#6B7280]">Votre demande de devis carrosserie a été transmise{selectedCarrossier ? ` à ${selectedCarrossier.name}` : ""}.</p>
           <div className="mt-6 space-y-3">
             <button onClick={() => navigate("/compte")} className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-bold text-white">Suivre ma demande</button>
             <button onClick={() => { setMode("landing"); setStep(1); }} className="w-full rounded-xl border border-[#E5E7EB] py-3 text-sm font-semibold text-[#111]">Nouvelle demande</button>

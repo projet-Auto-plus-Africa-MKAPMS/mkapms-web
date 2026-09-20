@@ -1,55 +1,25 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { trpc } from "../lib/trpc";
 import {
-  ChevronLeft, ChevronRight, Search, MapPin, Calendar, Truck,
-  Shield, Lock, Headphones, FileCheck, ChevronDown,
-  Rocket, Ban, ArrowRight, Gauge, Users, Car,
-  Package, Container, Snowflake, Weight, Building2, Fuel
+  ChevronLeft, ChevronRight, Search, MapPin, Truck,
+  Shield, Lock, Headphones, ChevronDown,
+  Rocket, Ban, ArrowRight, Building2,
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════════
-   PAGE LISTING UTILITAIRES & CAMIONNETTES
+   PAGE LISTING UTILITAIRES & CAMIONNETTES (/louer/utilitaires)
+   Même correctif que LocationCamions.tsx : le catalogue de 23 utilitaires
+   fabriqués (ids 5001-5023, prix inventés) et ses sous-catégories à
+   compteurs inventés ont été retirés. Ces ids fabriqués menaient vers
+   ProduitLocation.tsx qui tentait une vraie requête trpc.annonces.get(id)
+   — même risque de collision d'identifiant avec une annonce réelle sans
+   rapport. Remplacé par le vrai catalogue déjà interrogé plus haut dans ce
+   fichier (trpc.annonces.list, categorie: "utilitaire"), affiché
+   directement, avec un état honnête si aucune annonce réelle n'existe.
+   Dates de location retirées : collectées mais jamais transmises à la
+   requête.
    ══════════════════════════════════════════════════════════════════════════ */
-
-const CATEGORIES = [
-  { titre: "Utilitaires légers", modeles: ["Kangoo", "Berlingo", "Partner", "Caddy"], photo: "/categories/util_petit_fourgon.jpg", count: 12 },
-  { titre: "Fourgons", modeles: ["Trafic", "Vivaro", "Transit Custom"], photo: "/categories/util_fourgon_moyen.jpg", count: 8 },
-  { titre: "Grand volume", modeles: ["Master", "Boxer", "Ducato", "Sprinter"], photo: "/categories/util_grand_fourgon.jpg", count: 6 },
-  { titre: "Camionnettes plateau", modeles: ["L200", "Hilux", "Navara"], photo: "/categories/utilitaire_benne.jpg", count: 5 },
-  { titre: "Frigorifiques", modeles: ["Berlingo Frigo", "Trafic Frigo"], photo: "/categories/utilitaire_frigo.jpg", count: 4 },
-  { titre: "Bennes", modeles: ["Trafic Benne", "Transit Benne", "Master Benne"], photo: "/categories/utilitaire_benne_loc.jpg", count: 6 },
-  { titre: "Pick-up / 4x4", modeles: ["Hilux", "Ranger", "Amarok", "L200"], photo: "/categories/utilitaire_pickup.jpg", count: 7 },
-  { titre: "Électriques", modeles: ["e-Kangoo", "e-Berlingo", "e-Partner", "e-Transit"], photo: "/categories/utilitaire_electrique.jpg", count: 5 },
-  { titre: "Bâchés", modeles: ["Trafic Bâché", "Master Bâché", "Transit Bâché"], photo: "/categories/utilitaire_bache.jpg", count: 4 },
-  { titre: "Avec hayon", modeles: ["Master Hayon", "Boxer Hayon", "Sprinter Hayon"], photo: "/categories/utilitaire_hayon.jpg", count: 5 },
-  { titre: "Isothermes", modeles: ["Berlingo Isotherme", "Trafic Isotherme", "Partner Isotherme"], photo: "/categories/utilitaire_isotherme.jpg", count: 3 },
-];
-
-const VEHICULES = [
-  { id: 5001, titre: "Renault Kangoo Van", annee: 2024, volume: "3.3 m³", charge: "650 kg", prixJour: 35, prixSemaine: 210, prixMois: 750, photo: "/categories/util_petit_fourgon.jpg", categorie: "Utilitaire léger" },
-  { id: 5002, titre: "Citroën Berlingo Van", annee: 2023, volume: "3.7 m³", charge: "700 kg", prixJour: 38, prixSemaine: 228, prixMois: 800, photo: "/categories/util_grand_fourgon.jpg", categorie: "Utilitaire léger" },
-  { id: 5003, titre: "Peugeot Partner Van", annee: 2024, volume: "3.8 m³", charge: "750 kg", prixJour: 38, prixSemaine: 228, prixMois: 790, photo: "/categories/util_petit_fourgon.jpg", categorie: "Utilitaire léger" },
-  { id: 5004, titre: "Renault Trafic L2H1", annee: 2024, volume: "5.8 m³", charge: "1200 kg", prixJour: 55, prixSemaine: 330, prixMois: 1100, photo: "/categories/util_fourgon_moyen.jpg", categorie: "Fourgon" },
-  { id: 5005, titre: "Ford Transit Custom", annee: 2023, volume: "6.0 m³", charge: "1300 kg", prixJour: 58, prixSemaine: 348, prixMois: 1150, photo: "/categories/util_fourgon_moyen.jpg", categorie: "Fourgon" },
-  { id: 5006, titre: "Renault Master L3H2", annee: 2024, volume: "13 m³", charge: "1500 kg", prixJour: 75, prixSemaine: 450, prixMois: 1500, photo: "/categories/util_grand_fourgon.jpg", categorie: "Grand volume" },
-  { id: 5007, titre: "Mercedes Sprinter 314", annee: 2023, volume: "11 m³", charge: "1400 kg", prixJour: 85, prixSemaine: 510, prixMois: 1700, photo: "/categories/util_fourgon_moyen.jpg", categorie: "Grand volume" },
-  { id: 5008, titre: "Fiat Ducato L4H3", annee: 2024, volume: "17 m³", charge: "1600 kg", prixJour: 90, prixSemaine: 540, prixMois: 1800, photo: "/categories/util_grand_fourgon.jpg", categorie: "Grand volume" },
-  { id: 5009, titre: "Mitsubishi L200", annee: 2023, volume: "Plateau", charge: "1050 kg", prixJour: 65, prixSemaine: 390, prixMois: 1300, photo: "/categories/utilitaire_benne.jpg", categorie: "Plateau" },
-  { id: 5010, titre: "Renault Trafic Frigo", annee: 2024, volume: "5.2 m³", charge: "1000 kg", prixJour: 75, prixSemaine: 450, prixMois: 1500, photo: "/categories/utilitaire_frigo.jpg", categorie: "Frigorifique" },
-  { id: 5011, titre: "Renault Trafic Benne", annee: 2024, volume: "Benne", charge: "1200 kg", prixJour: 70, prixSemaine: 420, prixMois: 1400, photo: "/categories/utilitaire_benne_loc.jpg", categorie: "Benne" },
-  { id: 5012, titre: "Ford Transit Benne", annee: 2023, volume: "Benne", charge: "1300 kg", prixJour: 72, prixSemaine: 432, prixMois: 1450, photo: "/categories/utilitaire_benne_loc.jpg", categorie: "Benne" },
-  { id: 5013, titre: "Toyota Hilux Pick-up", annee: 2024, volume: "Plateau", charge: "1000 kg", prixJour: 68, prixSemaine: 408, prixMois: 1350, photo: "/categories/utilitaire_pickup.jpg", categorie: "Pick-up / 4x4" },
-  { id: 5014, titre: "Ford Ranger 4x4", annee: 2024, volume: "Plateau", charge: "1050 kg", prixJour: 70, prixSemaine: 420, prixMois: 1400, photo: "/categories/utilitaire_pickup.jpg", categorie: "Pick-up / 4x4" },
-  { id: 5015, titre: "Renault Kangoo E-Tech", annee: 2024, volume: "3.3 m³", charge: "600 kg", prixJour: 45, prixSemaine: 270, prixMois: 950, photo: "/categories/utilitaire_electrique.jpg", categorie: "Électrique" },
-  { id: 5016, titre: "Citroën Berlingo Electric", annee: 2024, volume: "3.7 m³", charge: "650 kg", prixJour: 48, prixSemaine: 288, prixMois: 980, photo: "/categories/utilitaire_electrique.jpg", categorie: "Électrique" },
-  { id: 5017, titre: "Ford e-Transit Custom", annee: 2024, volume: "5.8 m³", charge: "1000 kg", prixJour: 75, prixSemaine: 450, prixMois: 1550, photo: "/categories/utilitaire_electrique.jpg", categorie: "Électrique" },
-  { id: 5018, titre: "Renault Master Bâché", annee: 2023, volume: "12 m³", charge: "1400 kg", prixJour: 80, prixSemaine: 480, prixMois: 1600, photo: "/categories/utilitaire_bache.jpg", categorie: "Bâché" },
-  { id: 5019, titre: "Ford Transit Bâché", annee: 2024, volume: "10 m³", charge: "1300 kg", prixJour: 78, prixSemaine: 468, prixMois: 1550, photo: "/categories/utilitaire_bache.jpg", categorie: "Bâché" },
-  { id: 5020, titre: "Renault Master Hayon", annee: 2024, volume: "13 m³", charge: "1500 kg", prixJour: 90, prixSemaine: 540, prixMois: 1800, photo: "/categories/utilitaire_hayon.jpg", categorie: "Avec hayon" },
-  { id: 5021, titre: "Mercedes Sprinter Hayon", annee: 2023, volume: "11 m³", charge: "1400 kg", prixJour: 95, prixSemaine: 570, prixMois: 1900, photo: "/categories/utilitaire_hayon.jpg", categorie: "Avec hayon" },
-  { id: 5022, titre: "Citroën Berlingo Isotherme", annee: 2024, volume: "3.3 m³", charge: "600 kg", prixJour: 50, prixSemaine: 300, prixMois: 1050, photo: "/categories/utilitaire_isotherme.jpg", categorie: "Isotherme" },
-  { id: 5023, titre: "Renault Trafic Isotherme", annee: 2024, volume: "5.0 m³", charge: "1000 kg", prixJour: 65, prixSemaine: 390, prixMois: 1300, photo: "/categories/utilitaire_isotherme.jpg", categorie: "Isotherme" },
-];
 
 const SERVICES = [
   { icon: Truck, label: "Livraison sur site", desc: "Livré directement sur votre chantier" },
@@ -67,26 +37,16 @@ const FAQ = [
   { q: "Comment fonctionne la caution ?", a: "Empreinte bancaire prise à la réservation (non débitée). Libérée sous 7 jours après restitution." },
 ];
 
-const TYPE_FILTER = ["Tous", "Léger", "Fourgon", "Grand volume", "Plateau", "Frigo"];
-
 export default function LocationUtilitaires() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [lieu, setLieu] = useState("");
-  const [dateDebut, setDateDebut] = useState("");
-  const [dateRetour, setDateRetour] = useState("");
-  const [filtre, setFiltre] = useState("Tous");
-  const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const [rechercheLieu, setRechercheLieu] = useState("");
 
-  const filteredVehicules = VEHICULES.filter((v) => {
-    if (selectedCat && v.categorie !== selectedCat) return false;
-    if (filtre === "Tous") return true;
-    if (filtre === "Léger" && v.categorie.includes("léger")) return true;
-    if (filtre === "Fourgon" && v.categorie === "Fourgon") return true;
-    if (filtre === "Grand volume" && v.categorie === "Grand volume") return true;
-    if (filtre === "Plateau" && v.categorie === "Plateau") return true;
-    if (filtre === "Frigo" && v.categorie === "Frigorifique") return true;
-    return false;
-  });
+  const realAnnonces = trpc.annonces.list.useQuery(
+    { type: "location", categorie: "utilitaire", ville: rechercheLieu || undefined, limit: 24 },
+    { retry: false },
+  );
+  const annoncesTrouvees = realAnnonces.data?.items ?? [];
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24 max-w-6xl mx-auto">
@@ -110,114 +70,44 @@ export default function LocationUtilitaires() {
         </div>
       </div>
 
-      {/* BARRE DE RECHERCHE */}
+      {/* BARRE DE RECHERCHE — lieu réel uniquement */}
       <div id="search-util" className="mx-4 -mt-4 relative z-10 rounded-2xl bg-white border border-[#E5E7EB] p-4 shadow-md">
-        <div className="space-y-3">
-          <div>
-            <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Lieu de retrait</label>
-            <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
-              <MapPin size={14} className="text-red-500 shrink-0" />
-              <input type="text" placeholder="Ville, zone industrielle…" value={lieu} onChange={(e) => setLieu(e.target.value)} className="w-full bg-transparent text-sm text-[#111] placeholder:text-[#9CA3AF] outline-none" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Date départ</label>
-              <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
-                <Calendar size={14} className="text-[#D4AF37] shrink-0" />
-                <input type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} className="w-full bg-transparent text-sm text-[#111] outline-none" />
-              </div>
-            </div>
-            <div>
-              <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Date retour</label>
-              <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
-                <Calendar size={14} className="text-[#D4AF37] shrink-0" />
-                <input type="date" value={dateRetour} onChange={(e) => setDateRetour(e.target.value)} className="w-full bg-transparent text-sm text-[#111] outline-none" />
-              </div>
-            </div>
-          </div>
-          <button className="w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md">
-            <Search size={16} /> Rechercher un utilitaire
-          </button>
+        <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide">Lieu de retrait</label>
+        <div className="mt-1 flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2.5 bg-[#FAFAF8]">
+          <MapPin size={14} className="text-red-500 shrink-0" />
+          <input type="text" placeholder="Ville, zone industrielle…" value={lieu} onChange={(e) => setLieu(e.target.value)} className="w-full bg-transparent text-sm text-[#111] placeholder:text-[#9CA3AF] outline-none" />
         </div>
+        <button
+          onClick={() => setRechercheLieu(lieu)}
+          className="mt-3 w-full rounded-xl bg-[#D4AF37] py-3.5 text-sm font-extrabold text-white flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-md"
+        >
+          <Search size={16} /> Rechercher un utilitaire
+        </button>
       </div>
 
-      {/* CATÉGORIES */}
+      {/* VÉHICULES — annonces réelles uniquement */}
       <div className="px-4 mt-6">
-        <h2 className="text-lg font-bold text-[#111]">Catégories utilitaires</h2>
-        <div className="mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {CATEGORIES.map((c) => (
-            <button key={c.titre} onClick={() => setSelectedCat(selectedCat === c.titre ? null : c.titre)} className={`shrink-0 w-[140px] md:w-[160px] lg:w-[180px] rounded-xl overflow-hidden border-2 transition active:scale-[0.98] ${selectedCat === c.titre ? "border-[#D4AF37] shadow-md ring-2 ring-[#D4AF37]/30" : "border-[#E5E7EB]"}`}>
-              <img src={c.photo} alt={c.titre} className="h-[80px] w-full object-cover" loading="lazy" />
-              <div className="p-2 bg-white">
-                <p className="text-xs font-bold text-[#111] truncate">{c.titre}</p>
-                <p className="text-[10px] text-[#6B7280]">{c.count} véhicules</p>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* FILTRES */}
-      <div className="px-4 mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        {TYPE_FILTER.map((f) => (
-          <button key={f} onClick={() => setFiltre(f)} className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition ${filtre === f ? "bg-[#D4AF37] text-white" : "bg-white border border-[#E5E7EB] text-[#6B7280]"}`}>
-            {f}
-          </button>
-        ))}
-      </div>
-
-      {/* VÉHICULES */}
-      <div className="px-4 mt-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold text-[#111]">Utilitaires disponibles</h2>
-          <span className="text-xs text-[#6B7280]">{filteredVehicules.length} résultat{filteredVehicules.length > 1 ? "s" : ""}</span>
+          {realAnnonces.isSuccess && <span className="text-xs text-[#6B7280]">{annoncesTrouvees.length} résultat{annoncesTrouvees.length > 1 ? "s" : ""}</span>}
         </div>
+        {realAnnonces.isLoading && <p className="text-sm text-[#6B7280]">Chargement…</p>}
+        {realAnnonces.isSuccess && annoncesTrouvees.length === 0 && (
+          <p className="rounded-xl bg-white border border-[#E5E7EB] p-4 text-center text-xs text-[#6B7280]">
+            Aucune annonce réelle d'utilitaire ne correspond à cette recherche pour le moment.
+          </p>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredVehicules.map((v) => (
-            <Link key={v.id} to={`/louer/utilitaires/vehicule/${v.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden active:scale-[0.99] transition hover:shadow-lg">
-              <div className="relative h-[160px] md:h-[180px] lg:h-[200px]">
-                <img src={v.photo} alt={v.titre} className="w-full h-full object-cover" loading="lazy" />
-                <span className="absolute top-2 left-2 rounded-full bg-orange-600 px-2.5 py-0.5 text-[9px] font-bold text-white">{v.categorie}</span>
+          {annoncesTrouvees.map((a) => (
+            <Link key={a.id} to={`/louer/utilitaires/vehicule/${a.id}`} className="block rounded-xl bg-white border border-[#E5E7EB] overflow-hidden active:scale-[0.99] transition hover:shadow-lg">
+              <div className="relative h-[160px] md:h-[180px] lg:h-[200px] bg-[#F5F3EF]">
+                {a.photoPrincipale && <img src={a.photoPrincipale} alt={a.titre ?? ""} className="w-full h-full object-cover" loading="lazy" />}
               </div>
               <div className="p-4">
-                <h3 className="text-base font-bold text-[#111]">{v.titre}</h3>
-                <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-[#6B7280]">
-                  <span className="flex items-center gap-1"><Calendar size={10} /> {v.annee}</span>
-                  <span className="flex items-center gap-1"><Package size={10} /> {v.volume}</span>
-                  <span className="flex items-center gap-1"><Weight size={10} /> {v.charge}</span>
-                </div>
-                <div className="mt-3 relative">
-                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
-                      <p className="text-[9px] text-[#6B7280] uppercase">Jour</p>
-                      <p className="text-sm font-black text-[#111]">{v.prixJour} €</p>
-                    </div>
-                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
-                      <p className="text-[9px] text-[#6B7280] uppercase">3 Jours</p>
-                      <p className="text-sm font-black text-[#111]">{Math.round(v.prixJour * 2.7)} €</p>
-                    </div>
-                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
-                      <p className="text-[9px] text-[#6B7280] uppercase">Semaine</p>
-                      <p className="text-sm font-black text-[#111]">{v.prixSemaine} €</p>
-                    </div>
-                    <div className="shrink-0 rounded-lg bg-[#F5F3EF] p-2 text-center min-w-[70px]">
-                      <p className="text-[9px] text-[#6B7280] uppercase">2 Sem.</p>
-                      <p className="text-sm font-black text-[#111]">{Math.round(v.prixSemaine * 1.8)} €</p>
-                    </div>
-                    <div className="shrink-0 rounded-lg bg-orange-600/5 border border-orange-600/20 p-2 text-center min-w-[70px]">
-                      <p className="text-[9px] text-orange-600 uppercase font-semibold">Mois</p>
-                      <p className="text-sm font-black text-orange-600">{v.prixMois} €</p>
-                    </div>
-                    <div className="shrink-0 rounded-lg bg-orange-600/10 border border-orange-600/30 p-2 text-center min-w-[70px]">
-                      <p className="text-[9px] text-orange-600 uppercase font-semibold">3 Mois</p>
-                      <p className="text-sm font-black text-orange-600">{Math.round(v.prixMois * 2.7)} €</p>
-                    </div>
-                  </div>
-                  <div className="absolute right-0 top-0 bottom-1 w-6 bg-gradient-to-l from-white to-transparent pointer-events-none flex items-center justify-end">
-                    <ChevronRight size={14} className="text-red-500" />
-                  </div>
-                </div>
+                <h3 className="text-base font-bold text-[#111] truncate">{a.titre || `${a.marque ?? ""} ${a.modele ?? ""}`}</h3>
+                <p className="mt-2 text-base font-black text-[#D4AF37]">
+                  {Math.round(Number(a.prixJour ?? a.prix))} €<span className="text-[10px] font-normal text-[#6B7280]"> / jour</span>
+                </p>
                 <span className="mt-3 w-full rounded-xl bg-orange-600 py-3 text-sm font-bold text-white active:scale-[0.98] transition flex items-center justify-center gap-2">
                   Voir les détails <ArrowRight size={14} />
                 </span>

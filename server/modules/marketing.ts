@@ -3,6 +3,7 @@
 import {
   boolean,
   integer,
+  numeric,
   pgEnum,
   pgTable,
   serial,
@@ -95,6 +96,16 @@ export const pubRequests = pgTable("pub_requests", {
   contactPhone: varchar("contact_phone", { length: 32 }),
   budget: varchar("budget", { length: 64 }),
   duree: varchar("duree", { length: 64 }),
+  // Montant de référence en EUR (devise pivot interne) : chaque visiteur le
+  // voit converti dans sa devise réelle (useCurrency().format()), jamais un
+  // prix figé en euros affiché tel quel à l'international.
+  budgetAmountEur: numeric("budget_amount_eur", { precision: 10, scale: 2 }),
+  // Pays du demandeur (ISO 3166-1 alpha-2, même convention que
+  // newsletterSubscribers.pays) — jamais supposé FR par défaut.
+  pays: varchar("pays", { length: 2 }),
+  contentType: varchar("content_type", { length: 16 }).notNull().default("lien"),
+  mediaUrl: text("media_url"),
+  linkUrl: text("link_url"),
   status: varchar("status", { length: 32 }).notNull().default("en_attente"),
   userId: integer("user_id"),
   decidedBy: integer("decided_by"),
