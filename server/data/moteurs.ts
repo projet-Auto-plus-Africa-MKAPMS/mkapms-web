@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 523;
+export const MANQUES_TOTAL = 519;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "ecran_sans_contenu": 331,
-  "bouton_sans_action": 90,
+  "ecran_sans_contenu": 330,
+  "bouton_sans_action": 87,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -8384,9 +8384,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 28,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 134,
-        "mots": 470
+        "sansAction": 0,
+        "textes": 131,
+        "mots": 463
       },
       {
         "fichier": "client/src/pages/garage/CentreLavage.tsx",
@@ -8470,11 +8470,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/garage/diagnostic-avance"
         ],
-        "cliquables": 3,
+        "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 4,
-        "mots": 7
+        "sansAction": 0,
+        "textes": 5,
+        "mots": 44
       },
       {
         "fichier": "client/src/pages/garage/DiagnosticGarage.tsx",
@@ -8871,26 +8871,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 644,
-    "mots": 2022,
+    "textes": 642,
+    "mots": 2052,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Rechercher » client/src/pages/garage/CarrosserieGarage.tsx:663"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Capture écran » client/src/pages/garage/DiagnosticAvance.tsx:17"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Exporter PDF » client/src/pages/garage/DiagnosticAvance.tsx:17"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/garage/DiagnosticAvance.tsx (4 texte(s))"
-      },
       {
         "genre": "bouton_sans_action",
         "detail": "« Ajouter un véhicule » client/src/pages/garage/FlottesEntreprises.tsx:17"

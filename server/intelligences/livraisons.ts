@@ -1748,6 +1748,22 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié sur base Postgres réelle (nouvelle suite dédiée, 7/7) : les dossiers succession/plaques sont créés avec le bon type et le bon motif ; le paiement est refusé tant que l'agence n'a pas chiffré le dossier (jamais un tarif inventé) ; une fois chiffré, il ouvre une vraie redirection de paiement ; un tiers ne peut jamais payer le dossier d'un autre client (refusé explicitement) ; le suivi affiche bien une vraie étape créée automatiquement, jamais un message fabriqué. Une erreur de rédaction dans le test lui-même (une regex qui ne correspondait pas au message exact du refus) a été débusquée en reproduisant l'appel isolément plutôt qu'en supposant le code serveur en cause — la leçon : vérifier le test autant que le code avant de conclure à un bug. Vérifié en navigateur réel sur les 5 écrans : aucune erreur de rendu. Reste explicitement hors périmètre : l'écran ControleDocuments.tsx (déjà réel à 90%, un seul bouton terminal bloqué par l'absence du moteur de réservation de location, tâche #56) et la vraie signature électronique (tâche #36).",
     domaine: "confiance",
   },
+  {
+    cle: "garage-carrosserie-annuaire-reel-plus-diagnostic-honnete",
+    titre: "CarrosserieGarage.tsx : annuaire de carrossiers fabriqué remplacé par le vrai moteur garages ; DiagnosticAvance.tsx : codes défaut inventés retirés",
+    moteurs: ["garage", "confiance"],
+    quoi:
+      "Signalés parmi une série de boutons sans action détectés par le PDG. CarrosserieGarage.tsx (déjà largement réel — identification plaque/VIN, devis via trpc.devis.create, photos avant/après) affichait une liste de 4 carrossiers entièrement inventés (adresses, notes, avis, distances), et son bouton « Rechercher » n'avait aucun gestionnaire de clic. Vérifié avant tout code : trpc.garages.list (table garages_publics) est déjà le vrai annuaire de garages, déjà utilisé par PriseRendezVous.tsx (tâche #24) — jamais un second annuaire créé. Liste fabriquée remplacée par ce vrai annuaire, filtrable par ville, avec un état honnête « aucun garage trouvé » plutôt qu'une liste toujours pleine. Aucun calcul de distance : pas de clé Google Maps configurée (tâche #50, non traité ici).\n\nDiagnosticAvance.tsx affichait 3 codes défaut OBD-II fixes (P0301, P0420, B1234) comme s'ils provenaient d'une vraie lecture véhicule. Aucune intégration avec un scanner OBD-II physique n'existe côté MKA.P-MS — impossible à fabriquer honnêtement côté serveur, ce n'est pas un manque de câblage mais une dépendance matérielle absente. Écran réécrit pour le dire clairement, avec un vrai renvoi vers la prise de rendez-vous garage (moteur devis déjà utilisé ailleurs) plutôt que de continuer à simuler un diagnostic qui n'a jamais eu lieu — « Capture écran »/« Exporter PDF » retirés, exporter un diagnostic inventé aurait été la même fabrication dans un fichier.",
+    pourquoi:
+      "Construire un second annuaire de carrossiers aurait dupliqué exactement ce que garages_publics fait déjà pour PriseRendezVous.tsx. Pour le diagnostic OBD-II, aucune quantité de code serveur ne peut produire une vraie lecture sans le matériel — le seul choix honnête était de le dire, pas de continuer à l'inventer.",
+    ou: [
+      "client/src/pages/garage/CarrosserieGarage.tsx",
+      "client/src/pages/garage/DiagnosticAvance.tsx",
+    ],
+    lecon:
+      "Vérifié directement contre l'API réelle (garages.list interrogé avec une fiche de test insérée en base : la réponse correspond exactement aux champs désormais utilisés côté client — name, addressLine, city, phone, hours, specialites, rating, reviewCount — fiche retirée après vérification). Vérifié en TypeScript strict (aucune régression sur les autres écrans). Reste hors périmètre, tracés dans la tâche #53 : ControleQualiteGarage.tsx (checklist qualité par ordre de réparation — nécessiterait un nouveau schéma de validation atelier/responsable, une décision de conception plutôt qu'un simple câblage) et les autres écrans garage/* sans backend.",
+    domaine: "confiance",
+  },
 ];
 
 /**

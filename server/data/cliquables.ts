@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2565;
+export const CLIQUABLES_TOTAL = 2564;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -261,7 +261,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/formations/FormationVTC.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/AssistanceRoutiere.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/BoutiquePieces.tsx", total: 4, moteur: 0, liens: 2, boutonsLocaux: 2, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/garage/CarrosserieGarage.tsx", total: 28, moteur: 0, liens: 0, boutonsLocaux: 26, sansAction: 1, zones: 1 },
+  { fichier: "client/src/pages/garage/CarrosserieGarage.tsx", total: 28, moteur: 0, liens: 0, boutonsLocaux: 27, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/garage/CentreLavage.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/CentreReclamations.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/CommandePieces.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
@@ -273,7 +273,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/garage/DemandeDevis.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/DepannageAvance.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/DepannageGarage.tsx", total: 5, moteur: 3, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/garage/DiagnosticAvance.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 2, zones: 0 },
+  { fichier: "client/src/pages/garage/DiagnosticAvance.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/DiagnosticGarage.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/DossiersFlottes.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/garage/EntretiensPreventifs.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -742,11 +742,8 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1027, genre: "bouton", libelle: "Prochaines echeances 12 dossiers", motif: "sans_action" },
   { fichier: "client/src/pages/ControleDocuments.tsx", ligne: 151, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/finance/LOAFinance.tsx", ligne: 11, genre: "bouton", libelle: "Simulation indisponible", motif: "sans_action" },
-  { fichier: "client/src/pages/garage/CarrosserieGarage.tsx", ligne: 663, genre: "bouton", libelle: "Rechercher", motif: "sans_action" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, genre: "bouton", libelle: "Validation atelier ✓", motif: "sans_action" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, genre: "bouton", libelle: "Validation responsable", motif: "sans_action" },
-  { fichier: "client/src/pages/garage/DiagnosticAvance.tsx", ligne: 17, genre: "bouton", libelle: "Capture écran", motif: "sans_action" },
-  { fichier: "client/src/pages/garage/DiagnosticAvance.tsx", ligne: 17, genre: "bouton", libelle: "Exporter PDF", motif: "sans_action" },
   { fichier: "client/src/pages/garage/FlottesEntreprises.tsx", ligne: 17, genre: "bouton", libelle: "Ajouter un véhicule", motif: "sans_action" },
   { fichier: "client/src/pages/garage/FournisseursGarage.tsx", ligne: 14, genre: "bouton", libelle: "Ajouter fournisseur", motif: "sans_action" },
   { fichier: "client/src/pages/garage/OrdreReparation.tsx", ligne: 59, genre: "bouton", libelle: "Voir details", motif: "sans_action" },
