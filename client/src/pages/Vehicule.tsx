@@ -1425,6 +1425,14 @@ export default function Vehicule({ univers }: { univers?: string }) {
           )}
           {!isOwnerOrAdmin && !isDemo && (
           <button
+            className="mt-2 w-full rounded-xl border-2 border-[#111] py-3 text-sm font-bold text-[#111] transition hover:bg-[#111] hover:text-white"
+            onClick={() => requireLogin(() => navigate(`/vente/essai/${annonceId}`))}
+          >
+            Réserver un essai routier
+          </button>
+          )}
+          {!isOwnerOrAdmin && !isDemo && (
+          <button
             className="mt-2 w-full text-center text-xs font-bold text-[#6B7280] underline"
             onClick={() => requireLogin(() => navigate(`/vente/retour-client/${annonceId}`))}
           >

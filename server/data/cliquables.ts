@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2550;
+export const CLIQUABLES_TOTAL = 2551;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -656,7 +656,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/utilisateurs/SecuriteUtilisateur.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/TableauBordPerso.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Validation.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
-  { fichier: "client/src/pages/Vehicule.tsx", total: 148, moteur: 0, liens: 10, boutonsLocaux: 104, sansAction: 1, zones: 33 },
+  { fichier: "client/src/pages/Vehicule.tsx", total: 149, moteur: 0, liens: 10, boutonsLocaux: 105, sansAction: 1, zones: 33 },
   { fichier: "client/src/pages/VehiculesCertifies.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Vendre.tsx", total: 39, moteur: 0, liens: 0, boutonsLocaux: 37, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/vente/AchatExpress.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
@@ -675,7 +675,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/vente/CentreDetectionFraude.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/vente/CentreDiagnostic.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreDossiersAcheteurs.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/vente/CentreEssaiRoutier.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/vente/CentreEssaiRoutier.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreExport.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
   { fichier: "client/src/pages/vente/CentreFavorisVente.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreFinancement.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -794,7 +794,7 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/superadmin/ValidationDocumentsComplete.tsx", ligne: 38, genre: "bouton", libelle: "Refuser", motif: "sans_action" },
   { fichier: "client/src/pages/TableauBordLoueur.tsx", ligne: 81, genre: "bouton", libelle: "Vérifier", motif: "sans_action" },
   { fichier: "client/src/pages/Validation.tsx", ligne: 177, genre: "bouton", libelle: "0} onClick= >", motif: "sans_action" },
-  { fichier: "client/src/pages/Vehicule.tsx", ligne: 1835, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
+  { fichier: "client/src/pages/Vehicule.tsx", ligne: 1843, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/vente/AchatExpress.tsx", ligne: 9, genre: "bouton", libelle: "Commencer un achat express", motif: "sans_action" },
   { fichier: "client/src/pages/vente/AlertesAuto.tsx", ligne: 17, genre: "bouton", libelle: "Traiter", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreAchatDistance.tsx", ligne: 10, genre: "bouton", libelle: "Continuer mon achat", motif: "sans_action" },
@@ -802,7 +802,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/vente/CentreCampagnes.tsx", ligne: 16, genre: "bouton", libelle: "Nouvelle campagne", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreControleQualite.tsx", ligne: 20, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreDetectionFraude.tsx", ligne: 17, genre: "bouton", libelle: "Voir", motif: "sans_action" },
-  { fichier: "client/src/pages/vente/CentreEssaiRoutier.tsx", ligne: 11, genre: "bouton", libelle: "Réserver l'essai", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreExport.tsx", ligne: 17, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreRapportsVehicule.tsx", ligne: 19, genre: "bouton", libelle: "Télécharger le rapport PDF", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreReservationAchat.tsx", ligne: 15, genre: "bouton", libelle: "Réserver ce véhicule", motif: "sans_action" },
