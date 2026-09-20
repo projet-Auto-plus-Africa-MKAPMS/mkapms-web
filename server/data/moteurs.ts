@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 509;
+export const MANQUES_TOTAL = 508;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 75,
+  "bouton_sans_action": 74,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 40,
@@ -894,6 +894,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/LocationCamions.tsx",
         "route": "/louer/camions",
+        "composants": [
+          "trpc.annonces"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/LocationMinibus.tsx",
+        "route": "/louer/minibus",
         "composants": [
           "trpc.annonces"
         ]
@@ -11480,22 +11487,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/minibus"
         ],
-        "cliquables": 6,
+        "cliquables": 7,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 56,
-        "mots": 159
+        "sansAction": 0,
+        "textes": 33,
+        "mots": 112
       },
       {
         "fichier": "client/src/pages/LocationUtilitaires.tsx",
         "routes": [
           "/louer/utilitaires"
         ],
-        "cliquables": 6,
+        "cliquables": 5,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 71,
-        "mots": 235
+        "textes": 22,
+        "mots": 89
       },
       {
         "fichier": "client/src/pages/LocationVoiture.tsx",
@@ -11670,17 +11677,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "connecte"
     ],
-    "textes": 856,
-    "mots": 2958,
+    "textes": 784,
+    "mots": 2765,
     "battement": "sonde",
     "manques": [
       {
         "genre": "bouton_sans_action",
         "detail": "« Simulation indisponible » client/src/pages/LocationLOA.tsx:100"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Rechercher un minibus » client/src/pages/LocationMinibus.tsx:124"
       },
       {
         "genre": "bouton_sans_action",
