@@ -69,6 +69,7 @@ export const rdvStatusEnum = pgEnum("rdv_status", ["en_attente", "confirme", "ho
 export const rdvTypeEnum = pgEnum("rdv_type", ["visite", "intervention"]);
 export const rentalApplicantTypeEnum = pgEnum("rental_applicant_type", ["individual", "society", "vtc", "taxi"]);
 export const rentalApplicationStatusEnum = pgEnum("rental_application_status", ["draft", "submitted", "approved", "rejected", "paid", "completed"]);
+export const rentalContractStatusEnum = pgEnum("rental_contract_status", ["actif", "termine", "remplace", "renouvele", "annule"]);
 export const reportStatusEnum = pgEnum("report_status", ["ouvert", "en_cours", "traite", "rejete"]);
 export const reviewTargetEnum = pgEnum("review_target", ["vendeur", "garage", "loueur", "livreur", "vtc_taxi", "boutique_pieces", "annonce"]);
 export const saleTypeEnum = pgEnum("sale_type", ["sale", "rental", "leasing", "loa"]);
@@ -902,6 +903,26 @@ export const rentalApplications = pgTable("rental_applications", {
   depositCurrency: varchar("deposit_currency", { length: 8 }),
   depositPaid: boolean("deposit_paid").notNull().default(false),
   depositStripeSessionId: varchar("deposit_stripe_session_id", { length: 256 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Contrat de location actif (tâche #56, item 2) — pièce manquante dont
+ * dépendent RenouvellementFlotte.tsx et RemplacementVehicule.tsx : une
+ * candidature (rentalApplications) prouve un acompte payé, pas un véhicule
+ * attribué sur une période. Créé par un agent une fois la candidature payée
+ * (jamais automatiquement à partir de données devinées) : véhicule et dates
+ * réelles fixées explicitement à ce moment-là.
+ */
+export const rentalContracts = pgTable("rental_contracts", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  applicationId: bigint("application_id", { mode: "number" }).notNull(),
+  vehicleId: bigint("vehicle_id", { mode: "number" }),
+  userId: bigint("user_id", { mode: "number" }).notNull(),
+  startDate: timestamp("start_date", { withTimezone: true }).notNull(),
+  endDate: timestamp("end_date", { withTimezone: true }),
+  status: rentalContractStatusEnum("status").notNull().default("actif"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

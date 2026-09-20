@@ -946,6 +946,13 @@
       "when": 1788232028000,
       "tag": "0136_pub_requests_contenu_creatif",
       "breakpoints": true
+    },
+    {
+      "idx": 135,
+      "version": "7",
+      "when": 1788232029000,
+      "tag": "0137_rental_contracts",
+      "breakpoints": true
     }
   ]
 }

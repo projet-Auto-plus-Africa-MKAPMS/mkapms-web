@@ -92,6 +92,10 @@ export default function MesCandidaturesLocation() {
                 <p className="text-xs text-red-700 bg-red-50 rounded-lg p-2">{a.rejectionReason}</p>
               )}
 
+              {a.status === "completed" && (
+                <Link to="/louer/renouvellement-flotte" className="block text-center rounded-xl border border-[#E5E7EB] py-2 text-xs font-bold text-[#111]">Voir mon contrat de location</Link>
+              )}
+
               {a.status === "approved" && (
                 <div className="space-y-1.5">
                   <p className="text-xs text-[#111]">
