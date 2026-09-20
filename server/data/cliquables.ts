@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2561;
+export const CLIQUABLES_TOTAL = 2560;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -637,7 +637,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/superadmin/PlanMaitreFournisseurs.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/ValidationDocumentsComplete.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 2, zones: 0 },
   { fichier: "client/src/pages/SuppressionCompte.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/TableauBordLoueur.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/TableauBordLoueur.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/TableauBordParticulier.tsx", total: 6, moteur: 0, liens: 6, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/TableauBordProVente.tsx", total: 7, moteur: 2, liens: 5, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/utilisateurs/AbonnementsUtilisateur.tsx", total: 3, moteur: 0, liens: 2, boutonsLocaux: 1, sansAction: 0, zones: 0 },
@@ -790,7 +790,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx", ligne: 41, genre: "bouton", libelle: "Ajouter un employé", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/ValidationDocumentsComplete.tsx", ligne: 38, genre: "bouton", libelle: "Valider", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/ValidationDocumentsComplete.tsx", ligne: 38, genre: "bouton", libelle: "Refuser", motif: "sans_action" },
-  { fichier: "client/src/pages/TableauBordLoueur.tsx", ligne: 81, genre: "bouton", libelle: "Vérifier", motif: "sans_action" },
   { fichier: "client/src/pages/Validation.tsx", ligne: 177, genre: "bouton", libelle: "0} onClick= >", motif: "sans_action" },
   { fichier: "client/src/pages/Vehicule.tsx", ligne: 1843, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/vente/AchatExpress.tsx", ligne: 9, genre: "bouton", libelle: "Commencer un achat express", motif: "sans_action" },

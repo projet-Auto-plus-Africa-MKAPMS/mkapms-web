@@ -76,7 +76,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx", ligne: 41, libelle: "Ajouter un employé" },
   { fichier: "client/src/pages/superadmin/ValidationDocumentsComplete.tsx", ligne: 38, libelle: "Valider" },
   { fichier: "client/src/pages/superadmin/ValidationDocumentsComplete.tsx", ligne: 38, libelle: "Refuser" },
-  { fichier: "client/src/pages/TableauBordLoueur.tsx", ligne: 81, libelle: "Vérifier" },
   { fichier: "client/src/pages/Vehicule.tsx", ligne: 1843, libelle: "" },
   { fichier: "client/src/pages/vente/AchatExpress.tsx", ligne: 9, libelle: "Commencer un achat express" },
   { fichier: "client/src/pages/vente/AlertesAuto.tsx", ligne: 17, libelle: "Traiter" },
