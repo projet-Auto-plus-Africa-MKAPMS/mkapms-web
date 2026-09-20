@@ -1884,6 +1884,19 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié directement contre la base réelle (server/routers/__tests__/location-camions.test.ts, 3/3 assertions) : un vrai camion en location apparaît bien dans le catalogue filtré, une annonce en vente n'apparaît jamais dans un catalogue de location, un utilitaire n'apparaît pas dans le filtre \"camion\" (jamais une sous-catégorie fabriquée mélangée à une vraie donnée). Vérifié en TypeScript strict. LocationMinibus.tsx et LocationUtilitaires.tsx partagent très probablement le même patron (même fichier ProduitLocation.tsx en aval, même risque de collision d'id) — non traités dans ce lot, à reprendre en suivant exactement la même méthode, tâche #56.",
     domaine: "confiance",
   },
+  {
+    cle: "location-minibus-utilitaires-catalogue-reel",
+    titre: "LocationUtilitaires.tsx et LocationMinibus.tsx : mêmes catalogues fabriqués retirés, filtre minibus honnête par nombre de places réel (aucune catégorie \"minibus\" n'existe)",
+    moteurs: ["annonces"],
+    quoi:
+      "Suite immédiate du correctif LocationCamions.tsx : LocationUtilitaires.tsx affichait 23 utilitaires fabriqués (ids 5001-5023) et LocationMinibus.tsx 8 minibus fabriqués (ids 7001-7008), tous deux avec le même risque de collision d'identifiant vers ProduitLocation.tsx (une vraie requête trpc.annonces.get(id) tentée sur un id fabriqué, potentiellement une vraie annonce sans rapport). LocationUtilitaires.tsx interrogeait déjà trpc.annonces.list (categorie: \"utilitaire\") en plus du faux catalogue — le faux catalogue et ses sous-catégories à compteurs inventés ont été retirés, le vrai catalogue reste seul affiché.\n\nLocationMinibus.tsx n'avait AUCUNE requête réelle (contrairement aux deux autres écrans) et son bouton « Rechercher » n'avait aucun gestionnaire de clic. Vérifié avant tout code : categorieEnum côté serveur ne contient aucune valeur \"minibus\" (citadine/berline/break/suv/coupe/cabriolet/monospace/utilitaire/camion/moto/scooter/quad/luxe/autre) — l'approximer avec \"monospace\" aurait été une fabrication déguisée en filtre réel. Le vrai champ utilisé à la place : annonces.places (nombre de places, déjà filtrable côté serveur à correspondance exacte), plus pertinent pour un minibus que n'importe quelle catégorie de carrosserie.",
+    pourquoi:
+      "Approximer une catégorie \"minibus\" inexistante avec une valeur d'enum existante mais différente (monospace) aurait été aussi trompeur que le catalogue fabriqué qu'elle remplaçait — juste plus discret. Le nombre de places est un champ réel, déjà rempli par les vendeurs, et directement pertinent pour ce cas d'usage.",
+    ou: ["client/src/pages/LocationUtilitaires.tsx", "client/src/pages/LocationMinibus.tsx"],
+    lecon:
+      "Vérifié directement contre la base réelle (server/routers/__tests__/location-minibus-utilitaires.test.ts, 5/5 assertions) : un utilitaire réel apparaît dans le catalogue utilitaires, un minibus 9 places n'y apparaît jamais (catégories réellement distinctes) ; le filtre par 9 places renvoie le minibus 9 places réel et exclut le 17 places (correspondance exacte, jamais approximative) ; sans filtre, les deux minibus réels apparaissent. Vérifié en TypeScript strict. Compteur de boutons sans action : 72 → 71 (bouton « Rechercher » de LocationMinibus.tsx désormais réellement câblé).",
+    domaine: "confiance",
+  },
 ];
 
 /**
