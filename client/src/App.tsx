@@ -63,6 +63,8 @@ const LocationCamions = lazy(() => import("./pages/LocationCamions"));
 const LocationMinibus = lazy(() => import("./pages/LocationMinibus"));
 const LocationMKAPMS = lazy(() => import("./pages/LocationMKAPMS"));
 const ProduitLocation = lazy(() => import("./pages/ProduitLocation"));
+const CandidatureLocationFlotte = lazy(() => import("./pages/location/CandidatureLocationFlotte"));
+const MesCandidaturesLocation = lazy(() => import("./pages/location/MesCandidaturesLocation"));
 const CentreDocuments = lazy(() => import("./pages/CentreDocuments"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Messagerie = lazy(() => import("./pages/Messagerie"));
@@ -864,6 +866,8 @@ export default function App() {
             <Route path="/louer/vtc-taxi/vehicule/:id" element={<U name="Produit VTC & Taxi"><ProduitVtcTaxi /></U>} />
             <Route path="/louer/particulier/vehicule/:id" element={<U name="Produit Particulier"><ProduitParticulier /></U>} />
             <Route path="/louer/pro/vehicule/:id" element={<U name="Produit Pro"><ProduitLocation /></U>} />
+            <Route path="/louer/pro/candidature" element={<U name="Candidature location flotte"><CandidatureLocationFlotte /></U>} />
+            <Route path="/location/mes-candidatures" element={<U name="Mes candidatures location"><MesCandidaturesLocation /></U>} />
             <Route path="/louer/utilitaires/vehicule/:id" element={<U name="Produit Utilitaire"><ProduitLocation /></U>} />
             <Route path="/louer/camions/vehicule/:id" element={<U name="Produit Camion"><ProduitLocation /></U>} />
             <Route path="/louer/minibus/vehicule/:id" element={<U name="Produit Minibus"><ProduitLocation /></U>} />

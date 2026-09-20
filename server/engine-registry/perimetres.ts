@@ -474,7 +474,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
     moteur: "location",
     dossiers: ["routers/rentalApplications.ts"],
     routeurs: ["lavage", "karting", "rentalApplications"],
-    routes: ["/location/:slug", "/louer", "/louer/vtc-taxi", "/louer/vtc-taxi/*", "/louer/camions", "/louer/camions/*", "/louer/minibus", "/louer/minibus/*", "/louer/utilitaires", "/louer/utilitaires/*", "/louer/mkapms", "/louer/mkapms/*", "/louer/loa", "/louer/comparateur", "/louer/favoris", "/louer/historique", "/louer/calendrier", "/louer/liste-attente", "/louer/penalites", "/louer/remplacement", "/louer/renouvellement", "/louer/multi-vehicules", "/louer/reservations-recurrentes", "/louer/score-confiance", "/louer/programme-vtc", "/superadmin/admin-location", "/vtc-taxi", "/location-*"],
+    routes: ["/location/:slug", "/location/mes-candidatures", "/louer", "/louer/vtc-taxi", "/louer/vtc-taxi/*", "/louer/camions", "/louer/camions/*", "/louer/minibus", "/louer/minibus/*", "/louer/utilitaires", "/louer/utilitaires/*", "/louer/mkapms", "/louer/mkapms/*", "/louer/loa", "/louer/comparateur", "/louer/favoris", "/louer/historique", "/louer/calendrier", "/louer/liste-attente", "/louer/penalites", "/louer/remplacement", "/louer/renouvellement", "/louer/multi-vehicules", "/louer/reservations-recurrentes", "/louer/score-confiance", "/louer/programme-vtc", "/superadmin/admin-location", "/vtc-taxi", "/location-*"],
   },
   {
     // Vérifié : catalogue location filtré profil pro

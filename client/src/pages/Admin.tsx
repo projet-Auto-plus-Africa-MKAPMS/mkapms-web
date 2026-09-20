@@ -37,6 +37,8 @@ export default function Admin() {
   const pubRequestsQ = trpc.admin.pubRequestsList.useQuery(undefined, { enabled });
   const decidePub = trpc.admin.decidePubRequest.useMutation({ onSuccess: () => utils.admin.pubRequestsList.invalidate() });
   const deletePub = trpc.admin.deletePubRequest.useMutation({ onSuccess: () => utils.admin.pubRequestsList.invalidate() });
+  const rentalAppsQ = trpc.rentalApplications.list.useQuery({ status: "submitted" }, { enabled });
+  const decideRentalApp = trpc.rentalApplications.decide.useMutation({ onSuccess: () => utils.rentalApplications.list.invalidate() });
   const validateGarage = trpc.admin.validateGarage.useMutation({ onSuccess: () => utils.admin.garagesPending.invalidate() });
   const validateKyc = trpc.admin.validateKyc.useMutation({ onSuccess: () => utils.admin.kycPending.invalidate() });
   const createStaff = trpc.admin.createStaff.useMutation({
@@ -888,6 +890,48 @@ export default function Admin() {
             </div>
           ))}
           {kycPending.data?.length === 0 && <p className="text-sm text-slate-500">Aucun dossier en attente.</p>}
+        </div>
+      </section>
+
+      {/* Candidatures de location flotte (server/routers/rentalApplications.ts) —
+          une candidature soumise ne devient jamais une réservation confirmée
+          sans cette décision explicite : approuver fixe un acompte réel (jamais
+          un défaut inventé), refuser peut préciser un motif. */}
+      <section className="mt-10">
+        <h2 className="text-lg font-bold text-slate-800">Candidatures de location flotte</h2>
+        <div className="mt-3 space-y-2">
+          {rentalAppsQ.data?.map((a: any) => (
+            <div key={a.id} className="card p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-700">Candidature #{a.id} — {a.applicantType}</span>
+                <span className="text-xs text-slate-400">{a.createdAt ? new Date(a.createdAt).toLocaleDateString("fr-FR") : "—"}</span>
+              </div>
+              <div className="mt-2 flex gap-2">
+                <button
+                  className="btn-primary !py-1.5 !text-xs"
+                  onClick={() => {
+                    const montant = prompt("Montant de l'acompte à fixer (EUR) :", "");
+                    if (montant == null) return;
+                    const n = Number(montant);
+                    if (!(n > 0)) return;
+                    decideRentalApp.mutate({ id: a.id, decision: "approved", depositAmount: n, depositCurrency: "EUR" });
+                  }}
+                >
+                  Approuver
+                </button>
+                <button
+                  className="btn-outline !py-1.5 !text-xs"
+                  onClick={() => {
+                    const raison = prompt("Motif du refus (optionnel) :", "") ?? undefined;
+                    decideRentalApp.mutate({ id: a.id, decision: "rejected", rejectionReason: raison || undefined });
+                  }}
+                >
+                  Refuser
+                </button>
+              </div>
+            </div>
+          ))}
+          {rentalAppsQ.data?.length === 0 && <p className="text-sm text-slate-500">Aucune candidature en attente.</p>}
         </div>
       </section>
 

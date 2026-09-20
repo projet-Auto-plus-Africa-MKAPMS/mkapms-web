@@ -20,6 +20,7 @@ const ALL_SERVICES = [
   { label: "Acheter un v\u00e9hicule", to: "/acheter", emoji: "\ud83d\ude97", desc: "Parcourez les annonces et trouvez votre v\u00e9hicule id\u00e9al" },
   { label: "Vendre un v\u00e9hicule", to: "/vendre", emoji: "\ud83d\udcb0", desc: "D\u00e9posez une annonce et vendez rapidement" },
   { label: "Location", to: "/louer", emoji: "\ud83d\udd11", desc: "Louez un v\u00e9hicule en toute confiance" },
+  { label: "Mes candidatures location", to: "/location/mes-candidatures", emoji: "\ud83d\ude9a", desc: "Suivez vos candidatures de location flotte et r\u00e9glez l'acompte" },
   { label: "Garage & R\u00e9paration", to: "/garages", emoji: "\ud83d\udd27", desc: "Trouvez un garage et demandez un devis" },
   { label: "Atelier Pro", to: "/atelier-pro", emoji: "\ud83d\udee0\ufe0f", desc: "Gestion atelier, planning, suivi temps r\u00e9el" },
   { label: "Catalogue Technique", to: "/catalogue-technique", emoji: "\ud83d\udcd6", desc: "AutoData — couples de serrage, temps bar\u00e9m\u00e9s, pi\u00e8ces" },
