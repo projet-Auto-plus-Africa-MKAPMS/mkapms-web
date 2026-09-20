@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 519;
+export const MANQUES_TOTAL = 515;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
-  "bouton_sans_action": 87,
+  "bouton_sans_action": 83,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -938,6 +938,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/InspectionNumerique.tsx",
         "route": "/louer/inspection",
+        "composants": [
+          "trpc.reservations"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/CentrePenalites.tsx",
+        "route": "/louer/penalites",
         "composants": [
           "trpc.reservations"
         ]
@@ -11255,9 +11262,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "integrationsTechniques": [],
     "preuvesDependances": {
       "achat": [
+        "client/src/pages/CentrePenalites.tsx appelle trpc.reservations",
         "client/src/pages/Favoris.tsx appelle trpc.favoris",
-        "client/src/pages/ListeAttente.tsx embarque components/ReserverLocationButton.tsx (trpc.reservations)",
-        "client/src/pages/LocationCamions.tsx appelle trpc.annonces"
+        "client/src/pages/ListeAttente.tsx embarque components/ReserverLocationButton.tsx (trpc.reservations)"
       ],
       "core": [
         "client/src/pages/superadmin/AdminLocation.tsx appelle trpc.admin"
@@ -11326,22 +11333,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/calendrier"
         ],
-        "cliquables": 5,
+        "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 13,
-        "mots": 31
+        "sansAction": 0,
+        "textes": 5,
+        "mots": 40
       },
       {
         "fichier": "client/src/pages/CentrePenalites.tsx",
         "routes": [
           "/louer/penalites"
         ],
-        "cliquables": 5,
+        "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 3,
-        "textes": 11,
-        "mots": 27
+        "sansAction": 0,
+        "textes": 15,
+        "mots": 66
       },
       {
         "fichier": "client/src/pages/Comparateur.tsx",
@@ -11603,26 +11610,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 903,
-    "mots": 3031,
+    "textes": 899,
+    "mots": 3079,
     "battement": "sonde",
     "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Réserver les dates disponibles » client/src/pages/CalendrierDispo.tsx:119"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Payer » client/src/pages/CentrePenalites.tsx:99"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Contester » client/src/pages/CentrePenalites.tsx:100"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/CentrePenalites.tsx:101"
-      },
       {
         "genre": "bouton_sans_action",
         "detail": "« Simulation indisponible » client/src/pages/LocationLOA.tsx:100"
