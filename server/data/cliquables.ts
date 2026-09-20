@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2564;
+export const CLIQUABLES_TOTAL = 2558;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -94,7 +94,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/automatisations/WorkflowsPersonnalises.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/AvisUnivers.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/BadgesDefinitifs.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/CalendrierDispo.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/CalendrierDispo.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CarteGrise.tsx", total: 4, moteur: 0, liens: 0, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CarteMondiale.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CatalogueTechnique.tsx", total: 14, moteur: 0, liens: 2, boutonsLocaux: 11, sansAction: 0, zones: 1 },
@@ -108,7 +108,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/CentreIA.tsx", total: 7, moteur: 0, liens: 1, boutonsLocaux: 6, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreIndexation.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreIntelligences.tsx", total: 12, moteur: 0, liens: 4, boutonsLocaux: 8, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/CentrePenalites.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 3, zones: 0 },
+  { fichier: "client/src/pages/CentrePenalites.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreProduitsGoogle.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreReglesPays.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreReputation.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
@@ -734,10 +734,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/TableauBordProVente.tsx", ligne: 170, genre: "moteur", libelle: "BoutonMoteur sans code littéral", motif: "code_non_declare" },
   { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 77, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/lib/boutonMoteur.tsx", ligne: 114, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/CalendrierDispo.tsx", ligne: 119, genre: "bouton", libelle: "Réserver les dates disponibles", motif: "sans_action" },
-  { fichier: "client/src/pages/CentrePenalites.tsx", ligne: 99, genre: "bouton", libelle: "Payer", motif: "sans_action" },
-  { fichier: "client/src/pages/CentrePenalites.tsx", ligne: 100, genre: "bouton", libelle: "Contester", motif: "sans_action" },
-  { fichier: "client/src/pages/CentrePenalites.tsx", ligne: 101, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1010, genre: "bouton", libelle: "Consommation energetique 12 450 kWh", motif: "sans_action" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1027, genre: "bouton", libelle: "Prochaines echeances 12 dossiers", motif: "sans_action" },
   { fichier: "client/src/pages/ControleDocuments.tsx", ligne: 151, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },

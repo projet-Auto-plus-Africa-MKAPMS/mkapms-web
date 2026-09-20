@@ -21,10 +21,6 @@ export interface BoutonSansAction {
 }
 
 export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
-  { fichier: "client/src/pages/CalendrierDispo.tsx", ligne: 119, libelle: "Réserver les dates disponibles" },
-  { fichier: "client/src/pages/CentrePenalites.tsx", ligne: 99, libelle: "Payer" },
-  { fichier: "client/src/pages/CentrePenalites.tsx", ligne: 100, libelle: "Contester" },
-  { fichier: "client/src/pages/CentrePenalites.tsx", ligne: 101, libelle: "" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1010, libelle: "Consommation energetique 12 450 kWh" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1027, libelle: "Prochaines echeances 12 dossiers" },
   { fichier: "client/src/pages/ControleDocuments.tsx", ligne: 151, libelle: "" },

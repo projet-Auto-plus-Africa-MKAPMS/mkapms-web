@@ -1764,6 +1764,22 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié directement contre l'API réelle (garages.list interrogé avec une fiche de test insérée en base : la réponse correspond exactement aux champs désormais utilisés côté client — name, addressLine, city, phone, hours, specialites, rating, reviewCount — fiche retirée après vérification). Vérifié en TypeScript strict (aucune régression sur les autres écrans). Reste hors périmètre, tracés dans la tâche #53 : ControleQualiteGarage.tsx (checklist qualité par ordre de réparation — nécessiterait un nouveau schéma de validation atelier/responsable, une décision de conception plutôt qu'un simple câblage) et les autres écrans garage/* sans backend.",
     domaine: "confiance",
   },
+  {
+    cle: "centre-penalites-calendrier-dispo-fabrication-retiree",
+    titre: "CentrePenalites.tsx et CalendrierDispo.tsx : pénalités et calendrier d'occupation entièrement inventés retirés, bloqués par l'absence du moteur location (tâche #56)",
+    moteurs: ["reservations"],
+    quoi:
+      "Signalés parmi la même série de boutons sans action que EtatVehicule.tsx/InspectionNumerique.tsx (tâche #60), avec exactement la même cause racine déjà documentée : bookingTypeEnum contient bien la valeur \"rental\", mais aucune procédure ne crée jamais de réservation de ce type — aucun moteur de location individuelle n'existe (tâche #56, lacune large, non traitée ici).\n\nCentrePenalites.tsx affichait un tableau PENALITES fabriqué : 3 pénalités précises (retard, carburant, nettoyage) avec montants, références de réservation (LOC-2025-00xx) et boutons « Payer »/« Contester » inventés — aucune colonne pénalité n'existe sur `bookings`. Remplacé par trpc.reservations.mine (déjà utilisé par EtatVehicule.tsx) filtré sur type \"rental\", avec un état honnête « aucune réservation de location active » puisqu'aucune ne peut exister aujourd'hui. Le barème (BAREME) est conservé car c'est une vraie politique tarifaire publique, pas une donnée d'incident inventée — même logique que les grilles tarifaires conservées dans PlaquesImmatriculation.tsx (tâche #58).\n\nCalendrierDispo.tsx affichait 3 véhicules fabriqués (photos stock Unsplash) et un calendrier d'occupation généré par une fonction locale avec des jours \"occupés\" codés en dur (5-12, 20-25 de chaque mois) — jamais dérivé d'une vraie réservation. Comme aucune réservation de location réelle ne peut exister, tout calendrier d'occupation serait nécessairement inventé : écran remplacé par un message honnête et un vrai lien vers /louer (recherche réelle de véhicules de location).",
+    pourquoi:
+      "Construire une vraie pénalité ou un vrai calendrier d'occupation suppose une réservation de location réelle en amont — cette capacité n'existe pas encore (tâche #56). Continuer à afficher des données inventées sur ces deux écrans aurait simulé une activité de location qui n'a jamais eu lieu.",
+    ou: [
+      "client/src/pages/CentrePenalites.tsx",
+      "client/src/pages/CalendrierDispo.tsx",
+    ],
+    lecon:
+      "Vérifié qu'aucune colonne pénalité n'existe sur `bookings` et qu'aucune procédure ne crée de réservation \"rental\" (grep exhaustif sur server/routers). Vérifié en TypeScript strict. Ces deux écrans restent bloqués par la tâche #56 comme EtatVehicule.tsx/InspectionNumerique.tsx — dès que le moteur location existera, ces deux écrans devront être repris pour afficher les vraies pénalités et la vraie disponibilité.",
+    domaine: "confiance",
+  },
 ];
 
 /**
