@@ -1780,6 +1780,19 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié qu'aucune colonne pénalité n'existe sur `bookings` et qu'aucune procédure ne crée de réservation \"rental\" (grep exhaustif sur server/routers). Vérifié en TypeScript strict. Ces deux écrans restent bloqués par la tâche #56 comme EtatVehicule.tsx/InspectionNumerique.tsx — dès que le moteur location existera, ces deux écrans devront être repris pour afficher les vraies pénalités et la vraie disponibilité.",
     domaine: "confiance",
   },
+  {
+    cle: "controle-documents-continuer-reservation-relie-louer",
+    titre: "ControleDocuments.tsx : bouton « Continuer vers la réservation » relié à /louer (aucune action même une fois le dossier KYC validé)",
+    moteurs: ["kyc"],
+    quoi:
+      "Écran déjà réel à 90 % (moteur KYC générique server/routers/kyc.ts, aucun second moteur créé) : la progression, l'envoi des pièces et le statut du dossier sont tous réels. Seul le bouton final « Continuer vers la réservation » ne faisait strictement rien au clic, y compris une fois `dossierValide` vrai (bouton visuellement plein, doré, avec ombre — donc perçu comme pleinement actionnable). Comme aucun flux de réservation de location individuelle n'existe encore (tâche #56 : le type \"rental\" n'a aucune procédure de création), il n'y a pas de destination dédiée de réservation vers laquelle continuer. Le bouton devient un vrai lien vers /louer (recherche réelle de véhicules de location) une fois le dossier validé, au lieu de rester inerte.",
+    pourquoi:
+      "Un bouton visuellement activé qui ne fait rien au clic est le pire cas : contrairement à un bouton grisé, l'utilisateur croit avoir raté quelque chose. Tant que le moteur de réservation de location n'existe pas (tâche #56), /louer est la seule destination réelle et honnête après validation du dossier.",
+    ou: ["client/src/pages/ControleDocuments.tsx"],
+    lecon:
+      "Vérifié en TypeScript strict. Les deux autres boutons désactivés du même type trouvés dans le même balayage — PreparationVenteVO.tsx et CentreControleQualite.tsx — reposent sur des listes de contrôle (CHECKLIST) entièrement fabriquées (aucune donnée réelle par véhicule/annonce), donc non traités ici : ce sont des lacunes de modèle de données plus larges, tracées sous les tâches #53 et #54 comme ControleQualiteGarage.tsx. LOAFinance.tsx et LocationLOA.tsx restent inchangés : déjà honnêtes (bouton désactivé avec motif affiché, aucun calcul inventé).",
+    domaine: "confiance",
+  },
 ];
 
 /**
