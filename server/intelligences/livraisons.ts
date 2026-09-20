@@ -1725,6 +1725,29 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié sur base Postgres réelle (nouvelle suite dédiée, 6/6, contre annonces.update/remove/prolong SANS aucune modification de code serveur) : suspendre passe réellement le statut à archivee, republier repasse réellement à publiee, prolonger avance réellement la date d'expiration, supprimer passe réellement à archivee (suppression logique), et un tiers ne peut jamais suspendre ni prolonger l'annonce d'un autre vendeur (refusé explicitement dans les deux cas). Vérifié en navigateur réel : fiche annonce affichée, actions réelles présentes, état honnête « introuvable » sur un identifiant invalide, prolongation réelle disponible.",
     domaine: "confiance",
   },
+  {
+    cle: "demarches-cinq-ecrans-reconnectes-moteur-cartegrise-plus-paiement-dossier",
+    titre: "5 écrans demarches/* reconnectés au moteur cartegrise déjà complet, une seule vraie lacune comblée : payer les frais réels d'un dossier",
+    moteurs: ["cartegrise", "confiance"],
+    quoi:
+      "Signalés parmi une série de boutons sans action détectés par le PDG. SuccessionVehicule.tsx, PlaquesImmatriculation.tsx, PaiementDemarches.tsx, MessagerieDemarches.tsx et SignaturesElectroniques.tsx étaient tous fabriqués (dossiers, montants, messages, statuts de signature inventés). Vérifié avant tout code : server/routers/cartegrise.ts porte déjà un moteur de dossiers complet (createDossier/detail/addDocument/étapes), déjà connecté à 9 autres écrans demarches/* (tâche #31) — jamais un second moteur créé. Succession et Plaques suivent exactement le même schéma que DuplicataDemarche.tsx : type \"autre\" + motif dans notes, faute d'une valeur d'enum dédiée côté serveur. Messagerie et Signatures ont été rebâtis en écrans de consultation RÉELS (étapes cg_etapes, documents cg_documents) plutôt que de continuer à simuler un chat ou une signature électronique qui n'existent pas encore côté serveur — un message honnête l'indique désormais, au lieu de les fabriquer.\n\nUne vraie lacune, distincte du simple défaut de câblage, a été comblée : aucune procédure ne permettait de payer les frais réels d'un dossier (montantTaxe/montantPrestation, des colonnes réelles jamais exploitées côté client). Ajout de carteGrise.payerDossier : calcule le total à partir des VRAIS montants du dossier (jamais un tarif deviné côté client comme l'ancien écran le faisait avec 257,66 €), refuse tant que l'agence n'a pas chiffré le dossier, et ouvre un vrai paiement Stripe via le Payment Engine déjà utilisé par les abonnements/packs carte grise (kind \"carte_grise_service\"). Point d'entrée réel ajouté : CarteGrise.tsx (déjà un écran réel listant les dossiers) porte désormais 3 liens (Suivi/Documents/Paiement) vers ces écrans, par dossier.",
+    pourquoi:
+      "Construire un second moteur de dossiers, ou faire semblant qu'une messagerie/signature électronique existe déjà, aurait ajouté de la fabrication là où le PDG demandait justement de la retirer. Le seul vrai manque — payer les frais d'un dossier — méritait d'être comblé plutôt que contourné, une fois établi qu'il s'agissait d'une lacune ponctuelle et non d'un chantier disproportionné (les colonnes de montant existaient déjà, seule la procédure de paiement manquait).",
+    ou: [
+      "client/src/App.tsx",
+      "client/src/pages/CarteGrise.tsx",
+      "client/src/pages/demarches/SuccessionVehicule.tsx",
+      "client/src/pages/demarches/PlaquesImmatriculation.tsx",
+      "client/src/pages/demarches/PaiementDemarches.tsx",
+      "client/src/pages/demarches/MessagerieDemarches.tsx",
+      "client/src/pages/demarches/SignaturesElectroniques.tsx",
+      "server/routers/cartegrise.ts",
+      "server/routers/__tests__/demarches-reconnexion.test.ts",
+    ],
+    lecon:
+      "Vérifié sur base Postgres réelle (nouvelle suite dédiée, 7/7) : les dossiers succession/plaques sont créés avec le bon type et le bon motif ; le paiement est refusé tant que l'agence n'a pas chiffré le dossier (jamais un tarif inventé) ; une fois chiffré, il ouvre une vraie redirection de paiement ; un tiers ne peut jamais payer le dossier d'un autre client (refusé explicitement) ; le suivi affiche bien une vraie étape créée automatiquement, jamais un message fabriqué. Une erreur de rédaction dans le test lui-même (une regex qui ne correspondait pas au message exact du refus) a été débusquée en reproduisant l'appel isolément plutôt qu'en supposant le code serveur en cause — la leçon : vérifier le test autant que le code avant de conclure à un bug. Vérifié en navigateur réel sur les 5 écrans : aucune erreur de rendu. Reste explicitement hors périmètre : l'écran ControleDocuments.tsx (déjà réel à 90%, un seul bouton terminal bloqué par l'absence du moteur de réservation de location, tâche #56) et la vraie signature électronique (tâche #36).",
+    domaine: "confiance",
+  },
 ];
 
 /**

@@ -367,6 +367,36 @@ export const carteGriseRouter = router({
       return { url };
     }),
 
+  /**
+   * Paiement des frais d'un dossier (taxe + prestation) — jamais un montant
+   * calculé côté client : montantTaxe/montantPrestation sont fixés sur le
+   * dossier une fois le chiffrage réel connu (traitement agence). Tant
+   * qu'ils ne sont pas renseignés, aucun paiement n'est proposé plutôt que
+   * d'inventer un tarif.
+   */
+  payerDossier: protectedProcedure
+    .input(z.object({ dossierId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const [d] = await db.select().from(cgDossiers).where(eq(cgDossiers.id, input.dossierId)).limit(1);
+      if (!d) throw new Error("Dossier introuvable");
+      if (d.clientId !== ctx.user.uid) throw new Error("Ce dossier ne vous appartient pas.");
+      const taxe = d.montantTaxe ? parseFloat(d.montantTaxe) : 0;
+      const prestation = d.montantPrestation ? parseFloat(d.montantPrestation) : 0;
+      const total = taxe + prestation;
+      if (total <= 0) throw new Error("Le montant de ce dossier n'a pas encore été chiffré par l'agence.");
+      const { url } = await createPaymentCheckout({
+        userId: ctx.user.uid,
+        kind: "carte_grise_service",
+        amount: total,
+        currency: "EUR",
+        label: `Frais dossier ${d.reference}`,
+        metadata: { dossierId: d.id, type: "cg_dossier_frais" },
+        successPath: `/demarches/paiement-demarches/${d.id}?paid=1`,
+        cancelPath: `/demarches/paiement-demarches/${d.id}?canceled=1`,
+      });
+      return { url };
+    }),
+
   // ── STATS ──────────────────────────────────────────────────────────────
   stats: protectedProcedure.query(async () => {
     const all = await db.select().from(cgDossiers);

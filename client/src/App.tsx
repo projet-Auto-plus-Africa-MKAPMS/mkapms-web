@@ -1153,11 +1153,11 @@ export default function App() {
             <Route path="/demarches/espace-pro-demarches" element={<U name="Démarches"><EspaceProDemarches /></U>} />
             <Route path="/demarches/immatriculation-provisoire" element={<U name="Démarches"><ImmatriculationProvisoire /></U>} />
             <Route path="/demarches/importation-vehicule" element={<U name="Démarches"><ImportationVehicule /></U>} />
-            <Route path="/demarches/messagerie-demarches" element={<U name="Démarches"><MessagerieDemarches /></U>} />
+            <Route path="/demarches/messagerie-demarches/:id" element={<U name="Démarches"><MessagerieDemarches /></U>} />
             <Route path="/demarches/objectif-demarches" element={<U name="Démarches"><ObjectifDemarches /></U>} />
-            <Route path="/demarches/paiement-demarches" element={<U name="Démarches"><PaiementDemarches /></U>} />
+            <Route path="/demarches/paiement-demarches/:id" element={<U name="Démarches"><PaiementDemarches /></U>} />
             <Route path="/demarches/plaques-immatriculation" element={<U name="Démarches"><PlaquesImmatriculation /></U>} />
-            <Route path="/demarches/signatures-electroniques" element={<U name="Démarches"><SignaturesElectroniques /></U>} />
+            <Route path="/demarches/signatures-electroniques/:id" element={<U name="Démarches"><SignaturesElectroniques /></U>} />
             <Route path="/demarches/statistiques-demarches" element={<U name="Démarches"><StatistiquesDemarches /></U>} />
             <Route path="/demarches/succession-vehicule" element={<U name="Démarches"><SuccessionVehicule /></U>} />
             <Route path="/demarches/suivi-dossier" element={<U name="Démarches"><SuiviDossier /></U>} />

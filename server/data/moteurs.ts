@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 528;
+export const MANQUES_TOTAL = 523;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 331,
-  "bouton_sans_action": 95,
+  "bouton_sans_action": 90,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
@@ -3968,11 +3968,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "/demarches/espace-pro-demarches",
       "/demarches/immatriculation-provisoire",
       "/demarches/importation-vehicule",
-      "/demarches/messagerie-demarches",
+      "/demarches/messagerie-demarches/:id",
       "/demarches/objectif-demarches",
-      "/demarches/paiement-demarches",
+      "/demarches/paiement-demarches/:id",
       "/demarches/plaques-immatriculation",
-      "/demarches/signatures-electroniques",
+      "/demarches/signatures-electroniques/:id",
       "/demarches/statistiques-demarches",
       "/demarches/succession-vehicule",
       "/demarches/suivi-dossier",
@@ -3989,8 +3989,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 4,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 62,
-        "mots": 307
+        "textes": 65,
+        "mots": 310
       },
       {
         "fichier": "client/src/pages/demarches/AlertesDemarches.tsx",
@@ -4127,13 +4127,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/demarches/MessagerieDemarches.tsx",
         "routes": [
-          "/demarches/messagerie-demarches"
+          "/demarches/messagerie-demarches/:id"
         ],
-        "cliquables": 2,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 2,
-        "mots": 2
+        "sansAction": 0,
+        "textes": 3,
+        "mots": 23
       },
       {
         "fichier": "client/src/pages/demarches/ObjectifDemarches.tsx",
@@ -4149,13 +4149,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/demarches/PaiementDemarches.tsx",
         "routes": [
-          "/demarches/paiement-demarches"
+          "/demarches/paiement-demarches/:id"
         ],
         "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 7,
-        "mots": 22
+        "sansAction": 0,
+        "textes": 9,
+        "mots": 38
       },
       {
         "fichier": "client/src/pages/demarches/PlaquesImmatriculation.tsx",
@@ -4164,20 +4164,20 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 1,
+        "sansAction": 0,
         "textes": 8,
-        "mots": 14
+        "mots": 13
       },
       {
         "fichier": "client/src/pages/demarches/SignaturesElectroniques.tsx",
         "routes": [
-          "/demarches/signatures-electroniques"
+          "/demarches/signatures-electroniques/:id"
         ],
-        "cliquables": 2,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 5,
-        "mots": 9
+        "sansAction": 0,
+        "textes": 3,
+        "mots": 17
       },
       {
         "fichier": "client/src/pages/demarches/StatistiquesDemarches.tsx",
@@ -4197,9 +4197,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ],
         "cliquables": 2,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 3,
-        "mots": 7
+        "sansAction": 0,
+        "textes": 11,
+        "mots": 28
       },
       {
         "fichier": "client/src/pages/demarches/SuiviDossier.tsx",
@@ -4262,6 +4262,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "mesDossiers",
       "monAgence",
       "packs",
+      "payerDossier",
       "souscrireAbonnement",
       "stats",
       "updateStatus",
@@ -4282,8 +4283,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "acces": [
       "connecte"
     ],
-    "textes": 216,
-    "mots": 655,
+    "textes": 228,
+    "mots": 723,
     "battement": "sonde",
     "manques": [
       {
@@ -4295,32 +4296,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "client/src/pages/demarches/EspaceProDemarches.tsx (3 texte(s))"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/demarches/MessagerieDemarches.tsx:17"
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/demarches/MessagerieDemarches.tsx (3 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/demarches/MessagerieDemarches.tsx (2 texte(s))"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Payer par carte » client/src/pages/demarches/PaiementDemarches.tsx:11"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Commander mes plaques » client/src/pages/demarches/PlaquesImmatriculation.tsx:13"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Signer » client/src/pages/demarches/SignaturesElectroniques.tsx:16"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Soumettre le dossier succession » client/src/pages/demarches/SuccessionVehicule.tsx:10"
-      },
-      {
-        "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/demarches/SuccessionVehicule.tsx (3 texte(s))"
+        "detail": "client/src/pages/demarches/SignaturesElectroniques.tsx (3 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
