@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2567;
+export const CLIQUABLES_TOTAL = 2565;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -170,13 +170,13 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/demarches/EspaceProDemarches.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/demarches/ImmatriculationProvisoire.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/demarches/ImportationVehicule.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/demarches/MessagerieDemarches.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/demarches/MessagerieDemarches.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/demarches/ObjectifDemarches.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/demarches/PaiementDemarches.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
-  { fichier: "client/src/pages/demarches/PlaquesImmatriculation.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 1, zones: 0 },
-  { fichier: "client/src/pages/demarches/SignaturesElectroniques.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/demarches/PaiementDemarches.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/demarches/PlaquesImmatriculation.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
+  { fichier: "client/src/pages/demarches/SignaturesElectroniques.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/demarches/StatistiquesDemarches.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/demarches/SuccessionVehicule.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/demarches/SuccessionVehicule.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/demarches/SuiviDossier.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/demarches/VerificationIA.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/demarches/WWGarage.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
@@ -741,11 +741,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1010, genre: "bouton", libelle: "Consommation energetique 12 450 kWh", motif: "sans_action" },
   { fichier: "client/src/pages/comptabilite/CentrePilotage.tsx", ligne: 1027, genre: "bouton", libelle: "Prochaines echeances 12 dossiers", motif: "sans_action" },
   { fichier: "client/src/pages/ControleDocuments.tsx", ligne: 151, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/demarches/MessagerieDemarches.tsx", ligne: 17, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/demarches/PaiementDemarches.tsx", ligne: 11, genre: "bouton", libelle: "Payer par carte", motif: "sans_action" },
-  { fichier: "client/src/pages/demarches/PlaquesImmatriculation.tsx", ligne: 13, genre: "bouton", libelle: "Commander mes plaques", motif: "sans_action" },
-  { fichier: "client/src/pages/demarches/SignaturesElectroniques.tsx", ligne: 16, genre: "bouton", libelle: "Signer", motif: "sans_action" },
-  { fichier: "client/src/pages/demarches/SuccessionVehicule.tsx", ligne: 10, genre: "bouton", libelle: "Soumettre le dossier succession", motif: "sans_action" },
   { fichier: "client/src/pages/finance/LOAFinance.tsx", ligne: 11, genre: "bouton", libelle: "Simulation indisponible", motif: "sans_action" },
   { fichier: "client/src/pages/garage/CarrosserieGarage.tsx", ligne: 663, genre: "bouton", libelle: "Rechercher", motif: "sans_action" },
   { fichier: "client/src/pages/garage/ControleQualiteGarage.tsx", ligne: 16, genre: "bouton", libelle: "Validation atelier ✓", motif: "sans_action" },
