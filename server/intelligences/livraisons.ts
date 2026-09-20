@@ -1871,6 +1871,19 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié directement contre la base réelle (server/routers/__tests__/rental-applications.test.ts, 12/12 assertions) : création réelle liée à un vrai véhicule, sauvegarde progressive multi-étapes fusionnée sans perte, isolation stricte entre candidats, verrouillage après soumission, refus avec motif réel conservé, paiement honnêtement refusé tant que la caution n'est pas fixée par l'agent, checkout réel une fois fixée, et la transition que le webhook Stripe applique à la confirmation (depositPaid/status) validée directement en base. La confirmation de paiement elle-même (signature Stripe) n'est testée par aucun test de ce dépôt — convention déjà en place avant ce lot, non introduite ici. Vérifié en TypeScript strict. server/engine-registry/perimetres.ts mis à jour (routeur et fichier orphelins ramenés à 0). npm run build vert de bout en bout.",
     domaine: "confiance",
   },
+  {
+    cle: "location-camions-catalogue-reel-plus-bug-id-collision-corrige",
+    titre: "LocationCamions.tsx : catalogue de 8 camions fabriqués (ids 6001-6008) remplacé par les vraies annonces — corrige un vrai risque de collision d'identifiant avec ProduitLocation.tsx",
+    moteurs: ["annonces"],
+    quoi:
+      "LocationCamions.tsx (/louer/camions) affichait un catalogue de 8 camions entièrement fabriqués (ids 6001-6008, prix inventés), des sous-catégories avec des compteurs inventés (« 8 véhicules », « 5 véhicules »…), et des filtres de sous-type (Porteur/Benne/Plateau/Engin) sans aucun champ réel correspondant (categorieEnum côté serveur ne connaît que la valeur de haut niveau « camion »). Plus grave qu'une simple fabrication d'affichage : ces ids fabriqués menaient vers ProduitLocation.tsx qui, ne les reconnaissant pas comme des démonstrations connues (son propre catalogue de démo utilise des ids \"8001\"+, une autre plage), tentait une vraie requête trpc.annonces.get(id) — soit une fiche introuvable, soit, en cas de collision d'id avec une annonce réelle sans rapport, l'affichage de la fiche de CETTE annonce sous le nom et le prix d'un camion qui n'existe pas.\n\nRemplacé par le vrai catalogue déjà interrogé plus haut dans ce même fichier (trpc.annonces.list, categorie: \"camion\", type: \"location\") affiché directement sans recherche préalable requise, avec un état honnête si aucune annonce réelle n'existe. Les dates de location ont été retirées de la recherche : elles étaient collectées mais jamais transmises à la requête (aucun filtrage réel n'avait jamais lieu) — aucun moteur de disponibilité par date n'existe encore pour les annonces de location (même racine que la tâche #56).",
+    pourquoi:
+      "Un catalogue fabriqué qui redirige vers une vraie fiche produit par coïncidence d'identifiant est plus dangereux qu'un simple contenu inventé : un visiteur pourrait voir la fiche réelle (photos, coordonnées) d'un tiers sous le nom d'un camion qui n'a jamais existé. Le filtrage par sous-type aurait nécessité soit d'inventer un champ, soit d'étendre le schéma sans besoin démontré — aucune des deux options n'était justifiée pour ce lot.",
+    ou: ["client/src/pages/LocationCamions.tsx"],
+    lecon:
+      "Vérifié directement contre la base réelle (server/routers/__tests__/location-camions.test.ts, 3/3 assertions) : un vrai camion en location apparaît bien dans le catalogue filtré, une annonce en vente n'apparaît jamais dans un catalogue de location, un utilitaire n'apparaît pas dans le filtre \"camion\" (jamais une sous-catégorie fabriquée mélangée à une vraie donnée). Vérifié en TypeScript strict. LocationMinibus.tsx et LocationUtilitaires.tsx partagent très probablement le même patron (même fichier ProduitLocation.tsx en aval, même risque de collision d'id) — non traités dans ce lot, à reprendre en suivant exactement la même méthode, tâche #56.",
+    domaine: "confiance",
+  },
 ];
 
 /**
