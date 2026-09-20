@@ -1806,6 +1806,19 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié directement contre la base réelle (server/routers/__tests__/publicite-detail.test.ts, 5/5 assertions : accès refusé à un anonyme, détail réel exposé à un admin, refus avec vrai motif persisté et relu, suppression réelle). Vérifié en TypeScript strict. Découverte plus large en cours de route, tracée séparément sous la tâche #62 : DemandePublicite.tsx (formulaire public réel avec upload de fichier réel) ne persiste jamais la demande — son bouton d'envoi final simule juste un succès (setTimeout) sans jamais appeler le serveur, donc le moteur pub_requests réel côté admin ne reçoit aujourd'hui aucune vraie demande. Non corrigé ici : nécessite l'ajout d'une procédure de création et probablement une colonne de schéma pour le contenu créatif, qui se heurtera à la tâche #61 (chaîne de migrations drizzle-kit cassée).",
     domaine: "confiance",
   },
+  {
+    cle: "journal-activite-reconnecte-moteur-audit-logs",
+    titre: "JournalActivite.tsx : 23 entrées fabriquées sur 3 catégories inventées remplacées par le vrai moteur d'audit (audit_logs / logAction / admin.auditLog)",
+    moteurs: ["admin"],
+    quoi:
+      "JournalActivite.tsx affichait 23 entrées entièrement inventées réparties sur 3 catégories (Utilisateurs/Garages/Admin), avec des acteurs, IP et détails fictifs, des liens de redirection fabriqués, et des boutons « Imprimer »/« PDF » sans aucun moteur d'export. Un vrai moteur d'audit existait déjà pour la traçabilité radar Direction (server/audit.ts : logAction(), table audit_logs, déjà exposé par trpc.admin.auditLog et déjà utilisé par de nombreuses mutations admin : annonce.*, garage.*, kyc.*, account.*, promo.*, pub.*, staff.create) — jamais branché sur cet écran. Écran reconnecté à ce moteur réel : les catégories Utilisateurs/Garages ont été retirées plutôt que fabriquées, car audit_logs ne trace aujourd'hui QUE les actions du back-office, jamais les actions des utilisateurs ou des garages eux-mêmes (aucune instrumentation de ce type n'existe). Le filtrage par catégorie est désormais basé sur les vraies valeurs d'entityType présentes dans les données (annonce, garage, kyc_profile, user, promo_code, pub_request…), jamais une liste fixe inventée. La gravité (info/alerte/critique) est dérivée du nom réel de l'action (delete → critique, refus/reject → alerte, sinon info) plutôt qu'attribuée à la main par enregistrement fabriqué. « Imprimer »/« PDF » retirés : aucun moteur d'export n'existe.",
+    pourquoi:
+      "Un second moteur de journal d'activité aurait dupliqué exactement ce que logAction()/audit_logs font déjà pour la traçabilité radar Direction. Inventer des catégories Utilisateurs/Garages aurait affiché une couverture de traçabilité qui n'existe pas : le journal doit refléter honnêtement son périmètre réel (actions back-office uniquement) plutôt que prétendre couvrir tout le monde.",
+    ou: ["client/src/pages/JournalActivite.tsx"],
+    lecon:
+      "Vérifié directement contre la base réelle (server/routers/__tests__/journal-activite.test.ts, 6/6 assertions : une action réellement journalisée via logAction() apparaît bien dans le journal avec le vrai email d'auteur joint et la vraie IP, un employé (accès back-office mais pas Direction) n'a pas accès — directionProcedure —, un anonyme non plus). Vérifié en TypeScript strict. Tâche #60 : les quatre écrans qu'elle listait (EtatVehicule/InspectionNumerique/JournalActivite/PubliciteDetail) ont maintenant tous reçu un traitement honnête.",
+    domaine: "confiance",
+  },
 ];
 
 /**

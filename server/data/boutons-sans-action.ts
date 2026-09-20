@@ -43,8 +43,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 66, libelle: "Ajouter le conducteur" },
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 85, libelle: "" },
   { fichier: "client/src/pages/GestionFranchises.tsx", ligne: 89, libelle: "Appliquer la franchise" },
-  { fichier: "client/src/pages/JournalActivite.tsx", ligne: 212, libelle: "Imprimer" },
-  { fichier: "client/src/pages/JournalActivite.tsx", ligne: 215, libelle: "PDF" },
   { fichier: "client/src/pages/LocationLOA.tsx", ligne: 100, libelle: "Simulation indisponible" },
   { fichier: "client/src/pages/LocationMinibus.tsx", ligne: 124, libelle: "Rechercher un minibus" },
   { fichier: "client/src/pages/LocationPro.tsx", ligne: 599, libelle: "Demander un devis flotte" },

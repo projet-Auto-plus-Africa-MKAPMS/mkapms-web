@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2554;
+export const CLIQUABLES_TOTAL = 2550;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -347,7 +347,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/investissement/modules/Assistant.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/investissement/modules/Dashboard.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/investissement/modules/Kyc.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/JournalActivite.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 2, zones: 0 },
+  { fichier: "client/src/pages/JournalActivite.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/LaboRD.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/labs/AcademieMKAPMS.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/labs/AnalyseMarcheMondiale.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -756,8 +756,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 66, genre: "bouton", libelle: "Ajouter le conducteur", motif: "sans_action" },
   { fichier: "client/src/pages/GestionConducteurs.tsx", ligne: 85, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/GestionFranchises.tsx", ligne: 89, genre: "bouton", libelle: "Appliquer la franchise", motif: "sans_action" },
-  { fichier: "client/src/pages/JournalActivite.tsx", ligne: 212, genre: "bouton", libelle: "Imprimer", motif: "sans_action" },
-  { fichier: "client/src/pages/JournalActivite.tsx", ligne: 215, genre: "bouton", libelle: "PDF", motif: "sans_action" },
   { fichier: "client/src/pages/LocationLOA.tsx", ligne: 100, genre: "bouton", libelle: "Simulation indisponible", motif: "sans_action" },
   { fichier: "client/src/pages/LocationMinibus.tsx", ligne: 124, genre: "bouton", libelle: "Rechercher un minibus", motif: "sans_action" },
   { fichier: "client/src/pages/LocationPro.tsx", ligne: 599, genre: "bouton", libelle: "Demander un devis flotte", motif: "sans_action" },
