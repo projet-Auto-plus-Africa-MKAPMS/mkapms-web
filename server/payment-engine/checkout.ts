@@ -43,7 +43,7 @@ export type PaymentKind =
   | "kyc_verification"       // vérification KYC payante
   | "carte_grise_service"    // service carte grise
   | "reservation_acompte"    // acompte d'une réservation déjà ouverte
-  | "rental_deposit";        // caution/acompte d'une candidature de location flotte
+  | "rental_deposit";        // acompte d'une candidature de location flotte — encaissement immédiat (mode "payment"), jamais une simple autorisation bloquée
 
 export interface CheckoutInput {
   userId: number;

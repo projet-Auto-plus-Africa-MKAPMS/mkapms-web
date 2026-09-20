@@ -414,6 +414,17 @@ export const annoncesRouter = router({
         db.select().from(annonces).where(eq(annonces.id, input.id)).limit(1),
       );
       if (!a) throw new TRPCError({ code: "NOT_FOUND" });
+      // Une fiche non publiée (brouillon, refusée, archivée, vendue/louée…)
+      // ne doit jamais être ouvrable par un visiteur qui n'en est ni le
+      // propriétaire ni un administrateur — sans ce garde, connaître ou
+      // deviner un id suffisait à consulter n'importe quelle annonce, quel
+      // que soit son vrai statut. Le propriétaire garde l'accès à sa propre
+      // fiche pour pouvoir la modifier/republier (ModificationAnnonce.tsx).
+      const isAdmin = ctx.user?.role === "admin" || ctx.user?.role === "super_admin" || ctx.user?.role === "directeur";
+      const isOwner = !!ctx.user && a.ownerId === ctx.user.uid;
+      if (a.status !== "publiee" && !isOwner && !isAdmin) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
       // Smart Engine — enregistrer la vue (fire-and-forget)
       if (ctx.user?.uid) recordView(ctx.user.uid, input.id).catch(() => {});
       const photos = await db
