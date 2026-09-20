@@ -2,7 +2,7 @@ import { z } from "zod";
 import { desc, eq, sql } from "drizzle-orm";
 import { router, publicProcedure, adminProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { qrCodes, referralCodes, banners, newsletterSubscribers } from "../schema.js";
+import { qrCodes, referralCodes, banners, newsletterSubscribers, pubRequests } from "../schema.js";
 
 // Marketing / QR codes / parrainage / bannières (Plan Partie 2 §18).
 export const marketingRouter = router({
@@ -76,5 +76,63 @@ export const marketingRouter = router({
     .mutation(async ({ input }) => {
       const [b] = await db.insert(banners).values(input).returning();
       return b;
+    }),
+
+  // ── DEMANDE DE PUBLICITÉ (formulaire public /demande-publicite) ──────────
+  // Persiste réellement la demande soumise par DemandePublicite.tsx. Le
+  // moteur de revue (pubRequestsList/pubRequestDetail/decidePubRequest/
+  // deletePubRequest, server/routers/admin.ts) existait déjà côté back-office
+  // mais ne recevait jamais rien : le formulaire public simulait un succès
+  // (setTimeout) sans jamais appeler le serveur. Ouvert (publicProcedure) :
+  // le formulaire ne demande pas de connexion, il collecte lui-même nom/
+  // email/téléphone — mais rattaché à l'utilisateur connecté quand il y en a
+  // un. Pas de pays supposé par défaut : `pays` vient du contexte devise déjà
+  // choisi par le visiteur (useCurrency()), jamais fixé à "FR".
+  createPubRequest: publicProcedure
+    .input(
+      z
+        .object({
+          entreprise: z.string().min(1).max(200),
+          type: z.string().min(1).max(100),
+          emplacement: z.string().min(1).max(64),
+          description: z.string().max(2000).optional(),
+          contactName: z.string().min(1).max(128),
+          contactEmail: z.string().email().max(255),
+          contactPhone: z.string().min(1).max(32),
+          budget: z.string().max(64).optional(),
+          budgetAmountEur: z.number().min(0).optional(),
+          duree: z.string().max(64).optional(),
+          pays: z.string().length(2).optional(),
+          contentType: z.enum(["photo", "video", "lien"]),
+          mediaUrl: z.string().url().max(2000).optional(),
+          linkUrl: z.string().url().max(2000).optional(),
+        })
+        .refine(
+          (v) => (v.contentType === "lien" ? !!v.linkUrl : !!v.mediaUrl),
+          { message: "Contenu manquant pour le type de publicité choisi." },
+        ),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [r] = await db
+        .insert(pubRequests)
+        .values({
+          entreprise: input.entreprise,
+          type: input.type,
+          emplacement: input.emplacement,
+          description: input.description,
+          contactName: input.contactName,
+          contactEmail: input.contactEmail,
+          contactPhone: input.contactPhone,
+          budget: input.budget,
+          budgetAmountEur: input.budgetAmountEur != null ? String(input.budgetAmountEur) : undefined,
+          duree: input.duree,
+          pays: input.pays,
+          contentType: input.contentType,
+          mediaUrl: input.contentType === "lien" ? null : input.mediaUrl,
+          linkUrl: input.contentType === "lien" ? input.linkUrl : null,
+          userId: ctx.user?.uid ?? null,
+        })
+        .returning();
+      return r;
     }),
 });

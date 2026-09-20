@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 508;
+export const MANQUES_TOTAL = 509;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
   "bouton_sans_action": 75,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
-  "dependance_non_declaree": 36,
+  "dependance_non_declaree": 37,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
@@ -6237,6 +6237,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "location_particulier",
       "location_pro",
       "logistics_engine",
+      "marketing",
       "partner_engine",
       "parts_engine",
       "payment",
@@ -6686,6 +6687,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/InscriptionProVO.tsx",
         "route": "/inscription-pro-vo",
+        "composants": [
+          "lib/currency.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/DemandePublicite.tsx",
+        "route": "/demande-publicite",
         "composants": [
           "lib/currency.tsx"
         ]
@@ -12301,10 +12309,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependancesDetectees": [
       "core",
+      "country",
       "identity"
     ],
     "dependances": [
       "core",
+      "country",
       "identity",
       "notification",
       "seo",
@@ -12318,6 +12328,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routers/marketing.ts importe trpc.ts",
         "routers/marketing.ts importe db.ts",
         "routers/marketing.ts importe schema.ts"
+      ],
+      "country": [
+        "client/src/pages/DemandePublicite.tsx embarque lib/currency.tsx (trpc.currency)"
       ],
       "identity": [
         "routers/marketing.ts exige une session Identity (procédure protégée)"
@@ -12351,8 +12364,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 13,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 82,
-        "mots": 320
+        "textes": 83,
+        "mots": 312
       },
       {
         "fichier": "client/src/pages/PubliciteDetail.tsx",
@@ -12362,8 +12375,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 4,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 16,
-        "mots": 32
+        "textes": 19,
+        "mots": 50
       },
       {
         "fichier": "client/src/pages/PubliciteInterne.tsx",
@@ -12477,6 +12490,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [
       "banners",
       "createBanner",
+      "createPubRequest",
       "createQr",
       "createReferral",
       "qrList",
@@ -12496,8 +12510,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "public"
     ],
-    "textes": 183,
-    "mots": 627,
+    "textes": 187,
+    "mots": 637,
     "battement": "sonde",
     "manques": [
       {
@@ -12527,6 +12541,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/marketing/PublicitesPro.tsx (3 texte(s))"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "country — client/src/pages/DemandePublicite.tsx embarque lib/currency.tsx (trpc.currency)"
       },
       {
         "genre": "dependance_sans_preuve",
