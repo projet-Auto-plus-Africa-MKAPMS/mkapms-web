@@ -1,6 +1,9 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
-import { router, protectedProcedure } from "../trpc.js";
+import { router, protectedProcedure, publicProcedure } from "../trpc.js";
+import { isAdmin, isPro } from "@shared/roles.js";
+import { DEMARCHES_CATALOGUE, demarcheParCode } from "../modules/cartegrise-catalogue.js";
 import { db } from "../db.js";
 import { notifyEvent } from "../notification-os/triggers.js";
 import {
@@ -40,7 +43,105 @@ function genRef(type: string): string {
   return `${prefix}-${Date.now().toString(36).toUpperCase()}-${String(dossierCounter).padStart(3, "0")}`;
 }
 
+async function estMembreAgence(userId: number, agenceId: number | null): Promise<boolean> {
+  if (!agenceId) return false;
+  const [m] = await db.select({ id: cgAgenceMembres.id }).from(cgAgenceMembres)
+    .where(and(eq(cgAgenceMembres.agenceId, agenceId), eq(cgAgenceMembres.userId, userId))).limit(1);
+  return Boolean(m);
+}
+
 export const carteGriseRouter = router({
+  // ── Catalogue des démarches ouvertes au dépôt ─────────────────────────
+  catalogue: publicProcedure.query(() => ({
+    demarches: DEMARCHES_CATALOGUE,
+    statuts: STATUS_LABELS,
+  })),
+
+  // ── Déposer une démarche du catalogue (dossier + pièces) ──────────────
+  deposerDemarche: protectedProcedure
+    .input(z.object({
+      code: z.string().min(1),
+      immatriculation: z.string().trim().max(32).optional(),
+      vin: z.string().trim().max(32).optional(),
+      marque: z.string().trim().max(64).optional(),
+      modele: z.string().trim().max(128).optional(),
+      annee: z.number().int().min(1900).max(2100).optional(),
+      vendeurNom: z.string().trim().max(128).optional(),
+      acheteurNom: z.string().trim().max(128).optional(),
+      option: z.string().trim().max(64).optional(),
+      notes: z.string().trim().max(2000).optional(),
+      pieces: z.array(z.object({
+        code: z.string().min(1),
+        nom: z.string().min(1),
+        url: z.string().min(1),
+        mimeType: z.string().optional(),
+        taille: z.number().int().optional(),
+      })).max(30),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const demarche = demarcheParCode(input.code);
+      if (!demarche) throw new TRPCError({ code: "NOT_FOUND", message: "Démarche inconnue du moteur" });
+      if (demarche.proUniquement && !isPro(ctx.user.role) && !isAdmin(ctx.user.role)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Démarche réservée aux professionnels habilités" });
+      }
+      if (demarche.options && (!input.option || !demarche.options.valeurs.includes(input.option))) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: `${demarche.options.libelle} : choix requis` });
+      }
+      const fournies = new Set(input.pieces.map((p) => p.code));
+      const manquantes = demarche.pieces.filter((p) => p.obligatoire && !fournies.has(p.code));
+      if (manquantes.length > 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Pièces manquantes : ${manquantes.map((p) => p.libelle).join(", ")}`,
+        });
+      }
+      const notes = [
+        demarche.titre,
+        demarche.options && input.option ? `${demarche.options.libelle} : ${input.option}` : null,
+        input.notes || null,
+      ].filter(Boolean).join("\n");
+
+      const ref = genRef(demarche.type);
+      const [d] = await db.insert(cgDossiers).values({
+        reference: ref,
+        type: demarche.type,
+        status: "documents_a_verifier",
+        clientId: ctx.user.uid,
+        immatriculation: input.immatriculation,
+        vin: input.vin,
+        marque: input.marque,
+        modele: input.modele,
+        annee: input.annee,
+        vendeurNom: input.vendeurNom,
+        acheteurNom: input.acheteurNom,
+        notes,
+        createdBy: ctx.user.uid,
+      }).returning();
+      await db.insert(cgEtapes).values({
+        dossierId: d.id, status: "documents_a_verifier",
+        statusLabel: "Dossier déposé — Documents à vérifier",
+        createdBy: ctx.user.uid,
+      });
+      if (input.pieces.length > 0) {
+        await db.insert(cgDocuments).values(input.pieces.map((p) => ({
+          dossierId: d.id, type: p.code, nom: p.nom, url: p.url,
+          mimeType: p.mimeType, taille: p.taille, status: "recu" as const, uploadedBy: ctx.user.uid,
+        })));
+      }
+      await db.insert(serviceTracking).values({
+        userId: ctx.user.uid, serviceType: "carte_grise", serviceId: d.id,
+        reference: ref, titre: `${demarche.titre} — ${ref}`,
+        status: "documents_a_verifier", statusLabel: "Documents à vérifier",
+      });
+      await logAudit(d.id, "creation_dossier", `Dossier ${ref} déposé (${demarche.code}, ${input.pieces.length} pièce(s))`, ctx.user.uid, ctx.user.email ?? undefined);
+      await notifyEvent({
+        userId: ctx.user.uid,
+        event: "carte_grise_statut",
+        vars: { reference: ref, statut: "Dossier déposé", detail: `${demarche.titre} : vos ${input.pieces.length} pièce(s) sont en cours de vérification.` },
+      });
+      return { id: d.id, reference: ref };
+    }),
+
   // ── Créer un dossier ──────────────────────────────────────────────────
   createDossier: protectedProcedure
     .input(z.object({
@@ -123,9 +224,11 @@ export const carteGriseRouter = router({
   // ── Détail dossier ────────────────────────────────────────────────────
   detail: protectedProcedure
     .input(z.object({ id: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const [d] = await db.select().from(cgDossiers).where(eq(cgDossiers.id, input.id)).limit(1);
-      if (!d) throw new Error("Dossier introuvable");
+      if (!d) throw new TRPCError({ code: "NOT_FOUND", message: "Dossier introuvable" });
+      const autorise = d.clientId === ctx.user.uid || isAdmin(ctx.user.role) || await estMembreAgence(ctx.user.uid, d.agenceId);
+      if (!autorise) throw new TRPCError({ code: "FORBIDDEN", message: "Ce dossier ne vous appartient pas" });
       const docs = await db.select().from(cgDocuments).where(eq(cgDocuments.dossierId, input.id)).orderBy(desc(cgDocuments.createdAt));
       const etapes = await db.select().from(cgEtapes).where(eq(cgEtapes.dossierId, input.id)).orderBy(cgEtapes.createdAt);
       const audit = await db.select().from(cgAuditLog).where(eq(cgAuditLog.dossierId, input.id)).orderBy(desc(cgAuditLog.createdAt));

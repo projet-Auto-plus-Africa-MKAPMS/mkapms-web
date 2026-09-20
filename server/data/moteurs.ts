@@ -100,15 +100,15 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 608;
+export const MANQUES_TOTAL = 603;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "ecran_sans_contenu": 331,
-  "bouton_sans_action": 178,
+  "ecran_sans_contenu": 338,
+  "bouton_sans_action": 164,
   "sans_logique_serveur": 11,
   "sans_ecran": 8,
   "dependance_sans_preuve": 41,
-  "dependance_non_declaree": 32,
-  "bouton_declare_absent_ecran": 5,
+  "bouton_declare_absent_ecran": 6,
+  "dependance_non_declaree": 33,
   "emission_dynamique": 2
 };
 
@@ -119,7 +119,9 @@ export const ROUTES_SANS_MOTEUR: readonly string[] = [];
 export const ROUTEURS_SANS_MOTEUR: readonly string[] = [];
 
 /** Fichiers serveur qu'aucun moteur ne possède (hors racine technique). */
-export const FICHIERS_SANS_MOTEUR: readonly string[] = [];
+export const FICHIERS_SANS_MOTEUR: readonly string[] = [
+  "modules/cartegrise-catalogue.ts"
+];
 
 export const MOTEURS: readonly PerimetreMoteur[] = [
   {
@@ -3708,6 +3710,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependants": [
       "atelier",
       "auto_branchement",
+      "cartegrise",
       "continuous_test",
       "garage",
       "livraison",
@@ -3868,6 +3871,27 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "composants": [
           "lib/boutonMoteur.tsx"
         ]
+      },
+      {
+        "fichier": "client/src/pages/demarches/CarteGriseDemarche.tsx",
+        "route": "/demarches/carte-grise-demarche",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/demarches/EspaceProDemarches.tsx",
+        "route": "/demarches/espace-pro-demarches",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/demarches/SuiviDossier.tsx",
+        "route": "/demarches/suivi-dossier",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
       }
     ],
     "procedures": [
@@ -3908,6 +3932,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependancesDetectees": [
       "audit",
+      "boutons",
       "core",
       "identity",
       "notification",
@@ -3915,6 +3940,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependances": [
       "audit",
+      "boutons",
       "core",
       "document",
       "identity",
@@ -3928,6 +3954,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "preuvesDependances": {
       "audit": [
         "routers/cartegrise.ts écrit au journal d'audit"
+      ],
+      "boutons": [
+        "client/src/pages/demarches/CarteGriseDemarche.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
+        "client/src/pages/demarches/CarteGriseDemarche.tsx utilise BoutonMoteur",
+        "client/src/pages/demarches/EspaceProDemarches.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       ],
       "core": [
         "routers/cartegrise.ts importe trpc.ts",
@@ -3950,7 +3981,128 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "evenementsConsommes": [],
     "abonnements": [],
     "sourcesEmission": [],
-    "boutons": [],
+    "boutons": [
+      {
+        "code": "demarches_connexion",
+        "libelle": "Se connecter pour déposer",
+        "genre": "navigation",
+        "ecran": "/demarches/espace-pro-demarches",
+        "fichier": "client/src/pages/demarches/EspaceProDemarches.tsx",
+        "ligne": 26
+      },
+      {
+        "code": "demarches_connexion",
+        "libelle": "Se connecter pour déposer",
+        "genre": "navigation",
+        "ecran": "/demarches/suivi-dossier",
+        "fichier": "client/src/pages/demarches/SuiviDossier.tsx",
+        "ligne": 37
+      },
+      {
+        "code": "demarches_deposer",
+        "libelle": "Déposer la démarche",
+        "genre": "formulaire",
+        "ecran": "/demarches/*",
+        "fichier": "",
+        "ligne": 0
+      },
+      {
+        "code": "demarches_nouveau_dossier",
+        "libelle": "Nouveau dossier",
+        "genre": "navigation",
+        "ecran": "/demarches/espace-pro-demarches",
+        "fichier": "client/src/pages/demarches/EspaceProDemarches.tsx",
+        "ligne": 42
+      },
+      {
+        "code": "demarches_ouvrir_changement_adresse",
+        "libelle": "Changement d'adresse",
+        "genre": "navigation",
+        "ecran": "/demarches/carte-grise-demarche",
+        "fichier": "client/src/pages/demarches/CarteGriseDemarche.tsx",
+        "ligne": 14
+      },
+      {
+        "code": "demarches_ouvrir_changement_titulaire",
+        "libelle": "Changement de titulaire",
+        "genre": "navigation",
+        "ecran": "/demarches/carte-grise-demarche",
+        "fichier": "client/src/pages/demarches/CarteGriseDemarche.tsx",
+        "ligne": 16
+      },
+      {
+        "code": "demarches_ouvrir_declaration_cession",
+        "libelle": "Déclaration de cession",
+        "genre": "navigation",
+        "ecran": "/demarches/carte-grise-demarche",
+        "fichier": "client/src/pages/demarches/CarteGriseDemarche.tsx",
+        "ligne": 18
+      },
+      {
+        "code": "demarches_ouvrir_duplicata_demarche",
+        "libelle": "Duplicata de carte grise",
+        "genre": "navigation",
+        "ecran": "/demarches/carte-grise-demarche",
+        "fichier": "client/src/pages/demarches/CarteGriseDemarche.tsx",
+        "ligne": 20
+      },
+      {
+        "code": "demarches_ouvrir_immatriculation_provisoire",
+        "libelle": "Immatriculation provisoire (WW)",
+        "genre": "navigation",
+        "ecran": "/demarches/carte-grise-demarche",
+        "fichier": "client/src/pages/demarches/CarteGriseDemarche.tsx",
+        "ligne": 22
+      },
+      {
+        "code": "demarches_ouvrir_importation_vehicule",
+        "libelle": "Importation de véhicule",
+        "genre": "navigation",
+        "ecran": "/demarches/carte-grise-demarche",
+        "fichier": "client/src/pages/demarches/CarteGriseDemarche.tsx",
+        "ligne": 24
+      },
+      {
+        "code": "demarches_ouvrir_plaques_immatriculation",
+        "libelle": "Plaques d'immatriculation",
+        "genre": "navigation",
+        "ecran": "/demarches/carte-grise-demarche",
+        "fichier": "client/src/pages/demarches/CarteGriseDemarche.tsx",
+        "ligne": 30
+      },
+      {
+        "code": "demarches_ouvrir_succession_vehicule",
+        "libelle": "Succession",
+        "genre": "navigation",
+        "ecran": "/demarches/carte-grise-demarche",
+        "fichier": "client/src/pages/demarches/CarteGriseDemarche.tsx",
+        "ligne": 26
+      },
+      {
+        "code": "demarches_ouvrir_ww_garage",
+        "libelle": "W garage",
+        "genre": "navigation",
+        "ecran": "/demarches/carte-grise-demarche",
+        "fichier": "client/src/pages/demarches/CarteGriseDemarche.tsx",
+        "ligne": 28
+      },
+      {
+        "code": "demarches_suivre_dossier",
+        "libelle": "Suivre ce dossier",
+        "genre": "navigation",
+        "ecran": "/demarches/espace-pro-demarches",
+        "fichier": "client/src/pages/demarches/EspaceProDemarches.tsx",
+        "ligne": 33
+      },
+      {
+        "code": "demarches_suivre_dossier",
+        "libelle": "Suivre ce dossier",
+        "genre": "navigation",
+        "ecran": "/demarches/suivi-dossier",
+        "fichier": "client/src/pages/demarches/SuiviDossier.tsx",
+        "ligne": 85
+      }
+    ],
     "routes": [
       "/carte-grise",
       "/demarches",
@@ -4016,11 +4168,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/demarches/carte-grise-demarche"
         ],
-        "cliquables": 2,
-        "parMoteur": 0,
+        "cliquables": 10,
+        "parMoteur": 9,
         "sansAction": 0,
-        "textes": 7,
-        "mots": 12
+        "textes": 11,
+        "mots": 37
       },
       {
         "fichier": "client/src/pages/demarches/CentreDocumentsDemarches.tsx",
@@ -4038,33 +4190,33 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/demarches/changement-adresse"
         ],
-        "cliquables": 3,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 8,
-        "mots": 14
+        "sansAction": 0,
+        "textes": 2,
+        "mots": 3
       },
       {
         "fichier": "client/src/pages/demarches/ChangementTitulaire.tsx",
         "routes": [
           "/demarches/changement-titulaire"
         ],
-        "cliquables": 2,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 7,
-        "mots": 14
+        "sansAction": 0,
+        "textes": 2,
+        "mots": 3
       },
       {
         "fichier": "client/src/pages/demarches/DeclarationCession.tsx",
         "routes": [
           "/demarches/declaration-cession"
         ],
-        "cliquables": 2,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 8,
-        "mots": 20
+        "sansAction": 0,
+        "textes": 2,
+        "mots": 3
       },
       {
         "fichier": "client/src/pages/demarches/DemarchesGenerale.tsx",
@@ -4082,44 +4234,44 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/demarches/duplicata-demarche"
         ],
-        "cliquables": 4,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 6,
-        "mots": 10
+        "sansAction": 0,
+        "textes": 2,
+        "mots": 2
       },
       {
         "fichier": "client/src/pages/demarches/EspaceProDemarches.tsx",
         "routes": [
           "/demarches/espace-pro-demarches"
         ],
-        "cliquables": 2,
-        "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 4,
-        "mots": 10
+        "cliquables": 4,
+        "parMoteur": 3,
+        "sansAction": 0,
+        "textes": 6,
+        "mots": 14
       },
       {
         "fichier": "client/src/pages/demarches/ImmatriculationProvisoire.tsx",
         "routes": [
           "/demarches/immatriculation-provisoire"
         ],
-        "cliquables": 3,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 4,
-        "mots": 7
+        "sansAction": 0,
+        "textes": 2,
+        "mots": 3
       },
       {
         "fichier": "client/src/pages/demarches/ImportationVehicule.tsx",
         "routes": [
           "/demarches/importation-vehicule"
         ],
-        "cliquables": 2,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 8,
-        "mots": 20
+        "sansAction": 0,
+        "textes": 2,
+        "mots": 3
       },
       {
         "fichier": "client/src/pages/demarches/MessagerieDemarches.tsx",
@@ -4159,11 +4311,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/demarches/plaques-immatriculation"
         ],
-        "cliquables": 3,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 8,
-        "mots": 14
+        "sansAction": 0,
+        "textes": 2,
+        "mots": 3
       },
       {
         "fichier": "client/src/pages/demarches/SignaturesElectroniques.tsx",
@@ -4192,22 +4344,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/demarches/succession-vehicule"
         ],
-        "cliquables": 2,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 3,
-        "mots": 7
+        "sansAction": 0,
+        "textes": 2,
+        "mots": 3
       },
       {
         "fichier": "client/src/pages/demarches/SuiviDossier.tsx",
         "routes": [
           "/demarches/suivi-dossier"
         ],
-        "cliquables": 1,
-        "parMoteur": 0,
+        "cliquables": 3,
+        "parMoteur": 2,
         "sansAction": 0,
-        "textes": 7,
-        "mots": 10
+        "textes": 3,
+        "mots": 7
       },
       {
         "fichier": "client/src/pages/demarches/VerificationIA.tsx",
@@ -4225,11 +4377,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/demarches/w-w-garage"
         ],
-        "cliquables": 3,
+        "cliquables": 1,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 5,
-        "mots": 11
+        "sansAction": 0,
+        "textes": 3,
+        "mots": 6
       },
       {
         "fichier": "client/src/pages/superadmin/AdminDemarches.tsx",
@@ -4252,8 +4404,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "agences",
       "allDossiers",
       "auditLog",
+      "catalogue",
       "createAgence",
       "createDossier",
+      "deposerDemarche",
       "detail",
       "dossiersPourAgence",
       "mesDossiers",
@@ -4277,10 +4431,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "cg_packs"
     ],
     "acces": [
-      "connecte"
+      "connecte",
+      "public"
     ],
-    "textes": 214,
-    "mots": 640,
+    "textes": 178,
+    "mots": 578,
     "battement": "sonde",
     "manques": [
       {
@@ -4288,52 +4443,28 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "client/src/pages/demarches/AlertesDemarches.tsx (2 texte(s))"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Télécharger » client/src/pages/demarches/ChangementAdresse.tsx:11"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Valider le changement » client/src/pages/demarches/ChangementAdresse.tsx:12"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Soumettre le dossier » client/src/pages/demarches/ChangementTitulaire.tsx:15"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Valider la cession » client/src/pages/demarches/DeclarationCession.tsx:11"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Télécharger » client/src/pages/demarches/DuplicataDemarche.tsx:13"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Demander le duplicata » client/src/pages/demarches/DuplicataDemarche.tsx:14"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Nouveau dossier » client/src/pages/demarches/EspaceProDemarches.tsx:14"
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/demarches/ChangementAdresse.tsx (2 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/demarches/EspaceProDemarches.tsx (4 texte(s))"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Télécharger » client/src/pages/demarches/ImmatriculationProvisoire.tsx:9"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Demander WW provisoire » client/src/pages/demarches/ImmatriculationProvisoire.tsx:10"
+        "detail": "client/src/pages/demarches/ChangementTitulaire.tsx (2 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/demarches/ImmatriculationProvisoire.tsx (4 texte(s))"
+        "detail": "client/src/pages/demarches/DeclarationCession.tsx (2 texte(s))"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Soumettre le dossier import » client/src/pages/demarches/ImportationVehicule.tsx:10"
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/demarches/DuplicataDemarche.tsx (2 texte(s))"
+      },
+      {
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/demarches/ImmatriculationProvisoire.tsx (2 texte(s))"
+      },
+      {
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/demarches/ImportationVehicule.tsx (2 texte(s))"
       },
       {
         "genre": "bouton_sans_action",
@@ -4348,32 +4479,36 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« Payer par carte » client/src/pages/demarches/PaiementDemarches.tsx:11"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Commander mes plaques » client/src/pages/demarches/PlaquesImmatriculation.tsx:13"
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/demarches/PlaquesImmatriculation.tsx (2 texte(s))"
       },
       {
         "genre": "bouton_sans_action",
         "detail": "« Signer » client/src/pages/demarches/SignaturesElectroniques.tsx:16"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Soumettre le dossier succession » client/src/pages/demarches/SuccessionVehicule.tsx:10"
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/demarches/SuccessionVehicule.tsx (2 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
-        "detail": "client/src/pages/demarches/SuccessionVehicule.tsx (3 texte(s))"
+        "detail": "client/src/pages/demarches/SuiviDossier.tsx (3 texte(s))"
       },
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/demarches/VerificationIA.tsx (3 texte(s))"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Renouveler » client/src/pages/demarches/WWGarage.tsx:15"
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/demarches/WWGarage.tsx (3 texte(s))"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Nouvelle demande WW » client/src/pages/demarches/WWGarage.tsx:17"
+        "genre": "bouton_declare_absent_ecran",
+        "detail": "demarches_deposer déclaré pour /demarches/* mais aucun écran ne l'utilise"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "boutons — client/src/pages/demarches/CarteGriseDemarche.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       },
       {
         "genre": "dependance_sans_preuve",
