@@ -22,6 +22,7 @@ import {
   sessions,
   supprimerConversation,
   verifierProprieteConversation,
+  verifierProprieteConversationPublique,
 } from "../service.js";
 
 let ok = 0;
@@ -152,6 +153,30 @@ async function main() {
 
   const proprietaire = await proprietaireSession(premiere.sessionId);
   verif("isolation : le propriétaire réel constaté est bien le compte PDG de test", proprietaire?.userId === PDG_ID);
+
+  // ── Isolation visiteur public : un identifiant séquentiel ne vaut jamais autorisation ──
+  const publicA = await demander({
+    question: "Bonjour",
+    cote: "public",
+    visiteur: "test-visiteur-a",
+  });
+  const accesPublicA = await verifierProprieteConversationPublique(publicA.sessionId, "test-visiteur-a");
+  const accesPublicB = await verifierProprieteConversationPublique(publicA.sessionId, "test-visiteur-b");
+  verif("isolation publique : l'empreinte créatrice garde l'accès", accesPublicA.ok === true);
+  verif("isolation publique : une autre empreinte ne peut pas lire la conversation", accesPublicB.ok === false);
+
+  const tentativeReprise = await demander({
+    question: "Merci",
+    cote: "public",
+    sessionId: publicA.sessionId,
+    visiteur: "test-visiteur-b",
+  });
+  verif(
+    "isolation publique : une autre empreinte ne peut pas écrire dans la session devinée",
+    tentativeReprise.sessionId !== publicA.sessionId,
+  );
+  await supprimerConversation(publicA.sessionId);
+  await supprimerConversation(tentativeReprise.sessionId);
 
   // ── Renommer / supprimer réellement (points 3 et 11) ────────────────────
   const renomme = await renommerConversation(premiere.sessionId, "Entretien diesel 100 000 km");

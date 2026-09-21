@@ -110,6 +110,7 @@ import {
   sessions,
   supprimerConversation,
   verifierProprieteConversation,
+  verifierProprieteConversationPublique,
 } from "./service.js";
 import {
   compter as compterVehicules,
@@ -257,11 +258,19 @@ export const intelligencesRouter = router({
   /** Historique d'une conversation publique (par identifiant de session). */
   filPublic: publicProcedure
     .input(z.object({ sessionId: z.number().int().positive() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const visiteur = empreinte(ctx.user?.uid ? `u${ctx.user.uid}` : ctx.req.ip);
+      const acces = await verifierProprieteConversationPublique(input.sessionId, visiteur);
+      if (!acces.ok) {
+        throw new TRPCError({
+          code: acces.motif === "Conversation introuvable." ? "NOT_FOUND" : "FORBIDDEN",
+          message: acces.motif,
+        });
+      }
       const fil = await messages(input.sessionId);
       // LOT IA02A — motifPublic, jamais motif (détail fournisseur) : cette
-      // procédure est publique, non authentifiée, appelable pour n'importe
-      // quel identifiant de session.
+      // procédure reste publique, mais l'empreinte de la requête doit être
+      // celle qui a créé la session ; un identifiant seul n'accorde rien.
       return fil
         .filter((m) => m.cote === "public")
         .map((m) => ({
