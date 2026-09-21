@@ -255,7 +255,22 @@ export const EVENT_TYPES: EventTypeSpec[] = [
     label: "Bouton sans action réelle",
     description:
       "Un utilisateur a cliqué sur un bouton dont l'action n'existe pas encore, ou dont la destination est introuvable. Publié pour que l'écran cassé remonte au clic réel, sans attendre qu'un agent le retrouve à la main.",
-    champs: ["code", "ecran", "manque"],
+    champs: [
+      "code",
+      "ecran",
+      "manque",
+      "moteur",
+      "composant",
+      "typeErreur",
+      "contexte",
+      "route",
+      "permission",
+      "evenement",
+      "dependance",
+      "elementsTechniques",
+      "gravite",
+      "actionPossible",
+    ],
     emetteurs: ["boutons"],
   },
   {

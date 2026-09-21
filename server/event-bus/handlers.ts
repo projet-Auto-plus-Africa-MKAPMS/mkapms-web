@@ -158,9 +158,12 @@ const handlers: Record<string, Handler> = {
       "moteur.degrade": "moteurs",
       "moteur.migration_echouee": "moteurs",
       "bouton.casse": "code",
+      "bouton.sans_action": "code",
       "seo.erreur": "seo",
     };
     const domaine = ECHECS[ctx.type];
+    const diagnosticStructure = texte(payload, "contexte");
+    const actionPossible = texte(payload, "actionPossible");
 
     await memoriser({
       categorie: "technique",
@@ -176,8 +179,16 @@ const handlers: Record<string, Handler> = {
     const x = await retenir({
       domaine,
       probleme: `${ctx.type} — ${resume}`,
-      diagnostic: `Signalé par le bus depuis ${ctx.source}. Cause non encore établie.`,
-      solution: "",
+      diagnostic: diagnosticStructure
+        ? [
+            `Signalé par le bus depuis ${ctx.source}.`,
+            `Type : ${texte(payload, "typeErreur") || "non précisé"}.`,
+            `Contexte : ${diagnosticStructure}`,
+            `Route : ${texte(payload, "route") || "non précisée"}.`,
+            `Dépendance : ${texte(payload, "dependance") || "non précisée"}.`,
+          ].join(" ")
+        : `Signalé par le bus depuis ${ctx.source}. Cause non encore établie.`,
+      solution: actionPossible,
       resultat: "signale",
       blocage: "Aucune correction tentée : écouter n'est pas agir.",
     });

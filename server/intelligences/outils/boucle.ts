@@ -87,7 +87,12 @@ export async function executerAvecOutils(
   getCountryImpl: GetCountryFn = getCountry,
 ): Promise<ResultatBoucle> {
   const maxIterations = input.maxIterations ?? MAX_ITERATIONS_DEFAUT;
-  const actifs = new Set(listerActifs().map((o) => o.toolId));
+  // Les fixtures `test.*` vérifient la boucle avec des données simulées. Elles
+  // ne sont proposées que par le moteur de test explicite, jamais dans une
+  // conversation ou une mission d'exploitation.
+  const actifs = new Set(
+    listerActifs({ inclureTests: input.moteur === "test" }).map((o) => o.toolId),
+  );
   const outils = input.outilsProposes
     .filter((id) => actifs.has(id))
     .map((id) => trouver(id))
