@@ -92,6 +92,39 @@ export interface EngineContract {
   procedures: EngineProcedures;
 }
 
+/** Contexte minimal et explicite d'un appel Intelligence vers un moteur. */
+export interface EngineGatewayCall<TParameters = Record<string, unknown>> {
+  traceId: string;
+  actor: string;
+  account?: string;
+  organization?: string;
+  role: string;
+  country?: string;
+  universe: string;
+  engine: string;
+  action: string;
+  resource?: string;
+  parameters: TParameters;
+  context?: Record<string, unknown>;
+  permissions: string[];
+  risk: "low" | "medium" | "high" | "critical";
+  approval?: { id: string; expiresAt: string };
+}
+
+/** Résultat commun. Le diagnostic interne reste réservé aux vues techniques. */
+export interface EngineGatewayResult<TData = unknown> {
+  success: boolean;
+  engine: string;
+  action: string;
+  data?: TData;
+  errorCode?: string;
+  publicError?: string;
+  internalDiagnostic?: string;
+  warnings: string[];
+  traceId: string;
+  auditId?: string;
+}
+
 // ── Contrats des 4 moteurs existants ────────────────────────────────────────
 
 export const ENGINE_CONTRACTS: EngineContract[] = [

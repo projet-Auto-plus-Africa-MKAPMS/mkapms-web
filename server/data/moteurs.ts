@@ -65,6 +65,7 @@ export interface PerimetreMoteur {
   readonly dossiers: readonly string[];
   readonly routeurs: readonly string[];
   readonly fichiersServeur: number;
+  readonly tests: readonly string[];
   readonly dependancesDeclarees: readonly string[];
   readonly dependancesDetectees: readonly string[];
   /** Déclarées ∪ détectées : c'est cette liste que le registre applique. */
@@ -134,6 +135,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "accountRouting"
     ],
     "fichiersServeur": 1,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "identity",
@@ -245,6 +247,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "accountingInternal"
     ],
     "fichiersServeur": 3,
+    "tests": [],
     "dependancesDeclarees": [
       "comptabilite",
       "core",
@@ -335,6 +338,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "cabinets"
     ],
     "fichiersServeur": 3,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -429,6 +433,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "devis"
     ],
     "fichiersServeur": 4,
+    "tests": [],
     "dependancesDeclarees": [
       "analytics",
       "audit",
@@ -1328,6 +1333,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dossiers": [],
     "routeurs": [],
     "fichiersServeur": 0,
+    "tests": [],
     "dependancesDeclarees": [
       "achat",
       "avis_reputation",
@@ -1442,6 +1448,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dossiers": [],
     "routeurs": [],
     "fichiersServeur": 0,
+    "tests": [],
     "dependancesDeclarees": [
       "achat",
       "avis_reputation",
@@ -1556,6 +1563,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dossiers": [],
     "routeurs": [],
     "fichiersServeur": 0,
+    "tests": [],
     "dependancesDeclarees": [
       "achat",
       "avis_reputation",
@@ -1674,6 +1682,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "activationAudit"
     ],
     "fichiersServeur": 5,
+    "tests": [
+      "server/activation-audit/__tests__/activation-audit.test.ts",
+      "server/activation-audit/__tests__/causes.test.ts",
+      "server/activation-audit/__tests__/routeurs-partages.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "redirection",
@@ -1764,6 +1777,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "aiFabric"
     ],
     "fichiersServeur": 3,
+    "tests": [],
     "dependancesDeclarees": [
       "backup",
       "connaissance_auto",
@@ -1986,6 +2000,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "aiLearningOs"
     ],
     "fichiersServeur": 1,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "identity",
@@ -2064,6 +2079,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "historique"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -2206,6 +2222,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "insurance"
     ],
     "fichiersServeur": 3,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "identity",
@@ -2306,6 +2323,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "atelierEngine"
     ],
     "fichiersServeur": 4,
+    "tests": [],
     "dependancesDeclarees": [
       "achat",
       "boutons",
@@ -2896,6 +2914,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "auctionEngine"
     ],
     "fichiersServeur": 4,
+    "tests": [
+      "server/auction-engine/__tests__/auction-engine.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -3031,6 +3052,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "auditOs"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "identity"
@@ -3142,6 +3164,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "autoBranchement"
     ],
     "fichiersServeur": 4,
+    "tests": [],
     "dependancesDeclarees": [
       "boutons",
       "core",
@@ -3260,6 +3283,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "appFeedback"
     ],
     "fichiersServeur": 15,
+    "tests": [],
     "dependancesDeclarees": [
       "connecteur_google_business",
       "core",
@@ -3598,6 +3622,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "backupOs"
     ],
     "fichiersServeur": 1,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "identity"
@@ -3685,7 +3710,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "buttonEngine"
     ],
-    "fichiersServeur": 5,
+    "fichiersServeur": 6,
+    "tests": [
+      "server/button-engine/__tests__/button-engine.test.ts",
+      "server/button-engine/__tests__/diagnostic.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "event_bus",
@@ -3707,9 +3736,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "integrationsTechniques": [],
     "preuvesDependances": {
       "core": [
+        "button-engine/diagnostic.ts importe engine-registry/diagnostic-contract.ts",
         "button-engine/router.ts importe trpc.ts",
-        "button-engine/service.ts importe engine-registry/service.ts",
-        "button-engine/service.ts bat au registre central"
+        "button-engine/service.ts importe engine-registry/service.ts"
       ],
       "event_bus": [
         "button-engine/service.ts importe event-bus/service.ts",
@@ -3916,6 +3945,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "carteGrise"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "audit",
       "core",
@@ -4342,6 +4372,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "codeGraph"
     ],
     "fichiersServeur": 3,
+    "tests": [],
     "dependancesDeclarees": [
       "continuous_test",
       "core",
@@ -4435,6 +4466,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "commandCenter"
     ],
     "fichiersServeur": 4,
+    "tests": [],
     "dependancesDeclarees": [
       "code_graph",
       "core",
@@ -4563,6 +4595,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "completion"
     ],
     "fichiersServeur": 4,
+    "tests": [],
     "dependancesDeclarees": [
       "activation_audit",
       "continuous_test",
@@ -4667,6 +4700,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "comptabilite"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "identity",
@@ -4946,6 +4980,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "knowledgeEngine"
     ],
     "fichiersServeur": 7,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -5054,6 +5089,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "googleBusiness"
     ],
     "fichiersServeur": 3,
+    "tests": [
+      "server/connectors/google-business/__tests__/google-business.test.ts"
+    ],
     "dependancesDeclarees": [
       "avis_reputation",
       "core"
@@ -5134,6 +5172,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "continuousTest"
     ],
     "fichiersServeur": 10,
+    "tests": [],
     "dependancesDeclarees": [
       "activation_audit",
       "auto_branchement",
@@ -5312,6 +5351,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "contracts"
     ],
     "fichiersServeur": 3,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "document",
@@ -5447,6 +5487,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dossiers": [],
     "routeurs": [],
     "fichiersServeur": 0,
+    "tests": [],
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -5585,7 +5626,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "meta"
     ],
-    "fichiersServeur": 38,
+    "fichiersServeur": 39,
+    "tests": [
+      "server/engine-registry/__tests__/business-dashboard.test.ts",
+      "server/engine-registry/__tests__/orphan-retirement.test.ts"
+    ],
     "dependancesDeclarees": [
       "ai_learning",
       "audit",
@@ -6199,6 +6244,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "platformMap"
     ],
     "fichiersServeur": 3,
+    "tests": [
+      "server/country-os/__tests__/country-language-app-router.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "identity"
@@ -6863,6 +6911,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "depannage"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "avis_reputation",
       "core",
@@ -7013,6 +7062,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "dossiers"
     ],
     "fichiersServeur": 2,
+    "tests": [
+      "server/document-os/__tests__/legal-entities.test.ts",
+      "server/document-os/__tests__/linked-entity.test.ts",
+      "server/document-os/__tests__/templates.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -7226,6 +7280,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "documentEngine"
     ],
     "fichiersServeur": 4,
+    "tests": [
+      "server/document-engine/__tests__/document-engine.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "document",
@@ -7387,6 +7444,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "chargingEngine"
     ],
     "fichiersServeur": 3,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -7475,6 +7533,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "estimation"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "event_bus",
@@ -7604,6 +7663,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "eventBus"
     ],
     "fichiersServeur": 5,
+    "tests": [],
     "dependancesDeclarees": [
       "audit",
       "core",
@@ -7777,6 +7837,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "financeplus"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "accounting_internal",
       "core",
@@ -8074,6 +8135,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "financialIntelligence"
     ],
     "fichiersServeur": 4,
+    "tests": [],
     "dependancesDeclarees": [
       "comptabilite",
       "core",
@@ -8153,6 +8215,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "garages"
     ],
     "fichiersServeur": 1,
+    "tests": [],
     "dependancesDeclarees": [
       "achat",
       "atelier",
@@ -8990,6 +9053,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "preferencesUtilisateur"
     ],
     "fichiersServeur": 15,
+    "tests": [
+      "server/identity-os/__tests__/app-router.test.ts",
+      "server/identity-os/__tests__/contract.test.ts",
+      "server/identity-os/__tests__/crypto.test.ts",
+      "server/identity-os/__tests__/router.test.ts"
+    ],
     "dependancesDeclarees": [
       "account_routing",
       "achat",
@@ -9717,6 +9786,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "importAfrica"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -9824,6 +9894,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "siteVerification"
     ],
     "fichiersServeur": 7,
+    "tests": [],
     "dependancesDeclarees": [
       "audit",
       "core",
@@ -9920,6 +9991,19 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "intelligences"
     ],
     "fichiersServeur": 73,
+    "tests": [
+      "server/estimate-gateway/__tests__/gateway.test.ts",
+      "server/intelligences/__tests__/conversation-e2e.test.ts",
+      "server/intelligences/__tests__/engine-gateway.test.ts",
+      "server/intelligences/__tests__/fuite-fournisseurs.test.ts",
+      "server/intelligences/__tests__/generation-code.test.ts",
+      "server/intelligences/__tests__/independance-openai.test.ts",
+      "server/intelligences/__tests__/memoire-fichiers-rag.test.ts",
+      "server/intelligences/outils/__tests__/boucle.test.ts",
+      "server/intelligences/outils/__tests__/registre-exploitation.test.ts",
+      "server/intelligences/univers/__tests__/univers.test.ts",
+      "server/market-price-intelligence/__tests__/service.test.ts"
+    ],
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -10189,6 +10273,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "developpeur",
       "domaines",
       "domainesPublics",
+      "engineGateway",
       "etat",
       "evaluation",
       "executerAction",
@@ -10341,6 +10426,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "investment"
     ],
     "fichiersServeur": 9,
+    "tests": [
+      "server/investment/__tests__/investment-admin.test.ts",
+      "server/investment/__tests__/investment.test.ts"
+    ],
     "dependancesDeclarees": [
       "audit",
       "contract",
@@ -10503,6 +10592,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "customerJourneyOs"
     ],
     "fichiersServeur": 1,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "identity",
@@ -10584,6 +10674,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dossiers": [],
     "routeurs": [],
     "fichiersServeur": 0,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -10841,6 +10932,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "language"
     ],
     "fichiersServeur": 1,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -10944,6 +11036,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "livraison"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "avis_reputation",
       "boutons",
@@ -11069,6 +11162,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "livraisonVehicule"
     ],
     "fichiersServeur": 4,
+    "tests": [
+      "server/vehicle-delivery/__tests__/routing.test.ts"
+    ],
     "dependancesDeclarees": [
       "boutons",
       "core",
@@ -11282,6 +11378,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "rentalContracts"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -11790,6 +11887,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dossiers": [],
     "routeurs": [],
     "fichiersServeur": 0,
+    "tests": [],
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -11877,6 +11975,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dossiers": [],
     "routeurs": [],
     "fichiersServeur": 0,
+    "tests": [],
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -12226,6 +12325,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "logisticsEngine"
     ],
     "fichiersServeur": 5,
+    "tests": [
+      "server/logistics-engine/__tests__/logistics-engine.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -12370,6 +12472,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "loyalty"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "identity",
@@ -12643,6 +12746,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "media"
     ],
     "fichiersServeur": 1,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "identity",
@@ -12720,6 +12824,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "mediaAuthenticity"
     ],
     "fichiersServeur": 4,
+    "tests": [],
     "dependancesDeclarees": [
       "ai_fabric",
       "core",
@@ -12817,6 +12922,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "messages"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "audit",
       "core",
@@ -12986,6 +13092,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "monitoringOs"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "event_bus",
@@ -13126,6 +13233,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notificationOs"
     ],
     "fichiersServeur": 4,
+    "tests": [],
     "dependancesDeclarees": [
       "contract",
       "core",
@@ -13614,6 +13722,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "partnerApi"
     ],
     "fichiersServeur": 4,
+    "tests": [
+      "server/partner-engine/__tests__/partner-engine.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -13902,6 +14013,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "partsEngine"
     ],
     "fichiersServeur": 4,
+    "tests": [
+      "server/parts-engine/__tests__/parts-engine.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -14079,6 +14193,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "abonnements"
     ],
     "fichiersServeur": 19,
+    "tests": [
+      "server/payment-engine/__tests__/checkout.test.ts"
+    ],
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -14526,6 +14643,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "paymentOrchestrator"
     ],
     "fichiersServeur": 3,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -14618,6 +14736,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "payoutEngine"
     ],
     "fichiersServeur": 4,
+    "tests": [
+      "server/payout-engine/__tests__/payout-engine.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "event_bus",
@@ -14793,6 +14914,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "rbac"
     ],
     "fichiersServeur": 8,
+    "tests": [
+      "server/permission-engine/__tests__/contract.test.ts",
+      "server/permission-engine/__tests__/router.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "identity"
@@ -14959,6 +15084,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "warehouses"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "avis_reputation",
       "core",
@@ -15477,6 +15603,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "countryPolicy"
     ],
     "fichiersServeur": 3,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "country"
@@ -15823,6 +15950,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "proAccount"
     ],
     "fichiersServeur": 4,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -15938,6 +16066,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "formation"
     ],
     "fichiersServeur": 9,
+    "tests": [],
     "dependancesDeclarees": [
       "audit",
       "core",
@@ -16272,6 +16401,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "productEngine"
     ],
     "fichiersServeur": 4,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "event_bus",
@@ -16369,6 +16499,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "proximity"
     ],
     "fichiersServeur": 3,
+    "tests": [],
     "dependancesDeclarees": [
       "avis_reputation",
       "core",
@@ -16475,6 +16606,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "lab"
     ],
     "fichiersServeur": 4,
+    "tests": [],
     "dependancesDeclarees": [
       "connaissance_auto",
       "core",
@@ -18700,6 +18832,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "redirectionEngine"
     ],
     "fichiersServeur": 7,
+    "tests": [
+      "server/redirection-engine/__tests__/redirection-engine.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "identity",
@@ -18919,6 +19054,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "resilience"
     ],
     "fichiersServeur": 4,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -19038,6 +19174,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "risqueImport"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -19160,6 +19297,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "schedulerOs"
     ],
     "fichiersServeur": 1,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "identity",
@@ -19503,6 +19641,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "searches"
     ],
     "fichiersServeur": 1,
+    "tests": [],
     "dependancesDeclarees": [
       "avis_reputation",
       "core",
@@ -19649,6 +19788,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "seo"
     ],
     "fichiersServeur": 13,
+    "tests": [],
     "dependancesDeclarees": [
       "avis_reputation",
       "core",
@@ -19877,6 +20017,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smartEngine"
     ],
     "fichiersServeur": 36,
+    "tests": [
+      "server/smart-engine/services/__tests__/bouton-deplace.test.ts",
+      "server/smart-engine/services/__tests__/boutons-sans-action-sync.test.ts",
+      "server/smart-engine/services/__tests__/hardening.test.ts",
+      "server/smart-engine/services/__tests__/perceptual.test.ts",
+      "server/smart-engine/services/__tests__/staging-integre-guard.test.ts",
+      "server/smart-engine/services/__tests__/valider-tout.test.ts"
+    ],
     "dependancesDeclarees": [
       "avis_reputation",
       "boutons",
@@ -20369,6 +20517,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smartAudit"
     ],
     "fichiersServeur": 4,
+    "tests": [],
     "dependancesDeclarees": [
       "ai_fabric",
       "core",
@@ -20461,6 +20610,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "supplierPortal"
     ],
     "fichiersServeur": 6,
+    "tests": [
+      "server/supplier-engine/__tests__/access.test.ts",
+      "server/supplier-engine/__tests__/portal-selfservice.test.ts",
+      "server/supplier-engine/__tests__/supplier-engine.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -20617,6 +20771,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "disputes"
     ],
     "fichiersServeur": 3,
+    "tests": [],
     "dependancesDeclarees": [
       "audit",
       "core",
@@ -20814,6 +20969,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "transport"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "identity",
@@ -20984,6 +21140,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "vehicleEngine"
     ],
     "fichiersServeur": 4,
+    "tests": [
+      "server/vehicle-engine/__tests__/vehicle-engine.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -21154,6 +21313,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dossiers": [],
     "routeurs": [],
     "fichiersServeur": 0,
+    "tests": [],
     "dependancesDeclarees": [
       "achat",
       "boutons",
@@ -22296,6 +22456,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "depotVente"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "notification",
@@ -22374,6 +22535,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dossiers": [],
     "routeurs": [],
     "fichiersServeur": 0,
+    "tests": [],
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -22462,6 +22624,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dossiers": [],
     "routeurs": [],
     "fichiersServeur": 0,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "vente"
@@ -22614,6 +22777,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "visibilityOs"
     ],
     "fichiersServeur": 6,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "identity",
@@ -22732,6 +22896,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "vo"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "core",
       "notification",
@@ -22849,6 +23014,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "voEngine"
     ],
     "fichiersServeur": 3,
+    "tests": [],
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -22978,6 +23144,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "voEspaces"
     ],
     "fichiersServeur": 3,
+    "tests": [
+      "server/vo-espaces/__tests__/vo-espaces.test.ts"
+    ],
     "dependancesDeclarees": [
       "core",
       "country",
@@ -23119,6 +23288,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "investor"
     ],
     "fichiersServeur": 2,
+    "tests": [],
     "dependancesDeclarees": [
       "audit",
       "core",

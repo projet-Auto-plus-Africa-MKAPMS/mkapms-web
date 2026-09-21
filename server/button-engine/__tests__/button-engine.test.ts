@@ -18,6 +18,7 @@ import { resoudreAction, signalerClic, inventaire } from "../service.js";
 import { ACTIONS_BOUTONS } from "../catalogue.js";
 import { BOUTONS_SANS_ACTION } from "../../data/boutons-sans-action.js";
 import { recordTestEvidence } from "../../activation-audit/service.js";
+import { construireDiagnosticBouton } from "../diagnostic.js";
 
 let ok = 0;
 let total = 0;
@@ -57,6 +58,18 @@ async function main() {
   verif("inventaire() répartit exactement toutes les actions du catalogue", totalParGenre === ACTIONS_BOUTONS.length);
   verif("inventaire() retrouve l'action non branchée du catalogue", inv.nonBranchees.some((b) => b.code === "garage_depannage_appel"));
   verif("inventaire() reflète le compte réel de boutons muets (audit généré)", inv.boutonsMuets === BOUTONS_SANS_ACTION.length);
+
+  // ── 6. Diagnostic structuré remis à MKA PMS IA ─────────────────────────
+  const diagnostic = construireDiagnosticBouton({
+    code: "garage_reception_devis",
+    source: "/garage/reception-vehicule",
+    outcome: "not_found",
+    resolvedTo: "/route-absente-test",
+    action: ACTIONS_BOUTONS.find((a) => a.code === "garage_reception_devis"),
+  });
+  verif("diagnostic : identifie le moteur et le composant", diagnostic.moteur === "boutons" && diagnostic.composant === "garage_reception_devis");
+  verif("diagnostic : relie route, événement et dépendance", diagnostic.route === "/garage/reception-vehicule" && diagnostic.evenement === "bouton.sans_action" && diagnostic.dependance === "redirection");
+  verif("diagnostic : porte gravité, éléments techniques et action possible", diagnostic.gravite === "warning" && diagnostic.elementsTechniques.length >= 3 && diagnostic.actionPossible.length > 0);
 
   console.log(`\n${ok}/${total} assertions réussies.`);
   await recordTestEvidence({

@@ -96,6 +96,7 @@ import {
   audit as auditMoteurs,
   journalSante,
   moteur as detailMoteur,
+  matriceEngineGateway,
 } from "./moteurs.js";
 import {
   actions,
@@ -554,6 +555,9 @@ export const intelligencesRouter = router({
     exigences: EXIGENCES,
     ...(await auditMoteurs()),
   })),
+
+  /** Matrice Engine Gateway complète, calculée depuis les registres canoniques. */
+  engineGateway: pdgProcedure.query(() => matriceEngineGateway()),
 
   moteur: pdgProcedure
     .input(z.object({ nom: z.string().max(64) }))

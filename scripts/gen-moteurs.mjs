@@ -72,7 +72,8 @@ for (const p of PERIMETRES) {
   }
 }
 
-// Les 88 moteurs = catalogue + pont OS ; tous doivent avoir un périmètre.
+// Tous les moteurs de la source de vérité doivent avoir un périmètre. Le total
+// est calculé depuis le catalogue : ne jamais réintroduire un nombre historique.
 const catalogue = new Set(ENGINE_CATALOG.map((e) => e.name));
 for (const n of catalogue) if (!nomsMoteurs.has(n)) erreurs.push(`moteur du catalogue sans périmètre : ${n}`);
 for (const n of nomsMoteurs) if (!catalogue.has(n)) erreurs.push(`moteur avec périmètre mais absent du catalogue : ${n}`);
@@ -99,6 +100,21 @@ function fichiersDe(dir, ext, acc = []) {
 }
 
 const fichiersServeur = fichiersDe(SERVEUR, [".ts"]).map((f) => f.split("\\").join("/"));
+
+function fichiersTestsDe(dir, acc = []) {
+  if (!existsSync(dir)) return acc;
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, e.name);
+    if (e.isDirectory()) {
+      if (e.name !== "node_modules") fichiersTestsDe(p, acc);
+    } else if (e.name.endsWith(".test.ts") || p.includes(`${join("", "__tests__")}`)) {
+      acc.push(p.split("\\").join("/"));
+    }
+  }
+  return acc;
+}
+
+const testsServeur = fichiersTestsDe(SERVEUR);
 
 /** Moteur propriétaire d'un fichier serveur (le dossier le plus long gagne). */
 function proprietaireServeur(fichier) {
@@ -248,7 +264,12 @@ function evenementsEmis(source) {
   const codes = new Set();
   const sources = new Set();
   let dynamiques = 0;
-  for (const m of source.matchAll(/\bemit(?:Safe)?\(\s*\{([\s\S]{0,600}?)\}\s*\)/g)) {
+  // Les diagnostics structurés peuvent légitimement dépasser 600 caractères
+  // (route, permission, dépendance, gravité, action possible). La précédente
+  // borne faisait alors disparaître l'événement et ses dépendances du rapport
+  // généré. La borne reste finie pour éviter qu'un appel mal fermé n'absorbe le
+  // fichier entier.
+  for (const m of source.matchAll(/\bemit(?:Safe)?\(\s*\{([\s\S]{0,5000}?)\}\s*\)/g)) {
     const bloc = m[1];
     const t = /\btype:\s*(?:"([^"]+)"|`([^`]+)`|([A-Za-z_][\w.]*))/.exec(bloc);
     if (t?.[1]) codes.add(t[1]);
@@ -543,6 +564,10 @@ for (const p of PERIMETRES) {
     dossiers: p.dossiers,
     routeurs: p.routeurs,
     fichiersServeur: fichiers.length,
+    tests: testsServeur
+      .filter((f) => proprietaireServeur(f) === moteur)
+      .map((f) => relative(".", f).split("\\").join("/"))
+      .sort(),
     dependancesDeclarees: [...declarees].sort(),
     dependancesDetectees: detectees,
     dependances: [...new Set([...declarees, ...detectees])].sort(),
@@ -652,6 +677,7 @@ export interface PerimetreMoteur {
   readonly dossiers: readonly string[];
   readonly routeurs: readonly string[];
   readonly fichiersServeur: number;
+  readonly tests: readonly string[];
   readonly dependancesDeclarees: readonly string[];
   readonly dependancesDetectees: readonly string[];
   /** Déclarées ∪ détectées : c'est cette liste que le registre applique. */

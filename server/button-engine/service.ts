@@ -15,6 +15,7 @@ import { isRoutablePath } from "../data/client-routes.js";
 import { BOUTONS_SANS_ACTION } from "../data/boutons-sans-action.js";
 import { emitSafe } from "../event-bus/service.js";
 import { heartbeat } from "../engine-registry/service.js";
+import { construireDiagnosticBouton, type DiagnosticBouton } from "./diagnostic.js";
 
 export interface ActionResolue {
   code: string;
@@ -96,7 +97,7 @@ export interface ClicInput {
 export async function signalerClic(
   input: ClicInput,
   who?: { userId?: number; role?: string },
-): Promise<{ recorded: true }> {
+): Promise<{ recorded: true; diagnostic: DiagnosticBouton | null }> {
   const action = actionParCode(input.code);
 
   await reportOutcome(
@@ -110,7 +111,16 @@ export async function signalerClic(
     who,
   );
 
-  if (input.outcome !== "navigated") {
+  const diagnostic =
+    input.outcome === "navigated"
+      ? null
+      : construireDiagnosticBouton({
+          ...input,
+          outcome: input.outcome,
+          action,
+        });
+
+  if (diagnostic) {
     await emitSafe({
       type: "bouton.sans_action",
       source: "boutons",
@@ -123,6 +133,21 @@ export async function signalerClic(
           (action
             ? `Destination « ${input.resolvedTo ?? action.cible ?? "?"} » introuvable.`
             : "Bouton non déclaré au Moteur de boutons."),
+        moteur: diagnostic.moteur,
+        composant: diagnostic.composant,
+        univers: diagnostic.univers ?? "",
+        typeErreur: diagnostic.typeErreur,
+        contexte: diagnostic.contexte,
+        route: diagnostic.route ?? "",
+        redirection: diagnostic.redirection ?? "",
+        permission: diagnostic.permission,
+        evenement: diagnostic.evenement,
+        dependance: diagnostic.dependance,
+        elementsTechniques: diagnostic.elementsTechniques.join(" | "),
+        gravite: diagnostic.gravite,
+        actionPossible: diagnostic.actionPossible,
+        testsRequis: diagnostic.testsRequis.join(" | "),
+        traceId: diagnostic.traceId ?? "",
       },
     });
   }
@@ -131,7 +156,7 @@ export async function signalerClic(
     message: `Dernier clic : ${input.code} (${input.outcome}).`,
   });
 
-  return { recorded: true };
+  return { recorded: true, diagnostic };
 }
 
 export interface LigneInventaire {
