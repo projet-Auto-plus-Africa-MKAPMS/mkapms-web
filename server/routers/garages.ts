@@ -4,12 +4,34 @@ import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure, proProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { notifyEvent } from "../notification-os/triggers.js";
-import { garagesPublics, rdvGarage, serviceTracking } from "../schema.js";
+import { annonces, garagesPublics, rdvGarage, serviceTracking, users } from "../schema.js";
 import { ingest as ingestVisibility } from "../visibility-os/index.js";
 import { requestReviewAfterCompletion } from "../reputation-engine/service.js";
-import { tracerReportRdv } from "../atelier-engine/service.js";
+import { alertesStock, tracerReportRdv } from "../atelier-engine/service.js";
 import { scheduleTask } from "../scheduler-os/index.js";
 
+/**
+ * Étapes d'une intervention atelier, déclarées par le moteur : code, libellé
+ * montré au client et ordre. Les écrans (Atelier Pro, suivi client) lisent
+ * cette liste au lieu d'en tenir une copie.
+ */
+export const ETAPES_INTERVENTION = [
+  { code: "planifiee", libelle: "Rendez-vous planifié", ordre: 1 },
+  { code: "accueil", libelle: "Véhicule réceptionné", ordre: 2 },
+  { code: "diagnostic", libelle: "Diagnostic en cours", ordre: 3 },
+  { code: "devis_envoye", libelle: "Devis envoyé", ordre: 4 },
+  { code: "en_reparation", libelle: "Réparation en cours", ordre: 5 },
+  { code: "controle_qualite", libelle: "Contrôle qualité", ordre: 6 },
+  { code: "pret", libelle: "Véhicule prêt — à récupérer", ordre: 7 },
+  { code: "termine", libelle: "Intervention terminée", ordre: 8 },
+  { code: "annulee", libelle: "Intervention annulée", ordre: 9 },
+] as const;
+
+export type CodeEtapeIntervention = (typeof ETAPES_INTERVENTION)[number]["code"];
+const CODES_ETAPES = ETAPES_INTERVENTION.map((e) => e.code) as [CodeEtapeIntervention, ...CodeEtapeIntervention[]];
+const LIBELLES_ETAPES: Record<CodeEtapeIntervention, string> = Object.fromEntries(
+  ETAPES_INTERVENTION.map((e) => [e.code, e.libelle]),
+) as Record<CodeEtapeIntervention, string>;
 const RAPPEL_RDV_AVANT_MS = 24 * 3600000;
 
 /**
@@ -163,27 +185,17 @@ export const garagesRouter = router({
   updateIntervention: proProcedure
     .input(z.object({
       rdvId: z.number(),
-      status: z.enum(["planifiee", "accueil", "diagnostic", "devis_envoye", "en_reparation", "controle_qualite", "pret", "termine", "annulee"]),
+      status: z.enum(CODES_ETAPES),
       detail: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
       await rdvDeMesGarages(ctx.user.uid, input.rdvId);
 
-      const statusLabels: Record<string, string> = {
-        planifiee: "Rendez-vous planifié",
-        accueil: "Véhicule réceptionné",
-        diagnostic: "Diagnostic en cours",
-        devis_envoye: "Devis envoyé",
-        en_reparation: "Réparation en cours",
-        controle_qualite: "Contrôle qualité",
-        pret: "Véhicule prêt — à récupérer",
-        termine: "Intervention terminée",
-        annulee: "Intervention annulée",
-      };
+      const statusLabels = LIBELLES_ETAPES;
 
       // Update RDV status
       const [rdv] = await db.update(rdvGarage)
-        .set({ status: input.status as "en_attente", updatedAt: new Date() })
+        .set({ status: input.status, updatedAt: new Date() })
         .where(eq(rdvGarage.id, input.rdvId))
         .returning();
       if (!rdv) throw new TRPCError({ code: "NOT_FOUND" });
@@ -233,6 +245,106 @@ export const garagesRouter = router({
 
       return rdv;
     }),
+
+  /**
+   * Atelier Pro : synthèse calculée par le moteur pour les garages du compte.
+   * Interventions (rdv_garage) avec client et véhicule, clients et véhicules
+   * distincts, compteurs par étape et alertes de stock. L'écran n'affiche que
+   * ce résultat ; aucun chiffre n'est fabriqué côté client.
+   */
+  atelierSynthese: proProcedure.query(async ({ ctx }) => {
+    const miens = await db
+      .select({ id: garagesPublics.id, name: garagesPublics.name })
+      .from(garagesPublics)
+      .where(eq(garagesPublics.ownerId, ctx.user.uid));
+    const garageIds = miens.map((g) => g.id);
+    if (garageIds.length === 0) {
+      return {
+        garages: miens,
+        interventions: [],
+        clients: [],
+        vehicules: [],
+        compteurs: {} as Record<string, number>,
+        alertesStock: [],
+        etapes: ETAPES_INTERVENTION,
+      };
+    }
+    const lignes = await db
+      .select({
+        id: rdvGarage.id,
+        garageId: rdvGarage.garageId,
+        clientId: rdvGarage.clientId,
+        annonceId: rdvGarage.annonceId,
+        type: rdvGarage.type,
+        status: rdvGarage.status,
+        dateHeure: rdvGarage.dateHeure,
+        motif: rdvGarage.motif,
+        notes: rdvGarage.notes,
+        updatedAt: rdvGarage.updatedAt,
+        clientNom: users.name,
+        clientEmail: users.email,
+        clientPhone: users.phone,
+        vehiculeMarque: annonces.marque,
+        vehiculeModele: annonces.modele,
+        vehiculeTitre: annonces.titre,
+      })
+      .from(rdvGarage)
+      .leftJoin(users, eq(users.id, rdvGarage.clientId))
+      .leftJoin(annonces, eq(annonces.id, rdvGarage.annonceId))
+      .where(inArray(rdvGarage.garageId, garageIds))
+      .orderBy(desc(rdvGarage.dateHeure))
+      .limit(300);
+
+    const compteurs: Record<string, number> = {};
+    const clientsMap = new Map<number, { id: number; nom: string; email: string | null; phone: string | null; interventions: number; derniere: Date }>();
+    const vehiculesMap = new Map<number, { annonceId: number; url: string; marque: string; modele: string; titre: string; interventions: number; derniere: Date }>();
+    for (const l of lignes) {
+      compteurs[l.status] = (compteurs[l.status] ?? 0) + 1;
+      const c = clientsMap.get(l.clientId);
+      if (c) {
+        c.interventions += 1;
+        if (l.dateHeure > c.derniere) c.derniere = l.dateHeure;
+      } else {
+        clientsMap.set(l.clientId, {
+          id: l.clientId,
+          nom: l.clientNom ?? `Client #${l.clientId}`,
+          email: l.clientEmail,
+          phone: l.clientPhone,
+          interventions: 1,
+          derniere: l.dateHeure,
+        });
+      }
+      if (l.annonceId && l.vehiculeMarque && l.vehiculeModele) {
+        const v = vehiculesMap.get(l.annonceId);
+        if (v) {
+          v.interventions += 1;
+          if (l.dateHeure > v.derniere) v.derniere = l.dateHeure;
+        } else {
+          vehiculesMap.set(l.annonceId, {
+            annonceId: l.annonceId,
+            url: `/vehicule/${l.annonceId}`,
+            marque: l.vehiculeMarque,
+            modele: l.vehiculeModele,
+            titre: l.vehiculeTitre ?? `${l.vehiculeMarque} ${l.vehiculeModele}`,
+            interventions: 1,
+            derniere: l.dateHeure,
+          });
+        }
+      }
+    }
+
+    const alertes = await alertesStock(garageIds);
+
+    return {
+      garages: miens,
+      interventions: lignes,
+      clients: [...clientsMap.values()].sort((a, b) => b.derniere.getTime() - a.derniere.getTime()),
+      vehicules: [...vehiculesMap.values()].sort((a, b) => b.derniere.getTime() - a.derniere.getTime()),
+      compteurs,
+      alertesStock: alertes,
+      etapes: ETAPES_INTERVENTION,
+    };
+  }),
 
   // Atelier : rendez-vous réellement enregistrés pour les garages du compte.
   planningAtelier: proProcedure.query(async ({ ctx }) => {

@@ -181,6 +181,10 @@ export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
   { key: "bouton_vente_factures", label: "Bouton — Factures du professionnel", kind: "button", target: "/utilisateurs/factures-utilisateur", priority: 90 },
   { key: "bouton_vente_profil", label: "Bouton — Profil du professionnel", kind: "button", target: "/compte?tab=profil", priority: 90 },
   { key: "bouton_livraison_vehicule_connexion", label: "Bouton — Connexion depuis Livraison véhicule", kind: "button", target: "/connexion", priority: 90 },
+  { key: "bouton_atelier_planning", label: "Bouton — Planning atelier (Atelier Pro)", kind: "button", target: "/garage/planning-atelier", priority: 90 },
+  { key: "bouton_atelier_reappro", label: "Bouton — Réapprovisionnement (Atelier Pro)", kind: "button", target: "/garage/commandes-automatiques", priority: 90 },
+  { key: "bouton_atelier_catalogue", label: "Bouton — Catalogue technique (Atelier Pro)", kind: "button", target: "/catalogue-technique", priority: 90 },
+  { key: "bouton_atelier_pieces", label: "Bouton — Recherche de pièces (Atelier Pro)", kind: "button", target: "/garage/recherche-pieces", priority: 90 },
 
   // ── Alias de chemins (auto-résolution des 404) ────────────────────────
   // Un chemin obsolète/synonyme qui n'a pas de page propre est redirigé

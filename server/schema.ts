@@ -65,7 +65,10 @@ export const paymentTypeEnum = pgEnum("payment_type", ["rental_caution", "societ
 export const plateLookupTypeEnum = pgEnum("plate_lookup_type", ["plate", "vin"]);
 export const proCategoryEnum = pgEnum("pro_category", ["garage", "concessionnaire", "marchand", "revendeur", "loueur", "convoyeur", "expert_auto", "centre_ct", "fournisseur_pieces", "carrossier", "depanneur", "autre"]);
 export const quoteStatusEnum = pgEnum("quote_status", ["pending", "accepted", "rejected", "expired", "draft"]);
-export const rdvStatusEnum = pgEnum("rdv_status", ["en_attente", "confirme", "honore", "annule_client", "annule_garage", "no_show"]);
+export const rdvStatusEnum = pgEnum("rdv_status", [
+  "en_attente", "confirme", "honore", "annule_client", "annule_garage", "no_show",
+  "planifiee", "accueil", "diagnostic", "devis_envoye", "en_reparation", "controle_qualite", "pret", "termine", "annulee",
+]);
 export const rdvTypeEnum = pgEnum("rdv_type", ["visite", "intervention"]);
 export const rentalApplicantTypeEnum = pgEnum("rental_applicant_type", ["individual", "society", "vtc", "taxi"]);
 export const rentalApplicationStatusEnum = pgEnum("rental_application_status", ["draft", "submitted", "approved", "rejected", "paid", "completed"]);
