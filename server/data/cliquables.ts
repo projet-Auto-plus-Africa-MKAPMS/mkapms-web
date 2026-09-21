@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2543;
+export const CLIQUABLES_TOTAL = 2544;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -97,7 +97,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/CalendrierDispo.tsx", total: 2, moteur: 0, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CarteGrise.tsx", total: 4, moteur: 0, liens: 0, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CarteMondiale.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/CatalogueTechnique.tsx", total: 14, moteur: 0, liens: 2, boutonsLocaux: 11, sansAction: 0, zones: 1 },
+  { fichier: "client/src/pages/CatalogueTechnique.tsx", total: 15, moteur: 5, liens: 2, boutonsLocaux: 7, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/CentreActions.tsx", total: 8, moteur: 0, liens: 1, boutonsLocaux: 7, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreAutoBranchement.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/CentreBusEvenements.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
