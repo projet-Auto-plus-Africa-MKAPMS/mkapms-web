@@ -33,6 +33,7 @@ import { executerAvecOutils } from "./outils/boucle.js";
 import { listerActifs } from "./outils/registre.js";
 import { randomUUID } from "node:crypto";
 import { resumerSiNecessaire } from "./conversation-resume.js";
+import { rechercherGlobale } from "./recherche-globale.js";
 
 function jourCourant(): string {
   return new Date().toISOString().slice(0, 10);
@@ -113,6 +114,35 @@ async function contexteUtilisateur(input: {
     ];
   } catch (e) {
     return [`Context Engine illisible : ${e instanceof Error ? e.message : "erreur inconnue"}.`];
+  }
+}
+
+/**
+ * Relie la conversation direction à la mémoire et aux connaissances déjà
+ * indexées. Le retrieval reste additif et non bloquant : chaque source garde
+ * ses filtres dans recherche-globale.ts, et aucune connaissance n'est inventée
+ * si la base ne contient rien de pertinent.
+ */
+async function contexteMemoire(input: {
+  question: string;
+  userId?: number | null;
+  sessionId: number;
+}): Promise<string[]> {
+  if (!input.userId) return [];
+  try {
+    const resultats = await rechercherGlobale(input.question, input.userId, {
+      sources: ["memoire", "fichier", "connaissance"],
+      visibiliteConnaissance: ["interne", "pdg_uniquement"],
+      sessionId: input.sessionId,
+      limit: 4,
+    });
+    if (resultats.length === 0) return [];
+    return [
+      "Mémoire et connaissances pertinentes (retrieval lexical, sources existantes uniquement) :",
+      ...resultats.slice(0, 8).map((r) => `- [${r.source}:${r.id}] ${r.titre} — ${r.extrait}`),
+    ];
+  } catch (e) {
+    return [`Mémoire et connaissances illisibles : ${e instanceof Error ? e.message : "erreur inconnue"}.`];
   }
 }
 
@@ -337,6 +367,23 @@ export async function verifierProprieteConversation(
   return { ok: true, motif: "" };
 }
 
+/** Une conversation publique anonyme reste liée à l'empreinte qui l'a créée. */
+export async function verifierProprieteConversationPublique(
+  sessionId: number,
+  visiteur: string,
+): Promise<{ ok: boolean; motif: string }> {
+  const [ligne] = await db
+    .select({ cote: inSessions.cote, visiteur: inSessions.visiteur })
+    .from(inSessions)
+    .where(eq(inSessions.id, sessionId))
+    .limit(1);
+  if (!ligne || ligne.cote !== "public") return { ok: false, motif: "Conversation introuvable." };
+  if (!ligne.visiteur || ligne.visiteur !== visiteur) {
+    return { ok: false, motif: "Cette conversation appartient à un autre visiteur." };
+  }
+  return { ok: true, motif: "" };
+}
+
 /** Renomme une conversation — la propriété a déjà été vérifiée par l'appelant. */
 export async function renommerConversation(sessionId: number, titre: string): Promise<{ ok: boolean; detail: string }> {
   const propre = titre.trim().slice(0, 180);
@@ -358,11 +405,15 @@ export async function supprimerConversation(sessionId: number): Promise<{ ok: bo
 async function session(input: DemandeInput): Promise<number> {
   if (input.sessionId) {
     const [existante] = await db
-      .select({ id: inSessions.id, cote: inSessions.cote })
+      .select({ id: inSessions.id, cote: inSessions.cote, userId: inSessions.userId, visiteur: inSessions.visiteur })
       .from(inSessions)
       .where(eq(inSessions.id, input.sessionId))
       .limit(1);
-    if (existante && existante.cote === input.cote) return existante.id;
+    const memeProprietaire =
+      input.cote === "direction"
+        ? existante?.userId === (input.userId ?? null)
+        : Boolean(input.visiteur && existante?.visiteur === input.visiteur);
+    if (existante && existante.cote === input.cote && memeProprietaire) return existante.id;
   }
   const [creee] = await db
     .insert(inSessions)
@@ -500,6 +551,7 @@ export async function demander(input: DemandeInput): Promise<DemandeResultat> {
             countryCode: input.countryCode,
             sessionId,
           })),
+          ...(await contexteMemoire({ question, userId: input.userId, sessionId })),
         ]
       : [];
   const historique = await db
