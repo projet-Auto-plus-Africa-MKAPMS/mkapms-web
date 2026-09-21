@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { imprimerFeuille } from "../lib/documents";
+import { trpc } from "../lib/trpc";
+import { useAuth } from "../lib/auth";
+import { BoutonMoteur } from "../lib/boutonMoteur";
 import {
   ChevronLeft, Search, Car, CheckCircle, Cog, Settings,
   Disc, Thermometer, Wind, Fuel, Gauge, Zap, Shield,
@@ -1191,19 +1194,24 @@ export default function CatalogueTechnique() {
   const [activeTab, setActiveTab] = useState<NavTab>("accueil");
   const [vehicle, setVehicle] = useState<VehicleInfo>(DEFAULT_VEHICLE);
   const [isDemoVehicle, setIsDemoVehicle] = useState(false);
-  const [isAbonne, setIsAbonne] = useState(true);
+  const [rechercheEnCours, setRechercheEnCours] = useState(false);
+  const { user } = useAuth();
+  const isAbonne = !!user;
   const navigate = useNavigate();
+  const utils = trpc.useUtils();
 
   /**
    * Le catalogue technique ne tient pas de panier : la commande de pièces est
    * portée par l'univers Pièces, qui connaît les stocks et les fournisseurs.
    */
+  const queryPiece = (ref: string, nom: string) => ({
+    ref,
+    nom,
+    vehicule: `${vehicle.marque} ${vehicle.modele} ${vehicle.version}`,
+  });
   const commander = (ref: string, nom: string) => {
-    navigate(
-      `/garage/recherche-pieces?ref=${encodeURIComponent(ref)}&nom=${encodeURIComponent(nom)}&vehicule=${encodeURIComponent(
-        `${vehicle.marque} ${vehicle.modele} ${vehicle.version}`,
-      )}`,
-    );
+    const params = new URLSearchParams(queryPiece(ref, nom)).toString();
+    navigate(`/garage/recherche-pieces?${params}`);
   };
 
   const imprimerCouples = (
@@ -1228,16 +1236,49 @@ export default function CatalogueTechnique() {
       );
   };
 
-  const doSearch = () => {
-    if (plaque.trim().length >= 3) {
-      const { vehicle: v, isDemo } = lookupVehicle(plaque);
-      setVehicle(v);
-      setIsDemoVehicle(isDemo);
-      setFound(true);
-      setOpenCat("Mecanique");
-      setSelectedSystem("moteur");
-      setActiveTab("vehicule");
+  const afficherVehicule = (v: VehicleInfo, isDemo: boolean) => {
+    setVehicle(v);
+    setIsDemoVehicle(isDemo);
+    setFound(true);
+    setOpenCat("Mecanique");
+    setSelectedSystem("moteur");
+    setActiveTab("vehicule");
+  };
+
+  /**
+   * Identification par le serveur (API plaque/VIN + annonces connues) ; la
+   * petite base locale ne sert que de repli quand le serveur ne reconnaît rien.
+   */
+  const doSearch = async () => {
+    const q = plaque.trim();
+    if (q.length < 3 || rechercheEnCours) return;
+    setRechercheEnCours(true);
+    try {
+      const type = q.replace(/[\s-]/g, "").length >= 11 ? "vin" : "plaque";
+      const r = await utils.annonces.lookupPlate.fetch({ type, query: q });
+      if (r && (r.marque || r.modele)) {
+        afficherVehicule(
+          {
+            ...DEFAULT_VEHICLE,
+            marque: r.marque ?? "—",
+            modele: r.modele ?? "—",
+            version: r.version ?? "—",
+            annee: r.annee ? String(r.annee) : "—",
+            puissance: r.puissance ? String(r.puissance) : "—",
+            carburant: r.carburant ?? "—",
+            transmission: r.boite ?? "—",
+          },
+          false,
+        );
+        return;
+      }
+    } catch {
+      // serveur indisponible : repli local ci-dessous
+    } finally {
+      setRechercheEnCours(false);
     }
+    const { vehicle: v, isDemo } = lookupVehicle(q);
+    afficherVehicule(v, isDemo);
   };
   const data = getSystemData(selectedSystem);
   const currentSys = SYSTEMS_ALL.find(s => s.id === selectedSystem);
@@ -1265,9 +1306,6 @@ export default function CatalogueTechnique() {
           </div>
           <div className="text-right space-y-1">
             <span className="text-[9px] font-bold text-[#D4AF37] bg-[#D4AF37]/10 border border-[#D4AF37]/30 px-2 py-1 rounded-full">V.2027</span>
-            <button onClick={() => setIsAbonne(!isAbonne)} className={`block ml-auto mt-1 text-[8px] font-bold px-2 py-0.5 rounded-full ${isAbonne ? "bg-green-500/20 text-green-300" : "bg-red-500/20 text-red-300"}`}>
-              {isAbonne ? "Mode Admin" : "Mode Client"}
-            </button>
           </div>
         </div>
       </div>
@@ -1288,7 +1326,7 @@ export default function CatalogueTechnique() {
                 </div>
               ))}
             </div>
-            <Link to="/compte" className="inline-block rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-white">Souscrire a l'abonnement AutoData</Link>
+            <Link to="/connexion?redirect=/catalogue-technique" className="inline-block rounded-xl bg-[#D4AF37] px-6 py-3 text-sm font-bold text-white">Se connecter pour accéder au catalogue</Link>
             <p className="mt-3 text-[10px] text-white/40">A partir de 49 EUR/mois — Essai gratuit 7 jours</p>
           </div>
         </div>
@@ -1310,10 +1348,10 @@ export default function CatalogueTechnique() {
                 onChange={(e) => setPlaque(e.target.value.toUpperCase())}
                 placeholder="AB-123-CD ou VF3MCYHZRML..."
                 className="w-full rounded-xl border border-[#E5E7EB] bg-[#F5F3EF] pl-10 pr-3 py-3 text-sm font-bold text-center tracking-widest uppercase"
-                onKeyDown={(e) => e.key === "Enter" && doSearch()}
+                onKeyDown={(e) => { if (e.key === "Enter") void doSearch(); }}
               />
             </div>
-            <button onClick={doSearch} className="rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-bold text-white"><Search size={16} /></button>
+            <BoutonMoteur code="catalogue_technique_rechercher" onExecuter={() => void doSearch()} className="rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-bold text-white disabled:opacity-60"><Search size={16} /></BoutonMoteur>
           </div>
         </div>
       </div>
@@ -1404,8 +1442,9 @@ export default function CatalogueTechnique() {
               <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
                 <div className="bg-[#1a2744] px-4 py-2 flex items-center justify-between">
                   <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-1.5"><Wrench size={12} /> Couples de serrage — tous systèmes</h3>
-                  <button
-                    onClick={() =>
+                  <BoutonMoteur
+ code="catalogue_technique_imprimer_couples"
+                    onExecuter={() =>
                       imprimerCouples(
                         `Couples de serrage — ${vehicle.marque} ${vehicle.modele}`,
                         ["moteur", "distribution", "freinage", "embrayage", "suspension"].flatMap((sysId) => {
@@ -1422,7 +1461,7 @@ export default function CatalogueTechnique() {
                     className="text-[10px] text-white/70 flex items-center gap-1 hover:text-white"
                   >
                     <Download size={10} /> PDF
-                  </button>
+                  </BoutonMoteur>
                 </div>
                 <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
                   <table className="w-full text-xs">
@@ -1604,7 +1643,7 @@ export default function CatalogueTechnique() {
                       {selectedPiece === i && (
                         <div className="mt-2 pt-2 border-t border-[#E5E7EB] space-y-1">
                           <p className="text-[9px] text-slate-500">Réf: {p.ref}</p>
-                          <button onClick={(e) => { e.stopPropagation(); commander(p.ref, p.nom); }} className="w-full rounded-lg bg-[#c0392b] py-1.5 text-[9px] font-bold text-white hover:bg-[#a93226] transition flex items-center justify-center gap-1"><ShoppingCart size={10} /> Ajouter au panier</button>
+                          <BoutonMoteur code="catalogue_technique_commander_piece" query={queryPiece(p.ref, p.nom)} className="w-full rounded-lg bg-[#c0392b] py-1.5 text-[9px] font-bold text-white hover:bg-[#a93226] transition flex items-center justify-center gap-1"><ShoppingCart size={10} /> Ajouter au panier</BoutonMoteur>
                         </div>
                       )}
                     </button>
@@ -1722,8 +1761,9 @@ export default function CatalogueTechnique() {
               <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
                 <div className="bg-[#111] px-3 py-2 flex items-center justify-between">
                   <h3 className="text-xs font-bold text-[#D4AF37]">Couples de serrage</h3>
-                  <button
-                    onClick={() =>
+                  <BoutonMoteur
+ code="catalogue_technique_imprimer_couples"
+                    onExecuter={() =>
                       imprimerCouples(
                         `Couples de serrage — ${vehicle.marque} ${vehicle.modele}`,
                         data.coupleSerrage.map((c) => ({ systeme: "", piece: c.piece, valeur: c.valeur, outil: c.outil })),
@@ -1732,7 +1772,7 @@ export default function CatalogueTechnique() {
                     className="text-[10px] text-white/70 flex items-center gap-1 hover:text-white"
                   >
                     <Download size={10} /> PDF
-                  </button>
+                  </BoutonMoteur>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -1800,7 +1840,7 @@ export default function CatalogueTechnique() {
                       </div>
                       {selectedPiece === i && (
                         <div className="mt-2 pt-2 border-t border-[#E5E7EB]">
-                          <button onClick={(e) => { e.stopPropagation(); commander(p.ref, p.nom); }} className="w-full rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Commander cette pièce</button>
+                          <BoutonMoteur code="catalogue_technique_commander_piece" query={queryPiece(p.ref, p.nom)} className="w-full rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Commander cette pièce</BoutonMoteur>
                         </div>
                       )}
                     </button>

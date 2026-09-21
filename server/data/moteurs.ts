@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 503;
+export const MANQUES_TOTAL = 504;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 330,
   "bouton_sans_action": 70,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
-  "dependance_non_declaree": 39,
+  "dependance_non_declaree": 40,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
@@ -3896,6 +3896,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "atelier",
       "auto_branchement",
       "continuous_test",
+      "document",
       "garage",
       "livraison",
       "livraison_vehicule",
@@ -3982,6 +3983,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/AtelierPro.tsx",
         "route": "/atelier-pro",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/CatalogueTechnique.tsx",
+        "route": "/catalogue-technique",
         "composants": [
           "lib/boutonMoteur.tsx"
         ]
@@ -7196,12 +7204,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "language"
     ],
     "dependancesDetectees": [
+      "boutons",
       "core",
       "country",
       "identity",
       "language"
     ],
     "dependances": [
+      "boutons",
       "core",
       "country",
       "identity",
@@ -7209,6 +7219,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "integrationsTechniques": [],
     "preuvesDependances": {
+      "boutons": [
+        "client/src/pages/CatalogueTechnique.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
+        "client/src/pages/CatalogueTechnique.tsx utilise BoutonMoteur"
+      ],
       "core": [
         "document-os/index.ts importe db.ts",
         "document-os/index.ts importe trpc.ts",
@@ -7240,7 +7254,48 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "evenementsConsommes": [],
     "abonnements": [],
     "sourcesEmission": [],
-    "boutons": [],
+    "boutons": [
+      {
+        "code": "catalogue_technique_commander_piece",
+        "libelle": "Commander la pièce dans l'univers Pièces",
+        "genre": "navigation",
+        "ecran": "/catalogue-technique",
+        "fichier": "client/src/pages/CatalogueTechnique.tsx",
+        "ligne": 1646
+      },
+      {
+        "code": "catalogue_technique_commander_piece",
+        "libelle": "Commander la pièce dans l'univers Pièces",
+        "genre": "navigation",
+        "ecran": "/catalogue-technique",
+        "fichier": "client/src/pages/CatalogueTechnique.tsx",
+        "ligne": 1843
+      },
+      {
+        "code": "catalogue_technique_imprimer_couples",
+        "libelle": "Imprimer les couples de serrage",
+        "genre": "document",
+        "ecran": "/catalogue-technique",
+        "fichier": "client/src/pages/CatalogueTechnique.tsx",
+        "ligne": 1445
+      },
+      {
+        "code": "catalogue_technique_imprimer_couples",
+        "libelle": "Imprimer les couples de serrage",
+        "genre": "document",
+        "ecran": "/catalogue-technique",
+        "fichier": "client/src/pages/CatalogueTechnique.tsx",
+        "ligne": 1764
+      },
+      {
+        "code": "catalogue_technique_rechercher",
+        "libelle": "Identifier le véhicule (plaque / VIN)",
+        "genre": "formulaire",
+        "ecran": "/catalogue-technique",
+        "fichier": "client/src/pages/CatalogueTechnique.tsx",
+        "ligne": 1354
+      }
+    ],
     "routes": [
       "/catalogue-technique",
       "/documents",
@@ -7257,11 +7312,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/catalogue-technique"
         ],
-        "cliquables": 14,
-        "parMoteur": 0,
+        "cliquables": 15,
+        "parMoteur": 5,
         "sansAction": 0,
         "textes": 233,
-        "mots": 646
+        "mots": 648
       },
       {
         "fichier": "client/src/pages/CentreDocuments.tsx",
@@ -7373,7 +7428,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "public"
     ],
     "textes": 355,
-    "mots": 1103,
+    "mots": 1105,
     "battement": "pont_os",
     "manques": [
       {
@@ -7387,6 +7442,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Refuser » client/src/pages/superadmin/ValidationDocumentsComplete.tsx:38"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "boutons — client/src/pages/CatalogueTechnique.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       }
     ]
   },

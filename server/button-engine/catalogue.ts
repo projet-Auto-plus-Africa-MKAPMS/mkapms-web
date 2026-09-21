@@ -485,6 +485,26 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
     manque:
       "Aucune table d'employés ou de mécaniciens rattachés à un garage côté serveur : impossible d'affecter une intervention ou de lire un planning par employé.",
   },
+  {
+    code: "catalogue_technique_rechercher",
+    libelle: "Identifier le véhicule (plaque / VIN)",
+    ecran: "/catalogue-technique",
+    genre: "formulaire",
+  },
+  {
+    code: "catalogue_technique_commander_piece",
+    libelle: "Commander la pièce dans l'univers Pièces",
+    ecran: "/catalogue-technique",
+    genre: "navigation",
+    cible: "/garage/recherche-pieces",
+    cleRedirection: "bouton_atelier_pieces",
+  },
+  {
+    code: "catalogue_technique_imprimer_couples",
+    libelle: "Imprimer les couples de serrage",
+    ecran: "/catalogue-technique",
+    genre: "document",
+  },
 ];
 
 const PAR_CODE = new Map(ACTIONS_BOUTONS.map((a) => [a.code, a]));
