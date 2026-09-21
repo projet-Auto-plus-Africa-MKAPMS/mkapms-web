@@ -130,6 +130,8 @@ export interface OutilSpec {
   idempotent: boolean;
   timeoutMs: number;
   auditCategory: string;
+  /** Fixture du banc de test, jamais proposée à un modèle en exploitation. */
+  testOnly?: boolean;
 }
 
 const OUTILS_TEST: OutilSpec[] = [
@@ -159,6 +161,7 @@ const OUTILS_TEST: OutilSpec[] = [
     idempotent: true,
     timeoutMs: 3000,
     auditCategory: "test_lecture",
+    testOnly: true,
   },
   {
     toolId: "test.calcul_simple",
@@ -194,6 +197,7 @@ const OUTILS_TEST: OutilSpec[] = [
     idempotent: true,
     timeoutMs: 3000,
     auditCategory: "test_calcul",
+    testOnly: true,
   },
   {
     toolId: "test.recherche_simulee",
@@ -221,6 +225,7 @@ const OUTILS_TEST: OutilSpec[] = [
     idempotent: true,
     timeoutMs: 3000,
     auditCategory: "test_recherche",
+    testOnly: true,
   },
   {
     toolId: "test.recuperer_statut",
@@ -248,6 +253,7 @@ const OUTILS_TEST: OutilSpec[] = [
     idempotent: true,
     timeoutMs: 3000,
     auditCategory: "test_statut",
+    testOnly: true,
   },
   {
     toolId: "test.action_sensible_simulee",
@@ -275,6 +281,7 @@ const OUTILS_TEST: OutilSpec[] = [
     idempotent: false,
     timeoutMs: 3000,
     auditCategory: "test_sensible",
+    testOnly: true,
   },
 ];
 
@@ -292,8 +299,8 @@ export function trouver(toolId: string): OutilSpec | null {
   return OUTILS.find((o) => o.toolId === toolId) ?? null;
 }
 
-export function listerActifs(): OutilSpec[] {
-  return OUTILS.filter((o) => o.enabled);
+export function listerActifs(options: { inclureTests?: boolean } = {}): OutilSpec[] {
+  return OUTILS.filter((o) => o.enabled && (options.inclureTests === true || o.testOnly !== true));
 }
 
 export function listerParCategorie(categorie: Categorie): OutilSpec[] {
@@ -302,6 +309,8 @@ export function listerParCategorie(categorie: Categorie): OutilSpec[] {
 
 export function resume(): {
   total: number;
+  actifsExploitation: number;
+  fixturesTest: number;
   parStatut: Record<StatutImplementation, number>;
   parCategorie: { categorie: Categorie; total: number }[];
 } {
@@ -313,7 +322,13 @@ export function resume(): {
     categorie,
     total: OUTILS.filter((o) => o.category === categorie).length,
   }));
-  return { total: OUTILS.length, parStatut, parCategorie };
+  return {
+    total: OUTILS.length,
+    actifsExploitation: listerActifs().length,
+    fixturesTest: OUTILS.filter((o) => o.testOnly === true).length,
+    parStatut,
+    parCategorie,
+  };
 }
 
 /** Conversion vers le format que provider.ts transmet au fournisseur. */

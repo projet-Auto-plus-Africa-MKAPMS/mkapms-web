@@ -97,6 +97,8 @@ function verif(nom: string, condition: boolean) {
 async function main() {
   // ── Registre ────────────────────────────────────────────────────────
   verif("registre : 5 outils de test déclarés", listerParCategorie("test").length === 5);
+  verif("registre : les fixtures de test sont exclues de l'exploitation", listerActifs().every((o) => o.testOnly !== true));
+  verif("registre : le banc de test peut les demander explicitement", listerActifs({ inclureTests: true }).filter((o) => o.testOnly).length === 5);
   verif("registre : outil inconnu introuvable", trouver("test.nexiste_pas") === null);
   verif("registre : au moins 30 familles couvertes (demande de la direction)", resume().parCategorie.length >= 30 - 1 && resume().parCategorie.length === 33);
   verif("registre : aucun outil absent faute d'implémentation (statut assumé)", OUTILS.every((o) => o.implementationStatus !== undefined));
@@ -115,7 +117,7 @@ async function main() {
     // qu'IMPLEMENTED/IMPLEMENTED_NOT_CONNECTED ; seul REGISTERED_NOT_IMPLEMENTED
     // (aucun code d'exécution) reste toujours désactivé.
     "registre : outils actifs = IMPLEMENTED + IMPLEMENTED_NOT_CONNECTED + BUSINESS_ENGINE_MISSING, jamais un REGISTERED_NOT_IMPLEMENTED",
-    listerActifs().length ===
+    listerActifs({ inclureTests: true }).length ===
       resume().parStatut.IMPLEMENTED + resume().parStatut.IMPLEMENTED_NOT_CONNECTED + resume().parStatut.BUSINESS_ENGINE_MISSING,
   );
 
