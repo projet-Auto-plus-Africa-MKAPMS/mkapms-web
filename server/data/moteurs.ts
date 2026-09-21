@@ -3854,7 +3854,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "buttonEngine"
     ],
-    "fichiersServeur": 5,
+    "fichiersServeur": 6,
     "dependancesDeclarees": [
       "core",
       "event_bus",

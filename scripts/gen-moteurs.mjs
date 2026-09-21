@@ -248,7 +248,12 @@ function evenementsEmis(source) {
   const codes = new Set();
   const sources = new Set();
   let dynamiques = 0;
-  for (const m of source.matchAll(/\bemit(?:Safe)?\(\s*\{([\s\S]{0,600}?)\}\s*\)/g)) {
+  // Les diagnostics structurés peuvent légitimement dépasser 600 caractères
+  // (route, permission, dépendance, gravité, action possible). La précédente
+  // borne faisait alors disparaître l'événement et ses dépendances du rapport
+  // généré. La borne reste finie pour éviter qu'un appel mal fermé n'absorbe le
+  // fichier entier.
+  for (const m of source.matchAll(/\bemit(?:Safe)?\(\s*\{([\s\S]{0,5000}?)\}\s*\)/g)) {
     const bloc = m[1];
     const t = /\btype:\s*(?:"([^"]+)"|`([^`]+)`|([A-Za-z_][\w.]*))/.exec(bloc);
     if (t?.[1]) codes.add(t[1]);
