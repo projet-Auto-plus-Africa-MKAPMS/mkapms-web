@@ -2344,9 +2344,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/garage/ValidationClient.tsx appelle trpc.devis"
       ],
       "boutons": [
-        "client/src/pages/garage/CommandesAutomatiques.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
-        "client/src/pages/garage/CommandesAutomatiques.tsx utilise BoutonMoteur",
-        "client/src/pages/garage/ControleQualitePremium.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
+        "client/src/pages/AtelierPro.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
+        "client/src/pages/AtelierPro.tsx utilise BoutonMoteur",
+        "client/src/pages/garage/CommandesAutomatiques.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       ],
       "core": [
         "atelier-engine/index.ts importe db.ts",
@@ -2359,6 +2359,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "atelier-engine/service.ts importe event-bus/service.ts"
       ],
       "garage": [
+        "client/src/pages/AtelierPro.tsx appelle trpc.garages",
         "client/src/pages/garage/PlanningAtelier.tsx appelle trpc.garages"
       ],
       "notification": [
@@ -2397,6 +2398,174 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "atelier"
     ],
     "boutons": [
+      {
+        "code": "atelier_client_appeler",
+        "libelle": "Appeler le client",
+        "genre": "appel",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 280
+      },
+      {
+        "code": "atelier_client_appeler",
+        "libelle": "Appeler le client",
+        "genre": "appel",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 419
+      },
+      {
+        "code": "atelier_client_ecrire",
+        "libelle": "Écrire au client",
+        "genre": "email",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 285
+      },
+      {
+        "code": "atelier_client_ecrire",
+        "libelle": "Écrire au client",
+        "genre": "email",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 420
+      },
+      {
+        "code": "atelier_devis_garage",
+        "libelle": "Devis émis par l'atelier",
+        "genre": "non_branchee",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 343
+      },
+      {
+        "code": "atelier_employes",
+        "libelle": "Équipe de l'atelier",
+        "genre": "non_branchee",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 342
+      },
+      {
+        "code": "atelier_factures",
+        "libelle": "Factures de l'atelier",
+        "genre": "non_branchee",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 344
+      },
+      {
+        "code": "atelier_intervention_etape",
+        "libelle": "Changer l'étape de l'intervention",
+        "genre": "formulaire",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 267
+      },
+      {
+        "code": "atelier_intervention_etape",
+        "libelle": "Changer l'étape de l'intervention",
+        "genre": "formulaire",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 317
+      },
+      {
+        "code": "atelier_intervention_etape",
+        "libelle": "Changer l'étape de l'intervention",
+        "genre": "formulaire",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 325
+      },
+      {
+        "code": "atelier_ordres_reparation",
+        "libelle": "Ordres de réparation",
+        "genre": "non_branchee",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 341
+      },
+      {
+        "code": "atelier_ouvrir_catalogue",
+        "libelle": "Catalogue technique",
+        "genre": "navigation",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 457
+      },
+      {
+        "code": "atelier_ouvrir_pieces",
+        "libelle": "Rechercher une pièce",
+        "genre": "navigation",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 466
+      },
+      {
+        "code": "atelier_ouvrir_planning",
+        "libelle": "Ouvrir le planning atelier",
+        "genre": "navigation",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 289
+      },
+      {
+        "code": "atelier_ouvrir_planning",
+        "libelle": "Ouvrir le planning atelier",
+        "genre": "navigation",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 302
+      },
+      {
+        "code": "atelier_ouvrir_reappro",
+        "libelle": "Réapprovisionnement",
+        "genre": "navigation",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 356
+      },
+      {
+        "code": "atelier_ouvrir_reappro",
+        "libelle": "Réapprovisionnement",
+        "genre": "navigation",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 393
+      },
+      {
+        "code": "atelier_ouvrir_reappro",
+        "libelle": "Réapprovisionnement",
+        "genre": "navigation",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 467
+      },
+      {
+        "code": "atelier_ouvrir_stock",
+        "libelle": "Gérer le stock de pièces",
+        "genre": "navigation",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 355
+      },
+      {
+        "code": "atelier_stock_mouvement",
+        "libelle": "Entrée / sortie de stock",
+        "genre": "formulaire",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 387
+      },
+      {
+        "code": "atelier_stock_mouvement",
+        "libelle": "Entrée / sortie de stock",
+        "genre": "formulaire",
+        "ecran": "/atelier-pro",
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "ligne": 390
+      },
       {
         "code": "garage_cq_validation",
         "libelle": "Valider (contrôle qualité premium)",
@@ -2609,11 +2778,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/atelier-pro"
         ],
-        "cliquables": 46,
-        "parMoteur": 0,
+        "cliquables": 29,
+        "parMoteur": 20,
         "sansAction": 0,
-        "textes": 206,
-        "mots": 540
+        "textes": 59,
+        "mots": 185
       },
       {
         "fichier": "client/src/pages/garage/CommandesAutomatiques.tsx",
@@ -2850,8 +3019,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "professionnel"
     ],
-    "textes": 401,
-    "mots": 1186,
+    "textes": 254,
+    "mots": 831,
     "battement": "code",
     "manques": [
       {
@@ -3806,6 +3975,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/VOInterne.tsx",
         "route": "/vo",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "route": "/atelier-pro",
         "composants": [
           "lib/boutonMoteur.tsx"
         ]
@@ -8881,6 +9057,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/AtelierPro.tsx",
+        "route": "/atelier-pro",
+        "composants": [
+          "trpc.garages"
+        ]
+      },
+      {
         "fichier": "client/src/pages/garage/PlanningAtelier.tsx",
         "route": "/garage/planning-atelier",
         "composants": [
@@ -8896,6 +9079,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       }
     ],
     "procedures": [
+      "atelierSynthese",
       "get",
       "getBySlug",
       "list",

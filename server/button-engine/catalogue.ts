@@ -387,6 +387,104 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
     cible: "/vente",
     cleRedirection: "vente_tableau_de_bord_pro",
   },
+
+  // ── Atelier Pro (/atelier-pro) — hub de l'atelier sur données serveur ──
+  {
+    code: "atelier_intervention_etape",
+    libelle: "Changer l'étape de l'intervention",
+    ecran: "/atelier-pro",
+    genre: "formulaire",
+  },
+  {
+    code: "atelier_stock_mouvement",
+    libelle: "Entrée / sortie de stock",
+    ecran: "/atelier-pro",
+    genre: "formulaire",
+  },
+  {
+    code: "atelier_ouvrir_planning",
+    libelle: "Ouvrir le planning atelier",
+    ecran: "/atelier-pro",
+    genre: "navigation",
+    cible: "/garage/planning-atelier",
+    cleRedirection: "bouton_atelier_planning",
+  },
+  {
+    code: "atelier_ouvrir_stock",
+    libelle: "Gérer le stock de pièces",
+    ecran: "/atelier-pro",
+    genre: "navigation",
+    cible: "/garage/stock-pieces",
+    cleRedirection: "bouton_garage_stock",
+  },
+  {
+    code: "atelier_ouvrir_reappro",
+    libelle: "Réapprovisionnement",
+    ecran: "/atelier-pro",
+    genre: "navigation",
+    cible: "/garage/commandes-automatiques",
+    cleRedirection: "bouton_atelier_reappro",
+  },
+  {
+    code: "atelier_ouvrir_catalogue",
+    libelle: "Catalogue technique",
+    ecran: "/atelier-pro",
+    genre: "navigation",
+    cible: "/catalogue-technique",
+    cleRedirection: "bouton_atelier_catalogue",
+  },
+  {
+    code: "atelier_ouvrir_pieces",
+    libelle: "Rechercher une pièce",
+    ecran: "/atelier-pro",
+    genre: "navigation",
+    cible: "/garage/recherche-pieces",
+    cleRedirection: "bouton_atelier_pieces",
+  },
+  {
+    code: "atelier_client_appeler",
+    libelle: "Appeler le client",
+    ecran: "/atelier-pro",
+    genre: "appel",
+  },
+  {
+    code: "atelier_client_ecrire",
+    libelle: "Écrire au client",
+    ecran: "/atelier-pro",
+    genre: "email",
+  },
+  {
+    code: "atelier_devis_garage",
+    libelle: "Devis émis par l'atelier",
+    ecran: "/atelier-pro",
+    genre: "non_branchee",
+    manque:
+      "Les demandes de devis (devis_garage_requests) sont déposées par les clients sans garage destinataire : aucun devis n'est encore rattaché à un garage côté serveur, l'atelier ne peut donc ni lister ni émettre de devis.",
+  },
+  {
+    code: "atelier_factures",
+    libelle: "Factures de l'atelier",
+    ecran: "/atelier-pro",
+    genre: "non_branchee",
+    manque:
+      "Aucune facture d'atelier n'est émise côté serveur : les interventions garage n'ont ni montant facturé ni document rattaché, seul leur suivi d'étape est enregistré.",
+  },
+  {
+    code: "atelier_ordres_reparation",
+    libelle: "Ordres de réparation",
+    ecran: "/atelier-pro",
+    genre: "non_branchee",
+    manque:
+      "Aucune table d'ordre de réparation côté serveur : l'intervention est suivie par étape (rdv_garage) mais sans ordre signé, photos de réception ni lignes de travaux.",
+  },
+  {
+    code: "atelier_employes",
+    libelle: "Équipe de l'atelier",
+    ecran: "/atelier-pro",
+    genre: "non_branchee",
+    manque:
+      "Aucune table d'employés ou de mécaniciens rattachés à un garage côté serveur : impossible d'affecter une intervention ou de lire un planning par employé.",
+  },
 ];
 
 const PAR_CODE = new Map(ACTIONS_BOUTONS.map((a) => [a.code, a]));
