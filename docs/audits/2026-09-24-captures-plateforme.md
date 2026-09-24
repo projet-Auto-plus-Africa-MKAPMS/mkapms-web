@@ -139,3 +139,18 @@ Tests isolés : création persistée, lecture, activation/désactivation, refus
 non-authentifié, refus d'accès aux alertes d'autrui, publication correspondant
 aux critères, absence de notification pour brouillon/alerte désactivée, rejeu
 sans doublon et devise XOF conservée. Aucun envoi réel à un utilisateur.
+
+## Lot suivant — Favoris dans les annonces recommandées
+
+Le cœur sans texte de `Vehicule.tsx` appartenait à une carte de démonstration et
+était imbriqué dans un lien. Ce bloc lit désormais `annonces.list`, affiche les
+photos/prix/devise réels et utilise la commande cataloguée `favoris.set`.
+Le moteur Achat porte le service Favoris ; Identité fournit l'utilisateur.
+La commande fixe l'état désiré, plutôt que basculer aveuglément lors d'un rejeu.
+La transaction et son verrou sérialisent les opérations ; le serveur refuse
+l'ajout d'une annonce absente ou non publiée. Le toggle historique reste compatible.
+
+Tests isolés : authentification, annonce réelle/publiée, ajout/retrait idempotent,
+isolation des utilisateurs et compatibilité du toggle. Les autres sections de
+Vehicule contenant des démonstrations ne sont pas présentées comme auditées ou
+corrigées par cette intervention ciblée.

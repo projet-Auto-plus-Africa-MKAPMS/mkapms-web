@@ -71,7 +71,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/superadmin/AdminPaiements.tsx", ligne: 216, libelle: "Relancer" },
   { fichier: "client/src/pages/superadmin/AdminStatistiques.tsx", ligne: 40, libelle: "Voir rapport complet" },
   { fichier: "client/src/pages/superadmin/AdminUtilisateurs.tsx", ligne: 90, libelle: "" },
-  { fichier: "client/src/pages/Vehicule.tsx", ligne: 1843, libelle: "" },
   { fichier: "client/src/pages/vente/AchatExpress.tsx", ligne: 9, libelle: "Commencer un achat express" },
   { fichier: "client/src/pages/vente/AlertesAuto.tsx", ligne: 17, libelle: "Traiter" },
   { fichier: "client/src/pages/vente/CentreAchatDistance.tsx", ligne: 10, libelle: "Continuer mon achat" },

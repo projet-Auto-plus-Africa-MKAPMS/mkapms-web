@@ -36,6 +36,16 @@ export interface Livraison {
 
 export const LIVRAISONS: Livraison[] = [
   {
+    cle: "branche-fix-platform-vehicle-favourites",
+    titre: "Capture Vehicule : favoris réels et annonces recommandées réelles",
+    moteurs: ["boutons", "achat", "identity"],
+    quoi: "Le bloc recommandé lit annonces.list et utilise favoris.set ; la commande est déclarée au moteur Boutons. Ajout/retrait transactionnels et rejouables, annonce publiée exigée à l'ajout, utilisateur propriétaire imposé côté serveur, toggle conservé.",
+    pourquoi: "Le cœur sans texte n'avait aucun gestionnaire, était imbriqué dans le lien et visait une annonce de démonstration.",
+    ou: ["client/src/pages/Vehicule.tsx", "server/routers/favoris.ts", "server/routers/__tests__/favourite-motor.test.ts"],
+    lecon: "Le retour serveur décide de l'état du favori. Tester les rejeux, les annonces absentes et l'isolation propriétaire. Les autres parties de la fiche encore en démonstration restent hors de cette correction ciblée.",
+    domaine: "moteurs",
+  },
+  {
     cle: "branche-fix-platform-search-alert-motor",
     titre: "Capture Alertes recherche : Recherche reliée à Annonces et Notifications",
     moteurs: ["boutons", "search", "notification", "identity"],

@@ -103,11 +103,11 @@ export const MOTEURS_TOTAL = 94;
 export const MANQUES_TOTAL = 503;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 331,
-  "bouton_sans_action": 64,
+  "dependance_non_declaree": 48,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
-  "dependance_non_declaree": 44,
+  "bouton_sans_action": 60,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
@@ -455,6 +455,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "analytics",
       "audit",
       "avis_reputation",
+      "boutons",
       "core",
       "country",
       "estimation",
@@ -477,6 +478,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "analytics",
       "audit",
       "avis_reputation",
+      "boutons",
       "core",
       "country",
       "estimation",
@@ -505,6 +507,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "avis_reputation": [
         "client/src/pages/Vehicule.tsx appelle trpc.reviews"
+      ],
+      "boutons": [
+        "client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
+        "client/src/pages/Vehicule.tsx utilise BoutonMoteur"
       ],
       "core": [
         "routers/annonces.ts importe trpc.ts",
@@ -601,7 +607,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "sourcesEmission": [
       "annonces"
     ],
-    "boutons": [],
+    "boutons": [
+      {
+        "code": "vehicule_recommandation_favori",
+        "libelle": "Ajouter / retirer des favoris",
+        "genre": "formulaire",
+        "ecran": "/vehicule/:id",
+        "fichier": "client/src/pages/Vehicule.tsx",
+        "ligne": 3150
+      }
+    ],
     "routes": [
       "/acheter",
       "/acheter/camions",
@@ -695,10 +710,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "/vehicule/:id"
         ],
         "cliquables": 149,
-        "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 611,
-        "mots": 2468
+        "parMoteur": 1,
+        "sansAction": 0,
+        "textes": 620,
+        "mots": 2512
       },
       {
         "fichier": "client/src/pages/VenteCamions.tsx",
@@ -1301,6 +1316,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "remove",
       "repondreReservationRecue",
       "requestLocation",
+      "set",
       "toggle",
       "update",
       "updateStatus"
@@ -1310,13 +1326,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 1419,
-    "mots": 4823,
+    "textes": 1428,
+    "mots": 4867,
     "battement": "sonde",
     "manques": [
       {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1843"
+        "genre": "dependance_non_declaree",
+        "detail": "boutons — client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       }
     ]
   },
@@ -1340,6 +1356,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDetectees": [
       "achat",
       "avis_reputation",
+      "boutons",
       "core",
       "country",
       "estimation",
@@ -1349,6 +1366,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependances": [
       "achat",
       "avis_reputation",
+      "boutons",
       "core",
       "country",
       "estimation",
@@ -1364,6 +1382,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "avis_reputation": [
         "client/src/pages/Vehicule.tsx appelle trpc.reviews"
+      ],
+      "boutons": [
+        "client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
+        "client/src/pages/Vehicule.tsx utilise BoutonMoteur"
       ],
       "core": [
         "client/src/pages/Vehicule.tsx appelle trpc.meta"
@@ -1387,7 +1409,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "evenementsConsommes": [],
     "abonnements": [],
     "sourcesEmission": [],
-    "boutons": [],
+    "boutons": [
+      {
+        "code": "vehicule_recommandation_favori",
+        "libelle": "Ajouter / retirer des favoris",
+        "genre": "formulaire",
+        "ecran": "/acheter/mkapms-officiel/vehicule/:id",
+        "fichier": "client/src/pages/Vehicule.tsx",
+        "ligne": 3150
+      }
+    ],
     "routes": [
       "/acheter/mkapms-officiel",
       "/acheter/mkapms-officiel/vehicule/:id"
@@ -1399,10 +1430,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "/acheter/mkapms-officiel/vehicule/:id"
         ],
         "cliquables": 149,
-        "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 611,
-        "mots": 2468
+        "parMoteur": 1,
+        "sansAction": 0,
+        "textes": 620,
+        "mots": 2512
       },
       {
         "fichier": "client/src/pages/VenteMKAPMS.tsx",
@@ -1420,13 +1451,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 663,
-    "mots": 2591,
+    "textes": 672,
+    "mots": 2635,
     "battement": "sonde",
     "manques": [
       {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1843"
+        "genre": "dependance_non_declaree",
+        "detail": "boutons — client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       },
       {
         "genre": "sans_logique_serveur",
@@ -1454,6 +1485,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDetectees": [
       "achat",
       "avis_reputation",
+      "boutons",
       "core",
       "country",
       "estimation",
@@ -1463,6 +1495,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependances": [
       "achat",
       "avis_reputation",
+      "boutons",
       "core",
       "country",
       "estimation",
@@ -1478,6 +1511,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "avis_reputation": [
         "client/src/pages/Vehicule.tsx appelle trpc.reviews"
+      ],
+      "boutons": [
+        "client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
+        "client/src/pages/Vehicule.tsx utilise BoutonMoteur"
       ],
       "core": [
         "client/src/pages/Vehicule.tsx appelle trpc.meta"
@@ -1501,7 +1538,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "evenementsConsommes": [],
     "abonnements": [],
     "sourcesEmission": [],
-    "boutons": [],
+    "boutons": [
+      {
+        "code": "vehicule_recommandation_favori",
+        "libelle": "Ajouter / retirer des favoris",
+        "genre": "formulaire",
+        "ecran": "/acheter/particulier/vehicule/:id",
+        "fichier": "client/src/pages/Vehicule.tsx",
+        "ligne": 3150
+      }
+    ],
     "routes": [
       "/acheter/particulier",
       "/acheter/particulier/vehicule/:id"
@@ -1513,10 +1559,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "/acheter/particulier/vehicule/:id"
         ],
         "cliquables": 149,
-        "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 611,
-        "mots": 2468
+        "parMoteur": 1,
+        "sansAction": 0,
+        "textes": 620,
+        "mots": 2512
       },
       {
         "fichier": "client/src/pages/VenteParticulier.tsx",
@@ -1534,13 +1580,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 671,
-    "mots": 2594,
+    "textes": 680,
+    "mots": 2638,
     "battement": "sonde",
     "manques": [
       {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1843"
+        "genre": "dependance_non_declaree",
+        "detail": "boutons — client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       },
       {
         "genre": "sans_logique_serveur",
@@ -1568,6 +1614,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependancesDetectees": [
       "achat",
       "avis_reputation",
+      "boutons",
       "core",
       "country",
       "estimation",
@@ -1577,6 +1624,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dependances": [
       "achat",
       "avis_reputation",
+      "boutons",
       "core",
       "country",
       "estimation",
@@ -1592,6 +1640,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "avis_reputation": [
         "client/src/pages/Vehicule.tsx appelle trpc.reviews"
+      ],
+      "boutons": [
+        "client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
+        "client/src/pages/Vehicule.tsx utilise BoutonMoteur"
       ],
       "core": [
         "client/src/pages/Vehicule.tsx appelle trpc.meta"
@@ -1615,7 +1667,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "evenementsConsommes": [],
     "abonnements": [],
     "sourcesEmission": [],
-    "boutons": [],
+    "boutons": [
+      {
+        "code": "vehicule_recommandation_favori",
+        "libelle": "Ajouter / retirer des favoris",
+        "genre": "formulaire",
+        "ecran": "/acheter/professionnel/vehicule/:id",
+        "fichier": "client/src/pages/Vehicule.tsx",
+        "ligne": 3150
+      }
+    ],
     "routes": [
       "/acheter/professionnel",
       "/acheter/professionnel/vehicule/:id"
@@ -1627,10 +1688,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "/acheter/professionnel/vehicule/:id"
         ],
         "cliquables": 149,
-        "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 611,
-        "mots": 2468
+        "parMoteur": 1,
+        "sansAction": 0,
+        "textes": 620,
+        "mots": 2512
       },
       {
         "fichier": "client/src/pages/VentePro.tsx",
@@ -1648,13 +1709,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 665,
-    "mots": 2579,
+    "textes": 674,
+    "mots": 2623,
     "battement": "sonde",
     "manques": [
       {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/Vehicule.tsx:1843"
+        "genre": "dependance_non_declaree",
+        "detail": "boutons — client/src/pages/Vehicule.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       },
       {
         "genre": "sans_logique_serveur",
@@ -3893,6 +3954,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ]
     },
     "dependants": [
+      "achat",
+      "achat_officiel",
+      "achat_particulier",
+      "achat_pro",
       "atelier",
       "auto_branchement",
       "continuous_test",
@@ -3978,6 +4043,34 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/vente/CentreAlertesRecherche.tsx",
         "route": "/vente/alertes-recherche",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/Vehicule.tsx",
+        "route": "/acheter/particulier/vehicule/:id",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/Vehicule.tsx",
+        "route": "/acheter/professionnel/vehicule/:id",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/Vehicule.tsx",
+        "route": "/acheter/mkapms-officiel/vehicule/:id",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/Vehicule.tsx",
+        "route": "/vehicule/:id",
         "composants": [
           "lib/boutonMoteur.tsx"
         ]
