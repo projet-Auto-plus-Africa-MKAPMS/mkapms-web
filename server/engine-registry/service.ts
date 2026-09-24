@@ -17,7 +17,9 @@ import {
   engineHealthLog,
   engineAdminLog,
 } from "./schema.js";
+import { ENGINE_CONTRACTS } from "./contracts.js";
 import { ENGINE_CATALOG } from "./catalog.js";
+import { MOTEURS } from "../data/moteurs.js";
 
 export type EngineState =
   | "active"
@@ -42,9 +44,10 @@ export interface RegisterInput {
  * l'inventaire des moteurs) réuni à ce que déclare l'appelant. Un contrat ou
  * un pont OS qui en connaît moins que le catalogue ne peut plus en effacer.
  */
-function resolveDependencies(name: string, declared?: string[]): string[] {
+export function resolveDependencies(name: string, declared?: string[]): string[] {
   const catalog = ENGINE_CATALOG.find((e) => e.name === name)?.dependencies ?? [];
-  return Array.from(new Set([...catalog, ...(declared ?? [])])).filter(
+  const detected = MOTEURS.find((m) => m.moteur === name)?.dependancesDetectees ?? [];
+  return Array.from(new Set([...catalog, ...detected, ...(ENGINE_CONTRACTS.find((c) => c.id === name)?.dependencies ?? []), ...(declared ?? [])])).filter(
     (d) => d !== name,
   );
 }
@@ -113,9 +116,8 @@ export async function registerEngine(input: RegisterInput) {
  * pour toujours. resolveDependencies(name, declared) reste nécessaire pour
  * registerEngine() — un contrat qui déclare ses propres dépendances au
  * démarrage ne doit pas pouvoir en connaître MOINS que le catalogue — mais
- * ensureSeeded() n'a pas de "declared" propre à protéger : le catalogue EST
- * la seule source de vérité ici, donc c'est lui, et seulement lui, qui doit
- * être écrit.
+ * ensureSeeded() n'a pas de "declared" propre à protéger : le catalogue et les connexions détectées dans le code constituent la
+ * référence courante. Les anciennes valeurs en base ne sont pas réinjectées.
  */
 export async function ensureSeeded() {
   const rows = await db
@@ -140,7 +142,7 @@ export async function ensureSeeded() {
       category: e.category,
       state: e.state,
       description: e.description,
-      dependencies: e.dependencies,
+      dependencies: resolveDependencies(e.name),
     });
   }
 }

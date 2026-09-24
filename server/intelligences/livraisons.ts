@@ -36,6 +36,16 @@ export interface Livraison {
 
 export const LIVRAISONS: Livraison[] = [
   {
+    cle: "branche-fix-engine-dependency-evidence",
+    titre: "94 moteurs : dépendances persistées et preuves d’activation complètes",
+    moteurs: ["core", "activation_audit", "smart", "monitoring"],
+    quoi: "Résolution catalogue + connexions détectées + contrats ; contrôle des dépendances partielles/périmées ; audit exigeant tous les services tRPC déclarés et le stockage disponible ; panne de migration Core conservée lors du contrôle périodique.",
+    pourquoi: "48 relations détectées n’étaient pas toutes persistées. Un seul routeur et une santé partielle pouvaient suffire à un verdict opérationnel. Le battement périodique pouvait effacer une panne de migration.",
+    ou: ["server/engine-registry/service.ts", "server/engine-registry/bootstrap.ts", "server/engine-registry/readiness.ts", "server/activation-audit/service.ts", "docs/audits/2026-09-24-moteurs-dependances.md"],
+    lecon: "Les valeurs initiales du catalogue ne sont pas l’état vivant. Activer nécessite des preuves actuelles sur les services et les dépendances ; un inventaire statique ne prouve ni le fonctionnement métier ni l’intégration complète à l’IA. Tests des 94 enregistrements réalisés en base isolée, pas en production.",
+    domaine: "moteurs",
+  },
+  {
     cle: "branche-fix-button-health-archive-rate",
     titre: "IMG_1876 : taux des boutons cohérent entre les deux vues santé",
     moteurs: ["smart", "boutons"],
