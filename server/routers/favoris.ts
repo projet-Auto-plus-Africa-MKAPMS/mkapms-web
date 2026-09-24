@@ -1,27 +1,35 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { router, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { favoris, annonces, annoncePhotos } from "../schema.js";
 
+/** Les deux commandes utilisent la même transaction ; set est rejouable. */
+async function modifierFavori(userId: number, annonceId: number, desired?: boolean) {
+  return db.transaction(async tx => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`favoris:${userId}:${annonceId}`}, 0))`);
+    const existing = await tx.select({ id: favoris.id }).from(favoris).where(and(eq(favoris.userId, userId), eq(favoris.annonceId, annonceId)));
+    const favori = desired ?? existing.length === 0;
+    if (favori && !existing.length) {
+      const [annonce] = await tx.select({ id: annonces.id }).from(annonces).where(and(eq(annonces.id, annonceId), eq(annonces.status, "publiee"))).limit(1);
+      if (!annonce) throw new TRPCError({ code: "NOT_FOUND", message: "Cette annonce n'est plus disponible." });
+      await tx.insert(favoris).values({ userId, annonceId });
+    } else if (!favori && existing.length) {
+      await tx.delete(favoris).where(and(eq(favoris.userId, userId), eq(favoris.annonceId, annonceId)));
+    }
+    return { favori };
+  });
+}
+
 export const favorisRouter = router({
   toggle: protectedProcedure
     .input(z.object({ annonceId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      const existing = await db
-        .select()
-        .from(favoris)
-        .where(and(eq(favoris.userId, ctx.user.uid), eq(favoris.annonceId, input.annonceId)))
-        .limit(1);
-      if (existing.length) {
-        await db
-          .delete(favoris)
-          .where(and(eq(favoris.userId, ctx.user.uid), eq(favoris.annonceId, input.annonceId)));
-        return { favori: false };
-      }
-      await db.insert(favoris).values({ userId: ctx.user.uid, annonceId: input.annonceId });
-      return { favori: true };
-    }),
+    .mutation(({ ctx, input }) => modifierFavori(ctx.user.uid, input.annonceId)),
+
+  set: protectedProcedure
+    .input(z.object({ annonceId: z.number().int().positive(), favori: z.boolean() }))
+    .mutation(({ ctx, input }) => modifierFavori(ctx.user.uid, input.annonceId, input.favori)),
 
   mine: protectedProcedure.query(async ({ ctx }) => {
     const rows = await db

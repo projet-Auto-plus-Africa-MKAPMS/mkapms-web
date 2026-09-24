@@ -55,6 +55,7 @@ export interface ActionBouton {
 }
 
 export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
+  { code: "vehicule_recommandation_favori", libelle: "Ajouter / retirer des favoris", ecran: "/vehicule/:id", genre: "formulaire", moteur: "achat", dependances: ["identity"], procedure: "favoris.set", cible: "favoris.set" },
   { code: "vente_alerte_creer", libelle: "Créer l’alerte", ecran: "/vente/centre-alertes-recherche", genre: "formulaire", moteur: "search", dependances: ["notification", "vente"], procedure: "searches.create", cible: "searches.create" },
   { code: "vente_alerte_activer", libelle: "Activer / désactiver", ecran: "/vente/centre-alertes-recherche", genre: "formulaire", moteur: "search", dependances: ["notification", "vente"], procedure: "searches.setAlert", cible: "searches.setAlert" },
   { code: "admin_employe_ajouter", libelle: "Ajouter un employé", ecran: "/superadmin/gestion-employes-m-k-a-p-m-s", genre: "formulaire", moteur: "identity", dependances: ["permission", "workflow"], procedure: "admin.createStaff", cible: "formulaire_creation_compte" },

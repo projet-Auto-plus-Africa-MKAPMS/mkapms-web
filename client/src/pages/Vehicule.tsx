@@ -1,3 +1,4 @@
+import { BoutonMoteur } from "../lib/boutonMoteur";
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { getUniversBase, getUniversLabel, getCategorieFromPath, getAnnonceUrl } from "../lib/annonceUrl";
@@ -1832,25 +1833,7 @@ export default function Vehicule({ univers }: { univers?: string }) {
               <h2 className="text-lg font-extrabold text-[#111]">Ces annonces peuvent vous intéresser :</h2>
               <ChevronRight size={20} className="text-red-500" />
             </div>
-            <div className="mt-3 flex gap-3 overflow-x-auto pb-2">
-              {[8001, 8002, 8003, 8004].filter((id) => id !== v.id).map((id) => {
-                const sim = DEMO_VEHICLES[id];
-                if (!sim) return null;
-                return (
-                  <Link key={id} to={getAnnonceUrl(id, sim.categorieAnnonce, sim.vendeurType)} className="w-48 shrink-0 overflow-hidden rounded-xl border border-slate-200 hover:border-[#D4AF37] transition">
-                    <div className="relative">
-                      <img src={sim.photoPrincipale} alt={sim.titre} className="h-44 w-full object-cover" />
-                      <button className="absolute top-2 right-2 text-slate-400 hover:text-red-500"><Heart size={16} /></button>
-                    </div>
-                    <div className="p-3">
-                      <p className="text-sm font-bold text-[#111] truncate">{sim.titre}</p>
-                      <p className="text-sm font-extrabold text-[#111] mt-1">{formatPrice(Number(sim.prix))}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{sim.ville || "Paris"}</p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+            <VehicleRecommendations annonceId={v.id} />
           </div>
 
           {/* FOOTER */}
@@ -3143,4 +3126,33 @@ function AvisSection({ targetUserId, canReview }: { targetUserId: number; canRev
       </div>
     </div>
   );
+}
+
+/** Annonces réelles ; favoris persistés par leur moteur, jamais dans un lien imbriqué. */
+function VehicleRecommendations({ annonceId }: { annonceId: number }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const annonces = trpc.annonces.list.useQuery({ type: "vente", limit: 5 });
+  const favoris = trpc.favoris.mine.useQuery(undefined, { enabled: !!user });
+  const toggle = trpc.favoris.set.useMutation();
+  const items = annonces.data?.items.filter(a => a.id !== annonceId).slice(0, 4) ?? [];
+  if (annonces.isLoading) return <p role="status">Chargement des annonces…</p>;
+  if (annonces.error) return <p role="alert">Impossible de charger les annonces : {annonces.error.message}</p>;
+  if (!items.length) return <p>Aucune autre annonce disponible pour le moment.</p>;
+  return <div className="mt-3 flex gap-3 overflow-x-auto pb-2">{items.map(a => {
+    const selected = favoris.data?.some(f => f.annonce.id === a.id) ?? false;
+    return <article key={a.id} className="relative w-48 shrink-0 overflow-hidden rounded-xl border border-slate-200">
+      <Link to={getAnnonceUrl(a.id, a.categorieAnnonce, a.vendeurType)}>
+        {a.photoPrincipale ? <img src={a.photoPrincipale} alt={a.titre} className="h-44 w-full object-cover" /> : <div className="grid h-44 place-items-center bg-slate-100 text-sm">Photo non disponible</div>}
+        <div className="p-3"><h3 className="truncate text-sm font-bold">{a.titre}</h3><p>{Number(a.prix).toLocaleString()} {a.devise}</p><p className="text-xs text-slate-500">{a.ville}</p></div>
+      </Link>
+      <div className="absolute right-2 top-2">
+        <BoutonMoteur code="vehicule_recommandation_favori" className="rounded-full bg-white p-2 shadow" desactive={user && favoris.error ? "Impossible de charger les favoris" : toggle.isPending || (!!user && favoris.isLoading) ? "Mise à jour des favoris" : undefined} onExecuter={async () => {
+          if (!user) { navigate(`/connexion?next=${encodeURIComponent(window.location.pathname)}`); return false; }
+          await toggle.mutateAsync({ annonceId: a.id, favori: !selected });
+          await favoris.refetch();
+        }}><Heart size={18} className={selected ? "fill-red-500 text-red-500" : "text-slate-600"} /><span className="sr-only">{selected ? "Retirer des favoris" : "Ajouter aux favoris"} : {a.titre}</span></BoutonMoteur>
+      </div>
+    </article>;
+  })}</div>;
 }
