@@ -36,6 +36,16 @@ export interface Livraison {
 
 export const LIVRAISONS: Livraison[] = [
   {
+    cle: "branche-fix-button-health-archive-rate",
+    titre: "IMG_1876 : taux des boutons cohérent entre les deux vues santé",
+    moteurs: ["smart", "boutons"],
+    quoi: "La carte État plateforme utilise le même agrégat de santé que Santé plateforme, filtré boutons/liens. Archives hors dénominateur mais toujours affichées ; lents et non évalués explicités ; absence de mesure jamais verte.",
+    pourquoi: "La correction précédente archivait les relevés obsolètes, mais un second compteur les incluait encore : 16 OK / 199 dont 123 archives produisait 8 %. Test reproduisant ces valeurs : 16 / 76 relevés actifs = 21 %, 60 anomalies conservées.",
+    ou: ["server/smart-engine/services/health-monitor.ts", "server/smart-engine/services/platform-health.ts", "server/modules/__tests__/button-health-rate.test.ts"],
+    lecon: "Un changement de statut doit être répercuté sur tous les agrégats. Un taux de relevés surveillés ne prouve pas la couverture de tous les boutons de la plateforme. Ne jamais marquer une archive comme réussite métier.",
+    domaine: "moteurs",
+  },
+  {
     cle: "branche-fix-platform-vehicle-favourites",
     titre: "Capture Vehicule : favoris réels et annonces recommandées réelles",
     moteurs: ["boutons", "achat", "identity"],

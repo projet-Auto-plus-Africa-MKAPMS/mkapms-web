@@ -6,7 +6,7 @@
  */
 import { db } from "../../db.js";
 import { smartHealthChecks, smartAlerts } from "../schema.js";
-import { eq, desc, sql, and } from "drizzle-orm";
+import { eq, desc, sql, and, inArray } from "drizzle-orm";
 import { logActivity } from "./activity-log.js";
 import { BOUTONS_SANS_ACTION } from "../../data/boutons-sans-action.js";
 
@@ -67,14 +67,16 @@ export async function reportHealthCheck(input: HealthCheckInput) {
   }
 }
 
-export async function getHealthStatus() {
-  const all = await db.select().from(smartHealthChecks).orderBy(desc(smartHealthChecks.lastCheckedAt));
+export async function getHealthStatus(elementTypes?: string[]) {
+  const all = await db.select().from(smartHealthChecks)
+    .where(elementTypes ? inArray(smartHealthChecks.elementType, elementTypes) : undefined)
+    .orderBy(desc(smartHealthChecks.lastCheckedAt));
   const active = all.filter((h) => h.status !== "archived");
   const archived = all.filter((h) => h.status === "archived");
   const broken = active.filter((h) => h.status === "broken" || h.status === "missing");
   const slow = active.filter((h) => h.status === "slow");
   const ok = active.filter((h) => h.status === "ok");
-  return { total: active.length, broken: broken.length, slow: slow.length, ok: ok.length, archived: archived.length, items: active };
+  return { total: active.length, broken: broken.length, slow: slow.length, ok: ok.length, unknown: active.length - broken.length - slow.length - ok.length, archived: archived.length, items: active };
 }
 
 export async function getBrokenElements(limit = 50) {

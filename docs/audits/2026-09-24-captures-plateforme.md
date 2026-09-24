@@ -154,3 +154,21 @@ Tests isolés : authentification, annonce réelle/publiée, ajout/retrait idempo
 isolation des utilisateurs et compatibilité du toggle. Les autres sections de
 Vehicule contenant des démonstrations ne sont pas présentées comme auditées ou
 corrigées par cette intervention ciblée.
+
+
+## IMG_1876 — régression du taux après archivage (24 septembre)
+
+Constat de la capture : 16/199 fonctionnels, 60 à corriger, taux 8 %.
+Cause confirmée dans `platform-health.ts` : `count(*)` conservait les archives
+au dénominateur, tandis que le compteur OK les excluait. `getHealthStatus`
+excluait déjà les archives : les deux vues divergeaient après la correction précédente.
+
+Correction ciblée : même agrégat filtré boutons/liens dans les deux vues,
+archives conservées à part, statuts lents/non évalués explicités, aucune mesure
+n'est présentée comme verte sans relevé actif. Aucun bouton ni fonction supprimé.
+
+Test sur base isolée PostgreSQL compatible : 123 archives + 16 OK + 60 défauts
+reproduisent 199 enregistrements. La carte affiche désormais 16/76 = 21 %,
+60 défauts et 123 archives ; une image n'affecte pas le taux. Les 123 archives
+sont une fixture reproduisant la différence visible, pas une lecture de production.
+Ce correctif n'est pas une réparation des 60 actions métier encore signalées.
