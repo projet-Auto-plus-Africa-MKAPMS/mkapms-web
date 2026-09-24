@@ -55,6 +55,11 @@ export interface ActionBouton {
 }
 
 export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
+  { code: "admin_garage_details", libelle: "Détails intervention", ecran: "/superadmin/admin-garage", genre: "formulaire", moteur: "garage", procedure: "garages.adminIntervention", dependances: ["atelier", "identity"] },
+  { code: "admin_garage_terminer", libelle: "terminer intervention", ecran: "/superadmin/admin-garage", genre: "formulaire", moteur: "garage", procedure: "garages.adminAction", dependances: ["atelier", "identity", "notification"] },
+  { code: "admin_garage_annuler", libelle: "annuler intervention", ecran: "/superadmin/admin-garage", genre: "formulaire", moteur: "garage", procedure: "garages.adminAction", dependances: ["atelier", "identity", "notification"] },
+  { code: "admin_garage_archive", libelle: "archive intervention", ecran: "/superadmin/admin-garage", genre: "formulaire", moteur: "garage", procedure: "garages.adminAction", dependances: ["atelier", "identity", "notification"] },
+  { code: "admin_garage_restore", libelle: "restore intervention", ecran: "/superadmin/admin-garage", genre: "formulaire", moteur: "garage", procedure: "garages.adminAction", dependances: ["atelier", "identity", "notification"] },
   { code: "admin_pays_activite", libelle: "Utilisateurs et annonces du pays", ecran: "/superadmin/admin-carte-moniale", genre: "formulaire", moteur: "country", procedure: "countries.activity", dependances: ["identity", "achat", "payment"] },
   { code: "vehicule_recommandation_favori", libelle: "Ajouter / retirer des favoris", ecran: "/vehicule/:id", genre: "formulaire", moteur: "achat", dependances: ["identity"], procedure: "favoris.set", cible: "favoris.set" },
   { code: "vente_alerte_creer", libelle: "Créer l’alerte", ecran: "/vente/centre-alertes-recherche", genre: "formulaire", moteur: "search", dependances: ["notification", "vente"], procedure: "searches.create", cible: "searches.create" },

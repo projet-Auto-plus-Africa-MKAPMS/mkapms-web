@@ -36,6 +36,16 @@ export interface Livraison {
 
 export const LIVRAISONS: Livraison[] = [
   {
+    cle: "branche-fix-admin-garage-real-workflow",
+    titre: "Garage Direction : dossiers réels, détails et actions persistées",
+    moteurs: ["garage", "atelier", "boutons", "identity", "notification", "avis_reputation"],
+    quoi: "Brancher AdminGarage sur rdv_garage, le suivi et l’audit ; recherche et pagination ; détails ; clôture et annulation avec contrôles ; archivage réversible. Déclarer les cinq commandes dans le moteur de boutons.",
+    pourquoi: "La page utilisait cinq interventions fabriquées et des mutations uniquement locales. Le bouton Détails était sans action.",
+    ou: ["server/atelier-engine/administration.ts", "server/routers/garages.ts", "client/src/pages/superadmin/AdminGarage.tsx", "server/button-engine/catalogue.ts", "server/routers/__tests__/garage-direction.test.ts"],
+    lecon: "Un clic fonctionnel ne suffit pas : vérifier la source du dossier, la persistance, les permissions, les transitions et l’historique. Tests isolés de ces comportements et conservation intégrale des dossiers. Pas de déclaration de validation visuelle ou d’envoi de notification en production.",
+    domaine: "confiance",
+  },
+  {
     cle: "branche-fix-critical-health-registration",
     titre: "Surveillance : préserver les relevés et distinguer les cibles non testées",
     moteurs: ["smart"],

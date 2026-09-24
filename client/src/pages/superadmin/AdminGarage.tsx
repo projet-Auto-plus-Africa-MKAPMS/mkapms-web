@@ -1,99 +1,69 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { ChevronLeft, Wrench, ChevronDown, Eye, Trash2, CheckCircle, Ban, AlertTriangle, Search, Clock, User, Car } from "lucide-react";
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { trpc } from '../../lib/trpc';
+import { BoutonMoteur } from '../../lib/boutonMoteur';
 
-const INTERVENTIONS = [
-  { id: 1, vehicule: "BMW X3 30d", client: "Martin D.", type: "Revision complete", statut: "en_cours", mecanicien: "Karim M.", dateEntree: "08/06/2026", dateSortie: "11/06/2026", montant: 850 },
-  { id: 2, vehicule: "Peugeot 308 HDi", client: "Sophie L.", type: "Freins AV+AR", statut: "termine", mecanicien: "Omar L.", dateEntree: "05/06/2026", dateSortie: "06/06/2026", montant: 420 },
-  { id: 3, vehicule: "Renault Megane", client: "Ahmed K.", type: "Distribution", statut: "en_attente", mecanicien: "Karim M.", dateEntree: "10/06/2026", dateSortie: "14/06/2026", montant: 1200 },
-  { id: 4, vehicule: "Audi A4 2.0 TDI", client: "Julie P.", type: "Climatisation", statut: "en_cours", mecanicien: "Omar L.", dateEntree: "09/06/2026", dateSortie: "10/06/2026", montant: 380 },
-  { id: 5, vehicule: "Citroen C4", client: "Pierre M.", type: "Embrayage", statut: "annule", mecanicien: "—", dateEntree: "07/06/2026", dateSortie: "—", montant: 0 },
-];
-
-const STATUT_STYLE: Record<string, string> = { en_cours: "bg-orange-50 text-orange-700", termine: "bg-green-50 text-green-700", en_attente: "bg-blue-50 text-blue-700", annule: "bg-red-50 text-red-700" };
-const STATUT_LABEL: Record<string, string> = { en_cours: "En cours", termine: "Termine", en_attente: "En attente", annule: "Annule" };
-
+type Action = 'terminer' | 'annuler' | 'archive' | 'restore';
+const labels: Record<Action,string> = {terminer:'Terminer',annuler:'Annuler',archive:'Archiver',restore:'Restaurer'};
 export default function AdminGarage() {
-  const [search, setSearch] = useState("");
-  const [data, setData] = useState(INTERVENTIONS);
-  const [expanded, setExpanded] = useState<number | null>(null);
-  const [confirm, setConfirm] = useState<{ id: number; action: "supprimer" | "annuler" | "terminer" } | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
-
-  const filtered = data.filter((i) => i.vehicule.toLowerCase().includes(search.toLowerCase()) || i.client.toLowerCase().includes(search.toLowerCase()));
-
-  function doAction() {
-    if (!confirm) return;
-    if (confirm.action === "supprimer") setData((p) => p.filter((i) => i.id !== confirm.id));
-    else setData((p) => p.map((i) => i.id === confirm.id ? { ...i, statut: confirm.action === "annuler" ? "annule" : "termine" } : i));
-    setToast(confirm.action === "supprimer" ? "Intervention supprimee" : confirm.action === "annuler" ? "Intervention annulee" : "Intervention terminee");
-    setConfirm(null);
-    setTimeout(() => setToast(null), 2500);
-  }
-
-  return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-[#111] px-4 pt-6 pb-5">
-        <Link to="/superadmin" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Super Admin</Link>
-        <h1 className="text-xl font-black text-white flex items-center gap-2"><Wrench size={20} className="text-[#D4AF37]" /> Gestion Garage</h1>
-        <p className="mt-1 text-xs text-white/50">{data.length} interventions</p>
-      </div>
-      {toast && <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] rounded-xl bg-green-600 text-white px-5 py-2.5 text-sm font-bold shadow-lg flex items-center gap-2"><CheckCircle size={16} /> {toast}</div>}
-      <div className="px-4 mt-4 grid grid-cols-4 gap-2">
-        {[
-          { l: "Total", v: String(data.length), c: "text-[#D4AF37]" },
-          { l: "En cours", v: String(data.filter((i) => i.statut === "en_cours").length), c: "text-orange-500" },
-          { l: "En attente", v: String(data.filter((i) => i.statut === "en_attente").length), c: "text-blue-500" },
-          { l: "Termines", v: String(data.filter((i) => i.statut === "termine").length), c: "text-green-500" },
-        ].map((s) => (<div key={s.l} className="rounded-xl bg-white border border-[#E5E7EB] p-2.5 text-center"><p className={`text-lg font-black ${s.c}`}>{s.v}</p><p className="text-[8px] text-[#6B7280]">{s.l}</p></div>))}
-      </div>
-      <div className="px-4 mt-3"><div className="flex items-center gap-2 rounded-xl bg-white border border-[#E5E7EB] px-3 py-2.5"><Search size={14} className="text-[#6B7280]" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher..." className="flex-1 text-sm outline-none" /></div></div>
-      <div className="px-4 mt-3 space-y-2">
-        {filtered.map((i) => {
-          const isExp = expanded === i.id;
-          return (
-            <div key={i.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
-              <button onClick={() => setExpanded(isExp ? null : i.id)} className="w-full text-left p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-full bg-[#D4AF37]/10 grid place-items-center shrink-0"><Car size={16} className="text-[#D4AF37]" /></div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[#111] truncate">{i.vehicule}</p>
-                  <p className="text-[9px] text-[#6B7280]">{i.type} · {i.client}</p>
-                  {i.montant > 0 && <p className="text-xs font-black text-[#D4AF37]">{i.montant} EUR</p>}
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  <span className={`rounded-full px-2 py-0.5 text-[7px] font-bold ${STATUT_STYLE[i.statut] || ""}`}>{STATUT_LABEL[i.statut] || i.statut}</span>
-                  <ChevronDown size={12} className={`text-[#9CA3AF] transition ${isExp ? "rotate-180" : ""}`} />
-                </div>
-              </button>
-              {isExp && (
-                <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2">
-                  <div className="grid grid-cols-2 gap-2 text-[10px] mb-2">
-                    <div className="rounded-lg bg-[#F5F3EF] p-1.5 flex items-center gap-1"><User size={10} className="text-[#D4AF37]" /><div><p className="text-[7px] text-[#6B7280]">Mecanicien</p><p className="font-bold text-[#111]">{i.mecanicien}</p></div></div>
-                    <div className="rounded-lg bg-[#F5F3EF] p-1.5 flex items-center gap-1"><Clock size={10} className="text-[#D4AF37]" /><div><p className="text-[7px] text-[#6B7280]">Entree</p><p className="font-bold text-[#111]">{i.dateEntree}</p></div></div>
-                  </div>
-                  <div className="flex gap-1.5">
-                    <button className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white active:scale-[0.97]"><Eye size={12} /> Details</button>
-                    {i.statut === "en_cours" && <button onClick={() => setConfirm({ id: i.id, action: "terminer" })} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-green-500 py-1.5 text-[9px] font-bold text-white active:scale-[0.97]"><CheckCircle size={12} /> Terminer</button>}
-                    {(i.statut === "en_cours" || i.statut === "en_attente") && <button onClick={() => setConfirm({ id: i.id, action: "annuler" })} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-amber-500 py-1.5 text-[9px] font-bold text-white active:scale-[0.97]"><Ban size={12} /> Annuler</button>}
-                    <button onClick={() => setConfirm({ id: i.id, action: "supprimer" })} className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-red-500 py-1.5 text-[9px] font-bold text-white active:scale-[0.97]"><Trash2 size={12} /> Supprimer</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      {confirm && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60" onClick={() => setConfirm(null)}>
-          <div className="w-[85%] max-w-sm rounded-2xl bg-white p-6 text-center" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-sm font-bold text-[#111]">{confirm.action === "supprimer" ? "Supprimer ?" : confirm.action === "annuler" ? "Annuler ?" : "Marquer comme termine ?"}</h3>
-            <div className="flex gap-2 mt-4">
-              <button onClick={() => setConfirm(null)} className="flex-1 rounded-xl border border-[#E5E7EB] py-2.5 text-xs font-bold text-[#6B7280]">Non</button>
-              <button onClick={doAction} className={`flex-1 rounded-xl py-2.5 text-xs font-bold text-white ${confirm.action === "supprimer" ? "bg-red-500" : confirm.action === "annuler" ? "bg-amber-500" : "bg-green-500"}`}>Oui</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+ const [search,setSearch]=useState(''); const [offset,setOffset]=useState(0);
+ const [selected,setSelected]=useState<number|null>(null);
+ const [action,setAction]=useState<Action|null>(null); const [reason,setReason]=useState('');
+ const dialog=useRef<HTMLDialogElement>(null);
+ const list=trpc.garages.adminInterventions.useQuery({search,offset});
+ const detail=trpc.garages.adminIntervention.useQuery({id:selected??0},{enabled:selected!==null});
+ const utils=trpc.useUtils();
+ const mutation=trpc.garages.adminAction.useMutation({onSuccess:async()=>{
+  setAction(null);setReason('');
+  await Promise.all([utils.garages.adminInterventions.invalidate(),utils.garages.adminIntervention.invalidate()]);
+ }});
+ useEffect(()=>{if(selected!==null && dialog.current && !dialog.current.open)dialog.current.showModal();},[selected]);
+ const item=detail.data?.item;
+ const terminal=item && ['termine','honore','annulee','annule_client','annule_garage','no_show'].includes(item.status);
+ const button='rounded-lg border px-3 py-2 text-sm disabled:opacity-50';
+ function close(){if(mutation.isPending)return;setSelected(null);setAction(null);setReason('');mutation.reset();}
+ return <main className="min-h-screen bg-[#F5F3EF] pb-24">
+  <header className="bg-[#111] p-5 text-white"><Link to="/superadmin">← Super Admin</Link><h1 className="mt-3 text-xl font-bold">Gestion Garage</h1></header>
+  <div className="space-y-3 p-4">
+   <label className="block">Rechercher un véhicule, client ou garage<input className="mt-1 w-full rounded-lg border p-3" value={search} onChange={e=>{setSearch(e.target.value);setOffset(0);}} /></label>
+   {list.isLoading && <p role="status">Chargement des interventions…</p>}
+   {list.error && <p role="alert">{list.error.message}</p>}
+   {list.data?.items.length===0 && <p>Aucune intervention trouvée.</p>}
+   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{[
+    ['Affichées',list.data?.items.length??0],['En cours',list.data?.items.filter(i=>['accueil','diagnostic','devis_envoye','en_reparation','controle_qualite','pret'].includes(i.status)).length??0],
+    ['En attente',list.data?.items.filter(i=>['en_attente','confirme','planifiee'].includes(i.status)).length??0],['Terminées',list.data?.items.filter(i=>['termine','honore'].includes(i.status)).length??0]
+   ].map(([label,value])=><div key={label} className="rounded-lg border bg-white p-3"><strong>{value}</strong><p>{label}</p></div>)}</div>
+   <p className="text-xs text-slate-600">Compteurs de la page affichée. Les dossiers archivés restent consultables. Les montants facturés et affectations de mécaniciens ne sont pas renseignés dans ces rendez-vous.</p>
+   {list.data?.items.map(i=><article key={i.id} className="space-y-2 rounded-xl border bg-white p-4">
+    <h2 className="font-bold">{i.vehicule??`Véhicule non renseigné — dossier #${i.id}`}</h2>
+    <p>{i.client??`Client #${i.clientId}`} · {i.garage??`Garage #${i.garageId}`}</p>
+    <p>{i.motif??'Motif non renseigné'} · {i.status} {i.archived && '· Archivé'}</p>
+    <p>Rendez-vous : {new Date(i.dateHeure).toLocaleString()}</p>
+    <BoutonMoteur code="admin_garage_details" className={button} onExecuter={()=>setSelected(i.id)}>Détails</BoutonMoteur>
+   </article>)}
+   <div className="flex gap-2"><button className={button} disabled={offset===0} onClick={()=>setOffset(Math.max(0,offset-50))}>Précédent</button><button className={button} disabled={!list.data?.hasMore} onClick={()=>setOffset(offset+50)}>Suivant</button></div>
+  </div>
+  {selected!==null && <dialog ref={dialog} onCancel={e=>{e.preventDefault();close();}} className="max-h-[85vh] w-[min(95vw,48rem)] space-y-3 overflow-y-auto rounded-xl p-5 backdrop:bg-black/50">
+   <div className="flex justify-between"><h2 className="font-bold">Dossier #{selected}</h2><button className={button} disabled={mutation.isPending} onClick={close}>Fermer</button></div>
+   {detail.isFetching && <p role="status">Chargement…</p>}{detail.error && <p role="alert">{detail.error.message}</p>}
+   {item && <><p>{item.vehicule??'Véhicule non renseigné'} · {item.garage??`Garage #${item.garageId}`}</p><p>Client : {item.client??`#${item.clientId}`}</p><p>État : {item.status}{item.archived?' · Archivé':''}</p><p>Motif : {item.motif??'Non renseigné'}</p><p>Notes : {item.notes??'Aucune note'}</p>
+    <h3 className="font-bold">Suivi client</h3>{detail.data?.history.length===0 && <p>Aucun événement de suivi enregistré.</p>}
+    {detail.data?.history.map(h=><p key={h.id}>{new Date(h.createdAt).toLocaleString()} — {h.statusLabel} : {h.detail}</p>)}
+    <h3 className="font-bold">Historique des actions de direction</h3>{detail.data?.audit.length===0 && <p>Aucune action de direction enregistrée.</p>}
+    {detail.data?.audit.map(h=><p key={h.id}>{new Date(h.createdAt).toLocaleString()} — {h.action} · compte #{h.actorId} : {h.metadata?.reason}</p>)}
+    <div className="flex flex-wrap gap-2">
+{!terminal&&!item.archived && <BoutonMoteur code="admin_garage_terminer" className={button} desactive={mutation.isPending?'Enregistrement en cours':!['controle_qualite','pret'].includes(item.status)?'Enregistrer le contrôle qualité ou la mise à disposition avant de terminer':undefined} onExecuter={()=>{mutation.reset();setAction("terminer");setReason('');}}>{labels.terminer}</BoutonMoteur>}
+{!terminal&&!item.archived && <BoutonMoteur code="admin_garage_annuler" className={button} desactive={mutation.isPending?'Enregistrement en cours':undefined} onExecuter={()=>{mutation.reset();setAction("annuler");setReason('');}}>{labels.annuler}</BoutonMoteur>}
+{terminal&&!item.archived && <BoutonMoteur code="admin_garage_archive" className={button} desactive={mutation.isPending?'Enregistrement en cours':undefined} onExecuter={()=>{mutation.reset();setAction("archive");setReason('');}}>{labels.archive}</BoutonMoteur>}
+{item.archived && <BoutonMoteur code="admin_garage_restore" className={button} desactive={mutation.isPending?'Enregistrement en cours':undefined} onExecuter={()=>{mutation.reset();setAction("restore");setReason('');}}>{labels.restore}</BoutonMoteur>}
+</div>
+    {!terminal&&!item.archived&&<p className="text-xs">Terminer devient disponible après contrôle qualité ou mise à disposition. L’archivage devient disponible une fois le dossier clôturé et conserve son historique.</p>}
+    {action && <form className="space-y-2 border-t pt-3" onSubmit={e=>{e.preventDefault();if(!mutation.isPending)mutation.mutate({id:item.id,action,expectedStatus:item.status,reason});}}>
+     <h3 className="font-bold">Confirmer : {labels[action]}</h3><label className="block">Motif<textarea required minLength={3} maxLength={500} className="block w-full rounded-lg border p-2" value={reason} onChange={e=>setReason(e.target.value)} /></label>
+     <p className="text-xs">La clôture ou l’annulation met à jour le suivi client. L’archivage conserve le dossier et permet sa restauration.</p>
+     <button type="submit" className={button} disabled={mutation.isPending}>{mutation.isPending?'Enregistrement…':'Confirmer'}</button><button type="button" className={button} disabled={mutation.isPending} onClick={()=>setAction(null)}>Revenir</button>
+    </form>}
+   </>}{mutation.error && <p role="alert">{mutation.error.message}</p>}{mutation.data?.warnings.map(w=><p role="alert" key={w}>{w}</p>)}
+  </dialog>}
+ </main>;
 }
