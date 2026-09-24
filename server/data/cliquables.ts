@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2549;
+export const CLIQUABLES_TOTAL = 2551;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -609,7 +609,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/superadmin/AdminDepannage.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminEmployes.tsx", total: 16, moteur: 0, liens: 1, boutonsLocaux: 9, sansAction: 2, zones: 4 },
   { fichier: "client/src/pages/superadmin/AdminFraude.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/superadmin/AdminGarage.tsx", total: 9, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 1, zones: 2 },
+  { fichier: "client/src/pages/superadmin/AdminGarage.tsx", total: 11, moteur: 5, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminGeneral.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminGoogleBusiness.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminJournal.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -779,7 +779,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/superadmin/AdminBadges.tsx", ligne: 36, genre: "bouton", libelle: "Gerer criteres", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminEmployes.tsx", ligne: 52, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminEmployes.tsx", ligne: 275, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/superadmin/AdminGarage.tsx", ligne: 75, genre: "bouton", libelle: "Details", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminObjectif.tsx", ligne: 35, genre: "bouton", libelle: "Modifier objectif", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminPaiements.tsx", ligne: 216, genre: "bouton", libelle: "Relancer", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminStatistiques.tsx", ligne: 40, genre: "bouton", libelle: "Voir rapport complet", motif: "sans_action" },

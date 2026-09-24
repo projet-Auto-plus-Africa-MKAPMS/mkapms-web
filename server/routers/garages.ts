@@ -1,10 +1,11 @@
+import { listInterventionsDirection, detailInterventionDirection, actionInterventionDirection } from "../atelier-engine/administration.js";
 import { z } from "zod";
 import { and, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { router, publicProcedure, protectedProcedure, proProcedure } from "../trpc.js";
+import { router, publicProcedure, protectedProcedure, proProcedure, directionProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { notifyEvent } from "../notification-os/triggers.js";
-import { annonces, garagesPublics, rdvGarage, serviceTracking, users } from "../schema.js";
+import { annonces, auditLogs, garagesPublics, rdvGarage, serviceTracking, users } from "../schema.js";
 import { ingest as ingestVisibility } from "../visibility-os/index.js";
 import { requestReviewAfterCompletion } from "../reputation-engine/service.js";
 import { alertesStock, tracerReportRdv } from "../atelier-engine/service.js";
@@ -58,6 +59,24 @@ async function rdvDeMesGarages(userId: number, rdvId: number) {
 }
 
 export const garagesRouter = router({
+  adminInterventions: directionProcedure.input(z.object({search:z.string().trim().max(150).default(""),offset:z.number().int().min(0).default(0)}))
+    .query(({input}) => listInterventionsDirection(input)),
+  adminIntervention: directionProcedure.input(z.object({id:z.number().int().positive()}))
+    .query(({input}) => detailInterventionDirection(input.id)),
+  adminAction: directionProcedure.input(z.object({id:z.number().int().positive(),action:z.enum(["terminer","annuler","archive","restore"]),expectedStatus:z.string().max(32),reason:z.string().trim().min(3).max(500)}))
+    .mutation(async ({ctx,input}) => {
+      const result = await actionInterventionDirection(ctx.user.uid,input);
+      const warnings: string[] = [];
+      const failed = async (action: string, message: string) => {
+        warnings.push(message);
+        await db.insert(auditLogs).values({actorId:ctx.user.uid,action,entityType:"rdv_garage",entityId:result.id,metadata:{reason:message}});
+      };
+      if (result.changed && ["terminer","annuler"].includes(input.action)) {
+        await notifyEvent({userId:result.clientId,event:"garage_statut",vars:{statut:result.status,detail:input.reason},url:"/compte"}).catch(() => failed("garage.admin.notification_failed", "Le changement est enregistré, mais la notification client a échoué."));
+        if (input.action === "terminer") await requestReviewAfterCompletion({userId:result.clientId,targetType:"garage",targetId:result.garageId,univers:"garage",transactionType:"rdv_garage",transactionId:result.id,countryCode:null,triggerReason:"intervention_terminee",libelle:"Votre intervention garage est terminée."}).catch(() => failed("garage.admin.review_failed", "La demande d’avis n’a pas pu être enregistrée."));
+      }
+      return {...result,warnings};
+    }),
   // Annuaire public des garages (§7.1)
   list: publicProcedure
     .input(

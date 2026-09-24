@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 504;
+export const MANQUES_TOTAL = 503;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 331,
   "dependance_non_declaree": 49,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
-  "bouton_sans_action": 60,
+  "bouton_sans_action": 59,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
@@ -2366,7 +2366,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "atelierEngine"
     ],
-    "fichiersServeur": 4,
+    "fichiersServeur": 5,
     "dependancesDeclarees": [
       "achat",
       "boutons",
@@ -8615,6 +8615,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/garage/DemandeDevis.tsx appelle trpc.devis"
       ],
       "atelier": [
+        "routers/garages.ts importe atelier-engine/administration.ts",
         "routers/garages.ts importe atelier-engine/service.ts"
       ],
       "avis_reputation": [
@@ -8666,6 +8667,46 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "abonnements": [],
     "sourcesEmission": [],
     "boutons": [
+      {
+        "code": "admin_garage_annuler",
+        "libelle": "annuler intervention",
+        "genre": "formulaire",
+        "ecran": "/superadmin/admin-garage",
+        "fichier": "client/src/pages/superadmin/AdminGarage.tsx",
+        "ligne": 56
+      },
+      {
+        "code": "admin_garage_archive",
+        "libelle": "archive intervention",
+        "genre": "formulaire",
+        "ecran": "/superadmin/admin-garage",
+        "fichier": "client/src/pages/superadmin/AdminGarage.tsx",
+        "ligne": 57
+      },
+      {
+        "code": "admin_garage_details",
+        "libelle": "Détails intervention",
+        "genre": "formulaire",
+        "ecran": "/superadmin/admin-garage",
+        "fichier": "client/src/pages/superadmin/AdminGarage.tsx",
+        "ligne": 42
+      },
+      {
+        "code": "admin_garage_restore",
+        "libelle": "restore intervention",
+        "genre": "formulaire",
+        "ecran": "/superadmin/admin-garage",
+        "fichier": "client/src/pages/superadmin/AdminGarage.tsx",
+        "ligne": 58
+      },
+      {
+        "code": "admin_garage_terminer",
+        "libelle": "terminer intervention",
+        "genre": "formulaire",
+        "ecran": "/superadmin/admin-garage",
+        "fichier": "client/src/pages/superadmin/AdminGarage.tsx",
+        "ligne": 55
+      },
       {
         "code": "garage_contrat_flotte_souscrire",
         "libelle": "Souscrire un contrat de flotte",
@@ -9261,11 +9302,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/admin-garage"
         ],
-        "cliquables": 9,
-        "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 15,
-        "mots": 31
+        "cliquables": 11,
+        "parMoteur": 5,
+        "sansAction": 0,
+        "textes": 23,
+        "mots": 108
       }
     ],
     "ecransHotes": [
@@ -9313,6 +9354,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       }
     ],
     "procedures": [
+      "adminAction",
+      "adminIntervention",
+      "adminInterventions",
       "atelierSynthese",
       "get",
       "getBySlug",
@@ -9326,11 +9370,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "tables": [],
     "acces": [
       "connecte",
+      "direction",
       "professionnel",
       "public"
     ],
-    "textes": 642,
-    "mots": 2052,
+    "textes": 650,
+    "mots": 2129,
     "battement": "sonde",
     "manques": [
       {
@@ -9380,10 +9425,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/garage/TransfertDossiers.tsx (2 texte(s))"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Details » client/src/pages/superadmin/AdminGarage.tsx:75"
       }
     ]
   },
