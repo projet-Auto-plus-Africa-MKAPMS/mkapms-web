@@ -40,3 +40,26 @@ jobs:
 
       - name: Build complet (identique à railway.json)
         run: npm run build
+
+  shop-knowledge:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: core_ai_test
+          POSTGRES_USER: core_ai_test
+          POSTGRES_PASSWORD: disposable_ci_fixture
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U core_ai_test -d core_ai_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: node --import tsx --test server/intelligences/__tests__/shop-knowledge.test.ts server/intelligences/__tests__/shop-knowledge.integration.test.ts
+        env:
+          SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
