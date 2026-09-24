@@ -36,6 +36,16 @@ export interface Livraison {
 
 export const LIVRAISONS: Livraison[] = [
   {
+    cle: "branche-fix-country-map-activity",
+    titre: "Capture AdminCarteMoniale : activité réelle par pays et détail consultable",
+    moteurs: ["country", "boutons", "identity", "achat", "payment"],
+    quoi: "Le bouton de chaque pays ouvre les utilisateurs et annonces réels, paginés. Le moteur Countries normalise les codes, conserve les pays non configurés et distingue pays absent de Namibie. Encaissements confirmés séparés par devise, jamais assimilés au CA comptable.",
+    pourquoi: "La carte était une liste de six pays et chiffres fictifs, sans action ni appel au moteur. L’API de statistiques existante omettait les pays non configurés et les valeurs non normalisées.",
+    ou: ["client/src/pages/superadmin/AdminCarteMoniale.tsx", "server/routers/operations.ts", "server/button-engine/catalogue.ts", "server/routers/__tests__/country-activity.test.ts"],
+    lecon: "Un bouton doit porter une action sur des données réelles. Garder les compteurs et le détail, représenter honnêtement les montants financiers, tester les permissions, la pagination et les pays incomplets.",
+    domaine: "moteurs",
+  },
+  {
     cle: "branche-fix-ai-engine-health-tool",
     titre: "MKA.P-MS IA : outil getSystemHealth connecté au registre vivant",
     moteurs: ["intelligences", "core"],
