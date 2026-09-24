@@ -36,6 +36,16 @@ export interface Livraison {
 
 export const LIVRAISONS: Livraison[] = [
   {
+    cle: "branche-fix-critical-health-registration",
+    titre: "Surveillance : préserver les relevés et distinguer les cibles non testées",
+    moteurs: ["smart"],
+    quoi: "Enregistrer les cibles absentes comme unknown sans horodatage de test, préserver les observations existantes, sérialiser les écritures avec un verrou transactionnel et afficher les non-évalués dans le centre de contrôle.",
+    pourquoi: "L’initialisation des 21 cibles appelait reportHealthCheck avec ok sans effectuer de test et pouvait effacer un diagnostic de panne.",
+    ou: ["server/smart-engine/services/health-monitor.ts", "client/src/pages/SmartEngine/ControlCenter.tsx", "server/modules/__tests__/critical-health-registration.test.ts"],
+    lecon: "L’existence d’une cible ne prouve pas son bon fonctionnement. Test isolé de conservation des résultats et d’idempotence ; concurrence multi-session PostgreSQL non validée par le serveur PGlite de test. Les anciens OK sans provenance ne sont pas arbitrairement modifiés.",
+    domaine: "confiance",
+  },
+  {
     cle: "branche-fix-smart-observation-health-contract",
     titre: "Cycle intelligent : distinguer santé green et statut de tâche ok",
     moteurs: ["smart_audit", "smart"],

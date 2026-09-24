@@ -243,3 +243,10 @@ livrée des signalements encore présents ; il ne les transforme pas en succès.
 Ces 29 signalements restants ne sont ni masqués, ni considérés réparés par
 les corrections de supervision. Ils nécessitent leurs propres lots métier
 et tests ; les autorisations de publication déjà données restent acquises.
+
+
+## Enregistrement des cibles critiques : absence de preuve ≠ succès
+
+`registerCriticalElements` appelait `reportHealthCheck(status: ok)` pour 21 cibles (16 boutons/liens et 5 formulaires). Cela ne testait aucun parcours et écrasait un résultat existant lors d’une réinitialisation. L’initialisation inscrit désormais uniquement les cibles absentes avec `unknown` et sans date de contrôle ; elle conserve tous les relevés existants, y compris les échecs. Enregistrement et réception d’un relevé utilisent le même verrou transactionnel PostgreSQL pour sérialiser leurs écritures. Le tableau présente les non-évalués et son filtre « Cassés » inclut aussi les éléments manquants.
+
+Le test isolé vérifie 21 inconnus au départ, l’idempotence et la conservation d’un succès mesuré, d’une panne, de son horodatage et de son détail. Le serveur PGlite de test partage une session et ne permet pas de valider les transactions concurrentes comme un PostgreSQL multi-session : cette concurrence reste à vérifier dans un environnement PostgreSQL dédié. Aucun ancien résultat OK n’est rétroactivement déclassé faute de provenance permettant de distinguer initialisation et véritable observation. Le lien entre ces 16 cibles et les 16 OK de la capture reste une hypothèse, pas une preuve en production.
