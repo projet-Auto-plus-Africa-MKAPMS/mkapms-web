@@ -110,3 +110,15 @@ cosmétique ne les fait artificiellement disparaître de l'inventaire.
 - Pas de test navigateur authentifié ni de validation de fonctionnement en production.
 - Le test de base exige une base locale jetable sur le port 55432. Ne pas l'exécuter
   contre la production. Les données du test sont locales uniquement.
+
+## Lot suivant — Employés
+
+`GestionEmployesMKAPMS` utilise maintenant `admin.staffList/createStaff` ; les deux
+commandes sont déclarées au moteur Boutons avec propriétaire et procédure. Les
+comptes fictifs sont remplacés par les données réelles. Le rôle est distinct du poste.
+La création reste réservée à la direction côté serveur. L'adresse est normalisée
+et le contrôle de doublon est insensible à la casse. Aucun compte réel créé.
+
+Tests locaux sur base isolée : refus employé/non-admin, validation des champs,
+persistance du compte, hachage du mot de passe, lecture réelle et rejet du doublon.
+Build réussi ; aucun nouveau diagnostic TypeScript dans les fichiers modifiés.

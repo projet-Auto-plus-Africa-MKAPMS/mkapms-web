@@ -1,5 +1,6 @@
 import { deciderKyc } from "../modules/kyc-decision.js";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { desc, eq, sql, and } from "drizzle-orm";
 import { router, adminProcedure, directionProcedure } from "../trpc.js";
 import { db } from "../db.js";
@@ -338,17 +339,17 @@ export const adminRouter = router({
   createStaff: directionProcedure
     .input(
       z.object({
-        email: z.string().email(),
-        name: z.string().min(2),
+        email: z.string().trim().email().transform((value) => value.toLowerCase()),
+        name: z.string().trim().min(2).max(255),
         password: z.string().min(8),
         role: z.enum(["employee", "admin"]).default("employee"),
         staffPosition: z.enum(["directeur", "adjoint", "gerant", "chef_equipe", "agent"]).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const existing = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+      const existing = await db.select().from(users).where(sql`lower(${users.email}) = ${input.email}`).limit(1);
       if (existing.length) {
-        throw new Error("Un compte existe déjà avec cet email");
+        throw new TRPCError({ code: "CONFLICT", message: "Un compte existe déjà avec cet email" });
       }
       const [u] = await db
         .insert(users)
