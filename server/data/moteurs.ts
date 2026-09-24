@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 503;
+export const MANQUES_TOTAL = 501;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 331,
   "dependance_non_declaree": 49,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
-  "bouton_sans_action": 59,
+  "bouton_sans_action": 57,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
@@ -4184,6 +4184,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/superadmin/AdminCarteMoniale.tsx",
         "route": "/superadmin/admin-carte-moniale",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/superadmin/AdminEmployes.tsx",
+        "route": "/superadmin/admin-employes",
         "composants": [
           "lib/boutonMoteur.tsx"
         ]
@@ -23613,6 +23620,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "categorie": "transversal",
     "etatDeclare": "disabled",
     "dossiers": [
+      "modules/hr-direction.ts",
       "modules/operations.ts",
       "routers/operations.ts"
     ],
@@ -23624,7 +23632,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "procurement",
       "investor"
     ],
-    "fichiersServeur": 2,
+    "fichiersServeur": 3,
     "dependancesDeclarees": [
       "audit",
       "core",
@@ -23659,8 +23667,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routers/operations.ts importe audit.ts"
       ],
       "boutons": [
-        "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
-        "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx utilise BoutonMoteur"
+        "client/src/pages/superadmin/AdminEmployes.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
+        "client/src/pages/superadmin/AdminEmployes.tsx utilise BoutonMoteur",
+        "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       ],
       "core": [
         "routers/operations.ts importe trpc.ts",
@@ -23703,6 +23712,38 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "ecran": "/superadmin/gestion-employes-m-k-a-p-m-s",
         "fichier": "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx",
         "ligne": 38
+      },
+      {
+        "code": "admin_employes_ajouter_mission",
+        "libelle": "Ajouter une mission RH",
+        "genre": "formulaire",
+        "ecran": "/superadmin/admin-employes",
+        "fichier": "client/src/pages/superadmin/AdminEmployes.tsx",
+        "ligne": 257
+      },
+      {
+        "code": "admin_employes_enregistrer",
+        "libelle": "Enregistrer le profil RH",
+        "genre": "formulaire",
+        "ecran": "/superadmin/admin-employes",
+        "fichier": "client/src/pages/superadmin/AdminEmployes.tsx",
+        "ligne": 157
+      },
+      {
+        "code": "admin_employes_filtrer",
+        "libelle": "Filtrer les employés",
+        "genre": "formulaire",
+        "ecran": "/superadmin/admin-employes",
+        "fichier": "client/src/pages/superadmin/AdminEmployes.tsx",
+        "ligne": 57
+      },
+      {
+        "code": "admin_employes_retirer_mission",
+        "libelle": "Retirer une mission du planning",
+        "genre": "formulaire",
+        "ecran": "/superadmin/admin-employes",
+        "fichier": "client/src/pages/superadmin/AdminEmployes.tsx",
+        "ligne": 280
       }
     ],
     "routes": [
@@ -24095,10 +24136,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "/superadmin/admin-employes"
         ],
         "cliquables": 16,
-        "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 49,
-        "mots": 101
+        "parMoteur": 4,
+        "sansAction": 0,
+        "textes": 46,
+        "mots": 92
       },
       {
         "fichier": "client/src/pages/superadmin/AdminGeneral.tsx",
@@ -24167,10 +24208,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "addEvidence",
       "addKart",
       "addMovement",
+      "addStaffTask",
       "award",
       "backups",
       "bookings",
       "campaigns",
+      "cancelStaffTask",
       "create",
       "createCenter",
       "createEvaluation",
@@ -24217,6 +24260,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "registrations",
       "remove",
       "resolveEvent",
+      "saveStaffProfile",
       "setActive",
       "setCenterActive",
       "setFranchiseStatus",
@@ -24226,6 +24270,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "setStationActive",
       "setStatus",
       "setSubsidiaryActive",
+      "staffDirectory",
+      "staffPlanning",
       "stats",
       "status",
       "upsert",
@@ -24241,6 +24287,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "hr_evaluations",
       "hr_leaves",
       "hr_records",
+      "hr_weekly_tasks",
       "insurance_policies",
       "lab_experiments",
       "loyalty_accounts",
@@ -24265,8 +24312,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 255,
-    "mots": 764,
+    "textes": 252,
+    "mots": 755,
     "battement": "sonde",
     "manques": [
       {
@@ -24387,19 +24434,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       },
       {
         "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/superadmin/AdminEmployes.tsx:52"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/superadmin/AdminEmployes.tsx:275"
-      },
-      {
-        "genre": "bouton_sans_action",
         "detail": "« Modifier objectif » client/src/pages/superadmin/AdminObjectif.tsx:35"
       },
       {
         "genre": "dependance_non_declaree",
-        "detail": "boutons — client/src/pages/superadmin/GestionEmployesMKAPMS.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
+        "detail": "boutons — client/src/pages/superadmin/AdminEmployes.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       },
       {
         "genre": "dependance_sans_preuve",

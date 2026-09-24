@@ -36,6 +36,16 @@ export interface Livraison {
 
 export const LIVRAISONS: Livraison[] = [
   {
+    cle: "branche-fix-hr-staff-planning",
+    titre: "Employés : profils et planning persistants dans le moteur RH",
+    moteurs: ["workflow", "identity", "boutons"],
+    quoi: "Relier les compteurs, profils, congés et performances aux données RH et ajouter le planning hebdomadaire persistant avec contrôle des chevauchements, idempotence et retrait audité. Quatre commandes déclarées dans le moteur de boutons.",
+    pourquoi: "Les compteurs et missions étaient inventés ; Enregistrer fermait la fenêtre et Ajouter au planning vidait le formulaire sans aucune sauvegarde.",
+    ou: ["server/modules/hr-direction.ts", "server/modules/operations.ts", "server/routers/operations.ts", "client/src/pages/superadmin/AdminEmployes.tsx", "drizzle/0139_hr_staff_planning.sql", "server/routers/__tests__/hr-staff-planning.test.ts"],
+    lecon: "Tester la persistance et la conservation des champs non modifiés. Les dossiers de direction exigent le PDG ; aucun rôle ou salaire n’est modifié depuis cet écran. Une absence de note reste non évaluée. Migration et tests isolés ; pas de vérification visuelle en production.",
+    domaine: "confiance",
+  },
+  {
     cle: "branche-fix-admin-garage-real-workflow",
     titre: "Garage Direction : dossiers réels, détails et actions persistées",
     moteurs: ["garage", "atelier", "boutons", "identity", "notification", "avis_reputation"],

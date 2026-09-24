@@ -3,6 +3,7 @@
 // Base unique : ces tables restent reliées aux mêmes users / logs / paiements.
 import {
   integer,
+  jsonb,
   numeric,
   pgEnum,
   pgTable,
@@ -288,6 +289,7 @@ export const goodsReceipts = pgTable("goods_receipts", {
 export const hrContractTypeEnum = pgEnum("hr_contract_type", ["cdi", "cdd", "stage", "freelance", "autre"]);
 
 export const hrRecords = pgTable("hr_records", {
+  profile: jsonb("profile").$type<{service?:string;adresse?:string;statut?:string;diplome?:string;competences?:string[]}>(),
   userId: integer("user_id").primaryKey(), // employé = user interne
   poste: varchar("poste", { length: 128 }),
   contractType: hrContractTypeEnum("contract_type").notNull().default("cdi"),
@@ -459,4 +461,14 @@ export const vehicleDossierEvents = pgTable("vehicle_dossier_events", {
   amount: numeric("amount", { precision: 12, scale: 2 }),
   eventDate: timestamp("event_date"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+
+// Weekly staff planning template. Cancelled tasks remain available for audit.
+export const hrWeeklyTasks = pgTable("hr_weekly_tasks", {
+ id: serial("id").primaryKey(), userId: integer("user_id").notNull(),
+ requestId: varchar("request_id",{length:36}).notNull().unique(),
+ day: integer("day").notNull(), startMinute: integer("start_minute").notNull(), endMinute: integer("end_minute").notNull(),
+ title: varchar("title",{length:255}).notNull(), cancelled: boolean("cancelled").notNull().default(false),
+ createdBy: integer("created_by").notNull(), createdAt: timestamp("created_at").notNull().defaultNow(),
 });
