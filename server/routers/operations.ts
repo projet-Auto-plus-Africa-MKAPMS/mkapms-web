@@ -1,3 +1,4 @@
+import { staffDirectory, staffPlanning, saveStaffProfile, addStaffTask, cancelStaffTask, staffProfileInput, staffTaskInput } from "../modules/hr-direction.js";
 // Routers transverses Parties 7-18 : litiges, partenaires, entrepôts, pays,
 // fidélité, coffre-fort numérique, dossier véhicule.
 // Base unique : tout est relié aux mêmes users / logs / paiements.
@@ -955,6 +956,11 @@ export const procurementRouter = router({
 
 // ===================== PARTIE 25 — RH =====================
 export const hrRouter = router({
+  staffDirectory: directionProcedure.query(() => staffDirectory()),
+  staffPlanning: directionProcedure.input(z.object({userId:z.number().int().positive()})).query(({input})=>staffPlanning(input.userId)),
+  saveStaffProfile: directionProcedure.input(staffProfileInput).mutation(({ctx,input})=>saveStaffProfile(ctx.user,input)),
+  addStaffTask: directionProcedure.input(staffTaskInput).mutation(({ctx,input})=>addStaffTask(ctx.user,input)),
+  cancelStaffTask: directionProcedure.input(z.object({id:z.number().int().positive()})).mutation(({ctx,input})=>cancelStaffTask(ctx.user,input.id)),
   records: adminProcedure.query(async () => {
     return db.select().from(hrRecords);
   }),

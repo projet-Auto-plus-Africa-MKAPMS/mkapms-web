@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {sql} from 'drizzle-orm';
+import {hrRouter} from '../operations.js';
+import {db,pool} from '../../db.js';
+import type {Context} from '../../trpc.js';
+const url=new URL(process.env.DATABASE_URL||'http://invalid');assert.ok(['localhost','127.0.0.1'].includes(url.hostname)&&url.port==='55432');
+const caller=(role:string)=>hrRouter.createCaller({user:{uid:1,role,email:'pdg@example.test'}} as Context);
+try {
+ for(const role of ['user','pro','employee','supplier','carrier'])await assert.rejects(caller(role).staffDirectory(),/direction/);
+ const admin=caller('admin'),pdg=caller('super_admin');
+ const employees=await admin.staffDirectory();assert.equal(employees.length,2);assert.equal(employees.find(e=>e.id===2)?.performance,82);assert.equal(employees.find(e=>e.id===2)?.onLeave,true);
+ const profile={id:2,nom:'Nom actualisé',email:'updated@example.test',tel:'123',poste:'Mécanicien',service:'Atelier',adresse:'Adresse',statut:'actif' as const};
+ await admin.saveStaffProfile(profile);assert.equal((await admin.staffDirectory()).find(e=>e.id===2)?.name,profile.nom);
+ const hr=(await db.execute(sql`SELECT * FROM hr_records WHERE user_id=2`)).rows[0];assert.equal(String(hr.salaire),'1234');assert.equal(hr.currency,'USD');assert.equal(hr.contract_type,'cdd');
+ await assert.rejects(admin.saveStaffProfile({...profile,id:1}),/PDG/);
+ await assert.rejects(admin.saveStaffProfile({...profile,id:3}),/introuvable/);
+ await assert.rejects(admin.saveStaffProfile({...profile,email:'client@example.test',nom:'Ne doit pas persister'}));
+ assert.equal((await admin.staffDirectory()).find(e=>e.id===2)?.name,profile.nom,'transaction rollback');
+ const task={userId:2,requestId:randomUUID(),day:0,startMinute:480,endMinute:720,title:'Diagnostic'};
+ const saved=await admin.addStaffTask(task);assert.equal((await admin.addStaffTask(task)).id,saved.id);
+ await assert.rejects(admin.addStaffTask({...task,requestId:randomUUID(),startMinute:600}),/chevauche/);
+ await assert.rejects(admin.addStaffTask({...task,title:'Autre'}),/déjà utilisé/);
+ await assert.rejects(admin.addStaffTask({...task,requestId:randomUUID(),endMinute:400}));
+ await assert.rejects(admin.addStaffTask({...task,userId:1,requestId:randomUUID()}),/PDG/);
+ const next=await pdg.addStaffTask({...task,requestId:randomUUID(),startMinute:720,endMinute:780});
+ assert.equal((await admin.staffPlanning({userId:2})).length,2);
+ await admin.cancelStaffTask({id:saved.id});await admin.cancelStaffTask({id:saved.id});
+ const planning=await admin.staffPlanning({userId:2});assert.equal(planning.length,2);assert.equal(planning.find(t=>t.id===saved.id)?.cancelled,true);assert.equal(planning.find(t=>t.id===next.id)?.cancelled,false);
+ assert.equal(Number((await db.execute(sql`SELECT count(*) FROM audit_logs WHERE action='hr.planning.cancel'`)).rows[0].count),1);
+ console.log('PASS: migration repeated; actual staff/leave/evaluation; permissions; profile persisted without salary/contract loss; rollback; planning persisted; overlap/invalid time rejected; idempotence; audited soft cancellation.');
+}finally {await pool.end();}
