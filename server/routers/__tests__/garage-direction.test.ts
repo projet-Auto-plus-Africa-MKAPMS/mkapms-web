@@ -8,10 +8,10 @@ const url=new URL(process.env.DATABASE_URL||'http://invalid');
 assert.ok(['localhost','127.0.0.1'].includes(url.hostname)&&url.port==='55432');
 const caller=(role:string)=>garagesRouter.createCaller({user:{uid:99,role,email:'test@example.test'}} as Context);
 try {
- for(const role of ['user','pro','garage']) {
-  await assert.rejects(caller(role).adminInterventions({}),/back-office/);
-  await assert.rejects(caller(role).adminIntervention({id:1}),/back-office/);
-  await assert.rejects(caller(role).adminAction({id:1,action:'terminer',expectedStatus:'pret',reason:'Test'}),/back-office/);
+ for(const role of ['user','pro','garage','employee','supplier','carrier']) {
+  await assert.rejects(caller(role).adminInterventions({}),/direction/);
+  await assert.rejects(caller(role).adminIntervention({id:1}),/direction/);
+  await assert.rejects(caller(role).adminAction({id:1,action:'terminer',expectedStatus:'pret',reason:'Test'}),/direction/);
  }
  const first=await caller('admin').adminInterventions({});const second=await caller('admin').adminInterventions({offset:50});
  assert.equal(first.items.length,50);assert.equal(first.hasMore,true);assert.equal(second.items.length,5);

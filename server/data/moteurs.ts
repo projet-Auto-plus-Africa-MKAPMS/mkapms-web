@@ -9369,8 +9369,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "tables": [],
     "acces": [
-      "admin",
       "connecte",
+      "direction",
       "professionnel",
       "public"
     ],

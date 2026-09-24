@@ -2,7 +2,7 @@ import { listInterventionsDirection, detailInterventionDirection, actionInterven
 import { z } from "zod";
 import { and, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { router, publicProcedure, protectedProcedure, proProcedure, adminProcedure } from "../trpc.js";
+import { router, publicProcedure, protectedProcedure, proProcedure, directionProcedure } from "../trpc.js";
 import { db } from "../db.js";
 import { notifyEvent } from "../notification-os/triggers.js";
 import { annonces, auditLogs, garagesPublics, rdvGarage, serviceTracking, users } from "../schema.js";
@@ -59,11 +59,11 @@ async function rdvDeMesGarages(userId: number, rdvId: number) {
 }
 
 export const garagesRouter = router({
-  adminInterventions: adminProcedure.input(z.object({search:z.string().trim().max(150).default(""),offset:z.number().int().min(0).default(0)}))
+  adminInterventions: directionProcedure.input(z.object({search:z.string().trim().max(150).default(""),offset:z.number().int().min(0).default(0)}))
     .query(({input}) => listInterventionsDirection(input)),
-  adminIntervention: adminProcedure.input(z.object({id:z.number().int().positive()}))
+  adminIntervention: directionProcedure.input(z.object({id:z.number().int().positive()}))
     .query(({input}) => detailInterventionDirection(input.id)),
-  adminAction: adminProcedure.input(z.object({id:z.number().int().positive(),action:z.enum(["terminer","annuler","archive","restore"]),expectedStatus:z.string().max(32),reason:z.string().trim().min(3).max(500)}))
+  adminAction: directionProcedure.input(z.object({id:z.number().int().positive(),action:z.enum(["terminer","annuler","archive","restore"]),expectedStatus:z.string().max(32),reason:z.string().trim().min(3).max(500)}))
     .mutation(async ({ctx,input}) => {
       const result = await actionInterventionDirection(ctx.user.uid,input);
       const warnings: string[] = [];
