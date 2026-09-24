@@ -37,6 +37,7 @@ export interface ActionBouton {
   readonly genre: GenreAction;
   /** Moteur métier responsable et procédure réelle, pour le diagnostic. */
   readonly moteur?: string;
+  readonly dependances?: readonly string[];
   readonly procedure?: string;
   /**
    * Destination (`navigation`), gabarit de contact (`appel`, `email`) ou
@@ -54,10 +55,12 @@ export interface ActionBouton {
 }
 
 export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
-  { code: "admin_employe_ajouter", libelle: "Ajouter un employé", ecran: "/superadmin/gestion-employes-m-k-a-p-m-s", genre: "formulaire", moteur: "identity", procedure: "admin.createStaff", cible: "formulaire_creation_compte" },
-  { code: "admin_employe_enregistrer", libelle: "Créer le compte", ecran: "/superadmin/gestion-employes-m-k-a-p-m-s", genre: "formulaire", moteur: "identity", procedure: "admin.createStaff", cible: "admin.createStaff" },
-  { code: "admin_kyc_valider", libelle: "Valider", ecran: "/superadmin/validation-documents-complete", genre: "formulaire", moteur: "kyc", procedure: "admin.validateKyc", cible: "admin.validateKyc" },
-  { code: "admin_kyc_refuser", libelle: "Refuser", ecran: "/superadmin/validation-documents-complete", genre: "formulaire", moteur: "kyc", procedure: "admin.validateKyc", cible: "admin.validateKyc" },
+  { code: "vente_alerte_creer", libelle: "Créer l’alerte", ecran: "/vente/centre-alertes-recherche", genre: "formulaire", moteur: "search", dependances: ["notification", "vente"], procedure: "searches.create", cible: "searches.create" },
+  { code: "vente_alerte_activer", libelle: "Activer / désactiver", ecran: "/vente/centre-alertes-recherche", genre: "formulaire", moteur: "search", dependances: ["notification", "vente"], procedure: "searches.setAlert", cible: "searches.setAlert" },
+  { code: "admin_employe_ajouter", libelle: "Ajouter un employé", ecran: "/superadmin/gestion-employes-m-k-a-p-m-s", genre: "formulaire", moteur: "identity", dependances: ["permission", "workflow"], procedure: "admin.createStaff", cible: "formulaire_creation_compte" },
+  { code: "admin_employe_enregistrer", libelle: "Créer le compte", ecran: "/superadmin/gestion-employes-m-k-a-p-m-s", genre: "formulaire", moteur: "identity", dependances: ["permission", "workflow"], procedure: "admin.createStaff", cible: "admin.createStaff" },
+  { code: "admin_kyc_valider", libelle: "Valider", ecran: "/superadmin/validation-documents-complete", genre: "formulaire", moteur: "identity", dependances: ["permission", "document"], procedure: "admin.validateKyc", cible: "admin.validateKyc" },
+  { code: "admin_kyc_refuser", libelle: "Refuser", ecran: "/superadmin/validation-documents-complete", genre: "formulaire", moteur: "identity", dependances: ["permission", "document"], procedure: "admin.validateKyc", cible: "admin.validateKyc" },
   {
     code: "location_devis_flotte",
     libelle: "Demander un devis flotte",

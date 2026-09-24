@@ -84,6 +84,7 @@ export function construireDiagnosticBouton(input: {
     elementsTechniques: [
       `moteur=${action.moteur ?? "non renseigné"}`,
       `procedure=${action.procedure ?? "non renseignée"}`,
+      `dependances=${action.dependances?.join(",") ?? "non renseignées"}`,
       `code=${input.code}`,
       `genre=${action.genre}`,
       `outcome=${input.outcome}`,

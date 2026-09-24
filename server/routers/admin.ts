@@ -1,3 +1,4 @@
+import { notifyPublishedAnnonce } from "../modules/search-alerts.js";
 import { deciderKyc } from "../modules/kyc-decision.js";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
@@ -219,6 +220,7 @@ export const adminRouter = router({
         .update(annonces)
         .set({ status: input.action, updatedAt: new Date() })
         .where(eq(annonces.id, input.id));
+      if (input.action === "publiee") await notifyPublishedAnnonce(input.id).catch(() => undefined);
       await logAction(ctx.user.uid, `annonce.${input.action}`, "annonce", input.id);
       return { ok: true };
     }),

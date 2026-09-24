@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 502;
+export const MANQUES_TOTAL = 503;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 331,
-  "bouton_sans_action": 65,
+  "bouton_sans_action": 64,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
-  "dependance_non_declaree": 42,
+  "dependance_non_declaree": 44,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
@@ -119,9 +119,7 @@ export const ROUTES_SANS_MOTEUR: readonly string[] = [];
 export const ROUTEURS_SANS_MOTEUR: readonly string[] = [];
 
 /** Fichiers serveur qu'aucun moteur ne possède (hors racine technique). */
-export const FICHIERS_SANS_MOTEUR: readonly string[] = [
-  "modules/kyc-decision.ts"
-];
+export const FICHIERS_SANS_MOTEUR: readonly string[] = [];
 
 export const MOTEURS: readonly PerimetreMoteur[] = [
   {
@@ -540,9 +538,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/Vehicule.tsx appelle trpc.messages"
       ],
       "notification": [
+        "routers/annonces.ts importe modules/search-alerts.ts",
         "routers/annonces.ts importe services/email.ts",
-        "routers/annonces.ts envoie un email",
-        "routers/devis.ts importe notification-os/triggers.ts"
+        "routers/annonces.ts envoie un email"
       ],
       "payment": [
         "routers/annonces.ts importe payment-engine/checkout.ts",
@@ -3978,6 +3976,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/vente/CentreAlertesRecherche.tsx",
+        "route": "/vente/alertes-recherche",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
         "fichier": "client/src/pages/Livraison.tsx",
         "route": "/livraison",
         "composants": [
@@ -5806,6 +5811,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "ai_learning",
       "audit",
       "identity",
+      "notification",
       "smart",
       "visibility"
     ],
@@ -5813,6 +5819,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "ai_learning",
       "audit",
       "identity",
+      "notification",
       "smart",
       "visibility"
     ],
@@ -5826,8 +5833,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "identity": [
         "central-engines/router.ts exige une session Identity (procédure protégée)",
-        "routers/admin.ts importe auth.ts",
-        "routers/admin.ts exige une session Identity (procédure protégée)"
+        "routers/admin.ts importe modules/kyc-decision.ts",
+        "routers/admin.ts importe auth.ts"
+      ],
+      "notification": [
+        "routers/admin.ts importe modules/search-alerts.ts"
       ],
       "smart": [
         "central-engines/index.ts importe smart-engine/services/connectors.ts",
@@ -6395,6 +6405,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_declare_absent_ecran",
         "detail": "accueil_livraison_vehicule déclaré pour / mais aucun écran ne l'utilise"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "notification — routers/admin.ts importe modules/search-alerts.ts"
       }
     ]
   },
@@ -9263,6 +9277,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "auth.ts",
       "routers/auth.ts",
       "routers/kyc.ts",
+      "modules/kyc-decision.ts",
       "account-deletion",
       "user-preferences"
     ],
@@ -9273,7 +9288,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "suppressionCompte",
       "preferencesUtilisateur"
     ],
-    "fichiersServeur": 15,
+    "fichiersServeur": 16,
     "dependancesDeclarees": [
       "account_routing",
       "achat",
@@ -13418,13 +13433,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "dossiers": [
       "notification-os",
       "routers/notifications.ts",
+      "modules/search-alerts.ts",
       "services/email.ts"
     ],
     "routeurs": [
       "notifications",
       "notificationOs"
     ],
-    "fichiersServeur": 4,
+    "fichiersServeur": 5,
     "dependancesDeclarees": [
       "contract",
       "core",
@@ -13451,9 +13467,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/notifications/SignaturesGlobales.tsx appelle trpc.contracts"
       ],
       "core": [
-        "notification-os/index.ts importe db.ts",
-        "notification-os/index.ts importe trpc.ts",
-        "notification-os/triggers.ts importe db.ts"
+        "modules/search-alerts.ts importe db.ts",
+        "modules/search-alerts.ts importe schema.ts",
+        "notification-os/index.ts importe db.ts"
       ],
       "identity": [
         "notification-os/index.ts importe identity-os/contract.ts",
@@ -13472,6 +13488,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "avis_reputation",
       "cartegrise",
       "controle_technique",
+      "core",
       "depannage",
       "energie_recharge",
       "financial_intelligence",
@@ -19843,7 +19860,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     },
     "dependants": [
       "achat",
-      "identity"
+      "identity",
+      "vente"
     ],
     "evenementsPublies": [],
     "evenementsConsommes": [],
@@ -19891,6 +19909,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       }
     ],
     "ecransHotes": [
+      {
+        "fichier": "client/src/pages/vente/CentreAlertesRecherche.tsx",
+        "route": "/vente/alertes-recherche",
+        "composants": [
+          "trpc.searches"
+        ]
+      },
       {
         "fichier": "client/src/pages/Compte.tsx",
         "route": "/compte/*",
@@ -21479,6 +21504,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "notification",
       "payment",
       "pro_portal",
+      "search",
       "smart",
       "vo_espaces"
     ],
@@ -21495,6 +21521,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "payment",
       "permission",
       "pro_portal",
+      "search",
       "smart",
       "vo_espaces"
     ],
@@ -21540,6 +21567,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/vente/CentreFournisseurs.tsx appelle trpc.pro",
         "client/src/pages/vente/DroitsAcces.tsx appelle trpc.pro",
         "client/src/pages/vente/GestionEmployes.tsx appelle trpc.pro"
+      ],
+      "search": [
+        "client/src/pages/vente/CentreAlertesRecherche.tsx appelle trpc.searches"
       ],
       "smart": [
         "client/src/pages/Abonnements.tsx appelle trpc.smartEngine",
@@ -21616,6 +21646,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "ecran": "/vente/livraison",
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "ligne": 110
+      },
+      {
+        "code": "vente_alerte_activer",
+        "libelle": "Activer / désactiver",
+        "genre": "formulaire",
+        "ecran": "/vente/alertes-recherche",
+        "fichier": "client/src/pages/vente/CentreAlertesRecherche.tsx",
+        "ligne": 32
+      },
+      {
+        "code": "vente_alerte_creer",
+        "libelle": "Créer l’alerte",
+        "genre": "formulaire",
+        "ecran": "/vente/alertes-recherche",
+        "fichier": "client/src/pages/vente/CentreAlertesRecherche.tsx",
+        "ligne": 38
       },
       {
         "code": "vente_pro_factures",
@@ -22005,11 +22051,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/vente/alertes-recherche"
         ],
-        "cliquables": 2,
-        "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 5,
-        "mots": 9
+        "cliquables": 4,
+        "parMoteur": 2,
+        "sansAction": 0,
+        "textes": 7,
+        "mots": 39
       },
       {
         "fichier": "client/src/pages/vente/CentreArchives.tsx",
@@ -22468,8 +22514,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 949,
-    "mots": 3311,
+    "textes": 951,
+    "mots": 3341,
     "battement": "sonde",
     "manques": [
       {
@@ -22507,10 +22553,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« Continuer mon achat » client/src/pages/vente/CentreAchatDistance.tsx:10"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Créer l'alerte » client/src/pages/vente/CentreAlertesRecherche.tsx:21"
       },
       {
         "genre": "ecran_sans_contenu",
@@ -22571,6 +22613,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "dependance_non_declaree",
         "detail": "pro_portal — client/src/pages/vente/CentreFournisseurs.tsx appelle trpc.pro"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "search — client/src/pages/vente/CentreAlertesRecherche.tsx appelle trpc.searches"
       },
       {
         "genre": "dependance_sans_preuve",

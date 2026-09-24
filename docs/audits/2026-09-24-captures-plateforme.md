@@ -122,3 +122,20 @@ et le contrôle de doublon est insensible à la casse. Aucun compte réel créé
 Tests locaux sur base isolée : refus employé/non-admin, validation des champs,
 persistance du compte, hachage du mot de passe, lecture réelle et rejet du doublon.
 Build réussi ; aucun nouveau diagnostic TypeScript dans les fichiers modifiés.
+
+## Lot suivant — Alertes de recherche
+
+`CentreAlertesRecherche` est raccordé à `searches.list/create/setAlert`, avec
+critères explicites, alertes réelles et isolation par propriétaire. Les deux
+commandes nomment Recherche comme moteur principal et Notifications/Vente comme
+dépendances. Le résultat de résolution et le diagnostic IA exposent ce rattachement.
+Le service existant de notifications à la publication est consolidé dans
+`modules/search-alerts.ts` : uniquement annonces publiées, devise réelle, transaction
+et verrou par annonce pour éviter les doublons lors d'un rejeu. Les nouveaux
+services KYC et alertes sont affectés aux moteurs existants dans le registre ;
+aucun fichier serveur orphelin ajouté.
+
+Tests isolés : création persistée, lecture, activation/désactivation, refus
+non-authentifié, refus d'accès aux alertes d'autrui, publication correspondant
+aux critères, absence de notification pour brouillon/alerte désactivée, rejeu
+sans doublon et devise XOF conservée. Aucun envoi réel à un utilisateur.
