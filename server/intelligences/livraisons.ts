@@ -36,6 +36,16 @@ export interface Livraison {
 
 export const LIVRAISONS: Livraison[] = [
   {
+    cle: "branche-fix-platform-staff-motor",
+    titre: "Capture Employés : création reliée à Identité et Permissions",
+    moteurs: ["boutons", "identity", "permission"],
+    quoi: "L'écran GestionEmployesMKAPMS lit admin.staffList et crée via admin.createStaff ; codes de boutons déclarés, erreurs et résultat serveur visibles, rôles réels distingués du poste. Adresse normalisée et doublon insensible à la casse.",
+    pourquoi: "Le bouton Ajouter un employé appartenait à une maquette avec six personnes fictives et des droits non vérifiés.",
+    ou: ["client/src/pages/superadmin/GestionEmployesMKAPMS.tsx", "server/routers/admin.ts", "server/routers/__tests__/staff-motor.test.ts"],
+    lecon: "Réutiliser le moteur d'identité existant et tester les droits côté serveur. Test en base isolée : permissions, validation, création, hachage, lecture et doublon réussis ; build réussi. Aucun compte réel créé.",
+    domaine: "moteurs",
+  },
+  {
     cle: "branche-fix-platform-screenshot-motors",
     titre: "Captures plateforme : suivi honnête, exécution Boutons, flotte et KYC",
     moteurs: ["boutons", "redirection", "smart", "location", "kyc"],

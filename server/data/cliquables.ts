@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2540;
+export const CLIQUABLES_TOTAL = 2541;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -632,7 +632,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/superadmin/CentreTickets.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/ComptabiliteComplete.tsx", total: 14, moteur: 0, liens: 1, boutonsLocaux: 11, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/superadmin/CoreEngineBeta.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx", total: 4, moteur: 2, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/MoteurBoutons.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/PlanMaitreFournisseurs.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/SuppressionCompte.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
@@ -784,7 +784,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/superadmin/AdminPaiements.tsx", ligne: 216, genre: "bouton", libelle: "Relancer", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminStatistiques.tsx", ligne: 40, genre: "bouton", libelle: "Voir rapport complet", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminUtilisateurs.tsx", ligne: 90, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
-  { fichier: "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx", ligne: 41, genre: "bouton", libelle: "Ajouter un employé", motif: "sans_action" },
   { fichier: "client/src/pages/Validation.tsx", ligne: 177, genre: "bouton", libelle: "0} onClick= >", motif: "sans_action" },
   { fichier: "client/src/pages/Vehicule.tsx", ligne: 1843, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/vente/AchatExpress.tsx", ligne: 9, genre: "bouton", libelle: "Commencer un achat express", motif: "sans_action" },

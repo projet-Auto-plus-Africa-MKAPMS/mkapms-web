@@ -103,11 +103,11 @@ export const MOTEURS_TOTAL = 94;
 export const MANQUES_TOTAL = 502;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 331,
-  "bouton_sans_action": 66,
+  "bouton_sans_action": 65,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
-  "dependance_non_declaree": 41,
+  "dependance_non_declaree": 42,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
@@ -3906,7 +3906,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "smart",
       "vente",
       "vente_pro",
-      "vo"
+      "vo",
+      "workflow"
     ],
     "evenementsPublies": [
       "bouton.sans_action"
@@ -4084,6 +4085,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/superadmin/AdminValidationDocs.tsx",
         "route": "/superadmin/admin-validation-docs",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx",
+        "route": "/superadmin/gestion-employes-m-k-a-p-m-s",
         "composants": [
           "lib/boutonMoteur.tsx"
         ]
@@ -6130,6 +6138,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/superadmin/AdminValidationDocs.tsx",
         "route": "/superadmin/admin-validation-docs",
+        "composants": [
+          "trpc.admin"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx",
+        "route": "/superadmin/gestion-employes-m-k-a-p-m-s",
         "composants": [
           "trpc.admin"
         ]
@@ -23413,6 +23428,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependancesDetectees": [
       "audit",
+      "boutons",
       "core",
       "identity",
       "notification",
@@ -23420,6 +23436,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependances": [
       "audit",
+      "boutons",
       "core",
       "identity",
       "notification",
@@ -23433,6 +23450,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "preuvesDependances": {
       "audit": [
         "routers/operations.ts importe audit.ts"
+      ],
+      "boutons": [
+        "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
+        "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx utilise BoutonMoteur"
       ],
       "core": [
         "routers/operations.ts importe trpc.ts",
@@ -23459,7 +23480,24 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "evenementsConsommes": [],
     "abonnements": [],
     "sourcesEmission": [],
-    "boutons": [],
+    "boutons": [
+      {
+        "code": "admin_employe_ajouter",
+        "libelle": "Ajouter un employé",
+        "genre": "formulaire",
+        "ecran": "/superadmin/gestion-employes-m-k-a-p-m-s",
+        "fichier": "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx",
+        "ligne": 28
+      },
+      {
+        "code": "admin_employe_enregistrer",
+        "libelle": "Créer le compte",
+        "genre": "formulaire",
+        "ecran": "/superadmin/gestion-employes-m-k-a-p-m-s",
+        "fichier": "client/src/pages/superadmin/GestionEmployesMKAPMS.tsx",
+        "ligne": 38
+      }
+    ],
     "routes": [
       "/corporate",
       "/corporate/a-propos",
@@ -23893,11 +23931,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/gestion-employes-m-k-a-p-m-s"
         ],
-        "cliquables": 3,
-        "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 12,
-        "mots": 28
+        "cliquables": 4,
+        "parMoteur": 2,
+        "sansAction": 0,
+        "textes": 15,
+        "mots": 51
       }
     ],
     "ecransHotes": [
@@ -24019,8 +24057,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 252,
-    "mots": 741,
+    "textes": 255,
+    "mots": 764,
     "battement": "sonde",
     "manques": [
       {
@@ -24152,8 +24190,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« Modifier objectif » client/src/pages/superadmin/AdminObjectif.tsx:35"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Ajouter un employé » client/src/pages/superadmin/GestionEmployesMKAPMS.tsx:41"
+        "genre": "dependance_non_declaree",
+        "detail": "boutons — client/src/pages/superadmin/GestionEmployesMKAPMS.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       },
       {
         "genre": "dependance_sans_preuve",

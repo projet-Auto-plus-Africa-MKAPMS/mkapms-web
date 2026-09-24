@@ -54,6 +54,8 @@ export interface ActionBouton {
 }
 
 export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
+  { code: "admin_employe_ajouter", libelle: "Ajouter un employé", ecran: "/superadmin/gestion-employes-m-k-a-p-m-s", genre: "formulaire", moteur: "identity", procedure: "admin.createStaff", cible: "formulaire_creation_compte" },
+  { code: "admin_employe_enregistrer", libelle: "Créer le compte", ecran: "/superadmin/gestion-employes-m-k-a-p-m-s", genre: "formulaire", moteur: "identity", procedure: "admin.createStaff", cible: "admin.createStaff" },
   { code: "admin_kyc_valider", libelle: "Valider", ecran: "/superadmin/validation-documents-complete", genre: "formulaire", moteur: "kyc", procedure: "admin.validateKyc", cible: "admin.validateKyc" },
   { code: "admin_kyc_refuser", libelle: "Refuser", ecran: "/superadmin/validation-documents-complete", genre: "formulaire", moteur: "kyc", procedure: "admin.validateKyc", cible: "admin.validateKyc" },
   {
