@@ -36,6 +36,16 @@ export interface Livraison {
 
 export const LIVRAISONS: Livraison[] = [
   {
+    cle: "branche-fix-smart-observation-health-contract",
+    titre: "Cycle intelligent : distinguer santé green et statut de tâche ok",
+    moteurs: ["smart_audit", "smart"],
+    quoi: "L’étape observer du cycle compte les catégories yellow/red comme anormales et conserve les catégories green comme saines.",
+    pourquoi: "La comparaison à ok ne correspondait à aucune valeur du contrat HealthLevel (green/yellow/red). Tous les domaines, même sains, étaient donc annoncés hors état normal dans le résumé du cycle.",
+    ou: ["server/smart-audit/service.ts", "server/smart-audit/__tests__/health-observation.test.ts"],
+    lecon: "Ne pas confondre statut d’une tâche et santé d’un service. Tester un instantané entièrement sain et un instantané mixte avant de faire consommer le diagnostic à l’IA.",
+    domaine: "moteurs",
+  },
+  {
     cle: "branche-fix-country-map-activity",
     titre: "Capture AdminCarteMoniale : activité réelle par pays et détail consultable",
     moteurs: ["country", "boutons", "identity", "achat", "payment"],
