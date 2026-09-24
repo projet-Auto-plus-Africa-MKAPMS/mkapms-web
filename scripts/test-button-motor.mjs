@@ -1,0 +1,37 @@
+import {createRequire} from 'node:module';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+const require=createRequire(new URL('../package.json', import.meta.url));
+const folder=mkdtempSync(join(tmpdir(), 'mkapms-button-test-'));
+const output=join(folder,'button.cjs');
+const {build}=require('esbuild');
+await build({entryPoints:['client/src/lib/boutonMoteur.tsx'],bundle:true,platform:'node',format:'cjs',outfile:output,jsx:'automatic',external:[require.resolve('react'),require.resolve('react/jsx-runtime')],plugins:[{name:'test-adapters',setup(b){
+b.onResolve({filter:/^react(?:\/jsx-runtime)?$/},a=>({path:require.resolve(a.path),external:true}));
+b.onResolve({filter:/^\.\/trpc$/},()=>({path:'trpc',namespace:'test'}));
+b.onResolve({filter:/^react-router-dom$/},()=>({path:'router',namespace:'test'}));
+b.onLoad({filter:/.*/,namespace:'test'},a=>({contents:a.path==='trpc'?`export const trpc={buttonEngine:{resoudre:{useQuery:()=>globalThis.fixture.query},signaler:{useMutation:()=>({mutate:x=>globalThis.fixture.traces.push(x)})}}};`:`import React from 'react'; export const Link=({to,...p})=>React.createElement('a',{...p,href:to});`,loader:'js'}));}}]});
+const React=require('react');
+const {create,act}=require('react-test-renderer');
+const {BoutonMoteur}=require(output);
+const assert=(await import('node:assert/strict')).default;
+const fixture=globalThis.fixture={query:{data:{genre:'formulaire',cible:'test',connue:true}},traces:[]};
+let finish,calls=0,root;
+await act(async()=>{root=create(React.createElement(BoutonMoteur,{code:'test',onExecuter:()=>{calls++;return new Promise(r=>finish=r)}},'Exécuter'));});
+let promise;
+act(()=>{promise=root.root.findByType('button').props.onClick();});
+assert.equal(fixture.traces.length,0);assert.equal(root.root.findByType('button').props.disabled,true);
+await act(async()=>{await root.root.findByType('button').props.onClick()});assert.equal(calls,1);
+await act(async()=>{finish();await promise});assert.equal(fixture.traces[0].outcome,'navigated');
+await act(async()=>{root.update(React.createElement(BoutonMoteur,{code:'test',onExecuter:async()=>{throw new Error('Échec métier')}},'Exécuter'));});
+await act(async()=>{await root.root.findByType('button').props.onClick()});
+assert.equal(fixture.traces[1].outcome,'error');assert.equal(root.root.findByProps({role:'alert'}).children[0],'Échec métier');
+await act(async()=>{root.update(React.createElement(BoutonMoteur,{code:'test',onExecuter:async()=>false},'Exécuter'));});
+await act(async()=>{await root.root.findByType('button').props.onClick()});
+assert.equal(fixture.traces.length,2);
+fixture.query={data:{genre:'navigation',cible:'/test'}};
+await act(async()=>root.update(React.createElement(BoutonMoteur,{code:'test',desactive:'Dossier incomplet'},'Suite')));
+assert.equal(root.root.findAllByType('a').length,0);assert.equal(root.root.findByType('button').props.disabled,true);
+console.log('BoutonMoteur : attente, anti-double-clic, succès, échec, annulation et navigation désactivée : OK');
+
+rmSync(folder,{recursive:true,force:true});

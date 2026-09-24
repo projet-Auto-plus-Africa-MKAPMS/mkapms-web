@@ -82,6 +82,8 @@ export function construireDiagnosticBouton(input: {
     evenement: "bouton.sans_action",
     dependance: action.genre === "navigation" ? "redirection" : "service_proprietaire",
     elementsTechniques: [
+      `moteur=${action.moteur ?? "non renseigné"}`,
+      `procedure=${action.procedure ?? "non renseignée"}`,
       `code=${input.code}`,
       `genre=${action.genre}`,
       `outcome=${input.outcome}`,

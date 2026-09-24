@@ -341,6 +341,11 @@ export async function resolveAlertWithLearning(input: {
         if (element.startsWith("static_L") && isKnownGhostButton(page, element)) {
           motifNonCorrige =
             "Ce bouton est toujours sans gestionnaire de clic dans le code (détection statique) : le marquer résolu ici ne changerait rien de réel et l'alerte réapparaîtrait dès le prochain contrôle. Seule une correction du code (le connecter à une action réelle) fait disparaître ce constat.";
+        } else if (element.startsWith("static_L")) {
+          await db.update(smartHealthChecks)
+            .set({ status: "archived", lastCheckedAt: new Date() })
+            .where(and(eq(smartHealthChecks.page, page), eq(smartHealthChecks.element, element)));
+          motifNonCorrige = "Ce relevé statique n'est plus actuel. Il est archivé ; un test métier reste nécessaire pour confirmer le fonctionnement.";
         } else {
           const res = await db
             .update(smartHealthChecks)

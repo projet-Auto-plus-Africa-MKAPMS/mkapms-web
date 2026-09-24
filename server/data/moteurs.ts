@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 504;
+export const MANQUES_TOTAL = 502;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
-  "ecran_sans_contenu": 330,
-  "bouton_sans_action": 70,
+  "ecran_sans_contenu": 331,
+  "bouton_sans_action": 66,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
-  "dependance_non_declaree": 40,
+  "dependance_non_declaree": 41,
   "bouton_declare_absent_ecran": 5,
   "emission_dynamique": 2
 };
@@ -119,7 +119,9 @@ export const ROUTES_SANS_MOTEUR: readonly string[] = [];
 export const ROUTEURS_SANS_MOTEUR: readonly string[] = [];
 
 /** Fichiers serveur qu'aucun moteur ne possède (hors racine technique). */
-export const FICHIERS_SANS_MOTEUR: readonly string[] = [];
+export const FICHIERS_SANS_MOTEUR: readonly string[] = [
+  "modules/kyc-decision.ts"
+];
 
 export const MOTEURS: readonly PerimetreMoteur[] = [
   {
@@ -3900,6 +3902,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "garage",
       "livraison",
       "livraison_vehicule",
+      "location_pro",
       "smart",
       "vente",
       "vente_pro",
@@ -3931,6 +3934,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       }
     ],
     "ecransHotes": [
+      {
+        "fichier": "client/src/pages/LocationPro.tsx",
+        "route": "/louer/pro",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
       {
         "fichier": "client/src/pages/LivraisonVehicule.tsx",
         "route": "/livraison-vehicule",
@@ -4067,6 +4077,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/garage/ValidationInterne.tsx",
         "route": "/garage/validation-interne",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/superadmin/AdminValidationDocs.tsx",
+        "route": "/superadmin/admin-validation-docs",
         "composants": [
           "lib/boutonMoteur.tsx"
         ]
@@ -7221,7 +7238,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "preuvesDependances": {
       "boutons": [
         "client/src/pages/CatalogueTechnique.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
-        "client/src/pages/CatalogueTechnique.tsx utilise BoutonMoteur"
+        "client/src/pages/CatalogueTechnique.tsx utilise BoutonMoteur",
+        "client/src/pages/superadmin/AdminValidationDocs.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       ],
       "core": [
         "document-os/index.ts importe db.ts",
@@ -7255,6 +7273,22 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "abonnements": [],
     "sourcesEmission": [],
     "boutons": [
+      {
+        "code": "admin_kyc_refuser",
+        "libelle": "Refuser",
+        "genre": "formulaire",
+        "ecran": "/superadmin/admin-validation-docs",
+        "fichier": "client/src/pages/superadmin/AdminValidationDocs.tsx",
+        "ligne": 155
+      },
+      {
+        "code": "admin_kyc_valider",
+        "libelle": "Valider",
+        "genre": "formulaire",
+        "ecran": "/superadmin/admin-validation-docs",
+        "fichier": "client/src/pages/superadmin/AdminValidationDocs.tsx",
+        "ligne": 148
+      },
       {
         "code": "catalogue_technique_commander_piece",
         "libelle": "Commander la pièce dans l'univers Pièces",
@@ -7335,9 +7369,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/controle-documents"
         ],
-        "cliquables": 4,
+        "cliquables": 3,
         "parMoteur": 0,
-        "sansAction": 1,
+        "sansAction": 0,
         "textes": 13,
         "mots": 86
       },
@@ -7369,7 +7403,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "/superadmin/admin-validation-docs"
         ],
         "cliquables": 3,
-        "parMoteur": 0,
+        "parMoteur": 2,
         "sansAction": 0,
         "textes": 14,
         "mots": 80
@@ -7379,11 +7413,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/validation-documents-complete"
         ],
-        "cliquables": 3,
+        "cliquables": 0,
         "parMoteur": 0,
-        "sansAction": 2,
-        "textes": 12,
-        "mots": 34
+        "sansAction": 0,
+        "textes": 0,
+        "mots": 0
       }
     ],
     "ecransHotes": [
@@ -7427,21 +7461,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 355,
-    "mots": 1105,
+    "textes": 343,
+    "mots": 1071,
     "battement": "pont_os",
     "manques": [
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Vérifications incomplètes » client/src/pages/ControleDocuments.tsx:159"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Valider » client/src/pages/superadmin/ValidationDocumentsComplete.tsx:38"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Refuser » client/src/pages/superadmin/ValidationDocumentsComplete.tsx:38"
+        "genre": "ecran_sans_contenu",
+        "detail": "client/src/pages/superadmin/ValidationDocumentsComplete.tsx (0 texte(s))"
       },
       {
         "genre": "dependance_non_declaree",
@@ -12128,11 +12154,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependancesDetectees": [
       "achat",
+      "boutons",
       "country",
       "location"
     ],
     "dependances": [
       "achat",
+      "boutons",
       "core",
       "country",
       "location"
@@ -12143,6 +12171,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/LocationPro.tsx appelle trpc.annonces",
         "client/src/pages/ProduitLocation.tsx appelle trpc.annonces",
         "client/src/pages/ProduitLocation.tsx embarque components/ReserverLocationButton.tsx (trpc.reservations)"
+      ],
+      "boutons": [
+        "client/src/pages/LocationPro.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
+        "client/src/pages/LocationPro.tsx utilise BoutonMoteur"
       ],
       "country": [
         "client/src/pages/LocationPro.tsx embarque lib/currency.tsx (trpc.currency)"
@@ -12158,7 +12190,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "evenementsConsommes": [],
     "abonnements": [],
     "sourcesEmission": [],
-    "boutons": [],
+    "boutons": [
+      {
+        "code": "location_devis_flotte",
+        "libelle": "Demander un devis flotte",
+        "genre": "navigation",
+        "ecran": "/louer/pro",
+        "fichier": "client/src/pages/LocationPro.tsx",
+        "ligne": 612
+      }
+    ],
     "routes": [
       "/entreprises",
       "/entreprises/centre-carburant",
@@ -12208,8 +12249,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "/louer/pro"
         ],
         "cliquables": 9,
-        "parMoteur": 0,
-        "sansAction": 1,
+        "parMoteur": 1,
+        "sansAction": 0,
         "textes": 100,
         "mots": 481
       },
@@ -12408,10 +12449,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "detail": "« Appliquer la franchise » client/src/pages/GestionFranchises.tsx:89"
       },
       {
-        "genre": "bouton_sans_action",
-        "detail": "« Demander un devis flotte » client/src/pages/LocationPro.tsx:611"
-      },
-      {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/SectionAccueil.tsx (4 texte(s))"
       },
@@ -12450,6 +12487,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/entreprises/RapportsEntreprises.tsx (3 texte(s))"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "boutons — client/src/pages/LocationPro.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       },
       {
         "genre": "sans_logique_serveur",
@@ -20413,8 +20454,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 60,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 276,
-        "mots": 1432
+        "textes": 277,
+        "mots": 1448
       }
     ],
     "ecransHotes": [
@@ -20595,8 +20636,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "pdg",
       "public"
     ],
-    "textes": 337,
-    "mots": 1707,
+    "textes": 338,
+    "mots": 1723,
     "battement": "contrat",
     "manques": []
   },

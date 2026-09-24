@@ -1,3 +1,4 @@
+import { BoutonMoteur } from "../../lib/boutonMoteur";
 // Validation des justificatifs par la direction.
 //
 // L'écran affichait cinq dossiers écrits en dur et trois boutons (« Voir »,
@@ -74,16 +75,15 @@ export default function AdminValidationDocs() {
     onError: (e) => setErreur(e.message),
   });
 
-  const decision = (profileId: number, action: "valide" | "refuse") => {
+  const decision = async (profileId: number, action: "valide" | "refuse") => {
     if (action === "refuse") {
       const reason = window.prompt("Motif du refus (communiqué au professionnel) :");
-      if (!reason) return;
-      decider.mutate({ profileId, action, reason });
-      return;
+      if (!reason) return false;
+      return await decider.mutateAsync({ profileId, action, reason });
     }
     if (!window.confirm("Valider ce dossier ? La décision est enregistrée à ton nom."))
-      return;
-    decider.mutate({ profileId, action });
+      return false;
+    return await decider.mutateAsync({ profileId, action });
   };
 
   return (
@@ -145,20 +145,20 @@ export default function AdminValidationDocs() {
                 <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2">
                   <DossierPieces profileId={d.id} />
                   <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() => decision(d.id, "valide")}
-                      disabled={decider.isPending}
+                    <BoutonMoteur code="admin_kyc_valider"
+                      onExecuter={() => decision(d.id, "valide")}
+                      desactive={decider.isPending ? "Décision en cours" : undefined}
                       className="flex-1 rounded-lg bg-green-500 py-1.5 text-[9px] font-bold text-white flex items-center justify-center gap-1 disabled:opacity-50"
                     >
                       <Check size={10} /> Valider
-                    </button>
-                    <button
-                      onClick={() => decision(d.id, "refuse")}
-                      disabled={decider.isPending}
+                    </BoutonMoteur>
+                    <BoutonMoteur code="admin_kyc_refuser"
+                      onExecuter={() => decision(d.id, "refuse")}
+                      desactive={decider.isPending ? "Décision en cours" : undefined}
                       className="flex-1 rounded-lg bg-red-50 py-1.5 text-[9px] font-bold text-red-600 flex items-center justify-center gap-1 disabled:opacity-50"
                     >
                       <X size={10} /> Refuser
-                    </button>
+                    </BoutonMoteur>
                   </div>
                 </div>
               )}

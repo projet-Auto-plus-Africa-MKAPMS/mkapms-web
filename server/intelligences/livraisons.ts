@@ -36,6 +36,16 @@ export interface Livraison {
 
 export const LIVRAISONS: Livraison[] = [
   {
+    cle: "branche-fix-platform-screenshot-motors",
+    titre: "Captures plateforme : suivi honnête, exécution Boutons, flotte et KYC",
+    moteurs: ["boutons", "redirection", "smart", "location", "kyc"],
+    quoi: "Archive les anciens relevés statiques sans faux OK ; attend le résultat métier, bloque les doubles clics et rend les erreurs visibles ; raccorde le devis flotte au parcours existant et la validation documentaire au moteur KYC avec décision transactionnelle.",
+    pourquoi: "Les captures montrent des erreurs sous statut OK et des écrans maquettes sans service métier. Ce lot ne prétend pas résoudre les autres maquettes.",
+    ou: ["docs/audits/2026-09-24-captures-plateforme.md", "server/button-engine", "server/smart-engine/services/health-monitor.ts", "server/modules/kyc-decision.ts"],
+    lecon: "Un relevé absent n'est pas une preuve de réussite ; un clic n'est réussi qu'après le traitement attendu. Tests composant, base isolée et build réussis ; 39 diagnostics TypeScript préexistants subsistent. La liste explicite des écrans restants est conservée dans l'audit.",
+    domaine: "moteurs",
+  },
+  {
     cle: "pr-282",
     titre: "Inventaire calculé des 88 moteurs + dépendances réellement branchées",
     moteurs: ["core", "engine_registry", "notification", "scheduler", "smart", "document", "country", "monitoring"],

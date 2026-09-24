@@ -2379,6 +2379,7 @@ function SanteTab() {
         <StatCard label="Cassés" value={data.broken} color="red" icon={XCircle} onClick={() => toggle("broken")} active={statusFilter === "broken"} />
         <StatCard label="Lents" value={data.slow} color="yellow" icon={Clock} onClick={() => toggle("slow")} active={statusFilter === "slow"} />
       </div>
+      <p className="text-xs text-slate-600">{data.archived} anciens relevés archivés, exclus des compteurs. Une détection statique ne remplace pas un test du parcours.</p>
       {statusFilter && items.length === 0 && <Empty msg="Aucun élément dans cette catégorie" />}
       <div className="space-y-2">
         {items.map((h: any) => (

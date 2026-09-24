@@ -47,7 +47,7 @@ async function main() {
   verif("2. second passage sans changement : synced=0", second.synced === 0);
   verif("2. second passage sans changement : resolved=0", second.resolved === 0);
 
-  // ── 3. Un bouton « corrigé » (disparu de l'inventaire) repasse à "ok" ──
+  // ── 3. Un bouton « corrigé » (disparu de l'inventaire) est archivé ──
   const pageTest = "client/src/pages/__test_fictif_sync_boutons__.tsx";
   const elementTest = "static_L999999";
   await db.insert(smartHealthChecks).values({
@@ -58,13 +58,13 @@ async function main() {
     errorDetails: "Ligne de test — jamais dans l'inventaire réel.",
   });
   const third = await syncBoutonsSansAction();
-  verif("3. bouton disparu de l'inventaire : resolved >= 1", third.resolved >= 1);
+  verif("3. bouton disparu de l'inventaire : obsoletes >= 1", third.obsoletes >= 1);
   const [apresResolution] = await db
     .select({ status: smartHealthChecks.status })
     .from(smartHealthChecks)
     .where(and(eq(smartHealthChecks.page, pageTest), eq(smartHealthChecks.element, elementTest)))
     .limit(1);
-  verif("3. la ligne de test repasse bien à « ok »", apresResolution?.status === "ok");
+  verif("3. la ligne de test est archivée sans faux succès", apresResolution?.status === "archived");
   // Nettoyage : cette ligne est un artefact de test, jamais un vrai bouton de la plateforme.
   await db.delete(smartHealthChecks).where(and(eq(smartHealthChecks.page, pageTest), eq(smartHealthChecks.element, elementTest)));
 
