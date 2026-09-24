@@ -193,3 +193,53 @@ absence de pays distincte de NA (Namibie), devises séparées, échecs/attentes
 exclus des encaissements, pagination sans doublons, rôles public/pro refusés.
 Build réussi ; 39 diagnostics TypeScript préexistants inchangés. Vérification
 visuelle de production non effectuée (502 laissé de côté à la demande).
+
+## Suivi exhaustif des 30 lignes IMG_1871 à IMG_1875
+
+Les lignes sont les références des captures, pas des identifiants durables :
+un ajout de code peut déplacer un bouton. Le tableau distingue la correction
+livrée des signalements encore présents ; il ne les transforme pas en succès.
+
+| Capture | Fichier dans client/src/pages | Ligne | Action | Moteur propriétaire dans l’inventaire | État |
+|---|---|---|---|---|---|
+| IMG_1871 | superadmin/AdminCarteMoniale.tsx | 23 | Utilisateurs · annonces | country | Corrigé et testé — PR #438 |
+| IMG_1871 | ProduitVtcTaxi.tsx | 493 | Télécharger | location | Signalement encore présent — correction métier non livrée |
+| IMG_1871 | vente/MultiSites.tsx | 17 | Ajouter un site | vente | Signalement encore présent — correction métier non livrée |
+| IMG_1871 | vente/CentreReservationAchat.tsx | 15 | Réserver ce véhicule | vente | Signalement encore présent — correction métier non livrée |
+| IMG_1871 | vente/CentreRapportsVehicule.tsx | 19 | Télécharger le rapport PDF | vente | Signalement encore présent — correction métier non livrée |
+| IMG_1871 | vente/CentreExport.tsx | 17 | Libellé dynamique / icône | vente | Signalement encore présent — correction métier non livrée |
+| IMG_1872 | vente/CentreDetectionFraude.tsx | 17 | Voir | vente | Signalement encore présent — correction métier non livrée |
+| IMG_1872 | vente/CentreControleQualite.tsx | 20 | Libellé dynamique / icône | vente | Signalement encore présent — correction métier non livrée |
+| IMG_1872 | vente/CentreCampagnes.tsx | 16 | Nouvelle campagne | vente | Signalement encore présent — correction métier non livrée |
+| IMG_1872 | vente/CentreAchatDistance.tsx | 10 | Continuer mon achat | vente | Signalement encore présent — correction métier non livrée |
+| IMG_1872 | vente/AlertesAuto.tsx | 17 | Traiter | vente | Signalement encore présent — correction métier non livrée |
+| IMG_1872 | vente/AchatExpress.tsx | 9 | Commencer un achat express | vente | Signalement encore présent — correction métier non livrée |
+| IMG_1873 | superadmin/AdminUtilisateurs.tsx | 90 | Libellé dynamique / icône | identity | Signalement encore présent — correction métier non livrée |
+| IMG_1873 | superadmin/AdminStatistiques.tsx | 40 | Voir rapport complet | monitoring | Signalement encore présent — correction métier non livrée |
+| IMG_1873 | superadmin/AdminPaiements.tsx | 216 | Relancer | payment | Signalement encore présent — correction métier non livrée |
+| IMG_1873 | superadmin/AdminObjectif.tsx | 35 | Modifier objectif | workflow | Signalement encore présent — correction métier non livrée |
+| IMG_1873 | superadmin/AdminGarage.tsx | 75 | Details | garage | Signalement encore présent — correction métier non livrée |
+| IMG_1873 | superadmin/AdminEmployes.tsx | 275 | Libellé dynamique / icône | workflow | Signalement encore présent — correction métier non livrée |
+| IMG_1874 | superadmin/AdminBadges.tsx | 36 | Gerer criteres | payment | Signalement encore présent — correction métier non livrée |
+| IMG_1874 | superadmin/AdminAbonnements.tsx | 63 | Historique | payment | Signalement encore présent — correction métier non livrée |
+| IMG_1874 | superadmin/AdminAbonnements.tsx | 62 | Gerer | payment | Signalement encore présent — correction métier non livrée |
+| IMG_1874 | superadmin/AdminAbonnements.tsx | 31 | Libellé dynamique / icône | payment | Signalement encore présent — correction métier non livrée |
+| IMG_1874 | ReservationRecurrente.tsx | 106 | Choisir un véhicule → | location | Signalement encore présent — correction métier non livrée |
+| IMG_1874 | ReservationRecurrente.tsx | 76 | Modifier | location | Signalement encore présent — correction métier non livrée |
+| IMG_1875 | ReservationRecurrente.tsx | 75 | Prolonger | location | Signalement encore présent — correction métier non livrée |
+| IMG_1875 | ReservationMulti.tsx | 97 | Réserver véhicules | location | Signalement encore présent — correction métier non livrée |
+| IMG_1875 | RenouvellementLocation.tsx | 171 | Confirmer le retrait / retour | location | Signalement encore présent — correction métier non livrée |
+| IMG_1875 | RenouvellementLocation.tsx | 126 | Prolonger ma location | location | Signalement encore présent — correction métier non livrée |
+| IMG_1875 | RemplacementVehicule.tsx | 106 | Accepter | location | Signalement encore présent — correction métier non livrée |
+| IMG_1875 | RemplacementVehicule.tsx | 68 | Envoyer la demande | location | Signalement encore présent — correction métier non livrée |
+
+### Causes déjà confirmées, à traiter sans supprimer les fonctions
+
+- **ProduitVtcTaxi** : le bouton sert au dépôt des justificatifs, malgré le libellé « Télécharger ». Aucun fichier n’est envoyé. Le parcours de signature change seulement d’étape locale et la réservation finale crée une demande ; dépôt, éligibilité, contrat et paiement doivent être reliés au même dossier.
+- **Vente / achat** : les pages MultiSites, Réservation achat, Rapport véhicule, Export, Fraude, Qualité, Campagnes, Achat à distance, Alertes et Achat express utilisent des constantes de démonstration. Exemple : contrôle qualité fixé à six points validés sur sept ; achat à distance déjà affiché réservé/payé sans lecture de preuve. Il faut traiter les données et les commandes, pas seulement ajouter onClick.
+- **Administration** : comptes/employés, statistiques, objectifs, interventions, badges et abonnements sont en tout ou partie des maquettes. AdminPaiements combine un audit Payment OS réel avec une liste de paiements fictifs : aucune relance ne doit utiliser ces identifiants de démonstration. AdminEmployes est distinct de GestionEmployesMKAPMS déjà corrigé.
+- **Location** : récurrence, panier multi-véhicules, renouvellement, retrait/retour et remplacement présupposent des contrats, tarifs, véhicules et propositions réels. Les listes et montants sont actuellement fictifs. La candidature de flotte existante ne couvre pas à elle seule ces workflows. Préserver les fréquences, options, documents, validations et historique lors de la construction.
+
+Ces 29 signalements restants ne sont ni masqués, ni considérés réparés par
+les corrections de supervision. Ils nécessitent leurs propres lots métier
+et tests ; les autorisations de publication déjà données restent acquises.

@@ -256,3 +256,12 @@ base isolée : 94 moteurs lus, panne/disabled conservés, filtre détaillé, ref
 public/pro/employé/sans acteur. Aucune activation ni écriture métier.
 La correction autonome des workflows, l’accès effectif à un modèle IA en
 production et l’intégration de chacun des domaines restent à vérifier séparément.
+
+## Cycle intelligent — faux diagnostic systématique
+
+L’étape `observer` comparait HealthCategory.level à `ok`, alors que les seules
+valeurs sont `green`, `yellow`, `red`. Le cycle annonçait donc TOUS les domaines
+hors état normal, même ceux affichés verts. Correction du contrat consommé,
+test d’une plateforme entièrement verte (0 anomalie) et d’un mélange
+vert/jaune/rouge (seuls jaune/rouge comptés). Aucune alerte réelle masquée.
+Ce défaut figurait également parmi les diagnostics TypeScript préexistants.
