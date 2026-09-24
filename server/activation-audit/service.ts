@@ -158,12 +158,16 @@ function technicalStatus(
   if (engine.unhealthyDependencies.length > 0) return "partiel";
   if (engine.state === "read_only") return "partiel";
   if (engine.state === "maintenance") return "partiel";
+  if (engine.heartbeatStale || engine.health === "unknown") return "partiel";
   return "ok";
 }
 
-function buildItem(engine: Inventory["engines"][number], inv: Inventory): AuditItem {
+export function buildItem(engine: Inventory["engines"][number], inv: Inventory): AuditItem {
   const router = matchRouter(engine.name, inv.routers);
   const routes = matchRoutes(engine.name, inv.routeFamilies);
+  const requiredRouters = new Set([...(ROUTEURS_DECLARES.get(engine.name) ?? []), ...(ROUTEURS_PARTAGES[engine.name] ?? [])]);
+  const mounted = new Set(inv.routers.filter((r) => r.queries + r.mutations > 0).map((r) => r.namespace));
+  const missingRouters = [...requiredRouters].filter((name) => !mounted.has(name));
   const usage = inv.usage.get(engine.name) ?? null;
   const test =
     inv.tests.get(normalizeKey(engine.name)) ??
@@ -174,7 +178,7 @@ function buildItem(engine: Inventory["engines"][number], inv: Inventory): AuditI
 
   const existe = true; // présent au registre : le domaine est déclaré
   const moteurConnecte = engine.missingDependencies.length === 0;
-  const connecte = !!router && moteurConnecte;
+  const connecte = !!router && moteurConnecte && missingRouters.length === 0;
   const tech = technicalStatus(engine);
   const active = tech === "ok" || tech === "partiel";
   const accessible = routes.length > 0;
@@ -187,6 +191,7 @@ function buildItem(engine: Inventory["engines"][number], inv: Inventory): AuditI
 
   const manquant: string[] = [];
   if (!router) manquant.push("aucune procédure tRPC exposée pour ce moteur");
+  if (missingRouters.length > 0) manquant.push(`services tRPC manquants : ${missingRouters.join(", ")}`);
   if (engine.missingDependencies.length > 0) {
     manquant.push(`dépendance absente du registre : ${engine.missingDependencies.join(", ")}`);
   }
@@ -198,6 +203,9 @@ function buildItem(engine: Inventory["engines"][number], inv: Inventory): AuditI
   if (usage && usage.tablesAbsentes.length > 0) {
     manquant.push(`table(s) absente(s) : ${usage.tablesAbsentes.join(", ")}`);
   }
+  if (engine.unhealthyDependencies.length > 0) manquant.push(`dépendances indisponibles ou non vérifiées : ${engine.unhealthyDependencies.join(", ")}`);
+  if (engine.health === "unknown") manquant.push("santé inconnue");
+  if (engine.state === "maintenance" || engine.state === "read_only") manquant.push(`état administratif : ${engine.state}`);
   if (tech === "degrade") manquant.push("le moteur signale un fonctionnement dégradé");
 
   let etat: ActivationState;
@@ -213,10 +221,12 @@ function buildItem(engine: Inventory["engines"][number], inv: Inventory): AuditI
         : "Déclaré mais jamais mis en service : aucun signe de vie reçu.";
   } else if (!connecte) {
     etat = "non_connectee";
-    motif = router
+    motif = missingRouters.length > 0
+      ? `Services tRPC manquants : ${missingRouters.join(", ")}.`
+      : router
       ? `Dépendance manquante : ${engine.missingDependencies.join(", ")}.`
       : "Le moteur est déclaré et vivant mais aucune procédure tRPC ne l'expose : rien ne peut l'appeler.";
-  } else if (teste && active && utilise && systemeIntelligentConnecte) {
+  } else if (teste && tech === "ok" && utilise && systemeIntelligentConnecte && (!usage || usage.tablesAbsentes.length === 0)) {
     etat = "operationnelle";
     motif = `Exposé (${router!.queries + router!.mutations} procédures), vivant, ${usage?.rows ?? 0} enregistrement(s), ${test!.passed}/${test!.total} test(s) réussi(s).`;
   } else {
@@ -247,6 +257,8 @@ function buildItem(engine: Inventory["engines"][number], inv: Inventory): AuditI
         dependances: engine.dependencies,
       },
       trpc: router ? { espace: router.namespace, lectures: router.queries, ecritures: router.mutations } : null,
+      routeursRequis: [...requiredRouters],
+      routeursManquants: missingRouters,
       routes: routes.slice(0, 12),
       routesTotal: routes.length,
       stockage: usage,

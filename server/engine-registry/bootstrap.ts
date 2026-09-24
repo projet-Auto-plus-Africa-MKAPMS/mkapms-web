@@ -27,6 +27,7 @@ import { bridgeOsEngines } from "./os-bridge.js";
 import { ENGINE_PROBES, runProbe } from "./probes.js";
 import {
   registerEngine,
+  resolveDependencies,
   getEngine,
   heartbeat,
   publishEvent,
@@ -52,7 +53,7 @@ function isAvailableState(state: string | undefined): boolean {
 async function checkDependencies(contract: EngineContract): Promise<DependencyCheck> {
   const missing: string[] = [];
   const inactive: string[] = [];
-  for (const depId of contract.dependencies) {
+  for (const depId of resolveDependencies(contract.id, contract.dependencies)) {
     const dep = await getEngine(depId);
     if (!dep) {
       missing.push(depId);
@@ -292,8 +293,11 @@ async function probeContractEngines(): Promise<void> {
   for (const contract of ENGINE_CONTRACTS) {
     try {
       const deps = await checkDependencies(contract);
-      const health: EngineHealth = deps.ok ? "ok" : "degraded";
-      const message = deps.ok
+      const failedMigration = contract.id === "core" ? migrationFailure : null;
+      const health: EngineHealth = failedMigration ? "down" : deps.ok ? "ok" : "degraded";
+      const message = failedMigration
+        ? `Échec des migrations au démarrage : ${failedMigration}`
+        : deps.ok
         ? "Dépendances satisfaites."
         : `Dépendances manquantes (${[
             deps.missing.length ? `absentes: ${deps.missing.join(", ")}` : "",

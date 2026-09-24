@@ -64,7 +64,7 @@ export interface EngineReadiness {
   unhealthyDependencies: string[];
 }
 
-function evaluate(
+export function evaluate(
   row: typeof engineRegistry.$inferSelect,
   byName: Map<string, typeof engineRegistry.$inferSelect>,
 ): EngineReadiness {
@@ -73,7 +73,8 @@ function evaluate(
   const unhealthyDependencies = dependencies.filter((d) => {
     const dep = byName.get(d);
     if (!dep) return false;
-    return dep.health === "down" || dep.state === "disabled";
+    return dep.health !== "ok" || dep.state !== "active" || !dep.lastHeartbeat ||
+      Date.now() - new Date(dep.lastHeartbeat).getTime() > HEARTBEAT_STALE_MS;
   });
   const heartbeatStale = row.lastHeartbeat
     ? Date.now() - new Date(row.lastHeartbeat).getTime() > HEARTBEAT_STALE_MS
