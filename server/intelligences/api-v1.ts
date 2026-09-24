@@ -11,6 +11,7 @@
  * Aucune clé de fournisseur ne traverse cette API.
  */
 import { Router, type Request, type Response } from "express";
+import { shopKnowledge } from "./shop-knowledge.js";
 import { verifyToken } from "../auth.js";
 import { CAPACITES, registre, resume, type CodeCapacite } from "./capacites.js";
 import { router as routerCapacite } from "./routeur.js";
@@ -33,6 +34,7 @@ function role(req: Request): { role: string | null; uid: number | null } {
 }
 
 export const apiV1 = Router();
+apiV1.use(shopKnowledge);
 
 interface Acces {
   role: string | null;
