@@ -1,9 +1,10 @@
+import { notifyMatchingSearches, notifyPublishedAnnonce } from "../modules/search-alerts.js";
 import { z } from "zod";
 import { and, desc, eq, gte, ilike, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
-import { annonces, annoncePhotos, users, subscriptions, savedSearches, notifications } from "../schema.js";
+import { annonces, annoncePhotos, users, subscriptions, notifications } from "../schema.js";
 import { getPlan } from "@shared/plans.js";
 import { logAction } from "../audit.js";
 import { makeReference } from "../reference.js";
@@ -77,49 +78,7 @@ async function selectAnnoncesResilient<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
-// Alerte « recherche sauvegardée » (Partie 6) : à chaque nouvelle annonce, on
-// notifie les utilisateurs dont un filtre enregistré correspond. Jamais bloquant.
-type AnnonceRow = typeof annonces.$inferSelect;
-function matchesFilters(a: AnnonceRow, f: Record<string, unknown>): boolean {
-  const contains = (val: string | null, needle: unknown) =>
-    !needle || (val ?? "").toLowerCase().includes(String(needle).toLowerCase());
-  if (f.marque && !contains(a.marque, f.marque)) return false;
-  if (f.modele && !contains(a.modele, f.modele)) return false;
-  if (f.categorie && a.categorie !== f.categorie) return false;
-  if (f.famille && a.famille !== f.famille) return false;
-  if (f.vendeurType && a.vendeurType !== f.vendeurType) return false;
-  if (f.ville && !contains(a.ville, f.ville)) return false;
-  if (f.prixMax != null && Number(a.prix) > Number(f.prixMax)) return false;
-  if (f.q) {
-    const hay = `${a.titre} ${a.marque} ${a.modele} ${a.version ?? ""}`.toLowerCase();
-    if (!hay.includes(String(f.q).toLowerCase())) return false;
-  }
-  return true;
-}
 
-async function notifyMatchingSearches(a: AnnonceRow) {
-  const searches = await db
-    .select()
-    .from(savedSearches)
-    .where(and(eq(savedSearches.alertEnabled, true), eq(savedSearches.univers, a.type)));
-  const matched = searches.filter(
-    (s) => s.userId !== a.ownerId && matchesFilters(a, (s.filters ?? {}) as Record<string, unknown>),
-  );
-  if (!matched.length) return;
-  await db.insert(notifications).values(
-    matched.map((s) => ({
-      userId: s.userId,
-      type: "saved_search",
-      title: `Nouvelle annonce pour « ${s.label} »`,
-      body: `${a.titre} — ${Number(a.prix).toLocaleString("fr-FR")} €`,
-      url: `/vehicule/${a.id}`,
-    })),
-  );
-  const now = new Date();
-  for (const s of matched) {
-    await db.update(savedSearches).set({ lastNotifiedAt: now }).where(eq(savedSearches.id, s.id));
-  }
-}
 
 // Quota d'annonces du pro selon son abonnement actif. Renvoie l'état SANS bloquer
 // (règle Partie A §2 : on facture les dépassements, on ne bloque jamais).
@@ -1146,6 +1105,7 @@ export const annoncesRouter = router({
 
       if (Object.keys(filtered).length > 0) {
         await db.update(annonces).set(filtered).where(eq(annonces.id, id));
+        if (filtered.status === "publiee" && a.status !== "publiee") await notifyPublishedAnnonce(id).catch(() => undefined);
       }
 
       // Mise à jour des photos si fournies
@@ -1262,6 +1222,7 @@ export const annoncesRouter = router({
         expiresAt: newExpires,
         status: "publiee",
       }).where(eq(annonces.id, input.id));
+      if (a.status !== "publiee") await notifyPublishedAnnonce(input.id).catch(() => undefined);
       await logAction(ctx.user.uid, "annonce.prolong", "annonce", input.id, { newExpiresAt: newExpires.toISOString() });
 
       // Notifications — prolongation

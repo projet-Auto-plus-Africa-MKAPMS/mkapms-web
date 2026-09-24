@@ -1,25 +1,44 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, Bell, Plus, Trash2, Check } from "lucide-react";
-const ALERTES = [
-  { recherche: "BMW X5 < 25 000 €", resultats: 3, active: true },
-  { recherche: "Peugeot 3008 diesel auto", resultats: 8, active: true },
-  { recherche: "Mercedes GLC < 30 000 km", resultats: 1, active: false },
-];
+import { trpc } from "../../lib/trpc";
+import { useAuth } from "../../lib/auth";
+import { BoutonMoteur } from "../../lib/boutonMoteur";
+
 export default function CentreAlertesRecherche() {
-  return (
-    <div className="min-h-screen bg-[#F5F3EF] pb-24">
-      <div className="bg-[#111] px-4 pt-6 pb-5"><Link to="/acheter" className="flex items-center gap-1 text-sm text-white/60 mb-2"><ChevronLeft size={14} /> Vente</Link><h1 className="text-xl font-black text-white flex items-center gap-2"><Bell size={20} className="text-[#D4AF37]" /> Alertes recherche</h1></div>
-      <div className="px-4 mt-4 space-y-2">{ALERTES.map(a => (
-        <div key={a.recherche} className="rounded-xl bg-white border border-[#E5E7EB] p-4 flex items-center gap-3">
-          <Bell size={14} className={a.active ? "text-[#D4AF37]" : "text-[#9CA3AF]"} />
-          <div className="flex-1"><h3 className="text-sm font-bold text-[#111]">{a.recherche}</h3><p className="text-[9px] text-[#6B7280]">{a.resultats} résultats · {a.active ? "Active" : "Désactivée"}</p></div>
-          <Trash2 size={14} className="text-[#9CA3AF]" />
-        </div>))}</div>
-      <div className="mx-4 mt-4 rounded-xl bg-white border border-[#E5E7EB] p-4">
-        <h3 className="text-sm font-bold text-[#111] mb-2">Nouvelle alerte</h3>
-        <input type="text" placeholder="Ex: BMW X5 moins de 25 000 €" className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-sm mb-2" />
-        <button className="w-full rounded-xl bg-[#D4AF37] py-2.5 text-sm font-bold text-white active:scale-[0.98] flex items-center justify-center gap-2"><Plus size={14} /> Créer l'alerte</button>
-      </div>
+  const { user } = useAuth();
+  const liste = trpc.searches.list.useQuery(undefined, { enabled: !!user });
+  const creer = trpc.searches.create.useMutation();
+  const activer = trpc.searches.setAlert.useMutation();
+  const [label, setLabel] = useState("");
+  const [q, setQ] = useState("");
+  const [marque, setMarque] = useState("");
+  const [modele, setModele] = useState("");
+  const [message, setMessage] = useState("");
+  async function enregistrer() {
+    await creer.mutateAsync({ label: label.trim(), univers: "vente", filters: { q: q.trim() || undefined, marque: marque.trim() || undefined, modele: modele.trim() || undefined }, alertEnabled: true });
+    setMessage("Alerte enregistrée. Les nouvelles annonces correspondantes apparaîtront dans vos notifications.");
+    setLabel(""); setQ(""); setMarque(""); setModele("");
+    void liste.refetch();
+  }
+  const manque = !label.trim() ? "Indiquez un nom pour l’alerte" : ![q, marque, modele].some(x => x.trim()) ? "Renseignez au moins un critère" : undefined;
+  return <main className="min-h-screen bg-[#F5F3EF] pb-24">
+    <header className="bg-[#111] p-5 text-white"><Link to="/acheter">← Vente</Link><h1 className="mt-3 text-xl font-bold">Alertes recherche</h1></header>
+    <div className="space-y-4 p-4">
+      {!user ? <Link to="/connexion?next=%2Fvente%2Fcentre-alertes-recherche" className="underline">Connectez-vous pour gérer vos alertes</Link> : <>
+        {liste.isLoading && <p role="status">Chargement des alertes…</p>}
+        {liste.error && <p role="alert" className="text-red-700">{liste.error.message}</p>}
+        {liste.data?.filter(a => a.univers === "vente").length === 0 && <p>Aucune alerte de vente enregistrée.</p>}
+        {liste.data?.filter(a => a.univers === "vente").map(a => <article key={a.id} className="space-y-2 rounded-xl border bg-white p-4"><h2 className="font-bold">{a.label}</h2><p>{a.alertEnabled ? "Active" : "Désactivée"}</p>
+          <BoutonMoteur code="vente_alerte_activer" className="rounded-lg border px-4 py-2" desactive={activer.isPending ? "Mise à jour en cours" : undefined} onExecuter={async () => { await activer.mutateAsync({ id: a.id, alertEnabled: !a.alertEnabled }); await liste.refetch(); }}>{a.alertEnabled ? "Désactiver" : "Activer"}</BoutonMoteur>
+        </article>)}
+        <section className="space-y-3 rounded-xl border bg-white p-4" aria-label="Nouvelle alerte"><h2 className="font-bold">Nouvelle alerte</h2>
+          {[["Nom de l’alerte", label, setLabel], ["Texte présent dans l’annonce", q, setQ], ["Marque", marque, setMarque], ["Modèle", modele, setModele]].map(([title, value, setter]) => <label key={title as string} className="block">{title as string}<input className="block w-full rounded-lg border p-3" maxLength={128} value={value as string} onChange={e => (setter as (v: string) => void)(e.target.value)} /></label>)}
+          <p className="text-sm text-slate-600">Les critères renseignés doivent tous correspondre. Le texte est recherché tel quel, sans interprétation de prix.</p>
+          {manque && <p className="text-sm text-slate-600">{manque}</p>}
+          <BoutonMoteur code="vente_alerte_creer" className="rounded-xl bg-[#D4AF37] px-5 py-3 font-bold" desactive={creer.isPending ? "Enregistrement en cours" : manque} onExecuter={enregistrer}>Créer l’alerte</BoutonMoteur>
+          {message && <p role="status" className="text-green-700">{message}</p>}
+        </section>
+      </>}
     </div>
-  );
+  </main>;
 }

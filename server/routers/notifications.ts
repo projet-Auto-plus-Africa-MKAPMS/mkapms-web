@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { router, protectedProcedure } from "../trpc.js";
 import { db } from "../db.js";
@@ -70,7 +71,7 @@ export const searchesRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        label: z.string().min(1).max(128),
+        label: z.string().trim().min(1).max(128),
         univers: z.string().default("vente"),
         filters: filtersSchema,
         alertEnabled: z.boolean().default(true),
@@ -93,10 +94,12 @@ export const searchesRouter = router({
   setAlert: protectedProcedure
     .input(z.object({ id: z.number(), alertEnabled: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
-      await db
+      const changed = await db
         .update(savedSearches)
         .set({ alertEnabled: input.alertEnabled })
-        .where(and(eq(savedSearches.id, input.id), eq(savedSearches.userId, ctx.user.uid)));
+        .where(and(eq(savedSearches.id, input.id), eq(savedSearches.userId, ctx.user.uid)))
+        .returning({ id: savedSearches.id });
+      if (!changed.length) throw new TRPCError({ code: "NOT_FOUND", message: "Alerte introuvable." });
       return { ok: true };
     }),
 

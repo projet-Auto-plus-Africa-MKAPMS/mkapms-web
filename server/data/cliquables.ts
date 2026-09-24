@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2541;
+export const CLIQUABLES_TOTAL = 2543;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -665,7 +665,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/vente/AttestationVente.tsx", total: 5, moteur: 0, liens: 2, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/AvisVendeurs.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreAchatDistance.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
-  { fichier: "client/src/pages/vente/CentreAlertesRecherche.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/vente/CentreAlertesRecherche.tsx", total: 4, moteur: 2, liens: 2, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreArchives.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreBadgesVendeurs.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/vente/CentreCampagnes.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
@@ -789,7 +789,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/vente/AchatExpress.tsx", ligne: 9, genre: "bouton", libelle: "Commencer un achat express", motif: "sans_action" },
   { fichier: "client/src/pages/vente/AlertesAuto.tsx", ligne: 17, genre: "bouton", libelle: "Traiter", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreAchatDistance.tsx", ligne: 10, genre: "bouton", libelle: "Continuer mon achat", motif: "sans_action" },
-  { fichier: "client/src/pages/vente/CentreAlertesRecherche.tsx", ligne: 21, genre: "bouton", libelle: "Créer l'alerte", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreCampagnes.tsx", ligne: 16, genre: "bouton", libelle: "Nouvelle campagne", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreControleQualite.tsx", ligne: 20, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },
   { fichier: "client/src/pages/vente/CentreDetectionFraude.tsx", ligne: 17, genre: "bouton", libelle: "Voir", motif: "sans_action" },

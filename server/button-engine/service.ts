@@ -18,6 +18,9 @@ import { heartbeat } from "../engine-registry/service.js";
 import { construireDiagnosticBouton, type DiagnosticBouton } from "./diagnostic.js";
 
 export interface ActionResolue {
+  moteur?: string;
+  procedure?: string;
+  dependances?: readonly string[];
   code: string;
   connue: boolean;
   genre: GenreAction | null;
@@ -68,6 +71,9 @@ export async function resoudreAction(
 
   return {
     code: action.code,
+    moteur: action.moteur,
+    procedure: action.procedure,
+    dependances: action.dependances,
     connue: true,
     genre: action.genre,
     libelle: action.libelle,
@@ -157,6 +163,9 @@ export async function signalerClic(
 }
 
 export interface LigneInventaire {
+  moteur?: string;
+  procedure?: string;
+  dependances?: readonly string[];
   code: string;
   libelle: string;
   ecran: string;
@@ -191,6 +200,9 @@ export function inventaire(): InventaireBoutons {
 
   const ligne = (a: ActionBouton): LigneInventaire => ({
     code: a.code,
+    moteur: a.moteur,
+    procedure: a.procedure,
+    dependances: a.dependances,
     libelle: a.libelle,
     ecran: a.ecran,
     genre: a.genre,

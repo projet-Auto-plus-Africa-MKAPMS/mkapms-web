@@ -75,7 +75,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/vente/AchatExpress.tsx", ligne: 9, libelle: "Commencer un achat express" },
   { fichier: "client/src/pages/vente/AlertesAuto.tsx", ligne: 17, libelle: "Traiter" },
   { fichier: "client/src/pages/vente/CentreAchatDistance.tsx", ligne: 10, libelle: "Continuer mon achat" },
-  { fichier: "client/src/pages/vente/CentreAlertesRecherche.tsx", ligne: 21, libelle: "Créer l'alerte" },
   { fichier: "client/src/pages/vente/CentreCampagnes.tsx", ligne: 16, libelle: "Nouvelle campagne" },
   { fichier: "client/src/pages/vente/CentreControleQualite.tsx", ligne: 20, libelle: "" },
   { fichier: "client/src/pages/vente/CentreDetectionFraude.tsx", ligne: 17, libelle: "Voir" },

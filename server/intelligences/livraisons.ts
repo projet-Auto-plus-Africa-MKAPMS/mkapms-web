@@ -36,6 +36,16 @@ export interface Livraison {
 
 export const LIVRAISONS: Livraison[] = [
   {
+    cle: "branche-fix-platform-search-alert-motor",
+    titre: "Capture Alertes recherche : Recherche reliée à Annonces et Notifications",
+    moteurs: ["boutons", "search", "notification", "identity"],
+    quoi: "Création, liste et activation d'alertes réelles ; propriété vérifiée côté serveur. Notification des annonces publiées, devise réelle et rejeu idempotent. Propriétaires et dépendances des commandes exposés, nouveaux services affectés aux moteurs existants.",
+    pourquoi: "Le formulaire affichait des alertes fictives et ne persistait aucun critère ; le service existant de publication ne protégeait pas contre le rejeu.",
+    ou: ["client/src/pages/vente/CentreAlertesRecherche.tsx", "server/routers/notifications.ts", "server/modules/search-alerts.ts", "server/engine-registry/perimetres.ts"],
+    lecon: "Tester toute la chaîne recherche enregistrée → annonce correspondante → notification, l'isolation des utilisateurs, l'exclusion des brouillons et le rejeu. Tests isolés réussis ; pas d'envoi réel ni de correction déclarée des autres écrans encore en maquette.",
+    domaine: "moteurs",
+  },
+  {
     cle: "branche-fix-platform-staff-motor",
     titre: "Capture Employés : création reliée à Identité et Permissions",
     moteurs: ["boutons", "identity", "permission"],

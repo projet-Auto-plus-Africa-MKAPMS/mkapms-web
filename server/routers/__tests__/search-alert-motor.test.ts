@@ -1,0 +1,36 @@
+import assert from "node:assert/strict";
+import { searchesRouter } from "../notifications.js";
+import { db, pool } from "../../db.js";
+import { notifyMatchingSearches } from "../../modules/search-alerts.js";
+import { notifications, annonces } from "../../schema.js";
+import type { Context } from "../../trpc.js";
+const caller = (uid: number | null) => searchesRouter.createCaller({ user: uid ? { uid, role: "user", email: "test@example.test" } : null } as Context);
+async function main() {
+  assert.match(process.env.DATABASE_URL ?? "", /(?:localhost|127\.0\.0\.1):55432\//);
+  await assert.rejects(caller(null).list(), /Connexion/);
+  await assert.rejects(caller(1).create({label:" ",filters:{q:"voiture"}}));
+  const a = await caller(1).create({label:"  Recherche test  ",univers:"vente",filters:{marque:"BMW",modele:"X5"},alertEnabled:true});
+  assert.equal(a.label,"Recherche test");assert.equal(a.userId,1);
+  assert.deepEqual(a.filters,{marque:"BMW",modele:"X5"});
+  assert.equal((await caller(1).list()).length,1);
+  assert.equal((await caller(2).list()).length,0);
+  await assert.rejects(caller(2).setAlert({id:a.id,alertEnabled:false}), /introuvable/);
+  await caller(1).setAlert({id:a.id,alertEnabled:false});
+  assert.equal((await caller(1).list())[0].alertEnabled,false);
+  await caller(1).setAlert({id:a.id,alertEnabled:true});
+  assert.equal((await caller(1).list())[0].alertEnabled,true);
+  const annonce = { id: 1, ownerId: 3, type: "vente", status: "publiee", titre: "BMW X5", marque: "BMW", modele: "X5", prix: "5000", devise: "XOF" } as typeof annonces.$inferSelect;
+  await notifyMatchingSearches({ ...annonce, status: "brouillon" });
+  assert.equal((await db.select().from(notifications)).length, 0);
+  await notifyMatchingSearches(annonce);
+  await notifyMatchingSearches(annonce);
+  const messages = await db.select().from(notifications);
+  assert.equal(messages.length, 1, "Rejeu de publication idempotent");
+  assert.equal(messages[0].userId, 1);
+  assert.match(messages[0].body!, /XOF/);
+  await caller(1).setAlert({id:a.id,alertEnabled:false});
+  await notifyMatchingSearches({ ...annonce, id: 2 });
+  assert.equal((await db.select().from(notifications)).length, 1);
+  console.log("Alertes : authentification, validation, persistance, isolation propriétaire, activation et désactivation : OK");
+}
+main().finally(()=>pool.end()).catch(e=>{console.error(e);process.exitCode=1});
