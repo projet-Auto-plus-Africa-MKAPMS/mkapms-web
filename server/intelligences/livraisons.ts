@@ -36,6 +36,16 @@ export interface Livraison {
 
 export const LIVRAISONS: Livraison[] = [
   {
+    cle: "branche-fix-ai-engine-health-tool",
+    titre: "MKA.P-MS IA : outil getSystemHealth connecté au registre vivant",
+    moteurs: ["intelligences", "core"],
+    quoi: "L’outil précédemment enregistré sans implémentation lit désormais les états réels et l’inventaire des 94 moteurs. Filtre moteur pour détailler services, dépendances, dépendants et manques statiques. Exécution via le registre et l’exécuteur existants, session Direction obligatoire.",
+    pourquoi: "L’IA avait une fiche getSystemHealth désactivée mais aucun code pour consulter effectivement ces diagnostics via sa boucle d’outils.",
+    ou: ["server/intelligences/outils/familles/globales.ts", "server/intelligences/outils/familles/outils-observabilite.ts", "server/intelligences/outils/implementations.ts", "server/intelligences/outils/__tests__/observability.test.ts"],
+    lecon: "Déclaré n’est pas implémenté. Lecture du registre et preuve métier sont distinctes ; cet outil n’applique aucune réparation. Tester les refus de rôles publics, l’acteur obligatoire, la lecture des vrais états et l’absence d’écriture avant de déclarer la capacité connectée.",
+    domaine: "moteurs",
+  },
+  {
     cle: "branche-fix-engine-dependency-evidence",
     titre: "94 moteurs : dépendances persistées et preuves d’activation complètes",
     moteurs: ["core", "activation_audit", "smart", "monitoring"],

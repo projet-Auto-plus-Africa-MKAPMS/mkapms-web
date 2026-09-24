@@ -241,3 +241,18 @@ Les manques sont des signaux statiques à diagnostiquer ; ils ne sont pas tous d
 - 10 tests des services partagés existants réussis. Build local réussi.
 - Typecheck : 39 erreurs préexistantes dans des fichiers non modifiés ; aucun diagnostic nouveau dans les fichiers de ce lot.
 - L’activation réelle, les secrets fournisseur, les permissions et l’exécution de chaque parcours métier en production restent à vérifier. Le navigateur 502 est laissé de côté à la demande du propriétaire.
+
+## Connexion de l’IA au diagnostic — lot distinct
+
+`observabilite.getSystemHealth` existait uniquement comme fiche désactivée
+REGISTERED_NOT_IMPLEMENTED. Aucun exécuteur n’était branché pour cet outil.
+Il lit maintenant `registryOverview` et l’inventaire généré : vue globale,
+puis détail par identifiant moteur. Les données du catalogue sont explicitement
+séparées de l’état vivant ; absence du registre et moteur inconnu sont signalés.
+
+Accès identique au registre de Direction (admin/super_admin), acteur authentifié
+obligatoire. La politique et l’exécuteur existants restent utilisés. Test sur
+base isolée : 94 moteurs lus, panne/disabled conservés, filtre détaillé, refus
+public/pro/employé/sans acteur. Aucune activation ni écriture métier.
+La correction autonome des workflows, l’accès effectif à un modèle IA en
+production et l’intégration de chacun des domaines restent à vérifier séparément.
