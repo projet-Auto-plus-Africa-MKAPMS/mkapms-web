@@ -55,7 +55,8 @@ export async function resoudreAction(
   let parRedirection = false;
 
   if (action.genre === "navigation" && action.cleRedirection) {
-    const regle = await resolveKey(action.cleRedirection, who);
+    // La journalisation auxiliaire ne doit pas neutraliser la destination cataloguée.
+    const regle = await resolveKey(action.cleRedirection, who).catch(() => ({ matched: false, target: null }));
     if (regle.matched && regle.target) {
       cible = regle.target;
       parRedirection = true;
@@ -148,9 +149,9 @@ export async function signalerClic(
     });
   }
 
-  await heartbeat("boutons", "ok", {
+  await heartbeat("boutons", input.outcome === "navigated" ? "ok" : "degraded", {
     message: `Dernier clic : ${input.code} (${input.outcome}).`,
-  });
+  }).catch(() => undefined);
 
   return { recorded: true, diagnostic };
 }

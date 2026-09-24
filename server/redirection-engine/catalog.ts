@@ -80,6 +80,7 @@ export const OBSERVED_KEYS: ObservedKey[] = [
 ];
 
 export const DEFAULT_REDIRECT_RULES: DefaultRule[] = [
+  { key: "bouton_location_devis_flotte", label: "Location — candidature flotte", kind: "button", target: "/louer/pro/candidature", priority: 90 },
   // ── Univers principaux ────────────────────────────────────────────────
   { key: "univers_acheter", label: "Univers — Acheter", kind: "route", target: "/acheter", priority: 100 },
   { key: "univers_louer", label: "Univers — Louer", kind: "route", target: "/louer", priority: 100 },

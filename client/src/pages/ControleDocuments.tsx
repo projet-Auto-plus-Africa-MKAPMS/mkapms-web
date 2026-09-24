@@ -156,9 +156,9 @@ export default function ControleDocuments() {
             Continuer vers la réservation
           </Link>
         ) : (
-          <button className="w-full rounded-xl py-4 text-base font-extrabold text-white transition bg-[#D4D4D4]" disabled>
-            Vérifications incomplètes
-          </button>
+          <p role="status" className="w-full rounded-xl py-4 text-center text-base font-extrabold text-slate-700 bg-slate-200">
+            Vérifications incomplètes : consultez les pièces manquantes ci-dessus.
+          </p>
         )}
       </div>
     </div>

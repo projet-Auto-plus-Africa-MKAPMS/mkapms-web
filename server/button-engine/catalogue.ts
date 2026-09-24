@@ -35,6 +35,9 @@ export interface ActionBouton {
   /** Écran où vit le bouton. */
   readonly ecran: string;
   readonly genre: GenreAction;
+  /** Moteur métier responsable et procédure réelle, pour le diagnostic. */
+  readonly moteur?: string;
+  readonly procedure?: string;
   /**
    * Destination (`navigation`), gabarit de contact (`appel`, `email`) ou
    * identifiant de document (`document`). Vide pour `formulaire` et
@@ -51,6 +54,18 @@ export interface ActionBouton {
 }
 
 export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
+  { code: "admin_kyc_valider", libelle: "Valider", ecran: "/superadmin/validation-documents-complete", genre: "formulaire", moteur: "kyc", procedure: "admin.validateKyc", cible: "admin.validateKyc" },
+  { code: "admin_kyc_refuser", libelle: "Refuser", ecran: "/superadmin/validation-documents-complete", genre: "formulaire", moteur: "kyc", procedure: "admin.validateKyc", cible: "admin.validateKyc" },
+  {
+    code: "location_devis_flotte",
+    libelle: "Demander un devis flotte",
+    ecran: "/louer/pro",
+    genre: "navigation",
+    moteur: "location",
+    procedure: "rentalApplications.create → updateStep → submit",
+    cible: "/louer/pro/candidature",
+    cleRedirection: "bouton_location_devis_flotte",
+  },
   // ── Garage — réception, restitution, contrôle ─────────────────────────
   {
     code: "garage_reception_fiche",

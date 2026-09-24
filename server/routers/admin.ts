@@ -1,3 +1,4 @@
+import { deciderKyc } from "../modules/kyc-decision.js";
 import { z } from "zod";
 import { desc, eq, sql, and } from "drizzle-orm";
 import { router, adminProcedure, directionProcedure } from "../trpc.js";
@@ -274,20 +275,7 @@ export const adminRouter = router({
 
   validateKyc: adminProcedure
     .input(z.object({ profileId: z.number(), action: z.enum(["valide", "refuse"]), reason: z.string().optional() }))
-    .mutation(async ({ ctx, input }) => {
-      await db
-        .update(kycProfiles)
-        .set({
-          status: input.action,
-          validatedAt: new Date(),
-          validatedBy: ctx.user.uid,
-          rejectionReason: input.action === "refuse" ? (input.reason ?? null) : null,
-          updatedAt: new Date(),
-        })
-        .where(eq(kycProfiles.id, input.profileId));
-      await logAction(ctx.user.uid, `kyc.${input.action}`, "kyc_profile", input.profileId);
-      return { ok: true };
-    }),
+    .mutation(async ({ ctx, input }) => deciderKyc(ctx.user.uid, input)),
 
   // Suivi des paiements (§3.2)
   paymentsList: adminProcedure

@@ -14,7 +14,7 @@
  * Chaque clic est signalé au moteur : un bouton qui mène au vide devient
  * visible côté direction sans qu'on ait besoin de le tester à la main.
  */
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { trpc } from "./trpc";
 
@@ -29,7 +29,7 @@ interface BoutonMoteurProps {
   /** Paramètres ajoutés à la destination d'une action `navigation`. */
   query?: Record<string, string>;
   /** Exécution locale d'une action `document` ou `formulaire`. */
-  onExecuter?: () => void;
+  onExecuter?: () => void | false | Promise<unknown>;
   /** Motif d'indisponibilité : le bouton reste déclaré au moteur mais n'exécute rien. */
   desactive?: string;
 }
@@ -50,24 +50,35 @@ export function BoutonMoteur({
   onExecuter,
   desactive,
 }: BoutonMoteurProps) {
-  const { data: action } = trpc.buttonEngine.resoudre.useQuery(
+  const { data: action, error: resolutionError, refetch } = trpc.buttonEngine.resoudre.useQuery(
     { code },
     { staleTime: 60_000, retry: false },
   );
   const signaler = trpc.buttonEngine.signaler.useMutation();
   const [manque, setManque] = useState("");
+  const [pending, setPending] = useState(false);
+  const executing = useRef(false);
 
-  function tracer(resolvedTo: string, outcome: "navigated" | "not_found" = "navigated") {
+  function tracer(resolvedTo: string, outcome: "navigated" | "not_found" | "error" = "navigated", error?: string) {
     try {
       signaler.mutate({
         code,
         source: typeof window !== "undefined" ? window.location.pathname : undefined,
         outcome,
         resolvedTo,
+        error,
       });
     } catch {
       /* supervision best-effort : ne bloque jamais l'action */
     }
+  }
+
+  if (resolutionError) {
+    return <><button type="button" className={className} onClick={() => void refetch()}>{children} — Réessayer</button>
+      <p role="alert" className="text-sm text-red-600">Action indisponible. Réessayez dans quelques instants.</p></>;
+  }
+  if (desactive) {
+    return <button type="button" className={className} disabled title={desactive}>{children}</button>;
   }
 
   // Tant que le moteur n'a pas répondu, le bouton reste présent mais inactif :
@@ -109,25 +120,27 @@ export function BoutonMoteur({
 
   if ((action.genre === "document" || action.genre === "formulaire") && onExecuter) {
     const trace = action.cible ?? action.genre;
-    if (desactive) {
-      return (
-        <button type="button" className={className} disabled title={desactive}>
-          {children}
-        </button>
-      );
-    }
-    return (
-      <button
-        type="button"
-        className={className}
-        onClick={() => {
-          tracer(trace);
-          onExecuter();
-        }}
-      >
-        {children}
-      </button>
-    );
+    return <>
+      <button type="button" className={className} disabled={pending} aria-busy={pending}
+        onClick={async () => {
+          if (executing.current) return;
+          executing.current = true;
+          setPending(true);
+          setManque("");
+          try {
+            const result = await onExecuter();
+            if (result !== false) tracer(trace);
+          } catch (err) {
+            const message = err instanceof Error ? err.message : "L'action a échoué. Réessayez.";
+            tracer(trace, "error", message);
+            setManque(message);
+          } finally {
+            executing.current = false;
+            setPending(false);
+          }
+        }}>{children}</button>
+      {manque && <p role="alert" className="mt-2 text-sm text-red-600">{manque}</p>}
+    </>;
   }
 
   // Action déclarée que rien n'exécute encore, ou destination cassée : on le
