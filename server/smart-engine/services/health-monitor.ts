@@ -20,33 +20,36 @@ interface HealthCheckInput {
 }
 
 export async function reportHealthCheck(input: HealthCheckInput) {
-  // Upsert : mise à jour si même page+element existe déjà
-  const [existing] = await db
-    .select()
-    .from(smartHealthChecks)
-    .where(and(eq(smartHealthChecks.page, input.page), eq(smartHealthChecks.element, input.element)))
-    .limit(1);
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(734921)`);
+    // Upsert : mise à jour si même page+element existe déjà
+    const [existing] = await tx
+      .select()
+      .from(smartHealthChecks)
+      .where(and(eq(smartHealthChecks.page, input.page), eq(smartHealthChecks.element, input.element)))
+      .limit(1);
 
-  if (existing) {
-    await db
-      .update(smartHealthChecks)
-      .set({
+    if (existing) {
+      await tx
+        .update(smartHealthChecks)
+        .set({
+          status: input.status,
+          lastCheckedAt: new Date(),
+          errorDetails: input.errorDetails ?? null,
+          suggestedFix: input.suggestedFix ?? null,
+        })
+        .where(eq(smartHealthChecks.id, existing.id));
+    } else {
+      await tx.insert(smartHealthChecks).values({
+        page: input.page,
+        element: input.element,
+        elementType: input.elementType,
         status: input.status,
-        lastCheckedAt: new Date(),
         errorDetails: input.errorDetails ?? null,
         suggestedFix: input.suggestedFix ?? null,
-      })
-      .where(eq(smartHealthChecks.id, existing.id));
-  } else {
-    await db.insert(smartHealthChecks).values({
-      page: input.page,
-      element: input.element,
-      elementType: input.elementType,
-      status: input.status,
-      errorDetails: input.errorDetails ?? null,
-      suggestedFix: input.suggestedFix ?? null,
-    });
-  }
+      });
+    }
+  });
 
   // Si cassé → alerte
   if (input.status === "broken" || input.status === "missing") {
@@ -231,38 +234,49 @@ export async function syncBoutonsSansAction(): Promise<{ synced: number; resolve
 
 // Enregistrement initial des éléments critiques à surveiller
 export async function registerCriticalElements() {
-  const elements: HealthCheckInput[] = [
+  const elements: Pick<HealthCheckInput, "page" | "element" | "elementType">[] = [
     // Pages produit officiel
-    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "bouton_modifier", elementType: "button", status: "ok" },
-    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "bouton_prolonger", elementType: "button", status: "ok" },
-    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "bouton_reserver", elementType: "button", status: "ok" },
-    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "lien_voir_annonces", elementType: "link", status: "ok" },
-    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "photos_categorie", elementType: "button", status: "ok" },
-    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "signaler_annonce", elementType: "button", status: "ok" },
+    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "bouton_modifier", elementType: "button" },
+    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "bouton_prolonger", elementType: "button" },
+    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "bouton_reserver", elementType: "button" },
+    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "lien_voir_annonces", elementType: "link" },
+    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "photos_categorie", elementType: "button" },
+    { page: "/acheter/mkapms-officiel/vehicule/:id", element: "signaler_annonce", elementType: "button" },
     // Pages produit pro
-    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_modifier", elementType: "button", status: "ok" },
-    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_prolonger", elementType: "button", status: "ok" },
-    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_appel", elementType: "button", status: "ok" },
-    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_message", elementType: "button", status: "ok" },
-    { page: "/acheter/professionnel/vehicule/:id", element: "lien_voir_annonces", elementType: "link", status: "ok" },
+    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_modifier", elementType: "button" },
+    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_prolonger", elementType: "button" },
+    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_appel", elementType: "button" },
+    { page: "/acheter/professionnel/vehicule/:id", element: "bouton_message", elementType: "button" },
+    { page: "/acheter/professionnel/vehicule/:id", element: "lien_voir_annonces", elementType: "link" },
     // Pages produit particulier
-    { page: "/acheter/particulier/vehicule/:id", element: "bouton_modifier", elementType: "button", status: "ok" },
-    { page: "/acheter/particulier/vehicule/:id", element: "bouton_prolonger", elementType: "button", status: "ok" },
-    { page: "/acheter/particulier/vehicule/:id", element: "bouton_appel", elementType: "button", status: "ok" },
-    { page: "/acheter/particulier/vehicule/:id", element: "bouton_message", elementType: "button", status: "ok" },
-    { page: "/acheter/particulier/vehicule/:id", element: "lien_voir_annonces", elementType: "link", status: "ok" },
+    { page: "/acheter/particulier/vehicule/:id", element: "bouton_modifier", elementType: "button" },
+    { page: "/acheter/particulier/vehicule/:id", element: "bouton_prolonger", elementType: "button" },
+    { page: "/acheter/particulier/vehicule/:id", element: "bouton_appel", elementType: "button" },
+    { page: "/acheter/particulier/vehicule/:id", element: "bouton_message", elementType: "button" },
+    { page: "/acheter/particulier/vehicule/:id", element: "lien_voir_annonces", elementType: "link" },
     // Listing pages
-    { page: "/acheter/mkapms-officiel", element: "barre_recherche", elementType: "form", status: "ok" },
-    { page: "/acheter/professionnel", element: "barre_recherche", elementType: "form", status: "ok" },
-    { page: "/acheter/particulier", element: "barre_recherche", elementType: "form", status: "ok" },
+    { page: "/acheter/mkapms-officiel", element: "barre_recherche", elementType: "form" },
+    { page: "/acheter/professionnel", element: "barre_recherche", elementType: "form" },
+    { page: "/acheter/particulier", element: "barre_recherche", elementType: "form" },
     // Dépôt annonce
-    { page: "/vendre", element: "formulaire_depot", elementType: "form", status: "ok" },
-    { page: "/vendre", element: "upload_photos", elementType: "form", status: "ok" },
+    { page: "/vendre", element: "formulaire_depot", elementType: "form" },
+    { page: "/vendre", element: "upload_photos", elementType: "form" },
   ];
 
-  for (const el of elements) {
-    await reportHealthCheck(el);
-  }
+  // Registering a target is not a successful observation. Preserve every existing
+  // result (including failures and archives), even when initialization repeats.
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(734921)`);
+    for (const el of elements) {
+      const [existing] = await tx.select({ id: smartHealthChecks.id })
+        .from(smartHealthChecks)
+        .where(and(eq(smartHealthChecks.page, el.page), eq(smartHealthChecks.element, el.element)))
+        .limit(1);
+      if (!existing) await tx.insert(smartHealthChecks).values({
+        ...el, status: "unknown", lastCheckedAt: null,
+      });
+    }
+  });
 
   return elements.length;
 }
