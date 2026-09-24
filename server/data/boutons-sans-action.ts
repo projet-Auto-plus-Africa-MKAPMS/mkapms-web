@@ -63,7 +63,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/superadmin/AdminAbonnements.tsx", ligne: 62, libelle: "Gerer" },
   { fichier: "client/src/pages/superadmin/AdminAbonnements.tsx", ligne: 63, libelle: "Historique" },
   { fichier: "client/src/pages/superadmin/AdminBadges.tsx", ligne: 36, libelle: "Gerer criteres" },
-  { fichier: "client/src/pages/superadmin/AdminCarteMoniale.tsx", ligne: 23, libelle: "utilisateurs · annonces" },
   { fichier: "client/src/pages/superadmin/AdminEmployes.tsx", ligne: 52, libelle: "" },
   { fichier: "client/src/pages/superadmin/AdminEmployes.tsx", ligne: 275, libelle: "" },
   { fichier: "client/src/pages/superadmin/AdminGarage.tsx", ligne: 75, libelle: "Details" },

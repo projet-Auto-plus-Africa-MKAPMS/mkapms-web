@@ -172,3 +172,24 @@ reproduisent 199 enregistrements. La carte affiche désormais 16/76 = 21 %,
 60 défauts et 123 archives ; une image n'affecte pas le taux. Les 123 archives
 sont une fixture reproduisant la différence visible, pas une lecture de production.
 Ce correctif n'est pas une réparation des 60 actions métier encore signalées.
+
+
+## IMG_1871 — AdminCarteMoniale / static_L23
+
+Cause : six pays, comptes, annonces et CA fictifs dans une constante PAYS ;
+le bouton n’appelait aucun moteur. Le service existant countries.stats était
+également incomplet : pays absents de country_configs et codes non normalisés
+omis. Le correctif étend ce service et ajoute countries.activity, protégé par
+la même permission back-office, avec pagination de 50 comptes/annonces.
+
+Le bouton est déclaré au moteur Boutons, propriétaire Country, puis ouvre un
+dialogue de détail. Les compteurs, états des pays et montants restent présents.
+Les montants sont des encaissements confirmés par devise, rattachés au pays
+actuel du payeur, explicitement distincts d’un CA comptable. Aucun taux de
+change ni historique territorial inventé.
+
+Validation base isolée : pays normalisés, pays non configurés conservés,
+absence de pays distincte de NA (Namibie), devises séparées, échecs/attentes
+exclus des encaissements, pagination sans doublons, rôles public/pro refusés.
+Build réussi ; 39 diagnostics TypeScript préexistants inchangés. Vérification
+visuelle de production non effectuée (502 laissé de côté à la demande).

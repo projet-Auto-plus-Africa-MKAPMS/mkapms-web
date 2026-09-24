@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 503;
+export const MANQUES_TOTAL = 504;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 331,
-  "dependance_non_declaree": 48,
+  "dependance_non_declaree": 49,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
@@ -3961,6 +3961,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "atelier",
       "auto_branchement",
       "continuous_test",
+      "country",
       "document",
       "garage",
       "livraison",
@@ -4176,6 +4177,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "fichier": "client/src/pages/garage/ValidationInterne.tsx",
         "route": "/garage/validation-interne",
+        "composants": [
+          "lib/boutonMoteur.tsx"
+        ]
+      },
+      {
+        "fichier": "client/src/pages/superadmin/AdminCarteMoniale.tsx",
+        "route": "/superadmin/admin-carte-moniale",
         "composants": [
           "lib/boutonMoteur.tsx"
         ]
@@ -6527,10 +6535,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity"
     ],
     "dependancesDetectees": [
+      "boutons",
       "core",
       "identity"
     ],
     "dependances": [
+      "boutons",
       "core",
       "identity"
     ],
@@ -6538,6 +6548,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "identity"
     ],
     "preuvesDependances": {
+      "boutons": [
+        "client/src/pages/superadmin/AdminCarteMoniale.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)",
+        "client/src/pages/superadmin/AdminCarteMoniale.tsx utilise BoutonMoteur"
+      ],
       "core": [
         "country-os/index.ts importe db.ts",
         "country-os/index.ts importe trpc.ts",
@@ -6596,7 +6610,16 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "evenementsConsommes": [],
     "abonnements": [],
     "sourcesEmission": [],
-    "boutons": [],
+    "boutons": [
+      {
+        "code": "admin_pays_activite",
+        "libelle": "Utilisateurs et annonces du pays",
+        "genre": "formulaire",
+        "ecran": "/superadmin/admin-carte-moniale",
+        "fichier": "client/src/pages/superadmin/AdminCarteMoniale.tsx",
+        "ligne": 26
+      }
+    ],
     "routes": [
       "/carte",
       "/expansion",
@@ -6884,11 +6907,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/admin-carte-moniale"
         ],
-        "cliquables": 1,
-        "parMoteur": 0,
+        "cliquables": 7,
+        "parMoteur": 1,
         "sansAction": 0,
-        "textes": 10,
-        "mots": 21
+        "textes": 15,
+        "mots": 71
       }
     ],
     "ecransHotes": [
@@ -7083,8 +7106,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "public"
     ],
-    "textes": 93,
-    "mots": 289,
+    "textes": 98,
+    "mots": 339,
     "battement": "pont_os",
     "manques": [
       {
@@ -7170,6 +7193,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/international/MultiPays.tsx (2 texte(s))"
+      },
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "boutons — client/src/pages/superadmin/AdminCarteMoniale.tsx embarque lib/boutonMoteur.tsx (trpc.buttonEngine)"
       }
     ]
   },
@@ -24093,6 +24120,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "procedures": [
       "activeFlags",
+      "activity",
       "add",
       "addEvent",
       "addEvidence",
