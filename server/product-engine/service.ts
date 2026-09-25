@@ -23,6 +23,7 @@ import {
   productFeedRuns,
   productSyncEvents,
 } from "./schema.js";
+import { annonces } from "../schema.js";
 import {
   empreinte,
   evaluerEligibilite,
@@ -557,16 +558,15 @@ export async function pipelinesSnapshot() {
     .from(productFeedItems)
     .where(eq(productFeedItems.eligible, true));
 
-  let vehicules = 0;
-  try {
-    const r = await db.execute(
-      sql`SELECT count(*)::int AS n FROM annonces WHERE statut = 'publiee'`,
-    );
-    const rows = (r as unknown as { rows?: { n?: number }[] }).rows ?? [];
-    vehicules = Number(rows[0]?.n ?? 0);
-  } catch {
-    vehicules = 0;
-  }
+  // Corrigé : cette requête interrogeait la colonne "statut" (inexistante —
+  // la vraie colonne s'appelle "status") ; l'erreur SQL était silencieusement
+  // absorbée par le bloc catch, si bien que le compteur affichait toujours 0
+  // même quand de vraies annonces de location étaient publiées.
+  const [vehiculesRow] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(annonces)
+    .where(eq(annonces.status, "publiee"));
+  const vehicules = vehiculesRow?.n ?? 0;
 
   return {
     produit: {
