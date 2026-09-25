@@ -186,9 +186,18 @@ export default function Admin() {
           <h1 className="text-2xl font-extrabold text-slate-900">Back-office</h1>
           <p className="text-sm text-slate-500">Administration MKA.P-MS — Auto Plus Africa.</p>
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${direction ? "bg-gold-soft text-gold-dark" : "bg-slate-100 text-slate-600"}`}>
-          {direction ? "Direction / PDG" : "Employé"}
-        </span>
+        {direction ? (
+          <button
+            type="button"
+            onClick={() => setAdminTab("direction")}
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${adminTab === "direction" ? "bg-gold text-white" : "bg-gold-soft text-gold-dark hover:bg-gold/20"}`}
+            title="Aller à l'onglet Administrateur / Directeur"
+          >
+            Direction / PDG
+          </button>
+        ) : (
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Employé</span>
+        )}
       </div>
 
       {/* Onglets : Back-office / Super Admin / Administrateur Directeur */}

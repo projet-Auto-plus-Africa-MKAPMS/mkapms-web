@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2553;
+export const CLIQUABLES_TOTAL = 2554;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -73,7 +73,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/AbonnementsDefinitifs.tsx", total: 6, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 1 },
   { fichier: "client/src/pages/AccesPDG.tsx", total: 1, moteur: 0, liens: 0, boutonsLocaux: 1, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/Acheter.tsx", total: 5, moteur: 0, liens: 1, boutonsLocaux: 4, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/Admin.tsx", total: 107, moteur: 0, liens: 27, boutonsLocaux: 75, sansAction: 0, zones: 5 },
+  { fichier: "client/src/pages/Admin.tsx", total: 108, moteur: 0, liens: 27, boutonsLocaux: 76, sansAction: 0, zones: 5 },
   { fichier: "client/src/pages/AssistanceSinistre.tsx", total: 4, moteur: 0, liens: 2, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/AssistantIntelligences.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/AtelierPro.tsx", total: 29, moteur: 20, liens: 3, boutonsLocaux: 2, sansAction: 0, zones: 4 },
