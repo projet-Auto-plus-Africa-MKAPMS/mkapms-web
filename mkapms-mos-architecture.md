@@ -276,9 +276,129 @@ Chaque moteur métier doit donc exposer :
 
 ---
 
-## 12. Versioning de ce document
+## 12. CORRECTION MAJEURE — Architecture mondiale + règle de fin à 100 % (v1.1, PDG)
+
+Cette section corrige et complète les sections précédentes ; elle ne les remplace pas. En cas de contradiction apparente, cette section prévaut.
+
+### 12.1 — Aucun moteur limité à la France
+
+Toute l'architecture Google, SEO, publicité, campagnes, produits, véhicules, pièces et services doit être conçue multi-pays dès le départ.
+
+Ne jamais coder `country = FR` comme règle métier permanente. La France peut être activée en premier dans certains produits Google, mais le moteur doit être mondial dès sa conception.
+
+Utiliser à la place :
+- `CountryRegistry`
+- `CountryGoogleCapabilities`
+- `CountryComplianceRules`
+- `CountryLanguages`
+- `CountryCurrencies`
+- `CountryTaxRules`
+- `CountryShippingRules`
+- `CountryMarketingRules`
+- `CountrySearchConfiguration`
+
+Chaque pays doit pouvoir avoir ses propres capacités Google et ses propres règles sans modifier le cœur des moteurs. Si une fonctionnalité Google n'existe actuellement que dans certains pays, le moteur reste mondial mais active cette capability uniquement dans les pays officiellement éligibles.
+
+### 12.2 — Country Capability Registry
+
+Registre dynamique indiquant, pour chaque pays : Search disponible, Merchant disponible, Free Listings disponible, Shopping disponible, Vehicle Ads disponible, Google Business applicable, Local Ads disponibles, langues, devises, règles marketing, exigences catalogue, exigences véhicules, services locaux disponibles.
+
+Ne jamais inventer une disponibilité Google. Les capacités doivent pouvoir être mises à jour sans reconstruire toute la plateforme.
+
+### 12.3 — Tout ce qui est public et autorisé doit être découvrable
+
+Le chantier ne concerne pas uniquement les voitures. Il doit couvrir : véhicules neufs, véhicules d'occasion, véhicules officiels, annonces Pro, annonces Particulier, pièces automobiles, produits Boutique, location, garages, mécaniciens à domicile, garages mobiles, transport automobile, VTC/Taxi, contrôle technique, enchères, estimation, bornes/recharge lorsque disponibles, professionnels, vendeurs, fournisseurs lorsqu'ils disposent d'une présence publique, et les autres futurs services publics MKA.P-MS.
+
+« Visible sur Google » ne signifie pas que chaque contenu utilise le même format Google : Vehicle Ads → véhicules éligibles ; Merchant/Shopping → produits et pièces éligibles ; Search/SEO → pages publiques ; Local/Business/Ads → services locaux lorsqu'ils sont éligibles. Chaque moteur choisit automatiquement le circuit correspondant au type d'objet, au pays et à son éligibilité.
+
+### 12.4 — Routage Pro / Particulier
+
+Une annonce ou un résultat Google doit conduire directement vers le bon univers : `sellerType = PROFESSIONAL` → fiche + univers + actions Pro ; `sellerType = PRIVATE` → fiche + univers + actions Particulier ; `productType = SHOP` → fiche SHOP ; `productType = PART` → fiche Pièces ; `serviceType = GARAGE` → fiche Garage ; etc. Ne jamais envoyer systématiquement les visiteurs Google vers l'accueil.
+
+### 12.5 — Recherches sans le mot « MKA.P-MS »
+
+Le référencement ne doit pas dépendre des recherches de marque. Construire les pages, données, inventaires et campagnes pour répondre aux intentions réelles (« voiture occasion », « voiture occasion autour de moi », « Peugeot 208 occasion », « pièce Peugeot 208 », « alternateur Peugeot 208 », « garage autour de moi », « mécanicien à domicile », « location voiture », « transport voiture », « voiture électrique enfant », etc.). Les résultats locaux doivent utiliser la localisation réelle des offres/services disponibles. Ne jamais créer de fausses implantations ou de faux services locaux pour obtenir du référencement.
+
+### 12.6 — Moteurs distincts
+
+Conserver la séparation : `PrivateListingGoogleEngine`, `ProfessionalVehicleGoogleEngine`, `PartsGoogleCommerceEngine`, `AutomotiveServicesGoogleEngine`, `ShopGoogleCommerceEngine`, `MainCampaignEngine`, `ShopCampaignEngine`, et les futurs moteurs nécessaires. Si Pièces nécessite son propre moteur Google Commerce, le construire au lieu de forcer le moteur Vehicle ou SHOP à effectuer son travail. Tous remontent vers `GoogleCampaignOrchestrator` dans Direction/PDG.
+
+### 12.7 — Publication automatique par type d'objet
+
+Exemple : Vehicle published → moteur véhicule correspondant ; Part published → PartsGoogleCommerceEngine ; Shop product published → ShopGoogleCommerceEngine ; Garage/service published → AutomotiveServicesGoogleEngine. Chaque moteur décide ensuite : Search, sitemap, structured data, Merchant, Shopping, Vehicle Ads, publicité, local, autres surfaces Google officiellement disponibles.
+
+### 12.8 — Objectif : automatiser une fois pour les prochaines années
+
+Une fois l'architecture terminée, ajouter une nouvelle annonce, pièce, offre ou produit ne doit pas nécessiter de refaire manuellement le chantier Google. L'événement de publication doit déclencher automatiquement : classification → validation → enrichissement → routage → publication → synchronisation → monitoring → correction → statistiques. Même principe lors d'une modification, baisse de prix, rupture, réservation, vente ou suppression.
+
+### 12.9 — Campagnes : ne pas les négliger
+
+Les campagnes constituent un moteur de premier rang du chantier. Elles doivent couvrir, selon disponibilité et règles applicables : e-mail, Google Ads, Vehicle Ads, Shopping, Search Ads, display/remarketing lorsque permis, réseaux sociaux, vidéo, push, Web Push, SMS lorsque permis, B2B, campagnes partenaires. Le Fondateur doit pouvoir programmer depuis Direction (« Tous les 3 jours, changer d'univers de campagne » ou « Cette semaine : pièces + VO + SHOP simultanément »). Chaque moteur conserve ses propres audiences, contenus, budgets, résultats et règles.
+
+### 12.10 — Acquisition de nouveaux prospects
+
+Le système marketing ne doit pas être limité aux personnes possédant déjà un compte MKA.P-MS. Construire des parcours d'acquisition via les canaux légalement disponibles (Google Ads, Shopping, Vehicle Ads, Search, social ads, contenus, référencement, partenariats, prospection B2B, bases professionnelles licitement obtenues, formulaires, leads, campagnes partenaires).
+
+Distinction essentielle : trouver et contacter de nouveaux professionnels qui n'ont jamais visité MKA.P-MS est une vraie stratégie d'acquisition B2B, autorisée pays par pays selon les règles applicables. Ce n'est **pas** la même règle que récupérer l'adresse privée d'un particulier et lui envoyer de la publicité sans base valable : pour l'e-mail, ne jamais considérer qu'une adresse trouvée quelque part ou une simple visite du site autorise automatiquement une prospection B2C.
+
+Pour la prospection professionnelle, construire un véritable `B2BProspectingEngine` capable de gérer : source du contact, entreprise, fonction, pertinence professionnelle, pays, campagne, historique, opposition, liste repoussoir, réponse, conversion.
+
+### 12.11 — IA de campagnes
+
+L'IA doit pouvoir : sélectionner l'offre, sélectionner le canal, sélectionner l'audience admissible, adapter le pays, adapter la langue, changer les textes, produire plusieurs variantes, choisir les pages d'arrivée, préparer les médias, programmer, publier si autorisée, suivre, comparer, arrêter une mauvaise campagne, renforcer une campagne performante dans les limites budgétaires, produire un rapport. Elle ne doit jamais inventer stock, réduction, disponibilité, avis, urgence ou prix.
+
+### 12.12 — Règle absolue de travail des agents
+
+Un lot commencé doit être mené jusqu'à son état réellement terminable avant de commencer le lot suivant.
+
+Interdit : coder seulement une partie ; pousser le code ; annoncer « terminé » ; puis passer à une nouvelle tâche alors que l'intégration, les tests ou le déploiement restent à faire.
+
+Workflow obligatoire : AUDIT → IMPLEMENTATION → MIGRATIONS → CONNECTION → TESTS → PR → CI → MERGE → DEPLOYMENT → POST-DEPLOY CHECK → FUNCTIONAL VERIFICATION → LOG/AUDIT CHECK → TASK CLOSED. Ensuite seulement : tâche suivante.
+
+### 12.13 — Après merge
+
+L'agent ne s'arrête pas à « PR merged ». Il doit vérifier : branche correctement fusionnée, CI finale verte, migration exécutée, déploiement réellement effectué, version déployée correcte, variables/configuration présentes, endpoints disponibles, jobs/workers actifs, moteur enregistré, permissions fonctionnelles, événements raccordés, absence d'erreur critique dans les logs, tests post-déploiement réussis.
+
+La vérification visuelle finale sera effectuée par le Fondateur, mais l'agent doit effectuer toutes les vérifications techniques qu'il peut réaliser avant de demander cette vérification visuelle.
+
+### 12.14 — « Bloqué par validation externe » n'est pas une fin de tâche
+
+Supprimer l'utilisation de « BLOQUÉ PAR GOOGLE/VALIDATION EXTERNE » comme état permettant d'abandonner un lot incomplet.
+
+Si Google exige réellement une action impossible pour l'agent (vérification propriétaire, validation commerciale, acceptation Merchant, accès bêta, vérification établissement, paiement, consentement/validation humaine, ou autre), l'agent doit d'abord terminer 100 % de ce qui est techniquement sous son contrôle : intégration, interfaces, schémas, flux, validations, credentials placeholders sécurisés, jobs, callbacks, erreurs, monitoring, tests/mocks nécessaires, documentation, cockpit, état d'attente, mécanisme de reprise automatique.
+
+Ensuite seulement, l'élément externe reçoit l'état `AWAITING_EXTERNAL_ACTIVATION` avec : `provider`, `exactRequirement`, `actionOwner`, `resumeCondition`, `automaticResumeAction`, `affectedCapability`.
+
+L'agent continue toutes les autres sous-tâches indépendantes du même lot.
+
+### 12.15 — Reprise automatique
+
+Une validation externe ne doit pas nécessiter de reconstruire le système. Exemple : Google active une capability → le système détecte/obtient son nouvel état → capability activée → synchronisation lancée → données envoyées → monitoring actif. Prévoir cette logique dès la construction.
+
+### 12.16 — Interdiction des faux « 100 % »
+
+Ne pas déclarer 100 % si : le code existe mais n'est pas connecté ; les tests ne passent pas ; le moteur n'est pas enregistré ; le frontend appelle encore un mock ; le job ne tourne pas ; le déploiement n'est pas effectué ; les permissions ne fonctionnent pas ; les événements ne sont pas raccordés ; la base n'est pas migrée ; l'état réel n'est pas observable.
+
+Un moteur à 100 % signifie : construit + connecté + testé + fusionné + déployé + vérifié techniquement.
+
+### 12.17 — Test de bout en bout obligatoire
+
+Pour chaque moteur, utiliser au moins un objet contrôlé (annonce Particulier, annonce Pro, véhicule officiel, pièce, produit SHOP, service local) et vérifier : création → publication → page publique → moteur → Google pipeline → monitoring → modification → mise à jour → désactivation/suppression.
+
+Pour les services dépendant d'une activation Google encore en attente, tester jusqu'à la frontière externe avec sandbox/mock/validation contractuelle appropriée puis vérifier automatiquement le vrai flux dès activation.
+
+### 12.18 — Rapport final obligatoire
+
+À la fermeture du lot, fournir : EXISTAIT, CORRIGÉ, CONSTRUIT, CONNECTÉ, TESTÉ, MERGÉ, DÉPLOYÉ, POST-DEPLOY VERIFIED, AWAITING_EXTERNAL_ACTIVATION, ACTION HUMAINE STRICTEMENT NÉCESSAIRE, RESTE TECHNIQUE = 0.
+
+Pour chaque ligne en attente externe, expliquer précisément ce qui est déjà terminé et l'unique action externe restante. Ne passer au lot suivant que lorsque RESTE TECHNIQUE = 0.
+
+---
+
+## 13. Versioning de ce document
 
 - **v1.0 (Janvier 2026)** — Document fondateur MOS · Doctrine validée par le PDG.
+- **v1.1 (25/09)** — Correction majeure PDG : architecture Google/campagnes obligatoirement mondiale dès la conception (jamais `country = FR` en dur), Country Capability Registry, découvrabilité de tous les univers publics (pas seulement véhicules), routage Pro/Particulier/Shop/Service depuis Google, SEO sur intention plutôt que sur la marque, moteurs Google distincts par type d'objet, B2B prospecting engine (distinct de la prospection B2C non consentie), et règle de fin à 100 % : « bloqué par validation externe » n'autorise plus l'abandon d'un lot — tout ce qui est sous contrôle technique doit être terminé, déployé, fusionné et vérifié avant de passer au lot suivant.
 
 Toute modification majeure nécessite une nouvelle version + une PR dédiée + validation PDG.
 

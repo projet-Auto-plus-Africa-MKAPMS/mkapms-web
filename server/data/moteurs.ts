@@ -7330,6 +7330,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "disable",
       "get",
       "healthStatus",
+      "isEligible",
       "list",
       "meta",
       "rates",
@@ -7338,10 +7339,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "tables": [
       "country_countries",
       "country_currencies",
+      "country_google_capabilities",
       "country_health_log"
     ],
     "acces": [
       "admin",
+      "pdg",
       "public"
     ],
     "textes": 98,
