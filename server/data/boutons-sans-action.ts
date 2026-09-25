@@ -59,7 +59,6 @@ export const BOUTONS_SANS_ACTION: readonly BoutonSansAction[] = [
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 75, libelle: "Prolonger" },
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 76, libelle: "Modifier" },
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 106, libelle: "Choisir un véhicule →" },
-  { fichier: "client/src/pages/superadmin/AdminPaiements.tsx", ligne: 216, libelle: "Relancer" },
   { fichier: "client/src/pages/vente/AchatExpress.tsx", ligne: 9, libelle: "Commencer un achat express" },
   { fichier: "client/src/pages/vente/AlertesAuto.tsx", ligne: 17, libelle: "Traiter" },
   { fichier: "client/src/pages/vente/CentreAchatDistance.tsx", ligne: 10, libelle: "Continuer mon achat" },

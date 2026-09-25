@@ -348,21 +348,79 @@ export const adminRouter = router({
 
   // Suivi des paiements (§3.2)
   paymentsList: adminProcedure
-    .input(z.object({ limit: z.number().default(50) }))
+    .input(
+      z.object({
+        limit: z.number().default(50),
+        status: z.enum(["pending", "paid", "failed", "refunded", "cancelled"]).optional(),
+      }),
+    )
     .query(async ({ input }) => {
+      const where = input.status ? eq(payments.status, input.status) : undefined;
       return db
         .select({
           id: payments.id,
           userId: payments.userId,
+          clientName: users.name,
+          clientEmail: users.email,
           type: payments.type,
           amount: payments.amount,
           currency: payments.currency,
           status: payments.status,
+          stripePaymentIntentId: payments.stripePaymentIntentId,
           createdAt: payments.createdAt,
         })
         .from(payments)
+        .leftJoin(users, eq(users.id, payments.userId))
+        .where(where)
         .orderBy(desc(payments.createdAt))
         .limit(input.limit);
+    }),
+
+  paymentsStats: adminProcedure.query(async () => {
+    const debutJour = new Date();
+    debutJour.setHours(0, 0, 0, 0);
+    const debutMois = new Date();
+    debutMois.setDate(1);
+    debutMois.setHours(0, 0, 0, 0);
+    const caSur = async (debut: Date) => {
+      const [r] = await db
+        .select({ v: sql<string>`coalesce(sum(${payments.amount}), 0)` })
+        .from(payments)
+        .where(and(eq(payments.status, "paid"), eq(payments.currency, "EUR"), sql`${payments.createdAt} >= ${debut}`));
+      return r?.v ?? "0";
+    };
+    const [echoues] = await db.select({ n: sql<number>`count(*)::int` }).from(payments).where(eq(payments.status, "failed"));
+    const [enAttente] = await db.select({ n: sql<number>`count(*)::int` }).from(payments).where(eq(payments.status, "pending"));
+    return {
+      caJourEur: await caSur(debutJour),
+      caMoisEur: await caSur(debutMois),
+      echoues: echoues?.n ?? 0,
+      enAttente: enAttente?.n ?? 0,
+    };
+  }),
+
+  // Relance d'un paiement échoué (§10) — une vraie notification au client,
+  // jamais une nouvelle session Stripe recréée à partir d'un identifiant
+  // deviné : l'audit externe a signalé le risque de réutiliser des
+  // identifiants de paiement de démonstration pour une relance.
+  relancerPaiement: adminProcedure
+    .input(z.object({ paymentId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const [p] = await db
+        .select({ id: payments.id, userId: payments.userId, status: payments.status, amount: payments.amount, currency: payments.currency })
+        .from(payments)
+        .where(eq(payments.id, input.paymentId))
+        .limit(1);
+      if (!p) throw new TRPCError({ code: "NOT_FOUND", message: "Paiement introuvable" });
+      if (p.status !== "failed") throw new TRPCError({ code: "CONFLICT", message: "Seul un paiement échoué peut être relancé" });
+      await db.insert(notifications).values({
+        userId: p.userId,
+        type: "systeme",
+        title: "Paiement à renouveler",
+        body: `Votre paiement de ${p.amount} ${p.currency} n'a pas abouti. Merci de réessayer depuis votre espace.`,
+      });
+      await logAction(ctx.user.uid, "payment.relance", "payment", p.id);
+      return { ok: true };
     }),
 
   // Suivi des réservations (§3.2)

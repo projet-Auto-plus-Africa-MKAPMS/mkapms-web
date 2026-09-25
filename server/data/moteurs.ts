@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 506;
+export const MANQUES_TOTAL = 505;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "dependance_non_declaree": 50,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
-  "bouton_sans_action": 50,
+  "bouton_sans_action": 49,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2
 };
@@ -6453,6 +6453,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/superadmin/AdminPaiements.tsx",
+        "route": "/superadmin/admin-paiements",
+        "composants": [
+          "trpc.admin"
+        ]
+      },
+      {
         "fichier": "client/src/pages/superadmin/AdminSecurite.tsx",
         "route": "/superadmin/admin-securite",
         "composants": [
@@ -6576,10 +6583,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "mySales",
       "overview",
       "paymentsList",
+      "paymentsStats",
       "promoList",
       "pubRequestDetail",
       "pubRequestsList",
       "reactivateUser",
+      "relancerPaiement",
       "removeEntity",
       "requestUserDeletion",
       "reservationsList",
@@ -15007,11 +15016,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/admin-paiements"
         ],
-        "cliquables": 20,
+        "cliquables": 18,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 38,
-        "mots": 145
+        "sansAction": 0,
+        "textes": 39,
+        "mots": 155
       }
     ],
     "ecransHotes": [
@@ -15177,17 +15186,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 201,
-    "mots": 719,
+    "textes": 202,
+    "mots": 729,
     "battement": "sonde",
     "manques": [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/PaiementSimulation.tsx (3 texte(s))"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Relancer » client/src/pages/superadmin/AdminPaiements.tsx:216"
       },
       {
         "genre": "dependance_non_declaree",
