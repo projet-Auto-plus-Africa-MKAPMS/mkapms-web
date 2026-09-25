@@ -585,7 +585,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
   },
   {
     moteur: "cartegrise",
-    dossiers: ["modules/cartegrise.ts", "routers/cartegrise.ts"],
+    dossiers: ["modules/cartegrise.ts", "modules/cartegrise-catalogue.ts", "routers/cartegrise.ts"],
     routeurs: ["carteGrise"],
     routes: ["/carte-grise", "/carte-grise/*", "/demarches", "/demarches/*", "/superadmin/admin-demarches"],
   },
