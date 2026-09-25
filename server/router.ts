@@ -10,6 +10,7 @@ import { reservationsRouter } from "./routers/reservations.js";
 import { rentalApplicationsRouter } from "./routers/rentalApplications.js";
 import { rentalContractsRouter } from "./routers/rentalContracts.js";
 import { objectifsRouter } from "./routers/objectifs.js";
+import { badgesRouter } from "./routers/badges.js";
 import { messagesRouter } from "./routers/messages.js";
 import { metaRouter } from "./routers/meta.js";
 import { adminRouter } from "./routers/admin.js";
@@ -157,6 +158,7 @@ export const appRouter = router({
   rentalApplications: rentalApplicationsRouter,
   rentalContracts: rentalContractsRouter,
   objectifs: objectifsRouter,
+  badges: badgesRouter,
   messages: messagesRouter,
   meta: metaRouter,
   admin: adminRouter,

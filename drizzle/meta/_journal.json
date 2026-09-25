@@ -974,6 +974,13 @@
       "when": 1788404830000,
       "tag": "0140_objectifs_plateforme",
       "breakpoints": true
+    },
+    {
+      "idx": 139,
+      "version": "7",
+      "when": 1788404831000,
+      "tag": "0141_badges",
+      "breakpoints": true
     }
   ]
 }

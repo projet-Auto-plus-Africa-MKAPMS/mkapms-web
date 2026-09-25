@@ -1034,6 +1034,32 @@ export const objectifsPlateforme = pgTable("objectifs_plateforme", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+/**
+ * Catalogue des badges/certifications (AdminBadges.tsx). Le critère
+ * d'attribution reste un texte décidé par la Direction (les seuils varient
+ * trop d'un badge à l'autre pour être devinés en une seule règle numérique
+ * fiable) ; le nombre "attribués" ne vient jamais d'ici mais d'un vrai
+ * comptage sur badgeAttributions.
+ */
+export const badges = pgTable("badges", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 64 }).notNull().unique(),
+  nom: varchar("nom", { length: 128 }).notNull(),
+  description: text("description"),
+  criteres: text("criteres"),
+  updatedBy: integer("updated_by"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const badgeAttributions = pgTable("badge_attributions", {
+  id: serial("id").primaryKey(),
+  badgeId: integer("badge_id").notNull(),
+  userId: integer("user_id").notNull(),
+  awardedBy: integer("awarded_by"),
+  awardedAt: timestamp("awarded_at").notNull().defaultNow(),
+});
+
 export const supportTickets = pgTable("support_tickets", {
   id: serial("id").primaryKey(),
   userId: integer("user_id"),

@@ -12,6 +12,7 @@ import { annonces, users, notifications } from "./schema.js";
 import { sql, and, lt, eq } from "drizzle-orm";
 import { sendEmail, emailAnnonceExpiree } from "./services/email.js";
 import { seedStructure } from "./seed.js";
+import { seedBadgesCatalogue } from "./routers/badges.js";
 import { bootstrapEngines, reportMigrationFailure } from "./engine-registry/bootstrap.js";
 import {
   googleFileTokens,
@@ -435,6 +436,12 @@ async function bootstrap() {
         await seedStructure();
       } catch (err) {
         console.error("[MKA.P-MS] échec seed structure:", (err as Error).message);
+      }
+      try {
+        const r = await seedBadgesCatalogue();
+        console.log(`[MKA.P-MS] Badges : ${r.crees} nouveau(x) badge(s) déclaré(s) au catalogue`);
+      } catch (err) {
+        console.error("[MKA.P-MS] échec seed badges:", (err as Error).message);
       }
     }
     // Auto-enregistrement des moteurs (Core, Smart, Permission, Redirection…)
