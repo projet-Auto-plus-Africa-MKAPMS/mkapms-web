@@ -57,6 +57,7 @@ export const DEFAUT_ROLE: Record<string, Permission[]> = {
  * voisin : le moteur Image reste sur PROPOSE, la finance sur FINANCIAL.
  */
 const SUPPLEMENT_MOTEUR: Record<string, Permission[]> = {
+  "mkapms-shop": ["ANALYZE"],
   payment_engine: ["FINANCIAL"],
   payment_orchestrator: ["FINANCIAL"],
   comptabilite: ["FINANCIAL"],

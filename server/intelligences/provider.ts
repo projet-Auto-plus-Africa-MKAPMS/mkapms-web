@@ -62,6 +62,7 @@ export interface MessageConversation {
 }
 
 export interface AppelInput {
+  isolation?: "SHOP";
   /** Capacité Fabrique Intelligence : "ia_texte" ou "ia_vision". */
   capacite: "ia_texte" | "ia_vision";
   /** Type de tâche, pour la traçabilité et le coût. */
@@ -265,7 +266,7 @@ async function mesurer(
       dureeMs: tentative.dureeMs,
       jetonsEntree,
       jetonsSortie,
-      motif: tentative.motif,
+      motif: input.isolation === "SHOP" ? (tentative.ok ? "" : "SHOP_PROVIDER_UNAVAILABLE") : tentative.motif,
     });
   } catch {
     // La mesure ne doit jamais faire échouer l'appel qu'elle observe.
@@ -335,7 +336,7 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
     };
     await mesurer(input, tentative, 0, 0);
 
-    const suivant = replis[0];
+    const suivant = input.isolation === "SHOP" ? undefined : replis[0];
     if (!suivant) {
       return {
         ...vide,
@@ -409,7 +410,7 @@ export async function appeler(input: AppelInput, fetchImpl: typeof fetch = fetch
             }
           : {}),
       }),
-      signal: AbortSignal.timeout(90_000),
+      signal: AbortSignal.timeout(input.isolation === "SHOP" ? 45_000 : 90_000),
     });
 
     const brut = await reponse.text();

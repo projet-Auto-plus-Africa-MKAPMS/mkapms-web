@@ -63,3 +63,7 @@ jobs:
       - run: node --import tsx --test server/intelligences/__tests__/shop-knowledge.test.ts server/intelligences/__tests__/shop-knowledge.integration.test.ts
         env:
           SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
+      - name: SHOP isolated inference authentication and persistent quota
+        run: node --import tsx --test server/intelligences/__tests__/shop-analysis.test.ts server/intelligences/__tests__/shop-analysis.integration.test.ts
+        env:
+          SHOP_KNOWLEDGE_TEST_DB: postgresql://core_ai_test:disposable_ci_fixture@localhost:5432/core_ai_test
