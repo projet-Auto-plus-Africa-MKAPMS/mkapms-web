@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2555;
+export const CLIQUABLES_TOTAL = 2554;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -624,7 +624,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/superadmin/AdminSauvegardes.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminSecurite.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminSEO.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 1, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/superadmin/AdminStatistiques.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/superadmin/AdminStatistiques.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminSupport.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminUtilisateurs.tsx", total: 24, moteur: 0, liens: 1, boutonsLocaux: 15, sansAction: 0, zones: 8 },
   { fichier: "client/src/pages/superadmin/AdminValidationDocs.tsx", total: 3, moteur: 2, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -775,7 +775,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 76, genre: "bouton", libelle: "Modifier", motif: "sans_action" },
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 106, genre: "bouton", libelle: "Choisir un véhicule →", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminPaiements.tsx", ligne: 216, genre: "bouton", libelle: "Relancer", motif: "sans_action" },
-  { fichier: "client/src/pages/superadmin/AdminStatistiques.tsx", ligne: 40, genre: "bouton", libelle: "Voir rapport complet", motif: "sans_action" },
   { fichier: "client/src/pages/Validation.tsx", ligne: 177, genre: "bouton", libelle: "0} onClick= >", motif: "sans_action" },
   { fichier: "client/src/pages/vente/AchatExpress.tsx", ligne: 9, genre: "bouton", libelle: "Commencer un achat express", motif: "sans_action" },
   { fichier: "client/src/pages/vente/AlertesAuto.tsx", ligne: 17, genre: "bouton", libelle: "Traiter", motif: "sans_action" },

@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 507;
+export const MANQUES_TOTAL = 506;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "dependance_non_declaree": 50,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
-  "bouton_sans_action": 51,
+  "bouton_sans_action": 50,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2
 };
@@ -2119,12 +2119,14 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "etatDeclare": "active",
     "dossiers": [
       "modules/history.ts",
-      "routers/historique.ts"
+      "routers/historique.ts",
+      "routers/statistiques.ts"
     ],
     "routeurs": [
-      "historique"
+      "historique",
+      "statistiques"
     ],
-    "fichiersServeur": 2,
+    "fichiersServeur": 3,
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -2173,7 +2175,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "boutons": [],
     "routes": [
       "/historique",
-      "/historique-consultations"
+      "/historique-consultations",
+      "/superadmin/admin-statistiques"
     ],
     "ecrans": [
       {
@@ -2197,6 +2200,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "sansAction": 0,
         "textes": 6,
         "mots": 18
+      },
+      {
+        "fichier": "client/src/pages/superadmin/AdminStatistiques.tsx",
+        "routes": [
+          "/superadmin/admin-statistiques"
+        ],
+        "cliquables": 1,
+        "parMoteur": 0,
+        "sansAction": 0,
+        "textes": 10,
+        "mots": 28
       }
     ],
     "ecransHotes": [
@@ -2216,6 +2230,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       }
     ],
     "procedures": [
+      "globales",
       "listSignalements",
       "listSuggestions",
       "myReports",
@@ -2236,8 +2251,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "connecte",
       "public"
     ],
-    "textes": 55,
-    "mots": 240,
+    "textes": 65,
+    "mots": 268,
     "battement": "sonde",
     "manques": [
       {
@@ -13751,22 +13766,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "monitoring"
     ],
     "boutons": [],
-    "routes": [
-      "/superadmin/admin-statistiques"
-    ],
-    "ecrans": [
-      {
-        "fichier": "client/src/pages/superadmin/AdminStatistiques.tsx",
-        "routes": [
-          "/superadmin/admin-statistiques"
-        ],
-        "cliquables": 2,
-        "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 10,
-        "mots": 21
-      }
-    ],
+    "routes": [],
+    "ecrans": [],
     "ecransHotes": [
       {
         "fichier": "client/src/pages/CentreIntelligences.tsx",
@@ -13792,15 +13793,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "public"
     ],
-    "textes": 10,
-    "mots": 21,
+    "textes": 0,
+    "mots": 0,
     "battement": "pont_os",
-    "manques": [
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Voir rapport complet » client/src/pages/superadmin/AdminStatistiques.tsx:40"
-      }
-    ]
+    "manques": []
   },
   {
     "moteur": "notification",

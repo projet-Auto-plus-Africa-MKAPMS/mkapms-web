@@ -1,18 +1,43 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, BarChart3, TrendingUp, TrendingDown, ChevronDown } from "lucide-react";
+import { ChevronLeft, BarChart3, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { trpc } from "../../lib/trpc";
 
-const STATS = [
-  { id: "ca", label: "Chiffre d'affaires", valeur: "198 450 EUR", variation: "+12.5%", positif: true, detail: "CA mensuel cumule de tous les univers. Top univers: Vente (42%), Location (28%), Garage (18%)." },
-  { id: "users", label: "Nouveaux inscrits", valeur: "89", variation: "+23%", positif: true, detail: "Particuliers: 62, Professionnels: 18, Garages: 9. Taux conversion inscription → abonnement: 34%." },
-  { id: "annonces", label: "Annonces publiees", valeur: "342", variation: "+8%", positif: true, detail: "Vente: 245, Location: 67, Encheres: 30. Duree moyenne publication: 18 jours." },
-  { id: "conv", label: "Taux conversion", valeur: "4.2%", variation: "-0.3%", positif: false, detail: "Visites → contact: 4.2%. Mobile: 3.8%, Desktop: 5.1%. Objectif: 5%." },
-  { id: "panier", label: "Panier moyen", valeur: "67 EUR", variation: "+5 EUR", positif: true, detail: "Boost: 12 EUR moy, Pack photos: 8 EUR moy, Abonnement: 89 EUR moy." },
-  { id: "churn", label: "Taux desabonnement", valeur: "2.1%", variation: "-0.4%", positif: true, detail: "Moyenne secteur: 5%. Retention 12 mois: 85%. Principal motif: prix trop eleve (38%)." },
-];
+/* ══════════════════════════════════════════════════════════════════════════
+   STATISTIQUES (superadmin)
+   Données réelles : trpc.statistiques.globales (server/routers/statistiques.ts).
+   Chaque indicateur est recalculé en direct (payments/users/annonces/
+   subscriptions) avec une vraie variation mois en cours vs mois précédent.
+   "Taux de conversion" reste "Non mesuré" : aucun suivi de visite/session
+   n'existe dans ce dépôt. "Taux de désabonnement" est une vraie mesure mais
+   une approximation documentée (annulés ce mois / (actifs + annulés)) —
+   jamais un motif de désabonnement inventé.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+function Variation({ pct }: { pct: number | null }) {
+  if (pct === null) return <span className="text-[10px] font-bold text-[#9CA3AF] flex items-center gap-1"><Minus size={10} /> —</span>;
+  const positif = pct >= 0;
+  return (
+    <span className={`text-[10px] font-bold flex items-center gap-1 ${positif ? "text-green-600" : "text-red-600"}`}>
+      {positif ? <TrendingUp size={10} /> : <TrendingDown size={10} />} {positif ? "+" : ""}{pct}%
+    </span>
+  );
+}
 
 export default function AdminStatistiques() {
   const [expanded, setExpanded] = useState<string | null>(null);
+  const q = trpc.statistiques.globales.useQuery();
+
+  const cartes = q.data
+    ? [
+        { id: "ca", label: "Chiffre d'affaires (mois en cours)", valeur: `${Number(q.data.ca.actuel).toLocaleString("fr-FR")} ${q.data.ca.devise}`, pct: q.data.ca.variationPct, detail: "Somme des paiements payés ce mois-ci, comparée au mois précédent." },
+        { id: "users", label: "Nouveaux inscrits", valeur: String(q.data.nouveauxInscrits.actuel), pct: q.data.nouveauxInscrits.variationPct, detail: `Particuliers : ${q.data.nouveauxInscrits.particuliers}, Professionnels : ${q.data.nouveauxInscrits.professionnels}.` },
+        { id: "annonces", label: "Annonces publiées", valeur: String(q.data.annoncesPubliees.actuel), pct: q.data.annoncesPubliees.variationPct, detail: `Vente : ${q.data.annoncesPubliees.vente}, Location : ${q.data.annoncesPubliees.location}.` },
+        { id: "panier", label: "Panier moyen (EUR)", valeur: `${Number(q.data.panierMoyen.actuel).toFixed(2)} ${q.data.panierMoyen.devise}`, pct: q.data.panierMoyen.variationPct, detail: "Moyenne des paiements payés en EUR ce mois-ci." },
+        { id: "conv", label: "Taux de conversion", nonMesure: true, detail: "Aucun suivi de visite/session n'existe dans la plateforme aujourd'hui — rien à mesurer honnêtement ici." },
+        { id: "churn", label: "Taux de désabonnement (approx.)", valeur: q.data.tauxDesabonnement.actuel !== null ? `${q.data.tauxDesabonnement.actuel}%` : "—", pct: null, detail: `Annulés ce mois : ${q.data.tauxDesabonnement.annulesCeMois}, actifs actuels : ${q.data.tauxDesabonnement.actifsActuels}. Ratio réel, pas un churn par cohorte.` },
+      ]
+    : [];
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pb-24">
@@ -21,23 +46,27 @@ export default function AdminStatistiques() {
         <h1 className="text-xl font-black text-white flex items-center gap-2"><BarChart3 size={20} className="text-[#D4AF37]" /> Statistiques</h1>
       </div>
 
+      {q.isLoading && <p className="px-4 mt-4 text-xs text-[#9CA3AF]">Chargement…</p>}
+
       <div className="px-4 mt-4 grid grid-cols-2 gap-2">
-        {STATS.map((s) => {
+        {cartes.map((s) => {
           const isExp = expanded === s.id;
           return (
             <div key={s.id} className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden">
               <button onClick={() => setExpanded(isExp ? null : s.id)} className="w-full text-left p-3">
                 <p className="text-[10px] text-[#6B7280]">{s.label}</p>
-                <p className="text-lg font-black text-[#111]">{s.valeur}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  {s.positif ? <TrendingUp size={10} className="text-green-500" /> : <TrendingDown size={10} className="text-red-500" />}
-                  <span className={`text-[10px] font-bold ${s.positif ? "text-green-600" : "text-red-600"}`}>{s.variation}</span>
-                </div>
+                {s.nonMesure ? (
+                  <p className="text-sm font-bold text-[#9CA3AF] mt-1">Non mesuré</p>
+                ) : (
+                  <>
+                    <p className="text-lg font-black text-[#111]">{s.valeur}</p>
+                    <div className="mt-1"><Variation pct={s.pct ?? null} /></div>
+                  </>
+                )}
               </button>
               {isExp && (
                 <div className="px-3 pb-3 border-t border-[#E5E7EB] pt-2">
                   <p className="text-[10px] text-[#6B7280] leading-relaxed">{s.detail}</p>
-                  <button className="mt-2 w-full rounded-lg bg-[#D4AF37] py-1.5 text-[9px] font-bold text-white">Voir rapport complet</button>
                 </div>
               )}
             </div>
