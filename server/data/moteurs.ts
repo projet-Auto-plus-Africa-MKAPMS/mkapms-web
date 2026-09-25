@@ -100,10 +100,10 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 505;
+export const MANQUES_TOTAL = 506;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
-  "dependance_non_declaree": 50,
+  "dependance_non_declaree": 51,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
@@ -6831,6 +6831,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "politique_pays",
       "pro_account",
       "pro_portal",
+      "product_engine",
       "proximity_engine",
       "rd_lab",
       "resilience",
@@ -16966,11 +16967,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     ],
     "dependancesDetectees": [
       "core",
+      "country",
       "event_bus",
       "smart"
     ],
     "dependances": [
       "core",
+      "country",
       "event_bus",
       "smart"
     ],
@@ -16980,6 +16983,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "product-engine/index.ts importe trpc.ts",
         "product-engine/service.ts importe db.ts",
         "product-engine/service.ts importe env.ts"
+      ],
+      "country": [
+        "product-engine/service.ts importe country-os/index.ts",
+        "product-engine/service.ts lit la règle pays"
       ],
       "event_bus": [
         "abonné au bus"
@@ -17042,7 +17049,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "textes": 18,
     "mots": 97,
     "battement": "sonde",
-    "manques": []
+    "manques": [
+      {
+        "genre": "dependance_non_declaree",
+        "detail": "country — product-engine/service.ts importe country-os/index.ts"
+      }
+    ]
   },
   {
     "moteur": "proximity_engine",
