@@ -10,6 +10,7 @@ import {
 import { trpc } from "../lib/trpc";
 import ShareButton from "../components/ShareButton";
 import ReserverLocationButton from "../components/ReserverLocationButton";
+import { useAuth } from "../lib/auth";
 
 /* ══════════════════════════════════════════════════════════════════════════
    PAGE PRODUIT — LOCATION GÉNÉRIQUE
@@ -87,6 +88,7 @@ export default function ProduitLocation() {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [photoCat, setPhotoCat] = useState<PhotoCategory>("toutes");
   const [photoIdx, setPhotoIdx] = useState(0);
   const [fav, setFav] = useState(false);
@@ -94,6 +96,7 @@ export default function ProduitLocation() {
   const [showPrices, setShowPrices] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [tierChoisi, setTierChoisi] = useState<number | null>(null);
+  const joinWaitlist = trpc.waitlist.join.useMutation();
 
   // Fetch de la vraie annonce si l'id est numérique (annonce réelle) ;
   // sinon on cherche dans VEHICLES_DB (mocks 8001-8010, 7001-7009, 6001-6008…).
@@ -474,6 +477,24 @@ export default function ProduitLocation() {
         >
           Réserver maintenant
         </ReserverLocationButton>
+        {id && /^\d+$/.test(id) && (
+          joinWaitlist.isSuccess ? (
+            <p className="mt-2 text-center text-[11px] font-semibold text-emerald-700">Inscrit sur la liste d'attente — <Link to="/louer/liste-attente" className="underline">voir ma position</Link></p>
+          ) : (
+            <button
+              type="button"
+              disabled={joinWaitlist.isPending}
+              onClick={() => {
+                if (!user) { navigate(`/connexion?next=${encodeURIComponent(window.location.pathname)}`); return; }
+                joinWaitlist.mutate({ annonceId: Number(id) });
+              }}
+              className="mt-2 w-full text-center text-[11px] font-semibold text-[#6B7280] underline disabled:opacity-50"
+            >
+              {joinWaitlist.isPending ? "Inscription…" : "Rejoindre la liste d'attente pour ce véhicule"}
+            </button>
+          )
+        )}
+        {joinWaitlist.isError && <p className="mt-1 text-center text-[11px] font-semibold text-red-600">{joinWaitlist.error.message}</p>}
       </div>
     </div>
   );
