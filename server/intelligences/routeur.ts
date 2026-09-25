@@ -50,9 +50,11 @@ const DOMAINE_AUTONOMIE: Partial<Record<CodeCapacite, string>> = {
 };
 
 /** Ordre de gravité des niveaux de confidentialité, du plus ouvert au plus fermé. */
-const NIVEAUX: Confidentiality[] = ["publique", "personnelle", "confidentielle"];
+const NIVEAUX: Confidentiality[] = ["publique", "interne", "personnelle", "confidentielle"];
 
 export interface DemandeCapacite {
+  /** Server-only service boundary; never accepted from public capability inputs. */
+  isolation?: "SHOP";
   capacite: CodeCapacite;
   /** Moteur MKA appelant : tracé, et refusé s'il ne se nomme pas. */
   moteur: string;
@@ -195,10 +197,11 @@ export async function router(demande: DemandeCapacite): Promise<ResultatCapacite
     );
   }
 
-  const shadow = await configuration(demande.capacite);
+  const shadow = demande.isolation === "SHOP" ? null : await configuration(demande.capacite);
   const parCandidat = candidatSert(shadow);
 
   const commun = {
+    isolation: demande.isolation,
     capacite: s.capaciteFabrique,
     tache: demande.capacite,
     capaciteMka: demande.capacite,
