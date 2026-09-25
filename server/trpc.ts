@@ -2,8 +2,11 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { eq } from "drizzle-orm";
 import { verifyToken } from "./auth.js";
 import { isAdmin, isDirection, isPro, isSupplierOrCarrier } from "@shared/roles.js";
+import { db } from "./db.js";
+import { users } from "./schema.js";
 
 export interface AuthUser {
   uid: number;
@@ -11,7 +14,14 @@ export interface AuthUser {
   email: string;
 }
 
-export function createContext({ req, res }: CreateExpressContextOptions) {
+/**
+ * Revérifié à chaque requête (pas seulement à la connexion) : un compte
+ * suspendu ou supprimé par l'admin doit perdre l'accès immédiatement, même
+ * s'il possède encore un jeton valide non expiré. Sans ce contrôle,
+ * "suspendre un compte" n'aurait aucun effet réel avant l'expiration du
+ * jeton.
+ */
+export async function createContext({ req, res }: CreateExpressContextOptions) {
   let user: AuthUser | null = null;
   const header = req.headers.authorization;
   const bearer = header?.startsWith("Bearer ") ? header.slice(7) : null;
@@ -19,13 +29,16 @@ export function createContext({ req, res }: CreateExpressContextOptions) {
   if (token) {
     const payload = verifyToken(token);
     if (payload) {
-      user = { uid: payload.uid, role: payload.role, email: payload.email };
+      const [row] = await db.select({ status: users.status }).from(users).where(eq(users.id, payload.uid)).limit(1);
+      if (row?.status === "active") {
+        user = { uid: payload.uid, role: payload.role, email: payload.email };
+      }
     }
   }
   return { req, res, user };
 }
 
-export type Context = ReturnType<typeof createContext>;
+export type Context = Awaited<ReturnType<typeof createContext>>;
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,

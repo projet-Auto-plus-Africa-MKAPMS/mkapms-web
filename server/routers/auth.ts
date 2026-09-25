@@ -127,6 +127,10 @@ export const authRouter = router({
         await logAction(u.id, "auth.login_failed", "user", u.id, undefined, clientMeta(ctx.req));
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Identifiants invalides" });
       }
+      if (u.status !== "active") {
+        await logAction(u.id, "auth.login_blocked_status", "user", u.id, { status: u.status }, clientMeta(ctx.req));
+        throw new TRPCError({ code: "FORBIDDEN", message: u.status === "suspended" ? "Ce compte a été suspendu." : "Ce compte n'est plus actif." });
+      }
       const token = signToken({ uid: u.id, role: u.role, email: u.email });
       await logAction(u.id, "auth.login", "user", u.id, undefined, clientMeta(ctx.req));
       // Smart Engine — hook connexion (fire-and-forget)
@@ -171,6 +175,9 @@ export const authRouter = router({
           .update(users)
           .set({ googleId: profile.googleId, emailVerified: true })
           .where(eq(users.id, u.id));
+      }
+      if (u.status !== "active") {
+        throw new TRPCError({ code: "FORBIDDEN", message: u.status === "suspended" ? "Ce compte a été suspendu." : "Ce compte n'est plus actif." });
       }
       const token = signToken({ uid: u.id, role: u.role, email: u.email });
       return { token, user: publicUser(u) };

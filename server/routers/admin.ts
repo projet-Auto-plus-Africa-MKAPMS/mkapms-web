@@ -31,8 +31,22 @@ import {
   deliveryMissions,
   annoncePhotos,
   pubRequests,
+  notifications,
 } from "../schema.js";
 import { sql as dsql } from "drizzle-orm";
+
+// Vérifie qu'un acteur non-PDG a le droit d'agir sur ce compte cible — même
+// hiérarchie que la suppression de compte (§3.3) : un Directeur (admin) ne
+// peut pas agir sur le PDG, un autre admin, ou un compte professionnel.
+// Réutilisé par suspendUser/reactivateUser pour ne pas dupliquer la règle.
+function assertPeutModererCible(actorRole: string, target: { role: string; accountType: string | null }) {
+  if (actorRole === "super_admin") return;
+  if (target.role === "super_admin") throw new TRPCError({ code: "FORBIDDEN", message: "Seul le PDG peut agir sur le compte PDG" });
+  if (target.role === "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Seul le PDG peut agir sur un compte administrateur" });
+  if (target.accountType === "professionnel" || target.role === "pro" || target.role === "garage" || target.role === "society") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Seul le PDG peut agir sur un compte professionnel" });
+  }
+}
 
 // Back-office (§10)
 export const adminRouter = router({
@@ -174,19 +188,71 @@ export const adminRouter = router({
   }),
 
   usersList: adminProcedure
-    .input(z.object({ limit: z.number().default(50), offset: z.number().default(0) }))
+    .input(
+      z.object({
+        limit: z.number().default(50),
+        offset: z.number().default(0),
+        search: z.string().trim().min(1).optional(),
+        status: z.enum(["active", "suspended", "deleted"]).optional(),
+      }),
+    )
     .query(async ({ input }) => {
-      return db
+      const conds = [];
+      if (input.search) {
+        const q = `%${input.search.toLowerCase()}%`;
+        conds.push(dsql`(lower(${users.name}) like ${q} or lower(${users.email}) like ${q})`);
+      }
+      if (input.status) conds.push(eq(users.status, input.status));
+      const where = conds.length ? and(...conds) : undefined;
+
+      const rows = await db
         .select({
-          id: users.id, email: users.email, name: users.name,
-          role: users.role, accountType: users.accountType,
-          createdAt: users.createdAt,
+          id: users.id, email: users.email, name: users.name, phone: users.phone,
+          addressLine: users.addressLine, city: users.city, postalCode: users.postalCode,
+          role: users.role, accountType: users.accountType, status: users.status,
+          rating: users.rating, reviewCount: users.reviewCount, createdAt: users.createdAt,
         })
         .from(users)
+        .where(where)
         .orderBy(desc(users.createdAt))
         .limit(input.limit)
         .offset(input.offset);
+
+      const ids = rows.map((r) => r.id);
+      // Annonces et dernière connexion sont calculées via des requêtes
+      // groupées séparées (jamais une sous-requête corrélée en SQL brut sur
+      // une table qui possède sa propre colonne "id" — voir le bug corrigé
+      // dans server/routers/badges.ts pour la raison exacte).
+      const annoncesParUser = ids.length
+        ? await db.select({ ownerId: annonces.ownerId, n: dsql<number>`count(*)::int` }).from(annonces).where(dsql`${annonces.ownerId} in (${dsql.join(ids, dsql`, `)})`).groupBy(annonces.ownerId)
+        : [];
+      const dernierLoginParUser = ids.length
+        ? await db
+            .select({ actorId: auditLogs.actorId, dernier: dsql<string>`max(${auditLogs.createdAt})` })
+            .from(auditLogs)
+            .where(dsql`${auditLogs.action} = 'auth.login' and ${auditLogs.actorId} in (${dsql.join(ids, dsql`, `)})`)
+            .groupBy(auditLogs.actorId)
+        : [];
+      const annoncesMap = new Map(annoncesParUser.map((a) => [a.ownerId, a.n]));
+      const loginMap = new Map(dernierLoginParUser.map((l) => [l.actorId, l.dernier]));
+
+      return rows.map((u) => ({
+        ...u,
+        annonces: annoncesMap.get(u.id) ?? 0,
+        dernierLogin: loginMap.get(u.id) ?? null,
+      }));
     }),
+
+  usersStats: adminProcedure.query(async () => {
+    const debutMois = new Date();
+    debutMois.setDate(1);
+    debutMois.setHours(0, 0, 0, 0);
+    const [total] = await db.select({ n: sql<number>`count(*)::int` }).from(users);
+    const [pros] = await db.select({ n: sql<number>`count(*)::int` }).from(users).where(sql`${users.accountType} = 'professionnel'`);
+    const [nouveaux] = await db.select({ n: sql<number>`count(*)::int` }).from(users).where(sql`${users.createdAt} >= ${debutMois}`);
+    const [suspendus] = await db.select({ n: sql<number>`count(*)::int` }).from(users).where(eq(users.status, "suspended"));
+    return { total: total?.n ?? 0, pros: pros?.n ?? 0, nouveauxCeMois: nouveaux?.n ?? 0, suspendus: suspendus?.n ?? 0 };
+  }),
 
   // Liste complète des annonces pour l'admin
   annoncesAll: adminProcedure
@@ -379,18 +445,79 @@ export const adminRouter = router({
       // Vérifier le compte cible
       const [target] = await db.select({ role: users.role, accountType: users.accountType, staffPosition: users.staffPosition }).from(users).where(eq(users.id, input.userId)).limit(1);
       if (!target) throw new Error("Compte introuvable");
-
-      // Le Directeur (admin) ne peut pas supprimer : PDG, comptes pro, autres admins
-      if (ctx.user.role !== "super_admin") {
-        if (target.role === "super_admin") throw new Error("Seul le PDG peut supprimer le compte PDG");
-        if (target.role === "admin") throw new Error("Seul le PDG peut supprimer un compte administrateur");
-        if (target.accountType === "professionnel" || target.role === "pro" || target.role === "garage" || target.role === "society") {
-          throw new Error("Seul le PDG peut supprimer un compte professionnel");
-        }
-      }
+      assertPeutModererCible(ctx.user.role, target);
 
       await db.delete(users).where(eq(users.id, input.userId));
       await logAction(ctx.user.uid, "account.delete", "user", input.userId, { targetRole: target.role });
+      return { ok: true };
+    }),
+
+  // Suspension d'un compte (§3.3) — révoque l'accès immédiatement (vérifié à
+  // chaque requête dans trpc.ts createContext), pas seulement à la prochaine
+  // connexion. Même hiérarchie que la suppression : un Directeur ne peut pas
+  // suspendre le PDG, un autre admin, ou un compte professionnel.
+  suspendUser: adminProcedure
+    .input(z.object({ userId: z.number(), reason: z.string().max(500).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.userId === ctx.user.uid) throw new TRPCError({ code: "BAD_REQUEST", message: "Impossible de suspendre son propre compte" });
+      const [target] = await db.select({ role: users.role, accountType: users.accountType, status: users.status }).from(users).where(eq(users.id, input.userId)).limit(1);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "Compte introuvable" });
+      assertPeutModererCible(ctx.user.role, target);
+      if (target.status === "suspended") throw new TRPCError({ code: "CONFLICT", message: "Ce compte est déjà suspendu" });
+
+      await db.update(users).set({ status: "suspended", updatedAt: new Date() }).where(eq(users.id, input.userId));
+      await logAction(ctx.user.uid, "account.suspend", "user", input.userId, { reason: input.reason ?? null });
+      return { ok: true };
+    }),
+
+  reactivateUser: adminProcedure
+    .input(z.object({ userId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const [target] = await db.select({ role: users.role, accountType: users.accountType, status: users.status }).from(users).where(eq(users.id, input.userId)).limit(1);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "Compte introuvable" });
+      assertPeutModererCible(ctx.user.role, target);
+      if (target.status !== "suspended") throw new TRPCError({ code: "CONFLICT", message: "Ce compte n'est pas suspendu" });
+
+      await db.update(users).set({ status: "active", updatedAt: new Date() }).where(eq(users.id, input.userId));
+      await logAction(ctx.user.uid, "account.reactivate", "user", input.userId);
+      return { ok: true };
+    }),
+
+  // Message admin → utilisateur : une vraie notification in-app (moteur
+  // notifications existant, jamais un envoi simulé côté navigateur).
+  contactUser: adminProcedure
+    .input(z.object({ userId: z.number(), message: z.string().trim().min(1).max(2000) }))
+    .mutation(async ({ ctx, input }) => {
+      const [target] = await db.select({ id: users.id }).from(users).where(eq(users.id, input.userId)).limit(1);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "Compte introuvable" });
+      await db.insert(notifications).values({
+        userId: input.userId,
+        type: "systeme",
+        title: "Message de l'administration",
+        body: input.message,
+      });
+      await logAction(ctx.user.uid, "account.contact", "user", input.userId);
+      return { ok: true };
+    }),
+
+  // Modification du profil par un admin — uniquement les champs de contact,
+  // jamais l'email (identifiant de connexion) ni le rôle (déjà couvert par
+  // un flux dédié plus haut).
+  updateUserProfile: adminProcedure
+    .input(z.object({
+      userId: z.number(),
+      name: z.string().trim().min(1).max(255).optional(),
+      phone: z.string().trim().max(32).optional(),
+      addressLine: z.string().trim().max(255).optional(),
+      city: z.string().trim().max(128).optional(),
+      postalCode: z.string().trim().max(16).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { userId, ...fields } = input;
+      const [target] = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "Compte introuvable" });
+      await db.update(users).set({ ...fields, updatedAt: new Date() }).where(eq(users.id, userId));
+      await logAction(ctx.user.uid, "account.update_profile", "user", userId, fields);
       return { ok: true };
     }),
 

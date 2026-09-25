@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 508;
+export const MANQUES_TOTAL = 507;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "dependance_non_declaree": 50,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
-  "bouton_sans_action": 52,
+  "bouton_sans_action": 51,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2
 };
@@ -6445,6 +6445,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
+        "fichier": "client/src/pages/superadmin/AdminUtilisateurs.tsx",
+        "route": "/superadmin/admin-utilisateurs",
+        "composants": [
+          "trpc.admin"
+        ]
+      },
+      {
         "fichier": "client/src/pages/superadmin/AdminVente.tsx",
         "route": "/superadmin/admin-vente",
         "composants": [
@@ -6489,6 +6496,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "auditLog",
       "certifyVehicle",
       "communications",
+      "contactUser",
       "create",
       "createCourse",
       "createDepot",
@@ -6556,6 +6564,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "promoList",
       "pubRequestDetail",
       "pubRequestsList",
+      "reactivateUser",
       "removeEntity",
       "requestUserDeletion",
       "reservationsList",
@@ -6568,6 +6577,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "status",
       "submitExam",
       "supervision",
+      "suspendUser",
       "ticketsList",
       "update",
       "updateCountry",
@@ -6577,8 +6587,10 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "updateRule",
       "updateShipmentStatus",
       "updateSupplier",
+      "updateUserProfile",
       "upload",
       "usersList",
+      "usersStats",
       "validateGarage",
       "validateKyc",
       "writeLog"
@@ -9998,11 +10010,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/admin-utilisateurs"
         ],
-        "cliquables": 27,
+        "cliquables": 24,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 70,
-        "mots": 164
+        "sansAction": 0,
+        "textes": 41,
+        "mots": 134
       },
       {
         "fichier": "client/src/pages/utilisateurs/AbonnementsUtilisateur.tsx",
@@ -10334,8 +10346,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "direction",
       "public"
     ],
-    "textes": 464,
-    "mots": 2043,
+    "textes": 435,
+    "mots": 2013,
     "battement": "pont_os",
     "manques": [
       {
@@ -10345,10 +10357,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       {
         "genre": "bouton_sans_action",
         "detail": "« 0} onClick= > » client/src/pages/Validation.tsx:177"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/superadmin/AdminUtilisateurs.tsx:90"
       },
       {
         "genre": "ecran_sans_contenu",
