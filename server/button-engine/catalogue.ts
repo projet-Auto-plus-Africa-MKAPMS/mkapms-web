@@ -523,6 +523,8 @@ export const ACTIONS_BOUTONS: readonly ActionBouton[] = [
     genre: "navigation",
     cible: "/demarches/plaques-immatriculation",
     cleRedirection: "demarches_ouvrir_plaques_immatriculation",
+  },
+
   // ── Atelier Pro (/atelier-pro) — hub de l'atelier sur données serveur ──
   {
     code: "atelier_intervention_etape",
