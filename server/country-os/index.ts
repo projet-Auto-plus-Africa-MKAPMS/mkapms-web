@@ -8,7 +8,7 @@
 import { boolean, bigserial, integer, jsonb, numeric, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../db.js";
-import { publicProcedure, protectedProcedure, adminProcedure, router } from "../trpc.js";
+import { publicProcedure, protectedProcedure, adminProcedure, pdgProcedure, router } from "../trpc.js";
 import { z } from "zod";
 import type { ControlCenterFeed, EngineDashboard, MaturityLevel } from "../identity-os/contract.js";
 
@@ -41,6 +41,36 @@ export const countryCurrencies = pgTable("country_currencies", {
   rateFromEur: numeric("rate_from_eur", { precision: 18, scale: 6 }).notNull().default("1"),
   locale: varchar("locale", { length: 16 }).notNull().default("fr-FR"),
   noDecimals: boolean("no_decimals").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Registre des capacités Google par pays (doctrine PDG v1.1, MOS §12.1/12.2).
+ *
+ * Interdiction absolue d'inventer une disponibilité Google. Une capacité ne
+ * peut être vraie que si `verified = true` ET `sourceRef` pointe vers une
+ * page officielle support.google.com. Tant qu'une ligne n'est pas vérifiée,
+ * tout moteur appelant (`isGoogleCapabilityEligible`) doit la traiter comme
+ * indisponible — même schéma de prudence que Country Policy Engine
+ * (`cpe_rules.verified`) : pas de valeur par défaut permissive.
+ *
+ * `search` est la seule capacité vraie par défaut (référencement Google
+ * Search/SEO organique, universel, sans restriction pays connue).
+ */
+export const countryGoogleCapabilities = pgTable("country_google_capabilities", {
+  countryCode: varchar("country_code", { length: 2 }).primaryKey(),
+  search: boolean("search").notNull().default(true),
+  merchant: boolean("merchant").notNull().default(false),
+  freeListings: boolean("free_listings").notNull().default(false),
+  shopping: boolean("shopping").notNull().default(false),
+  vehicleAds: boolean("vehicle_ads").notNull().default(false),
+  googleBusiness: boolean("google_business").notNull().default(false),
+  localAds: boolean("local_ads").notNull().default(false),
+  verified: boolean("verified").notNull().default(false),
+  sourceRef: text("source_ref"),
+  notes: text("notes"),
+  verifiedBy: integer("verified_by"),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -134,6 +164,90 @@ export async function listCurrencies() {
   return db.select().from(countryCurrencies).orderBy(countryCurrencies.code);
 }
 
+// ── Capacités Google par pays ───────────────────────────────────────────
+
+export async function listGoogleCapabilities() {
+  return db.select().from(countryGoogleCapabilities).orderBy(countryGoogleCapabilities.countryCode);
+}
+
+export async function getGoogleCapabilities(code: string) {
+  const [row] = await db
+    .select()
+    .from(countryGoogleCapabilities)
+    .where(eq(countryGoogleCapabilities.countryCode, code.toUpperCase()))
+    .limit(1);
+  return row ?? null;
+}
+
+/**
+ * Une capacité n'est exploitable que vérifiée. L'absence de ligne, ou une
+ * ligne non vérifiée, vaut « indisponible » — jamais « probablement oui ».
+ * C'est le point d'appel que les moteurs Google (product-engine, futurs
+ * moteurs §12.6) doivent utiliser au lieu de coder une liste de pays en dur.
+ */
+export async function isGoogleCapabilityEligible(
+  code: string | null | undefined,
+  capability: "search" | "merchant" | "freeListings" | "shopping" | "vehicleAds" | "googleBusiness" | "localAds",
+): Promise<boolean> {
+  if (!code) return false;
+  const row = await getGoogleCapabilities(code);
+  if (!row || !row.verified) return false;
+  return Boolean(row[capability]);
+}
+
+/**
+ * Déclarer/confirmer une capacité engage la plateforme dans une décision
+ * marketing internationale : réservé au PDG (comme cpe_rules). Une capacité
+ * ne peut passer à `true` sans `sourceRef` (référence à une page officielle
+ * Google) — refus explicite sinon, pour qu'il soit impossible d'inventer une
+ * disponibilité par erreur de saisie rapide.
+ */
+export async function upsertGoogleCapabilities(input: {
+  countryCode: string;
+  search?: boolean;
+  merchant?: boolean;
+  freeListings?: boolean;
+  shopping?: boolean;
+  vehicleAds?: boolean;
+  googleBusiness?: boolean;
+  localAds?: boolean;
+  verified: boolean;
+  sourceRef?: string;
+  notes?: string;
+  verifiedBy: number;
+}) {
+  const anyCapabilityTrue = Boolean(
+    input.merchant || input.freeListings || input.shopping || input.vehicleAds || input.googleBusiness || input.localAds,
+  );
+  if (anyCapabilityTrue && (!input.verified || !input.sourceRef)) {
+    throw new Error(
+      "Impossible d'activer une capacité Google sans verified=true et une sourceRef (page officielle support.google.com). Interdiction d'inventer une disponibilité Google.",
+    );
+  }
+  const values = {
+    countryCode: input.countryCode.toUpperCase(),
+    search: input.search ?? true,
+    merchant: input.merchant ?? false,
+    freeListings: input.freeListings ?? false,
+    shopping: input.shopping ?? false,
+    vehicleAds: input.vehicleAds ?? false,
+    googleBusiness: input.googleBusiness ?? false,
+    localAds: input.localAds ?? false,
+    verified: input.verified,
+    sourceRef: input.sourceRef ?? null,
+    notes: input.notes ?? null,
+    verifiedBy: input.verifiedBy,
+    verifiedAt: new Date(),
+    updatedAt: new Date(),
+  };
+  const [row] = await db
+    .insert(countryGoogleCapabilities)
+    .values(values)
+    .onConflictDoUpdate({ target: countryGoogleCapabilities.countryCode, set: values })
+    .returning();
+  return row;
+}
+
 // ── Health + Dashboard + Feed (standards MOS) ───────────────────────────
 export async function healthStatus() {
   const startedAt = Date.now();
@@ -170,9 +284,16 @@ export async function controlCenterFeed(): Promise<ControlCenterFeed> {
 export async function dashboard(): Promise<EngineDashboard> {
   const feed = await controlCenterFeed();
   const h = await healthStatus();
+  const capabilities = await db.select().from(countryGoogleCapabilities);
+  const googleCapabilitiesVerified = capabilities.filter((c) => c.verified).length;
   return {
     ...feed,
-    businessMetrics: { countries_active: h.metrics.countriesActive, currencies: h.metrics.currencies },
+    businessMetrics: {
+      countries_active: h.metrics.countriesActive,
+      currencies: h.metrics.currencies,
+      google_capabilities_verified: googleCapabilitiesVerified,
+      google_capabilities_total: capabilities.length,
+    },
     recentEvents: [], recentErrors: [],
   };
 }
@@ -225,4 +346,41 @@ export const countryOsRouter = router({
         .returning();
       return row ?? null;
     }),
+
+  // Capacités Google par pays — jamais inventées (doctrine PDG v1.1, §12.1/12.2).
+  google: router({
+    list: publicProcedure.query(() => listGoogleCapabilities()),
+
+    get: publicProcedure
+      .input(z.object({ code: z.string().length(2) }))
+      .query(({ input }) => getGoogleCapabilities(input.code)),
+
+    isEligible: publicProcedure
+      .input(
+        z.object({
+          code: z.string().length(2).nullable().optional(),
+          capability: z.enum(["search", "merchant", "freeListings", "shopping", "vehicleAds", "googleBusiness", "localAds"]),
+        }),
+      )
+      .query(({ input }) => isGoogleCapabilityEligible(input.code, input.capability)),
+
+    // Décision PDG : engage la plateforme sur une disponibilité Google par pays.
+    upsert: pdgProcedure
+      .input(
+        z.object({
+          countryCode: z.string().length(2),
+          search: z.boolean().optional(),
+          merchant: z.boolean().optional(),
+          freeListings: z.boolean().optional(),
+          shopping: z.boolean().optional(),
+          vehicleAds: z.boolean().optional(),
+          googleBusiness: z.boolean().optional(),
+          localAds: z.boolean().optional(),
+          verified: z.boolean(),
+          sourceRef: z.string().max(2000).optional(),
+          notes: z.string().max(2000).optional(),
+        }),
+      )
+      .mutation(({ input, ctx }) => upsertGoogleCapabilities({ ...input, verifiedBy: ctx.user.uid })),
+  }),
 });
