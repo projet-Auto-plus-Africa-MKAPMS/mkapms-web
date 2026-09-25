@@ -346,8 +346,8 @@ export const PERIMETRES: PerimetreDeclare[] = [
   // ── Paiement & finance ─────────────────────────────────────────────────
   {
     moteur: "payment",
-    dossiers: ["payment-engine", "stripeWebhook.ts", "lib/stripe.ts", "lib/payment-errors.ts", "modules/wallet.ts", "modules/wallet-ledger.ts", "routers/wallet.ts", "modules/installments.ts", "routers/installments.ts", "routers/abonnements.ts"],
-    routeurs: ["paymentEngine", "wallet", "installments", "abonnements"],
+    dossiers: ["payment-engine", "stripeWebhook.ts", "lib/stripe.ts", "lib/payment-errors.ts", "modules/wallet.ts", "modules/wallet-ledger.ts", "routers/wallet.ts", "modules/installments.ts", "routers/installments.ts", "routers/abonnements.ts", "routers/badges.ts"],
+    routeurs: ["paymentEngine", "wallet", "installments", "abonnements", "badges"],
     routes: ["/wallet", "/abonnements", "/abonnements-definitifs", "/paiement/*", "/paiement-vehicule/:id", "/superadmin/admin-paiements", "/superadmin/admin-abonnements", "/superadmin/admin-commissions", "/badges-definitifs", "/superadmin/admin-badges"],
   },
   {

@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 509;
+export const MANQUES_TOTAL = 508;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 341,
   "dependance_non_declaree": 50,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
-  "bouton_sans_action": 53,
+  "bouton_sans_action": 52,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2
 };
@@ -6592,6 +6592,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "annonces",
       "app_feedback",
       "audit_logs",
+      "badge_attributions",
+      "badges",
       "bookings",
       "ce_ai_predictions",
       "ce_ai_reports",
@@ -14753,15 +14755,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "routers/wallet.ts",
       "modules/installments.ts",
       "routers/installments.ts",
-      "routers/abonnements.ts"
+      "routers/abonnements.ts",
+      "routers/badges.ts"
     ],
     "routeurs": [
       "paymentEngine",
       "wallet",
       "installments",
-      "abonnements"
+      "abonnements",
+      "badges"
     ],
-    "fichiersServeur": 19,
+    "fichiersServeur": 20,
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -14832,7 +14836,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "permission": [
         "payment-engine/router.ts filtre par rôle (procédure pro/admin/direction/PDG)",
         "routers/abonnements.ts filtre par rôle (procédure pro/admin/direction/PDG)",
-        "routers/installments.ts filtre par rôle (procédure pro/admin/direction/PDG)"
+        "routers/badges.ts filtre par rôle (procédure pro/admin/direction/PDG)"
       ],
       "smart": [
         "lib/payment-errors.ts importe smart-engine/services/alert-engine.ts",
@@ -14977,11 +14981,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/admin-badges"
         ],
-        "cliquables": 2,
+        "cliquables": 5,
         "parMoteur": 0,
-        "sansAction": 1,
-        "textes": 15,
-        "mots": 48
+        "sansAction": 0,
+        "textes": 8,
+        "mots": 40
       },
       {
         "fichier": "client/src/pages/superadmin/AdminCommissions.tsx",
@@ -15108,6 +15112,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "createCheckout",
       "createRefund",
       "deleteBankAccount",
+      "list",
       "listPlans",
       "me",
       "mesAlertes",
@@ -15127,11 +15132,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "requestPayout",
       "schedule",
       "seedProducts",
+      "setCriteres",
       "setDefaultBankAccount",
       "setPayoutFrequency",
       "setStatus",
       "startProductCheckout",
       "stats",
+      "titulaires",
       "transaction",
       "transactions",
       "transactionsFor",
@@ -15166,17 +15173,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 208,
-    "mots": 727,
+    "textes": 201,
+    "mots": 719,
     "battement": "sonde",
     "manques": [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/PaiementSimulation.tsx (3 texte(s))"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Gerer criteres » client/src/pages/superadmin/AdminBadges.tsx:36"
       },
       {
         "genre": "bouton_sans_action",
