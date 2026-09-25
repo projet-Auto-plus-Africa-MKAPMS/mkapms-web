@@ -2270,6 +2270,19 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié par test réel (server/intelligences/__tests__/fondations.test.ts, 12/12) : les deux fonctions de semis écrivent bien la première fois, ne réécrivent rien au second appel (idempotence), le passage pr-453 atteint bien le statut « surveille » avec ses 11 étapes réellement franchies, et l'état recalculé de la mémoire (etat()) montre bien les quatre catégories désormais non vides — y compris « erreurs et solutions » avec 0 bloqué sur 2 passages réels. npx tsc --noEmit : aucune erreur nouvelle. npm run build (avec régénération de server/data/moteurs.ts) : vert de bout en bout. Aucune migration nécessaire (tables déjà existantes depuis les migrations 0080 et 0094).\n\nLeçon générale : un moteur de suivi qui existe dans le code (schéma, fonctions d'écriture, endpoints) n'est réellement utile que si quelque chose l'appelle. Avant de conclure qu'une mémoire vide signale un manque de travail, vérifier s'il manque plutôt un appelant — et si le travail réel existe déjà ailleurs (git, CI, Railway), le consigner rétroactivement avec ses faits exacts est légitime, tant qu'aucune étape non vécue n'est déclarée franchie.",
     domaine: "confiance",
   },
+  {
+    cle: "admin-badge-direction-pdg-cliquable",
+    titre: "Back-office : le badge « Direction / PDG » n'était qu'un texte, il ouvre désormais l'onglet Administrateur / Directeur",
+    moteurs: ["boutons"],
+    quoi:
+      "Signalé par le PDG (capture d'écran, entouré) : sur l'écran Back-office (client/src/pages/Admin.tsx), le badge en haut à droite affichant « Direction / PDG » (ou « Employé » selon le rôle) était un simple <span>, sans aucune action au clic. L'écran expose déjà un onglet « Administrateur / Directeur » (adminTab === \"direction\") réservé aux comptes direction, avec du contenu réel derrière (Gestion Publicités, etc.). Corrigé : quand l'utilisateur est bien direction, le badge devient un vrai <button> qui appelle setAdminTab(\"direction\") — un raccourci vers un onglet déjà construit, pas une nouvelle fonctionnalité inventée. Pour un compte « Employé » (non direction), le badge reste un texte simple : il n'y a rien à ouvrir puisque l'onglet direction lui est de toute façon fermé (adminTab === \"direction\" && direction).",
+    pourquoi:
+      "Un badge de rôle qui ressemble à un contrôle interactif (fond doré, forme de pastille) mais ne répond pas au clic est exactement le pattern « bouton fantôme » déjà traqué par le moteur des boutons (tâche #20/#32) — ici repéré directement par le PDG plutôt que par l'inventaire automatique.",
+    ou: ["client/src/pages/Admin.tsx"],
+    lecon:
+      "Vérifié par lecture directe du composant : adminTab/setAdminTab pilotent déjà l'affichage réel de l'onglet direction (ligne 1083, adminTab === \"direction\" && direction) — aucune nouvelle logique n'était nécessaire, seul le badge manquait son gestionnaire de clic. npx tsc --noEmit sur le fichier exact : aucune erreur. npm run gen:boutons/gen:cliquables régénérés : 48 boutons sans action (inchangé, le nouveau bouton a une vraie action donc n'y apparaît pas), cliquables 2553→2554 (+1, exactement le badge devenu cliquable). npm run build vert de bout en bout. Pas de test dédié : navigation pure vers un onglet déjà entièrement testé par construction (contenu conditionnel existant, aucune donnée nouvelle). Pas de vérification visuelle en production.",
+    domaine: "confiance",
+  },
 ];
 
 /**
