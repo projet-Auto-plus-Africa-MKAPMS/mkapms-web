@@ -2103,6 +2103,19 @@ export const LIVRAISONS: Livraison[] = [
       "Vérifié directement contre la base réelle : server/routers/__tests__/reservations-request-location.test.ts (2/2 — un vehiculeRef numérique remplit serviceId avec le même id, un vehiculeRef non numérique laisse serviceId à 0) et server/routers/__tests__/rental-contracts-loueur-stats.test.ts (5/5 — compte correctement actifs/loués/disponibles, une annonce d'un AUTRE loueur n'est jamais comptée, une réservation réelle apparaît avec le bon titre de véhicule, reviewCount à 0 sans avis). Vérifié aussi par un parcours HTTP direct contre un serveur local (myLoueurStats renvoie exactement la forme attendue par l'écran). rental-contracts.test.ts rejoué sans modification (6/6). Compteur de boutons sans action : 68 → 67 (le bouton \"Vérifier\" sur des documents en attente fabriqués a disparu avec eux). npm run build vert de bout en bout.",
     domaine: "confiance",
   },
+  {
+    cle: "admin-abonnements-donnees-reelles-plus-historique-facturation",
+    titre: "AdminAbonnements.tsx (superadmin) : tableau fabriqué remplacé par les vraies souscriptions et le vrai historique de facturation",
+    moteurs: ["payment"],
+    quoi:
+      "Reconnexion effectuée à la reprise de session (2026-09-25), après réconciliation avec 18 PR fusionnées par d'autres agents pendant l'interruption (voir docs/audits/2026-09-24-captures-plateforme.md, table exhaustive des signalements restants — AdminAbonnements.tsx y figurait toujours comme non traité). AdminAbonnements.tsx affichait un tableau ABOS 100% fabriqué (342 actifs, MRR 48 200 EUR, 6 clients inventés) et deux boutons morts par ligne (Gérer, Historique).\n\nAjout de trois procédures à server/routers/abonnements.ts : adminList (liste réelle jointe à users pour le nom/email, filtrable par statut), adminStats (actifs/expirés/nouveaux ce mois calculés par comptage réel, MRR sommé par devise depuis les abonnements actifs — jamais un taux de change inventé pour fusionner plusieurs devises), adminHistory (paiements réels liés via payments.subscriptionId, une colonne déjà présente et jusqu'ici inutilisée pour cet usage). \"Gérer\" a été retiré plutôt que simulé : annuler ou changer un plan côté admin sans passer par l'API Stripe créerait un abonnement dont la base et le vrai statut Stripe divergent — cette action reste déléguée à abonnements.openPortal (le vrai portail client Stripe), déjà existant.",
+    pourquoi:
+      "Un MRR et un nombre d'abonnés inventés auraient pu être lus par la Direction comme un indicateur de pilotage réel — exactement le risque déjà identifié sur ComptaDirigeant.tsx et TableauBordLoueur.tsx dans ce chantier. Ajouter un vrai bouton d'annulation admin aurait introduit un risque plus grave qu'un bouton mort : un état payé chez Stripe mais annulé en base (ou l'inverse), invisible jusqu'au prochain webhook.",
+    ou: ["server/routers/abonnements.ts", "client/src/pages/superadmin/AdminAbonnements.tsx"],
+    lecon:
+      "Vérifié directement contre la base réelle (server/routers/__tests__/abonnements-admin.test.ts, 6/6) : les compteurs actifs/expirés reflètent les statuts réels, le MRR EUR correspond exactement au montant du seul abonnement actif inséré, la liste filtrée par statut n'inclut jamais un abonnement d'un autre statut, le nom du client est bien joint depuis users, et l'historique ne renvoie que le paiement réellement lié à cet abonnement (jamais un paiement d'un autre abonnement ou d'un autre type). Vérifié en TypeScript strict. Compteur de boutons sans action : 56 → 53. npm run build vert de bout en bout.\n\nCette tâche fait partie d'un lot de reconnexion plus large (tâche #55, ~19 écrans encore fabriqués recensés par l'audit externe du 24 septembre) — traité un écran à la fois, jamais en bloc, pour permettre une vérification réelle de chacun.",
+    domaine: "confiance",
+  },
 ];
 
 /**

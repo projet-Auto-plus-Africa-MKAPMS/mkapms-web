@@ -100,14 +100,14 @@ export interface PerimetreMoteur {
 }
 
 export const MOTEURS_TOTAL = 94;
-export const MANQUES_TOTAL = 512;
+export const MANQUES_TOTAL = 509;
 export const MANQUES_PAR_GENRE: Readonly<Record<string, number>> = {
   "ecran_sans_contenu": 340,
   "dependance_non_declaree": 50,
   "sans_logique_serveur": 10,
   "sans_ecran": 8,
   "dependance_sans_preuve": 39,
-  "bouton_sans_action": 57,
+  "bouton_sans_action": 54,
   "bouton_declare_absent_ecran": 6,
   "emission_dynamique": 2
 };
@@ -14830,8 +14830,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "permission": [
         "payment-engine/router.ts filtre par rôle (procédure pro/admin/direction/PDG)",
-        "routers/installments.ts filtre par rôle (procédure pro/admin/direction/PDG)",
-        "routers/wallet.ts filtre par rôle (procédure pro/admin/direction/PDG)"
+        "routers/abonnements.ts filtre par rôle (procédure pro/admin/direction/PDG)",
+        "routers/installments.ts filtre par rôle (procédure pro/admin/direction/PDG)"
       ],
       "smart": [
         "lib/payment-errors.ts importe smart-engine/services/alert-engine.ts",
@@ -14965,11 +14965,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/superadmin/admin-abonnements"
         ],
-        "cliquables": 4,
+        "cliquables": 5,
         "parMoteur": 0,
-        "sansAction": 3,
-        "textes": 9,
-        "mots": 12
+        "sansAction": 0,
+        "textes": 10,
+        "mots": 29
       },
       {
         "fichier": "client/src/pages/superadmin/AdminBadges.tsx",
@@ -15092,6 +15092,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "adminAllPayouts",
       "adminAllWallets",
       "adminCreditWallet",
+      "adminHistory",
+      "adminList",
+      "adminStats",
       "adminUpdatePayoutStatus",
       "audit",
       "bankAccounts",
@@ -15162,25 +15165,13 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "professionnel",
       "public"
     ],
-    "textes": 207,
-    "mots": 710,
+    "textes": 208,
+    "mots": 727,
     "battement": "sonde",
     "manques": [
       {
         "genre": "ecran_sans_contenu",
         "detail": "client/src/pages/PaiementSimulation.tsx (3 texte(s))"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« (sans texte) » client/src/pages/superadmin/AdminAbonnements.tsx:31"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Gerer » client/src/pages/superadmin/AdminAbonnements.tsx:62"
-      },
-      {
-        "genre": "bouton_sans_action",
-        "detail": "« Historique » client/src/pages/superadmin/AdminAbonnements.tsx:63"
       },
       {
         "genre": "bouton_sans_action",
