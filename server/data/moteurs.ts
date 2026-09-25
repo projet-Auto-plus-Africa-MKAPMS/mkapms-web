@@ -10617,7 +10617,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "routeurs": [
       "intelligences"
     ],
-    "fichiersServeur": 79,
+    "fichiersServeur": 80,
     "dependancesDeclarees": [
       "ai_fabric",
       "code_graph",
@@ -10735,8 +10735,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "identity": [
         "intelligences/api-v1.ts importe auth.ts",
-        "intelligences/index.ts exige une session Identity (procédure protégée)",
-        "intelligences/livraisons.ts exige une session Identity (procédure protégée)"
+        "intelligences/fondations.ts exige une session Identity (procédure protégée)",
+        "intelligences/index.ts exige une session Identity (procédure protégée)"
       ],
       "livraison": [
         "estimate-gateway/gateway.ts importe routers/livraison.ts"
@@ -10753,7 +10753,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       ],
       "resilience": [
         "intelligences/actions.ts importe resilience/service.ts",
-        "intelligences/memoire.ts charge resilience/service.ts"
+        "intelligences/fondations.ts importe resilience/service.ts",
+        "intelligences/fondations.ts importe resilience/schema.ts"
       ],
       "risque_import": [
         "estimate-gateway/gateway.ts importe import-risk/service.ts"

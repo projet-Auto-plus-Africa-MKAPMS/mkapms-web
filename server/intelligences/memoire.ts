@@ -413,10 +413,15 @@ async function volumeFedere(
       case "resilience": {
         const res = await import("../resilience/service.js");
         const pipelines = await res.listPipelines(200);
-        const echoues = pipelines.filter((p) => p.status !== "reussi").length;
+        // "reussi" n'a jamais été un statut réel de rs_pipeline_runs (voir
+        // PIPELINE_STEPS/status dans resilience/service.ts : en_cours, bloque,
+        // pret_production, en_production, surveille, annule) — comparer à
+        // "reussi" comptait donc TOUS les passages comme échoués, y compris
+        // ceux surveillés avec succès. Le seul statut d'échec réel est "bloque".
+        const echoues = pipelines.filter((p) => p.status === "bloque").length;
         return {
           volume: pipelines.length,
-          motif: `${pipelines.length} passage(s) de pipeline mémorisé(s), dont ${echoues} non réussi(s) : ce sont les leçons d'échec.`,
+          motif: `${pipelines.length} passage(s) de pipeline mémorisé(s), dont ${echoues} bloqué(s) : ce sont les leçons d'échec.`,
           dernier: null,
         };
       }

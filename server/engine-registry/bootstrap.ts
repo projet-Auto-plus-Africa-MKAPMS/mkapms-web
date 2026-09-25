@@ -17,6 +17,7 @@
  */
 import { emitSafe } from "../event-bus/service.js";
 import { seedLivraisons } from "../intelligences/livraisons.js";
+import { seedFondations, seedPipelines } from "../intelligences/fondations.js";
 import { initialiserBaremes } from "../vehicle-delivery/service.js";
 import { retenir } from "../intelligences/memoire.js";
 import { notifyDirection } from "../notification-os/triggers.js";
@@ -483,6 +484,35 @@ export async function bootstrapEngines(): Promise<void> {
   } catch (err) {
     console.error(
       "[MKA.P-MS] apprentissage des livraisons échoué:",
+      (err as Error).message,
+    );
+  }
+
+  // Mémoires propres (entreprise/décisions/apprentissage) : sans ceci, ces
+  // catégories restent vides pour toujours, quel que soit le travail réel.
+  try {
+    const r = await seedFondations();
+    if (r.nouvelles > 0) {
+      console.log(`[MKA.P-MS] Intelligences : ${r.nouvelles} fondation(s) de mémoire posée(s).`);
+    }
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] pose des fondations de mémoire échouée:",
+      (err as Error).message,
+    );
+  }
+
+  // Passages de pipeline réellement vérifiés (mémoire « erreurs et solutions »,
+  // fédérée depuis server/resilience) : startPipeline()/recordPipelineStep()
+  // existaient sans jamais avoir été appelés.
+  try {
+    const r = await seedPipelines();
+    if (r.nouveaux > 0) {
+      console.log(`[MKA.P-MS] Résilience : ${r.nouveaux} passage(s) de pipeline consigné(s).`);
+    }
+  } catch (err) {
+    console.error(
+      "[MKA.P-MS] consignation des passages de pipeline échouée:",
       (err as Error).message,
     );
   }
