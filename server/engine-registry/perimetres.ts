@@ -333,8 +333,8 @@ export const PERIMETRES: PerimetreDeclare[] = [
   },
   {
     moteur: "workflow",
-    dossiers: ["modules/hr-direction.ts", "modules/operations.ts", "routers/operations.ts"],
-    routeurs: ["governance", "platform", "quality", "hr", "procurement", "investor"],
+    dossiers: ["modules/hr-direction.ts", "modules/operations.ts", "routers/operations.ts", "routers/objectifs.ts"],
+    routeurs: ["governance", "platform", "quality", "hr", "procurement", "investor", "objectifs"],
     routes: ["/operations", "/operations/*", "/superadmin/admin-general", "/superadmin/admin-objectif", "/superadmin/centre-r-h", "/superadmin/admin-employes", "/superadmin/gestion-employes-m-k-a-p-m-s", "/investisseurs/*", "/recrutement", "/recrutement/*", "/corporate", "/corporate/*", "/mission"],
   },
   {

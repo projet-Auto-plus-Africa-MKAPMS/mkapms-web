@@ -40,7 +40,7 @@ export interface AnomalieCliquable {
   readonly motif: MotifAnomalie;
 }
 
-export const CLIQUABLES_TOTAL = 2556;
+export const CLIQUABLES_TOTAL = 2555;
 
 export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/components/AccessDenied.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
@@ -618,7 +618,7 @@ export const CLIQUABLES_PAR_ECRAN: readonly EcranCliquables[] = [
   { fichier: "client/src/pages/superadmin/AdminLocation.tsx", total: 8, moteur: 0, liens: 1, boutonsLocaux: 5, sansAction: 0, zones: 2 },
   { fichier: "client/src/pages/superadmin/AdminModerationAnnonces.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminModerationAvis.tsx", total: 3, moteur: 0, liens: 1, boutonsLocaux: 2, sansAction: 0, zones: 0 },
-  { fichier: "client/src/pages/superadmin/AdminObjectif.tsx", total: 2, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 1, zones: 0 },
+  { fichier: "client/src/pages/superadmin/AdminObjectif.tsx", total: 1, moteur: 0, liens: 1, boutonsLocaux: 0, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminPaiements.tsx", total: 20, moteur: 0, liens: 1, boutonsLocaux: 12, sansAction: 1, zones: 6 },
   { fichier: "client/src/pages/superadmin/AdminPieces.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
   { fichier: "client/src/pages/superadmin/AdminSauvegardes.tsx", total: 4, moteur: 0, liens: 1, boutonsLocaux: 3, sansAction: 0, zones: 0 },
@@ -775,7 +775,6 @@ export const CLIQUABLES_ANOMALIES: readonly AnomalieCliquable[] = [
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 76, genre: "bouton", libelle: "Modifier", motif: "sans_action" },
   { fichier: "client/src/pages/ReservationRecurrente.tsx", ligne: 106, genre: "bouton", libelle: "Choisir un véhicule →", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminBadges.tsx", ligne: 36, genre: "bouton", libelle: "Gerer criteres", motif: "sans_action" },
-  { fichier: "client/src/pages/superadmin/AdminObjectif.tsx", ligne: 35, genre: "bouton", libelle: "Modifier objectif", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminPaiements.tsx", ligne: 216, genre: "bouton", libelle: "Relancer", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminStatistiques.tsx", ligne: 40, genre: "bouton", libelle: "Voir rapport complet", motif: "sans_action" },
   { fichier: "client/src/pages/superadmin/AdminUtilisateurs.tsx", ligne: 90, genre: "bouton", libelle: "(sans texte)", motif: "sans_action" },

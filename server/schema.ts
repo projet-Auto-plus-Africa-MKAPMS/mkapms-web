@@ -1020,6 +1020,20 @@ export const subscriptions = pgTable("subscriptions", {
   quotaDevisMois: integer("quota_devis_mois"),
 });
 
+/**
+ * Cible fixée par la Direction pour un indicateur de pilotage plateforme
+ * (AdminObjectif.tsx). La valeur "actuelle" n'est jamais stockée ici : elle
+ * est recalculée en direct depuis les données réelles (paiements, comptes,
+ * annonces, tickets) au moment de la lecture — jamais une estimation figée.
+ */
+export const objectifsPlateforme = pgTable("objectifs_plateforme", {
+  id: serial("id").primaryKey(),
+  cle: varchar("cle", { length: 64 }).notNull().unique(),
+  cible: numeric("cible", { precision: 14, scale: 2 }),
+  updatedBy: integer("updated_by"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const supportTickets = pgTable("support_tickets", {
   id: serial("id").primaryKey(),
   userId: integer("user_id"),
