@@ -41,14 +41,18 @@ export const productFeedItems = pgTable(
     url: varchar("url", { length: 512 }).notNull().default(""),
     imageUrl: text("image_url"),
     prix: numeric("prix", { precision: 12, scale: 2 }),
-    devise: varchar("devise", { length: 4 }).notNull().default("EUR"),
+    // Pas de défaut EUR/FR/fr (doctrine PDG v1.1, §12.1) : le service ne pose
+    // jamais une valeur par défaut ici, il lit toujours le pays/la devise
+    // réels de la boutique ou du propriétaire (parts_shops.country_code,
+    // users.country/currency) — un défaut ici referait vivre l'ancien bug.
+    devise: varchar("devise", { length: 4 }).notNull(),
     disponibilite: varchar("disponibilite", { length: 24 }).notNull().default("indisponible"),
     etat: varchar("etat", { length: 24 }).notNull().default("neuf"),
     marque: varchar("marque", { length: 128 }),
     gtin: varchar("gtin", { length: 32 }),
     mpn: varchar("mpn", { length: 64 }),
-    pays: varchar("pays", { length: 8 }).notNull().default("FR"),
-    langue: varchar("langue", { length: 16 }).notNull().default("fr"),
+    pays: varchar("pays", { length: 8 }).notNull(),
+    langue: varchar("langue", { length: 16 }).notNull(),
     categorie: varchar("categorie", { length: 160 }),
     // Éligibilité aux fiches gratuites Merchant Center (point 94).
     eligible: boolean("eligible").notNull().default(false),

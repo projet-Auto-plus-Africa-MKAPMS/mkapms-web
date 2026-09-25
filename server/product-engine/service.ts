@@ -24,6 +24,7 @@ import {
   productSyncEvents,
 } from "./schema.js";
 import { annonces } from "../schema.js";
+import { getCountry } from "../country-os/index.js";
 import {
   empreinte,
   evaluerEligibilite,
@@ -55,6 +56,16 @@ export const MAILLON_LABELS: Record<Maillon, string> = {
   social: "Réseaux sociaux",
   systeme_intelligent: "Système Intelligent",
 };
+
+/**
+ * Langue par défaut du pays réel de la fiche, via le Country OS déjà
+ * construit (doctrine PDG v1.1, §12.1 : jamais de "fr" en dur ignorant le
+ * pays réel). Repli sur "fr" uniquement si le pays est inconnu du registre.
+ */
+async function langueDe(pays: string): Promise<string> {
+  const c = await getCountry(pays).catch(() => null);
+  return c?.defaultLanguage ?? "fr";
+}
 
 function baseUrl(): string {
   return (env.PUBLIC_URL || "").replace(/\/+$/, "");
@@ -110,38 +121,45 @@ async function candidatsBoutique(limit: number): Promise<ProduitCandidat[]> {
     const r = await db.execute(sql`
       SELECT c.id, c.nom, c.description, c.reference_interne, c.reference_oem,
              c.code_barre, c.categorie, c.marque_piece, c.condition, c.prix_ttc,
-             c.prix_ht, c.currency, c.photo_url, c.active,
+             c.prix_ht, c.currency, c.photo_url, c.active, ps.country_code AS shop_pays,
              COALESCE(SUM(s.quantite - s.quantite_reservee), 0) AS dispo
         FROM parts_catalog c
    LEFT JOIN parts_stock s ON s.catalog_id = c.id
+   LEFT JOIN parts_shops ps ON ps.id = c.shop_id
        WHERE c.active = true
-    GROUP BY c.id
+    GROUP BY c.id, ps.country_code
     ORDER BY c.updated_at DESC
        LIMIT ${limit}
     `);
     const rows = (r as unknown as { rows?: Record<string, unknown>[] }).rows ?? [];
-    return rows.map((row) => {
-      const dispo = Number(row.dispo ?? 0);
-      const prix = (row.prix_ttc ?? row.prix_ht ?? null) as string | null;
-      return {
-        source: "parts_catalog",
-        sourceId: Number(row.id),
-        titre: String(row.nom ?? ""),
-        description: String(row.description ?? ""),
-        url: base ? `${base}/pieces/${row.id}` : "",
-        imageUrl: (row.photo_url as string | null) ?? null,
-        prix: prix ? String(prix) : null,
-        devise: String(row.currency ?? "EUR"),
-        disponibilite: dispo > 0 ? "en_stock" : "indisponible",
-        etat: String(row.condition ?? "neuf"),
-        marque: (row.marque_piece as string | null) ?? null,
-        gtin: (row.code_barre as string | null) ?? null,
-        mpn: (row.reference_oem as string | null) ?? (row.reference_interne as string | null) ?? null,
-        pays: "FR",
-        langue: "fr",
-        categorie: (row.categorie as string | null) ?? null,
-      } satisfies ProduitCandidat;
-    });
+    return await Promise.all(
+      rows.map(async (row) => {
+        const dispo = Number(row.dispo ?? 0);
+        const prix = (row.prix_ttc ?? row.prix_ht ?? null) as string | null;
+        // Pays réel de la boutique qui vend la pièce (parts_shops.country_code) —
+        // jamais "FR" en dur (doctrine PDG v1.1, §12.1) ; la langue en découle
+        // via le Country OS.
+        const pays = String(row.shop_pays ?? "FR");
+        return {
+          source: "parts_catalog",
+          sourceId: Number(row.id),
+          titre: String(row.nom ?? ""),
+          description: String(row.description ?? ""),
+          url: base ? `${base}/pieces/${row.id}` : "",
+          imageUrl: (row.photo_url as string | null) ?? null,
+          prix: prix ? String(prix) : null,
+          devise: String(row.currency ?? "EUR"),
+          disponibilite: dispo > 0 ? "en_stock" : "indisponible",
+          etat: String(row.condition ?? "neuf"),
+          marque: (row.marque_piece as string | null) ?? null,
+          gtin: (row.code_barre as string | null) ?? null,
+          mpn: (row.reference_oem as string | null) ?? (row.reference_interne as string | null) ?? null,
+          pays,
+          langue: await langueDe(pays),
+          categorie: (row.categorie as string | null) ?? null,
+        } satisfies ProduitCandidat;
+      }),
+    );
   } catch {
     return [];
   }
@@ -153,31 +171,40 @@ async function candidatsInventaire(limit: number): Promise<ProduitCandidat[]> {
   const base = baseUrl();
   try {
     const r = await db.execute(sql`
-      SELECT id, reference, designation, description, prix_vente, stock
-        FROM pieces
-       WHERE prix_vente IS NOT NULL
-    ORDER BY updated_at DESC
+      SELECT p.id, p.reference, p.designation, p.description, p.prix_vente, p.stock,
+             u.country AS owner_pays, u.currency AS owner_devise
+        FROM pieces p
+   LEFT JOIN users u ON u.id = p.owner_id
+       WHERE p.prix_vente IS NOT NULL
+    ORDER BY p.updated_at DESC
        LIMIT ${limit}
     `);
     const rows = (r as unknown as { rows?: Record<string, unknown>[] }).rows ?? [];
-    return rows.map((row) => ({
-      source: "pieces",
-      sourceId: Number(row.id),
-      titre: String(row.designation ?? ""),
-      description: String(row.description ?? ""),
-      url: base ? `${base}/pieces/inventaire/${row.id}` : "",
-      imageUrl: null,
-      prix: row.prix_vente ? String(row.prix_vente) : null,
-      devise: "EUR",
-      disponibilite: Number(row.stock ?? 0) > 0 ? "en_stock" : "indisponible",
-      etat: "neuf",
-      marque: null,
-      gtin: null,
-      mpn: (row.reference as string | null) ?? null,
-      pays: "FR",
-      langue: "fr",
-      categorie: null,
-    }));
+    return await Promise.all(
+      rows.map(async (row) => {
+        // Pays/devise réels du propriétaire de la pièce (users.country/currency) —
+        // jamais "FR"/"EUR" en dur (doctrine PDG v1.1, §12.1).
+        const pays = String(row.owner_pays ?? "FR");
+        return {
+          source: "pieces",
+          sourceId: Number(row.id),
+          titre: String(row.designation ?? ""),
+          description: String(row.description ?? ""),
+          url: base ? `${base}/pieces/inventaire/${row.id}` : "",
+          imageUrl: null,
+          prix: row.prix_vente ? String(row.prix_vente) : null,
+          devise: String(row.owner_devise ?? "EUR"),
+          disponibilite: Number(row.stock ?? 0) > 0 ? "en_stock" : "indisponible",
+          etat: "neuf",
+          marque: null,
+          gtin: null,
+          mpn: (row.reference as string | null) ?? null,
+          pays,
+          langue: await langueDe(pays),
+          categorie: null,
+        } satisfies ProduitCandidat;
+      }),
+    );
   } catch {
     return [];
   }
