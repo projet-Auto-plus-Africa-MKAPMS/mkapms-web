@@ -208,7 +208,7 @@ export const PERIMETRES: PerimetreDeclare[] = [
     moteur: "monitoring",
     dossiers: ["monitoring-os"],
     routeurs: ["monitoringOs"],
-    routes: ["/superadmin/admin-statistiques"],
+    routes: [],
   },
   {
     moteur: "audit",
@@ -339,9 +339,9 @@ export const PERIMETRES: PerimetreDeclare[] = [
   },
   {
     moteur: "analytics",
-    dossiers: ["modules/history.ts", "routers/historique.ts"],
-    routeurs: ["historique"],
-    routes: ["/historique", "/historique-consultations"],
+    dossiers: ["modules/history.ts", "routers/historique.ts", "routers/statistiques.ts"],
+    routeurs: ["historique", "statistiques"],
+    routes: ["/historique", "/historique-consultations", "/superadmin/admin-statistiques"],
   },
   // ── Paiement & finance ─────────────────────────────────────────────────
   {
