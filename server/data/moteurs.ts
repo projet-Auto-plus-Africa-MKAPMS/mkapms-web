@@ -936,13 +936,6 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         ]
       },
       {
-        "fichier": "client/src/pages/ListeAttente.tsx",
-        "route": "/louer/liste-attente",
-        "composants": [
-          "components/ReserverLocationButton.tsx"
-        ]
-      },
-      {
         "fichier": "client/src/pages/EtatVehicule.tsx",
         "route": "/louer/etats-vehicule",
         "composants": [
@@ -6730,7 +6723,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "vehicle_availability_subscriptions",
       "vehicule_dossiers",
       "vehicule_historique",
-      "vehicules"
+      "vehicules",
+      "waitlist_entries"
     ],
     "acces": [
       "admin",
@@ -11973,15 +11967,17 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "etatDeclare": "active",
     "dossiers": [
       "routers/rentalApplications.ts",
-      "routers/rentalContracts.ts"
+      "routers/rentalContracts.ts",
+      "routers/waitlist.ts"
     ],
     "routeurs": [
       "lavage",
       "karting",
       "rentalApplications",
-      "rentalContracts"
+      "rentalContracts",
+      "waitlist"
     ],
-    "fichiersServeur": 2,
+    "fichiersServeur": 3,
     "dependancesDeclarees": [
       "achat",
       "core",
@@ -12015,7 +12011,7 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "achat": [
         "client/src/pages/CentrePenalites.tsx appelle trpc.reservations",
         "client/src/pages/Favoris.tsx appelle trpc.favoris",
-        "client/src/pages/ListeAttente.tsx embarque components/ReserverLocationButton.tsx (trpc.reservations)"
+        "client/src/pages/LocationCamions.tsx appelle trpc.annonces"
       ],
       "core": [
         "routers/rentalApplications.ts importe trpc.ts",
@@ -12152,8 +12148,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "cliquables": 3,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 17,
-        "mots": 86
+        "textes": 13,
+        "mots": 63
       },
       {
         "fichier": "client/src/pages/LocationCamions.tsx",
@@ -12240,11 +12236,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
           "/louer/mkapms/vehicule/:id",
           "/louer/utilitaires/vehicule/:id"
         ],
-        "cliquables": 8,
+        "cliquables": 9,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 110,
-        "mots": 478
+        "textes": 112,
+        "mots": 487
       },
       {
         "fichier": "client/src/pages/ProduitVtcTaxi.tsx",
@@ -12403,10 +12399,12 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       }
     ],
     "procedures": [
+      "cancel",
       "create",
       "createContract",
       "decide",
       "detail",
+      "join",
       "list",
       "mine",
       "myContracts",
@@ -12420,8 +12418,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
       "admin",
       "connecte"
     ],
-    "textes": 799,
-    "mots": 2808,
+    "textes": 797,
+    "mots": 2794,
     "battement": "sonde",
     "manques": [
       {
@@ -12611,9 +12609,9 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "client/src/pages/LocationPro.tsx embarque lib/currency.tsx (trpc.currency)"
       ],
       "location": [
+        "client/src/pages/ProduitLocation.tsx appelle trpc.waitlist",
         "client/src/pages/RenouvellementFlotte.tsx appelle trpc.rentalContracts",
-        "client/src/pages/TableauBordLoueur.tsx appelle trpc.rentalContracts",
-        "client/src/pages/location/CandidatureLocationFlotte.tsx appelle trpc.rentalApplications"
+        "client/src/pages/TableauBordLoueur.tsx appelle trpc.rentalContracts"
       ]
     },
     "dependants": [],
@@ -12690,11 +12688,11 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
         "routes": [
           "/louer/pro/vehicule/:id"
         ],
-        "cliquables": 8,
+        "cliquables": 9,
         "parMoteur": 0,
         "sansAction": 0,
-        "textes": 110,
-        "mots": 478
+        "textes": 112,
+        "mots": 487
       },
       {
         "fichier": "client/src/pages/RenouvellementFlotte.tsx",
@@ -12855,8 +12853,8 @@ export const MOTEURS: readonly PerimetreMoteur[] = [
     "procedures": [],
     "tables": [],
     "acces": [],
-    "textes": 340,
-    "mots": 1391,
+    "textes": 342,
+    "mots": 1400,
     "battement": "sonde",
     "manques": [
       {

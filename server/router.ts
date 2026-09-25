@@ -12,6 +12,7 @@ import { rentalContractsRouter } from "./routers/rentalContracts.js";
 import { objectifsRouter } from "./routers/objectifs.js";
 import { badgesRouter } from "./routers/badges.js";
 import { statistiquesRouter } from "./routers/statistiques.js";
+import { waitlistRouter } from "./routers/waitlist.js";
 import { messagesRouter } from "./routers/messages.js";
 import { metaRouter } from "./routers/meta.js";
 import { adminRouter } from "./routers/admin.js";
@@ -161,6 +162,7 @@ export const appRouter = router({
   objectifs: objectifsRouter,
   badges: badgesRouter,
   statistiques: statistiquesRouter,
+  waitlist: waitlistRouter,
   messages: messagesRouter,
   meta: metaRouter,
   admin: adminRouter,

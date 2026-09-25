@@ -476,8 +476,8 @@ export const PERIMETRES: PerimetreDeclare[] = [
     // caution incluse) mais aucun routeur ne le touchait. Réutilisé tel
     // quel par routers/rentalApplications.ts, jamais une seconde table.
     moteur: "location",
-    dossiers: ["routers/rentalApplications.ts", "routers/rentalContracts.ts"],
-    routeurs: ["lavage", "karting", "rentalApplications", "rentalContracts"],
+    dossiers: ["routers/rentalApplications.ts", "routers/rentalContracts.ts", "routers/waitlist.ts"],
+    routeurs: ["lavage", "karting", "rentalApplications", "rentalContracts", "waitlist"],
     routes: ["/location/:slug", "/location/mes-candidatures", "/louer", "/louer/vtc-taxi", "/louer/vtc-taxi/*", "/louer/camions", "/louer/camions/*", "/louer/minibus", "/louer/minibus/*", "/louer/utilitaires", "/louer/utilitaires/*", "/louer/mkapms", "/louer/mkapms/*", "/louer/loa", "/louer/comparateur", "/louer/favoris", "/louer/historique", "/louer/calendrier", "/louer/liste-attente", "/louer/penalites", "/louer/remplacement", "/louer/renouvellement", "/louer/multi-vehicules", "/louer/reservations-recurrentes", "/louer/score-confiance", "/louer/programme-vtc", "/superadmin/admin-location", "/vtc-taxi", "/location-*"],
   },
   {

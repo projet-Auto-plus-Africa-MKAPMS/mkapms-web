@@ -1060,6 +1060,25 @@ export const badgeAttributions = pgTable("badge_attributions", {
   awardedAt: timestamp("awarded_at").notNull().defaultNow(),
 });
 
+export const waitlistStatusEnum = pgEnum("waitlist_status", ["en_attente", "annule"]);
+
+/**
+ * Liste d'attente (ListeAttente.tsx) — aucun moteur n'existait avant. La
+ * position affichée est toujours recalculée en direct (rang réel parmi les
+ * inscriptions "en_attente" antérieures sur la même annonce), jamais stockée
+ * ni devinée. Le statut "disponible" du mock d'origine n'a pas d'équivalent
+ * réel : aucune annonce de location n'est jamais marquée "louee" par le code
+ * actuel (aucun moteur de verrou de disponibilité/calendrier n'existe — tâches
+ * #44/#56), donc aucune transition automatique n'est fabriquée ici.
+ */
+export const waitlistEntries = pgTable("waitlist_entries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  annonceId: integer("annonce_id").notNull(),
+  status: waitlistStatusEnum("status").notNull().default("en_attente"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const supportTickets = pgTable("support_tickets", {
   id: serial("id").primaryKey(),
   userId: integer("user_id"),
